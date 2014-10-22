@@ -71,7 +71,7 @@ int TextStream::initialize(const char * name, HyPerCol * hc) {
       filename = strdup(filename);
       assert(filename!=NULL );
 
-      fileStream = PV_fopen(filename, "r");
+      fileStream = PV_fopen(filename, "r", false/*verifyWrites*/);
       if( fileStream->fp == NULL ) {
          fprintf(stderr, "TextStream::initialize error opening \"%s\": %s\n", filename, strerror(errno));
          status = PV_FAILURE;

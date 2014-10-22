@@ -81,7 +81,7 @@ int TrainingLayer::allocateDataStructures() {
 }
 
 int TrainingLayer::readTrainingLabels(const char * filename, int ** trainingLabelsFromFile) {
-   PV_Stream * instream = PV_fopen(filename, "r");
+   PV_Stream * instream = PV_fopen(filename, "r", false/*verifyWrites*/);
    if( instream == NULL ) {
       fprintf( stderr, "TrainingLayer error opening \"%s\": %s\n", filename, strerror(errno) );
       *trainingLabelsFromFile = NULL;

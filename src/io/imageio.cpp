@@ -97,7 +97,7 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
 #endif // DEBUG_OUTPUT
 
    PV_Stream * pvstream = NULL;
-   if (comm->commRank()==0) { pvstream = PV::PV_fopen(filename, "rb"); }
+   if (comm->commRank()==0) { pvstream = PV::PV_fopen(filename, "rb", false/*verifyWrites*/); }
    int numParams = NUM_PAR_BYTE_PARAMS;
    int params[numParams];
    pvp_read_header(pvstream, comm, params, &numParams);
@@ -273,7 +273,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 
 
 int gatherImageFile(const char * filename,
-                    PV::Communicator * comm, const PVLayerLoc * loc, pvdata_t * pvdata_buf){
+                    PV::Communicator * comm, const PVLayerLoc * loc, pvdata_t * pvdata_buf, bool verifyWrites){
    unsigned char * char_buf;
    const int numItems = loc->nx * loc->ny * loc->nf;
    char_buf = (unsigned char *) calloc(numItems, sizeof(unsigned char));
@@ -291,22 +291,22 @@ int gatherImageFile(const char * filename,
    for (int i = 0; i < numItems; i++) {
       char_buf[i] = 255 * ( pvdata_buf[i] - min_buf ) / range_buf;
    }
-   int status = gatherImageFile(filename, comm, loc, char_buf);
+   int status = gatherImageFile(filename, comm, loc, char_buf, verifyWrites);
    free(char_buf);
    return status;
 }
 
 int gatherImageFile(const char * filename,
-                    PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf)
+                    PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites)
 {
    if (getFileType(filename) == PVP_FILE_TYPE) {
-      return gatherImageFilePVP(filename, comm, loc, buf);
+      return gatherImageFilePVP(filename, comm, loc, buf, verifyWrites);
    }
-   return gatherImageFileGDAL(filename, comm, loc, buf);
+   return gatherImageFileGDAL(filename, comm, loc, buf, verifyWrites);
 }
 
 int gatherImageFilePVP(const char * filename,
-                       PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf)
+                       PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites)
 {
    int status = PV_SUCCESS;
    int rootproc = 0;
@@ -314,7 +314,7 @@ int gatherImageFilePVP(const char * filename,
 
    PV_Stream * pvstream = NULL;
    if (rank==rootproc) {
-      pvstream = PV::PV_fopen(filename, "wb");
+      pvstream = PV::PV_fopen(filename, "wb", verifyWrites);
       if (pvstream==NULL) {
          fprintf(stderr, "gatherImageFilePVP error opening \"%s\" for writing.\n", filename);
          abort();
@@ -358,8 +358,13 @@ int gatherImageFilePVP(const char * filename,
 }
 
 int gatherImageFileGDAL(const char * filename,
-                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf)
+                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites)
 {
+   if (verifyWrites && comm->commRank()==0) {
+      fprintf(stderr, "Warning: gatherImageFileGDAL called for \"%s\" with verifyWrites set to true.\n", filename);
+      fprintf(stderr, "Readback has not been implemented for this function.\n");
+   }
+
    int status = 0;
 
 #ifdef PV_USE_GDAL

@@ -2796,7 +2796,7 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    if (filename != NULL) {
       char outfile[PV_PATH_MAX];
       snprintf(outfile, PV_PATH_MAX-1, "%s/%s", parent->getOutputPath(), filename);
-      pvstream = PV_fopen(outfile, "w");
+      pvstream = PV_fopen(outfile, "w", parent->getVerifyWrites());
    }
    else {
       pvstream = PV_stdout();

@@ -46,8 +46,9 @@ int PVPFile::initialize(const char * path, enum PVPFileMode mode, int pvpfileTyp
 }
 
 int PVPFile::initfile(const char * path, enum PVPFileMode mode, InterColComm * icComm) {
-      int status = PV_SUCCESS;
+   int status = PV_SUCCESS;
    const char * fopenmode = NULL;
+   bool verifyWrites = false;
    errno = 0;
    switch(mode) {
    case PVPFILE_READ:
@@ -55,6 +56,10 @@ int PVPFile::initfile(const char * path, enum PVPFileMode mode, InterColComm * i
       break;
    case PVPFILE_WRITE:
       fopenmode = "w";
+      break;
+   case PVPFILE_WRITE_READBACK:
+      fopenmode = "w";
+      verifyWrites = true;
       break;
    case PVPFILE_APPEND:
       fopenmode = "r+";
@@ -66,7 +71,7 @@ int PVPFile::initfile(const char * path, enum PVPFileMode mode, InterColComm * i
              if (errno == ENOENT) {
                 // If file doesn't exist, create it and close it.
                 errno = 0;
-                stream = PV_fopen(path, "w");
+                stream = PV_fopen(path, "w", false/*verifyWrites*/);
                 if (stream != NULL) {
                    status = PV_fclose(stream);
                 }
@@ -79,7 +84,7 @@ int PVPFile::initfile(const char * path, enum PVPFileMode mode, InterColComm * i
       break;
    }
    if (isRoot() && status==PV_SUCCESS) {
-      stream = PV_fopen(path, fopenmode);
+      stream = PV_fopen(path, fopenmode, verifyWrites);
    }
    MPI_Bcast(&errno, 1, MPI_INT, rootProc(), icComm->communicator());
    status = errno ? PV_FAILURE : PV_SUCCESS;

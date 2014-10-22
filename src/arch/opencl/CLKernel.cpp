@@ -461,7 +461,7 @@ load_program_source(const char *filename)
     char * source;
     size_t count;
 
-    PV_Stream * pvstream = PV_fopen(filename, "r"); // TODO Only root process should read file and then broadcast to other processes
+    PV_Stream * pvstream = PV_fopen(filename, "r", false/*verifyWrites*/); // TODO Only root process should read file and then broadcast to other processes
     if (pvstream == 0) {
        fprintf(stderr, "Failed to find source for file %s\n", filename);
        return NULL;

@@ -88,7 +88,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc) {
       //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
       if (parent->columnId()==0) {
          printf("write position to %s\n",file_name);
-         patternsFile = PV_fopen(file_name,"a");
+         patternsFile = PV_fopen(file_name,"a",parent->getVerifyWrites());
          if(patternsFile == NULL) {
             fprintf(stderr, "Patterns layer \"%s\" unable to open \"%s\" for writing: error %s\n", name, file_name, strerror(errno));
             abort();
@@ -1057,7 +1057,7 @@ int Patterns::readPatternStateFromCheckpoint(const char * cpDir) {
    int status = PV_SUCCESS;
    if( parent->columnId() == 0 ) {
       char * filename = parent->pathInCheckpoint(cpDir, getName(), "_PatternState.bin");
-      PV_Stream * pvstream = PV_fopen(filename, "r");
+      PV_Stream * pvstream = PV_fopen(filename, "r", false/*verifyWrites*/);
       if( pvstream != NULL ) {
          status = PV_fread(&type, sizeof(PatternType), 1, pvstream) == 1 ? status : PV_FAILURE;
          status = PV_fread(&patternRandState, sizeof(uint4), 1, pvstream) == 1 ? status : PV_FAILURE;
@@ -1155,7 +1155,7 @@ int Patterns::checkpointWrite(const char * cpDir) {
 
    sprintf(filename, "%s/%s_PatternState.bin", cpDir, name);
    if( icComm->commRank() == 0 ) {
-      PV_Stream * pvstream = PV_fopen(filename, "w");
+      PV_Stream * pvstream = PV_fopen(filename, "w", parent->getVerifyWrites());
       int size = vDrops.size();
       if( pvstream != NULL ) {
          status = PV_fwrite(&type, sizeof(PatternType), 1, pvstream) == 1 ? status : PV_FAILURE;
@@ -1184,7 +1184,7 @@ int Patterns::checkpointWrite(const char * cpDir) {
          exit(EXIT_FAILURE);
       }
       sprintf(filename, "%s/%s_PatternState.txt", cpDir, name);
-      pvstream = PV_fopen(filename, "w");
+      pvstream = PV_fopen(filename, "w", parent->getVerifyWrites());
       fprintf(pvstream->fp, "Orientation = ");
       switch(orientation) {
       case horizontal:

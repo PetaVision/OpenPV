@@ -505,7 +505,7 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
                //int percent = 0;
                //long frameStart;
                //long count;
-               //posstream = PV_fopen(posFilename, "w");
+               //posstream = PV_fopen(posFilename, "w", parent->getVerifyWrites());
                //assert(posstream);
                //for (i = 0; i<params[INDEX_NBANDS]; i++) {
                //   int newpercent = 100*(float(i)/params[INDEX_NBANDS]);
@@ -532,7 +532,7 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
 
                //PV_fclose(posstream);
             //}
-            //posstream = PV_fopen(posFilename, "r");
+            //posstream = PV_fopen(posFilename, "r", false/*verifyWrites*/);
             //assert(posstream);
             ////So we don't have to calculate frameStart and count again
             //needFrameSizesForSpiking = false;
@@ -886,7 +886,7 @@ int Image::allocateDataStructures() {
             abort();
          }
          printf("Image layer \"%s\" will write jitter positions to %s\n",getName(), file_name);
-         fp_pos = PV_fopen(file_name,"w");
+         fp_pos = PV_fopen(file_name,"w",parent->getVerifyWrites());
          if(fp_pos == NULL) {
             fprintf(stderr, "Image \"%s\" unable to open file \"%s\" for writing jitter positions.\n", getName(), file_name);
             abort();
@@ -1242,7 +1242,7 @@ int Image::write(const char * filename)
    status = copyToInteriorBuffer(buf, 255.0);
 
    // gather the local portions and write the image
-   status = gatherImageFile(filename, parent->icCommunicator(), loc, buf);
+   status = gatherImageFile(filename, parent->icCommunicator(), loc, buf, parent->getVerifyWrites());
 
    delete buf;
 

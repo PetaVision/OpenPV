@@ -137,7 +137,7 @@ int BaseProbe::initOutputStream(const char * filename) {
          sprintf(path, "%s/%s", outputdir, filename);
          bool append = parent->getCheckpointReadFlag();
          const char * fopenstring = append ? "a" : "w";
-         outputstream = PV_fopen(path, fopenstring);
+         outputstream = PV_fopen(path, fopenstring, parent->getVerifyWrites());
          if( !outputstream ) {
             fprintf(stderr, "BaseProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
             exit(EXIT_FAILURE);

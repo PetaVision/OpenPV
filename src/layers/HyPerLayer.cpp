@@ -1053,7 +1053,7 @@ int HyPerLayer::openOutputStateFile() {
       }
    }
    if (ioAppend && parent->columnId()==rootproc) {
-      PV_Stream * pvstream = PV_fopen(filename,"r");
+      PV_Stream * pvstream = PV_fopen(filename,"r",false/*verifyWrites*/);
       if (pvstream) {
          int params[NUM_BIN_PARAMS];
          int numread = PV_fread(params, sizeof(int), NUM_BIN_PARAMS, pvstream);

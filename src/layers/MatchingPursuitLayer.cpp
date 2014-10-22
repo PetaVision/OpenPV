@@ -118,7 +118,7 @@ int MatchingPursuitLayer::openPursuitFile() {
          memcpy(tracePath, traceFileName, tracePathLen);
          tracePath[tracePathLen] = '\0';
       }
-      traceFile = PV_fopen(tracePath, "w");
+      traceFile = PV_fopen(tracePath, "w", parent->getVerifyWrites());
       free(tracePath); tracePath = NULL;
    }
    else {
@@ -156,7 +156,7 @@ int MatchingPursuitLayer::openPursuitFile() {
 
    if (traceFileName!=NULL && parent->columnId()==0) {
       assert(traceFileName[0] != '\0');
-      traceFile = PV_fopen(traceFileName,"w");
+      traceFile = PV_fopen(traceFileName,"w",parent->getVerifyWrites());
       if (traceFile==NULL) abort();
    }
    else {

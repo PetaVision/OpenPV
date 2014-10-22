@@ -201,6 +201,7 @@ int HyPerCol::initialize_base() {
    errorOnNotANumber = false;
    numThreads = 1;
    recvLayerBuffer.clear();
+   verifyWrites = false;
 
    return PV_SUCCESS;
 }
@@ -510,6 +511,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_stopTime(ioFlag);
    ioParam_progressInterval(ioFlag);
    ioParam_writeProgressToErr(ioFlag);
+   ioParam_verifyWrites(ioFlag);
    ioParam_outputPath(ioFlag);
    ioParam_printParamsFilename(ioFlag);
    ioParam_randomSeed(ioFlag);
@@ -742,6 +744,10 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "writeProgressToErr", &writeProgressToErr, writeProgressToErr);
+}
+
+void HyPerCol::ioParam_verifyWrites(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "verifyWrites", &verifyWrites, verifyWrites);
 }
 
 void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
@@ -1884,7 +1890,7 @@ int HyPerCol::checkpointRead(const char * cpDir) {
          fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", cpDir);
          abort();
       }
-      PV_Stream * timestampfile = PV_fopen(timestamppath,"r");
+      PV_Stream * timestampfile = PV_fopen(timestamppath,"r",false/*verifyWrites*/);
       if (timestampfile == NULL) {
          fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
          abort();
@@ -1925,7 +1931,7 @@ int HyPerCol::checkpointRead(const char * cpDir) {
             fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", cpDir);
             abort();
          }
-         PV_Stream * timescalefile = PV_fopen(timescalepath,"r");
+         PV_Stream * timescalefile = PV_fopen(timescalepath,"r",false/*verifyWrites*/);
          if (timescalefile == NULL) {
             fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
             fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", timescale.timeScale, timescale.timeScaleTrue);
@@ -2025,7 +2031,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       timerpathstring += "/";
       timerpathstring += "timers.txt";
       const char * timerpath = timerpathstring.c_str();
-      PV_Stream * timerstream = PV_fopen(timerpath, "w");
+      PV_Stream * timerstream = PV_fopen(timerpath, "w", getVerifyWrites());
       if (timerstream==NULL) {
          fprintf(stderr, "Unable to open \"%s\" for checkpointing timer information: %s\n", timerpath, strerror(errno));
          exit(EXIT_FAILURE);
@@ -2040,7 +2046,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       char timescalepath[PV_PATH_MAX];
       int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", cpDir);
       assert(chars_needed < PV_PATH_MAX);
-      PV_Stream * timescalefile = PV_fopen(timescalepath,"w");
+      PV_Stream * timescalefile = PV_fopen(timescalepath,"w", getVerifyWrites());
       assert(timescalefile);
       if (PV_fwrite(&timeScale,1,sizeof(double),timescalefile) != sizeof(double)) {
          fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScale to %s\n", timescalefile->name);
@@ -2053,7 +2059,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       PV_fclose(timescalefile);
       chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.txt", cpDir);
       assert(chars_needed < PV_PATH_MAX);
-      timescalefile = PV_fopen(timescalepath,"w");
+      timescalefile = PV_fopen(timescalepath,"w", getVerifyWrites());
       assert(timescalefile);
       fprintf(timescalefile->fp,"time = %g\n", timeScale);
       fprintf(timescalefile->fp,"timeScaleTrue = %g\n", timeScaleTrue);
@@ -2065,14 +2071,14 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       char timestamppath[PV_PATH_MAX];
       int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
       assert(chars_needed < PV_PATH_MAX);
-      PV_Stream * timestampfile = PV_fopen(timestamppath,"w");
+      PV_Stream * timestampfile = PV_fopen(timestamppath,"w", getVerifyWrites());
       assert(timestampfile);
       PV_fwrite(&simTime,1,sizeof(double),timestampfile);
       PV_fwrite(&currentStep,1,sizeof(long int),timestampfile);
       PV_fclose(timestampfile);
       chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.txt", cpDir);
       assert(chars_needed < PV_PATH_MAX);
-      timestampfile = PV_fopen(timestamppath,"w");
+      timestampfile = PV_fopen(timestamppath,"w", getVerifyWrites());
       assert(timestampfile);
       fprintf(timestampfile->fp,"time = %g\n", simTime);
       fprintf(timestampfile->fp,"timestep = %ld\n", currentStep);
@@ -2134,7 +2140,7 @@ int HyPerCol::outputParams() {
          fprintf(stderr, "printParamsFilename gives too long a filename.  Parameters will not be printed.\n");
       }
       else {
-         printParamsStream = PV_fopen(printParamsPath, "w");
+         printParamsStream = PV_fopen(printParamsPath, "w", getVerifyWrites());
          if( printParamsStream == NULL ) {
             status = errno;
             fprintf(stderr, "outputParams error opening \"%s\" for writing: %s\n", printParamsPath, strerror(errno));
@@ -2411,7 +2417,7 @@ int HyPerCol::writeScalarToFile(const char * cp_dir, const char * group_name, co
          fprintf(stderr, "writeScalarToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
          abort();
       }
-      PV_Stream * pvstream = PV_fopen(filename, "w");
+      PV_Stream * pvstream = PV_fopen(filename, "w", getVerifyWrites());
       if (pvstream==NULL) {
          fprintf(stderr, "writeScalarToFile error: unable to open path %s for writing.\n", filename);
          abort();
@@ -2453,7 +2459,7 @@ int HyPerCol::readScalarFromFile(const char * cp_dir, const char * group_name, c
          fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
          abort();
       }
-      PV_Stream * pvstream = PV_fopen(filename, "r");
+      PV_Stream * pvstream = PV_fopen(filename, "r", getVerifyWrites());
       *val = default_value;
       if (pvstream==NULL) {
          std::cerr << "readScalarFromFile warning: unable to open path \"" << filename << "\" for reading.  Value used will be " << *val;

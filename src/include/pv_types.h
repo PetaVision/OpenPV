@@ -71,6 +71,7 @@ typedef struct PV_Stream_ {
    long   filepos;
    long   filelength;
    int    isfile; /* True or false, tells whether stream corresponds to a file */
+   int    verifyWrites; /* True or false, if true, calls to PV_fwrite will do a readback check.  */
 } PV_Stream;
 
 typedef enum {

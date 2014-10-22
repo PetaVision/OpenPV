@@ -12,7 +12,7 @@
 
 static PV_Stream *
 pv_tiff_open_frame(const char * filename,
-                   const PVLayerLoc * loc, pvdata_t ** imageBuf, long * nextFrame);
+                   const PVLayerLoc * loc, pvdata_t ** imageBuf, long * nextFrame, bool verifyWrites);
 
 static int
 pv_tiff_close_frame(PV_Stream * pvstream, pvdata_t * imageBuf, long nextFrame);
@@ -62,8 +62,8 @@ int ActivityProbe::initialize(const char * probeName, HyPerCol * hc) {
    return LayerProbe::initialize(probeName, hc);
 }
 
-int ActivityProbe::initOutputStream(const char * filename) {
-   outputstream = pv_tiff_open_frame(filename, getTargetLayer()->getLayerLoc(), &outBuf, &outFrame);
+int ActivityProbe::initOutputStream(const char * filename, bool verifyWrites) {
+   outputstream = pv_tiff_open_frame(filename, getTargetLayer()->getLayerLoc(), &outBuf, &outFrame, verifyWrites);
    return PV_SUCCESS;
 }
 
@@ -94,12 +94,12 @@ pv_tiff_close_frame(PV_Stream * pvstream, pvdata_t * imageBuf, long nextLoc)
 }
 
 static PV_Stream *
-pv_tiff_open_frame(const char * filename, const PVLayerLoc * loc, pvdata_t ** imageBuf, long * nextLoc)
+pv_tiff_open_frame(const char * filename, const PVLayerLoc * loc, pvdata_t ** imageBuf, long * nextLoc, bool verifyWrites)
 {
    pvdata_t * buf = (pvdata_t *) malloc(loc->nx * loc->ny * loc->nf * sizeof(pvdata_t));
    *imageBuf = buf;
 
-   PV_Stream * pvstream = PV::PV_fopen(filename, "wb");
+   PV_Stream * pvstream = PV::PV_fopen(filename, "wb", verifyWrites);
    if (pvstream == NULL) {
       fprintf(stderr, "pv_tiff_open_frame_cube: ERROR opening file %s\n", filename);
       return pvstream;

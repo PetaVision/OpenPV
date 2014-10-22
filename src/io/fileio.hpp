@@ -36,13 +36,13 @@ double timeFromParams(void * params);
 
 size_t pv_sizeof(int datatype);
 
-PV_Stream * PV_fopen(const char * path, const char * mode);
+PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites);
 int PV_stat(const char * path, struct stat * buf);
 long int getPV_StreamFilepos(PV_Stream * pvstream);
 long int updatePV_StreamFilepos(PV_Stream * pvstream);
 long int PV_ftell(PV_Stream * pvstream);
 int PV_fseek(PV_Stream * pvstream, long int offset, int whence);
-size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream, bool verify=true);
+size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream);
 size_t PV_fread(void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream);
 int PV_fclose(PV_Stream * pvstream);
 PV_Stream * PV_stdout();
@@ -90,7 +90,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
 
 int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams);
 
-int writeRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc);
+int writeRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc, bool verifyWrites);
 
 int readRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc);
 

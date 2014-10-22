@@ -37,7 +37,7 @@ int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, 
 #define INITIALNUMGROUPS 20   // maximum number of groups
 int main()
 {
-   PV_Stream pvstream = PV_fopen("parser/params.txt", "r");
+   PV_Stream pvstream = PV_fopen("parser/params.txt", "r", false);
    yyin = pvstream->fp;
    PV::PVParams * handler = new PV::PVParams(INITIAL_NUM_GROUPS);
 
@@ -913,7 +913,7 @@ int PVParams::parsefile(const char * filename) {
          fprintf(stderr, "PVParams::parsefile ERROR: specified file \"%s\" is a directory.\n", filename);
          exit(EISDIR);
       }
-      PV_Stream * paramstream = PV_fopen(filename, "r");
+      PV_Stream * paramstream = PV_fopen(filename, "r", false/*verifyWrites*/);
       if( paramstream == NULL ) {
          fprintf(stderr, "PVParams::parsefile ERROR opening file \"%s\": %s\n", filename, strerror(errno));
          exit(errno);

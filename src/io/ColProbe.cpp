@@ -73,7 +73,7 @@ int ColProbe::initialize_stream(const char * filename) {
          size_t len = strlen(output_path) + strlen(filename) + 2; // One char for slash; one for string terminator
          path = (char *) malloc( len * sizeof(char) );
          sprintf(path, "%s/%s", output_path, filename);
-         stream = PV_fopen(path, "w");
+         stream = PV_fopen(path, "w", parentCol->getVerifyWrites());
          free(path);
       }
       else {

@@ -128,7 +128,7 @@ int Movie::initialize(const char * name, HyPerCol * hc) {
    //If not pvp file, open fileOfFileNames 
    assert(!params->presentAndNotBeenRead(name, "readPvpFile")); // readPvpFile should have been set in ioParams
    if( getParent()->icCommunicator()->commRank()==0 && !readPvpFile) {
-      filenamestream = PV_fopen(fileOfFileNames, "r");
+      filenamestream = PV_fopen(fileOfFileNames, "r", false/*verifyWrites*/);
       if( filenamestream == NULL ) {
          fprintf(stderr, "Movie::initialize error opening \"%s\": %s\n", fileOfFileNames, strerror(errno));
          abort();
@@ -149,7 +149,7 @@ int Movie::initialize(const char * name, HyPerCol * hc) {
          //Grab number of frames from header
          PV_Stream * pvstream = NULL;
          if (getParent()->icCommunicator()->commRank()==0) {
-            pvstream = PV::PV_fopen(filename, "rb");
+            pvstream = PV::PV_fopen(filename, "rb", false/*verifyWrites*/);
          }
          int numParams = NUM_PAR_BYTE_PARAMS;
          int params[numParams];
@@ -188,14 +188,14 @@ int Movie::initialize(const char * name, HyPerCol * hc) {
              if (PV_stat(timestampFilename.c_str(), &statbuf) != 0) {
                 fprintf(stderr, "%s \"%s\" warning: timestamp file \"%s\" unable to be found.  Creating new file.\n",
                       parent->parameters()->groupKeywordFromName(name), name, timestampFilename.c_str());
-                timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w");
+                timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
              }
              else {
-                timestampFile = PV::PV_fopen(timestampFilename.c_str(), "r+");
+                timestampFile = PV::PV_fopen(timestampFilename.c_str(), "r+", false/*verifyWrites*/);
              }
           }
           else{
-             timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w");
+             timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
           }
           assert(timestampFile);
       }

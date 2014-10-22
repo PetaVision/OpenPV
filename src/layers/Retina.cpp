@@ -499,7 +499,7 @@ int Retina::checkpointWrite(const char * cpDir) {
       abort();
    }
    if (spikingFlag) {
-      int rand_state_status = writeRandState(filename, parent->icCommunicator(), randState[0]->getRNG(0), getLayerLoc());
+      int rand_state_status = writeRandState(filename, parent->icCommunicator(), randState[0]->getRNG(0), getLayerLoc(), parent->getVerifyWrites());
       if (rand_state_status != PV_SUCCESS) status = rand_state_status;
    }
    return status;

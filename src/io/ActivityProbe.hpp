@@ -23,7 +23,7 @@ public:
 protected:
    ActivityProbe();
    int initialize(const char * probeName, HyPerCol * hc);
-   virtual int initOutputStream(const char * filename);
+   virtual int initOutputStream(const char * filename, bool verifyWrites);
 
 private:
    int initialize_base();

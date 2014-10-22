@@ -26,13 +26,13 @@ int getImageInfoPVP( const char * filename, PV::Communicator * comm, PVLayerLoc 
 int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes);
 
 int gatherImageFile(    const char * filename,
-                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf);
+                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites);
 int gatherImageFile(    const char * filename,
-                        PV::Communicator * comm, const PVLayerLoc * loc, pvdata_t * buf);
+                        PV::Communicator * comm, const PVLayerLoc * loc, pvdata_t * buf, bool verifyWrites);
 int gatherImageFilePVP( const char * filename,
-                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf);
+                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites);
 int gatherImageFileGDAL(const char * filename,
-                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf);
+                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites);
 GDALDataset * PV_GDALOpen(const char * filename);
 
 //int scatterImageFile(    const char * filename, int xOffset, int yOffset,

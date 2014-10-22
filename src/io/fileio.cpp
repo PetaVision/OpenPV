@@ -62,7 +62,7 @@ size_t pv_sizeof_patch(int count, int datatype)
    // return ( 2*sizeof(unsigned short) + count*pv_sizeof(datatype) );
 }
 
-PV_Stream * PV_fopen(const char * path, const char * mode) {
+PV_Stream * PV_fopen(const char * path, const char * mode, bool verifyWrites) {
    if (mode==NULL) {
       fprintf(stderr, "PV_fopen error for \"%s\": mode argument must be a string.\n", path);
       errno = EINVAL;
@@ -115,6 +115,7 @@ PV_Stream * PV_fopen(const char * path, const char * mode) {
          streampointer->filepos = filepos;
          streampointer->filelength = filelength;
          streampointer->isfile = 1;
+         streampointer->verifyWrites = verifyWrites;
       }
       else {
          fprintf(stderr, "PV_fopen failure for \"%s\": %s\n", path, strerror(errno));
@@ -256,7 +257,7 @@ int PV_fseek(PV_Stream * pvstream, long offset, int whence) {
  * We hope that a successful return value indicates actual success and that the feedback provided by failures prove helpful.
  * However, the function cannot guarantee recovery from errors.
  */
-size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream, bool verify) {
+size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream) {
    int fwritecounts = 0;
    size_t writesize = nitems*size;
    size_t charswritten = (size_t) 0;
@@ -299,10 +300,10 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
          }
       }
    }
-   if (verify && pvstream->isfile) {
+   if (pvstream->verifyWrites && pvstream->isfile) {
       fflush(pvstream->fp);
       int status = PV_SUCCESS;
-      PV_Stream * readStream = PV_fopen(pvstream->name, "r");
+      PV_Stream * readStream = PV_fopen(pvstream->name, "r", false/*verifyWrites*/);
       if (readStream==NULL) {
          fprintf(stderr, "PV_fwrite verification error: unable to open \"%s\" for reading: %s\n", pvstream->name, strerror(errno));
          status = PV_FAILURE;
@@ -567,7 +568,7 @@ PV_Stream * pvp_open_read_file(const char * filename, Communicator * comm)
 {
    PV_Stream * pvstream = NULL;
    if (comm->commRank() == 0) {
-      pvstream = PV_fopen(filename, "rb");
+      pvstream = PV_fopen(filename, "rb", false/*verifyWrites*/);
       if (pvstream==NULL) {
         fprintf(stderr, "pvp_open_read_file failed for \"%s\": %s\n", filename, strerror(errno));
       }
@@ -600,13 +601,13 @@ PV_Stream * pvp_open_write_file(const char * filename, Communicator * comm, bool
          }
       }
       if (rwmode) {
-         pvstream = PV_fopen(filename, "r+b");
+         pvstream = PV_fopen(filename, "r+b", false/*verifyWrites*/);
          if (pvstream==NULL) {
             fprintf(stderr, "pvp_open_write_file failed for \"%s\": %s\n", filename, strerror(errno));
          }
       }
       else {
-         pvstream = PV_fopen(filename, "wb");
+         pvstream = PV_fopen(filename, "wb", false/*verifyWrites*/);
          if (pvstream==NULL) {
             fprintf(stderr, "pvp_open_write_file failed for \"%s\": %s\n", filename, strerror(errno));
          }
@@ -1859,14 +1860,14 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
    return PV_SUCCESS; // TODO error handling
 }  // end writeWeights (all arbors)
 
-int writeRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc) {
+int writeRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc, bool verifyWrites) {
    int status = PV_SUCCESS;
    int rootproc = 0;
    int rank = comm->commRank();
 
    PV_Stream * pvstream = NULL;
    if (rank == rootproc) {
-      pvstream = PV_fopen(filename, "w");
+      pvstream = PV_fopen(filename, "w", verifyWrites);
       if (pvstream==NULL) {
          fprintf(stderr, "writeRandState error: unable to open path %s for writing.\n", filename);
          abort();
@@ -1886,7 +1887,7 @@ int readRandState(const char * filename, Communicator * comm, uint4 * randState,
 
    PV_Stream * pvstream = NULL;
    if (rank == rootproc) {
-      pvstream = PV_fopen(filename, "r");
+      pvstream = PV_fopen(filename, "r", false/*verifyWrites*/);
       if (pvstream==NULL) {
          fprintf(stderr, "readRandState error: unable to open path %s for reading.\n", filename);
          abort();

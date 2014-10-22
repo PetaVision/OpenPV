@@ -80,6 +80,11 @@ public:
    NormalizeBase * getNormalizer(int which) { return normalizers[which];}
    ColProbe * getColProbe(int which)      {return colProbes[which];}
 
+   /**
+    * The public get-method to query the value of verifyWrites
+    */
+   bool getVerifyWrites()                 {return verifyWrites;}
+
    char * getName()                       {return name;}
    char * getSrcPath()                    {return srcPath;}
    char * getOutputPath()                 {return outputPath;}
@@ -248,6 +253,12 @@ private:
     * @brief writeProgressToErr: Sepcifies if the run prints progress output to stderr
     */
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief verifyWrites: If true, calls to PV_fwrite are checked by opening the file in read mode
+    * and reading back the data and comparing it to the data just written.
+    */
+   virtual void ioParam_verifyWrites(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief outputPath: Specifies the absolute or relative output path of the run
@@ -443,6 +454,7 @@ private:
    int * layerStatus;
    int * connectionStatus;
 
+   bool verifyWrites;     // Flag to indicate whether calls to PV_fwrite do a readback check
    char * name;
    char * srcPath;        // path to PetaVision src directory (used to compile OpenCL kernels)
    char * outputPath;     // path to output file directory

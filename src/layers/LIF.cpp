@@ -544,7 +544,7 @@ int LIF::checkpointWrite(const char * cpDir) {
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_rand_state.bin", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc()); // TODO Make a method in Random class
+   writeRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc(), parent->getVerifyWrites()); // TODO Make a method in Random class
 
    free(filename);
    return PV_SUCCESS;

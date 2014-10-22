@@ -81,7 +81,7 @@ int PointProbe::initOutputStream(const char * filename) {
          char * outputdir = getParent()->getOutputPath();
          char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
          sprintf(path, "%s/%s", outputdir, filename);
-         outputstream = PV_fopen(path, "w");
+         outputstream = PV_fopen(path, "w", false/*verifyWrites*/);
          if( !outputstream ) {
             fprintf(stderr, "LayerProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
             exit(EXIT_FAILURE);
