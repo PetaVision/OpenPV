@@ -201,7 +201,7 @@ int HyPerCol::initialize_base() {
    errorOnNotANumber = false;
    numThreads = 1;
    recvLayerBuffer.clear();
-   verifyWrites = false;
+   verifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
 
    return PV_SUCCESS;
 }
