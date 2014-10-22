@@ -20,7 +20,14 @@ public:
    virtual ~NormalizeBase() = 0;
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int normalizeWeights(HyPerConn * conn);
+
+   /**
+    * The public interface for normalizing weights.
+    * If normalizeOnInitialize is true and the simulation time is startTime(),
+    * or if normalizeOnWeightUpdate is true and the simulation time is the conn's lastUpdateTime,
+    * it calls the (virtual protected) method normalizeWeights
+    */
+   int normalizeWeightsWrapper();
 
    const float getStrength() {return strength;}
    const float getNormalizeCutoff() {return normalize_cutoff;}
@@ -30,7 +37,7 @@ public:
 
 protected:
    NormalizeBase();
-   int initialize(HyPerConn * callingConn);
+   int initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns);
 
    virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
    virtual void ioParam_rMinX(enum ParamsIOFlag ioFlag);
@@ -39,7 +46,10 @@ protected:
    virtual void ioParam_symmetrizeWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag);
 
+   virtual int normalizeWeights();
    int accumulateSum(pvwdata_t * dataPatchStart, int weights_in_patch, double * sum);
    int accumulateSumShrunken(pvwdata_t * dataPatchStart, double * sum,
    		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride);
@@ -52,7 +62,7 @@ protected:
 			int nxp, int nyp, int xPatchStride, int yPatchStride);
    int symmetrizeWeights(HyPerConn * conn); // may be used by several subclasses
    static void normalizePatch(pvwdata_t * dataStart, int weights_per_patch, float multiplier);
-   HyPerCol * parent();
+   HyPerCol * parent() { return parentHyPerCol; }
 
 private:
    int initialize_base();
@@ -60,7 +70,9 @@ private:
 // Member variables
 protected:
    char * name;
-   HyPerConn * callingConn;
+   HyPerCol * parentHyPerCol;
+   HyPerConn ** connectionList;
+   int numConnections;
    float strength;                    // Value to normalize to; precise interpretation depends on normalization method
    float rMinX, rMinY;                // zero all weights within rectangle rMinxY, rMInY aligned with center of patch
    float normalize_cutoff;            // If true, weights with abs(w)<max(abs(w))*normalize_cutoff are truncated to zero.
@@ -69,6 +81,9 @@ protected:
                                       // Only meaningful (at least for now) for KernelConns using sum of weights or sum of squares normalization methods.
 
    bool normalizeArborsIndividually;  // If true, each arbor is treated as its own connection.  If false, each patch groups all arbors together and normalizes them in common.
+
+   bool normalizeOnInitialize;        // Whether to normalize weights when setting the weights' initial values
+   bool normalizeOnWeightUpdate;      // Whether to normalize weights when the weights have been updated
 }; // end of class NormalizeBase
 
 } // end namespace PV

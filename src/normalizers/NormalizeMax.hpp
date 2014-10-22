@@ -15,15 +15,15 @@ namespace PV {
 class NormalizeMax: public PV::NormalizeBase {
 // Member functions
 public:
-   NormalizeMax(HyPerConn * callingConn);
+   NormalizeMax(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections);
    virtual ~NormalizeMax();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int normalizeWeights(HyPerConn * conn);
+   virtual int normalizeWeights();
 
 protected:
    NormalizeMax();
-   int initialize(HyPerConn * callingConn);
+   int initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections);
 
    virtual void ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag);
 

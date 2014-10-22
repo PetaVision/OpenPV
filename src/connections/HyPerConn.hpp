@@ -372,7 +372,8 @@ public:
    virtual int checkNormalizeArbor(PVPatch** patches, pvwdata_t** dataStart,
          int numPatches, int arborId);
 #endif // OBSOLETE
-   virtual int normalizeWeights();
+// HyPerCol now calls normalizers' normalizeWeights method itself.
+//   virtual int normalizeWeights();
 
    virtual void addClone(PlasticCloneConn* conn);
 

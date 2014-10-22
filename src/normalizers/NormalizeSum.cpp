@@ -14,17 +14,17 @@ NormalizeSum::NormalizeSum() {
    initialize_base();
 }
 
-NormalizeSum::NormalizeSum(HyPerConn * callingConn) {
+NormalizeSum::NormalizeSum(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
    initialize_base();
-   initialize(callingConn);
+   initialize(name, hc, connectionList, numConnections);
 }
 
 int NormalizeSum::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeSum::initialize(HyPerConn * callingConn) {
-   return NormalizeBase::initialize(callingConn);
+int NormalizeSum::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
+   return NormalizeBase::initialize(name, hc, connectionList, numConnections);
 }
 
 int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -37,8 +37,12 @@ void NormalizeSum::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
    parent()->ioParamValue(ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true/*warnIfAbsent*/);
 }
 
-int NormalizeSum::normalizeWeights(HyPerConn * conn) {
+int NormalizeSum::normalizeWeights() {
    int status = PV_SUCCESS;
+
+   assert(numConnections==1); // TODO: generalize for groups of connections
+   HyPerConn * conn = connectionList[0];
+
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
    if (conn->getShmgetFlag() && !conn->getShmgetOwner(0)) { // Assumes that all arbors are owned by the same process
@@ -47,7 +51,6 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
    }
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
-
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
       if (conn->usingSharedWeights()==false) {
@@ -58,7 +61,7 @@ int NormalizeSum::normalizeWeights(HyPerConn * conn) {
    }
    scale_factor *= strength;
 
-   status = NormalizeBase::normalizeWeights(conn); // applies normalize_cutoff threshold and symmetrizeWeights
+   status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
 
    int nxp = conn->xPatchSize();
    int nyp = conn->yPatchSize();

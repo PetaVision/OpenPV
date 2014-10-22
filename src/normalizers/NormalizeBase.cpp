@@ -19,7 +19,9 @@ NormalizeBase::~NormalizeBase() {
 
 int NormalizeBase::initialize_base() {
    name = NULL;
-   callingConn = NULL;
+   parentHyPerCol = NULL;
+   connectionList = NULL;
+   numConnections = 0;
    strength = 1.0f;
    rMinX = 0.0f;
    rMinY = 0.0f;
@@ -27,17 +29,29 @@ int NormalizeBase::initialize_base() {
    symmetrizeWeightsFlag = false;
    normalizeFromPostPerspective = false;
    normalizeArborsIndividually = false;
+   normalizeOnInitialize = true;
+   normalizeOnWeightUpdate = true;
    return PV_SUCCESS;
 }
 
 // NormalizeBase does not directly call initialize since it is an abstract base class.
 // Subclasses should call NormalizeBase::initialize from their own initialize routine
 // This allows virtual methods called from initialize to be aware of which class's constructor was called.
-int NormalizeBase::initialize(HyPerConn * callingConn) {
+int NormalizeBase::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
    // name is the name of a group in the PVParams object.  Parameters related to normalization should be in the indicated group.
+
+   assert(numConns==1); // TODO: relax this requirement
+
    int status = PV_SUCCESS;
-   this->name = strdup(callingConn->getName());
-   this->callingConn = callingConn;
+   this->connectionList = (HyPerConn **) malloc(sizeof(*connectionList)*(size_t) numConns);
+   if (this->connectionList==NULL) {
+      fprintf(stderr, "Normalizer \"%s\": rank %d process unable to allocate array of pointers to %d connections.\n", name, hc->columnId(), numConns);
+      exit(EXIT_FAILURE);
+   }
+   this->numConnections = numConns;
+   memcpy(this->connectionList, connectionList, sizeof(*connectionList)*(size_t) numConns);
+   this->name = strdup(name);
+   this->parentHyPerCol = hc;
    return status;
 }
 
@@ -49,11 +63,14 @@ int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_symmetrizeWeights(ioFlag);
    ioParam_normalizeFromPostPerspective(ioFlag);
    ioParam_normalizeArborsIndividually(ioFlag);
+   ioParam_normalizeOnInitialize(ioFlag);
+   ioParam_normalizeOnWeightUpdate(ioFlag);
    return PV_SUCCESS;
 }
 
 void NormalizeBase::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   callingConn->ioParam_strength(ioFlag, &strength, true/*warnIfAbsent*/);
+   connectionList[0]->ioParam_strength(ioFlag, &strength, true/*warnIfAbsent*/);
+   // TODO: How should we handle groups?  Should strength be a vector?  Should all connections have the same strength?
 }
 
 void NormalizeBase::ioParam_rMinX(enum ParamsIOFlag ioFlag) {
@@ -94,56 +111,82 @@ void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag
    parent()->ioParamValue(ioFlag, name, "normalizeArborsIndividually", &normalizeArborsIndividually, false/*default*/, true/*warnIfAbsent*/);
 }
 
-int NormalizeBase::normalizeWeights(HyPerConn * conn) {
+void NormalizeBase::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {
+   parent()->ioParamValue(ioFlag, name, "normalizeOnInitialize", &normalizeOnInitialize, normalizeOnInitialize);
+}
+
+void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
+   parent()->ioParamValue(ioFlag, name, "normalizeOnWeightUpdate", &normalizeOnWeightUpdate, normalizeOnWeightUpdate);
+}
+
+
+int NormalizeBase::normalizeWeightsWrapper() {
+   int status = PV_SUCCESS;
+   HyPerConn * callingConn = connectionList[0];
+   // TODO: For groups, how should we enforce groups of normaliz
+   double simTime = callingConn->getParent()->simulationTime();
+   if ( (normalizeOnInitialize && simTime == callingConn->getParent()->getStartTime()) ||
+        (normalizeOnWeightUpdate && simTime == callingConn->getLastUpdateTime()) ) {
+      status = normalizeWeights();
+   }
+   return status;
+}
+
+int NormalizeBase::normalizeWeights() {
+   assert((normalizeOnInitialize && connectionList[0]->getParent()->simulationTime() == connectionList[0]->getParent()->getStartTime()) ||
+          (normalizeOnWeightUpdate && connectionList[0]->getParent()->simulationTime() == connectionList[0]->getLastUpdateTime()));
    int status = PV_SUCCESS;
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
    if (conn->getShmgetFlag()) assert(conn->getShmgetOwner(0)); // Only called by subclasses of normalizeWeights, and if shmgetFlag is set, only by the owner
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
-   if (symmetrizeWeightsFlag) {
-      status = symmetrizeWeights(conn);
-      if (status != PV_SUCCESS) return status;
-   }
+   for (int c=0; c<numConnections; c++) {
+      HyPerConn * conn = connectionList[c];
+      if (symmetrizeWeightsFlag) {
+         status = symmetrizeWeights(conn);
+         if (status != PV_SUCCESS) return status;
+      }
 
-   if (rMinX > 0.5f && rMinY > 0.5f){
-	   int num_arbors = conn->numberOfAxonalArborLists();
-	   int num_patches = conn->getNumDataPatches();
-	   int num_weights_in_patch = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
-       for (int arbor=0; arbor<num_arbors; arbor++) {
-          pvwdata_t * dataPatchStart = conn->get_wDataStart(arbor);
-          for (int patchindex=0; patchindex<num_patches; patchindex++) {
-        	  applyRMin(dataPatchStart+patchindex*num_weights_in_patch, rMinX, rMinY,
-        		  conn->xPatchSize(), conn->yPatchSize(), conn->xPatchStride(), conn->yPatchStride());
+      if (rMinX > 0.5f && rMinY > 0.5f){
+          int num_arbors = conn->numberOfAxonalArborLists();
+          int num_patches = conn->getNumDataPatches();
+          int num_weights_in_patch = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
+          for (int arbor=0; arbor<num_arbors; arbor++) {
+             pvwdata_t * dataPatchStart = conn->get_wDataStart(arbor);
+             for (int patchindex=0; patchindex<num_patches; patchindex++) {
+                 applyRMin(dataPatchStart+patchindex*num_weights_in_patch, rMinX, rMinY,
+                     conn->xPatchSize(), conn->yPatchSize(), conn->xPatchStride(), conn->yPatchStride());
+             }
           }
-       }
-   }
-   if (normalize_cutoff>0) {
-      int num_arbors = conn->numberOfAxonalArborLists();
-      int num_patches = conn->getNumDataPatches();
-      int num_weights_in_patch = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
-      if (normalizeArborsIndividually) {
-         for (int arbor=0; arbor<num_arbors; arbor++) {
-            pvwdata_t * dataStart = conn->get_wDataStart(arbor);
-            float max = 0.0f;
-            for (int patchindex=0; patchindex<num_patches; patchindex++) {
-               accumulateMax(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, &max);
-            }
-            for (int patchindex=0; patchindex<num_patches; patchindex++) {
-               applyThreshold(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, max);
+      }
+      if (normalize_cutoff>0) {
+         int num_arbors = conn->numberOfAxonalArborLists();
+         int num_patches = conn->getNumDataPatches();
+         int num_weights_in_patch = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
+         if (normalizeArborsIndividually) {
+            for (int arbor=0; arbor<num_arbors; arbor++) {
+               pvwdata_t * dataStart = conn->get_wDataStart(arbor);
+               float max = 0.0f;
+               for (int patchindex=0; patchindex<num_patches; patchindex++) {
+                  accumulateMax(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, &max);
+               }
+               for (int patchindex=0; patchindex<num_patches; patchindex++) {
+                  applyThreshold(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, max);
+               }
             }
          }
-      }
-      else {
-         for (int patchindex=0; patchindex<num_patches; patchindex++) {
-            float max = 0.0f;
-            for (int arbor=0; arbor<num_arbors; arbor++) {
-               pvwdata_t * dataStart = conn->get_wDataStart(arbor);
-               accumulateMax(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, &max);
-            }
-            for (int arbor=0; arbor<num_arbors; arbor++) {
-               pvwdata_t * dataStart = conn->get_wDataStart(arbor);
-               applyThreshold(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, max);
+         else {
+            for (int patchindex=0; patchindex<num_patches; patchindex++) {
+               float max = 0.0f;
+               for (int arbor=0; arbor<num_arbors; arbor++) {
+                  pvwdata_t * dataStart = conn->get_wDataStart(arbor);
+                  accumulateMax(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, &max);
+               }
+               for (int arbor=0; arbor<num_arbors; arbor++) {
+                  pvwdata_t * dataStart = conn->get_wDataStart(arbor);
+                  applyThreshold(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, max);
+               }
             }
          }
       }
@@ -342,10 +385,6 @@ int NormalizeBase::symmetrizeWeights(HyPerConn * conn) {
 
 void NormalizeBase::normalizePatch(pvwdata_t * dataStartPatch, int weights_per_patch, float multiplier) {
    for (int k=0; k<weights_per_patch; k++) dataStartPatch[k] *= multiplier;
-}
-
-HyPerCol * NormalizeBase::parent() {
-   return callingConn->getParent();
 }
 
 } // end namespace PV

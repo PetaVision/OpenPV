@@ -92,7 +92,8 @@ HyPerConn::HyPerConn(const char * name, HyPerCol * hc) {
 
 HyPerConn::~HyPerConn()
 {
-   delete normalizer;
+   // delete normalizer; // normalizers now belong to the parent HyPerCol
+
    //if (parent->columnId() == 0) {
    //   io_timer->fprint_time(stdout);
    //   update_timer->fprint_time(stdout);
@@ -1345,22 +1346,27 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
       assert(normalizeMethod);
       if (normalizeMethod[0]!='\0') {
          if (!strcmp(normalizeMethod, "normalizeSum")) {
-            normalizer = new NormalizeSum(this);
+            HyPerConn * conn = this;
+            normalizer = new NormalizeSum(name, parent, &conn, 1);
          }
          else if (!strcmp(normalizeMethod, "normalizeL2"))  {
-            normalizer = new NormalizeL2(this);
+            HyPerConn * conn = this;
+            normalizer = new NormalizeL2(name, parent, &conn, 1);
          }
          else if (!strcmp(normalizeMethod, "normalizeMax")) {
-            normalizer = new NormalizeMax(this);
+            HyPerConn * conn = this;
+            normalizer = new NormalizeMax(name, parent, &conn, 1);
          }
          else if (!strcmp(normalizeMethod, "normalizeContrastZeroMean")) {
-            normalizer = new NormalizeContrastZeroMean(this);
+            HyPerConn * conn = this;
+            normalizer = new NormalizeContrastZeroMean(name, parent, &conn, 1);
          }
          else if (!strcmp(normalizeMethod, "normalizeScale")) {
             if (plasticityFlag) {
                 fprintf(stdout, "HyPerConn:: Warning: Connection %s: Setting both plastic weights and normalization by scaling. The weights will be multiplied by a factor strength after each learning step. Generally not a good idea. Make sure you know what you are doing!\n",name);
             }
-            normalizer = new NormalizeScale(this);
+            HyPerConn * conn = this;
+            normalizer = new NormalizeScale(name, parent, &conn, 1);
          }
          else if (!strcmp(normalizeMethod, "none")) {
             normalizer = NULL;
@@ -1380,6 +1386,9 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
             printf("%s \"%s\": empty normalizeMethod string will be set to \"none\"\n", parent->parameters()->groupKeywordFromName(name), name);
          }
          normalizer = NULL;
+      }
+      if (normalizer) {
+         parent->addNormalizer(normalizer);
       }
    }
 }
@@ -1759,7 +1768,7 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataS
    //std::cout << "leaving MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
-   normalizeWeights();
+   // normalizeWeights(); // normalizeWeights call moved to HyPerCol::run, to facilitate normalization of groups of connections
 #ifdef PV_USE_OPENCL
 // Copied over from KernelConn.
 //   //don't support GPU acceleration in kernelconn yet
@@ -3300,7 +3309,7 @@ int HyPerConn::updateState(double time, double dt)
       if (status==PV_BREAK) { break; }
       assert(status==PV_SUCCESS);
    }
-   normalizeWeights();
+   // normalizeWeights(); // normalizeWeights call moved to HyPerCol::advanceTime loop, to allow for normalization of a group of connections
 
    update_timer->stop();
    return status;
@@ -4689,13 +4698,16 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvwdata_t ** dataStart, i
 } // checkNormalizeArbor
 #endif // OBSOLETE
 
-int HyPerConn::normalizeWeights() {
-   int status = PV_SUCCESS;
-   if (normalizer) {
-      status = normalizer->normalizeWeights(this);
-   }
-   return status;
-}
+// HyPerCol calls normalizers' normalizeWeights methods directly now.
+// NoSelfKernelConn and SiblingConn, which override normalizeWeights
+// have been moved to the obsolete folder
+// int HyPerConn::normalizeWeights() {
+//    int status = PV_SUCCESS;
+//    if (normalizer) {
+//       status = normalizer->normalizeWeights();
+//    }
+//    return status;
+// }
 
 int HyPerConn::checkPatchDimensions() {
    int statusx = checkPatchSize(nxp, pre->getXScale(), post->getXScale(), 'x');

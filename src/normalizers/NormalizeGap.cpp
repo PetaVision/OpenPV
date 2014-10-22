@@ -17,9 +17,9 @@ NormalizeGap::NormalizeGap() {
    initialize_base();
 }
 
-NormalizeGap::NormalizeGap(GapConn * callingConn) {
+NormalizeGap::NormalizeGap(const char * name, HyPerCol * hc, GapConn ** connectionList, int numConnections) {
    initialize_base();
-   initialize(callingConn);
+   initialize(name, hc, connectionList, numConnections);
 }
 
 NormalizeGap::~NormalizeGap() {
@@ -29,8 +29,8 @@ int NormalizeGap::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeGap::initialize(GapConn * callingConn) {
-   int status = NormalizeSum::initialize(callingConn);
+int NormalizeGap::initialize(const char * name, HyPerCol * hc, GapConn ** connectionList, int numConnections) {
+   int status = NormalizeSum::initialize(name, hc, (HyPerConn **) connectionList, numConnections);
    return status;
 }
 

@@ -15,15 +15,15 @@ namespace PV {
 class NormalizeContrastZeroMean: public PV::NormalizeBase {
    // Member functions
 public:
-   NormalizeContrastZeroMean(HyPerConn * callingConn);
+   NormalizeContrastZeroMean(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns);
    virtual ~NormalizeContrastZeroMean();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int normalizeWeights(HyPerConn * conn);
+   virtual int normalizeWeights();
 
 protected:
    NormalizeContrastZeroMean();
-   int initialize(HyPerConn * callingConn);
+   int initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns);
 
    virtual void ioParam_minSumTolerated(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);

@@ -10,6 +10,7 @@
 
 #include "HyPerCol.hpp"
 #include "InterColComm.hpp"
+#include "../normalizers/NormalizeBase.hpp"
 #include "../io/clock.h"
 #include "../io/io.h"
 
@@ -54,6 +55,9 @@ HyPerCol::~HyPerCol()
 
    for (n = 0; n < numConnections; n++) {
       delete connections[n];
+   }
+   for (n = 0; n < numNormalizers; n++) {
+      delete normalizers[n];
    }
 
    int rank=columnId(); // Need to save so that we know whether we're the process that does I/O, even after deleting icComm.
@@ -122,6 +126,8 @@ int HyPerCol::initialize_base() {
    numPhases = 0;
    connectionArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
    numConnections = 0;
+   normalizerArraySize = INITIAL_CONNECTION_ARRAY_SIZE;
+   numNormalizers = 0;
    checkpointReadFlag = false;
    checkpointWriteFlag = false;
    checkpointReadDir = NULL;
@@ -162,6 +168,7 @@ int HyPerCol::initialize_base() {
 
    layers = NULL;
    connections = NULL;
+   normalizers = NULL;
    layerStatus = NULL;
    connectionStatus = NULL;
    name = NULL;
@@ -237,6 +244,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
 
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
    connections = (HyPerConn **) malloc(connectionArraySize * sizeof(HyPerConn *));
+   normalizers = (NormalizeBase **) malloc(normalizerArraySize * sizeof(NormalizeBase *));
 
    int opencl_device = 0;  // default to GPU for now
 
@@ -1158,6 +1166,21 @@ int HyPerCol::addConnection(HyPerConn * conn)
    return connId;
 }
 
+int HyPerCol::addNormalizer(NormalizeBase * normalizer) {
+   assert((size_t) numNormalizers <= normalizerArraySize);
+   if ((size_t) numNormalizers == normalizerArraySize) {
+      normalizerArraySize += RESIZE_ARRAY_INCR;
+      NormalizeBase ** newNormalizers = (NormalizeBase **) realloc(normalizers, normalizerArraySize*sizeof(NormalizeBase *));
+      if(newNormalizers==NULL) {
+         fprintf(stderr, "HyPerCol \"%s\" on rank %d unable to resize normalizers array to size %zu\n", name, columnId(), normalizerArraySize);
+         exit(EXIT_FAILURE);
+      }
+      normalizers = newNormalizers;
+   }
+   normalizers[numNormalizers++] = normalizer;
+   return PV_SUCCESS;
+}
+
   // typically called by buildandrun via HyPerCol::run()
 int HyPerCol::run(double start_time, double stop_time, double dt)
 {
@@ -1249,6 +1272,9 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    }
    free(layerStatus); layerStatus = NULL;
    free(connectionStatus); connectionStatus = NULL;
+
+   // Initial normalization moved here to facilitate normalizations of groups of HyPeConns
+   normalizeWeights();
 
    parameters()->warnUnread();
    if (printParamsFilename!=NULL) outputParams();
@@ -1461,6 +1487,26 @@ int HyPerCol::connSetInitialValues(int c) {
    return status;
 }
 
+int HyPerCol::normalizeWeights() {
+   int status = PV_SUCCESS;
+   for (int c=0; c < numConnections; c++) {
+      NormalizeBase * normalizer = connections[c]->getNormalizer();
+      if (normalizer) { status = normalizer->normalizeWeightsWrapper(); }
+      if (status != PV_SUCCESS) {
+         fprintf(stderr, "Normalizer failed for connection \"%s\".\n", connections[c]->getName());
+         exit(EXIT_FAILURE);
+      }
+   }
+   // for (int n = 0; n < numNormalizers; n++) {
+   //    NormalizeBase * normalizer = normalizers[n];
+   //    if (normalizer) { status = normalizer->normalizeWeightsWrapper(); }
+   //    if (status != PV_SUCCESS) {
+   //        fprintf(stderr, "Normalizer \"%s\" failed.\n", normalizers[n]->getName());
+   //    }
+   // }
+   return status;
+}
+
 int HyPerCol::initPublishers() {
    for( int l=0; l<numLayers; l++ ) {
       // PVLayer * clayer = layers[l]->getCLayer();
@@ -1605,6 +1651,7 @@ int HyPerCol::advanceTime(double sim_time)
          exitAfterUpdate = status == PV_EXIT_NORMALLY;
       }
    }
+   normalizeWeights();
    for (int c = 0; c < numConnections; c++) {
       connections[c]->outputState(simTime);
    }

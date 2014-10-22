@@ -20,16 +20,16 @@ NormalizeScale::NormalizeScale() {
    initialize_base();
 }
 
-NormalizeScale::NormalizeScale(HyPerConn * callingConn) {
-   initialize(callingConn);
+NormalizeScale::NormalizeScale(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
+   initialize(name, hc, connectionList, numConnections);
 }
 
 int NormalizeScale::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeScale::initialize(HyPerConn * callingConn) {
-   return NormalizeBase::initialize(callingConn);
+int NormalizeScale::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
+   return NormalizeBase::initialize(name, hc, connectionList, numConnections);
 }
 
 int NormalizeScale::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -37,11 +37,15 @@ int NormalizeScale::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-int NormalizeScale::normalizeWeights(HyPerConn * conn) {
+int NormalizeScale::normalizeWeights() {
    int status = PV_SUCCESS;
+
+   assert(numConnections==1); // TODO: generalize to groups of connections
+   HyPerConn * conn = connectionList[0];
+
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
-   if (conn->getShmgetFlag() && !conn->getShmgetOwner(0)) { // Assumes that all arbors are owned by the same process
+   if (conn->getShmgetFlag() && !callingConn->getShmgetOwner(0)) { // Assumes that all arbors are owned by the same process
       MPI_Barrier(conn->getParent()->icCommunicator()->communicator());
       return status;
    }
@@ -50,7 +54,7 @@ int NormalizeScale::normalizeWeights(HyPerConn * conn) {
 
    float scale_factor = strength;
 
-   status = NormalizeBase::normalizeWeights(conn); // applies normalize_cutoff threshold and symmetrizeWeights
+   status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
 
    int nxp = conn->xPatchSize();
    int nyp = conn->yPatchSize();

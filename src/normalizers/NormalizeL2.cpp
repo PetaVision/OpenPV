@@ -13,16 +13,16 @@ NormalizeL2::NormalizeL2() {
    initialize_base();
 }
 
-NormalizeL2::NormalizeL2(HyPerConn * callingConn) {
-   initialize(callingConn);
+NormalizeL2::NormalizeL2(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
+   initialize(name, hc, connectionList, numConns);
 }
 
 int NormalizeL2::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeL2::initialize(HyPerConn * callingConn) {
-   return NormalizeBase::initialize(callingConn);
+int NormalizeL2::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
+   return NormalizeBase::initialize(name, hc, connectionList, numConns);
 }
 
 int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -35,8 +35,12 @@ void NormalizeL2::ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag) {
    parent()->ioParamValue(ioFlag, name, "minL2NormTolerated", &minL2NormTolerated, 0.0f, true/*warnIfAbsent*/);
 }
 
-int NormalizeL2::normalizeWeights(HyPerConn * conn) {
+int NormalizeL2::normalizeWeights() {
    int status = PV_SUCCESS;
+
+   assert(numConnections==1); // TODO: normalize over groups of connections
+   HyPerConn * conn = connectionList[0];
+
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
    if (conn->getShmgetFlag() && !conn->getShmgetOwner(0)) { // Assumes that all arbors are owned by the same process
@@ -56,7 +60,7 @@ int NormalizeL2::normalizeWeights(HyPerConn * conn) {
    }
    scale_factor *= strength;
 
-   status = NormalizeBase::normalizeWeights(conn); // applies normalize_cutoff threshold and symmetrizeWeights
+   status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
 
    int nxp = conn->xPatchSize();
    int nyp = conn->yPatchSize();

@@ -13,16 +13,16 @@ NormalizeContrastZeroMean::NormalizeContrastZeroMean() {
    initialize_base();
 }
 
-NormalizeContrastZeroMean::NormalizeContrastZeroMean(HyPerConn * callingConn) {
-   initialize(callingConn);
+NormalizeContrastZeroMean::NormalizeContrastZeroMean(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
+   initialize(name, hc, connectionList, numConns);
 }
 
 int NormalizeContrastZeroMean::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeContrastZeroMean::initialize(HyPerConn * callingConn) {
-   return NormalizeBase::initialize(callingConn);
+int NormalizeContrastZeroMean::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
+   return NormalizeBase::initialize(name, hc, connectionList, numConns);
 }
 
 int NormalizeContrastZeroMean::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -47,8 +47,12 @@ void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum Params
    }
 }
 
-int NormalizeContrastZeroMean::normalizeWeights(HyPerConn * conn) {
+int NormalizeContrastZeroMean::normalizeWeights() {
    int status = PV_SUCCESS;
+
+   assert(numConnections==1); // TODO: generalize for groups of connections
+   HyPerConn * conn = connectionList[0];
+
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
    if (conn->getShmgetFlag() && !conn->getShmgetOwner(0)) { // Assumes that all arbors are owned by the same process
@@ -60,7 +64,7 @@ int NormalizeContrastZeroMean::normalizeWeights(HyPerConn * conn) {
 
    float scale_factor = strength;
 
-   status = NormalizeBase::normalizeWeights(conn); // applies normalize_cutoff threshold and symmetrizeWeights
+   status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
 
    int nxp = conn->xPatchSize();
    int nyp = conn->yPatchSize();
@@ -114,6 +118,7 @@ int NormalizeContrastZeroMean::normalizeWeights(HyPerConn * conn) {
    }
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
+
    return status;
 }
 

@@ -41,6 +41,7 @@ namespace PV {
 class ColProbe;
 class BaseProbe;
 class PVParams;
+class NormalizeBase;
 
 class HyPerCol {
 
@@ -68,6 +69,7 @@ public:
 
    int addLayer(HyPerLayer * l);
    int addConnection(HyPerConn * conn);
+   int addNormalizer(NormalizeBase * normalizer);
 
    HyPerLayer * getLayerFromName(const char * layerName);
    HyPerConn * getConnFromName(const char * connectionName);
@@ -75,6 +77,7 @@ public:
 
    HyPerLayer * getLayer(int which)       {return layers[which];}
    HyPerConn  * getConnection(int which)  {return connections[which];}
+   NormalizeBase * getNormalizer(int which) { return normalizers[which];}
    ColProbe * getColProbe(int which)      {return colProbes[which];}
 
    char * getName()                       {return name;}
@@ -129,6 +132,7 @@ public:
 
    int numberOfLayers()                   {return numLayers;}
    int numberOfConnections()              {return numConnections;}
+   int numberOfNormalizers()              {return numNormalizers;}
    int numberOfProbes()                   {return numColProbes;}
 
    /** returns the number of border regions, either an actual image border or a neighbor **/
@@ -363,6 +367,7 @@ private:
    int connAllocateDataStructures(int c);
    int layerSetInitialValues(int l);
    int connSetInitialValues(int c);
+   int normalizeWeights();
    int initPublishers();
    bool advanceCPWriteTime();
 
@@ -382,6 +387,8 @@ private:
    int numPhases;
    size_t connectionArraySize;
    int numConnections;
+   size_t normalizerArraySize;
+   int numNormalizers;
 
    char * initializeFromCheckpointDir; // If nonempty, layers and connections can load from this directory as in checkpointRead, by setting their initializeFromCheckpointFlag parameter, but the run still starts at simTime=startTime
    bool defaultInitializeFromCheckpointFlag ; // Each Layer and connection can individually set its own initializeFromCheckpointFlag.  This sets the default value for those flags.
@@ -432,6 +439,7 @@ private:
 
    HyPerLayer ** layers;
    HyPerConn  ** connections;
+   NormalizeBase ** normalizers; // Objects for normalizing connections or groups of connections
    int * layerStatus;
    int * connectionStatus;
 
