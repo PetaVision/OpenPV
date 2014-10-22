@@ -79,7 +79,7 @@ set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
 add_subdirectory(${PV_DIR})
 # # Insert additional add_subdirectory commands to add other projects.
 #add_subdirectory(BIDS)
-add_subdirectory(DepthLCA)
+#add_subdirectory(DepthLCA)
 #add_subdirectory(HyPerHLCA)
 #add_subdirectory(MaskLCA)
 #add_subdirectory(textAnalysis)
