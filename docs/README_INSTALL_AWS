@@ -9,14 +9,14 @@ EC2: Elastic Compute Cloud. Allows you to create a virtual instance that run on 
 EBS: Elastic Block Store. The virtual hard drive that EC2 requires to do file io.
 Snapshots: A snapshot of an EBS is essentially a copy of that hard drive.
 AMI: Amazon Machine Image. Snapshots can be converted to AMIs, which contain the operating system, tools, and in our case, the PetaVision toolbox.
-IAM: Identity and Access Management. Amazon's user account control that alllows for user accounts for one AWS account.
+IAM: Identity and Access Management. Amazon's user account control that allows for user accounts for one AWS account.
 S3: Simple Storage Service. Long term shared storage. We don't have file io access to S3; everything must be downloaded/uploaded through https or AWS' CLI. Databases and checkpoints will be stored here.
 
 There exists a PetaVision AMI that has everything set up for PetaVision on GPUs. Additionally, the following software is installed on the image:
-Octave
-Python
-ffmpeg
-emacs
+   Octave
+   Python
+   ffmpeg
+   emacs
 
 ******************************************
 Overview
@@ -61,7 +61,7 @@ Activate your account:
 
 Log in to your account:
    Go to https://petavision.signin.aws.amazon.com/console.
-   Open the credientials file given to you by the administrator to find out your user name and password.
+   Open the credentials file given to you by the administrator to find out your user name and password.
    Sign in with your new user name and password.
 
 Create your ssh key pair:
@@ -86,7 +86,7 @@ Creating a Spot Instance:
    Find the PetaVision_GPU AMI. Select it and click launch.
    Pick a GPU instance (g2.2xlarge). Click next.
    Check Request Spot Instances under Purchasing option
-   Type in an approperiate maximum price. Click next.
+   Type in an appropriate maximum price. Click next.
    No additional storage is required. Make sure Delete on Termination is checked. Click next.
    No tags are needed. Click next.
    Check Select an existing security group. Select the default security group. Click Review and Launch.
@@ -94,8 +94,8 @@ Creating a Spot Instance:
    Select Choose an existing key pair, and select your key pair that you created earlier.
    Check the acknowledgement, and click Request Spot Instance.
 
-   Spot instances will take a second to fulfill. Looking under Instances in the left tab, you can see the status of your request.
-   Once your instance is started, name the instance something relevent.
+Spot instances will take a second to fulfill. Looking under Instances in the left tab, you can see the status of your request.
+Once your instance is started, name the instance something relevant.
 
 
 ******************************************
@@ -106,14 +106,15 @@ To ssh into your running instance:
    Find your instance in the list and note the Public IP address of the instance.
    The command to ssh into your instance is:
    ssh ec2-user@<public_ip_address>
-   To copy data to your instance:
+
+To copy data to your instance:
    scp sourceFile ec2-user@<public_ip_address>
 
 
 ******************************************
-Creating an EBS persistant volume
+Creating an EBS persistent volume
 ******************************************
-AWS Spot Instances can die at any time. We will need an EBS persistant volume to store any run output we have as well as any sandboxes being ran from.
+AWS Spot Instances can die at any time. We will need an EBS persistent volume to store any run output we have as well as any sandboxes being ran from.
 
 Create your volume:
    Go to the EC2 management page. On the left, click Volumes under Elastic Block Store. Click Create Volume.
@@ -123,12 +124,12 @@ Create your volume:
 In order to use this volume in a running instance, we must mount it to a running instance.
 Mounting your new volume to a running instance:
    Go to the EC2 management page. On the left, click Volumes under Elastic Block Store.
-   Select the volume you want to attach. The state of the volume should say avaliable.
+   Select the volume you want to attach. The state of the volume should say available.
    Click actions, and select attach volume.
    Click on the Instance box and select your running instance.
    Make sure the device is set to /dev/sdf. This is the default value.
 
-A new EBS volume is completley blank. That means we need to format the volume to our instance filesystem. Note that this needs to be done only once per new volume.
+A new EBS volume is completely blank. That means we need to format the volume to our instance filesystem. Note that this needs to be done only once per new volume.
 Formatting your new EBS volume:
    Connect to your running instance.
    Run the following command:
@@ -141,12 +142,12 @@ Setting up PetaVision
 Because the instance was booted from a PetaVision AMI, all of petavision should already exist in the home directory. There are several things needed to be done for PetaVision setup. 
 
 Accessing your mounted volume in a running instance.
-   Connect to your running instance.
-   Run the following command:
+Connect to your running instance.
+Run the following command:
    ~/startup.sh
    This will do 2 things: mount your data to the directory ~/mountData and update PetaVision and PVSystemTests.
-   
-Setting up your sandbox in your persistant volume:
+
+Setting up your sandbox in your persistent volume:
    cd to mountData.
    Check out any sandboxes that you are planning on using. Ex:
    svn co http://svn.code.sf.net/p/petavision/code/sandbox/DepthLCA DepthLCA
@@ -160,20 +161,20 @@ Building PetaVision
    cd to ~/workspace.
    Run the following command:
    ccmake .
-   
-   Most of these variables should already be set up, but here are the important ones:
+
+Most of these variables should already be set up, but here are the important ones:
    CMAKE_BUILD_TYPE: True
    CUDA_GPU: True
    CUDA_RELEASE: True
    CUDNN: True
    CUDNN_PATH: ~/cuDNN/cudnn-6.5-linux-R1
    Open_MP_THREADS: True
-   
+
    Press c to configure. Press e to exit the print statements.
    Repeat until the g option appears and press g. 
    cd to your sandbox and run make -j 8
 
-   
+
 ******************************************
 S3
 ******************************************
@@ -190,8 +191,8 @@ Create your bucket:
    Go to the S3 management page.
    See if your database is already there (such as kitti or neovision2heli datasets). If they are, you are done.
    On the top, click Create Bucket.
-   Name your bucket something approperate.
-   Make sure your region is the same as your ec2 users. Transfering from region to region costs money.
+   Name your bucket something appropriate.
+   Make sure your region is the same as your ec2 users. Transferring from region to region costs money.
    Click create.
 
 There are several ways to upload data to S3 to an existing bucket.
@@ -209,7 +210,7 @@ EBS Volume to S3 (preferred):
    Enter the following command to put your database on S3
    aws s3 cp --recursive myDatabaseFolder s3://yourBin/myDatabaseFolder
    Note that you must put myDatabaseFolder on both the destination and source to keep the directory structure on s3.
-   Optional: Make sure you have all of your database on s3. Run the same command as above except for sync instad of cp.
+   Optional: Make sure you have all of your database on s3. Run the same command as above except for sync instead of cp.
    Once the data is on s3, you can delete the local data off the EBS volume.
 
 Local to S3:
@@ -234,5 +235,3 @@ Changes to parameter files:
    In your movie layers, make sure your list of filenames is a list of s3 urls.
    Change your output directory to somewhere in mountData.
    Future work will be done to get checkpoints on s3.
-   
-
