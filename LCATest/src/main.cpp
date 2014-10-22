@@ -158,7 +158,7 @@ int generate(int argc, char * argv[], int rank) {
       printf("\n");
    }
    if (rank==0) {
-      PV_Stream * emptyinfile = PV_fopen("input/correct.pvp", "w");
+      PV_Stream * emptyinfile = PV_fopen("input/correct.pvp", "w", false/*verifyWrites*/);
       // Data for a CORRECT_PVP_NX-by-CORRECT_PVP_NY layer with CORRECT_PVP_NF features.
       // Sparse activity with no active neurons so file size doesn't change with number of features
       int emptydata[] = {80, 20, 2, CORRECT_PVP_NX, CORRECT_PVP_NY, CORRECT_PVP_NF, 1, 0, 4, 2, 1, 1, CORRECT_PVP_NX, CORRECT_PVP_NY, 0, 0, 0, 1, 0, 0, 0, 0, 0};
@@ -188,7 +188,7 @@ int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
       exit(EXIT_FAILURE);
    }
    if (hc->columnId()==0) {
-      PV_Stream * infile = PV_fopen(sourcePath, "r");
+      PV_Stream * infile = PV_fopen(sourcePath, "r", false/*verifyWrites*/);
       assert(infile);
       PV_fseek(infile, 0L, SEEK_END);
       long int filelength = PV_ftell(infile);
@@ -197,7 +197,7 @@ int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
       size_t charsread = PV_fread(buf, sizeof(char), (size_t) filelength, infile);
       assert(charsread == (size_t) filelength);
       PV_fclose(infile); infile = NULL;
-      PV_Stream * outfile = PV_fopen(destPath, "w");
+      PV_Stream * outfile = PV_fopen(destPath, "w", false/*verifyWrites*/);
       assert(outfile);
       size_t charswritten = PV_fwrite(buf, sizeof(char), (size_t) filelength, outfile);
       assert(charswritten == (size_t) filelength);
