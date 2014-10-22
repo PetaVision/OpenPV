@@ -3,7 +3,7 @@
  *
  */
 
-#include "../PetaVision/src/columns/buildandrun.hpp"
+#include <columns/buildandrun.hpp>
 
 #ifdef MAIN_USES_CUSTOMGROUPS
 void * customgroup(const char * name, const char * groupname, HyPerCol * hc);

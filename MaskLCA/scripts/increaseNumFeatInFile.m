@@ -29,8 +29,6 @@ function increaseNumFeatInFile(pvpFile, newNF, wMinInit, wMaxInit, sparseFractio
    if nargin < 1 || ~exist('pvpFile','file') || ~exist('newNF','var') || isempty(pvpFile) || isempty(newNF)
       error('increaseNumFeatInFile:invalidinputarguments',...
          'pvpFile and newNF are required arguments.');
-      %%pvpFile = '/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine/Checkpoints/Checkpoint720000/V1_S2ToError_W.pvp';
-      %%newNF   = 32 
    end%if
    filedata = dir(pvpFile);
    if length(filedata) ~= 1

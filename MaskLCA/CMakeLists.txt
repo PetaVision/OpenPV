@@ -1,8 +1,12 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 #Set CMAKE_MODULE_PATH
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/docs/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
+
+string(FIND ${CMAKE_CURRENT_SOURCE_DIR} "/" pos REVERSE)
+MATH(EXPR pos ${pos}+1)
+string(SUBSTRING ${CMAKE_CURRENT_SOURCE_DIR} ${pos} -1 PV_PROJECT_NAME)
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
@@ -13,9 +17,9 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif (NOT CMAKE_BUILD_TYPE)
 
-set(PV_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/src")
-set(PV_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision/lib")
-set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(PV_SOURCE_DIR "${PV_DIR}/src")
+set(PV_BINARY_DIR "${PV_DIR}/lib")
+set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src") # should we move source files to a src directory?
 set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
@@ -26,41 +30,42 @@ endif (NOT GDAL_FOUND)
 
 if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
     find_package(MPI REQUIRED)
+set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
+set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 
-if (NOT LIBSNDFILE_FOUND)
-    find_package(LIBSNDFILE)
-endif (NOT LIBSNDFILE_FOUND)
+if (LIB_SND_FILE)
+   find_package(LIBSNDFILE)
+endif (LIB_SND_FILE)
 
-include_directories(${MPI_CXX_INCLUDE_PATH})
-include_directories(${MPI_C_INCLUDE_PATH})
-IF(LIBSNDFILE_FOUND)
-    include_directories(${LIBSNDFILE_INCLUDE_DIR})
-ENDIF(LIBSNDFILE_FOUND)
-
-# Header files
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
-include_directories(${MPI_C_INCLUDE_PATH})
-include_directories(${MPI_CXX_INCLUDE_PATH})
+IF(LIB_SND_FILE)
+   include_directories(${LIBSNDFILE_INCLUDE_DIR})
+ENDIF(LIB_SND_FILE)
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
 
-
 # Add executable
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
-add_executable(MaskLCA ${libSrcCPP} ${libSrcC})
 
-# Link executable to PV 
-target_link_libraries(MaskLCA pv)
+if(CUDA_GPU)
+   cuda_add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
+else(CUDA_GPU)
+   add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
+endif(CUDA_GPU)
+
+target_link_libraries(${PV_PROJECT_NAME} pv)
 
 # Link executable to external libraries
-target_link_libraries(MaskLCA ${GDAL_LIBRARY})
-target_link_libraries(MaskLCA ${MPI_C_LIBRARIES})
-target_link_libraries(MaskLCA ${MPI_CXX_LIBRARIES})
+target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
 IF(LIBSNDFILE_FOUND)
-   target_link_libraries(MaskLCA ${LIBSNDFILE_LIBRARY})
+   target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
 ENDIF(LIBSNDFILE_FOUND)
+
+IF(CUDNN)
+   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
+ENDIF(CUDNN)
 

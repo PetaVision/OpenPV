@@ -1,9 +1,9 @@
 function createRankFileFromPvp
    more off;
    format long;
-   %%pvpFile = '/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine/a2_V1_S2.pvp';
-   %%pvpFile = '/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine/a3_V1_S4.pvp';
-   pvpFile = '/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine/a4_V1_S8.pvp';
+   %%pvpFile = '/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_PASCAL_060614/a2_V1_S2.pvp';
+   pvpFile = '/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_PASCAL_060614/a3_V1_S4.pvp';
+   %%pvpFile = '/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_PASCAL_060614/a4_V1_S8.pvp';
    [path,name,ext] = fileparts(pvpFile);
    outputFile = [path, filesep, name, "_ranks.txt"];
    fileID = fopen(outputFile, "a");
@@ -26,7 +26,6 @@ function createRankFileFromPvp
    end
 
    fclose(fileID);
-   keyboard;
 end
 
 function [A] = getRanks(in)
