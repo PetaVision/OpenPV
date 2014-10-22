@@ -124,7 +124,7 @@ PVPatch *** HyPerConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pvd
    }
 
    if (normalizer) {
-      normalizer->normalizeWeights(this);
+      normalizer->normalizeWeightsWrapper();
    }
    return arbors;
 }

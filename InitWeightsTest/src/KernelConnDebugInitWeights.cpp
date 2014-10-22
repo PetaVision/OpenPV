@@ -134,7 +134,7 @@ PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pv
    }
 
    if (normalizer) {
-      normalizer->normalizeWeights(this);
+      normalizer->normalizeWeightsWrapper();
    }
    return arbors;
 }
