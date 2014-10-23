@@ -1052,6 +1052,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
    // read the image and scatter the local portions
    char * path = NULL;
    bool usingTempFile = false;
+   int numAttempts = 5;
 
    if (parent->columnId()==0) {
       if (strstr(filename, "://") != NULL) {
@@ -1077,10 +1078,21 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
          }
          printf("Downloading \"%s\" to \"%s\"...\n", filename, path);
          fflush(stdout);
-         int status = system(systemstring.c_str());
-         if (status != 0) {
-            fprintf(stderr, "download command \"%s\" failed.  Exiting.\n", systemstring.c_str());
-            exit(EXIT_FAILURE);
+         
+         for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
+            int status = system(systemstring.c_str());
+            if(status != 0){
+               if(attemptNum == numAttempts - 1){
+                  fprintf(stderr, "download command \"%s\" failed.  Exiting\n", systemstring.c_str(), attemptNum+1, numAttempts);
+                  exit(EXIT_FAILURE);
+               }
+               else{
+                  fprintf(stderr, "download command \"%s\" failed.  Retrying %d out of %d.\n", systemstring.c_str(), attemptNum+1, numAttempts);
+               }
+            }
+            else{
+               break;
+            }
          }
          printf("Finished downloading \"%s\" to \"%s\".\n", filename, path);
          fflush(stdout);

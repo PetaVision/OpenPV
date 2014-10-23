@@ -1049,6 +1049,7 @@ int HyPerCol::ensureDirExists(const char * dirname) {
    int rank = icComm->commRank();
    struct stat pathstat;
    int resultcode = checkDirExists(dirname, &pathstat);
+   int numAttempts = 5;
    if( resultcode == 0 ) { // outputPath exists; now check if it's a directory.
       if( !(pathstat.st_mode & S_IFDIR ) ) {
          if( rank == 0 ) {
@@ -1069,11 +1070,23 @@ int HyPerCol::ensureDirExists(const char * dirname) {
             fprintf(stderr,"Path \"%s\" is too long.",dirname);
             exit(EXIT_FAILURE);
          }
-         int mkdirstatus = system(targetString);
-         if( mkdirstatus != 0 ) {
-            fflush(stdout);
-            fprintf(stderr, "Directory \"%s\" could not be created: %s\n", dirname, strerror(errno));
-            exit(EXIT_FAILURE);
+         //Try again until it works
+         for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
+            int mkdirstatus = system(targetString);
+            if( mkdirstatus != 0 ) {
+               if(attemptNum == numAttempts - 1){
+                  fflush(stdout);
+                  fprintf(stderr, "Directory \"%s\" could not be created: %s; Exiting\n", dirname, strerror(errno));
+                  exit(EXIT_FAILURE);
+               }
+               else{
+                  fflush(stdout);
+                  fprintf(stderr, "Directory \"%s\" could not be created: %s; Retrying %d out of %d\n", dirname, strerror(errno), attemptNum + 1, numAttempts);
+               }
+            }
+            else{
+               break;
+            }
          }
       }
    }
