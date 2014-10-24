@@ -73,6 +73,7 @@ public:
 
    HyPerLayer * getLayerFromName(const char * layerName);
    HyPerConn * getConnFromName(const char * connectionName);
+   NormalizeBase * getNormalizerFromName(const char * normalizerName);
    ColProbe * getColProbeFromName(const char * probeName);
 
    HyPerLayer * getLayer(int which)       {return layers[which];}

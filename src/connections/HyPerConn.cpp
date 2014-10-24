@@ -191,6 +191,8 @@ HyPerConn::~HyPerConn()
       triggerLayerName = NULL;
    }
    free(numKernelActivations);
+
+   free(normalizeGroupName);
 }
 
 //!
@@ -256,6 +258,7 @@ int HyPerConn::initialize_base()
    this->selfFlag = false;  // specifies whether connection is from a layer to itself (i.e. a self-connection)
    this->combine_dW_with_W_flag = false;
    this->normalizeMethod = NULL;
+   this->normalizeGroupName = NULL;
    this->normalizer = NULL;
    this->plasticityFlag = false;
    this->shrinkPatches_flag = false; // default value, overridden by params file parameter "shrinkPatches" in readShrinkPatches()
@@ -921,6 +924,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    if (normalizer != NULL) {
       normalizer->ioParamsFillGroup(ioFlag);
    }
+   ioParam_normalizeGroupName(ioFlag);
    ioParam_dWMax(ioFlag);
    ioParam_shmget_flag(ioFlag);
    ioParam_keepKernelsSynchronized(ioFlag);
@@ -1368,6 +1372,11 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
             HyPerConn * conn = this;
             normalizer = new NormalizeScale(name, parent, &conn, 1);
          }
+         else if (!strcmp(normalizeMethod, "normalizeGroup")) {
+            normalizer = NULL;
+            // During communicateInitInfo stage, normalizeGroupName will be converted
+            // to a normalizer and that normalizer's addConnToList method will be found
+         }
          else if (!strcmp(normalizeMethod, "none")) {
             normalizer = NULL;
          }
@@ -1390,6 +1399,15 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
       if (normalizer) {
          parent->addNormalizer(normalizer);
       }
+   }
+}
+
+void HyPerConn::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "normalizeMethod"));
+   // Note: subclasses may override ioParam_normalizeMethod so that it is possible for normalizeMethod to be NULL
+   // even though HyPerConn::ioParam_normalizeMethod itself always sets normalizeMethod
+   if (normalizeMethod && !strcmp(normalizeMethod, "normalizeGroup")) {
+      parent->ioParamStringRequired(ioFlag, name, "normalizeGroupName", &normalizeGroupName);
    }
 }
 
@@ -1719,6 +1737,20 @@ int HyPerConn::communicateInitInfo() {
    }
    else {
       fileType = PVP_WGT_FILE_TYPE;
+   }
+
+   if (normalizeGroupName) {
+      assert(!strcmp(normalizeMethod, "normalizeGroup"));
+      NormalizeBase * groupNormalizer = parent->getNormalizerFromName(normalizeGroupName);
+      if (groupNormalizer==NULL) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
+                  parent->parameters()->groupKeywordFromName(name), name, normalizeGroupName);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      groupNormalizer->addConnToList(this);
    }
 
 //GPU stuff

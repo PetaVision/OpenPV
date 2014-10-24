@@ -38,7 +38,12 @@ void NormalizeMax::ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag) {
 int NormalizeMax::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   assert(numConnections==1);
+   assert(numConnections >= 1);
+   if (numConnections > 1 && parent()->columnId()==0) {
+      fprintf(stderr, "Warning: NormalizeMax has not yet been generalized for groups of connections.\n");
+      fprintf(stderr, "Connection \"%s\" will be normalized but the other connections in group \"%s\" will not be modified.\n",
+            connectionList[0]->getName(), name);
+   }
    HyPerConn * conn = connectionList[0];
 
 #ifdef USE_SHMGET

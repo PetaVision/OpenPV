@@ -2392,6 +2392,19 @@ HyPerConn * HyPerCol::getConnFromName(const char * connName) {
    return NULL;
 }
 
+NormalizeBase * HyPerCol::getNormalizerFromName(const char * normalizerName) {
+   if( normalizerName == NULL ) return NULL;
+   int n = numberOfNormalizers();
+   for( int i=0; i<n; i++ ) {
+      NormalizeBase * curNormalizer = getNormalizer(i);
+      assert(curNormalizer);
+      const char * curNormalizerName = curNormalizer->getName();
+      assert(curNormalizerName);
+      if( !strcmp(curNormalizer->getName(), normalizerName) ) return curNormalizer;
+   }
+   return NULL;
+}
+
 ColProbe * HyPerCol::getColProbeFromName(const char * probeName) {
    if (probeName == NULL) return NULL;
    ColProbe * p = NULL;

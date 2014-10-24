@@ -40,7 +40,12 @@ int NormalizeScale::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 int NormalizeScale::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   assert(numConnections==1); // TODO: generalize to groups of connections
+   assert(numConnections >= 1);
+   if (numConnections > 1 && parent()->columnId()==0) {
+      fprintf(stderr, "Warning: NormalizeScale has not yet been generalized for groups of connections.\n");
+      fprintf(stderr, "Connection \"%s\" will be normalized but the other connections in group \"%s\" will not be modified.\n",
+            connectionList[0]->getName(), name);
+   }
    HyPerConn * conn = connectionList[0];
 
 #ifdef USE_SHMGET

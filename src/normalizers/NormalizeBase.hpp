@@ -22,6 +22,11 @@ public:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    /**
+    * Appends the indicated connection to the list of connections for this normalizer
+    */
+   int addConnToList(HyPerConn * newConn);
+
+   /**
     * The public interface for normalizing weights.
     * If normalizeOnInitialize is true and the simulation time is startTime(),
     * or if normalizeOnWeightUpdate is true and the simulation time is the conn's lastUpdateTime,
@@ -29,6 +34,7 @@ public:
     */
    int normalizeWeightsWrapper();
 
+   const char * getName() {return name;}
    const float getStrength() {return strength;}
    const float getNormalizeCutoff() {return normalize_cutoff;}
    const bool  getSymmetrizeWeightsFlag() {return symmetrizeWeightsFlag;}

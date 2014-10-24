@@ -497,6 +497,7 @@ protected:
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
    char * normalizeMethod;
    NormalizeBase * normalizer;
+   char * normalizeGroupName; // If normalizeMethod is normalizeGroup, holds the name of the group.  Otherwise null
    // bool normalize_flag; // replaced by testing whether normalizer!=NULL
    float normalize_strength;
    bool normalizeArborsIndividually; // if true, each arbor is normalized individually, otherwise, arbors normalized together
@@ -905,6 +906,11 @@ protected:
     * Further parameters are needed depending on initialization type.
     */
    virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief groupNormalizerName: If normalizeMethod is set to "normalizeGroup", sets the name of the normalization group for this connection.
+    */
+   virtual void ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief sharedWeights: Deprecated

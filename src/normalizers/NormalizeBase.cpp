@@ -40,8 +40,6 @@ int NormalizeBase::initialize_base() {
 int NormalizeBase::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
    // name is the name of a group in the PVParams object.  Parameters related to normalization should be in the indicated group.
 
-   assert(numConns==1); // TODO: relax this requirement
-
    int status = PV_SUCCESS;
    this->connectionList = (HyPerConn **) malloc(sizeof(*connectionList)*(size_t) numConns);
    if (this->connectionList==NULL) {
@@ -123,7 +121,7 @@ void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
 int NormalizeBase::normalizeWeightsWrapper() {
    int status = PV_SUCCESS;
    HyPerConn * callingConn = connectionList[0];
-   // TODO: For groups, how should we enforce groups of normaliz
+   // TODO: For groups, how should we enforce groups of connections, each with its own lastUpdateTime?
    double simTime = callingConn->getParent()->simulationTime();
    if ( (normalizeOnInitialize && simTime == callingConn->getParent()->getStartTime()) ||
         (normalizeOnWeightUpdate && simTime == callingConn->getLastUpdateTime()) ) {
@@ -381,6 +379,21 @@ int NormalizeBase::symmetrizeWeights(HyPerConn * conn) {
    free(symPatches);
 
    return status;
+}
+
+int NormalizeBase::addConnToList(HyPerConn * newConn) {
+   HyPerConn ** newList = (HyPerConn **) realloc(connectionList, sizeof(*connectionList)*(numConnections+1));
+   if (newList==NULL) {
+      fprintf(stderr, "Normalizer \"%s\" unable to add connection \"%s\" as connection number %d : %s\n", name, newConn->getName(), numConnections+1);
+      exit(EXIT_FAILURE);
+   }
+   connectionList = newList;
+   connectionList[numConnections] = newConn;
+   numConnections++;
+   if (parent()->columnId()==0) {
+      printf("Adding connection \"%s\" to normalizer group \"%s\".\n", newConn->getName(), this->getName());
+   }
+   return PV_SUCCESS;
 }
 
 void NormalizeBase::normalizePatch(pvwdata_t * dataStartPatch, int weights_per_patch, float multiplier) {

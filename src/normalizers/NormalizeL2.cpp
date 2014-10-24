@@ -38,7 +38,12 @@ void NormalizeL2::ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag) {
 int NormalizeL2::normalizeWeights() {
    int status = PV_SUCCESS;
 
-   assert(numConnections==1); // TODO: normalize over groups of connections
+   assert(numConnections >= 1);
+   if (numConnections > 1 && parent()->columnId()==0) {
+      fprintf(stderr, "Warning: NormalizeL2 has not yet been generalized for groups of connections.\n");
+      fprintf(stderr, "Connection \"%s\" will be normalized but the other connections in group \"%s\" will not be modified.\n",
+            connectionList[0]->getName(), name);
+   }
    HyPerConn * conn = connectionList[0];
 
 #ifdef USE_SHMGET
