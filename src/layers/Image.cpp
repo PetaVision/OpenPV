@@ -1062,7 +1062,13 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
          const char * ext = strrchr(filename, '.');
          pathstring += ext;
          path = strdup(pathstring.c_str());
-         mkstemps(path, strlen(ext));
+         int fid;
+         fid=mkstemps(path, strlen(ext));
+         if (fid<0) {
+            fprintf(stderr,"Cannot create temp image file.\n");
+            exit(EXIT_FAILURE);
+         }
+         close(fid);
          std::string systemstring;
          if (strstr(filename, "s3://") != NULL) {
             systemstring = "aws s3 cp ";
