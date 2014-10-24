@@ -39,12 +39,9 @@ int NormalizeL2::normalizeWeights() {
    int status = PV_SUCCESS;
 
    assert(numConnections >= 1);
-   if (numConnections > 1 && parent()->columnId()==0) {
-      fprintf(stderr, "Warning: NormalizeL2 has not yet been generalized for groups of connections.\n");
-      fprintf(stderr, "Connection \"%s\" will be normalized but the other connections in group \"%s\" will not be modified.\n",
-            connectionList[0]->getName(), name);
-   }
-   HyPerConn * conn = connectionList[0];
+
+   // TODO: need to ensure that all connections in connectionList have same sharedWeights,nxp,nyp,nfp,nxpShrunken,nypShrunken,offsetShrunken,sxp,syp,numArbors,numDataPatches,scale_factor
+   HyPerConn * conn0 = connectionList[0];
 
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
@@ -57,45 +54,52 @@ int NormalizeL2::normalizeWeights() {
 
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
-      if (conn->usingSharedWeights()==false) {
-         fprintf(stderr, "NormalizeL2 error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", conn->getName());
+      if (conn0->usingSharedWeights()==false) {
+         fprintf(stderr, "NormalizeL2 error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", conn0->getName());
          exit(EXIT_FAILURE);
       }
-      scale_factor = ((float) conn->postSynapticLayer()->getNumNeurons())/((float) conn->preSynapticLayer()->getNumNeurons());
+      scale_factor = ((float) conn0->postSynapticLayer()->getNumNeurons())/((float) conn0->preSynapticLayer()->getNumNeurons());
    }
    scale_factor *= strength;
 
    status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
 
-   int nxp = conn->xPatchSize();
-   int nyp = conn->yPatchSize();
-   int nfp = conn->fPatchSize();
-   int nxpShrunken = conn->getNxpShrunken();
-   int nypShrunken = conn->getNypShrunken();
-   int offsetShrunken = conn->getOffsetShrunken();
-   int xPatchStride = conn->xPatchStride();
-   int yPatchStride = conn->yPatchStride();
+   int nxp = conn0->xPatchSize();
+   int nyp = conn0->yPatchSize();
+   int nfp = conn0->fPatchSize();
+   int nxpShrunken = conn0->getNxpShrunken();
+   int nypShrunken = conn0->getNypShrunken();
+   int offsetShrunken = conn0->getOffsetShrunken();
+   int xPatchStride = conn0->xPatchStride();
+   int yPatchStride = conn0->yPatchStride();
    int weights_per_patch = nxp*nyp*nfp;
-   int nArbors = conn->numberOfAxonalArborLists();
-   int numDataPatches = conn->getNumDataPatches();
+   int nArbors = conn0->numberOfAxonalArborLists();
+   int numDataPatches = conn0->getNumDataPatches();
    if (normalizeArborsIndividually) {
       for (int arborID = 0; arborID<nArbors; arborID++) {
          for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-            pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
             double sumsq = 0.0;
-            if (offsetShrunken == 0){
-            	accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
-            }
-            else{
-            	accumulateSumSquaredShrunken(dataStartPatch, &sumsq,
-            			nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
+            for (int c=0; c<numConnections; c++) {
+               HyPerConn * conn = connectionList[c];
+               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               if (offsetShrunken == 0){
+                   accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
+               }
+               else{
+                   accumulateSumSquaredShrunken(dataStartPatch, &sumsq,
+                           nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
+               }
             }
             double l2norm = sqrt(sumsq);
             if (fabs(l2norm) <= minL2NormTolerated) {
-               fprintf(stderr, "NormalizeL2 warning for normalizer \"%s\": sum of squares of weights in patch %d of arbor %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", conn->getName(), patchindex, arborID, minL2NormTolerated);
+               fprintf(stderr, "Warning for NormalizeL2 \"%s\": sum of squares of weights in patch %d of arbor %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, arborID, minL2NormTolerated);
                break;
             }
-            normalizePatch(dataStartPatch, weights_per_patch, scale_factor/l2norm);
+            for (int c=0; c<numConnections; c++) {
+               HyPerConn * conn = connectionList[c];
+               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               normalizePatch(dataStartPatch, weights_per_patch, scale_factor/l2norm);
+            }
          }
       }
    }
@@ -103,23 +107,29 @@ int NormalizeL2::normalizeWeights() {
       for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
          double sumsq = 0.0;
          for (int arborID = 0; arborID<nArbors; arborID++) {
-            pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
-            if (offsetShrunken == 0){
-            	accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
-            }
-            else{
-            	accumulateSumSquaredShrunken(dataStartPatch, &sumsq,
-            			nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
+            for (int c=0; c<numConnections; c++) {
+               HyPerConn * conn = connectionList[c];
+               pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
+               if (offsetShrunken == 0){
+                   accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
+               }
+               else{
+                   accumulateSumSquaredShrunken(dataStartPatch, &sumsq,
+                           nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
+               }
             }
          }
          double l2norm = sqrt(sumsq);
          if (fabs(sumsq) <= minL2NormTolerated) {
-            fprintf(stderr, "NormalizeL2 warning for connection \"%s\": sum of squares of weights in patch %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", conn->getName(), patchindex, minL2NormTolerated);
+            fprintf(stderr, "Warning for NormalizeL2 \"%s\": sum of squares of weights in patch %d is within minL2NormTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, minL2NormTolerated);
             break;
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {
-            pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
-            normalizePatch(dataStartPatch, weights_per_patch, scale_factor/l2norm);
+            for (int c=0; c<numConnections; c++) {
+               HyPerConn * conn = connectionList[c];
+               pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
+               normalizePatch(dataStartPatch, weights_per_patch, scale_factor/l2norm);
+            }
          }
       }
    }

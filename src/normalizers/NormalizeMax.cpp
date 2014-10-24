@@ -39,12 +39,9 @@ int NormalizeMax::normalizeWeights() {
    int status = PV_SUCCESS;
 
    assert(numConnections >= 1);
-   if (numConnections > 1 && parent()->columnId()==0) {
-      fprintf(stderr, "Warning: NormalizeMax has not yet been generalized for groups of connections.\n");
-      fprintf(stderr, "Connection \"%s\" will be normalized but the other connections in group \"%s\" will not be modified.\n",
-            connectionList[0]->getName(), name);
-   }
-   HyPerConn * conn = connectionList[0];
+
+   // TODO: need to ensure that all connections in connectionList have same sharedWeights,nxp,nyp,nfp,nxpShrunken,nypShrunken,offsetShrunken,sxp,syp,numArbors,numDataPatches,scale_factor
+   HyPerConn * conn0 = connectionList[0];
 
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
@@ -57,33 +54,40 @@ int NormalizeMax::normalizeWeights() {
 
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
-      if (conn->usingSharedWeights()==false) {
-         fprintf(stderr, "NormalizeMax error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", conn->getName());
+      if (conn0->usingSharedWeights()==false) {
+         fprintf(stderr, "NormalizeMax error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", getName());
          exit(EXIT_FAILURE);
       }
-      scale_factor = ((float) conn->postSynapticLayer()->getNumNeurons())/((float) conn->preSynapticLayer()->getNumNeurons());
+      scale_factor = ((float) conn0->postSynapticLayer()->getNumNeurons())/((float) conn0->preSynapticLayer()->getNumNeurons());
    }
    scale_factor *= strength;
 
    status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
 
-   int nxp = conn->xPatchSize();
-   int nyp = conn->yPatchSize();
-   int nfp = conn->fPatchSize();
+   int nxp = conn0->xPatchSize();
+   int nyp = conn0->yPatchSize();
+   int nfp = conn0->fPatchSize();
    int weights_per_patch = nxp*nyp*nfp;
-   int nArbors = conn->numberOfAxonalArborLists();
-   int numDataPatches = conn->getNumDataPatches();
+   int nArbors = conn0->numberOfAxonalArborLists();
+   int numDataPatches = conn0->getNumDataPatches();
    if (normalizeArborsIndividually) {
       for (int arborID = 0; arborID<nArbors; arborID++) {
          for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-            pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
             float max = 0.0f;
-            accumulateMax(dataStartPatch, weights_per_patch, &max);
-            if (max <= minMaxTolerated) {
-               fprintf(stderr, "NormalizeMax warning for normalizer \"%s\": max of weights in patch %d of arbor %d is within minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n", conn->getName(), patchindex, arborID, minMaxTolerated);
-               break;
+            for (int c=0; c<numConnections; c++) {
+               HyPerConn * conn = connectionList[c];
+               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               accumulateMax(dataStartPatch, weights_per_patch, &max);
             }
-            normalizePatch(dataStartPatch, weights_per_patch, scale_factor/max);
+            if (max <= minMaxTolerated) {
+               fprintf(stderr, "Warning for NormalizeMax \"%s\": max of weights in patch %d of arbor %d is within minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, arborID, minMaxTolerated);
+               break; // TODO: continue?
+            }
+            for (int c=0; c<numConnections; c++) {
+               HyPerConn * conn = connectionList[c];
+               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               normalizePatch(dataStartPatch, weights_per_patch, scale_factor/max);
+            }
          }
       }
    }
@@ -91,16 +95,22 @@ int NormalizeMax::normalizeWeights() {
       for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
          float max = 0.0;
          for (int arborID = 0; arborID<nArbors; arborID++) {
-            pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
-            accumulateMax(dataStartPatch, weights_per_patch, &max);
+            for (int c=0; c<numConnections; c++) {
+               HyPerConn * conn = connectionList[c];
+               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               accumulateMax(dataStartPatch, weights_per_patch, &max);
+            }
          }
          if (max <= minMaxTolerated) {
-            fprintf(stderr, "NormalizeMax warning for connection \"%s\": max of weights in patch %d is within minMaxTolerated=%f of zero. Weights in this patch unchanged.\n", conn->getName(), patchindex, minMaxTolerated);
-            break;
+            fprintf(stderr, "Warning for NormalizeMax \"%s\": max of weights in patch %d is within minMaxTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, minMaxTolerated);
+            break; // TODO: continue?
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {
-            pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
-            normalizePatch(dataStartPatch, weights_per_patch, scale_factor/max);
+            for (int c=0; c<numConnections; c++) {
+               HyPerConn * conn = connectionList[c];
+               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               normalizePatch(dataStartPatch, weights_per_patch, scale_factor/max);
+            }
          }
       }
    }
