@@ -41,12 +41,9 @@ int NormalizeScale::normalizeWeights() {
    int status = PV_SUCCESS;
 
    assert(numConnections >= 1);
-   if (numConnections > 1 && parent()->columnId()==0) {
-      fprintf(stderr, "Warning: NormalizeScale has not yet been generalized for groups of connections.\n");
-      fprintf(stderr, "Connection \"%s\" will be normalized but the other connections in group \"%s\" will not be modified.\n",
-            connectionList[0]->getName(), name);
-   }
-   HyPerConn * conn = connectionList[0];
+
+   // TODO: need to ensure that all connections in connectionList have same nxp,nyp,nfp,nxpShrunken,nypShrunken,offsetShrunken,sxp,syp,numArbors,numDataPatches
+   HyPerConn * conn0 = connectionList[0];
 
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
@@ -61,24 +58,27 @@ int NormalizeScale::normalizeWeights() {
 
    status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
 
-   int nxp = conn->xPatchSize();
-   int nyp = conn->yPatchSize();
-   int nfp = conn->fPatchSize();
-   int nxpShrunken = conn->getNxpShrunken();
-   int nypShrunken = conn->getNypShrunken();
-   int offsetShrunken = conn->getOffsetShrunken();
-   int xPatchStride = conn->xPatchStride();
-   int yPatchStride = conn->yPatchStride();
+   int nxp = conn0->xPatchSize();
+   int nyp = conn0->yPatchSize();
+   int nfp = conn0->fPatchSize();
+   int nxpShrunken = conn0->getNxpShrunken();
+   int nypShrunken = conn0->getNypShrunken();
+   int offsetShrunken = conn0->getOffsetShrunken();
+   int xPatchStride = conn0->xPatchStride();
+   int yPatchStride = conn0->yPatchStride();
    int weights_per_patch = nxp*nyp*nfp;
-   int nArbors = conn->numberOfAxonalArborLists();
-   int numDataPatches = conn->getNumDataPatches();
-  
-  for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
-     for (int arborID = 0; arborID<nArbors; arborID++) {
-        pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
-        normalizePatch(dataStartPatch, weights_per_patch, scale_factor);
-     }
-  }
+   int nArbors = conn0->numberOfAxonalArborLists();
+   int numDataPatches = conn0->getNumDataPatches();
+
+   for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
+      for (int arborID = 0; arborID<nArbors; arborID++) {
+         for (int c=0; c<numConnections; c++) {
+            HyPerConn * conn = connectionList[c];
+            pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
+            normalizePatch(dataStartPatch, weights_per_patch, scale_factor);
+         }
+      }
+   }
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
    if (conn->getShmgetFlag()) {
