@@ -1,7 +1,7 @@
 //
-// GenericSystemTest.params
+// WriteSparseFileTest.params
 //
-// created by peteschultz: Mar 25, 2014
+// created by Sheng Lundquist: Oct 27, 2014
 //
 
 //  A params file for a simple simulation: two layers, one connection.
@@ -85,8 +85,6 @@ ANNLayer "output" = {
     initialWriteTime = 1.0;
     writeSparseActivity = true;
     writeSparseValues = true;
-    writeStep = 1;
-    initialWriteTime = 1;
 
     InitVType = "ZeroV";
 
