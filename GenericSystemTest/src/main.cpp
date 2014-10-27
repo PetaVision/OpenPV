@@ -161,7 +161,31 @@ int generate(int argc, char * argv[], int rank) {
       PV_Stream * emptyinfile = PV_fopen("input/correct.pvp", "w", false/*verifyWrites*/);
       // Data for a CORRECT_PVP_NX-by-CORRECT_PVP_NY layer with CORRECT_PVP_NF features.
       // Sparse activity with no active neurons so file size doesn't change with number of features
-      int emptydata[] = {80, 20, 2, CORRECT_PVP_NX, CORRECT_PVP_NY, CORRECT_PVP_NF, 1, 0, 4, 2, 1, 1, CORRECT_PVP_NX, CORRECT_PVP_NY, 0, 0, 0, 1, 0, 0, 0, 0, 0};
+      int emptydata[] = {
+            80/*header size in chars*/,
+            20/*header size in 4-byte integers*/,
+            2/*file type (2=sparse binary)*/,
+            CORRECT_PVP_NX/*the number of pixels in the x-direction*/,
+            CORRECT_PVP_NY/*the number of pixels in the y-direction*/,
+            CORRECT_PVP_NF/*the number of features*/,
+            1/*number of records*/,
+            0/*record size*/,
+            4/*data size*/,
+            2/*data type*/,
+            1/*number of processes in x-direction (always 1 for layers)*/,
+            1/*number of processes in y-direction (always 1 for layers)*/,
+            CORRECT_PVP_NX/*NX_GLOBAL (always the same as NX for layers)*/,
+            CORRECT_PVP_NY/*NY_GLOBAL (always the same as NY for layers)*/,
+            0/*kx0 (always 0 for layers)*/,
+            0/*ky0 (always 0 for layers)*/,
+            0/*number of boundary pixels*/,
+            1/*number of frames*/,
+            0/*first four bytes of timestamp in header(a double-precision floating-point)*/,
+            0/*last four bytes of timestamp in header*/,
+            0/*first four bytes of timestamp in first frame*/,
+            0/*last four bytes of timestamp in first frame*/,
+            0/*Number of active values in the frame (zero for empty data)*/};
+
       size_t numwritten = PV_fwrite(emptydata, 23, sizeof(int), emptyinfile);
       if (numwritten != 23) {
          fprintf(stderr, "%s error writing placeholder data into input/correct.pvp file.\n", pv_argv[0]);
