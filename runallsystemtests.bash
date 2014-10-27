@@ -546,6 +546,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
+testname=WriteSparseFileTest
+cd "$testname"
+arglist="-p input/WriteSparseFileTest.params -c checkpoints/Checkpoint6 --testall"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
 status=0
 if test -n "$fails"
 then
