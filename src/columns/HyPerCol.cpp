@@ -1256,7 +1256,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       }
       else {
          assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-         exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
+         exit(EXIT_FAILURE); // Any error message should be printed by probe's allocateDataStructures function
       }
    }
 
