@@ -1,0 +1,289 @@
+///////////////////////////
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+
+HyPerCol "column" = {
+    nx                              = 480;   // [px]
+    ny                              = 270;   // [px]
+    dt                              = 1.0;   // [ms]
+    dtAdaptFlag                     = false; // Time step size is scaled by 1 / (maximimum % error)
+//                                           // i.e. adaptive time step uses the average error to scale dt
+//    dtScaleMax                      = 5.0;   // Maximum step size is dtScaleMax times the base time step size
+//    dtScaleMin                      = 0.25;  // Minimum step size is dtScaleMin times the base time step size
+//    dtChangeMax                     = 0.05;
+//    dtChangeMin                     = 0.0;
+//    dtMinToleratedTimeScale         = 0.001;
+    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+//    numSteps                        = 1808800; 
+    startTime                       = 0;
+    stopTime                        = 5400; //135 images 
+    progressInterval                = 100;
+    outputPath                      = "/Users/dpaiton/Documents/workspace/LIFLCA/output/";
+    filenamesContainLayerNames      = true;
+    filenamesContainConnectionNames = true;
+    initializeFromCheckpointDir     = "";
+    checkpointWriteTriggerMode      = "step";
+    checkpointWrite                 = true;
+    checkpointWriteDir              = "/Users/dpaiton/Documents/workspace/LIFLCA/checkpoints/";
+    checkpointWriteStepInterval     = 100000;
+    deleteOlderCheckpoints          = false;
+    writeProgressToErr              = true;
+    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
+    suppressLastOutput              = false;
+    printParamsFilename             = "LCA_LIF_trial_1.params";    
+    verifyWrites                    = true;
+    errorOnNotANumber               = true;
+};
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+// LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS
+// LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS
+// LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS
+// LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS
+// LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS LAYERS
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+Movie "Input" = {
+    nxScale                = 1;
+    nyScale                = 1;
+    imageListPath          = "/Users/dpaiton/Documents/workspace/LIFLCA/input/img_list.txt";
+    nf                     = 1;        // nf=3 for RGB, nf=1 for greyscale
+//
+    writeStep              = 2000.0;
+    initialWriteTime       = 2000.0;
+    writeSparseActivity    = false;
+    displayPeriod          = 40;
+    start_frame_index      = 1;
+    skip_frame_index       = 0;
+    echoFramePathnameFlag  = true;
+    writeFrameToTimestamp  = true;
+    flipOnTimescaleError   = 1;
+//
+    offsetAnchor           = "tl";
+    offsetX                = 0;
+    offsetY                = 0;
+    randomMovie            = 0;
+    mirrorBCflag           = true;
+    jitterFlag             = false;
+    useImageBCflag         = false;
+    inverseFlag            = false;
+    normalizeLuminanceFlag = true;     // mean 0
+    normalizeStdDev        = true;     // std 1
+//
+    writeImages            = false;
+    autoResizeFlag         = false;
+    readPvpFile            = false;
+    phase                  = 0;
+};
+
+
+ANNErrorLayer "Residual" = {
+    nxScale                = 1;
+    nyScale                = 1;
+    nf                     = 1;
+//
+    triggerFlag            = false;
+    initialWriteTime       = 2000.0;
+    writeStep              = 2000;
+    mirrorBCflag           = false;
+    valueBC                = 0;
+    writeSparseActivity    = 0;
+//
+    InitVType              = "ZeroV";
+    //InitVType              = "InitVFromFile";
+    //Vfilename              = "/Users/dpaiton/Documents/workspace/LIFLCA/output/Residual_V.pvp";
+//
+    VThresh                = 0.005;
+    AMax                   = infinity;
+    AMin                   = 0;
+    AShift                 = 0; //TODO: What does this mean?
+    VWidth                 = 0; //TODO: What does this mean?
+    errScale               = 1; //TODO: What does this mean?
+//
+    phase                  = 1;  
+};
+
+
+HyPerLCALayer "L1" = {
+    nxScale                = 0.5;
+    nyScale                = 0.5;
+    nf                     = 48;
+    numChannels            = 1;    // should be 1
+    numWindowX             = 1;    // for location dependent kernels
+    numWindowY             = 1;
+//
+    initialWriteTime       = 39.0;
+    writeStep              = 40.0;
+    mirrorBCflag           = 0;
+    valueBC                = 0;
+    writeSparseActivity    = 1;
+    writeSparseValues      = 1;
+    triggerFlag            = false;
+    selfInteract           = true;
+//
+    InitVType              = "UniformRandomV";
+    minV                   = -1.0;
+    maxV                   = .15; //0.05 above VThresh
+    //InitVType              = "InitVFromFile";
+    //Vfilename              = "/Users//output/Checkpoints/Checkpoint6000000/L1_V.pvp";
+// 
+    timeConstantTau        = 200.0;
+    VThresh                = 0.05; // 
+    AMax                   = infinity;
+    AMin                   = 0;
+    AShift                 = 0.0;  // 0 -> hard threshold, 1 -> soft threshold; subtract AShift from A to get output
+    VWidth                 = 0.05; // 0 -> hard, 1-> soft
+//
+    phase                  = 2;
+};
+
+
+ANNLayer "Recon" = {
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 1;
+    triggerFlag         = false;
+    initialWriteTime    = 2001.0;
+    writeStep           = 2000.0;
+//
+    mirrorBCflag        = 0;
+    valueBC             = 0;
+    writeSparseActivity = 0;
+    movieLayerName      = "Image";
+//
+    InitVType           = "ZeroV";
+    //InitVType           = "InitVFromFile";
+    //Vfilename           = "/Users/dpaiton/Documents/workspace/LIFLCA/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+//
+    VThresh             = -infinity;
+    AMax                = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin                = -infinity; 
+    AShift              = 0;
+    VWidth              = 0;
+// 
+    phase               = 1; 
+};
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+// CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS 
+// CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS 
+// CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS 
+// CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS 
+// CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS CONNECTIONS 
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+IdentConn "Input_to_Residual" = {
+   preLayerName  = "Input";
+   postLayerName = "Residual";
+   channelCode   = 0;
+   delay         = 0;
+   writeStep     = -1;
+};
+
+
+HyPerConn "L1_to_Residual" = {
+    preLayerName                        = "L1";
+    postLayerName                       = "Residual";
+    nxp                                 = 18;
+    nyp                                 = 18;
+    nxpShrunken                         = 16;
+    nypShrunken                         = 16;
+    nfp                                 = 1;
+    numAxonalArbors                     = 1;
+//
+    channelCode                         = 1;
+    sharedWeights                       = true;                   // Acts like a kernelconn
+//
+    weightInitType                      = "UniformRandomWeight";
+    // initWeightsFile                     was set to (NULL);
+    wMinInit                            = -1;
+    wMaxInit                            = 1;
+    sparseFraction                      = 0.9;                    // What percentage of weights are set to 0
+    plasticityFlag                      = false;
+//
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    delay                               = [0.0];
+    updateGSynFromPostPerspective       = false;
+    strength                            = 1;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    symmetrizeWeights                   = false;
+//
+    normalizeMethod                     = "normalizeL2";
+    normalize_cutoff                    = 0;
+    normalizeFromPostPerspective        = false;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = false;
+    normalizeOnWeightUpdate             = false;
+    minL2NormTolerated                  = 0;
+//
+    dWMax                               = 1.0; //TODO: Write out equation here?
+    keepKernelsSynchronized             = true;
+    shrinkPatches                       = false;
+};
+
+
+TransposeConn "Residual_to_L1" = {
+    preLayerName                        = "Residual";
+    postLayerName                       = "L1";
+    channelCode                         = 0;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    delay                               = [0.0];
+    updateGSynFromPostPerspective       = true;
+    originalConnName                    = "L1_to_Residual";
+};
+
+
+CloneConn "L1_to_Recon" = {
+    preLayerName                        = "L1";
+    postLayerName                       = "Recon";
+    channelCode                         = 0;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    delay                               = [0.0];
+    updateGSynFromPostPerspective       = false;
+    originalConnName                    = "L1_to_Residual";
+
+};
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+// PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES
+// PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES
+// PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES
+// PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES
+// PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES PROBES
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+
