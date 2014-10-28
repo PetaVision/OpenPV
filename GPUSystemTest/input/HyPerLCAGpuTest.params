@@ -1,12 +1,12 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    nx = 512; //1242;  // KITTI synced value
-    ny = 512;  //218;
+    nx = 128; //1242;  // KITTI synced value
+    ny = 128;  //218;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0.0;
-    numSteps = 5;       // Depends on number of VINE video frames
+    numSteps = 200;       // Depends on number of VINE video frames
     progressStep = 1;
     //Change this
     outputPath = "output/";
@@ -20,6 +20,29 @@ HyPerCol "column" = {
 };
 
 ConstantLayer "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    writeSparseActivity = 0;
+    //
+    InitVType = "UniformRandomV";
+    minV = 0;
+    maxV = 1;
+
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    VShift = 0;
+    // 
+    phase = 1; 
+    triggerFlag = false;
+};
+
+ConstantLayer "input2" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -238,6 +261,23 @@ TransposeConn "gpuTransposeConn" = {
     numXLocal = 128;
     numYLocal = 1;
     numFLocal = 1;
+};
+
+KernelConn "origConn2" = {
+    #include "origConn";
+    @postLayerName = "input2";
+};
+
+TransposeConn "TransposeConn2" = {
+    #include "TransposeConn";
+    @preLayerName = "input2";
+    @originalConnName = "origConn2";
+};
+
+TransposeConn "gpuTransposeConn2" = {
+    #include "gpuTransposeConn";
+    @preLayerName = "input2";
+    @originalConnName = "origConn2";
 };
 
 IdentConn "RecvPostTest" = {

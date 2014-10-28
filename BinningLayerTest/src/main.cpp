@@ -5,6 +5,7 @@
 
 #include <columns/buildandrun.hpp>
 #include "BinningTestLayer.hpp"
+#include "TestProbe.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -32,6 +33,9 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
       int status = checknewobject((void *) addedLayer, keyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
       assert(status == PV_SUCCESS);
       addedGroup = (void *) addedLayer;
+   }
+   if (strcmp(keyword, "TestProbe") == 0){
+      addedGroup = new TestProbe(name, hc);
    }
 
    //char * preLayerName = NULL;

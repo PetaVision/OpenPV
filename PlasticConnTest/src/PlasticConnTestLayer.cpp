@@ -70,7 +70,7 @@ int PlasticConnTestLayer::updateState(double timef, double dt)
 int PlasticConnTestLayer::publish(InterColComm* comm, double timef)
 {
    setActivitytoGlobalPos();
-   int status = comm->publish(this, clayer->activity);
+   int status = comm->publish(this, clayer->activity, clayer->activeIndices, clayer->numActive);
    return status;
 
    //return HyPerLayer::publish(comm, time);
