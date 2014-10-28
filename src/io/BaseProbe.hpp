@@ -29,7 +29,7 @@ public:
 
    int ioParams(enum ParamsIOFlag ioFlag);
 
-   //virtual and necessary to overwrite for attaching to target layerse
+   //virtual and necessary to overwrite for attaching to target layer or connection
    virtual int communicateInitInfo() = 0;
    //virtual, but not nessessary to overwrite
    virtual int allocateDataStructures();

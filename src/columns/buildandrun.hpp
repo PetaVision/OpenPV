@@ -124,6 +124,7 @@
 #include "../weightinit/InitMTWeights.hpp"
 
 #include "../io/BaseConnectionProbe.hpp"
+#include "../io/ConnStatsProbe.hpp"
 #include "../io/ReciprocalEnergyProbe.hpp"
 #include "../io/KernelProbe.hpp"
 #include "../io/LCALIFLateralProbe.hpp"

@@ -203,6 +203,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "RequireAllZeroActivityProbe",
            "_Stop_LayerProbes_",
            "_Start_BaseConnectionProbes_",
+             "ConnStatsProbe",
              "KernelProbe",
              "OjaConnProbe",
              "OjaKernelSpikeRateProbe",
@@ -288,6 +289,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       if( matchedkeyword < 0 && customgroups != NULL ) {
          void * addedCustomObject = customgroups(kw, name, hc);
          didAddObject = addedCustomObject != NULL;
+         if (!didAddObject && hc->icCommunicator()->commRank()==0) {
+            fprintf(stderr, "customgroups function was unable to add %s \"%s\"\n", kw, name);
+         }
       }
       else if( j > first_hypercol_index && j < last_hypercol_index ) {
          addedHyPerCol = addHyPerColToColumn(kw, name, hc);
@@ -309,17 +313,21 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
          addedBaseConnectionProbe = addBaseConnectionProbeToColumn(kw, name, hc);
          didAddObject = addedBaseConnectionProbe != NULL;
       }
-     else if( j > first_layerprobe_index && j < last_layerprobe_index ) {
+      else if( j > first_layerprobe_index && j < last_layerprobe_index ) {
          addedLayerProbe = addLayerProbeToColumn(kw, name, hc);
          didAddObject = addedLayerProbe != NULL;
       }
       else {
          fprintf(stderr,"%s \"%s\" in params: Keyword %s is unrecognized.\n", kw, name, kw);
-         exit(EXIT_FAILURE);
+         assert(!didAddObject);
       }
 
-      if( !didAddObject && hc->icCommunicator()->commRank()==0 ) {
-         fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
+      if(!didAddObject) {
+         if (hc->icCommunicator()->commRank()==0) {
+            fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
+         }
+         MPI_Barrier(hc->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
       }
    }
 
@@ -328,11 +336,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       delete hc;
       return NULL;
    }
-   // if( hc->numberOfConnections() == 0 ) {
-   //    fprintf(stderr, "HyPerCol \"%s\" does not have any connections.\n", hc->getName());
-   //    delete hc;
-   //    return NULL;
-   // }
    return hc;
 }
 
@@ -803,6 +806,10 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
    if( !strcmp(classkeyword, "ReciprocalEnergyProbe") ) {
       keywordMatched = true;
       addedProbe = new ReciprocalEnergyProbe(name, hc);
+   }
+   if( !strcmp(classkeyword, "ConnStatsProbe") ) {
+      keywordMatched = true;
+      addedProbe = new ConnStatsProbe(name, hc);
    }
    if( !strcmp(classkeyword, "KernelProbe") ) {
       keywordMatched = true;
