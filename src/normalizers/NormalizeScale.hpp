@@ -15,15 +15,17 @@
 #ifndef NORMALIZESCALE_HPP_
 #define NORMALIZESCALE_HPP_
 
-#include "NormalizeBase.hpp"
+#include "NormalizeMultiply.hpp"
 
 namespace PV {
 
-class NormalizeScale: public PV::NormalizeBase {
+class NormalizeScale: public PV::NormalizeMultiply {
    // Member functions
    public:
       NormalizeScale(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections);
       virtual ~NormalizeScale();
+
+      virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
 
       virtual int normalizeWeights();
 

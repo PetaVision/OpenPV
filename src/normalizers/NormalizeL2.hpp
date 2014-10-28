@@ -8,11 +8,11 @@
 #ifndef NORMALIZEL2_HPP_
 #define NORMALIZEL2_HPP_
 
-#include "NormalizeBase.hpp"
+#include "NormalizeMultiply.hpp"
 
 namespace PV {
 
-class NormalizeL2: public PV::NormalizeBase {
+class NormalizeL2: public PV::NormalizeMultiply {
    // Member functions
    public:
       NormalizeL2(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns);

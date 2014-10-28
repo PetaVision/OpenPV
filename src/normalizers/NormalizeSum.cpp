@@ -24,11 +24,11 @@ int NormalizeSum::initialize_base() {
 }
 
 int NormalizeSum::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
-   return NormalizeBase::initialize(name, hc, connectionList, numConnections);
+   return NormalizeMultiply::initialize(name, hc, connectionList, numConnections);
 }
 
 int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
+   int status = NormalizeMultiply::ioParamsFillGroup(ioFlag);
    ioParam_minSumTolerated(ioFlag);
    return status;
 }

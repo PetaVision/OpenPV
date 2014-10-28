@@ -8,11 +8,11 @@
 #ifndef NORMALIZEMAX_HPP_
 #define NORMALIZEMAX_HPP_
 
-#include "NormalizeBase.hpp"
+#include "NormalizeMultiply.hpp"
 
 namespace PV {
 
-class NormalizeMax: public PV::NormalizeBase {
+class NormalizeMax: public PV::NormalizeMultiply {
 // Member functions
 public:
    NormalizeMax(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections);

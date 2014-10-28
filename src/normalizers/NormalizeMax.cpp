@@ -22,11 +22,11 @@ int NormalizeMax::initialize_base() {
 }
 
 int NormalizeMax::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
-   return NormalizeBase::initialize(name, hc, connectionList, numConnections);
+   return NormalizeMultiply::initialize(name, hc, connectionList, numConnections);
 }
 
 int NormalizeMax::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
+   int status = NormalizeMultiply::ioParamsFillGroup(ioFlag);
    ioParam_minMaxTolerated(ioFlag);
    return status;
 }
@@ -62,7 +62,7 @@ int NormalizeMax::normalizeWeights() {
    }
    scale_factor *= strength;
 
-   status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
+   status = NormalizeMultiply::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
 
    int nxp = conn0->xPatchSize();
    int nyp = conn0->yPatchSize();

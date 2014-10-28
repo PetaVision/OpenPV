@@ -29,12 +29,19 @@ int NormalizeScale::initialize_base() {
 }
 
 int NormalizeScale::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
-   return NormalizeBase::initialize(name, hc, connectionList, numConnections);
+   return NormalizeMultiply::initialize(name, hc, connectionList, numConnections);
 }
 
 int NormalizeScale::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
+   int status = NormalizeMultiply::ioParamsFillGroup(ioFlag);
    return status;
+}
+
+void NormalizeScale::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      normalizeArborsIndividually = true;
+      parent()->parameters()->handleUnnecessaryParameter(name, "normalizeArborsIndividually");
+   }
 }
 
 int NormalizeScale::normalizeWeights() {
@@ -56,7 +63,7 @@ int NormalizeScale::normalizeWeights() {
 
    float scale_factor = strength;
 
-   status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
+   status = NormalizeMultiply::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
 
    int nxp = conn0->xPatchSize();
    int nyp = conn0->yPatchSize();

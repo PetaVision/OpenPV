@@ -36,9 +36,10 @@ public:
 
    const char * getName() {return name;}
    const float getStrength() {return strength;}
-   const float getNormalizeCutoff() {return normalize_cutoff;}
+   // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
+#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
    const bool  getSymmetrizeWeightsFlag() {return symmetrizeWeightsFlag;}
-   const bool  getNormalizeFromPostPerspectiveFlag() {return normalizeFromPostPerspective;}
+#endif // OBSOLETE
    const bool  getNormalizeArborsIndividuallyFlag() {return normalizeArborsIndividually;}
 
 protected:
@@ -46,11 +47,10 @@ protected:
    int initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns);
 
    virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_rMinX(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_rMinY(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag);
+   // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
+#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
    virtual void ioParam_symmetrizeWeights(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
+#endif // OBSOLETE
    virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag);
@@ -62,11 +62,13 @@ protected:
    int accumulateSumSquared(pvwdata_t * dataPatchStart, int weights_in_patch, double * sumsq);
    int accumulateSumSquaredShrunken(pvwdata_t * dataPatchStart, double * sumsq,
    		int nxpShrunken, int nypShrunken, int offsetShrunken, int xPatchStride, int yPatchStride);
+   int accumulateMaxAbs(pvwdata_t * dataPatchStart, int weights_in_patch, float * max);
    int accumulateMax(pvwdata_t * dataPatchStart, int weights_in_patch, float * max);
-   int applyThreshold(pvwdata_t * dataPatchStart, int weights_in_patch, float wMax); // weights less than normalize_cutoff*max(weights) are zeroed out
-   int applyRMin(pvwdata_t * dataPatchStart, float rMinX, float rMinY,
-			int nxp, int nyp, int xPatchStride, int yPatchStride);
+   int accumulateMin(pvwdata_t * dataPatchStart, int weights_in_patch, float * max);
+   // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
+#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
    int symmetrizeWeights(HyPerConn * conn); // may be used by several subclasses
+#endif // OBSOLETE
    static void normalizePatch(pvwdata_t * dataStart, int weights_per_patch, float multiplier);
    HyPerCol * parent() { return parentHyPerCol; }
 
@@ -80,11 +82,10 @@ protected:
    HyPerConn ** connectionList;
    int numConnections;
    float strength;                    // Value to normalize to; precise interpretation depends on normalization method
-   float rMinX, rMinY;                // zero all weights within rectangle rMinxY, rMInY aligned with center of patch
-   float normalize_cutoff;            // If true, weights with abs(w)<max(abs(w))*normalize_cutoff are truncated to zero.
+   // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
+#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
    bool symmetrizeWeightsFlag;        // Whether to call symmetrizeWeights.  Only meaningful if pre->nf==post->nf and connection is one-to-one
-   bool normalizeFromPostPerspective; // If false, group all weights with a common presynaptic neuron for normalizing.  If true, group all weights with a common postsynaptic neuron
-                                      // Only meaningful (at least for now) for KernelConns using sum of weights or sum of squares normalization methods.
+#endif // OBSOLETE
 
    bool normalizeArborsIndividually;  // If true, each arbor is treated as its own connection.  If false, each patch groups all arbors together and normalizes them in common.
 

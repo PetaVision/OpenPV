@@ -23,11 +23,10 @@ int NormalizeBase::initialize_base() {
    connectionList = NULL;
    numConnections = 0;
    strength = 1.0f;
-   rMinX = 0.0f;
-   rMinY = 0.0f;
-   normalize_cutoff = 0.0f;
+   // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
+#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
    symmetrizeWeightsFlag = false;
-   normalizeFromPostPerspective = false;
+#endif // OBSOLETE
    normalizeArborsIndividually = false;
    normalizeOnInitialize = true;
    normalizeOnWeightUpdate = true;
@@ -55,11 +54,10 @@ int NormalizeBase::initialize(const char * name, HyPerCol * hc, HyPerConn ** con
 
 int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_strength(ioFlag);
-   ioParam_rMinX(ioFlag);
-   ioParam_rMinY(ioFlag);
-   ioParam_normalize_cutoff(ioFlag);
+   // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
+#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
    ioParam_symmetrizeWeights(ioFlag);
-   ioParam_normalizeFromPostPerspective(ioFlag);
+#endif // OBSOLETE
    ioParam_normalizeArborsIndividually(ioFlag);
    ioParam_normalizeOnInitialize(ioFlag);
    ioParam_normalizeOnWeightUpdate(ioFlag);
@@ -71,40 +69,22 @@ void NormalizeBase::ioParam_strength(enum ParamsIOFlag ioFlag) {
    // TODO: How should we handle groups?  Should strength be a vector?  Should all connections have the same strength?
 }
 
-void NormalizeBase::ioParam_rMinX(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "rMinX", &rMinX, rMinX);
-}
+// normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
 
-void NormalizeBase::ioParam_rMinY(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "rMinY", &rMinY, rMinY);
-}
-
-void NormalizeBase::ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "normalize_cutoff", &normalize_cutoff, normalize_cutoff);
-}
-
+#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
 void NormalizeBase::ioParam_symmetrizeWeights(enum ParamsIOFlag ioFlag) {
    parent()->ioParamValue(ioFlag, name, "symmetrizeWeights", &symmetrizeWeightsFlag, false);
 }
-
-void NormalizeBase::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ && !parent()->parameters()->present(name, "normalizeFromPostPerspective") && parent()->parameters()->present(name, "normalize_arbors_individually")) {
-      if (parent()->columnId()==0) {
-         fprintf(stderr, "Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use normalizeFromPostPerspective.\n", name);
-      }
-      normalizeFromPostPerspective = parent()->parameters()->value(name, "normalizeTotalToPost");
-      return;
-   }
-   parent()->ioParamValue(ioFlag, name, "normalizeFromPostPerspective", &normalizeFromPostPerspective, false/*default value*/, true/*warnIfAbsent*/);
-}
+#endif // OBSOLETE
 
 void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {
+   // normalize_arbors_individually as a parameter name was deprecated April 19, 2013 and marked obsolete October 24, 2014
    if (ioFlag==PARAMS_IO_READ && !parent()->parameters()->present(name, "normalizeArborsIndividually") && parent()->parameters()->present(name, "normalize_arbors_individually")) {
       if (parent()->columnId()==0) {
-         fprintf(stderr, "Normalizer \"%s\": parameter name normalize_arbors_individually is deprecated.  Use normalizeArborsIndividually.\n", name);
+         fprintf(stderr, "Normalizer \"%s\": parameter name normalize_arbors_individually is obsolete.  Use normalizeArborsIndividually.\n", name);
       }
-      normalizeArborsIndividually = parent()->parameters()->value(name, "normalize_arbors_individually");
-      return;
+      MPI_Barrier(parent()->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
    parent()->ioParamValue(ioFlag, name, "normalizeArborsIndividually", &normalizeArborsIndividually, false/*default*/, true/*warnIfAbsent*/);
 }
@@ -141,53 +121,14 @@ int NormalizeBase::normalizeWeights() {
 #endif // USE_SHMGET
    for (int c=0; c<numConnections; c++) {
       HyPerConn * conn = connectionList[c];
+#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
       if (symmetrizeWeightsFlag) {
          status = symmetrizeWeights(conn);
          if (status != PV_SUCCESS) return status;
       }
+#endif //OBSOLETE
 
-      if (rMinX > 0.5f && rMinY > 0.5f){
-          int num_arbors = conn->numberOfAxonalArborLists();
-          int num_patches = conn->getNumDataPatches();
-          int num_weights_in_patch = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
-          for (int arbor=0; arbor<num_arbors; arbor++) {
-             pvwdata_t * dataPatchStart = conn->get_wDataStart(arbor);
-             for (int patchindex=0; patchindex<num_patches; patchindex++) {
-                 applyRMin(dataPatchStart+patchindex*num_weights_in_patch, rMinX, rMinY,
-                     conn->xPatchSize(), conn->yPatchSize(), conn->xPatchStride(), conn->yPatchStride());
-             }
-          }
-      }
-      if (normalize_cutoff>0) {
-         int num_arbors = conn->numberOfAxonalArborLists();
-         int num_patches = conn->getNumDataPatches();
-         int num_weights_in_patch = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
-         if (normalizeArborsIndividually) {
-            for (int arbor=0; arbor<num_arbors; arbor++) {
-               pvwdata_t * dataStart = conn->get_wDataStart(arbor);
-               float max = 0.0f;
-               for (int patchindex=0; patchindex<num_patches; patchindex++) {
-                  accumulateMax(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, &max);
-               }
-               for (int patchindex=0; patchindex<num_patches; patchindex++) {
-                  applyThreshold(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, max);
-               }
-            }
-         }
-         else {
-            for (int patchindex=0; patchindex<num_patches; patchindex++) {
-               float max = 0.0f;
-               for (int arbor=0; arbor<num_arbors; arbor++) {
-                  pvwdata_t * dataStart = conn->get_wDataStart(arbor);
-                  accumulateMax(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, &max);
-               }
-               for (int arbor=0; arbor<num_arbors; arbor++) {
-                  pvwdata_t * dataStart = conn->get_wDataStart(arbor);
-                  applyThreshold(dataStart+patchindex*num_weights_in_patch, num_weights_in_patch, max);
-               }
-            }
-         }
-      }
+      // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
    }
    return status;
 }
@@ -245,49 +186,45 @@ int NormalizeBase::accumulateSumSquaredShrunken(pvwdata_t * dataPatchStart, doub
    return PV_SUCCESS;
 }
 
+int NormalizeBase::accumulateMaxAbs(pvwdata_t * dataPatchStart, int weights_in_patch, float * max) {
+   // Do not call with max uninitialized.
+   // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
+   float newmax = *max;
+   for (int k=0; k<weights_in_patch; k++) {
+      pvwdata_t w = fabsf(dataPatchStart[k]);
+      if (w>newmax) newmax=w;
+   }
+   *max = newmax;
+   return PV_SUCCESS;
+}
+
 int NormalizeBase::accumulateMax(pvwdata_t * dataPatchStart, int weights_in_patch, float * max) {
    // Do not call with max uninitialized.
    // sum, sumsq, max are not cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
+   float newmax = *max;
    for (int k=0; k<weights_in_patch; k++) {
       pvwdata_t w = dataPatchStart[k];
-      if (w>*max) *max=w;
+      if (w>newmax) newmax=w;
    }
+   *max = newmax;
    return PV_SUCCESS;
 }
 
-int NormalizeBase::applyThreshold(pvwdata_t * dataPatchStart, int weights_in_patch, float wMax) {
-   assert(normalize_cutoff>0); // Don't call this routine unless normalize_cutoff was set
-   float threshold = wMax * normalize_cutoff;
+int NormalizeBase::accumulateMin(pvwdata_t * dataPatchStart, int weights_in_patch, float * min) {
+   // Do not call with min uninitialized.
+   // min is cleared inside this routine so that you can accumulate the stats over several patches with multiple calls
+   float newmin = *min;
    for (int k=0; k<weights_in_patch; k++) {
-      if (fabsf(dataPatchStart[k])<threshold) dataPatchStart[k] = 0;
+      pvwdata_t w = dataPatchStart[k];
+      if (w<newmin) newmin=w;
    }
+   *min = newmin;
    return PV_SUCCESS;
 }
 
-// dataPatchStart points to head of full-sized patch
-// rMinX, rMinY are the minimum radii from the center of the patch,
-// all weights inside (non-inclusive) of this radius are set to zero
-// the diameter of the central exclusion region is truncated to the nearest integer value, which may be zero
-int NormalizeBase::applyRMin(pvwdata_t * dataPatchStart, float rMinX, float rMinY,
-		int nxp, int nyp, int xPatchStride, int yPatchStride) {
-	if(rMinX==0 && rMinY == 0) return PV_SUCCESS;
-	int fullWidthX = floor(2 * rMinX);
-	int fullWidthY = floor(2 * rMinY);
-	int offsetX = ceil((nxp - fullWidthX) / 2.0);
-	int offsetY = ceil((nyp - fullWidthY) / 2.0);
-	int widthX = nxp - 2 * offsetX;
-	int widthY = nyp - 2 * offsetY;
-	pvwdata_t * rMinPatchStart = dataPatchStart + offsetY * yPatchStride + offsetX * xPatchStride;
-	int weights_in_row = xPatchStride * widthX;
-	for (int ky = 0; ky<widthY; ky++){
-		for (int k=0; k<weights_in_row; k++) {
-			rMinPatchStart[k] = 0;
-		}
-		rMinPatchStart += yPatchStride;
-	}
-  return PV_SUCCESS;
-}
+// normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
 
+#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
 int NormalizeBase::symmetrizeWeights(HyPerConn * conn) {
    assert(symmetrizeWeightsFlag); // Don't call this routine unless symmetrizeWeights was set
    int status = PV_SUCCESS;
@@ -380,6 +317,7 @@ int NormalizeBase::symmetrizeWeights(HyPerConn * conn) {
 
    return status;
 }
+#endif // OBSOLETE
 
 int NormalizeBase::addConnToList(HyPerConn * newConn) {
    HyPerConn ** newList = (HyPerConn **) realloc(connectionList, sizeof(*connectionList)*(numConnections+1));

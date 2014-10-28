@@ -8,11 +8,11 @@
 #ifndef NORMALIZESUM_HPP_
 #define NORMALIZESUM_HPP_
 
-#include "NormalizeBase.hpp"
+#include "NormalizeMultiply.hpp"
 
 namespace PV {
 
-class NormalizeSum: public PV::NormalizeBase {
+class NormalizeSum: public PV::NormalizeMultiply {
 // Member functions
 public:
    NormalizeSum(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections);

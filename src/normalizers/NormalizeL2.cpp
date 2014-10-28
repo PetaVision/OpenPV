@@ -22,11 +22,11 @@ int NormalizeL2::initialize_base() {
 }
 
 int NormalizeL2::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
-   return NormalizeBase::initialize(name, hc, connectionList, numConns);
+   return NormalizeMultiply::initialize(name, hc, connectionList, numConns);
 }
 
 int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = NormalizeBase::ioParamsFillGroup(ioFlag);
+   int status = NormalizeMultiply::ioParamsFillGroup(ioFlag);
    ioParam_minL2NormTolerated(ioFlag);
    return status;
 }
@@ -40,8 +40,36 @@ int NormalizeL2::normalizeWeights() {
 
    assert(numConnections >= 1);
 
-   // TODO: need to ensure that all connections in connectionList have same sharedWeights,nxp,nyp,nfp,nxpShrunken,nypShrunken,offsetShrunken,sxp,syp,numArbors,numDataPatches,scale_factor
+   // All connections in the group must have the same values of sharedWeights, numArbors, and numDataPatches
    HyPerConn * conn0 = connectionList[0];
+   for (int c=1; c<numConnections; c++) {
+      HyPerConn * conn = connectionList[c];
+      if (conn->usingSharedWeights()!=conn0->usingSharedWeights()) {
+         if (parent()->columnId()) {
+            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same sharedWeights (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
+                  this->getName(), conn0->getName(), conn0->usingSharedWeights(), conn->getName(), conn->usingSharedWeights());
+         }
+         status = PV_FAILURE;
+      }
+      if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
+         if (parent()->columnId()) {
+            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of arbors (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
+                  this->getName(), conn0->getName(), conn0->numberOfAxonalArborLists(), conn->getName(), conn->numberOfAxonalArborLists());
+         }
+         status = PV_FAILURE;
+      }
+      if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
+         if (parent()->columnId()) {
+            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of data patches (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
+                  this->getName(), conn0->getName(), conn0->getNumDataPatches(), conn->getName(), conn->getNumDataPatches());
+         }
+         status = PV_FAILURE;
+      }
+      if (status==PV_FAILURE) {
+         MPI_Barrier(parent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
 
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
@@ -62,17 +90,8 @@ int NormalizeL2::normalizeWeights() {
    }
    scale_factor *= strength;
 
-   status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
+   status = NormalizeMultiply::normalizeWeights(); // applies normalize_cutoff threshold and rMinX,rMinY
 
-   int nxp = conn0->xPatchSize();
-   int nyp = conn0->yPatchSize();
-   int nfp = conn0->fPatchSize();
-   int nxpShrunken = conn0->getNxpShrunken();
-   int nypShrunken = conn0->getNypShrunken();
-   int offsetShrunken = conn0->getOffsetShrunken();
-   int xPatchStride = conn0->xPatchStride();
-   int yPatchStride = conn0->yPatchStride();
-   int weights_per_patch = nxp*nyp*nfp;
    int nArbors = conn0->numberOfAxonalArborLists();
    int numDataPatches = conn0->getNumDataPatches();
    if (normalizeArborsIndividually) {
@@ -81,7 +100,16 @@ int NormalizeL2::normalizeWeights() {
             double sumsq = 0.0;
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
-               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               int nxp = conn->xPatchSize();
+               int nyp = conn->yPatchSize();
+               int nfp = conn->fPatchSize();
+               int nxpShrunken = conn->getNxpShrunken();
+               int nypShrunken = conn->getNypShrunken();
+               int offsetShrunken = conn->getOffsetShrunken();
+               int xPatchStride = conn->xPatchStride();
+               int yPatchStride = conn->yPatchStride();
+               int weights_per_patch = nxp*nyp*nfp;
+               pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
                if (offsetShrunken == 0){
                    accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
                }
@@ -97,6 +125,10 @@ int NormalizeL2::normalizeWeights() {
             }
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
+               int nxp = conn->xPatchSize();
+               int nyp = conn->yPatchSize();
+               int nfp = conn->fPatchSize();
+               int weights_per_patch = nxp*nyp*nfp;
                pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor/l2norm);
             }
@@ -109,6 +141,15 @@ int NormalizeL2::normalizeWeights() {
          for (int arborID = 0; arborID<nArbors; arborID++) {
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
+               int nxp = conn->xPatchSize();
+               int nyp = conn->yPatchSize();
+               int nfp = conn->fPatchSize();
+               int nxpShrunken = conn->getNxpShrunken();
+               int nypShrunken = conn->getNypShrunken();
+               int offsetShrunken = conn->getOffsetShrunken();
+               int xPatchStride = conn->xPatchStride();
+               int yPatchStride = conn->yPatchStride();
+               int weights_per_patch = nxp*nyp*nfp;
                pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
                if (offsetShrunken == 0){
                    accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
@@ -127,6 +168,10 @@ int NormalizeL2::normalizeWeights() {
          for (int arborID = 0; arborID<nArbors; arborID++) {
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
+               int nxp = conn->xPatchSize();
+               int nyp = conn->yPatchSize();
+               int nfp = conn->fPatchSize();
+               int weights_per_patch = nxp*nyp*nfp;
                pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor/l2norm);
             }
