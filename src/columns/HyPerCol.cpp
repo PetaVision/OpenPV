@@ -628,7 +628,7 @@ void HyPerCol::ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * grou
 #ifdef PV_USE_MPI
          MPI_Barrier(icComm->communicator());
 #endif
-         exit(EXIT_SUCCESS);
+         exit(EXIT_FAILURE);
       }
       break;
    case PARAMS_IO_WRITE:
