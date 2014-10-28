@@ -1,15 +1,15 @@
 ///////////////////////////
-// // HyPerHLCA.params
+// // LCA.params
 //
-// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+// created by dpaiton Oct 28 2014
 //
 //
-// Implements the locally competitive algorithm described in
-// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
-// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+// Algorithm inspired by LCA:
+// 	Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// 	in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
 ///////////////////////////
 
-debugParsing = true;
+debugParsing = false;
 
 
 HyPerCol "column" = {
@@ -28,13 +28,13 @@ HyPerCol "column" = {
     startTime                       = 0;
     stopTime                        = 5400; //135 images 
     progressInterval                = 100;
-    outputPath                      = "/Users/dpaiton/Documents/workspace/LIFLCA/output/";
+    outputPath                      = "/home/dpaiton/workspace/LIFLCA/output/LCA/";
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     initializeFromCheckpointDir     = "";
     checkpointWriteTriggerMode      = "step";
     checkpointWrite                 = true;
-    checkpointWriteDir              = "/Users/dpaiton/Documents/workspace/LIFLCA/checkpoints/";
+    checkpointWriteDir              = "/home/dpaiton/workspace/LIFLCA/output/LCA/checkpoints/";
     checkpointWriteStepInterval     = 100000;
     deleteOlderCheckpoints          = false;
     writeProgressToErr              = true;
@@ -60,11 +60,11 @@ HyPerCol "column" = {
 Movie "Input" = {
     nxScale                = 1;
     nyScale                = 1;
-    imageListPath          = "/Users/dpaiton/Documents/workspace/LIFLCA/input/img_list.txt";
+    imageListPath          = "/home/dpaiton/workspace/LIFLCA/input/img_list.txt";
     nf                     = 1;        // nf=3 for RGB, nf=1 for greyscale
 //
-    writeStep              = 2000.0;
-    initialWriteTime       = 2000.0;
+    writeStep              = -1;
+    initialWriteTime       = 0;
     writeSparseActivity    = false;
     displayPeriod          = 40;
     start_frame_index      = 1;
@@ -87,6 +87,7 @@ Movie "Input" = {
     writeImages            = false;
     autoResizeFlag         = false;
     readPvpFile            = false;
+    updateGPU              = false;
     phase                  = 0;
 };
 
@@ -96,16 +97,16 @@ ANNErrorLayer "Residual" = {
     nyScale                = 1;
     nf                     = 1;
 //
+    mirrorBCflag           = false;
+    valueBC                = 0;
     triggerFlag            = false;
     initialWriteTime       = 2000.0;
     writeStep              = 2000;
-    mirrorBCflag           = false;
-    valueBC                = 0;
     writeSparseActivity    = 0;
 //
     InitVType              = "ZeroV";
     //InitVType              = "InitVFromFile";
-    //Vfilename              = "/Users/dpaiton/Documents/workspace/LIFLCA/output/Residual_V.pvp";
+    //Vfilename              = "/home/dpaiton/workspace/LIFLCA/output/Residual_V.pvp";
 //
     VThresh                = 0.005;
     AMax                   = infinity;
@@ -114,6 +115,7 @@ ANNErrorLayer "Residual" = {
     VWidth                 = 0; //TODO: What does this mean?
     errScale               = 1; //TODO: What does this mean?
 //
+    updateGPU              = false;
     phase                  = 1;  
 };
 
@@ -121,15 +123,15 @@ ANNErrorLayer "Residual" = {
 HyPerLCALayer "L1" = {
     nxScale                = 0.5;
     nyScale                = 0.5;
-    nf                     = 48;
+    nf                     = 192;
     numChannels            = 1;    // should be 1
     numWindowX             = 1;    // for location dependent kernels
     numWindowY             = 1;
 //
+    mirrorBCflag           = false;
+    valueBC                = 0;
     initialWriteTime       = 39.0;
     writeStep              = 40.0;
-    mirrorBCflag           = 0;
-    valueBC                = 0;
     writeSparseActivity    = 1;
     writeSparseValues      = 1;
     triggerFlag            = false;
@@ -137,17 +139,18 @@ HyPerLCALayer "L1" = {
 //
     InitVType              = "UniformRandomV";
     minV                   = -1.0;
-    maxV                   = .15; //0.05 above VThresh
+    maxV                   = .1; //0.05 above VThresh
     //InitVType              = "InitVFromFile";
     //Vfilename              = "/Users//output/Checkpoints/Checkpoint6000000/L1_V.pvp";
 // 
-    timeConstantTau        = 200.0;
+    timeConstantTau        = 100.0;
     VThresh                = 0.05; // 
     AMax                   = infinity;
     AMin                   = 0;
     AShift                 = 0.0;  // 0 -> hard threshold, 1 -> soft threshold; subtract AShift from A to get output
     VWidth                 = 0.05; // 0 -> hard, 1-> soft
 //
+    updateGpu              = true;
     phase                  = 2;
 };
 
@@ -167,7 +170,7 @@ ANNLayer "Recon" = {
 //
     InitVType           = "ZeroV";
     //InitVType           = "InitVFromFile";
-    //Vfilename           = "/Users/dpaiton/Documents/workspace/LIFLCA/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+    //Vfilename           = "/home/dpaiton/workspace/LIFLCA/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
 //
     VThresh             = -infinity;
     AMax                = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -190,14 +193,33 @@ ANNLayer "Recon" = {
 //////////////////////////////////////////////////////////////////////////////////////
 
 
-IdentConn "Input_to_Residual" = {
-   preLayerName  = "Input";
-   postLayerName = "Residual";
-   channelCode   = 0;
-   delay         = 0;
-   writeStep     = -1;
+HyPerConn "Input_to_Residual" = {
+   preLayerName                  = "Input";
+   postLayerName                 = "Residual";
+   nxp                           = 1;
+   nyp                           = 1;
+   nxpShrunken                   = 1;
+   nypShrunken                   = 1;
+   nfp                           = 1;
+   shrinkPatches                 = false;
+   channelCode                   = 0;
+   //
+   delay                         = [0.0];
+   sharedWeights                 = true;
+   weightInitType                = "OneToOneWeights";
+   weightInit                    = 0.03125;             // 1 / 32
+   normalizeMethod               = "none";
+   numAxonalArbors               = 1;
+   plasticityFlag                = false;
+   pvpatchAccumulateType         = "convolve";
+   preActivityIsNotRate          = false;
+   writeStep                     = -1;
+   writeCompressedCheckpoints    = false;
+   //
+   selfFlag                      = false;
+   updateGSynFromPostPerspective = false;
+   receiveGpu                    = false; // Happens quickly, GPU overhead is probably not worth it
 };
-
 
 HyPerConn "L1_to_Residual" = {
     preLayerName                        = "L1";
@@ -208,7 +230,6 @@ HyPerConn "L1_to_Residual" = {
     nypShrunken                         = 16;
     nfp                                 = 1;
     numAxonalArbors                     = 1;
-//
     channelCode                         = 1;
     sharedWeights                       = true;                   // Acts like a kernelconn
 //
@@ -217,7 +238,13 @@ HyPerConn "L1_to_Residual" = {
     wMinInit                            = -1;
     wMaxInit                            = 1;
     sparseFraction                      = 0.9;                    // What percentage of weights are set to 0
-    plasticityFlag                      = false;
+    plasticityFlag                      = true;
+    weightUpdatePeriod                  = 200;                    // TODO: What intuition do I need for this
+    initialWeightUpdateTime             = 0;
+//
+    triggerFlag                         = true;
+    triggerLayerName                    = "Input";
+    triggerOffset                       = 1;
 //
     pvpatchAccumulateType               = "convolve";
     preActivityIsNotRate                = false;
@@ -227,22 +254,23 @@ HyPerConn "L1_to_Residual" = {
     combine_dW_with_W_flag              = false;
     delay                               = [0.0];
     updateGSynFromPostPerspective       = false;
-    strength                            = 1;
-    rMinX                               = 0;
-    rMinY                               = 0;
-    symmetrizeWeights                   = false;
 //
     normalizeMethod                     = "normalizeL2";
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     normalizeArborsIndividually         = false;
-    normalizeOnInitialize               = false;
-    normalizeOnWeightUpdate             = false;
+    normalizeOnInitialize               = true;      // Normalize weights after they have been initialized
+    normalizeOnWeightUpdate             = true;      // Normalize weights after each batch
     minL2NormTolerated                  = 0;
-//
+    strength                            = 1;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    symmetrizeWeights                   = false;
     dWMax                               = 1.0; //TODO: Write out equation here?
+//
     keepKernelsSynchronized             = true;
     shrinkPatches                       = false;
+    receiveGpu                          = false; // Sparse convolution, most efficient on CPU
 };
 
 
@@ -258,6 +286,8 @@ TransposeConn "Residual_to_L1" = {
     delay                               = [0.0];
     updateGSynFromPostPerspective       = true;
     originalConnName                    = "L1_to_Residual";
+    preDataLocal                        = true; // TODO: What is this?
+    receiveGpu                          = true; // Dense convolution, most efficient on GPU
 };
 
 
@@ -273,7 +303,7 @@ CloneConn "L1_to_Recon" = {
     delay                               = [0.0];
     updateGSynFromPostPerspective       = false;
     originalConnName                    = "L1_to_Residual";
-
+    receiveGpu                          = false;
 };
 
 
