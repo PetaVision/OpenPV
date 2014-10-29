@@ -59,6 +59,7 @@ DerivedLayer::initialize(arguments) {
 #include "../columns/DataStore.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../columns/InterColComm.hpp"
+#include "../columns/Random.hpp"
 #include "../io/LayerProbe.hpp"
 #include "../io/fileio.hpp"
 #include "../include/pv_common.h"
@@ -116,6 +117,7 @@ namespace PV {
 
 class InitV;
 class PVParams;
+class HyPerConn; // TODO: HyPerLayer should only refer to BaseConnections, not HyPerConns
 
 class HyPerLayer : public LayerDataInterface {
 

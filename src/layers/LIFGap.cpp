@@ -9,6 +9,7 @@
 #include "../include/pv_common.h"
 #include "../include/default_params.h"
 #include "../io/fileio.hpp"
+#include "../connections/HyPerConn.hpp"
 
 #include <assert.h>
 #include <float.h>
@@ -228,7 +229,7 @@ int LIFGap::allocateConductances(int num_channels) {
 int LIFGap::setInitialValues() {
    int status = PV_SUCCESS;
    for (int c=0; c<parent->numberOfConnections(); c++) {
-      HyPerConn * conn = parent->getConnection(c);
+      BaseConnection * conn = parent->getConnection(c);
       if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
       if (!conn->getInitialValuesSetFlag()) {
          if (parent->columnId()==0) {
@@ -246,7 +247,7 @@ int LIFGap::setInitialValues() {
 
 int LIFGap::calcGapStrength() {
    for (int c=0; c<parent->numberOfConnections(); c++) {
-      HyPerConn * conn = parent->getConnection(c);
+      HyPerConn * conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
       if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
       if (conn->getPlasticityFlag() && parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" warning: connection \"%s\" on CHANNEL_GAP has plasticity flag set to true\n", parent->parameters()->groupKeywordFromName(getName()), getName(), conn->getName());

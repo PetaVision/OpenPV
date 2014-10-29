@@ -8,7 +8,7 @@
 #ifndef BASECONNECTIONPROBE_HPP_
 #define BASECONNECTIONPROBE_HPP_
 
-#include "../connections/HyPerConn.hpp"
+#include "../connections/BaseConnection.hpp"
 
 enum PatchIDMethod { INDEX_METHOD, COORDINATE_METHOD };
 
@@ -23,7 +23,7 @@ public:
 
    virtual int communicateInitInfo();
 
-   HyPerConn * getTargetConn()             {return targetConn;}
+   BaseConnection * getTargetConn()             {return targetConn;}
 
 protected:
    BaseConnectionProbe(); // Default constructor, can only be called by derived classes
@@ -36,7 +36,7 @@ private:
 
 // Member Variables
 protected:
-   HyPerConn * targetConn; // The connection itself.
+   BaseConnection * targetConn; // The connection itself.
 };
 
 }  // end of namespace PV block

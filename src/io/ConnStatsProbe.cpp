@@ -34,7 +34,7 @@ int ConnStatsProbe::initialize(const char * probeName, HyPerCol * hc) {
 }
 
 int ConnStatsProbe::allocateDataStructures() {
-   HyPerConn * conn = this->getTargetConn();
+   HyPerConn * conn = this->getTargetHyPerConn();
    int numArbors = conn->numberOfAxonalArborLists();
    int numPatches = conn->getNumDataPatches();
    assert(numArbors>0 && numPatches>0);
@@ -57,7 +57,7 @@ int ConnStatsProbe::allocateDataStructures() {
 }
 
 int ConnStatsProbe::outputState(double simtime) {
-   HyPerConn * conn = this->getTargetConn();
+   HyPerConn * conn = this->getTargetHyPerConn();
    int numArbors = conn->numberOfAxonalArborLists();
    int numPatches = conn->getNumDataPatches();
    int nxp = conn->xPatchSize();
