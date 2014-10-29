@@ -16,9 +16,7 @@ int main(int argc, char * argv[]) {
 }
 
 int customexit(HyPerCol * hc, int argc, char ** argv) {
-   BaseConnection * baseConn;
-   baseConn = hc->getConnFromName("initializeFromInitWeights");
-   HyPerConn * initializeFromInitWeightsConn = dynamic_cast<HyPerConn *>(initializeFromInitWeightsConn);
+   HyPerConn * initializeFromInitWeightsConn = hc->getConnFromName("initializeFromInitWeights");
    // There must be a connection named initializeFromInitWeights. It should have a single weight with value 1
    assert(initializeFromInitWeightsConn);
    assert(initializeFromInitWeightsConn->xPatchSize()==1);
@@ -28,8 +26,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
    assert(initializeFromInitWeightsConn->get_wData(0,0)[0] == 1.0f);
 
    // There must be a connection named initializeFromCheckpoint.  It should have a single weight with value 2
-   baseConn = hc->getConnFromName("initializeFromCheckpoint");
-   HyPerConn * initializeFromCheckpointConn = dynamic_cast<HyPerConn *>(initializeFromInitWeightsConn);
+   HyPerConn * initializeFromCheckpointConn = hc->getConnFromName("initializeFromCheckpoint");
    assert(initializeFromCheckpointConn);
    assert(initializeFromCheckpointConn->xPatchSize()==1);
    assert(initializeFromCheckpointConn->yPatchSize()==1);
