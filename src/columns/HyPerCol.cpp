@@ -1082,6 +1082,7 @@ int HyPerCol::ensureDirExists(const char * dirname) {
                else{
                   fflush(stdout);
                   fprintf(stderr, "Directory \"%s\" could not be created: %s; Retrying %d out of %d\n", dirname, strerror(errno), attemptNum + 1, numAttempts);
+                  sleep(1);
                }
             }
             else{

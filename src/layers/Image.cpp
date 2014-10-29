@@ -1094,6 +1094,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
                }
                else{
                   fprintf(stderr, "download command \"%s\" failed.  Retrying %d out of %d.\n", systemstring.c_str(), attemptNum+1, numAttempts);
+                  sleep(1);
                }
             }
             else{
