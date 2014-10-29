@@ -3536,6 +3536,7 @@ int HyPerConn::reduceKernels(const int arborID) {
 #ifdef PV_USE_MPI
    ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(0), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
 #endif
+
    pvwdata_t * dW_data = this->get_dwDataStart(0);
    for (int i_dW = 0; i_dW < arborSize; i_dW++){
        dW_data[i_dW] /= nProcs;

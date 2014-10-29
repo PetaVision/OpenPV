@@ -26,7 +26,7 @@ public:
 //#ifdef PV_USE_OPENCL
 //   DataStore(HyPerCol * hc, int numBuffers, size_t size, int numLevels, bool copydstoreflag);
 //#else
-   DataStore(HyPerCol * hc, int numBuffers, size_t size, int numLevels);
+   DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse);
 //#endif
 
    virtual ~DataStore();
@@ -47,13 +47,35 @@ public:
          {return (recvBuffers + bufferId*numLevels*bufSize + curLevel*bufSize);}
    size_t bufferOffset(int bufferId, int level=0)
          {return (bufferId*numLevels*bufSize + levelIndex(level)*bufSize);}
+   bool isSparse() {return isSparse_flag;}
+
+   unsigned int* activeIndiciesBuffer(int bufferId, int level)
+         {return (activeIndicies + bufferId*numLevels*numItems + levelIndex(level)*numItems);}
+
+   unsigned int* activeIndiciesBuffer(int bufferId){
+      return (activeIndicies + bufferId*numLevels*numItems + curLevel*numItems);
+   }
+
+   unsigned int* numActiveBuffer(int bufferId, int level){
+      return (numActive + bufferId*numLevels + levelIndex(level));
+   }
+
+   unsigned int* numActiveBuffer(int bufferId){
+      return (numActive + bufferId*numLevels + curLevel);
+   }
 
 private:
+   size_t dataSize;
+   int    numItems;
    size_t bufSize;
    int    curLevel;
    int    numLevels;
    int    numBuffers;
    char*  recvBuffers;
+
+   unsigned int*   activeIndicies;
+   unsigned int*   numActive;
+   bool  isSparse_flag;
 
 //#ifdef PV_USE_OPENCL
 //   CLBuffer * clRecvBuffers;

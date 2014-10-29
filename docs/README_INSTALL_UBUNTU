@@ -6,7 +6,7 @@ Requirements
 **********************************
 An NVIDIA card with compute capabilities 3.0 or above. Check at https://developer.nvidia.com/cuda-gpus to see if your video card is supported.
 Ubuntu 14.04
-sudo access
+sudo access. For a PetaVision local install, look at README_INSTALL_UBUNTU_LOCAL
 
 
 **********************************

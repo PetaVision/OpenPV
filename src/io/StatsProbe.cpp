@@ -264,7 +264,7 @@ int StatsProbe::outputState(double timed)
    iotimer->start();
    avg = sum/nk;
    sigma = sqrt(sum2/nk - avg*avg);
-   if ( type == BufActivity  && getTargetLayer()->getSpikingFlag() ) {
+   if ( type == BufActivity  && getTargetLayer()->getSparseFlag() ) {
       float freq = 1000.0 * avg;
       fprintf(outputstream->fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f nnz==%i\n", getMessage(), timed,
               nk, (float)sum, fMin, freq, fMax, (float)sigma, nnz);

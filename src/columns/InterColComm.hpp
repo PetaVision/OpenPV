@@ -29,12 +29,14 @@ public:
 //#ifdef PV_USE_OPENCL
 //   Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool copydstoreflag);
 //#else
-   Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels);
+   Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool isSparse);
 //#endif
    virtual ~Publisher();
    int readData(int delay);
    int publish(HyPerLayer * pub, int neighbors[], int numNeighbors,
-               int borders[], int numBorders, PVLayerCube * data, int delay=0);
+               int borders[], int numBorders, PVLayerCube * data,
+               unsigned int * activeIndicies, unsigned int numActive,
+               int delay=0);
    int subscribe(HyPerConn * conn);
    int exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay=0);
    int wait();
@@ -51,6 +53,20 @@ private:
          {return (pvdata_t *) store->buffer(bufferId);}
    pvdata_t * recvBuffer(int bufferId, int delay)
          {return (pvdata_t *) store->buffer(bufferId, delay);}
+
+   unsigned int * recvNumActiveBuffer(int bufferId){
+      return store->numActiveBuffer(bufferId);
+   }
+   unsigned int * recvNumActiveBuffer(int bufferId, int delay){
+      return store->numActiveBuffer(bufferId, delay);
+   }
+
+   unsigned int * recvActiveIndiciesBuffer(int bufferId){
+      return store->activeIndiciesBuffer(bufferId);
+   }
+   unsigned int * recvActiveIndiciesBuffer(int bufferId, int delay){
+      return store->activeIndiciesBuffer(bufferId, delay);
+   }
 
    int pubId;
    int numSubscribers;
@@ -73,9 +89,9 @@ public:
    InterColComm(int * argc, char *** argv);
    virtual ~InterColComm();
 
-   int addPublisher(HyPerLayer * pub, int numItems, int numLevels);
+   int addPublisher(HyPerLayer * pub, int numItems, int numLevels, bool isSparse);
    int clearPublishers();
-   int publish(HyPerLayer * pub, PVLayerCube * cube);
+   int publish(HyPerLayer * pub, PVLayerCube * cube, unsigned int * activeIndicies, unsigned int numActive);
    int subscribe(HyPerConn * conn);
    int exchangeBorders(int pubId, const PVLayerLoc * loc, int delay=0);
    int wait(int pubId);

@@ -526,7 +526,8 @@ int HyPerLayer::allocateActivity() {
 }
 
 int HyPerLayer::allocateActiveIndices() {
-   return allocateBuffer(&clayer->activeIndices, getNumNeurons(), "active indices");
+   //Active indicies is local ext
+   return allocateBuffer(&clayer->activeIndices, getNumExtended(), "active indices");
 }
 
 int HyPerLayer::allocatePrevActivity() {
@@ -1745,7 +1746,7 @@ int HyPerLayer::updateStateGpu(double timef, double dt){
    pvdata_t * gSynHead = GSyn==NULL ? NULL : GSyn[0];
    assert(updateGpu);
    status = doUpdateStateGpu(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-         getNumChannels(), gSynHead, getSpikingFlag(), getCLayer()->activeIndices,
+         getNumChannels(), gSynHead, getSparseFlag(), getCLayer()->activeIndices,
          &getCLayer()->numActive);
    return status;
 }
@@ -1758,13 +1759,13 @@ int HyPerLayer::updateState(double timef, double dt) {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    if(updateGpu){
       status = doUpdateStateGpu(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-            getNumChannels(), gSynHead, getSpikingFlag(), getCLayer()->activeIndices,
+            getNumChannels(), gSynHead, getSparseFlag(), getCLayer()->activeIndices,
             &getCLayer()->numActive);
    }
    else{
 #endif
       status = doUpdateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-            getNumChannels(), gSynHead, getSpikingFlag(), getCLayer()->activeIndices,
+            getNumChannels(), gSynHead, getSparseFlag(), getCLayer()->activeIndices,
             &getCLayer()->numActive);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    }
@@ -1875,16 +1876,22 @@ int HyPerLayer::updateActiveIndices() {
 }
 
 int HyPerLayer::calcActiveIndices() {
+   //Active indicies stored as local ext values
    int numActive = 0;
    PVLayerLoc & loc = clayer->loc;
    pvdata_t * activity = clayer->activity->data;
 
-   for (int k = 0; k < getNumNeurons(); k++) {
-      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.halo.lt, loc.halo.rt, loc.halo.dn, loc.halo.up);
+   for (int kex = 0; kex < getNumExtended(); kex++) {
       if (activity[kex] != 0.0) {
-         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
+         clayer->activeIndices[numActive++] = kex;
       }
    }
+   //for (int k = 0; k < getNumNeurons(); k++) {
+   //   const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.halo.lt, loc.halo.rt, loc.halo.dn, loc.halo.up);
+   //   if (activity[kex] != 0.0) {
+   //      clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
+   //   }
+   //}
    clayer->numActive = numActive;
 
    return PV_SUCCESS;
@@ -2243,6 +2250,7 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
+   //TODO loop over active indicies here instead
    for (int kPre = 0; kPre < numExtended; kPre++) {
       bool inWindow; 
       //Post layer recieves synaptic input
@@ -2535,7 +2543,7 @@ int HyPerLayer::publish(InterColComm* comm, double time)
       }
    }
 
-   int status = comm->publish(this, clayer->activity);
+   int status = comm->publish(this, clayer->activity, clayer->activeIndices, clayer->numActive);
 //#ifdef PV_USE_OPENCL
 //   if(copyDataStoreFlag) {
 //      status |= copyDataStoreCLBuffer();
@@ -2606,6 +2614,7 @@ int HyPerLayer::outputProbeParams() {
 int HyPerLayer::outputState(double timef, bool last)
 {
 
+
 #ifdef PV_USE_OPENCL
    //Make sure all data is finished before this point
    clFinishGSyn();
@@ -2619,6 +2628,7 @@ int HyPerLayer::outputState(double timef, bool last)
    for (int i = 0; i < numProbes; i++) {
       probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
    }
+
 
    if (timef >= (writeTime-(parent->getDeltaTime()/2)) && writeStep >= 0) {
       writeTime += writeStep;
@@ -2977,6 +2987,7 @@ int HyPerLayer::readState(double * timeptr)
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 {
    int status = PV::writeActivitySparse(clayer->activeFP, clayer->posFP, parent->icCommunicator(), timed, clayer, includeValues);
+
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivitySparseCalls);
    }

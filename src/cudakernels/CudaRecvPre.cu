@@ -64,6 +64,7 @@ void HyPerLayer_recv_pre(
       float a = params.preData[kPre] * params.dt_factor;
       if(a == 0) continue;
 
+
       ////GSynPatchStart is in local post space, need to translate to global post space
       size_t localGSynOffset = params.gSynPatchStart[kPreLocal];
       //size_t gSynOffset = params.gSynPatchStart[kPreLocal];

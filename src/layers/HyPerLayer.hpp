@@ -444,13 +444,15 @@ public:
    int getXScale()                   {return clayer->xScale;}
    int getYScale()                   {return clayer->yScale;}
 
+   int getNumActive()                {return clayer->numActive;}
+
    HyPerCol* getParent()             {return parent;}
    void setParent(HyPerCol* parent)  {this->parent = parent;}
 
    bool useMirrorBCs()               {return this->mirrorBCflag;}
    pvdata_t getValueBC() {return this->valueBC;}
 
-   bool getSpikingFlag()             {return this->writeSparseActivity;}
+   bool getSparseFlag()             {return this->writeSparseActivity;}
 
    int getPhase()                    {return this->phase;}
 

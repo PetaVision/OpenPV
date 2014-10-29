@@ -536,6 +536,29 @@ static inline int layerIndexRes(int kPreRes, const PVLayerLoc * inLoc, const PVL
 
 
 
+//Converts a local ext index into a global res index
+//Returns -1 if localExtK is in extended space
+static inline int localExtToGlobalRes(int localExtK, const PVLayerLoc * loc){
+   //Change local ext indicies to global res index
+   int localExtX =     kxPos(localExtK, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.up+loc->halo.dn, loc->nf);
+   int localExtY =     kyPos(localExtK, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.up+loc->halo.dn, loc->nf);
+   int localF = featureIndex(localExtK, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.up+loc->halo.dn, loc->nf);
+
+   //Check if restricted
+   if(localExtX < loc->halo.lt || localExtX >= loc->nx+loc->halo.lt ||
+         localExtY < loc->halo.up || localExtY >= loc->ny+loc->halo.up){
+      return -1;
+   }
+
+   //Change ext to res
+   int globalResX = localExtX - loc->halo.lt + loc->kx0;
+   int globalResY = localExtY - loc->halo.up + loc->ky0;
+
+   //Get final globalResK
+   int globalResK = kIndex(globalResX, globalResY, localF, loc->nxGlobal, loc->nyGlobal, loc->nf);
+   return globalResK;
+}
+
 
 
 /**

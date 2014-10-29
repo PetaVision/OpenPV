@@ -1301,6 +1301,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    // publish initial conditions
    //
    for (int l = 0; l < numLayers; l++) {
+      layers[l]->updateActiveIndices();
       layers[l]->publish(icComm, simTime);
    }
 
@@ -1529,7 +1530,7 @@ int HyPerCol::normalizeWeights() {
 int HyPerCol::initPublishers() {
    for( int l=0; l<numLayers; l++ ) {
       // PVLayer * clayer = layers[l]->getCLayer();
-      icComm->addPublisher(layers[l], layers[l]->getNumExtended(), layers[l]->getNumDelayLevels());
+      icComm->addPublisher(layers[l], layers[l]->getNumExtended(), layers[l]->getNumDelayLevels(), layers[l]->getSparseFlag());
    }
    for( int c=0; c<numConnections; c++ ) {
       icComm->subscribe(connections[c]);
@@ -1777,7 +1778,6 @@ int HyPerCol::advanceTime(double sim_time)
 #endif
 
 
-
       //    for (int l = 0; l < numLayers; l++) {
       //       // deliver new synaptic activity to any
       //       // postsynaptic layers for which this
@@ -1818,6 +1818,7 @@ int HyPerCol::advanceTime(double sim_time)
 
          layers[l]->publish(icComm, simTime);
       }
+
 
       // wait for all published data to arrive
       //
@@ -1860,6 +1861,7 @@ int HyPerCol::advanceTime(double sim_time)
    if (exitAfterUpdate) {
       status = PV_EXIT_NORMALLY;
    }
+
 
    return status;
 }
@@ -2079,6 +2081,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       PV_fclose(timescalefile);
    }
 
+
    // Note: timeinfo should be done at the end of the checkpointing, so that its presence serves as a flag that the checkpoint has completed.
    if( columnId()==0 ) {
       char timestamppath[PV_PATH_MAX];
@@ -2097,6 +2100,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       fprintf(timestampfile->fp,"timestep = %ld\n", currentStep);
       PV_fclose(timestampfile);
    }
+
 
    if (deleteOlderCheckpoints) {
       assert(checkpointWriteFlag); // checkpointWrite is called by exitRunLoop when checkpointWriteFlag is false; in this case deleteOlderCheckpoints should be false as well.
@@ -2123,6 +2127,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       int chars_needed = snprintf(lastCheckpointDir, PV_PATH_MAX, "%s", cpDir);
       assert(chars_needed < PV_PATH_MAX);
    }
+
 
    if (icComm->commRank()==0) {
       fprintf(stderr, "checkpointWrite complete. simTime = %f\n", simTime);

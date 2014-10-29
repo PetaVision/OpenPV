@@ -31,7 +31,7 @@ InterColComm::~InterColComm()
    free(publishers); publishers = NULL;
 }
 
-int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
+int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels, bool isSparse)
 {
    int pubId = pub->getLayerId();
    if( pubId >= publisherArraySize) {
@@ -43,7 +43,7 @@ int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels)
 //   bool copydstoreflag=pub->getCopyDataStoreFlag();
 //   publishers[pubId] = new Publisher(pubId, pub->getParent(), numItems, pub->getCLayer()->loc, numLevels, copydstoreflag);
 //#else
-   publishers[pubId] = new Publisher(pubId, pub->getParent(), numItems, pub->clayer->loc, numLevels);
+   publishers[pubId] = new Publisher(pubId, pub->getParent(), numItems, pub->clayer->loc, numLevels, isSparse);
 //#endif
    numPublishers += 1;
 
@@ -91,10 +91,10 @@ int InterColComm::subscribe(HyPerConn* conn)
    return publishers[pubId]->subscribe(conn);
 }
 
-int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
+int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube, unsigned int * activeIndicies, unsigned int numActive)
 {
    int pubId = pub->getLayerId();
-   return publishers[pubId]->publish(pub, neighbors, numNeighbors, borders, numBorders, cube);
+   return publishers[pubId]->publish(pub, neighbors, numNeighbors, borders, numBorders, cube, activeIndicies, numActive);
 }
 
 int InterColComm::exchangeBorders(int pubId, const PVLayerLoc * loc, int delay/*default=0*/) {
@@ -113,10 +113,11 @@ int InterColComm::wait(int pubId)
 //#ifdef PV_USE_OPENCL
 //Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool copydstoreflag)
 //#else
-Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels)
+Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int numLevels, bool isSparse)
 //#endif
 {
-   size_t dataSize  = numItems * sizeof(float);
+   //size_t dataSize  = numItems * sizeof(float);
+   size_t dataSize  = sizeof(float);
 
    this->pubId = pubId;
    this->comm  = hc->icCommunicator();
@@ -128,13 +129,13 @@ Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int
 
    // not really inplace but ok as is only used to deliver
    // to provide cube information for data from store
-   cube.size = dataSize + sizeof(PVLayerCube);
+   cube.size = numItems * dataSize + sizeof(PVLayerCube);
 
    const int numBuffers = 1;
 //#ifdef PV_USE_OPENCL
 //   store = new DataStore(hc, numBuffers, dataSize, numLevels, copydstoreflag);
 //#else
-   store = new DataStore(hc, numBuffers, dataSize, numLevels);
+   store = new DataStore(hc, numBuffers, numItems, dataSize, numLevels, isSparse);
 //#endif
 
    //DONE: check for memory leak here, method flagged by valgrind
@@ -159,7 +160,9 @@ Publisher::~Publisher()
 int Publisher::publish(HyPerLayer* pub,
                        int neighbors[], int numNeighbors,
                        int borders[], int numBorders,
-                       PVLayerCube* cube, int delay/*default=0*/)
+                       PVLayerCube* cube, unsigned int * activeIndicies,
+                       unsigned int numActive, 
+                       int delay/*default=0*/)
 {
    //
    // Everyone publishes border region to neighbors even if no subscribers.
@@ -172,11 +175,22 @@ int Publisher::publish(HyPerLayer* pub,
    pvdata_t * sendBuf = cube->data;
    pvdata_t * recvBuf = recvBuffer(LOCAL);  // only LOCAL buffer, neighbors copy into LOCAL extended buffer
 
+   unsigned int * recvNumActive = recvNumActiveBuffer(LOCAL);
+
+   unsigned int * sendActiveIndicies = activeIndicies;
+   unsigned int * recvActiveIndicies = recvActiveIndiciesBuffer(LOCAL);
+
+   bool isSparse = store->isSparse();
+
    if (pub->getLastUpdateTime() >= pub->getParent()->simulationTime()) {
       // copy entire layer and let neighbors overwrite
       // TODO - have layers use the data store directly then no need for extra copy
       //Only memcopy if layer needs an update
       memcpy(recvBuf, sendBuf, dataSize);
+      if(isSparse){
+         *recvNumActive = numActive;
+         memcpy(recvActiveIndicies, sendActiveIndicies, numActive*sizeof(unsigned int));
+      }
       exchangeBorders(neighbors, numNeighbors, &cube->loc, 0);
    }
 

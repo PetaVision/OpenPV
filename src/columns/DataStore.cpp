@@ -23,15 +23,26 @@ namespace PV
 //#ifdef PV_USE_OPENCL
 //DataStore::DataStore(HyPerCol * hc, int numBuffers, size_t bufSize, int numLevels, bool copydstoreflag)
 //#else
-DataStore::DataStore(HyPerCol * hc, int numBuffers, size_t bufSize, int numLevels)
+DataStore::DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSize, int numLevels, bool isSparse_flag)
 //#endif // PV_USE_OPENCL
 {
    assert(numLevels > 0 && numBuffers > 0);
    this->curLevel = numLevels - 1;  // start at bottom, work up
-   this->bufSize = bufSize;
+   this->numItems = numItems;
+   this->dataSize = dataSize;
+   this->bufSize = numItems * dataSize;
    this->numLevels = numLevels;
    this->numBuffers = numBuffers;
-   this->recvBuffers = (char*) calloc(numBuffers * numLevels * bufSize, sizeof(char));
+   this->recvBuffers = (char*) calloc(numBuffers * numLevels * numItems * dataSize, sizeof(char));
+   this->isSparse_flag = isSparse_flag;
+   if(this->isSparse_flag){
+      this->activeIndicies = (unsigned int*) calloc(numBuffers * numLevels * numItems, sizeof(unsigned int));
+      this->numActive = (unsigned int*) calloc(numBuffers * numLevels, sizeof(unsigned int));
+   }
+   else{
+      this->activeIndicies = NULL;
+      this->numActive = NULL;
+   }
    assert(this->recvBuffers != NULL);
 
 //#ifdef PV_USE_OPENCL

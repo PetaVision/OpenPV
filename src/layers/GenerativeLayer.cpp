@@ -83,7 +83,7 @@ int GenerativeLayer::allocateDataStructures() {
 
 int GenerativeLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], sparsitytermderivative, dV, AMax, AMin, VThresh, AShift, VWidth, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence, activityThreshold, getSpikingFlag(), getCLayer()->activeIndices, &getCLayer()->numActive);
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], sparsitytermderivative, dV, AMax, AMin, VThresh, AShift, VWidth, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence, activityThreshold, getSparseFlag(), getCLayer()->activeIndices, &getCLayer()->numActive);
    if( status == PV_SUCCESS ) updateActiveIndices();
    return status;
 }
