@@ -168,7 +168,13 @@ void CloneConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
 
 int CloneConn::communicateInitInfo() {
    // Need to set originalConn before calling HyPerConn::communicate, since HyPerConn::communicate calls setPatchSize, which needs originalConn.
-   originalConn = parent->getConnFromName(originalConnName);
+   BaseConnection * originalConnBase = this->getParent()->getConnFromName(originalConnName);
+   if (originalConnBase == NULL) {
+      fprintf(stderr, "CloneConn \"%s\" error in rank %d process: originalConnName \"%s\" is not a connection in the column.\n",
+            this->getName(), this->getParent()->columnId(), originalConnName);
+      exit(EXIT_FAILURE);
+   }
+   originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
       fprintf(stderr, "CloneConn \"%s\" error in rank %d process: originalConnName \"%s\" is not a connection in the column.\n",
             name, parent->columnId(), originalConnName);
