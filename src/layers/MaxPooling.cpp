@@ -6,7 +6,6 @@
  */
 
 #include "MaxPooling.hpp"
-#include "../connections/HyPerConn.hpp"
 
 namespace PV {
 

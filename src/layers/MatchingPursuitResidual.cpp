@@ -109,7 +109,7 @@ int MatchingPursuitResidual::recvAllSynapticInput() {
 
 int MatchingPursuitResidual::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int arborID) {
    int status = PV_SUCCESS;
-   if (updateGSynFlag((BaseConnection *) conn)) {
+   if (updateGSynFlag(conn)) {
       status = ANNLayer::recvSynapticInput(conn, activity, arborID);
    }
    return status;
@@ -117,13 +117,13 @@ int MatchingPursuitResidual::recvSynapticInput(HyPerConn * conn, const PVLayerCu
 
 int MatchingPursuitResidual::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID) {
    int status = PV_SUCCESS;
-   if (updateGSynFlag((BaseConnection *) conn)) {
+   if (updateGSynFlag(conn)) {
       status = ANNLayer::recvSynapticInputFromPost(conn, activity, arborID);
    }
    return status;
 }
 
-bool MatchingPursuitResidual::updateGSynFlag(BaseConnection * conn) {
+bool MatchingPursuitResidual::updateGSynFlag(HyPerConn * conn) {
    return !gSynInited || conn->getChannel()!=CHANNEL_EXC || excNeedsUpdate;
 }
 

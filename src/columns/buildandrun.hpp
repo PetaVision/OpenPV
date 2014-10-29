@@ -73,7 +73,6 @@
 #include "../layers/ANNTriggerUpdateOnNewImageLayer.hpp"
 #endif // OBSOLETE
 #include "../layers/ConstantLayer.hpp"
-#include "../connections/BaseConnection.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "../connections/BIDSConn.hpp"
 #include "../connections/CloneConn.hpp"
@@ -166,7 +165,7 @@ void insertColProbe(ColProbe * colProbe, HyPerCol * hc);
 BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterString, bool warnIfAbsent);
 HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent=true);
-BaseConnection * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbesnt=true);
+HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbesnt=true);
 LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayer, char ** message, const char ** filename);
 int decodeChannel(int channel, ChannelType * channelType);

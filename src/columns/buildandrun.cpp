@@ -727,11 +727,11 @@ HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, c
    return l;
 }
 
-BaseConnection * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent) {
+HyPerConn * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent) {
    PVParams * params = hc->parameters();
    const char * connName = getStringValueFromParameterGroup(groupName, params, parameterStringName, warnIfAbsent);
    if( !connName ) return NULL; // error message was printed by getStringValueFromParameterGroup
-   BaseConnection * c = hc->getConnFromName(connName);
+   HyPerConn * c = hc->getConnFromName(connName);
    if( c == NULL && warnIfAbsent)  {
       fprintf(stderr, "Group \"%s\": could not find connection \"%s\"\n", groupName, connName);
    }

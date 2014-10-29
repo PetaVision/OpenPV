@@ -56,7 +56,7 @@ int GenColProbe::addLayerTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t c
    return PV_SUCCESS;
 }  // end GenColProbe::addTerm(LayerFunctionProbe *, HyPerLayer *)
 
-int GenColProbe::addConnTerm(ConnFunctionProbe * p, BaseConnection * c, pvdata_t coeff) {
+int GenColProbe::addConnTerm(ConnFunctionProbe * p, HyPerConn * c, pvdata_t coeff) {
    gencolprobeconnterm * newtheterms = (gencolprobeconnterm *) malloc( (numConnTerms+1)*sizeof(gencolprobeconnterm) );
    if( !newtheterms ) return PV_FAILURE;
    for( int n=0; n<numConnTerms; n++ ) {

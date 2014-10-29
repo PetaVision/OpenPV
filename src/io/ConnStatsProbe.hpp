@@ -8,11 +8,11 @@
 #ifndef CONNSTATSPROBE_HPP_
 #define CONNSTATSPROBE_HPP_
 
-#include "BaseHyPerConnProbe.hpp"
+#include "BaseConnectionProbe.hpp"
 
 namespace PV {
 
-class ConnStatsProbe: public BaseHyPerConnProbe {
+class ConnStatsProbe: public BaseConnectionProbe {
 public:
    /**
     * The public constructor for creating a ConnStatsProbe class

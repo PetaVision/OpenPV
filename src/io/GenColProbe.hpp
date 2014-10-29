@@ -27,7 +27,7 @@ typedef struct gencolprobelayerterm_ {
 
 typedef struct gencolprobconnterm_ {
    ConnFunctionProbe * function;
-   BaseConnection * conn;
+   HyPerConn * conn;
    pvdata_t coeff;
 } gencolprobeconnterm;
 
@@ -36,7 +36,7 @@ public:
    GenColProbe(const char * probename, HyPerCol * hc);
    ~GenColProbe();
 
-   int addConnTerm(ConnFunctionProbe * p, BaseConnection * c, pvdata_t coeff);
+   int addConnTerm(ConnFunctionProbe * p, HyPerConn * c, pvdata_t coeff);
    int addLayerTerm(LayerFunctionProbe * p, HyPerLayer * l, pvdata_t coeff);
    virtual int outputState(double time, HyPerCol * hc);
 

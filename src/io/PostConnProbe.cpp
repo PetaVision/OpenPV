@@ -102,7 +102,7 @@ int PostConnProbe::getPatchID() {
 int PostConnProbe::outputState(double timef)
 {
    int k, kxPre, kyPre;
-   HyPerConn * c = getTargetHyPerConn();
+   HyPerConn * c = getTargetConn();
    PVPatch  * w;
    PVPatch *** wPost = c->convertPreSynapticWeights(timef);
 
@@ -182,7 +182,7 @@ int PostConnProbe::outputState(double timef)
       fprintf(fp, "\n");
    }
    if (stdpVars && changed) {
-      text_write_patch_extra(fp, w, wPostData, wPrev, wActiv, getTargetHyPerConn());
+      text_write_patch_extra(fp, w, wPostData, wPrev, wActiv, targetConn);
       fflush(fp);
    }
 

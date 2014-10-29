@@ -84,7 +84,7 @@ int InterColComm::resizePublishersArray(int newSize) {
    return PV_SUCCESS;
 }
 
-int InterColComm::subscribe(BaseConnection* conn)
+int InterColComm::subscribe(HyPerConn* conn)
 {
    int pubId = conn->preSynapticLayer()->getLayerId();
    assert( pubId < publisherArraySize && pubId >= 0);
@@ -142,7 +142,7 @@ Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int
    this->neighborDatatypes = Communicator::newDatatypes(&loc);
 
    this->subscriberArraySize = INITIAL_SUBSCRIBER_ARRAY_SIZE;
-   this->connection = (BaseConnection **) malloc( subscriberArraySize * sizeof(BaseConnection *) );
+   this->connection = (HyPerConn **) malloc( subscriberArraySize * sizeof(HyPerConn *) );
    assert(this->connection);
    for (int i = 0; i < subscriberArraySize; i++) {
       this->connection[i] = NULL;
@@ -268,12 +268,12 @@ int Publisher::readData(int delay) {
    return 0;
 }
 
-int Publisher::subscribe(BaseConnection* conn)
+int Publisher::subscribe(HyPerConn* conn)
 {
    assert(numSubscribers <= subscriberArraySize);
    if( numSubscribers == subscriberArraySize ) {
       subscriberArraySize += RESIZE_ARRAY_INCR;
-      BaseConnection ** newConnection = (BaseConnection **) malloc( subscriberArraySize * sizeof(HyPerConn *) );
+      HyPerConn ** newConnection = (HyPerConn **) malloc( subscriberArraySize * sizeof(HyPerConn *) );
       assert(newConnection);
       for( int k=0; k<numSubscribers; k++ ) {
          newConnection[k] = connection[k];

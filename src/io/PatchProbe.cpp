@@ -43,14 +43,14 @@ int PatchProbe::initialize_base() {
 }
 
 int PatchProbe::initialize(const char * probename, HyPerCol * hc) {
-   BaseHyPerConnProbe::initialize(probename, hc);
+   BaseConnectionProbe::initialize(probename, hc);
    int status = getPatchID();
    assert(status == PV_SUCCESS);
    return PV_SUCCESS;
 }
 
 int PatchProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = BaseHyPerConnProbe::ioParamsFillGroup(ioFlag);
+   int status = BaseConnectionProbe::ioParamsFillGroup(ioFlag);
    ioParam_arborID(ioFlag);
    ioParam_kPre(ioFlag);
    ioParam_kxPre(ioFlag);
@@ -124,26 +124,6 @@ int PatchProbe::getPatchID() {
    return PV_SUCCESS;
 }
 
-int PatchProbe::communicateInitInfo() {
-   int status = PV_SUCCESS;
-   assert(targetConn);
-   targetHyPerConn = dynamic_cast<HyPerConn *>(targetConn);
-   if (targetHyPerConn==NULL) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "KernelProbe \"%s\" error: targetConn \"%s\" must be a HyPerConn or HyPerConn-derived class.\n",
-               this->getName(), targetConn->getName());
-      }
-      status = PV_FAILURE;
-   }
-#ifdef PV_USE_MPI
-   MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
-   if (status != PV_SUCCESS) {
-      exit(EXIT_FAILURE);
-   }
-   return status;
-}
-
 /**
  * kPre lives in the extended space
  *
@@ -153,7 +133,7 @@ int PatchProbe::communicateInitInfo() {
  */
 int PatchProbe::outputState(double timef)
 {
-   HyPerConn * c = getTargetHyPerConn();
+   HyPerConn * c = getTargetConn();
 #ifdef PV_USE_MPI
    InterColComm * icComm = c->getParent()->icCommunicator();
    const int rank = icComm->commRank();

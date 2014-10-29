@@ -21,7 +21,7 @@ namespace PV {
 
 class HyPerCol;
 class HyPerLayer;
-class BaseConnection;
+class HyPerConn;
 
 class Publisher {
 
@@ -37,7 +37,7 @@ public:
                int borders[], int numBorders, PVLayerCube * data,
                unsigned int * activeIndicies, unsigned int numActive,
                int delay=0);
-   int subscribe(BaseConnection * conn);
+   int subscribe(HyPerConn * conn);
    int exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay=0);
    int wait();
 
@@ -71,7 +71,7 @@ private:
    int pubId;
    int numSubscribers;
    int subscriberArraySize;
-   BaseConnection ** connection;
+   HyPerConn ** connection;
    DataStore * store;
 
    PVLayerCube cube;
@@ -92,7 +92,7 @@ public:
    int addPublisher(HyPerLayer * pub, int numItems, int numLevels, bool isSparse);
    int clearPublishers();
    int publish(HyPerLayer * pub, PVLayerCube * cube, unsigned int * activeIndicies, unsigned int numActive);
-   int subscribe(BaseConnection * conn);
+   int subscribe(HyPerConn * conn);
    int exchangeBorders(int pubId, const PVLayerLoc * loc, int delay=0);
    int wait(int pubId);
 

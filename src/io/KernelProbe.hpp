@@ -8,17 +8,17 @@
 #ifndef KERNELPROBE_HPP_
 #define KERNELPROBE_HPP_
 
-#include "BaseHyPerConnProbe.hpp"
+#include "BaseConnectionProbe.hpp"
 
 namespace PV {
 
-class KernelProbe : public BaseHyPerConnProbe {
+class KernelProbe : public BaseConnectionProbe {
 
 // Methods
 public:
    KernelProbe(const char * probename, HyPerCol * hc);
    virtual ~KernelProbe();
-   virtual int communicateInitInfo();
+   virtual int communicate();
    virtual int allocateDataStructures();
    virtual int outputState(double timef);
 protected:
@@ -43,7 +43,6 @@ private:
 
 // Member variables
 private:
-   HyPerConn * targetHyPerConn; // KernelConn is only meaningful for HyPerConns.
    int kernelIndex; // which kernel index to investigate
    int arborID; // which arbor to investigate
    bool outputWeights;      // whether to output W

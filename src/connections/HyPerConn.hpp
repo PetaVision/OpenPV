@@ -8,7 +8,6 @@
 #ifndef HYPERCONN_HPP_
 #define HYPERCONN_HPP_
 
-#include "BaseConnection.hpp"
 #include "../columns/InterColComm.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../columns/Random.hpp"
@@ -51,7 +50,7 @@ class Random;
  * A HyPerConn identifies a connection between two layers
  */
 
-class HyPerConn : public BaseConnection {
+class HyPerConn {
 
 public:
    friend class CloneConn;
@@ -82,7 +81,7 @@ public:
    virtual int insertProbe(BaseConnectionProbe* p);
    int outputProbeParams();
    virtual int outputState(double time, bool last = false);
-   virtual int updateStateWrapper(double time, double dt); // Generally shouldn't be overridden; override updateState instead.  Made virtual only so that BaseConnection didn't need to define the member variables and functions used by HyPerConn::updateStateWrapper.
+   int updateStateWrapper(double time, double dt);
    virtual int updateState(double time, double dt);
    virtual bool needUpdate(double time, double dt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
