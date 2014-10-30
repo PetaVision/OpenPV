@@ -34,7 +34,6 @@ int DatastoreDelayTestLayer::updateState(double timef, double dt, int num_neuron
    updateV_DatastoreDelayTestLayer(getLayerLoc(), &inited, getV(), parent->icCommunicator()->publisherStore(getLayerId())->numberOfLevels());
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, lt, rt, dn, up);
    // resetGSynBuffers(); // Since V doesn't use the GSyn buffers, no need to maintain them.
-   updateActiveIndices();
 
    return PV_SUCCESS;
 }

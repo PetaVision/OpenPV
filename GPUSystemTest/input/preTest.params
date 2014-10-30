@@ -27,7 +27,7 @@ ConstantLayer "input" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    writeSparseActivity = 1;
     //
     //Making this layer sparse, so random uniform v
     InitVType = "UniformRandomV";

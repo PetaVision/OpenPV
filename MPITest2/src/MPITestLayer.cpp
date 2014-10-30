@@ -84,7 +84,7 @@ int MPITestLayer::updateState(double timed, double dt)
 int MPITestLayer::publish(InterColComm* comm, double timed)
 {
    setActivitytoGlobalPos();
-   int status = comm->publish(this, clayer->activity, clayer->activeIndices, clayer->numActive);
+   int status = comm->publish(this, clayer->activity);
    return status;
 
    //return HyPerLayer::publish(comm, time);

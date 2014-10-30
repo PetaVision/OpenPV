@@ -94,7 +94,7 @@ int WindowTestLayer::updateState(double timed, double dt)
 int WindowTestLayer::publish(InterColComm* comm, double timed)
 {
    setActivitytoOne();
-   int status = comm->publish(this, clayer->activity, clayer->activeIndices, clayer->numActive);
+   int status = comm->publish(this, clayer->activity);
    return status;
 
    //return HyPerLayer::publish(comm, time);
