@@ -129,7 +129,6 @@ bool TrainingLayer::needUpdate(double timed, double dt) {
 
 int TrainingLayer::updateState(double timed, double dt) {
    int status = updateState(timed, dt, getLayerLoc(), getCLayer()->activity->data, getV(), numTrainingLabels, trainingLabels, curTrainingLabelIndex, strength);
-   if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }
 

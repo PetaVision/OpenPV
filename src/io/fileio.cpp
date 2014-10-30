@@ -1226,9 +1226,11 @@ int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, d
    return status;
 }
 
-int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, PVLayer * l)
+int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, DataStore * store, const PVLayerLoc* loc)
 {
    int status = PV_SUCCESS;
+   pvadata_t * data = (pvadata_t*) store->buffer(LOCAL);
+
    // write header, but only at the beginning
 #ifdef PV_USE_MPI
    int rank = comm->commRank();
@@ -1238,7 +1240,7 @@ int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, PVLay
    if( rank == 0 ) {
       long fpos = getPV_StreamFilepos(pvstream);
       if (fpos == 0L) {
-         int * params = pvp_set_nonspiking_act_params(comm, timed, &l->loc, PV_FLOAT_TYPE, 1/*numbands*/);
+         int * params = pvp_set_nonspiking_act_params(comm, timed, loc, PV_FLOAT_TYPE, 1/*numbands*/);
          assert(params && params[1]==NUM_BIN_PARAMS);
          int numParams = params[1];
          status = pvp_write_header(pvstream, comm, params, numParams);
@@ -1255,20 +1257,24 @@ int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, PVLay
       }
    }
 
-   if (gatherActivity(pvstream, comm, 0/*root process*/, l->activity->data, &l->loc, true/*extended*/)!=PV_SUCCESS) {
+   if (gatherActivity(pvstream, comm, 0/*root process*/, data, loc, true/*extended*/)!=PV_SUCCESS) {
       status = PV_FAILURE;
    }
    return status;
 }
 
-int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicator * comm, double timed, PVLayer * l, bool includeValues)
+int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicator * comm, double timed, DataStore * store, const PVLayerLoc* loc, bool includeValues)
 {
    int status = PV_SUCCESS;
 
+   //Grab active indices and local active from datastore comm
+
    const int icRoot = 0;
    const int icRank = comm->commRank();
-   int localActive = l->numActive;
-   unsigned int * indices = l->activeIndices;
+   int localActive = *(store->numActiveBuffer(LOCAL));
+   unsigned int * indices = store->activeIndicesBuffer(LOCAL);
+   pvadata_t * valueData = (pvadata_t*) store->buffer(LOCAL);
+
    indexvaluepair * indexvaluepairs = NULL;
    unsigned int * globalResIndices = NULL;
    int localResActive = 0;
@@ -1300,12 +1306,12 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
          int pairsIdx = 0;
          for (int j=0; j<localActive; j++) {
             int localExtK = indices[j];
-            int globalResK = localExtToGlobalRes(localExtK, &(l->loc));
+            int globalResK = localExtToGlobalRes(localExtK, loc);
             if(globalResK == -1){
                continue;
             }
             indexvaluepairs[pairsIdx].index = globalResK;
-            indexvaluepairs[pairsIdx].value = l->activity->data[localExtK];
+            indexvaluepairs[pairsIdx].value = valueData[localExtK];
             pairsIdx++;
          }
          data = (void *) indexvaluepairs;
@@ -1318,7 +1324,7 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
          int indiciesIdx = 0;
          for (int j=0; j<localActive; j++) {
             int localExtK = indices[j];
-            int globalResK = localExtToGlobalRes(localExtK, &(l->loc));
+            int globalResK = localExtToGlobalRes(localExtK, loc);
             if(globalResK == -1){
                continue;
             }
@@ -1355,12 +1361,12 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
             int pairsIdx = 0;
             for (int k=0; k<localActive; k++) {
                int localExtK = indices[k];
-               int globalResK = localExtToGlobalRes(localExtK, &(l->loc));
+               int globalResK = localExtToGlobalRes(localExtK, loc);
                if(globalResK == -1){
                   continue;
                }
                indexvaluepairs[pairsIdx].index = globalResK;
-               indexvaluepairs[pairsIdx].value = l->activity->data[localExtK];
+               indexvaluepairs[pairsIdx].value = valueData[localExtK];
                pairsIdx++;
             }
             localResActive = pairsIdx;
@@ -1371,7 +1377,7 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
             int indiciesIdx = 0;
             for (int j=0; j<localActive; j++) {
                int localExtK = indices[j];
-               int globalResK = localExtToGlobalRes(localExtK, &(l->loc));
+               int globalResK = localExtToGlobalRes(localExtK, loc);
                if(globalResK == -1){
                   continue;
                }
@@ -1423,7 +1429,7 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
       long fpos = getPV_StreamFilepos(pvstream);
       if (fpos == 0L) {
          int numParams = NUM_BIN_PARAMS;
-         status = pvp_write_header(pvstream, comm, timed, &l->loc, filetype,
+         status = pvp_write_header(pvstream, comm, timed, loc, filetype,
                                    datatype, 1, extended, contiguous,
                                    numParams, (size_t) totalActive);
          if (status != 0) {

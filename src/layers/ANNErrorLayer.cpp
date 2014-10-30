@@ -75,8 +75,7 @@ void ANNErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
 }
 
 int ANNErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
-      unsigned int * active_indices, unsigned int * num_active)
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
    update_timer->start();
 //#ifdef PV_USE_OPENCL
@@ -92,9 +91,6 @@ int ANNErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int num_neurons = nx*ny*nf;
          ANNErrorLayer_update_state(num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh,
                AMax, AMin, AShift, gSynHead, A, errScale);
-      if (this->writeSparseActivity){
-         updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
-      }
 //#ifdef PV_USE_OPENCL
 //   }
 //#endif

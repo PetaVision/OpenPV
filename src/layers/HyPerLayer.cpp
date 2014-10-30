@@ -442,7 +442,7 @@ int HyPerLayer::freeClayer() {
       clayer->posFP = NULL;
    }
 
-   free(clayer->activeIndices); clayer->activeIndices = NULL;
+   //free(clayer->activeIndices); clayer->activeIndices = NULL;
    free(clayer->prevActivity);  clayer->prevActivity = NULL;
    //free(clayer->activeIndices); clayer->activeIndices = NULL;
    free(clayer->V);             clayer->V = NULL;
@@ -487,13 +487,11 @@ int HyPerLayer::allocateClayerBuffers() {
    assert(clayer);
    clayer->params = NULL;
 
-   clayer->numActive = 0;
-
    int status = PV_SUCCESS;
 
    int statusV = allocateV();                      if (statusV!=PV_SUCCESS) status = PV_FAILURE;
    int statusA = allocateActivity();               if (statusA!=PV_SUCCESS) status = PV_FAILURE;
-   int statusActIndices = allocateActiveIndices(); if (statusActIndices!=PV_SUCCESS) status = PV_FAILURE;
+   //int statusActIndices = allocateActiveIndices(); if (statusActIndices!=PV_SUCCESS) status = PV_FAILURE;
    int statusPrevAct = allocatePrevActivity();     if (statusPrevAct!=PV_SUCCESS) status = PV_FAILURE;
    for (k = 0; k < getNumExtended(); k++) {
       clayer->prevActivity[k] = -10*REFRACTORY_PERIOD;  // allow neuron to fire at time t==0
@@ -525,10 +523,10 @@ int HyPerLayer::allocateActivity() {
    return clayer->activity!=NULL ? PV_SUCCESS : PV_FAILURE;
 }
 
-int HyPerLayer::allocateActiveIndices() {
-   //Active indicies is local ext
-   return allocateBuffer(&clayer->activeIndices, getNumExtended(), "active indices");
-}
+//int HyPerLayer::allocateActiveIndices() {
+//   //Active indicies is local ext
+//   return allocateBuffer(&clayer->activeIndices, getNumExtended(), "active indices");
+//}
 
 int HyPerLayer::allocatePrevActivity() {
    return allocateBuffer(&clayer->prevActivity, getNumExtended(), "time of previous activity");
@@ -685,16 +683,18 @@ int HyPerLayer::initializeV() {
    if (initVObject != NULL) {
       status = initVObject->calcV(this);
       setActivity();
-      if (status == PV_SUCCESS) status = updateActiveIndices();
+      //Moved to publish
+      //if (status == PV_SUCCESS) status = updateActiveIndices();
    }
    return status;
 }
 
 int HyPerLayer::initializeActivity() {
    int status = setActivity();
-   if (status == PV_SUCCESS) {
-      status = updateActiveIndices();
-   }
+   //Moved to publish
+   //if (status == PV_SUCCESS) {
+   //   status = updateActiveIndices();
+   //}
    return status;
 }
 
@@ -1747,8 +1747,7 @@ int HyPerLayer::updateStateGpu(double timef, double dt){
    pvdata_t * gSynHead = GSyn==NULL ? NULL : GSyn[0];
    assert(updateGpu);
    status = doUpdateStateGpu(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-         getNumChannels(), gSynHead, getSparseFlag(), getCLayer()->activeIndices,
-         &getCLayer()->numActive);
+         getNumChannels(), gSynHead);
    return status;
 }
 #endif
@@ -1760,19 +1759,18 @@ int HyPerLayer::updateState(double timef, double dt) {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    if(updateGpu){
       status = doUpdateStateGpu(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-            getNumChannels(), gSynHead, getSparseFlag(), getCLayer()->activeIndices,
-            &getCLayer()->numActive);
+            getNumChannels(), gSynHead);
    }
    else{
 #endif
       status = doUpdateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(),
-            getNumChannels(), gSynHead, getSparseFlag(), getCLayer()->activeIndices,
-            &getCLayer()->numActive);
+            getNumChannels(), gSynHead);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    }
 #endif
 
-   if(status == PV_SUCCESS) status = updateActiveIndices();
+   //Moved to publish
+   //if(status == PV_SUCCESS) status = updateActiveIndices();
    return status;
 }
 
@@ -1805,8 +1803,7 @@ int HyPerLayer::runUpdateKernel(){
 }
 
 int HyPerLayer::doUpdateStateGpu(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
-      unsigned int * active_indices, unsigned int * num_active)
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
    std::cout << "Update state for layer " << name << " is not implemented\n";
    exit(-1);
@@ -1815,8 +1812,7 @@ int HyPerLayer::doUpdateStateGpu(double timef, double dt, const PVLayerLoc * loc
 #endif
 
 int HyPerLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
-      unsigned int * active_indices, unsigned int * num_active)
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
@@ -1872,31 +1868,33 @@ int HyPerLayer::updateBorder(double time, double dt)
 //   return PV_SUCCESS;
 //}
 
+
+//This function must be called after exchange borders and a wait
 int HyPerLayer::updateActiveIndices() {
-   if( writeSparseActivity ) return calcActiveIndices(); else return PV_SUCCESS;
+   return parent->icCommunicator()->updateActiveIndices(this->getLayerId());
 }
 
-int HyPerLayer::calcActiveIndices() {
-   //Active indicies stored as local ext values
-   int numActive = 0;
-   PVLayerLoc & loc = clayer->loc;
-   pvdata_t * activity = clayer->activity->data;
-
-   for (int kex = 0; kex < getNumExtended(); kex++) {
-      if (activity[kex] != 0.0) {
-         clayer->activeIndices[numActive++] = kex;
-      }
-   }
-   //for (int k = 0; k < getNumNeurons(); k++) {
-   //   const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.halo.lt, loc.halo.rt, loc.halo.dn, loc.halo.up);
-   //   if (activity[kex] != 0.0) {
-   //      clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
-   //   }
-   //}
-   clayer->numActive = numActive;
-
-   return PV_SUCCESS;
-}
+//int HyPerLayer::calcActiveIndices() {
+//   //Active indicies stored as local ext values
+//   int numActive = 0;
+//   PVLayerLoc & loc = clayer->loc;
+//   pvdata_t * activity = clayer->activity->data;
+//
+//   for (int kex = 0; kex < getNumExtended(); kex++) {
+//      if (activity[kex] != 0.0) {
+//         clayer->activeIndices[numActive++] = kex;
+//      }
+//   }
+//   //for (int k = 0; k < getNumNeurons(); k++) {
+//   //   const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.halo.lt, loc.halo.rt, loc.halo.dn, loc.halo.up);
+//   //   if (activity[kex] != 0.0) {
+//   //      clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
+//   //   }
+//   //}
+//   clayer->numActive = numActive;
+//
+//   return PV_SUCCESS;
+//}
 
 float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
 {
@@ -1953,6 +1951,7 @@ int HyPerLayer::recvAllSynapticInput() {
          memcpy(&cube.loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
          cube.numItems = pre->getNumExtended();
          cube.size = sizeof(PVLayerCube);
+
          DataStore * store = parent->icCommunicator()->publisherStore(pre->getLayerId());
          int numArbors = conn->numberOfAxonalArborLists();
 
@@ -1960,6 +1959,11 @@ int HyPerLayer::recvAllSynapticInput() {
             int delay = conn->getDelay(arbor);
             cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
             if(!conn->getUpdateGSynFromPostPerspective()){
+               cube.isSparse = store->isSparse();
+               if(cube.isSparse){
+                  cube.numActive = *(store->numActiveBuffer(LOCAL, delay));
+                  cube.activeIndices = store->activeIndicesBuffer(LOCAL, delay);
+               }
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
                if(conn->getReceiveGpu()){
                   status = recvSynapticInputGpu(conn, &cube, arbor);
@@ -2026,8 +2030,10 @@ float HyPerLayer::syncGpu(){
    }
    if(updateGpu){
       time += gpu_update_timer->accumulateTime();
-      int status = updateActiveIndices();
-      assert(status == PV_SUCCESS);
+      
+      //Moved to publish
+      //int status = updateActiveIndices();
+      //assert(status == PV_SUCCESS);
    }
    return time;
 }
@@ -2248,11 +2254,27 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       }
    }
 
+   int numLoop;
+   if(activity->isSparse){
+      numLoop = activity->numActive;
+   }
+   else{
+      numLoop = numExtended;
+   }
+
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
    //TODO loop over active indicies here instead
-   for (int kPre = 0; kPre < numExtended; kPre++) {
+   for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
+      int kPre;
+      if(activity->isSparse){
+         kPre = activity->activeIndices[loopIndex];
+      }
+      else{
+         kPre = loopIndex;
+      }
+
       bool inWindow; 
       //Post layer recieves synaptic input
       //Only with respect to post layer
@@ -2501,6 +2523,15 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
 #endif
    assert(krRecvPre);
 
+   ////See if sparse, and update activeIndices and numActive;
+   //if(activity->isSparse){
+
+   //}
+
+
+
+
+
    int totX = conn->getNumPostGroupX();
    int totY = conn->getNumPostGroupY();
 
@@ -2538,13 +2569,13 @@ int HyPerLayer::publish(InterColComm* comm, double time)
 {
    publish_timer->start();
 
-   if ( useMirrorBCs() && getLastUpdateTime() >= getParent()->simulationTime()) { //needUpdate(parent->simulationTime(), parent->getDeltaTime()) ) { //
+   if ( useMirrorBCs()&& getLastUpdateTime() >= getParent()->simulationTime()) { //needUpdate(parent->simulationTime(), parent->getDeltaTime()) ) { //
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
          mirrorInteriorToBorder(borderId, clayer->activity, clayer->activity);
       }
    }
-
-   int status = comm->publish(this, clayer->activity, clayer->activeIndices, clayer->numActive);
+   
+   int status = comm->publish(this, clayer->activity);
 //#ifdef PV_USE_OPENCL
 //   if(copyDataStoreFlag) {
 //      status |= copyDataStoreCLBuffer();
@@ -2664,7 +2695,7 @@ int HyPerLayer::readActivityFromCheckpoint(const char * cpDir, double * timeptr)
    int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &clayer->activity->data, 1, /*extended*/true, getLayerLoc());
    assert(status==PV_SUCCESS);
    free(filename);
-   status = updateActiveIndices();
+   //status = updateActiveIndices();
    assert(status==PV_SUCCESS);
    return status;
 }
@@ -2726,6 +2757,8 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
    status = icComm->exchangeBorders(this->getLayerId(), this->getLayerLoc());
    status |= icComm->wait(this->getLayerId());
    assert(status == PV_SUCCESS);
+   //Update sparse indices here
+   status = updateActiveIndices();
 
    return PV_SUCCESS;
 }
@@ -2987,7 +3020,8 @@ int HyPerLayer::readState(double * timeptr)
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 {
-   int status = PV::writeActivitySparse(clayer->activeFP, clayer->posFP, parent->icCommunicator(), timed, clayer, includeValues);
+   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   int status = PV::writeActivitySparse(clayer->activeFP, clayer->posFP, parent->icCommunicator(), timed, store, getLayerLoc(), includeValues);
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivitySparseCalls);
@@ -2998,7 +3032,9 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 // write non-spiking activity
 int HyPerLayer::writeActivity(double timed)
 {
-   int status = PV::writeActivity(clayer->activeFP, parent->icCommunicator(), timed, clayer);
+   DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
+   int status = PV::writeActivity(clayer->activeFP, parent->icCommunicator(), timed, store, getLayerLoc());
+
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivityCalls);
    }

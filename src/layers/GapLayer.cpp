@@ -67,7 +67,6 @@ int GapLayer::allocateDataStructures() {
 int GapLayer::updateState(double timef, double dt) {
    int status;
    status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), originalLayer->getCLayer()->activity->data);
-   if( status == PV_SUCCESS  ) status = updateActiveIndices();
    return status;
 }
 

@@ -164,7 +164,6 @@ int BinningLayer::updateState(double timef, double dt) {
    pvdata_t * gSynHead = NULL;
 
    status = doUpdateState(timef, dt, originalLayer->getLayerLoc(), getLayerLoc(), originalLayer->getLayerData(delay), getActivity(), binMax, binMin);
-   if(status == PV_SUCCESS) status = updateActiveIndices();
    return status;
 }
 

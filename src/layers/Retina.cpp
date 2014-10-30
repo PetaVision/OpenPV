@@ -627,7 +627,6 @@ int Retina::updateState(double timed, double dt)
 
 #endif // DEBUG_PRINT
    //update_timer->stop();
-   updateActiveIndices();
    return 0;
 }
 
@@ -650,7 +649,6 @@ int Retina::updateBorder(double time, double dt)
 int Retina::outputState(double time, bool last)
 {
    // io_timer->start();
-   // if( spikingFlag ) updateActiveIndices(); // updateActiveIndices moved back into updateState.
    // io_timer->stop();
 
    // HyPerLayer::outputState already has an io timer so don't duplicate

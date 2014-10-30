@@ -90,18 +90,20 @@ int BIDSCloneLayer::allocateDataStructures() {
 }
 
 int BIDSCloneLayer::mapCoords(){
+
+   //Copy restricted clone data to current clayer data
    for(int i = 0; i < numNodes; i++){
-      int index = kIndex(coords[i].xCoord, coords[i].yCoord, 0, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf);
-      int indexEx = kIndexExtended(index, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf, clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up);
-      this->clayer->activity->data[indexEx] = 0;
+
    }
 
-   unsigned int * sourceLayerA = getSourceActiveIndices();
-   unsigned int sourceLayerNumIndices = getSourceNumActive();
-   for(unsigned int i = 0; i < sourceLayerNumIndices; i++){
-      int index = kIndex(coords[sourceLayerA[i]].xCoord, coords[sourceLayerA[i]].yCoord, 0, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf);
-      int indexEx = kIndexExtended(index, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf, clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up);
-      this->clayer->activity->data[indexEx] += 1;
+   const PVLayerLoc origLoc = originalLayer->getCLayer()->loc;
+
+   for(int i = 0; i < numNodes; i++){
+      int index = kIndex(coords[i].xCoord, coords[i].yCoord, 0, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf);
+      int destIndexEx = kIndexExtended(index, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf, clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up);
+      int srcIndexEx = kIndexExtended(index, origLoc.nx, origLoc.ny, origLoc.nf, origLoc.halo.lt, origLoc.halo.rt, origLoc.halo.dn, origLoc.halo.up);
+
+      this->clayer->activity->data[destIndexEx] = originalLayer->getCLayer()->activity->data[srcIndexEx] == 0 ? 0:1;
    }
    return PV_SUCCESS;
 }
@@ -115,7 +117,6 @@ int BIDSCloneLayer::setActivity() {
 int BIDSCloneLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
    mapCoords();
-   if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }
 

@@ -199,7 +199,6 @@ int LCALIFLayer::updateState(double timed, double dt)
          clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
          randState->getRNG(0), clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, getGapStrength(), Vattained, Vmeminf, (int) normalizeInputFlag,
          GSynExcEffective, GSynInhEffective, excitatoryNoise, inhibitoryNoise, inhibNoiseB);
-   updateActiveIndices();
    return PV_SUCCESS;
 }
 

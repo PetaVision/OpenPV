@@ -285,7 +285,6 @@ int RescaleLayer::updateState(double timef, double dt) {
              }
           }
        }
-       if( status == PV_SUCCESS ) status = updateActiveIndices();
        //Update lastUpdateTime
        lastUpdateTime = parent->simulationTime();
 

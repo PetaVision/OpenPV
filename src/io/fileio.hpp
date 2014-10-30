@@ -17,6 +17,7 @@
 #include "../include/pv_types.h"
 #include "../include/PVLayerLoc.h"
 #include "../columns/Communicator.hpp"
+#include "../columns/DataStore.hpp"
 #include "../arch/opencl/pv_uint4.h"
 
 #include <sys/types.h>
@@ -74,9 +75,9 @@ int set_weight_params(int * params, int nxp, int nyp, int nfp, float min, float 
 
 int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, double * timed);
 
-int writeActivity(PV_Stream * pvstream, Communicator * comm, double time, PVLayer * l);
+int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, DataStore * store, const PVLayerLoc* loc);
 
-int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicator * comm, double time, PVLayer * l, bool includeValues);
+int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicator * comm, double timed, DataStore * store, const PVLayerLoc* loc, bool includeValues);
 
 //This function is not defined anywhere?
 //int writeActivitySparseValues(PV_Stream * pvstream, PV_Stream * posstream, Communicator * comm, double time, PVLayer * l);

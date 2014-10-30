@@ -357,7 +357,6 @@ int LIFGap::updateState(double time, double dt)
 //#ifdef PV_USE_OPENCL
 //   }
 //#endif
-   updateActiveIndices();
    //update_timer->stop();
    return status;
 }

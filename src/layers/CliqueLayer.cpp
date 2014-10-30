@@ -280,8 +280,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
 }
 
 int CliqueLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
-      unsigned int * active_indices, unsigned int * num_active)
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
    return updateStateClique(timef, dt,loc, A, getV(),
          num_channels, gSynHead, this->Voffset, this->Vgain, this->AMax, this->AMin,
@@ -333,26 +332,11 @@ int CliqueLayer::updateStateClique(double timef, double dt, const PVLayerLoc * l
    setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // setActivity();
    applyVThresh_ANNLayer(num_neurons, V, AMin, VThresh, 0.0f/*AShift*/, 0.0f/*VWidth*/, A, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // applyVThresh();
    applyVMax_ANNLayer(num_neurons, V, AMax, A, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // applyVMax();
-   updateActiveIndices();
+
+   //Moved to publish
+   //updateActiveIndices();
 
    return 0;
-}
-
-int CliqueLayer::updateActiveIndices()
-{
-//   int numActive = 0;
-//   PVLayerLoc & loc = clayer->loc;
-//   pvdata_t * activity = clayer->activity->data;
-//
-//   for (int k = 0; k < getNumNeurons(); k++) {
-//      const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.nb);
-//      if (activity[kex] > 0.0) {
-//         clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
-//      }
-//   }
-//   clayer->numActive = numActive;
-//   return PV_SUCCESS;
-   return calcActiveIndices();
 }
 
 } /* namespace PV */

@@ -56,8 +56,13 @@ typedef struct PVPatch_ {
       float* postGSyn;
       int* patch2datalookuptable;
 
+      bool isSparse;
+      unsigned int numActive;
+      unsigned int activeIndices;
+
       int preBufNum;
       int postBufNum;
+
    };
 
 
@@ -98,7 +103,13 @@ public:
       /* float* */   CudaBuffer* weights,
       /* float* */   CudaBuffer* postGSyn,
       /* int* */     CudaBuffer* patch2datalookuptable
+
+      //bool isSparse,
+      //unsigned int numActive,
+      //unsigned int * activeIndices
    );
+
+   void setNumActive(unsigned int numActive){params.numActive = numActive;}
 
 protected:
    //This is the function that should be overwritten in child classes

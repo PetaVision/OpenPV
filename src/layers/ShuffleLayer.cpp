@@ -299,7 +299,6 @@ int ShuffleLayer::updateState(double timef, double dt) {
 
    }
 
-   if( status == PV_SUCCESS ) status = updateActiveIndices();
    return status;
 }
 

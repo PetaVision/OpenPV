@@ -36,9 +36,9 @@ protected:
    virtual void ioParam_VMax(enum ParamsIOFlag ioFlag);
    virtual void ioParam_VShift(enum ParamsIOFlag ioFlag);
    virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
-   /* static */ int updateState(double timef, double dt, bool * inited, double * next_update_time,
+   /* static */ int doUpdateState(double timef, double dt, bool * inited, double * next_update_time,
          double first_update_time, double display_period, const PVLayerLoc * loc, pvdata_t * A,
-         pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead, unsigned int * active_indices, unsigned int * num_active);
+         pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead);
 
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readVprevFromCheckpoint(const char * cpDir, double * timeptr);

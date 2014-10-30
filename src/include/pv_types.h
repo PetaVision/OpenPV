@@ -25,10 +25,10 @@
 #define LAYER_CUBE_HEADER_SIZE (sizeof(PVLayerCube))
 #ifdef PV_ARCH_64
 #  define NUM_PADDING 1
-#  define EXPECTED_CUBE_HEADER_SIZE 80
+#  define EXPECTED_CUBE_HEADER_SIZE 96 
 #else
 #  define NUM_PADDING 1
-#  define EXPECTED_CUBE_HEADER_SIZE 64
+#  define EXPECTED_CUBE_HEADER_SIZE 64 //Check this with new cube fields
 #endif
 
 enum ChannelType {
@@ -103,6 +103,9 @@ typedef struct PVLayerCube_ {
    pvdata_t * data;      // pointer to data (may follow header)
    int        padding[NUM_PADDING];   // header size should be n*128 bits
    PVLayerLoc loc;       // location of cube in global layer
+   int isSparse;
+   unsigned int numActive;
+   unsigned int * activeIndices;
 } PVLayerCube;
 
 /**
@@ -112,8 +115,8 @@ typedef struct PVLayer_ {
    int numNeurons; // # neurons in this HyPerLayer (i.e. in PVLayerCube)
    int numExtended;// # neurons in layer including extended border regions
 
-   unsigned int   numActive;      // # neurons that fired
-   unsigned int * activeIndices;  // indices of neurons that fired
+   //unsigned int   numActive;      // # neurons that fired
+   //unsigned int * activeIndices;  // indices of neurons that fired
    PV_Stream    * activeFP;       // file of sparse activity
    PV_Stream    * posFP;          // file of sparse activity frame positions
 

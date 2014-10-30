@@ -36,8 +36,8 @@ protected:
    virtual void ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
    virtual void ioParam_jitterSource(enum ParamsIOFlag ioFlag);
-   unsigned int * getSourceActiveIndices() {return originalLayer->getCLayer()->activeIndices;}
-   unsigned int getSourceNumActive() {return originalLayer->getCLayer()->numActive;}
+   //unsigned int * getSourceActiveIndices() {return originalLayer->getCLayer()->activeIndices;}
+   //unsigned int getSourceNumActive() {return originalLayer->getCLayer()->numActive;}
    int numNodes;
    BIDSCoords * coords;
    char * jitterSourceName;

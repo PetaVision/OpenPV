@@ -161,7 +161,6 @@ int BIDSLayer::updateState(double time, double dt)
 //   }
 //#endif
 
-   updateActiveIndices();
    update_timer->stop();
    return status;
 }

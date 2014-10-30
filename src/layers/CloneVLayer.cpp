@@ -136,8 +136,7 @@ int CloneVLayer::checkpointWrite(const char * cpDir) {
 }
 
 int CloneVLayer::doUpdateState(double timed, double dt, const PVLayerLoc * loc, pvdata_t * A,
-         pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking,
-         unsigned int * active_indices, unsigned int * num_active) {
+         pvdata_t * V, int num_channels, pvdata_t * GSynHead){
    //update_timer->start();
    int nx = loc->nx;
    int ny = loc->ny;

@@ -50,8 +50,7 @@ int AccumulateLayer::communicateInitInfo() {
 }
 
 int AccumulateLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
-      unsigned int * active_indices, unsigned int * num_active)
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
    bool needsUpdate = false;
    if (syncedInputLayer != NULL) {
@@ -79,9 +78,10 @@ int AccumulateLayer::doUpdateState(double time, double dt, const PVLayerLoc * lo
       int num_neurons = nx*ny*nf;
       updateV_AccumulateLayer(num_neurons, V, num_channels, gSynHead, A,
               AMax, AMin, VThresh, AShift, VWidth, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-      if (this->writeSparseActivity){
-         updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
-      }
+      //Moved to publish
+      //if (this->writeSparseActivity){
+      //   updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
+      //}
 //#ifdef PV_USE_OPENCL
 //   }
 //#endif

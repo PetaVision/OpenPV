@@ -36,11 +36,11 @@ DataStore::DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSiz
    this->recvBuffers = (char*) calloc(numBuffers * numLevels * numItems * dataSize, sizeof(char));
    this->isSparse_flag = isSparse_flag;
    if(this->isSparse_flag){
-      this->activeIndicies = (unsigned int*) calloc(numBuffers * numLevels * numItems, sizeof(unsigned int));
+      this->activeIndices = (unsigned int*) calloc(numBuffers * numLevels * numItems, sizeof(unsigned int));
       this->numActive = (unsigned int*) calloc(numBuffers * numLevels, sizeof(unsigned int));
    }
    else{
-      this->activeIndicies = NULL;
+      this->activeIndices = NULL;
       this->numActive = NULL;
    }
    assert(this->recvBuffers != NULL);
@@ -59,6 +59,8 @@ DataStore::~DataStore()
 //#endif // PV_USE_OPENCL
 
    free(recvBuffers);
+   free(activeIndices);
+   free(numActive);
 }
 
 //#ifdef PV_USE_OPENCL

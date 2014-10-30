@@ -280,7 +280,7 @@ int HyPerLCALayer::setInitialValues() {
    }
 }
 
-int HyPerLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,unsigned int * active_indicies, unsigned int * num_active){
+int HyPerLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead){
    //Change dt to match what is passed in
    PVCuda::CudaUpdateHyPerLCALayer* updateKernel = dynamic_cast<PVCuda::CudaUpdateHyPerLCALayer*>(krUpdate);
    assert(updateKernel);
@@ -290,8 +290,7 @@ int HyPerLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * l
 #endif
 
 int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
-      unsigned int * active_indices, unsigned int * num_active)
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
    //update_timer->start();
 //#ifdef PV_USE_OPENCL
@@ -317,9 +316,9 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
             V, VThresh, AMax, AMin, AShift, VWidth, 
             selfInteract, dt/timeConstantTau, gSynHead, A);
-      if (this->writeSparseActivity){
-         updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
-      }
+      //if (this->writeSparseActivity){
+      //   updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
+      //}
    }
 
    //update_timer->stop();

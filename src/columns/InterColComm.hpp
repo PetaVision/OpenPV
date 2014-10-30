@@ -35,7 +35,6 @@ public:
    int readData(int delay);
    int publish(HyPerLayer * pub, int neighbors[], int numNeighbors,
                int borders[], int numBorders, PVLayerCube * data,
-               unsigned int * activeIndicies, unsigned int numActive,
                int delay=0);
    int subscribe(BaseConnection * conn);
    int exchangeBorders(int neighbors[], int numNeighbors, const PVLayerLoc * loc, int delay=0);
@@ -46,6 +45,8 @@ public:
    int increaseTimeLevel()   {return store->newLevelIndex();}
 
    DataStore * dataStore()   {return store;}
+
+   int updateActiveIndices();
 
 private:
 
@@ -61,12 +62,14 @@ private:
       return store->numActiveBuffer(bufferId, delay);
    }
 
-   unsigned int * recvActiveIndiciesBuffer(int bufferId){
-      return store->activeIndiciesBuffer(bufferId);
+   unsigned int * recvActiveIndicesBuffer(int bufferId){
+      return store->activeIndicesBuffer(bufferId);
    }
-   unsigned int * recvActiveIndiciesBuffer(int bufferId, int delay){
-      return store->activeIndiciesBuffer(bufferId, delay);
+   unsigned int * recvActiveIndicesBuffer(int bufferId, int delay){
+      return store->activeIndicesBuffer(bufferId, delay);
    }
+
+   int calcActiveIndices();
 
    int pubId;
    int numSubscribers;
@@ -91,9 +94,10 @@ public:
 
    int addPublisher(HyPerLayer * pub, int numItems, int numLevels, bool isSparse);
    int clearPublishers();
-   int publish(HyPerLayer * pub, PVLayerCube * cube, unsigned int * activeIndicies, unsigned int numActive);
+   int publish(HyPerLayer * pub, PVLayerCube * cube);
    int subscribe(BaseConnection * conn);
    int exchangeBorders(int pubId, const PVLayerLoc * loc, int delay=0);
+   int updateActiveIndices(int pubId);
    int wait(int pubId);
 
    int increaseTimeLevel(int pubId)        {return publishers[pubId]->increaseTimeLevel();}

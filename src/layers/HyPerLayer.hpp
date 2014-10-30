@@ -250,7 +250,7 @@ protected:
    int allocateCube();
    virtual int allocateV();
    virtual int allocateActivity();
-   virtual int allocateActiveIndices();
+   //virtual int allocateActiveIndices();
    virtual int allocatePrevActivity();
    virtual int setInitialValues();
    virtual int initializeV();
@@ -263,7 +263,7 @@ protected:
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
    int incrementNBands(int * numCalls);
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
-   virtual int calcActiveIndices();
+   //virtual int calcActiveIndices();
    void calcNumExtended();
 public:
    pvdata_t * getActivity()          {return clayer->activity->data;}
@@ -446,7 +446,7 @@ public:
    int getXScale()                   {return clayer->xScale;}
    int getYScale()                   {return clayer->yScale;}
 
-   int getNumActive()                {return clayer->numActive;}
+   //int getNumActive()                {return clayer->numActive;}
 
    HyPerCol* getParent()             {return parent;}
    void setParent(HyPerCol* parent)  {this->parent = parent;}
@@ -488,12 +488,10 @@ protected:
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual int runUpdateKernel();
    virtual int doUpdateStateGpu(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
-         pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking,
-         unsigned int * active_indices, unsigned int * num_active);
+         pvdata_t * V, int num_channels, pvdata_t * GSynHead);
 #endif
    virtual int doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
-         pvdata_t * V, int num_channels, pvdata_t * GSynHead, bool spiking,
-         unsigned int * active_indices, unsigned int * num_active);
+         pvdata_t * V, int num_channels, pvdata_t * GSynHead);
    virtual int setActivity();
    void freeChannels();
 

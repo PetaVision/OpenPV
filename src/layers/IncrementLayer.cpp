@@ -105,12 +105,11 @@ int IncrementLayer::allocateDataStructures() {
 int IncrementLayer::updateState(double timef, double dt) {
    int status;
    assert(numChannels>=2);  // updateState uses gSynExc and gSynInh
-   status = updateState(timef, dt, &VInited, &nextUpdateTime, firstUpdateTime, displayPeriod, getLayerLoc(), getCLayer()->activity->data, getV(), getVprev(), getNumChannels(), GSyn[0], getCLayer()->activeIndices, &getCLayer()->numActive);
-   if( status == PV_SUCCESS ) status = updateActiveIndices();
+   status = doUpdateState(timef, dt, &VInited, &nextUpdateTime, firstUpdateTime, displayPeriod, getLayerLoc(), getCLayer()->activity->data, getV(), getVprev(), getNumChannels(), GSyn[0]);
    return status;
 }
 
-int IncrementLayer::updateState(double timef, double dt, bool * inited, double * next_update_time, double first_update_time, double display_period, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead, unsigned int * active_indices, unsigned int * num_active) {
+int IncrementLayer::doUpdateState(double timef, double dt, bool * inited, double * next_update_time, double first_update_time, double display_period, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead) {
    int status = PV_SUCCESS;
    int nx = loc->nx;
    int ny = loc->ny;

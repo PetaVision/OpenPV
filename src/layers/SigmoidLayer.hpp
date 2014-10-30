@@ -31,7 +31,7 @@ protected:
    virtual void ioParam_InverseFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_SigmoidFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_SigmoidAlpha(enum ParamsIOFlag ioFlag);
-   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, unsigned int * active_indices, unsigned int * num_active);
+   /* static */ int updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag);
 private:
    int initialize_base();
    float V0;

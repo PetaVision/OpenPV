@@ -150,6 +150,10 @@ void CudaRecvPre::setArgs(
       /* float* */   CudaBuffer* weights,
       /* float* */   CudaBuffer* postGSyn,
       /* int* */     CudaBuffer* patch2datalookuptable
+
+      //bool isSparse,
+      //unsigned int * activeIndices
+
    ){
    params.preNxExt = preNxExt;
    params.preNyExt = preNyExt;
@@ -182,6 +186,10 @@ void CudaRecvPre::setArgs(
    params.weights = (float*)weights->getPointer();
    params.postGSyn = (float*)postGSyn->getPointer();
    params.patch2datalookuptable = (int*)patch2datalookuptable->getPointer();
+
+   //params.isSparse = false;
+   //params.numActive = -1;
+   //params.sparseIndices = NULL;
 
    setArgsFlag();
 }

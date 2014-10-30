@@ -41,13 +41,11 @@ protected:
    virtual void ioParam_windowSymY(enum ParamsIOFlag ioFlag);
    virtual void ioParam_selfInteract(enum ParamsIOFlag ioFlag);
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-         pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
-         unsigned int * active_indices, unsigned int * num_active);
+         pvdata_t * V, int num_channels, pvdata_t * gSynHead);
 
 #ifdef PV_USE_CUDA
    virtual int doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
-      unsigned int * active_indicies, unsigned int * num_active);
+      pvdata_t * V, int num_channels, pvdata_t * gSynHead);
 #endif
 
    virtual float getChannelTimeConst(enum ChannelType channel_type){return timeConstantTau;};

@@ -50,12 +50,11 @@ void PoolingANNLayer::ioParam_bias(enum ParamsIOFlag ioFlag) {
 
 int PoolingANNLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], getBiasa(), getBiasb(), getCLayer()->activeIndices, &getCLayer()->numActive);
-   if( status == PV_SUCCESS ) status = updateActiveIndices();
+   status = doUpdateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], getBiasa(), getBiasb());
    return status;
 }
 
-int PoolingANNLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t biasa, pvdata_t biasb, unsigned int * active_indices, unsigned int * num_active) {
+int PoolingANNLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, pvdata_t biasa, pvdata_t biasb) {
    int nx=loc->nx;
    int ny=loc->ny;
    int nf=loc->nf;

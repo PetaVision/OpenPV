@@ -49,11 +49,11 @@ public:
          {return (bufferId*numLevels*bufSize + levelIndex(level)*bufSize);}
    bool isSparse() {return isSparse_flag;}
 
-   unsigned int* activeIndiciesBuffer(int bufferId, int level)
-         {return (activeIndicies + bufferId*numLevels*numItems + levelIndex(level)*numItems);}
+   unsigned int* activeIndicesBuffer(int bufferId, int level)
+         {return (activeIndices + bufferId*numLevels*numItems + levelIndex(level)*numItems);}
 
-   unsigned int* activeIndiciesBuffer(int bufferId){
-      return (activeIndicies + bufferId*numLevels*numItems + curLevel*numItems);
+   unsigned int* activeIndicesBuffer(int bufferId){
+      return (activeIndices + bufferId*numLevels*numItems + curLevel*numItems);
    }
 
    unsigned int* numActiveBuffer(int bufferId, int level){
@@ -64,6 +64,8 @@ public:
       return (numActive + bufferId*numLevels + curLevel);
    }
 
+   int getNumItems(){ return numItems;}
+
 private:
    size_t dataSize;
    int    numItems;
@@ -73,7 +75,7 @@ private:
    int    numBuffers;
    char*  recvBuffers;
 
-   unsigned int*   activeIndicies;
+   unsigned int*   activeIndices;
    unsigned int*   numActive;
    bool  isSparse_flag;
 

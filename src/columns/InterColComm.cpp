@@ -91,14 +91,19 @@ int InterColComm::subscribe(BaseConnection* conn)
    return publishers[pubId]->subscribe(conn);
 }
 
-int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube, unsigned int * activeIndicies, unsigned int numActive)
+int InterColComm::publish(HyPerLayer* pub, PVLayerCube* cube)
 {
    int pubId = pub->getLayerId();
-   return publishers[pubId]->publish(pub, neighbors, numNeighbors, borders, numBorders, cube, activeIndicies, numActive);
+   return publishers[pubId]->publish(pub, neighbors, numNeighbors, borders, numBorders, cube);
 }
 
 int InterColComm::exchangeBorders(int pubId, const PVLayerLoc * loc, int delay/*default=0*/) {
    int status = publishers[pubId]->exchangeBorders(neighbors, numNeighbors, loc, delay);
+   return status;
+}
+
+int InterColComm::updateActiveIndices(int pubId){
+   int status = publishers[pubId]->updateActiveIndices();
    return status;
 }
 
@@ -157,11 +162,36 @@ Publisher::~Publisher()
    free(connection);
 }
 
+int Publisher::updateActiveIndices() {
+   if(store->isSparse()) return calcActiveIndices(); else return PV_SUCCESS;
+}
+
+int Publisher::calcActiveIndices() {
+   //Active indicies stored as local ext values
+   int numActive = 0;
+   pvdata_t * activity = (pvdata_t*) store->buffer(LOCAL);;
+   unsigned int * activeIndices = store->activeIndicesBuffer(LOCAL);
+
+   for (int kex = 0; kex < store->getNumItems(); kex++) {
+      if (activity[kex] != 0.0) {
+         activeIndices[numActive++] = kex;
+      }
+   }
+   //for (int k = 0; k < getNumNeurons(); k++) {
+   //   const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.halo.lt, loc.halo.rt, loc.halo.dn, loc.halo.up);
+   //   if (activity[kex] != 0.0) {
+   //      clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
+   //   }
+   //}
+   *(store->numActiveBuffer(LOCAL)) = numActive;
+
+   return PV_SUCCESS;
+}
+
 int Publisher::publish(HyPerLayer* pub,
                        int neighbors[], int numNeighbors,
                        int borders[], int numBorders,
-                       PVLayerCube* cube, unsigned int * activeIndicies,
-                       unsigned int numActive, 
+                       PVLayerCube* cube,
                        int delay/*default=0*/)
 {
    //
@@ -175,11 +205,6 @@ int Publisher::publish(HyPerLayer* pub,
    pvdata_t * sendBuf = cube->data;
    pvdata_t * recvBuf = recvBuffer(LOCAL);  // only LOCAL buffer, neighbors copy into LOCAL extended buffer
 
-   unsigned int * recvNumActive = recvNumActiveBuffer(LOCAL);
-
-   unsigned int * sendActiveIndicies = activeIndicies;
-   unsigned int * recvActiveIndicies = recvActiveIndiciesBuffer(LOCAL);
-
    bool isSparse = store->isSparse();
 
    if (pub->getLastUpdateTime() >= pub->getParent()->simulationTime()) {
@@ -187,11 +212,11 @@ int Publisher::publish(HyPerLayer* pub,
       // TODO - have layers use the data store directly then no need for extra copy
       //Only memcopy if layer needs an update
       memcpy(recvBuf, sendBuf, dataSize);
-      if(isSparse){
-         *recvNumActive = numActive;
-         memcpy(recvActiveIndicies, sendActiveIndicies, numActive*sizeof(unsigned int));
-      }
       exchangeBorders(neighbors, numNeighbors, &cube->loc, 0);
+
+      //Update active indices, but race condition because exchangeBorders mpi is async
+      //Done after MPI wait in HyPerCol
+      //updateActiveIndices();
    }
 
    return PV_SUCCESS;

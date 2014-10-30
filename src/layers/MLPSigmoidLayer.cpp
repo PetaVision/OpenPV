@@ -116,12 +116,11 @@ int MLPSigmoidLayer::setActivity() {
 
 int MLPSigmoidLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), 0, NULL, Vth, V0, SigmoidAlpha, SigmoidFlag, InverseFlag, linAlpha, dropout, getCLayer()->activeIndices, &getCLayer()->numActive);
-   if( status == PV_SUCCESS ) status = updateActiveIndices();
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), 0, NULL, Vth, V0, SigmoidAlpha, SigmoidFlag, InverseFlag, linAlpha, dropout);
    return status;
 }
 
-int MLPSigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, float linear_alpha, bool* dropout_buf, unsigned int * active_indices, unsigned int * num_active) {
+int MLPSigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead, float Vth, float V0, float sigmoid_alpha, bool sigmoid_flag, bool inverse_flag, float linear_alpha, bool* dropout_buf) {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;

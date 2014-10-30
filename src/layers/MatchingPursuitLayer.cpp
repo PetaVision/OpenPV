@@ -55,6 +55,7 @@ int MatchingPursuitLayer::initialize_base() {
    useWindowedSynapticInput = true;
    xWindowSize = 0;
    yWindowSize = 0;
+   activeIndex = -1;
    return PV_SUCCESS;
 }
 
@@ -270,11 +271,11 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
       memset(getV(),0,(size_t) getNumNeurons()*sizeof(pvdata_t));
       lastUpdateTime = parent->simulationTime();
    }
-   if (getCLayer()->numActive) {
-      int kLocal = localIndexFromGlobal(getCLayer()->activeIndices[0], loc);
+
+   if (activeIndex >= 0) {
+      int kLocal = localIndexFromGlobal(activeIndex, loc);
       int kExt = kIndexExtended(kLocal, loc.nx, loc.ny, loc.nf, loc.halo.lt, loc.halo.rt, loc.halo.dn, loc.halo.up);
       getActivity()[kExt] = 0.0f;
-      getCLayer()->numActive = 0;
    }
 
    initializeMaxinfo(parent->columnId()==0);
@@ -323,11 +324,10 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
       const PVLayerLoc * loc = getLayerLoc();
       int kLocal = localIndexFromGlobal(maxinfo.maxloc, *loc);
       int kExt = kIndexExtended(kLocal, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+
       getV()[kLocal] += maxinfo.maxval;
       getActivity()[kExt] = maxinfo.maxval;
-      getCLayer()->activeIndices[getCLayer()->numActive] = maxinfo.maxloc;
-      getCLayer()->numActive++;
-      assert(getCLayer()->numActive==1);
+      activeIndex = maxinfo.maxloc;
    }
 #endif // PV_USE_MPI
 

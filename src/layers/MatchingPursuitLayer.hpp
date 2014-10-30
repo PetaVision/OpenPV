@@ -68,6 +68,8 @@ protected:
                                   // If true, then we only need to update activity in a window around the most recently changed activity.
    int xWindowSize;               // The distance in the x-direction from the changed activity to the edge of the window where the GSyn changes.
    int yWindowSize;               // The distance in the y-direction from the changed activity to the edge of the window where the GSyn changes.
+
+   int activeIndex;
 };
 
 } /* namespace PV */

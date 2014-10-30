@@ -83,8 +83,7 @@ int GenerativeLayer::allocateDataStructures() {
 
 int GenerativeLayer::updateState(double timef, double dt) {
    int status;
-   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], sparsitytermderivative, dV, AMax, AMin, VThresh, AShift, VWidth, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence, activityThreshold, getSparseFlag(), getCLayer()->activeIndices, &getCLayer()->numActive);
-   if( status == PV_SUCCESS ) updateActiveIndices();
+   status = updateState(timef, dt, getLayerLoc(), getCLayer()->activity->data, getV(), getNumChannels(), GSyn[0], sparsitytermderivative, dV, AMax, AMin, VThresh, AShift, VWidth, relaxation, auxChannelCoeff, sparsityTermCoeff, persistence, activityThreshold);
    return status;
 }
 
@@ -93,8 +92,7 @@ int GenerativeLayer::updateState(double timef, double dt,
       pvdata_t * gSynHead, pvdata_t * sparsitytermderivative, pvdata_t * dV,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
       pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff,
-      pvdata_t persistence, pvdata_t activity_threshold, bool spiking,
-      unsigned int * active_indices, unsigned int * num_active) {
+      pvdata_t persistence, pvdata_t activity_threshold){
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;

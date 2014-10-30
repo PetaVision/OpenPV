@@ -1302,14 +1302,15 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    // publish initial conditions
    //
    for (int l = 0; l < numLayers; l++) {
-      layers[l]->updateActiveIndices();
       layers[l]->publish(icComm, simTime);
+      //layers[l]->updateActiveIndices();
    }
 
-   // wait for all published data to arrive
+   // wait for all published data to arrive and update active indices;
    //
    for (int l = 0; l < numLayers; l++) {
       icComm->wait(layers[l]->getLayerId());
+      layers[l]->updateActiveIndices();
    }
 
    // output initial conditions
@@ -1828,6 +1829,9 @@ int HyPerCol::advanceTime(double sim_time)
       for (int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
          layers[l]->waitOnPublish(icComm);
+         //Update active indices
+         layers[l]->updateActiveIndices();
+
          //
          //    // also calls layer probes
          layers[l]->outputState(simTime); // also calls layer probes' outputState
