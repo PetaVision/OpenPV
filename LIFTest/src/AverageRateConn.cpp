@@ -31,7 +31,7 @@ int AverageRateConn::initialize(const char * name, HyPerCol * hc) {
 }
 
 int AverageRateConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = IdentConn::ioParams(ioFlag);
+   int status = IdentConn::ioParamsFillGroup(ioFlag);
    return status;
 }
 
