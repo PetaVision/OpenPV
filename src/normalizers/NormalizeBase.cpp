@@ -322,7 +322,7 @@ int NormalizeBase::symmetrizeWeights(HyPerConn * conn) {
 int NormalizeBase::addConnToList(HyPerConn * newConn) {
    HyPerConn ** newList = (HyPerConn **) realloc(connectionList, sizeof(*connectionList)*(numConnections+1));
    if (newList==NULL) {
-      fprintf(stderr, "Normalizer \"%s\" unable to add connection \"%s\" as connection number %d : %s\n", name, newConn->getName(), numConnections+1);
+      fprintf(stderr, "Normalizer \"%s\" unable to add connection \"%s\" as connection number %d : %s\n", name, newConn->getName(), numConnections+1, strerror(errno));
       exit(EXIT_FAILURE);
    }
    connectionList = newList;

@@ -43,7 +43,7 @@ int ConnStatsProbe::allocateDataStructures() {
    int buffersize = numStats * (int) (3*(sizeof(double))+3*(sizeof(float))); // sums, sumabs, sumsquares are double; maxes, mins, maxabs are float
    statsptr = (char *) calloc((size_t) buffersize, sizeof(char));
    if (statsptr == NULL) {
-      fprintf(stderr, "ConnStatsProbe \"%s\" error allocating buffer of size %zu: %s\n",
+      fprintf(stderr, "ConnStatsProbe \"%s\" error allocating buffer of size %d: %s\n",
             name, buffersize, strerror(errno));
       exit(EXIT_FAILURE);
    }

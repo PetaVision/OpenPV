@@ -1089,7 +1089,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
             int status = system(systemstring.c_str());
             if(status != 0){
                if(attemptNum == numAttempts - 1){
-                  fprintf(stderr, "download command \"%s\" failed.  Exiting\n", systemstring.c_str(), attemptNum+1, numAttempts);
+                  fprintf(stderr, "download command \"%s\" failed.  Exiting\n", systemstring.c_str());
                   exit(EXIT_FAILURE);
                }
                else{
