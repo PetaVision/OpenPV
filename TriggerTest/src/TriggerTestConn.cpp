@@ -19,7 +19,7 @@ int TriggerTestConn::updateStateWrapper(double time, double dt){
       assert(needUpdate(time, dt) == true);
    }
    //Trigger with offset of 0, assuming display period is 5
-   else if(strcmp(name, "inputToTrigger0") || strcmp(name, "inputToPeriod0") == 0){
+   else if(strcmp(name, "inputToTrigger0") == 0 || strcmp(name, "inputToPeriod0") == 0){
       if(((int)time-1) % 5 == 0){
          assert(needUpdate(time, dt) == true);
       }
