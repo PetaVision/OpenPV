@@ -19,7 +19,9 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    float tol = 1e-5;
 
    // check normalizeSum
-   HyPerConn * normalizeSumConn = hc->getConnFromName("normalizeSum connection");
+   BaseConnection * baseConn;
+   baseConn = hc->getConnFromName("normalizeSum connection");
+   HyPerConn * normalizeSumConn = dynamic_cast<HyPerConn *>(baseConn);
    assert(normalizeSumConn);
    NormalizeBase * normalizeSumNormalizer = normalizeSumConn->getNormalizer();
    assert(normalizeSumNormalizer);
@@ -29,7 +31,8 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    assert(fabsf(normalizeSumValue - normalizeSumStrength)<tol);
 
    // check normalizeL2
-   HyPerConn * normalizeL2Conn = hc->getConnFromName("normalizeL2 connection");
+   baseConn = hc->getConnFromName("normalizeSum connection");
+   HyPerConn * normalizeL2Conn = dynamic_cast<HyPerConn *>(baseConn);
    assert(normalizeL2Conn);
    NormalizeBase * normalizeL2Normalizer = normalizeL2Conn->getNormalizer();
    assert(normalizeL2Normalizer);
@@ -40,7 +43,8 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    assert(fabsf(normalizeL2Value - normalizeL2Strength)<tol);
 
    // check normalizeMax
-   HyPerConn * normalizeMaxConn = hc->getConnFromName("normalizeMax connection");
+   baseConn = hc->getConnFromName("normalizeSum connection");
+   HyPerConn * normalizeMaxConn = dynamic_cast<HyPerConn *>(baseConn);
    assert(normalizeMaxConn);
    NormalizeBase * normalizeMaxNormalizer = normalizeMaxConn->getNormalizer();
    assert(normalizeMaxNormalizer);
@@ -51,7 +55,8 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    assert(fabsf(normalizeMaxValue - normalizeMaxStrength)<tol);
 
    // check normalizeContrastZeroMean.
-   HyPerConn * normalizeContrastZeroMeanConn = hc->getConnFromName("normalizeContrastZeroMean connection");
+   baseConn = hc->getConnFromName("normalizeSum connection");
+   HyPerConn * normalizeContrastZeroMeanConn = dynamic_cast<HyPerConn *>(baseConn);
    assert(normalizeContrastZeroMeanConn);
    NormalizeBase * normalizeContrastZeroMeanNormalizer = normalizeContrastZeroMeanConn->getNormalizer();
    assert(normalizeContrastZeroMeanNormalizer);

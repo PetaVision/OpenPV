@@ -57,7 +57,8 @@ int HyPerConnDebugInitWeights::initialize_base() {
 
 int HyPerConnDebugInitWeights::communicateInitInfo() {
    HyPerConn::communicateInitInfo();
-   otherConn = parent->getConnFromName(otherConnName);
+   BaseConnection * baseConn = parent->getConnFromName(otherConnName);
+   otherConn = dynamic_cast<HyPerConn *>(baseConn);
    if (otherConn == NULL) {
       fprintf(stderr, "HyPerConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a connection in the column.\n",
             name, parent->columnId(), otherConnName);

@@ -39,37 +39,44 @@ int main(int argc, char * argv[]) {
    TransposeConn * transpose = NULL;
    TransposeConn * transposeOfTranspose = NULL;
 
-   originalMap = hc->getConnFromName("Original Map for One to One Test");
+   BaseConnection * baseConn;
+   baseConn = hc->getConnFromName("Original Map for One to One Test");
+   originalMap = dynamic_cast<HyPerConn *>(baseConn);
    assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to One Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to One Test of TransposeConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-one case, TransposeConn");
 
-   originalMap = hc->getConnFromName("Original Map for Many to One Test");
+   baseConn = hc->getConnFromName("Original Map for Many to One Test");
+   originalMap = dynamic_cast<HyPerConn *>(baseConn);
    assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for Many to One Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for Many to One Test of TransposeConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "Many-to-one case, TransposeConn");
 
-   originalMap = hc->getConnFromName("Original Map for One to Many Test");
+   baseConn = hc->getConnFromName("Original Map for One to Many Test");
+   originalMap = dynamic_cast<HyPerConn *>(baseConn);
    assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to Many Test of TransposeConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to Many Test of TransposeConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-many case, TransposeConn");
 
-   originalMap = hc->getConnFromName("Original Map for One to One Test");
+   baseConn = hc->getConnFromName("Original Map for One to One Test");
+   originalMap = dynamic_cast<HyPerConn *>(baseConn);
    assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to One Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to One Test of FeedbackConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-one case, FeedbackConn");
 
-   originalMap = hc->getConnFromName("Original Map for Many to One Test");
+   baseConn = hc->getConnFromName("Original Map for Many to One Test");
+   originalMap = dynamic_cast<HyPerConn *>(baseConn);
    assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for Many to One Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for Many to One Test of FeedbackConn"));
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "Many-to-one case, FeedbackConn");
 
-   originalMap = hc->getConnFromName("Original Map for One to Many Test");
+   baseConn = hc->getConnFromName("Original Map for One to Many Test");
+   originalMap = dynamic_cast<HyPerConn *>(baseConn);
    assert(originalMap->usingSharedWeights());
    transpose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose for One to Many Test of FeedbackConn"));
    transposeOfTranspose = dynamic_cast<TransposeConn *>(hc->getConnFromName("Transpose of Transpose for One to Many Test of FeedbackConn"));

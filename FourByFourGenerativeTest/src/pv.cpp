@@ -40,13 +40,16 @@ int checkweights(HyPerCol * hc, int argc, char * argv[]) {
    int weightsBidx = 10;
    const char * weightsAname = "AnaRetina to Layer A";
    const char * weightsBname = "Arrow AnaLayer A to Layer B";
-   HyPerConn * connA = hc->getConnection(weightsAidx);
+   BaseConnection * baseConn;
+   baseConn = hc->getConnection(weightsAidx);
+   HyPerConn * connA = dynamic_cast<HyPerConn *>(baseConn);
    if( strcmp(connA->getName(),weightsAname) ) {
       fprintf(stderr, "Expected connection %d to be named \"%s\"\n", weightsBidx, weightsAname);
       fprintf(stderr, "Instead it is named \"%s\"\n", connA->getName());
       exit(EXIT_FAILURE);
    }
-   HyPerConn * connB = hc->getConnection(weightsBidx);
+   baseConn = hc->getConnection(weightsBidx);
+   HyPerConn * connB = dynamic_cast<HyPerConn *>(baseConn);
    if( strcmp(connB->getName(),weightsBname) ) {
       fprintf(stderr, "Expected connection %d to be named \"%s\"\n", weightsBidx, weightsBname);
       fprintf(stderr, "Instead it is named \"%s\"\n", connB->getName());

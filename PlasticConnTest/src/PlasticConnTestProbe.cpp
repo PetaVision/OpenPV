@@ -30,7 +30,7 @@ int PlasticConnTestProbe::initialize(const char * probename, HyPerCol * hc) {
  * @timef
  */
 int PlasticConnTestProbe::outputState(double timed) {
-   HyPerConn * c = getTargetConn();
+   HyPerConn * c = getTargetHyPerConn();
 #ifdef PV_USE_MPI
    InterColComm * icComm = c->getParent()->icCommunicator();
    const int rcvProc = 0;
@@ -41,15 +41,15 @@ int PlasticConnTestProbe::outputState(double timed) {
    assert(getTargetConn()!=NULL);
    FILE * fp = getStream()->fp;
    fprintf(fp, "    Time %f, connection \"%s\":\n", timed, getTargetName());
-   const pvwdata_t * w = getTargetConn()->get_wDataHead(getArbor(), getKernelIndex());
-   const pvdata_t * dw = getTargetConn()->get_dwDataHead(getArbor(), getKernelIndex());
+   const pvwdata_t * w = c->get_wDataHead(getArbor(), getKernelIndex());
+   const pvdata_t * dw = c->get_dwDataHead(getArbor(), getKernelIndex());
    if( getOutputPlasticIncr() && dw == NULL ) {
       fprintf(stderr, "PlasticConnTestProbe \"%s\": connection \"%s\" has dKernelData(%d,%d) set to null.\n", getName(), getTargetName(), getKernelIndex(), getArbor());
       assert(false);
    }
-   int nxp = getTargetConn()->xPatchSize();
-   int nyp = getTargetConn()->yPatchSize();
-   int nfp = getTargetConn()->fPatchSize();
+   int nxp = c->xPatchSize();
+   int nyp = c->yPatchSize();
+   int nfp = c->fPatchSize();
    int status = PV_SUCCESS;
    for( int k=0; k<nxp*nyp*nfp; k++ ) {
       int x=kxPos(k,nxp,nyp,nfp);
@@ -79,7 +79,7 @@ int PlasticConnTestProbe::outputState(double timed) {
       if( getOutputPlasticIncr() ) fprintf(fp, "        All plastic increments are correct.\n");
    }
    if(getOutputPatchIndices()) {
-      patchIndices(getTargetConn());
+      patchIndices(c);
    }
 
    return PV_SUCCESS;

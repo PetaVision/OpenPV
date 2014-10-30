@@ -6,11 +6,11 @@
 #ifndef TESTCONNPROBE_HPP_
 #define TESTCONNPROBE_HPP_
 
-#include <io/BaseConnectionProbe.hpp>
+#include <io/BaseHyPerConnProbe.hpp>
 
 namespace PV {
 
-class TestConnProbe:BaseConnectionProbe {
+class TestConnProbe:BaseHyPerConnProbe {
 
 // Methods
 public:

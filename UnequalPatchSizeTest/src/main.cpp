@@ -30,7 +30,9 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    assert(inlayer);
    HyPerLayer * outlayer = hc->getLayerFromName("output");
    assert(outlayer);
-   HyPerConn * conn = hc->getConnFromName("input_to_output");
+   BaseConnection * baseConn = hc->getConnFromName("input_to_output");
+   HyPerConn * conn = dynamic_cast<HyPerConn *>(baseConn);
+
    assert(conn);
    
    int nxp = conn->xPatchSize();

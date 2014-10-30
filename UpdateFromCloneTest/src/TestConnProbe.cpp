@@ -16,11 +16,12 @@ TestConnProbe::~TestConnProbe() {
 }
 
 int TestConnProbe::initialize_base() {
+   return PV_SUCCESS;
 }
 
 int TestConnProbe::outputState(double timed){
    //Grab weights of probe and test for the value of .625/1.5, or .4166666
-   HyPerConn* conn = getTargetConn();
+   HyPerConn* conn = getTargetHyPerConn();
    int numPreExt = conn->preSynapticLayer()->getNumExtended();
    int syw = conn->yPatchStride();                   // stride in patch
 

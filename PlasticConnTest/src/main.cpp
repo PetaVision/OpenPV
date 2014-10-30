@@ -15,6 +15,7 @@
 #include "PlasticConnTestLayer.hpp"
 #include "PlasticTestConn.hpp"
 #include "PlasticConnTestProbe.hpp"
+#include <connections/HyPerConn.hpp>
 #include <assert.h>
 
 // use compiler directive in case MPITestLayer gets moved to PetaVision trunk
@@ -81,8 +82,9 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    else if( !strcmp( keyword, "PlasticConnTestProbe" ) ) {
       PlasticConnTestProbe * addedProbe = NULL;
       const char * targetConnName = params->stringValue(name, "targetConnection");
-      HyPerConn * targetConn = hc->getConnFromName(targetConnName);
-      if( targetConn ) {
+      BaseConnection * targetBaseConn = hc->getConnFromName(targetConnName);
+      HyPerConn * targetHyPerConn = dynamic_cast<HyPerConn *>(targetBaseConn);
+      if (targetHyPerConn) {
          addedProbe = new PlasticConnTestProbe(name, hc);
          if( checknewobject((void *) addedProbe, keyword, name, hc) == PV_SUCCESS ) {
          }

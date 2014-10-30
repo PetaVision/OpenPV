@@ -66,7 +66,8 @@ int StochasticReleaseTestProbe::outputState(double timed) {
       for (int c=0; c<numconns; c++) {
          if (!strcmp(hc->getConnection(c)->getPostLayerName(),getTargetLayer()->getName())) {
             assert(conn==NULL); // Only one connection can go to this layer for this probe to work
-            conn = hc->getConnection(c);
+            BaseConnection * baseConn = hc->getConnection(c);
+            conn = dynamic_cast<HyPerConn *>(baseConn);
          }
       }
       assert(conn!=NULL);

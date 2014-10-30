@@ -81,7 +81,8 @@ int main(int argc, char * argv[])
       assert(status==PV_SUCCESS);
    }
    for( int c=0; c<hc->numberOfConnections(); c++ ) {
-      HyPerConn * conn = hc->getConnection(c);
+      BaseConnection * baseConn = hc->getConnection(c);
+      HyPerConn * conn = dynamic_cast<HyPerConn *>(baseConn);
       conn->allocateDataStructures();
       conn->writeWeights(0, true);
    }

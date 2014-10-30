@@ -64,7 +64,8 @@ void KernelConnDebugInitWeights::ioParam_copiedConn(enum ParamsIOFlag ioFlag) {
 
 int KernelConnDebugInitWeights::communicateInitInfo() {
    HyPerConn::communicateInitInfo();
-   otherConn = parent->getConnFromName(otherConnName);
+   BaseConnection * baseConn = parent->getConnFromName(otherConnName);
+   otherConn = dynamic_cast<HyPerConn *>(baseConn);
    if (otherConn == NULL) {
       fprintf(stderr, "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a connection in the column.\n",
             name, parent->columnId(), otherConnName);
