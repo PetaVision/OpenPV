@@ -244,7 +244,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    this->runTimer = new Timer(name, "column", "run    ");
 
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
-   connections = (HyPerConn **) malloc(connectionArraySize * sizeof(HyPerConn *));
+   connections = (BaseConnection **) malloc(connectionArraySize * sizeof(BaseConnection *));
    normalizers = (NormalizeBase **) malloc(normalizerArraySize * sizeof(NormalizeBase *));
 
    int opencl_device = 0;  // default to GPU for now
@@ -1154,7 +1154,7 @@ int HyPerCol::addLayer(HyPerLayer * l)
    return (numLayers - 1);
 }
 
-int HyPerCol::addConnection(HyPerConn * conn)
+int HyPerCol::addConnection(BaseConnection * conn)
 {
    int connId = numConnections;
 
@@ -1168,7 +1168,7 @@ int HyPerCol::addConnection(HyPerConn * conn)
    // }
    if( (size_t) numConnections == connectionArraySize ) {
       connectionArraySize += RESIZE_ARRAY_INCR;
-      HyPerConn ** newConnections = (HyPerConn **) malloc( connectionArraySize * sizeof(HyPerConn *) );
+      BaseConnection ** newConnections = (BaseConnection **) malloc( connectionArraySize * sizeof(BaseConnection *) );
       assert(newConnections);
       for(int k=0; k<numConnections; k++) {
          newConnections[k] = connections[k];
@@ -1433,7 +1433,7 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
                if (columnId()==0) printf("Connection \"%s\" %s postponed.\n", connections[c]->getName(), stageName);
                break;
             case PV_FAILURE:
-               exit(EXIT_FAILURE); // Error message printed in HyPerConn::communicateInitInfo().
+               exit(EXIT_FAILURE); // Error message should be printed in connection's communicateInitInfo().
                break;
             default:
                assert(0); // This shouldn't be possible
@@ -1469,7 +1469,7 @@ int HyPerCol::layerCommunicateInitInfo(int l) {
 }
 
 int HyPerCol::connCommunicateInitInfo(int c) {
-   HyPerConn * conn = connections[c];
+   BaseConnection * conn = connections[c];
    assert(c>=0 && c<numConnections && conn->getInitInfoCommunicatedFlag()==false);
    int status = conn->communicateInitInfo();
    if (status==PV_SUCCESS) conn->setInitInfoCommunicatedFlag();
@@ -1485,7 +1485,7 @@ int HyPerCol::layerAllocateDataStructures(int l) {
 }
 
 int HyPerCol::connAllocateDataStructures(int c) {
-   HyPerConn * conn = connections[c];
+   BaseConnection * conn = connections[c];
    assert(c>=0 && c<numConnections && conn->getDataStructuresAllocatedFlag()==false);
    int status = conn->allocateDataStructures();
    if (status==PV_SUCCESS) conn->setDataStructuresAllocatedFlag();
@@ -1501,7 +1501,7 @@ int HyPerCol::layerSetInitialValues(int l) {
 }
 
 int HyPerCol::connSetInitialValues(int c) {
-   HyPerConn * conn = connections[c];
+   BaseConnection * conn = connections[c];
    assert(c>=0 && c<numConnections && conn->getInitialValuesSetFlag()==false);
    int status = conn->initializeState();
    if (status==PV_SUCCESS) conn->setInitialValuesSetFlag();
@@ -1510,21 +1510,21 @@ int HyPerCol::connSetInitialValues(int c) {
 
 int HyPerCol::normalizeWeights() {
    int status = PV_SUCCESS;
-   for (int c=0; c < numConnections; c++) {
-      NormalizeBase * normalizer = connections[c]->getNormalizer();
+   //   for (int c=0; c < numConnections; c++) {
+   //      NormalizeBase * normalizer = connections[c]->getNormalizer();
+   //      if (normalizer) { status = normalizer->normalizeWeightsWrapper(); }
+   //      if (status != PV_SUCCESS) {
+   //         fprintf(stderr, "Normalizer failed for connection \"%s\".\n", connections[c]->getName());
+   //         exit(EXIT_FAILURE);
+   //      }
+   //   }
+   for (int n = 0; n < numNormalizers; n++) {
+      NormalizeBase * normalizer = normalizers[n];
       if (normalizer) { status = normalizer->normalizeWeightsWrapper(); }
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "Normalizer failed for connection \"%s\".\n", connections[c]->getName());
-         exit(EXIT_FAILURE);
+         fprintf(stderr, "Normalizer \"%s\" failed.\n", normalizers[n]->getName());
       }
    }
-   // for (int n = 0; n < numNormalizers; n++) {
-   //    NormalizeBase * normalizer = normalizers[n];
-   //    if (normalizer) { status = normalizer->normalizeWeightsWrapper(); }
-   //    if (status != PV_SUCCESS) {
-   //        fprintf(stderr, "Normalizer \"%s\" failed.\n", normalizers[n]->getName());
-   //    }
-   // }
    return status;
 }
 
@@ -2210,9 +2210,9 @@ int HyPerCol::outputParams() {
       }
    }
 
-   // HyPerConn params
+   // BaseConnection params
    for (int c=0; c<numConnections; c++) {
-      HyPerConn * connection = connections[c];
+      BaseConnection * connection = connections[c];
       status = connection->ioParams(PARAMS_IO_WRITE);
       if( status != PV_SUCCESS ) {
          fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
@@ -2385,11 +2385,11 @@ HyPerLayer * HyPerCol::getLayerFromName(const char * layerName) {
    return NULL;
 }
 
-HyPerConn * HyPerCol::getConnFromName(const char * connName) {
+BaseConnection * HyPerCol::getConnFromName(const char * connName) {
    if( connName == NULL ) return NULL;
    int n = numberOfConnections();
    for( int i=0; i<n; i++ ) {
-      HyPerConn * curConn = getConnection(i);
+      BaseConnection * curConn = getConnection(i);
       assert(curConn);
       const char * curConnName = curConn->getName();
       assert(curConnName);

@@ -180,7 +180,15 @@ InitWeights * TransposeConn::handleMissingInitWeights(PVParams * params) {
 
 int TransposeConn::communicateInitInfo() {
    int status = PV_SUCCESS;
-   originalConn = parent->getConnFromName(originalConnName);
+   BaseConnection * originalConnBase = parent->getConnFromName(this->originalConnName);
+   if (originalConnBase==NULL) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: originalConnName \"%s\" does not refer to any connection in the column.\n", parent->parameters()->groupKeywordFromName(name), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   this->originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "TransposeConn \"%s\" error: originalConnName \"%s\" is not an existing connection.\n", name, originalConnName);

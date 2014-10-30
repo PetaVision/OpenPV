@@ -24,6 +24,7 @@
  */
 
 #include "MatchingPursuitLayer.hpp"
+#include "../connections/HyPerConn.hpp"
 
 namespace PV {
 
@@ -197,8 +198,8 @@ int MatchingPursuitLayer::allocateDataStructures() {
    int status = HyPerLayer::allocateDataStructures();
 
    for (int c=0; c<parent->numberOfConnections(); c++) {
-      HyPerConn * conn = parent->getConnection(c);
-      if (strcmp(conn->postSynapticLayerName(), getName())) continue;
+      HyPerConn * conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
+      if (strcmp(conn->getPostLayerName(), getName())) continue;
       if (conn->getUpdateGSynFromPostPerspective()) {
          int nxp = conn->xPatchSize();
          if (nxp > xWindowSize) xWindowSize = nxp;

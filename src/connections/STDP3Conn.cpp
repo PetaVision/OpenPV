@@ -46,7 +46,7 @@ int STDP3Conn::initialize_base() {
 int STDP3Conn::initialize(const char * name, HyPerCol * hc)
 {
    int status = HyPerConn::initialize(name, hc);
-   if (status == PV_SUCCESS) status = ioParams(PARAMS_IO_READ); // needs to be called after HyPerConn::initialize since it depends on post being set
+   //if (status == PV_SUCCESS) status = ioParams(PARAMS_IO_READ); // needs to be called after HyPerConn::initialize since it depends on post being set
    return status;
 }
 
@@ -114,7 +114,7 @@ PVLayerCube * STDP3Conn::getPlasticityDecrement()
  */
 int STDP3Conn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 {
-   HyPerConn::ioParams(ioFlag);
+   HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_stdpFlag(ioFlag);
    ioParam_ampLTP(ioFlag);
    ioParam_ampLTD(ioFlag);

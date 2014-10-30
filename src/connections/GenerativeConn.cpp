@@ -145,7 +145,7 @@ int GenerativeConn::updateWeights(int axonID) {
       assert(nxp==1 && nyp==1 && numberOfAxonalArborLists()==1);
       for( int p=0; p<numPatches; p++ ) {
          pvwdata_t * dataPatch = get_wDataHead(0,p);
-         dataPatch[imprintCount] = preSynapticLayer()->getLayerData(getDelays()[0])[p];
+         dataPatch[imprintCount] = preSynapticLayer()->getLayerData(getDelay(0))[p];
       }
       imprintCount++;
       return PV_SUCCESS;

@@ -103,7 +103,6 @@ HyPerConn::~HyPerConn()
    delete update_timer;  update_timer = NULL;
 
    free(pvpatchAccumulateTypeString);
-   free(name);
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    //if(gpuAccelerateFlag) {
@@ -165,16 +164,6 @@ HyPerConn::~HyPerConn()
    deleteWeights();
 
    // free the task information
-
-   free(fDelayArray);
-   free(delays);
-   for (int i_probe = 0; i_probe < this->numProbes; i_probe++){
-      delete probes[i_probe];
-   }
-   free(this->probes);
-   free(this->preLayerName);
-   free(this->postLayerName);
-   // free(this->filename);
    free(this->normalizeMethod);
 
    free(this->weightInitTypeString);
@@ -203,7 +192,6 @@ HyPerConn::~HyPerConn()
  */
 int HyPerConn::initialize_base()
 {
-   this->name = strdup("Unknown");
    this->nxp = 1;
    this->nyp = 1;
    this->nxpShrunken = nxp;
@@ -215,22 +203,11 @@ int HyPerConn::initialize_base()
    this->syp = 1;
    this->sfp = 1;
    this->parent = NULL;
-   this->connId = 0;
-   this->preLayerName = NULL;
-   this->postLayerName = NULL;
-   this->pre = NULL;
-   this->post = NULL;
-   // this->filename = NULL;
-   this->numAxonalArborLists = 1;
-   this->channel = CHANNEL_EXC;
    this->ioAppend = false;
 
    this->weightInitTypeString = NULL;
    this->weightInitializer = NULL;
    this->initializeFromCheckpointFlag = false;
-
-   this->probes = NULL;
-   this->numProbes = 0;
 
    this->io_timer     = NULL;
    this->update_timer = NULL;
@@ -270,9 +247,6 @@ int HyPerConn::initialize_base()
    this->normalize_RMS_amp = false;
    this->dWMax            = 1;
    this->strengthParamHasBeenWritten = false;
-
-   this->fDelayArray = NULL;
-   this->delays = NULL;
 
    //This flag is only set otherwise in kernelconn
    this->useWindowPost = false;
@@ -521,10 +495,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId) {
 
 
 int HyPerConn::initialize(const char * name, HyPerCol * hc) {
-   int status = PV_SUCCESS;
-   if (status == PV_SUCCESS) status = setParent(hc);
-   if (status == PV_SUCCESS) status = setName(name);
-   if (status == PV_SUCCESS) status = ioParams(PARAMS_IO_READ);
+   int status = BaseConnection::initialize(name, hc);
 
    assert(parent);
    PVParams * inputParams = parent->parameters();
@@ -566,16 +537,10 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc) {
 //   gpuAccelerateFlag=post->getUseGPUFlag();
 //#endif
 
-   this->connId = parent->addConnection(this);
-
    this->io_timer     = new Timer(getName(), "conn", "io     ");
    this->update_timer = new Timer(getName(), "conn", "update ");
 
    return status;
-}
-
-int HyPerConn::setPreAndPostLayerNames() {
-   return getPreAndPostLayerNames(name, parent->parameters(), &preLayerName, &postLayerName);
 }
 
 //int HyPerConn::setFilename() {
@@ -669,45 +634,6 @@ InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr)
 }
 
 
-int HyPerConn::setParent(HyPerCol * hc) {
-   assert(parent==NULL);
-   if(hc==NULL) {
-      int rank = 0;
-#ifdef PV_USE_MPI
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
-      fprintf(stderr, "HyPerConn error in rank %d process: constructor called with HyPerCol set to the null pointer.\n", rank);
-      exit(EXIT_FAILURE);
-   }
-   parent = hc;
-   return PV_SUCCESS;
-}
-
-int HyPerConn::ioParams(enum ParamsIOFlag ioFlag)
-{
-   parent->ioParamsStartGroup(ioFlag, name);
-   ioParamsFillGroup(ioFlag);
-   parent->ioParamsFinishGroup(ioFlag);
-
-   return PV_SUCCESS;
-}
-
-int HyPerConn::setName(const char * name) {
-   assert(parent!=NULL);
-   if(name==NULL) {
-      fprintf(stderr, "HyPerConn error in rank %d process: constructor called with name set to the null pointer.\n", parent->columnId());
-      exit(EXIT_FAILURE);
-   }
-   free(this->name);  // name will already have been set in initialize_base()
-   this->name = strdup(name);
-   if (this->name==NULL) {
-      fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of connection: %s\n",
-            name, parent->columnId(), strerror(errno));
-      exit(EXIT_FAILURE);
-   }
-   return PV_SUCCESS;
-}
-
 int HyPerConn::setPreLayerName(const char * pre_name) {
    assert(parent!=NULL);
    assert(this->preLayerName==NULL);
@@ -733,103 +659,6 @@ int HyPerConn::setPostLayerName(const char * post_name) {
       }
    }
    return PV_SUCCESS;
-}
-
-int HyPerConn::getPreAndPostLayerNames(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr) {
-   // Retrieves preLayerName and postLayerName from parameter group whose name is given in the functions first argument.
-   // This routine uses strdup to fill *{pre,post}LayerNamePtr, so the routine calling this one is responsible for freeing them.
-   int status = PV_SUCCESS;
-   *preLayerNamePtr = NULL;
-   *postLayerNamePtr = NULL;
-   const char * preLayerNameParam = params->stringValue(name, "preLayerName", false);
-   const char * postLayerNameParam = params->stringValue(name, "postLayerName", false);
-   if (preLayerNameParam != NULL && postLayerNameParam != NULL) {
-      *preLayerNamePtr = strdup(preLayerNameParam);
-      *postLayerNamePtr = strdup(postLayerNameParam);
-   }
-   else if (preLayerNameParam==NULL && postLayerNameParam!=NULL) {
-      status = PV_FAILURE;
-      if (params->getInterColComm()->commRank()==0) {
-         fprintf(stderr, "Connection \"%s\" error: if postLayerName is specified, preLayerName must be specified as well.\n", name);
-      }
-   }
-   else if (preLayerNameParam!=NULL && postLayerNameParam==NULL) {
-      status = PV_FAILURE;
-      if (params->getInterColComm()->commRank()==0) {
-         fprintf(stderr, "Connection \"%s\" error: if preLayerName is specified, postLayerName must be specified as well.\n", name);
-      }
-   }
-   else {
-      assert(preLayerNameParam==NULL && postLayerNameParam==NULL);
-      if (params->getInterColComm()->commRank()==0) {
-         printf("Connection \"%s\": preLayerName and postLayerName will be inferred in the communicateInitInfo stage.\n", name);
-      }
-   }
-#ifdef PV_USE_MPI
-   MPI_Barrier(params->getInterColComm()->communicator());
-#endif
-   if (status != PV_SUCCESS) {
-      exit(EXIT_FAILURE);
-   }
-   return status;
-}
-
-int HyPerConn::handleMissingPreAndPostLayerNames() {
-   return inferPreAndPostFromConnName(name, parent->parameters(), &preLayerName, &postLayerName);
-}
-
-int HyPerConn::inferPreAndPostFromConnName(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr) {
-   // If the connection name has the form "ABC to XYZ", then pre will be ABC and post will be XYZ.
-   // If either of the intended pre- or post-layer names contains the string " to ", this method cannot be used to infer them.
-   // This routine uses malloc to fill *{pre,post}LayerNamePtr, so the routine calling this one is responsible for freeing them.
-
-   int status = PV_SUCCESS;
-   // Check to see if the string " to " appears exactly once in name
-   // If so, use part preceding " to " as pre-layer, and part after " to " as post.
-   const char * separator = " to ";
-   const char * locto = strstr(name, separator);
-   if( locto != NULL ) {
-      const char * nextto = strstr(locto+1, separator); // Make sure " to " doesn't appear again.
-      if( nextto == NULL ) {
-         int seplen = strlen(separator);
-
-         int pre_len = locto - name;
-         *preLayerNamePtr = (char *) malloc((size_t) (pre_len + 1));
-         if( *preLayerNamePtr==NULL) {
-            fprintf(stderr, "Error: unable to allocate memory for preLayerName in connection \"%s\": %s\n", name, strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-         const char * preInConnName = name;
-         memcpy(*preLayerNamePtr, preInConnName, pre_len);
-         (*preLayerNamePtr)[pre_len] = 0;
-
-         int post_len = strlen(name)-pre_len-seplen;
-         *postLayerNamePtr = (char *) malloc((size_t) (post_len + 1));
-         if( *postLayerNamePtr==NULL) {
-            fprintf(stderr, "Error: unable to allocate memory for postLayerName in connection \"%s\": %s\n", name, strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-         const char * postInConnName = &name[pre_len+seplen];
-         memcpy(*postLayerNamePtr, postInConnName, post_len);
-         (*postLayerNamePtr)[post_len] = 0;
-      }
-      else {
-         status = PV_FAILURE;
-         if (params->getInterColComm()->commRank()==0) {
-            fprintf(stderr, "Unable to infer pre and post from connection name \"%s\":\n", name);
-            fprintf(stderr, "The string \" to \" cannot appear in the name more than once.\n");
-         }
-      }
-   }
-   else {
-      status = PV_FAILURE;
-      if (params->getInterColComm()->commRank()==0) {
-         fprintf(stderr, "Unable to infer pre and post from connection name \"%s\".\n", name);
-         fprintf(stderr, "The connection name must have the form \"ABC to XYZ\", to infer the names,\n");
-         fprintf(stderr, "but the string \" to \" does not appear.\n");
-      }
-   }
-   return status;
 }
 
 int HyPerConn::initNumWeightPatches() {
@@ -943,9 +772,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 }
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-void HyPerConn::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, false/*default*/, false/*warn if absent*/);
-}
 
 void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
@@ -1016,14 +842,6 @@ void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
 
 #endif
 
-void HyPerConn::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "preLayerName", &preLayerName, NULL, false/*warnIfAbsent*/);
-}
-
-void HyPerConn::ioParam_postLayerName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "postLayerName", &postLayerName, NULL, false/*warnIfAbsent*/);
-}
-
 void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       int ch = 0;
@@ -1069,13 +887,6 @@ void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
                parent->parameters()->groupKeywordFromName(name), name, parent->columnId());
          exit(EXIT_FAILURE);
       }
-   }
-}
-
-void HyPerConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "numAxonalArbors", &numAxonalArborLists, 1);
-   if (ioFlag == PARAMS_IO_READ && numAxonalArborLists==0 && parent->columnId()==0) {
-      fprintf(stdout, "HyPerConn:: Warning: Connection %s: Variable numAxonalArbors is set to 0. No connections will be made.\n",name);
    }
 }
 
@@ -1179,10 +990,6 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void HyPerConn::ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "preActivityIsNotRate", &preActivityIsNotRate, false/*default value*/, true/*warn if absent*/);
-}
-
 void HyPerConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());
 }
@@ -1241,27 +1048,6 @@ void HyPerConn::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "combine_dW_with_W_flag", &combine_dW_with_W_flag, combine_dW_with_W_flag, true/*warnIfAbsent*/);
    }
 
-}
-
-void HyPerConn::ioParam_delay(enum ParamsIOFlag ioFlag) {
-   //Grab delays in ms and load into fDelayArray.
-   //initializeDelays() will convert the delays to timesteps store into delays.
-   parent->ioParamArray(ioFlag, name, "delay", &fDelayArray, &delayArraySize);
-   if (ioFlag==PARAMS_IO_READ && delayArraySize==0) {
-      assert(fDelayArray==NULL);
-      fDelayArray = (float *) malloc(sizeof(float));
-      if (fDelayArray == NULL) {
-         fprintf(stderr, "%s \"%s\" error setting default delay: %s\n",
-               parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
-         exit(EXIT_FAILURE);
-      }
-      *fDelayArray = 0.0f; // Default delay
-      delayArraySize = 1;
-      if (parent->columnId()==0) {
-         printf("%s \"%s\": Using default value of zero for delay.\n",
-               parent->parameters()->groupKeywordFromName(name), name);
-      }
-   }
 }
 
 void HyPerConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
@@ -1467,66 +1253,6 @@ void HyPerConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int HyPerConn::decodeChannel(int channel_code, ChannelType * channel_type) {
-   int status = PV_SUCCESS;
-   switch( channel_code ) {
-   case CHANNEL_EXC:
-      *channel_type = CHANNEL_EXC;
-      break;
-   case CHANNEL_INH:
-      *channel_type = CHANNEL_INH;
-      break;
-   case CHANNEL_INHB:
-      *channel_type = CHANNEL_INHB;
-      break;
-   case CHANNEL_GAP:
-      *channel_type = CHANNEL_GAP;
-      break;
-   case CHANNEL_NORM:
-      *channel_type = CHANNEL_NORM;
-      break;
-   case CHANNEL_NOUPDATE:
-      *channel_type = CHANNEL_NOUPDATE;
-      break;
-   default:
-      status = PV_FAILURE;
-      break;
-   }
-   return status;
-}
-
-int HyPerConn::initializeDelays(const float * fDelayArray, int size){
-
-   int status = PV_SUCCESS;
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "numAxonalArbors"));
-   //Allocate delay data structure
-   delays = (int *) calloc(numAxonalArborLists, sizeof(int));
-   if( delays == NULL ) {
-      createArborsOutOfMemory();
-      assert(false);
-   }
-
-   //Initialize delays for each arbor
-   //Using setDelay to convert ms to timesteps
-   for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
-      if (size == 0){
-         //No delay
-         setDelay(arborId, 0);
-      }
-      else if (size == 1){
-         setDelay(arborId, fDelayArray[0]);
-      }
-      else if (size == numAxonalArborLists){
-         setDelay(arborId, fDelayArray[arborId]);
-      }
-      else{
-         fprintf(stderr, "Delay must be either a single value or the same length as the number of arbors\n");
-         abort();
-      }
-   }
-   return status;
-}
-
 #ifdef OBSOLETE // Marked obsolete Mar 19, 2014
 int HyPerConn::readPatchSizeFromFile(const char * filename) {
    assert(filename != NULL);
@@ -1576,81 +1302,9 @@ int HyPerConn::communicateInitInfo() {
    // phase.  These subclasses should override communicateInitInfo(), and the
    // subclass's communicateInitInfo() should call the parent class's communicateInitInfo().
 
-   int status = PV_SUCCESS;
-
-   if (preLayerName==NULL) {
-      assert(postLayerName==NULL);
-      status = handleMissingPreAndPostLayerNames();
-   }
-#ifdef PV_USE_MPI
-   MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
-   if (status != PV_SUCCESS) {
-      assert(preLayerName==NULL && postLayerName==NULL);
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: Unable to determine pre- and post-layer names.  Exiting.\n", parent->parameters()->groupKeywordFromName(name), name);
-      }
-      exit(EXIT_FAILURE);
-   }
-   this->pre = parent->getLayerFromName(preLayerName);
-   this->post = parent->getLayerFromName(postLayerName);
-   if (this->pre==NULL) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "Connection \"%s\": preLayerName \"%s\" does not correspond to a layer in the column.\n", name, preLayerName);
-      }
-      status = PV_FAILURE;
-   }
-
-   if (this->post==NULL) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "Connection \"%s\": postLayerName \"%s\" does not correspond to a layer in the column.\n", name, postLayerName);
-      }
-      status = PV_FAILURE;
-   }
-#ifdef PV_USE_MPI
-   MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
-   if (status != PV_SUCCESS) {
-      exit(EXIT_FAILURE);
-   }
-
+   int status = BaseConnection::communicateInitInfo();
+   assert(this->preSynapticLayer()!=NULL && this->postSynapticLayer()!=NULL);
    handleDefaultSelfFlag();
-
-   // Find maximum delay over all the arbors and send it to the presynaptic layer
-   int maxdelay = 0;
-   for (int delayi = 0; delayi < delayArraySize; delayi++){
-      if (fDelayArray[delayi] > maxdelay){
-         maxdelay = fDelayArray[delayi];
-      }
-   }
-   //for( int arborId=0; arborId<numberOfAxonalArborLists(); arborId++ ) {
-   //   int curdelay = this->getDelay(arborId);
-   //   if( maxdelay < curdelay ) maxdelay = curdelay;
-   //}
-   int allowedDelay = pre->increaseDelayLevels(maxdelay);
-   if( allowedDelay < maxdelay ) {
-      if( parent->icCommunicator()->commRank() == 0 ) {
-         fflush(stdout);
-         fprintf(stderr, "Connection \"%s\": attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", name, maxdelay, allowedDelay);
-      }
-      exit(EXIT_FAILURE);
-   }
-
-   // Make sure post-synaptic layer has enough channels.
-   int num_channels_check;
-   status = post->requireChannel((int) channel, &num_channels_check);
-   if (status != PV_SUCCESS) { return status; }
-
-   if(num_channels_check <= (int) channel) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: postsynaptic layer \"%s\" failed to add channel %d\n",
-               parent->parameters()->groupKeywordFromName(name), name, post->getName(), (int) channel);
-      }
-#ifdef PV_USE_MPI
-      MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
-      exit(EXIT_FAILURE);
-   }
 
    status = setPatchSize();
    status = checkPatchDimensions();
@@ -1812,10 +1466,10 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataS
 }
 
 int HyPerConn::allocateDataStructures() {
+   int status = BaseConnection::allocateDataStructures();
    initNumWeightPatches();
    initNumDataPatches();
    initPatchToDataLUT();
-   initializeDelays(fDelayArray, delayArraySize);
 
    if (pvpatchAccumulateType == ACCUMULATE_STOCHASTIC) {
       bool from_post = getUpdateGSynFromPostPerspective();
@@ -1838,7 +1492,7 @@ int HyPerConn::allocateDataStructures() {
       lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
    }
 
-   int status = constructWeights();
+   status = constructWeights();
 
    if (sharedWeights) {
 #ifdef PV_USE_MPI
@@ -2866,17 +2520,6 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    PV_fclose(pvstream);
 
    return 0;
-}
-
-//Input delay is in ms
-void HyPerConn::setDelay(int arborId, float delay) {
-   assert(arborId>=0 && arborId<numAxonalArborLists);
-   int intDelay = round(delay/parent->getDeltaTime());
-   if (fmod(delay, parent->getDeltaTime()) != 0){
-      float actualDelay = intDelay * parent->getDeltaTime();
-      std::cerr << name << ": A delay of " << delay << " will be rounded to " << actualDelay << "\n";
-   }
-   delays[arborId] = (int)(round(delay / parent->getDeltaTime()));
 }
 
 //#ifdef PV_USE_OPENCL

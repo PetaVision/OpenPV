@@ -63,11 +63,13 @@ void KernelProbe::ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "outputPatchIndices", &outputPatchIndices, false/*default value*/);
 }
 
-int KernelProbe::communicate() {
-   int status = PV_SUCCESS;
-   assert(targetConn);
-   if(getTargetConn()->usingSharedWeights()==false) {
-      fprintf(stderr, "KernelProbe \"%s\": connection \"%s\" is not using shared weights.\n", name, targetConn->getName());
+int KernelProbe::communicateInitInfo() {
+   int status = BaseHyPerConnProbe::communicateInitInfo();
+   assert(targetHyPerConn);
+   if(getTargetHyPerConn()->usingSharedWeights()==false) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "KernelProbe \"%s\": connection \"%s\" is not using shared weights.\n", name, targetConn->getName());
+      }
       status = PV_FAILURE;
    }
 #ifdef PV_USE_MPI
@@ -82,8 +84,8 @@ int KernelProbe::communicate() {
 int KernelProbe::allocateDataStructures() {
    int status = PV_SUCCESS;
    assert(getTargetConn());
-   if (getKernelIndex()<0 || getKernelIndex()>=getTargetConn()->getNumDataPatches()) {
-      fprintf(stderr, "KernelProbe \"%s\": kernelIndex %d is out of bounds.  (min 0, max %d)\n", name, getKernelIndex(), getTargetConn()->getNumDataPatches()-1);
+   if (getKernelIndex()<0 || getKernelIndex()>=getTargetHyPerConn()->getNumDataPatches()) {
+      fprintf(stderr, "KernelProbe \"%s\": kernelIndex %d is out of bounds.  (min 0, max %d)\n", name, getKernelIndex(), getTargetHyPerConn()->getNumDataPatches()-1);
       exit(EXIT_FAILURE);
    }
    if (getArbor()<0 || getArbor()>=getTargetConn()->numberOfAxonalArborLists()) {
@@ -95,7 +97,7 @@ int KernelProbe::allocateDataStructures() {
       fprintf(outputstream->fp, "Probe \"%s\", kernel index %d, arbor index %d.\n", name, getKernelIndex(), getArbor());
    }
    if(getOutputPatchIndices()) {
-      patchIndices(getTargetConn());
+      patchIndices(getTargetHyPerConn());
    }
 
    return status;
@@ -108,14 +110,14 @@ int KernelProbe::outputState(double timed) {
    if( rank != 0 ) return PV_SUCCESS;
 #endif // PV_USE_MPI
    assert(getTargetConn()!=NULL);
-   int nxp = getTargetConn()->xPatchSize();
-   int nyp = getTargetConn()->yPatchSize();
-   int nfp = getTargetConn()->fPatchSize();
+   int nxp = getTargetHyPerConn()->xPatchSize();
+   int nyp = getTargetHyPerConn()->yPatchSize();
+   int nfp = getTargetHyPerConn()->fPatchSize();
    int patchSize = nxp*nyp*nfp;
 
-   const pvwdata_t * wdata = getTargetConn()->get_wDataStart(arborID)+patchSize*kernelIndex;
+   const pvwdata_t * wdata = getTargetHyPerConn()->get_wDataStart(arborID)+patchSize*kernelIndex;
    const pvwdata_t * dwdata = outputPlasticIncr ?
-         getTargetConn()->get_dwDataStart(arborID)+patchSize*kernelIndex : NULL;
+         getTargetHyPerConn()->get_dwDataStart(arborID)+patchSize*kernelIndex : NULL;
    fprintf(outputstream->fp, "Time %f, Conn \"%s\", nxp=%d, nyp=%d, nfp=%d\n",
            timed, getTargetConn()->getName(),nxp, nyp, nfp);
    for(int f=0; f<nfp; f++) {

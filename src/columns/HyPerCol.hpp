@@ -11,7 +11,7 @@
 #include "HyPerColRunDelegate.hpp"
 #include "InterColComm.hpp"
 #include "../layers/HyPerLayer.hpp"
-#include "../connections/HyPerConn.hpp"
+#include "../connections/BaseConnection.hpp"
 #include "../io/PVParams.hpp"
 #include "../include/pv_types.h"
 #include "../utils/Timer.hpp"
@@ -37,7 +37,7 @@ namespace PV {
 
 //class HyPerLayer;
 //class InterColComm;
-//class HyPerConn;
+//class BaseConnection;
 class ColProbe;
 class BaseProbe;
 class PVParams;
@@ -68,16 +68,16 @@ public:
 //   int deliver(PVConnection* conn, PVRect preRegion, int count, float* buf);
 
    int addLayer(HyPerLayer * l);
-   int addConnection(HyPerConn * conn);
+   int addConnection(BaseConnection * conn);
    int addNormalizer(NormalizeBase * normalizer);
 
    HyPerLayer * getLayerFromName(const char * layerName);
-   HyPerConn * getConnFromName(const char * connectionName);
+   BaseConnection * getConnFromName(const char * connectionName);
    NormalizeBase * getNormalizerFromName(const char * normalizerName);
    ColProbe * getColProbeFromName(const char * probeName);
 
    HyPerLayer * getLayer(int which)       {return layers[which];}
-   HyPerConn  * getConnection(int which)  {return connections[which];}
+   BaseConnection  * getConnection(int which)  {return connections[which];}
    NormalizeBase * getNormalizer(int which) { return normalizers[which];}
    ColProbe * getColProbe(int which)      {return colProbes[which];}
 
@@ -450,7 +450,7 @@ private:
 
 
    HyPerLayer ** layers;
-   HyPerConn  ** connections;
+   BaseConnection  ** connections;
    NormalizeBase ** normalizers; // Objects for normalizing connections or groups of connections
    int * layerStatus;
    int * connectionStatus;

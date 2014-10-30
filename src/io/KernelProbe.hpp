@@ -8,17 +8,17 @@
 #ifndef KERNELPROBE_HPP_
 #define KERNELPROBE_HPP_
 
-#include "BaseConnectionProbe.hpp"
+#include "BaseHyPerConnProbe.hpp"
 
 namespace PV {
 
-class KernelProbe : public BaseConnectionProbe {
+class KernelProbe : public BaseHyPerConnProbe {
 
 // Methods
 public:
    KernelProbe(const char * probename, HyPerCol * hc);
    virtual ~KernelProbe();
-   virtual int communicate();
+   virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    virtual int outputState(double timef);
 protected:

@@ -8,19 +8,20 @@
 #ifndef PATCHPROBE_HPP_
 #define PATCHPROBE_HPP_
 
-#include "BaseConnectionProbe.hpp"
-#include "../connections/HyPerConn.hpp"
+#include "BaseHyPerConnProbe.hpp"
 
 namespace PV {
 
 enum PatchIDMethod { INDEX_METHOD, COORDINATE_METHOD };
 
-class PatchProbe : public BaseConnectionProbe {
+class PatchProbe : public BaseHyPerConnProbe {
 
 // Methods
 public:
    PatchProbe(const char * probename, HyPerCol * hc);
    virtual ~PatchProbe();
+
+   virtual int communicateInitInfo();
 
    virtual int outputState(double timef);
 
@@ -59,6 +60,7 @@ protected:
    PatchIDMethod patchIDMethod;
 
 private:
+   HyPerConn * targetHyPerConn;
    int    kPre;  // index of pre-synaptic neuron
    int    kxPre, kyPre, kfPre;
    int    arborID;

@@ -8,6 +8,7 @@
 #ifndef HYPERCONN_HPP_
 #define HYPERCONN_HPP_
 
+#include "BaseConnection.hpp"
 #include "../columns/InterColComm.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../columns/Random.hpp"
@@ -50,7 +51,7 @@ class Random;
  * A HyPerConn identifies a connection between two layers
  */
 
-class HyPerConn {
+class HyPerConn : public BaseConnection {
 
 public:
    friend class CloneConn;
@@ -62,16 +63,6 @@ public:
 
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
-   int ioParams(enum ParamsIOFlag ioFlag);
-
-   // TODO The two routines below shouldn't be public, but HyPerCol needs to call them, so for now they are.
-   void setInitInfoCommunicatedFlag() {initInfoCommunicatedFlag = true;}
-   void setDataStructuresAllocatedFlag() {dataStructuresAllocatedFlag = true;}
-   void setInitialValuesSetFlag() {initialValuesSetFlag = true;}
-
-   bool getInitInfoCommunicatedFlag() {return initInfoCommunicatedFlag;}
-   bool getDataStructuresAllocatedFlag() {return dataStructuresAllocatedFlag;}
-   bool getInitialValuesSetFlag() {return initialValuesSetFlag;}
 
    int initializeState(); // Not virtual since all connections should respond to initializeFromCheckpointFlag in the same way.
                           // It calls either readStateFromCheckpoint or initializeWeights, both of which are virtual.
@@ -81,7 +72,7 @@ public:
    virtual int insertProbe(BaseConnectionProbe* p);
    int outputProbeParams();
    virtual int outputState(double time, bool last = false);
-   int updateStateWrapper(double time, double dt);
+   virtual int updateStateWrapper(double time, double dt); // Generally shouldn't be overridden; override updateState instead.  Made virtual only so that BaseConnection didn't need to define the member variables and functions used by HyPerConn::updateStateWrapper.
    virtual int updateState(double time, double dt);
    virtual bool needUpdate(double time, double dt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
@@ -101,7 +92,6 @@ public:
    GSynAccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
    int (*accumulateFunctionPointer)(int nk, float* v, float a, pvwdata_t* w, void* auxPtr);
    int (*accumulateFunctionFromPostPointer)(int nk, float* v, float* a, pvwdata_t* w, float dt_factor, void* auxPtr);
-   inline bool preSynapticActivityIsNotRate() {return preActivityIsNotRate;}
 
    double getWeightUpdatePeriod() {return weightUpdatePeriod;}
    double getWeightUpdateTime() {return weightUpdateTime;}
@@ -112,43 +102,8 @@ public:
       return NULL;
    }
 
-   inline const char* getName() {
-      return name;
-   }
-
-   inline HyPerCol* getParent() {
-      return parent;
-   }
-
-   inline const char * getPreLayerName() {
-      return preLayerName;
-   }
-
-   inline HyPerLayer* getPre() {
-      return pre;
-   }
-
-   inline const char * getPostLayerName() {
-      return postLayerName;
-   }
-
-   inline HyPerLayer* getPost() {
-      return post;
-   }
-
-   inline ChannelType getChannel() {
-      return channel;
-   }
-
    inline InitWeights* getWeightInitializer() {
       return weightInitializer;
-   }
-
-   void setDelay(int arborId, float delay);
-
-   inline int getDelay(int arborId = 0) {
-      assert(arborId >= 0 && arborId < numAxonalArborLists);
-      return delays[arborId];
    }
 
    inline bool getSelfFlag() {
@@ -306,35 +261,12 @@ public:
       return numDataPatches;
    }
 
-   inline int numberOfAxonalArborLists() {
-      return numAxonalArborLists;
-   }
-
    inline size_t getGSynPatchStart(int kPre, int arborId) {
       return gSynPatchStart[arborId][kPre];
    }
 
    inline size_t getAPostOffset(int kPre, int arborId) {
       return aPostOffset[arborId][kPre];
-   }
-
-   const char * preSynapticLayerName() {return preLayerName;}
-   const char * postSynapticLayerName() {return postLayerName;}
-
-   HyPerLayer* preSynapticLayer() {
-      return pre;
-   }
-
-   HyPerLayer* postSynapticLayer() {
-      return post;
-   }
-
-   int getConnectionId() {
-      return connId;
-   }
-
-   void setConnectionId(int id) {
-      connId = id;
    }
 
    NormalizeBase * getNormalizer() {
@@ -395,10 +327,6 @@ public:
          NULL, int* kf = NULL);
    virtual int dataIndexToUnitCellIndex(int dataIndex, int* kx = NULL, int* ky =
          NULL, int* kf = NULL);
-   static int decodeChannel(int channel_code, ChannelType * channel_type);
-   static int getPreAndPostLayerNames(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr);
-   static int inferPreAndPostFromConnName(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr);
-   virtual int handleMissingPreAndPostLayerNames();
 
 #ifdef USE_SHMGET
    virtual bool getShmgetFlag(){
@@ -413,11 +341,6 @@ public:
 #endif
 
 protected:
-   char * preLayerName;
-   char * postLayerName;
-   HyPerLayer* pre;
-   HyPerLayer* post;
-   HyPerCol* parent;
    // char * filename; // Filename if loading weights from a file
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
@@ -438,14 +361,11 @@ private:
    //pvwdata_t*** gSynPatchStart; //  gSynPatchStart[arborId][kExt] is a pointer to the start of the patch in the post-synaptic GSyn buffer
    size_t** gSynPatchStart;  // gSynPatchStart[arborId][kExt] is the offset to the start of the patch from the beginning of the post-synaptic GSyn buffer for corresponding channel
    size_t** aPostOffset; // aPostOffset[arborId][kExt] is the index of the start of a patch into an extended post-synaptic layer
-   int* delays; // delays[arborId] is the delay in timesteps (not units of dt) of the arborId'th arbor
    PVPatchStrides postExtStrides;    // sx,sy,sf for a patch mapping into an extended post-synaptic layer
    PVPatchStrides postNonextStrides; // sx,sy,sf for a patch mapping into a non-extended post-synaptic layer
    pvwdata_t** wDataStart;  //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    pvwdata_t** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
-   int defaultDelay; //added to save params file defined delay...
-   float * fDelayArray;
-   int delayArraySize;
+   //int defaultDelay; //added to save params file defined delay...
    char* triggerLayerName;
    double triggerOffset;
    HyPerLayer* triggerLayer;
@@ -456,15 +376,11 @@ private:
 
 protected:
    bool useWindowPost;
-   char* name;
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
    int nxpShrunken, nypShrunken, offsetShrunken; // if user requires a smaller patch than is required by PetaVision
    int sxp, syp, sfp; // stride in x,y,features
-   ChannelType channel; // which channel of the post to update (e.g. inhibit)
-   int connId; // connection id
    // PVPatch       *** dwPatches;      // list of weight patches for storing changes to weights
-   int numAxonalArborLists; // number of axonal arbors (weight patches) for presynaptic layer
    PVPatch*** wPostPatches; // post-synaptic linkage of weights // This is being deprecated in favor of TransposeConn
    pvwdata_t** wPostDataStart;
 
@@ -476,8 +392,6 @@ protected:
    //PVConnParams * params;
    float wMax;
    float wMin;
-   int numProbes;
-   BaseConnectionProbe** probes; // probes used to output data
    bool ioAppend; // controls opening of binary files
    double wPostTime; // time of last conversion to wPostPatches
    double initialWriteTime;
@@ -515,7 +429,6 @@ protected:
    InitWeights* weightInitializer;
    char * pvpatchAccumulateTypeString;
    GSynAccumulateType pvpatchAccumulateType;
-   bool preActivityIsNotRate; // TODO Rename this member variable
    bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic neuron.  If true, normalize the sum of weights into a postsynaptic neuron.
    float dWMax;  // dW scale factor
    bool useListOfArborFiles;
@@ -535,9 +448,6 @@ protected:
    // uint4 * rnd_state; // An array of RNGs.
    Random * randState;
 
-   bool initInfoCommunicatedFlag;
-   bool dataStructuresAllocatedFlag;
-   bool initialValuesSetFlag;
    bool initializeFromCheckpointFlag;
 
 protected:
@@ -603,14 +513,6 @@ protected:
       dwDataStart[arborId] = pIncrStart;
    }
 
-   inline int* getDelays() {
-      return delays;
-   }
-
-   inline void setDelays(int* delayptr) {
-      delays = delayptr;
-   }
-
    int calcUnitCellIndex(int patchIndex, int* kxUnitCellIndex = NULL,
          int* kyUnitCellIndex = NULL, int* kfUnitCellIndex = NULL);
    // virtual int setPatchSize();
@@ -621,10 +523,8 @@ protected:
    int initialize_base();
    virtual int createArbors();
    void createArborsOutOfMemory();
-   int initializeDelays(const float * fDelayArray, int size);
    virtual int constructWeights();
    int initialize(const char * name, HyPerCol * hc);
-   virtual int setPreAndPostLayerNames();
    virtual int setWeightInitializer();
    virtual InitWeights * createInitWeightsObject(const char * weightInitTypeStr);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
@@ -634,18 +534,6 @@ protected:
     * @name HyPerConn Parameters
     * @{
     */
-
-   /**
-    * @brief preLayerName: Specifies the connection's pre layer
-    * @details Required parameter
-    */
-   virtual void ioParam_preLayerName(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief postLayerName: Specifies the connection's post layer
-    * @details Required parameter
-    */
-   virtual void ioParam_postLayerName(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief channelCode: Specifies which channel in the post layer this connection is attached to
@@ -738,11 +626,6 @@ protected:
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief numAxonalArbors: Specifies the number of arbors to use in this connection
-    */
-   virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief plasticityFlag: Specifies if the weights will be updated
     */
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
@@ -785,13 +668,6 @@ protected:
    virtual void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief preActivityIsNotRate: If true, pre activity is spike rate. If false, pre activity is value
-    * @details The post synaptic layer needs to interpret pre synaptic activity as a spike rate
-    * Other situations interpret as a value. This flag sets either one or the other.
-    */
-   virtual void ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief writeStep: Specifies the write period of the connection.
     * @details Defaults to every timestep. -1 to not write at all.
     */
@@ -828,15 +704,6 @@ protected:
     * it gets them
     */
    virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief delay: Specifies delay(s) which the post layer will receive data
-    * @details: Delays are specified in units of dt, but are rounded to be integer multiples of dt.
-    * If delay is a scalar, all arbors of the connection have that value of delay.
-    * If delay is an array, the length must match the number of arbors and the arbors are assigned
-    * the delays sequentially.
-    */
-   virtual void ioParam_delay(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief nxp: Specifies the x patch size
@@ -947,10 +814,6 @@ protected:
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    /**
-    * @brief receiveGpu: Allows receive synaptic input on the gpu
-    */
-   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
-   /**
     * @brief preDataLocal: If not using CUDNN, specifies if preData should be in local memory
     */
    virtual void ioParam_preDataLocal(enum ParamsIOFlag ioFlag);
@@ -987,8 +850,6 @@ protected:
 #endif
    /** @} */
 
-   int setParent(HyPerCol * hc);
-   int setName(const char * name);
    int setPreLayerName(const char * pre_name);
    int setPostLayerName(const char * post_name);
    virtual int initPlasticityPatches();
@@ -1083,7 +944,6 @@ public:
    }
 #endif
 
-   bool getReceiveGpu(){return receiveGpu;}
    bool getPreDataLocal(){return preDataLocal;}
 
 #ifdef PV_USE_OPENCL
@@ -1145,7 +1005,6 @@ protected:
    PVPatch ** localWPatches;
    size_t * localGSynPatchStart;
 
-   bool receiveGpu;
    bool preDataLocal;
 
    int numXLocal;

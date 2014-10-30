@@ -35,7 +35,7 @@ protected:
    virtual void ioParam_syncedMovie(enum ParamsIOFlag ioFlag);
    virtual void ioParam_refreshPeriod(enum ParamsIOFlag ioFlag);
 
-   inline bool updateGSynFlag(HyPerConn * conn);
+   inline bool updateGSynFlag(BaseConnection * conn);
    // inline bool getNewImageFlag();
 
 private:

@@ -185,10 +185,15 @@ int ReciprocalConn::setReciprocalWgts(const char * recipName) {
 
    HyPerConn * c;
    if( status == PV_SUCCESS ) {
-      c = parent->getConnFromName(recipName);
-      if( c == NULL) {
+      BaseConnection * b = parent->getConnFromName(recipName);
+      if (b == NULL) {
          status = PV_FAILURE;
          fprintf(stderr, "ReciprocalConn \"%s\": reciprocalWgts \"%s\" could not be found.\n", name, recipName);
+      }
+      c = dynamic_cast<HyPerConn *>(b);
+      if (c == NULL) {
+         status = PV_FAILURE;
+         fprintf(stderr, "ReciprocalConn \"%s\": reciprocalWgts \"%s\" must be a HyPerConn or HyPerConn-derived class.\n", name, recipName);
       }
    }
    if( status == PV_SUCCESS && reciprocalWgts != NULL) {

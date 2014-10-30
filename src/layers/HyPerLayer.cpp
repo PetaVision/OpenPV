@@ -76,7 +76,7 @@ DerivedLayer::initialize(arguments) {
 #include "../include/pv_common.h"
 #include "../include/default_params.h"
 #include "../columns/HyPerCol.hpp"
-#include "../connections/HyPerConn.hpp"
+#include "../connections/BaseConnection.hpp"
 #include "../connections/TransposeConn.hpp"
 #include "InitV.hpp"
 #include "../io/fileio.hpp"
@@ -1249,7 +1249,8 @@ int HyPerLayer::allocateDataStructures()
    //CPU connections must run first to avoid race conditions
    int numConnections = parent->numberOfConnections();
    for(int c=0; c<numConnections; c++){
-      HyPerConn * conn = parent->getConnection(c);
+      BaseConnection * baseConn = parent->getConnection(c);
+      HyPerConn * conn = dynamic_cast<HyPerConn *>(baseConn);
       if(conn->postSynapticLayer()!=this) continue;
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
       //If not recv from gpu, execute first
