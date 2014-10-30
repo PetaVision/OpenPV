@@ -111,7 +111,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "PoolingANNLayer",
                "PtwiseProductLayer",
                "TrainingLayer",
-               "MaxPooling",
+               "MaxPooling", // Obsolete; have the connection's pvpatchAccumulateType set to "maxpooling" (case insensitive).
                "HyPerLCALayer",
                "ANNErrorLayer",
 	         "ANNNormalizedErrorLayer",
@@ -422,8 +422,12 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       addedLayer = (HyPerLayer *) new TrainingLayer(name, hc);
    }
    if( !strcmp(classkeyword, "MaxPooling") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new MaxPooling(name, hc);
+      // MaxPooling was marked obsolete Oct 30, 2014
+      if (hc->columnId()==0) {
+         fprintf(stderr, "Params group \"%s\": MaxPooling is obsolete.  Use a different layer type and set the connections going to \"%s\" to use pvpatchAccumulateType = \"maxpooling\".");
+      }
+      MPI_Barrier(hc->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
    if( !strcmp(classkeyword, "CloneVLayer") ) {
       keywordMatched = true;

@@ -33,7 +33,6 @@
 #include "../layers/BinningLayer.hpp"
 #include "../layers/WTALayer.hpp"
 #include "../layers/GapLayer.hpp"
-#include "../layers/MaxPooling.hpp"
 #include "../layers/TextStream.hpp"
 #ifdef PV_USE_SNDFILE
 #include "../layers/SoundStream.hpp"
