@@ -69,10 +69,10 @@ ANNLayer "normalizeSum output" = {
    writeSparseActivity = false;
    InitVType = "ZeroV";
    
-   VMax = infinity;
-   VMin = -infinity;
+   AMax = infinity;
+   AMin = -infinity;
    VThresh = -infinity;
-   VShift = 0.0;
+   AShift = 0.0;
 };
 
 ANNLayer "normalizeSum check" = {
@@ -88,10 +88,10 @@ ANNLayer "normalizeSum check" = {
    writeSparseActivity = false;
    InitVType = "ZeroV";
    
-   VMax = infinity;
-   VMin = -infinity;
+   AMax = infinity;
+   AMin = -infinity;
    VThresh = -infinity;
-   VShift = 0.0;
+   AShift = 0.0;
 };
 
 ANNSquaredLayer "normalizeL2 output" = {
@@ -107,10 +107,10 @@ ANNSquaredLayer "normalizeL2 output" = {
    writeSparseActivity = false;
    InitVType = "ZeroV";
    
-   VMax = infinity;
-   VMin = -infinity;
+   AMax = infinity;
+   AMin = -infinity;
    VThresh = -infinity;
-   VShift = 0.0;
+   AShift = 0.0;
 };
 
 ANNLayer "normalizeL2 check" = {
@@ -126,10 +126,10 @@ ANNLayer "normalizeL2 check" = {
    writeSparseActivity = false;
    InitVType = "ZeroV";
    
-   VMax = infinity;
-   VMin = -infinity;
+   AMax = infinity;
+   AMin = -infinity;
    VThresh = -infinity;
-   VShift = 0.0;
+   AShift = 0.0;
 };
 
 ANNLayer "normalizeMax output" = {
@@ -145,13 +145,13 @@ ANNLayer "normalizeMax output" = {
    writeSparseActivity = false;
    InitVType = "ZeroV";
    
-   VMax = infinity;
-   VMin = -infinity;
+   AMax = infinity;
+   AMin = -infinity;
    VThresh = -infinity;
-   VShift = 0.0;
+   AShift = 0.0;
 };
 
-MaxPooling "normalizeMax check" = {
+ANNLayer "normalizeMax check" = {
    restart = 0;
    nxScale = 0.0625;
    nyScale = 0.0625;
@@ -163,6 +163,11 @@ MaxPooling "normalizeMax check" = {
    initialWriteTime = 0;
    writeSparseActivity = false;
    InitVType = "ZeroV";
+
+   AMax = infinity;
+   AMin = -infinity;
+   VThresh = -infinity;
+   AShift = 0.0;
 };
 
 ANNLayer "normalizeContrastZeroMean output" = {
@@ -178,10 +183,10 @@ ANNLayer "normalizeContrastZeroMean output" = {
    writeSparseActivity = false;
    InitVType = "ZeroV";
    
-   VMax = infinity;
-   VMin = -infinity;
+   AMax = infinity;
+   AMin = -infinity;
    VThresh = -infinity;
-   VShift = 0.0;
+   AShift = 0.0;
 };
 
 ANNSquaredLayer "normalizeContrastZeroMean output squared" = {
@@ -197,10 +202,10 @@ ANNSquaredLayer "normalizeContrastZeroMean output squared" = {
    writeSparseActivity = false;
    InitVType = "ZeroV";
    
-   VMax = infinity;
-   VMin = -infinity;
+   AMax = infinity;
+   AMin = -infinity;
    VThresh = -infinity;
-   VShift = 0.0;
+   AShift = 0.0;
 };
 
 ANNLayer "normalizeContrastZeroMean check mean" = {
@@ -216,10 +221,10 @@ ANNLayer "normalizeContrastZeroMean check mean" = {
    writeSparseActivity = false;
    InitVType = "ZeroV";
    
-   VMax = infinity;
-   VMin = -infinity;
+   AMax = infinity;
+   AMin = -infinity;
    VThresh = -infinity;
-   VShift = 0.0;
+   AShift = 0.0;
 };
 
 ANNLayer "normalizeContrastZeroMean check variance" = {
@@ -235,10 +240,10 @@ ANNLayer "normalizeContrastZeroMean check variance" = {
    writeSparseActivity = false;
    InitVType = "ZeroV";
    
-   VMax = infinity;
-   VMin = -infinity;
+   AMax = infinity;
+   AMin = -infinity;
    VThresh = -infinity;
-   VShift = 0.0;
+   AShift = 0.0;
 };
 
 //
@@ -430,7 +435,7 @@ KernelConn "normalizeMax check connection" = {
    numAxonalArbors = 1;
    delay = 0;
    plasticityFlag = false;
-   pvpatchAccumulateType = "convolve";
+   pvpatchAccumulateType = "maxpooling";
    preActivityIsNotRate = false;
    writeStep = 1.0;
    initialWriteTime = 0.0;
