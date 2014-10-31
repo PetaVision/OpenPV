@@ -1043,6 +1043,39 @@ int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
    return status ? errorcode : 0;
 }
 
+
+static inline int _mkdir(const char *dir) {
+   char tmp[PV_PATH_MAX];
+   char *p = NULL;
+   int status = 0;
+
+   int num_chars_needed = snprintf(tmp,sizeof(tmp),"%s",dir);
+   if (num_chars_needed > PV_PATH_MAX) {
+      fflush(stdout);
+      fprintf(stderr,"Path \"%s\" is too long.",dir);
+      exit(EXIT_FAILURE);
+   }
+
+   int len = strlen(tmp);
+   if(tmp[len - 1] == '/')
+      tmp[len - 1] = 0;
+
+   for(p = tmp + 1; *p; p++)
+      if(*p == '/') {
+         *p = 0;
+         status |= mkdir(tmp, S_IRWXU);
+         if(status != 0 && errno != EEXIST){
+            return status;
+         }
+         *p = '/';
+      }
+   status |= mkdir(tmp, S_IRWXU);
+   if(errno == EEXIST){
+      status = 0;
+   }
+   return status;
+}
+
 int HyPerCol::ensureDirExists(const char * dirname) {
    // see if path exists, and try to create it if it doesn't.
    // Since only rank 0 process should be reading and writing, only rank 0 does the mkdir call
@@ -1063,16 +1096,17 @@ int HyPerCol::ensureDirExists(const char * dirname) {
       if( rank == 0 ) {
          printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
 
-         char targetString[PV_PATH_MAX];
-         int num_chars_needed = snprintf(targetString,PV_PATH_MAX,"mkdir -p %s",dirname);
-         if (num_chars_needed > PV_PATH_MAX) {
-            fflush(stdout);
-            fprintf(stderr,"Path \"%s\" is too long.",dirname);
-            exit(EXIT_FAILURE);
-         }
+         //char targetString[PV_PATH_MAX];
+         //int num_chars_needed = snprintf(targetString,PV_PATH_MAX,"mkdir -p %s",dirname);
+         //if (num_chars_needed > PV_PATH_MAX) {
+         //   fflush(stdout);
+         //   fprintf(stderr,"Path \"%s\" is too long.",dirname);
+         //   exit(EXIT_FAILURE);
+         //}
+
          //Try again until it works
          for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
-            int mkdirstatus = system(targetString);
+            int mkdirstatus = _mkdir(dirname);
             if( mkdirstatus != 0 ) {
                if(attemptNum == numAttempts - 1){
                   fflush(stdout);
