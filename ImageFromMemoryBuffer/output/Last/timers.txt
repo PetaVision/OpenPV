@@ -1,0 +1,16 @@
+                          column: total time in column    run    : processor cycle time == 8.642000
+                    Communicator: total time in   comm    exchng : processor cycle time == 0.003000
+                 input to output: total time in   conn    io     : processor cycle time == 0.002000
+                 input to output: total time in   conn    update : processor cycle time == 0.000000
+                          column: total time in column    phRecv0: processor cycle time == 0.001000
+                           input: total time in  layer    recvsyn: processor cycle time == 0.000000
+                           input: total time in  layer    update : processor cycle time == 0.000000
+                           input: total time in  layer    publish: processor cycle time == 0.006000
+                           input: total time in  layer  timescale: processor cycle time == 0.000000
+                           input: total time in  layer    io     : processor cycle time == 0.000000
+                          column: total time in column    phRecv1: processor cycle time == 1.061000
+                          output: total time in  layer    recvsyn: processor cycle time == 1.060000
+                          output: total time in  layer    update : processor cycle time == 2.837000
+                          output: total time in  layer    publish: processor cycle time == 0.036000
+                          output: total time in  layer  timescale: processor cycle time == 0.000000
+                          output: total time in  layer    io     : processor cycle time == 1.286000

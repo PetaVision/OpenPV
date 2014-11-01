@@ -1,0 +1,110 @@
+// PetaVision version something-point-something run at Fri Oct 31 18:56:56 2014
+// Compiled with MPI and run using 1 rows and 1 columns.
+// Compiled without OpenCL.
+// Compiled without CUDA.
+// Compiled without OpenMP parallel code.
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    dtAdaptFlag                         = false;
+    stopTime                            = 10;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    verifyWrites                        = false;
+    outputPath                          = "output/";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 32;
+    ny                                  = 32;
+    filenamesContainLayerNames          = 0;
+    filenamesContainConnectionNames     = 0;
+    initializeFromCheckpointDir         = "";
+    checkpointRead                      = false;
+    checkpointWrite                     = false;
+    suppressLastOutput                  = false;
+    errorOnNotANumber                   = true;
+};
+
+ImageFromMemoryBuffer "input" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = -1;
+    writeSparseActivity                 = false;
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    useImageBCflag                      = false;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+};
+
+ANNLayer "output" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 8;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeSparseActivity                 = false;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+};
+
+HyPerConn "input to output" = {
+    preLayerName                        = "input";
+    postLayerName                       = "output";
+    channelCode                         = 0;
+    sharedWeights                       = true;
+    weightInitType                      = "Gauss2DWeight";
+    // initWeightsFile                     was set to (NULL);
+    aspect                              = 3;
+    sigma                               = 1;
+    rMax                                = 3.40282e+38;
+    rMin                                = 0;
+    strength                            = 4;
+    numOrientationsPost                 = 8;
+    deltaThetaMax                       = 6.28319;
+    thetaMax                            = 1;
+    numFlanks                           = 1;
+    flankShift                          = 0;
+    rotate                              = 0;
+    bowtieFlag                          = false;
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = false;
+    pvpatchAccumulateType               = "convolve";
+    preActivityIsNotRate                = false;
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    delay                               = [0.000000];
+    nxp                                 = 7;
+    nyp                                 = 7;
+    nxpShrunken                         = 7;
+    nypShrunken                         = 7;
+    nfp                                 = 8;
+    shrinkPatches                       = false;
+    updateGSynFromPostPerspective       = false;
+    normalizeMethod                     = "normalizeSum";
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    normalize_cutoff                    = 0;
+    normalizeFromPostPerspective        = false;
+    minSumTolerated                     = 0;
+};
