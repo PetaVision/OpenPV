@@ -28,8 +28,8 @@ setenv("GNUTERM","X11")
 addpath("~/workspace/PetaVision/mlab/imgProc");
 
 %% specify target image type and dimensions
-orientation_type = "square"; %%"portrait"; %%"landscape"; %%  
-disp(["orientation_type = ", orientation_type]);
+orientation_type = "landscape"; %%  "square"; %%"portrait"; %%
+disp(["orientation_type 1= ", orientation_type]);
 if strcmp(orientation_type, "landscape")
   resized_height = 192; %%360;
   resized_width = 256; %%480;
@@ -57,7 +57,7 @@ resized_ext = '.png';
 mask_ext = '.png';
 
 %% set results paths
-workspace_path = "/Users/gkenyon/workspace";
+workspace_path = "~/workspace";
 PASCAL_VOC_path = [workspace_path, filesep, "PASCAL_VOC"];
 mkdir(PASCAL_VOC_path);
 VOC_dataset = "VOC2007";
@@ -69,7 +69,7 @@ mkdir(train_path);
 mask_dir = "mask"
 mask_path = fullfile(PASCAL_VOC_path, VOC_dataset, mask_dir);
 mkdir(mask_path);
-
+addpath([PASCAL_VOC_path, filesep, "mlab"]);
 
 %% collect PASCAL_VOC specific stuff here...
 %% set VOCdev paths
@@ -264,7 +264,8 @@ for i_raw = 1 : num_raw
   %error("resize failed");
   endif
 
-  [padded_image] = addMirrorBCRGB(resized_image, border_padding);
+%%  [padded_image] = addMirrorBCRGB(resized_image, border_padding);
+  [padded_image] = addMirrorBC2(resized_image, border_padding);
 
   %% write padded image to file, since this will be cropped to size(resized_image)
   resized_image_path = fullfile(train_path, [raw_name, resized_ext]);
@@ -363,8 +364,8 @@ for i_raw = 1 : num_raw
 			       resized_width, ...
 			       resized_height], ...
 			      repmat(class_ndx, num_active_bbox, 1), ...
-			      mask_bbox_row(:), ...
-			      mask_bbox_col(:));
+			      mask_bbox_col(:), ...
+			      mask_bbox_row(:));
     classID_struct.values = [classID_struct.values(:); ...
 			     uint32(mask_bbox_ndx3D(:)-1)];
     if numel(classID_struct.values) ~= num_active
