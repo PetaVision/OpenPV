@@ -16,7 +16,7 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime = 193; //This is for testing as of now, but actual value is number of training examples
+    stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
     outputPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train_rcorr_np/";
     filenamesContainLayerNames = true;
@@ -24,14 +24,14 @@ HyPerCol "column" = {
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
-    checkpointWrite = false;
+    checkpointWrite = true;
     checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train_rcorr_np/Checkpoints";
-    checkpointWriteStepInterval = 5000;
+    checkpointWriteStepInterval = 10;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
     writeProgressToErr = true;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
-    dtAdaptFlag = true;
+    dtAdaptFlag = false;
     dtScaleMax = 5.0;
     dtScaleMin = 0.25;
     dtChangeMax = 0.05;
@@ -48,7 +48,7 @@ Movie "V1S2" = {
     nyScale = .5;
     nf = 32;
     readPvpFile = true;
-    imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train_tmp/a16_V1S2.pvp";
+    imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/a16_V1S2.pvp";
     writeFrameToTimestamp = true;
     writeStep = -1;
     writeSparseActivity = false;
@@ -75,7 +75,7 @@ Movie "V1S4" = {
    @nxScale = .25;
    @nyScale = .25;
    @nf = 64;
-   @imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train_tmp/a17_V1S4.pvp";
+   @imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/a17_V1S4.pvp";
 };
 
 Movie "V1S8" = {
@@ -83,7 +83,7 @@ Movie "V1S8" = {
    @nxScale = .125;
    @nyScale = .125;
    @nf = 128;
-   @imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train_tmp/a18_V1S8.pvp";
+   @imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/a18_V1S8.pvp";
 };
 
 // for visualization only, makes no output
@@ -152,7 +152,7 @@ Movie "DepthImage" = {
     imageListPath = "/nh/compneuro/Data/KITTI/stereo_flow/single_frames/training/disp_noc.txt";
     writeFrameToTimestamp = true;
     nf = 1;
-    writeStep = 1;
+    writeStep = -1;
     writeSparseActivity = false;
     displayPeriod = 1;
     start_frame_index = 1;
@@ -179,7 +179,7 @@ ANNLayer "DepthBuffer" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
-    writeStep = -1;
+    writeStep = 1;
     initialWriteTime = -1.0;
     mirrorBCflag = false;
     writeSparseActivity = 0;
@@ -246,7 +246,25 @@ ANNLayer "RCorrBufAll" = {
 };
 
 //WTA Layers for output
-//This is the ground truth layer
+//On gt for testing
+
+WTALayer "WTAGT" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1; 
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    delay = 0;
+    originalLayerName = "DepthGT";
+    phase = 6;
+};
+
+
+
+//On RCorrBuffers
 WTALayer "RCorrReconS2" = {
     restart = 0;
     nxScale = 1; 
@@ -447,7 +465,7 @@ KernelConn "V1S2ToDepthGT" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     initialWriteTime = 0.0;
-    dWMax = .5;
+    dWMax = .25;
     selfFlag = false;
     shmget_flag = false;
     //
@@ -461,7 +479,7 @@ KernelConn "V1S2ToDepthGT" = {
 KernelConn "V1S4ToDepthGT" = {
     #include "V1S2ToDepthGT";
     @preLayerName = "V1S4";
-    @nxp = 68; //Actually 8.5
+    @nxp = 68;
     @nyp = 68;
     //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4ToDepthGT_W.pvp";
 };

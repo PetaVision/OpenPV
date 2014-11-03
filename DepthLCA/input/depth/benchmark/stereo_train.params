@@ -271,7 +271,7 @@ HyPerLCALayer "V1S2" = {
     VWidth = 0.01; //Same as VThresh
     updateGpu = true;
     //
-    phase = 3;
+    phase = 4;
 };
 
 HyPerLCALayer "V1S4" = {
