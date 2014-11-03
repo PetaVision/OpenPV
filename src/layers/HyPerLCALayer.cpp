@@ -216,7 +216,7 @@ int HyPerLCALayer::allocateUpdateKernel(){
 //   krRecvPost = device->createKernel(kernelPath, kernel_name, kernelFlags);
 //#endif
 #ifdef PV_USE_CUDA
-   PVCuda::CudaDevice * device = parent->getCudaDevice();
+   PVCuda::CudaDevice * device = parent->getDevice();
    //Set to temp pointer of the subclass
    PVCuda::CudaUpdateHyPerLCALayer * updateKernel = new PVCuda::CudaUpdateHyPerLCALayer(device);
    //Set arguments

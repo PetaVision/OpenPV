@@ -31,15 +31,35 @@ CudaBuffer::~CudaBuffer()
    
 int CudaBuffer::copyToDevice(void * h_ptr)
 {
-   //handleError(cudaMemcpyAsync(d_ptr, h_ptr, size, cudaMemcpyHostToDevice, stream));
-   handleError(cudaMemcpyAsync(d_ptr, h_ptr, size, cudaMemcpyHostToDevice, stream));
+   copyToDevice(h_ptr, this->size);
+   return 0;
+}
+
+int CudaBuffer::copyToDevice(void * h_ptr, size_t in_size)
+{
+   if(in_size > this->size){
+      printf("copyToDevice, in_size of %zu is bigger than buffer size of %zu\n", in_size, this->size);
+      exit(-1);
+   }
+   handleError(cudaMemcpyAsync(d_ptr, h_ptr, in_size, cudaMemcpyHostToDevice, stream));
    return 0;
 }
 
 int CudaBuffer::copyFromDevice(void * h_ptr)
 {
-   handleError(cudaMemcpyAsync(h_ptr, d_ptr, size, cudaMemcpyDeviceToHost, stream));
+   copyFromDevice(h_ptr, this->size);
    return 0;
 }
+
+int CudaBuffer::copyFromDevice(void * h_ptr, size_t in_size)
+{
+   if(in_size > this->size){
+      printf("copyFromDevice: in_size of %zu is bigger than buffer size of %zu\n", in_size, this->size);
+      exit(-1);
+   }
+   handleError(cudaMemcpyAsync(h_ptr, d_ptr, in_size, cudaMemcpyDeviceToHost, stream));
+   return 0;
+}
+
 
 } // namespace PV

@@ -175,10 +175,12 @@ int HyPerLayer::initialize_base() {
    this->allocDeviceGSyn = false;
    this->allocDeviceActivity = false;
    this->allocDeviceDatastore= false;
+   this->allocDeviceActiveIndices= false;
    this->d_V = NULL;
    this->d_GSyn = NULL;
    this->d_Activity = NULL;
    this->d_Datastore= NULL;
+   this->d_ActiveIndices= NULL;
    this->updatedDeviceActivity = true; //Start off always updating activity
    this->updatedDeviceDatastore = true;
    this->updatedDeviceGSyn = true;
@@ -234,22 +236,22 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 
 #ifdef PV_USE_CUDA
    this->gpu_recvsyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpurecvsyn");
-   this->gpu_recvsyn_timer->setStream(hc->getCudaDevice()->getStream());
+   this->gpu_recvsyn_timer->setStream(hc->getDevice()->getStream());
    this->gpu_update_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuupdate");
-   this->gpu_update_timer->setStream(hc->getCudaDevice()->getStream());
+   this->gpu_update_timer->setStream(hc->getDevice()->getStream());
 #ifdef PV_USE_CUDNN
    //this->permute_weights_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuWeightsPermutate");
-   //this->permute_weights_timer->setStream(hc->getCudaDevice()->getStream());
+   //this->permute_weights_timer->setStream(hc->getDevice()->getStream());
    //this->permute_preData_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuPreDataPermutate");
-   //this->permute_preData_timer->setStream(hc->getCudaDevice()->getStream());
+   //this->permute_preData_timer->setStream(hc->getDevice()->getStream());
    //this->permute_postGSyn_timer = new PVCuda::CudaTimer(getName(), "layer", "gpuPostGSynPermutate");
-   //this->permute_postGSyn_timer->setStream(hc->getCudaDevice()->getStream());
+   //this->permute_postGSyn_timer->setStream(hc->getDevice()->getStream());
 #endif
 #endif
 
 #ifdef PV_USE_OPENCL
-   this->gpu_recvsyn_timer = hc->getCLDevice()->createTimer(getName(), "layer", "gpurecvsyn");
-   this->gpu_update_timer = hc->getCLDevice()->createTimer(getName(), "layer", "gpuupdate");
+   this->gpu_recvsyn_timer = hc->getDevice()->createTimer(getName(), "layer", "gpurecvsyn");
+   this->gpu_update_timer = hc->getDevice()->createTimer(getName(), "layer", "gpuupdate");
 #endif
 
    PVParams * params = parent->parameters();
@@ -328,7 +330,7 @@ int HyPerLayer::initClayer() {
 ////this method sets up GPU related variables and calls the
 ////initializeThreadBuffers and initializeThreadKernels
 //int HyPerLayer::initializeGPU() {
-//   CLDevice * device = parent->getCLDevice();
+//   CLDevice * device = parent->getDevice();
 //
 //   //copyToDevice=false;
 //   numWait = 0;
@@ -897,10 +899,10 @@ int HyPerLayer::allocateDeviceBuffers()
    const size_t size_ex = getNumExtended() * sizeof(float);
 
 #ifdef PV_USE_OPENCL
-   CLDevice * device = parent->getCLDevice();
+   CLDevice * device = parent->getDevice();
 #endif
 #ifdef PV_USE_CUDA
-   PVCuda::CudaDevice * device = parent->getCudaDevice();
+   PVCuda::CudaDevice * device = parent->getDevice();
 #endif 
 
    //Allocate based on which flags are set
@@ -920,10 +922,21 @@ int HyPerLayer::allocateDeviceBuffers()
 #ifdef PV_USE_CUDA
       d_Datastore= device->createBuffer(size_ex);
 #endif 
+      assert(d_Datastore);
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
       cudnn_Datastore = device->createBuffer(size_ex);
       assert(cudnn_Datastore);
 #endif
+   }
+
+   if(allocDeviceActiveIndices){
+#ifdef PV_USE_OPENCL
+      d_ActiveIndices = device->createBuffer(CL_MEM_READ_ONLY, size_ex, NULL);
+#endif
+#ifdef PV_USE_CUDA
+      d_ActiveIndices= device->createBuffer(size_ex);
+#endif 
+      assert(d_ActiveIndices);
    }
 
    if(allocDeviceActivity){
@@ -2018,10 +2031,10 @@ float HyPerLayer::syncGpu(){
 
    if(recvGpu || updateGpu){
 #ifdef PV_USE_CUDA
-      parent->getCudaDevice()->syncDevice();
+      parent->getDevice()->syncDevice();
 #endif
 #ifdef PV_USE_OPENCL
-      parent->getCLDevice()->syncDevice();
+      parent->getDevice()->syncDevice();
 #endif
    }
 
@@ -2475,15 +2488,31 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
    //TODO see if you can avoid this step of transfering patches to gpu
    //Based on arborId
    //Other way would be to just allocate all arbors to gpu
-   //PVPatch* h_patches = conn->weights(arborID)[0]; //0 beacuse it's one block of memory
-   //CLBuffer * d_patches = conn->getClPatches();
-   //assert(d_patches);
-   //d_patches->copyToDevice(h_patches, 0, NULL, NULL);
+   
+   //If more than 1 arbor, need to update patches and GSynPatchStart.
+   //If one arbor, done in allocatePreKernel in HyPerConn
+   if(conn->numberOfAxonalArborLists() > 1){
+      PVPatch* h_patches = conn->weights(arborID)[0]; //0 beacuse it's one block of memory
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_patches = conn->getDevicePatches();
+#endif
+#ifdef PV_USE_CUDA
+      PVCuda::CudaBuffer * d_patches = conn->getDevicePatches();
+#endif
+      assert(d_patches);
 
-   //size_t* h_GSynPatchStart = conn->getGSynPatchStart()[arborID];
-   //CLBuffer * d_GSynPatchStart = conn->getClGSynPatchStart();
-   //assert(d_GSynPatchStart);
-   //d_GSynPatchStart->copyToDevice(h_GSynPatchStart, 0, NULL, NULL);
+      d_patches->copyToDevice(h_patches);
+
+      size_t* h_GSynPatchStart = conn->getGSynPatchStart()[arborID];
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_GSynPatchStart = conn->getDeviceGSynPatchStart();
+#endif
+#ifdef PV_USE_CUDA
+      PVCuda::CudaBuffer * d_GSynPatchStart = conn->getDeviceGSynPatchStart();
+#endif
+      assert(d_GSynPatchStart);
+      d_GSynPatchStart->copyToDevice(h_GSynPatchStart);
+   }
 
    //Update pre datastore, post gsyn, and conn weights 
    //Only if their updated
@@ -2497,6 +2526,22 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
 #endif
       assert(d_preDatastore);
       d_preDatastore->copyToDevice(h_preDatastore);
+
+      //Copy active indices and num active if needed
+      if(activity->isSparse){
+#ifdef PV_USE_OPENCL
+         CLBuffer * d_ActiveIndices;
+#endif
+#ifdef PV_USE_CUDA
+         PVCuda::CudaBuffer * d_ActiveIndices;
+#endif
+         d_ActiveIndices = conn->preSynapticLayer()->getDeviceActiveIndices();
+         assert(d_ActiveIndices);
+         unsigned int * h_ActiveIndices = activity->activeIndices;
+         unsigned int h_numActive = activity->numActive;
+         assert(h_ActiveIndices);
+         d_ActiveIndices->copyToDevice(h_ActiveIndices, h_numActive * sizeof(unsigned int));
+      }
       //Device now has updated 
       conn->preSynapticLayer()->setUpdatedDeviceDatastoreFlag(false);
    }
@@ -2522,27 +2567,39 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
    PVCuda::CudaKernel * krRecvPre = conn->getKrRecvPre();        // CL kernel for update state call
 #endif
    assert(krRecvPre);
+   
+   //int totX = conn->getNumPostGroupX();
+   //int totY = conn->getNumPostGroupY();
+   
+   //X direction is active neuron
+   //Y direction is post patch size
+   long totActiveNeuron;
+   if(activity->isSparse){
+      totActiveNeuron = activity->numActive;
+   }
+   else{
+      totActiveNeuron = conn->preSynapticLayer()->getNumExtended();
+   }
 
-   ////See if sparse, and update activeIndices and numActive;
-   //if(activity->isSparse){
+   long totPatchSize = conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize();
 
-   //}
-
-
-
-
-
-   int totX = conn->getNumPostGroupX();
-   int totY = conn->getNumPostGroupY();
+   long totThreads = totActiveNeuron * totPatchSize;
 
 #ifdef PV_USE_OPENCL
    cl_event* timerEvent;
    timerEvent = this->gpu_recvsyn_timer->getStartEvent();
-   krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal(),
-        0, NULL, timerEvent);
+   std::cout << "opencl recv pre not implented yet\n";
+   exit(-1);
+
+   //krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal(),
+   //     0, NULL, timerEvent);
 #endif
+
 #ifdef PV_USE_CUDA
-   krRecvPre->run(totX, totY, conn->getNumXLocal(), conn->getNumYLocal());
+   int maxThreads = parent->getDevice()->get_max_threads();
+   int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
+   
+   krRecvPre->run_nocheck(totThreads, numLocalThreads);
 #endif
 
    return PV_SUCCESS;

@@ -93,10 +93,10 @@ public:
    int getNyGlobal()                      {return nyGlobal;}
 
 #ifdef PV_USE_OPENCL
-   CLDevice * getCLDevice()               {return clDevice;}
+   CLDevice * getDevice()               {return clDevice;}
 #endif
 #ifdef PV_USE_CUDA
-   PVCuda::CudaDevice * getCudaDevice()   {return cudaDevice;}
+   PVCuda::CudaDevice * getDevice()   {return cudaDevice;}
 #endif
 
    InterColComm * icCommunicator()        {return icComm;}

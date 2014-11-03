@@ -618,6 +618,15 @@ public:
       return d_Datastore;
    }
 
+#ifdef PV_USE_OPENCL
+   CLBuffer * getDeviceActiveIndices(){
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * getDeviceActiveIndices(){
+#endif
+      return d_ActiveIndices;
+   }
+
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
    PVCuda::CudaBuffer * getCudnnDatastore(){
       return cudnn_Datastore;
@@ -637,6 +646,10 @@ public:
 
    void setAllocDeviceDatastore(){
       allocDeviceDatastore= true;
+   }
+
+   void setAllocDeviceActiveIndices(){
+      allocDeviceActiveIndices = true;
    }
 
    bool getUpdatedDeviceActivityFlag(){
@@ -704,6 +717,7 @@ protected:
    bool allocDeviceGSyn;         // array of channels to allocate
    bool allocDeviceActivity;
    bool allocDeviceDatastore;
+   bool allocDeviceActiveIndices;
    bool updatedDeviceActivity;
    bool updatedDeviceDatastore;
    bool updatedDeviceGSyn;
@@ -715,6 +729,7 @@ protected:
    CLBuffer * d_GSyn;         
    CLBuffer * d_Activity;
    CLBuffer * d_Datastore;
+   CLBuffer * d_ActiveIndices;
    CLKernel * krUpdate;
 #endif
 
@@ -723,6 +738,7 @@ protected:
    PVCuda::CudaBuffer * d_GSyn;      
    PVCuda::CudaBuffer * d_Activity;
    PVCuda::CudaBuffer * d_Datastore;
+   PVCuda::CudaBuffer * d_ActiveIndices;
    PVCuda::CudaKernel * krUpdate;
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * cudnn_GSyn; 

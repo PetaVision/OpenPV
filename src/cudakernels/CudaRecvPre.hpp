@@ -25,22 +25,9 @@ typedef struct PVPatch_ {
 
 //Parameter structur
    struct recv_pre_params{
-      int preNxExt;
-      int preNyExt;
-      int preNf;
-      int postNxRes;
-      int postNyRes;
-      int postNf;
-
       int nxp;
       int nyp;
       int nfp;
-      int groupXSize;
-      int groupYSize;
-      int localPreSizeX;
-      int localPreSizeY;
-      int localBufSizeX;
-      int localBufSizeY;
 
       int sy;
       int syw;
@@ -50,19 +37,13 @@ typedef struct PVPatch_ {
       PVPatch* patches;
       size_t* gSynPatchStart;
 
-      long* postToPreActivity;
       float* preData;
       float* weights;
       float* postGSyn;
       int* patch2datalookuptable;
 
       bool isSparse;
-      unsigned int numActive;
-      unsigned int activeIndices;
-
-      int preBufNum;
-      int postBufNum;
-
+      unsigned int * activeIndices;
    };
 
 
@@ -73,22 +54,9 @@ public:
    virtual ~CudaRecvPre();
 
    void setArgs(
-      int preNxExt,
-      int preNyExt,
-      int preNf,
-      int postNxRes,
-      int postNyRes,
-      int postNf,
-
       int nxp,
       int nyp,
       int nfp,
-      int groupXSize,
-      int groupYSize,
-      int localPreSizeX,
-      int localPreSizeY,
-      int localBufSizeX,
-      int localBufSizeY,
 
       int sy,
       int syw,
@@ -98,18 +66,14 @@ public:
       /* PVPatch* */ CudaBuffer* patches,
       /* size_t* */  CudaBuffer* gSynPatchStart,
 
-      /* long* */    CudaBuffer* postToPreActivity,
       /* float* */   CudaBuffer* preData,
       /* float* */   CudaBuffer* weights,
       /* float* */   CudaBuffer* postGSyn,
-      /* int* */     CudaBuffer* patch2datalookuptable
+      /* int* */     CudaBuffer* patch2datalookuptable,
 
-      //bool isSparse,
-      //unsigned int numActive,
-      //unsigned int * activeIndices
+      bool isSparse,
+      /* unsigned int* */ CudaBuffer* activeIndices
    );
-
-   void setNumActive(unsigned int numActive){params.numActive = numActive;}
 
 protected:
    //This is the function that should be overwritten in child classes

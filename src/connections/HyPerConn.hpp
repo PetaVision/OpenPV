@@ -837,16 +837,6 @@ protected:
     */
    virtual void ioParam_numFLocal(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief postGroupXSize: Specifies size of post neurons in recv from pre gpu
-    * @details Only set if receiving from gpu. Not used in recv from pre.
-    */
-   virtual void ioParam_postGroupXSize(enum ParamsIOFlag ioFlag);
-   /**
-    * @brief postGroupXSize: Specifies size of post neurons in recv from pre gpu
-    * @details Only set if receiving from gpu. Not used in recv from pre.
-    */
-   virtual void ioParam_postGroupYSize(enum ParamsIOFlag ioFlag);
 #endif
    /** @} */
 
@@ -958,12 +948,6 @@ public:
    virtual int getNumXLocal(){return numXLocal;}
    virtual int getNumYLocal(){return numYLocal;}
    virtual int getNumFLocal(){return numFLocal;}
-   virtual int getPostGroupXSize(){return postGroupXSize;}
-   virtual int getPostGroupYSize(){return postGroupYSize;}
-   virtual int getNumPostGroupX(){return numPostGroupX;}
-   virtual int getNumPostGroupY(){return numPostGroupY;}
-
-   
    
    bool getUpdatedDeviceWFlag(){
       return updatedDeviceWeights;
@@ -1002,22 +986,11 @@ protected:
    PVCuda::CudaRecvPre* krRecvPre;        // Cuda kernel for update state call
 #endif
 
-   PVPatch ** localWPatches;
-   size_t * localGSynPatchStart;
-
    bool preDataLocal;
 
    int numXLocal;
    int numYLocal;
    int numFLocal;
-   int localPreX;
-   int localPreY;
-   int postGroupXSize;
-   int postGroupYSize;
-   int numPostGroupX;
-   int numPostGroupY;
-
-
 
 
 //   bool gpuAccelerateFlag; // Whether to accelerate the connection on a GPU

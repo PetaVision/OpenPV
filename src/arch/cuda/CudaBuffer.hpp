@@ -32,16 +32,20 @@ public:
    /**
     * A function to copy host memory to device memory. Note that the host and device memory must have the same size, otherwise undefined behavior
     * @param h_ptr The pointer to the host address to copy to the device
+    * @param in_size The size of the data to copy. Defaults to the size of the buffer.
     * #return Returns PV_Success if successful
     */
    virtual int copyToDevice(void * h_ptr);
+   virtual int copyToDevice(void * h_ptr, size_t in_size);
 
    /**
     * A function to copy device memory to host memory. Note that the host and device memory must have the same size, otherwise undefined behavior
     * @param h_ptr The pointer to the host address to copy from the device
+    * @param in_size The size of the data to copy. Defaults to the size of the buffer.
     * #return Returns PV_Success if successful
     */
    virtual int copyFromDevice(void* h_ptr);
+   virtual int copyFromDevice(void* h_ptr, size_t in_size);
 
    /**
     * A getter function to return the device pointer allocated

@@ -118,17 +118,9 @@ HyPerConn::~HyPerConn()
       delete d_Patches;
       d_Patches = NULL;
    }
-   if (localWPatches){
-      free(localWPatches);
-      localWPatches = NULL;
-   }
    if(d_GSynPatchStart){
       delete d_GSynPatchStart;
       d_GSynPatchStart = NULL;
-   }
-   if(localGSynPatchStart){
-      free(localGSynPatchStart);
-      localGSynPatchStart = NULL;
    }
    if(d_PostToPreActivity){ 
       delete d_PostToPreActivity;
@@ -291,18 +283,12 @@ int HyPerConn::initialize_base()
    d_GSynPatchStart = NULL;
    d_PostToPreActivity = NULL;
    d_Patch2DataLookupTable = NULL;
-   localWPatches = NULL;
-   localGSynPatchStart = NULL;
    krRecvPost = NULL;
    krRecvPre = NULL;
    updatedDeviceWeights = true; //Start off as always updated
    numXLocal= 1;
    numYLocal= 1;
    numFLocal = 1;
-   postGroupXSize = 1;
-   postGroupYSize = 1;
-   numPostGroupX = 1;
-   numPostGroupY = 1;
    preDataLocal = true;
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
    cudnn_WData = NULL;
@@ -761,8 +747,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    ioParam_receiveGpu(ioFlag);
    ioParam_preDataLocal(ioFlag);
-   ioParam_postGroupXSize(ioFlag);
-   ioParam_postGroupYSize(ioFlag);
    //Only read numX, Y, and F local if not using CUDNN
    ioParam_numXLocal(ioFlag);
    ioParam_numYLocal(ioFlag);
@@ -777,22 +761,6 @@ void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    if(receiveGpu){
       parent->ioParamValue(ioFlag, name, "preDataLocal", &preDataLocal, true/*default*/, false/*warn if absent*/);
-   }
-}
-
-void HyPerConn::ioParam_postGroupXSize(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
-   if(receiveGpu && !updateGSynFromPostPerspective){
-      parent->ioParamValue(ioFlag, name, "postGroupXSize", &postGroupXSize, 1, true);
-   }
-}
-
-void HyPerConn::ioParam_postGroupYSize(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
-   if(receiveGpu && !updateGSynFromPostPerspective){
-      parent->ioParamValue(ioFlag, name, "postGroupYSize", &postGroupYSize, 1, true);
    }
 }
 
@@ -1416,6 +1384,12 @@ int HyPerConn::communicateInitInfo() {
       pre->setAllocDeviceDatastore();
       this->setAllocDeviceWeights();
       post->setAllocDeviceGSyn();
+
+      //If recv from pre and pre layer is sparse, allocate activeIndices
+      if(!updateGSynFromPostPerspective && pre->getSparseFlag()){
+         pre->setAllocDeviceActiveIndices();
+      }
+
    }
 #endif
 
@@ -1681,10 +1655,10 @@ int HyPerConn::allocateDeviceBuffers()
    int status = 0;
 
 #ifdef PV_USE_OPENCL
-   CLDevice * device = parent->getCLDevice();
+   CLDevice * device = parent->getDevice();
 #endif
 #ifdef PV_USE_CUDA
-   PVCuda::CudaDevice * device = parent->getCudaDevice();
+   PVCuda::CudaDevice * device = parent->getDevice();
 #endif
 
    //We need orig to set syp
@@ -1745,7 +1719,6 @@ int HyPerConn::allocateDeviceBuffers()
 #ifdef PV_USE_CUDA
             d_WData = device->createBuffer(size);
             assert(d_WData);
-
 #endif
          }
 
@@ -1759,51 +1732,15 @@ int HyPerConn::allocateDeviceBuffers()
          float preToPostScaleX = (float)preLoc->nx/((float)postLoc->nx);
          float preToPostScaleY = (float)preLoc->ny/((float)postLoc->ny);
 
-         //See the size of buffer needed based on x and y
-         if(preToPostScaleX >= 1){
-            localPreX = (nxp * preToPostScaleX) + (preToPostScaleX * (postGroupXSize - 1));
-         }
-         else{
-            localPreX = nxp + ((preToPostScaleX * postGroupXSize) - 1);
-         }
-         if(preToPostScaleY >= 1){
-            localPreY = (nyp * preToPostScaleY) + (preToPostScaleY * (postGroupYSize - 1));
-         }
-         else{
-            localPreY = nyp + ((preToPostScaleY * postGroupYSize) - 1);
-         }
-
-         std::cout << "nxp: " << nxp << " nyp: " << nyp << " preToPostScaleX:" << preToPostScaleX << " preToPostScaleY:" << preToPostScaleY << " postGroupXSize: " << postGroupXSize << " postGroupYSize: " << postGroupYSize << "\n";
-
-         //Can only do squares because of the nb
-         if(localPreX != localPreY){
-            std::cout << "Local pre size x of " << localPreX << " must be the same as local pre size y of " << localPreY << ", so post group sizes must be square\n";
-            exit(EXIT_FAILURE);
-         }
-
          int preNf = preLoc->nf;
          int postNf = postLoc->nf;
-
-         std::cout << "preToPostScale: (" << preToPostScaleX << "," << preToPostScaleY << ")\n";
-         std::cout << "local sizes: (" << localPreX << "," << localPreY << ")\n";
 
          //This should be the case with petavision restrictions
          assert(postNf == nfp);
 
-         int localPreNb;
-         //Find border of pre to post
-         if(preToPostScaleX > 1){
-            localPreNb = ((nxp-1) * preToPostScaleX)/2;
-         }
-         else{
-            localPreNb = ((nxp*preToPostScaleX) - 1)/2;
-         }
-         std::cout << "localPreNb: " << localPreNb << " preToPostScaleX: " << preToPostScaleX << "\n";
-         
-         //Need a buffer for PVPatch for one arbor, one for each local pre 
-         //localPreX and Y are in extended space
-         int numWeightPatches = localPreX * localPreY * preNf;
+         int numWeightPatches = pre->getNumExtended() ;
          int patchSize = numWeightPatches * sizeof(PVPatch);
+
 #ifdef PV_USE_OPENCL
          d_Patches = device->createBuffer(CL_MEM_READ_ONLY, patchSize, NULL); 
 #endif
@@ -1820,46 +1757,27 @@ int HyPerConn::allocateDeviceBuffers()
          d_GSynPatchStart = device->createBuffer(gsynPatchStartIndexSize); 
 #endif
 
-         //Need a local host buffer for the new localGSynPatchStart
-         localGSynPatchStart = (size_t*) malloc(gsynPatchStartIndexSize);
-
-         haloPre.lt = localPreNb;
-         haloPre.rt = localPreNb;
-         haloPre.dn = localPreNb;
-         haloPre.up = localPreNb;
-         haloPost.lt = 0;
-         haloPost.rt = 0;
-         haloPost.dn = 0;
-         haloPost.up = 0;
-
-         //Create clPatches for local space
-         localWPatches = createPatches(numWeightPatches, nxp, nyp);
-         //Shrink weights with spoofed sizes 
-         adjustAllPatches(
-               localPreX - 2*localPreNb,
-               localPreY - 2*localPreNb,
-               preNf,
-               &haloPre,
-               postGroupXSize,
-               postGroupYSize,
-               postNf,
-               &haloPost,
-               &(localWPatches),
-               &(localGSynPatchStart),
-               NULL,
-               0); //Doing only the 0th arbor
-
-         //Set device patches and gsynpatchstart
-         d_Patches->copyToDevice(localWPatches[0]);
-         d_GSynPatchStart->copyToDevice(localGSynPatchStart);
-
-         int numPostRes = post->getNumNeurons();
+         if(numberOfAxonalArborLists() == 1){
+            PVPatch* h_patches = weights(0)[0]; //0 beacuse it's one block of memory
 #ifdef PV_USE_OPENCL
-         d_PostToPreActivity = device->createBuffer(CL_MEM_READ_ONLY, numPostRes*sizeof(long), NULL); 
+            CLBuffer * d_patches = getDevicePatches();
 #endif
 #ifdef PV_USE_CUDA
-         d_PostToPreActivity = device->createBuffer(numPostRes*sizeof(long)); 
+            PVCuda::CudaBuffer * d_patches = getDevicePatches();
 #endif
+            assert(d_patches);
+            d_patches->copyToDevice(h_patches);
+
+            size_t* h_GSynPatchStart = getGSynPatchStart()[0];
+#ifdef PV_USE_OPENCL
+            CLBuffer * d_GSynPatchStart = getDeviceGSynPatchStart();
+#endif
+#ifdef PV_USE_CUDA
+            PVCuda::CudaBuffer * d_GSynPatchStart = getDeviceGSynPatchStart();
+#endif
+            assert(d_GSynPatchStart);
+            d_GSynPatchStart->copyToDevice(h_GSynPatchStart);
+         }
 
          if(sharedWeights){
             int numWeightPatches = getNumWeightPatches();
@@ -1885,7 +1803,7 @@ int HyPerConn::allocateReceivePreKernel()
    char kernelPath[PV_PATH_MAX+128];
    char kernelFlags[PV_PATH_MAX+128];
 
-   CLDevice * device = parent->getCLDevice();
+   CLDevice * device = parent->getDevice();
 
    sprintf(kernelPath, "%s/../src/kernels/%s.cl", parent->getSrcPath(), kernel_name);
    sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/../src/kernels/", parent->getSrcPath());
@@ -1896,7 +1814,7 @@ int HyPerConn::allocateReceivePreKernel()
 
 #ifdef PV_USE_CUDA
    int status = 0;
-   PVCuda::CudaDevice * device = parent->getCudaDevice();
+   PVCuda::CudaDevice * device = parent->getDevice();
    krRecvPre = new PVCuda::CudaRecvPre(device);
 #endif
 
@@ -1923,13 +1841,6 @@ int HyPerConn::allocateReceivePreKernel()
    assert(d_GSynPatchStart);
 
 
-   int preNxExt = preLoc->nx + preHalo->lt + preHalo->rt;
-   int preNyExt = preLoc->ny + preHalo->up + preHalo->dn;
-   int preNf = preLoc->nf;
-   int postNxRes = postLoc->nx;
-   int postNyRes = postLoc->ny;
-   int postNf = postLoc->nf;
-
    int nxp = xPatchSize();
    int nyp = yPatchSize();
    int nfp = fPatchSize();
@@ -1939,138 +1850,91 @@ int HyPerConn::allocateReceivePreKernel()
    int sy = getPostNonextStrides()->sy;
    int syw = yPatchStride();
 
+   bool isSparse = pre->getSparseFlag();
+
+
+#ifdef PV_USE_OPENCL
+   CLBuffer* d_activeIndices = pre->getDeviceActiveIndices();
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer* d_activeIndices = pre->getDeviceActiveIndices(); 
+#endif
+   assert(d_activeIndices);
+
+
    //Since it never changes, set this buffer here
-   d_PostToPreActivity->copyToDevice(postToPreActivity);
    d_Patch2DataLookupTable->copyToDevice(getPatchToDataLUT());
+
 
    //Need to calculate new patches for weights
    //= conn->weights(arborID)[0]; //0 beacuse it's one block of memory
    //CLBuffer * d_patches = getClPatches();
    //
 
-   if(numFLocal != 1){
-      std::cout << "numFLocal must be 1 for recv from pre\n";
-      exit(EXIT_FAILURE);
-   }
-
-   //In receive from pre, we need to make sure x, y post group size is divisible by the actual number of post neurons
-   if(postLoc->nx % postGroupXSize != 0){
-      std::cout << "X post group size of " << postGroupXSize << " is not divisible by post nx of " << postLoc->nx << "\n";
-      exit(EXIT_FAILURE);
-   }
-
-   if(postLoc->ny % postGroupYSize != 0){
-      std::cout << "Y post group size of " << postGroupYSize << " is not divisible by post ny of " << postLoc->ny << "\n";
-      exit(EXIT_FAILURE);
-   }
-
-   numPostGroupX = postLoc->nx / postGroupXSize;
-   numPostGroupY = postLoc->ny / postGroupYSize;
-
-   //In receive from pre, we need to make sure local size x and y are divisible by numPostGroup
-
-   if(numPostGroupX % numXLocal!= 0){
-      std::cout << "X local size of " << numXLocal << " is not divisible by number of post groups of " << numPostGroupX << "\n";
-      exit(EXIT_FAILURE);
-   }
-
-   if(numPostGroupY % numYLocal != 0){
-      std::cout << "Y local size of " << numYLocal << " is not divisible by number of post groups of " << numPostGroupY << "\n";
-      exit(EXIT_FAILURE);
-   }
-
-   //Set local sizes here
-   float preToPostScaleX = (float)preLoc->nx/((float)postLoc->nx);
-   float preToPostScaleY = (float)preLoc->ny/((float)postLoc->ny);
-
-   int localBufSizeX;
-   int localBufSizeY;
-   //See the size of buffer needed based on x and y
-   if(preToPostScaleX >= 1){
-      localBufSizeX = (nxp*preToPostScaleX) + (preToPostScaleX * ((numXLocal *postGroupXSize) - 1));
-   }
-   else{
-      localBufSizeX = nxp + ((preToPostScaleX * numXLocal * postGroupXSize) - 1);
-   }
-   if(preToPostScaleY >= 1){
-      localBufSizeY = (nyp*preToPostScaleY) + (preToPostScaleY * ((numYLocal*postGroupYSize) - 1));
-   }
-   else{
-      localBufSizeY = nyp + ((preToPostScaleY * numYLocal * postGroupYSize) - 1);
-   }
-
 #ifdef PV_USE_OPENCL   
-   //Set arguments
-   int argid = 0;
+   std::cout << "OpenCL recv pre not implemented yet\n";
+   exit(-1);
+   ////Set arguments
+   //int argid = 0;
 
+   //std::cout << "localPre: " << localPreX << "," << localPreY << "," << preNf << "\n";
 
-   std::cout << "localPre: " << localPreX << "," << localPreY << "," << preNf << "\n";
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &preNxExt);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &preNyExt);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &preNf);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postNxRes);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postNyRes);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postNf);
 
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &preNxExt);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &preNyExt);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &preNf);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postNxRes);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postNyRes);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postNf);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &nxp);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &nyp);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &nfp);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postGroupXSize);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postGroupYSize);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localPreX);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localPreY);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localBufSizeX);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localBufSizeY);
 
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &nxp);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &nyp);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &nfp);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postGroupXSize);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postGroupYSize);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localPreX);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localPreY);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localBufSizeX);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localBufSizeY);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &sy);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &syw);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(float), &dt_factor);
+   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &i_sharedWeights);
 
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &sy);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &syw);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(float), &dt_factor);
-   status |= krRecvPre->setKernelArg(argid++, sizeof(int), &i_sharedWeights);
+   //status |= krRecvPre->setKernelArg(argid++, d_Patches);
+   //status |= krRecvPre->setKernelArg(argid++, d_GSynPatchStart);
 
-   status |= krRecvPre->setKernelArg(argid++, d_Patches);
-   status |= krRecvPre->setKernelArg(argid++, d_GSynPatchStart);
-
-   status |= krRecvPre->setKernelArg(argid++, d_PostToPreActivity);
-   status |= krRecvPre->setKernelArg(argid++, d_PreData);
-   status |= krRecvPre->setKernelArg(argid++, d_WData);
-   status |= krRecvPre->setKernelArg(argid++, d_PostGSyn);
-   status |= krRecvPre->setKernelArg(argid++, d_Patch2DataLookupTable);
+   //status |= krRecvPre->setKernelArg(argid++, d_PostToPreActivity);
+   //status |= krRecvPre->setKernelArg(argid++, d_PreData);
+   //status |= krRecvPre->setKernelArg(argid++, d_WData);
+   //status |= krRecvPre->setKernelArg(argid++, d_PostGSyn);
+   //status |= krRecvPre->setKernelArg(argid++, d_Patch2DataLookupTable);
 
    //Local buffers
    //status |= krRecvPre->setKernelArg(argid++, sizeof(float) * localBufSizeX * localBufSizeY * preNf, NULL);
    //status |= krRecvPre->setKernelArg(argid++, sizeof(float) * (postGroupXSize * numXLocal) * (postGroupYSize * numYLocal) * postNf, NULL);
 #endif
 #ifdef PV_USE_CUDA
-   krRecvPre->setArgs(
-      preNxExt,
-      preNyExt,
-      preNf,
-      postNxRes,
-      postNyRes,
-      postNf,
 
+   krRecvPre->setArgs(
       nxp,
       nyp,
       nfp,
-      postGroupXSize,
-      postGroupYSize,
-      localPreX,
-      localPreY,
-      localBufSizeX,
-      localBufSizeY,
-      
+
       sy,
       syw,
       dt_factor,
       i_sharedWeights,
       d_Patches,
       d_GSynPatchStart,
-      d_PostToPreActivity,
+
       d_PreData,
       d_WData,
       d_PostGSyn,
-      d_Patch2DataLookupTable
+      d_Patch2DataLookupTable,
+
+      isSparse,
+      d_activeIndices
    );
 #endif
    return status;
@@ -2085,7 +1949,7 @@ int HyPerConn::allocateReceivePostKernel()
    char kernelPath[PV_PATH_MAX+128];
    char kernelFlags[PV_PATH_MAX+128];
 
-   CLDevice * device = parent->getCLDevice();
+   CLDevice * device = parent->getDevice();
 
    sprintf(kernelPath, "%s/../src/kernels/%s.cl", parent->getSrcPath(), kernel_name);
    sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/../src/kernels/", parent->getSrcPath());
@@ -2096,7 +1960,7 @@ int HyPerConn::allocateReceivePostKernel()
 
 #ifdef PV_USE_CUDA
    int status = 0;
-   PVCuda::CudaDevice * device = parent->getCudaDevice();
+   PVCuda::CudaDevice * device = parent->getDevice();
    krRecvPost = new PVCuda::CudaRecvPost(device);
 #endif
 
