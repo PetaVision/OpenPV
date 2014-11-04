@@ -76,6 +76,8 @@ namespace PVCuda{
       /* cudnnFilterDescriptor_t */   void* v_filterDescriptor;
       /* cudnnTensor4dDescriptor_t */ void* v_outputDescriptor;
       /* cudnnConvolutionDescriptor_t */ void* v_convDescriptor;
+      int manyScaleX;
+      int manyScaleY;
 #endif
    };
 

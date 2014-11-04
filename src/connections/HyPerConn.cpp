@@ -1676,10 +1676,6 @@ int HyPerConn::allocateDeviceBuffers()
 
          if(allocDeviceWeights){
             const size_t size = origConn->getNumDataPatches() * origConn->xPatchSize()*origConn->yPatchSize()*origConn->fPatchSize() * sizeof(pvwdata_t);
-            std::cout << "Num weights: " << size/sizeof(pvwdata_t) << "\n";
-            //pvwdata_t * wBuf = get_wDataStart(arbor);
-            //clWeights[arbor] = device->createReadBuffer(size, (void*)wBuf);
-            //TODO change to read only
 #ifdef PV_USE_OPENCL
             origConn->setDeviceWData(device->createBuffer(CL_MEM_READ_ONLY, size, NULL));
 #endif
@@ -2134,7 +2130,6 @@ int HyPerConn::allocateReceivePostKernel()
       oNbrt, //Border of orig
       oNbdn, //Border of orig
       oNbup, //Border of orig
-
 
       preNx,
       preNy,

@@ -7,11 +7,17 @@ namespace PVCuda{
 #ifdef PV_USE_CUDNN
 #include <cudnn.h>
 
-//Function to permutate ordering from [outFeature, ny, nx, inFeature] to [outFeature, inFeature, ny, nx]
+//Function to change PV representation to CUDNN reprsentation
+//Does 2 things: permutate ordering from [outFeature, ny, nx, inFeature] to [outFeature, inFeature, ny, nx]
+//Reshapes the matrix if manyScale > 1 to map different "many" kernels into feature dimension
 //Coallessed in input
 __global__
-void CudaPermutePVToCudnn(float* dest, float* src, int outFeatures, int ny, int nx, int inFeatures){
-   //kSrc into pre
+void CudaPermutePVToCudnn(float* dest, float* src, int outFeatures, int ny, int nx, int inFeatures, int manyScaleX, int manyScaleY){
+   //parameter dimensions are in source PV format
+   int destNx = nx/manyScaleX;
+   int destNy = ny/manyScaleY;
+   int destInFeatures = inFeatures*manyScaleX*manyScaleY;
+
    int kSrc = (blockIdx.x * blockDim.x) + threadIdx.x;
    if(kSrc < outFeatures * ny * nx * inFeatures){
       int kOF = kSrc/(ny*nx*inFeatures);
@@ -19,26 +25,28 @@ void CudaPermutePVToCudnn(float* dest, float* src, int outFeatures, int ny, int 
       int kX  = (kSrc % (nx*inFeatures))/inFeatures;
       int kIF = (kSrc % inFeatures);
 
-      int sOF = inFeatures * ny * nx;
-      int sIF = ny * nx;
-      int sY  = nx;
+      //Recalculate x, y, and f based on manyScale
+      kIF = kIF + inFeatures * (kX % manyScaleX + (kY % manyScaleY) * manyScaleX);
+      kX = kX/manyScaleX;
+      kY = kY/manyScaleY;
+
+      int sOF = destInFeatures * destNy * destNx;
+      int sIF = destNy * destNx;
+      int sY  = destNx;
 
       int kDest = kOF * sOF + kIF * sIF + kY * sY + kX;
-
-      //if(kSrc == 105344){
-      //   printf("break here\n");
-      //}
 
       dest[kDest] = src[kSrc];
    }
 }
 
 //Weights need to be reversed for cudnn
+//No need to account for many because the PV representation matches with how gsyn was reshaped.
 __global__
-void CudaPermuteWeightsPVToCudnn(float* dest, float* src, int outFeatures, int ny, int nx, int inFeatures){
-   //kSrc into pre
+void CudaPermuteWeightsPVToCudnn(float* dest, float* src, int outFeatures, int ny, int nx, int inFeatures, int manyScaleX, int manyScaleY){
+   //Parameter dimensions are PV source dimensions
    int kSrc = (blockIdx.x * blockDim.x) + threadIdx.x;
-   if(kSrc < outFeatures * ny * nx * inFeatures){
+   if(kSrc < outFeatures * manyScaleX * manyScaleY * ny * nx * inFeatures){
       int kOF = kSrc/(ny*nx*inFeatures);
       int kY  = (kSrc % (ny*nx*inFeatures))/(nx*inFeatures);
       int kX  = (kSrc % (nx*inFeatures))/inFeatures;
@@ -50,36 +58,35 @@ void CudaPermuteWeightsPVToCudnn(float* dest, float* src, int outFeatures, int n
 
       int kDest = kOF * sOF + kIF * sIF + (ny-kY-1) * sY + (nx-kX-1);
 
-      //if(kSrc == 105344){
-      //   printf("break here\n");
-      //}
-
       dest[kDest] = src[kSrc];
    }
 }
 
 __global__
-void CudaPermuteCudnnToPV(float* dest, float* src, int outFeatures, int ny, int nx, int inFeatures){
-   //kSrc into pre
-   int kSrc = (blockIdx.x * blockDim.x) + threadIdx.x;
-   if(kSrc < outFeatures * ny * nx * inFeatures){
+void CudaPermuteCudnnToPV(float* dest, float* src, int outFeatures, int ny, int nx, int inFeatures, int manyScaleX, int manyScaleY){
+   //parameter dimensions are in dest PV format
+   int srcNx = nx/manyScaleX;
+   int srcNy = ny/manyScaleY;
+   int srcInFeatures = inFeatures*manyScaleX*manyScaleY;
 
-      int kOF = kSrc/(inFeatures*ny*nx);
-      int kIF = (kSrc % (inFeatures*ny*nx))/(ny*nx);
-      int kY  = (kSrc % (ny*nx))/nx;
-      int kX  = (kSrc % (nx));
+   int kDest = (blockIdx.x * blockDim.x) + threadIdx.x;
+   if(kDest < outFeatures * ny * nx * inFeatures){
+      int kOF = kDest/(ny*nx*inFeatures);
+      int kY  = (kDest % (ny*nx*inFeatures))/(nx*inFeatures);
+      int kX  = (kDest % (nx*inFeatures))/inFeatures;
+      int kIF = (kDest % inFeatures);
 
-      int sOF = ny * nx * inFeatures;
-      int sY  = nx * inFeatures;
-      int sX  = inFeatures;
+      //Recalculate x, y, and f based on manyScale
+      kIF = kIF + inFeatures * (kX % manyScaleX + (kY % manyScaleY) * manyScaleX);
+      kX = kX/manyScaleX;
+      kY = kY/manyScaleY;
 
-      int kDest = kOF * sOF + kY * sY + kX * sX + kIF;
+      int sOF = srcInFeatures * srcNy * srcNx;
+      int sIF = srcNy * srcNx;
+      int sY  = srcNx;
 
-      //if(kSrc == 315978){
-      //   printf("break here\n");
-      //}
-      
-      //Copy
+      int kSrc = kOF * sOF + kIF * sIF + kY * sY + kX;
+
       dest[kDest] = src[kSrc];
    }
 }
@@ -337,10 +344,33 @@ void CudaRecvPost::setArgs(
    params.preDataLocal = preDataLocal;
 
 #ifdef PV_USE_CUDNN
-   //Can only do many pre to one post
-   if(preToPostScaleX < 1 || preToPostScaleY < 1){
-      printf("One to Many case not implemented with CUDNN\n");
-      exit(-1);
+   ////Can only do many pre to one post
+   //if(preToPostScaleX < 1 || preToPostScaleY < 1){
+   //   printf("One to Many case not implemented with CUDNN\n");
+   //   exit(-1);
+   //}
+
+   int strideX, strideY;
+   //One to many case
+   if(preToPostScaleX < 1){
+      float fmanyScale = (float)1/params.preToPostScaleX;
+      //Make sure manyScale is an actual integer
+      assert(ceilf(fmanyScale) == fmanyScale);
+      params.manyScaleX = fmanyScale;
+      fmanyScale = (float)1/params.preToPostScaleY;
+      assert(ceilf(fmanyScale) == fmanyScale);
+      params.manyScaleY = fmanyScale;
+      strideX = 1;
+      strideY = 1;
+   }
+   //Many to one or one to one case
+   else{
+      params.manyScaleX = 1;
+      params.manyScaleY = 1;
+      assert(ceilf(preToPostScaleX) == preToPostScaleX);
+      assert(ceilf(preToPostScaleY) == preToPostScaleY);
+      strideX = preToPostScaleX;
+      strideY = preToPostScaleY;
    }
 
    //Set up pre descriptor
@@ -370,7 +400,7 @@ void CudaRecvPost::setArgs(
    status = cudnnCreateFilterDescriptor(&filterDescriptor);
    assert(status == CUDNN_STATUS_SUCCESS);
    status = cudnnSetFilterDescriptor(filterDescriptor, CUDNN_DATA_FLOAT,
-      params.nf, //Number of output feature maps
+      params.nf * params.manyScaleX * params.manyScaleY, //Number of output feature maps. For one to many, output feature maps are repeated for each kernel
       params.nfp, //Number of input feature maps
       params.nyp, //Height of each filter
       params.nxp); //Width of each filter
@@ -399,8 +429,8 @@ void CudaRecvPost::setArgs(
       //params.nxp-params.preToPostScaleX-1,  //zero-padding height and width
       diffY,
       diffX,  //zero-padding height and width
-      params.preToPostScaleY, //Vertical filter stride
-      params.preToPostScaleX, //Horizontal filter stride
+      strideY, //Vertical filter stride
+      strideX, //Horizontal filter stride
       1, 1, //upscale the input in x/y direction
       CUDNN_CONVOLUTION);
    assert(status == CUDNN_STATUS_SUCCESS);
@@ -416,10 +446,11 @@ void CudaRecvPost::setArgs(
    assert(status == CUDNN_STATUS_SUCCESS);
 
    //Make sure dimensions match up with PV layer
-   if(out_n != 1 || out_h != nyRes || out_w != nxRes || out_c != nf){
+   if(out_n != 1 || out_h != nyRes/params.manyScaleY || out_w != nxRes/params.manyScaleX || out_c != nf*params.manyScaleX*params.manyScaleY){
       printf("CUDNN:: Dimensions don't match: \n");
       printf("Dimensions of output tensor (n, y, x, f): %d, %d, %d, %d\n", out_n, out_h, out_w, out_c);
-      printf("Dimensions of output PV layer (n, y, x, f): 1, %d, %d, %d\n", nyRes, nxRes, nf);
+      printf("Scaled dimensions of output PV layer (n, y, x, f): 1, %d, %d, %d\n", nyRes/params.manyScaleY, nxRes/params.manyScaleX, nf*params.manyScaleX*params.manyScaleY);
+      printf("Actual dimensions of output PV layer (n, y, x, f): 1, %d, %d, %d\n", nyRes, nxRes, nf);
       exit(-1);
    }
 
@@ -429,9 +460,9 @@ void CudaRecvPost::setArgs(
    assert(status == CUDNN_STATUS_SUCCESS);
    status = cudnnSetTensor4dDescriptor(outputDescriptor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
       1, //Number of images
-      nf, //Number of feature maps per image
-      nyRes, //ny restricted
-      nxRes); //nx restricted
+      nf*params.manyScaleX*params.manyScaleY, //Number of feature maps per image
+      nyRes/params.manyScaleY, //ny restricted
+      nxRes/params.manyScaleX); //nx restricted
    if(status != CUDNN_STATUS_SUCCESS){
       switch(status){
          case CUDNN_STATUS_BAD_PARAM:
@@ -466,7 +497,8 @@ void CudaRecvPost::permuteDatastorePVToCudnn(){
    device->syncDevice();
 
    //Call function
-   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_preData, params.preData, 1, ny, nx, nf);
+   //Datastore will never get reshaped, so manyScale will always be 1
+   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_preData, params.preData, 1, ny, nx, nf, 1, 1);
    handleCallError();
 
    device->syncDevice();
@@ -486,8 +518,7 @@ void CudaRecvPost::permuteGSynPVToCudnn(int channel){
    //Ceil to get all weights
    int gridSize = ceil((float)numNeurons/blockSize);
    //Call function
-   //printf("Calling gsyn PVToCudnn with (%d, %d, %d)\n", ny, nx, nf);
-   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_gSyn, gSynPatchHead, 1, ny, nx, nf);
+   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_gSyn, gSynPatchHead, 1, ny, nx, nf, params.manyScaleX, params.manyScaleY);
    handleCallError();
 }
 
@@ -506,27 +537,27 @@ void CudaRecvPost::permuteGSynCudnnToPV(int channel){
    int gridSize = ceil((float)numNeurons/blockSize);
    //Call function
    //printf("Calling gsyn Cudnn To PV with (%d, %d, %d)\n", ny, nx, nf);
-   CudaPermuteCudnnToPV<<<gridSize, blockSize, 0, device->getStream()>>>(gSynPatchHead, params.cudnn_gSyn, 1, ny, nx, nf);
+   CudaPermuteCudnnToPV<<<gridSize, blockSize, 0, device->getStream()>>>(gSynPatchHead, params.cudnn_gSyn, 1, ny, nx, nf, params.manyScaleX, params.manyScaleY);
    handleCallError();
 }
 
 void CudaRecvPost::permuteWeightsPVToCudnn(){
    //outFeatures is number of kernels
-   //Note this is only the case for many to one and one to one
    int outFeatures = params.nf;
+
    //Rest is patch sizes
    int ny = params.nyp;
    int nx = params.nxp;
    int inFeatures = params.nfp;
 
    //Calculate grid and work size
-   int numWeights = outFeatures * ny * nx * inFeatures;
+   int numWeights = outFeatures * params.manyScaleX * params.manyScaleY * ny * nx * inFeatures;
    int blockSize = device->get_max_threads();
    //Ceil to get all weights
    int gridSize = ceil((float)numWeights/blockSize);
    //Call function
    //printf("Calling weights PV To Cudnn with (%d, %d, %d, %d)\n", outFeatures, ny, nx, inFeatures);
-   CudaPermuteWeightsPVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_weights, params.weights, outFeatures, ny, nx, inFeatures);
+   CudaPermuteWeightsPVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_weights, params.weights, outFeatures, ny, nx, inFeatures, params.manyScaleX, params.manyScaleY);
    handleCallError();
 }
 
