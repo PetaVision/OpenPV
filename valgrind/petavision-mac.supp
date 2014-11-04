@@ -13,7 +13,22 @@
 # This file was written for the Mac running Open MPI 1.8.1 installed from Homebrew.
 
 {
-   <suppression_syscall_param_unitialized>
+   <suppression_conditional_uninitialized_opal_net_get_hostname>
+   Memcheck:Cond
+   ...
+   fun:opal_net_get_hostname
+}
+
+{
+   <suppression_syscall_param_uninitialized_orte_start_listening>
+   Memcheck:Param
+   socketcall.bind(my_addr.sin6_scope_id)
+   ...
+   fun:orte_oob_tcp_start_listening
+}
+
+{
+   <suppression_syscall_param_unitialized_MPI_Init>
    Memcheck:Param
    socketcall.bind(my_addr.sin6_scope_id)
    ...
