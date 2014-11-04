@@ -27,7 +27,7 @@ ConstantLayer "input" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 1;
+    sparseLayer= 1;
     //
     //Making this layer sparse, so random uniform v
     InitVType = "UniformRandomV";
@@ -50,7 +50,7 @@ ANNLayer "outputRecv" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer= 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -70,7 +70,7 @@ ANNLayer "outputRecvGpu" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer= 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -90,7 +90,7 @@ ANNLayer "outputTest" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer= 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
