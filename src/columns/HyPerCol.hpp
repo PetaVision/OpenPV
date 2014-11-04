@@ -424,6 +424,7 @@ private:
                             // If checkpointWriteFlag is false and this flag is true, no checkpoint is done on exit.
                             // The flag has no effect if checkpointWriteFlag is true (in which case a checkpoint is written on exit to the next directory in checkpointWriteDir
 
+   bool readyFlag;          // Initially false; set to true when communicateInitInfo, allocateDataStructures, and setInitialValues stages are completed
    double startTime;
    double simTime;          // current time in milliseconds
    double stopTime;         // time to stop time

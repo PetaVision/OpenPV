@@ -56,9 +56,11 @@ HyPerCol::~HyPerCol()
    for (n = 0; n < numConnections; n++) {
       delete connections[n];
    }
+   free(connections);
    for (n = 0; n < numNormalizers; n++) {
       delete normalizers[n];
    }
+   free(normalizers);
 
    int rank=columnId(); // Need to save so that we know whether we're the process that does I/O, even after deleting icComm.
 
@@ -76,6 +78,7 @@ HyPerCol::~HyPerCol()
          delete layers[n];
       }
    }
+   free(layers);
 
    if (ownsParams) delete params;
 
@@ -88,8 +91,6 @@ HyPerCol::~HyPerCol()
 
    delete runTimer;
 
-   free(connections);
-   free(layers);
    for (int k=0; k<numColProbes; k++) {
       delete colProbes[k];
    }
@@ -120,6 +121,7 @@ HyPerCol::~HyPerCol()
 int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their actual values in initialize()
    warmStart = false;
+   readyFlag = false;
    currentStep = 0;
    layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    numLayers = 0;
@@ -1242,120 +1244,123 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    stopTime = stop_time;
    deltaTime = dt;
 
-   layerStatus = (int *) calloc((size_t) numLayers, sizeof(int));
-   if (layerStatus==NULL) {
-      fprintf(stderr, "Rank %d process unable to allocate memory for status of %zu layers: %s\n", columnId(), (size_t) numLayers, strerror(errno));
-   }
-   connectionStatus = (int *) calloc((size_t) numConnections, sizeof(int));
-   if (connectionStatus==NULL) {
-      fprintf(stderr, "Rank %d process unable to allocate memory for status of %zu connections: %s\n", columnId(), (size_t) numConnections, strerror(errno));
-   }
-
-   int (HyPerCol::*layerInitializationStage)(int) = NULL;
-   int (HyPerCol::*connInitializationStage)(int) = NULL;
-
-   // communicateInitInfo stage
-   layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
-   connInitializationStage = &HyPerCol::connCommunicateInitInfo;
-   doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
-
-   // do communication step for probes
-   // This is where probes are added to their respective target layers and connections
-   for (int i=0; i<numBaseProbes; i++) {
-      BaseProbe * p = baseProbes[i];
-      int pstatus = p->communicateInitInfo();
-      if (p->getOwner() != this) {
-         baseProbes[i] = NULL; // don't need to maintain probes whose ownership has been handed off.
+   if (!readyFlag) {
+      layerStatus = (int *) calloc((size_t) numLayers, sizeof(int));
+      if (layerStatus==NULL) {
+         fprintf(stderr, "Rank %d process unable to allocate memory for status of %zu layers: %s\n", columnId(), (size_t) numLayers, strerror(errno));
       }
-      if (pstatus==PV_SUCCESS) {
-         if (columnId()==0) printf("Probe \"%s\" communicateInitInfo completed.\n", p->getName());
+      connectionStatus = (int *) calloc((size_t) numConnections, sizeof(int));
+      if (connectionStatus==NULL) {
+         fprintf(stderr, "Rank %d process unable to allocate memory for status of %zu connections: %s\n", columnId(), (size_t) numConnections, strerror(errno));
+      }
+
+      int (HyPerCol::*layerInitializationStage)(int) = NULL;
+      int (HyPerCol::*connInitializationStage)(int) = NULL;
+
+      // communicateInitInfo stage
+      layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
+      connInitializationStage = &HyPerCol::connCommunicateInitInfo;
+      doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
+
+      // do communication step for probes
+      // This is where probes are added to their respective target layers and connections
+      for (int i=0; i<numBaseProbes; i++) {
+         BaseProbe * p = baseProbes[i];
+         int pstatus = p->communicateInitInfo();
+         if (p->getOwner() != this) {
+            baseProbes[i] = NULL; // don't need to maintain probes whose ownership has been handed off.
+         }
+         if (pstatus==PV_SUCCESS) {
+            if (columnId()==0) printf("Probe \"%s\" communicateInitInfo completed.\n", p->getName());
+         }
+         else {
+            assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
+            exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
+         }
+      }
+
+      // allocateDataStructures stage
+      layerInitializationStage = &HyPerCol::layerAllocateDataStructures;
+      connInitializationStage = &HyPerCol::connAllocateDataStructures;
+      doInitializationStage(layerInitializationStage, connInitializationStage, "allocateDataStructures");
+
+      // do allocation stage for probes
+      for (int i=0; i<numBaseProbes; i++) {
+         BaseProbe * p = baseProbes[i];
+         if (p==NULL) continue;
+         int pstatus = p->allocateDataStructures();
+         if (pstatus==PV_SUCCESS) {
+            if (columnId()==0) printf("Probe \"%s\" allocateDataStructures completed.\n", p->getName());
+         }
+         else {
+            assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
+            exit(EXIT_FAILURE); // Any error message should be printed by probe's allocateDataStructures function
+         }
+      }
+
+      //Allocate all phaseRecvTimers
+      phaseRecvTimers = (Timer**) malloc(numPhases * sizeof(Timer*));
+      for(int phase = 0; phase < numPhases; phase++){
+         char tmpStr[10];
+         sprintf(tmpStr, "phRecv%d", phase);
+         phaseRecvTimers[phase] = new Timer(name, "column", tmpStr);
+      }
+
+      initPublishers(); // create the publishers and their data stores
+
+   #ifdef DEBUG_OUTPUT
+      if (columnId() == 0) {
+         printf("[0]: HyPerCol: running...\n");  fflush(stdout);
+      }
+   #endif
+
+      // Initialize either by loading from checkpoint, or calling initializeState
+      // This needs to happen after initPublishers so that we can initialize the values in the data stores,
+      // and before the layers' publish calls so that the data in border regions gets copied correctly.
+      if ( checkpointReadFlag ) {
+         checkpointRead(checkpointReadDir);
       }
       else {
-         assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-         exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
+         layerInitializationStage = &HyPerCol::layerSetInitialValues;
+         connInitializationStage = &HyPerCol::connSetInitialValues;
+         doInitializationStage(layerInitializationStage, connInitializationStage, "setInitialValues");
       }
-   }
+      free(layerStatus); layerStatus = NULL;
+      free(connectionStatus); connectionStatus = NULL;
 
-   // allocateDataStructures stage
-   layerInitializationStage = &HyPerCol::layerAllocateDataStructures;
-   connInitializationStage = &HyPerCol::connAllocateDataStructures;
-   doInitializationStage(layerInitializationStage, connInitializationStage, "allocateDataStructures");
+      // Initial normalization moved here to facilitate normalizations of groups of HyPeConns
+      normalizeWeights();
 
-   // do allocation stage for probes
-   for (int i=0; i<numBaseProbes; i++) {
-      BaseProbe * p = baseProbes[i];
-      if (p==NULL) continue;
-      int pstatus = p->allocateDataStructures();
-      if (pstatus==PV_SUCCESS) {
-         if (columnId()==0) printf("Probe \"%s\" allocateDataStructures completed.\n", p->getName());
-      }
-      else {
-         assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-         exit(EXIT_FAILURE); // Any error message should be printed by probe's allocateDataStructures function
-      }
-   }
+      parameters()->warnUnread();
+      if (printParamsFilename!=NULL) outputParams();
 
-   //Allocate all phaseRecvTimers
-   phaseRecvTimers = (Timer**) malloc(numPhases * sizeof(Timer*));
-   for(int phase = 0; phase < numPhases; phase++){ 
-      char tmpStr[10];
-      sprintf(tmpStr, "phRecv%d", phase);
-      phaseRecvTimers[phase] = new Timer(name, "column", tmpStr);
-   }
-
-   const bool exitOnFinish = false;
-
-   initPublishers(); // create the publishers and their data stores
-
-#ifdef DEBUG_OUTPUT
-   if (columnId() == 0) {
-      printf("[0]: HyPerCol: running...\n");  fflush(stdout);
-   }
-#endif
-
-   // Initialize either by loading from checkpoint, or calling initializeState
-   // This needs to happen after initPublishers so that we can initialize the values in the data stores,
-   // and before the layers' publish calls so that the data in border regions gets copied correctly.
-   if ( checkpointReadFlag ) {
-      checkpointRead(checkpointReadDir);
-   }
-   else {
-      layerInitializationStage = &HyPerCol::layerSetInitialValues;
-      connInitializationStage = &HyPerCol::connSetInitialValues;
-      doInitializationStage(layerInitializationStage, connInitializationStage, "setInitialValues");
-   }
-   free(layerStatus); layerStatus = NULL;
-   free(connectionStatus); connectionStatus = NULL;
-
-   // Initial normalization moved here to facilitate normalizations of groups of HyPeConns
-   normalizeWeights();
-
-   parameters()->warnUnread();
-   if (printParamsFilename!=NULL) outputParams();
-
-   // publish initial conditions
-   //
-   for (int l = 0; l < numLayers; l++) {
-      layers[l]->publish(icComm, simTime);
-      //layers[l]->updateActiveIndices();
-   }
-
-   // wait for all published data to arrive and update active indices;
-   //
-   for (int l = 0; l < numLayers; l++) {
-      icComm->wait(layers[l]->getLayerId());
-      layers[l]->updateActiveIndices();
-   }
-
-   // output initial conditions
-   if (!checkpointReadFlag) {
-      for (int c = 0; c < numConnections; c++) {
-         connections[c]->outputState(simTime);
-      }
+      // publish initial conditions
+      //
       for (int l = 0; l < numLayers; l++) {
-         layers[l]->outputState(simTime);
+         layers[l]->publish(icComm, simTime);
+         //layers[l]->updateActiveIndices();
       }
+
+      // wait for all published data to arrive and update active indices;
+      //
+      for (int l = 0; l < numLayers; l++) {
+         icComm->wait(layers[l]->getLayerId());
+         layers[l]->updateActiveIndices();
+      }
+
+      // output initial conditions
+      if (!checkpointReadFlag) {
+         for (int c = 0; c < numConnections; c++) {
+            connections[c]->outputState(simTime);
+         }
+         for (int l = 0; l < numLayers; l++) {
+            layers[l]->outputState(simTime);
+         }
+      }
+
+      readyFlag = true;
    }
+
 
    if (runDelegate) {
       // let delegate advance the time
@@ -1409,6 +1414,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    }
 #endif
 
+   const bool exitOnFinish = false;
    exitRunLoop(exitOnFinish);
 
 #ifdef TIMER_ON
