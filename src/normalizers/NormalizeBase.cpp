@@ -15,6 +15,7 @@ NormalizeBase::NormalizeBase() {
 
 NormalizeBase::~NormalizeBase() {
    free(name);
+   free(connectionList); // normalizer does not own the individual connections in the list, so don't free them
 }
 
 int NormalizeBase::initialize_base() {

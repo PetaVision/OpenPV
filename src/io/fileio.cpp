@@ -340,6 +340,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
             fprintf(stderr, "PV_fwrite verification error: readback of %zu bytes from \"%s\" starting at position %zu failed: %zu bytes disagree.\n", writesize, pvstream->name, pvstream->filepos, badcount);
          }
       }
+      free(read_buffer);
       if (readStream) { PV_fclose(readStream); readStream = NULL; }
       if (status != PV_SUCCESS) {
          fseek(pvstream->fp, pvstream->filepos, SEEK_SET);
