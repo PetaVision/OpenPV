@@ -46,10 +46,10 @@ int BIDSCloneLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-void BIDSCloneLayer::ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag) {
+void BIDSCloneLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      writeSparseActivity = true;
-      parent->parameters()->handleUnnecessaryParameter(name, "writeSparseActivity", writeSparseActivity);
+      sparseLayer = true;
+      parent->parameters()->handleUnnecessaryParameter(name, "sparseLayer", sparseLayer);
    }
 }
 

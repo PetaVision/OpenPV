@@ -33,7 +33,7 @@ protected:
    BIDSCloneLayer();
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
    virtual void ioParam_jitterSource(enum ParamsIOFlag ioFlag);
    //unsigned int * getSourceActiveIndices() {return originalLayer->getCLayer()->activeIndices;}

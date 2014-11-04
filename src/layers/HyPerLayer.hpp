@@ -218,12 +218,12 @@ protected:
    virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeSparseActivity: Specifies if the output written should be a sparse activity file
+    * @brief sparseLayer: Specifies if the layer should be considered sparese for optimization and output
     */
-   virtual void ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_sparseLayer(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeSparseValues: If writeSparseActivity is set, specifies if the pvp file should write sparse value file
+    * @brief writeSparseValues: If sparseLayer is set, specifies if the pvp file should write sparse value file
     */
    virtual void ioParam_writeSparseValues(enum ParamsIOFlag ioFlag);
    /** @} */
@@ -454,7 +454,7 @@ public:
    bool useMirrorBCs()               {return this->mirrorBCflag;}
    pvdata_t getValueBC() {return this->valueBC;}
 
-   bool getSparseFlag()             {return this->writeSparseActivity;}
+   bool getSparseFlag()             {return this->sparseLayer;}
 
    int getPhase()                    {return this->phase;}
 
@@ -527,8 +527,8 @@ protected:
    double writeTime;             // time of next output
    double writeStep;             // output time interval
 
-   bool writeSparseActivity; // if true, only nonzero activities are saved; if false, all values are saved.
-   bool writeSparseValues; // if true, writeSparseActivity writes index-value pairs.  if false, writeSparseActivity writes indices only and values are assumed to be 1.  Not used if writeSparseActivity is false
+   bool sparseLayer; // if true, only nonzero activities are saved; if false, all values are saved.
+   bool writeSparseValues; // if true, sparseLayer writes index-value pairs.  if false, sparseLayer writes indices only and values are assumed to be 1.  Not used if sparseLayer is false
    int writeActivityCalls;      // Number of calls to writeActivity (written to nbands in the header of the a%d.pvp file)
    int writeActivitySparseCalls; // Number of calls to writeActivitySparse (written to nbands in the header of the a%d.pvp file)
 

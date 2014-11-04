@@ -727,7 +727,7 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_triggerOffset(ioFlag);
    ioParam_writeStep(ioFlag);
    ioParam_initialWriteTime(ioFlag);
-   ioParam_writeSparseActivity(ioFlag);
+   ioParam_sparseLayer(ioFlag);
    ioParam_writeSparseValues(ioFlag);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    ioParam_updateGpu(ioFlag);
@@ -868,13 +868,28 @@ void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void HyPerLayer::ioParam_writeSparseActivity(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "writeSparseActivity", &writeSparseActivity, false);
+void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "sparseLayer") && parent->parameters()->present(name, "writeSparseActivity")){
+      parent->ioParamValue(ioFlag, name, "writeSparseActivity", &sparseLayer, false);
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Warning: writeSparseActivity is deprecated.  Use sparseLayer instead.\n");
+      }
+      return;
+   }
+   // writeSparseActivity was deprecated Nov 4, 2014
+   // When support for writeSparseActivity is removed entirely, remove the above if-statement and keep the ioParamValue call below.
+   parent->ioParamValue(ioFlag, name, "sparseLayer", &sparseLayer, false);
 }
 
 void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "writeSparseActivity"));
-   if (writeSparseActivity)
+   // writeSparseActivity was deprecated Nov 4, 2014
+   if(!parent->parameters()->present(name, "sparseLayer")){
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "writeSparseActivity"));
+   }
+   else{
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "sparseLayer"));
+   }
+   if (sparseLayer)
       parent->ioParamValue(ioFlag, name, "writeSparseValues", &writeSparseValues, false/*default value*/);
 }
 
@@ -1027,7 +1042,7 @@ int HyPerLayer::openOutputStateFile() {
       break;
    }
 
-   if(writeSparseActivity){
+   if(sparseLayer){
       switch( parent->includeLayerName() ) {
       case 0:
          snprintf(posFilename, PV_PATH_MAX, "%s/a%d.pos", parent->getOutputPath(), layerId);
@@ -1072,7 +1087,7 @@ int HyPerLayer::openOutputStateFile() {
          int params[NUM_BIN_PARAMS];
          int numread = PV_fread(params, sizeof(int), NUM_BIN_PARAMS, pvstream);
          if (numread==NUM_BIN_PARAMS) {
-            if (writeSparseActivity) {
+            if (sparseLayer) {
                writeActivitySparseCalls = params[INDEX_NBANDS];
             }
             else {
@@ -1090,7 +1105,7 @@ int HyPerLayer::openOutputStateFile() {
    MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
 #endif
    clayer->activeFP = pvp_open_write_file(filename, icComm, ioAppend);
-   if(writeSparseActivity){
+   if(sparseLayer){
       clayer->posFP = pvp_open_write_file(posFilename, icComm, ioAppend);
    }
    return PV_SUCCESS;
@@ -2721,7 +2736,7 @@ int HyPerLayer::outputState(double timef, bool last)
 
    if (timef >= (writeTime-(parent->getDeltaTime()/2)) && writeStep >= 0) {
       writeTime += writeStep;
-      if (writeSparseActivity) {
+      if (sparseLayer) {
          status = writeActivitySparse(timef, writeSparseValues);
       }
       else {
@@ -2800,7 +2815,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
       }
       int * num_calls_ptr = NULL;
       const char * nfname = NULL;
-      if (writeSparseActivity) {
+      if (sparseLayer) {
          nfname = "numframes_sparse";
          num_calls_ptr = &writeActivitySparseCalls;
       }
@@ -2967,7 +2982,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    }
 
    if (writeStep>=0.0f) {
-      if (writeSparseActivity) {
+      if (sparseLayer) {
          parent->writeScalarToFile(cpDir, getName(), "numframes_sparse", writeActivitySparseCalls);
       }
       else {
