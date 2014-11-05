@@ -17,14 +17,27 @@ ReceiveFromPostProbe::ReceiveFromPostProbe(const char * probeName, HyPerCol * hc
    initReceiveFromPostProbe(probeName, hc);
 }
 
-int ReceiveFromPostProbe::initReceiveFromPostProbe_base() { return PV_SUCCESS; }
+int ReceiveFromPostProbe::initReceiveFromPostProbe_base() {
+   tolerance = (pvadata_t) 0;
+   return PV_SUCCESS;
+}
 
 int ReceiveFromPostProbe::initReceiveFromPostProbe(const char * probeName, HyPerCol * hc) {
    return initStatsProbe(probeName, hc);
 }
 
+int ReceiveFromPostProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = StatsProbe::ioParamsFillGroup(ioFlag);
+   ioParam_tolerance(ioFlag);
+   return status;
+}
+
 void ReceiveFromPostProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    requireType(BufActivity);
+}
+
+void ReceiveFromPostProbe::ioParam_tolerance(enum ParamsIOFlag ioFlag) {
+   getParent()->ioParamValue(ioFlag, getName(), "tolerance", &tolerance, tolerance);
 }
 
 int ReceiveFromPostProbe::outputState(double timed){
@@ -33,7 +46,7 @@ int ReceiveFromPostProbe::outputState(double timed){
    int numExtNeurons = getTargetLayer()->getNumExtended();
    const pvdata_t * A = getTargetLayer()->getLayerData();
    std::cout.precision(15);
-   std::cout << "outputing\n";
+   std::cout << "outputting\n";
    for (int i = 0; i < numExtNeurons; i++){
       if(fabs(A[i]) != 0){
          int xpos = kxPos(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
@@ -42,7 +55,14 @@ int ReceiveFromPostProbe::outputState(double timed){
          //std::cout << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i] << "\n";
       }
       //For roundoff errors
-      assert(fabs(A[i]) < 1e-6);
+      if(fabs(A[i]) >= tolerance) {
+         fprintf(stderr, "%s Layer \"%s\" activity outside of tolerance %f: extended index %d has activity %f\n",
+               getMessage(), getTargetLayer()->getName(), tolerance, i, A[i]);
+         status = PV_FAILURE;
+      }
+      if (status != PV_SUCCESS) {
+         exit(EXIT_FAILURE);
+      }
    }
    return status;
 }
