@@ -185,6 +185,13 @@ protected:
    virtual bool constrainBiases();
    virtual bool constrainOffsets();
 
+   /**
+    * Returns PV_SUCCESS if offsetAnchor is a valid anchor string
+    * (two characters long; first characters one of 't', 'c', or 'b'; second characters one of 'l', 'c', or 'r')
+    * Returns PV_FAILURE otherwise
+    */
+   int checkValidAnchorString();
+
 public:
    Image(const char * name, HyPerCol * hc);
    virtual ~Image();

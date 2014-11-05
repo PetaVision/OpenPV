@@ -167,20 +167,7 @@ int Image::ioParam_offsets(enum ParamsIOFlag ioFlag) {
 void Image::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
    parent->ioParamString(ioFlag, name, "offsetAnchor", &offsetAnchor, "tl");
    if (ioFlag==PARAMS_IO_READ) {
-      int status = PV_SUCCESS;
-      if (strlen(offsetAnchor) != (size_t) 2) {
-         status = PV_FAILURE;
-      }
-      else {
-         char xOffsetAnchor = offsetAnchor[1];
-         if (xOffsetAnchor != 'l' && xOffsetAnchor != 'c' && xOffsetAnchor != 'r') {
-            status = PV_FAILURE;
-         }
-         char yOffsetAnchor = offsetAnchor[0];
-         if (yOffsetAnchor != 't' && yOffsetAnchor != 'c' && yOffsetAnchor != 'b') {
-            status = PV_FAILURE;
-         }
-      }
+      int status = checkValidAnchorString();
       if (status != PV_SUCCESS) {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", parent->parameters()->groupKeywordFromName(getName()), getName());
@@ -339,6 +326,24 @@ void Image::ioParam_useParamsImage(enum ParamsIOFlag ioFlag) {
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+}
+
+int Image::checkValidAnchorString() {
+   int status = PV_SUCCESS;
+   if (offsetAnchor==NULL || strlen(offsetAnchor) != (size_t) 2) {
+      status = PV_FAILURE;
+   }
+   else {
+      char xOffsetAnchor = offsetAnchor[1];
+      if (xOffsetAnchor != 'l' && xOffsetAnchor != 'c' && xOffsetAnchor != 'r') {
+         status = PV_FAILURE;
+      }
+      char yOffsetAnchor = offsetAnchor[0];
+      if (yOffsetAnchor != 't' && yOffsetAnchor != 'c' && yOffsetAnchor != 'b') {
+         status = PV_FAILURE;
+      }
+   }
+   return status;
 }
 
 int Image::scatterImageFile(const char * path, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber, bool autoResizeFlag)
@@ -864,9 +869,7 @@ int Image::allocateDataStructures() {
       status = readImage(filename, this->offsets[0], this->offsets[1], this->offsetAnchor);
       assert(status == PV_SUCCESS);
    }
-   else {
-      this->imageLoc = * getLayerLoc();
-   }
+   // readImage sets imageLoc based on the indicated file.  If filename is null, imageLoc doesn't change.
 
    // Open the file recording jitter positions.
    // This is in allocateDataStructures in case a subclass does something weird with the offsets, causing
