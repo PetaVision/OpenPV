@@ -21,30 +21,32 @@ static void copyToLocBuffer(int buf[], PVLayerLoc * loc)
 {
    buf[0] = loc->nx;
    buf[1] = loc->ny;
-   buf[2] = loc->nxGlobal;
-   buf[3] = loc->nyGlobal;
-   buf[4] = loc->kx0;
-   buf[5] = loc->ky0;
-   buf[6] = loc->nf;
-   buf[7] = loc->halo.lt;
-   buf[8] = loc->halo.rt;
-   buf[9] = loc->halo.dn;
-   buf[10] = loc->halo.up;
+   buf[2] = loc->nf;
+   buf[3] = loc->nb_no_longer_used;
+   buf[4] = loc->nxGlobal;
+   buf[5] = loc->nyGlobal;
+   buf[6] = loc->kx0;
+   buf[7] = loc->ky0;
+   buf[8] = loc->halo.lt;
+   buf[9] = loc->halo.rt;
+   buf[10] = loc->halo.dn;
+   buf[11] = loc->halo.up;
 }
 
 static void copyFromLocBuffer(int buf[], PVLayerLoc * loc)
 {
    loc->nx       = buf[0];
    loc->ny       = buf[1];
-   loc->nxGlobal = buf[2];
-   loc->nyGlobal = buf[3];
-   loc->kx0      = buf[4];
-   loc->ky0      = buf[5];
-   loc->nf       = buf[6];
-   loc->halo.lt  = buf[7];
-   loc->halo.rt  = buf[8];
-   loc->halo.dn  = buf[9];
-   loc->halo.up  = buf[10];
+   loc->nf       = buf[2];
+   loc->nb_no_longer_used = buf[3];
+   loc->nxGlobal = buf[4];
+   loc->nyGlobal = buf[5];
+   loc->kx0      = buf[6];
+   loc->ky0      = buf[7];
+   loc->halo.lt  = buf[8];
+   loc->halo.rt  = buf[9];
+   loc->halo.dn  = buf[10];
+   loc->halo.up  = buf[11];
 }
 
 int getFileType(const char * filename)
@@ -209,8 +211,11 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 
          //loc->nxGlobal = nxProcs * nx;
          //loc->nyGlobal = nyProcs * ny;
+         loc->nb_no_longer_used = 0;
          loc->nxGlobal = xImageSize;
          loc->nyGlobal = yImageSize;
+         loc->kx0 = 0;
+         loc->ky0 = 0;
 
          locBuf[0] = PV_SUCCESS;
          copyToLocBuffer(&locBuf[1], loc);
