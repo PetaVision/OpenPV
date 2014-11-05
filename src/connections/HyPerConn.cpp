@@ -2884,17 +2884,65 @@ int HyPerConn::defaultUpdate_dW(int arbor_ID) {
    // That takes place in reduceKernels, so that the output is
    // independent of the number of processors.
    int nExt = preSynapticLayer()->getNumExtended();
+   const PVLayerLoc * loc = preSynapticLayer()->getLayerLoc();
 
    if (sharedWeights) {
       //Reset numKernelActivations
       int numKernelIndices = getNumDataPatches();
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
       for(int ki = 0; ki < numKernelIndices; ki++){
          numKernelActivations[ki] = 0;
       }
    }
-   for(int kExt=0; kExt<nExt;kExt++) {
-      defaultUpdateInd_dW(arbor_ID, kExt);
+
+   if(sharedWeights){
+      //Calculate x and y cell size
+      int xCellSize = zUnitCellSize(pre->getXScale(), post->getXScale());
+      int yCellSize = zUnitCellSize(pre->getYScale(), post->getYScale());
+      int nxExt = loc->nx + loc->halo.lt + loc->halo.rt;
+      int nyExt = loc->ny + loc->halo.up + loc->halo.dn;
+      int nf = loc->nf;
+      int numKernels = getNumDataPatches();
+
+      //Shared weights done in parallel, parallel in numkernels
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+      for(int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++){
+         //Calculate xCellIdx, yCellIdx, and fCellIdx from kernelIndex
+         int kxCellIdx = kxPos(kernelIdx, xCellSize, yCellSize, nf);
+         int kyCellIdx = kyPos(kernelIdx, xCellSize, yCellSize, nf);
+         int kfIdx = featureIndex(kernelIdx, xCellSize, yCellSize, nf);
+         //Loop over all cells in pre ext
+         int kyIdx = kyCellIdx;
+         int yCellIdx = 0;
+         while(kyIdx < nyExt){
+            int kxIdx = kxCellIdx;
+            int xCellIdx = 0;
+            while(kxIdx < nxExt){
+               //Calculate kExt from ky, kx, and kf
+               int kExt = kIndex(kxIdx, kyIdx, kfIdx, nxExt, nyExt, nf);
+               defaultUpdateInd_dW(arbor_ID, kExt);
+               xCellIdx++;
+               kxIdx = kxCellIdx + xCellIdx * xCellSize;
+            }
+            yCellIdx++;
+            kyIdx = kyCellIdx + yCellIdx * yCellSize;
+         }
+      }
    }
+   else{
+      //No clobbering for non-shared weights
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+      for(int kExt=0; kExt<nExt;kExt++) {
+         defaultUpdateInd_dW(arbor_ID, kExt);
+      }
+   }
+
    //If update from clones, update dw here as well
    //Updates on all PlasticClones
    for(int clonei = 0; clonei < clones.size(); clonei++){
