@@ -63,8 +63,30 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
          buffer[k] = pixelTypeConvert(q, zeroval, oneval);
       }
    }
+   
+   hasNewImageFlag = true;
+
+   return PV_SUCCESS;
 }
 template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, uint8_t zeroval, uint8_t oneval);
+
+template <typename pixeltype>
+int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval, int offsetX, int offsetY, char const * offsetAnchor) {
+   offsets[0] = offsetX;
+   offsets[1] = offsetY;
+   free(this->offsetAnchor);
+   this->offsetAnchor = strdup(offsetAnchor);
+   if (checkValidAnchorString()!=PV_SUCCESS) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: setMemoryBuffer called with invalid anchor string \"%s\"",
+               parent->parameters()->groupKeywordFromName(name), name, offsetAnchor);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   return setMemoryBuffer(externalBuffer, height, width, numbands, xstride, ystride, bandstride, zeroval, oneval);
+}
+template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, uint8_t zeroval, uint8_t oneval, int offsetX, int offsetY, char const * offsetAnchor);
 
 template <typename pixeltype>
 pvadata_t ImageFromMemoryBuffer::pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval) {
@@ -72,7 +94,16 @@ pvadata_t ImageFromMemoryBuffer::pixelTypeConvert(pixeltype q, pixeltype zeroval
 }
 
 int ImageFromMemoryBuffer::initializeActivity() {
+   return copyBuffer();
+}
+
+int ImageFromMemoryBuffer::updateState(double time, double dt) {
+   return copyBuffer();
+}
+
+int ImageFromMemoryBuffer::copyBuffer() {
    int status = PV_SUCCESS;
+   if (!hasNewImageFlag) { return status; }
    Communicator * icComm = parent->icCommunicator();
    if (parent->columnId()==0) {
       if (buffer == NULL) {
@@ -91,6 +122,7 @@ int ImageFromMemoryBuffer::initializeActivity() {
    else {
       MPI_Recv(data, getNumExtended(), MPI_FLOAT, 0, 31, icComm->communicator(), MPI_STATUS_IGNORE);
    }
+   hasNewImageFlag = false;
    return status;
 }
 
@@ -112,10 +144,10 @@ int ImageFromMemoryBuffer::moveBufferToData(int rank) {
    // The code below assumes that all processes have the same getLayerLoc().
    Communicator * icComm = parent->icCommunicator();
    int column = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
-   int startxbuffer = column * getLayerLoc()->nx;
+   int startxbuffer = getOffsetX(this->offsetAnchor, this->offsets[0]) + column * getLayerLoc()->nx;
    int startxdata = getLayerLoc()->halo.lt;
    int row = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
-   int startybuffer = row * getLayerLoc()->ny;
+   int startybuffer = getOffsetX(this->offsetAnchor, this->offsets[0]) + row * getLayerLoc()->ny;
    int startydata = getLayerLoc()->halo.up;
    int xsize = getLayerLoc()->nx;
    int ysize = getLayerLoc()->ny;
