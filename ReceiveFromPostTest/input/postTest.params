@@ -198,6 +198,7 @@ IdentConn "RecvPreTest" = {
 ReceiveFromPostProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
+   tolerance = 3e-4; // covers worst case with roundoff error 2^-24 and 3456 inputs 
 };
 
 //RequireAllZeroActivityProbe "testProbe" = {
