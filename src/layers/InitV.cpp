@@ -136,6 +136,9 @@ int InitV::calcV(HyPerLayer * layer) {
 }
 
 int InitV::calcConstantV(pvdata_t * V, int numNeurons) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
    for( int k=0; k<numNeurons; k++ ) V[k] = constantValue;
    return PV_SUCCESS;
 }
@@ -146,11 +149,15 @@ int InitV::calcGaussianRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * 
    flatLoc.nf = 1;
    GaussianRandom * randState = new GaussianRandom(hc, &flatLoc, false/*isExtended*/);
    const int nxny = flatLoc.nx*flatLoc.ny;
-   int index = 0;
+   //int index = 0;
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
    for (int xy=0; xy<nxny; xy++) {
       for (int f=0; f<loc->nf; f++) {
+         int index = kIndex(xy, 0, f, nxny, 1, loc->nf);
          V[index] = randState->gaussianDist(xy, meanV, sigmaV);
-         index++;
+         //index++;
       }
    }
    delete randState;
@@ -163,11 +170,15 @@ int InitV::calcUniformRandomV(pvdata_t * V, const PVLayerLoc * loc, HyPerCol * h
    flatLoc.nf = 1;
    Random * randState = new Random(hc, &flatLoc, false/*isExtended*/);
    const int nxny = flatLoc.nx*flatLoc.ny;
-   int index = 0;
+   //int index = 0;
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
    for (int xy=0; xy<nxny; xy++) {
       for (int f=0; f<loc->nf; f++) {
+         int index = kIndex(xy, 0, f, nxny, 1, loc->nf);
          V[index] = randState->uniformRandom(xy, minV, maxV);
-         index++;
+         //index++;
       }
    }
    delete randState;

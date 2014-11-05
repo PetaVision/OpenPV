@@ -423,8 +423,10 @@ HyPerLayer::~HyPerLayer()
    }
 
    if(thread_gSyn){
-      //Because the memory was allocated as one big chunk, this free should take care of everything
-      free(thread_gSyn[0]);
+      for(int i = 0; i < parent->getNumThreads(); i++){
+         free(thread_gSyn[i]);
+         thread_gSyn[i] = NULL;
+      }
       free(thread_gSyn);
       thread_gSyn = NULL;
    }
@@ -1243,12 +1245,15 @@ int HyPerLayer::allocateDataStructures()
    if(parent->getNumThreads() > 1){
       thread_gSyn = (pvdata_t**) malloc(sizeof(pvdata_t*) * parent->getNumThreads());
       assert(thread_gSyn);
-      //Allocate one big chunk of memory for the threads
-      pvdata_t* tempMem = (pvdata_t*) malloc(sizeof(pvdata_t) * getNumNeurons() * parent->getNumThreads());
-      assert(tempMem);
+
       //Assign thread_gSyn to different points of tempMem
       for(int i = 0; i < parent->getNumThreads(); i++){
-         thread_gSyn[i] = &(tempMem[i*getNumNeurons()]);
+         pvdata_t* tempMem = (pvdata_t*) malloc(sizeof(pvdata_t) * getNumNeurons());
+         if(!tempMem){
+            fprintf(stderr, "HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gSyn: %s\n", name, parent->columnId(), sizeof(pvdata_t) * getNumNeurons(), strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         thread_gSyn[i] = tempMem;
       }
 
    }
@@ -2278,7 +2283,9 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
 #pragma omp parallel for
 #endif
       for(int i = 0; i < parent->getNumThreads() * getNumNeurons(); i++){
-         thread_gSyn[0][i] = 0;
+         int ti = i/getNumNeurons();
+         int ni = i % getNumNeurons();
+         thread_gSyn[ti][ni] = 0;
       }
    }
 
