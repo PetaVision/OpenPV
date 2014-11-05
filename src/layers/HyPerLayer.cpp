@@ -2338,8 +2338,16 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       //Looping over neurons first to be thread safe
 #pragma omp parallel for
       for(int ni = 0; ni < getNumNeurons(); ni++){
-         for(int ti = 0; ti < parent->getNumThreads(); ti++){
-            gSynPatchHead[ni] += thread_gSyn[ti][ni];
+         //Different for maxpooling
+         if(conn->getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+            for(int ti = 0; ti < parent->getNumThreads(); ti++){
+               gSynPatchHead[ni] = gSynPatchHead[ni] < thread_gSyn[ti][ni] ? thread_gSyn[ti][ni] : gSynPatchHead[ni];
+            }
+         }
+         else{
+            for(int ti = 0; ti < parent->getNumThreads(); ti++){
+               gSynPatchHead[ni] += thread_gSyn[ti][ni];
+            }
          }
       }
    }

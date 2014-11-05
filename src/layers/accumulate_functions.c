@@ -101,10 +101,12 @@ int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT 
   int err = 0;
   float compareval;
   for (k = 0; k < nk; k++) {
-//#ifdef PV_USE_OPENMP_THREADS
-//#pragma omp critical
-//#endif
-     v[k] = v[k] > a*w[k] ? v[k] : a*w[k];
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp critical
+#endif
+     {
+        v[k] = v[k] > a*w[k] ? v[k] : a*w[k];
+     }
 
   }
   return err;
