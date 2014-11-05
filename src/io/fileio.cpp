@@ -267,7 +267,11 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
       fprintf(stderr, "PV_fwrite error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
       exit(EXIT_FAILURE);
    }
-   assert(fpos == ftell(pvstream->fp));
+   long int ftellresult = ftell(pvstream->fp);
+   if(pvstream->isfile && fpos != ftellresult) {
+      fprintf(stderr, "PV_fwrite error for \"%s\": fpos = %ld but ftell() returned %ld\n", pvstream->name, fpos, ftellresult);
+      exit(EXIT_FAILURE);
+   }
    bool hasfailed = false;
    for (int fwritecounts=1; fwritecounts<=MAX_FILESYSTEMCALL_TRIES; fwritecounts++) {
       charswritten = fwrite(ptr, 1UL, writesize, pvstream->fp);
@@ -2312,14 +2316,14 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
       switch (filetype) {
       case PVP_NONSPIKING_ACT_FILE_TYPE:
 #ifdef PV_USE_MPI
-         MPI_Recv(TBuff, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+         MPI_Recv(TBuff, datasize*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
 #endif
          break;
       case PVP_ACT_FILE_TYPE:
       case PVP_ACT_SPARSEVALUES_FILE_TYPE:
          //Receive buffers from rootproc
 #ifdef PV_USE_MPI
-         MPI_Recv(TBuff1, sizeof(uint4)*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
+         MPI_Recv(TBuff1, datasize*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
 #endif
          break;
       }
