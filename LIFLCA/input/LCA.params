@@ -11,10 +11,9 @@
 
 debugParsing = false;
 
-
 HyPerCol "column" = {
-    nx                              = 480;   // [px]
-    ny                              = 270;   // [px]
+    nx                              = 256;   // [px]
+    ny                              = 256;   // [px]
     dt                              = 1.0;   // [ms]
     dtAdaptFlag                     = false; // Time step size is scaled by 1 / (maximimum % error)
 //                                           // i.e. adaptive time step uses the average error to scale dt
@@ -100,8 +99,8 @@ ANNErrorLayer "Residual" = {
     mirrorBCflag           = false;
     valueBC                = 0;
     triggerFlag            = false;
-    initialWriteTime       = 2000.0;
-    writeStep              = 2000;
+//    initialWriteTime       = 40;
+    writeStep              = -1;
     writeSparseActivity    = 0;
 //
     InitVType              = "ZeroV";
@@ -121,16 +120,16 @@ ANNErrorLayer "Residual" = {
 
 
 HyPerLCALayer "L1" = {
-    nxScale                = 0.5;
-    nyScale                = 0.5;
-    nf                     = 192;
+    nxScale                = 0.125;     // xStride = nxp * nxScale
+    nyScale                = 0.125;
+    nf                     = 128;  // 2x overcomplete // overcompleteness = 0.5 * nf / stride^2 
     numChannels            = 1;    // should be 1
     numWindowX             = 1;    // for location dependent kernels
     numWindowY             = 1;
 //
     mirrorBCflag           = false;
     valueBC                = 0;
-    initialWriteTime       = 39.0;
+    initialWriteTime       = 40.0;
     writeStep              = 40.0;
     writeSparseActivity    = 1;
     writeSparseValues      = 1;
@@ -159,14 +158,18 @@ ANNLayer "Recon" = {
     nxScale             = 1;
     nyScale             = 1;
     nf                  = 1;
-    triggerFlag         = false;
-    initialWriteTime    = 2001.0;
-    writeStep           = 2000.0;
+//
+    triggerFlag         = true;
+    triggerLayerName    = "Input";
+    triggerOffset       = 1;
+//
+    initialWriteTime    = 40; //TODO: I forgot what this should be
+    writeStep           = 40;
 //
     mirrorBCflag        = 0;
     valueBC             = 0;
     writeSparseActivity = 0;
-    movieLayerName      = "Image";
+    movieLayerName      = "Input";
 //
     InitVType           = "ZeroV";
     //InitVType           = "InitVFromFile";
@@ -224,10 +227,10 @@ HyPerConn "Input_to_Residual" = {
 HyPerConn "L1_to_Residual" = {
     preLayerName                        = "L1";
     postLayerName                       = "Residual";
-    nxp                                 = 18;
-    nyp                                 = 18;
-    nxpShrunken                         = 16;
-    nypShrunken                         = 16;
+    nxp                                 = 8;
+    nyp                                 = 8;
+    //nxpShrunken                         = 12;
+    //nypShrunken                         = 12;
     nfp                                 = 1;
     numAxonalArbors                     = 1;
     channelCode                         = 1;
