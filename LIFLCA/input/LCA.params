@@ -12,8 +12,8 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    nx                              = 256;   // [px]
-    ny                              = 256;   // [px]
+    nx                              = 512;   // [px]
+    ny                              = 512;   // [px]
     dt                              = 1.0;   // [ms]
     dtAdaptFlag                     = false; // Time step size is scaled by 1 / (maximimum % error)
 //                                           // i.e. adaptive time step uses the average error to scale dt
@@ -25,7 +25,7 @@ HyPerCol "column" = {
     randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
 //    numSteps                        = 1808800; 
     startTime                       = 0;
-    stopTime                        = 5400; //135 images 
+    stopTime                        = 23400; //displayPeriod * numImages
     progressInterval                = 100;
     outputPath                      = "/home/dpaiton/workspace/LIFLCA/output/LCA/";
     filenamesContainLayerNames      = true;
@@ -122,7 +122,7 @@ ANNErrorLayer "Residual" = {
 HyPerLCALayer "L1" = {
     nxScale                = 0.125;     // xStride = nxp * nxScale
     nyScale                = 0.125;
-    nf                     = 128;  // 2x overcomplete // overcompleteness = 0.5 * nf / stride^2 
+    nf                     = 128;  // 2x overcomplete wrt patch size // if stride < nxp; overcompleteness = 0.5 * nf / stride^2 
     numChannels            = 1;    // should be 1
     numWindowX             = 1;    // for location dependent kernels
     numWindowY             = 1;
