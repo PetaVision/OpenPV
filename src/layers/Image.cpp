@@ -369,6 +369,14 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
                         PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber)
 {
    // Read a PVP file and scatter it to the multiple processes.
+   if (autoResizeFlag) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: autoRescaleFlag=true has not been implemented for .pvp files.\n",
+            parent->parameters()->groupKeywordFromName(name), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
    int status = PV_SUCCESS;
    int i;
    int rootproc = 0;
