@@ -424,7 +424,7 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "MaxPooling") ) {
       // MaxPooling was marked obsolete Oct 30, 2014
       if (hc->columnId()==0) {
-         fprintf(stderr, "Params group \"%s\": MaxPooling is obsolete.  Use a different layer type and set the connections going to \"%s\" to use pvpatchAccumulateType = \"maxpooling\".");
+         fprintf(stderr, "Params group \"%s\": MaxPooling is obsolete.  Use a different layer type and set the connections going to \"%s\" to use pvpatchAccumulateType = \"maxpooling\".\n", name, name);
       }
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
