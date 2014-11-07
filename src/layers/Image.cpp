@@ -94,6 +94,7 @@ int Image::initialize_base() {
    pvpFileTime = 0;
    frameStartBuf = NULL;
    countBuf = NULL;
+   biasConstraintMethod = 0; 
    return PV_SUCCESS;
 }
 
@@ -649,11 +650,17 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
 
+   GDALDataType dataType;
+   char** metadata;
+   char isBinary = true;
+
    if (icRank > 0) {
 #ifdef PV_USE_MPI
       const int src = 0;
       const int tag = 13;
 
+      MPI_Bcast(&dataType, 1, MPI_INT, 0, mpi_comm);
+      MPI_Bcast(&isBinary, 1, MPI_CHAR, 0, mpi_comm);
       MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, total number of bytes in buffer is %d\n", numTotal);
@@ -671,6 +678,52 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       GDALAllRegister();
 
       GDALDataset * dataset = PV_GDALOpen(filename); // (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
+      GDALRasterBand * poBand = dataset->GetRasterBand(1);
+      dataType = poBand->GetRasterDataType();
+#ifdef PV_USE_MPI
+      MPI_Bcast(&dataType, 1, MPI_INT, 0, mpi_comm);
+#endif // PV_USE_MPI
+
+      for(int iBand = 0; iBand < GDALGetRasterCount(dataset); iBand++){
+         bool bandIsBinary = true;
+         GDALRasterBandH hBand = GDALGetRasterBand(dataset, iBand+1);
+         metadata = GDALGetMetadata(hBand, "Image_Structure");
+         if(CSLCount(metadata) > 0){
+            bool found = false;
+            for(int i = 0; metadata[i] != NULL; i++){
+               if(strcmp(metadata[i], "NBITS=1") == 0){
+                  found = true;
+                  isBinary &= true;
+                  break;
+               }
+            }
+            if(!found){
+               isBinary = false;
+            }
+         }
+         else{
+            isBinary = false;
+         }
+      }
+#ifdef PV_USE_MPI
+      MPI_Bcast(&isBinary, 1, MPI_CHAR, 0, mpi_comm);
+#endif // PV_USE_MPI
+
+
+      //GDALDatasetH datasetH = GDALOpen(filename, GA_ReadOnly); // (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
+      //assert(datasetH);
+      //metadata = dataset->GetMetadataDomainList();
+      //std::cout << filename << " CSLCount: " << CSLCount(metadata) << "\n";
+      //if(CSLCount(metadata) > 0){
+      //   for(int i = 0; metadata[i] != NULL; i++){
+      //      std::cout << metadata[i] << "\n";
+      //   }
+      //}
+      //exit(-1);
+      
+
+      
+
       if (dataset==NULL) return 1; // PV_GDALOpen prints an error message.
       int xImageSize = dataset->GetRasterXSize();
       int yImageSize = dataset->GetRasterYSize();
@@ -824,18 +877,31 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
 #endif // PV_USE_GDAL
 
    if (status == 0) {
+
+      //std::cout << "Image data type " << dataType << ": " << GDALGetDataTypeName(dataType) << "\n";
+      //exit(-1);
+
       // Workaround for gdal problem with binary images.
       // If the all values are zero or 1, assume its a binary image and keep the values the same.
       // If other values appear, divide by 255 to scale to [0,1]
-      bool isgrayscale = false;
-      for (int n=0; n<numTotal; n++) {
-         if (buf[n] != 0.0 && buf[n] != 1.0) {
-            isgrayscale = true;
-            break;
+      //bool isgrayscale = false;
+      //for (int n=0; n<numTotal; n++) {
+      //   if (buf[n] != 0.0 && buf[n] != 1.0) {
+      //      isgrayscale = true;
+      //      break;
+      //   }
+      //}
+      if(!isBinary){
+         float fac;
+         if(dataType == GDT_Byte){
+            fac = 1.0f / 255.0f;  // normalize to 1.0
          }
-      }
-      if (isgrayscale) {
-         float fac = 1.0f / 255.0f;  // normalize to 1.0
+         else if(dataType == GDT_UInt16){
+            fac = 1.0f / 65535.0f;  // normalize to 1.0
+         }
+         else{
+            std::cout << "Image data type " << GDALGetDataTypeName(dataType) << " not implemented for image rescaling\n";
+         }
          for( int n=0; n<numTotal; n++ ) {
             buf[n] *= fac;
          }
@@ -1618,6 +1684,7 @@ bool Image::constrainPoint(int * point, int min_x, int max_x, int min_y, int max
          new_x += min_x;
          break;
       default:
+         std::cout << "Method type " << method << " not understood\n";
          assert(0);
          break;
       }
@@ -1667,7 +1734,16 @@ bool Image::constrainBiases() {
 }
 
 bool Image::constrainOffsets() {
-   return constrainPoint(offsets, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
+   int newOffsets[2];
+   int oldOffsetX = getOffsetX(this->offsetAnchor, offsets[0]);
+   int oldOffsetY = getOffsetY(this->offsetAnchor, offsets[1]);
+   newOffsets[0] = oldOffsetX; 
+   newOffsets[1] = oldOffsetY; 
+   bool status = constrainPoint(newOffsets, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
+   int diffx = newOffsets[0] - oldOffsetX;
+   int diffy = newOffsets[1] - oldOffsetY;
+   offsets[0] = offsets[0] + diffx;
+   offsets[1] = offsets[1] + diffy;
 }
 
 } // namespace PV

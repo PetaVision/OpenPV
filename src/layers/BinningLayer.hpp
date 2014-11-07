@@ -23,6 +23,7 @@ protected:
    void ioParam_binSigma(enum ParamsIOFlag ioFlag);
    void ioParam_zeroNeg(enum ParamsIOFlag ioFlag);
    void ioParam_zeroDCR(enum ParamsIOFlag ioFlag);
+   void ioParam_normalDist(enum ParamsIOFlag ioFlag);
    int allocateV();
    int initializeV();
    virtual int initializeActivity();
@@ -40,6 +41,7 @@ private:
    float binSigma;
    bool zeroNeg;
    bool zeroDCR;
+   bool normalDist;
 
 protected:
    char * originalLayerName;

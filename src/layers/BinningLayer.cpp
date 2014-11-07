@@ -22,6 +22,7 @@ int BinningLayer::initialize_base() {
    binSigma = 0;
    zeroNeg = true;
    zeroDCR = false;
+   normalDist = true;
    return PV_SUCCESS;
 }
 
@@ -37,6 +38,8 @@ int BinningLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_delay(ioFlag);
    ioParam_binSigma(ioFlag);
    ioParam_zeroNeg(ioFlag);
+   ioParam_zeroDCR(ioFlag);
+   ioParam_normalDist(ioFlag);
    return status;
 }
 
@@ -84,6 +87,10 @@ void BinningLayer::ioParam_zeroNeg(enum ParamsIOFlag ioFlag) {
 
 void BinningLayer::ioParam_zeroDCR(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "zeroDCR", &zeroDCR, zeroDCR);
+}
+
+void BinningLayer::ioParam_normalDist(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "normalDist", &normalDist, normalDist);
 }
 
 //TODO read params for gaussian over features
@@ -187,6 +194,7 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
       for (int iX = 0; iX < (nx+halo->lt+halo->rt); iX++){
          int origIdx = kIndex(iX, iY, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, origLoc->nf);
          float inVal = origData[origIdx];
+
          if(zeroDCR && inVal == 0){
             for(int iF = 0; iF < numBins; iF++){
                int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);
@@ -214,13 +222,25 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
                }
                else{
                   //Calculate center value for featureIdx (the bin that the value belongs to without a sigma) is binning
-                  float mean = featureIdx * stepSize + (stepSize/2);
+                  float mean;
+                  if(normalDist){
+                     mean = featureIdx * stepSize + (stepSize/2);
+                  }
+                  else{
+                     mean = featureIdx;
+                  }
                   //Possible bins
                   int intSigma = ceil(binSigma);
                   int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);
                   if(iF >= featureIdx-intSigma && iF <= featureIdx+intSigma){
                      //Get center of that aBin for the x pos of the normal dist
-                     float xVal = iF * stepSize + (stepSize/2);
+                     float xVal;
+                     if(normalDist){
+                        xVal = iF * stepSize + (stepSize/2);
+                     }
+                     else{
+                        xVal = iF;
+                     }
                      //Calculate normal dist
                      float outVal = calcNormDist(xVal, mean, binSigma);
                      //Put into activity buffer
@@ -245,7 +265,12 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
 }
 
 float BinningLayer::calcNormDist(float xVal, float mean, float sigma){
-   return (float(1)/(sigma*(sqrt(2*PI))))*exp(-(pow(xVal-mean, 2)/(2*pow(sigma, 2))));
+   if(normalDist){
+      return (float(1)/(sigma*(sqrt(2*PI))))*exp(-(pow(xVal-mean, 2)/(2*pow(sigma, 2))));
+   }
+   else{
+      return exp(-(pow(xVal-mean, 2)/(2*pow((sigma/2), 2))));
+   }
 }
 
 BinningLayer::~BinningLayer() {
