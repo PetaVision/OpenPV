@@ -67,7 +67,7 @@ function writepvpsparseactivityfile(filename, data, nx, ny, nf)
    hdr(18) = numel(data); % number of frames 
    hdr(19:20) = typecast(double(data{1}.time),'uint32'); % timestamp
    fwrite(fid,hdr,'uint32');
-   for frameno=1:size(data)
+   for frameno=1:length(data)
        fwrite(fid,data{frameno}.time,'double');
        count = numel(data{frameno}.values);
        fwrite(fid,count,'uint32');
