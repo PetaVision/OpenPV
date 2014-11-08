@@ -142,12 +142,12 @@ HyPerLCALayer "L1" = {
     //InitVType              = "InitVFromFile";
     //Vfilename              = "/Users//output/Checkpoints/Checkpoint6000000/L1_V.pvp";
 // 
-    timeConstantTau        = 100.0;
-    VThresh                = 0.05; // 
+    timeConstantTau        = 100.0;  // TODO: Describe how this works
+    VThresh                = 0.05;   // TODO: Describe how this works
     AMax                   = infinity;
     AMin                   = 0;
-    AShift                 = 0.0;  // 0 -> hard threshold, 1 -> soft threshold; subtract AShift from A to get output
-    VWidth                 = 0.05; // 0 -> hard, 1-> soft
+    AShift                 = 1.0;  // 0 -> hard threshold, 1 -> soft threshold, 0 -> firm; subtract AShift from A to get output
+    VWidth                 = 1.00; // 0 -> hard, 1 -> soft, 0.05 -> firm
 //
     updateGpu              = true;
     phase                  = 2;
@@ -163,7 +163,7 @@ ANNLayer "Recon" = {
     triggerLayerName    = "Input";
     triggerOffset       = 1;
 //
-    initialWriteTime    = 40; //TODO: I forgot what this should be
+    initialWriteTime    = 40; //
     writeStep           = 40;
 //
     mirrorBCflag        = 0;
@@ -242,7 +242,7 @@ HyPerConn "L1_to_Residual" = {
     wMaxInit                            = 1;
     sparseFraction                      = 0.9;                    // What percentage of weights are set to 0
     plasticityFlag                      = true;
-    weightUpdatePeriod                  = 200;                    // TODO: What intuition do I need for this
+    weightUpdatePeriod                  = 200;                    // TODO: What is this? What intuition do I need for this
     initialWeightUpdateTime             = 0;
 //
     triggerFlag                         = true;
@@ -269,7 +269,7 @@ HyPerConn "L1_to_Residual" = {
     rMinX                               = 0;
     rMinY                               = 0;
     symmetrizeWeights                   = false;
-    dWMax                               = 1.0; //TODO: Write out equation here?
+    dWMax                               = 1.0; //TODO: Write out equation here? - how does this relate to eta?
 //
     keepKernelsSynchronized             = true;
     shrinkPatches                       = false;
