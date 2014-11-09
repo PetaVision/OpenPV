@@ -242,7 +242,7 @@ HyPerConn "L1_to_Residual" = {
     wMaxInit                            = 1;
     sparseFraction                      = 0.9;                    // What percentage of weights are set to 0
     plasticityFlag                      = true;
-    weightUpdatePeriod                  = 200;                    // TODO: What is this? What intuition do I need for this
+//    weightUpdatePeriod                  = 200;                    // Interval between updates, usually set to before the image flips
     initialWeightUpdateTime             = 0;
 //
     triggerFlag                         = true;
