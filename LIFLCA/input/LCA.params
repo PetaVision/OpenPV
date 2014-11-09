@@ -7,6 +7,11 @@
 // Algorithm inspired by LCA:
 // 	Rozell et al., "Sparse Coding via Thresholding and Local Cometition
 // 	in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+//
+// TODO:
+//   test l0 vs l1
+//   test shuffled dictionary learning vs non-shuffled
+//   switch to vine & unwhitened
 ///////////////////////////
 
 debugParsing = false;
@@ -23,25 +28,24 @@ HyPerCol "column" = {
 //    dtChangeMin                     = 0.0;
 //    dtMinToleratedTimeScale         = 0.001;
     randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-//    numSteps                        = 1808800; 
     startTime                       = 0;
     stopTime                        = 23400; //displayPeriod * numImages
-    progressInterval                = 100;
+    progressInterval                = 500;
     outputPath                      = "/home/dpaiton/workspace/LIFLCA/output/LCA/";
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     initializeFromCheckpointDir     = "";
-    checkpointWriteTriggerMode      = "step";
+    checkpointWriteTriggerMode      = "step"; // Not implemented fully - trigger checkpoint on clock time instead of number of time steps
     checkpointWrite                 = true;
     checkpointWriteDir              = "/home/dpaiton/workspace/LIFLCA/output/LCA/checkpoints/";
-    checkpointWriteStepInterval     = 100000;
+    checkpointWriteStepInterval     = 10000;
     deleteOlderCheckpoints          = false;
     writeProgressToErr              = true;
     outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
     suppressLastOutput              = false;
     printParamsFilename             = "LCA_LIF_trial_1.params";    
     verifyWrites                    = true;
-    errorOnNotANumber               = true;
+    errorOnNotANumber               = false;  // Requires computationally expensive check
 };
 
 
@@ -65,14 +69,14 @@ Movie "Input" = {
     writeStep              = -1;
     initialWriteTime       = 0;
     writeSparseActivity    = false;
-    displayPeriod          = 40;
-    start_frame_index      = 1;
+    displayPeriod          = 40;       // How long image is displayed to network before flipping
+    start_frame_index      = 0;        // zero indexed
     skip_frame_index       = 0;
     echoFramePathnameFlag  = true;
     writeFrameToTimestamp  = true;
     flipOnTimescaleError   = 1;
 //
-    offsetAnchor           = "tl";
+    offsetAnchor           = "tl";     // tl = top-left
     offsetX                = 0;
     offsetY                = 0;
     randomMovie            = 0;
@@ -80,8 +84,13 @@ Movie "Input" = {
     jitterFlag             = false;
     useImageBCflag         = false;
     inverseFlag            = false;
-    normalizeLuminanceFlag = true;     // mean 0
-    normalizeStdDev        = true;     // std 1
+//
+//  If both are set to true, then the average pixel value should be 0
+//  and the average squared pixel value should be 1.
+//
+    normalizeLuminanceFlag = true;     // If normalizeStdDev = false, sets mean 0, scales to max of image
+                                       // If normalizeStdDev = true, sets mean 0, scales to 1
+    normalizeStdDev        = true;     // Sets image std to 1
 //
     writeImages            = false;
     autoResizeFlag         = false;
@@ -91,97 +100,160 @@ Movie "Input" = {
 };
 
 
-ANNErrorLayer "Residual" = {
+//ANNErrorLayer "Residual" = {            // For adaptive time step - do ANNNormalizedErrorLayer
+//                                        // ANNNormalizedErrorLayer also writes out 1/% error per time step, which is more computationally expensive
+////
+//// * Threshold for ANNErrorLayer is different than for an ANNLayer because
+////   it specifies the width of the band around zero. I.e. It specifies an
+////   absolute value for thershold, and applies the threshold to the abosolute
+////   value of u instead of the value iteslf. This allows the error to go negative.
+////
+//    nxScale                = 1;
+//    nyScale                = 1;
+//    nf                     = 1;
+////
+//    mirrorBCflag           = false;
+////    valueBC                = 0;
+//    triggerFlag            = false;
+////    initialWriteTime       = 40;
+//    writeStep              = -1;
+//    writeSparseActivity    = 0;
+////
+//    InitVType              = "ZeroV";
+////    InitVType              = "InitVFromFile";
+////    Vfilename              = "/home/dpaiton/workspace/LIFLCA/output/Residual_V.pvp";
+//    VThresh                = 0;        // Non-zero value will sparsify your error (small error >> zero)
+////
+//// * Specify characteristics of thereshold T(u) function
+////
+//    AMax                   = infinity; // Max value that T(u) can be
+//    AMin                   = 0;        // Min value that T(u) can be; AMin is the value that T(u) reaches
+//                                       // if it is below threshold. i.e. T(u) = AMin if u is below threshold.
+//    AShift                 = 0;        // For threshold function: 
+//    VWidth                 = 0;        //
+//    errScale               = 1;         // * For multiple error layers -> how important is this error wrt others             
+////
+//    updateGPU              = false;
+//    phase                  = 1;  
+//};
+
+
+ANNLayer "Residual" = {
     nxScale                = 1;
     nyScale                = 1;
     nf                     = 1;
 //
     mirrorBCflag           = false;
-    valueBC                = 0;
+//    valueBC                = 0;
     triggerFlag            = false;
 //    initialWriteTime       = 40;
     writeStep              = -1;
     writeSparseActivity    = 0;
 //
     InitVType              = "ZeroV";
-    //InitVType              = "InitVFromFile";
-    //Vfilename              = "/home/dpaiton/workspace/LIFLCA/output/Residual_V.pvp";
+//    InitVType              = "InitVFromFile";
+//    Vfilename              = "/home/dpaiton/workspace/LIFLCA/output/Residual_V.pvp";
 //
-    VThresh                = 0.005;
-    AMax                   = infinity;
-    AMin                   = 0;
-    AShift                 = 0; //TODO: What does this mean?
-    VWidth                 = 0; //TODO: What does this mean?
-    errScale               = 1; //TODO: What does this mean?
+// For residual layer, threshold should be linear function.
+//
+    VThresh                = 0;         // Threshold for T(u)
+//
+    AMax                   = infinity;  // Max value that T(u) can be
+    AMin                   = -infinity; // Min value that T(u) can be
+                                        // 
+    AShift                 = 0;         // Shift between hard & soft threshold
+    VWidth                 = 0;         // Width of transition region from soft to hard threshold                          
 //
     updateGPU              = false;
-    phase                  = 1;  
+    phase                  = 1;         // * Set phase = 2 for concurrency - error layer updates on CPU at the same 
+                                        //   time that LCA layer updates on the GPU. This increases the numerical error because
+                                        //   error layer uses reconstructed value that was two time steps old if phase = 2.
+                                        //   If phase = 1, reconstructed value is only 1 time step old and thus smaller numerically.
+                                        //   Concurrency increases computational speed.
 };
 
 
 HyPerLCALayer "L1" = {
-    nxScale                = 0.125;     // xStride = nxp * nxScale
-    nyScale                = 0.125;
-    nf                     = 128;  // 2x overcomplete wrt patch size // if stride < nxp; overcompleteness = 0.5 * nf / stride^2 
-    numChannels            = 1;    // should be 1
-    numWindowX             = 1;    // for location dependent kernels
+    nxScale                = 0.125;    // xStride = 1/nxScale
+    nyScale                = 0.125;    // 
+    nf                     = 256;      // * 2x overcomplete wrt patch size (4 x patch_area because of rectification)
+                                       // * If stride < nxp; overcompleteness = 0.5 * nf / stride^2 
+                                       // * Rectification is inherent in LCA layer - all values below threshold go to 0
+    numChannels            = 1;        // Should be 1
+    numWindowX             = 1;        // For location dependent kernels
     numWindowY             = 1;
 //
     mirrorBCflag           = false;
     valueBC                = 0;
-    initialWriteTime       = 40.0;
-    writeStep              = 40.0;
-    writeSparseActivity    = 1;
-    writeSparseValues      = 1;
+    initialWriteTime       = 40.0;     // Should = displayPeriod
+    writeStep              = 40.0;     // * Should = displayPeriod if you only want to write out best sparse approximation
+                                       // * Set to < displayPeriod if you want to see how the sparse appxoimation changes with time
+//
+    sparseLayer            = true;
+    writeSparseValues      = true;     // Don't just write index of active cell, but also the T(u) value
     triggerFlag            = false;
-    selfInteract           = true;
+    selfInteract           = true;     // * For hard threshold, if error is zero you have to cancel the leak.
+                                       //   So this implements the "+ self" term in the equation. 
+                                       //   Therefore for hard threshold, if error is 0, then u^dot is 0.
+                                       //   For soft threshold, if error is 0, T(u) = u-lambda, so u^dot = - lambda + self_term
 //
     InitVType              = "UniformRandomV";
-    minV                   = -1.0;
-    maxV                   = .1; //0.05 above VThresh
-    //InitVType              = "InitVFromFile";
-    //Vfilename              = "/Users//output/Checkpoints/Checkpoint6000000/L1_V.pvp";
+    minV                   = -1.0;     // Only for initialization - min value of v (assuming dimensionless membrane potentials)
+    maxV                   = .1;       // 0.05 above VThresh makes a few start out above threshold - no real evidence that this is better
+//    InitVType              = "InitVFromFile";
+//    Vfilename              = "/Users//output/Checkpoints/Checkpoint6000000/L1_V.pvp";
 // 
-    timeConstantTau        = 100.0;  // TODO: Describe how this works
-    VThresh                = 0.05;   // TODO: Describe how this works
-    AMax                   = infinity;
-    AMin                   = 0;
-    AShift                 = 1.0;  // 0 -> hard threshold, 1 -> soft threshold, 0 -> firm; subtract AShift from A to get output
-    VWidth                 = 1.00; // 0 -> hard, 1 -> soft, 0.05 -> firm
+    timeConstantTau        = 100.0;    // dt is scaled by multiplying by 1/timeConstantTau
+                                       // u(t+dt) = u(t) + dt/tau * u^dot
+//
+// Here is where you set a hard or soft threshold.
+//
+    VThresh                = 0.05;     // Lambda -> thershold for activation function T(u)
+                                       // Depends on scale of input - for normalized images, 0.05 works well
+    AMax                   = infinity; // Max value T(u) can be
+    AMin                   = 0;        // Min value T(u) can be. All values below threshold go to 0 -> rectifies units.
+    AShift                 = 0.05;     // * Shift between hard & soft threshold
+                                       //   T(u) = u - AShift for u > threshold
+                                       // * Soft: AShift = VThresh;  Hard & Firm: AShift = 0
+    VWidth                 = infinity; // * Width of transition region from soft to hard threshold.
+                                       //   For firm threshold, VWidth > 0; for hard, VWidth = 0; for soft, VWidth = infinity.
+                                       //   Slope of transition line is VThresh / VWidth
+                                       // * Soft: VWidth = infinity; Hard: VWidth = 0; Firm: VWidth = finite
 //
     updateGpu              = true;
     phase                  = 2;
 };
 
 
-ANNLayer "Recon" = {
+ANNLayer "Recon" = {                  // Not necessary - allows us to easily view recons
     nxScale             = 1;
     nyScale             = 1;
     nf                  = 1;
 //
-    triggerFlag         = true;
+    triggerFlag         = true;       // Updates with triggerLayerName layer once every display period
     triggerLayerName    = "Input";
     triggerOffset       = 1;
 //
-    initialWriteTime    = 40; //
+    movieLayerName      = "Input";    // Not used anymore
+    initialWriteTime    = 40;         // Write at image flip
     writeStep           = 40;
 //
-    mirrorBCflag        = 0;
+    mirrorBCflag        = false;
     valueBC             = 0;
-    writeSparseActivity = 0;
-    movieLayerName      = "Input";
+//
+    sparseLayer         = false;
 //
     InitVType           = "ZeroV";
     //InitVType           = "InitVFromFile";
     //Vfilename           = "/home/dpaiton/workspace/LIFLCA/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
 //
     VThresh             = -infinity;
-    AMax                = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMax                = infinity;   // prevent reconstruction from exceeding reasonable bounds
     AMin                = -infinity; 
     AShift              = 0;
     VWidth              = 0;
 // 
-    phase               = 1; 
+    phase               = 1;          // Updates shouldn't reflect newly present image
 };
 
 
@@ -203,14 +275,18 @@ HyPerConn "Input_to_Residual" = {
    nyp                           = 1;
    nxpShrunken                   = 1;
    nypShrunken                   = 1;
-   nfp                           = 1;
    shrinkPatches                 = false;
    channelCode                   = 0;
-   //
+//
    delay                         = [0.0];
    sharedWeights                 = true;
    weightInitType                = "OneToOneWeights";
-   weightInit                    = 0.03125;             // 1 / 32
+   weightInit                    = 0.125;              // * weightInit = 1 / sqrt(patch_area), so that L2 norm of image patch is 1.
+                                                       //   If the patch exactly matches a dictionary element, then activity of 
+                                                       //   dictionary element should about = 1. This should prevent the activities
+                                                       //   from increasing as you go up a hierarchy. This assumes images have
+                                                       //   unit standard deviation.
+//
    normalizeMethod               = "none";
    numAxonalArbors               = 1;
    plasticityFlag                = false;
@@ -218,62 +294,71 @@ HyPerConn "Input_to_Residual" = {
    preActivityIsNotRate          = false;
    writeStep                     = -1;
    writeCompressedCheckpoints    = false;
-   //
+//
    selfFlag                      = false;
    updateGSynFromPostPerspective = false;
-   receiveGpu                    = false; // Happens quickly, GPU overhead is probably not worth it
+   receiveGpu                    = false;              // Happens quickly, GPU overhead is probably not worth it
 };
+
 
 HyPerConn "L1_to_Residual" = {
     preLayerName                        = "L1";
     postLayerName                       = "Residual";
     nxp                                 = 8;
     nyp                                 = 8;
-    //nxpShrunken                         = 12;
-    //nypShrunken                         = 12;
-    nfp                                 = 1;
+    nxpShrunken                         = 8;             // Allows us to have smaller patches than what is allocated
+    nypShrunken                         = 8;
     numAxonalArbors                     = 1;
     channelCode                         = 1;
-    sharedWeights                       = true;                   // Acts like a kernelconn
+    sharedWeights                       = true;          // If true, acts like a KernelConn
+    keepKernelsSynchronized             = true;          // * If false, each MPI process would accumulate on its own and combine at
+                                                         //   the end of the run.
 //
     weightInitType                      = "UniformRandomWeight";
-    // initWeightsFile                     was set to (NULL);
+//    initWeightsFile                     was set to (NULL);
     wMinInit                            = -1;
     wMaxInit                            = 1;
-    sparseFraction                      = 0.9;                    // What percentage of weights are set to 0
+    sparseFraction                      = 0.9;           // What percentage of weights are set to 0
     plasticityFlag                      = true;
-//    weightUpdatePeriod                  = 200;                    // Interval between updates, usually set to before the image flips
-    initialWeightUpdateTime             = 0;
 //
     triggerFlag                         = true;
     triggerLayerName                    = "Input";
-    triggerOffset                       = 1;
+    triggerOffset                       = 1;             // Triggers on triggerOffset timesteps before the image flips
+//    weightUpdatePeriod                  = 200;         // Interval between updates, usually set to before the image flips
+//    initialWeightUpdateTime             = 0;
 //
-    pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
-    writeStep                           = -1;
+    pvpatchAccumulateType               = "convolve";    // * How activity & weights are combined. Alternative options are max pooling,
+                                                         //   stocastic, others?
+    preActivityIsNotRate                = false;         // TODO: What is this - don't scale weights by dt..
+    writeStep                           = -1;            // Usually better to use checkpoints to write weights
     writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
-    combine_dW_with_W_flag              = false;
     delay                               = [0.0];
     updateGSynFromPostPerspective       = false;
 //
-    normalizeMethod                     = "normalizeL2";
-    normalize_cutoff                    = 0;
+// * dw is computed for all patches across image. w += normalized(dw) once for whole image.
+// * Normalization is non-local, sum(dw) / num_active_kernels
+// * num_active_kernels = number of times that a given feature was active. i.e. number of non-zero activity values
+//   for that feature across the image. This stops us from including 0 dw values in the average.
+// * Normalization encourages features that occur less frequently to still cause appreciable weight updates.
+//
+    normalizeMethod                     = "normalizeL2"; // Normalize after each batch, after dw is applied to w
+    normalize_cutoff                    = 0;             // * Threshold on the weights. Weights below cutoff = normalize_cutoff.
+                                                         //   This would theoretically sparsify the weights.
     normalizeFromPostPerspective        = false;
     normalizeArborsIndividually         = false;
-    normalizeOnInitialize               = true;      // Normalize weights after they have been initialized
-    normalizeOnWeightUpdate             = true;      // Normalize weights after each batch
-    minL2NormTolerated                  = 0;
+    normalizeOnInitialize               = true;          // Normalize weights after they have been initialized.
+    normalizeOnWeightUpdate             = true;          // * Normalize weights after each batch. If false, only normalize on 
+                                                         //   initialization, if normalizeOnInitialize is true.
+    minL2NormTolerated                  = 0;             // Check to see if weights are too small. Terminate execution(?) if
+                                                         // weights are too small.
     strength                            = 1;
-    rMinX                               = 0;
+    rMinX                               = 0;             // Creates annulus if non-zero
     rMinY                               = 0;
     symmetrizeWeights                   = false;
-    dWMax                               = 1.0; //TODO: Write out equation here? - how does this relate to eta?
+    dWMax                               = 1.0;           // Corresponds to eta parameter
 //
-    keepKernelsSynchronized             = true;
-    shrinkPatches                       = false;
-    receiveGpu                          = false; // Sparse convolution, most efficient on CPU
+    shrinkPatches                       = false;         // Shrinks patch to minimum non-zero cube. Only works for fixed weights?
+    receiveGpu                          = false;         // Sparse convolution, most efficient on CPU
 };
 
 
@@ -287,10 +372,11 @@ TransposeConn "Residual_to_L1" = {
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     delay                               = [0.0];
-    updateGSynFromPostPerspective       = true;
+    updateGSynFromPostPerspective       = true;         // Update from L1 perspective (pull model for thread safety)
     originalConnName                    = "L1_to_Residual";
-    preDataLocal                        = true; // TODO: What is this?
-    receiveGpu                          = true; // Dense convolution, most efficient on GPU
+//    preDataLocal                        = true;         // * If true, pre-synaptic data is put into local memory.
+                                                          //   Not read if cuDNN compiler directive is true.
+    receiveGpu                          = true;         // Dense convolution, most efficient on GPU
 };
 
 
