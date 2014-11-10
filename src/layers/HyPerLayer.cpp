@@ -2946,9 +2946,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
    for (int l=0; l<numlevels; l++) {
       double tlevel;
       pvp_read_time(readFile, comm, 0/*root process*/, &tlevel);
-      if (comm->commRank()==0 && timeptr != NULL && *timeptr != tlevel) {
-         fprintf(stderr, "Warning: \"%s\" delay level %d has timestamp %g instead of the expected value %g.\n", filename, l, tlevel, *timeptr);
-      }
+      datastore->setLastUpdateTime(LOCAL/*bufferId*/, l, tlevel);
       pvdata_t * buffer = (pvdata_t *) datastore->buffer(0, l);
       int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true);
       if (status1 != PV_SUCCESS) status = PV_FAILURE;
@@ -3055,7 +3053,8 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
    DataStore * datastore = comm->publisherStore(getLayerId());
    for (int l=0; l<numlevels; l++) {
       if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
-         int numwritten = PV_fwrite(&timed, sizeof(double), 1, writeFile);
+         double lastUpdateTime = datastore->getLastUpdateTime(LOCAL/*bufferId*/, l);
+         int numwritten = PV_fwrite(&lastUpdateTime, sizeof(double), 1, writeFile);
          if (numwritten != 1) {
             fprintf(stderr, "HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
             abort();

@@ -45,6 +45,11 @@ public:
          {return (recvBuffers + bufferId*numLevels*bufSize + levelIndex(level)*bufSize);}
    void* buffer(int bufferId)
          {return (recvBuffers + bufferId*numLevels*bufSize + curLevel*bufSize);}
+   double getLastUpdateTime(int bufferId, int level) { return lastUpdateTimes[bufferId*numLevels+levelIndex(level)]; }
+   double getLastUpdateTime(int bufferId) { return lastUpdateTimes[bufferId*numLevels+levelIndex(0)]; }
+   void setLastUpdateTime(int bufferId, int level, double t) { lastUpdateTimes[bufferId*numLevels+levelIndex(level)] = t; }
+   void setLastUpdateTime(int bufferId, double t) { lastUpdateTimes[bufferId*numLevels+levelIndex(0)] = t; }
+
    size_t bufferOffset(int bufferId, int level=0)
          {return (bufferId*numLevels*bufSize + levelIndex(level)*bufSize);}
    bool isSparse() {return isSparse_flag;}
@@ -78,6 +83,7 @@ private:
    unsigned int*   activeIndices;
    unsigned int*   numActive;
    bool  isSparse_flag;
+   double * lastUpdateTimes; // A ring buffer for the getLastUpdateTime() function.
 
 //#ifdef PV_USE_OPENCL
 //   CLBuffer * clRecvBuffers;

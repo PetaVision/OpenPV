@@ -212,14 +212,16 @@ int Publisher::publish(HyPerLayer* pub,
       //Only need to exchange borders if layer was updated this timestep
       memcpy(recvBuf, sendBuf, dataSize);
       exchangeBorders(neighbors, numNeighbors, &cube->loc, 0);
+      store->setLastUpdateTime(LOCAL/*bufferId*/, pub->getLastUpdateTime());
 
       //Updating active indices is done after MPI wait in HyPerCol
       //to avoid race condition because exchangeBorders mpi is async
    }
    else if (store->numberOfLevels()>1){
       // If there are delays, copy last level's data to this level.
-      // TODO: we could use pointer magic to cut down on the number of memcpy calls required, if this turns out to be an expensive step
-      memcpy(recvBuf, recvBuffer(LOCAL,1), dataSize);
+      // TODO: we could use pointer indirection to cut down on the number of memcpy calls required, if this turns out to be an expensive step
+      memcpy(recvBuf, recvBuffer(LOCAL/*bufferId*/,1), dataSize);
+      store->setLastUpdateTime(LOCAL/*bufferId*/, pub->getLastUpdateTime());
    }
 
    return PV_SUCCESS;
