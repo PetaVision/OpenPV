@@ -27,6 +27,10 @@ function writepvpsharedweightfile(filename, data)
        error('writepvpsharedweightfile:datanotcell', 'data must be a cell array, one element per frame');
    end%if
    
+   if ~isvector(data)
+       error('writepvpsharedweightfile:datanotcellvector', 'data cell array must be a vector; either number of rows or number of columns must be one');
+   end%if
+   
    fid = fopen(filename, 'w');
    if fid < 0
        error('writepvpsharedweightfile:fopenerror', 'unable to open %s', filename);
@@ -34,7 +38,7 @@ function writepvpsharedweightfile(filename, data)
    
    errorpresent = 0;
    hdr = zeros(26,1);
-   for frameno=1:size(data)
+   for frameno=1:length(data)   % allows either row vector or column vector.  isvector(data) was verified above
        numarbors = numel(data{frameno}.values);
        arbor1size = size(data{frameno}.values{1});
        wmax = max(data{frameno}.values{1}(:));

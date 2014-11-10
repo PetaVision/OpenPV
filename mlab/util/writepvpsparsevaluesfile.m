@@ -19,22 +19,26 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf)
    %     dimensions (nx,ny,nf) has index y*(nx*nf)+x*(nf)+f
    
    if nargin ~= 5
-       error('writepvpsparseactivityfile:missingargs', 'writepvpsparseactivityfile requires 5 arguments');
+       error('writepvpsparsevaluesfile:missingargs', 'writepvpsparsevaluesfile requires 5 arguments');
    end%if
    
    if ~ischar(filename) || ~isvector(filename) || size(filename,1)~=1
-       error('writepvpsparseactivityfile:filenamenotstring', 'filename must be a string');
+       error('writepvpsparsevaluesfile:filenamenotstring', 'filename must be a string');
    end%if
    
    if ~iscell(data)
-       error('writepvpsparseactivityfile:datanotcell', 'data must be a cell array, one element per frame');
+       error('writepvpsparsevaluesfile:datanotcell', 'data must be a cell array, one element per frame');
+   end%if
+   
+   if ~isvector(data)
+       error('writepvpsparsevaluesfile:datanotcellvector', 'data cell array must be a vector; either number of rows or number of columns must be one');
    end%if
    
    if isempty(data)
-       error('writepvpsparseactivityfile:dataempty', 'data must have at least one frame');
+       error('writepvpsparsevaluesfile:dataempty', 'data must have at least one frame');
    end%if
    
-   for n=1:numel(data)
+   for n=1:length(data)
        if ~isempty(data{n}.values)
            if ismatrix(data{n}.values)
                sz = size(data{n}.values);
@@ -55,7 +59,7 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf)
    
    fid = fopen(filename, 'w');
    if fid < 0
-       error('writepvpsparseactivityfile:fopenerror', 'unable to open %s', filename);
+       error('writepvpsparsevaluesfile:fopenerror', 'unable to open %s', filename);
    end%if
    
    errorpresent = 0;
@@ -77,10 +81,10 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf)
    hdr(15) = 0;        % kx0, no longer used
    hdr(16) = 0;        % ky0, no longer used
    hdr(17) = 0;        % Presynaptic nb, not relevant for activity files
-   hdr(18) = numel(data); % number of frames 
+   hdr(18) = length(data); % number of frames 
    hdr(19:20) = typecast(double(data{1}.time),'uint32'); % timestamp
    fwrite(fid,hdr,'uint32');
-   for frameno=1:size(data)
+   for frameno=1:length(data)   % allows either row vector or column vector.  isvector(data) was verified above
        fwrite(fid,data{frameno}.time,'double');
        count = size(data{frameno}.values,1);
        fwrite(fid,count,'uint32');

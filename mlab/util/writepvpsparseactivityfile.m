@@ -30,11 +30,15 @@ function writepvpsparseactivityfile(filename, data, nx, ny, nf)
        error('writepvpsparseactivityfile:datanotcell', 'data must be a cell array, one element per frame');
    end%if
    
+   if ~isvector(data)
+       error('writepvpsparseactivityfile:datanotcellvector', 'data cell array must be a vector; either number of rows or number of columns must be one');
+   end%if
+
    if isempty(data)
        error('writepvpsparseactivityfile:dataempty', 'data must have at least one frame');
    end%if
    
-   for n=1:numel(data)
+   for n=1:length(data)
        if ~isempty(data{n}.values) && (~isvector(data{n}.values) || ~isnumeric(data{n}.values) || ~isequal(data{n}.values, round(data{n}.values)))
            error('writepvpsparseactivity:noninteger', 'data{%d}.values is not a vector of integers', n);
        end%if
@@ -64,10 +68,10 @@ function writepvpsparseactivityfile(filename, data, nx, ny, nf)
    hdr(15) = 0;        % kx0, no longer used
    hdr(16) = 0;        % ky0, no longer used
    hdr(17) = 0;        % Presynaptic nb, not relevant for activity files
-   hdr(18) = numel(data); % number of frames 
+   hdr(18) = length(data); % number of frames 
    hdr(19:20) = typecast(double(data{1}.time),'uint32'); % timestamp
    fwrite(fid,hdr,'uint32');
-   for frameno=1:length(data)
+   for frameno=1:length(data)   % allows either row vector or column vector.  isvector(data) was verified above
        fwrite(fid,data{frameno}.time,'double');
        count = numel(data{frameno}.values);
        fwrite(fid,count,'uint32');

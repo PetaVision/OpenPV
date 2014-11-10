@@ -22,6 +22,10 @@ function writepvpactivityfile(filename, data)
        error('writepvpactivityfile:datanotcell', 'data must be a cell array, one element per frame');
    end%if
    
+   if ~isvector(data)
+       error('writepvpactivityfile:datanotcellvector', 'data cell array must be a vector; either number of rows or number of columns must be one');
+   end%if
+   
    if isempty(data)
        error('writepvpactivityfile:dataempty', 'data must have at least one frame');
    end%if
@@ -51,11 +55,11 @@ function writepvpactivityfile(filename, data)
    hdr(15) = 0;        % kx0, no longer used
    hdr(16) = 0;        % ky0, no longer used
    hdr(17) = 0;        % Presynaptic nb, not relevant for activity files
-   hdr(18) = numel(data); % number of frames 
+   hdr(18) = length(data); % number of frames 
    hdr(19:20) = typecast(double(data{1}.time),'uint32'); % timestamp
    fwrite(fid,hdr,'uint32');
 
-   for frameno=1:numel(data)   %% mohit - I changed size(dat) to numel(data)
+   for frameno=1:length(data)   % allows either row vector or column vector.  isvector(data) was verified above
        fwrite(fid,data{frameno}.time,'double');
        fwrite(fid,permute(data{frameno}.values(:,:,:),[3 1 2]),'single');
    end%for

@@ -40,6 +40,10 @@ function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbP
     if ~iscell(data)
         error('writepvpweightfile:datanotcell', 'data must be a cell array, one element per frame');
     end%if
+   
+    if ~isvector(data)
+        error('writepvpweightfile:datanotcellvector', 'data cell array must be a vector; either number of rows or number of columns must be one');
+    end%if
     
     fid = fopen(filename, 'w');
     if fid < 0
@@ -48,7 +52,7 @@ function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbP
     
     errorpresent = 0;
     hdr = zeros(26,1);
-    for frameno=1:size(data)
+    for frameno=1:length(data)   % allows either row vector or column vector.  isvector(data) was verified above
         numxprocs = size(data{frameno}.values,1);
         numyprocs = size(data{frameno}.values,2);
         numarbors = size(data{frameno}.values,3);
