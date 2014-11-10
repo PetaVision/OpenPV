@@ -1752,6 +1752,7 @@ bool Image::constrainOffsets() {
    int diffy = newOffsets[1] - oldOffsetY;
    offsets[0] = offsets[0] + diffx;
    offsets[1] = offsets[1] + diffy;
+   return status;
 }
 
 } // namespace PV
