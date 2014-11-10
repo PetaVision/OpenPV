@@ -2817,7 +2817,7 @@ int HyPerConn::updateState(double time, double dt)
    }
    update_timer->start();
 
-   clear_dW();
+   if (!combine_dW_with_W_flag) { clear_dW(); }
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
       status = calc_dW(arborId);        // Calculate changes in weights
       if (status==PV_BREAK) { break; }
