@@ -68,7 +68,7 @@ Movie "Input" = {
 //
     writeStep              = -1;
     initialWriteTime       = 0;
-    writeSparseActivity    = false;
+    sparseLayer            = false;
     displayPeriod          = 40;       // How long image is displayed to network before flipping
     start_frame_index      = 0;        // zero indexed
     skip_frame_index       = 0;
@@ -95,7 +95,7 @@ Movie "Input" = {
     writeImages            = false;
     autoResizeFlag         = false;
     readPvpFile            = false;
-    updateGPU              = false;
+    updateGpu              = false;
     phase                  = 0;
 };
 
@@ -117,7 +117,7 @@ Movie "Input" = {
 //    triggerFlag            = false;
 ////    initialWriteTime       = 40;
 //    writeStep              = -1;
-//    writeSparseActivity    = 0;
+//    sparseLayer            = false;
 ////
 //    InitVType              = "ZeroV";
 ////    InitVType              = "InitVFromFile";
@@ -133,7 +133,7 @@ Movie "Input" = {
 //    VWidth                 = 0;        //
 //    errScale               = 1;         // * For multiple error layers -> how important is this error wrt others             
 ////
-//    updateGPU              = false;
+//    updateGpu              = false;
 //    phase                  = 1;  
 //};
 
@@ -143,12 +143,12 @@ ANNLayer "Residual" = {
     nyScale                = 1;
     nf                     = 1;
 //
-    mirrorBCflag           = false;
-//    valueBC                = 0;
+    mirrorBCflag           = false;    // If true, set the boundary with a mirror of the input image
+    valueBC                = 0;        // What value is assigned to the boundaries (assuming mirrorBCflag=false)
     triggerFlag            = false;
 //    initialWriteTime       = 40;
     writeStep              = -1;
-    writeSparseActivity    = 0;
+    sparseLayer            = false;
 //
     InitVType              = "ZeroV";
 //    InitVType              = "InitVFromFile";
@@ -165,7 +165,7 @@ ANNLayer "Residual" = {
     AShift                 = 0;         // Shift between hard & soft threshold
     VWidth                 = 0;         // Width of transition region from soft to hard threshold                          
 //
-    updateGPU              = false;
+    updateGpu              = false;
     phase                  = 1;         // * Set phase = 2 for concurrency - error layer updates on CPU at the same 
                                         //   time that LCA layer updates on the GPU. This increases the numerical error because
                                         //   error layer uses reconstructed value that was two time steps old if phase = 2.
@@ -322,12 +322,14 @@ HyPerConn "L1_to_Residual" = {
     wMaxInit                            = 1;
     sparseFraction                      = 0.9;           // What percentage of weights are set to 0
     plasticityFlag                      = true;
+    weightUpdatePeriod                  = 1.0;
 //
     triggerFlag                         = true;
     triggerLayerName                    = "Input";
     triggerOffset                       = 1;             // Triggers on triggerOffset timesteps before the image flips
 //    weightUpdatePeriod                  = 200;         // Interval between updates, usually set to before the image flips
-//    initialWeightUpdateTime             = 0;
+    initialWeightUpdateTime             = 0;
+    combine_dW_with_W_flag              = false;         // Should be depreciated?
 //
     pvpatchAccumulateType               = "convolve";    // * How activity & weights are combined. Alternative options are max pooling,
                                                          //   stocastic, others?
