@@ -156,7 +156,8 @@ ANNLayer "Residual" = {
 //
 // For residual layer, threshold should be linear function.
 //
-    VThresh                = 0;         // Threshold for T(u)
+    VThresh                = 0;         // Threshold for T(u).
+                                        // Non-zero value will sparsify your error (i.e. small error will go to 0)
 //
     AMax                   = infinity;  // Max value that T(u) can be
     AMin                   = -infinity; // Min value that T(u) can be
@@ -209,6 +210,7 @@ HyPerLCALayer "L1" = {
 // Here is where you set a hard or soft threshold.
 //
     VThresh                = 0.05;     // Lambda -> thershold for activation function T(u)
+                                       // This is your trade-off parameter for sparseness vs reconstruction error.
                                        // Depends on scale of input - for normalized images, 0.05 works well
     AMax                   = infinity; // Max value T(u) can be
     AMin                   = 0;        // Min value T(u) can be. All values below threshold go to 0 -> rectifies units.
