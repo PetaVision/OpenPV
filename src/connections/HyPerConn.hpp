@@ -311,9 +311,10 @@ public:
 
    virtual void reduceNumKernelActivations();
 
-   virtual double getNumKernelActivations(int kernelIndex){
+   virtual double getNumKernelActivations(int kernelIndex, int patchindex){
       assert(kernelIndex < getNumDataPatches());
-      return numKernelActivations[kernelIndex];
+      assert(patchindex < nxp*nyp*nfp);
+      return numKernelActivations[kernelIndex][patchindex];
    }
 
    virtual long* getPostToPreActivity(){
@@ -373,6 +374,10 @@ private:
    int * patch2datalookuptable;
    
    long * postToPreActivity;
+
+   bool useMask;
+   char* maskLayerName;
+   HyPerLayer* mask;
 
 protected:
    bool useWindowPost;
@@ -441,7 +446,7 @@ protected:
    double lastUpdateTime;
 
    bool symmetrizeWeightsFlag;
-   int* numKernelActivations;
+   int** numKernelActivations;
    bool keepKernelsSynchronized_flag;
 
    // unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
@@ -795,6 +800,16 @@ protected:
     */
    virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
 
+   /**
+    * @brief useMask: Specifies if this connection is using a post mask for learning
+    */
+   virtual void ioParam_useMask(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief maskLayerName: If using mask, specifies the layer to use as a binary mask layer
+    */
+   virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
+
 public:
    /**
     * @brief strength: A value that specifies the strength of the connection
@@ -836,6 +851,7 @@ protected:
     * must be less than the amount of local threads specified by the hardware. Must be set to 1.
     */
    virtual void ioParam_numFLocal(enum ParamsIOFlag ioFlag);
+
 
 #endif
    /** @} */
