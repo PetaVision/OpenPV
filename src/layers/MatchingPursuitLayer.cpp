@@ -278,8 +278,7 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
       getActivity()[kExt] = 0.0f;
    }
 
-   initializeMaxinfo(parent->columnId()==0);
-   maxinfo.mpirank = parent->columnId();
+   initializeMaxinfo(parent->columnId());
    if (numChannels==1) {
       for (int k=0; k<getNumNeurons(); k++) {
          updateMaxinfo(GSyn[0][k], k);

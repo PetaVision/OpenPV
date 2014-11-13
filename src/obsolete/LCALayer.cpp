@@ -78,7 +78,7 @@ int LCALayer::updateState(double timed, double dt) {
       A[kex] = Vk >= threshold ? Vk - threshdrop : 0.0;
       V[k] = Vk;
    }
-   resetGSynBuffers_HyPerLayer(getNumNeurons(), getNumChannels(), GSyn[0]);
+   //resetGSynBuffers_HyPerLayer(getNumNeurons(), getNumChannels(), GSyn[0]);
 
    return PV_SUCCESS;
 }

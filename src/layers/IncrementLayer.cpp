@@ -129,7 +129,7 @@ int IncrementLayer::doUpdateState(double timef, double dt, bool * inited, double
       }
       status = applyGSyn_HyPerLayer(num_neurons, V, gSynHead);
       if( status == PV_SUCCESS ) status = setActivity_IncrementLayer(num_neurons, A, V, Vprev, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // setActivity();
-      if( status == PV_SUCCESS ) status = resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
+      //if( status == PV_SUCCESS ) status = resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
    }
    else {
       if( timef >= first_update_time ) {

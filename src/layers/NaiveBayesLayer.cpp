@@ -97,7 +97,7 @@ int NaiveBayesLayer::updateState(double timef, double dt, const PVLayerLoc * loc
       }
    } // k
 
-   resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
+   //resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
    // resetGSynBuffers();
 
    return 0;

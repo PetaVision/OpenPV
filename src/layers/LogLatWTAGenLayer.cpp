@@ -45,7 +45,7 @@ int LogLatWTAGenLayer::doUpdateState(double timef, double dt, const PVLayerLoc *
       relax_remaining -=trunc_rel;
    }
    setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, activity_threshold); // setActivity();
-   resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
+   //resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
    return PV_SUCCESS;
 }
 

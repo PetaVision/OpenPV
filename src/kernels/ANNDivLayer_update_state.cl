@@ -47,5 +47,5 @@ void ANNDivLayer_update_state(
    //setActivity():
    setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
    //resetGSynBuffers():
-   resetGSynBuffers_HyPerLayer(numNeurons, 3, GSynHead);
+   //resetGSynBuffers_HyPerLayer(numNeurons, 3, GSynHead);
 }

@@ -109,7 +109,7 @@ int GenerativeLayer::updateState(double timef, double dt,
       relax_remaining -=trunc_rel;
    }
    setActivity_GenerativeLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, activity_threshold);
-   resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
+   //resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead);
    return PV_SUCCESS;
 }
 

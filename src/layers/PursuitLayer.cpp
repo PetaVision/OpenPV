@@ -217,7 +217,7 @@ int PursuitLayer::updateState(double time, double dt) {
          activity[kex] = gSynSparse[kxy];
       }
    }
-   resetGSynBuffers_HyPerLayer(getNumNeurons(), getNumChannels(), GSyn[0]);
+   //resetGSynBuffers_HyPerLayer(getNumNeurons(), getNumChannels(), GSyn[0]);
    updateReady = false;
    return PV_SUCCESS;
 }

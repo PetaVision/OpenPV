@@ -163,14 +163,14 @@ for (k = 0; k < nx*ny*nf; k++) {
    l_activ = (float) spike(timed, dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, burst_status, params);
    l_prev  = (l_activ > 0.0f) ? timed : l_prev;
 
-   l_phiExc = 0.0f;
-   l_phiInh = 0.0f;
+   //l_phiExc = 0.0f;
+   //l_phiInh = 0.0f;
 
    // store local variables back to global memory
    //
    rnd[k] = l_rnd;
-   phiExc[k] = l_phiExc;
-   phiInh[k] = l_phiInh;
+   //phiExc[k] = l_phiExc;
+   //phiInh[k] = l_phiInh;
    prevTime[kex] = l_prev;
    activity[kex] = l_activ;
 
@@ -228,13 +228,13 @@ for (k = 0; k < nx*ny*nf; k++) {
    // adding base prob should not change default behavior
    l_activ = burstStatus * params->probStim*(l_phiExc - l_phiInh) + params->probBase;
 
-   l_phiExc = 0.0f;
-   l_phiInh = 0.0f;
+   //l_phiExc = 0.0f;
+   //l_phiInh = 0.0f;
 
    // store local variables back to global memory
    //
-   phiExc[k] = l_phiExc;
-   phiInh[k] = l_phiInh;
+   //phiExc[k] = l_phiExc;
+   //phiInh[k] = l_phiInh;
    activity[kex] = l_activ;
 
 #ifndef PV_USE_OPENCL
