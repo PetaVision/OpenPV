@@ -2265,7 +2265,15 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
      case PVP_ACT_SPARSEVALUES_FILE_TYPE:
          //Read list of active neurons and their values
          activeNeurons = (int *) calloc(numActive,datasize);
+         if (activeNeurons==NULL) {
+            fprintf(stderr, "scatterActivity error for \"%s\": unable to allocate buffer for active neuron locations: %s\n", pvstream->name, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
          pvdata_t * vals =  (pvdata_t *) calloc(numActive, datasize);
+         if (activeNeurons==NULL) {
+            fprintf(stderr, "scatterActivity error for \"%s\": unable to allocate buffer for active neuron values: %s\n", pvstream->name, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
          for (int i = 0; i < numActive; i++) {
             foo = PV_fread(&activeNeurons[i], datasize, 1, pvstream);
             foo = PV_fread(&vals[i], datasize, 1, pvstream);
