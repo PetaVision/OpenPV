@@ -38,8 +38,8 @@ int ConstGTLayer::updateState(double timef, double dt) {
    const PVLayerLoc * loc = getLayerLoc(); 
    //Set binary vals for gtVal
    for(int ni = 0; ni < getNumNeurons(); ni++){
-      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->nb);
-      int fi = featureIndex(nExt, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
+      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+      int fi = featureIndex(nExt, loc->nx+loc->halo.rt+loc->halo.lt, loc->ny+loc->halo.up, loc->halo.dn);
       if(fi == gtVal){
          A[nExt] = 1;
       }

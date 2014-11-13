@@ -38,7 +38,7 @@ int ErrorMaskLayer::updateState(double timef, double dt) {
    pvdata_t * V = getV();
    const PVLayerLoc * loc = getLayerLoc(); 
    for(int ni = 0; ni < getNumNeurons(); ni++){
-      int next = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->nb);
+      int next = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       //std::cout << "ni: " << ni << "  error: " << GSynExt[ni] << "\n";
       //Only check for positive features
       if(GSynExt[ni] >= errThresh){

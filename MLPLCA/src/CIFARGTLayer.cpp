@@ -72,14 +72,13 @@ int CIFARGTLayer::updateState(double timef, double dt) {
    //CIFAR is 0 indexed
    char cVal = inputString.at(found-1);
    int iVal = cVal - '0';
-   //std::cout << "time: " << parent->simulationTime() << " inputString:" << inputString << "  iVal:" << iVal << "\n";
+   std::cout << "time: " << parent->simulationTime() << " inputString:" << inputString << "  iVal:" << iVal << "\n";
    assert(iVal >= 0 && iVal < 10);
    //NF must be 10, one for each class
    assert(loc->nf == 10);
-   //Set binary values of xor values
    for(int ni = 0; ni < getNumNeurons(); ni++){
-      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->nb);
-      int fi = featureIndex(nExt, loc->nx+2*loc->nb, loc->ny+2*loc->nb, loc->nf);
+      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+      int fi = featureIndex(nExt, loc->nx+loc->halo.rt+loc->halo.lt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
       if(fi == iVal){
          A[nExt] = 1;
       }

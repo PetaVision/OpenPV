@@ -110,7 +110,7 @@ void HeliGTLayer::setA(float val){
    pvdata_t * A = getCLayer()->activity->data;
    const PVLayerLoc * loc = getLayerLoc(); 
    for(int ni = 0; ni < getNumNeurons(); ni++){
-      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->nb);
+      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       A[nExt] = val;
    }
 }
@@ -131,7 +131,7 @@ void HeliGTLayer::setA(std::vector<int> inPoints, float val){
          int localX = globalX - loc->kx0;
          int localY = globalY - loc->ky0;
          int localRes = kIndex(localX, localY, f, loc->nx, loc->ny, loc->nf);
-         int localExt = kIndexExtended(localRes, loc->nx, loc->ny, loc->nf, loc->nb);
+         int localExt = kIndexExtended(localRes, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          A[localExt] = val;
       }
    }

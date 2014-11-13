@@ -6,6 +6,8 @@
 #include <columns/buildandrun.hpp>
 #include "CIFARGTLayer.hpp"
 #include "HeliGTLayer.hpp"
+#include "HeliTileMovie.hpp"
+#include "HeliTileGTLayer.hpp"
 #include "ConstGTLayer.hpp"
 #include "ErrorMaskLayer.hpp"
 
@@ -35,6 +37,12 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    }
    if ( !strcmp(keyword, "HeliGTLayer") ) {
       addedGroup = new HeliGTLayer(name, hc);
+   }
+   if ( !strcmp(keyword, "HeliTileMovie") ) {
+      addedGroup = new HeliTileMovie(name, hc);
+   }
+   if ( !strcmp(keyword, "HeliTileGTLayer") ) {
+      addedGroup = new HeliTileGTLayer(name, hc);
    }
    if ( !strcmp(keyword, "ConstGTLayer") ) {
       addedGroup = new ConstGTLayer(name, hc);
