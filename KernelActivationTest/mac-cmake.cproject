@@ -54,7 +54,7 @@
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="GenerativeConnTest.null.880059812" name="GenerativeConnTest"/>
+		<project id="KernelActivationTest.null.880059812" name="KernelActivationTest"/>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope"/>

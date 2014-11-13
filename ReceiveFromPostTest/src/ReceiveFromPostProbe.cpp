@@ -18,7 +18,7 @@ ReceiveFromPostProbe::ReceiveFromPostProbe(const char * probeName, HyPerCol * hc
 }
 
 int ReceiveFromPostProbe::initReceiveFromPostProbe_base() {
-   tolerance = (pvadata_t) 0;
+   tolerance = (pvadata_t) 1e-3;
    return PV_SUCCESS;
 }
 
@@ -46,7 +46,6 @@ int ReceiveFromPostProbe::outputState(double timed){
    int numExtNeurons = getTargetLayer()->getNumExtended();
    const pvdata_t * A = getTargetLayer()->getLayerData();
    std::cout.precision(15);
-   std::cout << "outputting\n";
    for (int i = 0; i < numExtNeurons; i++){
       if(fabs(A[i]) != 0){
          int xpos = kxPos(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);

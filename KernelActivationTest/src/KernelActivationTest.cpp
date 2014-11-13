@@ -1,38 +1,19 @@
 /*
- * GenerativeConnTest.cpp
+ * KernelActivationTest.cpp
  *
  * Tests GenerativeConn.  If called with no parameter file specified, will run
- * with params file input/GenerativeConnTest-MirrorBCOff.params, and then
- * with params file input/GenerativeConnTest-MirrorBCOn.params.
+ * with params file input/KernelActivationTest-MirrorBCOff.params, and then
+ * with params file input/KernelActivationTest-MirrorBCOn.params.
  *
  * If called with a parameter file specified, it will run with that parameter.
  *
- * For connections with presynaptic mirrorBCflag set to true, the program
- * expects connections to all be ones.  This will be the case if
- * the presynaptic and postsynaptic neurons are all ones for a single time step,
- * and zeros the rest of the time, as specified in the image*sequence.txt files.
+ * For connections testing full data, since the pre/post values are .5,
+ * weight update should make all the weights .5^2 with a pixel roundoff error
  *
- * For connections with presynaptic mirrorBCflag false, the program expects
- * connections to be one at the center and to fall off as one goes away from
- * the center.  For example, for a one-to-one connection with patch size 5x5
- * and pre-synaptic layer size 16x16, the weights will be
- *         /  196 210 224 210 196  \
- *    1    |  210 225 240 225 210  |
- *   --- * |  224 240 256 240 224  |
- *   256   |  210 225 240 225 210  |
- *         \  196 210 224 210 196  /
- *
- * This is the matrix product of (14 15 16 15 14)'/16 and (14 15 16 15 14)/16.
- * (the apostrophe indicates the transpose).
- *
- * For a two-to-one connection with patch size 5x5 and pre-synaptic layer size 16x16,
- * the weights will be the matrix product of (12 14 16 14 12)'/16 and (12 14 16 14 12)/16.
- * For many-to-one connections, the change in entries in the vectors is "many"/16 instead of 2/16.
- *
- * For a one-to-two connection with patch size 5x5 and pre-synaptic layer size 16x16,
- * the weight will be the matrix product of (14 14 15 15 16 16 15 15 14 14)'/16 and the same
- * vector as a row vector.  For one-to-many connections, the duplication in the entries takes
- * place "many" times instead of twice.
+ * For connection testing masked data in both pre and post layers, since
+ * all the pre/post is constant, and the kernel normalization takes into account how many
+ * pre/post pairs are actually being calculated, all the weights should be identical to
+ * the full activations.
  */
 
 #include <columns/buildandrun.hpp>
@@ -41,7 +22,7 @@
 #  include <mpi.h>
 #endif
 
-int runGenerativeConnTest(int argc, char * argv[]);
+int runKernelActivationTest(int argc, char * argv[]);
 int dumpweights(HyPerCol * hc, int argc, char * argv[]);
 int dumponeweight(GenerativeConn * conn);
 
@@ -60,23 +41,23 @@ int main(int argc, char * argv[]) {
       cl_args = (char **) malloc((num_cl_args+1)*sizeof(char *));
       cl_args[0] = argv[0];
       cl_args[1] = strdup("-p");
-      cl_args[2] = strdup("input/GenerativeConnTest-MirrorBCOff.params");
+      cl_args[2] = strdup("input/KernelActivationTest-fullData.params");
       for( int k=1; k<argc; k++) {
          cl_args[k+2] = strdup(argv[k]);
       }
       cl_args[num_cl_args] = NULL;
-      status = runGenerativeConnTest(num_cl_args, cl_args);
+      status = runKernelActivationTest(num_cl_args, cl_args);
       if( status == PV_SUCCESS ) {
          free(cl_args[2]);
-         cl_args[2] = strdup("input/GenerativeConnTest-MirrorBCOn.params");
-         status = runGenerativeConnTest(num_cl_args, cl_args);
+         cl_args[2] = strdup("input/KernelActivationTest-maskData.params");
+         status = runKernelActivationTest(num_cl_args, cl_args);
       }
       free(cl_args[1]); cl_args[1] = NULL;
       free(cl_args[2]); cl_args[2] = NULL;
       free(cl_args); cl_args = NULL;
    }
    else {
-      status = runGenerativeConnTest(argc, argv);
+      status = runKernelActivationTest(argc, argv);
    }
 #ifdef PV_USE_MPI
    MPI_Finalize();
@@ -84,7 +65,7 @@ int main(int argc, char * argv[]) {
    return status;
 }
 
-int runGenerativeConnTest(int argc, char * argv[]) {
+int runKernelActivationTest(int argc, char * argv[]) {
    int status = buildandrun(argc, argv, NULL, &dumpweights);
    return status;
 }
@@ -145,7 +126,12 @@ int dumponeweight(GenerativeConn * conn) {
                int idx = kIndex(x, y, f, nxp, nyp, nfp);
                //TODO-CER-2014.4.4 - weight conversion
                pvdata_t wgt = wgtData[idx];
-               pvdata_t correct = usingMirrorBCs ? 1 : (nxpre-xoffset)*(nypre-yoffset)/((pvdata_t) (nxpre*nypre));
+               //pvdata_t correct = usingMirrorBCs ? 1 : (nxpre-xoffset)*(nypre-yoffset)/((pvdata_t) (nxpre*nypre));
+               //New normalization takes into account if pre is not active
+               //The pixel value from the input is actually 127, where we divide it by 255.
+               //Not exaclty .5, a little less
+               //Squared because both pre and post is grabbing it's activity from the image
+               pvdata_t correct = pow(float(127)/float(255),2);
                if( fabs(wgt-correct)>1.0e-5 ) {
                   if( errorfound == false ) {
                       errorfound = true;

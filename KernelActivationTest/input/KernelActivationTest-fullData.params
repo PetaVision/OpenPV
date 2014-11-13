@@ -1,7 +1,7 @@
-// GenerativeConnTest-MirrorBCOff.params
-//     A params file for use with GenerativeConnTest.cpp
-//     The layers that are presynaptic for GenerativeConn have MirrorBC turned off.
-//     See GenerativeConnTest.cpp for a description of the expected result of the weights.
+// KernelActivationTest-fullData.params
+//     A params file for use with KernelActivationTest.cpp
+//     The layers that are presynaptic for GenerativeConn have MirrorBCflag turned on.
+//     The resulting weights should be all .5 ^ 2.
 
 debugParsing = false;
 
@@ -14,7 +14,7 @@ HyPerCol "column" = {
     numSteps = 5;
     progressStep = 1000;
     writeProgressToErr = false;
-    outputPath = "output-MirrorBCOff/";
+    outputPath = "output-MirrorBCOn/";
     filenamesContainLayerNames = false;
     filenamesContainConnectionNames = false;
     outputNamesOfLayersAndConns = "NamesOfLayersAndConns.txt";
@@ -24,7 +24,7 @@ HyPerCol "column" = {
 };
 
 Movie "8x8 Images" = {
-    imageListPath = "./input/image08x08sequence.txt";
+    imageListPath = "./input/image08x08sequence_full.txt";
     start_frame_index = 0;
     skip_frame_index = 0;
     echoFramePathnameFlag = false;
@@ -36,9 +36,9 @@ Movie "8x8 Images" = {
     phase = 0;
     writeStep = -1;
     writeSparseActivity = false;
-    mirrorBCflag = false;
-    valueBC = 0.0;
+    mirrorBCflag = true;
     useImageBCflag = false;
+    valueBC = 0.0;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
@@ -54,7 +54,7 @@ Movie "8x8 Images" = {
 };
 
 Movie "16x16 Images" = {
-    imageListPath = "./input/image16x16sequence.txt";
+    imageListPath = "./input/image16x16sequence_full.txt";
     start_frame_index = 0;
     skip_frame_index = 0;
     echoFramePathnameFlag = false;
@@ -66,9 +66,9 @@ Movie "16x16 Images" = {
     phase = 0;
     writeStep = -1;
     writeSparseActivity = false;
-    mirrorBCflag = false;
-    valueBC = 0.0;
+    mirrorBCflag = true;
     useImageBCflag = false;
+    valueBC = 0.0;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
@@ -84,7 +84,7 @@ Movie "16x16 Images" = {
 };
 
 Movie "32x32 Images" = {
-    imageListPath = "./input/image32x32sequence.txt";
+    imageListPath = "./input/image32x32sequence_full.txt";
     start_frame_index = 0;
     skip_frame_index = 0;
     echoFramePathnameFlag = false;
@@ -96,9 +96,9 @@ Movie "32x32 Images" = {
     phase = 0;
     writeStep = -1;
     writeSparseActivity = false;
-    mirrorBCflag = false;
-    valueBC = 0.0;
+    mirrorBCflag = true;
     useImageBCflag = false;
+    valueBC = 0.0;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     autoResizeFlag = false;
@@ -121,7 +121,7 @@ ANNLayer "pre 16x16 singleband" = {
     phase = 0;
     writeStep = 1;
     initialWriteTime = 0.0;
-    mirrorBCflag = false;
+    mirrorBCflag = true;
     valueBC = 0.0;
     writeSparseActivity = false;
     
@@ -140,7 +140,7 @@ ANNLayer "pre 16x16 multiband" = {
     phase = 0;
     writeStep = 1;
     initialWriteTime = 0.0;
-    mirrorBCflag = false;
+    mirrorBCflag = true;
     valueBC = 0.0;
     writeSparseActivity = false;
     
@@ -398,8 +398,8 @@ KernelConn "32x32 Images to post 32x32 multiband" = {
     preActivityIsNotRate = false;
 };
 
-GenerativeConn "pre 16x16 singleband to post 16x16 singleband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 singleband to post 16x16 singleband" = {
+    channelCode = -1;
     nxp = 5;
     nyp = 5;
     nfp = 1;
@@ -426,14 +426,10 @@ GenerativeConn "pre 16x16 singleband to post 16x16 singleband" = {
     
     initialWeightUpdateTime = 0.0;
     weightUpdatePeriod = 1.0;
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
 
-GenerativeConn "pre 16x16 singleband to post 16x16 multiband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 singleband to post 16x16 multiband" = {
+    channelCode = -1;
     nxp = 5;
     nyp = 5;
     nfp = 4;
@@ -460,15 +456,10 @@ GenerativeConn "pre 16x16 singleband to post 16x16 multiband" = {
     selfFlag = false;
     combine_dW_with_W_flag = false;
     preActivityIsNotRate = false;
-
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
 
-GenerativeConn "pre 16x16 multiband to post 16x16 singleband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 multiband to post 16x16 singleband" = {
+    channelCode = -1;
     nxp = 5;
     nyp = 5;
     nfp = 1;
@@ -495,15 +486,10 @@ GenerativeConn "pre 16x16 multiband to post 16x16 singleband" = {
     selfFlag = false;
     combine_dW_with_W_flag = false;
     preActivityIsNotRate = false;
-    
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
 
-GenerativeConn "pre 16x16 multiband to post 16x16 multiband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 multiband to post 16x16 multiband" = {
+    channelCode = -1;
     nxp = 5;
     nyp = 5;
     nfp = 4;
@@ -530,15 +516,10 @@ GenerativeConn "pre 16x16 multiband to post 16x16 multiband" = {
     selfFlag = false;
     combine_dW_with_W_flag = false;
     preActivityIsNotRate = false;
-    
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
 
-GenerativeConn "pre 16x16 singleband to post 8x8 singleband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 singleband to post 8x8 singleband" = {
+    channelCode = -1;
     nxp = 5;
     nyp = 5;
     nfp = 1;
@@ -562,16 +543,10 @@ GenerativeConn "pre 16x16 singleband to post 8x8 singleband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    preActivityIsNotRate = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
 
-GenerativeConn "pre 16x16 singleband to post 8x8 multiband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 singleband to post 8x8 multiband" = {
+    channelCode = -1;
     nxp = 5;
     nyp = 5;
     nfp = 4;
@@ -597,16 +572,10 @@ GenerativeConn "pre 16x16 singleband to post 8x8 multiband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    preActivityIsNotRate = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
 
-GenerativeConn "pre 16x16 multiband to post 8x8 singleband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 multiband to post 8x8 singleband" = {
+    channelCode = -1;
     nxp = 5;
     nyp = 5;
     nfp = 1;
@@ -631,16 +600,10 @@ GenerativeConn "pre 16x16 multiband to post 8x8 singleband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    preActivityIsNotRate = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
 
-GenerativeConn "pre 16x16 multiband to post 8x8 multiband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 multiband to post 8x8 multiband" = {
+    channelCode = -1;
     nxp = 5;
     nyp = 5;
     nfp = 4;
@@ -664,16 +627,10 @@ GenerativeConn "pre 16x16 multiband to post 8x8 multiband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    preActivityIsNotRate = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
 
-GenerativeConn "pre 16x16 singleband to post 32x32 singleband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 singleband to post 32x32 singleband" = {
+    channelCode = -1;
     nxp = 10;
     nyp = 10;
     nfp = 1;
@@ -697,16 +654,10 @@ GenerativeConn "pre 16x16 singleband to post 32x32 singleband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    preActivityIsNotRate = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
 
-GenerativeConn "pre 16x16 singleband to post 32x32 multiband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 singleband to post 32x32 multiband" = {
+    channelCode = -1;
     nxp = 10;
     nyp = 10;
     nfp = 4;
@@ -730,16 +681,10 @@ GenerativeConn "pre 16x16 singleband to post 32x32 multiband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    preActivityIsNotRate = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
 
-GenerativeConn "pre 16x16 multiband to post 32x32 singleband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 multiband to post 32x32 singleband" = {
+    channelCode = -1;
     nxp = 10;
     nyp = 10;
     nfp = 1;
@@ -763,16 +708,10 @@ GenerativeConn "pre 16x16 multiband to post 32x32 singleband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    preActivityIsNotRate = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
 
-GenerativeConn "pre 16x16 multiband to post 32x32 multiband" = {
-    channelCode = 2;
+KernelConn "pre 16x16 multiband to post 32x32 multiband" = {
+    channelCode = -1;
     nxp = 10;
     nyp = 10;
     nfp = 4;
@@ -796,10 +735,4 @@ GenerativeConn "pre 16x16 multiband to post 32x32 multiband" = {
     keepKernelsSynchronized = true;
     selfFlag = false;
     combine_dW_with_W_flag = false;
-    
-    relaxation = 1.0;
-    nonnegConstraintFlag = false;
-    preActivityIsNotRate = false;
-    imprintingFlag = false;
-    weightDecayFlag = false;
 };
