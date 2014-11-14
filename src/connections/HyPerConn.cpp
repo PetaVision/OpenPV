@@ -329,8 +329,8 @@ int HyPerConn::createArbors() {
       assert(false);
    }
    size_t * gSynPatchStartBuffer = (size_t *) calloc(
-		   (this->shrinkPatches_flag ? numAxonalArborLists : 1)
-		   * preSynapticLayer()->getNumExtended(), sizeof(size_t));
+         (this->shrinkPatches_flag ? numAxonalArborLists : 1)
+         * preSynapticLayer()->getNumExtended(), sizeof(size_t));
    if (gSynPatchStartBuffer == NULL) {
       createArborsOutOfMemory();
       assert(false);
@@ -2365,8 +2365,8 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
    bool append = last ? false : ioAppend;
 
    status = PV::writeWeights(path, comm, (double) timed, append, loc, nxp, nyp,
-			nfp, minVal, maxVal, patches, dataStart, numPatches,
-			numberOfAxonalArborLists(), compressWeights, fileType);
+         nfp, minVal, maxVal, patches, dataStart, numPatches,
+         numberOfAxonalArborLists(), compressWeights, fileType);
    if(status != PV_SUCCESS) {
       fprintf(stderr, "%s \"%s\" error in writing weights.\n", parent->parameters()->groupKeywordFromName(name), name);
       exit(EXIT_FAILURE);
@@ -3245,102 +3245,102 @@ int HyPerConn::clearWeights(pvwdata_t * arborDataStart, int numPatches, int nxp,
 }
 
 int HyPerConn::deleteWeights() {
-	// to be used if createPatches is used above
-	// HyPerConn::deletePatches(numAxonalArborLists, wPatches);
-	if (wPatches != NULL) {
-		for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
-			if (wPatches[arbor] != NULL) {
-				if (shrinkPatches_flag || arbor == 0) {
-					deletePatches(wPatches[arbor]);
-				}
-				wPatches[arbor] = NULL;
-			}
-		}  // arbor
-		free(wPatches);
-		wPatches = NULL;
-	} // wPatches != NULL
+   // to be used if createPatches is used above
+   // HyPerConn::deletePatches(numAxonalArborLists, wPatches);
+   if (wPatches != NULL) {
+      for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
+         if (wPatches[arbor] != NULL) {
+            if (shrinkPatches_flag || arbor == 0) {
+               deletePatches(wPatches[arbor]);
+            }
+            wPatches[arbor] = NULL;
+         }
+      }  // arbor
+      free(wPatches);
+      wPatches = NULL;
+   } // wPatches != NULL
 
-	if (wDataStart != NULL) {
-		for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
-			// entire arbor allocated as single block
-			if (arbor == 0) {
+   if (wDataStart != NULL) {
+      for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
+         // entire arbor allocated as single block
+         if (arbor == 0) {
 #ifdef USE_SHMGET
-				if (!shmget_flag) {
-					if (wDataStart[arbor] != NULL) {
-						free(this->wDataStart[arbor]);
-					}
-				} else {
-					if (wDataStart[arbor] != NULL) {
-						int shmget_status = shmdt(this->get_wDataStart(arbor));
-						assert(shmget_status==0);
-						if (shmget_owner[arbor]) {
-							shmid_ds * shmget_ds = NULL;
-							shmget_status = shmctl(shmget_id[arbor], IPC_RMID,
-									shmget_ds);
-							assert(shmget_status==0);
-						}
-					}
-				}
+            if (!shmget_flag) {
+               if (wDataStart[arbor] != NULL) {
+                  free(this->wDataStart[arbor]);
+               }
+            } else {
+               if (wDataStart[arbor] != NULL) {
+                  int shmget_status = shmdt(this->get_wDataStart(arbor));
+                  assert(shmget_status==0);
+                  if (shmget_owner[arbor]) {
+                     shmid_ds * shmget_ds = NULL;
+                     shmget_status = shmctl(shmget_id[arbor], IPC_RMID,
+                           shmget_ds);
+                     assert(shmget_status==0);
+                  }
+               }
+            }
 #else
-				if (wDataStart[arbor] != NULL) {
-					free(this->wDataStart[arbor]);
-				}
+            if (wDataStart[arbor] != NULL) {
+               free(this->wDataStart[arbor]);
+            }
 #endif // USE_SHMGET
-			} // arbor == 0
-			this->wDataStart[arbor] = NULL;
-			if (!this->combine_dW_with_W_flag) {
-				if (dwDataStart != NULL && dwDataStart[arbor] != NULL) {
-					free(dwDataStart[arbor]);
-					dwDataStart[arbor] = NULL;
-				}
-			}
-		}  // arbor
-		free(wDataStart);
-		wDataStart = NULL;
-		if (!this->combine_dW_with_W_flag) {
-			free(dwDataStart);
-		}
-		dwDataStart = NULL;
-	} // wDataStart != NULL
+         } // arbor == 0
+         this->wDataStart[arbor] = NULL;
+         if (!this->combine_dW_with_W_flag) {
+            if (dwDataStart != NULL && dwDataStart[arbor] != NULL) {
+               free(dwDataStart[arbor]);
+               dwDataStart[arbor] = NULL;
+            }
+         }
+      }  // arbor
+      free(wDataStart);
+      wDataStart = NULL;
+      if (!this->combine_dW_with_W_flag) {
+         free(dwDataStart);
+      }
+      dwDataStart = NULL;
+   } // wDataStart != NULL
 
 #ifdef USE_SHMGET
-	if (shmget_flag) {
-		free(shmget_id);
-		free(shmget_owner);
-	}
+   if (shmget_flag) {
+      free(shmget_id);
+      free(shmget_owner);
+   }
 #endif
 
-	if (wPostPatches != NULL) {
-		for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
-			if (wPostPatches[arborID] != NULL) {
-				if (shrinkPatches_flag || arborID == 0) {
-					deletePatches(wPostPatches[arborID]);
-				}
-				wPostPatches[arborID] = NULL;
-			}
+   if (wPostPatches != NULL) {
+      for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
+         if (wPostPatches[arborID] != NULL) {
+            if (shrinkPatches_flag || arborID == 0) {
+               deletePatches(wPostPatches[arborID]);
+            }
+            wPostPatches[arborID] = NULL;
+         }
 
-			if (wPostDataStart != NULL) {
-				free(this->wPostDataStart[arborID]);
-				this->wPostDataStart[arborID] = NULL;
-			}
-		}
-		free(wPostPatches);
-		wPostPatches = NULL;
-		free(wPostDataStart);
-		wPostDataStart = NULL;
-	}  // wPostPatches != NULL
+         if (wPostDataStart != NULL) {
+            free(this->wPostDataStart[arborID]);
+            this->wPostDataStart[arborID] = NULL;
+         }
+      }
+      free(wPostPatches);
+      wPostPatches = NULL;
+      free(wPostDataStart);
+      wPostDataStart = NULL;
+   }  // wPostPatches != NULL
 
-	if (gSynPatchStart != NULL) {
-		free(gSynPatchStart[0]); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
-		free(gSynPatchStart);
-	}
-	if (aPostOffset != NULL) {
-		free(aPostOffset[0]); // All aPostOffset[k]'s were allocated together in a single malloc call.
-		free(aPostOffset);
-	}
-	free(patch2datalookuptable); patch2datalookuptable = NULL;
+   if (gSynPatchStart != NULL) {
+      free(gSynPatchStart[0]); // All gSynPatchStart[k]'s were allocated together in a single malloc call.
+      free(gSynPatchStart);
+   }
+   if (aPostOffset != NULL) {
+      free(aPostOffset[0]); // All aPostOffset[k]'s were allocated together in a single malloc call.
+      free(aPostOffset);
+   }
+   free(patch2datalookuptable); patch2datalookuptable = NULL;
 
-	return PV_SUCCESS;
+   return PV_SUCCESS;
 }
 
 
@@ -4140,17 +4140,17 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
    assert(parent->includeConnectionName()<=2 && parent->includeConnectionName()>=0);
    switch(parent->includeConnectionName()) {
    case 0:
-	  chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", parent->getOutputPath(), getConnectionId(), last_str);
-	  break;
+      chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/w%d_post%s.pvp", parent->getOutputPath(), getConnectionId(), last_str);
+      break;
    case 1:
-	  chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/w%d_%s_post%s.pvp", parent->getOutputPath(), getConnectionId(), name, last_str);
-	  break;
+      chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/w%d_%s_post%s.pvp", parent->getOutputPath(), getConnectionId(), name, last_str);
+      break;
    case 2:
-	  chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/%s_post%s.pvp", parent->getOutputPath(), name, last_str);
-	  break;
+      chars_needed = snprintf(path, PV_PATH_MAX-1, "%s/%s_post%s.pvp", parent->getOutputPath(), name, last_str);
+      break;
    default:
-	  assert(0);
-	  break;
+      assert(0);
+      break;
    }
 
    const PVLayerLoc * postLoc = post->getLayerLoc();
@@ -4158,10 +4158,10 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 
    bool append = (last) ? false : ioAppend;
 
-	status = PV::writeWeights(path, comm, (double) timef, append, postLoc,
-			nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal, wPostPatches,
-			wPostDataStart, numPostPatches, numberOfAxonalArborLists(),
-			writeCompressedWeights, fileType);
+   status = PV::writeWeights(path, comm, (double) timef, append, postLoc,
+        nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal, wPostPatches,
+        wPostDataStart, numPostPatches, numberOfAxonalArborLists(),
+        writeCompressedWeights, fileType);
 
    if(status != PV_SUCCESS) {
       fflush(stdout);
@@ -4223,8 +4223,8 @@ int HyPerConn::scaleWeights(int nx, int ny, int offset, pvwdata_t * dataStart, p
       scale_factor = normalize_strength / sqrt(sum2) ;
    }
    else{
-	  std::cout << "can't normalize HyPerConn:" << this->name << std::endl;
-	  return PV_FAILURE;
+      std::cout << "can't normalize HyPerConn:" << this->name << std::endl;
+      return PV_FAILURE;
    }
 
    pvwdata_t * w = dataStart + offset;
@@ -4269,7 +4269,7 @@ int HyPerConn::checkNormalizeWeights(float sum, float sum2, float sigma2, float 
       assert((sum > (1-sign(normalize_strength)*tol)*normalize_strength) && ((sum < (1+sign(normalize_strength)*tol)*normalize_strength)));
    }
    else if (normalize_RMS_amp){
-	      assert((sqrt(sum2) > (1-tol)*normalize_strength) && (sqrt(sum2) < (1+tol)*normalize_strength));
+      assert((sqrt(sum2) > (1-tol)*normalize_strength) && (sqrt(sum2) < (1+tol)*normalize_strength));
    }
    return PV_SUCCESS;
 
@@ -4336,9 +4336,9 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvwdata_t ** dataStart, i
                assert(status == PV_SUCCESS );
             }
             else {
-					fprintf(stderr,
-							"checkNormalizeArbor: connection \"%s\", arbor %d, kernel %d has all zero weights.\n",
-							name, kArbor, kPatch);
+               fprintf(stderr,
+                     "checkNormalizeArbor: connection \"%s\", arbor %d, kernel %d has all zero weights.\n",
+                     name, kArbor, kPatch);
             }
          }
       }
