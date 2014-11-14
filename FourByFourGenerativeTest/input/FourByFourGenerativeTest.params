@@ -17,6 +17,7 @@ HyPerCol "column" = {
     progressInterval = 2000.0;
     writeProgressToErr = false;
     errorOnNotANumber = false;
+    verifyWrites = false;
     outputPath = "output/";
     printParamsFilename = "pv.params";
     filenamesContainLayerNames = true;
@@ -26,7 +27,6 @@ HyPerCol "column" = {
     // checkpointWriteDir = "checkpoints";
     // checkpointWriteStepInterval = 1;
     suppressLastOutput = false;
-    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
 };
 
 // 10 layers:
@@ -52,7 +52,7 @@ Movie "Slideshow" = {
     writeStep = -1;
     mirrorBCflag = false;
     valueBC = false;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     writeImages = 0;
     writeFrameToTimestamp = false;
@@ -80,7 +80,7 @@ Retina "Retina" = {
     nf = 1;
     phase = 0;
     writeStep = -1;
-    writeSparseActivity = 0;
+    sparseLayer = false;
     mirrorBCflag = 1;
     spikingFlag = false;
     // refractoryPeriod = 5; // Not used for nonspiking retinas
@@ -104,7 +104,7 @@ ANNLayer "AnaRetina" = {
     phase = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    sparseLayer = false;
     triggerFlag = false;
 
     InitVType = "ZeroV";
@@ -124,7 +124,7 @@ LogLatWTAGenLayer "Layer A" = {
     writeStep = 1;
     initialWriteTime = 0;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    sparseLayer = false;
     triggerFlag = false;
 
     InitVType = "ZeroV";
@@ -150,7 +150,7 @@ PoolingANNLayer "Pooling AnaLayer A" = {
     phase = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    sparseLayer = false;
     triggerFlag = false;
         
     InitVType = "ZeroV";
@@ -171,7 +171,7 @@ PoolingANNLayer "Arrow AnaLayer A" = {
     phase = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    sparseLayer = false;
     triggerFlag = false;
         
     InitVType = "ZeroV";
@@ -192,7 +192,7 @@ ANNLayer "Flat AnaLayer A" = {
     phase = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    sparseLayer = false;
     triggerFlag = false;
         
     InitVType = "ZeroV";
@@ -211,7 +211,7 @@ ANNLayer "CataLayer B" = {
     phase = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    sparseLayer = false;
     triggerFlag = false;
         
     InitVType = "ZeroV";
@@ -232,7 +232,7 @@ TrainingLayer "Layer B" = {
     phase = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    sparseLayer = false;
     triggerFlag = false;
     
     AMax = infinity;
@@ -253,7 +253,7 @@ PtwiseProductLayer "Energy AnaLayer A" = {
     phase = 0;
     writeStep = -1;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    sparseLayer = false;
     triggerFlag = false;
         
     InitVType = "ZeroV";
@@ -352,14 +352,11 @@ GenerativeConn "AnaRetina to Layer A" = {
     weightUpdatePeriod = 10;
     initialWeightUpdateTime = 0;
     relaxation = 2E-1;
-    imprintingFlag = false;
-    weightDecayFlag = false;
     nonnegConstraintFlag = 1;
 
     normalizeMethod = "normalizeL2";
     strength = 1.41421356;
     normalize_cutoff = false;
-    symmetrizeWeights = false;
     normalizeFromPostPerspective = false;
     normalizeArborsIndividually = false;
     minL2NormTolerated = 0.0;
@@ -477,14 +474,11 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     
     plasticityFlag = true;
     dWMax = 1.0;
-    slownessFlag = false;
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     updateGSynFromPostPerspective = false;
     preActivityIsNotRate = false;
 
-    imprintingFlag = false;
-    weightDecayFlag = false;
     triggerFlag = false;
     weightUpdatePeriod = 10;
     initialWeightUpdateTime = 0;
@@ -494,7 +488,6 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     normalizeMethod = "normalizeL2";
     strength = 1.0;
     normalize_cutoff = false;
-    symmetrizeWeights = false;
     normalizeFromPostPerspective = false;
     normalizeArborsIndividually = false;
     minL2NormTolerated = 0.0;
