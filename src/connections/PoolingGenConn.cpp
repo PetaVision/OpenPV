@@ -28,9 +28,6 @@ int PoolingGenConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = GenerativeConn::ioParamsFillGroup(ioFlag);
    ioParam_secondaryPreLayerName(ioFlag);
    ioParam_secondaryPostLayerName(ioFlag);
-   ioParam_slownessFlag(ioFlag);
-   ioParam_slownessPre(ioFlag);
-   ioParam_slownessPost(ioFlag);
    return status;
 }
 
@@ -40,20 +37,6 @@ void PoolingGenConn::ioParam_secondaryPreLayerName(enum ParamsIOFlag ioFlag) {
 
 void PoolingGenConn::ioParam_secondaryPostLayerName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "secondaryPostLayerName", &postLayerName2);
-}
-
-void PoolingGenConn::ioParam_slownessFlag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "slownessFlag", &slownessFlag, false/*default value*/, true/*warnIfAbsent*/);
-}
-
-void PoolingGenConn::ioParam_slownessPre(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "slownessFlag"));
-   if (slownessFlag) parent->ioParamStringRequired(ioFlag, name, "slownessPre", &slownessPreName);
-}
-
-void PoolingGenConn::ioParam_slownessPost(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "slownessFlag"));
-   if (slownessFlag) parent->ioParamStringRequired(ioFlag, name, "slownessPost", &slownessPostName);
 }
 
 int PoolingGenConn::communicateInitInfo() {
@@ -66,29 +49,7 @@ int PoolingGenConn::communicateInitInfo() {
    }
    else {
       status = PV_FAILURE;
-   }
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "slownessFlag"));
-   if( slownessFlag ) {
-      slownessPre = parent->getLayerFromName(slownessPreName);
-      slownessPost = parent->getLayerFromName(slownessPostName);
-      if (slownessPre==NULL || slownessPost==NULL) {
-         status = PV_FAILURE;
-         if (slownessPre==NULL && parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: slownessPre layer \"%s\" is not a layer in the column.\n",
-                  parent->parameters()->groupKeywordFromName(name), name, slownessPreName);
-         }
-         if (slownessPost==NULL && parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: slownessPost layer \"%s\" is not a layer in the column.\n",
-                  parent->parameters()->groupKeywordFromName(name), name, slownessPostName);
-         }
-      }
-   }
-   if( slownessFlag && status == PV_SUCCESS ) {
-      status = checkLayersCompatible(pre, slownessPre) ? status : PV_FAILURE;
-      status = checkLayersCompatible(post, slownessPost) ? status : PV_FAILURE;
-   }
-   if( status != PV_SUCCESS ) {
-      abort();
+      exit(EXIT_FAILURE);
    }
    return status;
 }
@@ -115,25 +76,6 @@ bool PoolingGenConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * lay
     }
     return result;
 }  // end of PoolingGenConn::PoolingGenConn(HyPerLayer *, HyPerLayer *)
-
-int PoolingGenConn::getSlownessLayerName(char ** l, const char * paramname) {
-   int status = PV_SUCCESS;
-   assert(slownessFlag);
-   const char * slownessLayerName = parent->parameters()->stringValue(name, paramname, false);
-   if( slownessLayerName == NULL ) {
-      status = PV_FAILURE;
-      fprintf(stderr, "PoolingGenConn \"%s\": if slownessFlag is set, parameter \"%s\" must be set\n", name, paramname);
-   }
-   if( status == PV_SUCCESS ) {
-      *l = strdup(slownessLayerName);
-      if( *l == NULL ) {
-         status = PV_FAILURE;
-         fprintf(stderr, "%s \"%s\": error allocating memory for %s: %s\n",
-               parent->parameters()->groupKeywordFromName(name), name, paramname, strerror(errno));
-      }
-   }
-   return status;
-}
 
 int PoolingGenConn::updateWeights(int axonID) {
     int nPre = preSynapticLayer()->getNumNeurons();
@@ -165,31 +107,6 @@ int PoolingGenConn::updateWeights(int axonID) {
             lineoffsetw += syw;
             lineoffseta += sya;
         }
-    }
-    if( slownessFlag ) {
-       for(int kPre=0; kPre<nPre;kPre++) {
-           int kExt = kIndexExtended(kPre, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-
-           size_t offset = getAPostOffset(kPre, axonID);
-           pvdata_t preact = slownessPre->getCLayer()->activity->data[kExt];
-           PVPatch * weights = getWeights(kPre,axonID);
-           int nyp = weights->ny;
-           int nk = weights->nx * nfp;
-           pvdata_t * postactRef = &(slownessPost->getCLayer()->activity->data[offset]);
-           int sya = getPostNonextStrides()->sy;
-           pvwdata_t * wtpatch = get_wData(axonID, kExt); // weights->data;
-           int syw = syp;
-           for( int y=0; y<nyp; y++ ) {
-               int lineoffsetw = 0;
-               int lineoffseta = 0;
-               for( int k=0; k<nk; k++ ) {
-                   float w = wtpatch[lineoffsetw + k] - relaxation*(preact*postactRef[lineoffseta + k]);
-                   wtpatch[lineoffsetw + k] = w;
-               }
-               lineoffsetw += syw;
-               lineoffseta += sya;
-           }
-       }
     }
     if( nonnegConstraintFlag ) {
        for(int kPatch=0; kPatch<getNumDataPatches();kPatch++) {

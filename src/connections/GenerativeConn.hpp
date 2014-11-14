@@ -31,22 +31,12 @@ protected:
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
    virtual void ioParam_relaxation(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nonnegConstraintFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_imprintingFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_weightDecayFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_weightDecayRate(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_weightNoiseLevel(enum ParamsIOFlag ioFlag);
    virtual int update_dW(int axonID);
 
    float relaxation;
    bool nonnegConstraintFlag;
    int normalizeMethod;
    float normalizeConstant;
-   bool imprintingFlag;
-   int imprintCount;
-   bool weightDecayFlag;  // Include Nugent-like decay and noise on weights.  If flag is set, use weightDecayRate and weightNoiseLevel
-   float weightDecayRate; // Include a term of weightDecayRate * W_{ij} in dW_{ij}
-   float weightNoiseLevel;// Include a random fluctuation term, uniformly distributed on [-weightNoiseLevel,weightNoiseLevel], in dW_{ij}
-   Random * noise; // Random number generator for noise
 };
 
 }  // end of block for namespace PV

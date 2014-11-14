@@ -29,21 +29,12 @@ protected:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_secondaryPreLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_secondaryPostLayerName(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_slownessFlag(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_slownessPre(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_slownessPost(enum ParamsIOFlag ioFlag);
    bool checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * layer2);
-   int getSlownessLayerName(char ** l, const char * paramname);
 
    char * preLayerName2;
    char * postLayerName2;
-   char * slownessPreName;
-   char * slownessPostName;
    HyPerLayer * pre2;
    HyPerLayer * post2;
-   bool slownessFlag;
-   HyPerLayer * slownessPre;
-   HyPerLayer * slownessPost;
 };  // end class PoolingGenConn
 
 }  // end namespace PV

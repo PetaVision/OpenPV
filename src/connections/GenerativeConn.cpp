@@ -25,12 +25,6 @@ int GenerativeConn::initialize_base() {
    relaxation = 1.0;
    nonnegConstraintFlag = false;
    normalizeMethod = 0;
-   imprintingFlag = false;
-   imprintCount = 0;
-   weightDecayFlag = false;
-   weightDecayRate = 0.0;
-   weightNoiseLevel = 0.0;
-   noise = NULL;
    return PV_SUCCESS;
    // Base class constructor calls base class initialize_base
    // so derived class initialize_base doesn't need to.
@@ -38,8 +32,6 @@ int GenerativeConn::initialize_base() {
 
 int GenerativeConn::initialize(const char * name, HyPerCol * hc) {
    int status = HyPerConn::initialize(name, hc);
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "imprintingFlag"));
-   if( imprintingFlag ) imprintCount = 0;
    return status;
 }
 
@@ -47,10 +39,6 @@ int GenerativeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_relaxation(ioFlag);
    ioParam_nonnegConstraintFlag(ioFlag);
-   ioParam_imprintingFlag(ioFlag);
-   ioParam_weightDecayFlag(ioFlag);
-   ioParam_weightDecayRate(ioFlag);
-   ioParam_weightNoiseLevel(ioFlag);
    return status;
 }
 
@@ -84,72 +72,19 @@ void GenerativeConn::ioParam_nonnegConstraintFlag(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "nonnegConstraintFlag", &nonnegConstraintFlag, false);
 }
 
-void GenerativeConn::ioParam_imprintingFlag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "imprintingFlag", &imprintingFlag, false);
-}
-
-void GenerativeConn::ioParam_weightDecayFlag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "weightDecayFlag", &weightDecayFlag, false);
-}
-
-void GenerativeConn::ioParam_weightDecayRate(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "weightDecayFlag"));
-   if (weightDecayFlag) {
-      parent->ioParamValue(ioFlag, name, "weightDecayRate", &weightDecayRate, 0.0f);
-   }
-}
-
-void GenerativeConn::ioParam_weightNoiseLevel(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "weightDecayFlag"));
-   if (weightDecayFlag) {
-      parent->ioParamValue(ioFlag, name, "weightNoiseLevel", &weightNoiseLevel, 0.0f);
-   }
-}
-
 int GenerativeConn::allocateDataStructures() {
    int status = HyPerConn::allocateDataStructures();
-   if (weightDecayFlag) {
-      // All processes should have the same seed.
-      // We create a Random object with one RNG, seeded the same way.
-      // Another approach would be to have a separate RNG for each data patch:
-      // noise = new Random(parent, getNumDataPatches());
-      // or even a separate RNG for each weight value:
-      // noise = new Random(parent, getNumDataPatches()*nxp*nyp*nfp);
-      // These would be helpful if parallelizing, but could require
-      // the resulting rngArray to be large.
-      noise = new Random(parent, 1);
-   }
    return status;
 }
 
 int GenerativeConn::update_dW(int axonID) {
    int status;
    status = defaultUpdate_dW(axonID);
-   if(weightDecayFlag) {
-      for(int p=0; p<getNumDataPatches(); p++) {
-         const pvwdata_t * patch_wData = get_wDataHead(axonID, p);
-         pvwdata_t * patch_dwData = get_dwDataHead(axonID, p);
-         for(int k=0; k<nxp*nyp*nfp; k++) {
-            pvwdata_t decayterm = patch_wData[k];
-            patch_dwData[k] += -weightDecayRate * decayterm;
-            if (weightDecayFlag) patch_dwData[k] += weightNoiseLevel * noise->uniformRandom(0, -1.0f, -1.0f);
-         }
-      }
-   }
    return status;
 }  // end of GenerativeConn::update_dW(int);
 
 int GenerativeConn::updateWeights(int axonID) {
    const int numPatches = getNumDataPatches();
-   if( imprintingFlag && imprintCount < nfp ) {
-      assert(nxp==1 && nyp==1 && numberOfAxonalArborLists()==1);
-      for( int p=0; p<numPatches; p++ ) {
-         pvwdata_t * dataPatch = get_wDataHead(0,p);
-         dataPatch[imprintCount] = preSynapticLayer()->getLayerData(getDelay(0))[p];
-      }
-      imprintCount++;
-      return PV_SUCCESS;
-   }
    for( int k=0; k<numPatches; k++ ) {
       pvwdata_t * wdata = get_wDataHead(axonID, k);
       pvwdata_t * dwdata = get_dwDataHead(axonID, k);
