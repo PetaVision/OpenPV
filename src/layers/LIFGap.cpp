@@ -150,6 +150,7 @@ LIFGap::~LIFGap()
 int LIFGap::initialize_base() {
    numChannels = 4;
    gapStrength = NULL;
+   gapStrengthInitialized = false;
 //#ifdef PV_USE_OPENCL
 //   clG_Gap = NULL;
 //   clGSynGap = NULL;
@@ -226,26 +227,23 @@ int LIFGap::allocateConductances(int num_channels) {
    return status;
 }
 
-int LIFGap::setInitialValues() {
-   int status = PV_SUCCESS;
-   for (int c=0; c<parent->numberOfConnections(); c++) {
-      BaseConnection * conn = parent->getConnection(c);
-      if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
-      if (!conn->getInitialValuesSetFlag()) {
-         if (parent->columnId()==0) {
-            const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
-            printf("%s \"%s\" must wait until connection \"%s\" has finished its setInitialValues stage.\n", connectiontype, name, conn->getName());
+int LIFGap::calcGapStrength() {
+   bool needsNewCalc = !gapStrengthInitialized;
+   if (!needsNewCalc) {
+      for (int c=0; c<parent->numberOfConnections(); c++) {
+         HyPerConn * conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
+         if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
+         if (lastUpdateTime < conn->getLastUpdateTime()) {
+            needsNewCalc = true;
+            break;
          }
-         return PV_POSTPONE;
       }
    }
-   if (status == PV_POSTPONE) { return status; }
-   status = LIF::setInitialValues();
-   if (status == PV_SUCCESS) { status = calcGapStrength(); }
-   return status;
-}
+   if (!needsNewCalc) { return PV_SUCCESS; }
 
-int LIFGap::calcGapStrength() {
+   for (int k=0; k<getNumNeurons(); k++) {
+      gapStrength[k] = (pvgsyndata_t) 0;
+   }
    for (int c=0; c<parent->numberOfConnections(); c++) {
       HyPerConn * conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
       if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
@@ -261,6 +259,7 @@ int LIFGap::calcGapStrength() {
          }
       }
    }
+   gapStrengthInitialized = true;
    return PV_SUCCESS;
 }
 
@@ -294,6 +293,7 @@ int LIFGap::readGapStrengthFromCheckpoint(const char * cpDir, double * timeptr) 
    int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &gapStrength, 1, /*extended*/false, getLayerLoc());
    assert(status==PV_SUCCESS);
    free(filename);
+   gapStrengthInitialized = true;
    return status;
 }
 
@@ -319,8 +319,10 @@ int LIFGap::updateStateOpenCL(double time, double dt)
 
 int LIFGap::updateState(double time, double dt)
 {
-   int status = 0;
+   int status = PV_SUCCESS;
    //update_timer->start();
+
+   status = calcGapStrength();
 
 //#ifdef PV_USE_OPENCL
 //   if((gpuAccelerateFlag)&&(true)) {

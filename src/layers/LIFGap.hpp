@@ -37,7 +37,6 @@ protected:
    LIFGap();
    int initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name);
    virtual int allocateConductances(int num_channels);
-   virtual int setInitialValues();
    virtual int readGapStrengthFromCheckpoint(const char * cpDir, double * timeptr);
 
 //#ifdef PV_USE_OPENCL
@@ -63,6 +62,7 @@ protected:
 private:
    int initialize_base();
    pvgsyndata_t * gapStrength;
+   bool gapStrengthInitialized;
    int calcGapStrength();
 
 };
