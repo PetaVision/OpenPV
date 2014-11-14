@@ -72,6 +72,7 @@
 #include "../layers/ANNTriggerUpdateOnNewImageLayer.hpp"
 #endif // OBSOLETE
 #include "../layers/ConstantLayer.hpp"
+#include "../layers/FilenameParsingGroundTruthLayer.hpp"
 #include "../connections/BaseConnection.hpp"
 #include "../connections/HyPerConn.hpp"
 #include "../connections/BIDSConn.hpp"
