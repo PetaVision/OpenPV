@@ -138,7 +138,7 @@ int LIFTestProbe::outputState(double timed) {
             double observed = (rates[j]-targetrates[j])/scaledstdev;
             if(fabs(observed)>tolerance) {
                fprintf(stderr, "Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timed, observed, tolerance);
-//               status = PV_FAILURE;
+               status = PV_FAILURE;
             }
          }
       }
