@@ -428,10 +428,16 @@ int TransposeConn::transposeNonsharedWeights(int arborId) {
             int idxExt = kIndex(x,y,0,preLocOrig->nx+preLocOrig->halo.lt+preLocOrig->halo.rt,preLocOrig->ny+preLocOrig->halo.dn+preLocOrig->halo.up,preLocOrig->nf);
             int xGlobalExt = x+preLocOrig->kx0;
             int xGlobalRes = xGlobalExt-preLocOrig->halo.lt;
-            assert(xGlobalRes>=preLocOrig->kx0 && xGlobalRes<preLocOrig->kx0+preLocOrig->nx);
+            if (xGlobalRes < preLocOrig->kx0 || xGlobalRes >= preLocOrig->kx0+preLocOrig->nx) {
+               fprintf(stderr, "Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: xGlobalRes = %d, preLocOrig->kx0 = %d, preLocOrig->nx = %d\n", parent->columnId(), name, x, y, neighbor, xGlobalRes, preLocOrig->kx0, preLocOrig->nx);
+               exit(EXIT_FAILURE);
+            }
             int yGlobalExt = y+preLocOrig->ky0;
             int yGlobalRes = yGlobalExt-preLocOrig->halo.up;
-            assert(yGlobalRes>=preLocOrig->ky0 && yGlobalRes<preLocOrig->ky0+preLocOrig->ny);
+            if (yGlobalRes < preLocOrig->ky0 || yGlobalRes >= preLocOrig->ky0+preLocOrig->ny) {
+               fprintf(stderr, "Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: yGlobalRes = %d, preLocOrig->ky0 = %d, preLocOrig->ny = %d\n", parent->columnId(), name, x, y, neighbor, yGlobalRes, preLocOrig->ky0, preLocOrig->ny);
+               exit(EXIT_FAILURE);
+            }
             int idxGlobalRes = kIndex(xGlobalRes, yGlobalRes, 0, preLocOrig->nxGlobal, preLocOrig->nyGlobal, preLocOrig->nf);
             memcpy(b, &idxGlobalRes, sizeof(idxGlobalRes));
             b += sizeof(idxGlobalRes);
