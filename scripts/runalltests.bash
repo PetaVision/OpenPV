@@ -498,6 +498,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
+testname=TransposeHyPerConnTest
+cd "$testname"
+arglist="" # parameter filename is in main()
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
 testname=UnequalPatchSizeTest
 cd "$testname"
 arglist="-p input/UnequalPatchSizeTest.params"
