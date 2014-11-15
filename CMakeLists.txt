@@ -52,14 +52,28 @@ set(PV_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
 set(LIBRARY_OUTPUT_PATH ${PV_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${PV_BINARY_DIR})
 
+# Lex/Yacc for parser
+if (NOT BISON_PARSER_DEFINED)
+    MESSAGE("-- Searching for bison ..................")
+    find_package(BISON REQUIRED)
+    BISON_TARGET(PARSER ${PV_SOURCE_DIR}/io/parser/params.y ${PV_SOURCE_DIR}/io/parser/param_parser.cpp COMPILE_FLAGS "-y")
+endif (NOT BISON_PARSER_DEFINED)
+if (NOT FLEX_SCANNER_DEFINED)
+    MESSAGE("-- Searching for flex (yacc) ............")
+    find_package(FLEX REQUIRED)
+    FLEX_TARGET(SCANNER ${PV_SOURCE_DIR}/io/parser/params.l ${PV_SOURCE_DIR}/io/parser/param_lexer.c)
+    ADD_FLEX_BISON_DEPENDENCY(SCANNER PARSER)
+endif (NOT FLEX_SCANNER_DEFINED)
+
+
 # Read in file and parse by line
 file(READ "${PV_SRC_LIST}" contents)
 STRING(REGEX REPLACE "\n" ";" contents "${contents}")
 
 # Find PetaVision c/cpp files
 foreach(LIN ${contents})
-   file(GLOB_RECURSE libSrcCPP ${LIN}/*.cpp)
-   file(GLOB_RECURSE libSrcC ${LIN}/*.c)
+   file(GLOB libSrcCPP ${LIN}/*.cpp)
+   file(GLOB libSrcC ${LIN}/*.c)
    set(PVLibSrc ${PVLibSrc} ${libSrcCPP})
    set(PVLibSrc ${PVLibSrc} ${libSrcC})
 
@@ -131,7 +145,7 @@ endif(CUDA_RELEASE)
 if(CUDA_GPU)
    cuda_add_library(pv ${PVLibSrc} ${PVLibSrcCu})
 else(CUDA_GPU)
-   add_library(pv ${PVLibSrc})
+   add_library(pv ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS})
 endif(CUDA_GPU)
 
 
