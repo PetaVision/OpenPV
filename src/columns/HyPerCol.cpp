@@ -143,6 +143,7 @@ int HyPerCol::initialize_base() {
    nextCPWriteTime = 0.0;
    deleteOlderCheckpoints = false;
    memset(lastCheckpointDir, 0, PV_PATH_MAX);
+   defaultInitializeFromCheckpointFlag = false;
    suppressLastOutput = false;
    simTime = 0.0;
    startTime = 0.0;
@@ -844,7 +845,7 @@ void HyPerCol::ioParam_defaultInitializeFromCheckpointFlag(enum ParamsIOFlag ioF
    assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointDir"));
    assert(initializeFromCheckpointDir); // Should never be null after ioParam_initializeFromCheckpoint is called: an empty string serves as turning the feature off
    if (initializeFromCheckpointDir[0] != '\0') {
-      ioParamValue(ioFlag, name, "defaultInitializeFromCheckpointFlag", &defaultInitializeFromCheckpointFlag, true/*default value*/, true/*warn if absent*/);
+      ioParamValue(ioFlag, name, "defaultInitializeFromCheckpointFlag", &defaultInitializeFromCheckpointFlag, defaultInitializeFromCheckpointFlag, true/*warn if absent*/);
    }
 
 }
