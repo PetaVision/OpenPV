@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <sys/stat.h>
 #include "../columns/InterColComm.hpp"
-#include "fileio.cpp"
+#include "fileio.hpp"
 #include "io.h"
 
 #define PVPFILE_SIZEOF_INT 4
