@@ -45,7 +45,7 @@ HyPerCol "column" = {
     suppressLastOutput              = false;
     printParamsFilename             = "LCA_LIF_trial_1.params";    
     verifyWrites                    = true;
-    errorOnNotANumber               = false;  // Requires computationally expensive check
+    errorOnNotANumber               = true;  // Requires computationally expensive check
 };
 
 
