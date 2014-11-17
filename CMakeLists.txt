@@ -143,7 +143,7 @@ endif(CUDA_RELEASE)
 
 # Add PetaVision
 if(CUDA_GPU)
-   cuda_add_library(pv ${PVLibSrc} ${PVLibSrcCu})
+   cuda_add_library(pv ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS} ${PVLibSrcCu})
 else(CUDA_GPU)
    add_library(pv ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS})
 endif(CUDA_GPU)
