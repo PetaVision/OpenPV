@@ -721,11 +721,11 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParam_numAxonalArbors(ioFlag);
    ioParam_plasticityFlag(ioFlag);
-   ioParam_weightUpdatePeriod(ioFlag);
-   ioParam_initialWeightUpdateTime(ioFlag);
    ioParam_triggerFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerOffset(ioFlag);
+   ioParam_weightUpdatePeriod(ioFlag);
+   ioParam_initialWeightUpdateTime(ioFlag);
    ioParam_pvpatchAccumulateType(ioFlag);
    ioParam_preActivityIsNotRate(ioFlag);
    ioParam_writeStep(ioFlag);
@@ -873,24 +873,6 @@ void HyPerConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "plasticityFlag", &plasticityFlag, true/*default value*/);
 }
 
-void HyPerConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (plasticityFlag) {
-      parent->ioParamValue(ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod, parent->getDeltaTime());
-   }
-}
-
-void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   initialWeightUpdateTime = parent->getStartTime();
-   if (plasticityFlag) {
-      parent->ioParamValue(ioFlag, name, "initialWeightUpdateTime", &initialWeightUpdateTime, initialWeightUpdateTime, true/*warnIfAbsent*/);
-   }
-   if (ioFlag==PARAMS_IO_READ) {
-      weightUpdateTime=initialWeightUpdateTime;
-   }
-}
-
 void HyPerConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag){
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if(plasticityFlag){
@@ -917,6 +899,26 @@ void HyPerConn::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
          fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset);
          exit(EXIT_FAILURE);
       }
+   }
+}
+
+void HyPerConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+   if (plasticityFlag && !triggerFlag) {
+      parent->ioParamValue(ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod, parent->getDeltaTime());
+   }
+}
+
+void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+   initialWeightUpdateTime = parent->getStartTime();
+   if (plasticityFlag && !triggerFlag) {
+      parent->ioParamValue(ioFlag, name, "initialWeightUpdateTime", &initialWeightUpdateTime, initialWeightUpdateTime, true/*warnIfAbsent*/);
+   }
+   if (ioFlag==PARAMS_IO_READ) {
+      weightUpdateTime=initialWeightUpdateTime;
    }
 }
 
