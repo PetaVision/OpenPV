@@ -617,6 +617,10 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = (HyPerConn*) new PlasticCloneConn(name, hc);
    }
+   if( !keywordMatched && !strcmp(classkeyword, "CopyConn") ) {
+      keywordMatched = true;
+      addedConn = (HyPerConn*) new CopyConn(name, hc);
+   }
    if( !keywordMatched && !strcmp(classkeyword, "KernelConn") ) {
       keywordMatched = true;
       addedConn = (HyPerConn * ) new KernelConn(name, hc);

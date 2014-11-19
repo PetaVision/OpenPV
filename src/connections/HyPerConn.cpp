@@ -2599,6 +2599,7 @@ int HyPerConn::checkpointWrite(const char * cpDir) {
    status = writeWeights(patches_arg, wDataStart, getNumDataPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
    assert(status==PV_SUCCESS);
 
+   // TODO: split the writeScalarToFile calls up into virtual methods so that subclasses that don't use these member variables don't have to save them.
    status = parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
    assert(status==PV_SUCCESS);
    status = parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
@@ -2838,14 +2839,14 @@ int HyPerConn::updateStateWrapper(double time, double dt){
             fprintf(stdout, "TimeScale = %f for column %s, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", colTimeScale, parent->getName(),  timeScaleMin, getName());
          }
       }
-     else {
+      else {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
          updatedDeviceWeights = true;
 #endif
          status = updateState(time, dt);
          //Update lastUpdateTime
          lastUpdateTime = time;
-     }
+      }
       computeNewWeightUpdateTime(time, weightUpdateTime);
 
       //Sanity check, take this out once convinced layer's nextUpdateTime is the same as weightUpdateTime
