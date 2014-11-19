@@ -172,7 +172,10 @@ HyPerConn::~HyPerConn()
       triggerLayerName = NULL;
    }
    if(numKernelActivations){
-      free(numKernelActivations[0]);
+      for(int ai = 0; ai < numberOfAxonalArborLists(); ai++){
+         free(numKernelActivations[ai][0]);
+         free(numKernelActivations[ai]);
+      }
       free(numKernelActivations);
    }
 
@@ -1520,17 +1523,23 @@ int HyPerConn::allocateDataStructures() {
       const int numPatches = getNumDataPatches();
       const size_t patchSize = nxp*nyp*nfp;
       const size_t localSize = numPatches * patchSize;
-      int * tempData = (int*) malloc(numPatches * sizeof(int) * patchSize);
-      numKernelActivations = (int **) malloc(numPatches * sizeof(int*));
-      if(numKernelActivations == NULL || tempData == NULL) {
-         fprintf(stderr, "Connection \"%s\" unable to allocate memory for numKernelActivations in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
-         exit(PV_FAILURE);
-      }
-      for (int ki = 0; ki < numPatches; ki++) {
-         numKernelActivations[ki] = &(tempData[ki*patchSize]);
-         for (int pi = 0; pi < patchSize; pi++){
-            numKernelActivations[ki][pi] = 0;
+      
+      numKernelActivations = (int ***) malloc(this->numberOfAxonalArborLists() * sizeof(int**));
+
+      for(int arbor_ID = 0; arbor_ID < this->numberOfAxonalArborLists(); arbor_ID++){
+         int * tempData = (int*) malloc(numPatches * sizeof(int) * patchSize);
+         int** singleArbor = (int **) malloc(numPatches * sizeof(int*));
+         if(singleArbor == NULL || tempData == NULL) {
+            fprintf(stderr, "Connection \"%s\" unable to allocate memory for numKernelActivations in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
+            exit(PV_FAILURE);
          }
+         for (int ki = 0; ki < numPatches; ki++) {
+            singleArbor[ki] = &(tempData[ki*patchSize]);
+            for (int pi = 0; pi < patchSize; pi++){
+               singleArbor[ki][pi] = 0;
+            }
+         }
+         numKernelActivations[arbor_ID] = singleArbor;
       }
    }
    // do allocation stage for probes
@@ -2586,16 +2595,10 @@ int HyPerConn::checkpointWrite(const char * cpDir) {
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
-#ifdef PV_USE_MPI
-   if (sharedWeights && plasticityFlag && !keepKernelsSynchronized_flag) {
-      for (int arbor_id = 0; arbor_id < this->numberOfAxonalArborLists(); arbor_id++) {
-         reduceKernels(arbor_id);
-      }
-   }
-#endif // PV_USE_MPI
    PVPatch *** patches_arg = sharedWeights ? NULL : wPatches;
    status = writeWeights(patches_arg, wDataStart, getNumDataPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
    assert(status==PV_SUCCESS);
+
    status = parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
    assert(status==PV_SUCCESS);
    status = parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
@@ -2941,7 +2944,7 @@ int HyPerConn::defaultUpdate_dW(int arbor_ID) {
 #endif
       for(int ki = 0; ki < numKernelIndices; ki++){
          for(int pi = 0; pi < patchSize; pi++){
-            numKernelActivations[ki][pi] = 0;
+            numKernelActivations[arbor_ID][ki][pi] = 0;
          }
       }
    }
@@ -3069,7 +3072,7 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
          if(aMask){
             if(sharedWeights){
                //Offset in the case of a shrunken patch, where dwdata is applying when calling get_dwData
-               numKernelActivations[kernelIndex][weights->offset + lineoffsetw + k]++;
+               numKernelActivations[arbor_ID][kernelIndex][weights->offset + lineoffsetw + k]++;
             }
             dwdata[lineoffsetw + k] += updateRule_dW(preact, aPost);
          }
@@ -3091,10 +3094,12 @@ void HyPerConn::addClone(PlasticCloneConn* conn){
 
 void HyPerConn::reduceNumKernelActivations(){
    if(sharedWeights){
-      //Do mpi to update numKernelActivationss
 #ifdef PV_USE_MPI
-      int numKernelIndices = getNumDataPatches();
-      int ierr = MPI_Allreduce(MPI_IN_PLACE, numKernelActivations[0] , numKernelIndices*nxp*nyp*nfp, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+      //Do mpi to update numKernelActivationss
+      for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
+         int numKernelIndices = getNumDataPatches();
+         int ierr = MPI_Allreduce(MPI_IN_PLACE, numKernelActivations[arbor][0], numKernelIndices*nxp*nyp*nfp, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+      }
 #endif
    }
 }
@@ -3106,32 +3111,31 @@ int HyPerConn::normalize_dW(int arbor_ID){
          clones[i]->reduceNumKernelActivations();
       }
       int numKernelIndices = getNumDataPatches();
-      // Divide by numKernelActivations in this timestep
+      for(int loop_arbor = 0; loop_arbor < numberOfAxonalArborLists(); loop_arbor++){
+         // Divide by numKernelActivations in this timestep
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-         //Calculate pre feature index from patch index
-         //TODO right now it's dividing the divisor by nprocs. This is a hack. Proper fix is to update all connections overwriting
-         //update_dW to do dwNormalization in this way and take out the divide by nproc in reduceKernels.
-         //const int nProcs = parent->icCommunicator()->numCommColumns() * parent->icCommunicator()->numCommRows();
-         int numpatchitems = nxp*nyp*nfp;
-         pvwdata_t * dwpatchdata = get_dwDataHead(arbor_ID,kernelindex);
-         for( int n=0; n<numpatchitems; n++ ) {
-            double divisor = numKernelActivations[kernelindex][n];
-            for(int i = 0; i < clones.size(); i++){
-               divisor += clones[i]->getNumKernelActivations(kernelindex, n);
-            }
-            if(divisor != 0){
-               dwpatchdata[n] /= divisor;
-            }
-            else{
-               dwpatchdata[n] = 0;
+         for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
+            //Calculate pre feature index from patch index
+            int numpatchitems = nxp*nyp*nfp;
+            pvwdata_t * dwpatchdata = get_dwDataHead(loop_arbor,kernelindex);
+            for( int n=0; n<numpatchitems; n++ ) {
+               double divisor = numKernelActivations[loop_arbor][kernelindex][n];
+               for(int i = 0; i < clones.size(); i++){
+                  divisor += clones[i]->getNumKernelActivations(loop_arbor, kernelindex, n);
+               }
+               if(divisor != 0){
+                  dwpatchdata[n] /= divisor;
+               }
+               else{
+                  dwpatchdata[n] = 0;
+               }
             }
          }
       }
    }
-   return PV_SUCCESS;
+   return PV_BREAK;
 }
 
 pvdata_t HyPerConn::updateRule_dW(pvdata_t pre, pvdata_t post) {
@@ -3156,7 +3160,7 @@ int HyPerConn::reduceKernels(const int arborID) {
    const size_t arborSize = localSize * this->numberOfAxonalArborLists();
 
 #ifdef PV_USE_MPI
-   ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(0), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+   ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
 #endif
 
    normalize_dW(arborID);

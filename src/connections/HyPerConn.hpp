@@ -74,6 +74,7 @@ public:
    virtual int outputState(double time, bool last = false);
    virtual int updateStateWrapper(double time, double dt); // Generally shouldn't be overridden; override updateState instead.  Made virtual only so that BaseConnection didn't need to define the member variables and functions used by HyPerConn::updateStateWrapper.
    virtual int updateState(double time, double dt);
+   virtual int defaultUpdateInd_dW(int arbor_ID, int kExt);
    virtual bool needUpdate(double time, double dt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int writeWeights(double timed, bool last = false);
@@ -311,10 +312,11 @@ public:
 
    virtual void reduceNumKernelActivations();
 
-   virtual double getNumKernelActivations(int kernelIndex, int patchindex){
+   virtual double getNumKernelActivations(int arbor_ID, int kernelIndex, int patchindex){
+      assert(arbor_ID < numberOfAxonalArborLists());
       assert(kernelIndex < getNumDataPatches());
       assert(patchindex < nxp*nyp*nfp);
-      return numKernelActivations[kernelIndex][patchindex];
+      return numKernelActivations[arbor_ID][kernelIndex][patchindex];
    }
 
    virtual long* getPostToPreActivity(){
@@ -446,7 +448,7 @@ protected:
    double lastUpdateTime;
 
    bool symmetrizeWeightsFlag;
-   int** numKernelActivations;
+   int*** numKernelActivations;
    bool keepKernelsSynchronized_flag;
 
    // unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
@@ -880,7 +882,6 @@ protected:
    virtual int calc_dW(int arborId = 0);
    virtual int update_dW(int arborId);
    virtual int defaultUpdate_dW(int arborId);
-   virtual int defaultUpdateInd_dW(int arbor_ID, int kExt);
    virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
    virtual int updateWeights(int arborId = 0);
    virtual int normalize_dW(int arbor_ID);
