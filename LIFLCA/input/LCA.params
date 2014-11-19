@@ -137,6 +137,9 @@ Movie "Input" = {
 
 
 ANNLayer "Residual" = {
+// Membrane potential is channel 0 - channel 1
+// If the membrane potential is < Vthresh, then 
+// membrane potential = AMin
     nxScale                = 1;
     nyScale                = 1;
     nf                     = 1;
@@ -154,7 +157,9 @@ ANNLayer "Residual" = {
 //
 // For residual layer, threshold should be linear function.
 //
-    VThresh                = 0;         // Threshold for T(u).
+                                        // When membrane potential is below threshold, output is set to AMin
+                                        // For computing error with an ANN layer, we want to always be above threshold
+    VThresh                = -infinity; // Threshold for T(u).
                                         // Non-zero value will sparsify your error (i.e. small error will go to 0)
 //
     AMax                   = infinity;  // Max value that T(u) can be
