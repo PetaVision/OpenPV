@@ -41,8 +41,7 @@ HyPerCol "column" = {
     checkpointWriteStepInterval     = 10000;
     deleteOlderCheckpoints          = false;
     writeProgressToErr              = true;
-    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
-    suppressLastOutput              = false;
+//    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
     printParamsFilename             = "LCA_LIF_trial_1.params";    
     verifyWrites                    = true;
     errorOnNotANumber               = true;  // Requires computationally expensive check
@@ -67,7 +66,6 @@ Movie "Input" = {
     nf                     = 1;        // nf=3 for RGB, nf=1 for greyscale
 //
     writeStep              = -1;
-    initialWriteTime       = 0;
     sparseLayer            = false;
     displayPeriod          = 40;       // How long image is displayed to network before flipping
     start_frame_index      = 0;        // zero indexed
@@ -236,7 +234,6 @@ ANNLayer "Recon" = {                  // Not necessary - allows us to easily vie
     triggerLayerName    = "Input";
     triggerOffset       = 1;
 //
-    movieLayerName      = "Input";    // Not used anymore
     initialWriteTime    = 40;         // Write at image flip
     writeStep           = 40;
 //
@@ -256,6 +253,7 @@ ANNLayer "Recon" = {                  // Not necessary - allows us to easily vie
     VWidth              = 0;
 // 
     phase               = 1;          // Updates shouldn't reflect newly present image
+    updateGPU           = false;          // Don't want to do this on the GPU
 };
 
 
@@ -358,7 +356,6 @@ HyPerConn "L1_to_Residual" = {
     strength                            = 1;
     rMinX                               = 0;             // Creates annulus if non-zero
     rMinY                               = 0;
-    symmetrizeWeights                   = false;
     dWMax                               = 1.0;           // Corresponds to eta parameter
 //
     shrinkPatches                       = false;         // Shrinks patch to minimum non-zero cube. Only works for fixed weights?
