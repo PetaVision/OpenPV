@@ -115,14 +115,26 @@ void BaseConnection::setPostLayerName(const char * post_name) {
 
 void BaseConnection::setPreSynapticLayer(HyPerLayer * pre) {
    assert(this->pre==NULL);
-   assert(pre != NULL);
-   this->pre = pre;
+   if(pre != NULL){
+      this->pre = pre;
+   }
+   else{
+      fprintf(stderr, "Connection \"%s\" error in rank %d process: pre layer \"%s\" does not exist in params file.\n",
+         this->getName(), this->getParent()->columnId(), this->preLayerName);
+      exit(EXIT_FAILURE);
+   }
 }
 
 void BaseConnection::setPostSynapticLayer(HyPerLayer * post) {
    assert(this->post==NULL);
-   assert(post != NULL);
-   this->post = post;
+   if(post != NULL){
+      this->post = post;
+   }
+   else{
+      fprintf(stderr, "Connection \"%s\" error in rank %d process: post layer \"%s\" does not exist in params file.\n",
+         this->getName(), this->getParent()->columnId(), this->postLayerName);
+      exit(EXIT_FAILURE);
+   }
 }
 
 void BaseConnection::setChannelType(ChannelType ch) {
