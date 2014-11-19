@@ -3170,9 +3170,7 @@ int HyPerConn::reduceKernels(const int arborID) {
 
 int HyPerConn::updateWeights(int arborId)
 {
-   lastUpdateTime = parent->simulationTime();
    // add dw to w
-   // never use shmget if plasticity flag == true
    for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
       pvwdata_t * w_data_start = get_wDataStart(kArbor);
       for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
