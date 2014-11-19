@@ -34,11 +34,35 @@ int CopyConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return PV_SUCCESS;
 }
 
+void CopyConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
+   // CopyConn determines sharedWeights from originalConn, during communicateInitInfo
+}
+
 void CopyConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    // CopyConn doesn't use a weight initializer
    if (ioFlag==PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
    }
+}
+
+void CopyConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
+   // TransposeConn determines nxp from originalConn, during communicateInitInfo
+}
+
+void CopyConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
+   // TransposeConn determines nyp from originalConn, during communicateInitInfo
+}
+
+void CopyConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
+   // CopyConn doesn't use nxpShrunken
+}
+
+void CopyConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
+   // CopyConn doesn't use nypShrunken
+}
+
+void CopyConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
+   // TransposeConn determines nfp from originalConn, during communicateInitInfo
 }
 
 void CopyConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
@@ -114,6 +138,41 @@ int CopyConn::communicateInitInfo() {
    status = HyPerConn::communicateInitInfo();
 
    return status;
+}
+
+int CopyConn::setPatchSize() {
+   nxp = originalConn->xPatchSize();
+   nyp = originalConn->yPatchSize();
+   nxpShrunken = originalConn->getNxpShrunken();
+   nypShrunken = originalConn->getNypShrunken();
+   nfp = originalConn->fPatchSize();
+   parent->parameters()->handleUnnecessaryParameter(name, "nxp", nxp);
+   parent->parameters()->handleUnnecessaryParameter(name, "nyp", nyp);
+   parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken", nxpShrunken);
+   parent->parameters()->handleUnnecessaryParameter(name, "nypShrunken", nypShrunken);
+   parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp);
+   return PV_SUCCESS;
+}
+
+int CopyConn::setInitialValues() {
+   int status = PV_SUCCESS;
+   if (originalConn->getInitialValuesSetFlag()) {
+      status = HyPerConn::setInitialValues(); // calls initializeWeights
+   }
+   else {
+      status = PV_POSTPONE;
+   }
+   return status;
+}
+
+PVPatch*** CopyConn::initializeWeights(PVPatch*** patches, pvwdata_t** dataStart) {
+   assert(originalConn->getInitialValuesSetFlag()); // setInitialValues shouldn't call this function unless original conn has set its own initial values
+   assert(dataStart == get_wDataStart());
+   assert(patches==NULL || patches==get_wPatches());
+   for (int arbor=0; arbor<numAxonalArborLists; arbor++) {
+      copy(arbor);
+   }
+   return patches;
 }
 
 bool CopyConn::needUpdate(double time, double dt) {

@@ -156,7 +156,8 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "HyPerConn",
                "BIDSConn",
                "CloneConn",
-               "PlasticCloneConn",
+                 "PlasticCloneConn",
+               "CopyConn",
                "KernelConn", // Deprecated
                  "MapReduceKernelConn",
                  "CliqueConn",
@@ -166,9 +167,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "GapConn",
                  "GenerativeConn",
                    "PoolingGenConn",
-#ifdef OBSOLETE  // Marked obsolete Sept 16, 2013.  Learning rule for LCA is the same in KernelConn, so no need to subclass
-                 "LCAConn",
-#endif // OBSOLETE
                  "LCALIFLateralKernelConn",
 #ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
                  "NoSelfKernelConn",

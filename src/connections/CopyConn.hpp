@@ -33,22 +33,52 @@ protected:
     */
 
    /**
+    * @brief CopyConn inherits sharedWeights from the original connection, instead of reading it from parameters
+    */
+   virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief weightInitType is not used by CopyConn.
     */
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief CopyConn inherits numAxonalArbors the original connection, instead of reading it from parameters
+    * @brief CopyConn inherits nxp from the original connection, instead of reading it from parameters
+    */
+   virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief CopyConn inherits nyp from the original connection, instead of reading it from parameters
+    */
+   virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief CopyConn inherits nxpShrunken from the original connection, instead of reading it from parameters
+    */
+   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief CopyConn inherits nypShrunken from the original connection, instead of reading it from parameters
+    */
+   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief CopyConn inherits nfp from the original connection, instead of reading it from parameters
+    */
+   virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief CopyConn inherits numAxonalArbors from the original connection, instead of reading it from parameters
     */
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief CopyConn inherits plasticityFlag the original connection, instead of reading it from parameters
+    * @brief CopyConn inherits plasticityFlag from the original connection, instead of reading it from parameters
     */
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief CopyConn inherits triggerFlag the original connection, instead of reading it from parameters
+    * @brief CopyConn inherits triggerFlag from the original connection, instead of reading it from parameters
     */
    virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
 
@@ -67,6 +97,11 @@ protected:
     */
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
    /** @} */
+
+   virtual int setPatchSize();
+
+   virtual int setInitialValues();
+   virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvwdata_t ** dataStart);
 
    virtual int updateWeights(int arborId = 0);
    int copy(int arborId = 0);
