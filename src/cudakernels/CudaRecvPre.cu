@@ -131,7 +131,7 @@ int CudaRecvPre::do_run(){
       params
    );
 
-   handleCallError();
+   handleCallError("Cuda recv pre run");
 
    return 0;
 }

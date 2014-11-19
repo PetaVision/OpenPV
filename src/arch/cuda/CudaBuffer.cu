@@ -14,7 +14,7 @@ namespace PVCuda {
 
 CudaBuffer::CudaBuffer(size_t inSize, cudaStream_t stream)
 {
-   handleError(cudaMalloc(&d_ptr, inSize));
+   handleError(cudaMalloc(&d_ptr, inSize), "CudaBuffer constructor");
    this->size = inSize;
    this->stream = stream;
 }
@@ -26,7 +26,7 @@ CudaBuffer::CudaBuffer(){
 
 CudaBuffer::~CudaBuffer()
 {
-   handleError(cudaFree(d_ptr));
+   handleError(cudaFree(d_ptr), "Freeing device pointer");
 }
    
 int CudaBuffer::copyToDevice(void * h_ptr)
@@ -41,7 +41,7 @@ int CudaBuffer::copyToDevice(void * h_ptr, size_t in_size)
       printf("copyToDevice, in_size of %zu is bigger than buffer size of %zu\n", in_size, this->size);
       exit(-1);
    }
-   handleError(cudaMemcpyAsync(d_ptr, h_ptr, in_size, cudaMemcpyHostToDevice, stream));
+   handleError(cudaMemcpyAsync(d_ptr, h_ptr, in_size, cudaMemcpyHostToDevice, stream), "Copying buffer to device");
    return 0;
 }
 
@@ -57,7 +57,7 @@ int CudaBuffer::copyFromDevice(void * h_ptr, size_t in_size)
       printf("copyFromDevice: in_size of %zu is bigger than buffer size of %zu\n", in_size, this->size);
       exit(-1);
    }
-   handleError(cudaMemcpyAsync(h_ptr, d_ptr, in_size, cudaMemcpyDeviceToHost, stream));
+   handleError(cudaMemcpyAsync(h_ptr, d_ptr, in_size, cudaMemcpyDeviceToHost, stream), "Copying device from device");
    return 0;
 }
 

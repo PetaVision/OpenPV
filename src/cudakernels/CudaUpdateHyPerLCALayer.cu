@@ -123,7 +123,7 @@ int CudaUpdateHyPerLCALayer::do_run(){
    params.dt_tau,
    params.GSynHead,
    params.activity);
-   handleCallError();
+   handleCallError("HyPerLCALayer Update run");
    return 0;
 }
 

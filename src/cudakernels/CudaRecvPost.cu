@@ -499,7 +499,7 @@ void CudaRecvPost::permuteDatastorePVToCudnn(){
    //Call function
    //Datastore will never get reshaped, so manyScale will always be 1
    CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_preData, params.preData, 1, ny, nx, nf, 1, 1);
-   handleCallError();
+   handleCallError("Permute PV to CUDNN");
 
    device->syncDevice();
 }
@@ -519,7 +519,7 @@ void CudaRecvPost::permuteGSynPVToCudnn(int channel){
    int gridSize = ceil((float)numNeurons/blockSize);
    //Call function
    CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_gSyn, gSynPatchHead, 1, ny, nx, nf, params.manyScaleX, params.manyScaleY);
-   handleCallError();
+   handleCallError("Permute GSyn PV to CUDNN");
 }
 
 void CudaRecvPost::permuteGSynCudnnToPV(int channel){
@@ -538,7 +538,7 @@ void CudaRecvPost::permuteGSynCudnnToPV(int channel){
    //Call function
    //printf("Calling gsyn Cudnn To PV with (%d, %d, %d)\n", ny, nx, nf);
    CudaPermuteCudnnToPV<<<gridSize, blockSize, 0, device->getStream()>>>(gSynPatchHead, params.cudnn_gSyn, 1, ny, nx, nf, params.manyScaleX, params.manyScaleY);
-   handleCallError();
+   handleCallError("Permute GSyn CUDNN to PV");
 }
 
 void CudaRecvPost::permuteWeightsPVToCudnn(){
@@ -558,7 +558,7 @@ void CudaRecvPost::permuteWeightsPVToCudnn(){
    //Call function
    //printf("Calling weights PV To Cudnn with (%d, %d, %d, %d)\n", outFeatures, ny, nx, inFeatures);
    CudaPermuteWeightsPVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_weights, params.weights, outFeatures, ny, nx, inFeatures, params.manyScaleX, params.manyScaleY);
-   handleCallError();
+   handleCallError("Permute weights PV to CUDNN");
 }
 
 #endif
@@ -613,7 +613,7 @@ int CudaRecvPost::do_run(){
    }
 
    HyPerLayer_recv_post<<<grid_size, block_size, sharedSize, device->getStream()>>>(params);
-   handleCallError();
+   handleCallError("Recv from post");
 #endif
 
    return 0;

@@ -23,7 +23,7 @@ CudaDevice::CudaDevice(int device)
 
 CudaDevice::~CudaDevice()
 {
-   handleError(cudaStreamDestroy(stream));
+   handleError(cudaStreamDestroy(stream), "Cuda Device Destructor");
    //TODO set handleError to take care of this
 
 #ifdef PV_USE_CUDNN
@@ -38,19 +38,19 @@ int CudaDevice::initialize(int device)
    int status = 0;
 
 #ifdef PV_USE_CUDA
-   handleError(cudaThreadExit());
+   handleError(cudaThreadExit(), "Thread exiting in initialize");
 
-   handleError(cudaGetDeviceCount(&num_devices));
+   handleError(cudaGetDeviceCount(&num_devices), "Getting device count");
    printf("Num devices: %d\n", num_devices);
    // get number of devices available
    //
 
    printf("Using device %d\n", device);
-   handleError(cudaSetDevice(device));
+   handleError(cudaSetDevice(device), "Setting device");
 
-   handleError(cudaStreamCreate(&stream));
+   handleError(cudaStreamCreate(&stream), "Creating stream");
 
-   handleError(cudaGetDeviceProperties(&device_props, device));
+   handleError(cudaGetDeviceProperties(&device_props, device), "Getting device properties");
 
    status = 0;
 #endif // PV_USE_OPENCL
@@ -86,7 +86,7 @@ int CudaDevice::initialize(int device)
 }
 
 void CudaDevice::syncDevice(){
-   handleError(cudaDeviceSynchronize());
+   handleError(cudaDeviceSynchronize(), "Synchronizing device");
 }
 
 int CudaDevice::query_device_info()
@@ -116,7 +116,7 @@ void CudaDevice::query_device(int id)
    }
    //Otherwise, generate props
    else{
-      handleError(cudaGetDeviceProperties(&props, id));
+      handleError(cudaGetDeviceProperties(&props, id), "Getting device properties");
    }
    printf("device: %d\n", id);
    printf("CUDA Device # %d == %s\n", id, props.name);
