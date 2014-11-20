@@ -174,17 +174,6 @@ int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal)
    return -1;  // not found
 }
 
-#ifdef OBSOLETE
-// For MATLAB use, just save a number with name as comment
-#define LOGINTPARM(paramfile, which) \
-    fprintf(paramfile, "%d %% %s\n", which, #which)
-#define LOGFPARM(paramfile, which) \
-    fprintf(paramfile, "%f %% %s\n", which, #which)
-#define LOGSPARM(paramfile, which) \
-    fprintf(paramfile, #which "=%s\n", which)
-#endif // OBSOLETE
-
-
 #define TIFF_FILE_TYPE    1
 #define BINARY_FILE_TYPE  2
 
@@ -286,68 +275,6 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
 
    return status;
 }
-
-#ifdef OBSOLETE // Marked obsolete April 29, 2013.  Use fileio's pvp_read_header instead.
-/**
- * @fp
- * @numParams
- * @params
- */
-int pv_read_binary_params(FILE * fp, int numParams, int params[])
-{
-   if ((size_t) numParams > NUM_BIN_PARAMS) {
-      numParams = NUM_BIN_PARAMS;
-   }
-   rewind(fp);
-
-   return fread(params, sizeof(int), numParams, fp);
-}
-#endif // OBSOLETE
-
-#ifdef OBSOLETE // Marked obsolete April 29, 2013.  Use fileio's pvp_open_read_file instead.
-/**
- * Open a PV binary file for reading.
- * @numParams contains the number of integer parameters on return
- * @nx contains the number of items in the x direction on return
- * @ny contains the number of items in the y direction on return
- * @nf contains the number of features on return
- * returns the opened file (NULL if an error occurred)
- */
-FILE * pv_open_binary(const char * filename, int * numParams, int * type, int * nx, int * ny, int * nf)
-{
-   int params[MIN_BIN_PARAMS];
-
-   FILE * fp = fopen(filename, "rb");
-   if (fp == NULL) {
-      pv_log(stderr, "pv_open_binary: couldn't open input file %s\n", filename);
-      return NULL;
-   }
-
-   if ( fread(params, sizeof(int), MIN_BIN_PARAMS, fp) != MIN_BIN_PARAMS ) {
-      fclose(fp);
-      return NULL;
-   }
-
-   *numParams = params[INDEX_NUM_PARAMS];
-   *type      = params[INDEX_FILE_TYPE];
-   *nx        = params[INDEX_NX];
-   *ny        = params[INDEX_NY];
-   *nf        = params[INDEX_NF];
-
-   return fp;
-}
-#endif // OBSOLETE
-
-#ifdef OBSOLETE // Marked obsolete April 29, 2013.  Use fileio's PV_fclose instead
-/**
- * Close a PV binary file.
- * @fp
- */
-int pv_close_binary(FILE * fp)
-{
-   return fclose(fp);
-}
-#endif // OBSOLETE
 
 /**
  * @fd
