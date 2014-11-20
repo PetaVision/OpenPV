@@ -56,19 +56,22 @@ protected:
    virtual void ioParam_movieOutputPath(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag);
    virtual void ioParam_flipOnTimescaleError(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag);
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readFrameNumStateFromCheckpoint(const char * cpDir);
 
    bool readPvpFile;
    const char * getNextFileName(int n_skip);
-   void updateFrameNum(int n_skip);
+   int updateFrameNum(int n_skip);
 
 
 private:
    int initialize_base();
    int copyReducedImagePortion();
-   void updateFrameNum();
+   int updateFrameNum();
    const char * advanceFileName();
+
+   bool resetToStartOnLoop;
 
    double displayPeriod;   // length of time a frame is displayed
    //double nextDisplayTime; // time of next frame; now handled by HyPerLayer nextUpdateTime

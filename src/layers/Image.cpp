@@ -497,73 +497,6 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          assert(dropLength == length);
          status = PV_SUCCESS;
          break;
-               
-            ////See if position file exists
-            //strcpy(tempPosFilename, filename);
-            //len = strlen(filename);
-            ////Check suffix of filename
-            //if(strcmp(&filename[len-4], ".pvp") != 0){
-            //   fprintf(stderr, "Filename %s must end in \".pvp\".\n", filename);
-            //   status = PV_FAILURE;
-            //   abort();
-            //}
-            ////Change suffix to pos
-            //tempPosFilename[len-2] = 'o';
-            //tempPosFilename[len-1] = 's';
-            //posFilename = tempPosFilename;
-
-            ////If file doesn't exist, write file
-            //if(access(posFilename, F_OK) == -1){
-               ////Fseek past the header and first timestamp
-               //PV::PV_fseek(pvstream, (long)8 + (long)headerSize, SEEK_SET);
-
-               //int percent = 0;
-               //long frameStart;
-               //long count;
-               //posstream = PV_fopen(posFilename, "w", parent->getVerifyWrites());
-               //assert(posstream);
-               //for (i = 0; i<params[INDEX_NBANDS]; i++) {
-               //   int newpercent = 100*(float(i)/params[INDEX_NBANDS]);
-               //   if(percent != newpercent){
-               //      percent = newpercent;
-               //      std::cout << "\r" << percent << "% Done";
-               //      std::cout.flush();
-               //   }
-               //   //First byte position should always be 92
-               //   if (i == 0) {
-               //      frameStart = (long)92;
-               //   }
-               //   //Read in the number of active neurons for that frame and calculate byte position
-               //   else {
-               //      PV::PV_fread(&count, sizeof(unsigned int), 1, pvstream);
-               //      frameStart = frameStart + (long)count*(long)datasize + (long)12;
-               //      PV::PV_fseek(pvstream, frameStart - (long)4, SEEK_SET);
-               //   }
-               //   //Write to file
-               //   status = (PV_fwrite(&frameStart, sizeof(long), 1, posstream) != 1);
-               //}
-               //std::cout << "\r" << percent << "% Done\n";
-               //std::cout.flush();
-
-               //PV_fclose(posstream);
-            //}
-            //posstream = PV_fopen(posFilename, "r", false/*verifyWrites*/);
-            //assert(posstream);
-            ////So we don't have to calculate frameStart and count again
-            //needFrameSizesForSpiking = false;
-         //}
-         //At this point, posstream should be pointing to something
-         //assert(posstream);
-         //Calculate based on frame number where to read from posstream
-         //PV::PV_fseek(posstream, frameNumber * sizeof(long), SEEK_SET);
-         //PV::PV_fread(&framepos, sizeof(long), 1, posstream);
-         ////Calculate where in position file to look at fileposition 
-         //PV::PV_fseek(pvstream, framepos-sizeof(double)-sizeof(unsigned int), SEEK_SET);
-         //PV::PV_fread(&timed, sizeof(double), 1, pvstream);
-         //PV::PV_fread(&length, sizeof(unsigned int), 1, pvstream);
-         //std::cout << "length: " << length << "\n";
-         //status = PV_SUCCESS;
-         //break;
       case PVP_NONSPIKING_ACT_FILE_TYPE:
          length = 0; //Don't need to compute this for nonspiking files.
          framesize = recordsize*datasize*nxProcs*nyProcs+8;
@@ -1196,7 +1129,10 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
    float * buf = new float[n];
    assert(buf != NULL);
 
-   status = scatterImageFile(path, getOffsetX(anchor, offsetX), getOffsetY(anchor, offsetY), parent->icCommunicator(), loc, buf, frameNumber, this->autoResizeFlag);
+   int aOffsetX = getOffsetX(anchor, offsetX);
+   int aOffsetY = getOffsetY(anchor, offsetY);
+
+   status = scatterImageFile(path, aOffsetX, aOffsetY, parent->icCommunicator(), loc, buf, frameNumber, this->autoResizeFlag);
    if (status != PV_SUCCESS) {
       if (parent->columnId()==0) {
          fprintf(stderr, "Image::readImage failed for layer \"%s\"\n", getName());
@@ -1496,12 +1432,12 @@ int Image::getOffsetX(const char* offsetAnchor, int offsetX){
    //Offset in center
    else if(!strcmp(offsetAnchor, "tc") || !strcmp(offsetAnchor, "cc") || !strcmp(offsetAnchor, "bc")){
       int layerSizeX = getLayerLoc()->nxGlobal;
-      return ((imageLoc.nxGlobal/2)-(layerSizeX/2) - 1) + offsetX;
+      return ((imageLoc.nxGlobal/2)-(layerSizeX/2)) + offsetX;
    }
    //Offset on bottom
    else if(!strcmp(offsetAnchor, "tr") || !strcmp(offsetAnchor, "cr") || !strcmp(offsetAnchor, "br")){
       int layerSizeX = getLayerLoc()->nxGlobal;
-      return (imageLoc.nxGlobal - layerSizeX - 1) + offsetX;
+      return (imageLoc.nxGlobal - layerSizeX) + offsetX;
    }
    assert(0); // All possible cases should be covered above
    return -1; // Eliminates no-return warning
@@ -1515,12 +1451,12 @@ int Image::getOffsetY(const char* offsetAnchor, int offsetY){
    //Offset in center
    else if(!strcmp(offsetAnchor, "cl") || !strcmp(offsetAnchor, "cc") || !strcmp(offsetAnchor, "cr")){
       int layerSizeY = getLayerLoc()->nyGlobal;
-      return ((imageLoc.nyGlobal/2)-(layerSizeY/2) - 1) + offsetY;
+      return ((imageLoc.nyGlobal/2)-(layerSizeY/2)) + offsetY;
    }
    //Offset on bottom
    else if(!strcmp(offsetAnchor, "bl") || !strcmp(offsetAnchor, "bc") || !strcmp(offsetAnchor, "br")){
       int layerSizeY = getLayerLoc()->nyGlobal;
-      return (imageLoc.nyGlobal-layerSizeY-1) + offsetY;
+      return (imageLoc.nyGlobal-layerSizeY) + offsetY;
    }
    assert(0); // All possible cases should be covered above
    return -1; // Eliminates no-return warning

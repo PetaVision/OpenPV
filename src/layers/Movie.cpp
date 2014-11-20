@@ -39,6 +39,7 @@ int Movie::initialize_base() {
    writeFrameToTimestamp = true;
    timestampFile = NULL;
    flipOnTimescaleError = true;
+   resetToStartOnLoop = false;
    //updateThisTimestep = false;
    // newImageFlag = false;
    return PV_SUCCESS;
@@ -216,6 +217,7 @@ int Movie::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_movieOutputPath(ioFlag);
    ioParam_writeFrameToTimestamp(ioFlag);
    ioParam_flipOnTimescaleError(ioFlag);
+   ioParam_resetToStartOnLoop(ioFlag);
    return status;
 }
 
@@ -298,6 +300,10 @@ void Movie::ioParam_movieOutputPath(enum ParamsIOFlag ioFlag) {
 
 void Movie::ioParam_writeFrameToTimestamp(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "writeFrameToTimestamp", &writeFrameToTimestamp, writeFrameToTimestamp);
+}
+
+void Movie::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "resetToStartOnLoop", &resetToStartOnLoop, resetToStartOnLoop);
 }
 
 Movie::~Movie()
@@ -563,34 +569,40 @@ int Movie::randomFrame()
  * Will update frameNumber
  */
 //This function takes care of rewinding for pvp files
-void Movie::updateFrameNum(int n_skip){
+int Movie::updateFrameNum(int n_skip){
    assert(readPvpFile);
    InterColComm * icComm = getParent()->icCommunicator();
-   for(int i_skip = 0; i_skip < n_skip-1; i_skip++){
-      updateFrameNum();
+   for(int i_skip = 0; i_skip < n_skip; i_skip++){
+      int status = updateFrameNum();
+      if(status == PV_BREAK){
+         break;
+      }
    }
-   updateFrameNum();
+   return PV_SUCCESS;
 }
 
-void Movie::updateFrameNum() {
+int Movie::updateFrameNum() {
    frameNumber += 1;
    //numFrames only set if pvp file
    if(frameNumber >= numFrames){
       if(parent->columnId()==0){
          fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
       }
-      frameNumber = 0;
+      if(resetToStartOnLoop){
+         frameNumber = startFrameIndex-1;
+         return PV_BREAK;
+      }
    }
+   return PV_SUCCESS;
 }
 
 // advance by n_skip lines through file of filenames, always advancing at least one line
 const char * Movie::getNextFileName(int n_skip) {
    InterColComm * icComm = getParent()->icCommunicator();
    if (icComm->commRank()==0) {
-      for (int i_skip = 0; i_skip < n_skip-1; i_skip++){
+      for (int i_skip = 0; i_skip < n_skip; i_skip++){
          advanceFileName();
       }
-      advanceFileName();
       if (echoFramePathnameFlag){
          printf("%f: %s\n", parent->simulationTime(), inputfile);
       }
@@ -607,6 +619,7 @@ const char * Movie::advanceFileName() {
    assert(parent->columnId()==0);
    int c;
    size_t maxlen = PV_PATH_MAX;
+   bool reset = false;
 
    // Ignore blank lines
    bool lineisblank = true;
@@ -616,30 +629,34 @@ const char * Movie::advanceFileName() {
          PV_fseek(filenamestream, 0L, SEEK_SET);
          fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
          frameNumber = 0;
+         reset = true;
       }
       else {
          ungetc(c, filenamestream->fp);
       }
 
-      char * path = fgets(inputfile, maxlen, filenamestream->fp);
-      if (path != NULL) {
-         filenamestream->filepos += strlen(path);
-         frameNumber++;
-         path[PV_PATH_MAX-1] = '\0';
-         size_t len = strlen(path);
-         if (len > 0) {
-            if (path[len-1] == '\n') {
-               path[len-1] = '\0';
-               len--;
+      //Always do at least once
+      do{
+         char * path = fgets(inputfile, maxlen, filenamestream->fp);
+         if (path != NULL) {
+            filenamestream->filepos += strlen(path);
+            frameNumber++;
+            path[PV_PATH_MAX-1] = '\0';
+            size_t len = strlen(path);
+            if (len > 0) {
+               if (path[len-1] == '\n') {
+                  path[len-1] = '\0';
+                  len--;
+               }
+            }
+            for (size_t n=0; n<len; n++) {
+               if (!isblank(path[n])) {
+                  lineisblank = false;
+                  break;
+               }
             }
          }
-         for (size_t n=0; n<len; n++) {
-            if (!isblank(path[n])) {
-               lineisblank = false;
-               break;
-            }
-         }
-      }
+      }while(reset && frameNumber < startFrameIndex+1);
    }
    return inputfile;
 }
