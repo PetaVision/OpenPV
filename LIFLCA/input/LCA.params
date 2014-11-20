@@ -262,7 +262,7 @@ ANNLayer "Recon" = {                  // Not necessary - allows us to easily vie
     VWidth              = 0;
 // 
     phase               = 1;          // Updates shouldn't reflect newly present image
-    updateGPU           = false;          // Don't want to do this on the GPU
+    updateGpu           = false;      // Dense computation, not to be done on GPU
 };
 
 
@@ -341,7 +341,9 @@ HyPerConn "L1_to_Residual" = {
     pvpatchAccumulateType               = "convolve";    // * How activity & weights are combined. Alternative options are max pooling,
                                                          //   stocastic, others?
     preActivityIsNotRate                = false;         // TODO: What is this - don't scale weights by dt..
-    writeStep                           = -1;            // Usually better to use checkpoints to write weights
+    writeStep                           = 10;//-1;            // Usually better to use checkpoints to write weights
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
     delay                               = [0.0];
     updateGSynFromPostPerspective       = false;
