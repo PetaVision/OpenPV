@@ -11,7 +11,9 @@
 // TODO:
 //   test l0 vs l1
 //   test shuffled dictionary learning vs non-shuffled
+//   test recon with shuffled dict vs non-shuffled dict
 //   switch to vine & unwhitened
+//   Implement Olshausen 2003 - Learning Sparse, Overcomplete Representations of Time-Varying Natural Images
 ///////////////////////////
 
 debugParsing = false;
@@ -137,9 +139,11 @@ Movie "Input" = {
 
 
 ANNLayer "Residual" = {
-// Membrane potential is channel 0 - channel 1
-// If the membrane potential is < Vthresh, then 
-// membrane potential = AMin
+//
+// * Membrane potential is channel 0 - channel 1
+//   If the membrane potential is < Vthresh, then 
+//   membrane potential = AMin
+//
     nxScale                = 1;
     nyScale                = 1;
     nf                     = 1;
@@ -207,7 +211,7 @@ HyPerLCALayer "L1" = {
 //    InitVType              = "InitVFromFile";
 //    Vfilename              = "/Users//output/Checkpoints/Checkpoint6000000/L1_V.pvp";
 // 
-    timeConstantTau        = 100.0;    // dt is scaled by multiplying by 1/timeConstantTau
+    timeConstantTau        = 50.0;//100.0;    // dt is scaled by multiplying by 1/timeConstantTau
                                        // u(t+dt) = u(t) + dt/tau * u^dot
 //
 // Here is where you set a hard or soft threshold.
