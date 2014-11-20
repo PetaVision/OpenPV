@@ -160,7 +160,7 @@ void CloneConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
 
 void CloneConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      initializeFromCheckpointFlag = parent->getDefaultInitializeFromCheckpointFlag();
+      initializeFromCheckpointFlag = false;
       parent->parameters()->handleUnnecessaryParameter(name, "initializeFromCheckpointFlag");
    }
    // CloneConn does not checkpoint, so we don't need initializeFromCheckpointFlag

@@ -76,8 +76,15 @@ void TransposeConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void TransposeConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      initializeFromCheckpointFlag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "initializeFromCheckpointFlag");
+   }
+   // During the setInitialValues phase, the conn will be computed from the original conn, so initializeFromCheckpointFlag is not needed.
+}
+
 void TransposeConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
-   // During the communication phase, numAxonalArbors will be copied from originalConn
 }
 
 void TransposeConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
