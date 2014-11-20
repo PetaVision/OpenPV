@@ -572,7 +572,8 @@ int Movie::randomFrame()
 int Movie::updateFrameNum(int n_skip){
    assert(readPvpFile);
    InterColComm * icComm = getParent()->icCommunicator();
-   for(int i_skip = 0; i_skip < n_skip; i_skip++){
+   int numskip = n_skip < 1 ? 1 : n_skip;
+   for(int i_skip = 0; i_skip < numskip; i_skip++){
       int status = updateFrameNum();
       if(status == PV_BREAK){
          break;
@@ -600,7 +601,8 @@ int Movie::updateFrameNum() {
 const char * Movie::getNextFileName(int n_skip) {
    InterColComm * icComm = getParent()->icCommunicator();
    if (icComm->commRank()==0) {
-      for (int i_skip = 0; i_skip < n_skip; i_skip++){
+      int numskip = n_skip < 1 ? 1 : n_skip;
+      for (int i_skip = 0; i_skip < numskip; i_skip++){
          advanceFileName();
       }
       if (echoFramePathnameFlag){
