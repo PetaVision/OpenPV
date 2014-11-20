@@ -684,7 +684,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       // if false, PetaVision will NOT automatically resize your images, so you had better
       // choose the right offsets and sizes.
       if (!autoResizeFlag){
-         if (xOffset + xTotalSize > xImageSize || yOffset + yTotalSize > yImageSize) {
+         if (xOffset + xTotalSize > xImageSize || yOffset + yTotalSize > yImageSize || xOffset < 0 || yOffset < 0) {
             fprintf(stderr, "[ 0]: scatterImageFile: image size too small, "
                   "xTotalSize==%d xImageSize==%d yTotalSize==%d yImageSize==%d xOffset==%d yOffset==%d\n",
                   xTotalSize, xImageSize, yTotalSize, yImageSize, xOffset, yOffset);

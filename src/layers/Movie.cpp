@@ -593,6 +593,9 @@ int Movie::updateFrameNum() {
          frameNumber = startFrameIndex-1;
          return PV_BREAK;
       }
+      else{
+         frameNumber = 0;
+      }
    }
    return PV_SUCCESS;
 }
