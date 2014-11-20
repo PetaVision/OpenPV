@@ -46,11 +46,11 @@ void CopyConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
 }
 
 void CopyConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
-   // TransposeConn determines nxp from originalConn, during communicateInitInfo
+   // CopyConn determines nxp from originalConn, during communicateInitInfo
 }
 
 void CopyConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
-   // TransposeConn determines nyp from originalConn, during communicateInitInfo
+   // CopyConn determines nyp from originalConn, during communicateInitInfo
 }
 
 void CopyConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
@@ -62,7 +62,15 @@ void CopyConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
 }
 
 void CopyConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
-   // TransposeConn determines nfp from originalConn, during communicateInitInfo
+   // CopyConn determines nfp from originalConn, during communicateInitInfo
+}
+
+void CopyConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      initializeFromCheckpointFlag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "initializeFromCheckpointFlag");
+   }
+   // During the setInitialValues phase, the conn will be copied from the original conn, so initializeFromCheckpointFlag is not needed.
 }
 
 void CopyConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
@@ -112,7 +120,7 @@ int CopyConn::communicateInitInfo() {
    this->originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "TransposeConn \"%s\" error: originalConnName \"%s\" is not an existing connection.\n", name, originalConnName);
+         fprintf(stderr, "CopyConn \"%s\" error: originalConnName \"%s\" is not an existing connection.\n", name, originalConnName);
          status = PV_FAILURE;
       }
    }
