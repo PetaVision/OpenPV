@@ -193,7 +193,7 @@ int CopyConn::updateWeights(int axonID) {
 }  // end of CopyConn::updateWeights(int);
 
 int CopyConn::copy(int arborId) {
-   size_t arborsize = (size_t) (xPatchSize() * yPatchSize() * fPatchSize() * getNumDataPatches());
+   size_t arborsize = (size_t) (xPatchSize() * yPatchSize() * fPatchSize() * getNumDataPatches()) * sizeof(pvwdata_t);
    memcpy(get_wDataStart(arborId), originalConn->get_wDataStart(arborId), arborsize);
    return PV_SUCCESS;
 }
