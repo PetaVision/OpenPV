@@ -1,5 +1,5 @@
 //
-// CopyConnInitializeTest.params
+// CopyConnPlasticNonsharedTest.params
 //
 // created by peteschultz: Nov 19, 2014
 //
@@ -12,7 +12,7 @@
 //  Thus, the values in OriginalConn Output should be twice those in
 //  CopyConn Output
 //  
-//  This params file has sharedWeights set to true, and plasticity off.
+//  This params file has sharedWeights set to false, and plasticity off.
 
 debugParsing = false;    // Debug the reading of this parameter file.
 
@@ -27,7 +27,7 @@ HyPerCol "column" = {
    errorOnNotANumber = true;
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
-   outputPath = "output/Initialize/";
+   outputPath = "output/PlasticNonshared/";
    printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
    filenamesContainLayerNames = false;  
    filenamesContainConnectionNames = false;
@@ -77,7 +77,8 @@ ANNLayer "OriginalConn Output" = {
     mirrorBCflag = 1;
     sparseLayer = false;
 
-    InitVType = "ZeroV";
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
@@ -98,7 +99,8 @@ ANNLayer "CopyConn Output" = {
     mirrorBCflag = 1;
     sparseLayer = false;
 
-    InitVType = "ZeroV";
+    InitVType = "ConstantV";
+    valueV = 1.0;
 
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
@@ -121,8 +123,8 @@ HyPerConn "OriginalConn" = {
     nxp = 7;
     nyp = 7;
     numAxonalArbors = 1;
-    sharedWeights = true;
-    writeStep = -1;
+    sharedWeights = false;
+    writeStep = 1;
     initFromLastFlag = 0;
     
     weightInitType = "UniformRandomWeight";
@@ -144,7 +146,7 @@ HyPerConn "OriginalConn" = {
     rMinY = 0.0;
 
     writeCompressedCheckpoints = false;
-    plasticityFlag = false;
+    plasticityFlag = true;
 
     delay = 0;
 
@@ -159,7 +161,7 @@ CopyConn "CopyConn" = {
     channelCode = 0;
     delay = 0;
     
-    writeStep = -1;
+    writeStep = 1;
     writeCompressedCheckpoints = false;
 
     // CopyConn does not use a weight init method

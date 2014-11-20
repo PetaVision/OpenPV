@@ -20,6 +20,9 @@ int main(int argc, char * argv[]) {
    int status = PV_SUCCESS;
 
    if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, "input/CopyConnInitializeTest.params"); }
+   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, "input/CopyConnInitializeNonsharedTest.params"); }
+   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, "input/CopyConnPlasticTest.params"); }
+   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, "input/CopyConnPlasticNonsharedTest.params"); }
 
 #ifdef PV_USE_MPI
    MPI_Finalize();

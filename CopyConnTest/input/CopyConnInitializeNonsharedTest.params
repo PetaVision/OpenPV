@@ -1,5 +1,5 @@
 //
-// CopyConnInitializeTest.params
+// CopyConnInitializeSharedTest.params
 //
 // created by peteschultz: Nov 19, 2014
 //
@@ -12,7 +12,7 @@
 //  Thus, the values in OriginalConn Output should be twice those in
 //  CopyConn Output
 //  
-//  This params file has sharedWeights set to true, and plasticity off.
+//  This params file does not use shared weights, and has plasticity turned off
 
 debugParsing = false;    // Debug the reading of this parameter file.
 
@@ -27,7 +27,7 @@ HyPerCol "column" = {
    errorOnNotANumber = true;
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
-   outputPath = "output/Initialize/";
+   outputPath = "output/InitializeNonshared/";
    printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
    filenamesContainLayerNames = false;  
    filenamesContainConnectionNames = false;
@@ -121,7 +121,7 @@ HyPerConn "OriginalConn" = {
     nxp = 7;
     nyp = 7;
     numAxonalArbors = 1;
-    sharedWeights = true;
+    sharedWeights = false;
     writeStep = -1;
     initFromLastFlag = 0;
     
