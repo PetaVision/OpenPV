@@ -63,7 +63,7 @@ int pvp_write_header(PV_Stream * pvstream, Communicator * comm, int * params, in
 // The pvp_write_header below will go away in favor of the pvp_write_header above.
 int pvp_write_header(PV_Stream * pvstream, Communicator * comm, double time, const PVLayerLoc * loc,
                      int filetype, int datatype, int numbands,
-                     bool extended, bool contiguous, unsigned int numParams, size_t localSize);
+                     bool extended, bool contiguous, unsigned int numParams, size_t recordSize);
 
 int * pvp_set_file_params(Communicator * comm, double timed, const PVLayerLoc * loc, int datatype, int numbands);
 int * pvp_set_activity_params(Communicator * comm, double timed, const PVLayerLoc * loc, int datatype, int numbands);
@@ -84,9 +84,14 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
 
 int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches, int nxp, int nyp, int nfp, const char * filename,
                 Communicator * comm, double * timed, const PVLayerLoc * loc, bool * shmget_owner = NULL, bool shmget_flag = false);
+// The old readWeights, now readWeightsDeprecated, was deprecated Nov 20, 2014.
+// readWeights() reads weights that were saved in an MPI-independent manner (the current writeWeights)
+// readWeightsDeprecated() reads weights saved in the old MPI-dependent manner.
+int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches, int nxp, int nyp, int nfp, const char * filename,
+                Communicator * comm, double * timed, const PVLayerLoc * loc, bool * shmget_owner = NULL, bool shmget_flag = false);
 
 int writeWeights(const char * filename, Communicator * comm, double timed, bool append,
-                 const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
+                 const PVLayerLoc * preLoc, const PVLayerLoc * postLoc, int nxp, int nyp, int nfp, float minVal, float maxVal,
                  PVPatch *** patches, pvwdata_t ** dataStart, int numPatches, int numArbors, bool compress=true, int file_type=PVP_WGT_FILE_TYPE);
 
 int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams);

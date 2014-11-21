@@ -2343,7 +2343,8 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
       if( maxVal1 > maxVal ) maxVal = maxVal1;
    }
 
-   const PVLayerLoc * loc = pre->getLayerLoc();
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
 
    int chars_needed = 0;
    if (filename == NULL) {
@@ -2375,7 +2376,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
 
    bool append = last ? false : ioAppend;
 
-   status = PV::writeWeights(path, comm, (double) timed, append, loc, nxp, nyp,
+   status = PV::writeWeights(path, comm, (double) timed, append, preLoc, postLoc, nxp, nyp,
          nfp, minVal, maxVal, patches, dataStart, numPatches,
          numberOfAxonalArborLists(), compressWeights, fileType);
    if(status != PV_SUCCESS) {
@@ -4163,7 +4164,7 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
 
    bool append = (last) ? false : ioAppend;
 
-   status = PV::writeWeights(path, comm, (double) timef, append, postLoc,
+   status = PV::writeWeights(path, comm, (double) timef, append, postLoc, preLoc,
         nxPostPatch, nyPostPatch, nfPostPatch, minVal, maxVal, wPostPatches,
         wPostDataStart, numPostPatches, numberOfAxonalArborLists(),
         writeCompressedWeights, fileType);

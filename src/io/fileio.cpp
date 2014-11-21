@@ -428,6 +428,25 @@ PV_Stream * PV_stdout() {
 }
 
 /**
+ * Gets the number of patches for the given PVLayerLoc, in a non-shared weight context.
+ * The return value is the number of patches for the global column (i.e. not a particular MPI process)
+ * If asPostWeights is true, loc is interpreted as a postsynaptic layer's PVLayerLoc and patches are
+ * not counted in the extended region.  If asPostWeights is false, loc is interpreted as a presynaptic
+ * layer's PVLayerLoc and patches are counted in the extended region.
+ */
+int getNumGlobalPatches(PVLayerLoc const * loc, bool asPostWeights) {
+   int nx = loc->nxGlobal;
+   int ny = loc->nyGlobal;
+   int nf = loc->nf;
+   if (!asPostWeights) {
+      PVHalo const * halo = &loc->halo;
+      nx += halo->lt + halo->rt;
+      ny += halo->dn + halo->up;
+   }
+   return nx*ny*nf;
+}
+
+/**
  * Copy patches into an unsigned char buffer
  */
 int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataStart, int numDataPatches,
@@ -453,20 +472,15 @@ int pvp_copy_patches(unsigned char * buf, PVPatch ** patches, pvwdata_t * dataSt
          ny = p->ny;
          offset = p->offset;
       }
-      // const pvwdata_t * data = p->data;
       const pvwdata_t * data = dataStart + k*patchsize; // + offset; // Don't include offset as the entire patch will be copied
 
-      // const int sxp = nfp; //p->sx;
-      // const int syp = nfp * nxp; //p->sy;
-      // const int sfp = 1; //p->sf;
-
       unsigned short * nxny = (unsigned short *) cptr;
-      nxny[0] = (unsigned short) nx;
-      nxny[1] = (unsigned short) ny;
+      nxny[0] = (unsigned short) nxp;
+      nxny[1] = (unsigned short) nyp;
       cptr += 2 * sizeof(unsigned short);
 
       unsigned int * offsetptr = (unsigned int *) cptr;
-      *offsetptr = offset;
+      *offsetptr = 0;
       cptr += sizeof(unsigned int);
 
       if( compressed ) {
@@ -633,6 +647,80 @@ int pvp_close_file(PV_Stream * pvstream, Communicator * comm)
 int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
 {
    int status = PV_SUCCESS;
+
+   int nxProcs = comm->numCommColumns();
+   int nyProcs = comm->numCommRows();
+   int rank = comm->commRank();
+
+   if (params[INDEX_NX_PROCS] != 1) {
+      status = PV_FAILURE;
+      if (rank==0) {
+         fprintf(stderr, "params[%d] = %d, should be 1\n", INDEX_NX_PROCS, params[INDEX_NX_PROCS]);
+      }
+   }
+   if (params[INDEX_NY_PROCS] != 1) {
+      status = PV_FAILURE;
+      if (rank==0) {
+         fprintf(stderr, "params[%d] = %d, should be 1\n", INDEX_NY_PROCS, params[INDEX_NY_PROCS]);
+      }
+   }
+
+   if (numParams < NUM_WGT_PARAMS) {
+      status = PV_FAILURE;
+      if (rank==0) {
+         fprintf(stderr, "pvp_check_file_header called with %d params (requires at least %d)\n", numParams, NUM_WGT_PARAMS);
+      }
+   }
+   
+   if (numParams >= NUM_WGT_PARAMS) {
+      int patchesInFile = params[NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES];
+      int numGlobalRestricted = loc->nxGlobal*loc->nyGlobal*loc->nf;
+      PVHalo const * halo = &loc->halo;
+      int numGlobalExtended = (loc->nxGlobal+halo->lt+halo->rt)*(loc->nyGlobal+halo->dn+halo->up)*loc->nf;
+      switch (params[INDEX_FILE_TYPE]) {
+      case PVP_WGT_FILE_TYPE:
+         if (patchesInFile != numGlobalRestricted && patchesInFile != numGlobalExtended) {
+            status = PV_FAILURE;
+            if (rank==0) {
+               fprintf(stderr, "params[%d] = %d, should be ", NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES, params[NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES]);
+               if (numGlobalExtended==numGlobalRestricted) {
+                  fprintf(stderr, "%d\n", numGlobalExtended);
+               }
+               else {
+                  fprintf(stderr, "either %d (as post weights) or %d (as pre weights)\n",
+                        numGlobalRestricted, numGlobalExtended);
+               }
+            }
+         }
+         break;
+      case PVP_KERNEL_FILE_TYPE:
+         if (patchesInFile % loc->nf) { // Not enough information passed to function to get unit cell size
+            status = PV_FAILURE;
+            if (rank==0) {
+               fprintf(stderr, "params[%d] = %d, should be a multiple of loc->nf=%d\n",
+                     NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES, params[NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES], loc->nf);
+            }
+         }
+         break;
+      default:
+         assert(0);
+         break;
+      }
+   }
+
+   if (status != 0) {
+      for (int i = 0; i < numParams; i++) {
+         fprintf(stderr, "params[%2d]==%d\n", i, params[i]);
+      }
+   }
+
+   return status;
+} // pvp_check_file_header
+
+// Deprecated Nov 20, 2014.  Use pvp_check_file_header
+int pvp_check_file_header_deprecated(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
+{
+   int status = PV_SUCCESS;
    int tmp_status = PV_SUCCESS;
 
    int nxProcs = comm->numCommColumns();
@@ -734,7 +822,10 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    }
 
    return status;
-} // pvp_check_file_header
+} // pvp_check_file_header_deprecated
+
+
+
 
 int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int * numParams) {
    // Under MPI, called by all processes; nonroot processes should have pvstream==NULL
@@ -937,7 +1028,7 @@ int pvp_write_header(PV_Stream * pvstream, Communicator * comm, int * params, in
 
 
 int pvp_write_header(PV_Stream * pvstream, Communicator * comm, double time, const PVLayerLoc * loc, int filetype,
-                     int datatype, int numbands, bool extended, bool contiguous, unsigned int numParams, size_t localSize)
+                     int datatype, int numbands, bool extended, bool contiguous, unsigned int numParams, size_t recordSize)
 {
    int status = PV_SUCCESS;
    int nxBlocks, nyBlocks;
@@ -990,7 +1081,7 @@ int pvp_write_header(PV_Stream * pvstream, Communicator * comm, double time, con
    params[INDEX_NY]          = contiguous ? loc->nyGlobal : loc->ny;
    params[INDEX_NF]          = loc->nf;
    params[INDEX_NUM_RECORDS] = numRecords;
-   params[INDEX_RECORD_SIZE] = localSize;
+   params[INDEX_RECORD_SIZE] = recordSize;
    params[INDEX_DATA_SIZE]   = pv_sizeof(datatype);
    params[INDEX_DATA_TYPE]   = datatype;
    params[INDEX_NX_PROCS]    = nxBlocks;
@@ -1533,6 +1624,166 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
 
 int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches,
       int nxp, int nyp, int nfp, const char * filename, Communicator * comm, double * timed, const PVLayerLoc * loc,
+      bool * shmget_owner, bool shmget_flag) {
+   int header_data_type;
+   int header_file_type;
+
+   int numParams = NUM_WGT_PARAMS;
+   int params[NUM_WGT_PARAMS];
+   int * wgtParams = &params[NUM_BIN_PARAMS];
+   int status = pvp_read_header(filename, comm, timed, &header_file_type, &header_data_type, params, &numParams);
+
+   const int nxFileBlocks = params[INDEX_NX_PROCS];
+   const int nyFileBlocks = params[INDEX_NY_PROCS];
+   
+   status = pvp_check_file_header(comm, loc, params, numParams);
+   
+   // If file header is not compatible, try the old MPI-dependent file format (deprecated on Nov 20, 2014).
+   if (status != 0) {
+      return readWeightsDeprecated(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, filename, comm, timed, loc, shmget_owner, shmget_flag);
+   }
+   
+   if (status != 0) {
+      fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, numParams==%d\n",
+              comm->commRank(), numParams);
+      return status;
+   }
+   assert(params[INDEX_NX_PROCS]==1 && params[INDEX_NY_PROCS]==1);
+   if( params[INDEX_NBANDS] > numArbors ) {
+      fprintf(stderr, "PV::readWeights: file \"%s\" has %d arbors, but readWeights was called with only %d arbors", filename, params[INDEX_NBANDS], numArbors);
+      return -1;
+   }
+   
+   const int numPatchItems = nxp * nyp * nfp;
+   const size_t patchSize = pv_sizeof_patch(numPatchItems, header_data_type);
+   const size_t localSize = numPatches * patchSize;
+
+   // Have to use memcpy instead of casting floats because of strict aliasing rules, since some are int and some are float
+   float minVal = 0.0f;
+   memcpy(&minVal, &wgtParams[INDEX_WGT_MIN], sizeof(float));
+   float maxVal = 0.0f;
+   memcpy(&maxVal, &wgtParams[INDEX_WGT_MAX], sizeof(float));
+   // const float minVal = * ((float*) &wgtFloatParams[INDEX_WGT_MIN]);
+   // const float maxVal = * ((float*) &wgtFloatParams[INDEX_WGT_MAX]);
+
+   const int icRank = comm->commRank();
+
+   bool compress = header_data_type == PV_BYTE_TYPE;
+   unsigned char * cbuf = (unsigned char *) malloc(localSize);
+   if(cbuf == NULL) {
+      fprintf(stderr, "Rank %d: writeWeights unable to allocate memory to write to \"%s\": %s", icRank, filename, strerror(errno));
+      fprintf(stderr, "    (nxp=%d, nyp=%d, nfp=%d, numPatchItems=%d, writing weights as %s)\n", nxp, nyp, nfp, numPatchItems, compress ? "bytes" : "floats");
+      exit(EXIT_FAILURE);
+   }
+
+   const int expected_file_type = patches == NULL ? PVP_KERNEL_FILE_TYPE : PVP_WGT_FILE_TYPE;
+#ifdef PV_USE_MPI
+   const int tagbase = expected_file_type;
+   const MPI_Comm mpi_comm = comm->communicator();
+   const int src = 0;
+#endif // PV_USE_MPI
+   if (expected_file_type != header_file_type) {
+      if (icRank==0) {
+         fprintf(stderr, "readWeights: file \"%s\" has type %d but readWeights was called expecting type %d\n",
+               filename, header_file_type, expected_file_type);
+      }
+#ifdef PV_USE_MPI
+      MPI_Barrier(mpi_comm);
+#endif // PV_USE_MPI
+      exit(EXIT_FAILURE);
+   }
+   if (icRank > 0) {
+#ifdef PV_USE_MPI
+      for (int arbor=0; arbor<params[INDEX_NBANDS]; arbor++) {
+         if (header_file_type == PVP_KERNEL_FILE_TYPE) {
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: readWeights: bcast from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
+                    comm->commRank(), src, arbor, numPatchItems, numPatches, localSize);
+#endif // DEBUG_OUTPUT
+            MPI_Bcast(cbuf, localSize, MPI_BYTE, src, mpi_comm);
+         }
+         else {
+            assert(header_file_type == PVP_WGT_FILE_TYPE);
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: readWeights: recv from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
+                    comm->commRank(), src, arbor, numPatchItems, numPatches, localSize);
+#endif // DEBUG_OUTPUT
+            MPI_Recv(cbuf, localSize, MPI_BYTE, src, tagbase+arbor, mpi_comm, MPI_STATUS_IGNORE);
+         }
+         pvp_set_patches(cbuf, patches ? patches[arbor] : NULL, dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+      }
+#endif // PV_USE_MPI
+   } // icRank > 0
+   else /*icRank == 0*/ {
+      PV_Stream * pvstream = pvp_open_read_file(filename, comm);
+      const int headerSize = numParams * sizeof(int);
+      for (int arbor=0; arbor<params[INDEX_NBANDS]; arbor++) {
+         long int arborStart = headerSize + localSize * arbor;
+         if (header_file_type == PVP_KERNEL_FILE_TYPE) {
+            PV_fseek(pvstream, arborStart, SEEK_SET);
+            int numRead = PV_fread(cbuf, localSize, 1, pvstream);
+            if (numRead != 1) {
+               fprintf(stderr, "readWeights error reading arbor %d of %zu bytes from position %ld of \"%s\".\n", arbor, localSize, arborStart, filename);
+               exit(EXIT_FAILURE);
+            };
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: readWeights: bcast from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
+                    comm->commRank(), src, arbor, numPatchItems, numPatches, localSize);
+#endif // DEBUG_OUTPUT
+            MPI_Bcast(cbuf, localSize, MPI_BYTE, src, mpi_comm);
+         }
+         else {
+            assert(header_file_type == PVP_WGT_FILE_TYPE);
+            int globalSize = patchSize * wgtParams[INDEX_WGT_NUMPATCHES];
+            for (int proc = 0; proc <= comm->commSize(); proc++) {
+               if (proc==src) { continue; } // Do local section last
+               int procrow, proccolumn;
+               if (proc==comm->commSize()) {
+                  procrow = rowFromRank(src, comm->numCommRows(), comm->numCommColumns());
+                  proccolumn = columnFromRank(src, comm->numCommRows(), comm->numCommColumns());
+               }
+               else {
+                  procrow = rowFromRank(proc, comm->numCommRows(), comm->numCommColumns());
+                  proccolumn = columnFromRank(proc, comm->numCommRows(), comm->numCommColumns());
+               }
+               for (int k=0; k<numPatches; k++) {
+                  // TODO: don't have to read each patch singly; can read all patches for a single y at once.
+                  unsigned char * cbufpatch = &cbuf[k*patchSize];
+                  int x = kxPos(k, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf)+proccolumn*loc->nx;
+                  int y = kyPos(k, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf)+procrow*loc->ny;
+                  int f = featureIndex(k, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
+                  int globalIndex = kIndex(x,y,f,loc->nxGlobal, loc->nyGlobal, loc->nf);
+                  PV_fseek(pvstream, arborStart+globalIndex*patchSize, SEEK_SET);
+                  int numread = PV_fread(cbufpatch, patchSize, 1, pvstream);
+                  if (numread != 1) {
+                     fprintf(stderr, "readWeights error reading arbor %d, patch %d of %zu bytes from position %ld of \"%s\".\n", arbor, k, patchSize, arborStart+globalIndex*patchSize, filename);
+                     exit(EXIT_FAILURE);
+                  }
+               } // Loop over patches
+               if (proc != comm->commSize()) {
+                  MPI_Send(cbuf, localSize, MPI_BYTE, proc, tagbase+arbor, mpi_comm);
+#ifdef DEBUG_OUTPUT
+                  fprintf(stderr, "[%2d]: readWeights: recv from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
+                        comm->commRank(), src, arbor, numPatchItems, numPatches, localSize);
+#endif // DEBUG_OUTPUT
+               }
+            } // Loop over processes
+            // Local section was done last, so cbuf should contain data from local section
+         } // if-statement for header_file_type
+         pvp_set_patches(cbuf, patches ? patches[arbor] : NULL, dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+      } // loop over arbors
+      pvp_close_file(pvstream, comm);
+   } // if-statement for icRank
+   
+   free(cbuf); cbuf = NULL;
+   
+   return status;
+}
+
+// readWeights was changed on Nov 20, 2014, to read weight files saved in an MPI-independent manner.
+// readWeightsDeprecated is the old version of the file
+int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches,
+      int nxp, int nyp, int nfp, const char * filename, Communicator * comm, double * timed, const PVLayerLoc * loc,
       bool * shmget_owner, bool shmget_flag){
    int status = PV_SUCCESS;
    int header_data_type;
@@ -1552,14 +1803,14 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
 
    status = pvp_read_header(filename, comm, timed, &header_file_type, &header_data_type, params, &numParams);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "[%2d]: readWeights: failed in pvp_read_header, numParams==%d\n",
+      fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_read_header, numParams==%d\n",
               comm->commRank(), numParams);
       return status;
    }
 
-   status = pvp_check_file_header(comm, loc, params, numParams);
+   status = pvp_check_file_header_deprecated(comm, loc, params, numParams);
    if (status != 0) {
-      fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, numParams==%d\n",
+      fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_check_file_header_deprecated, numParams==%d\n",
               comm->commRank(), numParams);
       return status;
    }
@@ -1571,7 +1822,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
 
    if (nxp != wgtParams[INDEX_WGT_NXP] || nyp != wgtParams[INDEX_WGT_NYP] || nfp != wgtParams[INDEX_WGT_NFP]) {
       if (icRank==0) {
-         fprintf(stderr, "readWeights error: file \"%s\" patch dimensions (nxp=%d, nyp=%d, nfp=%d) do not agree with expected values (%d,%d,%d).\n",
+         fprintf(stderr, "readWeightsDeprecated error: file \"%s\" patch dimensions (nxp=%d, nyp=%d, nfp=%d) do not agree with expected values (%d,%d,%d).\n",
                filename, wgtParams[INDEX_WGT_NXP], wgtParams[INDEX_WGT_NYP], wgtParams[INDEX_WGT_NFP], nxp, nyp, nfp);
       }
       MPI_Barrier(comm->communicator());
@@ -1601,14 +1852,14 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    //
    status = ( header_data_type != PV_BYTE_TYPE && header_data_type != PV_FLOAT_TYPE );
    if (status != 0) {
-      fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, datatype==%d\n",
+      fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_check_file_header, datatype==%d\n",
               comm->commRank(), header_data_type);
       return status;
    }
    if (header_file_type != PVP_KERNEL_FILE_TYPE){
       status = (nxBlocks != nxFileBlocks || nyBlocks != nyFileBlocks);
       if (status != 0) {
-         fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, "
+         fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_check_file_header, "
                "nxFileBlocks==%d, nyFileBlocks==%d\n, nxBlocks==%d, nyBlocks==%d\n",
                comm->commRank(), nxFileBlocks, nyFileBlocks, nxBlocks, nyBlocks);
          return status;
@@ -1621,7 +1872,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
       status = ((numPatches != wgtParams[INDEX_WGT_NUMPATCHES]));
    }
    if (status != 0) {
-      fprintf(stderr, "[%2d]: readWeights: failed in pvp_check_file_header, "
+      fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_check_file_header, "
             "numPatches==%d, nxProcs==%d\n, nyProcs==%d, wgtParams[INDEX_WGT_NUMPATCHES]==%d\n",
             comm->commRank(), numPatches, nxProcs, nyProcs, wgtParams[INDEX_WGT_NUMPATCHES]);
       return status;
@@ -1642,7 +1893,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
 
    // read weights and send using MPI
    if( params[INDEX_NBANDS] > numArbors ) {
-      fprintf(stderr, "PV::readWeights: file \"%s\" has %d arbors, but readWeights was called with only %d arbors", filename, params[INDEX_NBANDS], numArbors);
+      fprintf(stderr, "PV::readWeightsDeprecated: file \"%s\" has %d arbors, but readWeightsDeprecated was called with only %d arbors", filename, params[INDEX_NBANDS], numArbors);
       return -1;
    }
    PV_Stream * pvstream = pvp_open_read_file(filename, comm);
@@ -1653,12 +1904,12 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
          const int src = 0;
 
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: readWeights: recv from %d, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
+         fprintf(stderr, "[%2d]: readWeightsDeprecated: recv from %d, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
                  comm->commRank(), src, nxBlocks, nyBlocks, numPatches);
 #endif // DEBUG_OUTPUT
          MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: readWeights: recv from %d completed\n",
+         fprintf(stderr, "[%2d]: readWeightsDeprecated: recv from %d completed\n",
                  comm->commRank(), src);
 #endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
@@ -1668,7 +1919,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
          const int headerSize = numParams * sizeof(int);
 
          if (pvstream == NULL) {
-            fprintf(stderr, "PV::readWeights: ERROR opening file %s\n", filename);
+            fprintf(stderr, "PV::readWeightsDeprecated: ERROR opening file %s\n", filename);
             return -1;
          }
 
@@ -1720,7 +1971,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
             PV_fseek(pvstream, offset, SEEK_SET);
             int numRead = PV_fread(cbuf, localSize, 1, pvstream);
             if  (numRead != 1) {
-               fprintf(stderr, "[%2d]: readWeights: failed in PV_fread, offset==%ld\n",
+               fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in PV_fread, offset==%ld\n",
                      comm->commRank(), offset);
             }
          }
@@ -1756,7 +2007,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
             if (offset != patch->offset ||
                 nx != patch->nx ||
                 ny != patch->ny) {
-               fprintf(stderr, "readWeights error: Rank %d process, patch %d: geometry from filename \"%s\" is not consistent with geometry from patches input argument: ", comm->commRank(), patchindex, filename);
+               fprintf(stderr, "readWeightsDeprecated error: Rank %d process, patch %d: geometry from filename \"%s\" is not consistent with geometry from patches input argument: ", comm->commRank(), patchindex, filename);
                fprintf(stderr, "filename has nx=%hu, ny=%hu, offset=%u; patches[%d] has nx=%hu, ny=%hu, offset=%u.\n", nx, ny, offset, patchindex, patch->nx, patch->ny, patch->offset);
                status = PV_FAILURE;
             }
@@ -1768,7 +2019,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
       }
       status = pvp_set_patches(cbuf, patches ? patches[arborId] : NULL, dataStart[arborId], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "[%2d]: readWeights: failed in pvp_set_patches, numPatches==%d\n",
+         fprintf(stderr, "[%2d]: readWeightsDeprecated: failed in pvp_set_patches, numPatches==%d\n",
                  comm->commRank(), numPatches);
       }
    } // loop over arborId
@@ -1778,22 +2029,11 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
 }
 
 int writeWeights(const char * filename, Communicator * comm, double timed, bool append,
-                 const PVLayerLoc * loc, int nxp, int nyp, int nfp, float minVal, float maxVal,
-                 PVPatch *** patches, pvwdata_t ** dataStart, int numPatches, int numArbors, bool compress, int file_type)
-// compress has default of true, file_type has default value of PVP_WGT_FILE_TYPE
-// If file_type is PVP_WGT_FILE_TYPE (HyPerConn), the patches variable is consulted for the shrunken patch information.
-// If file_type is PVP_KERNEL_FILE_TYPE, patches is ignored and all patches are written with nx=nxp and ny=nyp
-{
+      const PVLayerLoc * preLoc, const PVLayerLoc * postLoc, int nxp, int nyp, int nfp, float minVal, float maxVal,
+      PVPatch *** patches, pvwdata_t ** dataStart, int numPatches, int numArbors, bool compress, int file_type) {
    int status = PV_SUCCESS;
-   int nxBlocks, nyBlocks;
-
-   bool extended = true;
-   bool contiguous = false;   // TODO implement contiguous = true case
 
    int datatype = compress ? PV_BYTE_TYPE : PV_FLOAT_TYPE;
-
-   const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
 
    const int icRank = comm->commRank();
 
@@ -1801,33 +2041,24 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
    const size_t patchSize = pv_sizeof_patch(numPatchItems, datatype);
    const size_t localSize = numPatches * patchSize;
 
-   if (contiguous) {
-      nxBlocks = 1;
-      nyBlocks = 1;
-   }
-   else {
-      nxBlocks = nxProcs;
-      nyBlocks = nyProcs;
-   }
-
    unsigned char * cbuf = (unsigned char *) malloc(localSize);
    if(cbuf == NULL) {
-      fprintf(stderr, "Rank %d: writeWeights unable to allocate memory\n", icRank);
-      abort();
+      fprintf(stderr, "Rank %d: writeWeights unable to allocate memory to write to \"%s\": %s", icRank, filename, strerror(errno));
+      fprintf(stderr, "    (nxp=%d, nyp=%d, nfp=%d, numPatchItems=%d, writing weights as %s)\n", nxp, nyp, nfp, numPatchItems, compress ? "bytes" : "floats");
+      exit(EXIT_FAILURE);
    }
 
-
 #ifdef PV_USE_MPI
-   const int tag = file_type; // PVP_WGT_FILE_TYPE;
+   const int tagbase = file_type; // PVP_WGT_FILE_TYPE;
    const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
    if( icRank > 0 ) {
 #ifdef PV_USE_MPI
-      if( file_type != PVP_KERNEL_FILE_TYPE ) {
+      if( file_type != PVP_KERNEL_FILE_TYPE ) { // No MPI needed for kernel weights (sharedWeights==true).  If keepKernelsSynchronized is false, synchronize kernels before entering PV::writeWeights()
          const int dest = 0;
          for( int arbor=0; arbor<numArbors; arbor++ ) {
             pvp_copy_patches(cbuf, patches[arbor], dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
-            MPI_Send(cbuf, localSize, MPI_BYTE, dest, tag, mpi_comm);
+            MPI_Send(cbuf, localSize, MPI_BYTE, dest, tagbase+arbor, mpi_comm);
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: writeWeights: sent to 0, nxBlocks==%d nyBlocks==%d numPatches==%d\n",
                     comm->commRank(), nxBlocks, nyBlocks, numPatches);
@@ -1839,28 +2070,51 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
    else /* icRank==0 */ {
       void * wgtExtraParams = calloc(NUM_WGT_EXTRA_PARAMS, sizeof(int));
       if (wgtExtraParams == NULL) {
-         fprintf(stderr, "calloc error in writeWeights for \"%s\": %s\n", filename, strerror(errno));
-         abort();
+         fprintf(stderr, "writeWeights unable to allocate memory to write weight params to \"%s\": %s\n", filename, strerror(errno));
+         exit(EXIT_FAILURE);
       }
       int * wgtExtraIntParams = (int *) wgtExtraParams;
       float * wgtExtraFloatParams = (float *) wgtExtraParams;
-      // int wgtExtraParams[NUM_WGT_EXTRA_PARAMS];
 
       int numParams = NUM_WGT_PARAMS;
 
       PV_Stream * pvstream = pvp_open_write_file(filename, comm, append);
 
       if (pvstream == NULL) {
-         fprintf(stderr, "PV::writeWeights: ERROR opening file %s\n", filename);
+         fprintf(stderr, "PV::writeWeights: ERROR opening file \"%s\"\n", filename);
          return -1;
       }
       if (append) PV_fseek(pvstream, 0L, SEEK_END); // If append is true we open in "r+" mode so we need to move to the end of the file.
 
-      // use file_type passed as argument to enable different behavior
-      status = pvp_write_header(pvstream, comm, timed, loc, file_type,
-                                datatype, numArbors, extended, contiguous, numParams, localSize);
+      int numGlobalPatches;
+      bool asPostWeights;
+      switch(file_type) {
+      case PVP_WGT_FILE_TYPE:
+         if (numPatches == (preLoc->nx+preLoc->halo.lt+preLoc->halo.rt)*(preLoc->ny+preLoc->halo.dn+preLoc->halo.up)*preLoc->nf) {
+            asPostWeights = false;
+         }
+         else if (numPatches == preLoc->nx*preLoc->ny*preLoc->nf) {
+            asPostWeights = true;
+         }
+         else {
+            fprintf(stderr, "writeWeights error for \"%s\": numPatches %d is not compatible with layer dimensions nx=%d, ny=%d, nf=%d, halo=(%d,%d,%d,%d)\n",
+                  filename, preLoc->nx, preLoc->ny, preLoc->nf, preLoc->halo.lt, preLoc->halo.rt, preLoc->halo.dn, preLoc->halo.up);
+         }
+         numGlobalPatches = getNumGlobalPatches(preLoc, asPostWeights);
+         break;
+      case PVP_KERNEL_FILE_TYPE:
+         asPostWeights = false;
+         numGlobalPatches = numPatches;
+         break;
+      default:
+         assert(0); // only possibilities for file_type are WGT and KERNEL
+         break;
+      }
+      size_t globalSize = numGlobalPatches * patchSize;
+      status = pvp_write_header(pvstream, comm, timed, preLoc, file_type,
+                                datatype, numArbors, true/*extended*/, true/*contiguous*/, numParams, globalSize);
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "Error writing weights to \"%s\".\n", filename);
+         fprintf(stderr, "Error writing writing weights header to \"%s\".\n", filename);
          exit(EXIT_FAILURE);
       }
 
@@ -1872,13 +2126,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
 
       wgtExtraFloatParams[INDEX_WGT_MIN] = minVal;
       wgtExtraFloatParams[INDEX_WGT_MAX] = maxVal;
-
-      if (file_type == PVP_KERNEL_FILE_TYPE){
-         wgtExtraIntParams[INDEX_WGT_NUMPATCHES] = numPatches; // When using shared weights, all processes have same weights
-      }
-      else {
-         wgtExtraIntParams[INDEX_WGT_NUMPATCHES] = numPatches * nxBlocks * nyBlocks;
-      }
+      wgtExtraIntParams[INDEX_WGT_NUMPATCHES] = numGlobalPatches;
 
       numParams = NUM_WGT_EXTRA_PARAMS;
       unsigned int num_written = PV_fwrite(wgtExtraParams, sizeof(int), numParams, pvstream);
@@ -1888,45 +2136,83 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
          return -1;
       }
 
-      for( int arbor=0; arbor<numArbors; arbor++ ) {
-         // write local portion
-         // numPatches - each neuron has a patch; pre-synaptic neurons live in extended layer
+      for (int arbor=0; arbor<numArbors; arbor++) {
          PVPatch ** arborPatches = file_type == PVP_KERNEL_FILE_TYPE ? NULL : patches[arbor];
-         pvp_copy_patches(cbuf, arborPatches, dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
-         size_t numfwritten = PV_fwrite(cbuf, localSize, 1, pvstream);
-         if ( numfwritten != 1 ) {
-            fprintf(stderr, "PV::writeWeights: error writing weight data to file %s\n", filename);
-            return -1;
-         }
-
-         if (file_type == PVP_KERNEL_FILE_TYPE) continue;
-
-         // gather portions from other processes
-#ifdef PV_USE_MPI
-         int src = -1;
-         for (int py = 0; py < nyProcs; py++) {
-            for (int px = 0; px < nxProcs; px++) {
-               if (++src == 0) continue;
-#ifdef DEBUG_OUTPUT
-               fprintf(stderr, "[%2d]: writeWeights: receiving from %d nxProcs==%d nyProcs==%d localSize==%ld\n",
-                     comm->commRank(), src, nxProcs, nyProcs, localSize);
-#endif // DEBUG_OUTPUT
-               MPI_Recv(cbuf, localSize, MPI_BYTE, src, tag, mpi_comm, MPI_STATUS_IGNORE);
-
-               // const int headerSize = numParams * sizeof(int);
-               // long offset = headerSize + src * localSize;
-               // fseek(fp, offset, SEEK_SET);
-               if ( PV_fwrite(cbuf, localSize, 1, pvstream) != 1 ) return -1;
+         if (file_type == PVP_KERNEL_FILE_TYPE) {
+            pvp_copy_patches(cbuf, arborPatches, dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+            size_t numfwritten = PV_fwrite(cbuf, localSize, 1, pvstream);
+            if (numfwritten != 1) {
+               fprintf(stderr, "PV::writeWeights: error writing weight data to file %s\n", filename);
+               return -1;
             }
          }
+         else {
+            assert(file_type == PVP_WGT_FILE_TYPE);
+            long int arborstartfile = getPV_StreamFilepos(pvstream);
+            long int arborendfile = arborstartfile + globalSize;
+            PV_fseek(pvstream, arborendfile-1, SEEK_SET);
+            char endarborchar = (char) 0;
+            PV_fwrite(&endarborchar, 1, 1, pvstream); // Makes sure the file is the correct length even if the last patch is shrunken
+            for (int proc=0; proc<comm->commSize(); proc++) {
+#ifdef PV_USE_MPI
+               if (proc==0) /*local portion*/ {
+                  pvp_copy_patches(cbuf, arborPatches, dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
+               }
+               else /*receive other portion via MPI*/ {
+                  MPI_Recv(cbuf, localSize, MPI_BYTE, proc, tagbase+arbor, mpi_comm, MPI_STATUS_IGNORE);
+               }
+#else // PV_USE_MPI
+               assert(proc==0);
+               pvp_copy_patches(cbuf, arborPatches, dataStart[arbor], numPatches, nxp, nyp, nfp, minVal, maxVal, compress);
 #endif // PV_USE_MPI
-      } // end loop over arbors
+               int procrow = rowFromRank(proc, comm->numCommRows(), comm->numCommColumns());
+               int proccolumn = columnFromRank(proc, comm->numCommRows(), comm->numCommColumns());
+               for (int k=0; k<numPatches; k++) {
+                  unsigned char * cbufpatch = &cbuf[k*patchSize];
+                  int globalIndex;
+                  if (asPostWeights) {
+                     int x = kxPos(k, preLoc->nx, preLoc->ny, preLoc->nf)+proccolumn*preLoc->nx;
+                     int y = kyPos(k, preLoc->nx, preLoc->ny, preLoc->nf)+procrow*preLoc->ny;
+                     int f = featureIndex(k, preLoc->nx, preLoc->ny, preLoc->nf);
+                     globalIndex = kIndex(x,y,f,preLoc->nxGlobal,preLoc->nyGlobal,preLoc->nf);
+                  }
+                  else {
+                     int x = kxPos(k, preLoc->nx+preLoc->halo.lt+preLoc->halo.rt, preLoc->ny+preLoc->halo.dn+preLoc->halo.up, preLoc->nf)+proccolumn*preLoc->nx;
+                     int y = kyPos(k, preLoc->nx+preLoc->halo.lt+preLoc->halo.rt, preLoc->ny+preLoc->halo.dn+preLoc->halo.up, preLoc->nf)+procrow*preLoc->ny;
+                     int f = featureIndex(k, preLoc->nx+preLoc->halo.lt+preLoc->halo.rt, preLoc->ny+preLoc->halo.dn+preLoc->halo.up, preLoc->nf);
+                     globalIndex = kIndex(x, y, f, preLoc->nxGlobal+preLoc->halo.lt+preLoc->halo.rt, preLoc->nyGlobal+preLoc->halo.dn+preLoc->halo.up, preLoc->nf);
+                  }
+                  unsigned short int pnx = *(unsigned short int *) (cbuf);
+                  unsigned short int pny = *(unsigned short int *) (cbuf+sizeof(unsigned short int));
+                  unsigned int p_offset = *(unsigned int *) (cbuf+2*sizeof(unsigned short int));
+                  if (pnx == nxp && pny == nyp) /*not shrunken*/ {
+                     PV_fseek(pvstream, arborstartfile+globalIndex*patchSize, SEEK_SET); // TODO: error handling
+                     PV_fwrite(cbufpatch, patchSize, (size_t) 1, pvstream); // TODO: error handling
+                  }
+                  else {
+                     PV_fseek(pvstream, arborstartfile+k*patchSize, SEEK_SET); // TODO: error handling
+                     size_t const patchheadersize = 2*sizeof(short int)+sizeof(int);
+                     PV_fwrite(cbufpatch, patchheadersize, 1, pvstream); // TODO: error handling
+                     int datasize = pv_sizeof(datatype);
+                     const int syw = nfp*nxp;
+                     for (int y=0; y<pny; y++) {
+                        unsigned int memoffset = patchheadersize + (p_offset+y*syw)*datasize;
+                        PV_fseek(pvstream, arborstartfile+globalIndex*patchSize+memoffset, SEEK_SET); // TODO: error handling
+                        PV_fwrite(cbufpatch + memoffset, pnx*nfp*datasize, 1, pvstream); // TODO: error handling
+                     } // Loop over line within patch
+                  } // if (p->nx == nxp && p->ny == nyp)
+               } // Loop over patches
+            } // Loop over processes
+            PV_fseek(pvstream, arborendfile, SEEK_SET);
+         } // if-statement for file_type
+      } // loop over arbors
       pvp_close_file(pvstream, comm);
-   } // icRank == 0
+   } // if-statement for process rank
+
    free(cbuf); cbuf = NULL;
 
-   return PV_SUCCESS; // TODO error handling
-}  // end writeWeights (all arbors)
+   return status;
+}
 
 int writeRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc, bool verifyWrites) {
    int status = PV_SUCCESS;
