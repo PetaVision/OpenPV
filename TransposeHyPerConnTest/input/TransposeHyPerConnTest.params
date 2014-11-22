@@ -115,7 +115,7 @@ HyPerConn "Original Map for One to One Test" = {
     nxpShrunken                         = 7;
     nypShrunken                         = 7;
     nfp                                 = 4;
-    numAxonalArbors                     = 1;
+    numAxonalArbors                     = 2;
     // useWindowPost;
     delay                               = 0;
     shrinkPatches                       = false;
@@ -134,7 +134,7 @@ HyPerConn "Original Map for One to One Test" = {
     wMaxInit                            = 2.0;
     sparseFraction                      = 0.0;
     
-    normalizeMethod                     = "none";
+    normalizeMethod                     = "normalizeSum";
     
     shmget_flag                         = false;
 };
@@ -201,7 +201,7 @@ HyPerConn "Original Map for Many to One Test" = {
     nxpShrunken                         = 7;
     nypShrunken                         = 7;
     nfp                                 = 8;
-    numAxonalArbors                     = 1;
+    numAxonalArbors                     = 2;
     // useWindowPost;
     delay                               = 0;
     shrinkPatches                       = false;
@@ -220,7 +220,7 @@ HyPerConn "Original Map for Many to One Test" = {
     wMaxInit                            = 2.0;
     sparseFraction                      = 0.0;
     
-    normalizeMethod                     = "none";
+    normalizeMethod                     = "normalizeSum";
     
     shmget_flag                         = false;
 };
@@ -287,7 +287,7 @@ HyPerConn "Original Map for One to Many Test" = {
     nxpShrunken                         = 28;
     nypShrunken                         = 28;
     nfp                                 = 2;
-    numAxonalArbors                     = 1;
+    numAxonalArbors                     = 2;
     // useWindowPost;
     delay                               = 0;
     shrinkPatches                       = false;
@@ -306,7 +306,7 @@ HyPerConn "Original Map for One to Many Test" = {
     wMaxInit                            = 2.0;
     sparseFraction                      = 0.0;
     
-    normalizeMethod                     = "none";
+    normalizeMethod                     = "normalizeSum";
     
     shmget_flag                         = false;
 };
