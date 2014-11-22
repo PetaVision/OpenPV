@@ -1331,6 +1331,9 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       // Initial normalization moved here to facilitate normalizations of groups of HyPeConns
       normalizeWeights();
+      for (int c = 0; c < numConnections; c++) {
+         connections[c]->finalizeUpdate(simTime, deltaTimeBase);
+      }
 
       parameters()->warnUnread();
       if (printParamsFilename!=NULL) outputParams();
@@ -1716,6 +1719,7 @@ int HyPerCol::advanceTime(double sim_time)
    }
    normalizeWeights();
    for (int c = 0; c < numConnections; c++) {
+      connections[c]->finalizeUpdate(simTime, deltaTimeBase);
       connections[c]->outputState(simTime);
    }
 

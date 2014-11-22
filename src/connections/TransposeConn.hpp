@@ -21,8 +21,8 @@ public:
    virtual int allocateDataStructures();
    inline HyPerConn * getOriginalConn() {return originalConn;}
 
-   virtual int updateWeights(int axonId);
    virtual int updateState(double time, double dt);
+   virtual int finalizeUpdate(double time, double dt);
 
 protected:
     int initialize_base();
@@ -65,6 +65,7 @@ private:
 protected:
     char * originalConnName;
     HyPerConn * originalConn;
+    bool needFinalize;
 };
 
 }  // end namespace PV

@@ -34,6 +34,7 @@ int TransposeConn::initialize_base() {
 
    originalConnName = NULL;
    originalConn = NULL;
+   needFinalize = true;
    return PV_SUCCESS;
 }  // TransposeConn::initialize_base()
 
@@ -343,29 +344,26 @@ PVPatch*** TransposeConn::initializeWeights(PVPatch*** patches, pvwdata_t** data
 }
 
 
-int TransposeConn::updateWeights(int axonID) {
-   int status;
+int TransposeConn::updateState(double time, double dt) {
    float original_update_time = originalConn->getLastUpdateTime();
    if(original_update_time > lastUpdateTime ) {
-      status = transpose(axonID);
-      lastUpdateTime = parent->simulationTime();
+      needFinalize = true;
    }
-   else
-      status = PV_SUCCESS;
-   return status;
-}  // end of TransposeConn::updateWeights(int);
+   return PV_SUCCESS;
+   // TransposeConn must wait until after normalizers are called,
+   // so that it will see the correct weights when it calls transpose
+}
 
-int TransposeConn::updateState(double time, double dt) {
+int TransposeConn::finalizeUpdate(double time, double dt) {
    int status = PV_SUCCESS;
-   if( !plasticityFlag ) {
-      return status;
-   }
+   if (!needFinalize) { return PV_SUCCESS; }
    update_timer->start();
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++){
-      status = updateWeights(arborId);  // Apply changes in weights
+      status = transpose(arborId);  // Apply changes in weights
       if (status==PV_BREAK) { break; }
       assert(status==PV_SUCCESS);
    }
+   needFinalize = false;
    // normalizeWeights(); // normalizeWeights call moved to HyPerCol::advanceTime loop, to allow for normalization of a group of connections
 
    update_timer->stop();

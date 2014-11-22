@@ -140,6 +140,11 @@ public:
    virtual int updateStateWrapper(double timed, double dt) = 0;
 
    /**
+    * A virtual function for performing any necessary updates after the normalizers are called.
+    */
+   virtual int finalizeUpdate(double timed, double dt) { return PV_SUCCESS; }
+
+   /**
     * A pure virtual function for reading the state of the connection from the directory specified in cpDir.
     * On exit, *timeptr is the time at which the checkpoint was written.
     */
