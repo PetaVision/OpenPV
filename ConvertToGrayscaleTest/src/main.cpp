@@ -31,13 +31,14 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
 
    int numExtended = inputlayer->getNumExtended();
    InterColComm * icComm = hc->icCommunicator();
+   pvadata_t * layerData = (pvadata_t *) icComm->publisherStore(inputlayer->getLayerId())->buffer(LOCAL);
    int rootproc = 0;
    if (icComm->commRank()==rootproc) {
       pvadata_t * databuffer = (pvadata_t *) malloc(numExtended*sizeof(pvadata_t));
       assert(databuffer);
       for (int proc=0; proc<icComm->commSize(); proc++) {
          if (proc==rootproc) {
-            memcpy(databuffer, inputlayer->getLayerData(), numExtended*sizeof(pvadata_t));
+            memcpy(databuffer, layerData, numExtended*sizeof(pvadata_t));
          }
          else {
             MPI_Recv(databuffer, numExtended*sizeof(pvadata_t),MPI_BYTE,proc,15,icComm->communicator(), MPI_STATUS_IGNORE);
@@ -62,7 +63,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
       }
    }
    else {
-      MPI_Send(inputlayer->getLayerData(),numExtended*sizeof(pvadata_t),MPI_BYTE,rootproc,15,icComm->communicator());
+      MPI_Send(layerData,numExtended*sizeof(pvadata_t),MPI_BYTE,rootproc,15,icComm->communicator());
    }
    MPI_Barrier(icComm->communicator());
    return status;
