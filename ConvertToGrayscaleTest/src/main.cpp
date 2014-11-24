@@ -45,7 +45,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
          // At this point, databuffer on rank 0 should contain the extended input layer on rank proc
          for (int k=0; k<numNeurons; k++) {
             int kExt = kIndexExtended(k,loc->nx,loc->ny,loc->nf,loc->halo.lt,loc->halo.rt,loc->halo.dn,loc->halo.up);
-            pvadata_t value = inputlayer->getLayerData()[kExt];
+            pvadata_t value = databuffer[kExt];
             if (fabs(value-correctvalue)>=tolerance) {
                fprintf(stderr, "Rank %d, restricted index %d, extended index %d, value is %f instead of %f\n",
                      proc, k, kExt, value, correctvalue);
