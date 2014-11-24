@@ -1351,33 +1351,34 @@ float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands, GDA
    free(bandweight);
    return graybuf;
 }
-    float* Image::copyGrayScaletoMultiBands(float * buf, int nx, int ny, int numBands, GDALColorInterp * colorbandtypes)
-    {
-        const int sxcolor = numBands;
-        const int sycolor = numBands*nx;
-        const int sb = 1;
 
-        const int sxgray = 1;
-        const int sygray = nx;
+float* Image::copyGrayScaletoMultiBands(float * buf, int nx, int ny, int numBands, GDALColorInterp * colorbandtypes)
+{
+   const int sxcolor = numBands;
+   const int sycolor = numBands*nx;
+   const int sb = 1;
 
-        float * multiBandsBuf = new float[nx*ny*numBands];
-        
-        for (int j = 0; j < ny; j++)
-        {
-            for (int i = 0; i < nx; i++)
-            {
-                for (int b = 0; b < numBands; b++)
-                {
-                    multiBandsBuf[i*sxcolor + j*sycolor + b*sb] = buf[i*sxgray + j*sygray];
-                }
+   const int sxgray = 1;
+   const int sygray = nx;
 
-            }
+   float * multiBandsBuf = new float[nx*ny*numBands];
 
-        }
-        delete buf;
-        return multiBandsBuf;
-                
-    }
+   for (int j = 0; j < ny; j++)
+   {
+      for (int i = 0; i < nx; i++)
+      {
+         for (int b = 0; b < numBands; b++)
+         {
+            multiBandsBuf[i*sxcolor + j*sycolor + b*sb] = buf[i*sxgray + j*sygray];
+         }
+
+      }
+
+   }
+   delete buf;
+   return multiBandsBuf;
+
+}
     
 int Image::calcBandWeights(int numBands, float * bandweight, GDALColorInterp * colorbandtypes) {
    int colortype = 0; // 1=grayscale(with or without alpha), return value 2=RGB(with or without alpha), 0=unrecognized
