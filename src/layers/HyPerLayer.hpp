@@ -259,6 +259,9 @@ protected:
    virtual int readActivityFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readVFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readDelaysFromCheckpoint(const char * cpDir, double * timeptr);
+#ifdef PV_USE_CUDA
+   virtual int copyInitialStateToGPU();
+#endif // PV_USE_CUDA
    char * pathInCheckpoint(const char * cpDir, const char * suffix);
    int readDataStoreFromFile(const char * filename, InterColComm * comm, double * timed);
    int incrementNBands(int * numCalls);

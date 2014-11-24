@@ -29,9 +29,6 @@ protected:
    HyPerLCALayer();
    int initialize(const char * name, HyPerCol * hc);
    virtual int allocateDataStructures();
-#ifdef PV_USE_CUDA
-   virtual int setInitialValues();
-#endif
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numChannels(enum ParamsIOFlag ioFlag);
    virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);

@@ -672,8 +672,31 @@ int HyPerLayer::initializeState() {
          status = setInitialValues();
       }
    }
+#ifdef PV_USE_CUDA
+   copyInitialStateToGPU();
+#endif // PV_USE_CUDA
    return status;
 }
+
+#ifdef PV_USE_CUDA
+int HyPerLayer::copyInitialStateToGPU() {
+   if(updateGpu){
+      float * h_V = getV();
+      if (h_V==NULL) {
+         PVCuda::CudaBuffer* d_V = getDeviceV();
+         assert(d_V);
+         d_V->copyToDevice(h_V);
+      }
+
+      PVCuda::CudaBuffer* d_activity = getDeviceActivity();
+      assert(d_activity);
+      float * h_activity = getCLayer()->activity->data;
+      d_activity->copyToDevice(h_activity);
+   }
+   return PV_SUCCESS;
+}
+
+#endif // PV_USE_CUDA
 
 int HyPerLayer::setInitialValues() {
    int status = PV_SUCCESS;

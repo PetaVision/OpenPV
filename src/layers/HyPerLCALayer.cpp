@@ -263,23 +263,6 @@ int HyPerLCALayer::allocateUpdateKernel(){
 
 
 #ifdef PV_USE_CUDA
-int HyPerLCALayer::setInitialValues() {
-   //Initialize HyPerLayer initial values
-   HyPerLayer::setInitialValues();
-   //Update V to initial conditions if updating from gpu
-   if(updateGpu){
-      PVCuda::CudaBuffer* d_V = getDeviceV();
-      assert(d_V);
-      float* h_V = getV();
-      d_V->copyToDevice(h_V);
-
-      PVCuda::CudaBuffer* d_activity = getDeviceActivity();
-      assert(d_activity);
-      float * h_activity = getCLayer()->activity->data;
-      d_activity->copyToDevice(h_activity);
-   }
-}
-
 int HyPerLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead){
    //Change dt to match what is passed in
    PVCuda::CudaUpdateHyPerLCALayer* updateKernel = dynamic_cast<PVCuda::CudaUpdateHyPerLCALayer*>(krUpdate);
