@@ -14,8 +14,11 @@
 // Since there are no floating-point calculations involved in taking the transpose, round-off is
 // not an issue.
 // A TestAllZerosProbe checks the comparison layer to assure that it is zero throughout.
+//
+// The test uses a parameter sweep to do six variants:
+// each of one-to-one, one-to-many, or many-to-one, each with shared weights on or off.
 
-debugParsing = false;    // Debug the reading of this parameter file.
+debugParsing = true;
 
 HyPerCol "column" = {
    nx = 8;   //size of the whole networks
@@ -28,7 +31,7 @@ HyPerCol "column" = {
    errorOnNotANumber = true;
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
-   outputPath = "output/";
+   // outputPath is set in parameter sweep
    printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
    filenamesContainLayerNames = false;  
    filenamesContainConnectionNames = false;
@@ -42,14 +45,14 @@ HyPerCol "column" = {
 //
 
 Image "pre" = {
-    nxScale = 1;
-    nyScale = 1;
-    imagePath = "input/8x8image.png";
+    // nxScale is set in parameter sweep
+    // nyScale is set in parameter sweep
+    // imagePath is set in parameter sweep
     nf = 3;
     phase = 0;
     writeStep = -1;
     sparseLayer = false;
-    mirrorBCflag = true;
+    mirrorBCflag = false; // If shared weights are off, this flag must be false because original weights from the extended region will not be zero, but the transpose-of-transpose weights from the extended region must be.
     useImageBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
@@ -62,14 +65,14 @@ Image "pre" = {
 };
 
 Image "post" = {
-    nxScale = 1; 
-    nyScale = 1;
-    imagePath = "input/8x8image.png";
+    // nxScale is set in parameter sweep
+    // nyScale is set in parameter sweep
+    // imagePath is set in parameter sweep
     nf = 3;
     phase = 0;
     writeStep = -1;
     sparseLayer = false;
-    mirrorBCflag = true;
+    mirrorBCflag = false;
     useImageBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
@@ -82,8 +85,8 @@ Image "post" = {
 };
 
 ANNLayer "comparison" = {
-    nxScale = 1;
-    nyScale = 1;
+    // nxScale is set in parameter sweep
+    // nyScale is set in parameter sweep
     nf = 3;
     phase = 1;
     mirrorBCflag = false;
@@ -106,11 +109,11 @@ HyPerConn "original map" = {
     postLayerName = "post";
     channelCode = -1; // This connection does not modify post.
 
-    nxp = 7;
-    nyp = 7;
+    // nxp is set in parameter sweep
+    // nyp is set in parameter sweep
     nfp = 3; 
     numAxonalArbors = 1;
-    sharedWeights = true;
+    // sharedWeights set in ParameterSweep
     writeStep = 1.0;
     initialWriteTime = 0.0;
     
@@ -160,7 +163,7 @@ TransposeConn "transpose" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     writeCompressedCheckpoints = false;
-    writeCompressedWeights = true;
+    writeCompressedWeights = false;
 };
 
 TransposeConn "transpose of transpose" = {
@@ -192,4 +195,67 @@ CloneConn "clone of original" = {
 
 TestAllZerosProbe "probe" = {
     targetLayer = "comparison";
+};
+
+ParameterSweep "column":outputPath = {
+    "output/sharedWeightsOff_OneToOne";
+    "output/sharedWeightsOn_OneToOne";
+    "output/sharedWeightsOff_ManyToOne";
+    "output/sharedWeightsOn_ManyToOne";
+    "output/sharedWeightsOff_OneToMany";
+    "output/sharedWeightsOn_OneToMany";
+};
+
+ParameterSweep "pre":nxScale = {
+    1; 1; 2; 2; 1; 1;
+};
+
+ParameterSweep "pre":nyScale = {
+    1; 1; 2; 2; 1; 1;
+};
+
+ParameterSweep "pre":imagePath = {
+    "input/8x8image.png";
+    "input/8x8image.png";
+    "input/16x16image.png";
+    "input/16x16image.png";
+    "input/8x8image.png";
+    "input/8x8image.png";
+};
+
+ParameterSweep "post":nxScale = {
+    1; 1; 1; 1; 2; 2;
+};
+
+ParameterSweep "post":nyScale = {
+    1; 1; 1; 1; 2; 2;
+};
+
+ParameterSweep "post":imagePath = {
+    "input/8x8image.png";
+    "input/8x8image.png";
+    "input/8x8image.png";
+    "input/8x8image.png";
+    "input/16x16image.png";
+    "input/16x16image.png";
+};
+
+ParameterSweep "comparison":nxScale = {
+    1; 1; 1; 1; 2; 2;
+};
+
+ParameterSweep "comparison":nyScale = {
+    1; 1; 1; 1; 2; 2;
+};
+
+ParameterSweep "original map":nxp = {
+    7; 7; 7; 7; 14; 14;
+};
+
+ParameterSweep "original map":nyp = {
+    7; 7; 7; 7; 14; 14;
+};
+
+ParameterSweep "original map":sharedWeights = {
+    false; true; false; true; false; true;
 };
