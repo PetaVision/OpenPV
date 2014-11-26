@@ -94,7 +94,9 @@
 #include "../connections/SiblingConn.hpp"
 #endif // OBSOLETE
 #include "../connections/OjaKernelConn.hpp"
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
 #include "../connections/ReciprocalConn.hpp"
+#endif // OBSOLETE
 #include "../connections/TransposeConn.hpp"
 #include "../connections/FeedbackConn.hpp"
 #include "../connections/LCALIFLateralConn.hpp"
@@ -127,7 +129,9 @@
 
 #include "../io/BaseConnectionProbe.hpp"
 #include "../io/ConnStatsProbe.hpp"
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
 #include "../io/ReciprocalEnergyProbe.hpp"
+#endif // OBSOLETE
 #include "../io/KernelProbe.hpp"
 #include "../io/LCALIFLateralProbe.hpp"
 #include "../io/OjaConnProbe.hpp"

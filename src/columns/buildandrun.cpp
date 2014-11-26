@@ -173,7 +173,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                    "SiblingConn",
 #endif // OBSOLETE
                  "OjaKernelConn",
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
                  "ReciprocalConn",
+#endif // OBSOLETE
                  "TransposeConn",
                    "FeedbackConn",
                "LCALIFLateralConn",
@@ -208,7 +210,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "OjaKernelSpikeRateProbe",
              "LCALIFLateralProbe",
              "PatchProbe",
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
              "ReciprocalEnergyProbe",
+#endif // OBSOLETE
            "_Stop_BaseConnectionProbes_",
            "_Start_ConnectionProbes_",
            "_Stop_ConnectionProbes_",
@@ -673,10 +677,12 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = new OjaKernelConn(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used
    if( !keywordMatched && !strcmp(classkeyword, "ReciprocalConn") ) {
       keywordMatched = true;
       addedConn = new ReciprocalConn(name, hc);
    }
+#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "TransposeConn") ) {
       keywordMatched = true;
       addedConn = new TransposeConn(name, hc);
@@ -814,10 +820,12 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
    // PVParams * params = hc->parameters();
    bool keywordMatched = false;
    int status = PV_SUCCESS;
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
    if( !strcmp(classkeyword, "ReciprocalEnergyProbe") ) {
       keywordMatched = true;
       addedProbe = new ReciprocalEnergyProbe(name, hc);
    }
+#endif // OBSOLETE
    if( !strcmp(classkeyword, "ConnStatsProbe") ) {
       keywordMatched = true;
       addedProbe = new ConnStatsProbe(name, hc);
