@@ -4,8 +4,8 @@ clear all;
 close all;
 more off
 global plot_flag %% if true, plot graphical output to screen, else do not generate graphical outputy
-plot_flag = true;
-global load_flag %% if true, then load "saved" data structures rather than computing them 
+plot_flag = false;
+global load_Sparse_flag %% if true, then load "saved" data structures rather than computing them 
 load_Sparse_flag = false;
 if plot_flag
   setenv("GNUTERM","X11")
@@ -43,8 +43,10 @@ elseif isunix
   %%run_type = "Heli_C1";
   %%run_type = "Heli_DPT";
   %%run_type = "Heli_D";
-  run_type = "Stack";
+  %%run_type = "Stack";
   %%run_type = "Shuffle";
+  %%run_type = "Shuffle_DS";
+  run_type = "Stack_16";
  
   if strcmp(run_type, "color_deep")
     %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_02_01/output_2013_02_01_12x12x128_lambda_05X1_deep"; 
@@ -75,18 +77,32 @@ elseif isunix
  
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "Stack")
-    output_dir = ...
-	"/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine";
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_PASCAL";
+    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_const_DW";
+    %%output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_animal_init";
     checkpoint_dir = output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_24_2013_02_01/output_stack_vine"};
+    checkpoint_children = {"2013_01_24_2013_02_01/output_stack_PASCAL"};
+    %%checkpoint_children = {"2013_01_24_2013_02_01/output_stack_vine_const_DW"};
+    %%checkpoint_children = {"2013_01_24_2013_02_01/output_stack_animal_init"};
+  
+  elseif strcmp(run_type, "Stack_16")
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_PASCAL";
+    checkpoint_dir = output_dir;
+    checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
+    checkpoint_children = {"2013_01_24_2013_02_01/output_stack_PASCAL"};
 
   elseif strcmp(run_type, "Shuffle")
-    output_dir = ...
-	"/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_vine_shuffle";
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_PASCAL_shuffle_1_2";
     checkpoint_dir = output_dir;
     checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
-    checkpoint_children = {"2013_01_24_2013_02_01/output_stack_vine_shuffle"};
+    checkpoint_children = {"2013_01_24_2013_02_01/output_stack_PASCAL_shuffle_1_2"};
+
+  elseif strcmp(run_type, "Shuffle_DS")
+    output_dir = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_stack_PASCAL_shuffle_2_2";
+    checkpoint_dir = output_dir;
+    checkpoint_parent = "/nh/compneuro/Data/vine/LCA";
+    checkpoint_children = {"2013_01_24_2013_02_01/output_stack_PASCAL_shuffle_2_2"};
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   
@@ -140,7 +156,7 @@ if unwhiten_flag && (~exist("DoG_path") || isempty(DoG_path))
   DoG_path = output_dir;
 endif
 
-max_patches = 256;  %% maximum number of weight patches to plot, typically ordered from most to least active if Sparse_flag == true
+max_patches = 512;  %% maximum number of weight patches to plot, typically ordered from most to least active if Sparse_flag == true
 checkpoint_weights_movie = true; %% make movie of weights over time using list of checkpoint folders getCheckpointList(checkpoint_parent, checkpoint_children)
 
 
@@ -211,14 +227,35 @@ if analyze_Recon
     Recon_normalize_list = 1:num_Recon_list;
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
+  elseif strcmp(run_type, "Stack_16") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Stack_16 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"], ["Image"];
+    ["a6_"], ["Recon_S2"];
+	 ["a7_"], ["Recon_S4"];
+	 ["a8_"], ["Recon_S8"];
+	 ["a9_"], ["Recon_S16"];
+	 ["a10_"], ["Recon_SA"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %%Recon_unwhiten_list([2,3,5,6]) = 1;
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
   elseif strcmp(run_type, "Stack") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Stack list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Recon_list = ...
-	{["a5_"], ["Recon_S2"];
+	{["a0_"], ["Image"];
+    ["a5_"], ["Recon_S2"];
 	 ["a6_"], ["Recon_S4"];
-	 ["a7_"], ["Recon_S8"]};
+	 ["a7_"], ["Recon_S8"];
+	 ["a8_"], ["Recon_SA"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     Recon_unwhiten_list = zeros(num_Recon_list,1);
@@ -232,12 +269,15 @@ if analyze_Recon
     %% Shuffle list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Recon_list = ...
-	{["a5_"], ["Recon_S2"];
+	{["a0_"], ["Image"];
+	 ["a5_"], ["Recon_S2"];
 	 ["a6_"], ["Recon_S4"];
 	 ["a7_"], ["Recon_S8"];
-	 ["a11_"], ["Shuffle_Recon_S2"];
-	 ["a12_"], ["Shuffle_Recon_S4"];
-	 ["a13_"], ["Shuffle_Recon_S8"]};
+	 ["a8_"], ["Recon_SA"];
+	 ["a12_"], ["Shuffle_Recon_S2"];
+	 ["a13_"], ["Shuffle_Recon_S4"];
+	 ["a14_"], ["Shuffle_Recon_S8"];
+	 ["a15_"], ["Shuffle_Recon_SA"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     Recon_unwhiten_list = zeros(num_Recon_list,1);
@@ -247,6 +287,21 @@ if analyze_Recon
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
 
+  elseif strcmp(run_type, "Shuffle_DS") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Shuffle dataset list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"], ["Image"];
+	 ["a15_"], ["Shuffle_Recon_SA"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %%Recon_unwhiten_list([2,3,5,6]) = 1;
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
   elseif strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_deep list
@@ -374,8 +429,14 @@ if analyze_Recon
     [DoG_weights] = get_DoG_weights(DoG_center_path, DoG_surround_path);
   endif  %% unwhiten_flag
   
-  num_Recon_frames_per_layer = 4;
-  Recon_LIFO_flag = true; %%false;
+  if strcmp(run_type, "Shuffle") || strcmp(run_type, "Shuffle_DS")
+     num_Recon_frames_per_layer = 8;
+     Recon_LIFO_flag = true;
+  else 
+     num_Recon_frames_per_layer = 2;
+     Recon_LIFO_flag = true;
+  endif
+
   [Recon_hdr, ...
    Recon_fig, ...
    Recon_fig_name, ...
@@ -408,6 +469,7 @@ endif %% analyze_Recon
 plot_StatsProbe_vs_time = false;
 if plot_StatsProbe_vs_time && plot_flag
   StatsProbe_plot_lines = 20000;
+  max_StatsProbe_line   = Inf;
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% deep list
@@ -440,7 +502,16 @@ if plot_StatsProbe_vs_time && plot_flag
 	 ["V2"],["_Stats.txt"];
 	 ["Error1_2"],["_Stats.txt"]; ...
 	 ["V2"],["_Stats.txt"]; ...
-	 ["V2"],["_Stats.txt"]};
+    ["V2"],["_Stats.txt"]};
+  elseif strcmp(run_type, "Stack")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Stack List
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_list = ...
+	{["Error"],["_Stats.txt"]; ...
+	 ["V1_S2"],["_Stats.txt"];
+	 ["V1_S4"],["_Stats.txt"];
+    ["V1_S8"],["_Stats.txt"]};
   elseif strcmp(run_type, "CIFAR_deep")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MNIST/CIFAR list
@@ -476,6 +547,12 @@ if plot_StatsProbe_vs_time && plot_flag
     %% lateral list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     StatsProbe_sigma_flag([2,4,6,7]) = 0;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "Stack")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Stack list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_sigma_flag([2,3,4]) = 0;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   elseif  strcmp(run_type, "CIFAR_deep") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -614,9 +691,26 @@ if analyze_Sparse_flag
     Sparse_list = ...
 	{["a2_"], ["V1"]; ...
 	 ["a5_"], ["V2"]};
+    elseif strcmp(run_type, "Stack_16") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Stack_16 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a2_"], ["V1_S2"]; ...
+	 ["a3_"], ["V1_S4"]; ...
+	 ["a4_"], ["V1_S8"]; ...
+    ["a5_"], ["V1_S16"]};
     elseif strcmp(run_type, "Stack") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Stack list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a2_"], ["V1_S2"]; ...
+	 ["a3_"], ["V1_S4"]; ...
+    ["a4_"], ["V1_S8"]};
+    elseif strcmp(run_type, "Shuffle") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Shuffle list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
 	{["a2_"], ["V1_S2"]; ...
@@ -664,7 +758,7 @@ if analyze_Sparse_flag
   if load_Sparse_flag
     num_procs = 1;
   else
-    num_procs = 8;
+    num_procs = 30;
   endif
   [Sparse_hdr, ...
    Sparse_hist_rank_array, ...
@@ -760,16 +854,15 @@ if analyze_nonSparse_flag
 	1/sqrt(18*18);
     Sparse_std_ndx = [0 1];
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "Stack") 
+  elseif strcmp(run_type, "Stack") || strcmp(run_type, "Stack_16") || strcmp(run_type, "Shuffle")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Stack
+    %% Stack/Shuffle
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_list = ...
         {["a1_"], ["Error"]};
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 1;
-    nonSparse_skip(2) = 1;
+    nonSparse_skip(1) = 10;
     nonSparse_norm_list = ...
         {["a0_"], ["Image"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
@@ -907,7 +1000,7 @@ endif %% analyze_nonSparse_flag
 
 
 
-plot_ReconError = false && analyze_nonSparse_flag;
+plot_ReconError = true && analyze_nonSparse_flag;
 ReconError_RMS_fig_ndx = [];
 if plot_ReconError
   if strcmp(run_type, "color_deep") || strcmp(run_type, "noTopDown") 
@@ -991,6 +1084,28 @@ if plot_ReconError
     ReconError_norm_strength = ...
 	[1/sqrt(18*18); 1/sqrt(18*18)];
     ReconError_RMS_fig_ndx = [1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
+  elseif strcmp(run_type, "Stack_16") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% Stack_16 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    ReconError_list = ...
+        {["a6_"], ["Recon_S2"]; ...
+         ["a7_"], ["Recon_S4"]; ...
+         ["a8_"], ["Recon_S8"]; ...
+         ["a9_"], ["Recon_S16"]};
+    num_ReconError_list = size(ReconError_list,1);
+    ReconError_skip = repmat(1, num_ReconError_list, 1);
+    ReconError_skip(1) = 1;
+    ReconError_skip(2) = 1;
+    ReconError_norm_list = ...
+        {["a0_"], ["Image"]; ...
+        ["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]};
+    ReconError_norm_strength = ones(num_ReconError_list,1);
+    ReconError_norm_strength = ...
+	[1/sqrt(18*18); 1/sqrt(18*18); 1/sqrt(18*18); 1/sqrt(18*18)];
+    ReconError_RMS_fig_ndx = [1 1 1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure %%%%Added value. If broken, see Heli_D%%%%
   elseif strcmp(run_type, "Stack") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Stack list
@@ -1315,6 +1430,18 @@ if plot_weights
            ["V2ToError2"], "_W"};
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
+    num_checkpoints = size(checkpoints_list,1);
+  elseif strcmp(run_type, "Stack_16")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% deep list STACK_16
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    sparse_ndx = [1; 2; 3; 4];
+    weights_list = ...
+          {["V1_S2ToError"], "_W"; ...
+           ["V1_S4ToError"], "_W"; ...
+           ["V1_S8ToError"], "_W"; ...
+           ["V1_S16ToError"], "_W"};
+    checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     num_checkpoints = size(checkpoints_list,1);
   elseif strcmp(run_type, "Stack")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3140,5 +3267,3 @@ if plot_weightsN_Nplus1
   endfor %% i_weightN_Nplus1
   
 endif  %% plot_weights
-
-
