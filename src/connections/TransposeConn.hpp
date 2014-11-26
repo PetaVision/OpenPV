@@ -21,7 +21,9 @@ public:
    virtual int allocateDataStructures();
    inline HyPerConn * getOriginalConn() {return originalConn;}
 
+   virtual bool needUpdate(double timed, double dt);
    virtual int updateState(double time, double dt);
+   virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int finalizeUpdate(double time, double dt);
 
 protected:

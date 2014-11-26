@@ -142,14 +142,16 @@ void TransposeConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
 
 void TransposeConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      weightUpdatePeriod = parent->getDeltaTime();  // Ensures that every timestep updateState calls updateWeights, which will compare lastUpdateTime to originalConn's lastUpdateTime
-      parent->parameters()->handleUnnecessaryParameter(name, "weightUpdatePeriod", weightUpdatePeriod);
+      weightUpdatePeriod = parent->getDeltaTime();
+      // Every timestep needUpdate checks originalConn's lastUpdateTime against transpose's lastUpdateTime, so weightUpdatePeriod and initialWeightUpdateTime aren't needed
+      parent->parameters()->handleUnnecessaryParameter(name, "weightUpdatePeriod");
    }
 }
 
 void TransposeConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       initialWeightUpdateTime = parent->getStartTime();
+      // Every timestep needUpdate checks originalConn's lastUpdateTime against transpose's lastUpdateTime, so weightUpdatePeriod and initialWeightUpdateTime aren't needed
       parent->parameters()->handleUnnecessaryParameter(name, "initialWeightUpdateTime", initialWeightUpdateTime);
       weightUpdateTime = initialWeightUpdateTime;
    }
@@ -336,27 +338,29 @@ int TransposeConn::setInitialValues() {
 }
 
 PVPatch*** TransposeConn::initializeWeights(PVPatch*** patches, pvwdata_t** dataStart) {
-   assert(originalConn->getInitialValuesSetFlag()); // setInitialValues shouldn't call this function unless original conn has set its own initial values
-   for (int arbor=0; arbor<numAxonalArborLists; arbor++) {
-      transpose(arbor);
-   }
+   // TransposeConn must wait until after originalConn has been normalized, so weight initialization doesn't take place until HyPerCol::run calls finalizeUpdate
    return patches;
 }
 
+bool TransposeConn::needUpdate(double timed, double dt) {
+   return plasticityFlag && originalConn->getLastUpdateTime() > lastUpdateTime;
+}
 
 int TransposeConn::updateState(double time, double dt) {
-   float original_update_time = originalConn->getLastUpdateTime();
-   if(original_update_time > lastUpdateTime ) {
-      needFinalize = true;
-   }
+   assert(plasticityFlag && originalConn->getLastUpdateTime() > lastUpdateTime); // should only be called if needUpdate returned true this timestep
+   needFinalize = true;
+   // TransposeConn must wait until finalizeUpdate, after normalizers are called,
+   // so that it will see the correct weights when it calls transpose.
    return PV_SUCCESS;
-   // TransposeConn must wait until after normalizers are called,
-   // so that it will see the correct weights when it calls transpose
+}
+
+double TransposeConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
+   return weightUpdateTime; // TransposeConn does not use weightUpdateTime to determine when to update
 }
 
 int TransposeConn::finalizeUpdate(double time, double dt) {
    int status = PV_SUCCESS;
-   if (!needFinalize) { return PV_SUCCESS; }
+   if (!needFinalize) { return status; }
    update_timer->start();
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++){
       status = transpose(arborId);  // Apply changes in weights
@@ -364,7 +368,6 @@ int TransposeConn::finalizeUpdate(double time, double dt) {
       assert(status==PV_SUCCESS);
    }
    needFinalize = false;
-   // normalizeWeights(); // normalizeWeights call moved to HyPerCol::advanceTime loop, to allow for normalization of a group of connections
 
    update_timer->stop();
    return status;
@@ -375,7 +378,7 @@ int TransposeConn::transpose(int arborId) {
 }
 
 int TransposeConn::transposeNonsharedWeights(int arborId) {
-   assert(usingSharedWeights()==false); // Temporary
+   assert(usingSharedWeights()==false);
    const PVLayerLoc * preLocOrig = originalConn->preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * postLocOrig = originalConn->postSynapticLayer()->getLayerLoc();
    const PVLayerLoc * preLocTranspose = preSynapticLayer()->getLayerLoc();

@@ -3183,7 +3183,7 @@ int HyPerConn::updateWeights(int arborId)
 }
 
 double HyPerConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
-   //Only called if placisity flag is set
+   //Only called if plasticity flag is set
    while(time >= weightUpdateTime){
       weightUpdateTime += weightUpdatePeriod;
    }
