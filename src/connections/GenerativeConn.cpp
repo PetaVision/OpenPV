@@ -22,9 +22,7 @@ int GenerativeConn::initialize_base() {
    plasticityFlag = true; // Default value; override in params
    weightUpdatePeriod = 1;   // Default value; override in params
 
-   relaxation = 1.0;
    nonnegConstraintFlag = false;
-   normalizeMethod = 0;
    return PV_SUCCESS;
    // Base class constructor calls base class initialize_base
    // so derived class initialize_base doesn't need to.
@@ -37,7 +35,6 @@ int GenerativeConn::initialize(const char * name, HyPerCol * hc) {
 
 int GenerativeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
-   ioParam_relaxation(ioFlag);
    ioParam_nonnegConstraintFlag(ioFlag);
    return status;
 }
@@ -64,10 +61,6 @@ void GenerativeConn::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void GenerativeConn::ioParam_relaxation(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "relaxation", &relaxation, 1.0f);
-}
-
 void GenerativeConn::ioParam_nonnegConstraintFlag(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "nonnegConstraintFlag", &nonnegConstraintFlag, false);
 }
@@ -92,7 +85,7 @@ int GenerativeConn::updateWeights(int axonID) {
          for( int x = 0; x < nxp; x++ ) {
             for( int f = 0; f < nfp; f++ ) {
                int idx = f*sfp + x*sxp + y*syp;
-               wdata[idx] += relaxation*dwdata[idx];
+               wdata[idx] += dwdata[idx];
                if( nonnegConstraintFlag && wdata[idx] < 0) wdata[idx] = 0;
             }
          }

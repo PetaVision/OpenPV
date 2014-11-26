@@ -20,7 +20,6 @@ public:
    int initialize_base();
    virtual int allocateDataStructures();
    virtual int updateWeights(int axonID);
-   inline float getRelaxation() { return relaxation; }
 
 
 protected:
@@ -29,13 +28,10 @@ protected:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_relaxation(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nonnegConstraintFlag(enum ParamsIOFlag ioFlag);
    virtual int update_dW(int axonID);
 
-   float relaxation;
    bool nonnegConstraintFlag;
-   int normalizeMethod;
    float normalizeConstant;
 };
 
