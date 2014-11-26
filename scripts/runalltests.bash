@@ -167,6 +167,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
+testname=ConvertToGrayScaleTest
+arglist="-p input/ConvertToGrayScaleTest.params"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
 testname=CopyConnTest
 arglist=""
 cd "$testname"
@@ -338,6 +345,13 @@ cd "$workspacedir"
 testname=PlasticConnTest
 cd "$testname"
 arglist="-p input/PlasticConnTest.params"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=PlasticTransposeConnTest
+cd "$testname"
+arglist="-p input/PlasticTransposeConnTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
