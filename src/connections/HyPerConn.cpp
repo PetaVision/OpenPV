@@ -679,14 +679,6 @@ int HyPerConn::initNumDataPatches() {
 
 int HyPerConn::initPlasticityPatches()
 {
-// Copied over from KernelConn, but do we need it?
-//    assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
-//    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-// #ifdef PV_USE_MPI
-//    if( usingSharedWeights() && getPlasticityFlag() ) {
-//       assert(!parent->parameters()->presentAndNotBeenRead(name, "keepKernelsSynchronized"));
-//    }
-// #endif // PV_USE_MPI
    if (!plasticityFlag) return PV_SUCCESS;
    int sx = nfp;
    int sy = sx * nxp;
@@ -1220,6 +1212,11 @@ void HyPerConn::ioParam_shmget_flag(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
+   // Deprecated Nov 25, 2014.
+   if (parent->parameters()->present(name, "keepKernelsSynchronized") && ioFlag==PARAMS_IO_READ && parent->columnId()==0) {
+      fprintf(stderr, "%s \"%s\" warning: keepKernelsSynchronized is deprecated.\n",
+            parent->parameters()->groupKeywordFromName(name), name);
+   }
    assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (sharedWeights && plasticityFlag) {
@@ -1228,6 +1225,11 @@ void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
+   // Deprecated Nov 25, 2014.
+   if (parent->parameters()->present(name, "useWindowPost") && ioFlag==PARAMS_IO_READ && parent->columnId()==0) {
+      fprintf(stderr, "%s \"%s\" warning: useWindowPost is deprecated.  Use WindowConn (a derived class of TransposeConn) instead.\n",
+            parent->parameters()->groupKeywordFromName(name), name);
+   }
    assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "numAxonalArbors"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
@@ -3063,15 +3065,9 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
    for( int y=0; y<ny; y++ ) {
       for( int k=0; k<nk; k++ ) {
          pvdata_t aPost = postactRef[lineoffseta+k];
-         //calculate
-         bool aMask = true;
-         if(useMask){
-            if(maskactRef[lineoffsetm+k] == 0){
-               aMask = false;
-            }
-         }
-         //If it isn't being masked out
-         if(aMask){
+         //calculate contribution to dw unless masked out
+         assert(!useMask || maskactRef!=NULL); // if useMask is true, maskactRef must not be null
+         if (!useMask || maskactRef[lineoffsetm+k] != 0) {
             if(sharedWeights){
                //Offset in the case of a shrunken patch, where dwdata is applying when calling get_dwData
                numKernelActivations[arbor_ID][kernelIndex][weights->offset + lineoffsetw + k]++;

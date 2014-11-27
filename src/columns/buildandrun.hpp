@@ -104,6 +104,7 @@
 #include "../connections/InhibSTDPConn.hpp"
 #include "../connections/STDP3Conn.hpp"
 #include "../connections/STDPConn.hpp"
+#include "../connections/WindowConn.hpp"
 
 #include "../weightinit/InitWeights.hpp"
 #include "../weightinit/InitGauss2DWeights.hpp"

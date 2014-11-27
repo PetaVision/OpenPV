@@ -183,6 +183,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "InhibSTDPConn",
                "STDPConn",
                "STDP3Conn",
+               "WindowConn",
            "_Stop_HyPerConns_",
            "_Start_ColProbes_",
              "ColProbe",
@@ -710,6 +711,10 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
      keywordMatched = true;
      addedConn = (HyPerConn * ) new STDPConn(name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "WindowConn") ) {
+      keywordMatched = true;
+      addedConn = (HyPerConn *) new WindowConn(name, hc);
    }
    status = checknewobject((void *) addedConn, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
 
