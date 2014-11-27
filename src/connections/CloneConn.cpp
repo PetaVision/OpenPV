@@ -45,6 +45,13 @@ void CloneConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void CloneConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) {
+      useWindowPost = false;
+      parent->parameters()->handleUnnecessaryStringParameter(name, "useWindowPost", NULL);
+   }
+}
+
 void CloneConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }
@@ -132,13 +139,6 @@ void CloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
       // CloneConns do not have to synchronize because the pointers keep them synchronized whenever the original is.
       // We override this method because sharedWeights is not determined when this function is called.
    }
-}
-
-void CloneConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "useWindowPost");
-   }
-   // During communication phase, useWindowPost will be copied from originalConn
 }
 
 void CloneConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
@@ -234,7 +234,7 @@ int CloneConn::setPatchSize() {
 }
 
 int CloneConn::cloneParameters() {
-   // Copy sharedWeights, numAxonalArborLists, shrinkPatches_flag, useWindowPost from originalConn
+   // Copy sharedWeights, numAxonalArborLists, shrinkPatches_flag from originalConn
 
    PVParams * params = parent->parameters();
 
@@ -246,8 +246,6 @@ int CloneConn::cloneParameters() {
 
    shrinkPatches_flag = originalConn->getShrinkPatches_flag();
    parent->parameters()->handleUnnecessaryParameter(name, "shrinkPatches", shrinkPatches_flag);
-
-   useWindowPost = originalConn->getUseWindowPost();
    return PV_SUCCESS;
 }
 
