@@ -26,8 +26,8 @@ cd $(dirname "$0")
 # If you uncommant the lines below, set the valgrindsuppfile to a valgrind suppressions file
 # (e.g. one of the files matching trunk/valgrind/petavision-*.supp in the PV repository.
 valgrindcommand=""
-#valgrindsuppfile=$HOME/Workspace/NMC/PV/trunk/valgrind/petavision-mac.supp
-#valgrindcommand="valgrind --suppressions=$valgrindsuppfile --num-callers=50 --leak-check=full"
+# valgrindsuppfile=$HOME/Workspace/NMC/PV/trunk/valgrind/petavision-ubuntu.supp
+# valgrindcommand="valgrind --suppressions=$valgrindsuppfile --num-callers=50 --leak-check=full"
 
 workspacedir=$PWD
 
@@ -194,8 +194,8 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
-testname=ConvertToGrayScaleTest
-arglist="-p input/ConvertToGrayScaleTest.params"
+testname=ConvertToGrayscaleTest
+arglist="-p input/ConvertToGrayscaleTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
