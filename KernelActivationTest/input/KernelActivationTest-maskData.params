@@ -111,7 +111,7 @@ Movie "32x32 Images" = {
     readPvpFile = false;
 };
 
-ANNLayer "pre 16x16 singleband" = {
+ConstantLayer "pre 16x16 singleband" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -123,14 +123,15 @@ ANNLayer "pre 16x16 singleband" = {
     valueBC = 0.0;
     writeSparseActivity = false;
     
-    InitVType = "ZeroV";
+    InitVType = "ConstantV";
+    valueV = .5;
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
     VShift = 0.0;
 };
 
-ANNLayer "pre 16x16 multiband" = {
+ConstantLayer "pre 16x16 multiband" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -142,7 +143,8 @@ ANNLayer "pre 16x16 multiband" = {
     valueBC = 0.0;
     writeSparseActivity = false;
     
-    InitVType = "ZeroV";
+    InitVType = "ConstantV";
+    valueV = .5;
     VMax = infinity;
     VThresh = -infinity;
     VMin = -infinity;
@@ -263,39 +265,39 @@ ANNLayer "post 32x32 multiband" = {
     VShift = 0.0;
 };
 
-IdentConn "16x16 Images to pre 16x16 singleband" = {
-    channelCode = 0;
-    delay = 0;
-    writeStep = -1;
-};
-
-KernelConn "16x16 Images to pre 16x16 multiband" = {
-    channelCode = 0;
-    nxp = 1;
-    nyp = 1;
-    nfp = 3;
-    numAxonalArbors = 1;
-    delay = 0;
-    plasticityFlag = false;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 1;
-    strength = 1.0;
-    rMax = 2;
-    rMin = 0;
-    numOrientationsPost = 4;
-    normalizeMethod = "none";
-
-    shrinkPatches = false;
-    selfFlag = false;
-    preActivityIsNotRate = false;
-    
-};
+//IdentConn "16x16 Images to pre 16x16 singleband" = {
+//    channelCode = 0;
+//    delay = 0;
+//    writeStep = -1;
+//};
+//
+//KernelConn "16x16 Images to pre 16x16 multiband" = {
+//    channelCode = 0;
+//    nxp = 1;
+//    nyp = 1;
+//    nfp = 3;
+//    numAxonalArbors = 1;
+//    delay = 0;
+//    plasticityFlag = false;
+//    pvpatchAccumulateType = "convolve";
+//    updateGSynFromPostPerspective = false;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//
+//    weightInitType = "Gauss2DWeight";
+//    aspect = 1;
+//    sigma = 1;
+//    strength = 1.0;
+//    rMax = 2;
+//    rMin = 0;
+//    numOrientationsPost = 4;
+//    normalizeMethod = "none";
+//
+//    shrinkPatches = false;
+//    selfFlag = false;
+//    preActivityIsNotRate = false;
+//    
+//};
 
 IdentConn "8x8 Images to post 8x8 singleband" = {
     channelCode = 0;

@@ -24,7 +24,7 @@
 
 int runKernelActivationTest(int argc, char * argv[]);
 int dumpweights(HyPerCol * hc, int argc, char * argv[]);
-int dumponeweight(GenerativeConn * conn);
+int dumponeweight(HyPerConn * conn);
 
 int main(int argc, char * argv[]) {
    int status;
@@ -74,11 +74,14 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
    bool existsgenconn = false;
    for( int k=0; k < hc->numberOfConnections(); k++ ) {
-      GenerativeConn * conn = dynamic_cast<GenerativeConn *>(hc->getConnection(k));
-      if( conn != NULL ) {
-         existsgenconn = true;
-         int status1 = dumponeweight(conn);
-         if( status == PV_SUCCESS ) status = status1;
+      HyPerConn * conn = dynamic_cast<HyPerConn *>(hc->getConnection(k));
+      //Only test plastic conns
+      if( conn != NULL) {
+         if(conn->getPlasticityFlag()){
+            existsgenconn = true;
+            int status1 = dumponeweight(conn);
+            if( status == PV_SUCCESS ) status = status1;
+         }
       }
    }
    if( existsgenconn && status != PV_SUCCESS ) {
@@ -97,7 +100,7 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
    return status;
 }
 
-int dumponeweight(GenerativeConn * conn) {
+int dumponeweight(HyPerConn * conn) {
    int status = PV_SUCCESS;
    bool errorfound = false;
    int rank = conn->getParent()->icCommunicator()->commRank();
@@ -131,7 +134,7 @@ int dumponeweight(GenerativeConn * conn) {
                //The pixel value from the input is actually 127, where we divide it by 255.
                //Not exaclty .5, a little less
                //Squared because both pre and post is grabbing it's activity from the image
-               pvdata_t correct = pow(float(127)/float(255),2);
+               pvdata_t correct = usingMirrorBCs ? pow(float(127)/float(255),2) : (float(127)/float(255)) * .5;
                if( fabs(wgt-correct)>1.0e-5 ) {
                   if( errorfound == false ) {
                       errorfound = true;
