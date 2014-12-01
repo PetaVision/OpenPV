@@ -668,7 +668,7 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
    if (numParams < NUM_WGT_PARAMS) {
       status = PV_FAILURE;
       if (rank==0) {
-         fprintf(stderr, "pvp_check_file_header called with %d params (requires at least %d)\n", numParams, NUM_WGT_PARAMS);
+         fprintf(stderr, "pvp_check_file_header called with %d params (requires at least %zu)\n", numParams, NUM_WGT_PARAMS);
       }
    }
    
@@ -682,7 +682,7 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
          if (patchesInFile != numGlobalRestricted && patchesInFile != numGlobalExtended) {
             status = PV_FAILURE;
             if (rank==0) {
-               fprintf(stderr, "params[%d] = %d, should be ", NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES, params[NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES]);
+               fprintf(stderr, "params[%zu] = %d, should be ", NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES, params[NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES]);
                if (numGlobalExtended==numGlobalRestricted) {
                   fprintf(stderr, "%d\n", numGlobalExtended);
                }
@@ -697,7 +697,7 @@ int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int param
          if (patchesInFile % loc->nf) { // Not enough information passed to function to get unit cell size
             status = PV_FAILURE;
             if (rank==0) {
-               fprintf(stderr, "params[%d] = %d, should be a multiple of loc->nf=%d\n",
+               fprintf(stderr, "params[%zu] = %d, should be a multiple of loc->nf=%d\n",
                      NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES, params[NUM_BIN_PARAMS + INDEX_WGT_NUMPATCHES], loc->nf);
             }
          }
@@ -2098,7 +2098,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
          }
          else {
             fprintf(stderr, "writeWeights error for \"%s\": numPatches %d is not compatible with layer dimensions nx=%d, ny=%d, nf=%d, halo=(%d,%d,%d,%d)\n",
-                  filename, preLoc->nx, preLoc->ny, preLoc->nf, preLoc->halo.lt, preLoc->halo.rt, preLoc->halo.dn, preLoc->halo.up);
+                  filename, numPatches, preLoc->nx, preLoc->ny, preLoc->nf, preLoc->halo.lt, preLoc->halo.rt, preLoc->halo.dn, preLoc->halo.up);
          }
          numGlobalPatches = getNumGlobalPatches(preLoc, asPostWeights);
          break;
