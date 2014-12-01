@@ -1,21 +1,21 @@
 /*
- * PoolingGenConn.hpp
+ * PoolingConn.hpp
  *
  *  Created on: Apr 25, 2011
  *      Author: peteschultz
  */
 
-#ifndef POOLINGGENCONN_HPP_
-#define POOLINGGENCONN_HPP_
+#ifndef POOLINGCONN_HPP_
+#define POOLINGCONN_HPP_
 
-#include "GenerativeConn.hpp"
+#include "HyPerConn.hpp"
 
 namespace PV {
 
-class PoolingGenConn : public GenerativeConn {
+class PoolingConn : public HyPerConn {
 public:
-   PoolingGenConn(const char * name, HyPerCol * hc);
-   virtual ~PoolingGenConn();
+   PoolingConn(const char * name, HyPerCol * hc);
+   virtual ~PoolingConn();
 
    HyPerLayer * getPre2() { return pre2; }
    HyPerLayer * getPost2() { return post2; }
@@ -35,8 +35,8 @@ protected:
    char * postLayerName2;
    HyPerLayer * pre2;
    HyPerLayer * post2;
-};  // end class PoolingGenConn
+};  // end class PoolingConn
 
 }  // end namespace PV
 
-#endif /* GENPOOLCONN_HPP_ */
+#endif /* POOLINGCONN_HPP_ */

@@ -85,8 +85,10 @@
 #include "../connections/CliqueConn.hpp"
 #include "../connections/CloneKernelConn.hpp"
 #include "../connections/GapConn.hpp"
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  Use HyPerConn instead of GenerativeConn and PoolingConn instead of PoolingGenConn
 #include "../connections/GenerativeConn.hpp"
 #include "../connections/PoolingGenConn.hpp"
+#endif // OBSOLETE
 #include "../connections/IdentConn.hpp"
 #include "../connections/LCALIFLateralKernelConn.hpp"
 #ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
@@ -102,6 +104,7 @@
 #include "../connections/LCALIFLateralConn.hpp"
 #include "../connections/OjaSTDPConn.hpp"
 #include "../connections/InhibSTDPConn.hpp"
+#include "../connections/PoolingConn.hpp"
 #include "../connections/STDP3Conn.hpp"
 #include "../connections/STDPConn.hpp"
 #include "../connections/WindowConn.hpp"

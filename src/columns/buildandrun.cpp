@@ -165,8 +165,10 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "IdentConn",
                  "ImprintConn",
                  "GapConn",
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  Use HyPerConn instead of GenerativeConn and PoolingConn instead of PoolingGenConn
                  "GenerativeConn",
                    "PoolingGenConn",
+#endif // OBSOLETE
                  "LCALIFLateralKernelConn",
 #ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
                  "NoSelfKernelConn",
@@ -181,6 +183,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "LCALIFLateralConn",
                "OjaSTDPConn",
                "InhibSTDPConn",
+               "PoolingConn",
                "STDPConn",
                "STDP3Conn",
                "WindowConn",
@@ -644,6 +647,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = new GapConn(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  Use HyPerConn instead of GenerativeConn and PoolingConn instead of PoolingGenConn
    if( !keywordMatched && !strcmp(classkeyword, "GenerativeConn") ) {
       keywordMatched = true;
       addedConn = new GenerativeConn(name, hc);
@@ -652,6 +656,7 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = new PoolingGenConn(name, hc);
    }
+#endif // OBSOLETE
    if( !keywordMatched && !strcmp( classkeyword, "IdentConn") ) {
       keywordMatched = true;
       addedConn = (HyPerConn * ) new IdentConn(name, hc);
@@ -703,6 +708,10 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    if( !keywordMatched && !strcmp(classkeyword, "InhibSTDPConn")) {
       keywordMatched = true;
       addedConn = (HyPerConn * ) new InhibSTDPConn(name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "PoolingConn") ) {
+      keywordMatched = true;
+      addedConn = new PoolingConn(name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "STDP3Conn")) {
       keywordMatched = true;

@@ -1,46 +1,46 @@
 /*
- * PoolingGenConn.cpp
+ * PoolingConn.cpp
  *
  *  Created on: Apr 25, 2011
  *      Author: peteschultz
  */
 
-#include "PoolingGenConn.hpp"
+#include "PoolingConn.hpp"
 
 namespace PV {
-PoolingGenConn::PoolingGenConn(const char * name, HyPerCol * hc) {
+PoolingConn::PoolingConn(const char * name, HyPerCol * hc) {
    initialize_base();
    initialize(name, hc);
-}  // end of PoolingGenConn::PoolingGenConn(const char *, HyPerCol *)
+}  // end of PoolingConn::PoolingConn(const char *, HyPerCol *)
 
-int PoolingGenConn::initialize_base() {
+int PoolingConn::initialize_base() {
     pre2 = NULL;
     post2 = NULL;
     return PV_SUCCESS;
 }
 
-int PoolingGenConn::initialize(const char * name, HyPerCol * hc) {
-   int status = GenerativeConn::initialize(name, hc);
+int PoolingConn::initialize(const char * name, HyPerCol * hc) {
+   int status = HyPerConn::initialize(name, hc);
    return status;
 }
 
-int PoolingGenConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = GenerativeConn::ioParamsFillGroup(ioFlag);
+int PoolingConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_secondaryPreLayerName(ioFlag);
    ioParam_secondaryPostLayerName(ioFlag);
    return status;
 }
 
-void PoolingGenConn::ioParam_secondaryPreLayerName(enum ParamsIOFlag ioFlag) {
+void PoolingConn::ioParam_secondaryPreLayerName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "secondaryPreLayerName", &preLayerName2);
 }
 
-void PoolingGenConn::ioParam_secondaryPostLayerName(enum ParamsIOFlag ioFlag) {
+void PoolingConn::ioParam_secondaryPostLayerName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "secondaryPostLayerName", &postLayerName2);
 }
 
-int PoolingGenConn::communicateInitInfo() {
-   int status = GenerativeConn::communicateInitInfo();
+int PoolingConn::communicateInitInfo() {
+   int status = HyPerConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
    pre2 = parent->getLayerFromName(preLayerName2);
    post2 = parent->getLayerFromName(postLayerName2);
@@ -54,7 +54,7 @@ int PoolingGenConn::communicateInitInfo() {
    return status;
 }
 
-bool PoolingGenConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * layer2) {
+bool PoolingConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * layer2) {
 	int nx1 = layer1->getLayerLoc()->nx;
 	int nx2 = layer2->getLayerLoc()->nx;
 	int ny1 = layer1->getLayerLoc()->ny;
@@ -75,9 +75,9 @@ bool PoolingGenConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * lay
         fprintf(stderr, "Layer \"%*s\": nx=%d, ny=%d, nf=%d, halo=(%d,%d,%d,%d)\n", len, name2, nx2, ny2, nf2, halo2->lt, halo2->rt, halo2->dn, halo2->up);
     }
     return result;
-}  // end of PoolingGenConn::PoolingGenConn(HyPerLayer *, HyPerLayer *)
+}  // end of PoolingConn::PoolingConn(HyPerLayer *, HyPerLayer *)
 
-int PoolingGenConn::updateWeights(int axonID) {
+int PoolingConn::updateWeights(int axonID) {
     int nPre = preSynapticLayer()->getNumNeurons();
     int nx = preSynapticLayer()->getLayerLoc()->nx;
     int ny = preSynapticLayer()->getLayerLoc()->ny;
@@ -108,29 +108,12 @@ int PoolingGenConn::updateWeights(int axonID) {
             lineoffseta += sya;
         }
     }
-    if( nonnegConstraintFlag ) {
-       for(int kPatch=0; kPatch<getNumDataPatches();kPatch++) {
-           pvwdata_t * wtpatch = get_wDataHead(axonID, kPatch);
-           int nk = nxp * nfp;
-           int syw = nxp*nfp;
-           for( int y=0; y < nyp; y++ ) {
-               int lineoffsetw = 0;
-               for( int k=0; k<nk; k++ ) {
-                   pvdata_t w = wtpatch[lineoffsetw + k];
-                   if( w<0 ) {
-                      wtpatch[lineoffsetw + k] = 0;
-                   }
-               }
-               lineoffsetw += syw;
-           }
-       }
-    }
     lastUpdateTime = parent->simulationTime();
 
     return PV_SUCCESS;
 }
 
-PoolingGenConn::~PoolingGenConn() {
+PoolingConn::~PoolingConn() {
    free(preLayerName2); preLayerName2 = NULL;
    free(postLayerName2); postLayerName2 = NULL;
 }

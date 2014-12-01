@@ -22,6 +22,7 @@ NormalizeMultiply::NormalizeMultiply() {
 int NormalizeMultiply::initialize_base() {
    rMinX = 0.0f;
    rMinY = 0.0f;
+   nonnegativeConstraintFlag = false;
    normalize_cutoff = 0.0f;
    normalizeFromPostPerspective = false;
    return PV_SUCCESS;
@@ -36,6 +37,7 @@ int NormalizeMultiply::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = NormalizeBase::ioParamsFillGroup(ioFlag);
    ioParam_rMinX(ioFlag);
    ioParam_rMinY(ioFlag);
+   ioParam_nonnegativeConstraintFlag(ioFlag);
    ioParam_normalize_cutoff(ioFlag);
    ioParam_normalizeFromPostPerspective(ioFlag);
    return status;
@@ -47,6 +49,10 @@ void NormalizeMultiply::ioParam_rMinX(enum ParamsIOFlag ioFlag) {
 
 void NormalizeMultiply::ioParam_rMinY(enum ParamsIOFlag ioFlag) {
    parent()->ioParamValue(ioFlag, name, "rMinY", &rMinY, rMinY);
+}
+
+void NormalizeMultiply::ioParam_nonnegativeConstraintFlag(enum ParamsIOFlag ioFlag) {
+   parent()->ioParamValue(ioFlag, name, "nonnegativeConstraintFlag", &nonnegativeConstraintFlag, nonnegativeConstraintFlag);
 }
 
 void NormalizeMultiply::ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag) {
@@ -77,6 +83,24 @@ int NormalizeMultiply::normalizeWeights() {
             for (int patchindex=0; patchindex<num_patches; patchindex++) {
                applyRMin(dataPatchStart+patchindex*num_weights_in_patch, rMinX, rMinY,
                      conn->xPatchSize(), conn->yPatchSize(), conn->xPatchStride(), conn->yPatchStride());
+            }
+         }
+      }
+   }
+
+   // Apply nonnegativeConstraintFlag
+   if (nonnegativeConstraintFlag) {
+      for (int c=0; c<numConnections; c++) {
+         HyPerConn * conn = connectionList[c];
+         int num_arbors = conn->numberOfAxonalArborLists();
+         int num_patches = conn->getNumDataPatches();
+         int num_weights_in_patch = conn->xPatchSize()*conn->yPatchSize()*conn->fPatchSize();
+         int num_weights_in_arbor = num_patches * num_weights_in_patch;
+         for (int arbor=0; arbor<num_arbors; arbor++) {
+            pvwdata_t * dataPatchStart = conn->get_wDataStart(arbor);
+            for (int weightindex=0; weightindex<num_weights_in_arbor; weightindex++) {
+               pvwdata_t * w = &dataPatchStart[weightindex];
+               if (*w<0) { *w = 0; }
             }
          }
       }
