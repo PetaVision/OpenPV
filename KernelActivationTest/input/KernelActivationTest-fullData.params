@@ -1,6 +1,6 @@
 // KernelActivationTest-fullData.params
 //     A params file for use with KernelActivationTest.cpp
-//     The layers that are presynaptic for GenerativeConn have MirrorBCflag turned on.
+//     The presynaptic layers have MirrorBCflag turned on.
 //     The resulting weights should be all .5 ^ 2.
 
 debugParsing = false;
@@ -14,11 +14,10 @@ HyPerCol "column" = {
     numSteps = 5;
     progressStep = 1000;
     writeProgressToErr = false;
-    outputPath = "output-MirrorBCOn/";
+    outputPath = "output-fullData/";
     filenamesContainLayerNames = false;
     filenamesContainConnectionNames = false;
     outputNamesOfLayersAndConns = "NamesOfLayersAndConns.txt";
-    checkpointRead = false;
     checkpointWrite = false;
     suppressLastOutput = false;
 };

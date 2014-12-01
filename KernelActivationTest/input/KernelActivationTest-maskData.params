@@ -12,11 +12,10 @@ HyPerCol "column" = {
     numSteps = 5;
     progressStep = 1000;
     writeProgressToErr = false;
-    outputPath = "output-MirrorBCOff/";
+    outputPath = "output-maskData/";
     filenamesContainLayerNames = false;
     filenamesContainConnectionNames = false;
     outputNamesOfLayersAndConns = "NamesOfLayersAndConns.txt";
-    checkpointRead = false;
     checkpointWrite = false;
     suppressLastOutput = false;
 };
