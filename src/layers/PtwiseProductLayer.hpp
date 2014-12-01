@@ -22,6 +22,7 @@ public:
    PtwiseProductLayer(const char * name, HyPerCol * hc);
    virtual ~PtwiseProductLayer();
 
+   virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
    // virtual int updateV();
 

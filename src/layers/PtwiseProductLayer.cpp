@@ -27,11 +27,18 @@ PtwiseProductLayer::~PtwiseProductLayer() {
 }
 
 int PtwiseProductLayer::initialize_base() {
+   numChannels = 2;
    return PV_SUCCESS;
 }
 
 int PtwiseProductLayer::initialize(const char * name, HyPerCol * hc) {
    return ANNLayer::initialize(name, hc);
+}
+
+int PtwiseProductLayer::allocateDataStructures() {
+   int status = ANNLayer::allocateDataStructures();
+   assert(numChannels>=2);
+   return status;
 }
 
 int PtwiseProductLayer::updateState(double timef, double dt) {
