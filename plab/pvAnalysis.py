@@ -176,6 +176,20 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                 #TODO: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
                 assert data[i] != None 
     elif hdr["filetype"] == 5: #PVP_KERNEL_FILE_TYPE
+        # 
+        # MY DESCRIPTION:
+        #
+        # Seek to startframe-1 * framesize  # In case you choose not to start at the beginning of the file
+        # [for every frame]
+        #   readpvpheader from current position
+        #   TODO: I don't know why any of the following stuff is done...
+        #   remove 'additional' from header
+        #   Compute how big the 'additional' information was -> numextrabytes
+        #   
+        # 
+        #   
+        # SHENG's DESCRIPTION:
+        #
         # [For every frame]
         #   Header[(1, 80 bytes)]
         #   Extra Header[(3, int32), (2, float32), (1, uint32)]
@@ -184,6 +198,8 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
         #           [For every patch]
         #               shrunkenPatchNxNyOffset[(2, uint16), (1, uint32)]
         #               data[(nxp * nyp * nfp, dataType)]
+
+        fileStream.seek(startFrame*framesize,0) # This is in case user doesn't want to start at time=0
 
         hdr["nxp"]        = hdr["additional"][0][0]
         hdr["nyp"]        = hdr["additional"][1][0]
