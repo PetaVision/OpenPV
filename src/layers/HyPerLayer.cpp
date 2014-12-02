@@ -682,7 +682,7 @@ int HyPerLayer::initializeState() {
 int HyPerLayer::copyInitialStateToGPU() {
    if(updateGpu){
       float * h_V = getV();
-      if (h_V==NULL) {
+      if (h_V != NULL) {
          PVCuda::CudaBuffer* d_V = getDeviceV();
          assert(d_V);
          d_V->copyToDevice(h_V);
