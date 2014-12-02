@@ -270,7 +270,7 @@ PtwiseProductLayer "Energy AnaLayer A" = {
 //
 //  0  Slideshow to Retina                                   IdentConn         +
 //  1  Retina to AnaRetina                                   IdentConn         +
-//  2  AnaRetina to Layer A                                  GenerativeConn    + (weights A)
+//  2  AnaRetina to Layer A                                  HyPerConn         + (weights A)
 //  3  Layer A to AnaRetina Feedback                         FeedbackConn      - (weights A^T)
 //
 //  4  Layer A to Pooling AnaLayer A                         IdentConn         +
@@ -280,7 +280,7 @@ PtwiseProductLayer "Energy AnaLayer A" = {
 //  8  Flat AnaLayer A to Pooling AnaLayer A                 IdentConn         -
 //  9  Flat AnaLayer A to Arrow AnaLayer A                   IdentConn         -
 //
-// 10  Arrow AnaLayer A to Layer B                           PoolingGenConn    aux (weights B)
+// 10  Arrow AnaLayer A to Layer B                           PoolingConn       aux (weights B)
 // 11  Layer A to CataLayer B                                CloneConn         - (weights B)
 // 12  CataLayer B to Layer A                                TransposeConn     + (weights B^T)
 // 13  Layer B to Flat AnaLayer A                            CloneConn         - (weights B^T)
@@ -313,7 +313,7 @@ IdentConn "Retina to AnaRetina" = {
     delay = 0;
 };
 
-GenerativeConn "AnaRetina to Layer A" = {
+HyPerConn "AnaRetina to Layer A" = {
     preLayerName = "AnaRetina";
     postLayerName = "Layer A";
 
@@ -346,16 +346,15 @@ GenerativeConn "AnaRetina to Layer A" = {
     shrinkPatches = false;
     updateGSynFromPostPerspective = false;
     preActivityIsNotRate = false;
-    dWMax = 1.0;
+    dWMax = 2E-1;
 
     triggerFlag = false;
     weightUpdatePeriod = 10;
     initialWeightUpdateTime = 0;
-    relaxation = 2E-1;
-    nonnegConstraintFlag = 1;
 
     normalizeMethod = "normalizeL2";
     strength = 1.41421356;
+    nonnegativeConstraintFlag = true;
     normalize_cutoff = false;
     normalizeFromPostPerspective = false;
     normalizeArborsIndividually = false;
@@ -443,7 +442,7 @@ IdentConn "Flat AnaLayer A to Arrow AnaLayer A" = {
     delay = 0;
 };
 
-PoolingGenConn "Arrow AnaLayer A to Layer B" = {
+PoolingConn "Arrow AnaLayer A to Layer B" = {
     preLayerName = "Arrow AnaLayer A";
     postLayerName = "Layer B";
     secondaryPreLayerName = "Layer A";
@@ -473,7 +472,7 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     sparseFraction = 0.0;
     
     plasticityFlag = true;
-    dWMax = 1.0;
+    dWMax = 0.1;
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
     updateGSynFromPostPerspective = false;
@@ -482,11 +481,10 @@ PoolingGenConn "Arrow AnaLayer A to Layer B" = {
     triggerFlag = false;
     weightUpdatePeriod = 10;
     initialWeightUpdateTime = 0;
-    relaxation = 1E-1;
-    nonnegConstraintFlag = 1;
 
     normalizeMethod = "normalizeL2";
     strength = 1.0;
+    nonnegativeConstraintFlag = true;
     normalize_cutoff = false;
     normalizeFromPostPerspective = false;
     normalizeArborsIndividually = false;
