@@ -1,0 +1,50 @@
+install vmware fusion 
+
+(this can be done for free via ESD but I'm not using that method here)
+
+get vmware fusion for OSX at 
+http://www.vmware.com/products/fusion/fusion-evaluation.html
+
+30 day free trial or buy for $100
+
+
+
+***
+
+get CentOS 6.5 
+
+download at
+http://wiki.centos.org/Download
+http://centos.corenetworks.net/6.5/isos/x86_64/
+CentOS-6.5-x86_64-bin-DVD1.iso   
+CentOS-6.5-x86_64-bin-DVD2.iso   
+
+these files are several GIGA bytes, download can take a while...
+
+7.0 is available but I was told to download 6.5 so I'm just following instructions...perhaps 6.5 is more stable?
+
+
+
+
+***
+
+create a virtual machine
+
+from the VMware Fusion menu bar select file new...
+
+click on install from disc or image
+
+click Use Easy Install
+
+
+***
+ 
+follow instructions in my_first_centOS_BASE.sh
+
+
+
+***
+
+for installing gdal, try the following to avoid some missing dependencies
+
+sudo rpm -Uvh http://elgis.argeo.org/repos/6/elgis-release-6-6_0.noarch.rpm
