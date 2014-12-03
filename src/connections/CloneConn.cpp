@@ -45,12 +45,14 @@ void CloneConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    }
 }
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
 void CloneConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       useWindowPost = false;
       parent->parameters()->handleUnnecessaryStringParameter(name, "useWindowPost", NULL);
    }
 }
+#endif // OBSOLETE
 
 void CloneConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);

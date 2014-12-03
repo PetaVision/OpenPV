@@ -338,11 +338,13 @@ public:
    // (i.e. methods for receiving synaptic input, updating internal state, publishing output)
    // ************************************************************************************//
    virtual int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    //Method to see if the neuron is in the window. Default window id is mapped to the arbor id. Parent class is always true, and can be overwritten 
    virtual bool inWindowExt(int windowId, int neuronIdxExt) {return true;};
    virtual bool inWindowRes(int windowId, int neuronIdxRes) {return true;}; 
    //Returns number of windows, with a default of 1 window for the entire layer
    virtual int getNumWindows(){return 1;}
+#endif // OBSOLETE
 
    //An updateState wrapper that determines if updateState needs to be called
    virtual int updateStateWrapper (double time, double dt);

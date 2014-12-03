@@ -107,7 +107,9 @@
 #include "../connections/PoolingConn.hpp"
 #include "../connections/STDP3Conn.hpp"
 #include "../connections/STDPConn.hpp"
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
 #include "../connections/WindowConn.hpp"
+#endif // OBSOLETE
 
 #include "../weightinit/InitWeights.hpp"
 #include "../weightinit/InitGauss2DWeights.hpp"

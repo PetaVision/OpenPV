@@ -288,7 +288,9 @@ public:
       return shrinkPatches_flag;
    }
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    bool getUseWindowPost(){return useWindowPost;}
+#endif // OBSOLETE
    bool getUpdateGSynFromPostPerspective(){return updateGSynFromPostPerspective;}
 
    // uint4 * getRnd_state(int index) { return pvpatchAccumulateType==ACCUMULATE_STOCHASTIC ? &rnd_state[index] : NULL; }
@@ -382,7 +384,9 @@ private:
    HyPerLayer* mask;
 
 protected:
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    bool useWindowPost;
+#endif // OBSOLETE
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
    int nxpShrunken, nypShrunken, offsetShrunken; // if user requires a smaller patch than is required by PetaVision
@@ -796,11 +800,13 @@ protected:
     */
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    /**
     * @brief useWindowPost: If using sharedWeights, numAxonalArbors, and plasticityFlag is set,
     * specifies if windows are from post perspective.
     */
    virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
+#endif // OBSOLETE
 
    /**
     * @brief useMask: Specifies if this connection is using a post mask for learning

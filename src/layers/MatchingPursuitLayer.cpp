@@ -216,6 +216,7 @@ int MatchingPursuitLayer::allocateDataStructures() {
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
 int MatchingPursuitLayer::resetGSynBuffers(double timed, double dt) {
    // Only reset the GSyn of those neurons in the window.
    for (int k=0; k<getNumNeurons(); k++) {
@@ -255,6 +256,7 @@ bool MatchingPursuitLayer::inWindowRes(int windowId, int neuronIdxRes) {
    }
    return inWindow;
 }
+#endif // OBSOLETE
 
 bool MatchingPursuitLayer::inWindowGlobalRes(int neuronIdxRes, const PVLayerLoc * loc) {
    int neuronIdxGlobal = globalIndexFromLocal(neuronIdxRes, *loc);

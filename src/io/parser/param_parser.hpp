@@ -64,10 +64,10 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 146 "params.y"
+#line 146 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
 {char * sval; double dval; }
 /* Line 1529 of yacc.c.  */
-#line 71 "param_parser.hpp"
+#line 71 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/param_parser.hpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

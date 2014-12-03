@@ -46,7 +46,9 @@ protected:
     virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
     virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
     virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
     virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
+#endif // OBSOLETE
     virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
     virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
     virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);

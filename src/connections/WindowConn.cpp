@@ -5,6 +5,8 @@
  *      Author: pschultz
  */
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
+
 #include "WindowConn.hpp"
 
 namespace PV {
@@ -60,3 +62,5 @@ WindowConn::~WindowConn() {
 }
 
 } /* namespace PV */
+
+#endif // OBSOLETE

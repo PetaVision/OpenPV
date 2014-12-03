@@ -18,12 +18,14 @@ public:
    HyPerLCALayer(const char * name, HyPerCol * hc);
    virtual ~HyPerLCALayer();
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    //Overwriting HyPerLayer's window methods
    virtual int getNumWindows();
    virtual bool inWindowExt(int windowId, int neuronIdxExt);
    virtual bool inWindowRes(int windowId, int neuronIdxRes);
    //calcWindow used in WindowSystemTest, so needs to be public
    int calcWindow(int globalExtX, int globalExtY);
+#endif // OBSOLETE
 
 protected:
    HyPerLCALayer();

@@ -2249,9 +2249,11 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
       int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetHalo->lt, aTargetHalo->rt, aTargetHalo->dn, aTargetHalo->up);
       int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetHalo->lt, oTargetHalo->rt, oTargetHalo->dn, oTargetHalo->up);
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
       bool inWindow; 
       inWindow = inWindowExt(arborID, akTargetExt);
       if(!inWindow) continue;
+#endif // OBSOLETE
 
       //Read from buffer
       long startSourceExt = startSourceExtBuf[kTargetRes];
@@ -2339,8 +2341,10 @@ int HyPerLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity
       const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
       const PVLayerLoc * postLoc = this->getLayerLoc();
       int kPost = layerIndexExt(kPre, preLoc, postLoc);
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
       inWindow = inWindowExt(arborID, kPost);
       if(!inWindow) continue;
+#endif // OBSOLETE
 
       float a = activity->data[kPre] * dt_factor;
       // Activity < 0 is used by generative models --pete

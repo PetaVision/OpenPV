@@ -186,8 +186,10 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "PoolingConn",
                "STDPConn",
                "STDP3Conn",
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
                "WindowConn",
-           "_Stop_HyPerConns_",
+#endif // OBSOLETE
+               "_Stop_HyPerConns_",
            "_Start_ColProbes_",
              "ColProbe",
                "GenColProbe",
@@ -721,10 +723,12 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
      keywordMatched = true;
      addedConn = (HyPerConn * ) new STDPConn(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    if( !keywordMatched && !strcmp(classkeyword, "WindowConn") ) {
       keywordMatched = true;
       addedConn = (HyPerConn *) new WindowConn(name, hc);
    }
+#endif // OBSOLETE
    status = checknewobject((void *) addedConn, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
 
    if( !keywordMatched ) {

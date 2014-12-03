@@ -246,8 +246,10 @@ int HyPerConn::initialize_base()
    this->dWMax            = 1;
    this->strengthParamHasBeenWritten = false;
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    //This flag is only set otherwise in kernelconn
    this->useWindowPost = false;
+#endif // OBSOLETE
 
    this->updateGSynFromPostPerspective = false;
 
@@ -745,7 +747,9 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_dWMax(ioFlag);
    ioParam_shmget_flag(ioFlag);
    ioParam_keepKernelsSynchronized(ioFlag);
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    ioParam_useWindowPost(ioFlag);
+#endif // OBSOLETE
 
    ioParam_useMask(ioFlag);
    ioParam_maskLayerName(ioFlag);
@@ -1212,11 +1216,6 @@ void HyPerConn::ioParam_shmget_flag(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
-   // Deprecated Nov 25, 2014.
-   if (parent->parameters()->present(name, "keepKernelsSynchronized") && ioFlag==PARAMS_IO_READ && parent->columnId()==0) {
-      fprintf(stderr, "%s \"%s\" warning: keepKernelsSynchronized is deprecated.\n",
-            parent->parameters()->groupKeywordFromName(name), name);
-   }
    assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (sharedWeights && plasticityFlag) {
@@ -1224,12 +1223,8 @@ void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
    }
 }
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
 void HyPerConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
-   // Deprecated Nov 25, 2014.
-   if (parent->parameters()->present(name, "useWindowPost") && ioFlag==PARAMS_IO_READ && parent->columnId()==0) {
-      fprintf(stderr, "%s \"%s\" warning: useWindowPost is deprecated.  Use WindowConn (a derived class of TransposeConn) instead.\n",
-            parent->parameters()->groupKeywordFromName(name), name);
-   }
    assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "numAxonalArbors"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
@@ -1238,6 +1233,7 @@ void HyPerConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "useWindowPost", &useWindowPost, useWindowPost);
    }
 }
+#endif // OBSOLETE
 
 void HyPerConn::ioParam_useMask(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
@@ -1405,9 +1401,11 @@ int HyPerConn::communicateInitInfo() {
    if (weightInitializer) weightInitializer->communicateParamsInfo();
 
    if (sharedWeights) {
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
       if (pre->getNumWindows() != 1 && pre->getNumWindows() != this->numberOfAxonalArborLists()){
          fprintf(stderr, "HyPerConn::Number of windows in %s is %d (calculated from symmetry), while number of arbors in %s is %d. Either some windows or arbors will not be used\n", pre->getName(), pre->getNumWindows(), name, this->numberOfAxonalArborLists());
       }
+#endif // OBSOLETE
       fileType = PVP_KERNEL_FILE_TYPE;
    }
    else {
@@ -3026,6 +3024,7 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
    pvdata_t preact = preactbuf[kExt];
    if (skipPre(preact)) return PV_CONTINUE;
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    bool inWindow = true;
    // only check inWindow if number of arbors > 1
    if (this->numberOfAxonalArborLists()>1){
@@ -3038,6 +3037,7 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
       }
       if(!inWindow) return PV_CONTINUE;
    }
+#endif // OBSOLETE
    PVPatch * weights = getWeights(kExt,arbor_ID);
 
    //Offset, since post is in res space, should be right for both mask and post layer

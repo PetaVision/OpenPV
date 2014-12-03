@@ -75,6 +75,7 @@ int HyPerLCALayer::initialize_base()
    return PV_SUCCESS;
 }
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
 bool HyPerLCALayer::inWindowExt(int windowId, int neuronIdxExt){
    const PVLayerLoc * loc = this->getLayerLoc();
    int globalExtX = kxPos(neuronIdxExt, loc->nx + loc->halo.lt + loc->halo.rt, loc->ny + loc->halo.dn + loc->halo.up, loc->nf) + loc->kx0;
@@ -127,6 +128,7 @@ int HyPerLCALayer::getNumWindows(){
    }
    return windowsX * windowsY;
 }
+#endif // OBSOLETE
 
 int HyPerLCALayer::initialize(const char * name, HyPerCol * hc)
 {

@@ -5,6 +5,8 @@
  *      Author: pschultz
  */
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
+
 #ifndef WINDOWCONN_HPP_
 #define WINDOWCONN_HPP_
 
@@ -34,3 +36,5 @@ protected:
 } /* namespace PV */
 
 #endif /* WINDOWCONN_HPP_ */
+
+#endif // OBSOLETE

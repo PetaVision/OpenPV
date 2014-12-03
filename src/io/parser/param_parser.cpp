@@ -90,7 +90,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 1 "params.y"
+#line 1 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
 
 #include <stdio.h>
 #include <string.h>
@@ -256,10 +256,10 @@ int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 146 "params.y"
+#line 146 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
 {char * sval; double dval; }
 /* Line 193 of yacc.c.  */
-#line 263 "param_parser.cpp"
+#line 263 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/param_parser.cpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -272,7 +272,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 276 "param_parser.cpp"
+#line 276 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/param_parser.cpp"
 
 #ifdef short
 # undef short
@@ -1524,93 +1524,93 @@ yyreduce:
   switch (yyn)
     {
         case 6:
-#line 166 "params.y"
+#line 166 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_pvparams_directive((yyvsp[(1) - (4)].sval), (yyvsp[(3) - (4)].dval)); }
     break;
 
   case 7:
-#line 174 "params.y"
+#line 174 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_group_name((yyvsp[(1) - (3)].sval), (yyvsp[(2) - (3)].sval)); }
     break;
 
   case 8:
-#line 178 "params.y"
+#line 178 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_group(); }
     break;
 
   case 14:
-#line 190 "params.y"
+#line 190 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_array((yyvsp[(1) - (4)].sval)); }
     break;
 
   case 15:
-#line 192 "params.y"
+#line 192 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_array_overwrite((yyvsp[(1) - (4)].sval)); }
     break;
 
   case 19:
-#line 202 "params.y"
+#line 202 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_array_value((yyvsp[(1) - (1)].dval)); }
     break;
 
   case 20:
-#line 207 "params.y"
+#line 207 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_def((yyvsp[(1) - (4)].sval), (yyvsp[(3) - (4)].dval)); }
     break;
 
   case 21:
-#line 209 "params.y"
+#line 209 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_def_overwrite((yyvsp[(1) - (4)].sval), (yyvsp[(3) - (4)].dval)); }
     break;
 
   case 22:
-#line 213 "params.y"
+#line 213 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_string_def((yyvsp[(1) - (4)].sval),(yyvsp[(3) - (4)].sval)); }
     break;
 
   case 23:
-#line 215 "params.y"
+#line 215 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_filename_def((yyvsp[(1) - (4)].sval),(yyvsp[(3) - (4)].sval)); }
     break;
 
   case 24:
-#line 217 "params.y"
+#line 217 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_string_def_overwrite((yyvsp[(1) - (4)].sval),(yyvsp[(3) - (4)].sval)); }
     break;
 
   case 25:
-#line 219 "params.y"
+#line 219 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_filename_def_overwrite((yyvsp[(1) - (4)].sval),(yyvsp[(3) - (4)].sval)); }
     break;
 
   case 26:
-#line 224 "params.y"
+#line 224 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_include_directive((yyvsp[(2) - (3)].sval)); }
     break;
 
   case 27:
-#line 228 "params.y"
+#line 228 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_parameter_sweep((yyvsp[(1) - (9)].sval),(yyvsp[(2) - (9)].sval),(yyvsp[(4) - (9)].sval)); }
     break;
 
   case 34:
-#line 242 "params.y"
+#line 242 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_sweep_values_number((yyvsp[(1) - (2)].dval)); }
     break;
 
   case 37:
-#line 250 "params.y"
+#line 250 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_sweep_values_string((yyvsp[(1) - (2)].sval)); }
     break;
 
   case 40:
-#line 258 "params.y"
+#line 258 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/params.y"
     { handler->action_sweep_values_filename((yyvsp[(1) - (2)].sval)); }
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1614 "param_parser.cpp"
+#line 1614 "/Users/pschultz/Workspace/NMC/eclipse-luna-workspace/PetaVision/src/io/parser/param_parser.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
