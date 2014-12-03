@@ -23,7 +23,9 @@
 #include "../layers/IncrementLayer.hpp"
 #include "../layers/LeakyIntegrator.hpp"
 #include "../layers/LogLatWTAGenLayer.hpp"
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  No longer used.
 #include "../layers/PursuitLayer.hpp"
+#endif // OBSOLETE
 #include "../layers/CliqueLayer.hpp"
 #include "../layers/MatchingPursuitResidual.hpp"
 #include "../layers/PoolingANNLayer.hpp"

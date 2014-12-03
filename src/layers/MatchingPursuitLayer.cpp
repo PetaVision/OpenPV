@@ -127,44 +127,6 @@ int MatchingPursuitLayer::openPursuitFile() {
       traceFile = PV_stdout();
    }
    return PV_SUCCESS;
-
-
-   if (traceFileName && traceFileName[0] && traceFileName[0] != '/') {
-      int traceFileNameLen = strlen(parent->getOutputPath())+1+strlen(traceFileName)+1; // traceFileName will be <outputPath>/<pursuit_file_name><terminating NUL>
-      if (traceFileNameLen >= PV_PATH_MAX) {
-         if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\": path for tracePursuit file too long.\n",
-                  parent->parameters()->groupKeywordFromName(name), name);
-         }
-#ifdef PV_USE_MPI
-         MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
-         exit(EXIT_FAILURE);
-      }
-      char * new_traceFileName = (char *) malloc(traceFileNameLen*sizeof(char));
-      if (new_traceFileName==NULL) {
-         fprintf(stderr, "%s \"%s\" error: rank %d process unable to copy traceFile param: %s\n",
-               parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), strerror(errno));
-         exit(EXIT_FAILURE);
-      }
-      int numchars = snprintf(new_traceFileName, traceFileNameLen+1, "%s/%s",parent->getOutputPath(), traceFileName);
-      assert(numchars<=traceFileNameLen);
-      free(traceFileName);
-      traceFileName = new_traceFileName;
-   }
-
-
-
-
-   if (traceFileName!=NULL && parent->columnId()==0) {
-      assert(traceFileName[0] != '\0');
-      traceFile = PV_fopen(traceFileName,"w",parent->getVerifyWrites());
-      if (traceFile==NULL) abort();
-   }
-   else {
-      traceFile = PV_stdout();
-   }
-   return PV_SUCCESS;
 }
 
 void MatchingPursuitLayer::initializeMaxinfo(int rank) {
@@ -337,7 +299,7 @@ int MatchingPursuitLayer::updateState(double timed, double dt) {
    return PV_SUCCESS;
 }
 
-void MatchingPursuitLayer::updateMaxinfo(pvdata_t gsyn, int k) {
+inline void MatchingPursuitLayer::updateMaxinfo(pvdata_t gsyn, int k) {
    bool newmax = fabsf(maxinfo.maxval) < fabsf(gsyn);
    maxinfo.maxloc = newmax ? k : maxinfo.maxloc;
    maxinfo.maxval = newmax ? gsyn : maxinfo.maxval;

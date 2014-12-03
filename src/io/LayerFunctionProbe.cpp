@@ -71,7 +71,7 @@ void LayerFunctionProbe::ioParam_parentGenColProbe(enum ParamsIOFlag ioFlag) {
 
 void LayerFunctionProbe::ioParam_coeff(enum ParamsIOFlag ioFlag) {
    assert(!getParent()->parameters()->presentAndNotBeenRead(getName(), "parentGenColProbeName"));
-   if (parentGenColProbeName != NULL) {
+   if (parentGenColProbeName != NULL && parentGenColProbeName[0] != '\0') {
       getParent()->ioParamValue(ioFlag, getName(), "coeff", &coeff, (pvdata_t) 1.0);
    }
 }

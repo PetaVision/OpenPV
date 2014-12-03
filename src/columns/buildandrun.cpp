@@ -104,7 +104,9 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "CliqueLayer",
                "GenerativeLayer",
                  "LogLatWTAGenLayer",
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  No longer used.
                  "PursuitLayer",
+#endif // OBSOLETE
                "IncrementLayer",
                "LeakyIntegrator",
                "MatchingPursuitResidual",
@@ -402,10 +404,12 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new LogLatWTAGenLayer(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  No longer used.
    if (!strcmp(classkeyword, "PursuitLayer")) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new PursuitLayer(name, hc);
    }
+#endif // OBSOLETE
    if( !strcmp(classkeyword, "IncrementLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new IncrementLayer(name, hc);
