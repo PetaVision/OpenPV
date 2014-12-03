@@ -14,9 +14,12 @@ if (NOT CMAKE_BUILD_TYPE)        #To use a different CMAKE_BUILD_TYPE, use the o
    set(CMAKE_BUILD_TYPE Release) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
 endif (NOT CMAKE_BUILD_TYPE)
 
-set(OPEN_MP_THREADS FALSE CACHE PATH "Defines if PetaVision uses OpenMP threads")
-set(OPEN_CL_GPU FALSE CACHE PATH "Defines if PetaVision uses OpenCL GPU")
-set(CUDA_GPU FALSE CACHE PATH "Defines if PetaVision uses OpenCL GPU")
+# Variables to set on the command line
+set(OPEN_MP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
+set(OPEN_CL_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
+set(CUDA_GPU FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
+set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
+set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
 
 if(OPEN_MP_THREADS)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -DPV_USE_THREADS")

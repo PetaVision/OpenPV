@@ -5,26 +5,22 @@ project(PetaVision)
 
 
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 
 # Set variable for current working directory (workspace directory)
-set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/PetaVision CACHE FILEPATH "The base petavision directory")
+set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/PetaVision CACHE PATH "The base petavision directory")
 
 #Set CMAKE_MODULE_PATH
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 set(CMAKE_MODULE_PATH "${PV_DIR}/docs/cmake/Modules/")
 
-# Set this as a compiler directive for the code
-#add_Definitions(-DPV_DIR="${PV_DIR}")
+set(OPEN_MP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
+set(OPEN_CL_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
+set(CUDA_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
+set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
+set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 
-set(OPEN_MP_THREADS FALSE CACHE PATH "Defines if PetaVision uses OpenMP threads")
-set(OPEN_CL_GPU FALSE CACHE PATH "Defines if PetaVision uses OpenCL GPU")
-set(CUDA_GPU FALSE CACHE PATH "Defines if PetaVision uses OpenCL GPU")
-set(LIB_SND_FILE FALSE CACHE PATH "Defines if PetaVision uses LIB_SND_FILE")
-set(CUDA_RELEASE FALSE CACHE PATH "Defines if Cuda compiles with optimization")
-
-set(CUDNN FALSE CACHE PATH "Defines if PetaVision uses Cuda's CUDNN library")
+set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
 
 set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
@@ -54,10 +50,6 @@ if(CUDA_GPU)
        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${CUDNN_PATH} -DPV_CUDNN")
     endif(CUDNN)
 endif(CUDA_GPU)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPV_DIR=\"\\\"${PV_DIR}\\\"\"")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPV_DIR=\"${PV_DIR}\"")
-
 
 if (LIB_SND_FILE)
     find_package(LIBSNDFILE)
