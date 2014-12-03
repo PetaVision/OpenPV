@@ -8,35 +8,35 @@ HyPerCol "column" = {
     nx                                  = 16;
     ny                                  = 16;
     dt                                  = 1.0;
+    dtAdaptFlag                         = false;
     randomSeed                          = 570867389;
     startTime                           = 0.0;
     stopTime                            = 260.0;
     progressInterval                    = 260.0;
     writeProgressToErr                  = false;
+    verifyWrites                        = true;
     outputPath                          = "output";
+    printParamsFilename                 = "pv.params";
     filenamesContainLayerNames          = 2;
     filenamesContainConnectionNames     = 2;
-    checkpointRead                      = false;
-    // checkpointReadDir;
-    // checkpointReadDirIndex;
+    initializeFromCheckpointDir         = "";
     checkpointWrite                     = false;
     // checkpointWriteDir                  = "output/checkpoints";
     // checkpointWriteStepInterval         = 1;
     // checkpointWriteTimeInterval;
     // deleteOlderCheckpoints;
     suppressLastOutput                  = false;
+    errorOnNotANumber                   = false;
 };
 
 Image "input" = {
-    restart                             = false;
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
     phase                               = 0;
     writeStep                           = -1;
     // initialWriteTime;
-    // writeSparseActivity;
-    writeSparseActivity                 = 0;
+    sparseLayer                         = 0;
     mirrorBCflag                        = false;
     valueBC                             = 0.0;
     // GPUAccelerate;
@@ -45,6 +45,7 @@ Image "input" = {
     // frameNumber;
     offsetX                             = 0;
     offsetY                             = 0;
+    offsetAnchor                        = "tl";
     writeImages                         = false;
     // writeImagesExtension;
     useImageBCflag                      = false;
@@ -70,24 +71,25 @@ IdentConn "input to residual" = {
 };
 
 MatchingPursuitResidual "residual" = {
-    restart                             = false;
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
     phase                               = 1;
     writeStep                           = 1.0;
     initialWriteTime                    = 0.0;
-    writeSparseActivity                 = false;
+    sparseLayer                         = false;
     mirrorBCflag                        = false;
     valueBC                             = 0.0;
     // GPUAccelerate;
     
     InitVType                           = "ZeroV";
+    
+    triggerFlag                         = false;
 
     VThresh                             = -infinity;
-    VMin                                = -infinity;
-    VShift                              = 0.0;
-    VMax                                = infinity;
+    AMin                                = -infinity;
+    AShift                              = 0.0;
+    AMax                                = infinity;
     VWidth                              = 0.0;
     
     syncedMovie                         = "";   // If set to a movie layer, activity resets when the movie sets newImageFlag
@@ -120,19 +122,21 @@ IdentConn "matching_pursuit_layer to residual" = {
 };
 
 MatchingPursuitLayer "matching_pursuit_layer" = {
-    restart                             = false;
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
     phase                               = 2;
     writeStep                           = 1.0;
     initialWriteTime                    = 0.0;
-    writeSparseActivity                 = false;
+    sparseLayer                         = true;
+    writeSparseValues                   = true;
     mirrorBCflag                        = false;
     valueBC                             = 0.0;
     // GPUAccelerate;
     
     InitVType                           = "ZeroV";
+    
+    triggerFlag                         = false;
         
     activationThreshold                 = 0.0;  // Treat activations with absolute value below this value as zero.
     syncedMovie                         = "";   // If set to a movie layer, activity resets when the movie sets newImageFlag
@@ -141,12 +145,15 @@ MatchingPursuitLayer "matching_pursuit_layer" = {
 };
 
 L2NormProbe "residual L2 error" = {
-    targetLayer = "residual";
-    message = "residual L2 error      ";
-    probeOutputFile = "residual_error.txt";
-    parentGenColProbe = "";
+    targetLayer                         = "residual";
+    message                             = "residual L2 error      ";
+    probeOutputFile                     = "residual_error.txt";
+    parentGenColProbe                   = "";
+    triggerFlag                         = false;
+    nnzThreshold                        = 0.0;
 };
 
 MatchingPursuitProbe "matching_pursuit_layer probe" = {
-    targetLayer = "matching_pursuit_layer";
+    targetLayer                         = "matching_pursuit_layer";
+    triggerFlag                         = false;
 };
