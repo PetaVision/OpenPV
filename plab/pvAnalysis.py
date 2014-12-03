@@ -182,12 +182,26 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
         # Seek to startframe-1 * framesize  # In case you choose not to start at the beginning of the file
         # [for every frame]
         #   readpvpheader from current position
+        #
         #   TODO: I don't know why any of the following stuff is done...
         #   remove 'additional' from header
         #   Compute how big the 'additional' information was -> numextrabytes
+        #   fseek from current position back numextrabytes
+        #   re-read each additional item into an array
+        #   compute numextra, which has a known relation to numextrabytes?
+        #   assign new header fields to each additional item
+        #   make new header field to hold the number of extra bytes (numextra)
+        #   </TODO>
+        #
+        #   [for every arbor]
+        #      [for every patch]
+        #         read 1 uint16 (this is the nx value)
+        #         read 1 uint16
+        #         read 1 uint32
+        #         read nfp*nxp*nyp float32s into array
+        #         reshape array to nfp , nxp , nyp
         #   
-        # 
-        #   
+        #
         # SHENG's DESCRIPTION:
         #
         # [For every frame]
