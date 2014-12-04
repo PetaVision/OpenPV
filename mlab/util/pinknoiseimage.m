@@ -4,7 +4,7 @@ function [Yre,Yim] = pinknoiseimage(m,n)
 M = ceil(m/2)*2;
 N = ceil(n/2)*2;
 
-assert(mod(M,2)==0 && mod(M,2)==0);
+assert(mod(M,2)==0 && mod(N,2)==0);
 
 
 X = repmat((-N/2+1:N/2),M,1);
