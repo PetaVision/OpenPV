@@ -22,7 +22,7 @@ powerspectrum(rsq==0)=0;
 randphase = exp(2i*pi*rand(Ny,Nx,Nz));
 fhat = powerspectrum .* randphase;
 
-f = ifft2(fhat);
+f = ifftn(fhat);
 
 Yre = real(f);
 chkbd = zeros(2,2,2);
