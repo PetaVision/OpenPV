@@ -26,12 +26,13 @@ set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location
 set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
 #set(Cuda_lib /usr/local/cuda-6.0/lib64 CACHE PATH "Location of opencl headers")
 
-if(OPEN_MP_THREADS)
+if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -DPV_USE_THREADS")
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp -DPV_USE_THREADS")
-endif (OPEN_MP_THREADS)
+   set(OPEN_MP_THREADS_FLAGS_ADDED TRUE)
+endif (OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
 
-if(OPEN_CL_GPU)
+if(OPEN_CL_GPU AND NOT DEFINED OPEN_CL_GPU_FLAGS_ADDED)
    IF(APPLE)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework opencl -DPV_OPENCL")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -framework opencl -DPV_OPENCL")
@@ -39,7 +40,8 @@ if(OPEN_CL_GPU)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL -DPV_OPENCL")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL -DPV_OPENCL")
    ENDIF(APPLE)
-endif (OPEN_CL_GPU)
+   set(OPEN_CL_GPU_FLAGS_ADDED TRUE)
+endif (OPEN_CL_GPU AND NOT DEFINED OPEN_CL_GPU_FLAGS_ADDED)
 
 if(CUDA_GPU)
     #Set include file
@@ -51,14 +53,15 @@ if(CUDA_GPU)
     endif(CUDNN)
 endif(CUDA_GPU)
 
-if (LIB_SND_FILE)
+if (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
     find_package(LIBSNDFILE)
-endif (LIB_SND_FILE)
+endif (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
 
-if(LIB_SND_FILE)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPV_USE_SNDFILE")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPV_USE_SNDFILE")
-endif (LIB_SND_FILE)
+if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
+   include_directories(${LIBSNDFILE_INCLUDE_DIR})
+   add_definitions(-DPV_USE_SNDFILE)
+   set(LIB_SND_FILE_FLAGS_ADDED TRUE)
+endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
 
 # The user may specify a non-standard compiler name for MPI
 #  For example, the user may type:
@@ -68,6 +71,13 @@ endif (LIB_SND_FILE)
 set(MPI_C_COMPILER_NAME "${CMAKE_C_COMPILER}")
 set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
 
+if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+    MESSAGE("-- Searching for MPI library ............")
+    find_package(MPI REQUIRED)
+    set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
+    set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+
 add_subdirectory(${PV_DIR})
 # # Insert additional add_subdirectory commands to add other projects.
 #add_subdirectory(BIDS)
@@ -76,5 +86,3 @@ add_subdirectory(${PV_DIR})
 #add_subdirectory(MaskLCA)
 #add_subdirectory(textAnalysis)
 #add_subdirectory(soundAnalysis)
-
-add_subdirectory(PVSystemTests)

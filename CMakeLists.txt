@@ -21,16 +21,28 @@ set(CUDA_GPU FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
 
-if(OPEN_MP_THREADS)
+if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -DPV_USE_THREADS")
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp -DPV_USE_THREADS")
-endif (OPEN_MP_THREADS)
+   set(OPEN_MP_THREADS_FLAGS_ADDED TRUE)
+endif (OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
+
+if(OPEN_CL_GPU AND NOT DEFINED OPEN_CL_GPU_FLAGS_ADDED)
+   IF(APPLE)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework opencl -DPV_OPENCL")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -framework opencl -DPV_OPENCL")
+   ELSE(APPLE)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL -DPV_OPENCL")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL -DPV_OPENCL")
+   ENDIF(APPLE)
+   set(OPEN_CL_GPU_FLAGS_ADDED)
+endif (OPEN_CL_GPU AND NOT DEFINED OPEN_CL_GPU_FLAGS_ADDED)
 
 if(OPEN_CL_GPU)
-   #TODO: make sure these flags work on linux
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPV_OPENCL")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPV_OPENCL")
+   add_definitions(-DPV_DIR="${CMAKE_CURRENT_SOURCE_DIR}") # needed by HyPerCol.cpp
 endif (OPEN_CL_GPU)
+
+
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
@@ -99,17 +111,22 @@ if (NOT GDAL_FOUND)
 endif (NOT GDAL_FOUND)
 include_directories(${GDAL_INCLUDE_DIR})
 
-if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+# The user may specify a non-standard compiler name for MPI
+#  For example, the user may type:
+#    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
+#
+
+if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
     MESSAGE("-- Searching for MPI library ............")
     find_package(MPI REQUIRED)
-    set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
-    set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
-endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
+set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 
-if (LIB_SND_FILE)
+if (LIB_SND_FILE AND NOT DEFINED LIBSNDFILE_FOUND)
     MESSAGE("-- Searching for SND library ............")
     find_package(LIBSNDFILE)
-endif (LIB_SND_FILE)
+endif (LIB_SND_FILE AND NOT DEFINED LIBSNDFILE_FOUND)
 
 if (CUDA_GPU)
     MESSAGE("-- Searching for CUDA library ............")
@@ -117,12 +134,10 @@ if (CUDA_GPU)
 endif (CUDA_GPU)
 
 #Include compiler directive and include directory for LIBSNDFILE
-if (LIB_SND_FILE)
-   ADD_DEFINITIONS(-DPV_USE_SNDFILE)
+if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
    include_directories(${LIBSNDFILE_INCLUDE_DIR})
-else (LIB_SND_FILE)
-   REMOVE_DEFINITIONS(-DPV_USE_SNDFILE)
-endif (LIB_SND_FILE)
+   add_definitions(-DPV_USE_SNDFILE)
+endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
 
 #IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 #   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g3; -G3; -O0)
