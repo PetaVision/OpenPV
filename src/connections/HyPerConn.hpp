@@ -88,7 +88,6 @@ public:
    }
 
    virtual int writePostSynapticWeights(double time, bool last);
-   int readWeights(const char* filename);
     
    GSynAccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
    int (*accumulateFunctionPointer)(int nk, float* v, float a, pvwdata_t* w, void* auxPtr);
