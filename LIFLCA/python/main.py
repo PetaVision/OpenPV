@@ -64,5 +64,5 @@ print 'Weights:'
 
 #l1_activityFile.close()
 #err_activityFile.close()
-weightsFile.close
+weightsFile.close()
 
