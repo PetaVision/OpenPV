@@ -91,9 +91,6 @@ MatchingPursuitResidual "residual" = {
     AShift                              = 0.0;
     AMax                                = infinity;
     VWidth                              = 0.0;
-    
-    syncedMovie                         = "";   // If set to a movie layer, activity resets when the movie sets newImageFlag
-    refreshPeriod                       = -1;   // If not syncing to a movie, how often to reset activity, in the same units as column's dt.  <0 means never reset; 
 };
 
 FeedbackConn "residual to matching_pursuit_layer" = {
