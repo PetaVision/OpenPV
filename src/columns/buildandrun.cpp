@@ -151,6 +151,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "MatchingPursuitLayer",
              "Retina",
              "ShuffleLayer",
+           "KmeansLayer",
              "BIDSMovieCloneMap",
              "BIDSSensorLayer",
            "_Stop_HyPerLayers_",
@@ -582,6 +583,11 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ShuffleLayer(name, hc);
    }
+   if( !strcmp(classkeyword, "KmeansLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new KmeansLayer(name, hc);
+   }
+
    if( !strcmp(classkeyword, "BIDSCloneLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new BIDSCloneLayer(name, hc);

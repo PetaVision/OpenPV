@@ -69,6 +69,7 @@
 #include "../layers/MLPOutputLayer.hpp"
 #include "../layers/LabelErrorLayer.hpp"
 #include "../layers/ANNLabelLayer.hpp"
+#include "../layers/KmeansLayer.hpp"
 #ifdef OBSOLETE // Marked obsolete April 23, 2014.
 // Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
 #include "../layers/ANNTriggerUpdateOnNewImageLayer.hpp"

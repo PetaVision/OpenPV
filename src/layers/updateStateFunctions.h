@@ -216,6 +216,9 @@ int resetGSynBuffers_SigmoidLayer();
 //   return height * exp(-(pow(xVal-mean, 2)/(2*pow(sigma, 2))));
 //}
 
+KERNEL
+int setActivity_KmeansLayer(int numNeurons, int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL pvdata_t * A,int nx,int ny, int nf, int lt, int rt, int dn, int up, bool trainingFlag);
+
 
 // Definitions
 KERNEL
@@ -236,6 +239,8 @@ int applyGSyn_HyPerLayer1Channel(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_
    }
    return PV_SUCCESS;
 }
+
+
 
 KERNEL
 int applyGSyn_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead) {
@@ -443,6 +448,7 @@ int updateV_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
    if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
    return status;
 }
+
 
 KERNEL
 int updateV_AccumulateLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
@@ -1081,6 +1087,81 @@ int resetGSynBuffers_HyPerLayer(int numNeurons, int num_channels, CL_MEM_GLOBAL 
 KERNEL
 int resetGSynBuffers_SigmoidLayer() {
    return PV_SUCCESS; // V is cloned from sourcelayer, so Sigmoid Layer doesn't use the GSynBuffers
+}
+
+
+
+/* KmeansLayer does not use V */
+KERNEL
+int setActivity_KmeansLayer(int numNeurons, int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL pvdata_t * A,int nx,int ny, int nf, int lt, int rt, int dn, int up, bool trainingFlag)
+{
+    CL_MEM_GLOBAL pvdata_t * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
+    
+    for(int i = 0; i < ny; i++)
+    {
+        for(int j = 0; j < nx; j++)
+        {
+            if(trainingFlag)
+            {
+                int max = 0,maxIndex = 0;
+
+                //look for the maximum value
+                for(int k = 0; k < nf; k++)
+                {
+                    int kk = (i*nx+j)*nf + k;
+
+                    if(GSynExc[kk] > max)
+                    {
+                        max = GSynExc[kk];
+                        maxIndex = kk;
+                    }
+                }
+            
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+                for(int k=0; k<nf; k++ )
+                {
+                    int kk = (i*nx+j)*nf + k;
+                    int kex = kIndexExtended(kk,nx,ny,nf,lt, rt, dn, up);
+                    if (kk == maxIndex)
+                        A[kex] = 1;
+                    else
+                        A[kex] = 0;
+                }
+            }
+            else
+            {
+                //compute mean
+                float mean = 0;
+                
+                for(int k = 0; k < nf; k++)
+                {
+                    int kk = (i*nx+j)*nf + k;
+                    mean += GSynExc[kk];
+                }
+
+                mean /= nf;
+                
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+                for(int  k=0; k<nf; k++ )
+                {
+                    int kk = (i*nx+j)*nf + k;
+                    int kex = kIndexExtended(kk,nx,ny,nf,lt, rt, dn, up);
+                    if (GSynExc[kk] >= mean)
+                        A[kex] = GSynExc[kk];
+                    else
+                        A[kex] = 0;
+                }
+
+            }
+            
+        }
+    }
+
+    return PV_SUCCESS;
 }
 
 #endif /* UPDATESTATEFUNCTIONS_H_ */
