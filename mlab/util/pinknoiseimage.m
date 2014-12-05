@@ -13,7 +13,7 @@ rsq = X.^2 + Y.^2;
 
 randphase = exp(2i*pi*rand(M,N));
 
-oneoverf = rsq.^(-1/2);
+oneoverf = rsq.^(-1);
 oneoverf(rsq==0)=0;
 fhat = oneoverf .* randphase;
 
