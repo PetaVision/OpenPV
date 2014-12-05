@@ -268,8 +268,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
 #ifdef PV_USE_OPENCL
    //Make sure the directive set in CMake is set here
 #ifndef PV_DIR
-   std::cout << "HyPerCol error: PV_DIR compiler directive must be set if using OpenCL\n";
-   exit(PV_FAILURE);
+#error PV_DIR macro must be set if using OpenCL
 #endif
    srcPath = (char *) calloc(PV_PATH_MAX, sizeof(char));
    strcat(srcPath, PV_DIR);
