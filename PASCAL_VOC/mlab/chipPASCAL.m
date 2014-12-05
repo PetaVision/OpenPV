@@ -1,92 +1,119 @@
-%% script for resizing PASCAL VOC images
-%% user specifies one of 3 orientation types, landscape, portriat or square,
+%% script for resizing PASCAL VOC and imageNet images.
+%% sparse ground truth representations, CSV annotation file, visualization masks 
+%% and individual chips corresponding to each bounding box are generated as well.
+%% the user specifies one of 3 orientation types, "landscape", "portriat" or "square",
+%% or else specifies "any",
 %% along with the new dimensions for
-%% all images whose original dimensions are consistent with the
+%% all resized images whose original dimensions are consistent with the
 %% specified orientation_type.
-%% Images are resized so that the "shorest"
+%% if a specific orientation type is specified,
+%% mages are resized so that the "shorest"
 %% resized dimension, measured as a fraction of the target ratio,
 %% exactly matches the specified dimension, with the other
 %% "longer" dimension cropped symmetrically so as to match the
 %% specified size.
-%% Optional padding can be added around all borders using mirror BCs.
-%% All resized images have the same final size.
-%% uses VOCdevkit
-%% also generates CSV file giving corners of each bounding box in
+%% If the orientation type is "any", the shortest image dimension is set
+%% to a standard size and the longest dimension is set so as to maintain the
+%% original aspect ratio.
+%% Optional padding can be added around all borders of the resized image using mirror BCs.
+%% If a specific orientation type is specified, all resized images have the same final size.
+%% Uses VOCdevkit
+%% Also generates CSV file giving corners of each bounding box in
 %% resized dimensions, using NeoVision2 format (see init CSV file fbelow)
-%% also generates a mask for each image with the class ID of each
+%% Also generates a mask for each image with the class ID of each
 %% pixel encoded by the activating of the corresponding bit
 %% also generates a list of full paths to each resized image
 %%
 %% author: Garrett T. Kenyon, garkenyon@gmail.com ~2014
 %%
 
-clear all
-close all
+%%clear all
+%%close all
 more off
-setenv("GNUTERM","X11")
+%setenv("GNUTERM","X11")
 
-addpath("~/workspace/PetaVision/mlab/imgProc");
+%%  the line below allows chipPASCAL to be applied to a single imageNet category
+if ~exist('imageNet_synset_flag', 'var') || isempty(imageNet_synset_flag)
+  imageNet_synset_flag =  false;
+endif
+
+%% set up paths (edit this script to change paths to customize implementations
+if ~exist(workspace_path, 'dir') || isempty(workspace_path)
+  setImagePaths;
+endif
 
 %% specify target image type and dimensions
-orientation_type = "landscape"; %%"square"; %%  "portrait"; %%
-disp(["orientation_type 1= ", orientation_type]);
+if ~exist('orientation_type', 'var') || isempty(orientation_type)
+  orientation_type = "any"; %%"landscape"; %%"square"; %%  "portrait"; %%
+  disp(["orientation_type 1= ", orientation_type]);
+endif
+target_resize_length = 256;
+target_resize_ratio = 3/4;
 if strcmp(orientation_type, "landscape")
-  resized_height = 192; %%360;
-  resized_width = 256; %%480;
+  target_resized_height = round(target_resize_length * target_resize_ratio); 
+  target_resized_width = target_resize_length; 
 elseif strcmp(orientation_type, "portrait")
-  resized_height = 256; %%480;
-  resized_width = 192; %%360;
-else
-  resized_height = 256; %%420;
-  resized_width = 256; %%420;
+  target_resized_height = target_resize_length; 
+  target_resized_width = round(target_resize_length * target_resize_ratio); 
+elseif strcmp(orientation_type, "square")
+  target_resized_height = target_resize_length; 
+  target_resized_width = target_resize_length; 
+elseif strcmp(orientation_type, "any")  %% leave target size undefined until later, set smallest image dimension to target_resize_length and keep aspect ratio unchanged
+  target_resized_height = [];
+  target_resized_width = []; 
 endif
 border_padding = 0; %%8;
 
+chip_flag = true;  %% if true, write resized chips to corresponding folders
+mask_flag = false;   %% if true, make mask images for visualization purposes
+
 %% diagnostic flags, causes figures to be displayed to screen rather
 %% than only written to image files
-plot_bbox = false;
+plot_bbox = false; %%true; %%
 if plot_bbox 
   bbox_fig = figure;
   set(bbox_fig, 'name', 'bbox');
   mask_fig = figure;
   set(mask_fig, 'name', 'mask');
+  chip_fig = figure;
+  set(chip_fig, 'name', 'chip');
 endif
 
 %% format to save corresponding images as (png, jpg, tiff, etc)
 resized_ext = '.png';
 mask_ext = '.png';
+chip_ext = '.png';
 
 %% set results paths
-workspace_path = "~/workspace";
-PASCAL_VOC_path = [workspace_path, filesep, "PASCAL_VOC"];
-mkdir(PASCAL_VOC_path);
-VOC_dataset = "VOC2007";
+if ~imageNet_synset_flag
+  VOC_dataset = "VOC2007";
+else
+  VOC_dataset = "imageNet"; 
+endif
 VOC_dataset_path = fullfile(PASCAL_VOC_path, VOC_dataset);
-mkdir(PASCAL_VOC_path, VOC_dataset);
+mkdir(VOC_dataset_path);
 train_dir = "padded"; %%"train"
 train_path = fullfile(PASCAL_VOC_path, VOC_dataset, train_dir);
 mkdir(train_path);
-mask_dir = "mask"
-mask_path = fullfile(PASCAL_VOC_path, VOC_dataset, mask_dir);
-mkdir(mask_path);
-addpath([PASCAL_VOC_path, filesep, "mlab"]);
-
-%% collect PASCAL_VOC specific stuff here...
-%% set VOCdev paths
-VOCdevkit_path = fullfile(PASCAL_VOC_path, "VOCdevkit");
-if ~exist(VOCdevkit_path, "dir")
-  error("VOCdevkit_path does not exist: ", VOCdevkit_path);
+if mask_flag
+  mask_dir = "mask"
+  mask_path = fullfile(PASCAL_VOC_path, VOC_dataset, mask_dir);
+  mkdir(mask_path);
 endif
-addpath(VOCdevkit_path);
-VOCcode_path = fullfile(VOCdevkit_path, "VOCcode");
-addpath(VOCcode_path);
+if chip_flag
+  chip_dir = "chip"
+  chip_path = fullfile(PASCAL_VOC_path, VOC_dataset, chip_dir);
+  mkdir(chip_path);
+endif
 
 % initialize VOC options
 VOCinit;
 
-%%ids=textread(sprintf(VOCopts.imgsetpath,'train'),'%s');
+%% working annotation path
 [annotation_path, ~, annotation_ext] = fileparts(VOCopts.annopath);
-%% end PASCAL_VOC specific stuff
+
+%% minimus size that bounding box must be along either dimension in order to add to ground truth
+min_bbox_size = 32;
 
 %% colormap for category masks, 1 color for each class_ID
 log2_max_class_ndx = 24;
@@ -102,23 +129,42 @@ classID_data = cell(); %% size of cell is number of resized images, which
 %% we don't know yet...so grow classID_data dynamically
 
 %% load list of raw images
-training_path = fullfile(VOCdevkit_path, VOC_dataset, "JPEGImages");
+training_path = fullfile(VOCdevkit_path, VOCopts.dataset, "JPEGImages");
 if ~exist(training_path, "dir")
   error(["training_path does not exist: ", training_path]);
 end
-raw_list = glob([training_path, filesep, "*.jpg"]);
+if ~imageNet_synset_flag
+  raw_ext = "jpg";
+else
+  raw_ext = "JPEG";
+endif
+raw_list = glob([training_path, filesep, "*." raw_ext]);
 num_raw = length(raw_list)
 
 %% open text files for storing lists of resized images and class ID masks
-resized_list = [VOC_dataset_path, filesep, VOC_dataset, "_padded", ...x
-		num2str(border_padding), "_", orientation_type, "_list.txt"];
+if border_padding > 0
+  if ~imageNet_synset_flag
+    resized_list = [VOC_dataset_path, filesep, VOC_dataset, "_padded", ...
+		  num2str(border_padding), "_", orientation_type, "_list.txt"];
+  else
+    resized_list = [VOC_dataset_path, filesep, VOC_dataset, "_", imageNet_synset_name, "_", "_padded", ...
+		  num2str(border_padding), '_',  orientation_type, "_list.txt"];
+  endif
+else
+  if ~imageNet_synset_flag
+    resized_list = [VOC_dataset_path, filesep, VOC_dataset, "_", orientation_type, "_list.txt"];
+  else
+    resized_list = [VOC_dataset_path, filesep, VOC_dataset, "_", imageNet_synset_name, '_',  orientation_type, "_list.txt"];
+  endif
+endif
 resized_fid = fopen(resized_list, "w", "native");
-mask_list = [resized_list(1:strfind(resized_list,"_list")-1),"_mask_list.txt"]; %%[VOC_dataset_path, filesep, VOC_dataset, "_mask_", orientation_type, "_list.txt"];
-mask_fid = fopen(mask_list, "w", "native");
-
+if mask_flag
+  mask_list = [resized_list(1:strfind(resized_list,"_list")-1),"_mask_list.txt"]; 
+  mask_fid = fopen(mask_list, "w", "native");
+endif
 
 %% initialize CSV file (DARPA Neovision2 format)
-CSV_file = [resized_list(1:strfind(resized_list,"_list")-1),".csv"]; %%[VOC_dataset_path, filesep, VOC_dataset, "_padded_", orientation_type, ".csv"];
+CSV_file = [resized_list(1:strfind(resized_list,"_list")-1),".csv"]; 
 CSV_fid = fopen(CSV_file, "wt", "native");
 CSV_header = ["Frame	"];
 CSV_header = [CSV_header, "BoundingBox_X1	"];
@@ -151,8 +197,12 @@ CSV_filler_str = [CSV_Occlusion_str, ", ", CSV_Ambiguous_str, ", ", ...
 
 
 %% begin main loop over images
-resized_W2H_ratio = resized_width / resized_height;
+target_W2H_ratio = [];
+if ~isempty(target_resized_width) && ~isempty(target_resized_height)
+  target_W2H_ratio = target_resized_width / target_resized_height;
+endif
 num_resized = 0;
+num_annotated = 0;
 num_resized_failed = 0;
 num_non_RGB = 0;
 for i_raw = 1 : num_raw
@@ -170,14 +220,7 @@ for i_raw = 1 : num_raw
     num_non_RGB = num_non_RGB + 1;
     continue
   endif
-  %% keep only images with correct orientation_type
-  if strcmp(orientation_type, "landscape") && raw_height >= raw_width
-    continue
-  elseif strcmp(orientation_type, "portrait") && raw_height <= raw_width
-    continue
-  elseif strcmp(orientation_type, "square") && raw_height ~= raw_width
-    continue
-  endif
+  
   %% remove artificial borders along rows
   while raw_height > 0 && ((all(raw_image(raw_height,:,:)==0) || all(raw_image(raw_height,:,:)==255)))
     raw_height = raw_height - 1;
@@ -204,9 +247,36 @@ for i_raw = 1 : num_raw
   left_border_crop = raw_first_col - 1;
   raw_image = raw_image(:,raw_first_col:raw_width,:);
   raw_width = size(raw_image, 2);
+  
+  
+  
+  %% keep only images with correct orientation_type
+  raw_W2H_ratio = raw_width / raw_height;
+  if strcmp(orientation_type, "landscape") && raw_height >= raw_width
+    continue
+  elseif strcmp(orientation_type, "portrait") && raw_height <= raw_width
+    continue
+  elseif strcmp(orientation_type, "square") && raw_height ~= raw_width
+    continue
+  endif
+
+  %% check if orientation_type == 'any'
+  if strcmp(orientation_type, "any")
+    target_W2H_ratio = raw_W2H_ratio;
+    if raw_height <= raw_width
+       target_resized_height = target_resize_length;
+       target_resized_width = round(target_resize_length * target_W2H_ratio);
+    else
+       target_resized_width = target_resize_length;
+       target_resized_height = round(target_resize_length / target_W2H_ratio);
+    endif  
+  endif
+  resized_width = target_resized_width;
+  resized_height = target_resized_height;
+  resized_W2H_ratio = target_W2H_ratio;
+
 
   %% resize shortest image dimension relative to target ratio, crop other dimension taking center portion
-  raw_W2H_ratio = raw_width / raw_height;
   resize_scale = 1.0;
   if raw_W2H_ratio <= resized_W2H_ratio %% raw image is too skinny (or just right), fix width and crop height
     resize_scale = resized_width / raw_width;
@@ -275,7 +345,12 @@ for i_raw = 1 : num_raw
   
   %% fix bounding boxes
   % read annotation
-  rec=PASreadrecord(fullfile(annotation_path,[raw_name, annotation_ext]));
+  annotation_file = fullfile(annotation_path,[raw_name, annotation_ext]);
+  if ~exist(annotation_file, "file")
+    continue;
+  endif
+  num_annotated = num_annotated + 1;
+  rec=PASreadrecord(annotation_file);
   num_bbox = length(rec.objects);
   %% xmin, ymin, xmax, ymax
   %% 0,0 at top left corner
@@ -286,14 +361,25 @@ for i_raw = 1 : num_raw
   if plot_bbox
     bbox_image = resized_image;
   endif
-  mask_image = zeros(size(resized_image));;
+  if mask_flag
+    mask_image = zeros(size(resized_image));;
+  endif
   classID_struct = struct;
   classID_struct.time = double(num_resized);
   classID_struct.values = [];
   num_active = 0;
   for i_bbox = 1 : num_bbox
-    mask_bbox = zeros(size(resized_image));
-    class_name = rec.objects(i_bbox).class;
+    if ~imageNet_synset_flag
+      class_name = rec.objects(i_bbox).class;
+    else
+      bbox_wnid = rec.objects(i_bbox).class;
+      glossary_ndx = strmatch(bbox_wnid, glossary_wnid);
+      class_name_ndx = strfind(glossary_word{glossary_ndx,1}, ',');
+      if isempty(class_name_ndx)
+       class_name_ndx = length(glossary_word{glossary_ndx,1})+1;
+      endif
+      class_name = glossary_word{glossary_ndx,1}(1:class_name_ndx-1); 
+    endif
     raw_bbox = rec.objects(i_bbox).bbox;
     resized_bbox = zeros(size(raw_bbox));
     class_ndx = strmatch(class_name,VOCopts.classes);
@@ -322,6 +408,9 @@ for i_raw = 1 : num_raw
     if resized_bbox(bbox_ymax) > resized_height 
       resized_bbox(bbox_ymax) = resized_height;
     endif
+    if (resized_bbox(bbox_ymax) <= (resized_bbox(bbox_ymin) + min_bbox_size)) || (resized_bbox(bbox_xmax) <= (resized_bbox(bbox_xmin) + min_bbox_size))
+      continue
+    endif
     CSV_bbox_str = [num2str(num_resized), ", "];
     CSV_bbox_str = [CSV_bbox_str, num2str(resized_bbox(bbox_xmin)), ", ", num2str(resized_bbox(bbox_ymin)), ", "];
     CSV_bbox_str = [CSV_bbox_str, num2str(resized_bbox(bbox_xmin)), ", ", num2str(resized_bbox(bbox_ymax)), ", "];
@@ -346,11 +435,14 @@ for i_raw = 1 : num_raw
       bbox_image(resized_bbox(bbox_ymin), resized_bbox(bbox_xmin):resized_bbox(bbox_xmax),3) = class_color(3);
       bbox_image(resized_bbox(bbox_ymax), resized_bbox(bbox_xmin):resized_bbox(bbox_xmax),3) = class_color(3);
     endif
+    mask_bbox = zeros(size(resized_image));
     mask_bbox_x = [resized_bbox(bbox_xmin), resized_bbox(bbox_xmin), resized_bbox(bbox_xmax), resized_bbox(bbox_xmax), resized_bbox(bbox_xmin)];
     mask_bbox_y = [resized_bbox(bbox_ymin), resized_bbox(bbox_ymax), resized_bbox(bbox_ymax), resized_bbox(bbox_ymin), resized_bbox(bbox_ymin)];
     mask_bbox = poly2mask(mask_bbox_x, mask_bbox_y, size(resized_image,1), size(resized_image,2));
-    mask_bbox_color = repmat(mask_bbox, [1, 1, 3]) .* repmat(class_color, [size(resized_image,1), size(resized_image,2), 1]); 
-    mask_image(mask_bbox_color>0) = mask_bbox_color(mask_bbox_color>0);
+    if mask_flag
+      mask_bbox_color = repmat(mask_bbox, [1, 1, 3]) .* repmat(class_color, [size(resized_image,1), size(resized_image,2), 1]); 
+      mask_image(mask_bbox_color>0) = mask_bbox_color(mask_bbox_color>0);
+    endif
 
     %% build sparse activity vector
     num_active_bbox = nnz(mask_bbox);
@@ -371,8 +463,28 @@ for i_raw = 1 : num_raw
     if numel(classID_struct.values) ~= num_active
       keyboard;
     endif
+
+    %% write chip
+    if ~chip_flag
+       continue;
+    endif
+    chip_classID_path = fullfile(chip_path, class_name);
+    mkdir(chip_classID_path);
+    chip_image_path = fullfile(chip_classID_path, [raw_name, class_name, "_", num2str(i_bbox), chip_ext]);
+    chip_dimensions_rows = [resized_bbox(bbox_ymin):resized_bbox(bbox_ymax)];
+    chip_dimensions_cols = [resized_bbox(bbox_xmin):resized_bbox(bbox_xmax)];
+    chip_image = resized_image(chip_dimensions_rows, chip_dimensions_cols, :);
+    if plot_bbox
+      figure(chip_fig);
+      imagesc(chip_image);
+      axis off; axis image; box off;
+      keyboard
+    endif
+    imwrite(uint8(chip_image), chip_image_path);
+
+
   endfor %% i_bbox
-  classID_data{num_resized,1} = classID_struct;
+  classID_data{num_annotated,1} = classID_struct;
   
   if plot_bbox
     figure(bbox_fig)
@@ -383,17 +495,25 @@ for i_raw = 1 : num_raw
     axis off; axis image; box off;
     keyboard;
   endif
-  mask_image_path = fullfile(mask_path, [raw_name, mask_ext]);
-  imwrite(uint8(mask_image), mask_image_path);
-  fputs(mask_fid, [mask_image_path, "\n"]);  
+  if mask_flag
+    mask_image_path = fullfile(mask_path, [raw_name, mask_ext]);
+    imwrite(uint8(mask_image), mask_image_path);
+    fputs(mask_fid, [mask_image_path, "\n"]);  
+  endif
 endfor %% i_raw
 fclose(resized_fid)
-fclose(mask_fid)
+if mask_flag
+  fclose(mask_fid)
+endif
 disp(["num_raw = ", num2str(num_raw)]);
 disp(["num_non_RGB = ", num2str(num_non_RGB)]);
 disp(["num_resized = ", num2str(num_resized)]);
+disp(["num_annotated = ", num2str(num_annotated)]);
 disp(["num_resized_failed = ", num2str(num_resized_failed)]);
 
-classID_file = [resized_list(1:strfind(resized_list,"_list")-1), "_classID.pvp"]; %%
-writepvpsparseactivityfile(classID_file, classID_data, resized_width, resized_height, num_classes);
+
+if num_annotated > 0
+  classID_file = [resized_list(1:strfind(resized_list,"_list")-1), ".pvp"]; %%
+  writepvpsparseactivityfile(classID_file, classID_data, resized_width, resized_height, num_classes);
+endif
 

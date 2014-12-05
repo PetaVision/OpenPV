@@ -1,0 +1,291 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+  nx = 256; 
+  ny = 256; // 192; //
+  dt = 1.0;
+  dtAdaptFlag = true;
+  dtScaleMax = 10.0;
+  dtScaleMin = 0.25;
+  dtChangeMax = 0.1;
+  dtChangeMin = 0.0;
+  dtMinToleratedTimeScale = 1.0e-4;
+  randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+  startTime =  0; //2400000; //
+  stopTime =   20800; // 52 square //7955 landscape images // 883 portrait images//  * displayPeriod
+  progressInterval = 1000;
+  outputPath = "~/workspace/PASCAL_VOC/PASCAL_S1_96_SLP/VOC2007_square2";
+  filenamesContainLayerNames = true;
+  filenamesContainConnectionNames = true;
+  //checkpointRead = false;
+  //checkpointReadDir = "~/workspace/PASCAL_VOC/PASCAL_S1_96_SLP/VOC2007_square/Checkpoints";
+  //checkpointReadDirIndex = 3987000;
+  checkpointWrite = true;
+  //checkpointWriteTriggerMode = "step";
+  checkpointWriteDir = "~/workspace/PASCAL_VOC/PASCAL_S1_96_SLP/VOC2007_square2/Checkpoints";
+  checkpointWriteStepInterval = 2000;
+  deleteOlderCheckpoints = true;
+    //suppressLastOutput = false;
+  writeProgressToErr = true;
+  outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+  suppressLastOutput = false;
+  printParamsFilename = "PASCAL_VOC_PASCAL_S1_96_SLP_VOC2007_square.params";
+};
+
+//
+// layers
+//
+
+Movie "Image" = {
+    nxScale = 1;
+    nyScale = 1;
+    imageListPath = "~/workspace/PASCAL_VOC/VOC2007/VOC2007_padded0_square_list.txt";
+    nf = 3;
+    writeStep = 200;
+    initialWriteTime = 200;
+    writeSparseActivity = false;
+    displayPeriod = 200;
+    start_frame_index = 0; //2346; 
+    skip_frame_index = 0;
+    echoFramePathnameFlag = true;
+    writeFrameToTimestamp = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = true;
+    writeImages = false;
+    offsetX = 0; 
+    offsetY = 0; 
+    randomMovie = 0;
+    autoResizeFlag = false;
+    readPvpFile = false;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+ANNNormalizedErrorLayer "Error" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    initialWriteTime = 200.0;
+    writeStep = 200;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_SLP/VOC2007_landscape2/Checkpoints/Checkpoint1591000/Error_V.pvp";
+    //
+    VThresh = 0.001;
+    AMax =  infinity;
+    AMin = 0;
+    AShift = 0;
+    VWidth = 0;
+    errScale = 1.0;
+    //
+    triggerFlag = false;
+    phase = 2;  
+};
+
+HyPerLCALayer "S1" = {
+    restart = 0;
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 96; //48; 
+    numChannels = 1; // should be 1
+    numWindowX = 1;
+    numWindowY = 1;
+    initialWriteTime = 200.0;
+    writeStep = 200.0;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    sparseLayer = true;
+    writeSparseValues = 1; 
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .1; //0.05 above VThresh
+    ///InitVType = "InitVFromFile";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_SLP/VOC2007_landscape2/Checkpoints/Checkpoint1591000/S1_V.pvp";
+    // 
+    timeConstantTau = 100; //200; //100.0;
+    //timeConstantTauMinimum = 10.0;
+    //slopeErrorStd = 0.01;
+    // 
+    VThresh = 0.025; //0.025; //   0.1 -> 0.5% median activation, 0.05 -> 1.57%
+    AMax = infinity;
+    AMin = 0;
+    AShift = 0.0; //0.0; //0 -> hard threshold, 1 -> soft threshold
+    VWidth = 0.1; //0.05; //0.025; //0.025; //0.025; 
+    selfInteract = true;   //
+    triggerFlag = false;
+    updateGpu = false; //true;    
+    phase = 3;
+};
+
+
+ANNLayer "Recon" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    initialWriteTime = 201.0;
+    writeStep = 200.0;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    sparseLayer = false;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_SLP/VOC2007_landscape2/Checkpoints/Checkpoint1591000/Recon_V.pvp";
+    //
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    VWidth = 0.0; 
+    // 
+    triggerLayerName = "Image";
+    triggerFlag = true;
+    triggerOffset = 0;
+    phase = 1; 
+};
+
+
+
+
+
+// connections
+
+
+KernelConn "ImageToError" = {
+    preLayerName = "Image";
+    postLayerName = "Error";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 3;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    weightInit = 0.0555; // 1/sqrt(18*18); //1.0625;  // 1/sqrt(16*16);  // force unit L2 norm
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+};
+
+
+
+
+KernelConn "S1ToError" = {
+    preLayerName = "S1";
+    postLayerName = "Error";
+    channelCode = 1;
+    nxp = 18;
+    nyp = 18;
+    //nxpShrunken = 16;
+    //nypShrunken = 16;
+    nfp = 3;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    //
+    weightInitType = "FileWeight";
+    initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_S1_96_SLP/VOC2007_landscape2/Checkpoints/Checkpoint1591000/S1ToError_W.pvp";
+    //initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_C1X4_task/Checkpoint3760000/S1ToError_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+    //sparseFraction = .90;
+    //
+    strength = 1.0;  
+    normalizeMethod = "normalizeL2";
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    //weightUpdatePeriod = 200.0;
+    initialWeightUpdateTime = 200.0;
+    triggerLayerName = "Image";
+    triggerFlag = true;
+    triggerOffset = 1;
+    //imprintTimeThresh = 20000.0;
+    initialWriteTime = 0.0;
+    dWMax = 2.5; //5.0; // 10.0; //
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;     
+};
+
+
+TransposeConn "ErrorToS1" = {
+    preLayerName = "Error";
+    postLayerName = "S1";
+    channelCode = 0;
+    originalConnName = "S1ToError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true; 
+    receiveGpu = true;
+};
+
+CloneKernelConn "S1ToRecon" = {
+    preLayerName = "S1";
+    postLayerName = "Recon";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "S1ToError";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+    delay = 0;
+    preActivityIsNotRate = false;
+    writeCompressedCheckpoints = false;
+};
+
+
+
