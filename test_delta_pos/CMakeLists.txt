@@ -63,16 +63,14 @@ if (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
     find_package(LIBSNDFILE)
 endif (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
 
-if(LIB_SND_FILE AND LIBSNDFILE_FOUND)
-    include_directories(${LIBSNDFILE_INCLUDE_DIR})
-    add_definitions(-DPV_USE_SNDFILE)
-endif (LIB_SND_FILE AND LIBSNDFILE_FOUND)
+if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
+   include_directories(${LIBSNDFILE_INCLUDE_DIR})
+   add_definitions(-DPV_USE_SNDFILE)
+   set(LIB_SND_FILE_FLAGS_ADDED TRUE)
+endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
 
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
-IF(LIB_SND_FILE)
-   include_directories(${LIBSNDFILE_INCLUDE_DIR})
-ENDIF(LIB_SND_FILE)
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
@@ -88,6 +86,7 @@ else(CUDA_GPU)
 endif(CUDA_GPU)
 
 target_link_libraries(${PV_PROJECT_NAME} pv)
+target_link_libraries(${PV_PROJECT_NAME} m)
 
 # Link executable to external libraries
 target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})

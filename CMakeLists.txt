@@ -6,15 +6,29 @@ project(PetaVision)
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.8)
 
+#Set CMAKE_MODULE_PATH
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
+
 # Set variable for current working directory (workspace directory)
 set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision CACHE FILEPATH "The base petavision directory")
 
 set(OPEN_MP_THREADS FALSE CACHE PATH "Defines if PetaVision uses OpenMP threads")
 
-if(OPEN_MP_THREADS)
+if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -DPV_USE_THREADS")
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp -DPV_USE_THREADS")
-endif (OPEN_MP_THREADS)
+   set(OPEN_MP_THREADS_FLAGS_ADDED TRUE)
+endif (OPEN_MP_THREAD AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDEDS)
+
+if (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
+    find_package(LIBSNDFILE)
+endif (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
+
+if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
+   include_directories(${LIBSNDFILE_INCLUDE_DIR})
+   add_definitions(-DPV_USE_SNDFILE)
+   set(LIB_SND_FILE_FLAGS_ADDED TRUE)
+endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
 
 add_subdirectory(AdjustAxonalArborsTest)
 add_subdirectory(ArborSystemTest)
