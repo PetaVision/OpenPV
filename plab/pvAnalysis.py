@@ -14,9 +14,10 @@ import numpy as np
 import struct, os, sys
 import pdb
 
-def read_header_file(fileStream, pos=None):
-    fileStream.seek(0)
-    params = struct.unpack("iiiiiiiiiiiiiiiiiid", fileStream.read(80))
+def read_header_file(fileStream, pos=0):
+    fileStream.seek(pos)
+
+    params = struct.unpack("iiiiiiiiiiiiiiiiii", fileStream.read(72))
     header = {}
     header["headersize"] = params[0]
     header["numparams"]  = params[1]
@@ -38,14 +39,27 @@ def read_header_file(fileStream, pos=None):
     header["ky0"]        = params[15]
     header["nb"]         = params[16]
     header["nbands"]     = params[17]
+    header["time"]       = np.fromfile(fileStream,np.float64,1)[0]
 
     # If hdr.numparams is bigger than 20, there is a field 'additional'
-    # containing an vector of hdr.numparams-20 elements.
+    # containing an vector of hdr.numparams-20 elements of precision int32.
     if header["numparams"] > 20:
-        header["additional"] = []
-        numAddParams = header["numparams"] - 20
-        for i in range(numAddParams):
-            header["additional"].append(struct.unpack("i", fileStream.read(4)))
+        if header["filetype"] == 5: #PVP_KERNEL_FILE has different header setup
+            additionalParams = struct.unpack("iiiffi", fileStream.read(24))
+            header["nxp"]        = additionalParams[0]
+            header["nyp"]        = additionalParams[1]
+            header["nfp"]        = additionalParams[2]
+            header["wMin"]       = additionalParams[3]
+            header["wMax"]       = additionalParams[4]
+            header["numPatches"] = additionalParams[5]
+
+            numExtra = (header["headersize"]-80)/4 - 6
+            if numExtra > 0: # We still have more information
+                header["additional"] = np.fromfile(fileStream,np.int32,numExtra)
+            else:
+                header["additional"] = []
+        else: # all other file types are the same
+            header["additional"] = np.fromfile(fileStream,np.int32,header["numparams"]-20)
 
     return header
 
@@ -162,6 +176,7 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
 
     if hdr["filetype"] == 3: #PVP_WGT_FILE_TYPE
         return (None, None)
+        pdb.set_trace()
        
     elif hdr["filetype"] == 4: #PVP_NONSPIKING_ACT_FILE
         if hdr["datatype"] == 3: #PV_FLOAT_TYPE
@@ -176,86 +191,42 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                 assert timeStamps[i] != -1
                 #TODO: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
                 assert data[i] != None 
+
     elif hdr["filetype"] == 5: #PVP_KERNEL_FILE_TYPE
-        # 
-        # MY DESCRIPTION:
-        #
-        # Seek to startframe-1 * framesize  # In case you choose not to start at the beginning of the file
-        # [for every frame]
-        #   readpvpheader from current position
-        #
-        #   TODO: I don't know why any of the following stuff is done...
-        #   remove 'additional' from header
-        #   Compute how big the 'additional' information was -> numextrabytes
-        #   fseek from current position back numextrabytes
-        #   re-read each additional item into an array
-        #   compute numextra, which has a known relation to numextrabytes?
-        #   assign new header fields to each additional item
-        #   make new header field to hold the number of extra bytes (numextra)
-        #   </TODO>
-        #
-        #   [for every arbor]
-        #       [for every patch]
-        #         read 1 uint16 (this is the nx value)
-        #         read 1 uint16
-        #         read 1 uint32
-        #         read nfp*nxp*nyp float32s into array
-        #         reshape array to nfp , nxp , nyp
-        #       [end]
-        #   [end]
-        #   print out progress
-        #   continue if current frame < start_frame or this is not a frame interval #Skip after reads
-        #   assign reshaped array to output array
-        # [end]
-        #   
-        #
-        # SHENG's DESCRIPTION:
-        #
-        # [For every frame]
-        #   Header[(1, 80 bytes)]
-        #   Extra Header[(3, int32), (2, float32), (1, uint32)]
-        #   [For every arbor]
-        #       [For every proc]
-        #           [For every patch]
-        #               shrunkenPatchNxNyOffset[(2, uint16), (1, uint32)]
-        #               data[(nxp * nyp * nfp, dataType)]
+        (frameSize, numFrames) = get_frame_info(hdr,fileStream)
 
-
-        hdr["nxp"]        = hdr["additional"][0][0]
-        hdr["nyp"]        = hdr["additional"][1][0]
-        hdr["nfp"]        = hdr["additional"][2][0]
-        hdr["wMin"]       = hdr["additional"][3][0]
-        hdr["wMax"]       = hdr["additional"][4][0]
-        hdr["numPatches"] = hdr["additional"][5][0]
-
-        #TODO: Program in else case for othe datatypes.
+        #TODO: Program in else case for other datatypes.
         #      Also set up precision variable like in readpvpfile.m
         if hdr["datatype"] == 3: #PV_FLOAT_TYPE (precision is float32)
             precision = 8
 
-            frameSize = hdr["nxp"]*hdr["nyp"]*hdr["nfp"]*precision
             fileStream.seek(startFrame*frameSize,0) # This is in case user doesn't want to start at time=0
 
             for f in range(startFrame,numFrames):
-                # Only need to advance file pointer if frame is to be skipped
+                #TODO: Test to make sure frame skipping works
+                # Need to advance file pointer if frame is to be skipped
                 if (f < startFrame) or (f%skipFrames != 0): 
                     fileStream.seek(hdr["headersize"]+precision*hdr["nxp"]*hdr["nyp"]*hdr["nfp"]) #seek past the frame
                     continue
+
+                hdr = read_header_file(fileStream,fileStream.tell()) # Header repeats after each frame
 
                 if progressPeriod != 0:
                     if f%progressPeriod == 0:
                         sys.stdout.write(" Progress: %d/%d%s"%(f,loopLen,"\r"))
                         sys.stdout.flush();
 
-                fileStream.seek(hdr["headersize"]) #Each frame has its own header, we expect the data to repeat
                 for arbor in range(hdr["nbands"]):
                     for patch in range(hdr["numPatches"]):
                         # TODO: Handle shrunken patch info? I have no idea what that entails.
-                        fileStream.seek(16,1) # These are filler for HyPerLayer's shrunkenPatch data
+                        #       For now, seek over HyPerLayer's shrunkenPatch data
+                        #       uint16 (2 bytes, patch->nx) + uint16 (2 bytes, patch->ny) + uint32 (4 bytes, patch->offset) 
+                        fileStream.seek(8,1) 
+
                         bytes_to_read = hdr["nxp"]*hdr["nyp"]*hdr["nfp"]
-                        tmp_dat = np.fromfile(fileStream,np.float32,bytes_to_read)
-                        data[f] = np.ravel(tmp_dat).reshape(hdr["nyp"],hdr["nxp"],hdr["nfp"])
-                        pdb.set_trace()
+                        tmp_dat       = np.fromfile(fileStream,np.float32,bytes_to_read)
+                        data[f]       = np.ravel(tmp_dat).reshape(hdr["nyp"],hdr["nxp"],hdr["nfp"])
+                        timeStamps[f] = hdr["time"]
 
     elif hdr["filetype"] == 6: #PVP_ACT_SPARSEVALUES_FILE_TYPE
        if hdr["datatype"] == 4: #PV_SPARSEVALUES_TYPE
@@ -278,5 +249,5 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
     sys.stdout.write(" Progress: %d/%d%s"%(numFrames,loopLen,"\r"))
     sys.stdout.write("%s Done.%s"%("\n","\n"))
     sys.stdout.flush();
- 
+
     return (outStruct,hdr)
