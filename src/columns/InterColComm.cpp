@@ -303,7 +303,7 @@ int Publisher::subscribe(BaseConnection* conn)
    assert(numSubscribers <= subscriberArraySize);
    if( numSubscribers == subscriberArraySize ) {
       subscriberArraySize += RESIZE_ARRAY_INCR;
-      BaseConnection ** newConnection = (BaseConnection **) malloc( subscriberArraySize * sizeof(HyPerConn *) );
+      BaseConnection ** newConnection = (BaseConnection **) malloc( subscriberArraySize * sizeof(BaseConnection *) );
       assert(newConnection);
       for( int k=0; k<numSubscribers; k++ ) {
          newConnection[k] = connection[k];
