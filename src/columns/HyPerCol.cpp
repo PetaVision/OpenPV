@@ -2170,7 +2170,11 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
             int chars_needed = snprintf(rmrf_string, RMRFSIZE, "rm -r '%s'", lastCheckpointDir);
             assert(chars_needed < RMRFSIZE);
 #undef RMRFSIZE
-            system(rmrf_string);
+            int rmrf_result = system(rmrf_string);
+            if (rmrf_result != 0) {
+               fprintf(stderr, "Warning: unable to delete older checkpoint \"%s\": rm command returned %d\n",
+                     lastCheckpointDir, rmrf_result);
+            }
          }
       }
       int chars_needed = snprintf(lastCheckpointDir, PV_PATH_MAX, "%s", cpDir);
