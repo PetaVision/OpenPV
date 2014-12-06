@@ -2873,6 +2873,9 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
    assert(status == PV_SUCCESS);
    //Update sparse indices here
    status = updateActiveIndices();
+#ifdef PV_USE_CUDA
+   copyInitialStateToGPU();
+#endif // PV_USE_CUDA
 
    return PV_SUCCESS;
 }
