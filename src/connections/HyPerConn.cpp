@@ -2719,7 +2719,11 @@ int HyPerConn::insertProbe(BaseConnectionProbe * p)
 int HyPerConn::initializeState() {
    int status = PV_SUCCESS;
    assert(parent->getInitializeFromCheckpointDir()); // should never be null; it should be the empty string if not initializing from a checkpoint
-   if (parent->getInitializeFromCheckpointDir()[0] && initializeFromCheckpointFlag) {
+   if (parent->getCheckpointReadFlag()) {
+      double checkTime = parent->simulationTime();
+      checkpointRead(parent->getCheckpointReadDir(), &checkTime);
+   }
+   else if (initializeFromCheckpointFlag) {
       assert(parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]);
       status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
    }

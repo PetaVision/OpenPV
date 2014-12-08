@@ -124,6 +124,7 @@ public:
    const char * getInitializeFromCheckpointDir() { return initializeFromCheckpointDir; }
    bool getDefaultInitializeFromCheckpointFlag() { return defaultInitializeFromCheckpointFlag; }
    bool getCheckpointReadFlag()           {return checkpointReadFlag;}
+   const char * getCheckpointReadDir()    {return checkpointReadDir;}
    bool getCheckpointWriteFlag()          {return checkpointWriteFlag;}
    bool getSuppresLastOutputFlag()        {return suppressLastOutput;}
    const char * getPrintParamsFilename()  {return printParamsFilename;}
@@ -383,7 +384,7 @@ private:
    int initPublishers();
    bool advanceCPWriteTime();
 
-   int checkpointRead(const char * cpDir);
+   int checkpointRead();
    int checkpointWrite(const char * cpDir);
    int writeTimers(FILE* stream);
 

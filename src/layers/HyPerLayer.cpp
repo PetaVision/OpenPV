@@ -157,7 +157,9 @@ int HyPerLayer::initialize_base() {
    this->triggerOffset = 0;
    this->nextUpdateTime = 0;
    this->initializeFromCheckpointFlag = false;
+#ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  Instead, set HyPerCol's initializeFromCheckpointDir to [outputPath]/Last and set layer's initializeFromCheckpointFlag to true
    this->restartFlag = false; // Deprecated July 31, 2014 in favor of initializeFromCheckpointFlag
+#endif // OBSOLETE
    
    this->lastUpdateTime = 0.0;
    this->phase = 0;
@@ -655,11 +657,16 @@ int HyPerLayer::initializeState() {
    PVParams * params = parent->parameters();
 
    assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointFlag"));
-   if (initializeFromCheckpointFlag) {
+   if (parent->getCheckpointReadFlag()) {
+      double checkTime = parent->simulationTime();
+      checkpointRead(parent->getCheckpointReadDir(), &checkTime);
+   }
+   else if (initializeFromCheckpointFlag) {
       assert(parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]);
       status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
    }
    else {
+#ifdef OBSOLETE // restartFlag Marked obsolete Dec 8, 2014.  Instead, set HyPerCol's initializeFromCheckpointDir to [outputPath]/Last and set layer's initializeFromCheckpointFlag to true
       assert(!params->presentAndNotBeenRead(name, "restart"));
       if( restartFlag ) {
          status = readState(NULL);
@@ -671,6 +678,8 @@ int HyPerLayer::initializeState() {
       else {
          status = setInitialValues();
       }
+#endif // OBSOLETE
+      status = setInitialValues();
    }
 #ifdef PV_USE_CUDA
    copyInitialStateToGPU();
@@ -745,7 +754,7 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_mirrorBCflag(ioFlag);
    ioParam_valueBC(ioFlag);
    ioParam_initializeFromCheckpointFlag(ioFlag);
-   ioParam_restart(ioFlag); // Deprecated July 31, 2014 in favor of initializeFromCheckpointFlag
+   ioParam_restart(ioFlag); // restart was deprecated July 31, 2014 and marked obsolete Dec 8, 2014.  Instead use initializeFromCheckpointFlag and HyPerCol's initializeFromCheckpointDir
    ioParam_InitVType(ioFlag);
    ioParam_triggerFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
@@ -821,15 +830,17 @@ void HyPerLayer::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) 
 }
 
 void HyPerLayer::ioParam_restart(enum ParamsIOFlag ioFlag) {
-   if (parent->parameters()->present(name, "restart")) {
-      parent->ioParamValue(ioFlag, name, "restart", &restartFlag, false/*default value*/);
-      // restart was deprecated July 31, 2014
-      if (parent->parameters()->present(name, "restart") && parent->columnId()==0) {
-         fprintf(stderr, " *** %s \"%s\": parameter \"restart\" has been deprecated.\n", parent->parameters()->groupKeywordFromName(getName()), getName());
-         if (restartFlag) {
+   // restart was deprecated July 31, 2014 and made obsolete Dec 8, 2014
+   if (ioFlag == PARAMS_IO_READ) {
+      bool restartFlag = false;
+      parent->ioParamValue(ioFlag, name, "restart", &restartFlag, restartFlag);
+      if (restartFlag) {
+         if (parent->columnId()==0) {
             fprintf(stderr, " ***     Instead of restart=true, set HyPerCol's initializeFromCheckpointDir to the output/Last directory,\n");
             fprintf(stderr, " ***     and set each layer's initializeFromCheckpointFlag according to whether or not to load that layer from the checkpoint.\n");
          }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
       }
    }
 }
@@ -2873,9 +2884,11 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
    assert(status == PV_SUCCESS);
    //Update sparse indices here
    status = updateActiveIndices();
+#ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  Call to checkpointRead moved into initializeState, which already calls copyInitialStateToGPU()
 #ifdef PV_USE_CUDA
    copyInitialStateToGPU();
 #endif // PV_USE_CUDA
+#endif // OBSOLETE
 
    return PV_SUCCESS;
 }
@@ -3120,6 +3133,7 @@ int HyPerLayer::writeTimers(FILE* stream){
    return PV_SUCCESS;
 }
 
+#ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  Instead, set HyPerCol's initializeFromCheckpointDir to [outputPath]/Last and set layer's initializeFromCheckpointFlag to true
 // Deprecated July 31, 2014 in favor of readStateFromCheckpoint
 int HyPerLayer::readState(double * timeptr)
 {
@@ -3133,6 +3147,7 @@ int HyPerLayer::readState(double * timeptr)
    }
    return checkpointRead(last_dir, timeptr);
 }
+#endif // OBSOLETE
 
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 {

@@ -1318,13 +1318,12 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       // This needs to happen after initPublishers so that we can initialize the values in the data stores,
       // and before the layers' publish calls so that the data in border regions gets copied correctly.
       if ( checkpointReadFlag ) {
-         checkpointRead(checkpointReadDir);
+         checkpointRead();
       }
-      else {
-         layerInitializationStage = &HyPerCol::layerSetInitialValues;
-         connInitializationStage = &HyPerCol::connSetInitialValues;
-         doInitializationStage(layerInitializationStage, connInitializationStage, "setInitialValues");
-      }
+      // HyPerLayer's and HyPerConn's initializeState methods now check checkpointReadFlag and call their checkpointRead methods accordingly - Dec 8, 2014
+      layerInitializationStage = &HyPerCol::layerSetInitialValues;
+      connInitializationStage = &HyPerCol::connSetInitialValues;
+      doInitializationStage(layerInitializationStage, connInitializationStage, "setInitialValues");
       free(layerStatus); layerStatus = NULL;
       free(connectionStatus); connectionStatus = NULL;
 
@@ -1939,7 +1938,7 @@ bool HyPerCol::advanceCPWriteTime() {
    return advanceCPTime;
 }
 
-int HyPerCol::checkpointRead(const char * cpDir) {
+int HyPerCol::checkpointRead() {
    struct timestamp_struct {
       double time; // time measured in units of dt
       long int step; // step number, usually time/dt
@@ -1949,9 +1948,9 @@ int HyPerCol::checkpointRead(const char * cpDir) {
    assert(sizeof(struct timestamp_struct) == sizeof(long int) + sizeof(double));
    if( icCommunicator()->commRank()==0 ) {
       char timestamppath[PV_PATH_MAX];
-      int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
+      int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", checkpointReadDir);
       if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", cpDir);
+         fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", checkpointReadDir);
          abort();
       }
       PV_Stream * timestampfile = PV_fopen(timestamppath,"r",false/*verifyWrites*/);
@@ -1990,9 +1989,9 @@ int HyPerCol::checkpointRead(const char * cpDir) {
       assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
       if( icCommunicator()->commRank()==0 ) {
          char timescalepath[PV_PATH_MAX];
-         int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", cpDir);
+         int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", checkpointReadDir);
          if (chars_needed >= PV_PATH_MAX) {
-            fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", cpDir);
+            fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", checkpointReadDir);
             abort();
          }
          PV_Stream * timescalefile = PV_fopen(timescalepath,"r",false/*verifyWrites*/);
@@ -2015,6 +2014,7 @@ int HyPerCol::checkpointRead(const char * cpDir) {
       timeScaleTrue = timescale.timeScaleTrue;
    }
 
+#ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  Layers and connections' checkpointRead methods are called by their initializeState functions
    double checkTime = simTime; // HyPerLayer::checkpointRead gives warnings if the files' timestamps are different from checkTime, but won't quit or change the value of checkTime
    for( int l=0; l<numLayers; l++ ) {
       layers[l]->checkpointRead(cpDir, &checkTime);
@@ -2022,6 +2022,7 @@ int HyPerCol::checkpointRead(const char * cpDir) {
    for( int c=0; c<numConnections; c++ ) {
       connections[c]->checkpointRead(cpDir, &checkTime);
    }
+#endif // OBSOLETE
    if(checkpointWriteFlag) {
       if( cpWriteStepInterval > 0) {
          assert(cpWriteTimeInterval<0.0f);

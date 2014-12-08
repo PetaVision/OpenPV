@@ -166,7 +166,7 @@ protected:
    virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief restart: Deprecated
+    * @brief restart: Obsolete; used only to exit with an error if params file sets restart to true.
     */
    virtual void ioParam_restart(enum ParamsIOFlag ioFlag); // Deprecating in favor of initializeFromCheckpointFlag?
 
@@ -300,7 +300,7 @@ public:
 
    virtual ~HyPerLayer() = 0;
    int initializeState(); // Not virtual since all layers should respond to initializeFromCheckpointFlag and (deprecated) restartFlag in the same way.
-                          // initializeState calls the virtual methods readStateFromCheckpoint(), readState() (deprecated), and setInitialValues().
+                          // initializeState calls the virtual methods readStateFromCheckpoint(), and setInitialValues().
 
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
@@ -398,7 +398,9 @@ public:
    template <typename T>
    static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
+#ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  Instead, set HyPerCol's initializeFromCheckpointDir to [outputPath]/Last and set layer's initializeFromCheckpointFlag to true
    virtual int readState (double * timeptr);
+#endif // OBSOLETE
    virtual int outputState(double timef, bool last=false);
    virtual int writeActivity(double timed);
    virtual int writeActivitySparse(double timed, bool includeValues);
