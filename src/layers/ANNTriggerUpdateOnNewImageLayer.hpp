@@ -21,11 +21,6 @@ public:
    ANNTriggerUpdateOnNewImageLayer(const char * name, HyPerCol * hc);
    //virtual int recvAllSynapticInput();
    virtual ~ANNTriggerUpdateOnNewImageLayer();
-#ifdef OBSOLETE
-   //Obsolete Jan 15, 2014 by slundquist
-   //getLastUpdateTime in HyPerLayer no longer updates lastUpdateTime, so no longer need to override
-   virtual double getLastUpdateTime() {return lastUpdateTime;}
-#endif //OBSOLETE
    virtual bool needUpdate(double time, double dt);
 protected:
    ANNTriggerUpdateOnNewImageLayer();

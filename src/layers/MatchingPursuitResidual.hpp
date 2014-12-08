@@ -19,11 +19,6 @@ public:
    virtual bool needUpdate(double time, double dt);
    virtual int updateState(double timed, double dt);
    virtual ~MatchingPursuitResidual();
-#ifdef OBSOLETE
-   //Obsolete Jan 15th, 2014 by slundquist
-   //getLastUpdateTime in HyPerLayer no longer updates lastUpdateTime, so no longer need to override
-   virtual double getLastUpdateTime() {return lastUpdateTime;}
-#endif // OBSOLETE
 
 protected:
    MatchingPursuitResidual();

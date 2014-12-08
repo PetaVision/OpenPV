@@ -1436,22 +1436,6 @@ int HyPerLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
    return PV_SUCCESS;
 }
 
-// getLastUpdateTime() method for base class.
-// Default behavior is to update every timestep.  For layers that update less frequently, they should
-// save parent->simulationTime() to lastUpdateTime whenever they do update, and override getLastUpdateTime
-// to return lastUpdateTime without setting it to parent->simulationTime().
-//
-// Publisher calls getLastUpdateTime and compares it to simulationTime() before doing border exchanges over MPI, so managing
-// lastUpdateTime can save a lot of MPI traffic.
-//
-// One wrinkle is that all layers call updateState before any layers call publish, so lastUpdateTime could be one timestep behind
-// if you depend on getLastUpdateTime to set lastUpdateTime.  If this is an issue, lastUpdateTime should be set in updateState.
-double HyPerLayer::getLastUpdateTime() {
-   //Taken out, now handled in updateStateWrapper
-   //lastUpdateTime=parent->simulationTime();
-   return lastUpdateTime;
-}
-
 /**
  * Returns the activity data for the layer.  This data is in the
  * extended space (with margins).

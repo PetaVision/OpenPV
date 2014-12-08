@@ -214,9 +214,6 @@ public:
 
    virtual int  clearImage();
 
-   //This function isn't being used, and HyPerLayer::getLastUpdateTime() now returns lastUpdateTime
-   //float lastUpdate()  { return lastUpdateTime; }
-
    virtual pvdata_t * getImageBuffer() { return data; }
 
    virtual PVLayerLoc getImageLoc() {return imageLoc; }

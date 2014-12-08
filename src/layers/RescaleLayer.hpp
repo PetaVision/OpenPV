@@ -22,7 +22,6 @@ public:
    //virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
    virtual int setActivity();
-   virtual double getLastUpdateTime() {return lastUpdateTime;}
 protected:
    RescaleLayer();
    int initialize(const char * name, HyPerCol * hc);

@@ -37,8 +37,6 @@ public:
 
    int  randomFrame();
 
-   virtual double getLastUpdateTime() {return lastUpdateTime;}
-
 protected:
    Movie();
    int initialize(const char * name, HyPerCol * hc);

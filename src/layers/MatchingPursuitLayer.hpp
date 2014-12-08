@@ -31,12 +31,6 @@ public:
 
    pvdata_t getActivationThreshold() {return activationThreshold;}
 
-#ifdef OBSOLETE
-   //Obsolete Jan 15th, 2014 by slundquist
-   //getLastUpdateTime in HyPerLayer no longer updates lastUpdateTime, so no longer need to override
-   virtual double getLastUpdateTime() {return lastUpdateTime;}
-#endif // OBSOLETE
-
 protected:
    MatchingPursuitLayer();
    int initialize(const char * name, HyPerCol * hc);

@@ -471,9 +471,8 @@ public:
    const PVLayerLoc * getLayerLoc()  { return &(clayer->loc); }
    bool isExtended()                 { return true; }
 
-   //TODO don't make this virtual
-   virtual double getLastUpdateTime();
-   double getNextUpdateTime() { return nextUpdateTime;}
+   double getLastUpdateTime() { return lastUpdateTime; }
+   double getNextUpdateTime() { return nextUpdateTime; }
 
    virtual int gatherToInteriorBuffer(unsigned char * buf);
 
