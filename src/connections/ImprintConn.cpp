@@ -134,9 +134,7 @@ int ImprintConn::update_dW(int arbor_ID){
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
 
-   //Reset numKernelActivations
    for(int ki = 0; ki < numKernelIndices; ki++){
-      numKernelActivations[ki] = 0;
       imprinted[ki] = false;
    }
 
