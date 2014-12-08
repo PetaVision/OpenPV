@@ -120,6 +120,7 @@ if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
     MESSAGE("-- Searching for MPI library ............")
     find_package(MPI REQUIRED)
 endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+
 set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
 set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 
@@ -162,9 +163,20 @@ endif(CUDA_RELEASE)
 
 # Add PetaVision
 if(CUDA_GPU)
-   cuda_add_library(pv ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS} ${PVLibSrcCu})
+   cuda_add_library(pv SHARED ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS} ${PVLibSrcCu})
 else(CUDA_GPU)
-   add_library(pv ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS})
+   add_library(pv SHARED ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS})
 endif(CUDA_GPU)
+
+# Link executable to external libraries
+target_link_libraries(pv ${GDAL_LIBRARY})
+target_link_libraries(pv ${MPI_LIBRARY})
+IF(LIBSNDFILE_FOUND)
+   target_link_libraries(pv ${LIBSNDFILE_LIBRARY})
+ENDIF(LIBSNDFILE_FOUND)
+
+IF(CUDNN)
+   target_link_libraries(pv ${CUDNN_PATH}/libcudnn.so)
+ENDIF(CUDNN)
 
 

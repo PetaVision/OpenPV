@@ -3,6 +3,7 @@
 ./src/arch/opencl
 ./src/arch/cuda
 ./src/arch/pthreads
+./src/bindings
 ./src/build
 ./src/columns
 ./src/connections
