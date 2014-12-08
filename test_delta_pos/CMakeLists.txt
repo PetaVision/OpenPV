@@ -86,7 +86,9 @@ else(CUDA_GPU)
 endif(CUDA_GPU)
 
 target_link_libraries(${PV_PROJECT_NAME} pv)
+target_link_libraries(${PV_PROJECT_NAME} m)
 #
+## target_link_libraries commands no longer needed because the libraries are included in libpv.so
 ## Link executable to external libraries
 #target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
 #IF(LIBSNDFILE_FOUND)
