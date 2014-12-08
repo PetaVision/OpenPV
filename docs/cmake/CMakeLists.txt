@@ -72,8 +72,6 @@ if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
     MESSAGE("-- Searching for MPI library ............")
     find_package(MPI REQUIRED)
 endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
-set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
-set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 
 add_subdirectory(${PV_DIR})
 # # Insert additional add_subdirectory commands to add other projects.
