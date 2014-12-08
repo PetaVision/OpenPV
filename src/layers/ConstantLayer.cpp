@@ -26,13 +26,13 @@ ConstantLayer::~ConstantLayer()
 
 int ConstantLayer::initialize_base()
 {
-	return PV_SUCCESS;
+   return PV_SUCCESS;
 }
 
 int ConstantLayer::initialize(const char * name, HyPerCol * hc)
 {
-	int status = ANNLayer::initialize(name, hc);
-	return status;
+   int status = ANNLayer::initialize(name, hc);
+   return status;
 }
 
 void ConstantLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
@@ -67,8 +67,8 @@ int ConstantLayer::communicateInitInfo() {
 //   update_timer->start();
 //   int status = PV_SUCCESS;
 //   if (checkIfUpdateNeeded()){
-//	   status = ANNLayer::doUpdateState(time,  dt, loc, A, V, num_channels, gSynHead, spiking, active_indices, num_active);
-//	   lastUpdateTime = parent->simulationTime();
+//      status = ANNLayer::doUpdateState(time,  dt, loc, A, V, num_channels, gSynHead, spiking, active_indices, num_active);
+//      lastUpdateTime = parent->simulationTime();
 //   }
 //   update_timer->stop();
 //   return status;
