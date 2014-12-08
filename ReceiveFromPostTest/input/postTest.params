@@ -105,7 +105,7 @@ ANNLayer "outputTest" = {
 KernelConn "origConn" = {
     preLayerName = "outputRecvPost";
     postLayerName = "input";
-    channelCode = 2; //Inhib b, doing nothing to input
+    channelCode = -1; //Inhib b, doing nothing to input
     nxp = 6; 
     nyp = 6; 
     nfp = 96;
@@ -128,9 +128,6 @@ KernelConn "origConn" = {
 
     normalizeArborsIndividually = false;
     normalizeFromPostPerspective = false;
-
-    minL2NormTolerated                  = 0;
-
     symmetrizeWeights = false;
     
     shrinkPatches = false;
@@ -198,7 +195,7 @@ IdentConn "RecvPreTest" = {
 ReceiveFromPostProbe "testProbe" = {
    targetLayer = "outputTest";
    message = "testProbe ";
-   tolerance = 3e-4; // covers worst case with roundoff error 2^-24 and 3456 inputs 
+   tolerance = 3e-3; // covers worst case with roundoff error 2^-24 and 3456 inputs 
 };
 
 //RequireAllZeroActivityProbe "testProbe" = {

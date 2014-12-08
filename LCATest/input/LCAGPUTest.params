@@ -9,7 +9,7 @@
 //  and a correct-values movie being compared to the reconstruciton layer.
 //
 
-debugParsing = false;
+debugParsing = true;
 
 HyPerCol "column" = {
    nx = 60;

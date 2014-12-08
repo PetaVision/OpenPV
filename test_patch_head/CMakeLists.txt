@@ -86,15 +86,14 @@ else(CUDA_GPU)
 endif(CUDA_GPU)
 
 target_link_libraries(${PV_PROJECT_NAME} pv)
-target_link_libraries(${PV_PROJECT_NAME} m)
-
-# Link executable to external libraries
-target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
-IF(LIBSNDFILE_FOUND)
-   target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
-ENDIF(LIBSNDFILE_FOUND)
-
-IF(CUDNN)
-   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
-ENDIF(CUDNN)
-
+#
+## Link executable to external libraries
+#target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
+#IF(LIBSNDFILE_FOUND)
+#   target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
+#ENDIF(LIBSNDFILE_FOUND)
+#
+#IF(CUDNN)
+#   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
+#ENDIF(CUDNN)
+#
