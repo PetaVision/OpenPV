@@ -12,7 +12,7 @@
 import scipy.sparse as sparse
 import numpy as np
 import struct, os, sys
-import pdb
+import pdb #TODO: At some point we shouldn't need to include this any more
 
 def read_header_file(fileStream, pos=0):
     fileStream.seek(pos)
@@ -64,6 +64,31 @@ def read_header_file(fileStream, pos=0):
     return header
 
 
+def get_frame_info(hdr,fileStream):
+    fileSize = os.path.getsize(fileStream.name)
+    if hdr["filetype"] == 1:
+        frameSize = hdr["recordsize"]*hdr["numrecords"]
+        numFrames = (fileSize - hdr["headersize"]) / frameSize
+    elif hdr["filetype"] == 2:
+        frameSize = -1 # frameSize is a variable
+        numFrames = hdr["nbands"]
+    elif hdr["filetype"] == 3:
+        frameSize = hdr["recordsize"] * hdr["numrecords"] + hdr["headersize"]
+        numFrames = fileSize / frameSize
+    elif hdr["filetype"] == 4:
+        nxprocs   = hdr["nxGlobal"] / hdr["nx"]
+        nyprocs   = hdr["nyGlobal"] / hdr["ny"]
+        frameSize = hdr["recordsize"] * hdr["datasize"] * nxprocs * nyprocs+8
+        numFrames = hdr["nbands"]
+    elif hdr["filetype"] == 5:
+        frameSize = hdr["recordsize"] * hdr["nbands"] + hdr["headersize"]
+        numFrames = fileSize / frameSize
+    elif hdr["filetype"] == 6:
+        frameSize = -1 # frameSize is a variable
+        numFrames = hdr["nbands"]
+    return (frameSize,numFrames)
+
+
 def read_dense_data(fileStream, dense_shape, numNeurons):
     #Read timestep
     timestamp = fileStream.read(8)
@@ -111,31 +136,6 @@ def read_sparse_data(fileStream,dense_shape):
 
     except:
         return (timeStamp, None) 
-
-
-def get_frame_info(hdr,fileStream):
-    fileSize = os.path.getsize(fileStream.name)
-    if hdr["filetype"] == 1:
-        frameSize = hdr["recordsize"]*hdr["numrecords"]
-        numFrames = (fileSize - hdr["headersize"]) / frameSize
-    elif hdr["filetype"] == 2:
-        frameSize = -1 # frameSize is a variable
-        numFrames = hdr["nbands"]
-    elif hdr["filetype"] == 3:
-        frameSize = hdr["recordsize"] * hdr["numrecords"] + hdr["headersize"]
-        numFrames = fileSize / frameSize
-    elif hdr["filetype"] == 4:
-        nxprocs   = hdr["nxGlobal"] / hdr["nx"]
-        nyprocs   = hdr["nyGlobal"] / hdr["ny"]
-        frameSize = hdr["recordsize"] * hdr["datasize"] * nxprocs * nyprocs+8
-        numFrames = hdr["nbands"]
-    elif hdr["filetype"] == 5:
-        frameSize = hdr["recordsize"] * hdr["nbands"] + hdr["headersize"]
-        numFrames = fileSize / frameSize
-    elif hdr["filetype"] == 6:
-        frameSize = -1 # frameSize is a variable
-        numFrames = hdr["nbands"]
-    return (frameSize,numFrames)
 
 
 def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrames=1):
@@ -216,6 +216,7 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                         sys.stdout.write(" Progress: %d/%d%s"%(f,loopLen,"\r"))
                         sys.stdout.flush();
 
+                tmp_vals_arry = np.zeros((len(range(hdr["nbands"])),len(range(hdr["numPatches"])),hdr["nyp"],hdr["nxp"],hdr["nfp"]))
                 for arbor in range(hdr["nbands"]):
                     for patch in range(hdr["numPatches"]):
                         # TODO: Handle shrunken patch info? I have no idea what that entails.
@@ -225,8 +226,9 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
 
                         bytes_to_read = hdr["nxp"]*hdr["nyp"]*hdr["nfp"]
                         tmp_dat       = np.fromfile(fileStream,np.float32,bytes_to_read)
-                        data[f]       = np.ravel(tmp_dat).reshape(hdr["nyp"],hdr["nxp"],hdr["nfp"])
-                        timeStamps[f] = hdr["time"]
+                        tmp_vals_arry[arbor,patch,:,:,:] = np.ravel(tmp_dat).reshape(hdr["nyp"],hdr["nxp"],hdr["nfp"])
+                data[f]       = tmp_vals_arry
+                timeStamps[f] = hdr["time"]
 
     elif hdr["filetype"] == 6: #PVP_ACT_SPARSEVALUES_FILE_TYPE
        if hdr["datatype"] == 4: #PV_SPARSEVALUES_TYPE
