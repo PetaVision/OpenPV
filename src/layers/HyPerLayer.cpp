@@ -833,7 +833,7 @@ void HyPerLayer::ioParam_restart(enum ParamsIOFlag ioFlag) {
    // restart was deprecated July 31, 2014 and made obsolete Dec 8, 2014
    if (ioFlag == PARAMS_IO_READ) {
       bool restartFlag = false;
-      parent->ioParamValue(ioFlag, name, "restart", &restartFlag, restartFlag);
+      parent->ioParamValue(ioFlag, name, "restart", &restartFlag, restartFlag, false/*warnIfAbsent*/);
       if (restartFlag) {
          if (parent->columnId()==0) {
             fprintf(stderr, " ***     Instead of restart=true, set HyPerCol's initializeFromCheckpointDir to the output/Last directory,\n");
