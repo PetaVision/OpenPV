@@ -142,6 +142,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
 #endif
              "Image",
                "CreateMovies",
+               "ImageFromMemoryBuffer",
                "Movie",
                "Patterns",
              "LIF",
@@ -476,6 +477,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "CreateMovies") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new CreateMovies(name, hc);
+   }
+   if( !strcmp(classkeyword, "ImageFromMemoryBuffer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ImageFromMemoryBuffer(name, hc);
    }
    if( !strcmp(classkeyword, "Movie") ) {
       keywordMatched = true;

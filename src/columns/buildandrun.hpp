@@ -42,6 +42,7 @@
 #endif
 #include "../layers/Image.hpp"
 #include "../layers/CreateMovies.hpp"
+#include "../layers/ImageFromMemoryBuffer.hpp"
 #include "../layers/Movie.hpp"
 #include "../layers/Patterns.hpp"
 #include "../layers/LabelLayer.hpp"
