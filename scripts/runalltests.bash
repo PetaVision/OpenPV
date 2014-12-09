@@ -15,6 +15,9 @@
 # To set the mpirun command, do "runalltests.bash --mpirun=/path/to/mpirun"
 # If mpirun is not set on the command line, it defaults to the result of
 # searching the path for mpiexec, and then mpirun.
+#
+# To run with threads, do "runalltests.bash --threads".  This will pass the argument "-t" to the tests.
+# To run with a specific number of threads, do "runalltests.bash --threads=<number>"
 
 # Navigate to eclipse workspace directory.
 if test "${0%/*}" != "$0"
@@ -37,7 +40,8 @@ function runandecho() {
     shift
     logfilebasename=$1
     shift
-    if $valgrindcommand $* &> ${logfilebasename}_1.log
+    echo $valgrindcommand $* $threadopt
+    if $valgrindcommand $* $threadopt &> ${logfilebasename}_1.log
     then
         result=passed
     else
@@ -51,6 +55,9 @@ function runandecho() {
 usempi=1
 PV_MPIRUN=""
 
+# Set default to not use threads
+threadopt=""
+
 # Check for --nompi option, or set PV_MPIRUN using --mpirun= option
 for opt in "$@"
 do
@@ -61,6 +68,26 @@ do
     then
         usempi=1
         PV_MPIRUN="${opt#*=}"
+    elif test "$opt" = "--threads"
+    then
+        threadopt=" -t"
+    elif test "${opt%=*}" = "--threads"
+    then
+        threadnum="${opt#*=}"
+        # Sanity check $threadnum
+        if test "$(echo "${threadnum}" | wc -w)" -ne 1
+        then
+            echo "$0 error: --threads= takes a single positive integer argument." > /dev/stderr
+            echo "$0 error: Argument was \"${threadnum}\"." > /dev/stderr
+            exit 1
+        fi
+        if test -z "$(echo "${threadnum}" | egrep '^[1-9][0-9]*$')"
+        then
+            echo "$0 error: --threads= takes a positive integer argument." > /dev/stderr
+            echo "$0 error: Argument was \"${threadnum}\"." > /dev/stderr
+            exit 1
+        fi
+        threadopt=" -t ${threadnum}"
     fi
 done
 
@@ -89,7 +116,8 @@ else
         logfilebasename=$1
         shift
         logfilename="${logfilebasename}_${numprocs}.log"
-        if $PV_MPIRUN -np $numprocs $valgrindcommand $* &> "${logfilename}"
+        echo $PV_MPIRUN -np $numprocs $valgrindcommand $* $threadopt
+        if $PV_MPIRUN -np $numprocs $valgrindcommand $* $threadopt &> "${logfilename}"
         then
             result=passed
         else
