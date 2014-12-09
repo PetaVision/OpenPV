@@ -2,7 +2,8 @@ from ctypes import *
 import sys
 
 class pyHyPerCol(object):
-   def __init__(self, argc, argv):
+   #Arguments is a list of parameter strings
+   def __init__(self, arguments):
       #If use linux
       if sys.platform == "linux" or sys.platform == "linux2":
          self.lib = cdll.LoadLibrary('../../lib/libpv.so')
@@ -18,6 +19,13 @@ class pyHyPerCol(object):
       else:
          print "Operating system", sys.platform, "not known"
          sys.exit()
+      argc = len(arguments)
+      argv = (c_char_p * (argc+1))()
+      for i in range(argc):
+         argv[i] = arguments[i]
+      #Last element in argv should be NULL
+      argv[argc] = None
+
       self.hc = self.lib.pvBuild(argc, argv)
 
    def run(self):
@@ -26,7 +34,8 @@ class pyHyPerCol(object):
 
 #Test scripti
 if __name__ == "__main__":
-   c_argc = 4
-   c_argv = (c_char_p * (c_argc+1))("pv", "-p", "input/BasicSystemTest.params", "-t", None)
-   pvObj = pyHyPerCol(c_argc, c_argv)
+   #c_argc = 4
+   #c_argv = (c_char_p * (c_argc+1))("pv", "-p", "input/BasicSystemTest.params", "-t", None)
+   args = ["pv", "-p", "input/BasicSystemTest.params", "-t"]
+   pvObj = pyHyPerCol(args)
    pvObj.run()
