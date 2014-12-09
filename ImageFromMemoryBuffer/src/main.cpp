@@ -5,7 +5,6 @@
 
 
 #include <columns/buildandrun.hpp>
-#include "ImageFromMemoryBuffer.hpp"
 #include "IObjectDetector.hpp"
 
 void * customgroup(const char * name, const char * groupname, HyPerCol * hc);

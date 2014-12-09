@@ -12,7 +12,7 @@
 
 #include <stdint.h>
 #include <columns/HyPerCol.hpp>
-#include "ImageFromMemoryBuffer.hpp"
+#include <layers/ImageFromMemoryBuffer.hpp>
 
 #define VIDINT_SUCCESS 0
 #define VIDINT_FAILURE 1
