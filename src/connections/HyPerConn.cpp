@@ -3305,6 +3305,9 @@ int HyPerConn::deleteWeights() {
             }
 #endif // USE_SHMGET
 #endif // OBSOLETE
+            if (wDataStart[arbor] != NULL) {
+               free(this->wDataStart[arbor]);
+            }
          } // arbor == 0
          this->wDataStart[arbor] = NULL;
          if (!this->combine_dW_with_W_flag) {
