@@ -86,6 +86,7 @@ int NormalizeScale::normalizeWeights() {
          }
       }
    }
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
    if (conn->getShmgetFlag()) {
@@ -94,6 +95,7 @@ int NormalizeScale::normalizeWeights() {
    }
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
+#endif // OBSOLETE
    return status;
 }
 

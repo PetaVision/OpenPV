@@ -332,6 +332,7 @@ public:
    virtual int dataIndexToUnitCellIndex(int dataIndex, int* kx = NULL, int* ky =
          NULL, int* kf = NULL);
 
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
    virtual bool getShmgetFlag(){
       return shmget_flag;
@@ -343,6 +344,7 @@ public:
       return  shmget_owner;
    }
 #endif
+#endif // OBSOLETE
 
 protected:
    // char * filename; // Filename if loading weights from a file
@@ -354,11 +356,13 @@ protected:
 
    //these were moved to private to ensure use of get/set methods and made in 3D pointers:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
    bool shmget_flag;
    bool *shmget_owner;
    int *shmget_id;
-#endif
+#endif // USE_SHMGET
+#endif // OBSOLETE
 private:
    PVPatch*** wPatches; // list of weight patches, one set per arbor
    // GTK:: gSynPatchStart redefined as offset from start of associated gSynBuffer
@@ -790,7 +794,7 @@ protected:
    virtual void ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief sharedWeights: Deprecated
+    * @brief shmget_flag: Obsolete
     */
    virtual void ioParam_shmget_flag(enum ParamsIOFlag ioFlag);
 

@@ -75,11 +75,12 @@ int InitGauss2DWeights::gauss2DCalcWeights(pvdata_t * dataStart, InitGauss2DWeig
    double r2Max=weightParamPtr->getr2Max();
    double r2Min=weightParamPtr->getr2Min();
 
-#ifndef USE_SHMGET
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
+#ifdef USE_SHMGET
+   volatile // Marks w_tmp volatile if using shmget
+#endif // USE_SHMGET
+#endif // OBSOLETE
    pvdata_t * w_tmp = dataStart;
-#else
-   volatile pvdata_t * w_tmp = dataStart;
-#endif
 
 
 

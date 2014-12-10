@@ -60,18 +60,22 @@ int SiblingConn::normalizeFamily() {
    const int num_kernels = getNumDataPatches();
 
    // first scale each weight by sum of the absolute values of the local weight plus the sibling weight
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
    // if using shared memory (shmget) then the
    // process that owns the local weight scales the sibling weight as well, even if not the owner of the sibling weight
+#endif // OBSOLETE
    for (int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++) {
       for (int kPatch = 0; kPatch < num_kernels; kPatch++) {
          pvwdata_t * localWeights = get_wDataHead(kArbor, kPatch);
          assert(localWeights != NULL);
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
          volatile pvwdata_t * siblingWeights = siblingConn->get_wDataHead(
                kArbor, kPatch);
 #else
          pvwdata_t * siblingWeights = siblingConn->get_wDataHead(kArbor, kPatch);
-#endif
+#endif // USE_SHMGET
+#endif // OBSOLETE
          assert(siblingWeights != NULL);
          for (int iWeight = 0; iWeight < nxp * nyp * nfp; iWeight++) {
             pvdata_t norm_denom = fabs(siblingWeights[iWeight])

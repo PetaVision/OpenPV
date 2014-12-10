@@ -202,11 +202,13 @@ int InitWeights::calcWeights() {
    int numArbors = callingConn->numberOfAxonalArborLists();
    int numPatches = callingConn->getNumDataPatches();
    for (int arbor = 0; arbor < numArbors; arbor++) {
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
       bool * shmget_owner = callingConn->getShmgetOwnerHead();
       bool shmget_flag = callingConn->getShmgetFlag();
       if (shmget_flag && !shmget_owner[arbor]) continue;
-#endif
+#endif // USE_SHMGET
+#endif // OBSOLETE
       for (int dataPatchIndex = 0;
             dataPatchIndex < numPatches;
             dataPatchIndex++) {

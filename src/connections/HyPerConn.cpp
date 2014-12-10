@@ -281,11 +281,13 @@ int HyPerConn::initialize_base()
    maskLayerName = NULL;
    mask = NULL;
 
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
    shmget_flag = false;
    shmget_owner = NULL;
    shmget_id = NULL;
-#endif
+#endif // SHMGET
+#endif // OBSOLETE
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    receiveGpu = false;
@@ -311,6 +313,7 @@ int HyPerConn::initialize_base()
 }
 
 int HyPerConn::createArbors() {
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
    if (shmget_flag){
       assert(sharedWeights);
@@ -321,7 +324,8 @@ int HyPerConn::createArbors() {
             sizeof(bool));
       assert(shmget_owner != NULL);
    }
-#endif
+#endif // USE_SHMGET
+#endif // OBSOLETE
    wPatches = (PVPatch***) calloc(numAxonalArborLists, sizeof(PVPatch**));
    if( wPatches == NULL ) {
       createArborsOutOfMemory();
@@ -745,7 +749,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    }
    ioParam_normalizeGroupName(ioFlag);
    ioParam_dWMax(ioFlag);
-   ioParam_shmget_flag(ioFlag);
+   ioParam_shmget_flag(ioFlag); // shmget_flag was marked obsolete Dec 9, 2014.  ioParam function still called to print warning
    ioParam_keepKernelsSynchronized(ioFlag);
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    ioParam_useWindowPost(ioFlag);
@@ -1193,6 +1197,7 @@ void HyPerConn::ioParam_strength(enum ParamsIOFlag ioFlag, float * strength, boo
 }
 
 void HyPerConn::ioParam_shmget_flag(enum ParamsIOFlag ioFlag) {
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
    assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
    if (!sharedWeights) return;
@@ -1213,6 +1218,12 @@ void HyPerConn::ioParam_shmget_flag(enum ParamsIOFlag ioFlag) {
       parent->parameters()->value(name, "shmget_flag", false, false);
    }
 #endif // USE_SHMGET
+#endif // OBSOLETE
+   if (parent->parameters()->present(name, "shmget_flag")) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\": shmget_flag is obsolete.\n", parent->parameters()->groupKeywordFromName(name), name);
+      }
+   }
 }
 
 void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
@@ -3270,6 +3281,7 @@ int HyPerConn::deleteWeights() {
       for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
          // entire arbor allocated as single block
          if (arbor == 0) {
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
             if (!shmget_flag) {
                if (wDataStart[arbor] != NULL) {
@@ -3292,6 +3304,7 @@ int HyPerConn::deleteWeights() {
                free(this->wDataStart[arbor]);
             }
 #endif // USE_SHMGET
+#endif // OBSOLETE
          } // arbor == 0
          this->wDataStart[arbor] = NULL;
          if (!this->combine_dW_with_W_flag) {
@@ -3309,12 +3322,14 @@ int HyPerConn::deleteWeights() {
       dwDataStart = NULL;
    } // wDataStart != NULL
 
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
    if (shmget_flag) {
       free(shmget_id);
       free(shmget_owner);
    }
 #endif
+#endif // OBSOLETE
 
    if (wPostPatches != NULL) {
       for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
@@ -4437,6 +4452,7 @@ pvwdata_t * HyPerConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int 
    size_t dataSize = nPatches * patchSize;
    size_t arborSize = dataSize * this->numberOfAxonalArborLists();
    pvwdata_t * dataPatches = NULL;
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
    int arbor_ID = 0;
    if (!shmget_flag) {
@@ -4513,6 +4529,8 @@ pvwdata_t * HyPerConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int 
 #else
    dataPatches = (pvwdata_t *) calloc(arborSize, sizeof(char));
 #endif // USE_SHMGET
+#endif // OBSOLETE
+   dataPatches = (pvwdata_t *) calloc(arborSize, sizeof(char));
    if(dataPatches == NULL) {
       fprintf(stderr, "Error allocating weights for connection \"%s\": %s\n", getName(), strerror(errno));
       exit(EXIT_FAILURE);

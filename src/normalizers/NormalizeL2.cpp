@@ -71,6 +71,7 @@ int NormalizeL2::normalizeWeights() {
       }
    }
 
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
    if (conn->getShmgetFlag() && !conn->getShmgetOwner(0)) { // Assumes that all arbors are owned by the same process
@@ -79,6 +80,7 @@ int NormalizeL2::normalizeWeights() {
    }
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
+#endif // OBSOLETE
 
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
@@ -178,6 +180,7 @@ int NormalizeL2::normalizeWeights() {
          }
       }
    }
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
    if (conn->getShmgetFlag()) {
@@ -186,6 +189,7 @@ int NormalizeL2::normalizeWeights() {
    }
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
+#endif // OBSOLETE
    return status;
 }
 

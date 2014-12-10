@@ -40,8 +40,10 @@
 /* define this if using GDAL library to read/write images */
 #define PV_USE_GDAL
 
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 /* define if using SHMGET to create shared memory pool on multicore machines */
 #undef USE_SHMGET
+#endif // OBSOLETE
 #define PAGE_SIZE 4096 // obtain by calling shell utility pagesize
 
 /* maximum length of a path */
