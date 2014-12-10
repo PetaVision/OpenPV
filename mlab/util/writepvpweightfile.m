@@ -11,8 +11,8 @@ function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbP
     % data{k}.values is a 3-D cell structure.
     % data{k}.values{p,q,r} contains patches for the mpi process with commColumn()==p-1
     % and commRow()==q-1, and arbor r (note non-matlab/octave ordering of column and row)
-    % data{k}.values{p,q,r}(x,y,f,k) is the weight at location (x,y,f)
-    % of data patch k, where k-1 to the local presynaptic extended neuron index.
+    % data{k}.values{p,q,r}(x,y,f,p) is the weight at location (x,y,f)
+    % of data patch p, where k-1 is the local presynaptic extended neuron index.
     % (again, note non-matlab/octave ordering of column and row.  Also note that the
     % ordering x,y,f is different from PetaVision's f,x,y.
     % (the minus ones are because matlab/octave is 1-indexed and PetaVision is zero-indexed.
