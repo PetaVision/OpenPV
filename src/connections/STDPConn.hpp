@@ -57,9 +57,6 @@ protected:
 
    PVLayerCube    * post_tr;      // plasticity decrement variable for postsynaptic layer
    PVLayerCube    * pre_tr;      // plasticity increment variable for presynaptic layer
-#ifdef OBSOLETE_STDP
-   PVPatch       *** dwPatches;      // list of stdp patches Psij variable
-#endif
 
    bool       stdpFlag;         // presence of spike timing dependent plasticity
 
@@ -68,11 +65,6 @@ protected:
    int pvpatch_update_weights(int nk, float * RESTRICT w, const float * RESTRICT m,
                               const float * RESTRICT p, float aPre,
                               const float * RESTRICT aPost, float dWmax, float wMin, float wMax);
-#ifdef OBSOLETE
-   int pvpatch_update_weights_localWMax(int nk, float * RESTRICT w, const float * RESTRICT m,
-                              const float * RESTRICT p, float aPre,
-                              const float * RESTRICT aPost, float dWMax, float wMin, float * RESTRICT Wmax);
-#endif // OBSOLETE
 
    // STDP parameters for modifying weights
    float ampLTP; // long term potentiation amplitude

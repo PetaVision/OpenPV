@@ -208,101 +208,6 @@ int STDPConn::updateState(double time, double dt)
    return status;
 }
 
-#ifdef OBSOLETE
-/**
- *  STDP online implementation
- *  (see more at: http://www.scholarpedia.org/article/Spike-Timing_Dependent_Plasticity)
- *
- *  M (m or post_tr->data) is an extended post-layer variable
- *
- */
-int STDPConn::updateWeights(int axonId)
-{
-   // Steps:
-   // 1. Update post_tr
-   // 2. Update pre_tr
-   // 3. Update w_ij
-
-   const float dt = parent->getDeltaTime();
-   const float decayLTP = exp(-dt / tauLTP);
-   const float decayLTD = exp(-dt / tauLTD);
-   const int numExtended = pre->getNumExtended();
-   assert(numExtended == getNumWeightPatches());
-   const pvdata_t * preLayerData = pre->getLayerData(); //doesn't get dalay for axon ID
-
-   const pvdata_t aPre;
-   PVPatch * w;
-   size_t postOffset;
-   const pvdata_t * aPost;
-   float pvdata_t * post_tr_m;
-   pvdata_t * pre_tr_m;
-   pvwdata_t * W;
-   int nk, ny, sy;
-   int y, k;
-
-   // Note: both post_tr and activity are extended regions (i.e. plus margins)
-   // to make processing them together simpler
-   //FIXME: But they shouldnt be, right? At least the weights in the margins shouldnt be updated.
-
-   const int nkPost = post_tr->numItems;
-   aPost = post->getLayerData();
-   post_tr_m = post_tr->data; // Postsynaptic trace matrix
-
-   // this stride is in extended space for post-synaptic activity and
-   // STDP decrement variable
-   const int postStrideY = post->getLayerLoc()->nf * (post->getLayerLoc()->nx + 2 * post->getLayerLoc()->nb);
-
-   // 1. Updates the postsynaptic trace
-   for (int kPost = 0; kPost < nkPost; kPost++) {
-      post_tr_m[kPost] = decayLTD * post_tr_m[kPost] + aPost[kPost];
-   }//TODO: Move this for loop inside the next for?
-
-   for (int kPre = 0; kPre < numExtended; kPre++) {
-
-      aPre = preLayerData[kPre];
-
-      w = getWeights(kPre, axonId);
-      postOffset = getAPostOffset(kPre, axonId); // TODO: what is this offset for?
-
-      aPost = &post->getLayerData()[postOffset];
-      post_tr_m = &post_tr->data[postOffset];  // STDP decrement variable (postsynaptic trace)
-      pre_tr_m = get_dwData(axonId, kPre);        // STDP increment variable (presynaptic trace), Note: It uses dwData as the presynaptic trace variable, FIXME: Use an internal variable similar to post_tr?
-      W = get_wData(axonId, kPre); // w->data; TODO: is this diff from w?
-
-      nk  = nfp * w->nx; // one line in x at a time
-      ny  = w->ny;
-      sy  = syp;
-
-      // update Psij (dwPatches variable)
-      // we are processing patches, one line in y at a time
-      for (y = 0; y < ny; y++) {
-         pre_tr_m = pre_tr_m + y * sy;
-         // 2. Updates the presynaptic trace
-         for (k = 0; k < nk; k++) {
-            pre_tr_m[k] = decayLTP * pre_tr_m[k] + aPre;
-         }
-      }
-
-      //3. Update weights w_ij
-      for (y = 0; y < ny; y++) {
-         pvpatch_update_weights(nk, W, post_tr_m, pre_tr_m, aPre, aPost, dWMax, wMin, wMax);
-
-         // advance pointers in y
-         W += sy;
-         pre_tr_m += sy;
-
-         // postActivity and M are extended layer
-         aPost += postStrideY;
-         post_tr_m += postStrideY;
-      }
-   }
-
-   return 0;
-}
-#endif //OBSOLETE
-
-
-
 /**
  *  STDP online implementation
  *  (see more at: http://www.scholarpedia.org/article/Spike-Timing_Dependent_Plasticity)
@@ -477,24 +382,6 @@ int STDPConn::outputState(double timef, bool last)
 
    status = HyPerConn::outputState(timef, last);
 
-#ifdef OBSOLETE
-   if (status != PV_SUCCESS) return status;
-
-//   if (stdpFlag != true) return status;
-//
-//   if (last) {
-//      convertPreSynapticWeights(time);
-//      status = writePostSynapticWeights(time, last);
-//      assert(status == PV_SUCCESS);
-//   }
-//   else if ( (time >= writeTime) && (writeStep >= 0) ) {
-//
-//      convertPreSynapticWeights(time);
-//      status = writePostSynapticWeights(time, last);
-//      assert(status == PV_SUCCESS);
-//   }
-#endif // OBSOLETE
-
    return status;
 }
 
@@ -618,39 +505,6 @@ void STDP_update_state_pre(
 
 }
 #endif //NOTYET - TODO
-
-
-#ifdef OBSOLETE
-int STDPConn::pvpatch_update_plasticity_incr(int nk, float * RESTRICT p, float aPre, float decay, float ltpAmp)
-{
-   int k;
-   //printf("nk = %u\n",nk);
-   for (k = 0; k < nk; k++) {
-      p[k] = decay * p[k] + ltpAmp * aPre;
-   }
-   return 0;
-}
-
-int STDPConn::pvpatch_update_weights(int nk, float * RESTRICT w, const float * RESTRICT m,
-                           const float * RESTRICT p, float aPre,
-                           float aPost, float dWMax, float wMin, float wMax)
-{
-   int k;
-   for (k = 0; k < nk; k++) {
-      // The next statement allows some synapses to "die".
-      // TODO - check to see if its faster to not use branching
-      if (w[k] < WEIGHT_MIN_VALUE) continue;
-       w[k] += dWMax * (-ampLTD*aPre * m[k] + ampLTP * aPost[k] * p[k]);
-      //w[k] += -ampLTD*aPre * m[k] + ampLTP * aPost[k] * p[k];
-       w[k] = w[k] < wMin ? wMin : w[k];
-       w[k] = w[k] > wMax ? wMax : w[k];
-//       if((dWMax * (aPre * m[k] + aPost[k] * p[k]))>0){
-//                printf("dw");
-//       }
-   }
-   return 0;
-}
-#endif //OBSOLETE
 
 } // End of namespace PV
 

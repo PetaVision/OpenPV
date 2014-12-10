@@ -401,24 +401,6 @@ int STDP3Conn::outputState(double timef, bool last)
 
    status = HyPerConn::outputState(timef, last);
 
-#ifdef OBSOLETE
-   if (status != PV_SUCCESS) return status;
-
-   //   if (stdpFlag != true) return status;
-   //
-   //   if (last) {
-   //      convertPreSynapticWeights(time);
-   //      status = writePostSynapticWeights(time, last);
-   //      assert(status == PV_SUCCESS);
-   //   }
-   //   else if ( (time >= writeTime) && (writeStep >= 0) ) {
-   //
-   //      convertPreSynapticWeights(time);
-   //      status = writePostSynapticWeights(time, last);
-   //      assert(status == PV_SUCCESS);
-   //   }
-#endif //OBSOLETE
-
    return status;
 }
 

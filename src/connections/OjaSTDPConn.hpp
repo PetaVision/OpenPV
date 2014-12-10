@@ -108,15 +108,6 @@ protected:
    bool  synscalingFlag;
    float synscaling_v;
 
-#ifdef OBSOLETE_STDP
-   PVPatch       *** dwPatches;      // list of stdp patches Psij variable
-#endif
-#ifdef OBSOLETE
-   int pvpatch_update_weights_localWMax(int nk, float * RESTRICT w, const float * RESTRICT m,
-                              const float * RESTRICT p, float aPre,
-                              const float * RESTRICT aPost, float dWMax, float wMin, float * RESTRICT Wmax);
-#endif // OBSOLETE
-
 private:
    int deleteWeights();
 
