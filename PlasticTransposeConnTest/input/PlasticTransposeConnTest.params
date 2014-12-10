@@ -31,6 +31,7 @@ HyPerCol "column" = {
    errorOnNotANumber = true;
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
+   verifyWrites = false;
    // outputPath is set in parameter sweep
    printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
    filenamesContainLayerNames = false;  
@@ -50,9 +51,10 @@ Image "pre" = {
     // imagePath is set in parameter sweep
     nf = 3;
     phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0;
     writeStep = -1;
     sparseLayer = false;
-    mirrorBCflag = false; // If shared weights are off, this flag must be false because original weights from the extended region will not be zero, but the transpose-of-transpose weights from the extended region must be.
     useImageBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
@@ -73,6 +75,7 @@ Image "post" = {
     writeStep = -1;
     sparseLayer = false;
     mirrorBCflag = false;
+    valueBC = 0.0;
     useImageBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
@@ -131,6 +134,7 @@ HyPerConn "original map" = {
     normalizeFromPostPerspective = false;
     rMinX = 0.0;
     rMinY = 0.0;
+    nonnegativeConstraintFlag = false;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
@@ -191,10 +195,13 @@ CloneConn "clone of original" = {
     pvpatchAccumulateType = "convolve";
     preActivityIsNotRate = false;
     writeStep = -1;
+    writeCompressedCheckpoints = false;
 };
 
 TestAllZerosProbe "probe" = {
     targetLayer = "comparison";
+    triggerFlag = false;
+    nnzThreshold = 5.0e-5;
 };
 
 ParameterSweep "column":outputPath = {
