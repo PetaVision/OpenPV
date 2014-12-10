@@ -208,7 +208,6 @@ KernelConn "L0toLx2unshrunken" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;     
 
@@ -255,7 +254,6 @@ KernelConn "L0toLx4unshrunken" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;     
 
@@ -304,7 +302,6 @@ KernelConn "L0toLx2shrunken" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;     
 
@@ -353,7 +350,6 @@ KernelConn "L0toLx4shrunken" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;     
 
@@ -401,7 +397,6 @@ KernelConn "L0toLx4shrunken_tall" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;     
 
@@ -449,7 +444,6 @@ KernelConn "L0toLx4shrunken_wide" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;     
 

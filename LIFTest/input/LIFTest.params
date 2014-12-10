@@ -287,7 +287,6 @@ HyPerConn "input to scaled input" = {
       
     normalizeMethod                 = "none";
     plasticityFlag                  = false;
-    shmget_flag                     = true;
     pvpatchAccumulateType           = "convolve";
     // writeCompressedWeights       = true;
     writeCompressedCheckpoints      = true;
@@ -326,7 +325,6 @@ HyPerConn "retina to LIFTest" = {
       
     normalizeMethod                 = "none";
     plasticityFlag                  = false;
-    shmget_flag                     = true;
     pvpatchAccumulateType           = "convolve";
     // writeCompressedWeights       = true;
     writeCompressedCheckpoints      = true;
@@ -370,7 +368,6 @@ GapConn "GapTest to LIFGapTest" = {
     
     symmetrizeWeights               = false;
     plasticityFlag                  = false;
-    shmget_flag                     = true;
     pvpatchAccumulateType           = "convolve";
     selfFlag                        = false;
     shrinkPatches                   = false;

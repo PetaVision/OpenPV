@@ -136,7 +136,6 @@ HyPerConn "Original Map for One to One Test" = {
     
     normalizeMethod                     = "normalizeSum";
     
-    shmget_flag                         = false;
 };
 
 TransposeConn "Transpose for One to One Test of TransposeConn" = {
@@ -222,7 +221,6 @@ HyPerConn "Original Map for Many to One Test" = {
     
     normalizeMethod                     = "normalizeSum";
     
-    shmget_flag                         = false;
 };
 
 TransposeConn "Transpose for Many to One Test of TransposeConn" = {
@@ -308,7 +306,6 @@ HyPerConn "Original Map for One to Many Test" = {
     
     normalizeMethod                     = "normalizeSum";
     
-    shmget_flag                         = false;
 };
 
 TransposeConn "Transpose for One to Many Test of TransposeConn" = {

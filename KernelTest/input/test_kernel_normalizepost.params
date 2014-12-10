@@ -211,7 +211,6 @@ KernelConn "Retina to L0" = {
     symmetrizeWeights = false;
 
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;
 
@@ -251,7 +250,6 @@ KernelConn "L0 to Lx1" = {
     symmetrizeWeights = false;
 
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;
 
@@ -297,7 +295,6 @@ KernelConn "L0 to Lx2" = {
     symmetrizeWeights = false;
 
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;
 
@@ -343,7 +340,6 @@ KernelConn "L0 to Lx4" = {
     symmetrizeWeights = false;
 
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;
 
@@ -389,7 +385,6 @@ KernelConn "L0 to Lx1_2" = {
     symmetrizeWeights = false;
 
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;
 
@@ -434,7 +429,6 @@ KernelConn "L0 to Lx1_4" = {
     symmetrizeWeights = false;
 
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;
 

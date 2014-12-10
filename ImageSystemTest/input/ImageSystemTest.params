@@ -120,7 +120,6 @@ KernelConn "input to output" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
     selfFlag = false;  // conntect to itself
-    shmget_flag = true; //shared memory
 
     delay = 0;
 

@@ -188,7 +188,6 @@ KernelConn "W1" = {
      
     preActivityIsNotRate = false;
     selfFlag = false;
-    shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
@@ -237,7 +236,6 @@ KernelConn "B1" = {
      
     preActivityIsNotRate = false;
     selfFlag = false;
-    shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
@@ -284,7 +282,6 @@ TransposeConn "W2T" = {
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
     writeCompressedCheckpoints = false;
-    shmget_flag = false;
     delay = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
@@ -325,7 +322,6 @@ KernelConn "gtToFinalError" = {
     delay = 0;
     preActivityIsNotRate = false;
     selfFlag = false;
-    shmget_flag = false;
 };
 
 IdentConn "FinalLayerToFinalError" = {

@@ -19,6 +19,7 @@ HyPerCol "column" = {
    stopTime = 100; //100 training steps  
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
+   verifyWrites = false;
    outputPath = "output/";
    filenamesContainLayerNames = true;  
    filenamesContainConnectionNames = true;
@@ -181,7 +182,6 @@ KernelConn "W1" = {
      
     preActivityIsNotRate = false;
     selfFlag = false;
-    shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
@@ -219,7 +219,6 @@ KernelConn "B1" = {
      
     preActivityIsNotRate = false;
     selfFlag = false;
-    shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";

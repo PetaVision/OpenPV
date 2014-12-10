@@ -140,7 +140,6 @@ KernelConn "origConn" = {
      
     preActivityIsNotRate = false;
     selfFlag = false;
-    shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
     useWindowPost = false;
@@ -156,7 +155,6 @@ TransposeConn "preTransposeConn" = {
     selfFlag = false;
     preActivityIsNotRate = false;
     writeStep = -1;
-    shmget_flag = false;
     delay = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
@@ -170,7 +168,6 @@ TransposeConn "postTransposeConn" = {
     selfFlag = false;
     preActivityIsNotRate = false;
     writeStep = -1.0;
-    shmget_flag = false;
     delay = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;

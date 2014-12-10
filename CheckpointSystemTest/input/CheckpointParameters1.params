@@ -261,7 +261,6 @@ HyPerConn "input to output arbor" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
     selfFlag = false;
-    shmget_flag = true;
 
     delay = 0;     
 };

@@ -140,7 +140,6 @@ HyPerConn "input_to_output" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
     selfFlag = false;
-    shmget_flag = true;
 
     delay = 0;
 

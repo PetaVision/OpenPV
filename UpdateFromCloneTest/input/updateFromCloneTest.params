@@ -137,7 +137,6 @@ HyPerConn "origConn" = {
      
     preActivityIsNotRate = false;
     selfFlag = false;
-    shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
     useWindowPost = false;

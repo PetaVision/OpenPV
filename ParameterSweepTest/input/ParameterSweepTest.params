@@ -240,7 +240,6 @@ KernelConn "input to output" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    shmget_flag = 1;
     selfFlag = false;
     updateGSynFromPostPerspective = false;
 
@@ -269,7 +268,6 @@ KernelConn "input to output1x1" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    shmget_flag = 1;
     selfFlag = false;
     updateGSynFromPostPerspective = false;
 
@@ -298,7 +296,6 @@ KernelConn "input to output3x3" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    shmget_flag = 1;
     selfFlag = false;
     updateGSynFromPostPerspective = false;
 
@@ -327,7 +324,6 @@ KernelConn "input to output5x5" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    shmget_flag = 1;
     selfFlag = false;
     updateGSynFromPostPerspective = false;
 
@@ -356,7 +352,6 @@ KernelConn "input to output7x7" = {
 
     writeCompressedCheckpoints = 0.0;
     plasticityFlag = false;
-    shmget_flag = 1;
     selfFlag = false;
     updateGSynFromPostPerspective = false;
 

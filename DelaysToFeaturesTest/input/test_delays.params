@@ -126,7 +126,6 @@ HyPerConn "delayArbor" = {
     shrinkPatches          = false;
     updateGSynFromPostPerspective = false;
     preActivityIsNotRate   = false;
-    shmget_flag            = true;
 };
 
 DelayTestProbe "Error Stats File" = {

@@ -193,7 +193,6 @@ KernelConn "L0 to Lx1" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;     
 
@@ -240,7 +239,6 @@ KernelConn "L0 to Lx2" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;     
 
@@ -287,7 +285,6 @@ KernelConn "L0 to Lx4" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;     
 
@@ -334,7 +331,6 @@ KernelConn "L0 to Lx1_2" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;     
 
@@ -380,7 +376,6 @@ KernelConn "L0 to Lx1_4" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;     
 

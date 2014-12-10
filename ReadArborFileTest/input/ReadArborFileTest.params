@@ -129,7 +129,6 @@ KernelConn "all arbors at once" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    shmget_flag = 1;
 
     delay = 0;
 
@@ -161,7 +160,6 @@ KernelConn "arbors split into files" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
-    shmget_flag = 1;
 
     delay = 0;
 

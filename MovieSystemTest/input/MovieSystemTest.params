@@ -167,7 +167,6 @@ KernelConn "input_to_ganglion" = {
     writeCompressedCheckpoints       = false;
     plasticityFlag                   = false;
     selfFlag                         = false;
-    shmget_flag                      = true;
 
     delay                            = 0;
 

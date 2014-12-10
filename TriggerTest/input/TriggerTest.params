@@ -182,7 +182,6 @@ TriggerTestConn "inputToNoTrigger" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     selfFlag = false;  // conntect to itself
-    shmget_flag = true; //shared memory
 
     delay = 0;
 
@@ -223,7 +222,6 @@ TriggerTestConn "inputToTrigger0" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     selfFlag = false;  // conntect to itself
-    shmget_flag = true; //shared memory
 
     delay = 0;
 
@@ -265,7 +263,6 @@ TriggerTestConn "inputToTrigger1" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     selfFlag = false;  // conntect to itself
-    shmget_flag = true; //shared memory
 
     delay = 0;
 
@@ -307,7 +304,6 @@ TriggerTestConn "inputToTrigger2" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     selfFlag = false;  // conntect to itself
-    shmget_flag = true; //shared memory
 
     delay = 0;
 
@@ -349,7 +345,6 @@ TriggerTestConn "inputToNoPeriod" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     selfFlag = false;  // conntect to itself
-    shmget_flag = true; //shared memory
 
     delay = 0;
 
@@ -390,7 +385,6 @@ TriggerTestConn "inputToPeriod0" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     selfFlag = false;  // conntect to itself
-    shmget_flag = true; //shared memory
 
     delay = 0;
 
@@ -433,7 +427,6 @@ TriggerTestConn "inputToPeriod1" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     selfFlag = false;  // conntect to itself
-    shmget_flag = true; //shared memory
 
     delay = 0;
 
@@ -476,7 +469,6 @@ TriggerTestConn "inputToPeriod2" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     selfFlag = false;  // conntect to itself
-    shmget_flag = true; //shared memory
 
     delay = 0;
 

@@ -115,7 +115,6 @@ IdentConn "matching_pursuit_layer to residual" = {
     // writeCompressedWeights;
     // ignoreGPU
     
-    shmget_flag                         = false;
 };
 
 MatchingPursuitLayer "matching_pursuit_layer" = {

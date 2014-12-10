@@ -142,7 +142,6 @@ KernelConn "origConn" = {
      
     preActivityIsNotRate = false;
     selfFlag = false;
-    shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
     useWindowPost = false;
@@ -158,7 +157,6 @@ KernelConn "origConn" = {
 //    selfFlag = false;
 //    preActivityIsNotRate = false;
 //    writeStep = -1;
-//    shmget_flag = false;
 //    delay = 0;
 //    pvpatchAccumulateType = "convolve";
 //    updateGSynFromPostPerspective = false;
@@ -173,7 +171,6 @@ TransposeConn "gpuTransposeConn" = {
     selfFlag = false;
     preActivityIsNotRate = false;
     writeStep = -1.0;
-    shmget_flag = false;
     delay = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;

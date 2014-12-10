@@ -123,7 +123,6 @@ KernelConn "Retina to L0" = {
     symmetrizeWeights = false;
 
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;
 
@@ -160,7 +159,6 @@ KernelConn "L0 to Lx1" = {
     symmetrizeWeights = false;
 
     plasticityFlag = 0;
-    shmget_flag = 1;
 
     delay = 0;
 

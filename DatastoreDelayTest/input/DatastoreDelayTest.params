@@ -158,7 +158,6 @@ KernelConn "delayArbor" = {
     shrinkPatches          = false;
     updateGSynFromPostPerspective = false;
     preActivityIsNotRate   = false;
-    shmget_flag            = true;
 };
 
 DatastoreDelayTestProbe "probe" = {

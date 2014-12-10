@@ -122,7 +122,6 @@ HyPerConn "initializeFromInitWeights" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
     selfFlag = false;  
-    shmget_flag = true; 
 
     delay = 0;
 
@@ -153,7 +152,6 @@ HyPerConn "initializeFromCheckpoint" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
     selfFlag = false;  
-    shmget_flag = true; 
 
     delay = 0;
 

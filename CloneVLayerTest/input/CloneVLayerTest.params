@@ -226,7 +226,6 @@ KernelConn "input to output" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
     selfFlag = false;  // conntect to itself
-    shmget_flag = true; //shared memory
 
     delay = 0;
 
@@ -260,7 +259,6 @@ KernelConn "output to duplicate_sigmoid" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
     selfFlag = false;  // conntect to itself
-    shmget_flag = true; //shared memory
     preActivityIsNotRate = false;
 
     delay = 0;
