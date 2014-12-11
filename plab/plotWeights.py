@@ -21,11 +21,26 @@ import matplotlib.pyplot as plt # only need if showPlot==True OR savePlot==true
 import os                       # only needed if savePlot==true
 
 def plotWeights(weightStruct,i_arbor=0,i_frame=0,margin=0,showPlot=False,savePlot=False,saveName=''):
+    # NOTE: i_arbor and i_frame are indices for the given frame or arbor.
+    #       They are not the actual arbor/frame number. This is because 
+    #       there may be a writeStep that is not 1.
+    #
+    # TODO: This would not be necessary if we knew writeStep, which we
+    #       would know if we included this function in a suite that reads
+    #       in parameter files.
+    
     # weightStruct should be dims [time, numArbors, numPatches, nyp, nxp, nfp]
     weight_vals = np.array(weightStruct["values"])
     weight_time = weightStruct["time"]
 
     (numFrames,numArbors,numPatches,nyp,nxp,nfp) = weight_vals.shape
+
+    if i_arbor > numArbors:
+        print "Warning: i_arbor > numArbors. Setting i_arbor to numArbors."
+        i_arbor = numArbors
+    if i_frame > numFrames:
+        print "Warning: i_frame > numFrames. Setting i_frame to numFrames."
+        i_frame > numFrames
 
     if np.sqrt(numPatches)%1 == 0: #If numPaches has a square root
         numPatchesX = np.sqrt(numPatches)
