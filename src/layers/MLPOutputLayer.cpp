@@ -382,10 +382,10 @@ int MLPOutputLayer::updateState(double timef, double dt) {
    }
    //For testing purposes
    pvdata_t * A = getCLayer()->activity->data;
-   for(int ni = 0; ni < getNumNeurons(); ni++){
+  // for(int ni = 0; ni < getNumNeurons(); ni++){
       //int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->nb);
-      std::cout << timef <<":  ni: " << ni << "  A: " << A[ni] << "\n";
-   }
+  //    std::cout << timef <<":  ni: " << ni << "  A: " << A[ni] << "\n";
+  // }
    return PV_SUCCESS;
 }
 
