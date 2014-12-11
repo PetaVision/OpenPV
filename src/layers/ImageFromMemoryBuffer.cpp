@@ -37,11 +37,11 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
       }
       return PV_FAILURE;
    }
-   imageLoc.nx = height;
-   imageLoc.ny = width;
+   imageLoc.nx = width;
+   imageLoc.ny = height;
    imageLoc.nf = numbands;
-   imageLoc.nxGlobal = height;
-   imageLoc.nyGlobal = width;
+   imageLoc.nxGlobal = width;
+   imageLoc.nyGlobal = height;
    imageLoc.kx0 = 0;
    imageLoc.ky0 = 0;
    memset(&imageLoc.halo, 0, sizeof(PVHalo));
