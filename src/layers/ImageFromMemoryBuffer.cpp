@@ -66,8 +66,6 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
    
    hasNewImageFlag = true;
 
-   HyPerLayer::outputState(parent->simulationTime(), parent->getDeltaTime());
-
    return PV_SUCCESS;
 }
 template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, uint8_t zeroval, uint8_t oneval);
