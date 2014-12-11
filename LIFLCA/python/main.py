@@ -8,6 +8,7 @@ import os, sys
 lib_path = os.path.abspath('/Users/dpaiton/Documents/workspace/PetaVision/plab')
 sys.path.append(lib_path)
 import pvAnalysis as pv
+import plotWeights as pw
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -66,41 +67,11 @@ print 'Weights:'
 #err_activityFile.close()
 weightsFile.close()
 
+arbor      = 0
+frame      = 400
+margin     = 4 #pixels
+showPlot   = True
+savePlot   = True
+saveName   = output_dir+'/analysis/weights.png'
 
-###########################################
-###########################################
-###########################################
-
-margin = 6 #pixels
-
-# weightStruct should be dims [time, numArbors, numPatches, nyp, nxp, nfp]
-weight_vals = np.array(weightStruct["values"])
-weight_time = weightStruct["time"]
-
-(numFrames,numArbors,numPatches,nyp,nxp,nfp) = weight_vals.shape
-i_frame = 400
-i_arbor = 0
-
-if np.sqrt(numPatches)%1 == 0: #If numPaches has a square root
-    numPatchesX = np.sqrt(numPatches)
-    numPatchesY = numPatchesX
-else:
-    numPatchesX = np.floor(np.sqrt(numPatches))
-    numPatchesY = numPatchesX+1
-
-patch_set = np.zeros((numPatchesX*numPatchesY,nyp+margin,nxp+margin))
-
-for i_patch in range(numPatches): 
-    patch_tmp = weight_vals[i_frame,i_arbor,i_patch,:,:,:]
-    min_patch = np.amin(patch_tmp)
-    max_patch = np.amax(patch_tmp)
-    # Normalize patch
-    patch_tmp = (patch_tmp - min_patch) * 255 / (max_patch - min_patch + np.finfo(float).eps) # re-scaling & normalizing TODO: why? and what exactly is it doing?
-    # Patches are padded with zeros - just fill in center
-    patch_set[i_patch,np.floor(margin/2):np.floor(margin/2)+nyp,np.floor(margin/2):np.floor(margin/2)+nxp] = np.uint8(np.squeeze(np.transpose(patch_tmp,(1,0,2)))) # re-ordering to [x,y,f] TODO: why?
-
-#TODO: Does this actually reshape it how I want it to? (hint: no...)
-out_mat = np.reshape(patch_set,(numPatchesY*(nyp+margin),numPatchesX*(nxp+margin)),'C')
-
-plt.imshow(out_mat,cmap='Greys',interpolation='nearest')
-plt.show()
+weight_mat = pw.plotWeights(weightStruct,arbor,frame,margin,showPlot,savePlot,saveName)
