@@ -118,6 +118,7 @@ namespace PV {
 class InitV;
 class PVParams;
 class HyPerConn; // TODO: HyPerLayer should only refer to BaseConnections, not HyPerConns
+class BaseConnection;
 
 class HyPerLayer : public LayerDataInterface {
 
@@ -283,16 +284,15 @@ protected:
 #endif
 
    static int equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2);
-
+#ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  HyPerLayer::recv* methods moved to HyPerConn::deliver* methods
    virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
-   void recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
-
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual int recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * cube, int arborID);
    virtual int recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID);
-#endif 
-
+#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   void recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
+#endif // OBSOLETE
 
    int freeClayer();
 
@@ -563,12 +563,8 @@ protected:
    double lastUpdateTime; // The most recent time that the layer's activity is updated, used as a cue for publisher to exchange borders
    double nextUpdateTime; // The timestep to update next
 
-//   int feedforwardDelay;  // minimum delay required for a change in the input to potentially influence this layer
-//   int feedbackDelay;     // minimum delay required for a change in this layer to potentially influence itself via feedback loop
-private:
-
    pvdata_t ** thread_gSyn; //Accumulate buffer for each thread, only used if numThreads > 1
-   std::vector<HyPerConn*> recvConns;
+   std::vector<BaseConnection *> recvConns;
 
    // OpenCL variables
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -701,13 +697,9 @@ public:
          d_Activity->finish();
       }
    }
-#endif
-   //void setAllocKrRecvPost(){
-   //   allocKrRecvPost = true;
-   //}
-//   void startTimer() {recvsyn_timer->start();}
-//   void stopTimer() {recvsyn_timer->stop();}
-//
+   cl_event * getRecvSynStartEvent() { return gpu_recvsyn_timer->getStartEvent(); }
+#endif // PV_USE_OPENCL
+
 protected:
 
    virtual int allocateUpdateKernel();

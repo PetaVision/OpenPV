@@ -264,7 +264,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    writeTime = initialWriteTime;
    writeActivityCalls = 0;
    writeActivitySparseCalls = 0;
-   numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed, numDelayLevels is increased when HyPerConn::communicateInitInfo calls increaseDelayLevels
+   numDelayLevels = 1; // If a connection has positive delay so that more delay levels are needed, numDelayLevels is increased when BaseConnection::communicateInitInfo calls increaseDelayLevels
    maxRate = 1000.0f/parent->getDeltaTime();
 
    initClayer();
@@ -1026,11 +1026,14 @@ int HyPerLayer::communicateInitInfo()
    // (probably the order the layers appear in the params file) to make sure
    // that the same runs use the same RNG seeds in the same way.
    //
-   // HyPerCol also calls each HyPerConn's communicateInitInfo() method, which
-   // (among other things) calls its presynaptic layer's requireMarginWidth().
+   // If any other object in the column needs the layer to have a certain minimum
+   // margin width (e.g. a HyPerConn with patch size bigger than one), it should
+   // call the layer's requireMarginWidth() method during its communicateInitInfo
+   // stage.
+   //
    // Since all communicateInitInfo() methods are called before any allocateDataStructures()
    // methods, HyPerLayer knows its marginWidth before it has to allocate
-   // anything.  So it no longer needs to be specified in params!
+   // anything.  So the margin width does not have to be specified in params.
    if(triggerFlag){
       triggerLayer = parent->getLayerFromName(triggerLayerName);
       if (triggerLayer==NULL) {
@@ -1973,16 +1976,14 @@ int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;
    //Only recvAllSynapticInput if we need an update
    if(needUpdate(parent->simulationTime(), parent->getDeltaTime())){
-      //int numConnections = parent->numberOfConnections();
-      //for (int c=0; c<numConnections; c++) {
-         //HyPerConn * conn = parent->getConnection(c);
-         //if (conn->postSynapticLayer()!=this) continue;
       bool switchGpu = false;
       //Start CPU timer here
       recvsyn_timer->start();
 
-      for(std::vector<HyPerConn*>::iterator it = recvConns.begin(); it < recvConns.end(); it++){
-         HyPerConn * conn = *it;
+      for(std::vector<BaseConnection*>::iterator it = recvConns.begin(); it < recvConns.end(); it++){
+         BaseConnection * baseConn = *it;
+         HyPerConn * conn = dynamic_cast<HyPerConn *>(baseConn);
+         assert(conn != NULL);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
          //Check if it's done with cpu connections
          if(!switchGpu && conn->getReceiveGpu()){
@@ -1995,62 +1996,7 @@ int HyPerLayer::recvAllSynapticInput() {
             switchGpu = true;
          }
 #endif
-
-         //Check if updating from post perspective
-         HyPerLayer * pre = conn->preSynapticLayer();
-         PVLayerCube cube;
-         memcpy(&cube.loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
-         cube.numItems = pre->getNumExtended();
-         cube.size = sizeof(PVLayerCube);
-
-         DataStore * store = parent->icCommunicator()->publisherStore(pre->getLayerId());
-         int numArbors = conn->numberOfAxonalArborLists();
-
-         for (int arbor=0; arbor<numArbors; arbor++) {
-            int delay = conn->getDelay(arbor);
-            cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
-            if(!conn->getUpdateGSynFromPostPerspective()){
-               cube.isSparse = store->isSparse();
-               if(cube.isSparse){
-                  cube.numActive = *(store->numActiveBuffer(LOCAL, delay));
-                  cube.activeIndices = store->activeIndicesBuffer(LOCAL, delay);
-               }
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-               if(conn->getReceiveGpu()){
-                  status = recvSynapticInputGpu(conn, &cube, arbor);
-                  //No need to update GSyn since it's already living on gpu
-                  updatedDeviceGSyn = false;
-               }
-               else
-#endif
-               {
-                  status = recvSynapticInput(conn, &cube, arbor);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-                  //CPU updated gsyn, need to update gsyn
-                  updatedDeviceGSyn = true;
-#endif
-               }
-            }
-            else{
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-               if(conn->getReceiveGpu()){
-                  status = recvSynapticInputFromPostGpu(conn, &cube, arbor);
-                  updatedDeviceGSyn = false;
-               }
-               else
-#endif
-               {
-                  status = recvSynapticInputFromPost(conn, &cube, arbor);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-                  updatedDeviceGSyn = true;
-#endif
-               }
-            }
-            assert(status == PV_SUCCESS || status == PV_BREAK);
-            if (status == PV_BREAK){
-               break;
-            }
-         }
+         conn->deliver();
       }
 #ifdef PV_USE_CUDA
       if(switchGpu){
@@ -2155,7 +2101,7 @@ void HyPerLayer::copyAllActivityFromDevice(){
 
 
 
-
+#ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  HyPerLayer::recv* methods moved to HyPerConn::deliver* methods
 /**
  * Get synaptic input from pre synaptic layer by looping over post synaptic neurons
  * Source layer is pre layer in current connection, post layer in original connection
@@ -2267,7 +2213,9 @@ int HyPerLayer::recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * 
    }
    return PV_SUCCESS;
 }
+#endif // OBSOLETE
 
+#ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  HyPerLayer::recv* methods moved to HyPerConn::deliver* methods
 /**
  * Receive synaptic input from pre synaptic layer by looping over pre synaptic neurons 
  */
@@ -2657,8 +2605,7 @@ int HyPerLayer::recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * activ
    return PV_SUCCESS;
 }
 
-
-#endif
+#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
 void HyPerLayer::recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr) {
    PVPatch * weights = conn->getWeights(patchIndex, arbor);
@@ -2673,6 +2620,8 @@ void HyPerLayer::recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int 
       (conn->accumulateFunctionPointer)(nk, postPatchStart + y*sy, a, weightDataStart + y*syw, auxPtr);
    }
 }
+
+#endif // OBSOLETE
 
 int HyPerLayer::publish(InterColComm* comm, double time)
 {

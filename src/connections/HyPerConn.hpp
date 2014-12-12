@@ -88,6 +88,12 @@ public:
    }
 
    virtual int writePostSynapticWeights(double time, bool last);
+
+   /**
+    * Uses presynaptic layer's activity to modify the postsynaptic GSyn or thread_gSyn
+    */
+   virtual int deliver();
+   void deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
     
    GSynAccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
    int (*accumulateFunctionPointer)(int nk, float* v, float a, pvwdata_t* w, void* auxPtr);
@@ -343,7 +349,7 @@ public:
    virtual bool * getShmgetOwnerHead(){
       return  shmget_owner;
    }
-#endif
+#endif // SHMGET
 #endif // OBSOLETE
 
 protected:
@@ -448,6 +454,8 @@ protected:
    bool useListOfArborFiles;
    bool combineWeightFiles;
    bool updateGSynFromPostPerspective;
+
+   pvdata_t ** thread_gSyn; //Accumulate buffer for each thread, only used if numThreads > 1 // Move back to HyPerLayer?
 
    double weightUpdatePeriod;
    double weightUpdateTime;
@@ -794,7 +802,7 @@ protected:
    virtual void ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief shmget_flag: Obsolete
+    * @brief sharedWeights: Deprecated
     */
    virtual void ioParam_shmget_flag(enum ParamsIOFlag ioFlag);
 
@@ -902,6 +910,15 @@ protected:
 #endif // PV_USE_MPI
 
    void connOutOfMemory(const char* funcname);
+
+   int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
+   int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
+   int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
+#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+
+   float getConvertToRateDeltaTimeFactor();
 
 //GPU variables
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)

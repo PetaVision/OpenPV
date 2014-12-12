@@ -8,6 +8,7 @@
 #include "CliqueLayer.hpp"
 #include "../utils/conversions.h"
 #include "../connections/HyPerConn.hpp"
+#include "../connections/TransposeConn.hpp" // Needed by recvSynapticInputFromPostBase, even though that hasn't been rewritten for CliqueConn things
 #include "ANNLayer.hpp"
 
 #include <assert.h>
@@ -55,6 +56,119 @@ void CliqueLayer::ioParam_Vgain(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "Vgain", &Vgain, (pvdata_t) 2, true);
 }
 
+// CliqueLayer overrides recvAllSynapticInput with what used to be in HyPerLayer::recvAllSynapticInput,
+// before recvAllSynapticInput changed to call connections' deliver method instead of layers' recv methods
+// Since CliqueLayer never had recvSynapticInputFromPost or GPU receive methods, the initialization should
+// prevent parameters that require them from being used?
+int CliqueLayer::recvAllSynapticInput() {
+   int status = PV_SUCCESS;
+   //Only recvAllSynapticInput if we need an update
+   if(needUpdate(parent->simulationTime(), parent->getDeltaTime())){
+      bool switchGpu = false;
+      //Start CPU timer here
+      recvsyn_timer->start();
+
+      for(std::vector<BaseConnection*>::iterator it = recvConns.begin(); it < recvConns.end(); it++){
+         BaseConnection * baseConn = *it;
+         HyPerConn * conn = dynamic_cast<HyPerConn *>(baseConn);
+         assert(conn != NULL);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+         //Check if it's done with cpu connections
+         if(!switchGpu && conn->getReceiveGpu()){
+            //Copy GSyn over to GPU
+            copyAllGSynToDevice();
+#ifdef PV_USE_CUDA
+            //Start gpu timer
+            gpu_recvsyn_timer->start();
+#endif
+            switchGpu = true;
+         }
+#endif
+
+         //Check if updating from post perspective
+         HyPerLayer * pre = conn->preSynapticLayer();
+         PVLayerCube cube;
+         memcpy(&cube.loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+         cube.numItems = pre->getNumExtended();
+         cube.size = sizeof(PVLayerCube);
+
+         DataStore * store = parent->icCommunicator()->publisherStore(pre->getLayerId());
+         int numArbors = conn->numberOfAxonalArborLists();
+
+         for (int arbor=0; arbor<numArbors; arbor++) {
+            int delay = conn->getDelay(arbor);
+            cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
+            if(!conn->getUpdateGSynFromPostPerspective()){
+               cube.isSparse = store->isSparse();
+               if(cube.isSparse){
+                  cube.numActive = *(store->numActiveBuffer(LOCAL, delay));
+                  cube.activeIndices = store->activeIndicesBuffer(LOCAL, delay);
+               }
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+               if(conn->getReceiveGpu()){
+                  if (parent->columnId()==0) {
+                     fprintf(stderr, "%s \"%s: CliqueLayer has not yet implemented receiving synaptic input on GPUs.\n",
+                           parent->parameters()->groupKeywordFromName(name), name);
+                  }
+                  MPI_Barrier(parent->icCommunicator()->communicator());
+                  exit(EXIT_FAILURE);
+                  // status = recvSynapticInputGpu(conn, &cube, arbor);
+                  // //No need to update GSyn since it's already living on gpu
+                  // updatedDeviceGSyn = false;
+               }
+               else
+#endif
+               {
+                  status = recvSynapticInput(conn, &cube, arbor);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+                  //CPU updated gsyn, need to update gsyn
+                  updatedDeviceGSyn = true;
+#endif
+               }
+            }
+            else{
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+               if(conn->getReceiveGpu()){
+                  if (parent->columnId()==0) {
+                     fprintf(stderr, "%s \"%s: CliqueLayer has not yet implemented receiving synaptic input on GPUs.\n",
+                           parent->parameters()->groupKeywordFromName(name), name);
+                  }
+                  MPI_Barrier(parent->icCommunicator()->communicator());
+                  exit(EXIT_FAILURE);
+                  // status = recvSynapticInputFromPostGpu(conn, &cube, arbor);
+               }
+               else
+#endif
+               {
+                  if (parent->columnId()==0) {
+                     fprintf(stderr, "%s \"%s: CliqueLayer has not yet implemented receiving from the postsynaptic perspective.\n",
+                           parent->parameters()->groupKeywordFromName(name), name);
+                  }
+                  MPI_Barrier(parent->icCommunicator()->communicator());
+                  exit(EXIT_FAILURE);
+                  // status = recvSynapticInputFromPost(conn, &cube, arbor);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+                  updatedDeviceGSyn = true;
+#endif
+               }
+            }
+            assert(status == PV_SUCCESS || status == PV_BREAK);
+            if (status == PV_BREAK){
+               break; // breaks out of arbor loop
+            }
+         }
+      }
+#ifdef PV_USE_CUDA
+      if(switchGpu){
+         //Stop timer
+         gpu_recvsyn_timer->stop();
+      }
+#endif
+      recvsyn_timer->stop();
+   }
+   return status;
+}
+
 int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity,
       int axonId)
 {
@@ -65,7 +179,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
    }
    enum ChannelType channel_type = conn->getChannel();
    if (channel_type == CHANNEL_EXC) {
-      return HyPerLayer::recvSynapticInput(conn, activity, axonId);
+      return recvSynapticInputBase(conn, activity, axonId);
    }
    // number of axons = patch size ^ (clique size - 1)
    int numCliques = conn->numberOfAxonalArborLists();
@@ -75,7 +189,7 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
                      / log2(
                            conn->xPatchSize() * conn->yPatchSize() * conn->fPatchSize()));
    if (cliqueSize == 1) {
-      return HyPerLayer::recvSynapticInput(conn, activity, axonId);
+      return recvSynapticInputBase(conn, activity, axonId);
    }
 
    assert(axonId == 0);
@@ -277,6 +391,121 @@ int CliqueLayer::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activit
    free(a_post_mask);
    recvsyn_timer->stop();
    return PV_BREAK;
+}
+
+int CliqueLayer::recvSynapticInputBase(HyPerConn * conn, const PVLayerCube * activity, int arborID) {
+   // copied from old HyPerLayer::recvSynapticInput when HyPerLayer receive methods were turned into HyPerConn deliver methods
+
+   //Check if we need to update based on connection's channel
+   if(conn->getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
+   }
+   assert(GSyn && GSyn[conn->getChannel()]);
+
+   float dt_factor = getConvertToRateDeltaTimeFactor(conn);
+
+   const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * postLoc = this->getLayerLoc();
+
+
+   assert(arborID >= 0);
+   const int numExtended = activity->numItems;
+
+#ifdef DEBUG_OUTPUT
+   int rank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
+   printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numExtended, activity, this, conn);
+   fflush(stdout);
+#endif // DEBUG_OUTPUT
+
+
+   //Clear all thread gsyn buffer
+   if(thread_gSyn){
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+      for(int i = 0; i < parent->getNumThreads() * getNumNeurons(); i++){
+         int ti = i/getNumNeurons();
+         int ni = i % getNumNeurons();
+         thread_gSyn[ti][ni] = 0;
+      }
+   }
+
+   int numLoop;
+   if(activity->isSparse){
+      numLoop = activity->numActive;
+   }
+   else{
+      numLoop = numExtended;
+   }
+
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(guided)
+#endif
+   //TODO loop over active indicies here instead
+   for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
+      int kPre;
+      if(activity->isSparse){
+         kPre = activity->activeIndices[loopIndex];
+      }
+      else{
+         kPre = loopIndex;
+      }
+
+      bool inWindow;
+      //Post layer recieves synaptic input
+      //Only with respect to post layer
+      const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
+      const PVLayerLoc * postLoc = this->getLayerLoc();
+      int kPost = layerIndexExt(kPre, preLoc, postLoc);
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
+      inWindow = inWindowExt(arborID, kPost);
+      if(!inWindow) continue;
+#endif // OBSOLETE
+
+      float a = activity->data[kPre] * dt_factor;
+      // Activity < 0 is used by generative models --pete
+      if (a == 0.0f) continue;
+
+      //If we're using thread_gSyn, set this here
+      pvdata_t * gSynPatchHead;
+#ifdef PV_USE_OPENMP_THREADS
+      if(thread_gSyn){
+         int ti = omp_get_thread_num();
+         gSynPatchHead = thread_gSyn[ti];
+      }
+      else{
+         gSynPatchHead = this->getChannel(conn->getChannel());
+      }
+#else
+      gSynPatchHead = this->getChannel(conn->getChannel());
+#endif
+      conn->deliverOnePreNeuronActivity(kPre, arborID, a, gSynPatchHead, conn->getRandState(kPre));
+   }
+#ifdef PV_USE_OPENMP_THREADS
+   //Accumulate back into gSyn
+   if(thread_gSyn){
+      pvdata_t * gSynPatchHead = this->getChannel(conn->getChannel());
+      //Looping over neurons first to be thread safe
+#pragma omp parallel for
+      for(int ni = 0; ni < getNumNeurons(); ni++){
+         //Different for maxpooling
+         if(conn->getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+            for(int ti = 0; ti < parent->getNumThreads(); ti++){
+               gSynPatchHead[ni] = gSynPatchHead[ni] < thread_gSyn[ti][ni] ? thread_gSyn[ti][ni] : gSynPatchHead[ni];
+            }
+         }
+         else{
+            for(int ti = 0; ti < parent->getNumThreads(); ti++){
+               gSynPatchHead[ni] += thread_gSyn[ti][ni];
+            }
+         }
+      }
+   }
+#endif
+
+   return PV_SUCCESS;
 }
 
 int CliqueLayer::doUpdateState(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,

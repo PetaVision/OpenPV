@@ -145,6 +145,12 @@ public:
    virtual int finalizeUpdate(double timed, double dt) { return PV_SUCCESS; }
 
    /**
+    * A pure virtual function for modifying the post-synaptic layer's GSyn buffer based on the connection
+    * and the presynaptic activity
+    */
+   virtual int deliver() = 0;
+
+   /**
     * A pure virtual function for reading the state of the connection from the directory specified in cpDir.
     * On exit, *timeptr is the time at which the checkpoint was written.
     */

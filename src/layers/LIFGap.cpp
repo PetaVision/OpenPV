@@ -255,7 +255,7 @@ int LIFGap::calcGapStrength() {
       const int syw = conn->yPatchStride();
       for (int arbor=0; arbor<conn->numberOfAxonalArborLists(); arbor++) {
          for (int k=0; k<pre->getNumExtended(); k++) {
-            recvOnePreNeuronActivity(conn, k, arbor, (pvadata_t) 1.0, gapStrength, NULL);
+            conn->deliverOnePreNeuronActivity(k, arbor, (pvadata_t) 1.0, gapStrength, NULL);
          }
       }
    }
