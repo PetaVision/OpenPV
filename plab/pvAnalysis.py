@@ -86,7 +86,7 @@ def get_frame_info(hdr,fileStream):
     elif hdr["filetype"] == 6:
         frameSize = -1 # frameSize is a variable
         numFrames = hdr["nbands"]
-    return (frameSize,numFrames)
+    return (frameSize,int(numFrames))
 
 
 def read_dense_data(fileStream, dense_shape, numNeurons):
@@ -175,6 +175,7 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
     timeStamps = loopLen * [None]
 
     if hdr["filetype"] == 3: #PVP_WGT_FILE_TYPE
+        #TODO: fill in with real code
         return (None, None)
         pdb.set_trace()
        
@@ -226,6 +227,7 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
 
                         bytes_to_read = hdr["nxp"]*hdr["nyp"]*hdr["nfp"]
                         tmp_dat       = np.fromfile(fileStream,np.float32,bytes_to_read)
+                        # TODO: Figure out if this is flipped from readpvpfile.m
                         tmp_vals_arry[arbor,patch,:,:,:] = np.ravel(tmp_dat).reshape(hdr["nyp"],hdr["nxp"],hdr["nfp"])
                 data[f]       = tmp_vals_arry
                 timeStamps[f] = hdr["time"]
