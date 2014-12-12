@@ -45,21 +45,21 @@ int NormalizeL2::normalizeWeights() {
    for (int c=1; c<numConnections; c++) {
       HyPerConn * conn = connectionList[c];
       if (conn->usingSharedWeights()!=conn0->usingSharedWeights()) {
-         if (parent()->columnId()) {
+         if (parent()->columnId() == 0) {
             fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same sharedWeights (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->usingSharedWeights(), conn->getName(), conn->usingSharedWeights());
          }
          status = PV_FAILURE;
       }
       if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
-         if (parent()->columnId()) {
+         if (parent()->columnId() == 0) {
             fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of arbors (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->numberOfAxonalArborLists(), conn->getName(), conn->numberOfAxonalArborLists());
          }
          status = PV_FAILURE;
       }
       if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
-         if (parent()->columnId()) {
+         if (parent()->columnId() == 0) {
             fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of data patches (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->getNumDataPatches(), conn->getName(), conn->getNumDataPatches());
          }
