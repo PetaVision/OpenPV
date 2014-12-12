@@ -46,13 +46,15 @@ skipFrames      = 1
 
 # outStruct has fields "time" and "values"
 
-#print 'L1:'
-#(L1_outStruct,L1_hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
+#print('L1:')
+#(L1Struct,L1Hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
+# Gar Method
 # divide the L2 norm of the residual by the L2 of the input to the
 # residiual (i.e the image) to get % error
-#print 'Err:'
-#(err_outStruct,err_hdr) = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
+#TODO: pass param for error method, there are 3 that I know of. Gar method, pSNR, SNR
+#print('Err:')
+#(errStruct,errHdr) = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
 #Recon error?
 # ABS gives distance from 0. 
@@ -60,7 +62,7 @@ skipFrames      = 1
 #plt.plot(np.average(np.average(np.abs(err_outStruct["values"]),2),2))
 #plt.show()
 
-print 'Weights:'
+print('Weights:')
 (weightStruct,weightsHdr) = pv.get_pvp_data(weightsFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
 #l1_activityFile.close()
@@ -72,6 +74,6 @@ i_frame    = 400 # index, not actual frame number
 margin     = 2 #pixels
 showPlot   = True
 savePlot   = True
-saveName   = output_dir+'analysis/'+weights[:-4]+'_'+str(frame).zfill(5)+'.png'
+saveName   = output_dir+'analysis/'+weights[:-4]+'_'+str(i_frame).zfill(5)+'.png'
 
 weight_mat = pw.plotWeights(weightStruct,i_arbor,i_frame,margin,showPlot,savePlot,saveName)
