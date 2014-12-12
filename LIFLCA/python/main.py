@@ -67,11 +67,11 @@ print 'Weights:'
 #err_activityFile.close()
 weightsFile.close()
 
-arbor      = 0
-frame      = 400
-margin     = 4 #pixels
+i_arbor    = 0
+i_frame    = 400 # index, not actual frame number
+margin     = 2 #pixels
 showPlot   = True
 savePlot   = True
-saveName   = output_dir+'/analysis/weights.png'
+saveName   = output_dir+'analysis/'+weights[:-4]+'_'+str(frame).zfill(5)+'.png'
 
-weight_mat = pw.plotWeights(weightStruct,arbor,frame,margin,showPlot,savePlot,saveName)
+weight_mat = pw.plotWeights(weightStruct,i_arbor,i_frame,margin,showPlot,savePlot,saveName)
