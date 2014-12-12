@@ -36,10 +36,10 @@ def plotWeights(weightStruct,i_arbor=0,i_frame=0,margin=0,showPlot=False,savePlo
     (numFrames,numArbors,numPatches,nyp,nxp,nfp) = weight_vals.shape
 
     if i_arbor > numArbors:
-        print "Warning: i_arbor > numArbors. Setting i_arbor to numArbors."
+        print("Warning: i_arbor > numArbors. Setting i_arbor to numArbors.")
         i_arbor = numArbors
     if i_frame > numFrames:
-        print "Warning: i_frame > numFrames. Setting i_frame to numFrames."
+        print("Warning: i_frame > numFrames. Setting i_frame to numFrames.")
         i_frame > numFrames
 
     if np.sqrt(numPatches)%1 == 0: #If numPaches has a square root
