@@ -1,0 +1,644 @@
+// Editing 12/11/14 
+// MLPTest.params
+//
+// created by slundquist: Mar 21, 2014
+// modified by bbroompeltz: Dec 9, 2014
+
+//A params file to test PV implementation of a multilayer perceptron
+//This test is solving the xor problem
+//http://www.mind.ilstu.edu/curriculum/artificial_neural_net/xor_problem_and_solution.php?modGUI=239&compGUI=1286&itemGUI=2253
+
+debugParsing = true;    // Debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx = 32;   //2 inputs
+   ny = 32;
+   dt = 1.0;  //time step in ms.	     
+   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
+   stopTime = 10000; //100 img * 100 training steps  
+   progressInterval = 10.0; //Program will output its progress at each progressStep
+   writeProgressToErr = false;  
+   outputPath = "output/";
+   filenamesContainLayerNames = true;  
+   filenamesContainConnectionNames = true;
+   checkpointRead = true;  
+   checkpointWrite = true;
+   suppressLastOutput = false; //Save the last output as checkpoint.
+};
+
+//                 ___  __   __  
+//  |     /\  \ / |__  |__) /__` 
+//  |___ /~~\  |  |___ |  \ .__/ 
+//                               
+
+// Bias Layer
+//
+
+ConstantLayer "onesLayer" = {	// sub:ANNLayer;  Used for Bias
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
+//The input layer of data
+//This was changed from the original InputLayer "train" that was MLP specific 
+// ? Will this still be alright?
+
+Movie "Image" = {			
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imageListPath = "/nh/compneuro/Data/CIFAR/images/CIFAR_train_images.txt";
+    nf = 3;	// color
+    writeStep = 100;
+    initialWriteTime = 0; //	do not write
+    writeSparseActivity = false;
+    displayPeriod = 1; // it is an MLP, display period should be 1!
+    start_frame_index = 1;
+    echoFramePathnameFlag = true;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = true;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = false;
+    readPvpFile = false;
+    flipOnTimescaleError = true; 
+    phase = 0;
+};
+
+
+// ANNLayer "Bipolar" = {	// 1 of 2 in series of layers to whiten  Movie "Image"
+//     restart = 0;
+//     nxScale = 1;
+//     nyScale = 1;
+//     nf = 3; // color
+//     writeStep = -1;
+//     mirrorBCflag = 1;
+//     writeSparseActivity = 0;
+//     
+//     triggerFlag = true;
+//     triggerLayerName = "Image";
+// 
+//     InitVType = "ZeroV";
+// 
+//     VThresh = -infinity;
+//     VMax = infinity;
+//     VMin = -infinity;
+//     VShift = 0;
+//     VWidth = 0;
+// 
+//     phase = 1;
+// };
+// 
+// 
+// ANNLayer "Ganglion" = { // 2 of 2 in series of layers to whiten Movie "Image"
+//     restart = 0;
+//     nxScale = 1;
+//     nyScale = 1;
+//     nf = 3; // color
+//     writeStep = 100;
+//     initialWriteTime = 100;
+//     mirrorBCflag = 1;
+//     writeSparseActivity = 0;
+//     
+//     triggerFlag = true;
+//     triggerLayerName = "Image";
+//     
+//     InitVType = "ZeroV";
+// 
+//     VThresh = -infinity;
+//     VMax = infinity;
+//     VMin = -infinity;
+//     VShift = 0;
+//     VWidth = 0;
+// 
+//     phase = 2;
+// };
+
+///////////
+//
+//  Formally had InputLayer =  "train", replaced with Movie "Image"
+//
+///////////
+
+MLPForwardLayer "ForwardLayer1" = {		// sub:ANNLayer
+    restart = 0;
+    nxScale = 0.03125;	 	// 1/32
+    nyScale = 0.03125;	 	// 1/32
+    nf = 1024; 			 	// 2^10 // (2^5)*(2^5)*3 = 32*32*3 = 3072, may be too large;
+    writeStep = 0; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    phase = 3;
+};
+
+MLPSigmoidLayer "HiddenLayer1" = {  	// sub: CloneVLayer
+    nxScale           = 0.03125;
+    nyScale           = 0.03125;
+    nf                = 1024;
+    originalLayerName = "ForwardLayer1";	//note this is where the values come from
+    InitVType         = "ZeroV";
+    valueV            = 0;
+    mirrorBCflag      = 0.0; 
+    restart           = 0.0;      // from graylast
+    linAlpha            = 0;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = false;
+    phase = 4;
+};
+
+MLPForwardLayer "ForwardLayer2" = {		// sub:ANNLayer
+   #include "ForwardLayer1";
+   @nxScale = 0.03125;
+   @nyScale = 0.03125;
+   @nf = 10;	// match 10 cifar categories
+   @phase = 5;
+};
+
+MLPOutputLayer "FinalLayer" = {  		//	sub:CloneVLayer sub:MLPSigmoidLayer
+    nxScale           = 0.03125;
+    nyScale           = 0.03125;
+    nf                = 10;
+    originalLayerName = "ForwardLayer2";
+    InitVType         = "ZeroV";
+    valueV            = 0;
+    mirrorBCflag      = 0.0; 
+    linAlpha            = 0;
+    restart           = 0.0;      // from graylast
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = false;
+    
+    // Local target in training will be different than local target in testing: 
+    // this will test that each x/y network gets the same answer
+    localTarget = false; //Reducing across all output layers
+    phase = 6;
+};
+
+//	Parses the ground truth from image path in the movie layer
+// 	Need to have a classes.txt file in directory = 'output' to describe how to parse categories
+// 	eg. using /0/ /1/ /2/ /3/ /4/ /5/ /6/ /7/ /8/ /9/ separated by a newline
+// 		since that is the way the CIFAR images are divided in the CIFAR_train_images.txt
+// 		[0-10] = 
+//				/0/ airplane
+//				/1/ automobile
+//				/2/ bird
+//				/3/ cat
+//				/4/ deer
+//				/5/ dog
+//				/6/ frog
+//				/7/ horse
+//				/8/ ship
+//				/9/ truck
+//
+
+FilenameParsingGroundTruthLayer "gt" = {
+   restart = 0;
+   nxScale = 0.03125;	// (1/32)*nx = 1
+   nyScale = 0.03125;	// 
+   nf = 10;
+   writeStep = 100;
+   initialWriteTime = 1;
+   mirrorBCflag = 1;
+   writeSparseActivity = 0;
+ 
+   triggerFlag = true;
+   triggerLayerName = "Image";
+
+   InitVType = "ZeroV";
+   
+   VThresh = -infinity;
+   VMax = infinity;
+   VMin = -infinity;
+   VShift = 0;
+   VWidth = 0;
+   movieLayerName = "Image";	// this is how GT pulls the filename
+   phase = 0;
+};
+
+
+//
+//	Error Layers
+// 
+
+MLPErrorLayer "Error1" = {					//sub:ANNLayer
+    restart = 0;
+    nxScale = 0.03125;
+    nyScale = 0.03125;
+    nf = 1024;
+	initialWriteTime = 0;
+    writeStep = 10; //Change based on display period
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    linAlpha            = 0;
+    ForwardLayername = "ForwardLayer1";		// how convolution u(W1) is used by Error1
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    phase = 8;
+};
+
+MLPErrorLayer "FinalError" = {		//sub:ANNLayer
+   #include "Error1";
+   @nxScale = 0.03125;
+   @nyScale = 0.03125;
+   @nf = 10;
+   @phase = 7;
+   @ForwardLayername = "ForwardLayer2";		// how convolution u(W2) is used by FinalError
+};
+
+
+
+//   __   __             ___  __  ___    __        __  
+//  /  ` /  \ |\ | |\ | |__  /  `  |  | /  \ |\ | /__` 
+//  \__, \__/ | \| | \| |___ \__,  |  | \__/ | \| .__/ 
+//                                                     
+
+//
+// IMAGE WHITENING
+//
+
+// KernelConn "ImageToBipolarCenter" = {
+//     preLayerName = "Image";
+//     postLayerName = "Bipolar";
+//     channelCode = 0;
+//     nxp = 3; 
+//     nyp = 3; 
+//     nfp = 1;
+//     numAxonalArbors = 1;
+//     initFromLastFlag = 0;  // 1;  // restart
+//     writeStep = -1;
+//     writeCompressedCheckpoints = false;
+//     
+//     weightInitType = "Gauss2DWeight";
+//     //weightInitType = "FileWeight";
+//     //initWeightsFile = "/nh/compneuro/Data/vine/LCA/wes/Checkpoints/Checkpoint1254328/ImageToBipolarCenter_W.pvp"; 
+//     
+//     aspect = 1;
+//     sigma = 0.5;
+//     rMax  = 3;
+//     rMin = 0;
+//     numOrientationsPre = 1;
+//     numOrientationsPost = 1;
+//         
+//     strength = 1.0;  
+//     normalizeMethod = "normalizeSum";
+//     minSumTolerated = 0;
+//     normalizeArborsIndividually = 0;
+//     normalize_cutoff = 0.0;
+//     normalizeFromPostPerspective = true;
+//     symmetrizeWeights = false;
+//     
+//     shrinkPatches = false;
+//     //writeCompressedWeights = 0.0;
+//     plasticityFlag = 0;
+//     pvpatchAccumulateType = "convolve";
+//     updateGSynFromPostPerspective = false;     
+//      
+//     delay = 0;
+//      
+//     preActivityIsNotRate = false;
+//     selfFlag = false;
+//     shmget_flag = false;
+// };
+// 
+// 
+// KernelConn "BipolarToGanglionCenter" = {
+//     preLayerName = "Bipolar";
+//     postLayerName = "Ganglion";
+//     channelCode = 0;
+//     nxp = 1; 
+//     nyp = 1; 
+//     nfp = 1;
+//     numAxonalArbors = 1;
+//     initFromLastFlag = 0;  // 1;  // restart
+//     writeStep = -1;
+//     writeCompressedCheckpoints = false;
+//     
+//     weightInitType = "Gauss2DWeight";
+//     //weightInitType = "FileWeight";
+//     //initWeightsFile = "/nh/compneuro/Data/vine/LCA/wes/Checkpoints/Checkpoint1254328/BipolarToGanglionCenter_W.pvp";
+//     
+//     aspect = 1;
+//     sigma = 1;
+//     rMax  = 3;
+//     rMin = 0;
+//     numOrientationsPre = 1;
+//     numOrientationsPost = 1;
+//         
+//     strength = 1.0;  
+//     normalizeMethod = "normalizeSum";
+//     minSumTolerated = 0;
+//     normalizeArborsIndividually = 0;
+//     normalize_cutoff = 0.0;
+//     normalizeFromPostPerspective = true;
+//     symmetrizeWeights = false;
+//     
+//     shrinkPatches = false;
+//     //writeCompressedWeights = 0.0;
+//     plasticityFlag = 0;
+//     pvpatchAccumulateType = "convolve";
+//     updateGSynFromPostPerspective = false;     
+//      
+//     delay = 0;
+//      
+//     preActivityIsNotRate = false;
+//     selfFlag = false;
+//     shmget_flag = false;
+// };
+// 
+// 
+// KernelConn "BipolarToGanglionSurround" = {
+//     preLayerName = "Bipolar";
+//     postLayerName = "Ganglion";
+//     channelCode = 1;
+//     nxp = 11; 
+//     nyp = 11; 
+//     nfp = 1;
+//     numAxonalArbors = 1;
+//     initFromLastFlag = 0;  // 1;  // restart
+//     writeStep = -1;
+//     writeCompressedCheckpoints = false;
+//     
+//     weightInitType = "Gauss2DWeight";
+//     //weightInitType = "FileWeight";
+//     //initWeightsFile = "/nh/compneuro/Data/vine/LCA/wes/Checkpoints/Checkpoint1254328/BipolarToGanglionSurround_W.pvp";
+// 
+//     aspect = 1;
+//     sigma = 5.5;
+//     rMax  = 7.5;
+//     rMin = 0.5;
+//     numOrientationsPre = 1;
+//     numOrientationsPost = 1;
+//                
+//     strength = 1.0;  
+//     normalizeMethod = "normalizeSum";
+//     minSumTolerated = 0;
+//     normalizeArborsIndividually = 0;
+//     normalize_cutoff = 0.0;
+//     normalizeFromPostPerspective = true;
+//     symmetrizeWeights = false;
+//     
+//     shrinkPatches = false;
+//     //writeCompressedWeights = 0.0;
+//     plasticityFlag = 0;
+//     pvpatchAccumulateType = "convolve";
+//     updateGSynFromPostPerspective = false;     
+//      
+//     delay = 0;
+//      
+//     preActivityIsNotRate = false;
+//     selfFlag = false;
+//     shmget_flag = false;
+// };
+
+//
+//		END WHITENING
+//
+
+
+
+// ///
+// 
+// 		THIS IS THE CONNECTION TO THE ERROR LAYER
+// 		IS THIS ACCOMPLISHED WITH W1
+//
+// 
+// 
+// IdentConn "GanglionToError" = {
+//     preLayerName = "Ganglion";
+//     postLayerName = "Error";
+//     channelCode = 0;
+//     delay = 0;
+//     writeStep = -1;
+// };
+
+
+///////////////////////////////
+///
+//
+//		START MLP NETWORK
+//
+
+KernelConn "W1" = {
+    preLayerName = "Image";
+    postLayerName = "Error1";
+    channelCode = -1; // 0 = activation, 1 = inhibition, -1 = Do not update on this channel	
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 1024;		// automatically set to match dimensions
+    
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = 1000;				// should this more frequent?
+    
+    // weightInitType = "FileWeight";
+    //initWeightsFile = "output/Last/W1_W.pvp";
+
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.225;	// -sqrt(3/2)
+    wMaxInit = 1.225;	// sqrt(3/2)
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 1;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+    dWMax = .1; // 200.0 used for initial training 
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "W1Clone" = {
+    preLayerName = "Image";
+    postLayerName = "ForwardLayer1";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "W1";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+//
+
+KernelConn "B1" = {
+    preLayerName = "onesLayer";
+    postLayerName = "Error1";
+    channelCode = -1; //Does not update on this channel
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 1024;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.225; //sqrt(3/2);
+    wMaxInit = 1.225;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 1;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+    dWMax = .1; // 200.0 used for initial training 
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "B1Clone" = {
+    preLayerName = "onesLayer";
+    postLayerName = "ForwardLayer1";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "B1";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "W2" = {
+   #include "W1";
+   @nxp = 1;
+   @nyp = 1;
+   @nfp = 10;
+   @preLayerName = "HiddenLayer1";
+   @postLayerName = "FinalError";
+   @wMinInit = -1.732; //sqrt(3/1);
+   @wMaxInit = 1.732;
+};
+
+CloneKernelConn "W2Clone" = {
+   #include "W1Clone";
+   @preLayerName = "HiddenLayer1";
+   @postLayerName = "ForwardLayer2";
+   @originalConnName = "W2";
+};
+
+TransposeConn "W2T" = {
+    preLayerName = "FinalError";
+    postLayerName = "Error1";
+    channelCode = 0; //On excitatory channel
+    originalConnName = "W2";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
+};
+
+KernelConn "B2" = {
+   #include "B1";
+   @postLayerName = "FinalError";
+   @nfp = 10;
+   @wMinInit = -1.732; //sqrt(3/1);
+   @wMaxInit = 1.732;
+};
+
+CloneKernelConn "B2Clone" = {
+   #include "B1Clone";
+   @postLayerName = "ForwardLayer2";
+   @originalConnName = "B2";
+};
+
+KernelConn "gtToFinalError" = {
+    preLayerName = "gt";
+    postLayerName = "FinalError";
+    channelCode = 0; //Excitatory channel
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    weightInitType = "UniformWeight";
+    weightInit = 1; 
+    normalizeMethod = "none";
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+    delay = 0;
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+IdentConn "FinalLayerToFinalError" = {
+    preLayerName = "FinalLayer";
+    postLayerName = "FinalError";
+    channelCode = 1; //Inhibitory Channel
+    writeStep = -1;    
+    delay = 0;
+};
+
+
+
+//GT on inh, estimated on excitatory // used in MLPtest.params
+//IdentConn "GTToComparison" = {
+//    preLayerName = "gt";
+//    postLayerName = "comparison";
+//    channelCode = 1;
+//    writeStep = -1;    
+//    delay = 0;
+//};
+// 
+// IdentConn "FinalLayerToComparison" = {
+//     preLayerName = "FinalLayer";
+//     postLayerName = "comparison";
+//     channelCode = 0; 
+//     writeStep = -1;    
+//     delay = 0;
+// };
+
