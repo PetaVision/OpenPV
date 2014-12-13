@@ -22,7 +22,7 @@ HyPerCol "column" = {
    outputPath = "output/";
    filenamesContainLayerNames = true;  
    filenamesContainConnectionNames = true;
-   checkpointRead = true;  
+   checkpointRead = false;  
    checkpointWrite = true;
    suppressLastOutput = false; //Save the last output as checkpoint.
 };
@@ -67,7 +67,6 @@ Movie "Image" = {
     start_frame_index = 1;
     echoFramePathnameFlag = true;
     skip_frame_index = 1;
-    echoFramePathnameFlag = true;
     mirrorBCflag = true;
     jitterFlag = 0;
     useImageBCflag = false;
