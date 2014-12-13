@@ -28,17 +28,6 @@ int Example::initializeThreadKernels(const char * kernelName)
 }
 #endif
 
-int Example::recvSynapticInput(HyPerConn * conn, const PVLayerCube * activity, int neighbor)
-{
-   pv_debug_info("[%d]: Example::recvSynapticInput: to layer %d from %d, neighbor %d",
-                 clayer->columnId, clayer->layerId, conn->preSynapticLayer()->clayer->layerId, neighbor);
-
-   // use implementation in base class
-   HyPerLayer::recvSynapticInput(conn, activity, neighbor);
-
-   return 0;
-}
-
 int Example::updateState(double time, double dt)
 {
    pv_debug_info("[%d]: Example::updateState:", clayer->columnId);

@@ -23,7 +23,6 @@ public:
    virtual int initializeThreadKernels(const char * kernelName);
 #endif
 
-   virtual int recvSynapticInput(HyPerConn* conn, const PVLayerCube* activity, int neighbor);
    virtual int updateState(double time, double dt);
 
    virtual int initFinish(int colId, int colRow, int colCol);
