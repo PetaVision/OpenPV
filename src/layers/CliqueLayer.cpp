@@ -402,7 +402,10 @@ int CliqueLayer::recvSynapticInputBase(HyPerConn * conn, const PVLayerCube * act
    }
    assert(GSyn && GSyn[conn->getChannel()]);
 
-   float dt_factor = getConvertToRateDeltaTimeFactor(conn);
+   //Simplified from HyPerConn::getConvertToRateDeltaTimeFactor() since
+   //conn's post is this, and CliqueLayer doesn't override getChannelTimeConst()
+   float dt_factor = conn->preSynapticActivityIsNotRate() ? parent->getDeltaTime() : 1.0f;
+   //float dt_factor = getConvertToRateDeltaTimeFactor(conn);
 
    const PVLayerLoc * preLoc = conn->preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * postLoc = this->getLayerLoc();

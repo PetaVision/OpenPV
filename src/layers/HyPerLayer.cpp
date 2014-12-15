@@ -1950,6 +1950,7 @@ int HyPerLayer::updateActiveIndices() {
 //   return PV_SUCCESS;
 //}
 
+#ifdef OBSOLETE // Marked obsolete Dec 15, 2014.  Moved to HyPerConn
 float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
 {
    //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
@@ -1971,6 +1972,7 @@ float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
    }
    return dt_factor;
 }
+#endif // OBSOLETE
 
 int HyPerLayer::recvAllSynapticInput() {
    int status = PV_SUCCESS;

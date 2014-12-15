@@ -3820,7 +3820,6 @@ int HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int nDataP
 float HyPerConn::getConvertToRateDeltaTimeFactor()
 {
    float dt_factor = 1.0f;
-   bool preActivityIsNotRate = preSynapticActivityIsNotRate();
    if (preActivityIsNotRate) {
       enum ChannelType channel_type = getChannel();
       float dt = getParent()->getDeltaTime();

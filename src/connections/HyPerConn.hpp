@@ -18,7 +18,6 @@
 #include "../io/BaseConnectionProbe.hpp"
 #include "../layers/HyPerLayer.hpp"
 #include "../utils/Timer.hpp"
-#include "../weightinit/InitWeights.hpp"
 #include <stdlib.h>
 #include <vector>
 
