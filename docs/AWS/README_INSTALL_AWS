@@ -268,7 +268,7 @@ These are the only two changes to prevous instructions for instance setup. The f
    Run setup.sh in this directory on your local machine. This will move all the nessessary ssh keys to the clusters, as well as adding every node in the cluster into hosts.
    Furthermore, this script will update and build PetaVision.
    ssh into your root node (node0).
-   Follow the instructions to mount your EBS drive to your root node. Note that only the root node does any file io, so the root node is the only node that needs to be mounted to your partition.
+   Follow the instructions to mount your EBS drive to your root node. Note that only the root node does any file io, so the root node is the only node that you need to attach and mount your volume to.
    Build your sandbox executable on the root node. Copy and move your sandbox executable somewhere NOT in your EBS volume, for example, in your home directory.
    Copy your executable to all nodes to your cluster. To do this, run the following from your home directory:
    sh cpCluster.sh <path_to_executable>
