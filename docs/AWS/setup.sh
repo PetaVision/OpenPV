@@ -8,6 +8,10 @@ nodenames="$(cat ./hosts | awk '/node/ {print $2}')"
 #For each ip address
 for ip in $ips
 do
+   if test -z "$(ssh-keygen -F $ip)"; then
+      $(ssh-keyscan $ip >> ~/.ssh/known_hosts)
+   fi
+
    #Copy hosts file to home directory
    scp ./hosts ec2-user@$ip:~/
    scp ./clusterkey ec2-user@$ip:~/
