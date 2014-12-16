@@ -7,7 +7,6 @@
 
 #include "NaiveBayesLayer.hpp"
 #include "../columns/HyPerCol.hpp"
-#include "../connections/HyPerConn.hpp"
 #include "HyPerLayer.hpp"
 
 namespace PV {
