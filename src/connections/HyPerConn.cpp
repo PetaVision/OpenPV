@@ -46,9 +46,11 @@
 #include "../normalizers/NormalizeContrastZeroMean.hpp"
 #include "TransposeConn.hpp"
 #include "PlasticCloneConn.hpp"
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
    #include <sys/shm.h>
-#endif
+#endif // USE_SHMGET
+#endif // OBSOLETE
 
 #ifdef __cplusplus
 extern "C" {
@@ -1489,6 +1491,7 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataS
 {
    PVPatch *** patches_arg = sharedWeights ? NULL : patches;
    weightInitializer->initializeWeights(patches_arg, dataStart);
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
    // insert synchronization barrier to ensure that all processes have finished loading portions of shared memory for which they
@@ -1500,6 +1503,7 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataS
    //std::cout << "leaving MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
 #endif // PV_USE_MPI
 #endif // USE_SHMGET
+#endif // OBSOLETE
    // normalizeWeights(); // normalizeWeights call moved to HyPerCol::run, to facilitate normalization of groups of connections
 #ifdef PV_USE_OPENCL
 // Copied over from KernelConn.
