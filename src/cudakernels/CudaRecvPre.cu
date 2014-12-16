@@ -113,7 +113,12 @@ void CudaRecvPre::setArgs(
    params.patch2datalookuptable = (int*)patch2datalookuptable->getPointer();
 
    params.isSparse = isSparse;
-   params.activeIndices = (unsigned int*)activeIndices->getPointer();
+   if(activeIndices){
+      params.activeIndices = (unsigned int*)activeIndices->getPointer();
+   }
+   else{
+      params.activeIndices = NULL;
+   }
 
    setArgsFlag();
 }

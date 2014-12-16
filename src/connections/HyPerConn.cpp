@@ -1948,13 +1948,15 @@ int HyPerConn::allocateReceivePreKernel()
 
 
 #ifdef PV_USE_OPENCL
-   CLBuffer* d_activeIndices = pre->getDeviceActiveIndices();
+      CLBuffer* d_activeIndices = NULL;
 #endif
 #ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer* d_activeIndices = pre->getDeviceActiveIndices(); 
+      PVCuda::CudaBuffer* d_activeIndices = NULL;
 #endif
-   assert(d_activeIndices);
-
+   if(isSparse){
+      d_activeIndices = pre->getDeviceActiveIndices();
+      assert(d_activeIndices);
+   }
 
    //Since it never changes, set this buffer here
    d_Patch2DataLookupTable->copyToDevice(getPatchToDataLUT());
