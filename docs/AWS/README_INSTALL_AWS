@@ -254,7 +254,7 @@ This section explains how to set up a cluster of instances to do a PetaVision ru
 
 Configure Instance Details screen:
    Set number of instances to the number of instances you would like to use in the cluster.
-   Under Placement Group, create or select a placement group. All instance under one placement group have extra bandwidth between the nodes.
+   Under Placement Group, create or select a placement group. All instance under one placement group have extra bandwidth between the nodes. Note: If you chose an existing placement group, it must be in the same availability zone that you are requesting for the instance (e.g., "us-west-2a"). 
 
 Configure Security Group screen:
    When selecting an existing security group, use MPI_security instead of the default security group. This allows each instance to accept inbound data from other instances using this security group ID.
