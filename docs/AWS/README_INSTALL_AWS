@@ -18,9 +18,6 @@ There exists a PetaVision AMI that has everything set up for PetaVision on GPUs.
    ffmpeg
    emacs
 
-Note: There are mpi cluster specific instructions tagged with <MPI CLUSTER> flag if you would like to run mpi across multiple instances.
-There are also extra instructions at the bottom for specific mpi cluster running of PetaVision
-
 ******************************************
 Overview
 ******************************************
@@ -78,6 +75,9 @@ Create your ssh key pair:
    Go to the EC2 management page, and find the option Key Pairs under Network and Security in the left tab.
    Click Import Key Pair and paste the public key contents in. Click import.
 
+Note that you may have to run ssh-add again if you get a public key error. To solve this, add this line to your ~/.bashrc or ~/.profile, replacing your private key name with username_aws
+   ssh-add ~/.ssh/username_aws
+
 
 ******************************************
 Starting an Instance
@@ -88,6 +88,7 @@ Creating a Spot Instance:
    Go to the EC2 management page. Click AMI under Images in the left tab.
    Find the PetaVision_GPU AMI. Select it and click launch.
    Pick a GPU instance (g2.2xlarge). Click next.
+   (Note that there are additional steps involved if you are launching an mpi cluster of instances on this screen uner the MPI Clusters section)
    Check Request Spot Instances under Purchasing option
    Type in an appropriate maximum price.
    Under subnet, pick one of the 3 choices based on the current price (Table when selecting a spot instance) and price history (Spot Requests under Instances, Price History up top. Select instance type as g2.2xlarge).
@@ -95,6 +96,7 @@ Creating a Spot Instance:
    Click next.
    No additional storage is required. Make sure Delete on Termination is checked. Click next.
    No tags are needed. Click next.
+   (Note that there are additional steps involved if you are launching an mpi cluster of instances on this screen uner the MPI Clusters section)
    Check Select an existing security group. Select the default security group. Click Review and Launch.
    After reviewing, click launch.
    Select Choose an existing key pair, and select your key pair that you created earlier.
@@ -243,3 +245,33 @@ Changes to parameter files:
    In your movie layers, make sure your list of filenames is a list of s3 urls.
    Change your output directory to somewhere in mountData.
    Future work will be done to get checkpoints on s3.
+
+
+******************************************
+MPI Clusters
+******************************************
+This section explains how to set up a cluster of instances to do a PetaVision run across multiple instances. Most of the instructions are the same, with several difference when launching instances:
+
+Configure Instance Details screen:
+   Set number of instances to the number of instances you would like to use in the cluster.
+   Under Placement Group, create or select a placement group. All instance under one placement group have extra bandwidth between the nodes.
+
+Configure Security Group screen:
+   When selecting an existing security group, use MPI_security instead of the default security group. This allows each instance to accept inbound data from other instances using this security group ID.
+
+These are the only two changes to prevous instructions for instance setup. The following is specific MPI clustering instructions.
+
+   On your local machine, navigate to <PetaVision_Trunk>/docs/AWS/
+   Edit the file "hosts"
+   Leave the first line alone. Add the external ip address for every node in your cluster. node0 will be your root node, aka the instance you will be launching everything from.
+   Edit the file nodefile. Add each additional node you added to hosts, with the number of mpi processes you would like to run on as "slots"
+   Run setup.sh in this directory on your local machine. This will move all the nessessary ssh keys to the clusters, as well as adding every node in the cluster into hosts.
+   Furthermore, this script will update and build PetaVision.
+   ssh into your root node (node0).
+   Follow the instructions to mount your EBS drive to your root node. Note that only the root node does any file io, so the root node is the only node that needs to be mounted to your partition.
+   Build your sandbox executable on the root node. Copy and move your sandbox executable somewhere NOT in your EBS volume, for example, in your home directory.
+   Copy your executable to all nodes to your cluster. To do this, run the following from your home directory:
+   sh cpCluster.sh <path_to_executable>
+   To run from your root node, use the following command:
+   mpirun -np <num_processors> -hostfile ~/nodefile -bind-to core:o <path_to_executable> <petavision_parameters>
+

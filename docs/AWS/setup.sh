@@ -5,28 +5,26 @@ ssh-keygen -t rsa -f clusterkey -q -N ""
 ips=$(cat ./hosts | awk '/node/ {print $1}')
 nodenames="$(cat ./hosts | awk '/node/ {print $2}')"
 
-counter=0
 #For each ip address
 for ip in $ips
 do
-   counter=$((counter+1))
-   #name=$(echo "$nodenames" | sed -n ${counter}p)
-
    #Copy hosts file to home directory
    scp ./hosts ec2-user@$ip:~/
-   ssh -t ec2-user@$ip 'sudo mv ~/hosts /etc/hosts'
-   #Copy private key to ~/.ssh/id_rsa
    scp ./clusterkey ec2-user@$ip:~/
-   ssh -t ec2-user@$ip 'sudo mv ~/clusterkey ~/.ssh/id_rsa'
-   #Append public key to authorized_keys
    scp ./clusterkey.pub ec2-user@$ip:~/
-   ssh -t ec2-user@$ip 'cat ~/clusterkey.pub >> ~/.ssh/authorized_keys'
+   #Copy node file to home directory
+   scp ./nodefile ec2-user@$ip:~/
+   scp ./cpCluster.sh ec2-user@$ip:~/
 
+   #Copy to proper places with sudo
+   ssh -t ec2-user@$ip 'sudo mv ~/hosts /etc/hosts; sudo mv ~/clusterkey ~/.ssh/id_rsa; cat ~/clusterkey.pub >> ~/.ssh/authorized_keys'
+
+   #Put all keys to known_hosts
    for name in $nodenames
    do
       ssh ec2-user@$ip 'ssh-keyscan '$name' >> ~/.ssh/known_hosts' 
    done
 
-   #Copy node file to home directory
-   scp ./nodefile ec2-user@$ip:~/
+   #Update and build petavision
+   ssh -t ec2-user@$ip 'cd ~/workspace/PetaVision; svn update; cd ~/workspace/; cmake -DCMAKE_BUILD_TYPE=Release -DCUDA_GPU=True -DCUDA_RELEASE=True -DCUDNN=True -DCUDNN_PATH=~/cuDNN/cudnn-6.5-linux-R1 -DOPEN_MP_THREADS=True -DPV_DIR=~/workspace/PetaVision; cd ~/workspace/PetaVision; make -j 8'
 done
