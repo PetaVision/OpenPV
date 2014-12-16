@@ -41,7 +41,7 @@ int GPUSystemTestProbe::outputState(double timed){
          //std::cout << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i] << "\n";
       }
       //For roundoff errors
-      //assert(fabs(A[i]) < 1e-6);
+      assert(fabs(A[i]) < 1e-4);
    }
    return status;
 }
