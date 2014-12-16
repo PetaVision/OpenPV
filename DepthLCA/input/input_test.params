@@ -11,58 +11,91 @@
 debugParsing = true;
 
 HyPerCol "column" = {
-    nx = 1200; //1242;  // KITTI synced value
-    ny = 216;  //218;
+    nx = 1241; //1226, one pixel cropped from both sides;  // KITTI synced value
+    ny = 376;  //370, two pixels cropped from the top;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime = 400;
-    progressStep = 1;
-    outputPath = "output/";
+    stopTime = 1; //193 total testing, splitting into 100 training, 93 testing
+    progressStep = 2;
+    outputPath = "output";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
-    checkpointRead = true; //true;
-    checkpointReadDir = "output/Checkpoints";
-    checkpointReadDirIndex = 200;
-    checkpointWrite = true;
+    checkpointRead = false; //true;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
+    //checkpointReadDirIndex = ;
+    checkpointWrite = false;
     checkpointWriteDir = "output/Checkpoints";
-    checkpointWriteStepInterval = 100;
+    checkpointWriteStepInterval = 200;
     deleteOlderCheckpoints = false;
-    //suppressLastOutput = false;
+    suppressLastOutput = false;
     writeProgressToErr = true;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+    dtAdaptFlag = false;
+    dtScaleMax = 5.0;
+    dtScaleMin = 0.25;
+    dtChangeMax = 0.05;
+    dtChangeMin = 0.0;
 };
 
-//
-// layers
-//
+//Depth ground truth layers
 
-// left eye layers
-
-Movie "LeftImage" = {
+Image "DepthImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    readPvpFile = false;
-    imageListPath = "/nh/compneuro/Data/newDepth/test.txt";
+    readPvpFile = false; 
+    imagePath = "input/000028_10.png";
     writeFrameToTimestamp = true;
     nf = 1;
-    writeStep = -1;
-    writeSparseActivity = false;
-    displayPeriod = 5;
-    start_frame_index = 7;
+    writeStep = 0;
+    sparseLayer = false;
+    displayPeriod = 1;
+    start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
-    mirrorBCflag = true;
+    mirrorBCflag = false;
     jitterFlag = 0;
     useImageBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     writeImages = false;
-    offsetX = 0;
-    offsetY = 0;
-    autoResizeFlag = 0;
+    offsetAnchor = "cc"; //Offset anchor from bottom left
+    offsetX = 0; //1 px offset from the left
+    offsetY = 0; //offset 0 from bottom
     randomMovie = 0;
+    autoResizeFlag = 0;
     phase = 0;
+    resetToStartOnLoop = true;
     //useParamsImage = true;
+};
+
+
+//Do a rescale here maybe?
+ANNLayer "DepthBuffer" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = 1;
+    initialWriteTime = -1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax =  infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    //
+    phase = 1;  
+};
+
+//Depth connections
+IdentConn "DepthMovieToDepthGT" = {
+    preLayerName = "DepthImage";
+    postLayerName = "DepthBuffer";
+    channelCode = 0; //Excitatory Channel
+    writeStep = -1;    
+    delay = 0;
 };

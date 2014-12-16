@@ -5,6 +5,10 @@
 
 #include "columns/buildandrun.hpp"
 #include "LocalKernelConn.hpp"
+#include "BatchConn.hpp"
+#include "SLPError.hpp"
+#include "BinaryThresh.hpp"
+#include "ImprintConn.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -30,9 +34,18 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    if ( !strcmp(keyword, "LocalKernelConn") ) {
       addedGroup = new LocalKernelConn(name, hc);
    }
-   //if ( !strcmp(keyword, "WTALayer") ) {
-   //   addedGroup = new WTALayer(name, hc);
-   //}
+   if ( !strcmp(keyword, "BatchConn") ) {
+      addedGroup = new BatchConn(name, hc);
+   }
+   if ( !strcmp(keyword, "SLPError") ) {
+      addedGroup = new SLPError(name, hc);
+   }
+   if ( !strcmp(keyword, "BinaryThresh") ) {
+      addedGroup = new BinaryThresh(name, hc);
+   }
+   if ( !strcmp(keyword, "ImprintConn") ) {
+      addedGroup = new ImprintConn(name, hc);
+   }
    return addedGroup;
 }
 #endif

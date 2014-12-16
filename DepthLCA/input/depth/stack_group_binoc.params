@@ -1,0 +1,531 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 1200; //1242;  // KITTI synced value
+    ny = 360;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0;
+    stopTime= 100000000;
+    progressStep = 5000;
+    outputPath = "/nh/compneuro/Data/Depth/LCA/stack_group_binoc/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false; //true;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
+    //checkpointReadDirIndex = ;
+    checkpointWrite = true;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/stack_group_binoc/Checkpoints";
+    checkpointWriteStepInterval = 5000;
+    deleteOlderCheckpoints = false;
+    //suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+    dtAdaptFlag = true;
+    dtScaleMax = 5.0;
+    dtScaleMin = 0.25;
+    dtChangeMax = 0.05;
+    dtChangeMin = 0.0;
+};
+
+//
+// layers
+//
+
+// left eye layers
+
+Movie "LeftImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = false;
+    imageListPath = "/nh/compneuro/Data/KITTI/list/image_02.txt";
+    writeFrameToTimestamp = true;
+    nf = 3;
+    writeStep = 200;
+    initialWriteTime = 200;
+    writeSparseActivity = false;
+    displayPeriod = 200;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = false;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = true;
+    writeImages = false;
+    offsetAnchor = "br"; //Offset anchor from bottom left
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+ANNNormalizedErrorLayer "LeftError" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 200;
+    initialWriteTime = 200.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
+    //
+    VThresh = 0.001; //Change this for efficiency
+    VMax =  infinity;
+    VMin = 0;
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    //
+    errScale = .5; //Normal is .2
+    //
+    phase = 3;  
+};
+
+// for visualization only, makes no output
+ANNLayer "LeftReconS2" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 200.0;
+    initialWriteTime = 200.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    //movieLayerName = "LeftImage";
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    // 
+    phase = 5;
+    //
+    triggerFlag = 1;
+    triggerLayerName = "LeftImage";
+    triggerOffset = 1;
+};
+
+ANNLayer "LeftReconS4" = {
+    #include "LeftReconS2";
+};
+
+ANNLayer "LeftReconS8" = {
+    #include "LeftReconS2";
+};
+
+ANNLayer "LeftReconAll" = {
+    #include "LeftReconS2";
+};
+
+//
+// Right eye layers
+//
+
+Movie "RightImage" = {
+    #include "LeftImage";
+    @imageListPath = "/nh/compneuro/Data/KITTI/list/image_03.txt";
+};
+
+ANNNormalizedErrorLayer "RightError" = {
+    #include "LeftError";
+    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V.pvp";
+};
+
+// for visualization only, makes no output
+ANNLayer "RightReconS2" = {
+    #include "LeftReconAll";
+    @triggerLayerName = "RightImage";
+};
+
+ANNLayer "RightReconS4" = {
+    #include "LeftReconAll";
+    @triggerLayerName = "RightImage";
+};
+
+ANNLayer "RightReconS8" = {
+    #include "LeftReconAll";
+    @triggerLayerName = "RightImage";
+};
+
+ANNLayer "RightReconAll" = {
+    #include "LeftReconAll";
+    @triggerLayerName = "RightImage";
+};
+
+//
+// Right depth eye layers
+//
+
+// binoclular layers
+
+HyPerLCALayer "V1S2" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 64; //2048 or 4096;
+    numChannels = 1;
+    numWindowX = 1;
+    numWindowY = 1;
+    writeStep = 200.0;
+    initialWriteTime = 200.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 1;
+    writeSparseValues   = 1;
+    //
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .03; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2_V.pvp";
+    // 
+    timeConstantTau = 200.0;
+    slopeErrorStd = 0.01;
+    // 
+    dVThresh = 0;
+    VThresh = 0.01; //mean + 1 std of the positive input to error
+    VMax = infinity;
+    VMin = 0;
+    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VWidth = 0.04; //Same as VThresh
+    updateGpu = true;
+    //
+    phase = 4;
+};
+
+HyPerLCALayer "V1S4" = {
+    #include "V1S2";
+    @nxScale = .25;
+    @nyScale = .25;
+    @nf = 128;
+    //@VThresh = .04;
+    //@VWidth  = .04;
+    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4_V.pvp";
+};
+
+HyPerLCALayer "V1S8" = {
+    #include "V1S2";
+    @nxScale = .125;
+    @nyScale = .125;
+    @nf = 256;
+    //@VThresh = .04;
+    //@VWidth  = .04;
+    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8_V.pvp";
+};
+// connections
+
+// Left eye connections
+
+KernelConn "LeftErrorToLeftImage" = {
+    preLayerName = "LeftError";
+    postLayerName = "LeftImage";
+    channelCode = -1;
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    //////////////////////
+    //TODO What to do here????
+    //////////////////////
+    weightInit = .0294;  // 1/sqrt(34*34);
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+TransposeConn "LeftImageToLeftError" = {
+    preLayerName = "LeftImage";
+    postLayerName = "LeftError";
+    channelCode = 0;
+    originalConnName = "LeftErrorToLeftImage";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
+    receiveGpu = true;
+};
+
+// Right eye connections
+KernelConn "RightErrorToRightImage" = {
+    #include "LeftErrorToLeftImage";
+    @preLayerName = "RightError";
+    @postLayerName = "RightImage";
+};
+
+TransposeConn "RightImageToRightError" = {
+   #include "LeftImageToLeftError";
+   @preLayerName = "RightImage";
+   @postLayerName = "RightError";
+   @originalConnName = "RightErrorToRightImage";
+};
+
+// binocular connections
+
+KernelConn "V1S2ToLeftError" = {
+    preLayerName = "V1S2";
+    postLayerName = "LeftError";
+    channelCode = 1;
+    nxp = 34;
+    nyp = 34;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    //
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToLeftError_W.pvp";
+
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = .90;
+    
+    strength = 1; //.25/2  
+    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
+    //normalizeMethod = "normalizeContrastZeroMean"; 
+    //SET PARAMS TO NEW NORMALIZATION METHOD
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = 200;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+    triggerOffset = 1;
+    initialWriteTime = 0.0;
+    dWMax = 5; // 200.0 used for initial training
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "V1S4ToLeftError" = {
+    #include "V1S2ToLeftError";
+    @preLayerName = "V1S4";
+    @nxp = 68;
+    @nyp = 68;
+    //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4ToLeftError_W.pvp";
+};
+
+KernelConn "V1S8ToLeftError" = {
+    #include "V1S2ToLeftError";
+    @preLayerName = "V1S8";
+    @nxp = 136;
+    @nyp = 136;
+    //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8ToLeftError_W.pvp";
+};
+
+TransposeConn "LeftErrorToV1S2" = {
+    preLayerName = "LeftError";
+    postLayerName = "V1S2";
+    channelCode = 0;
+    originalConnName = "V1S2ToLeftError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
+    receiveGpu = true;
+};
+
+TransposeConn "LeftErrorToV1S4" = {
+    #include "LeftErrorToV1S2";
+    @postLayerName = "V1S4";
+    @originalConnName = "V1S4ToLeftError";
+};
+
+TransposeConn "LeftErrorToV1S8" = {
+    #include "LeftErrorToV1S2";
+    @postLayerName = "V1S8";
+    @originalConnName = "V1S8ToLeftError";
+};
+
+CloneKernelConn "V1S2ToLeftReconS2" = {
+    preLayerName = "V1S2";
+    postLayerName = "LeftReconS2";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1S2ToLeftError";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "V1S4ToLeftReconS4" = {
+    #include "V1S2ToLeftReconS2";
+    @preLayerName = "V1S4";
+    @postLayerName = "LeftReconS4";
+    @originalConnName = "V1S4ToLeftError";
+};
+
+CloneKernelConn "V1S8ToLeftReconS8" = {
+    #include "V1S2ToLeftReconS2";
+    @preLayerName = "V1S8";
+    @postLayerName = "LeftReconS8";
+    @originalConnName = "V1S8ToLeftError";
+};
+
+CloneKernelConn "V1S2ToLeftReconAll" = {
+    preLayerName = "V1S2";
+    postLayerName = "LeftReconAll";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1S2ToLeftError";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "V1S4ToLeftReconAll" = {
+    #include "V1S2ToLeftReconAll";
+    @preLayerName = "V1S4";
+    @originalConnName = "V1S4ToLeftError";
+};
+
+CloneKernelConn "V1S8ToLeftReconAll" = {
+    #include "V1S2ToLeftReconAll";
+    @preLayerName = "V1S8";
+    @originalConnName = "V1S8ToLeftError";
+};
+
+//Right binocular connections
+KernelConn "V1S2ToRightError" = {
+    #include "V1S2ToLeftError";
+    @postLayerName = "RightError";
+    @normalizeMethod = "normalizeGroup";
+    normalizeGroupName = "V1S2ToLeftError";
+    //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToRightError_W.pvp";
+};
+
+KernelConn "V1S4ToRightError" = {
+    #include "V1S4ToLeftError";
+    @postLayerName = "RightError";
+    @normalizeMethod = "normalizeGroup";
+    normalizeGroupName = "V1S4ToLeftError";
+    //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4ToRightError_W.pvp";
+};
+
+KernelConn "V1S8ToRightError" = {
+    #include "V1S8ToLeftError";
+    @postLayerName = "RightError";
+    @normalizeMethod = "normalizeGroup";
+    normalizeGroupName = "V1S8ToLeftError";
+    //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8ToRightError_W.pvp";
+};
+
+TransposeConn "RightErrorToV1S2" = {
+    #include "LeftErrorToV1S2";
+    @preLayerName = "RightError";
+    @originalConnName = "V1S2ToRightError";
+};
+
+TransposeConn "RightErrorToV1S4" = {
+    #include "LeftErrorToV1S4";
+    @preLayerName = "RightError";
+    @originalConnName = "V1S4ToRightError";
+};
+
+TransposeConn "RightErrorToV1S8" = {
+    #include "LeftErrorToV1S8";
+    @preLayerName = "RightError";
+    @originalConnName = "V1S8ToRightError";
+};
+
+CloneKernelConn "V1S2ToRightReconS2" = {
+    #include "V1S2ToLeftReconS2";
+    @postLayerName = "RightReconS2";
+    @originalConnName = "V1S2ToRightError";
+};
+
+CloneKernelConn "V1S4ToRightReconS4" = {
+    #include "V1S4ToLeftReconS4";
+    @postLayerName = "RightReconS4";
+    @originalConnName = "V1S4ToRightError";
+};
+
+CloneKernelConn "V1S8ToRightReconS8" = {
+    #include "V1S8ToLeftReconS8";
+    @postLayerName = "RightReconS8";
+    @originalConnName = "V1S8ToRightError";
+};
+
+CloneKernelConn "V1S2ToRightReconAll" = {
+    #include "V1S2ToLeftReconAll";
+    @postLayerName = "RightReconAll";
+    @originalConnName = "V1S2ToRightError";
+};
+
+CloneKernelConn "V1S4ToRightReconAll" = {
+    #include "V1S4ToLeftReconAll";
+    @postLayerName = "RightReconAll";
+    @originalConnName = "V1S4ToRightError";
+};
+
+CloneKernelConn "V1S8ToRightReconAll" = {
+    #include "V1S8ToLeftReconAll";
+    @postLayerName = "RightReconAll";
+    @originalConnName = "V1S8ToRightError";
+};

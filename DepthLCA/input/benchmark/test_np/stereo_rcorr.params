@@ -1,0 +1,525 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 1224; //1226, one pixel cropped from both sides;  // KITTI synced value
+    ny = 368;  //370, two pixels cropped from the top;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0;
+    stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
+    progressStep = 1;
+    outputPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_test_rcorr_np/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false; //true;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
+    //checkpointReadDirIndex = ;
+    checkpointWrite = false;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train_rcorr_np/Checkpoints";
+    checkpointWriteStepInterval = 5000;
+    deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+    dtAdaptFlag = true;
+    dtScaleMax = 5.0;
+    dtScaleMin = 0.25;
+    dtChangeMax = 0.05;
+    dtChangeMin = 0.0;
+};
+
+//
+// layers
+//
+
+Movie "V1S2" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 32;
+    readPvpFile = true;
+    imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/a16_V1S2.pvp";
+    writeFrameToTimestamp = true;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 11;
+    skip_frame_index = 11;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+Movie "V1S4" = {
+   #include "V1S2";
+   @nxScale = .25;
+   @nyScale = .25;
+   @nf = 64;
+   @imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/a17_V1S4.pvp";
+};
+
+Movie "V1S8" = {
+   #include "V1S2";
+   @nxScale = .125;
+   @nyScale = .125;
+   @nf = 128;
+   @imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/a18_V1S8.pvp";
+};
+
+// for visualization only, makes no output
+ANNLayer "LeftReconS2" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = 1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    //movieLayerName = "LeftImage";
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    // 
+    phase = 5;
+    //
+};
+
+ANNLayer "LeftReconS4" = {
+    #include "LeftReconS2";
+};
+
+ANNLayer "LeftReconS8" = {
+    #include "LeftReconS2";
+};
+
+ANNLayer "LeftReconAll" = {
+    #include "LeftReconS2";
+};
+
+
+// for visualization only, makes no output
+ANNLayer "RightReconS2" = {
+    #include "LeftReconAll";
+};
+
+ANNLayer "RightReconS4" = {
+    #include "LeftReconAll";
+};
+
+ANNLayer "RightReconS8" = {
+    #include "LeftReconAll";
+};
+
+ANNLayer "RightReconAll" = {
+    #include "LeftReconAll";
+};
+
+
+//Depth ground truth layers
+
+Movie "DepthImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = false; 
+    imageListPath = "/nh/compneuro/Data/KITTI/stereo_flow/single_frames/training/disp_noc.txt";
+    writeFrameToTimestamp = true;
+    nf = 1;
+    writeStep = 1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = false;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetAnchor = "bl"; //Offset anchor from bottom left
+    offsetX = 1; //1 px offset from the left
+    offsetY = 0; //offset 0 from bottom
+    randomMovie = 0;
+    autoResizeFlag = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+//Do a rescale here maybe?
+ANNLayer "DepthBuffer" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = -1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax =  infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    //
+    phase = 1;  
+};
+
+//This is the ground truth layer
+BinningLayer "DepthGT" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 255; //3 pixel error allowed, we may need to change this 
+    writeStep = -1.0;
+    initialWriteTime = 1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    binMax = 1;
+    binMin = -1;
+    binSigma = 3;
+    zeroNeg = false; //Set negative gt values as -1
+    zeroDCR = true; //Zero values from the buffer is set to 0
+    delay = 0;
+    originalLayerName = "DepthBuffer";
+    phase = 2;
+};
+
+//Reverse correlation layers
+ANNLayer "RCorrBufS2" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 255;
+    writeStep = -1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    phase = 5; //Same as other recons
+};
+
+ANNLayer "RCorrBufS4" = {
+   #include "RCorrBufS2";
+};
+
+ANNLayer "RCorrBufS8" = {
+   #include "RCorrBufS2";
+};
+
+ANNLayer "RCorrBufAll" = {
+   #include "RCorrBufS2";
+};
+
+//WTA Layers for output
+//This is the ground truth layer
+WTALayer "RCorrReconS2" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1; 
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    delay = 0;
+    originalLayerName = "RCorrBufS2";
+    phase = 6;
+};
+
+WTALayer "RCorrReconS4" = {
+   #include "RCorrReconS2";
+   @originalLayerName = "RCorrBufS4";
+};
+
+WTALayer "RCorrReconS8" = {
+   #include "RCorrReconS2";
+   @originalLayerName = "RCorrBufS8";
+};
+
+WTALayer "RCorrReconAll" = {
+   #include "RCorrReconS2";
+   @originalLayerName = "RCorrBufAll";
+};
+
+
+// connections
+
+KernelConn "V1S2ToLeftReconS2" = {
+    preLayerName = "V1S2";
+    postLayerName = "LeftReconS2";
+    channelCode = 0;
+    nxp = 34;
+    nyp = 34;
+    nfp = 1;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    //
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToLeftError_W.pvp";
+    strength = 1; //.25/2  
+    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
+    //SET PARAMS TO NEW NORMALIZATION METHOD
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    //
+    initialWriteTime = 0.0;
+    selfFlag = false;
+    shmget_flag = false;
+    delay = 0;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+    imprintTimeThresh = 100000; //Imprint if element has not been active in 1000 frames
+};
+
+KernelConn "V1S4ToLeftReconS4" = {
+    #include "V1S2ToLeftReconS2";
+    @preLayerName = "V1S4";
+    @postLayerName = "LeftReconS4";
+    @nxp = 68;
+    @nyp = 68;
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4ToLeftError_W.pvp";
+};
+
+KernelConn "V1S8ToLeftReconS8" = {
+    #include "V1S2ToLeftReconS2";
+    @preLayerName = "V1S8";
+    @postLayerName = "LeftReconS8";
+    @nxp = 136;
+    @nyp = 136;
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8ToLeftError_W.pvp";
+};
+
+CloneKernelConn "V1S2ToLeftReconAll" = {
+    preLayerName = "V1S2";
+    postLayerName = "LeftReconAll";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1S2ToLeftReconS2";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "V1S4ToLeftReconAll" = {
+    #include "V1S2ToLeftReconAll";
+    @preLayerName = "V1S4";
+    @originalConnName = "V1S4ToLeftReconS4";
+};
+
+CloneKernelConn "V1S8ToLeftReconAll" = {
+    #include "V1S2ToLeftReconAll";
+    @preLayerName = "V1S8";
+    @originalConnName = "V1S8ToLeftReconS8";
+};
+
+//Right binocular connections
+KernelConn "V1S2ToRightReconS2" = {
+    #include "V1S2ToLeftReconS2";
+    @postLayerName = "RightReconS2";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToRightError_W.pvp";
+};
+
+KernelConn "V1S4ToRightReconS4" = {
+    #include "V1S4ToLeftReconS4";
+    @postLayerName = "RightReconS4";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4ToRightError_W.pvp";
+};
+
+KernelConn "V1S8ToRightReconS8" = {
+    #include "V1S8ToLeftReconS8";
+    @postLayerName = "RightReconS8";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8ToRightError_W.pvp";
+};
+
+CloneKernelConn "V1S2ToRightReconAll" = {
+    #include "V1S2ToLeftReconAll";
+    @postLayerName = "RightReconAll";
+    @originalConnName = "V1S2ToRightReconS2";
+};
+
+CloneKernelConn "V1S4ToRightReconAll" = {
+    #include "V1S4ToLeftReconAll";
+    @postLayerName = "RightReconAll";
+    @originalConnName = "V1S4ToRightReconS4";
+};
+
+CloneKernelConn "V1S8ToRightReconAll" = {
+    #include "V1S8ToLeftReconAll";
+    @postLayerName = "RightReconAll";
+    @originalConnName = "V1S8ToRightReconS8";
+};
+
+//Depth connections
+IdentConn "DepthMovieToDepthGT" = {
+    preLayerName = "DepthImage";
+    postLayerName = "DepthBuffer";
+    channelCode = 0; //Excitatory Channel
+    writeStep = -1;    
+    delay = 0;
+};
+
+//Reverse correlation connections
+KernelConn "V1S2ToDepthGT" = {
+    preLayerName = "V1S2";
+    postLayerName = "DepthGT";
+    channelCode = -1;
+    nxp = 34;
+    nyp = 34;
+    nfp = 255;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    //
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToDepthGT_W.pvp";
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    //
+    strength = 1; //.25/2  
+    //No normalization on reverse correlation
+    normalizeMethod = "none";
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    initialWriteTime = 0.0;
+    dWMax = .5;
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "V1S4ToDepthGT" = {
+    #include "V1S2ToDepthGT";
+    @preLayerName = "V1S4";
+    @nxp = 68; //Actually 8.5
+    @nyp = 68;
+    //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4ToDepthGT_W.pvp";
+};
+
+KernelConn "V1S8ToDepthGT" = {
+    #include "V1S2ToDepthGT";
+    @preLayerName = "V1S8";
+    @nxp = 136;
+    @nyp = 136;
+    //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8ToDepthGT_W.pvp";
+};
+
+//RCorr connections
+CloneKernelConn "V1S2ToRCorrBufS2" = {
+    preLayerName = "V1S2";
+    postLayerName = "RCorrBufS2";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1S2ToDepthGT";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "V1S4ToRCorrBufS4" = {
+    #include "V1S2ToRCorrBufS2";
+    @preLayerName = "V1S4";
+    @postLayerName = "RCorrBufS4";
+    @originalConnName = "V1S4ToDepthGT";
+};
+
+CloneKernelConn "V1S8ToRCorrBufS8" = {
+    #include "V1S2ToRCorrBufS2";
+    @preLayerName = "V1S8";
+    @postLayerName = "RCorrBufS8";
+    @originalConnName = "V1S8ToDepthGT";
+};
+
+CloneKernelConn "V1S2ToRCorrBufAll" = {
+    #include "V1S2ToRCorrBufS2";
+    @preLayerName = "V1S2";
+    @postLayerName = "RCorrBufAll";
+    @originalConnName = "V1S2ToDepthGT";
+};
+
+CloneKernelConn "V1S4ToRCorrBufAll" = {
+    #include "V1S2ToRCorrBufS2";
+    @preLayerName = "V1S4";
+    @postLayerName = "RCorrBufAll";
+    @originalConnName = "V1S4ToDepthGT";
+};
+
+CloneKernelConn "V1S8ToRCorrBufAll" = {
+    #include "V1S2ToRCorrBufS2";
+    @preLayerName = "V1S8";
+    @postLayerName = "RCorrBufAll";
+    @originalConnName = "V1S8ToDepthGT";
+};

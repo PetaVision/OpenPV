@@ -1,0 +1,236 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 1224; //1226, one pixel cropped from both sides;  // KITTI synced value
+    ny = 368;  //370, two pixels cropped from the top;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0;
+    stopTime = 190; //193 total testing, splitting into 100 training, 93 testing
+    progressStep = 1;
+    outputPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_response_batch_all/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false; //true;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
+    //checkpointReadDirIndex = ;
+    checkpointWrite = false;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_response_batch_all/Checkpoints";
+    checkpointWriteStepInterval = 10;
+    deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+    dtAdaptFlag = false;
+    dtScaleMax = 5.0;
+    dtScaleMin = 0.25;
+    dtChangeMax = 0.05;
+    dtChangeMin = 0.0;
+};
+
+//
+// layers
+//
+
+Movie "V1S2" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 32;
+    readPvpFile = true;
+    imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/a16_V1S2.pvp";
+    writeFrameToTimestamp = true;
+    writeStep = -1;
+    sparseLayer = true;
+    displayPeriod = 1;
+    start_frame_index = 11;
+    skip_frame_index = 11;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+Movie "V1S4" = {
+   #include "V1S2";
+   @nxScale = .25;
+   @nyScale = .25;
+   @nf = 64;
+   @imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/a17_V1S4.pvp";
+};
+
+Movie "V1S8" = {
+   #include "V1S2";
+   @nxScale = .125;
+   @nyScale = .125;
+   @nf = 128;
+   @imageListPath = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/a18_V1S8.pvp";
+};
+
+//Depth ground truth layers
+
+Movie "DepthImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = false; 
+    imageListPath = "/nh/compneuro/Data/KITTI/stereo_flow/single_frames/training/disp_noc.txt";
+    writeFrameToTimestamp = true;
+    nf = 1;
+    writeStep = -1;
+    sparseLayer = true;
+    displayPeriod = 1;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = false;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetAnchor = "br"; //Offset anchor from bottom left
+    offsetX = 0; //1 px offset from the left
+    offsetY = 0; //offset 0 from bottom
+    randomMovie = 0;
+    autoResizeFlag = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+//Do a rescale here maybe?
+ANNLayer "DepthBuffer" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = -1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax =  infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    //
+    phase = 1;  
+};
+
+//This is the ground truth layer
+BinningLayer "DepthGT" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 128; //3 pixel error allowed, we may need to change this 
+    writeStep = -1.0;
+    initialWriteTime = 1.0;
+    mirrorBCflag = false;
+    sparseLayer = true;
+    binMax = 1;
+    binMin = 0;
+    binSigma = 0;
+    zeroNeg = true; //Set negative gt values as -1
+    zeroDCR = true; //Zero values from the buffer is set to 0
+    normalDist = false; //Max value will always be 1 as opposed to normal distribution
+    delay = 0;
+    originalLayerName = "DepthBuffer";
+    phase = 2;
+};
+
+//Depth connections
+IdentConn "DepthMovieToDepthGT" = {
+    preLayerName = "DepthImage";
+    postLayerName = "DepthBuffer";
+    channelCode = 0; //Excitatory Channel
+    writeStep = -1;    
+    delay = 0;
+};
+
+//Reverse correlation connections
+BatchConn "DepthGTToV1S2" = {
+    preLayerName = "DepthGT";
+    postLayerName = "V1S2";
+    channelCode = -1;
+    nxp = 17;
+    nyp = 17;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    //
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToDepthGT_W.pvp";
+    weightInitType = "UniformWeights";
+    weightInit = 0;
+    //
+    strength = 1; //.25/2  
+    normalizeMethod = "none";
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+
+    plasticityFlag = true;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+
+    initialWriteTime = 0.0;
+    dWMax = 1; //1/numimages
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+
+    batchPeriod = 190;
+    sharedWeights = true;
+};
+
+BatchConn "DepthGTToV1S4" = {
+    #include "DepthGTToV1S2";
+    @postLayerName = "V1S4";
+    @nxp = 17;
+    @nyp = 17;
+    //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4ToDepthGT_W.pvp";
+};
+
+BatchConn "DepthGTToV1S8" = {
+    #include "DepthGTToV1S2";
+    @postLayerName = "V1S8";
+    @nxp = 17;
+    @nyp = 17;
+    //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8ToDepthGT_W.pvp";
+};
