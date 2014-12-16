@@ -167,7 +167,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "CliqueConn",
                  "CloneKernelConn", //Deprecated
                  "IdentConn",
-                 "ImprintConn",
                  "GapConn",
 #ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  Use HyPerConn instead of GenerativeConn and PoolingConn instead of PoolingGenConn
                  "GenerativeConn",
@@ -647,10 +646,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    if( !keywordMatched && !strcmp(classkeyword, "KernelConn") ) {
       keywordMatched = true;
       addedConn = (HyPerConn * ) new KernelConn(name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "ImprintConn") ) {
-      keywordMatched = true;
-      addedConn = (HyPerConn *) new ImprintConn(name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "CliqueConn") ) {
       keywordMatched = true;

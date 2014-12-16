@@ -84,7 +84,6 @@
 #include "../connections/PlasticCloneConn.hpp"
 #include "../connections/CopyConn.hpp"
 #include "../connections/KernelConn.hpp"
-#include "../connections/ImprintConn.hpp"
 #include "../connections/MapReduceKernelConn.hpp"
 #include "../connections/CliqueConn.hpp"
 #include "../connections/CloneKernelConn.hpp"
