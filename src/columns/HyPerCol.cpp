@@ -1675,10 +1675,9 @@ int HyPerCol::advanceTime(double sim_time)
       nextProgressTime += progressInterval;
       if (columnId() == 0) {
          FILE * progressStream = writeProgressToErr ? stderr : stdout;
-         fprintf(progressStream, "   time==%f  ", sim_time);
          time_t current_time;
          time(&current_time);
-         std::cout << ctime(&current_time);
+         fprintf(progressStream, "   time==%f  %s", sim_time, ctime(&current_time));
       }
    }
 
