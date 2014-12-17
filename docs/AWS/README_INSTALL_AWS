@@ -273,5 +273,5 @@ These are the only two changes to prevous instructions for instance setup. The f
    Copy your executable to all nodes to your cluster. To do this, run the following from your home directory:
    sh cpCluster.sh <path_to_executable>
    To run from your root node, use the following command:
-   mpirun -np <num_processors> -hostfile ~/nodefile -bind-to core:o <path_to_executable> <petavision_parameters>
-
+   mpirun -np <num_processors> -hostfile ~/nodefile --bind-to none <path_to_executable> <petavision_parameters>
+   The --bind-to none flag is nessessary to get full threading utilization on aws.
