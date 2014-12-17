@@ -7,9 +7,9 @@ for ip in $ips
 do
    #make sure the directory exists
    filename="$(pwd)"/$1
-   dirs=dirname $filename
-   ssh ec2-user@$ip "mkdir -p $dirs"
-   scp $filename $ip:$filename
+   dirs=$(dirname $filename)
+   ssh ec2-user@$ip "mkdir -p \"$dirs\""
+   scp $filename ec2-user@$ip:$filename
 done
 
 
