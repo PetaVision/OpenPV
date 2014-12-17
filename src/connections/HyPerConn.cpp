@@ -1267,7 +1267,6 @@ void HyPerConn::ioParam_useMask(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
    if(plasticityFlag){
-      assert(!parent->parameters()->presentAndNotBeenRead(name, "useMask"));
       if(useMask){
          parent->ioParamStringRequired(ioFlag, name, "maskLayerName", &maskLayerName);
       }
