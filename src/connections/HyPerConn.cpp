@@ -1274,29 +1274,6 @@ void HyPerConn::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-#ifdef OBSOLETE // Marked obsolete Mar 19, 2014
-int HyPerConn::readPatchSizeFromFile(const char * filename) {
-   assert(filename != NULL);
-   int status = PV_SUCCESS;
-   readUseListOfArborFiles(parent->parameters());
-   readCombineWeightFiles(parent->parameters());
-   if( !useListOfArborFiles && !combineWeightFiles) { // Should still get patch size from file if either of these flags is true
-      status = patchSizeFromFile(filename);
-   }
-   return status;
-}
-
-void HyPerConn::readUseListOfArborFiles(PVParams * params) {
-   assert(filename!=NULL);
-   useListOfArborFiles = params->value(name, "useListOfArborFiles", false)!=0;
-}
-
-void HyPerConn::readCombineWeightFiles(PVParams * params) {
-   assert(filename!=NULL);
-   combineWeightFiles = params->value(name, "combineWeightFiles", false)!=0;
-}
-#endif // OBSOLETE
-
 int HyPerConn::communicateInitInfo() {
    // HyPerConns need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
@@ -2329,39 +2306,6 @@ int HyPerConn::allocateReceivePostKernel()
 //   return status;
 //}
 //#endif // PV_USE_OPENCL
-
-#ifdef OBSOLETE // Marked obsolete Mar 19, 2014
-int HyPerConn::checkPVPFileHeader(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams)
-{
-   // use default header checker
-   //
-   return pvp_check_file_header(comm, loc, params, numParams);
-}
-
-int HyPerConn::checkWeightsHeader(const char * filename, const int * wgtParams)
-{
-   // extra weight parameters
-   //
-   const int nxpFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NXP];
-   if (nxp != nxpFile) {
-      fprintf(stderr,
-              "ignoring nxp = %i in HyPerConn %s, using nxp = %i in binary file %s\n",
-              nxp, name, nxpFile, filename);
-      nxp = nxpFile;
-   }
-
-   const int nypFile = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NYP];
-   if (nyp != nypFile) {
-      fprintf(stderr,
-              "ignoring nyp = %i in HyPerConn %s, using nyp = %i in binary file %s\n",
-              nyp, name, nypFile, filename);
-      nyp = nypFile;
-   }
-
-   nfp = wgtParams[NUM_BIN_PARAMS + INDEX_WGT_NFP];
-   return 0;
-}
-#endif // OBSOLETE
 
 int HyPerConn::writeWeights(double timed, bool last)
 {
