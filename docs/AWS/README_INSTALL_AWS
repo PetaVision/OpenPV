@@ -265,7 +265,7 @@ These are the only two changes to prevous instructions for instance setup. The f
    Edit the file "hosts"
    Leave the first line alone. Add the external ip address for every node in your cluster. node0 will be your root node, aka the instance you will be launching everything from.
    Edit the file nodefile. Add each additional node you added to hosts, with the number of mpi processes you would like to run on as "slots"
-   Run setup.sh in this directory on your local machine. This will move all the nessessary ssh keys to the clusters, as well as adding every node in the cluster into hosts.
+   Run setup.sh ($ sh setup.sh) in this directory on your local machine. This will move all the nessessary ssh keys to the clusters, as well as adding every node in the cluster into hosts.
    Furthermore, this script will update and build PetaVision.
    ssh into your root node (node0).
    Follow the instructions to mount your EBS drive to your root node. Note that only the root node does any file io, so the root node is the only node that you need to attach and mount your volume to.
