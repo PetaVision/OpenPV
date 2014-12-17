@@ -8,7 +8,7 @@
 #ifndef IMPRINTCONN_HPP_
 #define IMPRINTCONN_HPP_
 
-#include "HyPerConn.hpp"
+#include <connections/HyPerConn.hpp>
 namespace PV {
 
 class ImprintConn: public HyPerConn {
