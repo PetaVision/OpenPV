@@ -5,7 +5,11 @@ nodenames="$(cat /etc/hosts | awk '/node/ {print $2}')"
 #Copy data
 for ip in $ips
 do
-   scp "$(pwd)"/$1 $ip:"$(pwd)"/$1
+   #make sure the directory exists
+   filename="$(pwd)"/$1
+   dirs=dirname $filename
+   ssh ec2-user@$ip "mkdir -p $dirs"
+   scp $filename $ip:$filename
 done
 
 
