@@ -420,6 +420,7 @@ int InitWeights::readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStar
       const int nxp = callingConn->xPatchSize();
       const int nyp = callingConn->yPatchSize();
       const int nfp = callingConn->fPatchSize();
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.  shmget is no longer used.
 #ifndef USE_SHMGET
          int status = PV::readWeights(patches ? &patches[arbor] : NULL, &dataStart[arbor], numArbors-arbor, numPatches, nxp, nyp, nfp, arborfilename, icComm, &timed, preLoc);
 #else
@@ -430,7 +431,10 @@ int InitWeights::readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStar
                  &dataStart[arbor], numArbors - arbor, numPatches, nxp, nyp, nfp,
                  arborfilename, icComm, &timed, preLoc, shmget_owner,
                  shmget_flag);
-#endif
+#endif // USE_SHMGET
+#endif // OBSOLETE
+
+      int status = PV::readWeights(patches ? &patches[arbor] : NULL, &dataStart[arbor], numArbors-arbor, numPatches, nxp, nyp, nfp, arborfilename, icComm, &timed, preLoc);
       if (status != PV_SUCCESS) {
          fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", arborfilename);
          exit(EXIT_FAILURE);
