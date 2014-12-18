@@ -159,14 +159,8 @@ int Movie::initialize(const char * name, HyPerCol * hc) {
          numFrames = params[INDEX_NBANDS];
       }
       else{
-         //frameNumber Handeled here
+         //frameNumber handled here
          filename = strdup(getNextFileName(startFrameIndex));
-         //if(startFrameIndex <= 1){
-         //   //Movie is going to update on timestep 1, but we want it to reread the first frame here, so reset the filenamestream back to 0 in initialize
-         //   if( parent->icCommunicator()->commRank()==0 ) {
-         //      PV_fseek(filenamestream, 0L, SEEK_SET);
-         //   }
-         //}
          assert(filename != NULL);
       }
    }
@@ -373,32 +367,6 @@ double Movie::getDeltaUpdateTime(){
    }
    return displayPeriod;
 }
-
-//Need update is now complety handeled in HyPerLayer based on getDeltaUpdateTime
-//bool Movie::needUpdate(double time, double dt){
-//   bool needNewImage = false;
-//   //Always update on first timestep
-//   if (time <= parent->getStartTime()){
-//       needNewImage = true;
-//   }
-//   if(randomMovie){
-//      needNewImage = true;
-//   }
-//   if( jitterFlag ) {
-//      needNewImage = true;;
-//   } // jitterFlag
-//
-//   //This is now handeled in HyPerLayer
-//   if (time >= nextDisplayTime) {
-//      needNewImage = true;
-//   } // time >= nextDisplayTime
-//
-//
-//   //if(time >= nextDisplayTime || updateThisTimestep) {
-//   //} // time >= nextDisplayTime
-//
-//   return needNewImage;
-//}
 
   // ensure that timeScale == 1 if new frame being loaded on NEXT time step
   
@@ -627,12 +595,18 @@ const char * Movie::advanceFileName() {
    bool reset = false;
 
    // Ignore blank lines
+   bool hasrewound = false;
    bool lineisblank = true;
    while(lineisblank) {
       // if at end of file (EOF), rewind
       if ((c = fgetc(filenamestream->fp)) == EOF) {
          PV_fseek(filenamestream, 0L, SEEK_SET);
          fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
+         if (hasrewound) {
+            fprintf(stderr, "Movie %s: filenamestream \"%s\" does not have any non-blank lines.\n", name, filenamestream->name);
+            exit(EXIT_FAILURE);
+         }
+         hasrewound = true;
          frameNumber = 0;
          reset = true;
       }
@@ -662,6 +636,14 @@ const char * Movie::advanceFileName() {
             }
          }
       }while(reset && frameNumber < startFrameIndex+1);
+      assert(inputfile && strlen(inputfile)>(size_t) 0);
+      char * expandedpath = expandLeadingTilde(inputfile);
+      if (strlen(expandedpath)>=PV_PATH_MAX) {
+         fprintf(stderr, "Movie \"%s\": input line \"%s\" from imageListPath is too long.\n", name, expandedpath);
+         exit(EXIT_FAILURE);
+      }
+      strncpy(inputfile, expandedpath, PV_PATH_MAX);
+      free(expandedpath);
    }
    return inputfile;
 }

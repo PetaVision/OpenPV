@@ -96,6 +96,16 @@ int parse_options(int argc, char * argv[], char ** output_path,
                   unsigned int * random_seed, char ** working_dir,
                   int * restart, char ** checkpointReadDir, int * numthreads);
 
+/** If a filename begins with "~/" or is "~", presume the user means the home directory.
+ * The return value is the expanded path; e.g. if the home directory is /home/user1,
+ * calling with the path "~/directory/file.name" returns "/home/user1/directory/file.name"
+ * If the input filename is longer than "~" and doesn't start with "~/", the return value
+ * has the same contents as input (but is a different block of memory).
+ * The calling routine has the responsibility for freeing the return value, and
+ * if the input string needs to be free()'ed, the calling routine has that responsibility
+ * as well.
+ */
+char * expandLeadingTilde(char const * path);
 
 #ifdef __cplusplus
 }

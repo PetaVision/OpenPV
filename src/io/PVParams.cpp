@@ -7,6 +7,7 @@
 
 #include "PVParams.hpp"
 #include "../include/pv_common.h"
+#include "io.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1947,47 +1948,6 @@ char * PVParams::stripOverwriteTag(const char * s){
       notag[len-1] = '\0';
    }
    return notag;
-}
-
-// If a filename begins with "~/" or is "~", presume the user means the home directory.
-// The return value is the expanded path; e.g. if the home directory is /home/user1,
-// calling with the path "~/directory/file.name" returns "/home/user1/directory/file.name"
-// If the input filename is longer than "~" and doesn't start with "~/", the return value
-// has the same contents as input (but is a different block of memory).
-// The calling routine has the responsibility for freeing the return value, and
-// if the input string needs to be free()'ed, the calling routine has that responsibility
-// as well.
-char * PVParams::expandLeadingTilde(char * path) {
-   char * newpath = NULL;
-   if (path != NULL) {
-      int len = strlen(path);
-      if (len==1 && path[0]=='~') {
-         newpath = strdup(getenv("HOME"));
-         if (newpath==NULL) {
-            fprintf(stderr, "Error expanding \"%s\": home directory not defined\n", path);
-            exit(EXIT_FAILURE);
-         }
-      }
-      else if (len>1 && path[0]=='~' && path[1]=='/') {
-         char * homedir = getenv("HOME");
-         if (homedir==NULL) {
-            fprintf(stderr, "Error expanding \"%s\": home directory not defined\n", path);
-         }
-         char dummy;
-         int chars_needed = snprintf(&dummy, 0, "%s/%s", homedir, &path[2]);
-         newpath = (char *) malloc(chars_needed+1);
-         if (newpath==NULL) {
-            fprintf(stderr, "Unable to allocate memory for path \"%s/%s\"\n", homedir, &path[2]);
-            exit(EXIT_FAILURE);
-         }
-         int chars_used = snprintf(newpath, chars_needed+1, "%s/%s", homedir, &path[2]);
-         assert(chars_used == chars_needed);
-      }
-      else {
-         newpath = strdup(path);
-      }
-   }
-   return newpath;
 }
 
 }  // close namespace PV block
