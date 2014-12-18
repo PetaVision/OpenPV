@@ -1,3 +1,0 @@
-
-	- Get natural movie (from NeoVision project?)
-	- Correct pairSTDP implementation
