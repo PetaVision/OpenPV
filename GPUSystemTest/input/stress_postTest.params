@@ -1,8 +1,8 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    nx = 64; //1242;  // KITTI synced value
-    ny = 64;  //218;
+    nx = 512; //1242;  // KITTI synced value
+    ny = 512;  //218;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0.0;
@@ -13,9 +13,8 @@ HyPerCol "column" = {
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false;
-    checkpointWrite = true;
-    checkpointWriteDir = "output/checkpoints/";
-    checkpointWriteStepInterval = 1;
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
     suppressLastOutput = false;
     writeProgressToErr = true;
 };
@@ -43,30 +42,27 @@ ConstantLayer "input" = {
     triggerFlag = false;
 };
 
-ConstantLayer "input2" = {
+ANNLayer "outputRecv" = {
     restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 3;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 64;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     writeSparseActivity = 0;
     //
-    InitVType = "UniformRandomV";
-    minV = 0;
-    maxV = 1;
-
+    InitVType = "ZeroV";
     VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
     VShift = 0;
     // 
-    phase = 1; 
+    phase = 2; 
     triggerFlag = false;
 };
 
-HyPerLCALayer "outputRecv" = {
+ANNLayer "outputRecvGpu" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
@@ -77,41 +73,13 @@ HyPerLCALayer "outputRecv" = {
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
-    timeConstantTau = 200;
-    slopeErrorStd = .01;
-    dVThresh = 0;
-    VThresh = 0.01;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = 0; 
-    AShift = 0.01;
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
     // 
     phase = 2; 
     triggerFlag = false;
-    updateGpu = false;
-};
-
-HyPerLCALayer "outputRecvGpu" = {
-    restart = 0;
-    nxScale = .5;
-    nyScale = .5;
-    nf = 64;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = false;
-    writeSparseActivity = 0;
-    //
-    InitVType = "ZeroV";
-    timeConstantTau = 200;
-    slopeErrorStd = .01;
-    dVThresh = 0;
-    VThresh = 0.01;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = 0; 
-    AShift = 0.01;
-    // 
-    phase = 2; 
-    triggerFlag = false;
-    updateGpu = true;
 };
 
 ANNLayer "outputTest" = {
@@ -127,7 +95,7 @@ ANNLayer "outputTest" = {
     InitVType = "ZeroV";
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = 0; 
+    VMin = -infinity; 
     VShift = 0;
     // 
     phase = 3; 
@@ -255,26 +223,9 @@ TransposeConn "gpuTransposeConn" = {
     updateGSynFromPostPerspective = true;
     receiveGpu = true;
     preDataLocal = true;
-    numXLocal = 128;
+    numXLocal = 64;
     numYLocal = 1;
     numFLocal = 1;
-};
-
-KernelConn "origConn2" = {
-    #include "origConn";
-    @postLayerName = "input2";
-};
-
-TransposeConn "TransposeConn2" = {
-    #include "TransposeConn";
-    @preLayerName = "input2";
-    @originalConnName = "origConn2";
-};
-
-TransposeConn "gpuTransposeConn2" = {
-    #include "gpuTransposeConn";
-    @preLayerName = "input2";
-    @originalConnName = "origConn2";
 };
 
 IdentConn "RecvPostTest" = {
@@ -292,16 +243,6 @@ IdentConn "RecvPreTest" = {
     delay = 0;
     writeStep = -1;
 };
-
-//GPUSystemTestProbe "gpuProbe" = {
-//   targetLayer = "outputRecvGpu";
-//   message = "gpuProbe ";
-//};
-//
-//GPUSystemTestProbe "regProbe" = {
-//   targetLayer = "outputRecv";
-//   message = "regProbe ";
-//};
 
 GPUSystemTestProbe "testProbe" = {
    targetLayer = "outputTest";
