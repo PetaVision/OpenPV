@@ -116,6 +116,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "MaxPooling", // Obsolete; have the connection's pvpatchAccumulateType set to "maxpooling" (case insensitive).
                "HyPerLCALayer",
                "ANNErrorLayer",
+               "ANNWeightedErrorLayer",
                "FilenameParsingGroundTruthLayer",
 	         "ANNNormalizedErrorLayer",
                "MLPErrorLayer",
@@ -516,6 +517,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "ANNErrorLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNErrorLayer(name, hc);
+   }
+   if( !strcmp(classkeyword, "ANNWeightedErrorLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ANNWeightedErrorLayer(name, hc);
    }
    if( !strcmp(classkeyword, "ANNNormalizedErrorLayer") ) {
       keywordMatched = true;
