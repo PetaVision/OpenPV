@@ -1113,11 +1113,6 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
    }
    GDALColorInterp * colorbandtypes = NULL;
    status = getImageInfo(path, parent->icCommunicator(), &imageLoc, &colorbandtypes);
-   if( getLayerLoc()->nf != imageLoc.nf && getLayerLoc()->nf != 1) {
-      fprintf(stderr, "Image %s: file %s has %d features but the layer has %d features.  Exiting.\n",
-            name, filename, imageLoc.nf, getLayerLoc()->nf);
-      exit(PV_FAILURE);
-   }
    if(status != 0) {
       fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
       abort();
