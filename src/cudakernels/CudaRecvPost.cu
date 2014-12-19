@@ -232,16 +232,16 @@ CudaRecvPost::CudaRecvPost(CudaDevice* inDevice):CudaKernel(inDevice){
 CudaRecvPost::~CudaRecvPost(){
 #ifdef PV_USE_CUDNN
    if(params.v_inputDescriptor){
-      cudnnTensor4dDescriptor_t inputDescriptor = (cudnnTensor4dDescriptor_t) params.v_inputDescriptor;
-      cudnnDestroyTensor4dDescriptor(inputDescriptor);
+      cudnnTensorDescriptor_t inputDescriptor = (cudnnTensorDescriptor_t) params.v_inputDescriptor;
+      cudnnDestroyTensorDescriptor(inputDescriptor);
    }
    if(params.v_filterDescriptor){
       cudnnFilterDescriptor_t filterDescriptor = (cudnnFilterDescriptor_t) params.v_filterDescriptor;
       cudnnDestroyFilterDescriptor(filterDescriptor);
    }
    if(params.v_outputDescriptor){
-      cudnnTensor4dDescriptor_t outputDescriptor = (cudnnTensor4dDescriptor_t) params.v_outputDescriptor;
-      cudnnDestroyTensor4dDescriptor(outputDescriptor);
+      cudnnTensorDescriptor_t outputDescriptor = (cudnnTensorDescriptor_t) params.v_outputDescriptor;
+      cudnnDestroyTensorDescriptor(outputDescriptor);
    }
    if(params.v_convDescriptor){
       cudnnConvolutionDescriptor_t convDescriptor = (cudnnConvolutionDescriptor_t) params.v_convDescriptor;
@@ -374,8 +374,8 @@ void CudaRecvPost::setArgs(
    }
 
    //Set up pre descriptor
-   cudnnTensor4dDescriptor_t inputDescriptor;
-   cudnnStatus_t status = cudnnCreateTensor4dDescriptor(&inputDescriptor);
+   cudnnTensorDescriptor_t inputDescriptor;
+   cudnnStatus_t status = cudnnCreateTensorDescriptor(&inputDescriptor);
    assert(status == CUDNN_STATUS_SUCCESS);
    status = cudnnSetTensor4dDescriptor(inputDescriptor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
       1, //Number of images
@@ -399,7 +399,7 @@ void CudaRecvPost::setArgs(
    cudnnFilterDescriptor_t filterDescriptor;
    status = cudnnCreateFilterDescriptor(&filterDescriptor);
    assert(status == CUDNN_STATUS_SUCCESS);
-   status = cudnnSetFilterDescriptor(filterDescriptor, CUDNN_DATA_FLOAT,
+   status = cudnnSetFilter4dDescriptor(filterDescriptor, CUDNN_DATA_FLOAT,
       params.nf * params.manyScaleX * params.manyScaleY, //Number of output feature maps. For one to many, output feature maps are repeated for each kernel
       params.nfp, //Number of input feature maps
       params.nyp, //Height of each filter
@@ -424,7 +424,7 @@ void CudaRecvPost::setArgs(
    cudnnConvolutionDescriptor_t convDescriptor;
    status = cudnnCreateConvolutionDescriptor(&convDescriptor);
    assert(status == CUDNN_STATUS_SUCCESS);
-   status = cudnnSetConvolutionDescriptor(convDescriptor, inputDescriptor, filterDescriptor,
+   status = cudnnSetConvolution2dDescriptor(convDescriptor,
       //params.nyp-params.preToPostScaleY-1,
       //params.nxp-params.preToPostScaleX-1,  //zero-padding height and width
       diffY,
@@ -438,7 +438,7 @@ void CudaRecvPost::setArgs(
 
    //Query output layout and check with PV layout
    int out_n, out_c, out_h, out_w;
-   status = cudnnGetOutputTensor4dDim(convDescriptor, CUDNN_CONVOLUTION_FWD,
+   status = cudnnGetConvolution2dForwardOutputDim(convDescriptor, inputDescriptor, filterDescriptor,
       &out_n, //num images
       &out_c, //num output features
       &out_h, //output height
@@ -455,8 +455,8 @@ void CudaRecvPost::setArgs(
    }
 
    //Set up output descriptor
-   cudnnTensor4dDescriptor_t outputDescriptor;
-   status = cudnnCreateTensor4dDescriptor(&outputDescriptor);
+   cudnnTensorDescriptor_t outputDescriptor;
+   status = cudnnCreateTensorDescriptor(&outputDescriptor);
    assert(status == CUDNN_STATUS_SUCCESS);
    status = cudnnSetTensor4dDescriptor(outputDescriptor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
       1, //Number of images
@@ -475,6 +475,44 @@ void CudaRecvPost::setArgs(
    }
    assert(status == CUDNN_STATUS_SUCCESS);
    params.v_outputDescriptor = (void*)outputDescriptor;
+
+   //Calculate and set up best forward conv algorithm to use
+   cudnnHandle_t handle = (cudnnHandle_t) device->getCudnnHandle();
+   cudnnConvolutionFwdAlgo_t* convAlgo = new cudnnConvolutionFwdAlgo_t();
+
+   status = cudnnGetConvolutionForwardAlgorithm(
+      handle,
+      inputDescriptor,
+      filterDescriptor,
+      convDescriptor,
+      outputDescriptor,
+      CUDNN_CONVOLUTION_FWD_PREFER_FASTEST,
+      0,
+      convAlgo
+   );
+   assert(status == CUDNN_STATUS_SUCCESS);
+   params.v_convAlgo = (void*) convAlgo;
+
+   //Based on algortihm, allocate workspace memory for GPU
+   size_t* temp = new size_t();
+   status = cudnnGetConvolutionForwardWorkspaceSize(
+      handle,
+      inputDescriptor,
+      filterDescriptor,
+      convDescriptor,
+      outputDescriptor,
+      *convAlgo,
+      temp
+   );
+   params.workspaceSize = temp;
+   assert(status == CUDNN_STATUS_SUCCESS);
+
+   //Allocate workspace based on size
+   handleError(cudaMalloc(&params.cudnn_workspace, *params.workspaceSize), "Cudnn workspace cudaMalloc");
+
+   ////CUDNN no longer accumulates into previous gsyn. Allocate temp accum buffer same size as cudnn_gSyn
+   //handleError(cudaMalloc(&params.cudnn_accumGSyn, cudnn_gSyn->getSize()), "Cudnn accumGSyn cudaMalloc");
+
 #endif
 
    setArgsFlag();
@@ -567,19 +605,45 @@ int CudaRecvPost::do_run(){
    
 #ifdef PV_USE_CUDNN
    cudnnHandle_t handle = (cudnnHandle_t) device->getCudnnHandle();
-   cudnnTensor4dDescriptor_t inputDescriptor = (cudnnTensor4dDescriptor_t) params.v_inputDescriptor;
+   cudnnTensorDescriptor_t inputDescriptor = (cudnnTensorDescriptor_t) params.v_inputDescriptor;
    cudnnFilterDescriptor_t filterDescriptor = (cudnnFilterDescriptor_t) params.v_filterDescriptor;
-   cudnnTensor4dDescriptor_t outputDescriptor = (cudnnTensor4dDescriptor_t) params.v_outputDescriptor;
+   cudnnTensorDescriptor_t outputDescriptor = (cudnnTensorDescriptor_t) params.v_outputDescriptor;
    cudnnConvolutionDescriptor_t convDescriptor = (cudnnConvolutionDescriptor_t) params.v_convDescriptor;
+   cudnnConvolutionFwdAlgo_t* convAlgo = (cudnnConvolutionFwdAlgo_t*) params.v_convAlgo;
 
-   int status = cudnnConvolutionForward(handle,
-      inputDescriptor, params.cudnn_preData,
-      filterDescriptor, params.cudnn_weights,
+   float scalingFactor = 1;
+
+   cudnnStatus_t status = cudnnConvolutionForward(
+      handle,
+      &(scalingFactor),
+      inputDescriptor,
+      params.cudnn_preData,
+      filterDescriptor,
+      params.cudnn_weights,
       convDescriptor,
-      outputDescriptor, params.cudnn_gSyn,
-      CUDNN_RESULT_ACCUMULATE);
+      *convAlgo,
+      params.cudnn_workspace,
+      *params.workspaceSize,
+      &(scalingFactor),
+      outputDescriptor,
+      params.cudnn_gSyn
+      );
 
    assert(status == CUDNN_STATUS_SUCCESS);
+
+   //int scaleFactor = 1;
+   //status = cudnnAddTensor(
+   //   handle,
+   //   CUDNN_ADD_FULL_TENSOR,
+   //   &scaleFactor,
+   //   outputDescriptor,
+   //   params.cudnn_accumGSyn,
+   //   &scaleFactor,
+   //   outputDescriptor,
+   //   params.cudnn_gSyn
+   //);
+
+   //assert(status == CUDNN_STATUS_SUCCESS);
    
 #else
    params.postBufNum = block_size.x * block_size.y * block_size.z;

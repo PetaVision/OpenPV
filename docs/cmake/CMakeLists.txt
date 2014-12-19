@@ -14,14 +14,14 @@ set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/PetaVision CACHE PATH "The base petavisio
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH "${PV_DIR}/docs/cmake/Modules/")
 
-set(OPEN_MP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
+set(OPEN_MP_THREADS TRUE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
 set(OPEN_CL_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
 set(CUDA_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
 set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 
 set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
-set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
+set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/ CACHE PATH "Location of cuDNN libraries")
 
 set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
 #set(Cuda_lib /usr/local/cuda-6.0/lib64 CACHE PATH "Location of opencl headers")

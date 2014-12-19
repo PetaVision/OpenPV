@@ -59,6 +59,8 @@ namespace PVCuda{
       float* cudnn_preData;
       float* cudnn_weights;
       float* cudnn_gSyn;
+      //float* cudnn_accumGSyn;
+      void* cudnn_workspace;
 #endif
       int* patch2datalookuptable;
 
@@ -72,10 +74,12 @@ namespace PVCuda{
 
       bool preDataLocal;
 #ifdef PV_USE_CUDNN
-      /* cudnnTensor4dDescriptor_t */ void* v_inputDescriptor;
+      /* cudnnTensorDescriptor_t */ void* v_inputDescriptor;
       /* cudnnFilterDescriptor_t */   void* v_filterDescriptor;
-      /* cudnnTensor4dDescriptor_t */ void* v_outputDescriptor;
+      /* cudnnTensorDescriptor_t */ void* v_outputDescriptor;
       /* cudnnConvolutionDescriptor_t */ void* v_convDescriptor;
+      /* cudnnConvolutionFwdAlgo_t* */ void* v_convAlgo;
+      size_t * workspaceSize;
       int manyScaleX;
       int manyScaleY;
 #endif
