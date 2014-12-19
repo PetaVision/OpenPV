@@ -54,7 +54,6 @@ int NormalizeContrastZeroMean::normalizeWeights() {
 
    // TODO: need to ensure that all connections in connectionList have same nxp,nyp,nfp,numArbors,numDataPatches
    HyPerConn * conn0 = connectionList[0];
-   HyPerConn * conn0 = connectionList[0];
    for (int c=1; c<numConnections; c++) {
       HyPerConn * conn = connectionList[c];
       if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
