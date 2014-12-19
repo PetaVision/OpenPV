@@ -4,10 +4,19 @@
 // created by peteschultz: Dec 17, 2014
 //
 
-//  A params file for a simple simulation: two layers, one connection.
-//  It serves as the basic template for systems tests, and tests the
-//  basic functionality
-//
+//  A system test for testing group normalization
+//  Input layer is a 16x16 3-colorband image of all ones.
+//  It goes to two different 16x16 output layers:
+//  to output1 using a 5x5x8 connection,
+//  and output2 using a 3x3x4 connection
+//  The connections to output1 and output2 are initialized
+//  to all ones, and normalized together.
+//  A patch in the connection to output1 has 5x5x8=200 synapses.
+//  A patch in the connection to output2 has 3x3x4=36 synapses.
+//  The normalization is over all 236 synapses.
+//  Thus, for normalization method normalizeSum, with strength=1,
+//  each weight gets normalized to 1/236=0.0042372881
+//  For normalizeL2, it gets normalized to 1/sqrt(236)=0.0650944555
 
 debugParsing = false;    // Debug the reading of this parameter file.
 
