@@ -10,9 +10,16 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
 # Set variable for current working directory (workspace directory)
-set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision CACHE FILEPATH "The base petavision directory")
+set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision CACHE PATH "The base petavision directory")
 
-set(OPEN_MP_THREADS FALSE CACHE PATH "Defines if PetaVision uses OpenMP threads")
+set(OPEN_MP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
+set(OPEN_CL_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
+set(CUDA_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
+set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
+set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
+set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
+set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
+set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
 
 if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -DPV_USE_THREADS")
