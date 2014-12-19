@@ -66,9 +66,22 @@ int InitWeights::communicateParamsInfo() {
 int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
       double * timef /*default NULL*/) {
    PVParams * inputParams = callingConn->getParent()->parameters();
+   int numPatches = callingConn->getNumDataPatches();
+   if (inputParams->present(callingConn->getName(), "initFromLastFlag")) {
+      if (callingConn->getParent()->columnId()==0) {
+         fprintf(stderr, "Connection \"%s\": initFromLastFlag is obsolete.\n");
+      }
+      if (inputParams->value(callingConn->getName(), "initFromLastFlag")) {
+         if (callingConn->getParent()->columnId()==0) {
+            fprintf(stderr, "Instead, use weightInitType=\"FileWeight\" or set HyPerCol initializeFromCheckpointDir and set initializeFromCheckpointFlag to true\n");
+         }
+         MPI_Barrier(callingConn->getParent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+#ifdef OBSOLETE // Marked obsolete Dec 19, 2014.  Use weightInitType = "FileWeight" or initializeFromCheckpointFlag = true
    int initFromLastFlag = inputParams->value(callingConn->getName(),
          "initFromLastFlag", 0.0f, false) != 0;
-   int numPatches = callingConn->getNumDataPatches();
    if (initFromLastFlag) {
       char nametmp[PV_PATH_MAX];
       int chars_needed = snprintf(nametmp, PV_PATH_MAX, "%s/Last/%s_W.pvp",
@@ -82,7 +95,9 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
          abort();
       }
       readWeights(patches, dataStart, numPatches, nametmp);
-   } else if (weightParams->getFilename() != NULL) {
+   } else
+#endif // OBSOLETE
+   if (weightParams->getFilename() != NULL) {
       {
          if (weightParams->getUseListOfArborFiles()) {
             readListOfArborFiles(patches, dataStart, numPatches, weightParams->getFilename(), timef);
@@ -250,6 +265,7 @@ int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int nu
    const int nyp = callingConn->yPatchSize();
    const int nfp = callingConn->fPatchSize();
    if( weightParams->getUseListOfArborFiles() ) {
+      assert(0);
       int arbor=0;
       PV_Stream * arborstream = pvp_open_read_file(filename, icComm);
 
