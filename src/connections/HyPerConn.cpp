@@ -1681,11 +1681,12 @@ uint4 * HyPerConn::getRandState(int index) {
    return state;
 }
 
-
 InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
-   fprintf(stderr, "weightInitType not set or unrecognized.  Using default method.\n");
-   InitWeights * initWeightsObj = new InitWeights(this);
-   return initWeightsObj;
+   if (parent->columnId()==0) {
+      fprintf(stderr, "Connection \"%s\": weightInitType \"%s\" not recognized.  Exiting\n", name, weightInitTypeString);
+   }
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   exit(EXIT_FAILURE);
 }
 
 InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
