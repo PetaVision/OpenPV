@@ -42,6 +42,7 @@ int NormalizeL2::normalizeWeights() {
 
    // All connections in the group must have the same values of sharedWeights, numArbors, and numDataPatches
    HyPerConn * conn0 = connectionList[0];
+#ifdef OBSOLETE // Marked obsolete Dec 15, 2014.  Moved to base class NormalizeMultiply.
    for (int c=1; c<numConnections; c++) {
       HyPerConn * conn = connectionList[c];
       if (conn->usingSharedWeights()!=conn0->usingSharedWeights()) {
@@ -70,6 +71,7 @@ int NormalizeL2::normalizeWeights() {
          exit(EXIT_FAILURE);
       }
    }
+#endif // OBSOLETE
 
 #ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET

@@ -54,6 +54,28 @@ int NormalizeContrastZeroMean::normalizeWeights() {
 
    // TODO: need to ensure that all connections in connectionList have same nxp,nyp,nfp,numArbors,numDataPatches
    HyPerConn * conn0 = connectionList[0];
+   HyPerConn * conn0 = connectionList[0];
+   for (int c=1; c<numConnections; c++) {
+      HyPerConn * conn = connectionList[c];
+      if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
+         if (parent()->columnId() == 0) {
+            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of arbors (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
+                  this->getName(), conn0->getName(), conn0->numberOfAxonalArborLists(), conn->getName(), conn->numberOfAxonalArborLists());
+         }
+         status = PV_FAILURE;
+      }
+      if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
+         if (parent()->columnId() == 0) {
+            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of data patches (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
+                  this->getName(), conn0->getName(), conn0->getNumDataPatches(), conn->getName(), conn->getNumDataPatches());
+         }
+         status = PV_FAILURE;
+      }
+      if (status==PV_FAILURE) {
+         MPI_Barrier(parent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
 
 #ifdef USE_SHMGET
 #ifdef PV_USE_MPI
@@ -68,10 +90,6 @@ int NormalizeContrastZeroMean::normalizeWeights() {
 
    status = NormalizeBase::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
 
-   int nxp = conn0->xPatchSize();
-   int nyp = conn0->yPatchSize();
-   int nfp = conn0->fPatchSize();
-   int weights_per_patch = nxp*nyp*nfp;
    int nArbors = conn0->numberOfAxonalArborLists();
    int numDataPatches = conn0->getNumDataPatches();
    if (normalizeArborsIndividually) {
@@ -79,14 +97,19 @@ int NormalizeContrastZeroMean::normalizeWeights() {
          for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
             double sum = 0.0;
             double sumsq = 0.0;
+            int weights_per_patch = 0;
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
+               int nxp = conn0->xPatchSize();
+               int nyp = conn0->yPatchSize();
+               int nfp = conn0->fPatchSize();
+               weights_per_patch += nxp*nyp*nfp;
                pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
                accumulateSumAndSumSquared(dataStartPatch, weights_per_patch, &sum, &sumsq);
             }
             if (fabs(sum) <= minSumTolerated) {
                fprintf(stderr, "Warning for NormalizeContrastZeroMean \"%s\": sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", this->getName(), patchindex, arborID, minSumTolerated);
-               break; // TODO: continue?  continue as opposed to break is more consistent with warning above.
+               break; // TODO: continue instead of break?  continue as opposed to break is more consistent with warning above.
             }
             float mean = sum/weights_per_patch;
             float var = sumsq/weights_per_patch - mean*mean;
@@ -102,16 +125,21 @@ int NormalizeContrastZeroMean::normalizeWeights() {
       for (int patchindex = 0; patchindex<numDataPatches; patchindex++) {
          double sum = 0.0;
          double sumsq = 0.0;
+         int weights_per_patch = 0;
          for (int arborID = 0; arborID<nArbors; arborID++) {
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
+               int nxp = conn0->xPatchSize();
+               int nyp = conn0->yPatchSize();
+               int nfp = conn0->fPatchSize();
+               weights_per_patch += nxp*nyp*nfp;
                pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
                accumulateSumAndSumSquared(dataStartPatch, weights_per_patch, &sum, &sumsq);
             }
          }
          if (fabs(sum) <= minSumTolerated) {
             fprintf(stderr, "Warning for NormalizeContrastZeroMean \"%s\": sum of weights in patch %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, minSumTolerated);
-            break; // TODO: continue?  continue as opposed to break is more consistent with warning above.
+            break; // TODO: continue instead of break?  continue as opposed to break is more consistent with warning above.
 
          }
          int count = weights_per_patch*nArbors;

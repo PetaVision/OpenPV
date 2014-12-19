@@ -49,7 +49,7 @@ int NormalizeScale::normalizeWeights() {
 
    assert(numConnections >= 1);
 
-   // TODO: need to ensure that all connections in connectionList have same nxp,nyp,nfp,nxpShrunken,nypShrunken,offsetShrunken,sxp,syp,numArbors,numDataPatches
+   // All connections in the group must have the same values of sharedWeights, numArbors, and numDataPatches
    HyPerConn * conn0 = connectionList[0];
 
 #ifdef USE_SHMGET

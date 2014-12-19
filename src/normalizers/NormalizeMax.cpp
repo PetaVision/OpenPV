@@ -40,7 +40,7 @@ int NormalizeMax::normalizeWeights() {
 
    assert(numConnections >= 1);
 
-   // TODO: need to ensure that all connections in connectionList have same sharedWeights,nxp,nyp,nfp,nxpShrunken,nypShrunken,offsetShrunken,sxp,syp,numArbors,numDataPatches,scale_factor
+   // All connections in the group must have the same values of sharedWeights, numArbors, and numDataPatches
    HyPerConn * conn0 = connectionList[0];
 
 #ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
