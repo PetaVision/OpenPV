@@ -98,17 +98,7 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
    } else
 #endif // OBSOLETE
    if (weightParams->getFilename() != NULL) {
-      {
-         if (weightParams->getUseListOfArborFiles()) {
-            readListOfArborFiles(patches, dataStart, numPatches, weightParams->getFilename(), timef);
-         }
-         else if (weightParams->getCombineWeightFiles()) { // This implies that combineWeightFiles shouldn't be read if useListOfArborFiles
-            readCombinedWeightFiles(patches, dataStart, numPatches, weightParams->getFilename(), timef);
-         }
-         else {
-            readWeights(patches, dataStart, numPatches, weightParams->getFilename(), timef);
-         }
-      }
+      readWeights(patches, dataStart, numPatches, weightParams->getFilename(), timef);
    } else {
       initRNGs(patches==NULL);
       calcWeights();
@@ -257,137 +247,38 @@ int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int nu
    int numArbors = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
    double timed;
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
    bool * shmget_owner = callingConn->getShmgetOwnerHead();
    bool shmget_flag = callingConn->getShmgetFlag();
 #endif
+#endif // OBSOLETE
    const int nxp = callingConn->xPatchSize();
    const int nyp = callingConn->yPatchSize();
    const int nfp = callingConn->fPatchSize();
+   int status = PV_SUCCESS;
    if( weightParams->getUseListOfArborFiles() ) {
-      assert(0);
-      int arbor=0;
-      PV_Stream * arborstream = pvp_open_read_file(filename, icComm);
-
-      int rootproc = 0;
-      char arborfilename[PV_PATH_MAX];
-      while( arbor < callingConn->numberOfAxonalArborLists() ) {
-         if( icComm->commRank() == rootproc ) {
-            char * fgetsstatus = fgets(arborfilename, PV_PATH_MAX, arborstream->fp);
-            if( fgetsstatus == NULL ) {
-               bool endoffile = feof(arborstream->fp)!=0;
-               if( endoffile ) {
-                  fprintf(stderr, "File of arbor files \"%s\" reached end of file before all %d arbors were read.  Exiting.\n", filename, numArbors);
-                  exit(EXIT_FAILURE);
-               }
-               else {
-                  int error = ferror(arborstream->fp);
-                  assert(error);
-                  fprintf(stderr, "File of arbor files: error %d while reading.  Exiting.\n", error);
-                  exit(error);
-               }
-            }
-            else {
-               // Remove linefeed from end of string
-               arborfilename[PV_PATH_MAX-1] = '\0';
-               int len = strlen(arborfilename);
-               if (len > 1) {
-                  if (arborfilename[len-1] == '\n') {
-                     arborfilename[len-1] = '\0';
-                  }
-               }
-            }
-         } // commRank() == rootproc
-         int filetype, datatype;
-         int numParams = NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS;
-         int params[NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS];
-         pvp_read_header(arborfilename, icComm, &timed, &filetype, &datatype, params, &numParams);
-         int thisfilearbors = params[INDEX_NBANDS];
-#ifndef USE_SHMGET
-         int status = PV::readWeights(patches ? &patches[arbor] : NULL, &dataStart[arbor], numArbors-arbor, numPatches, nxp, nyp, nfp, arborfilename, icComm, &timed, preLoc);
-#else
-         int status = PV::readWeights(patches ? &patches[arbor] : NULL,
-               &dataStart[arbor], numArbors - arbor, numPatches, nxp, nyp, nfp,
-               arborfilename, icComm, &timed, preLoc, shmget_owner,
-               shmget_flag);
-#endif
-         if (status != PV_SUCCESS) {
-            fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", arborfilename);
-            exit(EXIT_FAILURE);
-         }
-         arbor += thisfilearbors;
-      }  // while
-   } // if useListOfArborFiles
+      status = this->readListOfArborFiles(patches, dataStart, numPatches, filename, timeptr);
+   }
    else if (weightParams->getCombineWeightFiles()){
-      int rootproc = 0;
-      int max_weight_files = 1;  // arbitrary limit...
-      int num_weight_files = weightParams->getNumWeightFiles();
-      int file_count=0;
-      PV_Stream * weightstream = pvp_open_read_file(filename, icComm);
-      if ((weightstream == NULL) && (icComm->commRank() == rootproc) ){
-         fprintf(stderr, ""
-               "Cannot open file of weight files \"%s\".  Exiting.\n", filename);
-         exit(EXIT_FAILURE);
-      }
-
-      char weightsfilename[PV_PATH_MAX];
-      while( file_count < num_weight_files ) {
-         if( icComm->commRank() == rootproc ) {
-            char * fgetsstatus = fgets(weightsfilename, PV_PATH_MAX, weightstream->fp);
-            if( fgetsstatus == NULL ) {
-               bool endoffile = feof(weightstream->fp)!=0;
-               if( endoffile ) {
-                  fprintf(stderr, "File of weight files \"%s\" reached end of file before all %d weight files were read.  Exiting.\n", filename, num_weight_files);
-                  exit(EXIT_FAILURE);
-               }
-               else {
-                  int error = ferror(weightstream->fp);
-                  assert(error);
-                  fprintf(stderr, "File of weight files: error %d while reading.  Exiting.\n", error);
-                  exit(error);
-               }
-            }
-            else {
-               // Remove linefeed from end of string
-               weightsfilename[PV_PATH_MAX-1] = '\0';
-               int len = strlen(weightsfilename);
-               if (len > 1) {
-                  if (weightsfilename[len-1] == '\n') {
-                     weightsfilename[len-1] = '\0';
-                  }
-               }
-            }
-         } // commRank() == rootproc
-         int filetype, datatype;
-         int numParams = NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS;
-         int params[NUM_BIN_PARAMS+NUM_WGT_EXTRA_PARAMS];
-         pvp_read_header(weightsfilename, icComm, &timed, &filetype, &datatype, params, &numParams);
-#ifndef USE_SHMGET
-         int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, weightsfilename, icComm, &timed, preLoc);
-#else
-         int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, weightsfilename, icComm, &timed, preLoc, shmget_owner, shmget_flag);
-#endif
-         if (status != PV_SUCCESS) {
-            fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", weightsfilename);
-            exit(EXIT_FAILURE);
-         }
-         file_count += 1;
-      } // file_count < num_weight_files
-
-   } // if combineWeightFiles
+      status = this->readCombinedWeightFiles(patches, dataStart, numPatches, filename, timeptr);
+   }
    else {
+      status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, filename, icComm, &timed, preLoc);
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifndef USE_SHMGET
       
       int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, filename, icComm, &timed, preLoc);
 #else
          int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, filename, icComm, &timed, preLoc, shmget_owner, shmget_flag);
-#endif
-      if (status != PV_SUCCESS) {
-         fprintf(stderr, "PV::readWeights: problem reading weight file %s for connection %s, SHUTTING DOWN\n", filename, callingConn->getName());
-         exit(EXIT_FAILURE);
-      }
-      if( timeptr != NULL ) *timeptr = timed;
+#endif // USE_SHMGET
+#endif // OBSOLETE
    }
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "PV::readWeights: problem reading weight file %s for connection %s, SHUTTING DOWN\n", filename, callingConn->getName());
+      exit(EXIT_FAILURE);
+   }
+   if( timeptr != NULL ) *timeptr = timed;
    return PV_SUCCESS;
 }
 
@@ -511,13 +402,16 @@ int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataS
       const int nxp = callingConn->xPatchSize();
       const int nyp = callingConn->yPatchSize();
       const int nfp = callingConn->fPatchSize();
+      int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, weightsfilename, icComm, &timed, preLoc);
+#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifndef USE_SHMGET
       int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, weightsfilename, icComm, &timed, preLoc);
 #else
       bool * shmget_owner = callingConn->getShmgetOwnerHead();
       bool shmget_flag = callingConn->getShmgetFlag();
       int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, weightsfilename, icComm, &timed, preLoc, shmget_owner, shmget_flag);
-#endif
+#endif // USE_SHMGET
+#endif // OBSOLETE
       if (status != PV_SUCCESS) {
          fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", weightsfilename);
          exit(EXIT_FAILURE);
