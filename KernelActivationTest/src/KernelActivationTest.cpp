@@ -1,7 +1,7 @@
 /*
  * KernelActivationTest.cpp
  *
- * Tests GenerativeConn.  If called with no parameter file specified, will run
+ * Tests kernel activations.  If called with no parameter file specified, will run
  * with params file input/KernelActivationTest-MirrorBCOff.params, and then
  * with params file input/KernelActivationTest-MirrorBCOn.params.
  *
@@ -149,7 +149,7 @@ int dumponeweight(HyPerConn * conn) {
       }
    }
    if( status == PV_SUCCESS ) {
-      fprintf(stdout, "Rank %d, GenerativeConn \"%s\": Weights are correct.\n", rank, conn->getName());
+      fprintf(stdout, "Rank %d, connection \"%s\": Weights are correct.\n", rank, conn->getName());
    }
    return status;
 }
