@@ -69,7 +69,7 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
    int numPatches = callingConn->getNumDataPatches();
    if (inputParams->present(callingConn->getName(), "initFromLastFlag")) {
       if (callingConn->getParent()->columnId()==0) {
-         fprintf(stderr, "Connection \"%s\": initFromLastFlag is obsolete.\n");
+         fprintf(stderr, "Connection \"%s\": initFromLastFlag is obsolete.\n", callingConn->getName());
       }
       if (inputParams->value(callingConn->getName(), "initFromLastFlag")) {
          if (callingConn->getParent()->columnId()==0) {
