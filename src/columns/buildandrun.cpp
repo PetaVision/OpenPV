@@ -358,7 +358,7 @@ HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyP
 
 HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    bool keywordMatched;
-   HyPerLayer * addedLayer;
+   HyPerLayer * addedLayer = NULL;
    assert( hc != NULL );
    if( !strcmp(classkeyword, "HyPerLayer") ) {
       keywordMatched = true;
@@ -896,7 +896,7 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    int status;
    bool errorFound = false;
 
-   LayerProbe * addedProbe;
+   LayerProbe * addedProbe = NULL;
    // char * probename;
    char * message = NULL;
    const char * filename;
