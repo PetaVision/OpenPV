@@ -257,6 +257,13 @@ CudaRecvPost::~CudaRecvPost(){
       cudnnConvolutionDescriptor_t convDescriptor = (cudnnConvolutionDescriptor_t) params.v_convDescriptor;
       cudnnDestroyConvolutionDescriptor(convDescriptor);
    }
+   if(params.v_convAlgo){
+      cudnnConvolutionFwdAlgo_t* convAlgo = (cudnnConvolutionFwdAlgo_t*) params.v_convAlgo;
+      delete convAlgo;
+   }
+   if(params.cudnn_workspace){
+      handleError(cudaFree(params.cudnn_workspace), "Freeing workspace pointer");
+   }
 #endif
 }
 
@@ -487,7 +494,8 @@ void CudaRecvPost::setArgs(
       filterDescriptor,
       convDescriptor,
       outputDescriptor,
-      //CUDNN_CONVOLUTION_FWD_PREFER_FASTEST,
+      //TODO: use this flag, but we need to calculate how much free space is left on the GPU and pass it in as next argument
+      //CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT
       CUDNN_CONVOLUTION_FWD_NO_WORKSPACE,
       0,
       convAlgo
@@ -511,9 +519,6 @@ void CudaRecvPost::setArgs(
 
    //Allocate workspace based on size
    handleError(cudaMalloc(&params.cudnn_workspace, *params.workspaceSize), "Cudnn workspace cudaMalloc");
-
-   ////CUDNN no longer accumulates into previous gsyn. Allocate temp accum buffer same size as cudnn_gSyn
-   //handleError(cudaMalloc(&params.cudnn_accumGSyn, cudnn_gSyn->getSize()), "Cudnn accumGSyn cudaMalloc");
 
 #endif
 
