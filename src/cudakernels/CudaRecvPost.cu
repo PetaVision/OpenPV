@@ -487,7 +487,8 @@ void CudaRecvPost::setArgs(
       filterDescriptor,
       convDescriptor,
       outputDescriptor,
-      CUDNN_CONVOLUTION_FWD_PREFER_FASTEST,
+      //CUDNN_CONVOLUTION_FWD_PREFER_FASTEST,
+      CUDNN_CONVOLUTION_FWD_NO_WORKSPACE,
       0,
       convAlgo
    );
