@@ -30,5 +30,5 @@ do
    done
 
    #Update and build petavision
-   ssh -t ec2-user@$ip 'cd ~/workspace/PetaVision; svn update; cd ~/workspace/; cmake -DCMAKE_BUILD_TYPE=Release -DCUDA_GPU=True -DCUDA_RELEASE=True -DCUDNN=True -DCUDNN_PATH=~/cuDNN/cudnn-6.5-linux-R1 -DOPEN_MP_THREADS=True -DPV_DIR=~/workspace/PetaVision; cd ~/workspace/PetaVision; make -j 8'
+   ssh -t ec2-user@$ip 'cd ~/workspace/PetaVision; svn update; cd ~/workspace/; cmake -DCMAKE_BUILD_TYPE=Release -DCUDA_GPU=True -DCUDA_RELEASE=True -DCUDNN=True -DCUDNN_PATH=~/cuDNN/cudnn-6.5-linux-x64-R2-rc1 -DOPEN_MP_THREADS=True -DPV_DIR=~/workspace/PetaVision; cd ~/workspace/PetaVision; make -j 8'
 done
