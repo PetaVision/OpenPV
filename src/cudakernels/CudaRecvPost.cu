@@ -101,6 +101,16 @@ void testEquality(float* eq1, float* eq2, int outFeatures, int ny, int nx, int i
       }
    }
 }
+
+void cudnnHandleError(cudnnStatus_t status, const char* errStr){
+   if(status != CUDNN_STATUS_SUCCESS){
+      printf("CUDNN %s error: %s", errStr, cudnnGetErrorString(status));
+      exit(-1);
+      return;
+   }
+   return;
+}
+
 #endif
 
 //Kernel code
@@ -376,7 +386,8 @@ void CudaRecvPost::setArgs(
    //Set up pre descriptor
    cudnnTensorDescriptor_t inputDescriptor;
    cudnnStatus_t status = cudnnCreateTensorDescriptor(&inputDescriptor);
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Create input tensor descriptor");
+
    status = cudnnSetTensor4dDescriptor(inputDescriptor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
       1, //Number of images
       params.preNf, //Number of feature maps per image
@@ -392,19 +403,19 @@ void CudaRecvPost::setArgs(
       }
       exit(-1);
    }
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Set input tensor descriptor");
    params.v_inputDescriptor = (void*)inputDescriptor;
 
    //Set up filter descriptor
    cudnnFilterDescriptor_t filterDescriptor;
    status = cudnnCreateFilterDescriptor(&filterDescriptor);
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Create filter tensor descriptor");
    status = cudnnSetFilter4dDescriptor(filterDescriptor, CUDNN_DATA_FLOAT,
       params.nf * params.manyScaleX * params.manyScaleY, //Number of output feature maps. For one to many, output feature maps are repeated for each kernel
       params.nfp, //Number of input feature maps
       params.nyp, //Height of each filter
       params.nxp); //Width of each filter
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Set filter tensor descriptor");
    params.v_filterDescriptor = (void*)filterDescriptor;
 
    //There's the case where the border of pre is made bigger through other connections. Need to calculate difference
@@ -423,7 +434,7 @@ void CudaRecvPost::setArgs(
    //Set convolution descriptor
    cudnnConvolutionDescriptor_t convDescriptor;
    status = cudnnCreateConvolutionDescriptor(&convDescriptor);
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Create convolution tensor descriptor");
    status = cudnnSetConvolution2dDescriptor(convDescriptor,
       //params.nyp-params.preToPostScaleY-1,
       //params.nxp-params.preToPostScaleX-1,  //zero-padding height and width
@@ -433,7 +444,7 @@ void CudaRecvPost::setArgs(
       strideX, //Horizontal filter stride
       1, 1, //upscale the input in x/y direction
       CUDNN_CONVOLUTION);
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Set convolution tensor descriptor");
    params.v_convDescriptor = (void*)convDescriptor;
 
    //Query output layout and check with PV layout
@@ -443,7 +454,7 @@ void CudaRecvPost::setArgs(
       &out_c, //num output features
       &out_h, //output height
       &out_w); //output width
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Get output tensor descriptor");
 
    //Make sure dimensions match up with PV layer
    if(out_n != 1 || out_h != nyRes/params.manyScaleY || out_w != nxRes/params.manyScaleX || out_c != nf*params.manyScaleX*params.manyScaleY){
@@ -457,23 +468,13 @@ void CudaRecvPost::setArgs(
    //Set up output descriptor
    cudnnTensorDescriptor_t outputDescriptor;
    status = cudnnCreateTensorDescriptor(&outputDescriptor);
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Create output tensor descriptor");
    status = cudnnSetTensor4dDescriptor(outputDescriptor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
       1, //Number of images
       nf*params.manyScaleX*params.manyScaleY, //Number of feature maps per image
       nyRes/params.manyScaleY, //ny restricted
       nxRes/params.manyScaleX); //nx restricted
-   if(status != CUDNN_STATUS_SUCCESS){
-      switch(status){
-         case CUDNN_STATUS_BAD_PARAM:
-            printf("cuDNN bad parameter\n");
-            break;
-         default:
-            printf("cuDNN unknown error code %d\n", status);
-      }
-      exit(-1);
-   }
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Set output tensor descriptor");
    params.v_outputDescriptor = (void*)outputDescriptor;
 
    //Calculate and set up best forward conv algorithm to use
@@ -490,7 +491,7 @@ void CudaRecvPost::setArgs(
       0,
       convAlgo
    );
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Get convolution forward algorithm");
    params.v_convAlgo = (void*) convAlgo;
 
    //Based on algortihm, allocate workspace memory for GPU
@@ -505,7 +506,7 @@ void CudaRecvPost::setArgs(
       temp
    );
    params.workspaceSize = temp;
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Get convolution forward workspace size");
 
    //Allocate workspace based on size
    handleError(cudaMalloc(&params.cudnn_workspace, *params.workspaceSize), "Cudnn workspace cudaMalloc");
@@ -629,7 +630,7 @@ int CudaRecvPost::do_run(){
       params.cudnn_gSyn
       );
 
-   assert(status == CUDNN_STATUS_SUCCESS);
+   cudnnHandleError(status, "Convolution run");
 
    //int scaleFactor = 1;
    //status = cudnnAddTensor(
