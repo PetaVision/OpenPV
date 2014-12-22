@@ -17,8 +17,12 @@ endif (NOT CMAKE_BUILD_TYPE)
 # Variables to set on the command line
 set(OPEN_MP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
 set(OPEN_CL_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
+set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
 set(CUDA_GPU FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
+set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
+set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
+
 set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
 
 if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
@@ -49,6 +53,15 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
 set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
 
+if(CUDA_GPU)
+    #Set include file
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${CUDA_TOOLKIT_INCLUDE} -DPV_CUDA")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${CUDA_TOOLKIT_INCLUDE} -DPV_CUDA")
+    if(CUDNN)
+       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${CUDNN_PATH} -DPV_CUDNN")
+       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${CUDNN_PATH} -DPV_CUDNN")
+    endif(CUDNN)
+endif(CUDA_GPU)
 
 # File which denotes compile-ready folders
 set(PV_SRC_LIST PV_FOLDER_LIST.txt)
