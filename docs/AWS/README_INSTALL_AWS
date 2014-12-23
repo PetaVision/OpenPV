@@ -28,7 +28,7 @@ Here's a quick overview of how our instance is set up.
    S3 for storing databases and checkpoints.
 
 Services that cost money:
-   GPU Spot Instance: market price, hasn't risen over $.10 an hour yet
+   GPU Spot Instance: market price, usually between $.10 and $.15 per hour
    EBS usage: $.10 per GB per Month
    S3 usage: $.03 per GB per Month
    Internet to EBS/S3 transfer: Free
@@ -71,7 +71,7 @@ Create your ssh key pair:
    ssh-keygen -t rsa
    Follow the instructions on the screen. Note the filename in which you saved the key, ex: username_aws.
    ssh-add ~/.ssh/username_aws
-   pbcopy < ~/.ssh/username_aws.pub (Copys contents of username_aws.pub to your clipboard for macs)
+   pbcopy < ~/.ssh/username_aws.pub (Copies contents of username_aws.pub to your clipboard for macs)
    Go to the EC2 management page, and find the option Key Pairs under Network and Security in the left tab.
    Click Import Key Pair and paste the public key contents in. Click import.
 
@@ -86,9 +86,9 @@ An AWS Instance allows the user to create a virtual environment to do runs. We d
 
 Creating a Spot Instance:
    Go to the EC2 management page. Click AMI under Images in the left tab.
-   Find the PetaVision_GPU AMI. Select it and click launch.
+   Find the AMI marked "CURRENT WORKING AMI". Select it and click launch.
    Pick a GPU instance (g2.2xlarge). Click next.
-   (Note that there are additional steps involved if you are launching an mpi cluster of instances on this screen uner the MPI Clusters section)
+   (Note that there are additional steps involved if you are launching an mpi cluster of instances on this screen under the MPI Clusters section)
    Check Request Spot Instances under Purchasing option
    Type in an appropriate maximum price.
    Under subnet, pick one of the 3 choices based on the current price (Table when selecting a spot instance) and price history (Spot Requests under Instances, Price History up top. Select instance type as g2.2xlarge).
@@ -96,7 +96,7 @@ Creating a Spot Instance:
    Click next.
    No additional storage is required. Make sure Delete on Termination is checked. Click next.
    No tags are needed. Click next.
-   (Note that there are additional steps involved if you are launching an mpi cluster of instances on this screen uner the MPI Clusters section)
+   (Note that there are additional steps involved if you are launching an mpi cluster of instances on this screen under the MPI Clusters section)
    Check Select an existing security group. Select the default security group. Click Review and Launch.
    After reviewing, click launch.
    Select Choose an existing key pair, and select your key pair that you created earlier.
