@@ -13,7 +13,7 @@
 
 #include "HyPerLayer.hpp"
 #include "../columns/HyPerCol.hpp"
-
+#include <stdio.h>
 #include <sndfile.h>
 
 //#include "../utils/cl_random.h"

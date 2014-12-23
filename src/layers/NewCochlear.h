@@ -15,6 +15,7 @@
 #include "HyPerLayer.hpp"
 #include "../columns/HyPerCol.hpp"
 #include <vector>
+#include <stdio.h>
 #include <sndfile.h>
 
 #ifndef STAT_H
