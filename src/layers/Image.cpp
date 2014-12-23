@@ -1085,8 +1085,6 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
             systemstring += " ";
             systemstring += filename;
          }
-         printf("Downloading \"%s\" to \"%s\"...\n", filename, path);
-         fflush(stdout);
          
          for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
             int status = system(systemstring.c_str());
@@ -1104,8 +1102,6 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
                break;
             }
          }
-         printf("Finished downloading \"%s\" to \"%s\".\n", filename, path);
-         fflush(stdout);
       }
       else {
          path = strdup(filename);
