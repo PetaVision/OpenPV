@@ -15,7 +15,7 @@ size(a1{1}.values)
 
 for(k = 1:time)
 
-    output(k) = numel(a1{k}.values)/(2*256);
+    output(k) = numel(a1{k}.values)/(2*1024);
 
 end
 

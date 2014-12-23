@@ -2,13 +2,13 @@ addpath("~/newvision/trunk/mlab/util/");
 pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/servers/output/a1_NewCochlear.pvp";
 
 
-[data, hdr] = readpvpfile(pvpfile);
+[data, hdr] = readpvpfile(pvpfile,1000,300000,1); %% filename, displayperiod, end frame, start frame
 
-outimg = zeros(hdr.nbands - 1, hdr.nx);
+outimg = zeros(hdr.nbands, hdr.nx);
 
 
 
-for(time = 1:length(data)-1)
+for(time = 1:length(data))
 
     outimg(time, :) = squeeze(data{time}.values)';
 
@@ -22,13 +22,13 @@ cochleagraph = (outimg - min(outimg(:))) / (max(outimg(:)) - min(outimg(:)));
 pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/servers/output/a9_FullRecon.pvp";
 
 
-[data, hdr] = readpvpfile(pvpfile);
+[data, hdr] = readpvpfile(pvpfile,1000,300000,1);
 
 
 outimg = zeros(hdr.nbands, hdr.nx);
 
 
-size(squeeze(data{16}.values))
+%%size(squeeze(data{10}.values))
 
 for(time = 1:length(data))
 
@@ -38,6 +38,7 @@ end
 
 
 recongraph = (outimg - min(outimg(:))) / (max(outimg(:)) - min(outimg(:)));
+
 
 outimgrescaled = [cochleagraph recongraph];
 

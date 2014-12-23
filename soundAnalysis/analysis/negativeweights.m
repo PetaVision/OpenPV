@@ -1,5 +1,5 @@
 addpath("~/newvision/trunk/mlab/util/");
-minuspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint327080/A1ToNegativeError_W.pvp"
+minuspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint661500/A1ToNegativeError_W.pvp"
 
 
 minusWcell = readpvpfile(minuspvpfile);

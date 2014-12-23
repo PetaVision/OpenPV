@@ -7,8 +7,8 @@ cochlearpvp = "/Users/MLD/newvision/sandbox/soundAnalysis/servers/output/a3_Nega
 error = readpvpfile(errorpvp);
 cochlear = readpvpfile(cochlearpvp);
 
-numfreqs = size(error{1}.values,1);
-numdelays = size(error{1}.values,3);
+numfreqs = size(error{1}.values,1)
+numdelays = size(error{1}.values,3)
 lengthofdata = size(error,1)
 
 numerator = zeros(lengthofdata,1);
@@ -33,7 +33,7 @@ end
 
 for(frameno = 1:lengthofdata)
 
-    innererrorsum = zeros(numfreqs,1);
+    innererrorsum = zeros(numdelays,1);
 
     %% compute numerator
 
@@ -41,7 +41,7 @@ for(frameno = 1:lengthofdata)
 
         for(freq = 1:numfreqs)
 
-            innererrorsum(delay) = innererrorsum(delay) + (error{frameno}.values(freq,delay))^2;
+            innererrorsum(delay) = innererrorsum(delay) + (error{frameno}.values(freq,1,delay))^2;
 
         end
 
@@ -94,7 +94,7 @@ end
 
 for(frameno = 1:lengthofdata)
 
-    innererrorsum = zeros(numfreqs,1);
+    innererrorsum = zeros(numdelays,1);
 
     %% compute numerator
 
