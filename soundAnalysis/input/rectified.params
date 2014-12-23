@@ -233,7 +233,9 @@ HyPerLCALayer "A1" = {
     AMin = 0;
     AShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
     valueBC = 0;
-    
+
+    updateGpu = true;
+
     triggerFlag = false;
 
     phase = 3;
@@ -508,6 +510,8 @@ TransposeConn "PositiveErrorToA1" = {
     delay = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;
+    recieveGpu = true;
+
 };
 
 TransposeConn "NegativeErrorToA1" = {
@@ -523,6 +527,7 @@ TransposeConn "NegativeErrorToA1" = {
     delay = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = true;
+    recieveGpu = true;
 };
 
 
