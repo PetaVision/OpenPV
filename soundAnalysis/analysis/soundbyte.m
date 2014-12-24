@@ -1,6 +1,6 @@
 addpath("~/newvision/trunk/mlab/util/");
-pluspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint661500/A1ToPositiveError_W.pvp"
-minuspvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/Checkpoint661500/A1ToNegativeError_W.pvp"
+pluspvpfile = "~/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint39780/A1ToPositiveError_W.pvp"
+minuspvpfile = "~/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint39780/A1ToNegativeError_W.pvp"
 
 plusWcell = readpvpfile(pluspvpfile);
 minusWcell = readpvpfile(minuspvpfile);
@@ -56,7 +56,7 @@ for(feature = 1:NF)
 
     [R,C] = ind2sub(size(weightrescaled),location);
 
-    R
+
 
     dlmwrite('freqs.txt',R,"-append")
 

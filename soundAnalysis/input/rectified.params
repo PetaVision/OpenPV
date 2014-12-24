@@ -15,7 +15,7 @@ HyPerCol "column" = {
    ny                              = 1;
    dt                              = .00022675737; // downsampling = dt * sampleRate
    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-   stopTime                        = 150; // in seconds
+   stopTime                        = 400; // in seconds
    progressInterval                = .00022675737; // dt
    outputPath                      = "output";
    filenamesContainLayerNames      = true;
@@ -45,7 +45,7 @@ SoundStream "Sound" = {  // layer not used
     restart                = 0;
     nxScale                = 1;
     nyScale                = 1;
-    soundInputPath         = "input/furElise.wav";
+    soundInputPath         = "input/prufrock.wav";
     nf                     = 1; // mono vs. stereo
     writeStep              = .05;
     initialWriteTime       = 0;
@@ -92,7 +92,7 @@ NewCochlearLayer "NewCochlear" = {
 
     //soundstream params
     
-    soundInputPath         = "input/furElise.wav";
+    soundInputPath         = "input/prufrock.wav";
     soundBCFlag            = true;
     soundOffset            = 0; //In seconds
     
@@ -219,11 +219,11 @@ HyPerLCALayer "A1" = {
     //initializeFromCheckpointFlag = true;
     InitVType = "UniformRandomV";
 
-    minV = 0.0;
-    maxV = 1.0;
+    minV = -1.0;
+    maxV = .2;
 
 
-    timeConstantTau = .5;
+    timeConstantTau = .05;
     timeConstantTauMinimum = 0;
     //slopeErrorStd = 0.01;
 
@@ -423,6 +423,10 @@ KernelConn "A1ToPositiveError" = {
     //weightInitType = "FileWeight";
     //initWeightsFile = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/V1ToErrorON_W.pvp";
 
+    wmininit = -1.0;
+    wmaxinit = 1.0;
+    sparsefraction = .9;
+
     strength = 1;
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
@@ -441,7 +445,7 @@ KernelConn "A1ToPositiveError" = {
     initialWeightUpdateTime = 0;
     initialWriteTime = 0.0;
 
-    dWMax = 0.01; // 0.05; // 1.0; //0.05; //5.0;
+    dWMax = 0.05; // 1.0; //0.05; //5.0;
     selfFlag = false;
     shmget_flag = false;
     delay = 0;
@@ -467,6 +471,10 @@ KernelConn "A1ToNegativeError" = {
     //weightInitType = "FileWeight";
     //initWeightsFile = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/V1ToErrorON_W.pvp";
 
+    wmininit = -1.0;
+    wmaxinit = 1.0;
+    sparsefraction = .9;
+
     strength = 1;
     normalizeMethod = "normalizeL2";
     minL2NormTolerated = 0;
@@ -485,7 +493,7 @@ KernelConn "A1ToNegativeError" = {
     initialWeightUpdateTime = 0; //199.0;
     initialWriteTime = 0.0;
 
-    dWMax = 0.01; // 0.05; // 1.0; //0.05; //5.0;
+    dWMax = 0.05; // 1.0; //0.05; //5.0;
     selfFlag = false;
     shmget_flag = false;
     delay = 0;

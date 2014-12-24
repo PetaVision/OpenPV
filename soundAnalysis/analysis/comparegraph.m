@@ -1,5 +1,5 @@
 addpath("~/newvision/trunk/mlab/util/");
-pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/servers/output/a1_NewCochlear.pvp";
+pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/output/a1_NewCochlear.pvp";
 
 
 [data, hdr] = readpvpfile(pvpfile,1000,300000,1); %% filename, displayperiod, end frame, start frame
@@ -19,7 +19,7 @@ cochleagraph = (outimg - min(outimg(:))) / (max(outimg(:)) - min(outimg(:)));
 
 
 
-pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/servers/output/a9_FullRecon.pvp";
+pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/output/a9_FullRecon.pvp";
 
 
 [data, hdr] = readpvpfile(pvpfile,1000,300000,1);
