@@ -3739,9 +3739,17 @@ void HyPerConn::deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t
    const int syw = yPatchStride();                   // stride in patch
    pvwdata_t * weightDataStart = get_wData(arbor,patchIndex); // make this a pvwdata_t const *?
    pvgsyndata_t * postPatchStart = postBufferStart + getGSynPatchStart(patchIndex, arbor);
-
+   // modified GTK: 12/25/14 to allow for efficient implementation of max_pooling
+   const int offset = 0;
+   const int sf = 1;
+   if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+     const PVLayerLoc * preLoc = pre->getLayerLoc();
+     const int kfPre = featureIndex(patchIndex, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
+     const int offset = kfPre;
+     const int sf = fPatchSize();
+   }
    for (int y = 0; y < ny; y++) {
-      (accumulateFunctionPointer)(nk, postPatchStart + y*sy, a, weightDataStart + y*syw, auxPtr);
+     (accumulateFunctionPointer)(nk, postPatchStart + y*sy + offset, a, weightDataStart + y*syw + offset, auxPtr, sf);
    }
 }
 
