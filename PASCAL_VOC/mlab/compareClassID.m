@@ -12,8 +12,8 @@ addpath("~/workspace/PetaVision/mlab/imgProc");
 addpath("~/workspace/PetaVision/mlab/util");
 addpath("~/workspace/PetaVision/mlab/HyPerLCA");
 
-plot_flag = true;
-output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape3";
+plot_flag = false; %%true;
+output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape5";
 
 %%draw reconstructed image
 DoG_weights = [];
@@ -41,7 +41,7 @@ Sparse_frames_list = [];
 load_Sparse_flag = false;
 [Sparse_hdr, Sparse_hist_rank_array, Sparse_times_array, Sparse_percent_active_array, Sparse_percent_change_array, Sparse_std_array, Sparse_struct_array] = analyzeSparseEpochsPVP2(Sparse_list, output_dir, load_Sparse_flag, plot_flag, fraction_Sparse_frames_read, min_Sparse_skip, fraction_Sparse_progress, Sparse_frames_list, num_procs, num_epochs);
 drawnow;
-%pause;
+				%pause;
 
 %% Error vs time
 nonSparse_list = {["a1_"], ["ImageReconS1Error"]; ["a8_"], ["ImageReconS2Error"]; ["a4_"], ["S1ReconS2Error"]; ["a12_"], ["GroundTruthError"]};%; ["a10_"], ["GroundTruthS2ReconS1Error"]};
@@ -58,42 +58,42 @@ min_nonSparse_skip = 1;
 fraction_nonSparse_progress = 10;
 [nonSparse_times_array, nonSparse_RMS_array, nonSparse_norm_RMS_array, nonSparse_RMS_fig] = analyzeNonSparsePVP(nonSparse_list, nonSparse_skip, nonSparse_norm_list, nonSparse_norm_strength, Sparse_times_array, Sparse_std_array, Sparse_std_ndx, output_dir, plot_flag, fraction_nonSparse_frames_read, min_nonSparse_skip, fraction_nonSparse_progress);
 drawnow;
-%pause;
+				%pause;
 
 
-    classes={...
-        'aeroplane'
-        'bicycle'
-        'bird'
-        'boat'
-        'bottle'
-        'bus'
-        'car'
-        'cat'
-        'chair'
-        'cow'
-        'diningtable'
-        'dog'
-        'horse'
-        'motorbike'
-        'person'
-        'pottedplant'
-        'sheep'
-        'sofa'
-        'train'
-        'tvmonitor'};
+classes={...
+         'aeroplane'
+         'bicycle'
+         'bird'
+         'boat'
+         'bottle'
+         'bus'
+         'car'
+         'cat'
+         'chair'
+         'cow'
+         'diningtable'
+         'dog'
+         'horse'
+         'motorbike'
+         'person'
+         'pottedplant'
+         'sheep'
+         'sofa'
+         'train'
+         'tvmonitor'};
 
 
 %%imageRecon_fig = figure;
-%true_classID_file = fullfile("~/workspace/PASCAL_VOC/VOC2007/VOC2007_padded0_landscape_classID.pvp")
-pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape3/a11_GroundTruthReconS2.pvp")
-gt_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape3/a10_GroundTruth.pvp")
-%[true_data,true_hdr] = readpvpfile(true_classID_file); 
+				%true_classID_file = fullfile("~/workspace/PASCAL_VOC/VOC2007/VOC2007_padded0_landscape_classID.pvp")
+pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape5/a11_GroundTruthReconS2.pvp")
+gt_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape5/a10_GroundTruth.pvp")
+				%[true_data,true_hdr] = readpvpfile(true_classID_file); 
 [pred_data,pred_hdr] = readpvpfile(pred_classID_file); 
 [gt_data,gt_hdr] = readpvpfile(gt_classID_file); 
 %%[imageRecon_data,imageRecon_hdr] = readpvpfile(imageRecon_file); 
-%true_num_neurons = true_hdr.nf * true_hdr.nx * true_hdr.ny;
-%true_num_frames = length(true_data);
+				%true_num_neurons = true_hdr.nf * true_hdr.nx * true_hdr.ny;
+				%true_num_frames = length(true_data);
 pred_num_neurons = pred_hdr.nf * pred_hdr.nx * pred_hdr.ny;
 pred_num_frames = length(pred_data);
 gt_num_neurons = gt_hdr.nf * gt_hdr.nx * gt_hdr.ny;
@@ -104,117 +104,124 @@ num_colors = 2^24;
 accuracy_vs_time = zeros(gt_num_frames,1);
 confusion_matrix = zeros(gt_hdr.nf);
 for i_frame = min(pred_num_frames, gt_num_frames)-4+1 : min(pred_num_frames, gt_num_frames)
-    display(["i_frame = ", num2str(i_frame)]);
-    %%true_num_active = length(true_data{i_frame}.values);
-    %%true_active_ndx = true_data{i_frame}.values+1;
-    %%true_active_sparse = sparse(true_active_ndx,1,1,true_num_neurons,1,true_num_active);
-    %%true_classID_cube = full(true_active_sparse);
-    %%true_classID_cube = reshape(true_classID_cube, [true_hdr.nf, true_hdr.nx, true_hdr.ny]);
-    %%true_classID_cube = permute(true_classID_cube, [3,2,1]);
-    %%true_classID_heatmap = zeros(true_hdr.ny, true_hdr.nx, 3);
-    %%for i_true_classID = 1 : true_hdr.nf
-    %%	if ~any(true_classID_cube(:,:,i_true_classID))
-    %%	   continue;
-    %%	endif
-    %%	true_class_color_code = i_true_classID * num_colors / true_hdr.nf;
-    %%	true_class_color = getClassColor(true_class_color_code);
-    %%	true_classID_band = repmat(true_classID_cube(:,:,i_true_classID), [1,1,3]);
-    %%	true_classID_band(:,:,1) = true_classID_band(:,:,1) * true_class_color(1);
-    %%	true_classID_band(:,:,2) = true_classID_band(:,:,2) * true_class_color(2);
-    %%	true_classID_band(:,:,3) = true_classID_band(:,:,3) * true_class_color(3);
-    %%	true_classID_heatmap = true_classID_heatmap + true_classID_band;
-    %%endfor
-    %%true_classID_heatmap = mod(true_classID_heatmap, 255);
-    %%if plot_flag
-    %%  figure(true_fig);
-    %%  image(uint8(true_classID_heatmap)); axis off; axis image, box off;
-    %%  drawnow
-    %%endif
+  display(["i_frame = ", num2str(i_frame)]);
+  %%true_num_active = length(true_data{i_frame}.values);
+  %%true_active_ndx = true_data{i_frame}.values+1;
+  %%true_active_sparse = sparse(true_active_ndx,1,1,true_num_neurons,1,true_num_active);
+  %%true_classID_cube = full(true_active_sparse);
+  %%true_classID_cube = reshape(true_classID_cube, [true_hdr.nf, true_hdr.nx, true_hdr.ny]);
+  %%true_classID_cube = permute(true_classID_cube, [3,2,1]);
+  %%true_classID_heatmap = zeros(true_hdr.ny, true_hdr.nx, 3);
+  %%for i_true_classID = 1 : true_hdr.nf
+  %%	if ~any(true_classID_cube(:,:,i_true_classID))
+  %%	   continue;
+  %%	endif
+  %%	true_class_color_code = i_true_classID * num_colors / true_hdr.nf;
+  %%	true_class_color = getClassColor(true_class_color_code);
+  %%	true_classID_band = repmat(true_classID_cube(:,:,i_true_classID), [1,1,3]);
+  %%	true_classID_band(:,:,1) = true_classID_band(:,:,1) * true_class_color(1);
+  %%	true_classID_band(:,:,2) = true_classID_band(:,:,2) * true_class_color(2);
+  %%	true_classID_band(:,:,3) = true_classID_band(:,:,3) * true_class_color(3);
+  %%	true_classID_heatmap = true_classID_heatmap + true_classID_band;
+  %%endfor
+  %%true_classID_heatmap = mod(true_classID_heatmap, 255);
+  %%if plot_flag
+  %%  figure(true_fig);
+  %%  image(uint8(true_classID_heatmap)); axis off; axis image, box off;
+  %%  drawnow
+  %%endif
 
-    %% ground truth layer is sparse
-    %%gt_classID_cube = gt_data{i_frame}.values;
-    gt_time = gt_data{i_frame}.time;
-    gt_num_active = length(gt_data{i_frame}.values);
-    gt_active_ndx = gt_data{i_frame}.values+1;
-    gt_active_sparse = sparse(gt_active_ndx,1,1,gt_num_neurons,1,gt_num_active);
-    gt_classID_cube = full(gt_active_sparse);
-    gt_classID_cube = reshape(gt_classID_cube, [gt_hdr.nf, gt_hdr.nx, gt_hdr.ny]);
-    gt_classID_cube = permute(gt_classID_cube, [3,2,1]);
+  %% ground truth layer is sparse
+  %%gt_classID_cube = gt_data{i_frame}.values;
+  gt_time = gt_data{i_frame}.time
+  gt_num_active = length(gt_data{i_frame}.values);
+  gt_active_ndx = gt_data{i_frame}.values+1;
+  gt_active_sparse = sparse(gt_active_ndx,1,1,gt_num_neurons,1,gt_num_active);
+  gt_classID_cube = full(gt_active_sparse);
+  gt_classID_cube = reshape(gt_classID_cube, [gt_hdr.nf, gt_hdr.nx, gt_hdr.ny]);
+  gt_classID_cube = permute(gt_classID_cube, [3,2,1]);
 
-    %%gt_classID_cube = permute(gt_classID_cube, [2,1,3]);
-    [gt_classID_val, gt_classID_ndx] = max(gt_classID_cube, [], 3);
-    min_gt_classID = min(gt_classID_val(:))
-    gt_classID_cube = gt_classID_cube .* (gt_classID_cube >= min_gt_classID);
-    gt_classID_heatmap = zeros(gt_hdr.ny, gt_hdr.nx, 3);
-    for i_gt_classID = 1 : gt_hdr.nf
-	if ~any(gt_classID_cube(:,:,i_gt_classID))
-	   continue;
-	endif
-	gt_class_color_code = i_gt_classID * num_colors / gt_hdr.nf;
-	gt_class_color = getClassColor(gt_class_color_code);
-	gt_classID_band = repmat(gt_classID_cube(:,:,i_gt_classID), [1,1,3]);
-	gt_classID_band(:,:,1) = gt_classID_band(:,:,1) * gt_class_color(1);
-	gt_classID_band(:,:,2) = gt_classID_band(:,:,2) * gt_class_color(2);
-	gt_classID_band(:,:,3) = gt_classID_band(:,:,3) * gt_class_color(3);
-	gt_classID_heatmap = gt_classID_heatmap + gt_classID_band .* (gt_classID_heatmap == 0);
-    endfor
-    gt_classID_heatmap = mod(gt_classID_heatmap, 255);
-    if plot_flag
-      gt_fig = figure("name", ["Ground Truth: ", num2str(gt_time)]);
-      image(uint8(gt_classID_heatmap)); axis off; axis image, box off;
-      drawnow
+  %%gt_classID_cube = permute(gt_classID_cube, [2,1,3]);
+  [gt_classID_val, gt_classID_ndx] = max(gt_classID_cube, [], 3);
+  min_gt_classID = min(gt_classID_val(:))
+  gt_classID_cube = gt_classID_cube .* (gt_classID_cube >= min_gt_classID);
+  gt_classID_heatmap = zeros(gt_hdr.ny, gt_hdr.nx, 3);
+  for i_gt_classID = 1 : gt_hdr.nf
+    if ~any(gt_classID_cube(:,:,i_gt_classID))
+      continue;
     endif
+    gt_class_color_code = i_gt_classID * num_colors / gt_hdr.nf;
+    gt_class_color = getClassColor(gt_class_color_code);
+    gt_classID_band = repmat(gt_classID_cube(:,:,i_gt_classID), [1,1,3]);
+    gt_classID_band(:,:,1) = gt_classID_band(:,:,1) * gt_class_color(1);
+    gt_classID_band(:,:,2) = gt_classID_band(:,:,2) * gt_class_color(2);
+    gt_classID_band(:,:,3) = gt_classID_band(:,:,3) * gt_class_color(3);
+    gt_classID_heatmap = gt_classID_heatmap + gt_classID_band .* (gt_classID_heatmap == 0);
+  endfor
+  gt_classID_heatmap = mod(gt_classID_heatmap, 255);
+  if plot_flag
+    gt_fig = figure("name", ["Ground Truth: ", num2str(gt_time, "%i")]);
+    image(uint8(gt_classID_heatmap)); axis off; axis image, box off;
+    drawnow
+  endif
+  imwrite(uint8(gt_classID_heatmap), [output_dir, filesep, 'Recon', filesep, "gt_", num2str(gt_time, "%i"), '.png'], 'png');
 
-    %% recon layer is not sparse
-    pred_time = pred_data{i_frame}.time;
-    pred_classID_cube = pred_data{i_frame}.values;
-    pred_classID_cube = permute(pred_classID_cube, [2,1,3]);
-    [pred_classID_val, pred_classID_ndx] = max(pred_classID_cube, [], 3);
-    min_pred_classID = min(pred_classID_val(:))
-    [max_pred_classID, max_pred_classID_ndx] = max(pred_classID_val(:))
-    disp(classes{pred_classID_ndx(max_pred_classID_ndx)});
-    mean_pred_classID = mean(pred_classID_val(:))
-    std_pred_classID = std(pred_classID_val(:))
-    %%pred_classID_cube = double(pred_classID_cube >= (max_pred_classID*(.999)));
-    pred_classID_cube = double(pred_classID_cube >= (mean_pred_classID+std_pred_classID));
-    pred_classID_heatmap = zeros(pred_hdr.ny, pred_hdr.nx, 3);
-    for i_pred_classID = 1 : pred_hdr.nf
-	if ~any(pred_classID_cube(:,:,i_pred_classID))
-	   continue;
-	endif
-	pred_class_color_code = i_pred_classID * num_colors / pred_hdr.nf;
-	pred_class_color = getClassColor(pred_class_color_code);
-	pred_classID_band = repmat(pred_classID_cube(:,:,i_pred_classID), [1,1,3]);
-	pred_classID_band(:,:,1) = pred_classID_band(:,:,1) * pred_class_color(1);
-	pred_classID_band(:,:,2) = pred_classID_band(:,:,2) * pred_class_color(2);
-	pred_classID_band(:,:,3) = pred_classID_band(:,:,3) * pred_class_color(3);
-	pred_classID_heatmap = pred_classID_heatmap + pred_classID_band .* (pred_classID_heatmap < pred_classID_band);
-	%keyboard;
-    endfor
-    pred_classID_heatmap = mod(pred_classID_heatmap, 255);
-    %%min_pred_heatmap = min(pred_classID_heatmap(:));
-    %%max_pred_heatmap = max(pred_classID_heatmap(:));
-    %pred_classID_heatmap = 255 * (pred_classID_heatmap - min_pred_heatmap) / ((max_pred_heatmap - min_pred_heatmap) + (max_pred_heatmap == min_pred_heatmap));
-    if plot_flag
-      pred_fig = figure("name", ["Predict: ", num2str(pred_time)]);
-      image(uint8(pred_classID_heatmap)); axis off; axis image, box off;
-      drawnow
+  %% recon layer is not sparse
+  pred_time = pred_data{i_frame}.time
+  pred_classID_cube = pred_data{i_frame}.values;
+  pred_classID_cube = permute(pred_classID_cube, [2,1,3]);
+  [pred_classID_val, pred_classID_ndx] = max(pred_classID_cube, [], 3);
+  min_pred_classID = min(pred_classID_val(:))
+  [max_pred_classID, max_pred_classID_ndx] = max(pred_classID_val(:))
+  disp(classes{pred_classID_ndx(max_pred_classID_ndx)});
+  mean_pred_classID = mean(pred_classID_val(:))
+  std_pred_classID = std(pred_classID_val(:))
+  %%pred_classID_cube = double(pred_classID_cube >= (max_pred_classID*(.999)));
+  pred_classID_mask = double(pred_classID_cube >= (mean_pred_classID-1*std_pred_classID));
+  pred_classID_confidences = cell(pred_hdr.nf, 1);
+  pred_classID_max_confidence = squeeze(max(squeeze(max(pred_classID_cube, [], 2)), [], 1));
+  [pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
+  pred_classID_heatmap = zeros(pred_hdr.ny, pred_hdr.nx, 3);
+  for i_pred_classID = 1 : pred_hdr.nf
+    pred_classID_confidences{i_pred_classID, 1} = [classes{pred_classID_sorted_ndx(i_pred_classID)}, ', ', num2str(pred_classID_sorted_confidence(i_pred_classID))];
+    if ~any(pred_classID_mask(:,:,i_pred_classID))
+      continue;
     endif
+    pred_class_color_code = i_pred_classID * num_colors / pred_hdr.nf;
+    pred_class_color = getClassColor(pred_class_color_code);
+    pred_classID_band = repmat(pred_classID_mask(:,:,i_pred_classID), [1,1,3]);
+    pred_classID_band(:,:,1) = pred_classID_band(:,:,1) * pred_class_color(1);
+    pred_classID_band(:,:,2) = pred_classID_band(:,:,2) * pred_class_color(2);
+    pred_classID_band(:,:,3) = pred_classID_band(:,:,3) * pred_class_color(3);
+    pred_classID_heatmap = pred_classID_heatmap + pred_classID_band .* (pred_classID_heatmap < pred_classID_band);
+				%keyboard;
+  endfor
+  pred_classID_heatmap = mod(pred_classID_heatmap, 255);
+  %%min_pred_heatmap = min(pred_classID_heatmap(:));
+  %%max_pred_heatmap = max(pred_classID_heatmap(:));
+				%pred_classID_heatmap = 255 * (pred_classID_heatmap - min_pred_heatmap) / ((max_pred_heatmap - min_pred_heatmap) + (max_pred_heatmap == min_pred_heatmap));
+  if plot_flag
+    pred_fig = figure("name", ["Predict: ", num2str(pred_time, "%i")]);
+    image(uint8(pred_classID_heatmap)); axis off; axis image, box off;
+    drawnow
+  endif
+  imwrite(uint8(pred_classID_heatmap), [output_dir, filesep, 'Recon', filesep, "pred_", num2str(pred_time, "%i"), '.png'], 'png');
+  disp(pred_classID_confidences)
 
-    %% reconImage layer
-    %%imageRecon_cube = imageRecon_data{i_frame}.values;
-    %%imageRecon_cube = permute(imageRecon_cube, [2,1,3]);
-    %%min_imageRecon = min(imageRecon_cube(:));
-    %%max_imageRecon = max(imageRecon_cube(:));
-    %%imageRecon_cube = (imageRecon_cube - min_imageRecon) / ((max_imageRecon - min_imageRecon) + (max_imageRecon == min_imageRecon));
-    %%figure(imageRecon_fig);
-    %%imagesc(imageRecon_cube); axis off; axis image, box off;
-    %%drawnow
+  %% reconImage layer
+  %%imageRecon_cube = imageRecon_data{i_frame}.values;
+  %%imageRecon_cube = permute(imageRecon_cube, [2,1,3]);
+  %%min_imageRecon = min(imageRecon_cube(:));
+  %%max_imageRecon = max(imageRecon_cube(:));
+  %%imageRecon_cube = (imageRecon_cube - min_imageRecon) / ((max_imageRecon - min_imageRecon) + (max_imageRecon == min_imageRecon));
+  %%figure(imageRecon_fig);
+  %%imagesc(imageRecon_cube); axis off; axis image, box off;
+  %%drawnow
 
-   %% keyboard;
-    if plot_flag
-      %pause;
-    endif
-    
+  %% keyboard;
+  if plot_flag
+				%pause;
+  endif
+  
 
 endfor

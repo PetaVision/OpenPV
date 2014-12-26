@@ -44,7 +44,7 @@ HyPerCol "column" = {
   startTime =  0; //2400000; //
   stopTime =   1591000; // 52 landscape //7955 landscape images // 883 portrait images//  * displayPeriod
   progressInterval = 1000;
-  outputPath = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape2";
+  outputPath = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape5";
   filenamesContainLayerNames = true;
   filenamesContainConnectionNames = true;
   defaultInitializeFromCheckpointFlag = false;
@@ -53,18 +53,18 @@ HyPerCol "column" = {
   //checkpointReadDirIndex = 3987000;
   checkpointWrite = true;
   //checkpointWriteTriggerMode = "step";
-  checkpointWriteDir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape2/Checkpoints";
-  checkpointWriteStepInterval = 2000;
-  deleteOlderCheckpoints = true;
+  checkpointWriteDir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape5/Checkpoints";
+  checkpointWriteStepInterval = 20000;
+  deleteOlderCheckpoints = false; //true;
     //suppressLastOutput = false;
-  initializeFromCheckpointDir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape2/Checkpoints/Checkpoint506000";
+  initializeFromCheckpointDir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape5/Checkpoints/Checkpoint506000";
   checkpointWriteTriggerMode = "step";
   writeProgressToErr = true;
   outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
   suppressLastOutput = false;
-  printParamsFilename = "PASCAL_VOC_PASCAL_S1_96_S2_1536_MLP_VOC2007_landscape2.params";
+  printParamsFilename = "PASCAL_VOC_PASCAL_S1_96_S2_1536_MLP_VOC2007_landscape5.params";
   writeTimescales = true;
-  verifyWrites = true;
+  verifyWrites = false; //true;
   errorOnNotANumber = false;
 };
 
@@ -120,7 +120,7 @@ ANNNormalizedErrorLayer "ImageReconS1Error" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/ImageReconS1Error_V.pvp";
+    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint1172000/ImageReconS1Error_V.pvp";
     //
     VThresh = 0.0;
     AMax =  infinity;
@@ -152,7 +152,7 @@ HyPerLCALayer "S1" = {
     //minV = -1.0;
     //maxV = .1; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/S1_V.pvp";
+    Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/S1_V.pvp";
     // 
     timeConstantTau = 100; //200; //100.0;
     //timeConstantTauMinimum = 10.0;
@@ -183,7 +183,7 @@ ANNLayer "ImageReconS1" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/ImageReconS1_V.pvp";
+    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/ImageReconS1_V.pvp";
     //
     VThresh = -infinity;
     AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -195,7 +195,7 @@ ANNLayer "ImageReconS1" = {
     triggerFlag = true;
     triggerOffset = 0;
     updateGpu = false;
-    phase = 1; 
+    phase = 3; 
 };
 
 
@@ -213,7 +213,7 @@ ANNErrorLayer "S1ReconS2Error" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/S1ReconS2Error_V.pvp";
+    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/S1ReconS2Error_V.pvp";
     //
     VThresh = 0.0;
     AMax =  infinity;
@@ -247,7 +247,7 @@ HyPerLCALayer "S2" = {
     //minV = -1.0;
     //maxV = .1; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/S2_V.pvp";
+    Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/S2_V.pvp";
     // 
     timeConstantTau = 100; 
     //timeConstantTauMinimum = 10.0;
@@ -257,7 +257,7 @@ HyPerLCALayer "S2" = {
     AMax = infinity;
     AMin = 0;
     AShift = 0.0; //0.0; //0 -> hard threshold, 1 -> soft threshold
-    VWidth = 0.1; 
+    VWidth = 0.5; //0.1; 
     selfInteract = true;   //
     triggerFlag = false;
     updateGpu = true;     
@@ -279,7 +279,7 @@ ANNLayer "S1ReconS2" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/S1ReconS2_V.pvp";
+    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/S1ReconS2_V.pvp";
     //
     VThresh = -infinity;
     AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -309,7 +309,7 @@ ANNLayer "ImageReconS2" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/ImageReconS2_V.pvp";
+    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/ImageReconS2_V.pvp";
     //
     VThresh = -infinity;
     AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -338,7 +338,7 @@ ANNLayer "ImageReconS2Error" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/ImageReconS1Error_V.pvp";
+    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/ImageReconS1Error_V.pvp";
     //
     VThresh = -infinity;
     AMax =  infinity;
@@ -374,7 +374,7 @@ Movie "ClassID" = {
     sparseLayer = true;
     writeSparseValues = false;
     displayPeriod = 200;
-    start_frame_index = 0; //2346; 
+    start_frame_index = 0; //5206; 
     skip_frame_index = 0;
     echoFramePathnameFlag = true;
     writeFrameToTimestamp = true;
@@ -402,8 +402,8 @@ Movie "ClassID" = {
 // * each output tile aquires the classIDs of any of the original bounding boxes that it overlapps 
 // * use a tile size of 32x32
 ANNLayer "GroundTruth" = {
-  nxScale = 0.0156250; // 1/64, so 4x4 tiles, ground truth patch size of 72x72
-  nyScale = 0.0156250; // 
+  nxScale = 0.25; // 
+  nyScale = 0.25; // 
     nf = 20;
     initializeFromCheckpointFlag = false;
     initialWriteTime = 2000.0;
@@ -415,39 +415,7 @@ ANNLayer "GroundTruth" = {
     //
     InitVType = "ZeroV";
   //InitVType = "InitVFromFile";
-  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/GroundTruth_V.pvp";
-    //
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
-    VWidth = 0.0; 
-    // 
-    triggerLayerName = "ClassID";
-    triggerFlag = true;
-    triggerOffset = 0;
-    updateGpu = false;
-    phase = 1; 
-};
-
-
-
-// convolve to the Recon layer and then use an ident conn to update the error layer
-// convenient for comparing ground truth and reconstructed classID heatmaps
-ANNLayer "GroundTruthReconS2" = {
-  nxScale = 0.0156250;
-  nyScale = 0.0156250;
-    nf = 20;
-    initializeFromCheckpointFlag = false;
-    initialWriteTime = 2000.0;
-    writeStep = 2000.0;
-    mirrorBCflag = 0;
-    valueBC = 0.0;
-    sparseLayer = false;
-    //
-    InitVType = "ZeroV";
-  //InitVType = "InitVFromFile";
-  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/GroundTruthReconS2_V.pvp";
+  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/GroundTruth_V.pvp";
     //
     VThresh = -infinity;
     AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -464,14 +432,46 @@ ANNLayer "GroundTruthReconS2" = {
 
 
 
+// convolve to the Recon layer and then use an ident conn to update the error layer
+// convenient for comparing ground truth and reconstructed classID heatmaps
+ANNLayer "GroundTruthReconS2" = {
+  nxScale = 0.25;
+  nyScale = 0.25;
+    nf = 20;
+    initializeFromCheckpointFlag = false;
+    initialWriteTime = 2000.0;
+    writeStep = 2000.0;
+    mirrorBCflag = 0;
+    valueBC = 0.0;
+    sparseLayer = false;
+    //
+    InitVType = "ZeroV";
+  //InitVType = "InitVFromFile";
+  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/GroundTruthReconS2_V.pvp";
+    //
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    VWidth = 0.0; 
+    // 
+    triggerLayerName = "ClassID";
+    triggerFlag = true;
+    triggerOffset = 2;
+    updateGpu = false;
+    phase = 6; 
+};
+
+
+
 // difference betwee ground truth and S2 based reconstruction of ground truth
 // an ordinary error layer works the same
 // but a normalizedErrorLayer calculates/writes useful 1/Error info if dtAdaptFlag is set
 // switch to LabelErrorLayer, which truncates errors for correct postive classifications to negative values and correct negative classifications to negative values 
 //LabelErrorLayer "GroundTruthError" = {
 ANNLayer "GroundTruthError" = {
-  nxScale = 0.0156250;
-  nyScale = 0.0156250;
+  nxScale = 0.25;
+  nyScale = 0.25;
     nf = 20;
     initializeFromCheckpointFlag = false;
     initialWriteTime = 2000.0;
@@ -482,7 +482,7 @@ ANNLayer "GroundTruthError" = {
     //
     InitVType = "ZeroV";
   //InitVType = "InitVFromFile";
-  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/GroundTruthError_V.pvp";
+  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/GroundTruthError_V.pvp";
     //
     VThresh = -infinity;
     AMax =  infinity;
@@ -498,6 +498,54 @@ ANNLayer "GroundTruthError" = {
     updateGpu = false;
     phase = 2;  
 };
+
+ConstantLayer "Bias" = {
+    restart = 0;
+    nxScale = 0.25; 
+    nyScale = 0.25;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
+
+
+//ANNLayer "S2MaxPooled" = {
+//  nxScale = 0.25; // 
+//  nyScale = 0.25; // 
+//    nf = 1536;
+//    initializeFromCheckpointFlag = false;
+//    initialWriteTime = 2000.0;
+//    writeStep = 2000.0;
+//    mirrorBCflag = 0;
+//    valueBC = 0.0;
+//    sparseLayer = true;
+//  writeSparseValues = false;
+//    //
+//    InitVType = "ZeroV";
+//  //InitVType = "InitVFromFile";
+//  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/GroundTruth_V.pvp";
+//    //
+//    VThresh = -infinity;
+//    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+//    AMin = -infinity; 
+//    AShift = 0;
+//    VWidth = 0.0; 
+//    // 
+//    triggerLayerName = "ClassID";
+//    triggerFlag = true;
+//    triggerOffset = 2;
+//    updateGpu = false;
+//    phase = 5; 
+//};
+
+
 
 // need to backpropagate error to S2 space
 // then mask by S2 activity
@@ -516,7 +564,7 @@ ANNLayer "GroundTruthError" = {
 //    //
 //    InitVType = "ZeroV";
 //  //InitVType = "InitVFromFile";
-//  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/GroundTruthS2ReconS1Error_V.pvp";
+//  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/GroundTruthS2ReconS1Error_V.pvp";
 //    //
 //    VThresh = -infinity;
 //    AMax =  infinity;
@@ -575,7 +623,7 @@ ANNLayer "GroundTruthError" = {
 //    //
 //    InitVType = "ZeroV";
 //  //InitVType = "InitVFromFile";
-//  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/GroundTruthS2ReconS1Error_V.pvp";
+//  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/GroundTruthS2ReconS1Error_V.pvp";
 //    //
 //    VThresh = -infinity;
 //    AMax =  infinity;
@@ -607,7 +655,7 @@ ANNLayer "GroundTruthError" = {
 //    //
 //    InitVType = "ZeroV";
 //  //InitVType = "InitVFromFile";
-//  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/GroundTruthS2ReconS1Error_V.pvp";
+//  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/GroundTruthS2ReconS1Error_V.pvp";
 //    //
 //    VThresh = -infinity;
 //    AMax =  infinity;
@@ -667,7 +715,7 @@ ANNLayer "GroundTruthError" = {
 //    //
 //    InitVType = "ZeroV";
 //  //InitVType = "InitVFromFile";
-//  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/GroundTruthS2ReconS1Error_V.pvp";
+//  //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/GroundTruthS2ReconS1Error_V.pvp";
 //    //
 //    VThresh = -infinity;
 //    AMax =  infinity;
@@ -746,7 +794,7 @@ HyPerConn "S1ToImageReconS1Error" = {
     initializeFromCheckpointFlag = false;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/S1ToImageReconS1Error_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/S1ToImageReconS1Error_W.pvp";
     //initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_C1X4_task/Checkpoint3760000/S1ToError_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
@@ -880,7 +928,7 @@ HyPerConn "S2ToS1ReconS2Error" = {
     initializeFromCheckpointFlag = false;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/S2ToS1ReconS2Error_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/S2ToS1ReconS2Error_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -1165,28 +1213,104 @@ HyPerConn "GroundTruthToGroundTruthError" = {
 };
 
 
+// MaxPool S2 activity 
+//HyPerConn "S2ToS2MaxPooled" = {
+//    preLayerName = "S2";
+//    postLayerName = "S2MaxPooled";
+//    channelCode = -1;
+//    nxp = 11; 
+//    nyp = 11; 
+//    nxpShrunken = 11;
+//    nypShrunken = 11;
+//    sharedWeights = true;
+//    numAxonalArbors = 1;
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    
+//    weightInitType = "UniformWeight";
+//    connectOnlySameFeatures = true;
+//    weightInit = 1.0;
+//    normalizeMethod = "none";
+//    
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    plasticityFlag = 0;
+//    pvpatchAccumulateType = "maxpooling";
+//     
+//    delay = 0;
+//     
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
+//    updateGSynFromPostPerspective = true;     
+//    receiveGpu = false; //true;
+//};
+
+
+
+//TransposeConn "S2MaxPooledToS2" = {
+//    preLayerName = "S2MaxPooled";
+//    postLayerName = "S2";
+//    channelCode = -1; //
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    originalConnName = "S2ToS2MaxPooled";
+//    selfFlag = false;
+//    pvpatchAccumulateType = "maxpooling";
+//    delay = 0;
+//    preActivityIsNotRate = false;
+//    writeCompressedCheckpoints = false;
+//    updateGSynFromPostPerspective = true;     
+//    receiveGpu = false;
+//    preDataLocal = true;
+//    numXLocal = 16;
+//    numYLocal = 1;
+//    numFLocal = 1;
+//};
+
+
+//TransposeConn "S2ToS2MaxPooledTranspose" = {
+//    preLayerName = "S2";
+//    postLayerName = "S2MaxPooled";
+//    channelCode = 0; //
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    originalConnName = "S2MaxPooledToS2";
+//    selfFlag = false;
+//    pvpatchAccumulateType = "maxpooling";
+//    delay = 0;
+//    preActivityIsNotRate = false;
+//    writeCompressedCheckpoints = false;
+//    updateGSynFromPostPerspective = true;     
+//    receiveGpu = false;
+//    preDataLocal = true;
+//    numXLocal = 16;
+//    numYLocal = 1;
+//    numFLocal = 1;
+//};
+
 
 // generates final predicted classification using learned weights (routed through a reconstruction layer for ease of visualization)
 HyPerConn "S2ToGroundTruthError" = {
     preLayerName = "S2";
     postLayerName = "GroundTruthError";
     channelCode = -1;
-    nxp = 3; // 3x3 ensures the correct halo surrounds the input to each ground truth patch
-    nyp = 3;
-    nxpShrunken = 3;
-    nypShrunken = 3;
+    nxp = 11; // 7x7 -> 60x60 pixels converge to each ground truth tile
+    nyp = 11;
+    nxpShrunken = 11;
+    nypShrunken = 11;
     sharedWeights = true;
     numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     //
-    weightInitType = "FileWeight";
-    initWeightsFile = "//nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/S2ToGroundTruthError_W.pvp";
-    useListOfArborFiles = false;
-    combineWeightFiles = false;
-    //weightInitType = "UniformRandomWeight";
-    //wMinInit = -1.0;
-    //wMaxInit = 1.0;
-    //sparseFraction = 0.0;
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "//nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/S2ToGroundTruthError_W.pvp";
+    //useListOfArborFiles = false;
+    //combineWeightFiles = false;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -0.1;
+    wMaxInit = 0.1;
+    sparseFraction = 0.0;
     //
     normalizeMethod = "none"; //"normalizeL2";
     //normalizeMethod = "normalizeL2";
@@ -1215,7 +1339,68 @@ HyPerConn "S2ToGroundTruthError" = {
     triggerOffset = 1;
     triggerFlag = true;
     //initialWriteTime = 0.0;
-    dWMax = 1.0; //
+    dWMax = 0.1; //
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+HyPerConn "BiasToGroundTruthError" = {
+    preLayerName = "Bias";
+    postLayerName = "GroundTruthError";
+    channelCode = -1;
+    nxp = 1; // 7x7 -> 60x60 pixels converge to each ground truth tile
+    nyp = 1;
+    nxpShrunken = 1;
+    nypShrunken = 1;
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    //
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "//nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/BiasToGroundTruthError_W.pvp";
+    //useListOfArborFiles = false;
+    //combineWeightFiles = false;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = 0.0;
+    //
+    normalizeMethod = "none"; //"normalizeL2";
+    //normalizeMethod = "normalizeL2";
+    //strength = 10.0; //5.0;  
+    //minL2NormTolerated = 0;
+    //normalizeArborsIndividually = 0;
+    //normalize_cutoff = 0.0;
+    //normalizeFromPostPerspective = false;
+    //symmetrizeWeights = false;
+    //normalizeOnInitialize = true;
+    //normalizeOnWeightUpdate = true;
+    //rMinX = 0;
+    //rMinY = 0; 
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    //writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    //weightUpdatePeriod = 1.0;
+    //initialWeightUpdateTime = 200.0;
+    triggerLayerName = "ClassID";
+    triggerOffset = 1;
+    triggerFlag = true;
+    //initialWriteTime = 0.0;
+    dWMax = 0.1; //
     selfFlag = false;
     shmget_flag = false;
     //
@@ -1236,6 +1421,23 @@ CloneConn "S2ToGroundTruthReconS2" = {
     initializeFromCheckpointFlag = false;
     writeStep = -1;
     originalConnName = "S2ToGroundTruthError";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    writeCompressedCheckpoints = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false; 
+};
+
+
+CloneConn "BiasToGroundTruthReconS2" = {
+    preLayerName = "Bias";
+    postLayerName = "GroundTruthReconS2";
+    channelCode = 0;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    originalConnName = "BiasToGroundTruthError";
     selfFlag = false;
     pvpatchAccumulateType = "convolve";
     delay = 0;
@@ -1486,7 +1688,7 @@ HyPerConn "GroundTruthReconS2ToGroundTruthError" = {
 //    initializeFromCheckpointFlag = false;
 //    //
 //    //weightInitType = "FileWeight";
-//    //initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint234000/S1ToGroundTruthS2ReconS1Error_W.pvp";
+//    //initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape4/Checkpoints/Checkpoint1172000/S1ToGroundTruthS2ReconS1Error_W.pvp";
 //    //useListOfArborFiles = false;
 //    //combineWeightFiles = false;
 //    weightInitType = "UniformRandomWeight";
