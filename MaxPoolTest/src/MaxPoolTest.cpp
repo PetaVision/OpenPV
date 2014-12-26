@@ -6,6 +6,7 @@
 
 
 #include <columns/buildandrun.hpp>
+#include "MaxPoolTestLayer.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -27,10 +28,10 @@ int main(int argc, char * argv[]) {
 
 #ifdef MAIN_USES_CUSTOMGROUPS
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
-   void * addedgroup = null;
-   //if (strcmp(keyword, "receivefrompostprobe") == 0){
-   //   addedgroup = new receivefrompostprobe(name, hc);
-   //}
+   void * addedGroup = NULL;
+   if (strcmp(keyword, "MaxPoolTestLayer") == 0){
+      addedGroup = new MaxPoolTestLayer(name, hc);
+   }
    return addedGroup;
 }
 #endif // MAIN_USES_CUSTOMGROUPS
