@@ -101,13 +101,7 @@ int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * 
   int err = 0;
   float compareval;
   for (k = 0; k < nk; k+=sf) {
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp critical
-#endif
-     {
-        v[k] = v[k] > a*w[k] ? v[k] : a*w[k];
-     }
-
+     v[k] = v[k] > a*w[k] ? v[k] : a*w[k];
   }
   return err;
 }
