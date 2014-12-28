@@ -7,23 +7,29 @@
 //A params file to test PV implementation of a multilayer perceptron
 //This test is solving the xor problem
 //http://www.mind.ilstu.edu/curriculum/artificial_neural_net/xor_problem_and_solution.php?modGUI=239&compGUI=1286&itemGUI=2253
+//
+//	make sure to | to a log file
+// ./Release/ALenetNet -p input/blah.params &> log.txt  for stderr and stdout
 
 debugParsing = true;    // Debug the reading of this parameter file.
 
 HyPerCol "column" = {
-   nx = 32;   //2 inputs
+   nx = 32;  
    ny = 32;
    dt = 1.0;  //time step in ms.	     
    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   stopTime = 10000; //100 img * 100 training steps  
-   progressInterval = 10.0; //Program will output its progress at each progressStep
+   stopTime = 49999; 
+   progressInterval = 10.0;
    writeProgressToErr = false;  
    outputPath = "output/";
    filenamesContainLayerNames = true;  
    filenamesContainConnectionNames = true;
-   checkpointRead = true;  
-   checkpointWrite = true;
+   checkpointRead = false;  
+   checkpointWrite = false; 
+   checkpointWriteDir = "output/checkpoint/";
+   checkpointWriteStepInterval = 10000;
+   //delete last checkpoint = true
    suppressLastOutput = false; //Save the last output as checkpoint.
 };
 
@@ -60,19 +66,18 @@ Movie "Image" = {
     nyScale = 1;
     imageListPath = "/nh/compneuro/Data/CIFAR/images/CIFAR_train_images.txt";
     nf = 3;	// color
-    writeStep = 100;
+    writeStep = 1;
     initialWriteTime = 0; //	do not write
     writeSparseActivity = false;
     displayPeriod = 1; // it is an MLP, display period should be 1!
     start_frame_index = 1;
     echoFramePathnameFlag = true;
     skip_frame_index = 1;
-    echoFramePathnameFlag = true;
     mirrorBCflag = true;
     jitterFlag = 0;
     useImageBCflag = false;
     inverseFlag = false;
-    normalizeLuminanceFlag = true;
+    normalizeLuminanceFlag = true; // weak whitening, make sure to do for classification, removes trivial img transformations
     writeImages = false;
     offsetX = 0;
     offsetY = 0;
@@ -140,9 +145,9 @@ Movie "Image" = {
 
 MLPForwardLayer "ForwardLayer1" = {		// sub:ANNLayer
     restart = 0;
-    nxScale = 0.03125;	 	// 1/32
-    nyScale = 0.03125;	 	// 1/32
-    nf = 1024; 			 	// 2^10 // (2^5)*(2^5)*3 = 32*32*3 = 3072, may be too large;
+    nxScale = 0.03125;	 	// 1/32  		// consider scaling for full AlexNet Implementation
+    nyScale = 0.03125;	 	// 1/32			// maybe kernalize for future runs
+    nf = 1024; 			 	// 2^10 // (2^5)*(2^5)*3 = 32*32*3 = 3072, may be too large; to be fully connected
     writeStep = 0; //Change based on display period
     initialWriteTime = 0.0; //Change based on display period 
     mirrorBCflag = 0;
@@ -162,6 +167,7 @@ MLPSigmoidLayer "HiddenLayer1" = {  	// sub: CloneVLayer
     mirrorBCflag      = 0.0; 
     restart           = 0.0;      // from graylast
     linAlpha            = 0;
+    // dropout_buffer		// important to set explicitly set default values in case someone commits a change 
     spikingFlag       = 0.0;
     writeStep         = -1;
     writeNonspikingActivity = false;
@@ -176,6 +182,7 @@ MLPForwardLayer "ForwardLayer2" = {		// sub:ANNLayer
    @phase = 5;
 };
 
+// Keeping track of how well you are doing layer - essentially a probe
 MLPOutputLayer "FinalLayer" = {  		//	sub:CloneVLayer sub:MLPSigmoidLayer
     nxScale           = 0.03125;
     nyScale           = 0.03125;
@@ -187,7 +194,7 @@ MLPOutputLayer "FinalLayer" = {  		//	sub:CloneVLayer sub:MLPSigmoidLayer
     linAlpha            = 0;
     restart           = 0.0;      // from graylast
     spikingFlag       = 0.0;
-    writeStep         = -1;
+    writeStep         = 1;		 // 			
     writeNonspikingActivity = false;
     
     // Local target in training will be different than local target in testing: 
@@ -218,7 +225,7 @@ FilenameParsingGroundTruthLayer "gt" = {
    nxScale = 0.03125;	// (1/32)*nx = 1
    nyScale = 0.03125;	// 
    nf = 10;
-   writeStep = 100;
+   writeStep = 1;
    initialWriteTime = 1;
    mirrorBCflag = 1;
    writeSparseActivity = 0;
@@ -248,17 +255,17 @@ MLPErrorLayer "Error1" = {					//sub:ANNLayer
     nyScale = 0.03125;
     nf = 1024;
 	initialWriteTime = 0;
-    writeStep = 10; //Change based on display period
+    writeStep = 1; //Change based on display period
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     linAlpha            = 0;
     ForwardLayername = "ForwardLayer1";		// how convolution u(W1) is used by Error1
     InitVType = "ZeroV";
     VThresh = -infinity;
-    phase = 8;
+    phase = 8;			// is this after finalerror because you are backproping
 };
 
-MLPErrorLayer "FinalError" = {		//sub:ANNLayer
+MLPErrorLayer "FinalError" = {		//sub:ANNLayer	ground truth err
    #include "Error1";
    @nxScale = 0.03125;
    @nyScale = 0.03125;
@@ -440,7 +447,8 @@ MLPErrorLayer "FinalError" = {		//sub:ANNLayer
 //		START MLP NETWORK
 //
 
-KernelConn "W1" = {
+KernelConn "W1" = {		//Hyperconn with shared weights set to true  // may want to rename to match actual connection
+	// this is a type of connection that could be implemented on a GPU when fullt
     preLayerName = "Image";
     postLayerName = "Error1";
     channelCode = -1; // 0 = activation, 1 = inhibition, -1 = Do not update on this channel	
@@ -456,7 +464,7 @@ KernelConn "W1" = {
     //initWeightsFile = "output/Last/W1_W.pvp";
 
     weightInitType = "UniformRandomWeight";
-    wMinInit = -1.225;	// -sqrt(3/2)
+    wMinInit = -1.225;	// -sqrt(3/2) * find citation, 
     wMaxInit = 1.225;	// sqrt(3/2)
         
     strength = 1.0;  
@@ -468,15 +476,43 @@ KernelConn "W1" = {
     plasticityFlag = 1;
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 1.0;
-    dWMax = .1; // 200.0 used for initial training 
+    dWMax = .1; //  may need smaller/larger  0.01 - 0.5
     delay = 0;
      
     preActivityIsNotRate = false;
     selfFlag = false;
     shmget_flag = false;
-
-    updateGSynFromPostPerspective = false;
-    pvpatchAccumulateType = "convolve";
+												// gsyn is the boss to the buffer layers
+    updateGSynFromPostPerspective = false;		// GPU flag; need a transpose 
+    											// go down list of post, each post has a list of pre that it pulls from
+    											// for each post, you pull from a list of pre
+    											// 
+    											// the way that the memory for the layers is allocated 
+    											// stores the neurons in a contiguous list in mememory
+    											// so that when it is loaded to the CPU cache to be processed
+    											// the CPU will spend the least amount of time grabbing data from RAM
+    											// and loading it in cache memory;
+    											//
+    											// this is effective since you can step down a list of neurons 
+    											// contiguous in memory and update all of the neurons they are connected to
+    											// by passing the new neuron voltage (a function of the pre-neuron*weight and the post neuron state)
+    											// to a GSyn buffer that will then update the value of the post neuron after all of the pre neurons have sent their signals;
+    											// so neuron1.1 will send to the neurons it is connected to 2.3, 2.5, 2.10, 2.24, 2.55 ..
+    											// This process will repeat for neurons 1.2, 3, 4, ...  N will send their responses to all their respective connections and neurons
+    											//
+    											// This becomes a problem when you want to parallelize the process of updating weights
+    											// since you are looking to perform multiple calculations at the same time.
+    											// if you were to 'push' from all of the pre-neurons serially, you would have 'race' problems when multiple 
+    											// processes on the GPU would be trying to simultaneously update the same neuron.
+    											// that can't be happening. no way no how 
+    											// 
+    											// so instead, what we have to do is update the GSyn from the postperspective so we pull requests instead of have values
+    											// pushed to a particular neuron
+    											// To do this we need to generate a transposed list of neurons that connect to each post-neuron and use that list
+    											// to step trough serially and pull values
+    											// for neuron 2.1 create a list (1.5, 1.6, 1.23, 1.255) and run through that list in parallel. 
+    											
+    pvpatchAccumulateType = "convolve";			// img is storing it's weight to the target layer, 
 };
 
 CloneKernelConn "W1Clone" = {
@@ -574,7 +610,8 @@ TransposeConn "W2T" = {
     shmget_flag = false;
     delay = 0;
     pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;
+    updateGSynFromPostPerspective = true; //
+    receiveGPU = true;
 };
 
 KernelConn "B2" = {
