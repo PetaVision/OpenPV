@@ -30,7 +30,7 @@
 #include "../weightinit/InitIdentWeights.hpp"
 #include "../weightinit/InitUniformWeights.hpp"
 #include "../weightinit/InitSpreadOverArborsWeights.hpp"
-#ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
+#ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
 #include "../weightinit/Init3DGaussWeights.hpp"
 #include "../weightinit/InitByArborWeights.hpp"
 #include "../weightinit/InitMTWeights.hpp"
@@ -38,11 +38,11 @@
 #include "../weightinit/InitRuleWeights.hpp"
 #include "../weightinit/InitSubUnitWeights.hpp"
 #include "../weightinit/InitWindowed3DGaussWeights.hpp"
-#endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
+#include "../normalizers/NormalizeScale.hpp"
+#endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
 #include "../normalizers/NormalizeBase.hpp"
 #include "../normalizers/NormalizeSum.hpp"
 #include "../normalizers/NormalizeL2.hpp"
-#include "../normalizers/NormalizeScale.hpp"
 #include "../normalizers/NormalizeMax.hpp"
 #include "../normalizers/NormalizeContrastZeroMean.hpp"
 #include "TransposeConn.hpp"
@@ -1150,6 +1150,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
             HyPerConn * conn = this;
             normalizer = new NormalizeContrastZeroMean(name, parent, &conn, 1);
          }
+#ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
          else if (!strcmp(normalizeMethod, "normalizeScale")) {
             if (plasticityFlag) {
                 fprintf(stdout, "HyPerConn:: Warning: Connection %s: Setting both plastic weights and normalization by scaling. The weights will be multiplied by a factor strength after each learning step. Generally not a good idea. Make sure you know what you are doing!\n",name);
@@ -1157,6 +1158,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
             HyPerConn * conn = this;
             normalizer = new NormalizeScale(name, parent, &conn, 1);
          }
+#endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
          else if (!strcmp(normalizeMethod, "normalizeGroup")) {
             normalizer = NULL;
             // During communicateInitInfo stage, normalizeGroupName will be converted
