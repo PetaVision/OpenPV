@@ -1339,7 +1339,7 @@ HyPerConn "S2ToGroundTruthError" = {
     triggerOffset = 1;
     triggerFlag = true;
     //initialWriteTime = 0.0;
-    dWMax = 0.1; //
+    dWMax = 0.01; //
     selfFlag = false;
     shmget_flag = false;
     //
@@ -1400,7 +1400,7 @@ HyPerConn "BiasToGroundTruthError" = {
     triggerOffset = 1;
     triggerFlag = true;
     //initialWriteTime = 0.0;
-    dWMax = 0.1; //
+    dWMax = 0.01; //
     selfFlag = false;
     shmget_flag = false;
     //
