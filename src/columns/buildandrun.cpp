@@ -157,7 +157,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "ANNWeightedErrorLayer",
                "AccumulateLayer",
                "CliqueLayer",
-#endif // OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
+#endif // OBSOLETE
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
              "HyPerConn",
@@ -166,8 +166,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "PlasticCloneConn",
                "CopyConn",
                "KernelConn", // Deprecated
-                 "MapReduceKernelConn",
-                 "CliqueConn",
                  "CloneKernelConn", //Deprecated
                  "IdentConn",
                  "GapConn",
@@ -175,12 +173,10 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                  "GenerativeConn",
                    "PoolingGenConn",
 #endif // OBSOLETE
-                 "LCALIFLateralKernelConn",
 #ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
                  "NoSelfKernelConn",
                    "SiblingConn",
 #endif // OBSOLETE
-                 "OjaKernelConn",
 #ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
                  "ReciprocalConn",
 #endif // OBSOLETE
@@ -188,12 +184,18 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                    "FeedbackConn",
                "LCALIFLateralConn",
                "OjaSTDPConn",
-               "InhibSTDPConn",
                "PoolingConn",
-               "STDPConn",
-               "STDP3Conn",
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
                "WindowConn",
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused connections.
+                 "CliqueConn",
+               "InhibSTDPConn",
+                 "LCALIFLateralKernelConn",
+                 "MapReduceKernelConn",
+                 "OjaKernelConn",
+               "STDP3Conn",
+               "STDPConn",
 #endif // OBSOLETE
                "_Stop_HyPerConns_",
            "_Start_ColProbes_",
@@ -219,11 +221,13 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
              "ConnStatsProbe",
              "KernelProbe",
              "OjaConnProbe",
-             "OjaKernelSpikeRateProbe",
              "LCALIFLateralProbe",
              "PatchProbe",
 #ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
              "ReciprocalEnergyProbe",
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
+             "OjaKernelSpikeRateProbe",
 #endif // OBSOLETE
            "_Stop_BaseConnectionProbes_",
            "_Start_ConnectionProbes_",
@@ -609,7 +613,7 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new CliqueLayer(name, hc);
    }
-#endif // OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
+#endif // OBSOLETE
    status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    if( !keywordMatched ) {
       fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
@@ -657,10 +661,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = (HyPerConn * ) new KernelConn(name, hc);
    }
-   if( !keywordMatched && !strcmp(classkeyword, "CliqueConn") ) {
-      keywordMatched = true;
-      addedConn = new CliqueConn(name, hc);
-   }
    if( !keywordMatched && !strcmp( classkeyword, "CloneKernelConn") ) {
       keywordMatched = true;
       addedConn = (HyPerConn *) new CloneKernelConn(name, hc);
@@ -683,14 +683,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = (HyPerConn * ) new IdentConn(name, hc);
    }
-   if( !keywordMatched && !strcmp(classkeyword, "LCALIFLateralKernelConn") ) {
-      keywordMatched = true;
-      addedConn = new LCALIFLateralKernelConn(name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "MapReduceKernelConn") ) {
-      keywordMatched = true;
-      addedConn = (HyPerConn * ) new MapReduceKernelConn(name, hc);
-   }
 #ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
    if( !keywordMatched && !strcmp(classkeyword, "NoSelfKernelConn") ) {
       keywordMatched = true;
@@ -701,10 +693,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       addedConn = new SiblingConn(name, hc);
    }
 #endif // OBSOLETE
-   if( !keywordMatched && !strcmp(classkeyword, "OjaKernelConn") ) {
-      keywordMatched = true;
-      addedConn = new OjaKernelConn(name, hc);
-   }
 #ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used
    if( !keywordMatched && !strcmp(classkeyword, "ReciprocalConn") ) {
       keywordMatched = true;
@@ -727,13 +715,36 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
         keywordMatched = true;
         addedConn = (HyPerConn * ) new OjaSTDPConn(name, hc);
    }
+   if( !keywordMatched && !strcmp(classkeyword, "PoolingConn") ) {
+      keywordMatched = true;
+      addedConn = new PoolingConn(name, hc);
+   }
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
+   if( !keywordMatched && !strcmp(classkeyword, "WindowConn") ) {
+      keywordMatched = true;
+      addedConn = (HyPerConn *) new WindowConn(name, hc);
+   }
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused connections
+   if( !keywordMatched && !strcmp(classkeyword, "CliqueConn") ) {
+      keywordMatched = true;
+      addedConn = new CliqueConn(name, hc);
+   }
    if( !keywordMatched && !strcmp(classkeyword, "InhibSTDPConn")) {
       keywordMatched = true;
       addedConn = (HyPerConn * ) new InhibSTDPConn(name, hc);
    }
-   if( !keywordMatched && !strcmp(classkeyword, "PoolingConn") ) {
+   if( !keywordMatched && !strcmp(classkeyword, "LCALIFLateralKernelConn") ) {
       keywordMatched = true;
-      addedConn = new PoolingConn(name, hc);
+      addedConn = new LCALIFLateralKernelConn(name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "MapReduceKernelConn") ) {
+      keywordMatched = true;
+      addedConn = (HyPerConn * ) new MapReduceKernelConn(name, hc);
+   }
+   if( !keywordMatched && !strcmp(classkeyword, "OjaKernelConn") ) {
+      keywordMatched = true;
+      addedConn = new OjaKernelConn(name, hc);
    }
    if( !keywordMatched && !strcmp(classkeyword, "STDP3Conn")) {
       keywordMatched = true;
@@ -742,11 +753,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
    if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
      keywordMatched = true;
      addedConn = (HyPerConn * ) new STDPConn(name, hc);
-   }
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-   if( !keywordMatched && !strcmp(classkeyword, "WindowConn") ) {
-      keywordMatched = true;
-      addedConn = (HyPerConn *) new WindowConn(name, hc);
    }
 #endif // OBSOLETE
    status = checknewobject((void *) addedConn, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
@@ -880,14 +886,16 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
       keywordMatched = true;
       addedProbe = new LCALIFLateralProbe(name, hc);
    }
-   if( !strcmp(classkeyword, "OjaKernelSpikeRateProbe") ) {
-      keywordMatched = true;
-      addedProbe = new OjaKernelSpikeRateProbe(name, hc);
-   }
    if( !strcmp(classkeyword, "PatchProbe") ) {
       keywordMatched = true;
       addedProbe = new PatchProbe(name, hc);
    }
+#ifdef OBSOLETE
+   if( !strcmp(classkeyword, "OjaKernelSpikeRateProbe") ) {
+      keywordMatched = true;
+      addedProbe = new OjaKernelSpikeRateProbe(name, hc);
+   }
+#endif // OBSOLETE
    status = checknewobject((void *) addedProbe, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    assert(keywordMatched);
    assert( !(status == PV_SUCCESS && !addedProbe) );

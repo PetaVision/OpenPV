@@ -73,7 +73,7 @@
 #include "../layers/ANNWeightedErrorLayer.hpp"
 #include "../layers/AccumulateLayer.hpp"
 #include "../layers/CliqueLayer.hpp"
-#endif // OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
+#endif // OBSOLETE
 #ifdef OBSOLETE // Marked obsolete April 23, 2014.
 // Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
 #include "../layers/ANNTriggerUpdateOnNewImageLayer.hpp"
@@ -87,8 +87,6 @@
 #include "../connections/PlasticCloneConn.hpp"
 #include "../connections/CopyConn.hpp"
 #include "../connections/KernelConn.hpp"
-#include "../connections/MapReduceKernelConn.hpp"
-#include "../connections/CliqueConn.hpp"
 #include "../connections/CloneKernelConn.hpp"
 #include "../connections/GapConn.hpp"
 #ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  Use HyPerConn instead of GenerativeConn and PoolingConn instead of PoolingGenConn
@@ -96,12 +94,10 @@
 #include "../connections/PoolingGenConn.hpp"
 #endif // OBSOLETE
 #include "../connections/IdentConn.hpp"
-#include "../connections/LCALIFLateralKernelConn.hpp"
 #ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
 #include "../connections/NoSelfKernelConn.hpp"
 #include "../connections/SiblingConn.hpp"
 #endif // OBSOLETE
-#include "../connections/OjaKernelConn.hpp"
 #ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
 #include "../connections/ReciprocalConn.hpp"
 #endif // OBSOLETE
@@ -109,12 +105,18 @@
 #include "../connections/FeedbackConn.hpp"
 #include "../connections/LCALIFLateralConn.hpp"
 #include "../connections/OjaSTDPConn.hpp"
-#include "../connections/InhibSTDPConn.hpp"
 #include "../connections/PoolingConn.hpp"
-#include "../connections/STDP3Conn.hpp"
-#include "../connections/STDPConn.hpp"
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
 #include "../connections/WindowConn.hpp"
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused connections.
+#include "../connections/CliqueConn.hpp"
+#include "../connections/InhibSTDPConn.hpp"
+#include "../connections/LCALIFLateralKernelConn.hpp"
+#include "../connections/MapReduceKernelConn.hpp"
+#include "../connections/OjaKernelConn.hpp"
+#include "../connections/STDP3Conn.hpp"
+#include "../connections/STDPConn.hpp"
 #endif // OBSOLETE
 
 #include "../weightinit/InitWeights.hpp"
@@ -139,7 +141,7 @@
 #include "../weightinit/InitRuleWeights.hpp"
 #include "../weightinit/InitSubUnitWeights.hpp"
 #include "../weightinit/InitWindowed3DGaussWeights.hpp"
-#endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
+#endif // OBSOLETE
 
 #include "../io/BaseConnectionProbe.hpp"
 #include "../io/ConnStatsProbe.hpp"
@@ -149,7 +151,6 @@
 #include "../io/KernelProbe.hpp"
 #include "../io/LCALIFLateralProbe.hpp"
 #include "../io/OjaConnProbe.hpp"
-#include "../io/OjaKernelSpikeRateProbe.hpp"
 #include "../io/PatchProbe.hpp"
 #include "../io/TextStreamProbe.hpp"
 #include "../io/LayerProbe.hpp"
@@ -163,6 +164,9 @@
 #include "../io/LogLatWTAProbe.hpp"
 #include "../io/RequireAllZeroActivityProbe.hpp"
 #include "../io/GenColProbe.hpp"
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
+#include "../io/OjaKernelSpikeRateProbe.hpp"
+#endif // OBSOLETE
 
 using namespace PV;
 
