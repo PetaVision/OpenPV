@@ -2,9 +2,9 @@
 ##  pvAnalysis.py
 ##  Written by Dylan Paiton, Sheng Lundquist
 ##  Nov 17, 2014
-##  
+##
 ## Mimics readpvpfile.m analysis - this scrpt
-## will hold a suite of tools for analyzing 
+## will hold a suite of tools for analyzing
 ## PetaVision output files.
 ##
 #########################################
@@ -28,7 +28,7 @@ def read_header_file(fileStream, pos=0):
     header["nf"]         = params[5]
     header["numrecords"] = params[6]
     header["recordsize"] = params[7]
-    header["datasize"]   = params[8] 
+    header["datasize"]   = params[8]
     header["datatype"]   = params[9]  # 3 is float,float,float,...   (dense file)
                                       # 4 is int,float,int,float,... (sparse file)
     header["nxprocs"]    = params[10]
@@ -113,7 +113,7 @@ def read_sparse_data(fileStream,dense_shape):
 
     timeStamp = struct.unpack("d", timeStamp)
     try:
-        numActive = np.fromfile(fileStream,np.int32,1) 
+        numActive = np.fromfile(fileStream,np.int32,1)
 
         if numActive > 0:
             lin_idx   = np.zeros(numActive)
@@ -135,7 +135,7 @@ def read_sparse_data(fileStream,dense_shape):
             return (timeStamp, sparseMat)
 
     except:
-        return (timeStamp, None) 
+        return (timeStamp, None)
 
 
 def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrames=1):
@@ -161,16 +161,16 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
     #    outStruct["time"] return a list of the timeStamps
     #
     #  hdr is a struct containing the information in the file's header
-   
+
     hdr = read_header_file(fileStream)
 
     (frameSize, numFrames) = get_frame_info(hdr,fileStream)
 
     if lastFrame != -1:
        numFrames = lastFrame
-   
+
     loopLen   = len(range(startFrame,numFrames,skipFrames))
- 
+
     data       = loopLen * [None] # This pre-allocates the list
     timeStamps = loopLen * [None]
 
@@ -178,24 +178,31 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
         #TODO: fill in with real code
         return (None, None)
         pdb.set_trace()
-       
+
     elif hdr["filetype"] == 4: #PVP_NONSPIKING_ACT_FILE
         if hdr["datatype"] == 3: #PV_FLOAT_TYPE
             shape = (hdr["nf"],hdr["nx"],hdr["ny"])
             numNeurons = shape[0]*shape[1]*shape[2]
-            for i in range(startFrame,numFrames,skipFrames):
+
+            fileStream.seek(startFrame*frameSize)
+
+            fileIdx = 0
+            for f in range(startFrame,numFrames):
+
+               if f%skipFrames != 0:
+                  fileStream.seek(frameSize)
+                  continue
+
                 if progressPeriod != 0:
-                    if i%progressPeriod == 0:
-                        sys.stdout.write(" Progress: %d/%d%s"%(i,loopLen,"\r"))
+                    if fileIdx%progressPeriod == 0:
+                        sys.stdout.write(" Progress: %d/%d%s"%(fileIdx,loopLen,"\r"))
                         sys.stdout.flush();
-                (timeStamps[i],data[i]) = read_dense_data(fileStream, shape, numNeurons)
-                assert timeStamps[i] != -1
-                #TODO: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
-                assert data[i] != None 
+                (timeStamps[fileIdx],data[fileIdx]) = read_dense_data(fileStream, shape, numNeurons)
+                assert timeStamps[fileIdx] != -1
+                assert data[fileIdx]       != None #TODO: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+                fileIdx+=1
 
     elif hdr["filetype"] == 5: #PVP_KERNEL_FILE_TYPE
-        (frameSize, numFrames) = get_frame_info(hdr,fileStream)
-
         #TODO: Program in else case for other datatypes.
         #      Also set up precision variable like in readpvpfile.m
         if hdr["datatype"] == 3: #PV_FLOAT_TYPE (precision is float32)
@@ -203,18 +210,18 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
 
             fileStream.seek(startFrame*frameSize,0) # This is in case user doesn't want to start at time=0
 
+            fileIdx = 0
             for f in range(startFrame,numFrames):
-                #TODO: Test to make sure frame skipping works
                 # Need to advance file pointer if frame is to be skipped
-                if (f < startFrame) or (f%skipFrames != 0): 
+                if (f < startFrame) or (f%skipFrames != 0):
                     fileStream.seek(hdr["headersize"]+precision*hdr["nxp"]*hdr["nyp"]*hdr["nfp"]) #seek past the frame
                     continue
 
                 hdr = read_header_file(fileStream,fileStream.tell()) # Header repeats after each frame
 
                 if progressPeriod != 0:
-                    if f%progressPeriod == 0:
-                        sys.stdout.write(" Progress: %d/%d%s"%(f,loopLen,"\r"))
+                    if fileIdx%progressPeriod == 0:
+                        sys.stdout.write(" Progress: %d/%d%s"%(fileIdx,loopLen,"\r"))
                         sys.stdout.flush();
 
                 tmp_vals_arry = np.zeros((len(range(hdr["nbands"])),len(range(hdr["numPatches"])),hdr["nyp"],hdr["nxp"],hdr["nfp"]))
@@ -222,34 +229,44 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                     for patch in range(hdr["numPatches"]):
                         # TODO: Handle shrunken patch info? I have no idea what that entails.
                         #       For now, seek over HyPerLayer's shrunkenPatch data
-                        #       uint16 (2 bytes, patch->nx) + uint16 (2 bytes, patch->ny) + uint32 (4 bytes, patch->offset) 
-                        fileStream.seek(8,1) 
+                        #       uint16 (2 bytes, patch->nx) + uint16 (2 bytes, patch->ny) + uint32 (4 bytes, patch->offset)
+                        fileStream.seek(8,1)
 
                         bytes_to_read = hdr["nxp"]*hdr["nyp"]*hdr["nfp"]
                         tmp_dat       = np.fromfile(fileStream,np.float32,bytes_to_read)
                         # TODO: Figure out if this is flipped from readpvpfile.m
                         tmp_vals_arry[arbor,patch,:,:,:] = np.ravel(tmp_dat).reshape(hdr["nyp"],hdr["nxp"],hdr["nfp"])
-                data[f]       = tmp_vals_arry
-                timeStamps[f] = hdr["time"]
+                data[fileIdx]       = tmp_vals_arry
+                timeStamps[fileIdx] = hdr["time"]
+                fileIdx+=1
 
     elif hdr["filetype"] == 6: #PVP_ACT_SPARSEVALUES_FILE_TYPE
        if hdr["datatype"] == 4: #PV_SPARSEVALUES_TYPE
-           for f in range(startFrame,numFrames,skipFrames):
+          frameIdx = 0
+          for f in range(numFrames):
+               if (f < startFrame) or (f%skipframe != 0):
+                  #fseek a frame's worth of bits
+                  fileStream.read(8) # Skip over timestamp (Float64)
+                  numActive = np.fromfile(fileStream,np.int32,1)
+                  fileStream.seek(numActive*8) # Int32 for index, Int32 for value
+                  continue
+
                if progressPeriod != 0:
-                   if f%progressPeriod == 0:
-                       sys.stdout.write(" Progress: %d/%d%s"%(f,loopLen,"\r"))
+                   if frameIdx%progressPeriod == 0:
+                       sys.stdout.write(" Progress: %d/%d%s"%(frameIdx,loopLen,"\r"))
                        sys.stdout.flush();
-               (timeStamps[f],sparseMat) = read_sparse_data(fileStream,hdr["nf"]*hdr["nx"]*hdr["ny"])
- 
-               assert timeStamps[f] != -1
-               assert sparseMat != None 
- 
-               data[f] = np.ravel(sparseMat.todense()).reshape(hdr["ny"],hdr["nx"],hdr["nf"])
- 
+               (timeStamps[frameIdx],sparseMat) = read_sparse_data(fileStream,hdr["nf"]*hdr["nx"]*hdr["ny"])
+
+               assert timeStamps[frameIdx] != -1
+               assert sparseMat != None
+
+               data[frameIdx] = np.ravel(sparseMat.todense()).reshape(hdr["ny"],hdr["nx"],hdr["nf"])
+               frameIdx+=1
+
     outStruct = {}
     outStruct["time"]   = timeStamps
     outStruct["values"] = data
- 
+
     sys.stdout.write(" Progress: %d/%d%s"%(numFrames,loopLen,"\r"))
     sys.stdout.write("%s Done.%s"%("\n","\n"))
     sys.stdout.flush();
