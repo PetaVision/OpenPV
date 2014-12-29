@@ -172,14 +172,19 @@ int CloneConn::communicateInitInfo() {
    // Need to set originalConn before calling HyPerConn::communicate, since HyPerConn::communicate calls setPatchSize, which needs originalConn.
    BaseConnection * originalConnBase = parent->getConnFromName(originalConnName);
    if (originalConnBase == NULL) {
-      fprintf(stderr, "CloneConn \"%s\" error in rank %d process: originalConnName \"%s\" is not a connection in the column.\n",
-            name, parent->columnId(), originalConnName);
+      if (parent->columnId()==0) {
+         fprintf(stderr, "CloneConn \"%s\" error: originalConnName \"%s\" is not a connection in the column.\n",
+               name, originalConnName);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
-      fprintf(stderr, "CloneConn \"%s\" error in rank %d process: originalConnName \"%s\" is not a connection in the column.\n",
-            name, parent->columnId(), originalConnName);
+      if (parent->columnId()==0) {
+         fprintf(stderr, "CloneConn \"%s\" error: originalConnName \"%s\" is not a HyPerConn or HyPerConn-derived class.\n",
+               name, originalConnName);
+      }
    }
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
