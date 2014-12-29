@@ -24,20 +24,21 @@
 #include "../weightinit/InitUniformRandomWeights.hpp"
 #include "../weightinit/InitGaussianRandomWeights.hpp"
 #include "../weightinit/InitGaborWeights.hpp"
-#include "../weightinit/InitDistributedWeights.hpp"
 #include "../weightinit/InitBIDSLateral.hpp"
-#include "../weightinit/InitPoolWeights.hpp"
-#include "../weightinit/InitRuleWeights.hpp"
-#include "../weightinit/InitSubUnitWeights.hpp"
 #include "../weightinit/InitOneToOneWeights.hpp"
 #include "../weightinit/InitOneToOneWeightsWithDelays.hpp"
 #include "../weightinit/InitIdentWeights.hpp"
 #include "../weightinit/InitUniformWeights.hpp"
-#include "../weightinit/InitByArborWeights.hpp"
 #include "../weightinit/InitSpreadOverArborsWeights.hpp"
+#ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
 #include "../weightinit/Init3DGaussWeights.hpp"
-#include "../weightinit/InitWindowed3DGaussWeights.hpp"
+#include "../weightinit/InitByArborWeights.hpp"
 #include "../weightinit/InitMTWeights.hpp"
+#include "../weightinit/InitPoolWeights.hpp"
+#include "../weightinit/InitRuleWeights.hpp"
+#include "../weightinit/InitSubUnitWeights.hpp"
+#include "../weightinit/InitWindowed3DGaussWeights.hpp"
+#endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
 #include "../normalizers/NormalizeBase.hpp"
 #include "../normalizers/NormalizeSum.hpp"
 #include "../normalizers/NormalizeL2.hpp"
@@ -589,12 +590,6 @@ InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr)
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SmartWeight"))) {
       weightInitializer = new InitSmartWeights(this);
    }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "DistributedWeight"))) {
-      weightInitializer = new InitDistributedWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "ArborWeight"))) {
-      weightInitializer = new InitByArborWeights(this);
-   }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "BIDSLateral"))) {
       weightInitializer = new InitBIDSLateral(this);
    }
@@ -606,15 +601,6 @@ InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr)
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "GaborWeight"))) {
       weightInitializer = new InitGaborWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "PoolWeight"))) {
-      weightInitializer = new InitPoolWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "RuleWeight"))) {
-      weightInitializer = new InitRuleWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SubUnitWeight"))) {
-      weightInitializer = new InitSubUnitWeights(this);
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "IdentWeight"))) {
       weightInitializer = new InitIdentWeights(this);
@@ -628,18 +614,35 @@ InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr)
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SpreadOverArborsWeight"))) {
       weightInitializer = new InitSpreadOverArborsWeights(this);
    }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
+      weightInitializer = new InitWeights(this);
+   }
+#ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss3DWeight"))) {
       weightInitializer = new Init3DGaussWeights(this);
    }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Windowed3DGaussWeights"))) {
-      weightInitializer = new InitWindowed3DGaussWeights(this);
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "ArborWeight"))) {
+      weightInitializer = new InitByArborWeights(this);
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "DistributedWeight"))) {
+      weightInitializer = new InitDistributedWeights(this);
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "MTWeight"))) {
       weightInitializer = new InitMTWeights(this);
    }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
-      weightInitializer = new InitWeights(this);
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "PoolWeight"))) {
+      weightInitializer = new InitPoolWeights(this);
    }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "RuleWeight"))) {
+      weightInitializer = new InitRuleWeights(this);
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SubUnitWeight"))) {
+      weightInitializer = new InitSubUnitWeights(this);
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Windowed3DGaussWeights"))) {
+      weightInitializer = new InitWindowed3DGaussWeights(this);
+   }
+#endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
    else {
       weightInitializer = NULL;
    }
