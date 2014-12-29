@@ -97,11 +97,8 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "_Start_HyPerLayers_",
              "HyPerLayer",
              "ANNLayer",
-               "AccumulateLayer",
                "ANNSquaredLayer",
                "ANNWhitenedLayer",
-               "ANNDivInhLayer",
-               "CliqueLayer",
                "GenerativeLayer",
                  "LogLatWTAGenLayer",
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  No longer used.
@@ -116,15 +113,13 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "MaxPooling", // Obsolete; have the connection's pvpatchAccumulateType set to "maxpooling" (case insensitive).
                "HyPerLCALayer",
                "ANNErrorLayer",
-               "ANNWeightedErrorLayer",
                "FilenameParsingGroundTruthLayer",
 	         "ANNNormalizedErrorLayer",
                "MLPErrorLayer",
                "MLPForwardLayer",
                "MLPOutputLayer",
                "LabelErrorLayer",
-               "ANNLabelLayer",
-// Leaving ANNTriggerUpdateOnNewImageLayer in for now, to provide a meaningful error message if someone tries to use it
+// Leaving ANNTriggerUpdateOnNewImageLayer in for now, to provide a meaningful error message if someone tries to use it (ANNTriggerUpdateOnNewImageLayer was marked obsolete Apr 23, 2014)
                "ANNTriggerUpdateOnNewImageLayer",
                "ConstantLayer",
              "CloneVLayer",
@@ -156,6 +151,13 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
            "KmeansLayer",
              "BIDSMovieCloneMap",
              "BIDSSensorLayer",
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
+               "ANNDivInhLayer",
+               "ANNLabelLayer",
+               "ANNWeightedErrorLayer",
+               "AccumulateLayer",
+               "CliqueLayer",
+#endif // OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
            "_Stop_HyPerLayers_",
            "_Start_HyPerConns_",
              "HyPerConn",
@@ -370,10 +372,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNLayer(name, hc);
    }
-   if( !strcmp(classkeyword, "AccumulateLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new AccumulateLayer(name, hc);
-   }
    if( !strcmp(classkeyword, "BIDSMovieCloneMap") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new BIDSMovieCloneMap(name, hc);
@@ -389,14 +387,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    if( !strcmp(classkeyword, "ANNWhitenedLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNWhitenedLayer(name, hc);
-   }
-   if( !strcmp(classkeyword, "ANNDivInhLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new ANNDivInh(name, hc);
-   }
-   if( !strcmp(classkeyword, "CliqueLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new CliqueLayer(name, hc);
    }
    if( !strcmp(classkeyword, "GenerativeLayer") ) {
       keywordMatched = true;
@@ -518,10 +508,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNErrorLayer(name, hc);
    }
-   if( !strcmp(classkeyword, "ANNWeightedErrorLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new ANNWeightedErrorLayer(name, hc);
-   }
    if( !strcmp(classkeyword, "ANNNormalizedErrorLayer") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new ANNNormalizedErrorLayer(name, hc);
@@ -542,10 +528,7 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new LabelErrorLayer(name, hc);
    }
-   if( !strcmp(classkeyword, "ANNLabelLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new ANNLabelLayer(name, hc);
-   }
+// ANNTriggerUpdateOnNewImageLayer is obsolete as of April 23, 2014.  Leaving it in the code for a while for a useful error message.
 // Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
    if( !strcmp(classkeyword, "ANNTriggerUpdateOnNewImageLayer") ) {
       keywordMatched = false; // true;
@@ -605,6 +588,28 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new FilenameParsingGroundTruthLayer(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
+   if( !strcmp(classkeyword, "ANNDivInhLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ANNDivInh(name, hc);
+   }
+   if( !strcmp(classkeyword, "ANNLabelLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ANNLabelLayer(name, hc);
+   }
+   if( !strcmp(classkeyword, "ANNWeightedErrorLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new ANNWeightedErrorLayer(name, hc);
+   }
+   if( !strcmp(classkeyword, "AccumulateLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new AccumulateLayer(name, hc);
+   }
+   if( !strcmp(classkeyword, "CliqueLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new CliqueLayer(name, hc);
+   }
+#endif // OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
    status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    if( !keywordMatched ) {
       fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);

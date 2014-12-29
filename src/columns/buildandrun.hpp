@@ -18,7 +18,6 @@
 
 #include "../layers/HyPerLayer.hpp"
 #include "../layers/ANNLayer.hpp"
-#include "../layers/AccumulateLayer.hpp"
 #include "../layers/GenerativeLayer.hpp"
 #include "../layers/IncrementLayer.hpp"
 #include "../layers/LeakyIntegrator.hpp"
@@ -26,7 +25,6 @@
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  No longer used.
 #include "../layers/PursuitLayer.hpp"
 #endif // OBSOLETE
-#include "../layers/CliqueLayer.hpp"
 #include "../layers/MatchingPursuitResidual.hpp"
 #include "../layers/PoolingANNLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
@@ -56,7 +54,6 @@
 #include "../layers/ShuffleLayer.hpp"
 #include "../layers/ANNSquaredLayer.hpp"
 #include "../layers/ANNWhitenedLayer.hpp"
-#include "../layers/ANNDivInh.hpp"
 #include "../layers/BIDSLayer.hpp"
 #include "../layers/BIDSCloneLayer.hpp"
 #include "../layers/BIDSMovieCloneMap.hpp"
@@ -64,14 +61,19 @@
 #include "../layers/LCALIFLayer.hpp"
 #include "../layers/HyPerLCALayer.hpp"
 #include "../layers/ANNErrorLayer.hpp"
-#include "../layers/ANNWeightedErrorLayer.hpp"
 #include "../layers/ANNNormalizedErrorLayer.hpp"
 #include "../layers/MLPErrorLayer.hpp"
 #include "../layers/MLPForwardLayer.hpp"
 #include "../layers/MLPOutputLayer.hpp"
 #include "../layers/LabelErrorLayer.hpp"
-#include "../layers/ANNLabelLayer.hpp"
 #include "../layers/KmeansLayer.hpp"
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
+#include "../layers/ANNDivInh.hpp"
+#include "../layers/ANNLabelLayer.hpp"
+#include "../layers/ANNWeightedErrorLayer.hpp"
+#include "../layers/AccumulateLayer.hpp"
+#include "../layers/CliqueLayer.hpp"
+#endif // OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
 #ifdef OBSOLETE // Marked obsolete April 23, 2014.
 // Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
 #include "../layers/ANNTriggerUpdateOnNewImageLayer.hpp"
