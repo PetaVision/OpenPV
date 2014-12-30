@@ -10,8 +10,8 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    nx                              = 512;   // [px]
-    ny                              = 512;   // [px]
+    nx                              = 256;   // [px]
+    ny                              = 256;   // [px]
     dt                              = 1.0;   // [ms]
     dtAdaptFlag                     = false; // Time step size is scaled by 1 / (maximimum % error)
 //                                           // i.e. adaptive time step uses the average error to scale dt
@@ -23,7 +23,7 @@ HyPerCol "column" = {
     randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime                       = 0;
     stopTime                        = 400; //displayPeriod * numImages
-    progressInterval                = 1000;
+    progressInterval                = 10;
     outputPath                      = "/home/dpaiton/workspace/LIFLCA/output/LCA/";
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
@@ -87,7 +87,7 @@ Movie "Input" = {
     normalizeStdDev        = true;     // Sets image std to 1
 //
     writeImages            = false;
-    autoResizeFlag         = false;
+    autoResizeFlag         = true;
     readPvpFile            = false;
     updateGpu              = false;
     phase                  = 0;
