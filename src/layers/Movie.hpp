@@ -31,7 +31,7 @@ public:
    virtual double calcTimeScale();
    //virtual int updateStateWrapper(double time, double dt);
    virtual int updateState(double time, double dt);
-   bool        updateImage(double time, double dt);
+   virtual bool updateImage(double time, double dt);
    // bool        getNewImageFlag();
    const char * getCurrentImage();
 
@@ -61,6 +61,8 @@ protected:
    bool readPvpFile;
    const char * getNextFileName(int n_skip);
    int updateFrameNum(int n_skip);
+   int skipFrameIndex; // skip this number of frames between each load
+   PV_Stream * timestampFile;
 
 
 private:
@@ -81,7 +83,6 @@ private:
    // bool newImageFlag; // true when a new image was presented this timestep;
 
    int startFrameIndex;
-   int skipFrameIndex; // skip this number of frames between each load
 
    char inputfile[PV_PATH_MAX];  // current input file name
    char * movieOutputPath;  // path to output file directory for movie frames
@@ -92,7 +93,6 @@ private:
    PV_Stream * filenamestream;
 
    bool writeFrameToTimestamp;
-   PV_Stream * timestampFile;
 
    bool flipOnTimescaleError;
 };

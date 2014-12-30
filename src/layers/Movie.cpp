@@ -324,9 +324,9 @@ int Movie::allocateDataStructures() {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "skip_frame_index"));
 
       assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
-      if (!autoResizeFlag){
-         constrainOffsets();  // ensure that offsets keep loc within image bounds
-      }
+      //if (!autoResizeFlag){
+      //   constrainOffsets();  // ensure that offsets keep loc within image bounds
+      //}
 
       // status = readImage(filename, getOffsetX(), getOffsetY()); // readImage already called by Image::allocateDataStructures(), above
       assert(status == PV_SUCCESS);

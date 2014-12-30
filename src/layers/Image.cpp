@@ -95,6 +95,7 @@ int Image::initialize_base() {
    frameStartBuf = NULL;
    countBuf = NULL;
    biasConstraintMethod = 0; 
+   padValue = 0;
    return PV_SUCCESS;
 }
 
@@ -150,6 +151,8 @@ int Image::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_offsetConstraintMethod(ioFlag);
    ioParam_writePosition(ioFlag);
    ioParam_useParamsImage(ioFlag);
+
+   ioParam_padValue(ioFlag);
 
    return status;
 }
@@ -258,6 +261,9 @@ void Image::ioParam_recurrenceProb(enum ParamsIOFlag ioFlag) {
    }
 }
 
+int Image::ioParam_padValue(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "padValue", &padValue, padValue);
+}
 
 void Image::ioParam_biasChangeTime(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "jitterFlag"));
@@ -554,20 +560,6 @@ int Image::scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
    return status;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                          PV::Communicator * comm, const PVLayerLoc * loc, float * buf, bool autoResizeFlag)
 {
@@ -666,26 +658,24 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       int xTotalSize = nx * nxProcs;
       int yTotalSize = ny * nyProcs;
 
-      //// if false, PetaVision will NOT automatically resize your images, so you had better
-      //// choose the right offsets and sizes.
-      //if (!autoResizeFlag){
-      //   if (xOffset + xTotalSize > xImageSize || yOffset + yTotalSize > yImageSize || xOffset < 0 || yOffset < 0) {
-      //      fprintf(stderr, "[ 0]: scatterImageFile: image size too small, "
-      //            "xTotalSize==%d xImageSize==%d yTotalSize==%d yImageSize==%d xOffset==%d yOffset==%d\n",
-      //            xTotalSize, xImageSize, yTotalSize, yImageSize, xOffset, yOffset);
-      //      fprintf(stderr, "[ 0]: xSize==%d ySize==%d nxProcs==%d nyProcs==%d\n",
-      //            nx, ny, nxProcs, nyProcs);
-      //      GDALClose(dataset);
-      //      return -1;
-      //   }
-      //}
-
       // if nf > bands of image, it will copy the gray image to each
       //band of layer
       assert(numBands == 1 || numBands == bandsInFile || (numBands > 1 && bandsInFile == 1));
 
       int dest = -1;
       const int tag = 13;
+
+      float padValue_conv;
+      if(dataType == GDT_Byte){
+         padValue_conv = padValue * 255.0f;
+      }
+      else if(dataType == GDT_UInt16){
+         padValue_conv = padValue * 65535.0f;
+      }
+      else{
+         std::cout << "Image data type " << GDALGetDataTypeName(dataType) << " not implemented for image rescaling\n";
+         exit(-1);
+      }
 
       using std::min;
       using std::max;
@@ -696,7 +686,8 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 #pragma omp parallel for
 #endif
          for(int i = 0; i < nx * ny * bandsInFile; i++){ 
-            buf[i] = 0;
+            //Fill with padValue
+            buf[i] = padValue_conv;
          }
 
 
@@ -857,20 +848,6 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 #endif // PV_USE_GDAL
 
    if (status == 0) {
-
-      //std::cout << "Image data type " << dataType << ": " << GDALGetDataTypeName(dataType) << "\n";
-      //exit(-1);
-
-      // Workaround for gdal problem with binary images.
-      // If the all values are zero or 1, assume its a binary image and keep the values the same.
-      // If other values appear, divide by 255 to scale to [0,1]
-      //bool isgrayscale = false;
-      //for (int n=0; n<numTotal; n++) {
-      //   if (buf[n] != 0.0 && buf[n] != 1.0) {
-      //      isgrayscale = true;
-      //      break;
-      //   }
-      //}
       if(!isBinary){
          float fac;
          if(dataType == GDT_Byte){
@@ -881,6 +858,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
          }
          else{
             std::cout << "Image data type " << GDALGetDataTypeName(dataType) << " not implemented for image rescaling\n";
+            exit(-1);
          }
          for( int n=0; n<numTotal; n++ ) {
             buf[n] *= fac;
