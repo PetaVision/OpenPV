@@ -208,26 +208,26 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
                "TextStreamProbe",
 	       "LCAProbe",
                   "PointLIFProbe",
-                    "PointLCALIFProbe",
                "StatsProbe",
                "SparsityLayerProbe",
                "LayerFunctionProbe",
                  "L2NormProbe",
-                 "SparsityTermProbe",
                  "LogLatWTAProbe",
                "RequireAllZeroActivityProbe",
            "_Stop_LayerProbes_",
            "_Start_BaseConnectionProbes_",
-             "ConnStatsProbe",
              "KernelProbe",
-             "OjaConnProbe",
-             "LCALIFLateralProbe",
-             "PatchProbe",
 #ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
              "ReciprocalEnergyProbe",
 #endif // OBSOLETE
 #ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
+             "ConnStatsProbe",
+             "LCALIFLateralProbe",
+             "OjaConnProbe",
              "OjaKernelSpikeRateProbe",
+             "PatchProbe",
+                    "PointLCALIFProbe",
+                 "SparsityTermProbe",
 #endif // OBSOLETE
            "_Stop_BaseConnectionProbes_",
            "_Start_ConnectionProbes_",
@@ -870,13 +870,14 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
       addedProbe = new ReciprocalEnergyProbe(name, hc);
    }
 #endif // OBSOLETE
-   if( !strcmp(classkeyword, "ConnStatsProbe") ) {
-      keywordMatched = true;
-      addedProbe = new ConnStatsProbe(name, hc);
-   }
    if( !strcmp(classkeyword, "KernelProbe") ) {
       keywordMatched = true;
       addedProbe = new KernelProbe(name, hc);
+   }
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes
+   if( !strcmp(classkeyword, "ConnStatsProbe") ) {
+      keywordMatched = true;
+      addedProbe = new ConnStatsProbe(name, hc);
    }
    if( !strcmp(classkeyword, "LCALIFLateralProbe") ) {
       keywordMatched = true;
@@ -886,14 +887,13 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
       keywordMatched = true;
       addedProbe = new LCALIFLateralProbe(name, hc);
    }
-   if( !strcmp(classkeyword, "PatchProbe") ) {
-      keywordMatched = true;
-      addedProbe = new PatchProbe(name, hc);
-   }
-#ifdef OBSOLETE
    if( !strcmp(classkeyword, "OjaKernelSpikeRateProbe") ) {
       keywordMatched = true;
       addedProbe = new OjaKernelSpikeRateProbe(name, hc);
+   }
+   if( !strcmp(classkeyword, "PatchProbe") ) {
+      keywordMatched = true;
+      addedProbe = new PatchProbe(name, hc);
    }
 #endif // OBSOLETE
    status = checknewobject((void *) addedProbe, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
@@ -927,9 +927,6 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    if( !strcmp(classkeyword, "PointLIFProbe") ) {
       addedProbe = (LayerProbe *) new PointLIFProbe(name, hc);
    }
-   if( !strcmp(classkeyword, "PointLCALIFProbe") ) {
-      addedProbe = (LayerProbe *) new PointLIFProbe(name, hc);
-   }
    if( !strcmp(classkeyword, "StatsProbe") ) {
       addedProbe = (LayerProbe *) new StatsProbe(name, hc);
    }
@@ -939,15 +936,20 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    if( !strcmp(classkeyword, "L2NormProbe") ) {
       addedProbe = (LayerProbe *) new L2NormProbe(name, hc);
    }
-   if( !strcmp(classkeyword, "SparsityTermProbe") ) {
-      addedProbe = (LayerProbe *) new SparsityTermProbe(name, hc);
-   }
    if( !strcmp(classkeyword, "LogLatWTAProbe") ) {
       addedProbe = new LogLatWTAProbe(name, hc);
    }
    if( !strcmp(classkeyword, "RequireAllZeroActivityProbe") ) {
       addedProbe = new RequireAllZeroActivityProbe(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes
+   if( !strcmp(classkeyword, "PointLCALIFProbe") ) {
+      addedProbe = (LayerProbe *) new PointLIFProbe(name, hc);
+   }
+   if( !strcmp(classkeyword, "SparsityTermProbe") ) {
+      addedProbe = (LayerProbe *) new SparsityTermProbe(name, hc);
+   }
+#endif // OBSOLETE
    status = checknewobject((void *) addedProbe, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    assert( !(status == PV_SUCCESS && !addedProbe) );
    if( status != PV_SUCCESS ) {

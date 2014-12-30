@@ -144,28 +144,28 @@
 #endif // OBSOLETE
 
 #include "../io/BaseConnectionProbe.hpp"
-#include "../io/ConnStatsProbe.hpp"
 #ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
 #include "../io/ReciprocalEnergyProbe.hpp"
 #endif // OBSOLETE
 #include "../io/KernelProbe.hpp"
-#include "../io/LCALIFLateralProbe.hpp"
-#include "../io/OjaConnProbe.hpp"
-#include "../io/PatchProbe.hpp"
 #include "../io/TextStreamProbe.hpp"
 #include "../io/LayerProbe.hpp"
 #include "../io/PointProbe.hpp"
-#include "../io/PointLCALIFProbe.hpp"
 #include "../io/PointLIFProbe.hpp"
 #include "../io/StatsProbe.hpp"
 #include "../io/SparsityLayerProbe.hpp"
 #include "../io/L2NormProbe.hpp"
-#include "../io/SparsityTermProbe.hpp"
 #include "../io/LogLatWTAProbe.hpp"
 #include "../io/RequireAllZeroActivityProbe.hpp"
 #include "../io/GenColProbe.hpp"
 #ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
+#include "../io/ConnStatsProbe.hpp"
+#include "../io/LCALIFLateralProbe.hpp"
+#include "../io/OjaConnProbe.hpp"
 #include "../io/OjaKernelSpikeRateProbe.hpp"
+#include "../io/PatchProbe.hpp"
+#include "../io/PointLCALIFProbe.hpp"
+#include "../io/SparsityTermProbe.hpp"
 #endif // OBSOLETE
 
 using namespace PV;
