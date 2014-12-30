@@ -113,9 +113,9 @@ def read_sparse_data(fileStream,dense_shape):
         return (-1, None)
 
     timeStamp = struct.unpack("d", timeStamp)
+
     try:
         numActive = np.fromfile(fileStream,np.int32,1)
-
         if numActive > 0:
             lin_idx   = np.zeros(numActive)
             vals      = np.zeros(numActive)
@@ -125,11 +125,12 @@ def read_sparse_data(fileStream,dense_shape):
             for i in range(numActive):
                 lin_idx[i] = np.fromfile(fileStream,np.int32,1)
                 vals[i]    = np.fromfile(fileStream,np.float32,1)
+                #TODO: Maybe make ^^ take in a two column vector all at once, instead of reading one value each iteration
                 #(idf[i],idx[i],idy[i]) = np.unravel_index(lin_idx[i],shape) # Linear indexing to subscripts
 
-                # Compressed Sparse Column Matrix has efficient column slicing
-                ij_mat = (np.zeros(numActive),lin_idx)
-                sparseMat = sparse.csc_matrix((vals,ij_mat),shape=(1,dense_shape)) # 1 row, nf*ny*nx columns
+                # Compressed Sparse Column Matrix has efficient column slicing <<TODO: Is this true?
+            ij_mat = (np.zeros(numActive),lin_idx)
+            sparseMat = sparse.csc_matrix((vals,ij_mat),shape=(1,dense_shape)) # 1 row, nf*ny*nx columns
 
         else:
             sparseMat = sparse.csc_matrix(np.zeros(1,dense_shape))
@@ -168,11 +169,12 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
 
     if skipFrames < 1:
         skipFrames = 1
-        
+
     hdr = read_header_file(fileStream)
 
     (frameSize, numFrames) = get_frame_info(hdr,fileStream)
 
+    #pdb.set_trace()
     if lastFrame != -1:
         numFrames = lastFrame
 
