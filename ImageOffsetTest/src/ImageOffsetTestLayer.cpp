@@ -43,9 +43,77 @@ int ImageOffsetTestLayer::updateState(double timef, double dt){
                   expectedvalue = (iyGlobal - 8) * 16 + (ixGlobal - 8);
                }
             }
-            
-            if(fabs(actualvalue-expectedvalue) < 1e-4){
-               std::cout << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << "\n";
+            else if(strcmp(name, "TLCorner") == 0){
+               if(ixGlobal < 2 && iyGlobal < 2){
+                  expectedvalue = (iyGlobal + 14) * 16 + (ixGlobal + 14);
+               }
+               else{
+                  expectedvalue = 0;
+               }
+            }
+            else if(strcmp(name, "TRCorner") == 0){
+               if(ixGlobal >= 14 && iyGlobal < 2){
+                  expectedvalue = (iyGlobal + 14) * 16 + (ixGlobal - 14);
+               }
+               else{
+                  expectedvalue = 0;
+               }
+            }
+            else if(strcmp(name, "BLCorner") == 0){
+               if(ixGlobal < 2 && iyGlobal >= 14){
+                  expectedvalue = (iyGlobal - 14) * 16 + (ixGlobal + 14);
+               }
+               else{
+                  expectedvalue = 0;
+               }
+            }
+            else if(strcmp(name, "BRCorner") == 0){
+               if(ixGlobal >= 14 && iyGlobal >= 14){
+                  expectedvalue = (iyGlobal - 14) * 16 + (ixGlobal - 14);
+               }
+               else{
+                  expectedvalue = 0;
+               }
+            }
+            else if(strcmp(name, "TLOver") == 0){
+               if(ixGlobal >= 14 || iyGlobal >= 14){
+                  expectedvalue = 0;
+               }
+               else{
+                  expectedvalue = (iyGlobal + 2) * 16 + (ixGlobal + 2);
+               }
+            }
+            else if(strcmp(name, "TROver") == 0){
+               if(ixGlobal < 2 || iyGlobal >= 14){
+                  expectedvalue = 0;
+               }
+               else{
+                  expectedvalue = (iyGlobal + 2) * 16 + (ixGlobal - 2);
+               }
+            }
+            else if(strcmp(name, "BLOver") == 0){
+               if(ixGlobal >= 14 || iyGlobal < 2){
+                  expectedvalue = 0;
+               }
+               else{
+                  expectedvalue = (iyGlobal - 2) * 16 + (ixGlobal + 2);
+               }
+            }
+            else if(strcmp(name, "BROver") == 0){
+               if(ixGlobal < 2 || iyGlobal < 2){
+                  expectedvalue = 0;
+               }
+               else{
+                  expectedvalue = (iyGlobal - 2) * 16 + (ixGlobal - 2);
+               }
+            }
+            else{
+               std::cout << "Layer name " << name << " not recoginzed\n";
+               exit(-1);
+            }
+            float diff = fabs(actualvalue - expectedvalue);
+            if(diff >= 1e-4){
+               std::cout << "Connection " << name << " Mismatch at (" << ixGlobal << "," << iyGlobal << "," << iF << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << "\n";
                isCorrect = false;
             }
          }

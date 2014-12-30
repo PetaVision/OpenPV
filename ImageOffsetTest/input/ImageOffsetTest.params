@@ -46,61 +46,61 @@ ImageOffsetTestLayer "pad" = {
    @nxScale = 2;
    @nyScale = 2;
 };
-//
-//ImageOffsetTestLayer "TLCorner" = {
-//   #include "crop"
-//   @nxScale = 1;
-//   @nyScale = 1;
-//   @offsetAnchor = "tl";
-//   @offsetX = 14;
-//   @offsetY = 14;
-//};
-//
-//ImageOffsetTestLayer "TRCorner" = {
-//   #include "TLCorner"
-//   @offsetAnchor = "tr";
-//   @offsetX = -14;
-//   @offsetY = 14;
-//};
-//
-//ImageOffsetTestLayer "BLCorner" = {
-//   #include "TLCorner"
-//   @offsetAnchor = "bl";
-//   @offsetX = 14;
-//   @offsetY = -14;
-//};
-//
-//ImageOffsetTestLayer "TLCorner" = {
-//   #include "TLCorner"
-//   @offsetAnchor = "br";
-//   @offsetX = -14;
-//   @offsetY = -14;
-//};
-//
-//ImageOffsetTestLayer "TLOver" = {
-//   #include "TLCorner"
-//   @offsetAnchor = "tl";
-//   @offsetX = 2;
-//   @offsetY = 2;
-//};
-//
-//ImageOffsetTestLayer "TROver" = {
-//   #include "TLCorner"
-//   @offsetAnchor = "tr";
-//   @offsetX = -2;
-//   @offsetY = 2;
-//};
-//
-//ImageOffsetTestLayer "BLOver" = {
-//   #include "TLCorner"
-//   @offsetAnchor = "bl";
-//   @offsetX = 2;
-//   @offsetY = -2;
-//};
-//
-//ImageOffsetTestLayer "TLOver" = {
-//   #include "TLCorner"
-//   @offsetAnchor = "br";
-//   @offsetX = -2;
-//   @offsetY = -2;
-//};
+
+ImageOffsetTestLayer "TLCorner" = {
+   #include "crop";
+   @nxScale = 1;
+   @nyScale = 1;
+   @offsetAnchor = "tl";
+   @offsetX = 14;
+   @offsetY = 14;
+};
+
+ImageOffsetTestLayer "TRCorner" = {
+   #include "TLCorner";
+   @offsetAnchor = "tr";
+   @offsetX = -14;
+   @offsetY = 14;
+};
+
+ImageOffsetTestLayer "BLCorner" = {
+   #include "TLCorner";
+   @offsetAnchor = "bl";
+   @offsetX = 14;
+   @offsetY = -14;
+};
+
+ImageOffsetTestLayer "BRCorner" = {
+   #include "TLCorner";
+   @offsetAnchor = "br";
+   @offsetX = -14;
+   @offsetY = -14;
+};
+
+ImageOffsetTestLayer "TLOver" = {
+   #include "TLCorner";
+   @offsetAnchor = "tl";
+   @offsetX = 2;
+   @offsetY = 2;
+};
+
+ImageOffsetTestLayer "TROver" = {
+   #include "TLCorner";
+   @offsetAnchor = "tr";
+   @offsetX = -2;
+   @offsetY = 2;
+};
+
+ImageOffsetTestLayer "BLOver" = {
+   #include "TLCorner";
+   @offsetAnchor = "bl";
+   @offsetX = 2;
+   @offsetY = -2;
+};
+
+ImageOffsetTestLayer "BROver" = {
+   #include "TLCorner";
+   @offsetAnchor = "br";
+   @offsetX = -2;
+   @offsetY = -2;
+};
