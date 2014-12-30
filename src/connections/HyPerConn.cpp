@@ -3303,7 +3303,6 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
 #endif
-   //TODO loop over active indicies here instead
    for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
       int kPre;
       if(activity->isSparse){

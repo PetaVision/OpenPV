@@ -650,21 +650,6 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       MPI_Bcast(&isBinary, 1, MPI_CHAR, 0, mpi_comm);
 #endif // PV_USE_MPI
 
-
-      //GDALDatasetH datasetH = GDALOpen(filename, GA_ReadOnly); // (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
-      //assert(datasetH);
-      //metadata = dataset->GetMetadataDomainList();
-      //std::cout << filename << " CSLCount: " << CSLCount(metadata) << "\n";
-      //if(CSLCount(metadata) > 0){
-      //   for(int i = 0; metadata[i] != NULL; i++){
-      //      std::cout << metadata[i] << "\n";
-      //   }
-      //}
-      //exit(-1);
-      
-
-      
-
       if (dataset==NULL) return 1; // PV_GDALOpen prints an error message.
       int xImageSize = dataset->GetRasterXSize();
       int yImageSize = dataset->GetRasterYSize();
@@ -681,37 +666,45 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       int xTotalSize = nx * nxProcs;
       int yTotalSize = ny * nyProcs;
 
-      // if false, PetaVision will NOT automatically resize your images, so you had better
-      // choose the right offsets and sizes.
-      if (!autoResizeFlag){
-         if (xOffset + xTotalSize > xImageSize || yOffset + yTotalSize > yImageSize || xOffset < 0 || yOffset < 0) {
-            fprintf(stderr, "[ 0]: scatterImageFile: image size too small, "
-                  "xTotalSize==%d xImageSize==%d yTotalSize==%d yImageSize==%d xOffset==%d yOffset==%d\n",
-                  xTotalSize, xImageSize, yTotalSize, yImageSize, xOffset, yOffset);
-            fprintf(stderr, "[ 0]: xSize==%d ySize==%d nxProcs==%d nyProcs==%d\n",
-                  nx, ny, nxProcs, nyProcs);
-            GDALClose(dataset);
-            return -1;
-         }
-      }
+      //// if false, PetaVision will NOT automatically resize your images, so you had better
+      //// choose the right offsets and sizes.
+      //if (!autoResizeFlag){
+      //   if (xOffset + xTotalSize > xImageSize || yOffset + yTotalSize > yImageSize || xOffset < 0 || yOffset < 0) {
+      //      fprintf(stderr, "[ 0]: scatterImageFile: image size too small, "
+      //            "xTotalSize==%d xImageSize==%d yTotalSize==%d yImageSize==%d xOffset==%d yOffset==%d\n",
+      //            xTotalSize, xImageSize, yTotalSize, yImageSize, xOffset, yOffset);
+      //      fprintf(stderr, "[ 0]: xSize==%d ySize==%d nxProcs==%d nyProcs==%d\n",
+      //            nx, ny, nxProcs, nyProcs);
+      //      GDALClose(dataset);
+      //      return -1;
+      //   }
+      //}
+
       // if nf > bands of image, it will copy the gray image to each
       //band of layer
       assert(numBands == 1 || numBands == bandsInFile || (numBands > 1 && bandsInFile == 1));
 
-
-
-
-#ifdef PV_USE_MPI
       int dest = -1;
       const int tag = 13;
 
       using std::min;
       using std::max;
-      for( dest = 1; dest < nyProcs*nxProcs; dest++ ) {
+      for( dest = nyProcs*nxProcs-1; dest >= 0; dest-- ) {
+
+         //Need to clear buffer before reading, since we're skipping some of the buffer
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+         for(int i = 0; i < nx * ny * bandsInFile; i++){ 
+            buf[i] = 0;
+         }
+
+
          int col = columnFromRank(dest,nyProcs,nxProcs);
          int row = rowFromRank(dest,nyProcs,nxProcs);
          int kx = nx * col;
          int ky = ny * row;
+
 
          //? For the auto resize flag, PV checks which side (x or y) is the shortest, relative to the
          //? hypercolumn size specified.  Then it determines the largest chunk it can possibly take
@@ -724,93 +717,139 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 
          if (autoResizeFlag){
 
-             if (xImageSize/(double)xTotalSize < yImageSize/(double)yTotalSize){
-                int new_y = int(round(ny*xImageSize/(double)xTotalSize));
-                int y_off = int(round((yImageSize - new_y*nyProcs)/2.0));
+            if (xImageSize/(double)xTotalSize < yImageSize/(double)yTotalSize){
+               int new_y = int(round(ny*xImageSize/(double)xTotalSize));
+               int y_off = int(round((yImageSize - new_y*nyProcs)/2.0));
 
-                int jitter_y = max(min(y_off,yOffset),-y_off);
+               int jitter_y = max(min(y_off,yOffset),-y_off);
 
-                kx = xImageSize/nxProcs * col;
-                ky = new_y * row;
+               kx = xImageSize/nxProcs * col;
+               ky = new_y * row;
 
-                //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", kx, ky, xImageSize/nxProcs, new_y);
+               //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", kx, ky, xImageSize/nxProcs, new_y);
 
-                dataset->RasterIO(GF_Read, kx, ky + y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
-                                  GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
-                                  bandsInFile*nx*sizeof(float), sizeof(float));
-             }
-             else{
-                int new_x = int(round(nx*yImageSize/(double)yTotalSize));
-                int x_off = int(round((xImageSize - new_x*nxProcs)/2.0));
+               dataset->RasterIO(GF_Read, kx, ky + y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
+                     GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
+                     bandsInFile*nx*sizeof(float), sizeof(float));
+            }
+            else{
+               int new_x = int(round(nx*yImageSize/(double)yTotalSize));
+               int x_off = int(round((xImageSize - new_x*nxProcs)/2.0));
 
-                int jitter_x = max(min(x_off,xOffset),-x_off);
+               int jitter_x = max(min(x_off,xOffset),-x_off);
 
-                kx = new_x * col;
-                ky = yImageSize/nyProcs * row;
+               kx = new_x * col;
+               ky = yImageSize/nyProcs * row;
 
-                //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d, x_off = %d", kx, ky, new_x, yImageSize/nyProcs, x_off);
-                dataset->RasterIO(GF_Read, kx + x_off + jitter_x, ky, new_x, yImageSize/nyProcs, buf, nx, ny,
-                                  GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
-                                  bandsInFile*nx*sizeof(float),sizeof(float));
-             }
-          }
+               //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d, x_off = %d", kx, ky, new_x, yImageSize/nyProcs, x_off);
+               dataset->RasterIO(GF_Read, kx + x_off + jitter_x, ky, new_x, yImageSize/nyProcs, buf, nx, ny,
+                     GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
+                     bandsInFile*nx*sizeof(float),sizeof(float));
+            }
+         }//End autoResizeFlag
          else {
+            //Need to calculate corner image pixels in globalres space
+            //offset is in Image space
+            int img_left = -xOffset;
+            int img_top = -yOffset;
+            int img_right = img_left + xImageSize;
+            int img_bot = img_top + yImageSize;
 
-            //fprintf(stderr, "just checking");
-             dataset->RasterIO(GF_Read, kx+xOffset, ky+yOffset, nx, ny, buf,
-                               nx, ny, GDT_Float32, bandsInFile, NULL,
-                               bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
+            //Check if in bounds
+            if(img_left >= kx+nx || img_right <= kx || img_top >= ky+ny || img_bot <= ky){
+               //Do mpi_send to keep number of sends correct
+               if(dest > 0){
+                  MPI_Send(buf, numTotal, MPI_FLOAT, dest, tag, mpi_comm);
+               }
+               continue;
+            }
+
+
+            //start of the buffer on the left/top side
+            int buf_left = img_left > kx ? img_left-kx : 0;
+            int buf_top = img_top > ky ? img_top-ky : 0;
+            int buf_right = img_right < kx+nx ? img_right-kx : nx;
+            int buf_bot = img_bot < ky+ny ? img_bot-ky : ny;
+
+            int buf_xSize = buf_right - buf_left; 
+            int buf_ySize = buf_bot - buf_top;
+            assert(buf_xSize > 0 && buf_ySize > 0);
+
+            int buf_offset = buf_top * nx * bandsInFile + buf_left * bandsInFile;
+
+            int img_offset_x = kx+xOffset;
+            int img_offset_y = ky+yOffset;
+            if(img_offset_x < 0){
+               img_offset_x = 0;
+            }
+            if(img_offset_y < 0){
+               img_offset_y = 0;
+            }
+
+            float* buf_start = buf + buf_offset;
+
+            dataset->RasterIO(GF_Read, img_offset_x, img_offset_y, buf_xSize, buf_ySize, buf_start,
+                  buf_xSize,
+                  buf_ySize, GDT_Float32, bandsInFile, NULL,
+                  bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
 
          }
 #ifdef DEBUG_OUTPUT
-fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
-      " ySize==%d bandsInFile==%d size==%d total(over all procs)==%d\n",
-      comm->commRank(), dest, nx, ny, bandsInFile, numTotal,
-      nx*ny*comm->commSize());
+         fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
+               " ySize==%d bandsInFile==%d size==%d total(over all procs)==%d\n",
+               comm->commRank(), dest, nx, ny, bandsInFile, numTotal,
+               nx*ny*comm->commSize());
 #endif // DEBUG_OUTPUT
-         MPI_Send(buf, numTotal, MPI_FLOAT, dest, tag, mpi_comm);
-      }
-#endif // PV_USE_MPI
 
+#ifdef PV_USE_MPI
+         if(dest > 0){
+            MPI_Send(buf, numTotal, MPI_FLOAT, dest, tag, mpi_comm);
+         }
+#endif // PV_USE_MPI
+      }
+
+      GDALClose(dataset);
+
+      //Moved to above for loop
       // get local image portion
 
       //? same logic as before, except this time we know that the row and column are 0
 
-      if (autoResizeFlag){
+      //if (autoResizeFlag){
 
-         if (xImageSize/(double)xTotalSize < yImageSize/(double)yTotalSize){
-            int new_y = int(round(ny*xImageSize/(double)xTotalSize));
-            int y_off = int(round((yImageSize - new_y*nyProcs)/2.0));
+      //   if (xImageSize/(double)xTotalSize < yImageSize/(double)yTotalSize){
+      //      int new_y = int(round(ny*xImageSize/(double)xTotalSize));
+      //      int y_off = int(round((yImageSize - new_y*nyProcs)/2.0));
 
-            int offset_y = max(min(y_off,yOffset),-y_off);
+      //      int offset_y = max(min(y_off,yOffset),-y_off);
 
-            //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", 0, 0, xImageSize/nxProcs, new_y);
-            dataset->RasterIO(GF_Read, 0, y_off + offset_y, xImageSize/nxProcs, new_y, buf, nx, ny,
-                              GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
-                              bandsInFile*nx*sizeof(float), sizeof(float));
-         }
-         else{
-            int new_x = int(round(nx*yImageSize/(double)yTotalSize));
-            int x_off = int(round((xImageSize - new_x*nxProcs)/2.0));
+      //      //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", 0, 0, xImageSize/nxProcs, new_y);
+      //      dataset->RasterIO(GF_Read, 0, y_off + offset_y, xImageSize/nxProcs, new_y, buf, nx, ny,
+      //                        GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
+      //                        bandsInFile*nx*sizeof(float), sizeof(float));
+      //   }
+      //   else{
+      //      int new_x = int(round(nx*yImageSize/(double)yTotalSize));
+      //      int x_off = int(round((xImageSize - new_x*nxProcs)/2.0));
 
-            int offset_x = max(min(x_off,xOffset),-x_off);
+      //      int offset_x = max(min(x_off,xOffset),-x_off);
 
-            //fprintf(stderr, "xImageSize = %d, xTotalSize = %d, yImageSize = %d, yTotalSize = %d", xImageSize, xTotalSize, yImageSize, yTotalSize);
-            //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d",
-            //0, 0, new_x, yImageSize/nyProcs);
-            dataset->RasterIO(GF_Read, x_off + offset_x, 0, new_x, yImageSize/nyProcs, buf, nx, ny,
-                              GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
-                              bandsInFile*nx*sizeof(float),sizeof(float));
-         }
-      }
-      else {
+      //      //fprintf(stderr, "xImageSize = %d, xTotalSize = %d, yImageSize = %d, yTotalSize = %d", xImageSize, xTotalSize, yImageSize, yTotalSize);
+      //      //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d",
+      //      //0, 0, new_x, yImageSize/nyProcs);
+      //      dataset->RasterIO(GF_Read, x_off + offset_x, 0, new_x, yImageSize/nyProcs, buf, nx, ny,
+      //                        GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
+      //                        bandsInFile*nx*sizeof(float),sizeof(float));
+      //   }
+      //}
+      //else {
 
-         //fprintf(stderr,"just checking");
-          dataset->RasterIO(GF_Read, xOffset, yOffset, nx, ny, buf, nx, ny,
-                            GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
-      }
+      //   //fprintf(stderr,"just checking");
+      //    dataset->RasterIO(GF_Read, xOffset, yOffset, nx, ny, buf, nx, ny,
+      //                      GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
+      //}
 
-      GDALClose(dataset);
+      //GDALClose(dataset);
    }
 #else
    fprintf(stderr, GDAL_CONFIG_ERR_STR);
@@ -1114,10 +1153,11 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
       abort();
    }
 
+   //See if we are padding
    int n = loc->nx * loc->ny * imageLoc.nf;
 
    // Use number of bands in file instead of in params, to allow for grayscale conversion
-   float * buf = new float[n];
+   float * buf = (float*) calloc(n, sizeof(float));
    assert(buf != NULL);
 
    int aOffsetX = getOffsetX(anchor, offsetX);
@@ -1144,7 +1184,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
    assert(status == PV_SUCCESS);
    if( loc->nf == 1 && imageLoc.nf > 1 ) {
       float * graybuf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);
-      delete[] buf;
+      free(buf);
       buf = graybuf;
       //Redefine n for grayscale images
       n = loc->nx * loc->ny;
@@ -1229,7 +1269,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
 
    if( status == PV_SUCCESS ) copyFromInteriorBuffer(buf, 1.0f);
 
-   delete[] buf;
+   free(buf);
 
    if(useImageBCflag){ //Restore non-extended dimensions
       loc->nx = loc->nx - loc->halo.lt - loc->halo.rt;
