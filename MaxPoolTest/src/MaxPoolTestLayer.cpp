@@ -31,8 +31,8 @@ int MaxPoolTestLayer::updateState(double timef, double dt){
          //Y axis spins fastest
          float actualvalue = A[idx]*255;
          
-         int xval = iX-loc->halo.lt;
-         int yval = iY-loc->halo.up;
+         int xval = iX+kx0-loc->halo.lt;
+         int yval = iY+ky0-loc->halo.up;
          //Patches on edges have same answer as previous neuron
          if(xval == 7){
             xval -= 1;
