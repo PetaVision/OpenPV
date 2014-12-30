@@ -6,6 +6,7 @@
 %% original images to verify that the bounding box annotations are reasonable
 %% hit any key to advance to the next image
 close all
+more off
 pkg load all
 setenv("GNUTERM","X11")
 addpath("~/workspace/PetaVision/mlab/imgProc");
@@ -106,11 +107,13 @@ gt_num_frames = length(gt_data);
 num_colors = 2^24;
 accuracy_vs_time = zeros(gt_num_frames,1);
 confusion_matrix = zeros(gt_hdr.nf);
-classID_hist_bins = -1:0.01:2;
+classID_hist_bins = -0.25:0.01:2.0;
 num_classID_bins = length(classID_hist_bins);
 pred_classID_hist = zeros(num_classID_bins, pred_hdr.nf,2);
 %%pred_classID_sum = zeros(pred_hdr.nf, 1);
 %%pred_classID_sum2 = zeros(pred_hdr.nf, 1);
+classID_colormap = rainbow(gt_hdr.nf); %%rainbow(pred_hdr.nf); %%prism(pred_hdr.nf);
+false_positive_thresh = .99;
 for i_frame = 1 : min(pred_num_frames, gt_num_frames) 
 
   %% ground truth layer is sparse
@@ -130,17 +133,17 @@ for i_frame = 1 : min(pred_num_frames, gt_num_frames)
     min_gt_classID = min(gt_classID_val(:))
     %%gt_classID_cube = gt_classID_cube .* (gt_classID_cube >= min_gt_classID);
     gt_classID_heatmap = zeros(gt_hdr.ny, gt_hdr.nx, 3);
-    for i_gt_classID = 1 : gt_hdr.nf
-      if ~any(gt_classID_cube(:,:,i_gt_classID))
+    for i_classID = 1 : gt_hdr.nf
+      if ~any(any(gt_classID_cube(:,:,i_classID)))
 	continue;
       endif
-      gt_class_color_code = i_gt_classID * num_colors / gt_hdr.nf;
-      gt_class_color = getClassColor(gt_class_color_code);
-      gt_classID_band = repmat(gt_classID_cube(:,:,i_gt_classID), [1,1,3]);
-      gt_classID_band(:,:,1) = gt_classID_band(:,:,1) * gt_class_color(1);
-      gt_classID_band(:,:,2) = gt_classID_band(:,:,2) * gt_class_color(2);
-      gt_classID_band(:,:,3) = gt_classID_band(:,:,3) * gt_class_color(3);
-      gt_classID_heatmap = gt_classID_heatmap + gt_classID_band .* (gt_classID_heatmap == 0);
+      gt_class_color_code = i_classID * num_colors / gt_hdr.nf;
+      gt_class_color = classID_colormap(mod(i_classID,gt_hdr.nf)+1, :); %%getClassColor(gt_class_color_code);
+      gt_classID_band = repmat(gt_classID_cube(:,:,i_classID), [1,1,3]);
+      gt_classID_band(:,:,1) = gt_classID_band(:,:,1) * gt_class_color(1)*255;
+      gt_classID_band(:,:,2) = gt_classID_band(:,:,2) * gt_class_color(2)*255;
+      gt_classID_band(:,:,3) = gt_classID_band(:,:,3) * gt_class_color(3)*255;
+      gt_classID_heatmap = gt_classID_heatmap + gt_classID_band .* repmat(squeeze(sum(gt_classID_heatmap,3)==0),[1,1,3]);
     endfor
     gt_classID_heatmap = mod(gt_classID_heatmap, 255);
     if plot_flag
@@ -178,17 +181,23 @@ for i_frame = 1 : min(pred_num_frames, gt_num_frames)
     pred_classID_thresh = zeros(pred_hdr.nf,1);
     pred_classID_true_pos = zeros(pred_hdr.nf,1);
     pred_classID_false_pos = zeros(pred_hdr.nf,1);
+    pred_classID_accuracy = zeros(pred_hdr.nf,1);
     for i_classID = 1 : pred_hdr.nf
-      pred_classID_bin_tmp = find((squeeze(pred_classID_cumprob(:,i_classID,1))>squeeze(pred_classID_cumprob(:,i_classID,2))), 1, "first");
+      pos_hist_tmp = squeeze(pred_classID_hist(:,i_classID,1)) ./ squeeze(pred_classID_norm(:,i_classID,1));
+      neg_hist_tmp = squeeze(pred_classID_hist(:,i_classID,2)) ./ squeeze(pred_classID_norm(:,i_classID,2));
+      %%pred_classID_bin_tmp = find( (squeeze(pos_hist_tmp > neg_hist_tmp) .* squeeze(classID_hist_bins>0)'), 1, "first");
+      pred_classID_bin_tmp = find( pred_classID_cumprob(:,i_classID,2)>false_positive_thresh, 1, "first");
       if ~isempty(pred_classID_bin_tmp)
 	pred_classID_thresh_bin(i_classID) = pred_classID_bin_tmp;
-	pred_classID_thresh(i_classID) = classID_hist_bins(pred_classID_thresh_bin(i_classID));
+	pred_classID_thresh(i_classID) = classID_hist_bins(pred_classID_bin_tmp);
 	pred_classID_true_pos(i_classID) = (1 - pred_classID_cumprob(pred_classID_bin_tmp,i_classID,1));
-	pred_classID_false_pos(i_classID) = (1 - pred_classID_cumprob(pred_classID_bin_tmp,i_classID,2));
+	pred_classID_false_pos(i_classID) = (pred_classID_cumprob(pred_classID_bin_tmp,i_classID,2));
+	pred_classID_accuracy(i_classID) = (pred_classID_true_pos(i_classID) + pred_classID_false_pos(i_classID)) / 2;
       else
 	pred_classID_thresh(i_classID) = classID_hist_bins(end);
 	pred_classID_true_pos(i_classID) = 0.0;
 	pred_classID_false_pos(i_classID) = 0.0;
+	pred_classID_accuracy(i_classID) = 0.0;
       endif
     endfor
     %%pred_classID_ave = pred_classID_sum / (i_frame * pred_hdr.nx * pred_hdr.ny);
@@ -206,11 +215,15 @@ for i_frame = 1 : min(pred_num_frames, gt_num_frames)
     pred_classID_mask = double(pred_classID_cube >= repmat(pred_classID_thresh, [pred_hdr.ny, pred_hdr.nx, 1]));
     pred_classID_confidences = cell(pred_hdr.nf, 1);
     pred_classID_max_confidence = squeeze(max(squeeze(max(pred_classID_cube, [], 2)), [], 1));
+    pred_classID_max_confidence =  (pred_classID_max_confidence(:) - pred_classID_thresh(:)) ./ (pred_classID_max_confidence(:) + pred_classID_thresh(:));
     [pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
     for i_pred_classID = 1 : pred_hdr.nf
       pred_classID_confidences{i_pred_classID, 1} = [classes{pred_classID_sorted_ndx(i_pred_classID)}, ...
 						     ', ', num2str(pred_classID_sorted_confidence(i_pred_classID)), ...
-						     ', ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_pred_classID)))];
+						     ', ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_pred_classID))), ...
+						     ', ', num2str(pred_classID_accuracy(pred_classID_sorted_ndx(i_pred_classID))), ...
+						     ', ', num2str(pred_classID_true_pos(pred_classID_sorted_ndx(i_pred_classID))), ...
+						     ', ', num2str(pred_classID_false_pos(pred_classID_sorted_ndx(i_pred_classID)))];
     endfor
     if plot_flag
       pred_classID_heatmap = zeros(pred_hdr.ny, pred_hdr.nx, 3);
@@ -221,14 +234,22 @@ for i_frame = 1 : min(pred_num_frames, gt_num_frames)
 	if ~any(pred_classID_mask(:,:,i_classID))
 	  continue;
 	endif
-	pred_class_color_code = i_classID * num_colors / pred_hdr.nf;
-	pred_class_color = getClassColor(pred_class_color_code);
+	pred_class_color_code = (i_classID-0.5) * num_colors / pred_hdr.nf;
+	pred_class_color = classID_colormap(mod(i_classID,pred_hdr.nf)+1, :); %%getClassColor(pred_class_color_code);
 	pred_classID_band = repmat(pred_classID_mask(:,:,i_classID), [1,1,3]);
-	pred_classID_band(:,:,1) = pred_classID_band(:,:,1) * pred_class_color(1);
-	pred_classID_band(:,:,2) = pred_classID_band(:,:,2) * pred_class_color(2);
-	pred_classID_band(:,:,3) = pred_classID_band(:,:,3) * pred_class_color(3);
+	pred_classID_band(:,:,1) = pred_classID_band(:,:,1) * pred_class_color(1)*255;
+	pred_classID_band(:,:,2) = pred_classID_band(:,:,2) * pred_class_color(2)*255;
+	pred_classID_band(:,:,3) = pred_classID_band(:,:,3) * pred_class_color(3)*255;
 	pred_classID_heatmap = pred_classID_heatmap + pred_classID_band .* (pred_classID_heatmap < pred_classID_band);
-	th = text(1, ceil(i_classID*pred_hdr.ny/pred_hdr.nf), classes{i_classID}, 'color', pred_class_color/255);
+	th = text(3, ceil(i_classID*pred_hdr.ny/pred_hdr.nf), classes{i_classID});
+	pred_classID_heatmap(ceil(i_classID*pred_hdr.ny/pred_hdr.nf)-1:ceil(i_classID*pred_hdr.ny/pred_hdr.nf), 1:2, 1) = pred_class_color(1)*255;
+	pred_classID_heatmap(ceil(i_classID*pred_hdr.ny/pred_hdr.nf)-1:ceil(i_classID*pred_hdr.ny/pred_hdr.nf), 1:2, 2) = pred_class_color(2)*255;
+	pred_classID_heatmap(ceil(i_classID*pred_hdr.ny/pred_hdr.nf)-1:ceil(i_classID*pred_hdr.ny/pred_hdr.nf), 1:2, 3) = pred_class_color(3)*255;
+	%%pth = plot(0, ceil(i_classID*pred_hdr.ny/pred_hdr.nf), 'o');
+	%%set(pth, 'markeredgecolor', pred_class_color(:)); 
+	%%set(pth, 'markerfacecolor', pred_class_color(:)); 
+	%%set(pth, 'markersize', 18);
+	set(th, 'color', pred_class_color(:));
 				%keyboard;
       endfor
       pred_classID_heatmap = mod(pred_classID_heatmap, 255);
@@ -251,7 +272,7 @@ for i_frame = 1 : min(pred_num_frames, gt_num_frames)
     endif
     imwrite(uint8(pred_classID_heatmap), [output_dir, filesep, 'Recon', filesep, "pred_", num2str(pred_time, "%i"), '.png'], 'png');
     disp(pred_classID_confidences)
-    disp([pred_classID_true_pos; pred_classID_false_pos])
+    %disp([pred_classID_true_pos; pred_classID_false_pos])
     save([output_dir, filesep, 'Recon', filesep, "hist_", num2str(pred_time, "%i"), ".mat"], "classID_hist_bins", "pred_classID_hist", "pred_classID_norm", "pred_classID_cumprob", "pred_classID_cumsum")
     %keyboard
   endif
