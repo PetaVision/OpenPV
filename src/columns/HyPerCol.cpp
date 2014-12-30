@@ -187,7 +187,7 @@ int HyPerCol::initialize_base() {
    ownsInterColComm = true;
    params = NULL;
    icComm = NULL;
-   runDelegate = NULL;
+//   runDelegate = NULL;
    runTimer = NULL;
    phaseRecvTimers = NULL;
    numColProbes = 0;
@@ -478,7 +478,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
 #endif
    }
 
-   runDelegate = NULL;
+//   runDelegate = NULL;
 
    return PV_SUCCESS;
 }
@@ -1364,11 +1364,11 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    }
 
 
-   if (runDelegate) {
-      // let delegate advance the time
-      //
-      runDelegate->run(simTime, stopTime);
-   }
+//   if (runDelegate) {
+//      // let delegate advance the time
+//      //
+//      runDelegate->run(simTime, stopTime);
+//   }
 
 #ifdef TIMER_ON
    start_clock();

@@ -8,7 +8,7 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
-#include "HyPerColRunDelegate.hpp"
+//#include "HyPerColRunDelegate.hpp"
 #include "InterColComm.hpp"
 #include "../layers/HyPerLayer.hpp"
 #include "../connections/BaseConnection.hpp"
@@ -158,7 +158,7 @@ public:
       // Nov. 28, 2012.  All MPI processes get the same base seed, and should use global information to seed individual neurons.
       // {return (unsigned long) time((time_t *) NULL); } // Aug 21, 2012: Division by 1+columnId() moved to calling routine}
 
-   void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
+//   void setDelegate(HyPerColRunDelegate * delegate)  {runDelegate = delegate;}
 
    int insertProbe(ColProbe * p);
    int addBaseProbe(BaseProbe * p);
@@ -473,7 +473,7 @@ private:
    PVParams     * params; // manages input parameters
    InterColComm * icComm; // manages communication between HyPerColumns};
 
-   HyPerColRunDelegate * runDelegate; // runs time loop
+//   HyPerColRunDelegate * runDelegate; // runs time loop
 
    Timer * runTimer;
    //Phase timers
