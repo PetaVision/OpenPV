@@ -97,7 +97,7 @@ def read_dense_data(fileStream, dense_shape, numNeurons):
         return (-1, None)
     try:
         idx = struct.unpack("d", timestamp)
-        outmat = np.fromfile(fileStream, np.float32, numNeurons).reshape(dense_shape)
+        outmat = np.array(np.fromfile(fileStream, np.float32, numNeurons).reshape(dense_shape))
         return (idx, outmat)
     except:
         return (-1, None)
@@ -109,7 +109,8 @@ def read_sparse_data(fileStream,dense_shape):
     timeStamp = fileStream.read(8) # Should be a float64, if not then EOF
 
     if len(timeStamp) != 8: # EOF
-        return (-1,None)
+        pdb.set_trace()
+        return (-1, None)
 
     timeStamp = struct.unpack("d", timeStamp)
     try:
@@ -132,7 +133,8 @@ def read_sparse_data(fileStream,dense_shape):
 
         else:
             sparseMat = sparse.csc_matrix(np.zeros(1,dense_shape))
-            return (timeStamp, sparseMat)
+
+        return (timeStamp, sparseMat)
 
     except:
         return (timeStamp, None)
@@ -161,13 +163,18 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
     #    outStruct["time"] return a list of the timeStamps
     #
     #  hdr is a struct containing the information in the file's header
+    #
+    #TODO: Progress Period is broken...
 
+    if skipFrames < 1:
+        skipFrames = 1
+        
     hdr = read_header_file(fileStream)
 
     (frameSize, numFrames) = get_frame_info(hdr,fileStream)
 
     if lastFrame != -1:
-       numFrames = lastFrame
+        numFrames = lastFrame
 
     loopLen   = len(range(startFrame,numFrames,skipFrames))
 
@@ -176,8 +183,8 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
 
     if hdr["filetype"] == 3: #PVP_WGT_FILE_TYPE
         #TODO: fill in with real code
-        return (None, None)
         pdb.set_trace()
+        return (None, None)
 
     elif hdr["filetype"] == 4: #PVP_NONSPIKING_ACT_FILE
         if hdr["datatype"] == 3: #PV_FLOAT_TYPE
@@ -188,16 +195,17 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
 
             fileIdx = 0
             for f in range(startFrame,numFrames):
-
-               if f%skipFrames != 0:
-                  fileStream.seek(frameSize)
-                  continue
+                if f%skipFrames != 0:
+                    fileStream.seek(frameSize)
+                    continue
 
                 if progressPeriod != 0:
                     if fileIdx%progressPeriod == 0:
                         sys.stdout.write(" Progress: %d/%d%s"%(fileIdx,loopLen,"\r"))
                         sys.stdout.flush();
+
                 (timeStamps[fileIdx],data[fileIdx]) = read_dense_data(fileStream, shape, numNeurons)
+
                 assert timeStamps[fileIdx] != -1
                 assert data[fileIdx]       != None #TODO: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
                 fileIdx+=1
@@ -241,27 +249,29 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                 fileIdx+=1
 
     elif hdr["filetype"] == 6: #PVP_ACT_SPARSEVALUES_FILE_TYPE
-       if hdr["datatype"] == 4: #PV_SPARSEVALUES_TYPE
-          frameIdx = 0
-          for f in range(numFrames):
-               if (f < startFrame) or (f%skipframe != 0):
-                  #fseek a frame's worth of bits
-                  fileStream.read(8) # Skip over timestamp (Float64)
-                  numActive = np.fromfile(fileStream,np.int32,1)
-                  fileStream.seek(numActive*8) # Int32 for index, Int32 for value
-                  continue
+        if hdr["datatype"] == 4: #PV_SPARSEVALUES_TYPE
+            frameIdx = 0
+            for f in range(numFrames):
+                if (f < startFrame) or (f%skipFrames != 0):
+                    #fseek a frame's worth of bits
+                    fileStream.read(8) # Skip over timestamp (Float64)
+                    numActive = np.fromfile(fileStream,np.int32,1)
+                    fileStream.seek(numActive*8) # Int32 for index, Int32 for value
+                    continue
 
-               if progressPeriod != 0:
-                   if frameIdx%progressPeriod == 0:
-                       sys.stdout.write(" Progress: %d/%d%s"%(frameIdx,loopLen,"\r"))
-                       sys.stdout.flush();
-               (timeStamps[frameIdx],sparseMat) = read_sparse_data(fileStream,hdr["nf"]*hdr["nx"]*hdr["ny"])
+                if progressPeriod != 0:
+                    if frameIdx%progressPeriod == 0:
+                        sys.stdout.write(" Progress: %d/%d%s"%(frameIdx,loopLen,"\r"))
+                        sys.stdout.flush();
 
-               assert timeStamps[frameIdx] != -1
-               assert sparseMat != None
+                (timeStamps[frameIdx],sparseMat) = read_sparse_data(fileStream,hdr["nf"]*hdr["nx"]*hdr["ny"])
 
-               data[frameIdx] = np.ravel(sparseMat.todense()).reshape(hdr["ny"],hdr["nx"],hdr["nf"])
-               frameIdx+=1
+                assert timeStamps[frameIdx] != -1
+                assert sparseMat != None
+
+                # TODO: Apparently, readpvpfile.m returns a sparse matrix?
+                data[frameIdx] = np.ravel(sparseMat.todense()).reshape(hdr["ny"],hdr["nx"],hdr["nf"])
+                frameIdx+=1
 
     outStruct = {}
     outStruct["time"]   = timeStamps
