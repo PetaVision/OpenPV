@@ -203,7 +203,7 @@ HyPerLCALayer "L1" = {
     minV                   = -1.0;     // Only for initialization - min value of v (assuming dimensionless membrane potentials)
     maxV                   = .1;       // 0.05 above VThresh makes a few start out above threshold - no real evidence that this is better
 //    InitVType              = "InitVFromFile";
-//    Vfilename              = "/Users//output/Checkpoints/Checkpoint6000000/L1_V.pvp";
+//    Vfilename              = "/home/dpaiton/workspace/output/Checkpoints/Checkpoint6000000/L1_V.pvp";
 // 
     timeConstantTau        = 50.0;//100.0;    // dt is scaled by multiplying by 1/timeConstantTau
                                        // u(t+dt) = u(t) + dt/tau * u^dot
