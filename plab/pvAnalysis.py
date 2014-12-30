@@ -224,7 +224,7 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
             for f in range(startFrame,numFrames):
                 # Need to advance file pointer if frame is to be skipped
                 if (f < startFrame) or (f%skipFrames != 0):
-                    fileStream.seek(hdr["headersize"]+precision*hdr["nxp"]*hdr["nyp"]*hdr["nfp"]) #seek past the frame
+                    fileStream.seek(hdr["headersize"]+precision*hdr["nfp"]*hdr["nxp"]*hdr["nyp"]) #seek past the frame
                     continue
 
                 hdr = read_header_file(fileStream,fileStream.tell()) # Header repeats after each frame
@@ -234,7 +234,7 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                         sys.stdout.write(" Progress: %d/%d%s"%(fileIdx,loopLen,"\r"))
                         sys.stdout.flush();
 
-                tmp_vals_arry = np.zeros((len(range(hdr["nbands"])),len(range(hdr["numPatches"])),hdr["nyp"],hdr["nxp"],hdr["nfp"]))
+                tmp_vals_arry = np.zeros((len(range(hdr["nbands"])),len(range(hdr["numPatches"])),hdr["nfp"],hdr["nyp"],hdr["nxp"]))
                 for arbor in range(hdr["nbands"]):
                     for patch in range(hdr["numPatches"]):
                         # TODO: Handle shrunken patch info? I have no idea what that entails.
@@ -242,9 +242,10 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                         #       uint16 (2 bytes, patch->nx) + uint16 (2 bytes, patch->ny) + uint32 (4 bytes, patch->offset)
                         fileStream.seek(8,1)
 
-                        bytes_to_read = hdr["nxp"]*hdr["nyp"]*hdr["nfp"]
+                        bytes_to_read = hdr["nfp"]*hdr["nxp"]*hdr["nyp"]
                         tmp_dat       = np.fromfile(fileStream,np.float32,bytes_to_read)
                         # TODO: Figure out if this is flipped from readpvpfile.m
+                        pdb.set_trace()
                         tmp_vals_arry[arbor,patch,:,:,:] = np.ravel(tmp_dat).reshape(hdr["nyp"],hdr["nxp"],hdr["nfp"])
                 data[fileIdx]       = tmp_vals_arry
                 timeStamps[fileIdx] = hdr["time"]
@@ -272,6 +273,7 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                 assert sparseMat != None
 
                 # TODO: Apparently, readpvpfile.m returns a sparse matrix?
+                # TODO: This should  be nf, nx, ny
                 data[frameIdx] = np.ravel(sparseMat.todense()).reshape(hdr["ny"],hdr["nx"],hdr["nf"])
                 frameIdx+=1
 
