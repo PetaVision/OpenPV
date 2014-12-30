@@ -28,6 +28,133 @@
 #include <fts.h>
 #include <fstream>
 
+// TODO Create a ParamsGroupProcessor object that does most of what HyPerCol::build does, that HyPerCol::build calls.
+// ParamsGroupProcessor would include all the .hpp files below.
+#include "../layers/ANNErrorLayer.hpp"
+#include "../layers/ANNLayer.hpp"
+#include "../layers/ANNNormalizedErrorLayer.hpp"
+#include "../layers/ANNSquaredLayer.hpp"
+#include "../layers/ANNTriggerUpdateOnNewImageLayer.hpp"
+#include "../layers/ANNWhitenedLayer.hpp"
+#include "../layers/BIDSCloneLayer.hpp"
+#include "../layers/BIDSLayer.hpp"
+#include "../layers/BIDSMovieCloneMap.hpp"
+#include "../layers/BIDSSensorLayer.hpp"
+#include "../layers/BinningLayer.hpp"
+#include "../layers/CloneVLayer.hpp"
+#include "../layers/ConstantLayer.hpp"
+#include "../layers/CreateMovies.hpp"
+#include "../layers/FilenameParsingGroundTruthLayer.hpp"
+#include "../layers/GapLayer.hpp"
+#include "../layers/GenerativeLayer.hpp"
+#include "../layers/HyPerLCALayer.hpp"
+#include "../layers/Image.hpp"
+#include "../layers/ImageFromMemoryBuffer.hpp"
+#include "../layers/IncrementLayer.hpp"
+#include "../layers/KmeansLayer.hpp"
+#include "../layers/LCALIFLayer.hpp"
+#include "../layers/LIF.hpp"
+#include "../layers/LIFGap.hpp"
+#include "../layers/LabelErrorLayer.hpp"
+#include "../layers/LabelLayer.hpp"
+#include "../layers/LeakyIntegrator.hpp"
+#include "../layers/LogLatWTAGenLayer.hpp"
+#include "../layers/MLPErrorLayer.hpp"
+#include "../layers/MLPForwardLayer.hpp"
+#include "../layers/MLPOutputLayer.hpp"
+#include "../layers/MLPSigmoidLayer.hpp"
+#include "../layers/MatchingPursuitLayer.hpp"
+#include "../layers/MatchingPursuitResidual.hpp"
+#include "../layers/Movie.hpp"
+#include "../layers/Patterns.hpp"
+#include "../layers/PoolingANNLayer.hpp"
+#include "../layers/PtwiseProductLayer.hpp"
+#include "../layers/RescaleLayer.hpp"
+#include "../layers/Retina.hpp"
+#include "../layers/ShuffleLayer.hpp"
+#include "../layers/SigmoidLayer.hpp"
+#include "../layers/TextStream.hpp"
+#include "../layers/TrainingLayer.hpp"
+#include "../layers/WTALayer.hpp"
+#ifdef PV_USE_SNDFILE
+#include "../layers/SoundStream.hpp"
+#include "../layers/NewCochlearLayer.hpp"
+#endif // PV_USE_SNDFILE
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  No longer used.
+#include "../layers/PursuitLayer.hpp"
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
+#include "../layers/ANNDivInhLayer.hpp"
+#include "../layers/ANNLabelLayer.hpp"
+#include "../layers/ANNWeightedErrorLayer.hpp"
+#include "../layers/AccumulateLayer.hpp"
+#include "../layers/CliqueLayer.hpp"
+#include "../layers/MaxPooling.hpp"
+#endif // OBSOLETE
+
+#include "../connections/HyPerConn.hpp"
+#include "../connections/BIDSConn.hpp"
+#include "../connections/CloneConn.hpp"
+#include "../connections/CloneKernelConn.hpp"
+#include "../connections/CopyConn.hpp"
+#include "../connections/FeedbackConn.hpp"
+#include "../connections/GapConn.hpp"
+#include "../connections/IdentConn.hpp"
+#include "../connections/KernelConn.hpp"
+#include "../connections/LCALIFLateralConn.hpp"
+#include "../connections/OjaSTDPConn.hpp"
+#include "../connections/PlasticCloneConn.hpp"
+#include "../connections/PoolingConn.hpp"
+#include "../connections/TransposeConn.hpp"
+#ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
+#include "../connections/NoSelfKernelConn.hpp"
+#include "../connections/SiblingConn.hpp"
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  Use HyPerConn instead of GenerativeConn and PoolingConn instead of PoolingGenConn
+#include "../connections/GenerativeConn.hpp"
+#include "../connections/PoolingGenConn.hpp"
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
+#include "../connections/ReciprocalConn.hpp"
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
+#include "../connections/WindowConn.hpp"
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused connections.
+#include "../connections/CliqueConn.hpp"
+#include "../connections/InhibSTDPConn.hpp"
+#include "../connections/LCALIFLateralKernelConn.hpp"
+#include "../connections/MapReduceKernelConn.hpp"
+#include "../connections/OjaKernelConn.hpp"
+#include "../connections/STDP3Conn.hpp"
+#include "../connections/STDPConn.hpp"
+#endif // OBSOLETE
+#include "../io/ColProbe.hpp"
+#include "../io/GenColProbe.hpp"
+#include "../io/L2NormProbe.hpp"
+#include "../io/LogLatWTAProbe.hpp"
+#include "../io/PointLIFProbe.hpp"
+#include "../io/PointProbe.hpp"
+#include "../io/RequireAllZeroActivityProbe.hpp"
+#include "../io/SparsityLayerProbe.hpp"
+#include "../io/StatsProbe.hpp"
+#include "../io/TextStreamProbe.hpp"
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
+#include "../io/ReciprocalEnergyProbe.hpp"
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
+#include "../io/LCALIFLateralProbe.hpp"
+#include "../io/OjaKernelSpikeRateProbe.hpp"
+#include "../io/PointLCALIFProbe.hpp"
+#include "../io/SparsityTermProbe.hpp"
+#endif // OBSOLETE
+#include "../io/KernelProbe.hpp"
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
+#include "../io/ConnStatsProbe.hpp"
+#include "../io/OjaConnProbe.hpp"
+#include "../io/PatchProbe.hpp"
+#endif // OBSOLETE
+
 namespace PV {
 
 HyPerCol::HyPerCol(const char * name, int argc, char * argv[], PVParams * params) {
@@ -123,6 +250,7 @@ int HyPerCol::initialize_base() {
    warmStart = false;
    readyFlag = false;
    currentStep = 0;
+   customGroupParser = NULL;
    layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    numLayers = 0;
    numPhases = 0;
@@ -1155,6 +1283,421 @@ int HyPerCol::commColumn(int colId)
 int HyPerCol::commRow(int colId)
 {
    return colId / icComm->numCommColumns();
+}
+
+int HyPerCol::build() {
+   int status = PV_SUCCESS;
+
+   // TODO Create a ParamsGroupProcessor object that does most of what HyPerCol::build does, that HyPerCol::build calls.
+   // ParamsGroupProcessor would execute the for-loop below. below.
+   bool inThisHyPerCol = false; // Becomes true when params reaches a HyPerCol group whose name matches this->name, becomes false on a HyPerCol group whose name does not match.
+
+   int numGroups = params->numberOfGroups();
+   for (int k=0; k<numGroups; k++) {
+      char const * groupkeyword = params->groupKeywordFromIndex(k);
+      char const * groupname = params->groupNameFromIndex(k);
+      if (!strcmp(groupkeyword, "HyPerCol")) {
+         inThisHyPerCol = !strcmp(groupname, this->name);
+      }
+      if (!inThisHyPerCol) {
+         if (columnId()==0) {
+            printf("HyPerCol \"%s\" skipping parameter group %s \"%s\".\n", this->name, groupkeyword, groupname);
+         }
+         continue;
+      }
+
+      assert(inThisHyPerCol);
+      void * addedObject = NULL;
+
+      if (!strcmp(groupkeyword, "HyPerCol")) {
+         continue; // Either group is for this column, in which case params were read by initialize,
+                   // or they're for a different HyPerCol, in which case the params are not relevant to this one.
+      }
+
+      // Layers
+      if( !strcmp(groupkeyword, "HyPerLayer") ) {
+         if (columnId()==0) {
+            fprintf(stderr, "Group \"%s\": abstract class HyPerLayer cannot be instantiated.\n", groupname);
+         }
+         MPI_Barrier(icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      if( !strcmp(groupkeyword, "ANNErrorLayer") ) {
+         addedObject = (void *) new ANNErrorLayer(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "ANNLayer") ) {
+         addedObject = (void *) new ANNLayer(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "ANNNormalizedErrorLayer") ) {
+         addedObject = (void *) new ANNNormalizedErrorLayer(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "ANNSquaredLayer") ) {
+         addedObject = (void *) new ANNSquaredLayer(groupname, this);
+      }
+      // ANNTriggerUpdateOnNewImageLayer is obsolete as of April 23, 2014.
+      // Leaving some code here for a while to generate a useful error message.
+      if( !strcmp(groupkeyword, "ANNTriggerUpdateOnNewImageLayer") ) {
+         if (this->columnId()==0) {
+            fprintf(stderr, "Error: ANNTriggerUpdateOnNewImageLayer is obsolete.\n");
+            fprintf(stderr, "    Use ANNLayer with parameter triggerFlag set to true\n");
+            fprintf(stderr, "    and triggerLayerName set to the triggering layer.\n");
+         }
+         // addedObject = (void *) new ANNTriggerUpdateOnNewImageLayer(groupname, this);
+         MPI_Barrier(icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      if( !strcmp(groupkeyword, "ANNWhitenedLayer") ) {
+         addedObject = (void *) new ANNWhitenedLayer(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "BIDSCloneLayer") ) {
+         addedObject = (void *) new BIDSCloneLayer(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "BIDSLayer") ) {
+         addedObject = (void *) new BIDSLayer(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "BIDSMovieCloneMap") ) {
+         addedObject = (void *) new BIDSMovieCloneMap(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "BIDSSensorLayer") ) {
+         addedObject = (void *) new BIDSSensorLayer(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "BinningLayer") ) {
+         addedObject = (void *) new BinningLayer(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "CloneVLayer") ) {
+         addedObject = (void *) new CloneVLayer(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "ConstantLayer") ) {
+         addedObject = (void *) new ConstantLayer(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "CreateMovies") ) {
+         addedObject = (void *) new CreateMovies(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "FilenameParsingGroundTruthLayer") ) {
+         addedObject = (void *) new FilenameParsingGroundTruthLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "GapLayer") ) {
+         addedObject = new GapLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "GenerativeLayer") ) {
+         addedObject = new GenerativeLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "HyPerLCALayer") ) {
+         addedObject = new HyPerLCALayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "Image") ) {
+         addedObject = new Image(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "ImageFromMemoryBuffer") ) {
+         addedObject = new ImageFromMemoryBuffer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "IncrementLayer") ) {
+         addedObject = new IncrementLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "KmeansLayer") ) {
+         addedObject = new KmeansLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "LCALIFLayer") ) {
+         addedObject = new LCALIFLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "LIF") ) {
+         addedObject = new LIF(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "LIFGap") ) {
+         addedObject = new LIFGap(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "LabelErrorLayer") ) {
+         addedObject = new LabelErrorLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "LabelLayer") ) {
+         addedObject = new LabelLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "LeakyIntegrator") ) {
+         addedObject = new LeakyIntegrator(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "LogLatWTAGenLayer") ) {
+         addedObject = new LogLatWTAGenLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "MLPErrorLayer") ) {
+         addedObject = new MLPErrorLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "MLPForwardLayer") ) {
+         addedObject = new MLPForwardLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "MLPOutputLayer") ) {
+         addedObject = new MLPOutputLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "MLPSigmoidLayer") ) {
+         addedObject = new MLPSigmoidLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "MatchingPursuitLayer") ) {
+         addedObject = new MatchingPursuitLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "MatchingPursuitResidual") ) {
+         addedObject = new MatchingPursuitResidual(groupname, this);
+      }
+      if( !strcmp(groupkeyword, "MaxPooling") ) {
+         if (this->columnId()==0) {
+            fprintf(stderr, "Params group \"%s\": MaxPooling is obsolete.  Use a different layer type and set the connections going to \"%s\" to use pvpatchAccumulateType = \"maxpooling\".\n", name, name);
+         }
+         // addedObject = (void *) new MaxPooling(groupname, this);
+         MPI_Barrier(icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      if (!strcmp(groupkeyword, "Movie") ) {
+         addedObject = new Movie(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "Patterns") ) {
+         addedObject = new Patterns(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "PoolingANNLayer") ) {
+         addedObject = new PoolingANNLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "PtwiseProductLayer") ) {
+         addedObject = new PtwiseProductLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "RescaleLayer") ) {
+         addedObject = new RescaleLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "Retina") ) {
+         addedObject = new Retina(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "ShuffleLayer") ) {
+         addedObject = new ShuffleLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "SigmoidLayer") ) {
+         addedObject = new SigmoidLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "TextStream") ) {
+         addedObject = new TextStream(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "TrainingLayer") ) {
+         addedObject = new TrainingLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "WTALayer") ) {
+         addedObject = new WTALayer(groupname, this);
+      }
+#ifdef PV_USE_SNDFILE
+      if (!strcmp(groupkeyword, "SoundStream") ) {
+         addedObject = new SoundStream(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "NewCochlearLayer") ) {
+         addedObject = new NewCochlearLayer(groupname, this);
+      }
+#endif // PV_USE_SNDFILE
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  No longer used.
+      if (!strcmp(groupkeyword, "PursuitLayer") ) {
+         addedObject = new PursuitLayer(groupname, this);
+      }
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
+      if (!strcmp(groupkeyword, "ANNDivInhLayer") ) {
+         addedObject = new ANNDivInhLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "ANNLabelLayer") ) {
+         addedObject = new ANNLabelLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "ANNWeightedErrorLayer") ) {
+         addedObject = new ANNWeightedErrorLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "AccumulateLayer") ) {
+         addedObject = new AccumulateLayer(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "CliqueLayer") ) {
+         addedObject = new CliqueLayer(groupname, this);
+      }
+#endif // OBSOLETE
+
+      // Connections
+      if (!strcmp(groupkeyword, "HyPerConn") ) {
+         addedObject = new HyPerConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "BIDSConn") ) {
+         addedObject = new BIDSConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "CloneConn") ) {
+         addedObject = new CloneConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "CloneKernelConn") ) {
+         addedObject = new CloneKernelConn(groupname, this); // Deprecated
+      }
+      if (!strcmp(groupkeyword, "CopyConn") ) {
+         addedObject = new CopyConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "FeedbackConn") ) {
+         addedObject = new FeedbackConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "GapConn") ) {
+         addedObject = new GapConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "IdentConn") ) {
+         addedObject = new IdentConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "KernelConn") ) {
+         addedObject = new KernelConn(groupname, this); // Deprecated
+      }
+      if (!strcmp(groupkeyword, "LCALIFLateralConn") ) {
+         addedObject = new LCALIFLateralConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "OjaSTDPConn") ) {
+         addedObject = new OjaSTDPConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "PlasticCloneConn") ) {
+         addedObject = new PlasticCloneConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "PoolingConn") ) {
+         addedObject = new PoolingConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "TransposeConn") ) {
+         addedObject = new TransposeConn(groupname, this);
+      }
+#ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
+      if (!strcmp(groupkeyword, "NoSelfKernelConn") ) {
+         addedObject = new NoSelfKernelConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "SiblingConn") ) {
+         addedObject = new SiblingConn(groupname, this);
+      }
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  Use HyPerConn instead of GenerativeConn and PoolingConn instead of PoolingGenConn
+      if (!strcmp(groupkeyword, "GenerativeConn") ) {
+         addedObject = new GenerativeConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "PoolingGenConn") ) {
+         addedObject = new PoolingGenConn(groupname, this);
+      }
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
+      if (!strcmp(groupkeyword, "ReciprocalConn") ) {
+         addedObject = new ReciprocalConn(groupname, this);
+      }
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
+      if (!strcmp(groupkeyword, "WindowConn") ) {
+         addedObject = new WindowConn(groupname, this);
+      }
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused connections.
+      if (!strcmp(groupkeyword, "CliqueConn") ) {
+         addedObject = new CliqueConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "InhibSTDPConn") ) {
+         addedObject = new InhibSTDPConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "LCALIFLateralKernelConn") ) {
+         addedObject = new LCALIFLateralKernelConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "MapReduceKernelConn") ) {
+         addedObject = new MapReduceKernelConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "OjaKernelConn") ) {
+         addedObject = new OjaKernelConn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "STDP3Conn") ) {
+         addedObject = new STDP3Conn(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "STDPConn") ) {
+         addedObject = new STDPConn(groupname, this);
+      }
+#endif // OBSOLETE
+
+      // ColProbes
+      if (!strcmp(groupkeyword, "ColProbe") ) {
+         addedObject = new ColProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "GenColProbe") ) {
+         addedObject = new GenColProbe(groupname, this);
+      }
+
+      // LayerProbes
+      if( !strcmp(groupkeyword, "LayerProbe") ) {
+         if (columnId()==0) {
+            fprintf(stderr, "Group \"%s\": abstract class LayerProbe cannot be instantiated.\n", groupname);
+         }
+         MPI_Barrier(icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      if (!strcmp(groupkeyword, "L2NormProbe") ) {
+         addedObject = new L2NormProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "LogLatWTAProbe") ) {
+         addedObject = new LogLatWTAProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "PointLIFProbe") ) {
+         addedObject = new PointLIFProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "PointProbe") ) {
+         addedObject = new PointProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "RequireAllZeroActivityProbe") ) {
+         addedObject = new RequireAllZeroActivityProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "SparsityLayerProbe") ) {
+         addedObject = new SparsityLayerProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "StatsProbe") ) {
+         addedObject = new StatsProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "TextStreamProbe") ) {
+         addedObject = new TextStreamProbe(groupname, this);
+      }
+#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
+      if (!strcmp(groupkeyword, "ReciprocalEnergyProbe") ) {
+         addedObject = new ReciprocalEnergyProbe(groupname, this);
+      }
+#endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
+      if (!strcmp(groupkeyword, "LCALIFLateralProbe") ) {
+         addedObject = new LCALIFLateralProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "OjaKernelSpikeRateProbe") ) {
+         addedObject = new OjaKernelSpikeRateProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "PointLCALIFProbe") ) {
+         addedObject = new PointLCALIFProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "SparsityTermProbe") ) {
+         addedObject = new SparsityTermProbe(groupname, this);
+      }
+#endif // OBSOLETE
+      // BaseConnectionProbes
+      if (!strcmp(groupkeyword, "KernelProbe") ) {
+         addedObject = new KernelProbe(groupname, this);
+      }
+#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
+      if (!strcmp(groupkeyword, "ConnStatsProbe") ) {
+         addedObject = new ConnStatsProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "OjaConnProbe") ) {
+         addedObject = new OjaConnProbe(groupname, this);
+      }
+      if (!strcmp(groupkeyword, "PatchProbe") ) {
+         addedObject = new PatchProbe(groupname, this);
+      }
+#endif // OBSOLETE
+
+      // If we added an object, we're done with this group.  Otherwise, we have to call a customgroups function
+      if (addedObject != NULL) {
+         continue;
+      }
+
+      if (customGroupParser != NULL) {
+         addedObject = (customGroupParser)(groupkeyword, groupname, this);
+      }
+      if(!addedObject) {
+         if (columnId()==0) {
+            fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", groupname, groupkeyword);
+         }
+         MPI_Barrier(icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+
+   if( numberOfLayers() == 0 ) {
+      fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", getName());
+      status = PV_FAILURE;
+   }
+   return status;
 }
 
 int HyPerCol::addLayer(HyPerLayer * l)

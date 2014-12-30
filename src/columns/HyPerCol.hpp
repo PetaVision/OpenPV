@@ -67,6 +67,8 @@ public:
 
 //   int deliver(PVConnection* conn, PVRect preRegion, int count, float* buf);
 
+   void setCustomGroupParser(void * (*custom_group_parser)(const char *, const char *, HyPerCol *)) {customGroupParser = custom_group_parser;}
+   int build();
    int addLayer(HyPerLayer * l);
    int addConnection(BaseConnection * conn);
    int addNormalizer(NormalizeBase * normalizer);
@@ -395,6 +397,8 @@ private:
    long int currentStep;
    long int initialStep;
    long int finalStep;
+   void * (*customGroupParser)(const char *, const char *, HyPerCol * hc);
+
    size_t layerArraySize;
    int numLayers;
    int numPhases;

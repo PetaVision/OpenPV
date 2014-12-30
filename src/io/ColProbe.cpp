@@ -40,6 +40,9 @@ int ColProbe::initialize(const char * probeName, HyPerCol * hc) {
    if (status==PV_SUCCESS) {
       status = ioParamsFillGroup(PARAMS_IO_READ);
    }
+   if (status==PV_SUCCESS) {
+      status = hc->insertProbe(this);
+   }
    return status;
 }
 
