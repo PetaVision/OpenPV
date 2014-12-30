@@ -2,13 +2,26 @@
 ##  LCA ANALYSIS
 ##  Dylan Paiton
 ##  Will Shainin
+##
+## TODO:
+## Sparse Layers
+##    - Percent Active
+##    - Percent Change?
+##    - Activity Histogram
+## Non-Sparse Layers
+##    - Recon/Input Images
+##    - Error
+## Weight File
+##    - Plot Weights
+##
 ###############################
 
-#workspace_path = '/home/wshainin/workspace/'
-workspace_path = '/Users/dpaiton/Documents/workspace/'
+workspace_path = '/home/ec2-user/mountData/'
+#workspace_path = '/Users/dpaiton/Documents/workspace/'
 
 import os, sys
-lib_path = os.path.abspath(workspace_path+'PetaVision/plab')
+lib_path = os.path.abspath('/home/ec2-user/workspace/PetaVision/plab')
+#lib_path = os.path.abspath(workspace_path+'PetaVision/plab')
 sys.path.append(lib_path)
 import pvAnalysis as pv
 import plotWeights as pw
@@ -17,7 +30,7 @@ import matplotlib.pyplot as plt
 
 # File Locations
 #output_dir   = workspace_path+'/awsMount/mountData/LIFLCA/output/LCA/'
-output_dir   = workspace_path+'/LIFLCA/output_small/LCA/'
+output_dir   = workspace_path+'LIFLCA/output/LCA/'
 input_layer  = 'a0_Input.pvp'
 l1_layer     = 'a2_L1.pvp'
 err_layer    = 'a1_Residual.pvp'
@@ -50,9 +63,8 @@ skipFrames      = 1   # 1 is every frame
 
 print('L1:')
 (L1Struct,L1Hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
-# takes a long time but runs without error
 # 10 frames total
-# np.array(L1Struct["values]).shape
+# np.array(L1Struct['values']).shape
 # (10, 32, 32, 256)
 
 #print('Err_from_file:')
