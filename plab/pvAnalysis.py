@@ -128,7 +128,7 @@ def read_sparse_data(fileStream,dense_shape):
                 #TODO: Maybe make ^^ take in a two column vector all at once, instead of reading one value each iteration
                 #(idf[i],idx[i],idy[i]) = np.unravel_index(lin_idx[i],shape) # Linear indexing to subscripts
 
-                # Compressed Sparse Column Matrix has efficient column slicing <<TODO: Is this true?
+                # Compressed Sparse Column Matrix has efficient column slicing
             ij_mat = (np.zeros(numActive),lin_idx)
             sparseMat = sparse.csc_matrix((vals,ij_mat),shape=(1,dense_shape)) # 1 row, nf*ny*nx columns
 
