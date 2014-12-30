@@ -68,6 +68,7 @@ print('L1:')
 #print('Err_from_recon:')
 #(errStruct,errHdr) = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
+#TODO: Activation history plot for each element
 #print('Weights from non-checkpoint:')
 #(weightStruct,weightsHdr) = pv.get_pvp_data(weightsFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
