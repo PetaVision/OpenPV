@@ -1,12 +1,12 @@
 /*
- * MaxPoolTest
+ * ImageOffsetTest
  *
  *
  */
 
 
 #include <columns/buildandrun.hpp>
-#include "MaxPoolTestLayer.hpp"
+#include "ImageOffsetTestLayer.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -29,8 +29,8 @@ int main(int argc, char * argv[]) {
 #ifdef MAIN_USES_CUSTOMGROUPS
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
-   if (strcmp(keyword, "MaxPoolTestLayer") == 0){
-      addedGroup = new MaxPoolTestLayer(name, hc);
+   if (strcmp(keyword, "ImageOffsetTestLayer") == 0){
+      addedGroup = new ImageOffsetTestLayer(name, hc);
    }
    return addedGroup;
 }

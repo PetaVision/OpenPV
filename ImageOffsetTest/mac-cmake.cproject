@@ -35,7 +35,7 @@
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="MaxPoolTest.null.880059812" name="MaxPoolTest"/>
+		<project id="ImageOffsetTest.null.880059812" name="ImageOffsetTest"/>
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
