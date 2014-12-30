@@ -83,12 +83,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       fprintf(stderr, "Unable to create HyPerCol\n");
       return NULL;
    }
-   if (customgroups != NULL) {
-      hc->setCustomGroupParser(customgroups);
-   }
-   int status = hc->build();
-
-#ifdef OBSOLETE // Marked obsolete Dec 30, 2014.  Functionality moved into HyPerCol::build(), called above.
    HyPerCol * addedHyPerCol;
    HyPerConn * addedHyPerConn;
    HyPerLayer * addedHyPerLayer;
@@ -360,15 +354,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", hc->getName());
       delete hc;
       return NULL;
-   }
-#endif // OBSOLETE
-
-   if (status != PV_SUCCESS) {
-      if (hc->columnId()==0) {
-         fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", hc->getName());
-      }
-      delete hc;
-      hc = NULL;
    }
    return hc;
 }
