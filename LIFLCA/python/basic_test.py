@@ -61,8 +61,9 @@ skipFrames      = 1   # 1 is every frame
 # has 361 "frames", which I guess makes sense if initialWriteTime = 40 (400-39 = 361)
 # why is it 512x512?
 
-print('L1:')
-(L1Struct,L1Hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
+#size is (numFrames,ny,nx,nf)
+#print('L1:')
+#(L1Struct,L1Hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 # 10 frames total
 # np.array(L1Struct['values']).shape
 # (10, 32, 32, 256)
