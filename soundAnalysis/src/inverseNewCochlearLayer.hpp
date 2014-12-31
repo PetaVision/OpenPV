@@ -8,8 +8,8 @@
 #ifndef INVERSENEWCOCHLEARLAYER_HPP_
 #define INVERSENEWCOCHLEARLAYER_HPP_
 
-#include <../../PetaVision/src/layers/ANNLayer.hpp>
-#include <../../PetaVision/src/layers/NewCochlear.h>
+#include <layers/ANNLayer.hpp>
+#include <layers/NewCochlear.h>
 
 namespace PV {
     

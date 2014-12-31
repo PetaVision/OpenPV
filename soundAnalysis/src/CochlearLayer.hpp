@@ -8,7 +8,7 @@
 #ifndef COCHLEARLAYER_HPP_
 #define COCHLEARLAYER_HPP_
 
-#include <../../PetaVision/src/layers/ANNLayer.hpp>
+#include <layers/ANNLayer.hpp>
 #include <vector>
 
 namespace PV {
