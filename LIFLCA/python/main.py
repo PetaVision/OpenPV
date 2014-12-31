@@ -1,11 +1,11 @@
 ###############################
 ##  LCA ANALYSIS
 ##  Dylan Paiton
-##  
+##
 ###############################
 
 import os, sys
-lib_path = os.path.abspath('/Users/dpaiton/Documents/workspace/PetaVision/plab')
+lib_path = os.path.abspath('/home/ec2-user/workspace/PetaVision/plab')
 sys.path.append(lib_path)
 import pvAnalysis as pv
 import plotWeights as pw
@@ -14,13 +14,13 @@ import matplotlib.pyplot as plt
 
 
 # Problem 1 setup:
-# 
+#
 #   585 512x512 grayscale images, presented sequentially
 #   8x8 image patches, evenly tiled across image
 #   1 image per batch
 #   256 dictionary elements - 2x overcomplete because of rectification
 #   L-1 gradient descent
-#   
+#
 #   displayPeriod = 40ms
 #   timeConstantTau = 100
 #   VThresh = 0.05
@@ -28,7 +28,8 @@ import matplotlib.pyplot as plt
 
 
 # File Locations
-output_dir = '/Users/dpaiton/Documents/workspace/LIFLCA/output/LCA/'
+#output_dir = '/Users/dpaiton/Documents/workspace/LIFLCA/output/LCA/'
+output_dir = '/home/ec2-user/mountData/MaskLCA/LCA_OUTPUT/'
 l1_layer   = 'a2_L1.pvp'
 err_layer  = 'a1_Residual.pvp'
 weights    = 'w1_L1_to_Residual.pvp'
@@ -57,7 +58,7 @@ skipFrames      = 1
 #(errStruct,errHdr) = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
 #Recon error?
-# ABS gives distance from 0. 
+# ABS gives distance from 0.
 # Averaging over the 512x512 array gives err per frame
 #plt.plot(np.average(np.average(np.abs(err_outStruct["values"]),2),2))
 #plt.show()
@@ -70,7 +71,7 @@ print('Weights:')
 weightsFile.close()
 
 i_arbor    = 0
-i_frame    = 400 # index, not actual frame number
+i_frame    = 1 # index, not actual frame number
 margin     = 2 #pixels
 showPlot   = True
 savePlot   = True

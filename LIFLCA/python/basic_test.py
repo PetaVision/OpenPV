@@ -53,20 +53,16 @@ skipFrames      = 1   # 1 is every frame
 
 # outStruct has fields "time" and "values"
 
-#size is (numFrames,nf,nx,ny)
+#size is (numFrames,ny,nx,nf)
 #print('Input:')
 #(inputStruct,inputHdr)   = pv.get_pvp_data(input_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
-# np.array(InputStruct["values"]).shape
-# (361, 1, 512, 512)
-# has 361 "frames", which I guess makes sense if initialWriteTime = 40 (400-39 = 361)
-# why is it 512x512?
+#frame = 0
+#plt.imshow(np.squeeze(inputStruct["values"][frame]),cmap='gray')
+#plt.show(block=False)
 
 #size is (numFrames,ny,nx,nf)
 #print('L1:')
 #(L1Struct,L1Hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
-# 10 frames total
-# np.array(L1Struct['values']).shape
-# (10, 32, 32, 256)
 
 #print('Err_from_file:')
 #(errStruct,errHdr)   = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
@@ -82,11 +78,28 @@ skipFrames      = 1   # 1 is every frame
 #(errStruct,errHdr) = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
 #TODO: Activation history plot for each element
-#print('Weights from non-checkpoint:')
-#(weightStruct,weightsHdr) = pv.get_pvp_data(weightsFile,progressPeriod,lastFrame,startFrame,skipFrames)
+print('Weights from non-checkpoint:')
+(weightStruct,weightsHdr) = pv.get_pvp_data(weightsFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
-#print('Weights from checkpoint:')
-#(weightChkStruct,weightsChkHdr) = pv.get_pvp_data(weightsChkFile,progressPeriod,lastFrame,startFrame,skipFrames)
+print('Weights from checkpoint:')
+(weightChkStruct,weightsChkHdr) = pv.get_pvp_data(weightsChkFile,progressPeriod,lastFrame,startFrame,skipFrames)
+##
+##plt.subplot(1,2,1)
+##<matplotlib.axes._subplots.AxesSubplot object at 0x7f581aeaf550>
+##>>> plt.imshow(weightChkStruct["values"][0][0,0,:,:,0])
+##<matplotlib.image.AxesImage object at 0x7f581af4b908>
+##>>> plt.subplot(1,2,2)
+##<matplotlib.axes._subplots.AxesSubplot object at 0x7f581af7d240>
+##>>> plt.imshow(weightStruct["values"][9][0,0,:,:,0])
+##<matplotlib.image.AxesImage object at 0x7f581af1c3c8>
+##>>> plt.show
+##<function show at 0x7f581b7fda60>
+##>>> plt.show()
+##>>> plt.imshow(weightStruct["values"][9][0,0,:,:,0])
+####
+##
+##
+##
 
 #input_activityFile.close()
 #l1_activityFile.close()
@@ -96,10 +109,10 @@ skipFrames      = 1   # 1 is every frame
 #weightsChkFile.close()
 
 #i_arbor    = 0
-#i_frame    = 400 # index, not actual frame number
+#i_frame    = 0 # index, not actual frame number
 #margin     = 2 #pixels
 #showPlot   = True
-#savePlot   = True
+#savePlot   = False
 #saveName   = output_dir+'analysis/'+weights[:-4]+'_'+str(i_frame).zfill(5)+'.png'
 #
 #weight_mat = pw.plotWeights(weightStruct,i_arbor,i_frame,margin,showPlot,savePlot,saveName)
