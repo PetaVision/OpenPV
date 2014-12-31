@@ -1320,13 +1320,21 @@ int HyPerConn::communicateInitInfo() {
       //Check mask with restricted post layer
       const PVLayerLoc * maskLoc = mask->getLayerLoc();
       const PVLayerLoc * postLoc = post->getLayerLoc();
-      if(postLoc->nx != maskLoc->nx || postLoc->ny != maskLoc->ny || postLoc->nf != maskLoc->nf){
+      if(postLoc->nx != maskLoc->nx || postLoc->ny != maskLoc->ny){
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr, "Connection \"%s\": Mask \"%s\" (%d, %d, %d) must be the same size as post layer \"%s\" (%d, %d, %d).\n", this->getName(), this->maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf, post->getName(), postLoc->nx, postLoc->ny, postLoc->nf);
+            fprintf(stderr, "Connection \"%s\": Mask \"%s\" (%d, %d, %d) must have the same x and y size as post layer \"%s\" (%d, %d, %d).\n", this->getName(), this->maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf, post->getName(), postLoc->nx, postLoc->ny, postLoc->nf);
          }
          status = PV_FAILURE;
          exit(-1);
       }
+      if(postLoc->nf != maskLoc->nf && maskLoc->nf != 1){
+         if (this->getParent()->columnId()==0) {
+            fprintf(stderr, "Connection \"%s\": Mask \"%s\" (%d, %d, %d) nf dimension must be either the same as post layer \"%s\" (%d, %d, %d) or 1\n", this->getName(), this->maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf, post->getName(), postLoc->nx, postLoc->ny, postLoc->nf);
+         }
+         status = PV_FAILURE;
+         exit(-1);
+      }
+
    }
 
    status = setPatchSize();
@@ -3065,7 +3073,16 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
          pvdata_t aPost = postactRef[lineoffseta+k];
          //calculate contribution to dw unless masked out
          assert(!useMask || maskactRef!=NULL); // if useMask is true, maskactRef must not be null
-         if (!useMask || maskactRef[lineoffsetm+k] != 0) {
+         float maskVal = 1;
+         if(useMask){
+            if(mask->getLayerLoc()->nf == 1){
+               maskVal = maskactRef[lineoffsetm+((int)k/postLoc->nf)];
+            }
+            else{
+               maskVal = maskactRef[lineoffsetm+k];
+            }
+         }
+         if (maskVal != 0) {
             if(sharedWeights){
                //Offset in the case of a shrunken patch, where dwdata is applying when calling get_dwData
                numKernelActivations[arbor_ID][kernelIndex][weights->offset + lineoffsetw + k]++;
