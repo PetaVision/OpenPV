@@ -7,11 +7,10 @@
 ##  Produces weight plot and makes file if requested
 ##  Output is handle to plot or -1 if no plot is requested
 ##
-## TODO: Multi-layer networks - multiple methods
+## TODO: Multi-layer networks - multiple methods for displaying upper-layer elements
 ##          spike triggered average
-##          regression
+##          regression (same as sta?)
 ##          Gar's deconvolution method
-##
 #########################################
 
 #TODO: Can we plan out the imports better so they are only imported once & when needed?
@@ -77,6 +76,7 @@ def plotWeights(weightStruct,i_arbor=0,i_frame=0,margin=0,showPlot=False,savePlo
         plt.imshow(out_mat,cmap='Greys',interpolation='nearest')
         plt.show()
     if savePlot:
+        #TODO: Should be able to pass figure title & axis labels?
         if len(saveName) == 0:
             saveName = './plotWeightsOutput.png'
             fileName = 'plotWeightsOutput'
@@ -97,4 +97,6 @@ def plotWeights(weightStruct,i_arbor=0,i_frame=0,margin=0,showPlot=False,savePlo
     return out_mat
 
 #TODO:
+#def plotWeightMovie(...):  # can receive weight file with multiple frames OR path to checkpoint folder
 #def plotWeightHistograms(...):
+#def plotActivationHistory(...): # activation histogram for each dictionary element
