@@ -16,20 +16,21 @@
 ##
 ###############################
 
-workspace_path = '/home/ec2-user/mountData/'
-#workspace_path = '/Users/dpaiton/Documents/workspace/'
+#workspace_path = '/home/ec2-user/mountData/'
+workspace_path = '/Users/dpaiton/Documents/workspace/'
 
 import os, sys
-lib_path = os.path.abspath('/home/ec2-user/workspace/PetaVision/plab')
-#lib_path = os.path.abspath(workspace_path+'PetaVision/plab')
+#lib_path = os.path.abspath('/home/ec2-user/workspace/PetaVision/plab')
+lib_path = os.path.abspath(workspace_path+'PetaVision/plab')
 sys.path.append(lib_path)
 import pvAnalysis as pv
 import plotWeights as pw
+import plotError as pe
 import numpy as np
 import matplotlib.pyplot as plt
+import math as math
 
 # File Locations
-#output_dir   = workspace_path+'/awsMount/mountData/LIFLCA/output/LCA/'
 output_dir   = workspace_path+'LIFLCA/output/LCA/'
 input_layer  = 'a0_Input.pvp'
 l1_layer     = 'a2_L1.pvp'
@@ -51,63 +52,61 @@ startFrame      = 0
 lastFrame       = -1  # -1 for all
 skipFrames      = 1   # 1 is every frame
 
-# outStruct has fields "time" and "values"
+
+########################
+## READ IN FILES
+########################
+# outDat has fields "time" and "values"
 
 #size is (numFrames,ny,nx,nf)
-#print('Input:')
-#(inputStruct,inputHdr)   = pv.get_pvp_data(input_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
+print('Input:')
+(inputDat,inputHdr)   = pv.get_pvp_data(input_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 #frame = 0
-#plt.imshow(np.squeeze(inputStruct["values"][frame]),cmap='gray')
+#plt.imshow(np.squeeze(inputDat["values"][frame]),cmap='gray')
 #plt.show(block=False)
 
 #size is (numFrames,ny,nx,nf)
 #print('L1:')
-#(L1Struct,L1Hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
+#(L1Dat,L1Hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
 #print('Err_from_file:')
-#(errStruct,errHdr)   = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
+#(errDat,errHdr)   = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
-#print('Recon:')
-#(reconStruct,reconHdr)   = pv.get_pvp_data(recon_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
-
-# Gar Method
-# divide the L2 norm of the residual by the L2 of the input to the
-# residiual (i.e the image) to get % error
-#TODO: pass param for error method, there are 3 that I know of. Gar method, pSNR, SNR
 #print('Err_from_recon:')
-#(errStruct,errHdr) = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
+#(errDat,errHdr) = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
-#TODO: Activation history plot for each element
-print('Weights from non-checkpoint:')
-(weightStruct,weightsHdr) = pv.get_pvp_data(weightsFile,progressPeriod,lastFrame,startFrame,skipFrames)
+#print('Weights from non-checkpoint:')
+#(weightDat,weightsHdr) = pv.get_pvp_data(weightsFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
-print('Weights from checkpoint:')
-(weightChkStruct,weightsChkHdr) = pv.get_pvp_data(weightsChkFile,progressPeriod,lastFrame,startFrame,skipFrames)
-##
-##plt.subplot(1,2,1)
-##<matplotlib.axes._subplots.AxesSubplot object at 0x7f581aeaf550>
-##>>> plt.imshow(weightChkStruct["values"][0][0,0,:,:,0])
-##<matplotlib.image.AxesImage object at 0x7f581af4b908>
-##>>> plt.subplot(1,2,2)
-##<matplotlib.axes._subplots.AxesSubplot object at 0x7f581af7d240>
-##>>> plt.imshow(weightStruct["values"][9][0,0,:,:,0])
-##<matplotlib.image.AxesImage object at 0x7f581af1c3c8>
-##>>> plt.show
-##<function show at 0x7f581b7fda60>
-##>>> plt.show()
-##>>> plt.imshow(weightStruct["values"][9][0,0,:,:,0])
-####
-##
-##
-##
+print('Recon:')
+(reconDat,reconHdr)   = pv.get_pvp_data(recon_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
+
+########################
+## ACTIVITY PLOTS
+########################
+
+
+########################
+## RECON ERROR
+########################
+#TODO: verify that SNRdb and percErr are as expected
+showPlot = True
+savePlot = False
+SNRdb   = pe.plotSnrDbErr(inputDat,reconDat,showPlot,savePlot,'./SNRTest.png')
+percErr = pe.plotPercErr(inputDat,reconDat,showPlot,savePlot,'./percTest.png')
+
+
+########################
+## PLOT WEIGHTS
+########################
 #input_activityFile.close()
 #l1_activityFile.close()
 #err_activityFile.close()
 #recon_activityFile.close()
 #weightsFile.close()
 #weightsChkFile.close()
-
+#
 #i_arbor    = 0
 #i_frame    = 0 # index, not actual frame number
 #margin     = 2 #pixels
@@ -115,4 +114,5 @@ print('Weights from checkpoint:')
 #savePlot   = False
 #saveName   = output_dir+'analysis/'+weights[:-4]+'_'+str(i_frame).zfill(5)+'.png'
 #
-#weight_mat = pw.plotWeights(weightStruct,i_arbor,i_frame,margin,showPlot,savePlot,saveName)
+#weight_mat = pw.plotWeights(weightDat,i_arbor,i_frame,margin,showPlot,savePlot,saveName)
+
