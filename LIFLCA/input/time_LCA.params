@@ -143,9 +143,9 @@ ANNLayer "Residual" = {
 
 
 HyPerLCALayer "L1" = {
-    nxScale                = 0.166;    // xStride = 1/nxScale; striding 1/2 of patch
-    nyScale                = 0.166;    // 
-    nf                     = 256;      // * ~3.5x overcomplete wrt patch size (4 x patch_area because of rectification)
+    nxScale                = 0.25;     // xStride = 1/nxScale; striding 1/2 of patch
+    nyScale                = 0.25;     // 
+    nf                     = 128;      // * 4x overcomplete wrt patch size (4 x patch_area because of rectification)
                                        // * If stride < nxp; overcompleteness = 0.5 * nf / stride^2 
                                        // * Rectification is inherent in LCA layer - all values below threshold go to 0
     numChannels            = 1;        // Should be 1
@@ -274,8 +274,8 @@ HyPerConn "Input_to_Residual" = {
 HyPerConn "L1_to_Residual" = {
     preLayerName                        = "L1";
     postLayerName                       = "Residual";
-    nxp                                 = 24;             // Must be odd number * 1 / (closest power of 2 to nxScale)
-    nyp                                 = 24;
+    nxp                                 = 12;             // Must be odd number * 1 / (closest power of 2 to nxScale)
+    nyp                                 = 12;
     nxpShrunken                         = 12;             // Allows us to have smaller patches than what is allocated
     nypShrunken                         = 12;
     numAxonalArbors                     = 4;
