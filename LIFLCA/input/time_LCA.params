@@ -296,7 +296,7 @@ HyPerConn "L1_to_Residual" = {
     triggerLayerName                    = "Input";
     triggerOffset                       = 1;             // Triggers on triggerOffset timesteps before the image flips
 //    weightUpdatePeriod                  = 200;         // Interval between updates, usually set to before the image flips
-    initialWeightUpdateTime             = 0;
+//    initialWeightUpdateTime             = 0;
     combine_dW_with_W_flag              = false;         // Should be depreciated?
     nonnegativeConstraintFlag           = false;         // TODO: What is this?
 //
