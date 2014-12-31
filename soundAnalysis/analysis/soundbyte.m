@@ -1,6 +1,6 @@
-addpath("~/newvision/trunk/mlab/util/");
-pluspvpfile = "~/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint39780/A1ToPositiveError_W.pvp"
-minuspvpfile = "~/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint39780/A1ToNegativeError_W.pvp"
+addpath("/Users/MLD/newvision/trunk/mlab/util/");
+pluspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/output2/checkpoints/Checkpoint2210/A1ToPositiveError_W.pvp"
+minuspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint2210/A1ToNegativeError_W.pvp"
 
 plusWcell = readpvpfile(pluspvpfile);
 minusWcell = readpvpfile(minuspvpfile);
@@ -47,7 +47,7 @@ for(feature = 1:NF)
     weightrescaled = 127.5 + 127.5 * (weight / max(abs(weight(:))));
 
 
-    subplot(ceil(sqrt(NF)),ceil(sqrt(NF)),feature);
+    subplot(ceil(sqrt(NF)),ceil(sqrt(NF)),feature)
     imagesc(weightrescaled);
     axis off;
     %%colormap(gray);
@@ -58,10 +58,12 @@ for(feature = 1:NF)
 
 
 
-    dlmwrite('freqs.txt',R,"-append")
+    dlmwrite('freqs.txt',R,"-append");
 
 
 end
 
-print -dpng soundbyte.png
+%%print -dpng soundbyte.png;
+
+print("soundbyte.png","-dpng")
 

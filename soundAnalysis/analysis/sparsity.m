@@ -19,7 +19,6 @@ for(k = 1:time)
 
 end
 
-output(7)
 
 plot(output);
 
