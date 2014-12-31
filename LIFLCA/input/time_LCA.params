@@ -10,7 +10,7 @@
 //
 ///////////////////////////
 
-debugParsing = false;
+debugParsing = true;
 
 HyPerCol "column" = {
     nx                              = 256;   // [px]
@@ -25,7 +25,7 @@ HyPerCol "column" = {
     dtChangeMin                     = 0.0;   // By default, if error increases, you go to maximum tau.
                                              // If dtChangeMin > 0, then this is the maximum percentage increase in the percent error you're willing to tolerate before changing tau.
     dtMinToleratedTimeScale         = 0.001;
-    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    randomSeed                      = 1234567890;  // Must be at least 8 digits long. If not set here,  clock time is used to generate seed
     startTime                       = 0;
     stopTime                        = 120440; //displayPeriod * numImages
     progressInterval                = 5000;
@@ -72,11 +72,13 @@ Movie "Input" = {
     echoFramePathnameFlag  = true;
     writeFrameToTimestamp  = true;
     flipOnTimescaleError   = 1;
+    resetToStartOnLoop     = false;
 //
     offsetAnchor           = "tl";     // tl = top-left
     offsetX                = 0;
     offsetY                = 0;
     randomMovie            = 0;
+    padValue               = 0;
     mirrorBCflag           = true;
     jitterFlag             = false;
     useImageBCflag         = false;
@@ -85,7 +87,7 @@ Movie "Input" = {
 //  If both are set to true, then the average pixel value should be 0
 //  and the average squared pixel value should be 1.
 //
-    normalizeLuminanceFlag = True;     // If normalizeStdDev = false, sets mean 0, scales to max of image
+    normalizeLuminanceFlag = true;     // If normalizeStdDev = false, sets mean 0, scales to max of image
                                        // If normalizeStdDev = true, sets mean 0, scales to 1
     normalizeStdDev        = true;     // Sets image std to 1
 //
@@ -168,7 +170,7 @@ HyPerLCALayer "L1" = {
     minV                   = -1.0;     // Only for initialization - min value of v (assuming dimensionless membrane potentials)
     maxV                   = .1;       // 0.05 above VThresh makes a few start out above threshold - no real evidence that this is better
 //    InitVType              = "InitVFromFile";
-//    Vfilename              = "/Users//output/Checkpoints/Checkpoint6000000/L1_V.pvp";
+//    Vfilename              = "/home/dpaiton/output/Checkpoints/Checkpoint6000000/L1_V.pvp";
 // 
     timeConstantTau        = 50.0;//100.0;    // dt is scaled by multiplying by 1/timeConstantTau
                                        // u(t+dt) = u(t) + dt/tau * u^dot
@@ -296,6 +298,7 @@ HyPerConn "L1_to_Residual" = {
 //    weightUpdatePeriod                  = 200;         // Interval between updates, usually set to before the image flips
     initialWeightUpdateTime             = 0;
     combine_dW_with_W_flag              = false;         // Should be depreciated?
+    nonnegativeConstraintFlag           = false;         // TODO: What is this?
 //
     pvpatchAccumulateType               = "convolve";    // * How activity & weights are combined. Alternative options are max pooling,
                                                          //   stocastic, others?
@@ -342,7 +345,7 @@ TransposeConn "Residual_to_L1" = {
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
-//    delay                               = [0.0];
+    delay                               = [0.0,40.0,80.0,120.0];
     updateGSynFromPostPerspective       = true;         // Update from L1 perspective (pull model for thread safety)
     originalConnName                    = "L1_to_Residual";
 //    preDataLocal                        = true;         // * If true, pre-synaptic data is put into local memory.
