@@ -1091,16 +1091,17 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
          close(fid);
          std::string systemstring;
          if (strstr(filename, "s3://") != NULL) {
-            systemstring = "aws s3 cp ";
+            systemstring = "aws s3 cp \'";
             systemstring += filename;
-            systemstring += " ";
+            systemstring += "\' ";
             systemstring += path;
          }
          else { // URLs other than s3://
             systemstring = "wget -O ";
             systemstring += path;
-            systemstring += " ";
+            systemstring += " \'";
             systemstring += filename;
+            systemstring += "\'";
          }
          
          for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
