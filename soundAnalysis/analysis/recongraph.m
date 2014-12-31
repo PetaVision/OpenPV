@@ -1,4 +1,4 @@
-addpath("~/newvision/trunk/mlab/util/");
+addpath("~/newvision/PetaVision/mlab/util/");
 pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/output2/checkpoints/a9_FullRecon.pvp";
 outfilename = "recongraph.png";
 

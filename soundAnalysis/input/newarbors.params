@@ -227,7 +227,7 @@ timeConstantTau = .04;
 timeConstantTauMinimum = 0;
 //slopeErrorStd = 0.01;
 
-VThresh = .0005;
+VThresh = .00015;
 VWidth = 0;
 AMax = infinity;
 AMin = 0;
@@ -439,7 +439,7 @@ weightInitType = "UniformRandomWeight";
 //initWeightsFile = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/V1ToErrorON_W.pvp";
 
 wmininit = -1.0;
-wmaxinit = 1.0;
+wmaxinit = 0.001;
 sparsefraction = .9;
 
 strength = 1;
@@ -460,7 +460,7 @@ weightUpdatePeriod = .00022675737;
 initialWeightUpdateTime = 0;
 initialWriteTime = 0.0;
 
-dWMax = 0.05; // 1.0; //0.05; //5.0;
+dWMax = 0.0005; // 1.0; //0.05; //5.0;
 selfFlag = false;
 shmget_flag = false;
 pvpatchAccumulateType = "convolve";
@@ -492,7 +492,7 @@ weightInitType = "UniformRandomWeight";
 //initWeightsFile = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/V1ToErrorON_W.pvp";
 
 wmininit = -1.0;
-wmaxinit = 1.0;
+wmaxinit = 0.001;
 sparsefraction = .9;
 
 strength = 1;
@@ -513,7 +513,7 @@ weightUpdatePeriod = .00022675737; //200.0;
 initialWeightUpdateTime = 0; //199.0;
 initialWriteTime = 0.0;
 
-dWMax = 0.05; // 1.0; //0.05; //5.0;
+dWMax = 0.0005; // 1.0; //0.05; //5.0;
 selfFlag = false;
 shmget_flag = false;
 pvpatchAccumulateType = "convolve";
