@@ -15,7 +15,7 @@ import struct, os, sys
 import pdb #TODO: At some point we shouldn't need to include this any more
 
 def read_header_file(fileStream, pos=0):
-    fileStream.seek(pos)
+    fileStream.seek(pos,0) #seek from beginning of the file
 
     params = struct.unpack("iiiiiiiiiiiiiiiiii", fileStream.read(72))
     header = {}
@@ -86,7 +86,7 @@ def get_frame_info(hdr,fileStream):
     elif hdr["filetype"] == 6:
         frameSize = -1 # frameSize is a variable
         numFrames = hdr["nbands"]
-    return (frameSize,int(numFrames))
+    return (int(frameSize),int(numFrames))
 
 
 def read_dense_data(fileStream, dense_shape, numNeurons):
@@ -97,7 +97,7 @@ def read_dense_data(fileStream, dense_shape, numNeurons):
         return (-1, None)
     try:
         idx = struct.unpack("d", timestamp)
-        outmat = np.array(np.fromfile(fileStream, np.float32, numNeurons).reshape(dense_shape))
+        outmat = np.fromfile(fileStream, np.float32, numNeurons).reshape(dense_shape)
         return (idx, outmat)
     except:
         return (-1, None)
@@ -117,20 +117,15 @@ def read_sparse_data(fileStream,dense_shape):
     try:
         numActive = np.fromfile(fileStream,np.int32,1)
         if numActive > 0:
-            lin_idx   = np.zeros(numActive)
-            vals      = np.zeros(numActive)
 
-            #TODO: Speed up by reading in the full string initially
-            # File alternates between int32 (index of active cell) and float32 (activity of cell)
-            for i in range(numActive):
-                lin_idx[i] = np.fromfile(fileStream,np.int32,1)
-                vals[i]    = np.fromfile(fileStream,np.float32,1)
-                #TODO: Maybe make ^^ take in a two column vector all at once, instead of reading one value each iteration
-                #(idf[i],idx[i],idy[i]) = np.unravel_index(lin_idx[i],shape) # Linear indexing to subscripts
+            # Read in all data as floats, then recast indices as ints
+            in_list = np.fromfile(fileStream,np.float32,numActive*2)
+            in_mat  = np.reshape(in_list,(numActive,2))
+            indices = in_mat[:,0].view(np.int32)
+            vals    = in_mat[:,1]
 
-                # Compressed Sparse Column Matrix has efficient column slicing
-            ij_mat = (np.zeros(numActive),lin_idx)
-            sparseMat = sparse.csc_matrix((vals,ij_mat),shape=(1,dense_shape)) # 1 row, nf*ny*nx columns
+            ij_mat = (np.zeros(numActive),indices)
+            sparseMat = sparse.coo_matrix((vals,ij_mat),shape=(1,dense_shape)) # 1 row, nf*ny*nx columns
 
         else:
             sparseMat = sparse.csc_matrix(np.zeros(1,dense_shape))
@@ -174,7 +169,6 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
 
     (frameSize, numFrames) = get_frame_info(hdr,fileStream)
 
-    #pdb.set_trace()
     if lastFrame != -1:
         numFrames = lastFrame
 
@@ -190,15 +184,15 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
 
     elif hdr["filetype"] == 4: #PVP_NONSPIKING_ACT_FILE
         if hdr["datatype"] == 3: #PV_FLOAT_TYPE
-            shape = (hdr["nf"],hdr["nx"],hdr["ny"])
+            shape = (hdr["ny"],hdr["nx"],hdr["nf"])
             numNeurons = shape[0]*shape[1]*shape[2]
 
-            fileStream.seek(startFrame*frameSize)
+            fileStream.seek(startFrame*frameSize,1) # seek from current position
 
             fileIdx = 0
             for f in range(startFrame,numFrames):
                 if f%skipFrames != 0:
-                    fileStream.seek(frameSize)
+                    fileStream.seek(frameSize,1)
                     continue
 
                 if progressPeriod != 0:
@@ -224,28 +218,27 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
             for f in range(startFrame,numFrames):
                 # Need to advance file pointer if frame is to be skipped
                 if (f < startFrame) or (f%skipFrames != 0):
-                    fileStream.seek(hdr["headersize"]+precision*hdr["nfp"]*hdr["nxp"]*hdr["nyp"]) #seek past the frame
+                    fileStream.seek(hdr["headersize"]+precision*hdr["nyp"]*hdr["nxp"]*hdr["nfp"],1) #seek past the frame
                     continue
 
-                hdr = read_header_file(fileStream,fileStream.tell()) # Header repeats after each frame
+                hdr = read_header_file(fileStream) # Header repeats after each frame
 
                 if progressPeriod != 0:
                     if fileIdx%progressPeriod == 0:
                         sys.stdout.write(" Progress: %d/%d%s"%(fileIdx,loopLen,"\r"))
                         sys.stdout.flush();
 
-                tmp_vals_arry = np.zeros((len(range(hdr["nbands"])),len(range(hdr["numPatches"])),hdr["nfp"],hdr["nyp"],hdr["nxp"]))
+                tmp_vals_arry = np.zeros((len(range(hdr["nbands"])),len(range(hdr["numPatches"])),hdr["nyp"],hdr["nxp"],hdr["nfp"]))
                 for arbor in range(hdr["nbands"]):
                     for patch in range(hdr["numPatches"]):
                         # TODO: Handle shrunken patch info? I have no idea what that entails.
                         #       For now, seek over HyPerLayer's shrunkenPatch data
                         #       uint16 (2 bytes, patch->nx) + uint16 (2 bytes, patch->ny) + uint32 (4 bytes, patch->offset)
-                        fileStream.seek(8,1)
+                        fileStream.seek(8,1) # seek from current position
 
-                        bytes_to_read = hdr["nfp"]*hdr["nxp"]*hdr["nyp"]
+                        bytes_to_read = hdr["nyp"]*hdr["nxp"]*hdr["nfp"]
                         tmp_dat       = np.fromfile(fileStream,np.float32,bytes_to_read)
-                        # TODO: Figure out if this is flipped from readpvpfile.m
-                        pdb.set_trace()
+                        # TODO: Figure out if this is flipped from readpvpfile.m >> is readpvpfile broken?
                         tmp_vals_arry[arbor,patch,:,:,:] = np.ravel(tmp_dat).reshape(hdr["nyp"],hdr["nxp"],hdr["nfp"])
                 data[fileIdx]       = tmp_vals_arry
                 timeStamps[fileIdx] = hdr["time"]
@@ -259,7 +252,7 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                     #fseek a frame's worth of bits
                     fileStream.read(8) # Skip over timestamp (Float64)
                     numActive = np.fromfile(fileStream,np.int32,1)
-                    fileStream.seek(numActive*8) # Int32 for index, Int32 for value
+                    fileStream.seek(numActive*8,1) # Int32 for index, Int32 for value
                     continue
 
                 if progressPeriod != 0:
@@ -267,14 +260,14 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                         sys.stdout.write(" Progress: %d/%d%s"%(frameIdx,loopLen,"\r"))
                         sys.stdout.flush();
 
-                (timeStamps[frameIdx],sparseMat) = read_sparse_data(fileStream,hdr["nf"]*hdr["nx"]*hdr["ny"])
+                (timeStamps[frameIdx],sparseMat) = read_sparse_data(fileStream,hdr["ny"]*hdr["nx"]*hdr["nf"])
 
                 assert timeStamps[frameIdx] != -1
                 assert sparseMat != None
 
-                # TODO: Apparently, readpvpfile.m returns a sparse matrix?
-                # TODO: This should  be nf, nx, ny
-                data[frameIdx] = np.ravel(sparseMat.todense()).reshape(hdr["ny"],hdr["nx"],hdr["nf"])
+                #readpvpfile.m would return np.array((sparseMat.col,sparseMat.data))
+                #to convert to dense, you would do np.ravel(sparseMat.todense()).reshape(hdr["ny"],hdr["nx"],hdr["nf"])
+                data[frameIdx] = sparseMat
                 frameIdx+=1
 
     outStruct = {}
