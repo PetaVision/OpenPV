@@ -58,12 +58,12 @@ HyPerCol "column" = {
 
 
 Movie "Input" = {
-    nxScale                = 0.5;
-    nyScale                = 0.5;
+    nxScale                = 1;
+    nyScale                = 1;
     imageListPath          = "/home/dpaiton/workspace/LIFLCA/input/img_list.txt";
     nf                     = 1;        // nf=3 for RGB, nf=1 for greyscale
 //
-//  initialWriteTime         = 40;
+//    initialWriteTime       = 40;
     writeStep              = -1;
     sparseLayer            = false;
     displayPeriod          = 40;       // How long image is displayed to network before flipping
@@ -92,7 +92,7 @@ Movie "Input" = {
     normalizeStdDev        = true;     // Sets image std to 1
 //
     writeImages            = false;
-    autoResizeFlag         = true;     // if nx[ny]Scale < 1: false is crop, true is resize
+    autoResizeFlag         = true;     // if HyPerCol size < image size: false is crop, true is resize
     readPvpFile            = false;
     updateGpu              = false;
     phase                  = 0;
