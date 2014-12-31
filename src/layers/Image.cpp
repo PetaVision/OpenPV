@@ -261,7 +261,7 @@ void Image::ioParam_recurrenceProb(enum ParamsIOFlag ioFlag) {
    }
 }
 
-int Image::ioParam_padValue(enum ParamsIOFlag ioFlag) {
+void Image::ioParam_padValue(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "padValue", &padValue, padValue);
 }
 

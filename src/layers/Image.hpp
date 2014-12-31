@@ -125,7 +125,7 @@ protected:
    /**
     * @brief padValue: If the image is being padded (image smaller than layer), the value to use for padding
     */
-   int ioParam_padValue(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_padValue(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief biasChangeTime: If jitter flag is set, sets the time period for recalculating bias position
