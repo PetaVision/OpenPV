@@ -851,7 +851,7 @@ ColProbe * addColProbeToColumn(const char * classkeyword, const char * probeName
 void insertColProbe(ColProbe * colProbe, HyPerCol * hc) {
    const char * classkeyword = hc->parameters()->groupKeywordFromName(colProbe->getColProbeName());
    if( colProbe != NULL ) {
-      hc->insertProbe(colProbe);
+      // hc->insertProbe(colProbe); // ColProbe::initialize calls insertProbe, to be consistent with other types of probe
       printf("Added %s \"%s\" to column.\n", classkeyword, colProbe->getColProbeName());
    }
    else {

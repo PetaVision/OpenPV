@@ -2390,7 +2390,7 @@ int HyPerCol::insertProbe(ColProbe * p)
    for (int i = 0; i < numColProbes; i++) {
       newprobes[i] = colProbes[i];
    }
-   delete colProbes;
+   free(colProbes);
 
    colProbes = newprobes;
    colProbes[numColProbes] = p;
