@@ -42,7 +42,7 @@ HyPerCol "column" = {
 //    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
     printParamsFilename             = "LCA_LIF_trial_1.params";    
     verifyWrites                    = true;
-    errorOnNotANumber               = true;  // Requires computationally expensive check
+    errorOnNotANumber               = false;  // Requires computationally expensive check
 };
 
 
@@ -98,8 +98,8 @@ Movie "Input" = {
     phase                  = 0;
 };
 
-
-ANNLayer "Residual" = {
+ANNNormalizedErrorLayer "Residual" = {
+// ANNNormalizedErrorLayer also writes out 1/% error per time step, which is more computationally expensive
 //
 // * Membrane potential is channel 0 - channel 1
 //   If the membrane potential is < Vthresh, then 
@@ -124,11 +124,13 @@ ANNLayer "Residual" = {
 //
                                         // When membrane potential is below threshold, output is set to AMin
                                         // For computing error with an ANN layer, we want to always be above threshold
-    VThresh                = -infinity; // Threshold for T(u).
+    VThresh                = 0;         // Threshold for T(u).
                                         // Non-zero value will sparsify your error (i.e. small error will go to 0)
+                                        // For error layer, take sign(error)*abs(error), so that we can put a threshold on the error
 //
     AMax                   = infinity;  // Max value that T(u) can be
-    AMin                   = -infinity; // Min value that T(u) can be
+    AMin                   = 0;         // Min value that T(u) can be
+                                        // For error layer, when below threshold, we want min to be 0 instead of -infinity
                                         // 
     AShift                 = 0;         // Shift between hard & soft threshold
     VWidth                 = 0;         // Width of transition region from soft to hard threshold                          
@@ -172,7 +174,7 @@ HyPerLCALayer "L1" = {
 //    InitVType              = "InitVFromFile";
 //    Vfilename              = "/home/dpaiton/output/Checkpoints/Checkpoint6000000/L1_V.pvp";
 // 
-    timeConstantTau        = 50.0;//100.0;    // dt is scaled by multiplying by 1/timeConstantTau
+    timeConstantTau        = 50.0;     // dt is scaled by multiplying by 1/timeConstantTau
                                        // u(t+dt) = u(t) + dt/tau * u^dot
 //
 // Here is where you set a hard or soft threshold.
@@ -185,7 +187,8 @@ HyPerLCALayer "L1" = {
     AShift                 = 0;        // * Shift between hard & soft threshold
                                        //   T(u) = u - AShift for u > threshold
                                        // * Soft: AShift = VThresh;  Hard & Firm: AShift = 0
-    VWidth                 = 0;        // * Width of transition region from soft to hard threshold.
+    VWidth                 = 0.25;     // * Once V = (VWidth+VThresh), output is hard thresholded
+                                       // * Width of transition region from soft to hard threshold.
                                        //   For firm threshold, VWidth > 0; for hard, VWidth = 0; for soft, VWidth = infinity.
                                        //   Slope of transition line is VThresh / VWidth
                                        // * Soft: VWidth = infinity; Hard: VWidth = 0; Firm: VWidth = finite
@@ -297,7 +300,7 @@ HyPerConn "L1_to_Residual" = {
     triggerOffset                       = 1;             // Triggers on triggerOffset timesteps before the image flips
 //    weightUpdatePeriod                  = 200;         // Interval between updates, usually set to before the image flips
 //    initialWeightUpdateTime             = 0;
-    combine_dW_with_W_flag              = false;         // Should be depreciated?
+    combine_dW_with_W_flag              = false;         // Should be depricated?
     nonnegativeConstraintFlag           = false;         // TODO: What is this?
 //
     pvpatchAccumulateType               = "convolve";    // * How activity & weights are combined. Alternative options are max pooling,
@@ -329,7 +332,7 @@ HyPerConn "L1_to_Residual" = {
     strength                            = 1;
     rMinX                               = 0;             // Creates annulus if non-zero
     rMinY                               = 0;
-    dWMax                               = 10.0;          // Corresponds to eta parameter
+    dWMax                               = 3.0;           // Corresponds to eta parameter
 //
     shrinkPatches                       = false;         // Shrinks patch to minimum non-zero cube. Only works for fixed weights?
     receiveGpu                          = false;         // Sparse convolution, most efficient on CPU
