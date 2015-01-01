@@ -226,7 +226,7 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                 if progressPeriod != 0:
                     if frameIdx%progressPeriod == 0:
                         sys.stdout.write(" Progress: %d/%d%s"%(frameIdx,loopLen,"\r"))
-                        sys.stdout.flush();
+                        sys.stdout.flush()
 
                 tmp_vals_arry = np.zeros((len(range(hdr["nbands"])),len(range(hdr["numPatches"])),hdr["nyp"],hdr["nxp"],hdr["nfp"]))
                 for arbor in range(hdr["nbands"]):

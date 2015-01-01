@@ -19,7 +19,7 @@ import numpy as np
 import matplotlib.pyplot as plt # only need if showPlot==True OR savePlot==true
 import os                       # only needed if savePlot==true
 
-def plotWeights(weightStruct,i_arbor=0,i_frame=0,margin=0,showPlot=False,savePlot=False,saveName=''):
+def plotWeights(weightStruct,arborIdx=None,i_frame=0,margin=0,showPlot=False,savePlot=False,saveName=''):
     # NOTE: i_arbor and i_frame are indices for the given frame or arbor.
     #       They are not the actual arbor/frame number. This is because
     #       there may be a writeStep that is not 1.
@@ -34,67 +34,75 @@ def plotWeights(weightStruct,i_arbor=0,i_frame=0,margin=0,showPlot=False,savePlo
 
     (numFrames,numArbors,numPatches,nyp,nxp,nfp) = weight_vals.shape
 
-    if i_arbor > numArbors:
-        print("Warning: i_arbor > numArbors. Setting i_arbor to numArbors.")
-        i_arbor = numArbors
+    if arborIdx is None:
+       arborIdx = np.arange(numArbors)
+
     if i_frame > numFrames:
         print("Warning: i_frame > numFrames. Setting i_frame to numFrames.")
         i_frame = numFrames
 
-    if np.sqrt(numPatches)%1 == 0: #If numPaches has a square root
-        numPatchesX = np.sqrt(numPatches)
-        numPatchesY = numPatchesX
-    else:
-        numPatchesX = np.floor(np.sqrt(numPatches))
-        numPatchesY = numPatchesX+1
+    out_list = len(arborIdx) * [None] # pre-allocate list to hold weight matrices
+    for i_arbor in arborIdx:
+       if i_arbor > numArbors:
+           print("Warning: i_arbor > numArbors. Setting i_arbor to numArbors.")
+           i_arbor = numArbors
 
-    patch_set = np.zeros((numPatchesX*numPatchesY,nyp+margin,nxp+margin))
-    out_mat   = np.zeros((numPatchesY*(nyp+margin),numPatchesX*(nxp+margin)))
+       if np.sqrt(numPatches)%1 == 0: #If numPaches has a square root
+           numPatchesX = np.sqrt(numPatches)
+           numPatchesY = numPatchesX
+       else:
+           numPatchesX = np.floor(np.sqrt(numPatches))
+           numPatchesY = numPatchesX+1
 
-    xpos = 0
-    ypos = 0
-    half_margin = np.floor(margin/2)
+       patch_set = np.zeros((numPatchesX*numPatchesY,nyp+margin,nxp+margin))
+       out_mat   = np.zeros((numPatchesY*(nyp+margin),numPatchesX*(nxp+margin)))
 
-    for i_patch in range(numPatches):
-        patch_tmp = weight_vals[i_frame,i_arbor,i_patch,:,:,:]
-        min_patch = np.amin(patch_tmp)
-        max_patch = np.amax(patch_tmp)
-        # Normalize patch
-        patch_tmp = (patch_tmp - min_patch) * 255 / (max_patch - min_patch + np.finfo(float).eps) # re-scaling & normalizing TODO: why? and what exactly is it doing?
-        # Patches are padded with zeros - just fill in center
-        patch_set[i_patch,half_margin:half_margin+nyp,half_margin:half_margin+nxp] = np.uint8(np.squeeze(np.transpose(patch_tmp,(1,0,2)))) # re-ordering to [x,y,f] TODO: why?
+       xpos = 0
+       ypos = 0
+       half_margin = np.floor(margin/2)
 
-        out_mat[ypos:ypos+nyp+margin,xpos:xpos+nxp+margin] = patch_set[i_patch,:,:]
+       for i_patch in range(numPatches):
+           patch_tmp = weight_vals[i_frame,i_arbor,i_patch,:,:,:]
+           min_patch = np.amin(patch_tmp)
+           max_patch = np.amax(patch_tmp)
+           # Normalize patch
+           patch_tmp = (patch_tmp - min_patch) * 255 / (max_patch - min_patch + np.finfo(float).eps) # re-scaling & normalizing TODO: why? and what exactly is it doing?
+           # Patches are padded with zeros - just fill in center
+           patch_set[i_patch,half_margin:half_margin+nyp,half_margin:half_margin+nxp] = np.uint8(np.squeeze(np.transpose(patch_tmp,(1,0,2)))) # re-ordering to [x,y,f] TODO: why?
 
-        xpos += nxp+margin
+           out_mat[ypos:ypos+nyp+margin,xpos:xpos+nxp+margin] = patch_set[i_patch,:,:]
 
-        if xpos > out_mat.shape[1]-(nxp+margin):
-            ypos += nyp+margin
-            xpos = 0
+           xpos += nxp+margin
 
-    if showPlot:
-        plt.imshow(out_mat,cmap='Greys',interpolation='nearest')
-        plt.show()
-    if savePlot:
-        #TODO: Should be able to pass figure title & axis labels?
-        if len(saveName) == 0:
-            saveName = './plotWeightsOutput.png'
-            fileName = 'plotWeightsOutput'
-            fileExt  = 'png'
-            filePath = './'
-        else:
-            seps     = saveName.split(os.sep)
-            fileName = seps[-1]
-            filePath = saveName[0:-len(fileName)]
-            seps     = fileName.split(os.extsep)
-            fileExt  = seps[-1]
-            fileName = seps[0]
-            if not os.path.exists(filePath):
-                os.makedirs(filePath)
-        plt.imsave(filePath+fileName+'.'+fileExt,out_mat,vmin=0,vmax=255,cmap='Greys',origin='upper')
+           if xpos > out_mat.shape[1]-(nxp+margin):
+               ypos += nyp+margin
+               xpos = 0
 
+       out_list[i_arbor] = out_mat
 
-    return out_mat
+       if showPlot:
+           plt.figure()
+           plt.imshow(out_mat,cmap='Greys',interpolation='nearest')
+           plt.show(block=False)
+       if savePlot:
+           #TODO: Should be able to pass figure title & axis labels?
+           if len(saveName) == 0:
+               fileName = 'plotWeightsOutput_f'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)
+               fileExt  = 'png'
+               filePath = './'
+               saveName = filePath+fileName+'.'+fileExt
+           else:
+               seps     = saveName.split(os.sep)
+               fileName = seps[-1]
+               filePath = saveName[0:-len(fileName)]
+               seps     = fileName.split(os.extsep)
+               fileExt  = seps[-1]
+               fileName = seps[0]
+               if not os.path.exists(filePath):
+                   os.makedirs(filePath)
+           plt.imsave(filePath+fileName+'_f'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'.'+fileExt,out_mat,vmin=0,vmax=255,cmap='Greys',origin='upper')
+
+    return out_list
 
 #TODO:
 #def plotWeightMovie(...):  # can receive weight file with multiple frames OR path to checkpoint folder
