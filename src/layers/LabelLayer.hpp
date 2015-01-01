@@ -44,6 +44,7 @@ public:
    LabelLayer(const char * name, HyPerCol * hc);
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
+   virtual bool activityIsSpiking() { return false; }
    virtual int updateState(double time, double dt);
    virtual int outputState(double time, bool last);
    virtual ~LabelLayer();

@@ -29,6 +29,8 @@ public:
    pvdata_t getAMin()           { return AMin; }
    pvdata_t getAShift()         { return AShift; }
    pvdata_t getVWidth()         { return VWidth; }
+
+   virtual bool activityIsSpiking() { return false; }
 protected:
    ANNLayer();
    int initialize(const char * name, HyPerCol * hc);

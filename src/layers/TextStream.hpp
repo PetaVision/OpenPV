@@ -27,6 +27,7 @@ public:
    virtual int updateState(double time, double dt);
    //TODO Is this being used?
    //float lastUpdate()  { return lastUpdateTime; }
+   virtual bool activityIsSpiking() { return false; }
 
 private:
    int initialize_base();

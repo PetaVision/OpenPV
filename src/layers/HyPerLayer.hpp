@@ -269,9 +269,10 @@ protected:
    //virtual int calcActiveIndices();
    void calcNumExtended();
 public:
-   pvdata_t * getActivity()          {return clayer->activity->data;}
+   pvdata_t * getActivity()          {return clayer->activity->data;} // TODO: access to clayer->activity->data should not be public
    virtual double calcTimeScale()          {return -1.0;};
    virtual double getTimeScale()      {return -1.0;};
+   virtual bool activityIsSpiking() = 0; // Pure virtual method so that subclasses are forced to implement it.
 protected:
 
    /**

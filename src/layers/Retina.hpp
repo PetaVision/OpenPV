@@ -47,6 +47,8 @@ public:
    virtual int waitOnPublish(InterColComm* comm);
    virtual int checkpointWrite(const char * cpDir);
 
+   virtual bool activityIsSpiking() { return spikingFlag; }
+
 protected:
    Retina();
    int initialize(const char * name, HyPerCol * hc, PVLayerType type);

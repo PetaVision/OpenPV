@@ -11,6 +11,7 @@ public:
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis);
+   virtual bool activityIsSpiking() { return false; }
    virtual ~BinningLayer();
 
 protected:

@@ -66,6 +66,8 @@ public:
 
    virtual LIF_params * getLIFParams() {return &lParams;};
 
+   virtual bool activityIsSpiking() { return true; }
+
 
 protected:
    LIF_params lParams;

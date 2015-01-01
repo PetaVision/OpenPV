@@ -743,7 +743,8 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_weightUpdatePeriod(ioFlag);
    ioParam_initialWeightUpdateTime(ioFlag);
    ioParam_pvpatchAccumulateType(ioFlag);
-   ioParam_preActivityIsNotRate(ioFlag);
+   // ioParam_preActivityIsNotRate(ioFlag); // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
+   // ioParam_convertRateToSpikeCount(ioFlag); // convertRateToSpikeCount is read by parent class BaseConnection
    ioParam_writeStep(ioFlag);
    ioParam_initialWriteTime(ioFlag);
    ioParam_writeCompressedWeights(ioFlag);
@@ -3801,7 +3802,8 @@ int HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int nDataP
 float HyPerConn::getConvertToRateDeltaTimeFactor()
 {
    float dt_factor = 1.0f;
-   if (preActivityIsNotRate) {
+   // if (preActivityIsNotRate) { // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014
+   if (convertRateToSpikeCount && !pre->activityIsSpiking()) {
       enum ChannelType channel_type = getChannel();
       float dt = getParent()->getDeltaTime();
       float tau = post->getChannelTimeConst(channel_type);

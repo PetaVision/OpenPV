@@ -34,6 +34,7 @@ int BaseConnection::initialize_base() {
    this->fDelayArray = NULL;
    this->delays = NULL;
    numAxonalArborLists = 1;
+   convertRateToSpikeCount = false;
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    receiveGpu = false;
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -147,9 +148,14 @@ void BaseConnection::setNumberOfAxonalArborLists(int numArbors) {
    this->numAxonalArborLists = numArbors;
 }
 
-void BaseConnection::setPreActivityIsNotRate(bool preActivityIsNotRate) {
+// preActivityIsNotRate was replaced by convertRateToSpikeCount on Dec 31, 2014.
+// void BaseConnection::setPreActivityIsNotRate(bool preActivityIsNotRate) {
+//    assert(!initInfoCommunicatedFlag);
+//    this->preActivityIsNotRate = preActivityIsNotRate;
+// }
+void BaseConnection::setConvertRateToSpikeCount(bool convertRateToSpikeCountFlag) {
    assert(!initInfoCommunicatedFlag);
-   this->preActivityIsNotRate = preActivityIsNotRate;
+   this->convertRateToSpikeCount = convertRateToSpikeCountFlag;
 }
 
 int BaseConnection::handleMissingPreAndPostLayerNames() {
@@ -263,7 +269,8 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_channelCode(ioFlag);
    ioParam_delay(ioFlag);
    ioParam_numAxonalArbors(ioFlag);
-   ioParam_preActivityIsNotRate(ioFlag);
+   // ioParam_preActivityIsNotRate(ioFlag); // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
+   ioParam_convertRateToSpikeCount(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -332,8 +339,31 @@ void BaseConnection::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void BaseConnection::ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag) {
-   this->getParent()->ioParamValue(ioFlag, this->getName(), "preActivityIsNotRate", &preActivityIsNotRate, false/*default value*/, true/*warn if absent*/);
+// preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
+// void BaseConnection::ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag) {
+//    this->getParent()->ioParamValue(ioFlag, this->getName(), "preActivityIsNotRate", &preActivityIsNotRate, false/*default value*/, true/*warn if absent*/);
+// }
+
+void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
+   // The parameter preActivityIsNotRate was eliminated Dec 31, 2014.  After a sufficient fade time, the if-statement
+   // checking for the presence of the parameter in the params file can be eliminated, and this method
+   // will consist of the single line calling HyPerCol::ioParamValue with "convertRateToSpikeCount".
+   if (ioFlag == PARAMS_IO_READ) {
+      if (this->getParent()->parameters()->present(this->getName(), "preActivityIsNotRate")) {
+         bool preActivityIsNotRateValue = this->getParent()->parameters()->value(this->getName(), "preActivivityIsNotRate");
+         if (this->getParent()->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" %s: preActivityIsNotRate has been replaced with convertRateToSpikeCount.\n",
+                  this->getParent()->parameters()->groupKeywordFromName(this->getName()), this->getName(),
+                  preActivityIsNotRateValue ? "error" : "warning");
+            if (preActivityIsNotRateValue) {
+               fprintf(stderr, "   Setting preActivityIsNotRate to true is regarded as an error because convertRateToSpikeCount is not exactly equivalent.  Exiting.\n");
+            }
+         }
+         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         if (preActivityIsNotRateValue) { exit(EXIT_FAILURE); }
+      }
+   }
+   this->getParent()->ioParamValue(ioFlag, this->getName(), "convertRateToSpikeCount", &convertRateToSpikeCount, false/*default value*/);
 }
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)

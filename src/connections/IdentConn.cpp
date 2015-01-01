@@ -84,12 +84,21 @@ void IdentConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void IdentConn::ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag) {
+// preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
+// void IdentConn::ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag) {
+//    if (ioFlag == PARAMS_IO_READ) {
+//       preActivityIsNotRate = false;
+//       parent->parameters()->handleUnnecessaryParameter(name, "preActivityIsNotRate", preActivityIsNotRate);
+//    }
+// }
+
+void IdentConn::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      preActivityIsNotRate = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "preActivityIsNotRate", preActivityIsNotRate);
+      this->convertRateToSpikeCount = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "convertRateToSpikeCount", this->convertRateToSpikeCount);
    }
 }
+
 void IdentConn::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       writeCompressedWeights = true;

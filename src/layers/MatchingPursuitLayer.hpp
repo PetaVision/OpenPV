@@ -26,6 +26,7 @@ public:
    virtual bool inWindowRes(int windowId, int neuronIdxRes);
    virtual int resetGSynBuffers(double timed, double dt);
 #endif // OBSOLETE
+   virtual bool activityIsSpiking() { return false; }
    virtual int updateState(double timed, double dt);
    virtual int outputState(double timed, bool last=false);
 

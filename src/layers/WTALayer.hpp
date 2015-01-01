@@ -15,6 +15,7 @@ public:
    virtual ~WTALayer();
    virtual int updateState(double timef, double dt);
    virtual int communicateInitInfo();
+   virtual bool activityIsSpiking() { return false; }
 protected:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);

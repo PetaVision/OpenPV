@@ -28,6 +28,7 @@ public:
    int getNumNodes();
    int getJitter() {return jitter;}
    int updateState(double timef, double dt);
+   virtual bool activityIsSpiking() { return false; }
    ~BIDSMovieCloneMap();
    
 protected:

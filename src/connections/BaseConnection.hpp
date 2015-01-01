@@ -244,11 +244,13 @@ public:
     */
    inline int getDelay(int arbor) { return (arbor >= 0 && arbor < this->numberOfAxonalArborLists()) ? delays[arbor] : -1; }
 
-   /**
-    * Returns true if the connection treats pre-synaptic activity as a not-rate.
-    * Returns false if the connection treats pre-synaptic activity as a rate.
-    */
-   inline bool preSynapticActivityIsNotRate() { return preActivityIsNotRate; }
+   // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
+   // /**
+   //  * Returns true if the connection treats pre-synaptic activity as a not-rate.
+   //  * Returns false if the connection treats pre-synaptic activity as a rate.
+   //  */
+   // inline bool preSynapticActivityIsNotRate() { return preActivityIsNotRate; }
+   inline bool getConvertRateToSpikeCount() { return convertRateToSpikeCount; }
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    inline bool getReceiveGpu() { return receiveGpu; }
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -335,11 +337,13 @@ protected:
     */
    void setNumberOfAxonalArborLists(int numArbors);
 
-   /**
-    * Sets the preActivityIsNotRate flag to the indicated argument.  It is an error to try to change
-    * preActivityIsNotRate after communicateInitInfo() has completed successfully.
-    */
-   void setPreActivityIsNotRate(bool preActivityIsNotRate);
+   // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
+   // /**
+   //  * Sets the preActivityIsNotRate flag to the indicated argument.  It is an error to try to change
+   //  * preActivityIsNotRate after communicateInitInfo() has completed successfully.
+   //  */
+   // void setPreActivityIsNotRate(bool preActivityIsNotRate);
+   void setConvertRateToSpikeCount(bool convertRateToSpikeCountFlag);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    void setReceiveGpu();
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -368,7 +372,7 @@ protected:
     * The virtual method for reading parameters from the parent HyPerCol's parameters, and writing to the output params file.
     *
     * BaseConnection::ioParamsFillGroup reads/writes the paremeters
-    * preLayerName, postLayerName, channelCode, delay, numAxonalArbors, and preActivityIsNotRate.
+    * preLayerName, postLayerName, channelCode, delay, numAxonalArbors, and convertRateToSpikeCount.
     *
     * Derived classes with additional parameters typically override ioParamsFillGroup to call the base class's ioParamsFillGroup
     * method and then call ioParam_[parametername] for each of their parameters.
@@ -416,12 +420,14 @@ protected:
     */
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief preActivityIsNotRate: If true, pre activity is spike rate. If false, pre activity is value
-    * @details The post synaptic layer needs to interpret pre synaptic activity as a spike rate
-    * Other situations interpret as a value. This flag sets either one or the other.
-    */
-   virtual void ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag);
+   // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
+   // /**
+   //  * @brief preActivityIsNotRate: If true, pre activity is spike rate. If false, pre activity is value
+   //  * @details The post synaptic layer needs to interpret pre synaptic activity as a spike rate
+   //  * Other situations interpret as a value. This flag sets either one or the other.
+   //  */
+   // virtual void ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    /**
@@ -516,7 +522,8 @@ protected:
    HyPerLayer * post;
    ChannelType channel;
    int numAxonalArborLists; // number of axonal arbors from presynaptic layer
-   bool preActivityIsNotRate; // TODO Rename this member variable
+   // bool preActivityIsNotRate; // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
+   bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not, scale activity by dt to convert it to a spike count
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)

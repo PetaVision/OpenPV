@@ -217,6 +217,8 @@ public:
    //
    const pvdata_t * getLayerData(int delay=0)   { return data; }
 
+   virtual bool activityIsSpiking() {return false;}
+
    virtual int  clearImage();
 
    virtual pvdata_t * getImageBuffer() { return data; }
