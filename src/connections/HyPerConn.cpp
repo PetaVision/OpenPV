@@ -725,9 +725,10 @@ int HyPerConn::initPlasticityPatches()
 // set member variables specified by user
 int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 {
-   ioParam_preLayerName(ioFlag);
-   ioParam_postLayerName(ioFlag);
-   ioParam_channelCode(ioFlag);
+   BaseConnection::ioParamsFillGroup(ioFlag);
+   // ioParam_preLayerName(ioFlag); // read by parent class BaseConnection
+   // ioParam_postLayerName(ioFlag); // read by parent class BaseConnection
+   // ioParam_channelCode(ioFlag); // read by parent class BaseConnection
    // ioParam_initWeightsFile(ioFlag);
    ioParam_sharedWeights(ioFlag);
    ioParam_weightInitType(ioFlag);
@@ -735,7 +736,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
       weightInitializer->ioParamsFillGroup(ioFlag);
    }
    ioParam_initializeFromCheckpointFlag(ioFlag);
-   ioParam_numAxonalArbors(ioFlag);
+   // ioParam_numAxonalArbors(ioFlag); // read by parent class BaseConnection
    ioParam_plasticityFlag(ioFlag);
    ioParam_triggerFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
@@ -744,14 +745,14 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_initialWeightUpdateTime(ioFlag);
    ioParam_pvpatchAccumulateType(ioFlag);
    // ioParam_preActivityIsNotRate(ioFlag); // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
-   // ioParam_convertRateToSpikeCount(ioFlag); // convertRateToSpikeCount is read by parent class BaseConnection
+   // ioParam_convertRateToSpikeCount(ioFlag); // read by parent class BaseConnection
    ioParam_writeStep(ioFlag);
    ioParam_initialWriteTime(ioFlag);
    ioParam_writeCompressedWeights(ioFlag);
    ioParam_writeCompressedCheckpoints(ioFlag);
    ioParam_selfFlag(ioFlag);
    ioParam_combine_dW_with_W_flag(ioFlag);
-   ioParam_delay(ioFlag);
+   // ioParam_delay(ioFlag); // read by parent class BaseConnection
    ioParam_nxp(ioFlag);
    ioParam_nyp(ioFlag);
    ioParam_nxpShrunken(ioFlag);
@@ -775,7 +776,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_maskLayerName(ioFlag);
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   ioParam_receiveGpu(ioFlag);
+   // ioParam_receiveGpu(ioFlag); // read by parent class BaseConnection
    ioParam_preDataLocal(ioFlag);
    //Only read numX, Y, and F local if not using CUDNN
    ioParam_numXLocal(ioFlag);
