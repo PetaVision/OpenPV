@@ -789,14 +789,16 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
 void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   //assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+#ifndef PV_USE_CUDNN
    if(receiveGpu){
       parent->ioParamValue(ioFlag, name, "preDataLocal", &preDataLocal, true/*default*/, false/*warn if absent*/);
    }
+#endif
 }
 
 void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   //assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
       //If we're using cudnn and updating from post, we don't need numX, Y, and F local
@@ -811,7 +813,7 @@ void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_numYLocal(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   //assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
 #ifdef PV_USE_CUDNN
@@ -825,7 +827,7 @@ void HyPerConn::ioParam_numYLocal(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   //assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
 #ifdef PV_USE_CUDNN
