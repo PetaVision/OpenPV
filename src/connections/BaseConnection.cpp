@@ -350,7 +350,7 @@ void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
    // will consist of the single line calling HyPerCol::ioParamValue with "convertRateToSpikeCount".
    if (ioFlag == PARAMS_IO_READ) {
       if (this->getParent()->parameters()->present(this->getName(), "preActivityIsNotRate")) {
-         bool preActivityIsNotRateValue = this->getParent()->parameters()->value(this->getName(), "preActivivityIsNotRate");
+         bool preActivityIsNotRateValue = this->getParent()->parameters()->value(this->getName(), "preActivityIsNotRate");
          if (this->getParent()->columnId()==0) {
             fprintf(stderr, "%s \"%s\" %s: preActivityIsNotRate has been replaced with convertRateToSpikeCount.\n",
                   this->getParent()->parameters()->groupKeywordFromName(this->getName()), this->getName(),
