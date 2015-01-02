@@ -2,8 +2,8 @@
 %%  plots nnz of a1 over time
 %%
 
-addpath("~/newvision/trunk/mlab/util/");
-inputpvpfile = "~/newvision/sandbox/soundAnalysis/servers/output/a6_A1.pvp";
+addpath("~/newvision/PetaVision/mlab/util/");
+inputpvpfile = "~/newvision/sandbox/soundAnalysis/servers/output2/a6_A1.pvp";
 
 a1 = readpvpfile(inputpvpfile);
 
@@ -15,7 +15,7 @@ size(a1{1}.values)
 
 for(k = 1:time)
 
-    output(k) = numel(a1{k}.values)/(2*1024);
+    output(k) = numel(a1{k}.values)/(2*256);
 
 end
 
