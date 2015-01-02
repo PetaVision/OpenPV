@@ -17,6 +17,7 @@ public:
    TestImage(const char * name, HyPerCol * hc);
    virtual int updateState(double timed, double dt);
    const pvdata_t getConstantVal() { return val; }
+   virtual bool activityIsSpiking() { return false; }
    virtual ~TestImage();
 
 protected:

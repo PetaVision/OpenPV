@@ -1,5 +1,5 @@
 /*
- * Example.h
+ * Example.hpp
  *
  *  Created on: Oct 19, 2008
  *      Author: rasmussn
@@ -17,6 +17,7 @@ class Example: public PV::HyPerLayer
 {
 public:
    Example(const char* name, HyPerCol * hc);
+   virtual bool activityIsSpiking() { return false; }
 
 #ifdef PV_USE_OPENCL
    virtual int initializeThreadBuffers(const char * kernelName);
