@@ -129,14 +129,14 @@ void RescaleLayer::ioParam_targetMin(enum ParamsIOFlag ioFlag){
 
 void RescaleLayer::ioParam_targetMean(enum ParamsIOFlag ioFlag){
    assert(!parent->parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
-   if (strcmp(rescaleMethod, "meanstd")==0) {
+   if ((strcmp(rescaleMethod, "meanstd")==0) || (strcmp(rescaleMethod, "pointmeanstd")==0)) {
       parent->ioParamValue(ioFlag, name, "targetMean", &targetMean, targetMean);
    }
 }
 
 void RescaleLayer::ioParam_targetStd(enum ParamsIOFlag ioFlag){
    assert(!parent->parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
-   if (strcmp(rescaleMethod, "meanstd")==0) {
+   if ((strcmp(rescaleMethod, "meanstd")==0) || (strcmp(rescaleMethod, "pointmeanstd")==0)) {
       parent->ioParamValue(ioFlag, name, "targetStd", &targetStd, targetStd);
    }
 }
@@ -202,6 +202,9 @@ int RescaleLayer::updateState(double timef, double dt) {
           float sum = 0;
           float sumsq = 0;
           //Find sum of originalA
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : sum)
+#endif
           for (int k = 0; k < numNeurons; k++){
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                                                locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
@@ -215,6 +218,9 @@ int RescaleLayer::updateState(double timef, double dt) {
           float mean = sum / originalLayer->getNumGlobalNeurons();
 
           //Find (val - mean)^2 of originalA
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : sumsq)
+#endif
           for (int k = 0; k < numNeurons; k++){
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                    locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
@@ -226,6 +232,9 @@ int RescaleLayer::updateState(double timef, double dt) {
 #endif // PV_USE_MPI
           float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
           //Normalize
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
           for (int k = 0; k < numNeurons; k++){
              int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
@@ -245,6 +254,10 @@ int RescaleLayer::updateState(double timef, double dt) {
           PVHalo const * halo = &loc->halo;
           PVHalo const * haloOrig = &locOriginal->halo;
           //Loop through all nx and ny
+	  // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
           for(int iY = 0; iY < ny; iY++){ 
              for(int iX = 0; iX < nx; iX++){ 
                 //Find sum and sum sq in feature space
@@ -276,6 +289,9 @@ int RescaleLayer::updateState(double timef, double dt) {
        else if(strcmp(rescaleMethod, "zerotonegative") == 0){
           PVHalo const * halo = &loc->halo;
           PVHalo const * haloOrig = &locOriginal->halo;
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
           for (int k = 0; k < numNeurons; k++){
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                                                haloOrig->lt, haloOrig->rt, haloOrig->dn, haloOrig->up);
