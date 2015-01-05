@@ -271,6 +271,7 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_numAxonalArbors(ioFlag);
    // ioParam_preActivityIsNotRate(ioFlag); // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
    ioParam_convertRateToSpikeCount(ioFlag);
+   ioParam_receiveGpu(ioFlag);
    return PV_SUCCESS;
 }
 
