@@ -22,6 +22,12 @@ public:
    //virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
    virtual int setActivity();
+
+   float getTargetMax() { return targetMax; }
+   float getTargetMin() { return targetMin; }
+   float getTargetMean() { return targetMean; }
+   float getTargetStd() { return targetMean; }
+   char const * getRescaleMethod() { return rescaleMethod; }
 protected:
    RescaleLayer();
    int initialize(const char * name, HyPerCol * hc);
