@@ -55,7 +55,7 @@
 #include "../layers/TrainingLayer.hpp"
 #include "../layers/WTALayer.hpp"
 #ifdef PV_USE_SNDFILE
-#include "../layers/NewCochlearLayer.hpp"
+#include "../layers/NewCochlear.h"
 #include "../layers/SoundStream.hpp"
 #endif // PV_USE_SNDFILE
 #include "../connections/HyPerConn.hpp"
