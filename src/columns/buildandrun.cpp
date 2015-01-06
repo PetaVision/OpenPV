@@ -15,6 +15,7 @@
 
 using namespace PV;
 
+// TODO: Lots of duplicated code between the two flavors of buildandrun, buildandrun1paramset, and build
 int buildandrun(int argc, char * argv[], int (*custominit)(HyPerCol *, int, char **), int (*customexit)(HyPerCol *, int, char **), void * (*customgroups)(const char *, const char *, HyPerCol *)) {
 
    //Parse param file
@@ -83,206 +84,6 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       fprintf(stderr, "Unable to create HyPerCol\n");
       return NULL;
    }
-   HyPerCol * addedHyPerCol;
-   HyPerConn * addedHyPerConn;
-   HyPerLayer * addedHyPerLayer;
-   ColProbe * addedColProbe;
-   LayerProbe * addedLayerProbe;
-   BaseConnectionProbe * addedBaseConnectionProbe;
-
-   const char * allowedkeywordarray[] = { // indentation indicates derived class hierarchy
-           "_Start_HyPerCols_",
-             "HyPerCol",
-           "_Stop_HyPerCols_",
-           "_Start_HyPerLayers_",
-             "HyPerLayer",
-             "ANNLayer",
-               "ANNSquaredLayer",
-               "ANNWhitenedLayer",
-               "GenerativeLayer",
-                 "LogLatWTAGenLayer",
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  No longer used.
-                 "PursuitLayer",
-#endif // OBSOLETE
-               "IncrementLayer",
-               "LeakyIntegrator",
-               "MatchingPursuitResidual",
-               "PoolingANNLayer",
-               "PtwiseProductLayer",
-               "TrainingLayer",
-               "MaxPooling", // Obsolete; have the connection's pvpatchAccumulateType set to "maxpooling" (case insensitive).
-               "HyPerLCALayer",
-               "ANNErrorLayer",
-               "FilenameParsingGroundTruthLayer",
-	         "ANNNormalizedErrorLayer",
-               "MLPErrorLayer",
-               "MLPForwardLayer",
-               "MLPOutputLayer",
-               "LabelErrorLayer",
-// Leaving ANNTriggerUpdateOnNewImageLayer in for now, to provide a meaningful error message if someone tries to use it (ANNTriggerUpdateOnNewImageLayer was marked obsolete Apr 23, 2014)
-               "ANNTriggerUpdateOnNewImageLayer",
-               "ConstantLayer",
-             "CloneVLayer",
-               "BIDSCloneLayer",
-               "GapLayer",
-               "RescaleLayer",
-               "SigmoidLayer",
-               "MLPSigmoidLayer",
-             "BinningLayer",
-             "WTALayer",
-             "LabelLayer",
-             "TextStream",
-#ifdef PV_USE_SNDFILE
-             "SoundStream",
-             "NewCochlearLayer",
-#endif
-             "Image",
-               "CreateMovies",
-               "ImageFromMemoryBuffer",
-               "Movie",
-               "Patterns",
-             "LIF",
-                "LIFGap",
-                "BIDSLayer",
-                "LCALIFLayer",
-             "MatchingPursuitLayer",
-             "Retina",
-             "ShuffleLayer",
-           "KmeansLayer",
-             "BIDSMovieCloneMap",
-             "BIDSSensorLayer",
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
-               "ANNDivInhLayer",
-               "ANNLabelLayer",
-               "ANNWeightedErrorLayer",
-               "AccumulateLayer",
-               "CliqueLayer",
-#endif // OBSOLETE
-           "_Stop_HyPerLayers_",
-           "_Start_HyPerConns_",
-             "HyPerConn",
-               "BIDSConn",
-               "CloneConn",
-                 "PlasticCloneConn",
-               "CopyConn",
-               "KernelConn", // Deprecated
-                 "CloneKernelConn", //Deprecated
-                 "IdentConn",
-                 "GapConn",
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  Use HyPerConn instead of GenerativeConn and PoolingConn instead of PoolingGenConn
-                 "GenerativeConn",
-                   "PoolingGenConn",
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
-                 "NoSelfKernelConn",
-                   "SiblingConn",
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
-                 "ReciprocalConn",
-#endif // OBSOLETE
-                 "TransposeConn",
-                   "FeedbackConn",
-               "LCALIFLateralConn",
-               "OjaSTDPConn",
-               "PoolingConn",
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-               "WindowConn",
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused connections.
-                 "CliqueConn",
-               "InhibSTDPConn",
-                 "LCALIFLateralKernelConn",
-                 "MapReduceKernelConn",
-                 "OjaKernelConn",
-               "STDP3Conn",
-               "STDPConn",
-#endif // OBSOLETE
-               "_Stop_HyPerConns_",
-           "_Start_ColProbes_",
-             "ColProbe",
-               "GenColProbe",
-           "_Stop_ColProbes_",
-           "_Start_LayerProbes_",
-             "LayerProbe",
-               "PointProbe",
-               "TextStreamProbe",
-	       "LCAProbe",
-                  "PointLIFProbe",
-               "StatsProbe",
-               "SparsityLayerProbe",
-               "LayerFunctionProbe",
-                 "L2NormProbe",
-                 "LogLatWTAProbe",
-               "RequireAllZeroActivityProbe",
-           "_Stop_LayerProbes_",
-           "_Start_BaseConnectionProbes_",
-             "KernelProbe",
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
-             "ReciprocalEnergyProbe",
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
-             "ConnStatsProbe",
-             "LCALIFLateralProbe",
-             "OjaConnProbe",
-             "OjaKernelSpikeRateProbe",
-             "PatchProbe",
-                    "PointLCALIFProbe",
-                 "SparsityTermProbe",
-#endif // OBSOLETE
-           "_Stop_BaseConnectionProbes_",
-           "_Start_ConnectionProbes_",
-           "_Stop_ConnectionProbes_",
-           "_End_allowedkeywordarray" // Don't delete this; it provides a for-loop test that doesn't require you to keep track of the total number of keywords.
-   };
-   int first_hypercol_index = -1;
-   int last_hypercol_index = -1;
-   int first_hyperlayer_index = -1;
-   int last_hyperlayer_index = -1;
-   int first_hyperconn_index = -1;
-   int last_hyperconn_index = -1;
-   int first_colprobe_index = -1;
-   int last_colprobe_index = -1;
-   int first_baseconnectionprobe_index = -1;
-   int last_baseconnectionprobe_index = -1;
-   int first_connectionprobe_index = -1;
-   int last_connectionprobe_index = -1;
-   int first_layerprobe_index = -1;
-   int last_layerprobe_index = -1;
-
-   int j;
-   for( j=0; strcmp(allowedkeywordarray[j],"_End_allowedkeywordarray"); j++ ) {
-       const char * kw = allowedkeywordarray[j];
-       if( !strcmp(kw,"_Start_HyPerCols_") ) { first_hypercol_index = j; continue;}
-       if( !strcmp(kw,"_Stop_HyPerCols_") )  { last_hypercol_index = j; continue;}
-       if( !strcmp(kw,"_Start_HyPerLayers_") ) { first_hyperlayer_index = j; continue;}
-       if( !strcmp(kw,"_Stop_HyPerLayers_") ) { last_hyperlayer_index = j; continue;}
-       if( !strcmp(kw,"_Start_HyPerConns_") ) { first_hyperconn_index = j; continue;}
-       if( !strcmp(kw,"_Stop_HyPerConns_") ) { last_hyperconn_index = j; continue;}
-       if( !strcmp(kw,"_Start_ColProbes_") ) { first_colprobe_index = j; continue;}
-       if( !strcmp(kw,"_Stop_ColProbes_") ) { last_colprobe_index = j; continue;}
-       if( !strcmp(kw,"_Start_BaseConnectionProbes_") ) { first_baseconnectionprobe_index = j; continue;}
-       if( !strcmp(kw,"_Stop_BaseConnectionProbes_") ) { last_baseconnectionprobe_index = j; continue;}
-       if( !strcmp(kw,"_Start_ConnectionProbes_") ) { first_connectionprobe_index = j; continue;}
-       if( !strcmp(kw,"_Stop_ConnectionProbes_") ) { last_connectionprobe_index = j; continue;}
-       if( !strcmp(kw,"_Start_LayerProbes_") ) { first_layerprobe_index = j; continue;}
-       if( !strcmp(kw,"_Stop_LayerProbes_") ) { last_layerprobe_index = j; continue;}
-   }
-
-   int numclasskeywords = j;
-
-   assert( first_hypercol_index >= 0 && first_hypercol_index < numclasskeywords );
-   assert( last_hypercol_index >= 0 && last_hypercol_index < numclasskeywords );
-   assert( first_hyperconn_index >= 0 && first_hyperconn_index < numclasskeywords );
-   assert( last_hyperconn_index >= 0 && last_hyperconn_index < numclasskeywords );
-   assert( first_hyperlayer_index >= 0 && first_hyperlayer_index < numclasskeywords );
-   assert( last_hyperlayer_index >= 0 && last_hyperlayer_index < numclasskeywords );
-   assert( first_colprobe_index >= 0 && first_colprobe_index < numclasskeywords );
-   assert( last_colprobe_index >= 0 && last_colprobe_index < numclasskeywords );
-   assert( first_connectionprobe_index >= 0 && first_connectionprobe_index < numclasskeywords );
-   assert( last_connectionprobe_index >= 0 && last_connectionprobe_index < numclasskeywords );
-   assert( first_layerprobe_index >= 0 && first_layerprobe_index < numclasskeywords );
-   assert( last_layerprobe_index >= 0 && last_layerprobe_index < numclasskeywords );
-
    PVParams * hcparams = hc->parameters();
    int numGroups = hcparams->numberOfGroups();
 
@@ -293,55 +94,16 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       return NULL;
    }
 
+   ParamGroupHandler * handler = new CoreParamGroupHandler();
    for( int k=0; k<numGroups; k++ ) {
       const char * kw = hcparams->groupKeywordFromIndex(k);
       const char * name = hcparams->groupNameFromIndex(k);
-      bool didAddObject = false;
-
-      int matchedkeyword = -1;
-      for( j=0; j<numclasskeywords; j++ ) {
-         if( !strcmp( kw, allowedkeywordarray[j]) ) {
-            matchedkeyword = j;
-            break;
-         }
-      }
-      if( matchedkeyword < 0 && customgroups != NULL ) {
-         void * addedCustomObject = customgroups(kw, name, hc);
-         didAddObject = addedCustomObject != NULL;
-         if (!didAddObject && hc->icCommunicator()->commRank()==0) {
-            fprintf(stderr, "customgroups function was unable to add %s \"%s\"\n", kw, name);
-         }
-      }
-      else if( j > first_hypercol_index && j < last_hypercol_index ) {
-         addedHyPerCol = addHyPerColToColumn(kw, name, hc);
-         didAddObject = addedHyPerCol != NULL;
-      }
-      else if( j > first_hyperconn_index && j < last_hyperconn_index ) {
-         addedHyPerConn = addConnToColumn(kw, name, hc);
-         didAddObject = addedHyPerConn != NULL;
-      }
-      else if( j > first_hyperlayer_index && j < last_hyperlayer_index ) {
-         addedHyPerLayer = addLayerToColumn(kw, name, hc);
-         didAddObject = addedHyPerLayer != NULL;
-      }
-      else if( j > first_colprobe_index && j < last_colprobe_index ) {
-         addedColProbe = addColProbeToColumn(kw, name, hc);
-         didAddObject = addedColProbe != NULL;
-      }
-      else if( j > first_baseconnectionprobe_index && j < last_baseconnectionprobe_index ) {
-         addedBaseConnectionProbe = addBaseConnectionProbeToColumn(kw, name, hc);
-         didAddObject = addedBaseConnectionProbe != NULL;
-      }
-      else if( j > first_layerprobe_index && j < last_layerprobe_index ) {
-         addedLayerProbe = addLayerProbeToColumn(kw, name, hc);
-         didAddObject = addedLayerProbe != NULL;
-      }
-      else {
-         fprintf(stderr,"%s \"%s\" in params: Keyword %s is unrecognized.\n", kw, name, kw);
-         assert(!didAddObject);
+      void * addedObject = handler->createObject(kw, name, hc); // Handler for groups understood by trunk
+      if (addedObject == NULL && customgroups != NULL) {
+         addedObject = customgroups(kw, name, hc); // Handler for custom groups
       }
 
-      if(!didAddObject) {
+      if(addedObject == NULL) {
          if (hc->icCommunicator()->commRank()==0) {
             fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
          }
@@ -358,6 +120,116 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
    return hc;
 }
 
+int buildandrun(int argc, char * argv[],
+                int (*custominit)(HyPerCol *, int, char **),
+                int (*customexit)(HyPerCol *, int, char **),
+                ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
+   //Parse param file
+   char * param_file = NULL;
+   pv_getopt_str(argc, argv, "-p", &param_file);
+   InterColComm * icComm = new InterColComm(&argc, &argv);
+   PVParams * params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
+   free(param_file);
+
+   int numSweepValues = params->getSweepSize();
+
+   int status = PV_SUCCESS;
+   if (numSweepValues) {
+      for (int k=0; k<numSweepValues; k++) {
+         if (icComm->commRank()==0) {
+            printf("Parameter sweep: starting run %d of %d\n", k+1, numSweepValues);
+         }
+         params->setSweepValues(k);
+         status = buildandrun1paramset(argc, argv, custominit, customexit, groupHandlerList, numGroupHandlers, params) == PV_SUCCESS ? status : PV_FAILURE;
+      }
+   }
+   else {
+      status = buildandrun1paramset(argc, argv, custominit, customexit, groupHandlerList, numGroupHandlers, params);
+   }
+
+   delete params;
+   delete icComm;
+   return status;
+}
+
+int buildandrun1paramset(int argc, char * argv[],
+                         int (*custominit)(HyPerCol *, int, char **),
+                         int (*customexit)(HyPerCol *, int, char **),
+                         ParamGroupHandler ** groupHandlerList, int numGroupHandlers,
+                         PVParams * params) {
+   HyPerCol * hc = build(argc, argv, groupHandlerList, numGroupHandlers, params);
+   if( hc == NULL ) return PV_FAILURE;  // build() prints error message
+
+   int status = PV_SUCCESS;
+   if( custominit != NULL ) {
+      status = (*custominit)(hc, argc, argv);
+      if(status != PV_SUCCESS) {
+         fprintf(stderr, "custominit function failed with return value %d\n", status);
+      }
+   }
+
+   if( status==PV_SUCCESS && hc->getInitialStep() < hc->getFinalStep() ) {
+      status = hc->run();
+      if( status != PV_SUCCESS ) {
+         fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);
+      }
+   }
+   if( status==PV_SUCCESS && customexit != NULL ) {
+      status = (*customexit)(hc, argc, argv);
+      if( status != PV_SUCCESS) {
+         fprintf(stderr, "customexit function failed with return value %d\n", status);
+      }
+   }
+   delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
+   return status;
+}
+
+HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList, int numGroupHandlers, PVParams * params) {
+   HyPerCol * hc = new HyPerCol("column", argc, argv, params);
+   if( hc == NULL ) {
+      fprintf(stderr, "Unable to create HyPerCol\n");
+      return NULL;
+   }
+   PVParams * hcparams = hc->parameters();
+   int numGroups = hcparams->numberOfGroups();
+
+   // Make sure first group defines a column
+   if( strcmp(hcparams->groupKeywordFromIndex(0), "HyPerCol") ) {
+      fprintf(stderr, "First group of params file did not define a HyPerCol.\n");
+      delete hc;
+      return NULL;
+   }
+
+   ParamGroupHandler * handler = new CoreParamGroupHandler();
+   for( int k=0; k<numGroups; k++ ) {
+      const char * kw = hcparams->groupKeywordFromIndex(k);
+      const char * name = hcparams->groupNameFromIndex(k);
+      void * addedObject = handler->createObject(kw, name, hc); // Handler for groups understood by trunk
+      if (addedObject == NULL && groupHandlerList != NULL && numGroupHandlers > 0) {
+         for (int h=0; h<numGroupHandlers; h++) {
+            addedObject = groupHandlerList[0]->createObject(kw, name, hc); // Handler for custom groups
+            if (addedObject != 0) { break; }
+         }
+      }
+
+      if(addedObject == NULL) {
+         if (hc->icCommunicator()->commRank()==0) {
+            fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
+         }
+         MPI_Barrier(hc->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+
+   if( hc->numberOfLayers() == 0 ) {
+      fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", hc->getName());
+      delete hc;
+      return NULL;
+   }
+   return hc;
+}
+
+#ifdef OBSOLETE // Marked obsolete Jan 5, 2014.  Functionality was moved to CoreParamGroupHandler
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    return hc;
 }
@@ -625,12 +497,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
    return addedLayer;
 }
 
-/*
- * This method is getting changed radically - again.
- * The constructors for HyPerConn take only the name and the HyPerCol as
- * arguments; everything else, including weightInitializer, is read from
- * hc->parameters().
- */
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    HyPerConn * addedConn = NULL;
    assert( hc != NULL );
@@ -776,7 +642,6 @@ const char * getStringValueFromParameterGroup(const char * groupName, PVParams *
    return str;
 }
 
-// make a method in HyPerCol?
 HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent) {
    PVParams * params = hc->parameters();
    const char * layerName = getStringValueFromParameterGroup(groupName, params, parameterStringName, warnIfAbsent);
@@ -807,25 +672,6 @@ ColProbe * getColProbeFromParameterGroup(const char * groupName, HyPerCol * hc, 
    }
    return colprobe;
 }
-
-/*
-ColProbe * getColProbeFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName) {
-   ColProbe * p = NULL;
-   PVParams * params = hc->parameters();
-   const char * colProbeName = getStringValueFromParameterGroup(groupName, params, parameterStringName, false);
-   if( !colProbeName ) return NULL;  // error message was printed by getStringValueFromParameterGroup
-   int n = hc->numberOfProbes();
-   for( int i=0; i<n; i++ ) {
-      ColProbe * curColProbe = hc->getColProbe(i);
-      const char * curName = curColProbe->getColProbeName();
-      assert(curName);
-      if( !strcmp(curName,colProbeName) ) {
-         p = curColProbe;
-      }
-   }
-   return p;
-}
-*/
 
 ColProbe * addColProbeToColumn(const char * classkeyword, const char * probeName, HyPerCol * hc) {
    ColProbe * addedProbe = NULL;
@@ -1001,6 +847,7 @@ int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyP
    filename = NULL;
    return PV_SUCCESS;
 }
+#endif // OBSOLETE
 
 int checknewobject(void * object, const char * kw, const char * name, HyPerCol * hc) {
    int status = PV_SUCCESS;

@@ -168,6 +168,9 @@
 #include "../io/SparsityTermProbe.hpp"
 #endif // OBSOLETE
 
+#include "../io/ParamGroupHandler.hpp"
+#include "../io/CoreParamGroupHandler.hpp"
+
 using namespace PV;
 
 int buildandrun(int argc, char * argv[],
@@ -181,6 +184,18 @@ int buildandrun1paramset(int argc, char * argv[],
                          PVParams * params);
 HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, const char *, HyPerCol *) = NULL, PVParams * params = NULL);
 
+int buildandrun(int argc, char * argv[],
+                int (*custominit)(HyPerCol *, int, char **),
+                int (*customexit)(HyPerCol *, int, char **),
+                ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
+int buildandrun1paramset(int argc, char * argv[],
+                         int (*custominit)(HyPerCol *, int, char **),
+                         int (*customexit)(HyPerCol *, int, char **),
+                         ParamGroupHandler ** groupHandlerList, int numGroupHandlers,
+                         PVParams * params);
+HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList, int numGroupHandlers, PVParams * params);
+
+#ifdef OBSOLETE // Marked obsolete Jan 5, 2014.  Functionality was moved to CoreParamGroupHandler
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
@@ -193,6 +208,7 @@ BaseConnection * getConnFromParameterGroup(const char * groupName, HyPerCol * hc
 LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayer, char ** message, const char ** filename);
 int decodeChannel(int channel, ChannelType * channelType);
+#endif // OBSOLETE
 int checknewobject(void * object, const char * kw, const char * name, HyPerCol * hc);
 
 #endif /* BUILDANDRUN_HPP_ */
