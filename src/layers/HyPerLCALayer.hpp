@@ -17,6 +17,7 @@ class HyPerLCALayer: public PV::ANNLayer {
 public:
    HyPerLCALayer(const char * name, HyPerCol * hc);
    virtual ~HyPerLCALayer();
+   virtual double getDeltaUpdateTime();
 
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    //Overwriting HyPerLayer's window methods

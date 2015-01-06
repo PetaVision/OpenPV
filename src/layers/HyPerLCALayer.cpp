@@ -274,6 +274,10 @@ int HyPerLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * l
 }
 #endif
 
+double HyPerLCALayer::getDeltaUpdateTime(){
+   return parent->getDeltaTime();
+}
+
 int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
       pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
