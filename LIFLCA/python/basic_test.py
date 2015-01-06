@@ -17,8 +17,8 @@
 ###############################
 
 #workspace_path = '/home/ec2-user/mountData/'
-#workspace_path = '/Users/dpaiton/Documents/workspace/'
-workspace_path = '/home/wshainin/workspace/'
+workspace_path = '/Users/dpaiton/Documents/workspace/'
+#workspace_path = '/home/wshainin/workspace/'
 
 import os, sys
 #lib_path = os.path.abspath('/home/ec2-user/workspace/PetaVision/plab')
@@ -35,16 +35,17 @@ import math as math
 # File Locations
 output_dir   = workspace_path+'LIFLCA/output_time/LCA/'
 input_layer  = 'a0_Input.pvp'
-#l1_layer     = 'a2_L1.pvp'
-l1_layer     = 'checkpoints/Checkpoint20000/L1_A.pvp'
+l1_layer     = 'a2_L1.pvp'
+#l1_layer     = 'checkpoints/Checkpoint20000/L1_A.pvp'
 err_layer    = 'a1_Residual.pvp'
 recon_layer  = 'a3_Recon.pvp'
 weights      = 'w1_L1_to_Residual.pvp'
-weights_chk  = 'checkpoints/Checkpoint20000/L1_to_Residual_W.pvp'
+#weights_chk  = 'checkpoints/Checkpoint20000/L1_to_Residual_W.pvp'
+weights_chk  = '120440_L1_to_Residual_W.pvp'
 
 # Open files
 #input_activityFile  = open(output_dir + input_layer,'rb')
-l1_activityFile     = open(output_dir + l1_layer,'rb')
+#l1_activityFile     = open(output_dir + l1_layer,'rb')
 #err_activityFile    = open(output_dir + err_layer,'rb')
 #recon_activityFile  = open(output_dir + recon_layer,'rb')
 #weightsFile         = open(output_dir + weights,'rb')
@@ -69,8 +70,8 @@ skipFrames      = 1   # 1 is every frame
 #plt.show(block=False)
 
 #size is (numFrames,ny,nx,nf)
-print('L1:')
-(L1Dat,L1Hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
+#print('L1:')
+#(L1Dat,L1Hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
 #print('Err_from_file:')
 #(errDat,errHdr)   = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
@@ -92,6 +93,7 @@ print('Weights from checkpoint:')
 ## ACTIVITY PLOTS
 ########################
 #percActive = pa.plotPercentActive(L1Dat,showPlot=True,savePlot=False,saveName='')
+#percChange = pa.plotPercentChange(L1Dat,showPlot=True,savePlot=False,saveName='')
 
 
 ########################
@@ -112,7 +114,7 @@ i_frame    = 0 # index, not actual frame number
 margin     = 2 #pixels
 showPlot   = True
 savePlot   = True
-saveName   = output_dir+'analysis/'+weights[:-4]+'_'+str(i_frame).zfill(5)+'.png'
+saveName   = output_dir+'analysis/'+weights[:-4]+'.png'
 
 weight_list = pw.plotWeights(weightChkDat,arborIdx,i_frame,margin,showPlot,savePlot,saveName)
 
@@ -121,7 +123,7 @@ weight_list = pw.plotWeights(weightChkDat,arborIdx,i_frame,margin,showPlot,saveP
 ## CLOSE FILESTREAMS
 ########################
 #input_activityFile.close()
-l1_activityFile.close()
+#l1_activityFile.close()
 #err_activityFile.close()
 #recon_activityFile.close()
 #weightsFile.close()
