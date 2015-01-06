@@ -20,6 +20,7 @@ public:
    virtual int allocateGSyn();
    virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis);
    virtual bool activityIsSpiking() { return false;}
+   HyPerLayer * getOriginalLayer() { return originalLayer; }
    virtual ~CloneVLayer();
 
 protected:
