@@ -582,7 +582,6 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 #ifdef PV_USE_MPI
    const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
-
    GDALDataType dataType;
    char** metadata;
    char isBinary = true;
@@ -1136,7 +1135,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
    int n = loc->nx * loc->ny * imageLoc.nf;
 
    // Use number of bands in file instead of in params, to allow for grayscale conversion
-   float * buf = (float*) calloc(n, sizeof(float));
+   float * buf = new float[n];
    assert(buf != NULL);
 
    int aOffsetX = getOffsetX(anchor, offsetX);
@@ -1162,9 +1161,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
 
    assert(status == PV_SUCCESS);
    if( loc->nf == 1 && imageLoc.nf > 1 ) {
-      float * graybuf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);
-      free(buf);
-      buf = graybuf;
+      buf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);
       //Redefine n for grayscale images
       n = loc->nx * loc->ny;
    }
@@ -1248,7 +1245,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
 
    if( status == PV_SUCCESS ) copyFromInteriorBuffer(buf, 1.0f);
 
-   free(buf);
+   delete buf;
 
    if(useImageBCflag){ //Restore non-extended dimensions
       loc->nx = loc->nx - loc->halo.lt - loc->halo.rt;
@@ -1359,6 +1356,7 @@ float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands, GDA
       }
    }
    free(bandweight);
+   delete buf;
    return graybuf;
 }
 
@@ -1383,7 +1381,6 @@ float* Image::copyGrayScaletoMultiBands(float * buf, int nx, int ny, int numBand
          }
 
       }
-
    }
    delete buf;
    return multiBandsBuf;
