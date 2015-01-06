@@ -11,12 +11,16 @@ int DisparityMovie::initialize_base() {
    numDisparity = 50;
    disparityIndex = 0;
    dPixelDisparity = -1;
+   moveMethod = NULL;
+   frameOffset = 0;
+   frameCount = 0;
 }
 
 int DisparityMovie::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = Movie::ioParamsFillGroup(ioFlag);
    ioParam_numDisparityPeriod(ioFlag);
    ioParam_dPixelDisparity(ioFlag);
+   ioParam_moveMethod(ioFlag);
    return status;
 }
 
@@ -28,17 +32,30 @@ void DisparityMovie::ioParam_dPixelDisparity(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "dPixelDisparity", &dPixelDisparity, dPixelDisparity);
 }
 
+void DisparityMovie::ioParam_moveMethod(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "moveMethod", &moveMethod, "altLeft");
+   //Left eye starts first to stay still
+   if(strcmp(moveMethod, "altLeft") == 0){
+      frameOffset = 0;
+   }
+   else if(strcmp(moveMethod, "altRight") == 0){
+      frameOffset = 1;
+   }
+}
+
+
+
 bool DisparityMovie::updateImage(double timef, double dt){
    InterColComm * icComm = getParent()->icCommunicator();
    assert(!readPvpFile);
 
    if(fabs(timef - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
-      std::cout << "disparityIndex: " << disparityIndex << " numDisparity: " << numDisparity << "\n";
       //If disparity is over numDisparity, read new image and reset index
-      if(disparityIndex >= numDisparity){
+      if(disparityIndex >= numDisparity - 1){
          if (filename != NULL) free(filename);
          filename = strdup(getNextFileName(skipFrameIndex));
          disparityIndex = 0;
+         frameCount++;
       }
       else{
          disparityIndex++;
@@ -47,8 +64,13 @@ bool DisparityMovie::updateImage(double timef, double dt){
    assert(filename != NULL);
 
    //Set frame number (member variable in Image)
-   int newOffsetX = this->offsets[0] + (disparityIndex * dPixelDisparity);
-   std::cout << "Old offset x: " << this->offsets[0] << " newOffsetX: " << newOffsetX << "\n";
+   int newOffsetX;
+   if((frameCount + frameOffset) % 2 == 0){
+      newOffsetX = this->offsets[0];
+   }
+   else{
+      newOffsetX = this->offsets[0] + (disparityIndex * dPixelDisparity);
+   }
    int status = readImage(filename, newOffsetX, this->offsets[1], this->offsetAnchor);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, filename);
@@ -60,7 +82,7 @@ bool DisparityMovie::updateImage(double timef, double dt){
       if(timestampFile){
          std::ostringstream outStrStream;
          outStrStream.precision(15);
-         outStrStream << frameNumber << "," << time << "," << filename << "\n";
+         outStrStream << frameNumber << "," << timef << "," << filename << "\n";
          size_t len = outStrStream.str().length();
          int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
          if (status != PV_SUCCESS) {
