@@ -95,7 +95,7 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
 }
 
 void RescaleLayer::ioParam_rescaleMethod(enum ParamsIOFlag ioFlag){
-   parent->ioParamString(ioFlag, name, "rescaleMethod", &rescaleMethod, rescaleMethod);
+   parent->ioParamStringRequired(ioFlag, name, "rescaleMethod", &rescaleMethod);
    if (
          strcmp(rescaleMethod, "maxmin")!=0 &&
          strcmp(rescaleMethod, "meanstd")!=0 &&
