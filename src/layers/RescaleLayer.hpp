@@ -26,7 +26,7 @@ public:
    float getTargetMax() { return targetMax; }
    float getTargetMin() { return targetMin; }
    float getTargetMean() { return targetMean; }
-   float getTargetStd() { return targetMean; }
+   float getTargetStd() { return targetStd; }
    char const * getRescaleMethod() { return rescaleMethod; }
 protected:
    RescaleLayer();
