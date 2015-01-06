@@ -24,14 +24,14 @@ HyPerCol "column" = {
     startTime                       = 0;
     stopTime                        = 400; //displayPeriod * numImages
     progressInterval                = 10;
-    outputPath                      = "/home/ec2-user/mountData/LIFLCA/output/LCA/";
+    outputPath                      = "/home/dpaiton/workspace/LIFLCA/output/LCA/";
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     initializeFromCheckpointDir     = "";
 //
     checkpointWriteTriggerMode      = "step"; // Not implemented fully - trigger checkpoint on clock time instead of number of time steps
     checkpointWrite                 = true;
-    checkpointWriteDir              = "/home/ec2-user/mountData/LIFLCA/output/LCA/checkpoints/";
+    checkpointWriteDir              = "/home/dpaiton/workspace/LIFLCA/output/LCA/checkpoints/";
     checkpointWriteStepInterval     = 400;
     deleteOlderCheckpoints          = false;
 //
@@ -57,7 +57,7 @@ HyPerCol "column" = {
 Movie "Input" = {
     nxScale                = 1;
     nyScale                = 1;
-    imageListPath          = "/home/ec2-user/mountData/LIFLCA/input/basic_input.txt";
+    imageListPath          = "/home/dpaiton/workspace/LIFLCA/input/basic_input.txt";
     nf                     = 1;        // nf=3 for RGB, nf=1 for greyscale
 //
     writeStep              = 40;

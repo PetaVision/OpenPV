@@ -12,7 +12,7 @@
 //   test l0 vs l1
 //   test shuffled dictionary learning vs non-shuffled
 //   test recon with shuffled dict vs non-shuffled dict
-//   switch to vine & unwhitened
+//   mimic results from original Rozell paper?
 //   Implement Olshausen 2003 - Learning Sparse, Overcomplete Representations of Time-Varying Natural Images
 ///////////////////////////
 
@@ -151,8 +151,8 @@ ANNLayer "Residual" = {
     mirrorBCflag           = false;    // If true, set the boundary with a mirror of the input image
     valueBC                = 0;        // What value is assigned to the boundaries (assuming mirrorBCflag=false)
     triggerFlag            = false;
+    writeStep              = -1;//40;
 //    initialWriteTime       = 40;
-    writeStep              = -1;
     sparseLayer            = false;
 //
     InitVType              = "ZeroV";
@@ -193,9 +193,9 @@ HyPerLCALayer "L1" = {
 //
     mirrorBCflag           = false;
     valueBC                = 0;
-    initialWriteTime       = 40.0;     // Should = displayPeriod
-    writeStep              = 40.0;     // * Should = displayPeriod if you only want to write out best sparse approximation
+    writeStep              = -1;//40.0;     // * Should = displayPeriod if you only want to write out best sparse approximation
                                        // * Set to < displayPeriod if you want to see how the sparse appxoimation changes with time
+//    initialWriteTime       = 40.0;     // Should = displayPeriod
 //
     sparseLayer            = true;
     writeSparseValues      = true;     // Don't just write index of active cell, but also the T(u) value
@@ -219,7 +219,7 @@ HyPerLCALayer "L1" = {
     VThresh                = 0.025;    // Lambda -> thershold for activation function T(u)
                                        // This is your trade-off parameter for sparseness vs reconstruction error.
                                        // Depends on scale of input - for normalized images, 0.05 works well
-    AMax                   = infinity; // Max value T(u) can be
+    AMax                   = infinity; // Max value T(u) can be. Usually inf
     AMin                   = 0;        // Min value T(u) can be. All values below threshold go to 0 -> rectifies units.
     AShift                 = 0;        // * Shift between hard & soft threshold
                                        //   T(u) = u - AShift for u > threshold
@@ -227,14 +227,14 @@ HyPerLCALayer "L1" = {
     VWidth                 = 0;        // * Width of transition region from soft to hard threshold.
                                        //   For firm threshold, VWidth > 0; for hard, VWidth = 0; for soft, VWidth = infinity.
                                        //   Slope of transition line is VThresh / VWidth
-                                       // * Soft: VWidth = infinity; Hard: VWidth = 0; Firm: VWidth = finite
+                                       //   Soft: VWidth = infinity; Hard: VWidth = 0; Firm: VWidth = finite > 0
 //
     updateGpu              = true;
     phase                  = 2;
 };
 
 
-ANNLayer "Recon" = {                  // Not necessary - allows us to easily view recons
+ANNLayer "Recon" = {                  // Layer not necessary - allows us to easily view recons
     nxScale             = 1;
     nyScale             = 1;
     nf                  = 1;
@@ -243,8 +243,8 @@ ANNLayer "Recon" = {                  // Not necessary - allows us to easily vie
     triggerLayerName    = "Input";
     triggerOffset       = 1;
 //
-    initialWriteTime    = 40;         // Write at image flip
-    writeStep           = 40;
+    writeStep           = -1;//40;
+//    initialWriteTime    = 40;         // Write at image flip
 //
     mirrorBCflag        = false;
     valueBC             = 0;
@@ -329,20 +329,20 @@ HyPerConn "L1_to_Residual" = {
     wMaxInit                            = 1;
     sparseFraction                      = 0.9;           // What percentage of weights are set to 0
     plasticityFlag                      = true;
-    weightUpdatePeriod                  = 1.0;
+//    weightUpdatePeriod                  = 1.0;           //Not read if triggerFlag = true
 //
     triggerFlag                         = true;
     triggerLayerName                    = "Input";
     triggerOffset                       = 1;             // Triggers on triggerOffset timesteps before the image flips
 //    weightUpdatePeriod                  = 200;         // Interval between updates, usually set to before the image flips
     initialWeightUpdateTime             = 0;
-    combine_dW_with_W_flag              = false;         // Should be depreciated?
+    combine_dW_with_W_flag              = false;         // Should be depricated?
 //
     pvpatchAccumulateType               = "convolve";    // * How activity & weights are combined. Alternative options are max pooling,
                                                          //   stocastic, others?
     preActivityIsNotRate                = false;         // TODO: What is this - don't scale weights by dt..
-    writeStep                           = 10;//-1;            // Usually better to use checkpoints to write weights
-    initialWriteTime                    = 0;
+    writeStep                           = -1;//40;            // Usually better to use checkpoints to write weights
+//    initialWriteTime                    = 40;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
     delay                               = [0.0];
