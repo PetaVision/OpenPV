@@ -302,6 +302,9 @@ int RescaleLayer::updateState(double timef, double dt) {
              if(originalA[kextOriginal] == 0){;
                 A[kext] = -1;
              }
+             else {
+                A[kext] = originalA[kextOriginal];
+             }
           }
        }
        //Update lastUpdateTime
