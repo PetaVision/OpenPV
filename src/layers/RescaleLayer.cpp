@@ -186,6 +186,7 @@ int RescaleLayer::updateState(double timef, double dt) {
 #endif // PV_USE_MPI
 
           float rangeA = maxA - minA;
+	  rangeA = rangeA != 0 ? rangeA : minA;
           for (int k = 0; k < numNeurons; k++){
              int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
@@ -231,6 +232,7 @@ int RescaleLayer::updateState(double timef, double dt) {
           MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
 #endif // PV_USE_MPI
           float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
+	  std = std != 0.0 ? std : targetStd;
           //Normalize
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
@@ -273,6 +275,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                    sumsq += (originalA[kext] - mean) * (originalA[kext] - mean);
                 }
                 float std = sqrt(sumsq/nf);
+		std = std != 0 ? std : targetStd;
                 for(int iF = 0; iF < nf; iF++){
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                    int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
