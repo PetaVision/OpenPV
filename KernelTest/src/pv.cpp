@@ -6,49 +6,13 @@
 
 #include <columns/buildandrun.hpp>
 #include "KernelTestProbe.hpp"
-
-#undef MAIN_USES_ADDCUSTOM
-
-#ifdef MAIN_USES_ADDCUSTOM
-int addcustom(HyPerCol * hc, int argc, char * argv[]);
-// addcustom is for adding objects not supported by build().
-#endif // MAIN_USES_ADDCUSTOM
-
-void * customgroup(const char * keyword, const char * name, HyPerCol * hc);
+#include "KernelTestGroupHandler.hpp"
 
 int main(int argc, char * argv[]) {
 
    int status;
-#ifdef MAIN_USES_ADDCUSTOM
-   status = buildandrun(argc, argv, &addcustom, NULL, &customgroup);
-#else
-   status = buildandrun(argc, argv, NULL, NULL, &customgroup);
-#endif // MAIN_USES_ADDCUSTOM
+   KernelTestGroupHandler * groupHandlerList[1];
+   groupHandlerList[0] = new KernelTestGroupHandler();
+   status = buildandrun(argc, argv, NULL, NULL, (ParamGroupHandler **) groupHandlerList, 1);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
-#ifdef MAIN_USES_ADDCUSTOM
-int addcustom(HyPerCol * hc, int argc, char * argv[]) {
-   return PV_SUCCESS;
-}
-#endif // MAIN_USES_ADDCUSTOM
-
-void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
-   int status;
-   LayerProbe * addedProbe;
-   void * addedGroup = NULL;
-   const char * filename;
-   HyPerLayer * targetlayer;
-   char * message = NULL;
-   bool errorFound = false;
-   if( !strcmp(keyword, "KernelTestProbe") ) {
-      addedProbe = (LayerProbe *) new KernelTestProbe(name, hc);
-      if( !addedProbe ) {
-         fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
-         errorFound = true;
-      }
-   }
-   if( !errorFound ) addedGroup = (void *) addedProbe;
-   return addedGroup;
-}
-
