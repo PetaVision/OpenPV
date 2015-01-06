@@ -1245,7 +1245,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
 
    if( status == PV_SUCCESS ) copyFromInteriorBuffer(buf, 1.0f);
 
-   delete buf;
+   delete[] buf;
 
    if(useImageBCflag){ //Restore non-extended dimensions
       loc->nx = loc->nx - loc->halo.lt - loc->halo.rt;
@@ -1276,7 +1276,7 @@ int Image::write(const char * filename)
    // gather the local portions and write the image
    status = gatherImageFile(filename, parent->icCommunicator(), loc, buf, parent->getVerifyWrites());
 
-   delete buf;
+   delete[] buf;
 
    return status;
 }
@@ -1356,7 +1356,7 @@ float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands, GDA
       }
    }
    free(bandweight);
-   delete buf;
+   delete[] buf;
    return graybuf;
 }
 
@@ -1382,7 +1382,7 @@ float* Image::copyGrayScaletoMultiBands(float * buf, int nx, int ny, int numBand
 
       }
    }
-   delete buf;
+   delete[] buf;
    return multiBandsBuf;
 
 }
