@@ -264,6 +264,9 @@ CudaRecvPost::~CudaRecvPost(){
    if(params.cudnn_workspace){
       handleError(cudaFree(params.cudnn_workspace), "Freeing workspace pointer");
    }
+   if(params.workspaceSize){
+      delete params.workspaceSize;
+   }
 #endif
 }
 
