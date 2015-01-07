@@ -35,12 +35,14 @@ int IdentConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 void IdentConn::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    receiveGpu = false;
    if (ioFlag == PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryParameter(name, "receiveGpu", false/*correctValue*/);
    }
 }
+#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
 
 // Note this is one of the subclasses of the former kernelconn where it doesn't make sense to allow sharedWeights to be false
@@ -253,7 +255,9 @@ int IdentConn::deliver() {
    int delay = getDelay(arbor);
    cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
    assert(getUpdateGSynFromPostPerspective()==false);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    assert(getReceiveGpu()==false);
+#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
    cube.isSparse = store->isSparse();
    if(cube.isSparse){
@@ -313,6 +317,9 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
    else {
       PVLayerLoc const * loc = &activity->loc;
       int numRestricted = loc->nx * loc->ny * loc->nf;
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
       for (int kRestricted = 0; kRestricted < numRestricted; kRestricted++) {
          int kExtended = kIndexExtended(kRestricted, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          float a = activity->data[kExtended] * dt_factor;
