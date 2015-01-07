@@ -19,8 +19,8 @@
 debugParsing = false;
 
 HyPerCol "column" = {
-    nx                              = 512;   // [px]
-    ny                              = 512;   // [px]
+    nx                              = 256;   // [px]
+    ny                              = 256;   // [px]
     dt                              = 1.0;   // [ms]
     dtAdaptFlag                     = false; // Time step size is scaled by 1 / (maximimum % error)
 //                                           // i.e. adaptive time step uses the average error to scale dt
