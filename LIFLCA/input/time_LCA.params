@@ -16,8 +16,8 @@ HyPerCol "column" = {
     nx                              = 256;   // [px]
     ny                              = 256;   // [px]
     dt                              = 1.0;   // [ms]
-    dtAdaptFlag                     = true;  // Time step size is scaled by 1 / (maximimum % error)
-                                             // i.e. adaptive time step uses the average error to scale dt
+    dtAdaptFlag                     = true;  // Time step size (really tau) is scaled by 1 / (maximimum % error)
+                                             // i.e. adaptive time step uses the average error to scale tau 
                                              // As error decreases, you decrease tau to speed up du/dt.
     dtScaleMax                      = 1.0;   // Max value for 1/tau - conservative is 1, which will not cause large changes in u(t). Maximum step size is dtScaleMax times the base time step size
     dtScaleMin                      = 0.25;  // Default value for 1/tau on image flip. Minimum step size is dtScaleMin times the base time step size
@@ -25,18 +25,18 @@ HyPerCol "column" = {
     dtChangeMax                     = 0.05;  // Percentage that tau is allowed to change.
     dtChangeMin                     = 0.0;   // By default, if error increases, you go to maximum tau.
                                              // If dtChangeMin > 0, then this is the maximum percentage increase in the percent error you're willing to tolerate before changing tau.
-    dtMinToleratedTimeScale         = 0.001;
+    dtMinToleratedTimeScale         = 0.0001;
     randomSeed                      = 1234567890;  // Must be at least 8 digits long. If not set here,  clock time is used to generate seed
     startTime                       = 0;
     stopTime                        = 120440; //displayPeriod * numImages
     progressInterval                = 5000;
-    outputPath                      = "/home/dpaiton/workspace/LIFLCA/output_time/LCA/";
+    outputPath                      = "/home/dpaiton/workspace/LIFLCA/output_time/";
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     initializeFromCheckpointDir     = "";
     checkpointWriteTriggerMode      = "step"; // Not implemented fully - trigger checkpoint on clock time instead of number of time steps
     checkpointWrite                 = true;
-    checkpointWriteDir              = "/home/dpaiton/workspace/LIFLCA/output_time/LCA/checkpoints/";
+    checkpointWriteDir              = "/home/dpaiton/workspace/LIFLCA/output_time/checkpoints/";
     checkpointWriteStepInterval     = 10000;
     deleteOlderCheckpoints          = false;
     writeProgressToErr              = true;
@@ -101,7 +101,7 @@ Movie "Input" = {
 };
 
 ANNNormalizedErrorLayer "Residual" = {
-// ANNNormalizedErrorLayer also writes out 1/% error per time step, which is more computationally expensive
+// ANNNormalizedErrorLayer also writes out 1 / %error per time step, which is more computationally expensive
 //
 // * Membrane potential is channel 0 - channel 1
 //   If the membrane potential is < Vthresh, then 
@@ -114,7 +114,7 @@ ANNNormalizedErrorLayer "Residual" = {
     mirrorBCflag           = false;    // If true, set the boundary with a mirror of the input image
     valueBC                = 0;        // What value is assigned to the boundaries (assuming mirrorBCflag=false)
     triggerFlag            = false;
-//    initialWriteTime       = 40;
+//    initialWriteTime       = 80;
     writeStep              = -1;
     sparseLayer            = false;
 //
@@ -130,7 +130,6 @@ ANNNormalizedErrorLayer "Residual" = {
                                         // For computing error with an ANN layer, we want to always be above threshold
     VThresh                = 0;         // Threshold for T(u).
                                         // Non-zero value will sparsify your error (i.e. small error will go to 0)
-                                        // For error layer, take sign(error)*abs(error), so that we can put a threshold on the error
 //
     AMax                   = infinity;  // Max value that T(u) can be
     AMin                   = 0;         // Min value that T(u) can be
@@ -152,7 +151,7 @@ HyPerLCALayer "L1" = {
     nxScale                = 0.25;     // xStride = 1/nxScale; striding 1/3 of (12x12) patch
     nyScale                = 0.25;     // 
     nf                     = 512;      // * (4 image delays) * 4x overcomplete per delay
-                                       // * If you're not rectified, each dictionary element can represent the positive & negative of the gabor
+                                       // * If you're not rectified, each dictionary element can represent the positive & negative of the basis function
                                        //   Therefore, if you're rectified, each dict element would have to explicitely have an opposite to encode the opposite
                                        // * 4x overcomplete wrt patch size (4 x patch_area because of rectification)
                                        // * If stride < nxp; overcompleteness = 0.5 * nf / stride^2 
@@ -163,8 +162,8 @@ HyPerLCALayer "L1" = {
 //
     mirrorBCflag           = false;
     valueBC                = 0;
-//    initialWriteTime       = 40.0;     // Should = displayPeriod
-    writeStep              = -1;//40.0;     // * Should = displayPeriod if you only want to write out best sparse approximation
+//    initialWriteTime       = 80.0;     // Should = displayPeriod
+    writeStep              = -1;//80.0;     // * Should = displayPeriod if you only want to write out best sparse approximation
                                        // * Set to < displayPeriod if you want to see how the sparse appxoimation changes with time
 //
     sparseLayer            = true;
@@ -174,10 +173,11 @@ HyPerLCALayer "L1" = {
                                        //   So this implements the "+ self" term in the equation. 
                                        //   Therefore for hard threshold, if error is 0, then u^dot is 0.
                                        //   For soft threshold, if error is 0, T(u) = u-lambda, so u^dot = - lambda + self_term
+                                       //   TODO: What is equation for firm threshold?
 //
     InitVType              = "UniformRandomV";
     minV                   = -1.0;     // Only for initialization - min value of v (assuming dimensionless membrane potentials)
-    maxV                   = .1;       // 0.05 above VThresh makes a few start out above threshold - no real evidence that this is better
+    maxV                   = 0.075;       // 0.05 above VThresh makes a few start out above threshold - no real evidence that this is better
 //    InitVType              = "InitVFromFile";
 //    Vfilename              = "/home/dpaiton/output_time/Checkpoints/Checkpoint6000000/L1_V.pvp";
 // 
@@ -214,8 +214,8 @@ ANNLayer "Recon" = {                  // Not necessary - allows us to easily vie
     triggerLayerName    = "Input";
     triggerOffset       = 1;
 //
-//    initialWriteTime    = 40;         // Write at image flip
-    writeStep           = -1;//40;
+//    initialWriteTime    = 80;         // Write at image flip
+    writeStep           = -1;//80;
 //
     mirrorBCflag        = false;
     valueBC             = 0;
@@ -262,7 +262,7 @@ HyPerConn "Input_to_Residual" = {
    delay                         = [240.0,320.0,400.0,480.0];              // Must delay input so that model can reconstruct past only
    sharedWeights                 = true;
    weightInitType                = "OneToOneWeightsWithDelays";
-   weightInit                    = 0.125;              // * weightInit = 1 / sqrt(patch_area), so that L2 norm of image patch is 1.
+   weightInit                    = 0.083;              // * weightInit = 1 / sqrt(patch_area), so that L2 norm of image patch is 1.
                                                        //   If the patch exactly matches a dictionary element, then activity of 
                                                        //   dictionary element should about = 1. This should prevent the activities
                                                        //   from increasing as you go up a hierarchy. This assumes images have
@@ -299,7 +299,7 @@ HyPerConn "L1_to_Residual" = {
 //    initWeightsFile                     was set to (NULL);
     wMinInit                            = -1;
     wMaxInit                            = 1;
-    sparseFraction                      = 0.9;           // What percentage of weights are set to 0
+    sparseFraction                      = 0.7;           // What percentage of weights are set to 0
     plasticityFlag                      = true;
 //
     triggerFlag                         = true;
@@ -314,8 +314,8 @@ HyPerConn "L1_to_Residual" = {
                                                          //   stocastic, others?
     convertRateToSpikeCount             = false;
     writeStep                           = -1;            // Usually better to use checkpoints to write weights
-    initialWriteTime                    = 0;
-    writeCompressedWeights              = false;
+//    initialWriteTime                    = 80;
+//    writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
     updateGSynFromPostPerspective       = false;
 //
@@ -331,8 +331,8 @@ HyPerConn "L1_to_Residual" = {
     normalizeFromPostPerspective        = false;
     normalizeArborsIndividually         = false;         // Normalize acorss space & time
     normalizeOnInitialize               = true;          // Normalize weights after they have been initialized.
-    normalizeOnWeightUpdate             = true;          // * Normalize weights after each batch. If false, only normalize on 
-                                                         //   initialization, if normalizeOnInitialize is true.
+    normalizeOnWeightUpdate             = true;          // * Normalize weights after each batch. If false and if nrmalizeOnIntialize
+                                                         //   is true, only normalize on initialization.
     minL2NormTolerated                  = 0;             // Check to see if weights are too small. Terminate execution(?) if
                                                          // weights are too small.
     strength                            = 1;
