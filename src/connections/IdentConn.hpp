@@ -30,6 +30,7 @@ protected:
    int initialize(const char * name, HyPerCol *hc);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
@@ -60,7 +61,6 @@ protected:
    virtual void handleDefaultSelfFlag();
 
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
-   virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
 };
 
 }  // end of block for namespace PV
