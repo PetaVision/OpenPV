@@ -21,6 +21,7 @@ HyPerCol "column" = {
    errorOnNotANumber = true;
    progressInterval = 1.0;
    writeProgressToErr = false;
+   verifyWrites = false;
    outputPath = "output/";
    printParamsFilename = "pv.params";
    filenamesContainLayerNames = 2;
@@ -102,7 +103,59 @@ RescaleLayer "rescalemaxmin" = {
    originalLayerName = "unrescaledlayer";
    rescaleMethod = "maxmin";
    targetMax = 1.0;
-   targitMin = -1.0;
+   targetMin = -1.0;
+};
+
+RescaleLayer "rescalemeanstd" = {
+   nxScale = 1.0;
+   nyScale = 1.0;
+   nf = 1;
+   phase = 2;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   sparseLayer = false;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   triggerFlag = false;
+      
+   originalLayerName = "unrescaledlayer";
+   rescaleMethod = "meanstd";
+   targetMean = 0.0;
+   targetStd = 1.0;
+};
+
+RescaleLayer "rescalepointmeanstd" = {
+   nxScale = 1.0;
+   nyScale = 1.0;
+   nf = 1;
+   phase = 2;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   sparseLayer = false;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   triggerFlag = false;
+      
+   originalLayerName = "unrescaledlayer";
+   rescaleMethod = "pointmeanstd";
+   targetMean = 0.0;
+   targetStd = 1.0;
+};
+
+RescaleLayer "rescalezerotonegative" = {
+   nxScale = 1.0;
+   nyScale = 1.0;
+   nf = 1;
+   phase = 2;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   sparseLayer = false;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   triggerFlag = false;
+      
+   originalLayerName = "unrescaledlayer";
+   rescaleMethod = "zerotonegative";
 };
 
 //
@@ -131,11 +184,14 @@ HyPerConn "input_to_unrescaledlayer" = {
     normalizeMethod = "normalizeSum";
     normalizeArborsIndividually = false;
     normalize_cutoff = 0;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
     rMinX = 0.0;
     rMinY = 0.0;
+    nonnegativeConstraintFlag = false;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
@@ -146,4 +202,44 @@ HyPerConn "input_to_unrescaledlayer" = {
     pvpatchAccumulateType = "Convolve";
     shrinkPatches = false;
     updateGSynFromPostPerspective = false;
+};
+
+//
+// Probes
+//
+
+StatsProbe "unrescaledlayer_probe" = {
+   targetLayer                         = "unrescaledlayer";
+   probeOutputFile                     = "unrescaledlayer_probe.txt";
+   triggerFlag                         = false;
+   buffer                              = "Activity";
+   nnzThreshold                        = 0;
+};
+
+RescaleLayerTestProbe "rescalemaxmin_probe" = {
+   targetLayer                         = "rescalemaxmin";
+   probeOutputFile                     = "rescalemaxmin_probe.txt";
+   triggerFlag                         = false;
+   nnzThreshold                        = 0;
+}; 
+
+RescaleLayerTestProbe "rescalemeanstd_probe" = {
+   targetLayer                         = "rescalemeanstd";
+   probeOutputFile                     = "rescalemeanstd_probe.txt";
+   triggerFlag                         = false;
+   nnzThreshold                        = 0;
+};
+
+RescaleLayerTestProbe "rescalepointmeanstd_probe" = {
+   targetLayer                         = "rescalepointmeanstd";
+   probeOutputFile                     = "rescalepointmeanstd_probe.txt";
+   triggerFlag                         = false;
+   nnzThreshold                        = 0;
+};
+
+RescaleLayerTestProbe "rescalezerotonegative_probe" = {
+   targetLayer                         = "rescalezerotonegative";
+   probeOutputFile                     = "rescalezerotonegative_probe.txt";
+   triggerFlag                         = false;
+   nnzThreshold                        = 0;
 };
