@@ -98,8 +98,12 @@ public:
    bool getDataStructuresAllocatedFlag() { return dataStructuresAllocatedFlag; }
 
    /**
-    * initializeState is a pure virtual function used to set the initial values of the connection.
-    * (For example, HyPerConn calls an InitWeights method).
+    * initializeState is used to set the initial values of the connection.
+    * If the parent HyPerCol's checkpointReadFlag is set, it calls checkpointRead()
+    * If not, but the connection's initializeFromCheckpointFlag is set, it calls readStateFromCheckpoint().
+    * If neither of these flags is set, it calls setInitialValues.
+    * Note that derived classes must implement the methods checkpointRead(), readStateFromCheckpoint(), and setInitialValues().
+    *
     * After a connection is constructed, it is not properly initialized until communicateInitInfo(), allocateDataStructures(), and
     * initializeState() have been called.
     *
@@ -111,7 +115,7 @@ public:
     *
     * initializeState() is typically called by the parent HyPerCol's run() method.
     */
-   virtual int initializeState() = 0; // should be called only by HyPerCol::run
+   int initializeState();
 
    /**
     * This method sets the flag returned by getInitialValuesSetFlag() to true.
@@ -153,11 +157,16 @@ public:
    /**
     * A pure virtual function for reading the state of the connection from the directory specified in cpDir.
     * On exit, *timeptr is the time at which the checkpoint was written.
+    * checkpointRead() should restore the state of the connection completely, so that restarting from a checkpoint
+    * is equivalent to having the run continue.
+    *
     */
    virtual int checkpointRead(const char * cpDir, double * timeptr) = 0;
 
    /**
     * A pure virtual function for writing the state of the connection to the directory specified in cpDir.
+    * checkpointWrite() should save the complete state of the connection, so that restarting from a checkpoint
+    * is equivalent to having the run continue.
     */
    virtual int checkpointWrite(const char * cpDir) = 0;
 
@@ -427,6 +436,12 @@ protected:
    //  * Other situations interpret as a value. This flag sets either one or the other.
    //  */
    // virtual void ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief convertRateToSpikeCount: If true, presynaptic activity should be converted from a rate to a count.
+    * @details If this flag is true and the presynaptic layer is not spiking, the activity will be interpreted
+    * as a spike rate, and will be converted to a spike count when delivering activity to the postsynaptic GSyn buffer.
+    * If this flag is false, activity will not be converted.
+    */
    virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -435,6 +450,12 @@ protected:
     */
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+
+   /**
+    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory set in HyPerCol.
+    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
+    */
+   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
 
 //   virtual int writeWeights(double timed, bool last = false) = 0;
 
@@ -448,6 +469,24 @@ protected:
     * It does not do sanity checking on the value of i.
     */
    BaseConnectionProbe * getProbe(int i) { return probes[i]; }
+
+   /**
+    * A pure virtual method that uses an existing checkpoint to
+    * initialize the connection.  BaseConnection::initializeState calls it
+    * when initializeFromCheckpointFlag is true.  A Subclass may also
+    * call this method as part of the implementation of checkpointRead
+    * (for example, HyPerConn does this).
+    */
+   virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr) = 0;
+
+   /**
+    * A pure virtual method for initializing the connection if we are neither
+    * restarting from a checkpoint or initializing the connection from a checkpoint.
+    * It should return PV_SUCCESS if successful, or PV_POSTPONE if it needs to wait for
+    * other objects to set their initial values before it can set its own initial values.
+    * (e.g. TransposeConn has to wait for original conn)
+    */
+   virtual int setInitialValues() = 0;
 
    /**
     * A pure virtual method whose implementation returns true
@@ -527,6 +566,7 @@ protected:
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    bool receiveGpu; // Whether to use GPU acceleration in updating post's GSyn
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   bool initializeFromCheckpointFlag;
 
    BaseConnectionProbe** probes; // probes used to output data
    int numProbes;

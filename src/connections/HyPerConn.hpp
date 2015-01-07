@@ -63,8 +63,6 @@ public:
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
 
-   int initializeState(); // Not virtual since all connections should respond to initializeFromCheckpointFlag in the same way.
-                          // It calls either readStateFromCheckpoint or initializeWeights, both of which are virtual.
    virtual int checkpointRead(const char * cpDir, double* timef);
    virtual int checkpointWrite(const char * cpDir);
    virtual int writeTimers(FILE* stream);
@@ -469,8 +467,6 @@ protected:
    // uint4 * rnd_state; // An array of RNGs.
    Random * randState;
 
-   bool initializeFromCheckpointFlag;
-
 protected:
    HyPerConn();
    virtual int initNumWeightPatches();
@@ -568,12 +564,6 @@ protected:
     * @brief sharedWeights: Defines if the HyPerConn uses shared weights (kernelConn)
     */
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory set in HyPerCol.
-    * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
-    */
-   virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief weightInitType: Specifies the initialization method of weights

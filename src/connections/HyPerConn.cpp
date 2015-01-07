@@ -217,7 +217,6 @@ int HyPerConn::initialize_base()
 
    this->weightInitTypeString = NULL;
    this->weightInitializer = NULL;
-   this->initializeFromCheckpointFlag = false;
 
    this->io_timer     = NULL;
    this->update_timer = NULL;
@@ -438,7 +437,7 @@ int HyPerConn::constructWeights()
       }
    }  // arborId
 
-   //call to initializeWeights moved to initializeState()
+   //call to initializeWeights moved to BaseConnection::initializeState()
    status |= initPlasticityPatches();
    assert(status == 0);
    if (shrinkPatches_flag) {
@@ -870,13 +869,6 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, false/*default*/, true/*warn if absent*/);
-}
-
-void HyPerConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
-   assert(parent->getInitializeFromCheckpointDir()); // If we're not initializing any layers or connections from a checkpoint, this should be the empty string, not null.
-   if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
-      parent->ioParamValue(ioFlag, name, "initializeFromCheckpointFlag", &initializeFromCheckpointFlag, parent->getDefaultInitializeFromCheckpointFlag(), true/*warnIfAbsent*/);
-   }
 }
 
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
@@ -2720,24 +2712,6 @@ int HyPerConn::insertProbe(BaseConnectionProbe * p)
    probes[numProbes] = p;
 
    return ++numProbes;
-}
-
-int HyPerConn::initializeState() {
-   int status = PV_SUCCESS;
-   assert(parent->getInitializeFromCheckpointDir()); // should never be null; it should be the empty string if not initializing from a checkpoint
-   if (parent->getCheckpointReadFlag()) {
-      double checkTime = parent->simulationTime();
-      checkpointRead(parent->getCheckpointReadDir(), &checkTime);
-   }
-   else if (initializeFromCheckpointFlag) {
-      assert(parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]);
-      status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
-   }
-   else {
-      //initialize weights for patches:
-      status = setInitialValues();
-   }
-   return status;
 }
 
 int HyPerConn::setInitialValues() {

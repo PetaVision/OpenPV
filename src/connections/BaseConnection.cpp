@@ -38,6 +38,7 @@ int BaseConnection::initialize_base() {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    receiveGpu = false;
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   this->initializeFromCheckpointFlag = false;
    this->probes = NULL;
    this->numProbes = 0;
    initInfoCommunicatedFlag = false;
@@ -375,6 +376,13 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 }
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
+void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
+   assert(parent->getInitializeFromCheckpointDir()); // If we're not initializing any layers or connections from a checkpoint, this should be the empty string, not null.
+   if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
+      parent->ioParamValue(ioFlag, name, "initializeFromCheckpointFlag", &initializeFromCheckpointFlag, parent->getDefaultInitializeFromCheckpointFlag(), true/*warnIfAbsent*/);
+   }
+}
+
 int BaseConnection::insertProbe(BaseConnectionProbe * p)
 {
    if(p->getTargetConn() != this) {
@@ -529,6 +537,24 @@ void BaseConnection::setDelay(int arborId, float delay) {
       std::cerr << this->getName() << ": A delay of " << delay << " will be rounded to " << actualDelay << "\n";
    }
    delays[arborId] = (int)(intDelay);
+}
+
+int BaseConnection::initializeState() {
+   int status = PV_SUCCESS;
+   assert(parent->getInitializeFromCheckpointDir()); // should never be null; it should be the empty string if not initializing from a checkpoint
+   if (parent->getCheckpointReadFlag()) {
+      double checkTime = parent->simulationTime();
+      checkpointRead(parent->getCheckpointReadDir(), &checkTime);
+   }
+   else if (initializeFromCheckpointFlag) {
+      assert(parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]);
+      status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
+   }
+   else {
+      //initialize weights for patches:
+      status = setInitialValues();
+   }
+   return status;
 }
 
 BaseConnection::~BaseConnection() {
