@@ -228,4 +228,237 @@ void IdentConn::handleDefaultSelfFlag() {
    assert(selfFlag==false);
 }
 
+int IdentConn::deliver() {
+   int status = PV_SUCCESS;
+
+   //Check if updating from post perspective
+   HyPerLayer * pre = preSynapticLayer();
+   PVLayerCube cube;
+   memcpy(&cube.loc, pre->getLayerLoc(), sizeof(PVLayerLoc));
+   cube.numItems = pre->getNumExtended();
+   cube.size = sizeof(PVLayerCube);
+
+   DataStore * store = parent->icCommunicator()->publisherStore(pre->getLayerId());
+   assert(numberOfAxonalArborLists()==1);
+   int arbor = 0;
+
+   int delay = getDelay(arbor);
+   cube.data = (pvdata_t *) store->buffer(LOCAL, delay);
+   assert(getUpdateGSynFromPostPerspective()==false);
+
+   cube.isSparse = store->isSparse();
+   if(cube.isSparse){
+      cube.numActive = *(store->numActiveBuffer(LOCAL, delay));
+      cube.activeIndices = store->activeIndicesBuffer(LOCAL, delay);
+   }
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   if(getReceiveGpu()){
+      status = this->deliverPresynapticPerspectiveGPU(&cube, arbor);
+      //No need to update GSyn since it's already living on gpu
+      post->setUpdatedDeviceGSynFlag(false);
+   }
+   else
+#endif
+   {
+      status = this->deliverPresynapticPerspective(&cube, arbor);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+      //CPU updated gsyn, need to update gsyn
+      post->setUpdatedDeviceGSynFlag(true);
+#endif
+   }
+
+   assert(status == PV_SUCCESS);
+   return PV_SUCCESS;
+}
+
+int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int arborID) {
+
+   //Check if we need to update based on connection's channel
+   if(getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
+   }
+   assert(post->getChannel(getChannel()));
+
+   float dt_factor = getConvertToRateDeltaTimeFactor();
+
+   const PVLayerLoc * preLoc = preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * postLoc = postSynapticLayer()->getLayerLoc();
+
+   assert(arborID==0); // IdentConn can only have one arbor
+   const int numExtended = activity->numItems;
+
+#ifdef DEBUG_OUTPUT
+   int rank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
+   printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numExtended, activity, this, conn);
+   fflush(stdout);
+#endif // DEBUG_OUTPUT
+
+   pvdata_t * gSynPatchHead = post->getChannel(getChannel());
+   if (activity->isSparse) {
+      int numLoop = activity->numActive;
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+      for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
+         int kPre = activity->activeIndices[loopIndex];
+
+         float a = activity->data[kPre] * dt_factor;
+         if (a == 0.0f) continue;
+         PVPatch * weights = getWeights(kPre, arborID);
+         if (weights->nx>0 && weights->ny>0) {
+            int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo into account, but for feature index, shouldn't matter.
+            pvgsyndata_t * postPatchStart = gSynPatchHead + getGSynPatchStart(kPre, arborID) + f;
+            *postPatchStart += a;
+         }
+      }
+   }
+   else {
+      PVLayerLoc const * loc = &activity->loc;
+      int numRestricted = loc->nx * loc->ny * loc->nf;
+      for (int kRestricted = 0; kRestricted < numRestricted; kRestricted++) {
+         int kExtended = kIndexExtended(kRestricted, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+         float a = activity->data[kExtended] * dt_factor;
+         if (a == 0.0f) continue;
+         gSynPatchHead[kRestricted] += a;
+      }
+   }
+   return PV_SUCCESS;
+}
+
+int IdentConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
+   assert(arborID==0); // IdentConn can only have one arbor
+
+   //Check if we need to update based on connection's channel
+   if(getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
+   }
+   assert(post->getChannel(getChannel())); // assert(GSyn && GSyn[conn->getChannel()]);
+
+   float dt_factor = getConvertToRateDeltaTimeFactor();
+
+   //Post layer receives synaptic input
+   //Only with respect to post layer
+   const PVLayerLoc * preLoc = preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * postLoc = postSynapticLayer()->getLayerLoc();
+   //If the connection uses gpu to receive, update all buffers
+
+   //TODO see if you can avoid this step of transferring patches to gpu
+   //Based on arborId
+   //Other way would be to just allocate all arbors to gpu
+
+   //If more than 1 arbor, need to update patches and GSynPatchStart.
+   //If one arbor, done in allocatePreKernel in HyPerConn
+   if(numberOfAxonalArborLists() > 1){
+      PVPatch* h_patches = weights(arborID)[0]; //0 because it's one block of memory
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_patches = getDevicePatches();
+#endif
+#ifdef PV_USE_CUDA
+      PVCuda::CudaBuffer * d_patches = getDevicePatches();
+#endif
+      assert(d_patches);
+
+      d_patches->copyToDevice(h_patches);
+
+      size_t* h_GSynPatchStart = getGSynPatchStart()[arborID];
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_GSynPatchStart = getDeviceGSynPatchStart();
+#endif
+#ifdef PV_USE_CUDA
+      PVCuda::CudaBuffer * d_GSynPatchStart = getDeviceGSynPatchStart();
+#endif
+      assert(d_GSynPatchStart);
+      d_GSynPatchStart->copyToDevice(h_GSynPatchStart);
+   }
+
+   //Update pre datastore, post gsyn, and conn weights
+   //Only if their updated
+   if(preSynapticLayer()->getUpdatedDeviceDatastoreFlag()){
+      float * h_preDatastore= activity->data;
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_preDatastore= preSynapticLayer()->getDeviceDatastore();
+#endif
+#ifdef PV_USE_CUDA
+      PVCuda::CudaBuffer * d_preDatastore = preSynapticLayer()->getDeviceDatastore();
+#endif
+      assert(d_preDatastore);
+      d_preDatastore->copyToDevice(h_preDatastore);
+
+      //Copy active indices and num active if needed
+      if(activity->isSparse){
+#ifdef PV_USE_OPENCL
+         CLBuffer * d_ActiveIndices;
+#endif
+#ifdef PV_USE_CUDA
+         PVCuda::CudaBuffer * d_ActiveIndices;
+#endif
+         d_ActiveIndices = preSynapticLayer()->getDeviceActiveIndices();
+         assert(d_ActiveIndices);
+         unsigned int * h_ActiveIndices = activity->activeIndices;
+         unsigned int h_numActive = activity->numActive;
+         assert(h_ActiveIndices);
+         d_ActiveIndices->copyToDevice(h_ActiveIndices, h_numActive * sizeof(unsigned int));
+      }
+      //Device now has updated
+      preSynapticLayer()->setUpdatedDeviceDatastoreFlag(false);
+   }
+
+   if(getUpdatedDeviceWFlag()){
+      float * h_weights = get_wDataStart(arborID);
+#ifdef PV_USE_OPENCL
+      CLBuffer * d_weights = getDeviceWData();
+#endif
+#ifdef PV_USE_CUDA
+      PVCuda::CudaBuffer * d_weights = getDeviceWData();
+#endif
+      assert(d_weights);
+      d_weights->copyToDevice(h_weights);
+      setUpdatedDeviceWFlag(false);
+   }
+
+#ifdef PV_USE_OPENCL
+   //Grab kernel from conn
+   CLKernel * krRecvPre = getKrRecvPre();        // CL kernel for update state call
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaKernel * krRecvPre = getKrRecvPre();        // CL kernel for update state call
+#endif
+   assert(krRecvPre);
+
+   //int totX = conn->getNumPostGroupX();
+   //int totY = conn->getNumPostGroupY();
+
+   //X direction is active neuron
+   //Y direction is post patch size
+   long totActiveNeuron;
+   if(activity->isSparse){
+      totActiveNeuron = activity->numActive;
+   }
+   else{
+      totActiveNeuron = preSynapticLayer()->getNumExtended();
+   }
+
+   long totPatchSize = xPatchSize() * yPatchSize() * fPatchSize();
+
+   long totThreads = totActiveNeuron * totPatchSize;
+
+#ifdef PV_USE_OPENCL
+   cl_event* timerEvent;
+   timerEvent = post->getRecvSynStartEvent();
+   std::cout << "opencl recv pre not implemented yet\n";
+   exit(-1);
+#endif
+
+#ifdef PV_USE_CUDA
+   int maxThreads = parent->getDevice()->get_max_threads();
+   int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
+
+   krRecvPre->run_nocheck(totThreads, numLocalThreads);
+#endif
+
+   return PV_SUCCESS;
+}
+
 }  // end of namespace PV block

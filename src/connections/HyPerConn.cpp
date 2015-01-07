@@ -3333,11 +3333,11 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
          kPre = loopIndex;
       }
 
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
       bool inWindow;
       //Post layer receives synaptic input
       //Only with respect to post layer
       int kPost = layerIndexExt(kPre, preLoc, postLoc);
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
       inWindow = inWindowExt(arborID, kPost);
       if(!inWindow) continue;
 #endif // OBSOLETE
@@ -3498,20 +3498,20 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
 
    float dt_factor = getConvertToRateDeltaTimeFactor();
 
-   //Post layer recieves synaptic input
+   //Post layer receives synaptic input
    //Only with respect to post layer
    const PVLayerLoc * preLoc = preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * postLoc = postSynapticLayer()->getLayerLoc();
    //If the connection uses gpu to receive, update all buffers
 
-   //TODO see if you can avoid this step of transfering patches to gpu
+   //TODO see if you can avoid this step of transferring patches to gpu
    //Based on arborId
    //Other way would be to just allocate all arbors to gpu
 
    //If more than 1 arbor, need to update patches and GSynPatchStart.
    //If one arbor, done in allocatePreKernel in HyPerConn
    if(numberOfAxonalArborLists() > 1){
-      PVPatch* h_patches = weights(arborID)[0]; //0 beacuse it's one block of memory
+      PVPatch* h_patches = weights(arborID)[0]; //0 because it's one block of memory
 #ifdef PV_USE_OPENCL
       CLBuffer * d_patches = getDevicePatches();
 #endif

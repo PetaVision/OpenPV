@@ -22,6 +22,7 @@ public:
 
    virtual int communicateInitInfo();
    virtual int updateWeights(int axonID) {return PV_SUCCESS;}
+   virtual int deliver();
 
 protected:
    IdentConn();
@@ -57,6 +58,9 @@ protected:
    virtual int setWeightInitializer();
 
    virtual void handleDefaultSelfFlag();
+
+   virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
+   virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
 };
 
 }  // end of block for namespace PV
