@@ -10,6 +10,8 @@ public:
 	DisparityMovie(const char* name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
+
+
 protected:
    bool updateImage(double timef, double dt);
    void ioParam_numDisparityPeriod(enum ParamsIOFlag ioFlag);

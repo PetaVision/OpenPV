@@ -10,6 +10,7 @@
 #include "BinaryThresh.hpp"
 #include "ImprintConn.hpp"
 #include "DisparityMovie.hpp"
+#include "DisparityLCALayer.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -49,6 +50,9 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    }
    if ( !strcmp(keyword, "DisparityMovie") ) {
       addedGroup = new DisparityMovie(name, hc);
+   }
+   if ( !strcmp(keyword, "DisparityLCALayer") ) {
+      addedGroup = new DisparityLCALayer(name, hc);
    }
    return addedGroup;
 }
