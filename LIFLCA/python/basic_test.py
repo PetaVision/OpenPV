@@ -16,12 +16,9 @@
 ##
 ###############################
 
-#workspace_path = '/home/ec2-user/mountData/'
 workspace_path = '/Users/dpaiton/Documents/workspace/'
-#workspace_path = '/home/wshainin/workspace/'
 
 import os, sys
-#lib_path = os.path.abspath('/home/ec2-user/workspace/PetaVision/plab')
 lib_path = os.path.abspath(workspace_path+'PetaVision/plab')
 sys.path.append(lib_path)
 import pvAnalysis as pv
@@ -33,23 +30,22 @@ import matplotlib.pyplot as plt
 import math as math
 
 # File Locations
-output_dir   = workspace_path+'LIFLCA/output_time/LCA/'
+output_dir   = workspace_path+'LIFLCA/output_time/'
 input_layer  = 'a0_Input.pvp'
 l1_layer     = 'a2_L1.pvp'
 #l1_layer     = 'checkpoints/Checkpoint20000/L1_A.pvp'
 err_layer    = 'a1_Residual.pvp'
 recon_layer  = 'a3_Recon.pvp'
 weights      = 'w1_L1_to_Residual.pvp'
-#weights_chk  = 'checkpoints/Checkpoint20000/L1_to_Residual_W.pvp'
-weights_chk  = '120440_L1_to_Residual_W.pvp'
+weights_chk  = 'checkpoints/Checkpoint5000/L1_to_Residual_W.pvp'
 
 # Open files
 #input_activityFile  = open(output_dir + input_layer,'rb')
 #l1_activityFile     = open(output_dir + l1_layer,'rb')
 #err_activityFile    = open(output_dir + err_layer,'rb')
 #recon_activityFile  = open(output_dir + recon_layer,'rb')
-#weightsFile         = open(output_dir + weights,'rb')
-weightsChkFile      = open(output_dir + weights_chk,'rb')
+weightsFile         = open(output_dir + weights,'rb')
+#weightsChkFile      = open(output_dir + weights_chk,'rb')
 
 progressPeriod  = 1
 startFrame      = 0
@@ -79,11 +75,11 @@ skipFrames      = 1   # 1 is every frame
 #print('Err_from_recon:')
 #(errDat,errHdr) = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
-#print('Weights from non-checkpoint:')
-#(weightDat,weightsHdr) = pv.get_pvp_data(weightsFile,progressPeriod,lastFrame,startFrame,skipFrames)
+print('Weights from non-checkpoint:')
+(weightDat,weightsHdr) = pv.get_pvp_data(weightsFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
-print('Weights from checkpoint:')
-(weightChkDat,weightsChkHdr) = pv.get_pvp_data(weightsChkFile,progressPeriod,lastFrame,startFrame,skipFrames)
+#print('Weights from checkpoint:')
+#(weightChkDat,weightsChkHdr) = pv.get_pvp_data(weightsChkFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
 #print('Recon:')
 #(reconDat,reconHdr)   = pv.get_pvp_data(recon_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
@@ -110,13 +106,13 @@ print('Weights from checkpoint:')
 ## PLOT WEIGHTS
 ########################
 arborIdx   = np.arange(0,4)
-i_frame    = 0 # index, not actual frame number
+i_frame    = -1 # index, not actual frame number, -1 for last
 margin     = 2 #pixels
-showPlot   = True
+showPlot   = True 
 savePlot   = True
 saveName   = output_dir+'analysis/'+weights[:-4]+'.png'
 
-weight_list = pw.plotWeights(weightChkDat,arborIdx,i_frame,margin,showPlot,savePlot,saveName)
+weight_list = pw.plotWeights(weightDat,arborIdx,i_frame,margin,showPlot,savePlot,saveName)
 
 
 ########################
@@ -126,5 +122,5 @@ weight_list = pw.plotWeights(weightChkDat,arborIdx,i_frame,margin,showPlot,saveP
 #l1_activityFile.close()
 #err_activityFile.close()
 #recon_activityFile.close()
-#weightsFile.close()
-weightsChkFile.close()
+weightsFile.close()
+#weightsChkFile.close()
