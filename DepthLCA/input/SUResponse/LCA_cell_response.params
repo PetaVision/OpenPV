@@ -132,7 +132,7 @@ ANNLayer "RightError" = {
 
 // binoclular layers
 
-HyPerLCALayer "V1S2" = {
+DisparityLCALayer "V1S2" = {
     restart = 0;
     nxScale = 0.5;
     nyScale = 0.5;
@@ -161,19 +161,20 @@ HyPerLCALayer "V1S2" = {
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
     VWidth = 0.01; //Same as VThresh
-    updateGpu = true;
+    updateGpu = false;
+    disparityLayerName = "LeftImage";
     //
     phase = 4;
 };
 
-HyPerLCALayer "V1S4" = {
+DisparityLCALayer "V1S4" = {
     #include "V1S2";
     @nxScale = .25;
     @nyScale = .25;
     @nf = 64;
 };
 
-HyPerLCALayer "V1S8" = {
+DisparityLCALayer "V1S8" = {
     #include "V1S2";
     @nxScale = .125;
     @nyScale = .125;
