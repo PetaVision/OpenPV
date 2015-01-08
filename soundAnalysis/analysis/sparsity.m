@@ -3,7 +3,7 @@
 %%
 
 addpath("~/newvision/PetaVision/mlab/util/");
-inputpvpfile = "~/newvision/sandbox/soundAnalysis/servers/output2/a6_A1.pvp";
+inputpvpfile = "~/newvision/sandbox/soundAnalysis/output2/a6_A1.pvp";
 
 a1 = readpvpfile(inputpvpfile);
 

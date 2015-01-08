@@ -1,6 +1,6 @@
-addpath("/Users/MLD/newvision/trunk/mlab/util/");
-pluspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/output2/checkpoints/Checkpoint2210/A1ToPositiveError_W.pvp"
-minuspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint2210/A1ToNegativeError_W.pvp"
+addpath("/Users/MLD/newvision/PetaVision/mlab/util/");
+pluspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/longupdate/checkpoints/Checkpoint0/A1ToPositiveError_W.pvp"
+minuspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/longupdate/checkpoints/Checkpoint0/A1ToNegativeError_W.pvp"
 
 plusWcell = readpvpfile(pluspvpfile);
 minusWcell = readpvpfile(minuspvpfile);

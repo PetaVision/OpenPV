@@ -1,5 +1,5 @@
 addpath("~/newvision/PetaVision/mlab/util/");
-pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/output2/checkpoints/a9_FullRecon.pvp";
+pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/longupdate/checkpoints/a9_FullRecon.pvp";
 outfilename = "recongraph.png";
 
 %%[data, hdr] = readpvpfile(pvpfile, 1000, 300000, 1); %% filename, update period, end frame, start frame
