@@ -162,46 +162,12 @@ RescaleLayer "rescalezerotonegative" = {
 // Connections
 //
 
-HyPerConn "input_to_unrescaledlayer" = {
+IdentConn "input_to_unrescaledlayer" = {
     preLayerName = "inputmovie";
     postLayerName = "unrescaledlayer";
     channelCode = 0;
-    nxp = 7;
-    nyp = 7;
-    nfp = 1; 
-    numAxonalArbors = 1;
-    sharedWeights = true;
-    writeStep = -1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 1;
-    sigma = 1;
-    rMax  = infinity;
-    rMin = 0;
-      
-    strength = 1.0;
-    normalizeMethod = "normalizeSum";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    convertRateToSpikeCount = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-    normalizeOnInitialize = true;
-    normalizeOnWeightUpdate = true;
-    rMinX = 0.0;
-    rMinY = 0.0;
-    nonnegativeConstraintFlag = false;
-
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;
-
     delay = 0;
-
-    pvpatchAccumulateType = "Convolve";
-    shrinkPatches = false;
-    updateGSynFromPostPerspective = false;
+    writeStep = -1;
 };
 
 //
