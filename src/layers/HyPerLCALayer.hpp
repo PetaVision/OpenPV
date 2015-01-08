@@ -53,15 +53,18 @@ protected:
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual int allocateUpdateKernel();
 #endif
+
+
+   pvdata_t timeConstantTau;
+   bool selfInteract;
+
 private:
    SparsityLayerProbe* sparseProbe;
-   pvdata_t timeConstantTau;
    int initialize_base();
    int numWindowX;
    int numWindowY;
    bool windowSymX;
    bool windowSymY;
-   bool selfInteract;
 };
 
 } /* namespace PV */
