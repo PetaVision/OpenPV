@@ -18,6 +18,7 @@
 import numpy as np
 import matplotlib.pyplot as plt # only need if showPlot==True OR savePlot==true
 import os                       # only needed if savePlot==true
+import pdb
 
 def plotWeights(weightStruct,arborIdx=None,i_frame=0,margin=0,showPlot=False,savePlot=False,saveName=''):
     # NOTE: i_arbor and i_frame are indices for the given frame or arbor.
@@ -33,6 +34,9 @@ def plotWeights(weightStruct,arborIdx=None,i_frame=0,margin=0,showPlot=False,sav
     weight_time = weightStruct["time"]
 
     (numFrames,numArbors,numPatches,nyp,nxp,nfp) = weight_vals.shape
+
+    if i_frame is -1:
+        i_frame = numFrames-1
 
     if arborIdx is None:
        arborIdx = np.arange(numArbors)
@@ -51,11 +55,11 @@ def plotWeights(weightStruct,arborIdx=None,i_frame=0,margin=0,showPlot=False,sav
            numPatchesX = np.sqrt(numPatches)
            numPatchesY = numPatchesX
        else:
-           numPatchesX = np.floor(np.sqrt(numPatches))
-           numPatchesY = numPatchesX+1
+           numPatchesX = np.ceil(np.sqrt(numPatches))
+           numPatchesY = numPatchesX
 
-       patch_set = np.zeros((numPatchesX*numPatchesY,nyp+margin,nxp+margin))
-       out_mat   = np.zeros((numPatchesY*(nyp+margin),numPatchesX*(nxp+margin)))
+       patch_set = np.zeros((numPatchesX*numPatchesY,nyp+margin,nxp+margin,nfp))
+       out_mat   = np.zeros((numPatchesY*(nyp+margin),numPatchesX*(nxp+margin),nfp))
 
        xpos = 0
        ypos = 0
@@ -68,9 +72,9 @@ def plotWeights(weightStruct,arborIdx=None,i_frame=0,margin=0,showPlot=False,sav
            # Normalize patch
            patch_tmp = (patch_tmp - min_patch) * 255 / (max_patch - min_patch + np.finfo(float).eps) # re-scaling & normalizing TODO: why? and what exactly is it doing?
            # Patches are padded with zeros - just fill in center
-           patch_set[i_patch,half_margin:half_margin+nyp,half_margin:half_margin+nxp] = np.uint8(np.squeeze(np.transpose(patch_tmp,(1,0,2)))) # re-ordering to [x,y,f] TODO: why?
+           patch_set[i_patch,half_margin:half_margin+nyp,half_margin:half_margin+nxp,:] = np.uint8(np.squeeze(np.transpose(patch_tmp,(1,0,2)))) # re-ordering to [x,y,f] TODO: why?
 
-           out_mat[ypos:ypos+nyp+margin,xpos:xpos+nxp+margin] = patch_set[i_patch,:,:]
+           out_mat[ypos:ypos+nyp+margin,xpos:xpos+nxp+margin,:] = patch_set[i_patch,:,:,:]
 
            xpos += nxp+margin
 
@@ -81,30 +85,33 @@ def plotWeights(weightStruct,arborIdx=None,i_frame=0,margin=0,showPlot=False,sav
        out_list[i_arbor] = out_mat
 
        if showPlot:
-           plt.figure()
-           plt.imshow(out_mat,cmap='Greys',interpolation='nearest')
-           plt.show(block=False)
+           for feat in range(nfp):
+               plt.figure()
+               plt.imshow(out_mat[:,:,feat],cmap='Greys',interpolation='nearest')
+               plt.show(block=False)
        if savePlot:
-           #TODO: Should be able to pass figure title & axis labels?
-           if len(saveName) == 0:
-               fileName = 'plotWeightsOutput_f'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)
-               fileExt  = 'png'
-               filePath = './'
-               saveName = filePath+fileName+'.'+fileExt
-           else:
-               seps     = saveName.split(os.sep)
-               fileName = seps[-1]
-               filePath = saveName[0:-len(fileName)]
-               seps     = fileName.split(os.extsep)
-               fileExt  = seps[-1]
-               fileName = seps[0]
-               if not os.path.exists(filePath):
-                   os.makedirs(filePath)
-           plt.imsave(filePath+fileName+'_f'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'.'+fileExt,out_mat,vmin=0,vmax=255,cmap='Greys',origin='upper')
+           #TODO: Should be able to pass figure title?
+           for feat in range(nfp):
+               if len(saveName) == 0:
+                   fileName = 'plotWeightsOutput_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'_fe'+str(feat).zfill(3)
+                   fileExt  = 'png'
+                   filePath = './'
+                   saveName = filePath+fileName+'.'+fileExt
+               else:
+                   seps     = saveName.split(os.sep)
+                   fileName = seps[-1]
+                   filePath = saveName[0:-len(fileName)]
+                   seps     = fileName.split(os.extsep)
+                   fileExt  = seps[-1]
+                   fileName = seps[0]
+                   if not os.path.exists(filePath):
+                       os.makedirs(filePath)
+               plt.imsave(filePath+fileName+'_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'_fe'+str(feat).zfill(2)+'.'+fileExt,out_mat,vmin=0,vmax=255,cmap='Greys',origin='upper')
 
     return out_list
 
 #TODO:
+#def plotSortedWeights(...):
 #def plotWeightMovie(...):  # can receive weight file with multiple frames OR path to checkpoint folder
 #def plotWeightHistograms(...):
-#def plotActivationHistory(...): # activation histogram for each dictionary element
+#def plotActivationHistory(...): # activation histogram over time for each dictionary element

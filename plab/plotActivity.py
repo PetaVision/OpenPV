@@ -10,6 +10,7 @@
 import numpy as np
 import matplotlib.pyplot as plt # only need if showPlot==True OR savePlot==true
 import os                       # only needed if savePlot==true
+import pdb
 
 def plotPercentActive(layer,showPlot=False,savePlot=False,saveName=''):
     numFrames     = len(layer["values"])
@@ -55,5 +56,44 @@ def plotPercentActive(layer,showPlot=False,savePlot=False,saveName=''):
     return np.array((layer["time"],percentActive))
 
 
-#TODO:
-#def plotPercentChange(layer,showPlot=False,savePlot=False,saveName=''):
+def plotPercentChange(layer,showPlot=False,savePlot=False,saveName=''):
+    numFrames  = len(layer["values"])
+    percentChange = (numFrames-1) * [None]
+
+    percentActive = plotPercentActive(layer,False,False,'')
+    for frame in range(1,numFrames):
+        percentChange[frame-1] = np.sum(np.logical_xor(percentActive[1,frame-1],percentActive[1,frame]))/numFrames
+
+    if showPlot:
+        plt.figure()
+        plt.plot(layer["time"][1:],percentChange)
+        plt.xlabel('Time (dt)')
+        plt.ylabel('Percent Change')
+        plt.ylim((0,1))
+        plt.show(block=False)
+    if savePlot:
+        #TODO: Should be able to pass figure title?
+        if len(saveName) == 0:
+            fileName = 'plotPercChange'
+            fileExt  = 'png'
+            filePath = './'
+            saveName = filePath+fileName+'.'+fileExt
+        else:
+            seps     = saveName.split(os.sep)
+            fileName = seps[-1]
+            filePath = saveName[0:-len(fileName)]
+            seps     = fileName.split(os.extsep)
+            fileExt  = seps[-1]
+            fileName = seps[0]
+            if not os.path.exists(filePath):
+                os.makedirs(filePath)
+
+            plt.figure()
+            plt.plot(layer["time"][1:],percentChange)
+            plt.xlabel('Time (dt)')
+            plt.ylabel('Percent Change')
+            plt.ylim((0,1))
+            plt.show(block=False)
+            plt.savefig(filePath+fileName+'.'+fileExt,bbox_inches='tight')
+
+    return percentChange

@@ -32,12 +32,12 @@ def plotSnrDbErr(preLayer,postLayer,showPlot=False,savePlot=False,saveName=''):
         plt.ylabel('SNRdb')
         plt.show(block=False) # If the code is run in interactive mode, show will block by default
     if savePlot:
-        #TODO: Should be able to pass figure title & axis labels?
+        #TODO: Should be able to pass figure title?
         if len(saveName) == 0:
-            saveName = './plotSnrDbErrOutput.png'
             fileName = 'plotSnrDbErr'
             fileExt  = 'png'
             filePath = './'
+            saveName = filePath+fileName+'.'+fileExt
         else:
             seps     = saveName.split(os.sep)
             fileName = seps[-1]
@@ -73,12 +73,12 @@ def plotPercErr(preLayer,postLayer,showPlot=False,savePlot=False,saveName=''):
         plt.ylabel('Percent Error')
         plt.show(block=False)
     if savePlot:
-        #TODO: Should be able to pass figure title & axis labels?
+        #TODO: Should be able to pass figure title?
         if len(saveName) == 0:
-            saveName = './plotSnrDbErrOutput.png'
-            fileName = 'plotSnrDbErr'
+            fileName = 'plotPercErr'
             fileExt  = 'png'
             filePath = './'
+            saveName = filePath+fileName+'.'+fileExt
         else:
             seps     = saveName.split(os.sep)
             fileName = seps[-1]
