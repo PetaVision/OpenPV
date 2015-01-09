@@ -186,16 +186,24 @@ int RescaleLayer::updateState(double timef, double dt) {
 #endif // PV_USE_MPI
 
           float rangeA = maxA - minA;
-	  rangeA = rangeA != 0 ? rangeA : minA;
-          for (int k = 0; k < numNeurons; k++){
-             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
-                                               locOriginal->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-             if (rangeA != 0){
-                A[kext] = ((originalA[kextOriginal] - minA)/rangeA) * (targetMax - targetMin) + targetMin;
+          if (rangeA != 0) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif // PV_USE_OPENMP_THREADS
+             for(int k=0; k<numNeurons; k++) {
+                int kExt = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+                int kExtOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                      locOriginal->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+                A[kExt] = ((originalA[kExtOriginal] - minA)/rangeA) * (targetMax - targetMin) + targetMin;
              }
-             else{
-                A[kext] = originalA[kextOriginal];
+          }
+          else {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif // PV_USE_OPENMP_THREADS
+             for(int k=0; k<numNeurons; k++) {
+                int kExt = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+                A[kExt] = (pvadata_t) 0;
              }
           }
        }
@@ -232,19 +240,27 @@ int RescaleLayer::updateState(double timef, double dt) {
           MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
 #endif // PV_USE_MPI
           float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
-	  std = std != 0.0 ? std : targetStd;
-          //Normalize
+          // The difference between the if and the else clauses is only in the computation of A[kext], but this
+          // way the std != 0.0 conditional is only evaluated once, not every time through the for-loop.
+          if (std != 0.0) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-          for (int k = 0; k < numNeurons; k++){
-             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
-             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
-                                               locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-             if (std != 0){
+             for (int k = 0; k < numNeurons; k++){
+                int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
+                int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                      locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
                 A[kext] = ((originalA[kextOriginal] - mean) * (targetStd/std) + targetMean);
              }
-             else{
+          }
+          else {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+             for (int k = 0; k < numNeurons; k++){
+                int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
+                int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                      locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
                 A[kext] = originalA[kextOriginal];
              }
           }
@@ -275,14 +291,20 @@ int RescaleLayer::updateState(double timef, double dt) {
                    sumsq += (originalA[kext] - mean) * (originalA[kext] - mean);
                 }
                 float std = sqrt(sumsq/nf);
-		std = std != 0 ? std : targetStd;
-                for(int iF = 0; iF < nf; iF++){
-                   int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-                   int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
-                   if (std != 0){
+                // Difference in the if-part and else-part is only in the value assigned to A[kext], but this way the std != 0
+                // conditional does not have to be reevaluated every time through the for loop.
+                // can't pragma omp parallel the for loops because it was already parallelized in the outermost for-loop
+                if (std != 0) {
+                   for(int iF = 0; iF < nf; iF++){
+                      int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+                      int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
                       A[kext] = ((originalA[kextOrig] - mean) * (targetStd/std) + targetMean);
                    }
-                   else{
+                }
+                else {
+                   for(int iF = 0; iF < nf; iF++){
+                      int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+                      int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
                       A[kext] = originalA[kextOrig];
                    }
                 }
