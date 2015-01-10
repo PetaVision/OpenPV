@@ -17,7 +17,7 @@ int MaxPoolTestLayer::updateState(double timef, double dt){
    int nf = loc->nf;
    int kx0 = loc->kx0;
    int ky0 = loc->ky0;
-   assert(nf == 1);
+   assert(nf == 3);
 
    bool isCorrect = true;
    //Grab the activity layer of current layer
@@ -25,27 +25,31 @@ int MaxPoolTestLayer::updateState(double timef, double dt){
    //We only care about restricted space
    for(int iY = loc->halo.up; iY < ny + loc->halo.up; iY++){
       for(int iX = loc->halo.lt; iX < nx + loc->halo.lt; iX++){
-         int idx = kIndex(iX, iY, 0, nx+loc->halo.lt+loc->halo.rt, ny+loc->halo.dn+loc->halo.up, nf);
-         //Input image is set up to have max values in 3rd feature dimension
-         //3rd dimension, top left is 128, bottom right is 191
-         //Y axis spins fastest
-         float actualvalue = A[idx]*255;
-         
-         int xval = iX+kx0-loc->halo.lt;
-         int yval = iY+ky0-loc->halo.up;
-         //Patches on edges have same answer as previous neuron
-         if(xval == 7){
-            xval -= 1;
-         }
-         if(yval == 7){
+	for(int iFeature = 0; iFeature < nf; iFeature++){
+	  int idx = kIndex(iX, iY, iFeature, nx+loc->halo.lt+loc->halo.rt, ny+loc->halo.dn+loc->halo.up, nf);
+	  //Input image is set up to have max values in 3rd feature dimension
+	  //3rd dimension, top left is 128, bottom right is 191
+	  //Y axis spins fastest
+	  float actualvalue = A[idx]*255;
+	  
+	  int xval = iX+kx0-loc->halo.lt;
+	  int yval = iY+ky0-loc->halo.up;
+	  //Patches on edges have same answer as previous neuron
+	  if(xval == 7){
+	    xval -= 1;
+	  }
+	  if(yval == 7){
             yval -= 1;
-         }
-
-         float expectedvalue = 8*xval+yval+137;
-         if(actualvalue != expectedvalue){
+	  }
+	  
+	  // modified GTK: 1/10/15, modified to test spatial max pooling over a feature plane 
+	  //float expectedvalue = 8*xval+yval+137;
+	  float expectedvalue = (yval+1)+8*(xval+1)+64*iFeature;
+	  if(actualvalue != expectedvalue){
             std::cout << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << "\n";
             isCorrect = false;
-         }
+	  }
+	}
       }
    }
    if(!isCorrect){
