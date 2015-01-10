@@ -673,6 +673,7 @@ protected:
     * - convolve: Accumulates through convolution
     * - stochastic: Accumulates through stochastic release
     * - maxpooling: Accumulates through max pooling
+    * - sumpooling: Accumulates through sum pooling
     *
     * Defaults to convolve.
     */

@@ -518,6 +518,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc) {
    assert(!inputParams->presentAndNotBeenRead(name, "pvpatchAccumulateType"));
    switch (pvpatchAccumulateType) {
    case ACCUMULATE_CONVOLVE:
+   case ACCUMULATE_SUMPOOLING:
       accumulateFunctionPointer  = &pvpatch_accumulate;
       accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
       break;
@@ -968,9 +969,15 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
       else if (strcmp(pvpatchAccumulateTypeString,"stochastic")==0) {
          pvpatchAccumulateType = ACCUMULATE_STOCHASTIC;
       }
-      else if (strcmp(pvpatchAccumulateTypeString,"maxpooling")==0 ||
-            strcmp(pvpatchAccumulateTypeString,"max pooling")==0) {
+      else if ((strcmp(pvpatchAccumulateTypeString,"maxpooling")==0) ||
+	       (strcmp(pvpatchAccumulateTypeString,"max_pooling")==0) ||
+	       (strcmp(pvpatchAccumulateTypeString,"max pooling")==0)) {
          pvpatchAccumulateType = ACCUMULATE_MAXPOOLING;
+      }
+      else if ((strcmp(pvpatchAccumulateTypeString,"sumpooling")==0) ||
+	       (strcmp(pvpatchAccumulateTypeString,"sum_pooling")==0)  ||
+	       (strcmp(pvpatchAccumulateTypeString,"sum pooling")==0)) {
+         pvpatchAccumulateType = ACCUMULATE_SUMPOOLING;
       }
       else {
          if (parent->columnId()==0) {
@@ -3739,13 +3746,14 @@ void HyPerConn::deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t
    pvwdata_t * weightDataStart = get_wData(arbor,patchIndex); // make this a pvwdata_t const *?
    pvgsyndata_t * postPatchStart = postBufferStart + getGSynPatchStart(patchIndex, arbor);
    // modified GTK: 12/25/14 to allow for efficient implementation of max_pooling
-   const int offset = 0;
-   const int sf = 1;
-   if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+   // modified GTK: 1/10/15 to fix bug and to implement sum_pooling
+   int offset = 0;
+   int sf = 1;
+   if((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)){
      const PVLayerLoc * preLoc = pre->getLayerLoc();
      const int kfPre = featureIndex(patchIndex, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
-     const int offset = kfPre;
-     const int sf = fPatchSize();
+     offset = kfPre;
+     sf = fPatchSize();
    }
    for (int y = 0; y < ny; y++) {
      (accumulateFunctionPointer)(nk, postPatchStart + y*sy + offset, a, weightDataStart + y*syw + offset, auxPtr, sf);

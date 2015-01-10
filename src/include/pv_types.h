@@ -43,7 +43,8 @@ enum ChannelType {
 enum GSynAccumulateType {
    ACCUMULATE_CONVOLVE = 0,
    ACCUMULATE_STOCHASTIC = 1,
-   ACCUMULATE_MAXPOOLING = 2
+   ACCUMULATE_MAXPOOLING = 2,
+   ACCUMULATE_SUMPOOLING = 3
 };
 
 typedef struct PVPatch_ {
