@@ -19,17 +19,17 @@ HyPerCol "column" = {
     dtAdaptFlag                     = true;  // Time step size (really tau) is scaled by 1 / (maximimum % error)
                                              // i.e. adaptive time step uses the average error to scale tau 
                                              // As error decreases, you decrease tau to speed up du/dt.
-    dtScaleMax                      = 1.0;   // Max value for 1/tau - conservative is 1, which will not cause large changes in u(t). Maximum step size is dtScaleMax times the base time step size
-    dtScaleMin                      = 0.25;  // Default value for 1/tau on image flip. Minimum step size is dtScaleMin times the base time step size
+    dtScaleMax                      = 5.0;   // Max value for 1/tau - conservative is 1, which will not cause large changes in u(t). Maximum step size is dtScaleMax times the base time step size
+    dtScaleMin                      = 0.05;  // Default value for 1/tau on image flip. Minimum step size is dtScaleMin times the base time step size
                                              // If error is too big, essentially turn off plasticity for a short amount of time
     dtChangeMax                     = 0.05;  // Percentage that tau is allowed to change.
     dtChangeMin                     = 0.0;   // By default, if error increases, you go to maximum tau.
                                              // If dtChangeMin > 0, then this is the maximum percentage increase in the percent error you're willing to tolerate before changing tau.
-    dtMinToleratedTimeScale         = 0.0001;
+    dtMinToleratedTimeScale         = 0.001;
     randomSeed                      = 1234567890;  // Must be at least 8 digits long. If not set here,  clock time is used to generate seed
     startTime                       = 0;
     stopTime                        = 120440; //displayPeriod * numImages
-    progressInterval                = 5000;
+    progressInterval                = 10000;
     outputPath                      = "/home/dpaiton/workspace/LIFLCA/output_time/";
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
@@ -37,7 +37,7 @@ HyPerCol "column" = {
     checkpointWriteTriggerMode      = "step"; // Not implemented fully - trigger checkpoint on clock time instead of number of time steps
     checkpointWrite                 = true;
     checkpointWriteDir              = "/home/dpaiton/workspace/LIFLCA/output_time/checkpoints/";
-    checkpointWriteStepInterval     = 10000;
+    checkpointWriteStepInterval     = 4800;//9600;
     deleteOlderCheckpoints          = false;
     writeProgressToErr              = true;
     writeTimescales                 = true;
@@ -68,7 +68,7 @@ Movie "Input" = {
 //    initialWriteTime       = 40;
     writeStep              = -1;
     sparseLayer            = false;
-    displayPeriod          = 80;       // How long image is displayed to network before flipping
+    displayPeriod          = 160;       // How long image is displayed to network before flipping
     start_frame_index      = 0;        // zero indexed
     skip_frame_index       = 0;
     echoFramePathnameFlag  = true;
@@ -162,9 +162,9 @@ HyPerLCALayer "L1" = {
 //
     mirrorBCflag           = false;
     valueBC                = 0;
-//    initialWriteTime       = 80.0;     // Should = displayPeriod
-    writeStep              = -1;//80.0;     // * Should = displayPeriod if you only want to write out best sparse approximation
-                                       // * Set to < displayPeriod if you want to see how the sparse appxoimation changes with time
+//    initialWriteTime       = 160.0;    // Should = displayPeriod
+//    writeStep              = 160.0;    // * Should = displayPeriod if you only want to write out best sparse approximation
+                                         // * Set to < displayPeriod if you want to see how the sparse appxoimation changes with time
 //
     sparseLayer            = true;
     writeSparseValues      = true;     // Don't just write index of active cell, but also the T(u) value
@@ -177,7 +177,7 @@ HyPerLCALayer "L1" = {
 //
     InitVType              = "UniformRandomV";
     minV                   = -1.0;     // Only for initialization - min value of v (assuming dimensionless membrane potentials)
-    maxV                   = 0.075;       // 0.05 above VThresh makes a few start out above threshold - no real evidence that this is better
+    maxV                   = 0.065;    // Only for initialization - 0.05 above VThresh makes a few start out above threshold
 //    InitVType              = "InitVFromFile";
 //    Vfilename              = "/home/dpaiton/output_time/Checkpoints/Checkpoint6000000/L1_V.pvp";
 // 
@@ -186,7 +186,7 @@ HyPerLCALayer "L1" = {
 //
 // Here is where you set a hard or soft threshold.
 //
-    VThresh                = 0.025;    // Lambda -> thershold for activation function T(u)
+    VThresh                = 0.015;    // Lambda -> thershold for activation function T(u)
                                        // This is your trade-off parameter for sparseness vs reconstruction error.
                                        // Depends on scale of input - for normalized images, 0.05 works well
     AMax                   = infinity; // Max value T(u) can be
@@ -259,7 +259,7 @@ HyPerConn "Input_to_Residual" = {
    channelCode                   = 0;
 //
    numAxonalArbors               = 4;
-   delay                         = [240.0,320.0,400.0,480.0];              // Must delay input so that model can reconstruct past only
+   delay                         = [480.0,640.0,800.0,960.0];              // Must delay input so that model can reconstruct past only
    sharedWeights                 = true;
    weightInitType                = "OneToOneWeightsWithDelays";
    weightInit                    = 0.083;              // * weightInit = 1 / sqrt(patch_area), so that L2 norm of image patch is 1.
@@ -289,7 +289,7 @@ HyPerConn "L1_to_Residual" = {
     nxpShrunken                         = 12;             // Allows us to have smaller patches than what is allocated
     nypShrunken                         = 12;
     numAxonalArbors                     = 4;
-    delay                               = [0.0,80.0,160.0,240.0]; // Delays are in units of dt
+    delay                               = [0.0,160.0,240.0,480.0]; // Delays are in units of dt
     channelCode                         = 1;
     sharedWeights                       = true;          // If true, acts like a KernelConn
     keepKernelsSynchronized             = true;          // * If false, each MPI process would accumulate on its own and combine at
@@ -299,7 +299,7 @@ HyPerConn "L1_to_Residual" = {
 //    initWeightsFile                     was set to (NULL);
     wMinInit                            = -1;
     wMaxInit                            = 1;
-    sparseFraction                      = 0.7;           // What percentage of weights are set to 0
+    sparseFraction                      = 0.9;           // What percentage of weights are set to 0
     plasticityFlag                      = true;
 //
     triggerFlag                         = true;
@@ -314,7 +314,7 @@ HyPerConn "L1_to_Residual" = {
                                                          //   stocastic, others?
     convertRateToSpikeCount             = false;
     writeStep                           = -1;            // Usually better to use checkpoints to write weights
-//    initialWriteTime                    = 80;
+//    initialWriteTime                    = 160;
 //    writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
     updateGSynFromPostPerspective       = false;
@@ -338,7 +338,7 @@ HyPerConn "L1_to_Residual" = {
     strength                            = 1;
     rMinX                               = 0;             // Creates annulus if non-zero
     rMinY                               = 0;
-    dWMax                               = 3.0;           // Corresponds to eta parameter
+    dWMax                               = 1.0;           // Corresponds to eta parameter
 //
     shrinkPatches                       = false;         // Shrinks patch to minimum non-zero cube. Only works for fixed weights?
     receiveGpu                          = false;         // Sparse convolution, most efficient on CPU
@@ -354,7 +354,7 @@ TransposeConn "Residual_to_L1" = {
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
-    delay                               = [0.0,80.0,160.0,240.0];
+    delay                               = [0.0,160.0,240.0,480.0];
     updateGSynFromPostPerspective       = true;         // Update from L1 perspective (pull model for thread safety)
     originalConnName                    = "L1_to_Residual";
 //    preDataLocal                        = true;         // * If true, pre-synaptic data is put into local memory.
@@ -372,7 +372,7 @@ CloneConn "L1_to_Recon" = {
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
-    delay                               = [0.0,80.0,160.0,240.0];
+    delay                               = [0.0,160.0,240.0,480.0];
     updateGSynFromPostPerspective       = false;
     originalConnName                    = "L1_to_Residual";
     receiveGpu                          = false;
