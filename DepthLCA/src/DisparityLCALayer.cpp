@@ -69,7 +69,7 @@ int DisparityLCALayer::communicateInitInfo() {
                  parent->parameters()->groupKeywordFromName(name), name, disparityLayerName);
       }
    }
-   disparityLayer = dynamic_cast<DisparityMovie *>(h_layer);
+   disparityLayer = dynamic_cast<Movie *>(h_layer);
    if (disparityLayer==NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: disparityLayerName \"%s\" is not a DisparityMovieLayer.\n",

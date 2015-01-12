@@ -9,7 +9,7 @@
 #define DISPARITYLCALAYER_HPP_
 
 #include <layers/HyPerLCALayer.hpp>
-#include "DisparityMovie.hpp"
+#include "Movie.hpp"
 
 namespace PV {
 
