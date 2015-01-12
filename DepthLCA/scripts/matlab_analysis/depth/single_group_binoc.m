@@ -9,9 +9,9 @@ output_dir = "/nh/compneuro/Data/Depth/LCA/single_group_binoc/";
 
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
 addpath([workspace_path, filesep, "/PetaVision/mlab/HyPerLCA"]);
-last_checkpoint_ndx = 160000;
+last_checkpoint_ndx = 130000;
 checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, '%i')]; %% 
-max_history = 196000;
+max_history = 100000000;
 numarbors = 1;
 
 %%keyboard;
