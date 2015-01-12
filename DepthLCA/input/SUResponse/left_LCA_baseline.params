@@ -16,16 +16,16 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime= 3600000; //Loop through once
+    stopTime= 44800; //Loop through once
     progressStep = 10;
-    outputPath = "/nh/compneuro/Data/Depth/LCA/SUResponse/LCA_cell_response/";
+    outputPath = "/nh/compneuro/Data/Depth/LCA/SUResponse/LeftLCABaseline/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/Checkpoints";
     //checkpointReadDirIndex = 315000;
     checkpointWrite = false;
-    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/SUResponse/LCA_cell_response/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/SUResponse/LeftLCABaseline/Checkpoints";
     checkpointWriteStepInterval = 5000;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
@@ -46,15 +46,15 @@ HyPerCol "column" = {
 
 //
 
-DisparityMovie "LeftImage" = {
+Movie "LeftImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/home/slundquist/workspace/DepthLCA/input/SUResponse/weightInput.txt";
+    imageListPath = "/home/slundquist/workspace/DepthLCA/input/SUResponse/leftBaseline.txt";
     writeFrameToTimestamp = true;
     nf = 1;
-    writeStep = 200;//-1;
+    writeStep = -1;
     writeSparseActivity = false;
     displayPeriod = 200; //200;
     start_frame_index = 1;
@@ -71,12 +71,12 @@ DisparityMovie "LeftImage" = {
     offsetY = -1;
     randomMovie = 0;
     phase = 0;
-
-    numDisparity = 40;
-    dPixelDisparity = -2;
     padValue = .5;
 
-    moveMethod = "altLeft";
+    //numDisparity = 40;
+    //dPixelDisparity = -2;
+
+    //moveMethod = "altLeft";
 
     //useParamsImage = true;
 };
@@ -112,18 +112,18 @@ ANNLayer "LeftError" = {
 ////
 //
 
-DisparityMovie "RightImage" = {
-    #include "LeftImage";
-    @imageListPath = "/home/slundquist/workspace/DepthLCA/input/SUResponse/weightInput.txt";
-    @dPixelDisparity = 2;
-    @moveMethod = "altRight";
-};
-
-
-ANNLayer "RightError" = {
-    #include "LeftError";
-    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V_grow_1224x368y.pvp";
-};
+//DisparityMovie "RightImage" = {
+//    #include "LeftImage";
+//    @imageListPath = "/home/slundquist/workspace/DepthLCA/input/SUResponse/weightInput.txt";
+//    @dPixelDisparity = 2;
+//    @moveMethod = "altRight";
+//};
+//
+//
+//ANNLayer "RightError" = {
+//    #include "LeftError";
+//    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V_grow_1224x368y.pvp";
+//};
 
 
 //
@@ -219,11 +219,11 @@ KernelConn "LeftImageToLeftError" = {
 
 // Right eye connections
 
-KernelConn "RightImageToRightError" = {
-    #include "LeftImageToLeftError";
-    @preLayerName = "RightImage";
-    @postLayerName = "RightError";
-};
+//KernelConn "RightImageToRightError" = {
+//    #include "LeftImageToLeftError";
+//    @preLayerName = "RightImage";
+//    @postLayerName = "RightError";
+//};
 
 // binocular connections
 //Left binocular connections
@@ -321,39 +321,39 @@ TransposeConn "LeftErrorToV1S8" = {
     @originalConnName = "V1S8ToLeftError";
 };
 
-//Right binocular connections
-KernelConn "V1S2ToRightError" = {
-    #include "V1S2ToLeftError";
-    @postLayerName = "RightError";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToRightError_W.pvp";
-};
-
-KernelConn "V1S4ToRightError" = {
-    #include "V1S4ToLeftError";
-    @postLayerName = "RightError";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4ToRightError_W.pvp";
-};
-
-KernelConn "V1S8ToRightError" = {
-    #include "V1S8ToLeftError";
-    @postLayerName = "RightError";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8ToRightError_W.pvp";
-};
-
-TransposeConn "RightErrorToV1S2" = {
-    #include "LeftErrorToV1S2";
-    @preLayerName = "RightError";
-    @originalConnName = "V1S2ToRightError";
-};
-
-TransposeConn "RightErrorToV1S4" = {
-    #include "LeftErrorToV1S4";
-    @preLayerName = "RightError";
-    @originalConnName = "V1S4ToRightError";
-};
-
-TransposeConn "RightErrorToV1S8" = {
-    #include "LeftErrorToV1S8";
-    @preLayerName = "RightError";
-    @originalConnName = "V1S8ToRightError";
-};
+////Right binocular connections
+//KernelConn "V1S2ToRightError" = {
+//    #include "V1S2ToLeftError";
+//    @postLayerName = "RightError";
+//    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToRightError_W.pvp";
+//};
+//
+//KernelConn "V1S4ToRightError" = {
+//    #include "V1S4ToLeftError";
+//    @postLayerName = "RightError";
+//    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S4ToRightError_W.pvp";
+//};
+//
+//KernelConn "V1S8ToRightError" = {
+//    #include "V1S8ToLeftError";
+//    @postLayerName = "RightError";
+//    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S8ToRightError_W.pvp";
+//};
+//
+//TransposeConn "RightErrorToV1S2" = {
+//    #include "LeftErrorToV1S2";
+//    @preLayerName = "RightError";
+//    @originalConnName = "V1S2ToRightError";
+//};
+//
+//TransposeConn "RightErrorToV1S4" = {
+//    #include "LeftErrorToV1S4";
+//    @preLayerName = "RightError";
+//    @originalConnName = "V1S4ToRightError";
+//};
+//
+//TransposeConn "RightErrorToV1S8" = {
+//    #include "LeftErrorToV1S8";
+//    @preLayerName = "RightError";
+//    @originalConnName = "V1S8ToRightError";
+//};
