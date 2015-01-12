@@ -72,7 +72,7 @@
 #define INITIAL_PUBLISHER_ARRAY_SIZE  INITIAL_LAYER_ARRAY_SIZE
 #define INITIAL_SUBSCRIBER_ARRAY_SIZE INITIAL_LAYER_ARRAY_SIZE
 #define RESIZE_ARRAY_INCR               5
-#define MAX_F_DELAY                    21 // can have 0:MAX_F_DELAY-1 buffers of delay
+#define MAX_F_DELAY                    1001//21 // can have 0:MAX_F_DELAY-1 buffers of delay
 
 #define DISPLAY_PERIOD 1.0
 
