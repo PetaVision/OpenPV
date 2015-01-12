@@ -189,7 +189,11 @@ IF(LIBSNDFILE_FOUND)
 ENDIF(LIBSNDFILE_FOUND)
 
 IF(CUDNN)
-   target_link_libraries(pv ${CUDNN_PATH}/libcudnn.so)
+   IF(APPLE)
+      target_link_libraries(pv ${CUDNN_PATH}/libcudnn.dylib)
+   ELSE(APPLE)
+      target_link_libraries(pv ${CUDNN_PATH}/libcudnn.so)
+   ENDIF(APPLE)
 ENDIF(CUDNN)
 
 
