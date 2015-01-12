@@ -17,7 +17,7 @@ namespace PV
     {
     public:
         KmeansLayer(const char* name, HyPerCol * hc);
-        virtual bool activityIsSpiking() { false; }
+        virtual bool activityIsSpiking() { return false; }
         virtual ~KmeansLayer();
 
     protected:
