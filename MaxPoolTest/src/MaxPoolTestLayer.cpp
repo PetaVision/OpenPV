@@ -30,7 +30,7 @@ int MaxPoolTestLayer::updateState(double timef, double dt){
 	  //Input image is set up to have max values in 3rd feature dimension
 	  //3rd dimension, top left is 128, bottom right is 191
 	  //Y axis spins fastest
-	  float actualvalue = A[idx]*255;
+	  float actualvalue = A[idx];
 	  
 	  int xval = iX+kx0-loc->halo.lt;
 	  int yval = iY+ky0-loc->halo.up;
@@ -46,7 +46,7 @@ int MaxPoolTestLayer::updateState(double timef, double dt){
 	  //float expectedvalue = 8*xval+yval+137;
 	  float expectedvalue = (yval+1)+8*(xval+1)+64*iFeature;
 	  if(actualvalue != expectedvalue){
-            std::cout << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << "\n";
+            std::cout << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << ".  Discrepancy is a whopping " << actualvalue - expectedvalue << "!  Horrors!" << "\n";
             isCorrect = false;
 	  }
 	}
