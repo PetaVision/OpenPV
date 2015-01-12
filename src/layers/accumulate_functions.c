@@ -38,9 +38,9 @@ void pvpatch_accumulate(int nk, float* restrict v, float a, pvwdata_t* restrict 
 int pvpatch_accumulate_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr) {
    int status = 0;
    int k;
-   float dv = 0.0f;
+   //float dv = 0.0f;
    for (k = 0; k < nk; k++) {
-      *v += a[k]*w[k]*dt_factor;
+      *v += dt_factor*a[k]*w[k];
       //dv = dv + a[k]*w[k];
    }
    //*v = *v + dt_factor*dv;
@@ -63,7 +63,7 @@ int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT 
    return err;
 }
 
-  int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
+int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
 {
    uint4 * rng = (uint4 *) auxPtr;
    long along = (long) (a*cl_random_max());
@@ -89,13 +89,13 @@ int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * 
    for (k = 0; k < nk; k++) {
       *rng = cl_random_get(*rng);
       double p = (double) rng->s0/cl_random_max(); // 0.0 < p < 1.0
-      dv += (p<a[k])*w[k];
+      dv += (p<a[k]*dt_factor)*w[k];
    }
-   *v = *v + dt_factor*dv;
+   *v = *v + dv;
    return status;
 }
 
-  int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
+int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
 {
   int k;
   int err = 0;

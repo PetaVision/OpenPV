@@ -75,6 +75,8 @@ public:
       /* unsigned int* */ CudaBuffer* activeIndices
    );
 
+   void set_dt_factor(float new_dt_factor) { params.dt_factor = new_dt_factor; }
+
 protected:
    //This is the function that should be overwritten in child classes
    virtual int do_run();

@@ -1337,7 +1337,22 @@ int HyPerConn::communicateInitInfo() {
          status = PV_FAILURE;
          exit(-1);
       }
+   }
 
+   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC && (getConvertRateToSpikeCount() || pre->activityIsSpiking())) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Connection \"%s\": stochastic accumulation function is not consistent with ", getName());
+         if (getConvertRateToSpikeCount()) {
+            fprintf(stderr, "setting convertRateToSpikeCount to true.\n");
+         }
+         else {
+            assert(pre->activityIsSpiking());
+            fprintf(stderr, "a spiking presynaptic layer \"%s\".\n", pre->getName());
+         }
+      }
+      MPI_Barrier(getParent()->icCommunicator()->communicator());
+      status = PV_FAILURE;
+      exit(-1);
    }
 
    status = setPatchSize();
@@ -1369,12 +1384,12 @@ int HyPerConn::communicateInitInfo() {
    int ymargin = computeMargin(pre->getYScale(), post->getYScale(), nyp);
    int receivedxmargin = 0;
    int statusx = pre->requireMarginWidth(xmargin, &receivedxmargin, 'x');
-   int receivedymargin = 0;
-   int statusy = pre->requireMarginWidth(ymargin, &receivedymargin, 'y');
    if (statusx != PV_SUCCESS) {
       fprintf(stderr,"Margin Failure for layer %s.  Received x-margin is %d, but connection \"%s\" requires margin of at least %d\n", pre->getName(),receivedxmargin, name, xmargin);
       status = PV_MARGINWIDTH_FAILURE;
    }
+   int receivedymargin = 0;
+   int statusy = pre->requireMarginWidth(ymargin, &receivedymargin, 'y');
    if (statusy != PV_SUCCESS) {
       fprintf(stderr,"Margin Failure for layer %s.  Received y-margin is %d, but connection \"%s\" requires margin of at least %d\n", pre->getName(),receivedymargin, name, ymargin);
       status = PV_MARGINWIDTH_FAILURE;
@@ -3261,7 +3276,13 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
    }
    assert(post->getChannel(getChannel()));
 
-   float dt_factor = getConvertToRateDeltaTimeFactor();
+   float dt_factor;
+   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
+      dt_factor = getParent()->getDeltaTime();
+   }
+   else {
+      dt_factor = getConvertToRateDeltaTimeFactor();
+   }
 
    const PVLayerLoc * preLoc = preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * postLoc = postSynapticLayer()->getLayerLoc();
@@ -3402,7 +3423,13 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
    fflush(stdout);
 #endif // DEBUG_OUTPUT
 
-   float dt_factor = this->getConvertToRateDeltaTimeFactor();
+   float dt_factor;
+   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
+      dt_factor = getParent()->getDeltaTime();
+   }
+   else {
+      dt_factor = getConvertToRateDeltaTimeFactor();
+   }
 
    const PVLayerLoc * oSourceLoc = targetToSourceConn->postSynapticLayer()->getLayerLoc();
    const PVLayerLoc * oTargetLoc = targetToSourceConn->preSynapticLayer()->getLayerLoc();
@@ -3477,7 +3504,19 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
    }
    assert(post->getChannel(getChannel())); // assert(GSyn && GSyn[conn->getChannel()]);
 
-   float dt_factor = getConvertToRateDeltaTimeFactor();
+   float dt_factor;
+   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
+      dt_factor = getParent()->getDeltaTime();
+   }
+   else {
+      dt_factor = getConvertToRateDeltaTimeFactor();
+   }
+#ifdef PV_USE_CUDA
+   krRecvPre->set_dt_factor(dt_factor);
+#endif // PV_USE_CUDA
+#ifdef PV_USE_OPENCL
+   krRecvPre->setKernelArg(17, sizeof(float), &dt_factor); // WARNING: if OpenCL receive kernel parameters change, the hard-coded 17 might need to be changed.
+#endif // PV_USE_OPENCL
 
    //Post layer receives synaptic input
    //Only with respect to post layer
@@ -3623,7 +3662,19 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    //Get number of neurons restricted target
    const int numRestricted = post->getNumNeurons();
 
-   float dt_factor = getConvertToRateDeltaTimeFactor();
+   float dt_factor;
+   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
+      dt_factor = getParent()->getDeltaTime();
+   }
+   else {
+      dt_factor = getConvertToRateDeltaTimeFactor();
+   }
+#ifdef PV_USE_CUDA
+   krRecvPost->set_dt_factor(dt_factor);
+#endif // PV_USE_CUDA
+#ifdef PV_USE_OPENCL
+   krRecvPost->setKernelArg(17, sizeof(float), &dt_factor); // WARNING: if OpenCL receive kernel parameters change, the hard-coded 17 might need to be changed.
+#endif // PV_USE_OPENCL
 
    const PVLayerLoc * oSourceLoc = targetToSourceConn->postSynapticLayer()->getLayerLoc();
    const PVLayerLoc * oTargetLoc = targetToSourceConn->preSynapticLayer()->getLayerLoc();
