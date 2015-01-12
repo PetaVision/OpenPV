@@ -29,7 +29,7 @@ protected:
 private:
    int initialize_base();
    char * disparityLayerName;
-   DisparityMovie* disparityLayer;
+   Movie* disparityLayer;
 
 
 };
