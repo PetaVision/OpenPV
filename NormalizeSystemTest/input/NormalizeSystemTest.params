@@ -155,7 +155,7 @@ ANNLayer "normalizeMax check" = {
    restart = 0;
    nxScale = 0.0625;
    nyScale = 0.0625;
-   nf = 1;
+   nf = 4; // Needed since we're using max pooling to check the max
    phase = 2;
    mirrorBCflag = false;
    valueBC = 0.0;
@@ -444,7 +444,7 @@ KernelConn "normalizeMax check connection" = {
    selfFlag = false;
    nxp = 1;
    nyp = 1;
-   nfp = 1;
+   nfp = 4;
    shrinkPatches = false;
    updateGSynFromPostPerspective = false;
    

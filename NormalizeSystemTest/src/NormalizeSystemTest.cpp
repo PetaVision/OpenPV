@@ -31,7 +31,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    assert(fabsf(normalizeSumValue - normalizeSumStrength)<tol);
 
    // check normalizeL2
-   baseConn = hc->getConnFromName("normalizeSum connection");
+   baseConn = hc->getConnFromName("normalizeL2 connection");
    HyPerConn * normalizeL2Conn = dynamic_cast<HyPerConn *>(baseConn);
    assert(normalizeL2Conn);
    NormalizeBase * normalizeL2Normalizer = normalizeL2Conn->getNormalizer();
@@ -43,7 +43,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    assert(fabsf(normalizeL2Value - normalizeL2Strength)<tol);
 
    // check normalizeMax
-   baseConn = hc->getConnFromName("normalizeSum connection");
+   baseConn = hc->getConnFromName("normalizeMax connection");
    HyPerConn * normalizeMaxConn = dynamic_cast<HyPerConn *>(baseConn);
    assert(normalizeMaxConn);
    NormalizeBase * normalizeMaxNormalizer = normalizeMaxConn->getNormalizer();
@@ -51,11 +51,15 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    float normalizeMaxStrength = normalizeMaxNormalizer->getStrength();
    HyPerLayer * normalizeMaxCheck = hc->getLayerFromName("normalizeMax check");
    assert(normalizeMaxCheck);
-   float normalizeMaxValue = normalizeMaxCheck->getLayerData()[0];
+   float normalizeMaxValue = -FLT_MAX;
+   for (int k=0; k<normalizeMaxCheck->getNumExtended(); k++) {
+      pvadata_t layerData = normalizeMaxCheck->getLayerData()[k];
+      if (normalizeMaxValue < layerData) {normalizeMaxValue = layerData;}
+   }
    assert(fabsf(normalizeMaxValue - normalizeMaxStrength)<tol);
 
    // check normalizeContrastZeroMean.
-   baseConn = hc->getConnFromName("normalizeSum connection");
+   baseConn = hc->getConnFromName("normalizeContrastZeroMean connection");
    HyPerConn * normalizeContrastZeroMeanConn = dynamic_cast<HyPerConn *>(baseConn);
    assert(normalizeContrastZeroMeanConn);
    NormalizeBase * normalizeContrastZeroMeanNormalizer = normalizeContrastZeroMeanConn->getNormalizer();
