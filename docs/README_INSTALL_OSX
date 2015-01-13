@@ -5,7 +5,8 @@ This is a tutorial on getting PetaVision and running on OSX with GPU support, as
 Requirements
 **********************************
 An NVIDIA card with compute capabilities 3.0 or above. Check at https://developer.nvidia.com/cuda-gpus to see if your video card is supported.
-Ubuntu 14.04
+OSX
+XCode (make sure to open XCode and accept licenses)
 Homebrew
 
 
