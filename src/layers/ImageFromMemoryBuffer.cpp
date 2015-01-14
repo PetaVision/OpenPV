@@ -193,12 +193,11 @@ int ImageFromMemoryBuffer::moveBufferToData(int rank) {
    }
    assert(startxbuffer >= 0 && startxbuffer + xsize <= imageLoc.nxGlobal);
    assert(startybuffer >= 0 && startybuffer + ysize <= imageLoc.nyGlobal);
-   if (fsize != 1 && fsize != imageLoc.nf) {
-      fprintf(stderr, "%s \"%s\": If nf is greater than 1, or numbands must be the same as nf\n", parent->parameters()->groupKeywordFromName(name), name);
+   if (fsize != 1 && imageLoc.nf != 1 && fsize != imageLoc.nf) {
+      fprintf(stderr, "%s \"%s\": If nf and the number of bands in the image are both greater than 1, they must be equal.\n", parent->parameters()->groupKeywordFromName(name), name);
       exit(EXIT_FAILURE);
    }
-   if (fsize != imageLoc.nf) {
-      assert(fsize == 1);
+   if (fsize == 1 && imageLoc.nf > 1) {
       // layer has one feature; convert memory buffer to grayscale
       for (int y=0; y<ysize; y++) {
          for (int x=0; x<xsize; x++) {
@@ -212,8 +211,20 @@ int ImageFromMemoryBuffer::moveBufferToData(int rank) {
          }
       }
    }
+   else if (fsize > 1 && imageLoc.nf == 1) {
+      // image is grayscale; replicate over all color bands of layer
+      for (int y=0; y<ysize; y++) {
+         for (int x=0; x<xsize; x++) {
+            for (int f=0; f<fsize; f++) {
+               int indexdata = kIndex(startxdata+x,startydata+y,f,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,getLayerLoc()->nf);
+               int indexbuffer = kIndex(startxdata+x,startydata+y,0,imageLoc.nx,imageLoc.ny,imageLoc.nf);
+               data[indexdata] = buffer[indexbuffer];
+            }
+         }
+      }
+   }
    else {
-      // layer and memory buffer have the same number of features
+      assert(fsize == imageLoc.nf); // layer and memory buffer have the same number of features
       for (int y=0; y<ysize; y++) {
          int linestartdata = kIndex(startxdata,startydata+y,0,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,fsize);
          int linestartbuffer = kIndex(startxbuffer,startybuffer+y,0,imageLoc.nx,imageLoc.ny,fsize);
