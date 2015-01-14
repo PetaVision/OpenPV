@@ -6,8 +6,12 @@ Requirements
 **********************************
 An NVIDIA card with compute capabilities 3.0 or above. Check at https://developer.nvidia.com/cuda-gpus to see if your video card is supported.
 OSX
-XCode (make sure to open XCode and accept licenses)
+
 Homebrew
+XCode (make sure to open XCode and accept licenses)
+   Found on app store
+XCode Command line tools
+   xcode-select --install
 
 
 **********************************

@@ -1,11 +1,21 @@
-#Install homebrew
-ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" </dev/null
+pause() {
+  local dummy
+  read -s -r -p "Press any key to continue..." -n 1 dummy
+}
+
+#xcode command line tools
+xcode-select --install
+pause
+
 
 #Initialization
+ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew update
 brew install svn
 brew install git
 brew install cmake
+brew install wget
+brew install gcc
 
 #Clang + omp
 cd ~
@@ -19,13 +29,13 @@ cd build
 ../llvm/configure --enable-optimized
 make -j8
 
-echo "\
+echo '
 #New clang placed before clang that came with osx
 export PATH=~/clamp/build/Release+Asserts/bin:$PATH 
 export C_INCLUDE_PATH=~/clamp/build/Release+Asserts/include:$C_INCLUDE_PATH
 export CPLUS_INCLUDE_PATH=~/clamp/build/Release+Asserts/include:$CPLUS_INCLUDE_PATH
 export LIBRARY_PATH=~/clamp/build/Release+Asserts/lib:$LIBRARY_PATH
-export DYLD_LIBRARY_PATH=~/clamp/build/Release+Asserts/lib:$DYLD_LIBRARY_PATH" >> ~/.bash_profile
+export DYLD_LIBRARY_PATH=~/clamp/build/Release+Asserts/lib:$DYLD_LIBRARY_PATH' >> ~/.bash_profile
 
 source ~/.bash_profile
 
@@ -36,13 +46,12 @@ cd libomp_oss
 cmake CMakeLists.txt
 make -j8
 
-echo "\
+echo '
 #For omp runtime
 export C_INCLUDE_PATH=~/clamp/libomp_oss:$C_INCLUDE_PATH
 export CPLUS_INCLUDE_PATH=~/clamp/libomp_oss:$CPLUS_INCLUDE_PATH
 export LIBRARY_PATH=~/clamp/libomp_oss:$LIBRARY_PATH
-export DYLD_LIBRARY_PATH=~/clamp/libomp_oss:$DYLD_LIBRARY_PATH" >> ~/.bash_profile
-
+export DYLD_LIBRARY_PATH=~/clamp/libomp_oss:$DYLD_LIBRARY_PATH' >> ~/.bash_profile
 
 #Install PV requirements
 brew install openmpi
@@ -60,15 +69,16 @@ cp PetaVision/docs/cmake/CMakeLists.txt .
 #This is a GUI prompt, TODO make this automatic
 cd ~
 wget http://developer.download.nvidia.com/compute/cuda/6_5/rel/installers/cuda_6.5.14_mac_64.pkg
-open cuda_6.5.14_mac_64.pkg
+open -W cuda_6.5.14_mac_64.pkg
 
+#TODO get cudnn automatically
 #Get cudnn
-cd ~
-wget https://developer.nvidia.com/rdp/assets/cudnn-65-osx-r2
-tar -xvf cudnn-6.5-osx-R2-rc1.tgz
+#cd ~
+#wget https://developer.nvidia.com/rdp/assets/cudnn-65-osx-r2
+#tar -xvf cudnn-6.5-osx-R2-rc1.tgz
 
 #CMake and compile PetaVision
 cd ~/workspace/
-cmake -DCMAKE_BUILD_TYPE=RELEASE -DCUDA_GPU=True -DCUDA_RELEASE=True -DCUDNN=True -DCUDNN_PATH=~/cudnn-6.5-osx-R2-rc1 -DOPEN_MP_THREADS=True -DPV_DIR=~/workspace/PetaVision
-cd ~/workspace/PetaVision
-make -j8
+#cmake -DCMAKE_BUILD_TYPE=Release -DCUDA_GPU=True -DCUDA_RELEASE=True -DCUDNN=True -DCUDNN_PATH=~/cudnn -DOPEN_MP_THREADS=True -DPV_DIR=~/workspace/PetaVision
+#cd ~/workspace/PetaVision
+#make -j8
