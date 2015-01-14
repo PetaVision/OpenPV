@@ -77,7 +77,7 @@ int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, d
 
 int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, DataStore * store, const PVLayerLoc* loc);
 
-int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicator * comm, double timed, DataStore * store, const PVLayerLoc* loc, bool includeValues);
+int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed, DataStore * store, const PVLayerLoc* loc, bool includeValues);
 
 //This function is not defined anywhere?
 //int writeActivitySparseValues(PV_Stream * pvstream, PV_Stream * posstream, Communicator * comm, double time, PVLayer * l);

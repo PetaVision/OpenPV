@@ -443,10 +443,10 @@ int HyPerLayer::freeClayer() {
       clayer->activeFP = NULL;
    }
 
-   if (clayer->posFP != NULL) {
-      PV_fclose(clayer->posFP);
-      clayer->posFP = NULL;
-   }
+   //if (clayer->posFP != NULL) {
+   //   PV_fclose(clayer->posFP);
+   //   clayer->posFP = NULL;
+   //}
 
    //free(clayer->activeIndices); clayer->activeIndices = NULL;
    free(clayer->prevActivity);  clayer->prevActivity = NULL;
@@ -1144,9 +1144,9 @@ int HyPerLayer::openOutputStateFile() {
    MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
 #endif
    clayer->activeFP = pvp_open_write_file(filename, icComm, ioAppend);
-   if(sparseLayer){
-      clayer->posFP = pvp_open_write_file(posFilename, icComm, ioAppend);
-   }
+   //if(sparseLayer){
+   //   clayer->posFP = pvp_open_write_file(posFilename, icComm, ioAppend);
+   //}
    return PV_SUCCESS;
 }
 
@@ -3087,7 +3087,7 @@ int HyPerLayer::readState(double * timeptr)
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 {
    DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
-   int status = PV::writeActivitySparse(clayer->activeFP, clayer->posFP, parent->icCommunicator(), timed, store, getLayerLoc(), includeValues);
+   int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), timed, store, getLayerLoc(), includeValues);
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivitySparseCalls);

@@ -270,6 +270,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
    long int ftellresult = ftell(pvstream->fp);
    if(pvstream->isfile && fpos != ftellresult) {
       fprintf(stderr, "PV_fwrite error for \"%s\": fpos = %ld but ftell() returned %ld\n", pvstream->name, fpos, ftellresult);
+      perror("ftell() error");
       exit(EXIT_FAILURE);
    }
    bool hasfailed = false;
@@ -1401,7 +1402,7 @@ int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, DataS
    return status;
 }
 
-int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicator * comm, double timed, DataStore * store, const PVLayerLoc* loc, bool includeValues)
+int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed, DataStore * store, const PVLayerLoc* loc, bool includeValues)
 {
    int status = PV_SUCCESS;
 
@@ -1593,14 +1594,15 @@ int writeActivitySparse(PV_Stream * pvstream, PV_Stream * posstream, Communicato
       }
       
       //Write to seperate file this current file position
-      long filepos = pvstream->filepos;
-      status = (PV_fwrite(&filepos, sizeof(long), 1, posstream) != 1);
-      fflush(posstream->fp);
-      if (status != 0) {
-         fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&filepos), filepos==%ld\n",
-                 comm->commRank(), filepos);
-         return status;
-      }
+      //long filepos = pvstream->filepos;
+      //status = (PV_fwrite(&filepos, sizeof(long), 1, posstream) != 1);
+      //fflush(posstream->fp);
+      
+      //if (status != 0) {
+      //   fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&filepos), filepos==%ld\n",
+      //           comm->commRank(), filepos);
+      //   return status;
+      //}
 
       if (localResActive > 0) {
          if (includeValues) {
