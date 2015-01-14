@@ -1,6 +1,6 @@
 addpath("/Users/MLD/newvision/PetaVision/mlab/util/");
-pluspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/longupdate/checkpoints/Checkpoint0/A1ToPositiveError_W.pvp"
-minuspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/longupdate/checkpoints/Checkpoint0/A1ToNegativeError_W.pvp"
+pluspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/biglebowski/checkpoints/Checkpoint3315/A1ToPositiveError_W.pvp"
+minuspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/biglebowski/checkpoints/Checkpoint3315/A1ToNegativeError_W.pvp"
 
 plusWcell = readpvpfile(pluspvpfile);
 minusWcell = readpvpfile(minuspvpfile);
@@ -27,10 +27,44 @@ end
 
 W = plusW - minusW;
 
+%%%%%%%%%%%%%%%%%sparse stuff
+
+apvpfile = "~/newvision/sandbox/soundAnalysis/bigcochlea/a6_A1.pvp";
+
+a1 = readpvpfile(apvpfile);
+
+time = numel(a1)
+nf = numel(a1{1}.values(1,1,:))
+
+output = zeros(time,1);
+sparse = zeros(nf,1);
+
+size(a1{1}.values)
+
+    for(k = 1:time)
+
+        output(k) = nnz(a1{k}.values)/128;
+
+        for (j = 1:nf)
+
+            sparse(j) = sparse(j) + ((a1{k}.values(1,1,j) > 0) / time);
+
+    end
+
+end
 
 
+[newsparse, oldsparse] = sort(sparse,1,"descend");
+
+dlmwrite('sparserank.txt',oldsparse,"-append");
+
+bar(newsparse);
+xlabel("weights")
+ylabel("activity")
+print("sparsesorted.png");
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for(feature = 1:NF)
 
@@ -46,9 +80,10 @@ for(feature = 1:NF)
 
     weightrescaled = 127.5 + 127.5 * (weight / max(abs(weight(:))));
 
-
-    subplot(ceil(sqrt(NF)),ceil(sqrt(NF)),feature)
+    subplot(ceil(sqrt(NF)),ceil(sqrt(NF)),oldsparse(feature));
     imagesc(weightrescaled);
+    %%xlabel(feature, 'FontSize', 4);
+    %%title( feature, 'FontSize', 6 )
     axis off;
     %%colormap(gray);
 
@@ -60,10 +95,10 @@ for(feature = 1:NF)
 
     dlmwrite('freqs.txt',R,"-append");
 
-
 end
 
 %%print -dpng soundbyte.png;
+
 
 print("soundbyte.png","-dpng")
 
