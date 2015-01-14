@@ -984,7 +984,7 @@ int Image::tag()
 
 double Image::getDeltaUpdateTime(){
    if(jitterFlag){
-      return 1;
+      return parent->getDeltaTime();
    }
    else{
       return -1; //Never update

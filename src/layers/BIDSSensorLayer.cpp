@@ -107,7 +107,7 @@ int BIDSSensorLayer::allocateDataStructures() {
 //Image never updates, so getDeltaUpdateTime should return update on every timestep
 //TODO see when this layer actually needs to update
 double BIDSSensorLayer::getDeltaUpdateTime(){
-   return 1;
+   return parent->getDeltaTime();
 }
 
 //bool BIDSSensorLayer::needUpdate(double time, double dt){
