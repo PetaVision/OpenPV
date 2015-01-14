@@ -223,6 +223,10 @@ int ImageFromMemoryBuffer::moveBufferToData(int rank) {
    return PV_SUCCESS;
 }
 
+double ImageFromMemoryBuffer::getDeltaUpdateTime(){
+   return parent->getStopTime() - parent->getStartTime();
+}
+
 ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {
    free(buffer);
 }

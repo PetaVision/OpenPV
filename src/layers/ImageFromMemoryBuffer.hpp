@@ -53,6 +53,12 @@ public:
    virtual bool needUpdate(double time, double dt) { return hasNewImageFlag; }
    
    /**
+    * For ImageFromMemoryBuffer, the updateTime is the parent->getStopTime() - parent->getStartTime().
+    * Implemented to allow triggering off of an ImageFromMemoryBuffer layer.
+    */
+   virtual double getDeltaUpdateTime();
+
+/**
     * Overrides updateState
     */
    virtual int updateState(double time, double dt);
