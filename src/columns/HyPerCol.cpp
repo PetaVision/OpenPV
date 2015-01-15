@@ -209,14 +209,14 @@ int HyPerCol::initialize_base() {
    return PV_SUCCESS;
 }
 
-int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * params)
+int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * inparams)
 {
-   ownsInterColComm = (params==NULL || params->getInterColComm()==NULL);
+   ownsInterColComm = (inparams==NULL || inparams->getInterColComm()==NULL);
    if (ownsInterColComm) {
       icComm = new InterColComm(&argc, &argv);
    }
    else {
-      icComm = params->getInterColComm();
+      icComm = inparams->getInterColComm();
    }
    int rank = icComm->commRank();
 
@@ -301,12 +301,14 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
       }
    }
 
-   ownsParams = params==NULL;
+   ownsParams = inparams==NULL;
    if (ownsParams) {
       size_t groupArraySize = 2*(layerArraySize + connectionArraySize);
-      params = new PVParams(param_file, groupArraySize, icComm);  // PVParams::addGroup can resize if initialGroups is exceeded
+      this->params = new PVParams(param_file, groupArraySize, icComm);  // PVParams::addGroup can resize if initialGroups is exceeded
    }
-   this->params = params;
+   else {
+      this->params = inparams;
+   }
    free(param_file);
    param_file = NULL;
 
@@ -314,11 +316,11 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * p
    int parsedStatus;
    int rootproc = 0;
    if( rank == rootproc ) {
-      parsedStatus = params->getParseStatus();
+      parsedStatus = this->params->getParseStatus();
    }
    MPI_Bcast(&parsedStatus, 1, MPI_INT, rootproc, icCommunicator()->communicator());
 #else
-   int parsedStatus = params->getParseStatus();
+   int parsedStatus = this->params->getParseStatus();
 #endif
    if( parsedStatus != 0 ) {
       exit(parsedStatus);

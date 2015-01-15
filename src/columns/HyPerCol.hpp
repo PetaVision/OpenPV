@@ -191,7 +191,7 @@ public:
 
 private:
    int initialize_base();
-   int initialize(const char * name, int argc, char ** argv, PVParams * params);
+   int initialize(const char * name, int argc, char ** argv, PVParams * inparams);
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
