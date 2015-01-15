@@ -14,6 +14,7 @@ int DisparityMovie::initialize_base() {
    moveMethod = NULL;
    frameOffset = 0;
    frameCount = 0;
+   return PV_SUCCESS;
 }
 
 int DisparityMovie::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
