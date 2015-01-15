@@ -100,6 +100,7 @@ Movie "Input" = {
     phase                  = 0;
 };
 
+
 ANNNormalizedErrorLayer "Residual" = {
 // ANNNormalizedErrorLayer also writes out 1 / %error per time step, which is more computationally expensive
 //
@@ -163,7 +164,7 @@ HyPerLCALayer "L1" = {
     mirrorBCflag           = false;
     valueBC                = 0;
 //    initialWriteTime       = 160.0;    // Should = displayPeriod
-//    writeStep              = 160.0;    // * Should = displayPeriod if you only want to write out best sparse approximation
+    writeStep              = -1;//160.0;    // * Should = displayPeriod if you only want to write out best sparse approximation
                                          // * Set to < displayPeriod if you want to see how the sparse appxoimation changes with time
 //
     sparseLayer            = true;

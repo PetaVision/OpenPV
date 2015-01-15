@@ -16,31 +16,31 @@
 //   Implement Olshausen 2003 - Learning Sparse, Overcomplete Representations of Time-Varying Natural Images
 ///////////////////////////
 
-debugParsing = false;
+debugParsing = true;
 
 HyPerCol "column" = {
-    nx                              = 256;   // [px]
-    ny                              = 256;   // [px]
-    dt                              = 1.0;   // [ms]
-    dtAdaptFlag                     = false; // Time step size is scaled by 1 / (maximimum % error)
-//                                           // i.e. adaptive time step uses the average error to scale dt
-//    dtScaleMax                      = 5.0;   // Maximum step size is dtScaleMax times the base time step size
-//    dtScaleMin                      = 0.25;  // Minimum step size is dtScaleMin times the base time step size
-//    dtChangeMax                     = 0.05;
-//    dtChangeMin                     = 0.0;
-//    dtMinToleratedTimeScale         = 0.001;
+    nx                              = 1920;    // [px]
+    ny                              = 1080;    // [px]
+    dt                              = 1.0;     // [ms]
+    dtAdaptFlag                     = true;   // Time step size is scaled by 1 / (maximimum % error)
+//                                             // i.e. adaptive time step uses the average error to scale dt
+    dtScaleMax                      = 5.0;   // Maximum step size is dtScaleMax times the base time step size
+    dtScaleMin                      = 0.05;  // Minimum step size is dtScaleMin times the base time step size
+    dtChangeMax                     = 0.05;
+    dtChangeMin                     = 0.0;
+    dtMinToleratedTimeScale         = 0.001;
     randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime                       = 0;
-    stopTime                        = 120440; //displayPeriod * numImages
+    stopTime                        = 1101440; //displayPeriod * numImages
     progressInterval                = 1000;
-    outputPath                      = "/home/dpaiton/workspace/LIFLCA/output/LCA/";
+    outputPath                      = "/home/dpaiton/workspace/LIFLCA/output/LCA_base_heli/";
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     initializeFromCheckpointDir     = "";
     checkpointWriteTriggerMode      = "step"; // Not implemented fully - trigger checkpoint on clock time instead of number of time steps
     checkpointWrite                 = true;
-    checkpointWriteDir              = "/home/dpaiton/workspace/LIFLCA/output/LCA/checkpoints/";
-    checkpointWriteStepInterval     = 10000;
+    checkpointWriteDir              = "/home/dpaiton/workspace/LIFLCA/output/LCA_base_heli/checkpoints/";
+    checkpointWriteStepInterval     = 20000;
     deleteOlderCheckpoints          = false;
     writeProgressToErr              = true;
 //    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
@@ -64,17 +64,19 @@ HyPerCol "column" = {
 Movie "Input" = {
     nxScale                = 1;
     nyScale                = 1;
-    imageListPath          = "/home/dpaiton/workspace/LIFLCA/input/img_list.txt";
-    nf                     = 1;        // nf=3 for RGB, nf=1 for greyscale
+    imageListPath          = "/home/dpaiton/workspace/LIFLCA/input/full_heli_training/.txt";
+    nf                     = 3;        // nf=3 for RGB, nf=1 for greyscale
 //
+//    initialWriteTime       = 80;
     writeStep              = -1;
     sparseLayer            = false;
-    displayPeriod          = 40;       // How long image is displayed to network before flipping
+    displayPeriod          = 80;       // How long image is displayed to network before flipping
     start_frame_index      = 0;        // zero indexed
     skip_frame_index       = 0;
     echoFramePathnameFlag  = true;
     writeFrameToTimestamp  = true;
     flipOnTimescaleError   = 1;
+    resetToStartOnLoop     = false;
 //
     offsetAnchor           = "tl";     // tl = top-left
     offsetX                = 0;
@@ -100,45 +102,8 @@ Movie "Input" = {
 };
 
 
-//ANNErrorLayer "Residual" = {            // For adaptive time step - do ANNNormalizedErrorLayer
-//                                        // ANNNormalizedErrorLayer also writes out 1/% error per time step, which is more computationally expensive
-////
-//// * Threshold for ANNErrorLayer is different than for an ANNLayer because
-////   it specifies the width of the band around zero. I.e. It specifies an
-////   absolute value for thershold, and applies the threshold to the abosolute
-////   value of u instead of the value iteslf. This allows the error to go negative.
-////
-//    nxScale                = 1;
-//    nyScale                = 1;
-//    nf                     = 1;
-////
-//    mirrorBCflag           = false;
-////    valueBC                = 0;
-//    triggerFlag            = false;
-////    initialWriteTime       = 40;
-//    writeStep              = -1;
-//    sparseLayer            = false;
-////
-//    InitVType              = "ZeroV";
-////    InitVType              = "InitVFromFile";
-////    Vfilename              = "/home/dpaiton/workspace/LIFLCA/output/Residual_V.pvp";
-//    VThresh                = 0;        // Non-zero value will sparsify your error (small error >> zero)
-////
-//// * Specify characteristics of thereshold T(u) function
-////
-//    AMax                   = infinity; // Max value that T(u) can be
-//    AMin                   = 0;        // Min value that T(u) can be; AMin is the value that T(u) reaches
-//                                       // if it is below threshold. i.e. T(u) = AMin if u is below threshold.
-//    AShift                 = 0;        // For threshold function: 
-//    VWidth                 = 0;        //
-//    errScale               = 1;         // * For multiple error layers -> how important is this error wrt others             
-////
-//    updateGpu              = false;
-//    phase                  = 1;  
-//};
-
-
-ANNLayer "Residual" = {
+ANNNormalizedErrorLayer "Residual" = {
+// ANNNormalizedErrorLayer also writes out 1 / %error per time step, which is more computationally expensive
 //
 // * Membrane potential is channel 0 - channel 1
 //   If the membrane potential is < Vthresh, then 
@@ -151,23 +116,26 @@ ANNLayer "Residual" = {
     mirrorBCflag           = false;    // If true, set the boundary with a mirror of the input image
     valueBC                = 0;        // What value is assigned to the boundaries (assuming mirrorBCflag=false)
     triggerFlag            = false;
-    writeStep              = -1;//40;
-//    initialWriteTime       = 40;
+//    initialWriteTime       = 80;
+    writeStep              = -1;
     sparseLayer            = false;
+//
+    errScale               = 1.0;
 //
     InitVType              = "ZeroV";
 //    InitVType              = "InitVFromFile";
-//    Vfilename              = "/home/dpaiton/workspace/LIFLCA/output/Residual_V.pvp";
+//    Vfilename              = "/home/dpaiton/workspace/LIFLCA/output_time/Residual_V.pvp";
 //
 // For residual layer, threshold should be linear function.
 //
                                         // When membrane potential is below threshold, output is set to AMin
                                         // For computing error with an ANN layer, we want to always be above threshold
-    VThresh                = -infinity; // Threshold for T(u).
+    VThresh                = 0;         // Threshold for T(u).
                                         // Non-zero value will sparsify your error (i.e. small error will go to 0)
 //
     AMax                   = infinity;  // Max value that T(u) can be
-    AMin                   = -infinity; // Min value that T(u) can be
+    AMin                   = 0;         // Min value that T(u) can be
+                                        // For error layer, when below threshold, we want min to be 0 instead of -infinity
                                         // 
     AShift                 = 0;         // Shift between hard & soft threshold
     VWidth                 = 0;         // Width of transition region from soft to hard threshold                          
@@ -184,9 +152,10 @@ ANNLayer "Residual" = {
 HyPerLCALayer "L1" = {
     nxScale                = 0.125;    // xStride = 1/nxScale
     nyScale                = 0.125;    // 
-    nf                     = 256;      // * 2x overcomplete wrt patch size (4 x patch_area because of rectification)
+    nf                     = 768;      // * 2x overcomplete wrt patch size (4 x patch_area because of rectification)
                                        // * If stride < nxp; overcompleteness = 0.5 * nf / stride^2 
                                        // * Rectification is inherent in LCA layer - all values below threshold go to 0
+                                       // * Multiply by inputLayer nf to maintain overcompleteness for multi-channel (e.g. color) input 
     numChannels            = 1;        // Should be 1
     numWindowX             = 1;        // For location dependent kernels
     numWindowY             = 1;
@@ -207,16 +176,16 @@ HyPerLCALayer "L1" = {
 //
     InitVType              = "UniformRandomV";
     minV                   = -1.0;     // Only for initialization - min value of v (assuming dimensionless membrane potentials)
-    maxV                   = .1;       // 0.05 above VThresh makes a few start out above threshold - no real evidence that this is better
+    maxV                   = .0.065;       // 0.05 above VThresh makes a few start out above threshold - no real evidence that this is better
 //    InitVType              = "InitVFromFile";
 //    Vfilename              = "/Users//output/Checkpoints/Checkpoint6000000/L1_V.pvp";
 // 
-    timeConstantTau        = 50.0;//100.0;    // dt is scaled by multiplying by 1/timeConstantTau
+    timeConstantTau        = 100.0;    // dt is scaled by multiplying by 1/timeConstantTau
                                        // u(t+dt) = u(t) + dt/tau * u^dot
 //
 // Here is where you set a hard or soft threshold.
 //
-    VThresh                = 0.025;    // Lambda -> thershold for activation function T(u)
+    VThresh                = 0.015;    // Lambda -> thershold for activation function T(u)
                                        // This is your trade-off parameter for sparseness vs reconstruction error.
                                        // Depends on scale of input - for normalized images, 0.05 works well
     AMax                   = infinity; // Max value T(u) can be. Usually inf
@@ -224,7 +193,7 @@ HyPerLCALayer "L1" = {
     AShift                 = 0;        // * Shift between hard & soft threshold
                                        //   T(u) = u - AShift for u > threshold
                                        // * Soft: AShift = VThresh;  Hard & Firm: AShift = 0
-    VWidth                 = 0;        // * Width of transition region from soft to hard threshold.
+    VWidth                 = 100;        // * Width of transition region from soft to hard threshold.
                                        //   For firm threshold, VWidth > 0; for hard, VWidth = 0; for soft, VWidth = infinity.
                                        //   Slope of transition line is VThresh / VWidth
                                        //   Soft: VWidth = infinity; Hard: VWidth = 0; Firm: VWidth = finite > 0
@@ -234,36 +203,36 @@ HyPerLCALayer "L1" = {
 };
 
 
-ANNLayer "Recon" = {                  // Layer not necessary - allows us to easily view recons
-    nxScale             = 1;
-    nyScale             = 1;
-    nf                  = 1;
-//
-    triggerFlag         = true;       // Updates with triggerLayerName layer once every display period
-    triggerLayerName    = "Input";
-    triggerOffset       = 1;
-//
-    writeStep           = -1;//40;
-//    initialWriteTime    = 40;         // Write at image flip
-//
-    mirrorBCflag        = false;
-    valueBC             = 0;
-//
-    sparseLayer         = false;
-//
-    InitVType           = "ZeroV";
-    //InitVType           = "InitVFromFile";
-    //Vfilename           = "/home/dpaiton/workspace/LIFLCA/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
-//
-    VThresh             = -infinity;
-    AMax                = infinity;   // prevent reconstruction from exceeding reasonable bounds
-    AMin                = -infinity; 
-    AShift              = 0;
-    VWidth              = 0;
-// 
-    phase               = 1;          // Updates shouldn't reflect newly present image
-    updateGpu           = false;      // Dense computation, not to be done on GPU
-};
+//ANNLayer "Recon" = {                  // Layer not necessary - allows us to easily view recons
+//    nxScale             = 1;
+//    nyScale             = 1;
+//    nf                  = 3;
+////
+//    triggerFlag         = true;       // Updates with triggerLayerName layer once every display period
+//    triggerLayerName    = "Input";
+//    triggerOffset       = 1;
+////
+//    writeStep           = -1;//80;
+////    initialWriteTime    = 80;         // Write at image flip
+////
+//    mirrorBCflag        = false;
+//    valueBC             = 0;
+////
+//    sparseLayer         = false;
+////
+//    InitVType           = "ZeroV";
+//    //InitVType           = "InitVFromFile";
+//    //Vfilename           = "/home/dpaiton/workspace/LIFLCA/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+////
+//    VThresh             = -infinity;
+//    AMax                = infinity;   // prevent reconstruction from exceeding reasonable bounds
+//    AMin                = -infinity; 
+//    AShift              = 0;
+//    VWidth              = 0;
+//// 
+//    phase               = 1;          // Updates shouldn't reflect newly present image
+//    updateGpu           = false;      // Dense computation, not to be done on GPU
+//};
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -287,6 +256,7 @@ HyPerConn "Input_to_Residual" = {
    shrinkPatches                 = false;
    channelCode                   = 0;
 //
+   numAxonalArbors               = 1;
    delay                         = [0.0];
    sharedWeights                 = true;
    weightInitType                = "OneToOneWeights";
@@ -297,10 +267,9 @@ HyPerConn "Input_to_Residual" = {
                                                        //   unit standard deviation.
 //
    normalizeMethod               = "none";
-   numAxonalArbors               = 1;
+   convertRateToSpikeCount       = false;
    plasticityFlag                = false;
    pvpatchAccumulateType         = "convolve";
-   preActivityIsNotRate          = false;
    writeStep                     = -1;
    writeCompressedCheckpoints    = false;
 //
@@ -318,18 +287,18 @@ HyPerConn "L1_to_Residual" = {
     nxpShrunken                         = 8;             // Allows us to have smaller patches than what is allocated
     nypShrunken                         = 8;
     numAxonalArbors                     = 1;
+    delay                               = [0.0];
     channelCode                         = 1;
     sharedWeights                       = true;          // If true, acts like a KernelConn
     keepKernelsSynchronized             = true;          // * If false, each MPI process would accumulate on its own and combine at
                                                          //   the end of the run.
 //
     weightInitType                      = "UniformRandomWeight";
-//    initWeightsFile                     was set to (NULL);
+//    initWeightsFile                     = NULL; 
     wMinInit                            = -1;
     wMaxInit                            = 1;
     sparseFraction                      = 0.9;           // What percentage of weights are set to 0
     plasticityFlag                      = true;
-//    weightUpdatePeriod                  = 1.0;           //Not read if triggerFlag = true
 //
     triggerFlag                         = true;
     triggerLayerName                    = "Input";
@@ -337,15 +306,15 @@ HyPerConn "L1_to_Residual" = {
 //    weightUpdatePeriod                  = 200;         // Interval between updates, usually set to before the image flips
     initialWeightUpdateTime             = 0;
     combine_dW_with_W_flag              = false;         // Should be depricated?
+    nonnegativeConstraintFlag           = false;
 //
     pvpatchAccumulateType               = "convolve";    // * How activity & weights are combined. Alternative options are max pooling,
                                                          //   stocastic, others?
-    preActivityIsNotRate                = false;         // TODO: What is this - don't scale weights by dt..
-    writeStep                           = -1;//40;            // Usually better to use checkpoints to write weights
-//    initialWriteTime                    = 40;
-    writeCompressedWeights              = false;
+    convertRateToSpikeCount             = false;         // TODO: What is this - don't scale weights by dt..
+    writeStep                           = -1;//80;            // Usually better to use checkpoints to write weights
+//    initialWriteTime                    = 80;
+//    writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
-    delay                               = [0.0];
     updateGSynFromPostPerspective       = false;
 //
 // * dw is computed for all patches across image. w += normalized(dw) once for whole image.
@@ -379,7 +348,7 @@ TransposeConn "Residual_to_L1" = {
     postLayerName                       = "L1";
     channelCode                         = 0;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -392,20 +361,20 @@ TransposeConn "Residual_to_L1" = {
 };
 
 
-CloneConn "L1_to_Recon" = {
-    preLayerName                        = "L1";
-    postLayerName                       = "Recon";
-    channelCode                         = 0;
-    pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
-    writeStep                           = -1;
-    writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
-    delay                               = [0.0];
-    updateGSynFromPostPerspective       = false;
-    originalConnName                    = "L1_to_Residual";
-    receiveGpu                          = false;
-};
+//CloneConn "L1_to_Recon" = {
+//    preLayerName                        = "L1";
+//    postLayerName                       = "Recon";
+//    channelCode                         = 0;
+//    pvpatchAccumulateType               = "convolve";
+//    preActivityIsNotRate                = false;
+//    writeStep                           = -1;
+//    writeCompressedCheckpoints          = false;
+//    selfFlag                            = false;
+//    delay                               = [0.0];
+//    updateGSynFromPostPerspective       = false;
+//    originalConnName                    = "L1_to_Residual";
+//    receiveGpu                          = false;
+//};
 
 
 //////////////////////////////////////////////////////////////////////////////////////
