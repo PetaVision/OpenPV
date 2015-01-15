@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt # only need if showPlot==True OR savePlot==true
 import os                       # only needed if savePlot==true
 import pdb
 
-def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,showPlot=False,savePlot=False,saveName=''):
+def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,plotColor=True,showPlot=False,savePlot=False,saveName=''):
     # NOTE: i_arbor and i_frame are indices for the given frame or arbor.
     #       They are not the actual arbor/frame number. This is because
     #       there may be a writeStep that is not 1.
@@ -57,6 +57,9 @@ def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,showPlot=False
     out_mat   = np.zeros((numPatchesY*(nyp+margin),numPatchesX*(nxp+margin),nfp))
 
     half_margin = np.floor(margin/2)
+
+    ##TODO: Since refactoring this I think we have lost a lot of efficiency.
+    ##      It would be nice to refactor again with fewer redundant loops.
 
     # If time is stored via delayed arbors (as it usually is) then we need to rescale
     # and normalize across all arbors per patch index. Alternatively, time might be 
@@ -95,7 +98,6 @@ def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,showPlot=False
 
            out_mat[ypos:ypos+nyp+margin,xpos:xpos+nxp+margin,:] = patch_set[i_patch,:,:,:]
 
-
            xpos += nxp+margin
            if xpos > out_mat.shape[1]-(nxp+margin):
                ypos += nyp+margin
@@ -105,13 +107,17 @@ def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,showPlot=False
 
        #pdb.set_trace()
        if showPlot:
-           for feat in range(nfp):
+           if plotColor:
                plt.figure()
-               plt.imshow(np.squeeze(out_mat[:,:,feat]),cmap='Greys',interpolation='nearest')
+               plt.imshow(np.squeeze(out_mat),cmap='Greys',interpolation='nearest')
                plt.show(block=False)
+           else:
+               for feat in range(nfp):
+                   plt.figure()
+                   plt.imshow(np.squeeze(out_mat[:,:,feat]),cmap='Greys',interpolation='nearest')
+                   plt.show(block=False)
        if savePlot:
-           #TODO: Should be able to pass figure title?
-           for feat in range(nfp):
+           if plotColor:
                if len(saveName) == 0:
                    fileName = 'plotWeightsOutput_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'_fe'+str(feat).zfill(3)
                    fileExt  = 'png'
@@ -127,6 +133,23 @@ def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,showPlot=False
                    if not os.path.exists(filePath):
                        os.makedirs(filePath)
                plt.imsave(filePath+fileName+'_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'_fe'+str(feat).zfill(2)+'.'+fileExt,np.squeeze(out_mat[:,:,feat]),vmin=0,vmax=255,cmap='Greys',origin='upper')
+           else:
+               for feat in range(nfp):
+                   if len(saveName) == 0:
+                       fileName = 'plotWeightsOutput_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'_fe'+str(feat).zfill(3)
+                       fileExt  = 'png'
+                       filePath = './'
+                       saveName = filePath+fileName+'.'+fileExt
+                   else:
+                       seps     = saveName.split(os.sep)
+                       fileName = seps[-1]
+                       filePath = saveName[0:-len(fileName)]
+                       seps     = fileName.split(os.extsep)
+                       fileExt  = seps[-1]
+                       fileName = seps[0]
+                       if not os.path.exists(filePath):
+                           os.makedirs(filePath)
+                   plt.imsave(filePath+fileName+'_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'_fe'+str(feat).zfill(2)+'.'+fileExt,np.squeeze(out_mat[:,:,feat]),vmin=0,vmax=255,cmap='Greys',origin='upper')
 
     return out_list
 
