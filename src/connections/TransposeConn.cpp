@@ -413,12 +413,12 @@ int TransposeConn::transposeNonsharedWeights(int arborId) {
       else {
          mpiexchangesize(neighbor,  &size[neighbor], &startx[neighbor], &stopx[neighbor], &starty[neighbor], &stopy[neighbor], &blocksize[neighbor], &buffersize[neighbor]);
          sendbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
-         if (sendbuf==NULL) {
+         if (sendbuf[neighbor]==NULL) {
             fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose send buffer: %s\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), strerror(errno));
             exit(EXIT_FAILURE);
          }
          recvbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
-         if (recvbuf==NULL) {
+         if (recvbuf[neighbor]==NULL) {
             fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose receive buffer: %s\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), strerror(errno));
             exit(EXIT_FAILURE);
          }

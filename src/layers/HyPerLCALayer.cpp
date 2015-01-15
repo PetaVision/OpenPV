@@ -271,6 +271,7 @@ int HyPerLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * l
    assert(updateKernel);
    updateKernel->setDtTau(dt/timeConstantTau);
    runUpdateKernel();
+   return PV_SUCCESS;
 }
 #endif
 

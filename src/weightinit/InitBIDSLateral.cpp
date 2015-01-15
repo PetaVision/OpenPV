@@ -153,8 +153,8 @@ int InitBIDSLateral::BIDSLateralCalcWeights(int kPre, pvdata_t * dataStart, Init
          }
 
 
-         float deltaX = fabs(postcoordx - preCoordx);
-         float deltaY = fabs(postcoordy - preCoordy);
+         float deltaX = (float)abs(postcoordx - preCoordx);
+         float deltaY = (float)abs(postcoordy - preCoordy);
          float distance = sqrt((deltaX * deltaX) + (deltaY * deltaY));
          if (distance == 0){
             continue;

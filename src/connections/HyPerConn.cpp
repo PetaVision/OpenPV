@@ -433,10 +433,10 @@ int HyPerConn::constructWeights()
       assert(wPatches[arborId] != NULL);
 
       if (!is_pooling_from_pre_perspective){
-	if (arborId > 0){  // wDataStart already allocated
-	  wDataStart[arborId] = (this->get_wDataStart(0) + sp * nPatches * arborId);
-	  assert(this->wDataStart[arborId] != NULL);
-	}
+         if (arborId > 0){  // wDataStart already allocated
+            wDataStart[arborId] = (this->get_wDataStart(0) + sp * nPatches * arborId);
+            assert(this->wDataStart[arborId] != NULL);
+         }
       }
       if (shrinkPatches_flag || arborId == 0){
          status |= adjustAxonalArbors(arborId);
@@ -485,7 +485,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId) {
    for (int y = 0; y < ny; y++) {
       for (int x = 0; x < nx; x++) {
          for (int f = 0; f < nfp; f++) {
-            if(abs(w[x * sxp + y * syp + f * sfp]) <= shrinkPatchesThresh) {
+            if(fabs(w[x * sxp + y * syp + f * sfp]) <= shrinkPatchesThresh) {
                nonZeroWeightFound=true;
                maxnx = maxnx < x ? x : maxnx;
                minnx = minnx > x ? x : minnx;
