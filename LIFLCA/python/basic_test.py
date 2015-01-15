@@ -30,22 +30,23 @@ import matplotlib.pyplot as plt
 import math as math
 
 # File Locations
-output_dir   = workspace_path+'LIFLCA/output_time/'
+#output_dir   = workspace_path+'LIFLCA/output_time/'
+output_dir   = './'
 input_layer  = 'a0_Input.pvp'
 l1_layer     = 'a2_L1.pvp'
 #l1_layer     = 'checkpoints/Checkpoint20000/L1_A.pvp'
 err_layer    = 'a1_Residual.pvp'
 recon_layer  = 'a3_Recon.pvp'
 weights      = 'w1_L1_to_Residual.pvp'
-weights_chk  = 'checkpoints/Checkpoint5000/L1_to_Residual_W.pvp'
+weights_chk  = 'checkpoints/Checkpoint96000/L1_to_Residual_W.pvp'
 
 # Open files
 #input_activityFile  = open(output_dir + input_layer,'rb')
 #l1_activityFile     = open(output_dir + l1_layer,'rb')
 #err_activityFile    = open(output_dir + err_layer,'rb')
 #recon_activityFile  = open(output_dir + recon_layer,'rb')
-weightsFile         = open(output_dir + weights,'rb')
-#weightsChkFile      = open(output_dir + weights_chk,'rb')
+#weightsFile         = open(output_dir + weights,'rb')
+weightsChkFile      = open(output_dir + weights_chk,'rb')
 
 progressPeriod  = 1
 startFrame      = 0
@@ -75,11 +76,11 @@ skipFrames      = 1   # 1 is every frame
 #print('Err_from_recon:')
 #(errDat,errHdr) = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
-print('Weights from non-checkpoint:')
-(weightDat,weightsHdr) = pv.get_pvp_data(weightsFile,progressPeriod,lastFrame,startFrame,skipFrames)
+#print('Weights from non-checkpoint:')
+#(weightDat,weightsHdr) = pv.get_pvp_data(weightsFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
-#print('Weights from checkpoint:')
-#(weightChkDat,weightsChkHdr) = pv.get_pvp_data(weightsChkFile,progressPeriod,lastFrame,startFrame,skipFrames)
+print('Weights from checkpoint:')
+(weightChkDat,weightsChkHdr) = pv.get_pvp_data(weightsChkFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
 #print('Recon:')
 #(reconDat,reconHdr)   = pv.get_pvp_data(recon_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
@@ -108,11 +109,12 @@ print('Weights from non-checkpoint:')
 arborIdx   = np.arange(0,4)
 i_frame    = -1 # index, not actual frame number, -1 for last
 margin     = 2 #pixels
-showPlot   = True 
+plotColor  = False 
+showPlot   = False 
 savePlot   = True
-saveName   = output_dir+'analysis/'+weights[:-4]+'.png'
+saveName   = output_dir+'analysis/'+weights_chk[:-4]+'.png'
 
-weight_list = pw.plotWeights(weightDat,arborIdx,i_frame,margin,showPlot,savePlot,saveName)
+weight_list = pw.plotWeights(weightChkDat,arborIdx,i_frame,margin,plotColor,showPlot,savePlot,saveName)
 
 
 ########################
@@ -122,5 +124,5 @@ weight_list = pw.plotWeights(weightDat,arborIdx,i_frame,margin,showPlot,savePlot
 #l1_activityFile.close()
 #err_activityFile.close()
 #recon_activityFile.close()
-weightsFile.close()
-#weightsChkFile.close()
+#weightsFile.close()
+weightsChkFile.close()
