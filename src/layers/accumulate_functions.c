@@ -101,9 +101,22 @@ int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT 
   int err = 0;
   float compareval;
   for (k = 0; k < nk; k+=sf) {
-     v[k] = v[k] > a*w[k] ? v[k] : a*w[k];
+    //     v[k] = v[k] > a*w[k] ? v[k] : a*w[k];
+     v[k] = v[k] > a*w[0] ? v[k] : a*w[0];
   }
   return err;
+}
+
+int pvpatch_sum_pooling(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
+{
+   int k;
+   int err = 0;
+   float accumval = 0;
+   for (k = 0; k < nk; k+=sf) {
+      accumval = a*w[0];
+      v[k] += accumval;
+   }
+   return err;
 }
 
 int pvpatch_max_pooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr) {

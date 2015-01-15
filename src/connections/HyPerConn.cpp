@@ -29,6 +29,7 @@
 #include "../weightinit/InitOneToOneWeightsWithDelays.hpp"
 #include "../weightinit/InitIdentWeights.hpp"
 #include "../weightinit/InitUniformWeights.hpp"
+#include "../weightinit/InitMaxPoolingWeights.hpp"
 #include "../weightinit/InitSpreadOverArborsWeights.hpp"
 #ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
 #include "../weightinit/Init3DGaussWeights.hpp"
@@ -422,15 +423,20 @@ int HyPerConn::constructWeights()
 
    //allocate weight patches and axonal arbors for each arbor
    //Allocate all the weights
-   wDataStart[0] = allocWeights(nPatches, nxp, nyp, nfp);
-   assert(this->get_wDataStart(0) != NULL);
+   bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
+   if (!is_pooling_from_pre_perspective){
+     wDataStart[0] = allocWeights(nPatches, nxp, nyp, nfp);
+     assert(this->get_wDataStart(0) != NULL);
+   }
    for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
       status = createWeights(wPatches, arborId);
       assert(wPatches[arborId] != NULL);
 
-      if (arborId > 0){  // wDataStart already allocated
-         wDataStart[arborId] = (this->get_wDataStart(0) + sp * nPatches * arborId);
-         assert(this->wDataStart[arborId] != NULL);
+      if (!is_pooling_from_pre_perspective){
+	if (arborId > 0){  // wDataStart already allocated
+	  wDataStart[arborId] = (this->get_wDataStart(0) + sp * nPatches * arborId);
+	  assert(this->wDataStart[arborId] != NULL);
+	}
       }
       if (shrinkPatches_flag || arborId == 0){
          status |= adjustAxonalArbors(arborId);
@@ -518,7 +524,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc) {
    assert(!inputParams->presentAndNotBeenRead(name, "pvpatchAccumulateType"));
    switch (pvpatchAccumulateType) {
    case ACCUMULATE_CONVOLVE:
-   case ACCUMULATE_SUMPOOLING:
       accumulateFunctionPointer  = &pvpatch_accumulate;
       accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
       break;
@@ -529,6 +534,10 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc) {
    case ACCUMULATE_MAXPOOLING:
       accumulateFunctionPointer = &pvpatch_max_pooling;
       accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
+      break;
+   case ACCUMULATE_SUMPOOLING:
+      accumulateFunctionPointer = &pvpatch_sum_pooling;
+      accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
       break;
    default:
       assert(0);
@@ -613,6 +622,9 @@ InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr)
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SpreadOverArborsWeight"))) {
       weightInitializer = new InitSpreadOverArborsWeights(this);
+   }
+   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "MaxPoolingWeight"))) {
+      weightInitializer = new InitMaxPoolingWeights(this);
    }
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
       weightInitializer = new InitWeights(this);
@@ -2591,6 +2603,9 @@ int HyPerConn::readWeightsFromCheckpoint(const char * cpDir, double * timeptr) {
 }
 
 int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
+  if((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)){
+    return PV_SUCCESS;
+  }
    int status = readStateFromCheckpoint(cpDir, timeptr);
 
    status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
@@ -2613,6 +2628,9 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
 }
 
 int HyPerConn::checkpointWrite(const char * cpDir) {
+  if((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)){
+    return PV_SUCCESS;
+  }
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
@@ -2654,6 +2672,16 @@ int HyPerConn::writeTimers(FILE* stream){
 
 float HyPerConn::minWeight(int arborId)
 {
+   bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
+   if (is_pooling_from_pre_perspective){
+     if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+       return 1.0;
+     }
+     else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+       return 1.0/(nxp * nyp);
+     }
+   }
+
    const int num_data_patches = getNumDataPatches();
    float min_weight = FLT_MAX;
    if (sharedWeights) {
@@ -2682,6 +2710,15 @@ float HyPerConn::minWeight(int arborId)
 
 float HyPerConn::maxWeight(int arborId)
 {
+   bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
+   if (is_pooling_from_pre_perspective){
+     if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+       return 1.0;
+     }
+     else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+       return 1.0/(nxp * nyp);
+     }
+   }
    const int num_data_patches = getNumDataPatches();
    float max_weight = -FLT_MAX;
    if (sharedWeights) {
@@ -3794,7 +3831,7 @@ void HyPerConn::deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t
    const int ny = weights->ny;
    const int sy  = getPostNonextStrides()->sy;       // stride in layer
    const int syw = yPatchStride();                   // stride in patch
-   pvwdata_t * weightDataStart = get_wData(arbor,patchIndex); // make this a pvwdata_t const *?
+   pvwdata_t * weightDataStart = NULL; 
    pvgsyndata_t * postPatchStart = postBufferStart + getGSynPatchStart(patchIndex, arbor);
    // modified GTK: 12/25/14 to allow for efficient implementation of max_pooling
    // modified GTK: 1/10/15 to fix bug and to implement sum_pooling
@@ -3805,9 +3842,19 @@ void HyPerConn::deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t
      const int kfPre = featureIndex(patchIndex, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
      offset = kfPre;
      sf = fPatchSize();
+     float w = 1.0f;
+     if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){     
+       w = 1/(nxp*nyp);
+     }
+     for (int y = 0; y < ny; y++) {
+       (accumulateFunctionPointer)(nk, postPatchStart + y*sy + offset, a, &w, auxPtr, sf);
+     }
    }
-   for (int y = 0; y < ny; y++) {
-     (accumulateFunctionPointer)(nk, postPatchStart + y*sy + offset, a, weightDataStart + y*syw + offset, auxPtr, sf);
+   else{
+     weightDataStart = get_wData(arbor,patchIndex); // make this a pvwdata_t const *?
+     for (int y = 0; y < ny; y++) {
+       (accumulateFunctionPointer)(nk, postPatchStart + y*sy + offset, a, weightDataStart + y*syw + offset, auxPtr, sf);
+     }
    }
 }
 
