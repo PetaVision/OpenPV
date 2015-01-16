@@ -51,6 +51,8 @@ int BaseConnection::initialize(const char * name, HyPerCol * hc) {
    int status = PV_SUCCESS;
    if (status == PV_SUCCESS) status = setParent(hc);
    if (status == PV_SUCCESS) status = setName(name);
+   if(status == PV_SUCCESS) status = setPreAndPostLayerNames();
+
    this->connId = this->getParent()->addConnection(this);
    if (status == PV_SUCCESS) status = ioParams(PARAMS_IO_READ);
    return status;
