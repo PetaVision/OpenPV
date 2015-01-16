@@ -62,6 +62,77 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
          pixeltype q = externalBuffer[externalIndex];
          buffer[k] = pixelTypeConvert(q, zeroval, oneval);
       }
+
+      // Fix this code starting with the line immediately below this one!  Code duplication from Image::readImage
+      // if normalizeLuminanceFlag == true then force average luminance to be 0.5
+      bool normalize_standard_dev = normalizeStdDev;
+      if(normalizeLuminanceFlag){
+         if (normalize_standard_dev){
+            double image_sum = 0.0f;
+            double image_sum2 = 0.0f;
+            for (int k=0; k<buffersize; k++) {
+               image_sum += buffer[k];
+               image_sum2 += buffer[k]*buffer[k];
+            }
+            double image_ave = image_sum / buffersize;
+            double image_ave2 = image_sum2 / buffersize;
+   #ifdef PV_USE_MPI
+            MPI_Allreduce(MPI_IN_PLACE, &image_ave, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
+            image_ave /= parent->icCommunicator()->commSize();
+            MPI_Allreduce(MPI_IN_PLACE, &image_ave2, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
+            image_ave2 /= parent->icCommunicator()->commSize();
+   #endif
+            // set mean to zero
+            for (int k=0; k<buffersize; k++) {
+               buffer[k] -= image_ave;
+            }
+            // set std dev to 1
+            double image_std = sqrt(image_ave2 - image_ave*image_ave);
+            if(image_std == 0){
+               for (int k=0; k<buffersize; k++) {
+                  buffer[k] = .5;
+               }
+            }
+            else{
+               for (int k=0; k<buffersize; k++) {
+                  buffer[k] /= image_std;
+               }
+            }
+         }
+         else{
+            float image_max = -FLT_MAX;
+            float image_min = FLT_MAX;
+            for (int k=0; k<buffersize; k++) {
+               image_max = buffer[k] > image_max ? buffer[k] : image_max;
+               image_min = buffer[k] < image_min ? buffer[k] : image_min;
+            }
+   #ifdef PV_USE_MPI
+            MPI_Allreduce(MPI_IN_PLACE, &image_max, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
+            MPI_Allreduce(MPI_IN_PLACE, &image_min, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
+   #endif
+            if (image_max > image_min){
+               float image_stretch = 1.0f / (image_max - image_min);
+               for (int k=0; k<buffersize; k++) {
+                  buffer[k] -= image_min;
+                  buffer[k] *= image_stretch;
+               }
+            }
+            else{ // image_max == image_min, set to gray
+               //float image_shift = 0.5f - image_ave;
+               for (int k=0; k<buffersize; k++) {
+                  buffer[k] += 0.5f; //image_shift;
+               }
+            }
+         }
+      } // normalizeLuminanceFlag
+
+      if( inverseFlag ) {
+         for (int k=0; k<buffersize; k++) {
+            buffer[k] = 1 - buffer[k];
+         }
+      }
+      // Fix this code up to the line immediately above this one!  Code duplication from Image::readImage
+
    }
    
    hasNewImageFlag = true;
@@ -69,6 +140,9 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
    return PV_SUCCESS;
 }
 template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, uint8_t zeroval, uint8_t oneval);
+/*
+
+ */
 
 template <typename pixeltype>
 int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval, int offsetX, int offsetY, char const * offsetAnchor) {
@@ -237,6 +311,11 @@ int ImageFromMemoryBuffer::moveBufferToData(int rank) {
 double ImageFromMemoryBuffer::getDeltaUpdateTime(){
    return parent->getStopTime() - parent->getStartTime();
 }
+
+int ImageFromMemoryBuffer::outputState(double time, bool last) {
+   return HyPerLayer::outputState(time, last);
+}
+
 
 ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {
    free(buffer);
