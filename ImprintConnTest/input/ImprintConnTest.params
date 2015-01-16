@@ -1,0 +1,182 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8; //1242;  // KITTI synced value
+    ny = 8;  //218;
+    dt = 1.0;
+    dtAdaptFlag = false;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0.0;
+    stopTime = 100.0;       // Depends on number of VINE video frames
+    progressInterval = 1.0;
+    outputPath = "output/";
+    printParamsFilename = "pv.params";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    initializeFromCheckpointDir = "";
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+    verifyWrites = false;
+    errorOnNotANumber = false;
+};
+
+// this is a input layer
+InputLayer "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0.0;
+    VWidth = 0.0;
+    // 
+    phase = 0; 
+    triggerFlag = false;
+};
+
+// this is a input layer
+Image "errInput" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/errInput.pvp";
+    nf = 3;
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = -1;  //-1 means doesn't write for log
+    sparseLayer = false; //only write weights which are not 0
+    mirrorBCflag = false;    //border condition flag
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetAnchor = "tl";
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    frameNumber = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    padValue = 0;
+};
+
+ANNLayer "error" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0.0;
+    VWidth = 0.0;
+    // 
+    phase = 1; 
+    triggerFlag = false;
+};
+
+TestLayer "recon" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0.0;
+    VWidth = 0.0;
+    // 
+    phase = 2; 
+    triggerFlag = false;
+};
+
+IdentConn "errInputToError" = {
+   preLayerName = "errInput";
+   postLayername = "error";
+   channelCode = 0;
+   writeStep = -1;
+   delay = 0;
+};
+
+//ImprintConn "imprintConnection" = {
+//    preLayerName = "input";
+//    postLayerName = "error";
+//    channelCode = -1; //Inhib b, doing nothing to input
+//    sharedWeights = true;
+//    nxp = 4; 
+//    nyp = 4; 
+//    numAxonalArbors = 1;
+//    initFromLastFlag = 0;  // 1;  // restart
+//    writeStep = -1;
+//    initialWriteTime = 0.0;
+//    writeCompressedWeights = false;
+//    
+//    weightInitType = "UniformWeight";
+//    connectOnlySameFeatures = true;
+//    weightInit = .5; //Shouldn't matter what we initialize it to
+//        
+//    normalizeMethod                     = "none";
+//    //strength                            = 1;
+//    //rMinX                               = 1.5;
+//    //rMinY                               = 1.5;
+//    //normalize_cutoff                    = 0;
+//
+//    normalizeArborsIndividually = false;
+//    normalizeFromPostPerspective = false;
+//    symmetrizeWeights = false;
+//    
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    writeCompressedCheckpoints = false;
+//    plasticityFlag = 0;
+//    pvpatchAccumulateType = "maxpooling";
+//     
+//    delay = 0;
+//     
+//    convertRateToSpikeCount = false;
+//    selfFlag = false;
+//
+//    updateGSynFromPostPerspective = false;
+//    useWindowPost = false;
+//
+//    keepKernelsSynchronized             = true;
+//
+//    imprintTimeThresh = 5;
+//};
+//
+//CloneKernelConn "reconConnection" = {
+//   preLayerName = "input";
+//   postLayerName = "recon";
+//   channelCode = -1;
+//   writeStep = -1;
+//   originalConnName = "imprintConnection";
+//   selfFlag = false;
+//   delay = 0;
+//   preActivityIsNotRate = false;
+//   updateGSynFromPostPerspective = false;
+//   pvpatchAccumulateType = "convolve";
+//};
