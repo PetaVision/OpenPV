@@ -2678,7 +2678,9 @@ float HyPerConn::minWeight(int arborId)
        return 1.0;
      }
      else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-       return 1.0/(nxp * nyp);
+       int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
+       int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
+       return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
      }
    }
 
@@ -2716,7 +2718,9 @@ float HyPerConn::maxWeight(int arborId)
        return 1.0;
      }
      else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-       return 1.0/(nxp * nyp);
+       int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
+       int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
+       return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
      }
    }
    const int num_data_patches = getNumDataPatches();
@@ -3842,9 +3846,11 @@ void HyPerConn::deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t
      const int kfPre = featureIndex(patchIndex, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
      offset = kfPre;
      sf = fPatchSize();
-     float w = 1.0f;
-     if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){     
-       w = 1.0f/(nxp*nyp);
+     pvwdata_t w = 1.0;
+     if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+       float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
+       float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
+       w = 1.0/(weights->nx*weights->ny*relative_XScale*relative_YScale);
      }
      for (int y = 0; y < ny; y++) {
        (accumulateFunctionPointer)(nk, postPatchStart + y*sy + offset, a, &w, auxPtr, sf);
