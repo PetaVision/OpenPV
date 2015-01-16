@@ -168,6 +168,7 @@ void * CoreParamGroupHandler::createObject(char const * keyword, char const * na
          "FeedbackConn",
          "GapConn",
          "IdentConn",
+         //"ImprintConn",
          "KernelConn", // Deprecated as of June 5, 2014, in favor of HyPerConn with sharedWeights = true
          "LCALIFLateralConn",
          "OjaSTDPConn",
@@ -509,7 +510,7 @@ void * CoreParamGroupHandler::createObject(char const * keyword, char const * na
    }
 
    if (addedObject==NULL) {
-      fprintf(stderr, "Unable to add ");
+      fprintf(stderr, "Unable to add %s\n", keyword);
       exit(EXIT_FAILURE);
    }
 
