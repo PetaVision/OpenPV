@@ -3844,7 +3844,7 @@ void HyPerConn::deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t
      sf = fPatchSize();
      float w = 1.0f;
      if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){     
-       w = 1/(nxp*nyp);
+       w = 1.0f/(nxp*nyp);
      }
      for (int y = 0; y < ny; y++) {
        (accumulateFunctionPointer)(nk, postPatchStart + y*sy + offset, a, &w, auxPtr, sf);
