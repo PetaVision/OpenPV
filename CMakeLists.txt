@@ -22,6 +22,7 @@ set(CUDA_GPU FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
+set(PV_BUILD_SHARED FALSE CACHE BOOL "Defines if the pv object is built as a shared object")
 
 set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
 
@@ -181,9 +182,17 @@ endif(CUDA_RELEASE)
 
 # Add PetaVision
 if(CUDA_GPU)
-   cuda_add_library(pv SHARED ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS} ${PVLibSrcCu})
+   if(PV_BUILD_SHARED)
+      cuda_add_library(pv SHARED ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS} ${PVLibSrcCu})
+   else(PV_BUILD_SHARED)
+      cuda_add_library(pv STATIC ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS} ${PVLibSrcCu})
+   endif(PV_BUILD_SHARED)
 else(CUDA_GPU)
-   add_library(pv SHARED ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS})
+   if(PV_BUILD_SHARED)
+      add_library(pv SHARED ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS})
+   else(PV_BUILD_SHARED)
+      add_library(pv STATIC ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS})
+   endif(PV_BUILD_SHARED)
 endif(CUDA_GPU)
 
 # Link executable to external libraries
