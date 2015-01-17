@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt # only need if showPlot==True OR savePlot==true
 import os                       # only needed if savePlot==true
 import pdb
 
-def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,plotColor=True,showPlot=False,savePlot=False,saveName=''):
+def plotWeights(weightDat,activityDat=None,arborIdxList=None,i_frame=0,margin=0,plotColor=True,showPlot=False,savePlot=False,saveName=''):
     # NOTE: i_arbor and i_frame are indices for the given frame or arbor.
     #       They are not the actual arbor/frame number. This is because
     #       there may be a writeStep that is not 1.
@@ -29,9 +29,9 @@ def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,plotColor=True
     #       would know if we included this function in a suite that reads
     #       in parameter files.
 
-    # weightStruct should be dims [time, numArbors, numPatches, nyp, nxp, nfp]
-    weight_vals = np.array(weightStruct["values"])
-    weight_time = weightStruct["time"]
+    # weightDat should be dims [time, numArbors, numPatches, nyp, nxp, nfp]
+    weight_vals = np.array(weightDat["values"])
+    weight_time = weightDat["time"]
 
     (numFrames,numArbors,numPatches,nyp,nxp,nfp) = weight_vals.shape
 
@@ -44,6 +44,14 @@ def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,plotColor=True
     if i_frame > numFrames:
         print("Warning: i_frame > numFrames. Setting i_frame to numFrames.")
         i_frame = numFrames
+
+    if activityDat:
+        activity_vals = np.array(activityDat["values"])
+        
+        (numAFrames,ny,nx,nf) = activity_vals.shape
+        sorted_indices = np.argsort(np.mean(np.mean(np.mean(activity_vals,0),0),0))
+
+        weight_vals = weight_vals[:,:,sorted_indices[::-1],:,:,:]
 
 
     if np.sqrt(numPatches)%1 == 0: #If numPaches has a square root
@@ -94,7 +102,10 @@ def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,plotColor=True
            # Patches are padded with zeros - just fill in center. Ordered as [x,y,f]
            #patch_set[i_patch,half_margin:half_margin+nyp,half_margin:half_margin+nxp,:] = np.uint8(np.squeeze(np.transpose(weight_vals[i_frame,i_arbor,i_patch,:,:,:],(1,0,2)))) 
            # Patches are padded with zeros - just fill in center. Ordered as [y,x,f]
-           patch_set[i_patch,half_margin:half_margin+nyp,half_margin:half_margin+nxp,:] = np.uint8(np.squeeze(weight_vals[i_frame,i_arbor,i_patch,:,:,:])) 
+           try:
+               patch_set[i_patch,half_margin:half_margin+nyp,half_margin:half_margin+nxp,:] = np.uint8(np.squeeze(weight_vals[i_frame,i_arbor,i_patch,:,:,:])) 
+           except:
+               pdb.set_trace()
 
            out_mat[ypos:ypos+nyp+margin,xpos:xpos+nxp+margin,:] = patch_set[i_patch,:,:,:]
 
@@ -119,7 +130,9 @@ def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,plotColor=True
        if savePlot:
            if plotColor:
                if len(saveName) == 0:
-                   fileName = 'plotWeightsOutput_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'_fe'+str(feat).zfill(3)
+                   fileName = 'plotWeightsOutput_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)
+                   if activityDat:
+                       fileName = fileName+'_sorted'
                    fileExt  = 'png'
                    filePath = './'
                    saveName = filePath+fileName+'.'+fileExt
@@ -130,13 +143,17 @@ def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,plotColor=True
                    seps     = fileName.split(os.extsep)
                    fileExt  = seps[-1]
                    fileName = seps[0]
+                   if activityDat:
+                       fileName = fileName+'_sorted'
                    if not os.path.exists(filePath):
                        os.makedirs(filePath)
-               plt.imsave(filePath+fileName+'_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'_fe'+str(feat).zfill(2)+'.'+fileExt,np.squeeze(out_mat[:,:,feat]),vmin=0,vmax=255,cmap='Greys',origin='upper')
+               plt.imsave(filePath+fileName+'_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'.'+fileExt,np.squeeze(out_mat),vmin=0,vmax=255,cmap='Greys',origin='upper')
            else:
                for feat in range(nfp):
                    if len(saveName) == 0:
                        fileName = 'plotWeightsOutput_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'_fe'+str(feat).zfill(3)
+                       if activityDat:
+                           fileName = fileName+'_sorted'
                        fileExt  = 'png'
                        filePath = './'
                        saveName = filePath+fileName+'.'+fileExt
@@ -147,14 +164,17 @@ def plotWeights(weightStruct,arborIdxList=None,i_frame=0,margin=0,plotColor=True
                        seps     = fileName.split(os.extsep)
                        fileExt  = seps[-1]
                        fileName = seps[0]
+                       if activityDat:
+                           fileName = fileName+'_sorted'
                        if not os.path.exists(filePath):
                            os.makedirs(filePath)
                    plt.imsave(filePath+fileName+'_fr'+str(i_frame).zfill(3)+'_a'+str(i_arbor).zfill(3)+'_fe'+str(feat).zfill(2)+'.'+fileExt,np.squeeze(out_mat[:,:,feat]),vmin=0,vmax=255,cmap='Greys',origin='upper')
 
     return out_list
 
+
+
 #TODO:
-#def plotSortedWeights(...):
 #def plotWeightMovie(...):  # can receive weight file with multiple frames OR path to checkpoint folder
 #def plotWeightHistograms(...):
 #def plotActivationHistory(...): # activation histogram over time for each dictionary element
