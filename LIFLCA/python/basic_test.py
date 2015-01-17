@@ -30,19 +30,19 @@ import matplotlib.pyplot as plt
 import math as math
 
 # File Locations
-#output_dir   = workspace_path+'LIFLCA/output_time/'
-output_dir   = './'
+output_dir   = workspace_path+'LIFLCA/output/heli_LCA/'
+#output_dir   = './'
 input_layer  = 'a0_Input.pvp'
-l1_layer     = 'a2_L1.pvp'
-#l1_layer     = 'checkpoints/Checkpoint20000/L1_A.pvp'
+#l1_layer     = 'a2_L1.pvp'
+l1_layer     = 'checkpoints/Checkpoint20000/L1_A.pvp'
 err_layer    = 'a1_Residual.pvp'
 recon_layer  = 'a3_Recon.pvp'
 weights      = 'w1_L1_to_Residual.pvp'
-weights_chk  = 'checkpoints/Checkpoint96000/L1_to_Residual_W.pvp'
+weights_chk  = 'checkpoints/Checkpoint20000/L1_to_Residual_W.pvp'
 
 # Open files
 #input_activityFile  = open(output_dir + input_layer,'rb')
-#l1_activityFile     = open(output_dir + l1_layer,'rb')
+l1_activityFile     = open(output_dir + l1_layer,'rb')
 #err_activityFile    = open(output_dir + err_layer,'rb')
 #recon_activityFile  = open(output_dir + recon_layer,'rb')
 #weightsFile         = open(output_dir + weights,'rb')
@@ -67,8 +67,8 @@ skipFrames      = 1   # 1 is every frame
 #plt.show(block=False)
 
 #size is (numFrames,ny,nx,nf)
-#print('L1:')
-#(L1Dat,L1Hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
+print('L1:')
+(L1Dat,L1Hdr)   = pv.get_pvp_data(l1_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
 
 #print('Err_from_file:')
 #(errDat,errHdr)   = pv.get_pvp_data(err_activityFile,progressPeriod,lastFrame,startFrame,skipFrames)
@@ -106,16 +106,25 @@ print('Weights from checkpoint:')
 ########################
 ## PLOT WEIGHTS
 ########################
-arborIdx   = np.arange(0,4)
+#L1Dat      = None
+#arborIdx   = np.arange(0,4)
+arborIdx   = None
 i_frame    = -1 # index, not actual frame number, -1 for last
 margin     = 2 #pixels
-plotColor  = False 
+plotColor  = True 
 showPlot   = False 
-savePlot   = True
+savePlot   = True 
 saveName   = output_dir+'analysis/'+weights_chk[:-4]+'.png'
 
-weight_list = pw.plotWeights(weightChkDat,arborIdx,i_frame,margin,plotColor,showPlot,savePlot,saveName)
+weight_list = pw.plotWeights(weightChkDat,L1Dat,arborIdx,i_frame,margin,plotColor,showPlot,savePlot,saveName)
 
+#plotColor  = True
+#showPlot   = True 
+#savePlot   = True 
+#saveName   = output_dir+'analysis/'+weights_chk[:-4]+'_sorted.png'
+#
+#sorted_weight_list = pw.plotSortedWeights(weight_list,L1Dat,plotColor,showPlot,savePlot,saveName)
+#
 
 ########################
 ## CLOSE FILESTREAMS
