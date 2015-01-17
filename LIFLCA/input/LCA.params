@@ -33,13 +33,13 @@ HyPerCol "column" = {
     startTime                       = 0;
     stopTime                        = 1101440; //displayPeriod * numImages
     progressInterval                = 1000;
-    outputPath                      = "/home/dpaiton/workspace/LIFLCA/output/LCA_base_heli/";
+    outputPath                      = "/home/dpaiton/workspace/LIFLCA/output/heli_LCA/";
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     initializeFromCheckpointDir     = "";
     checkpointWriteTriggerMode      = "step"; // Not implemented fully - trigger checkpoint on clock time instead of number of time steps
     checkpointWrite                 = true;
-    checkpointWriteDir              = "/home/dpaiton/workspace/LIFLCA/output/LCA_base_heli/checkpoints/";
+    checkpointWriteDir              = "/home/dpaiton/workspace/LIFLCA/output/heli_LCA/checkpoints/";
     checkpointWriteStepInterval     = 20000;
     deleteOlderCheckpoints          = false;
     writeProgressToErr              = true;
@@ -64,7 +64,7 @@ HyPerCol "column" = {
 Movie "Input" = {
     nxScale                = 1;
     nyScale                = 1;
-    imageListPath          = "/home/dpaiton/workspace/LIFLCA/input/full_heli_training/.txt";
+    imageListPath          = "/home/dpaiton/workspace/LIFLCA/input/full_heli_training.txt";
     nf                     = 3;        // nf=3 for RGB, nf=1 for greyscale
 //
 //    initialWriteTime       = 80;
@@ -82,6 +82,7 @@ Movie "Input" = {
     offsetX                = 0;
     offsetY                = 0;
     randomMovie            = 0;
+    padValue               = 0;
     mirrorBCflag           = true;
     jitterFlag             = false;
     useImageBCflag         = false;
@@ -111,7 +112,7 @@ ANNNormalizedErrorLayer "Residual" = {
 //
     nxScale                = 1;
     nyScale                = 1;
-    nf                     = 1;
+    nf                     = 3;
 //
     mirrorBCflag           = false;    // If true, set the boundary with a mirror of the input image
     valueBC                = 0;        // What value is assigned to the boundaries (assuming mirrorBCflag=false)
@@ -124,7 +125,7 @@ ANNNormalizedErrorLayer "Residual" = {
 //
     InitVType              = "ZeroV";
 //    InitVType              = "InitVFromFile";
-//    Vfilename              = "/home/dpaiton/workspace/LIFLCA/output_time/Residual_V.pvp";
+//    Vfilename              = "/home/dpaiton/workspace/LIFLCA/output/heli_LCA/Residual_V.pvp";
 //
 // For residual layer, threshold should be linear function.
 //
@@ -155,7 +156,7 @@ HyPerLCALayer "L1" = {
     nf                     = 768;      // * 2x overcomplete wrt patch size (4 x patch_area because of rectification)
                                        // * If stride < nxp; overcompleteness = 0.5 * nf / stride^2 
                                        // * Rectification is inherent in LCA layer - all values below threshold go to 0
-                                       // * Multiply by inputLayer nf to maintain overcompleteness for multi-channel (e.g. color) input 
+                                       // * If 3-color, must tripple nf to maintain overcompleteness
     numChannels            = 1;        // Should be 1
     numWindowX             = 1;        // For location dependent kernels
     numWindowY             = 1;
@@ -178,7 +179,7 @@ HyPerLCALayer "L1" = {
     minV                   = -1.0;     // Only for initialization - min value of v (assuming dimensionless membrane potentials)
     maxV                   = 0.065;       // 0.05 above VThresh makes a few start out above threshold - no real evidence that this is better
 //    InitVType              = "InitVFromFile";
-//    Vfilename              = "/Users//output/Checkpoints/Checkpoint6000000/L1_V.pvp";
+//    Vfilename              = "/home/dpaiton/workspace/LIFLCA/output/heli_LCA/Checkpoints/Checkpoint6000000/L1_V.pvp";
 // 
     timeConstantTau        = 100.0;    // dt is scaled by multiplying by 1/timeConstantTau
                                        // u(t+dt) = u(t) + dt/tau * u^dot
@@ -222,7 +223,7 @@ HyPerLCALayer "L1" = {
 ////
 //    InitVType           = "ZeroV";
 //    //InitVType           = "InitVFromFile";
-//    //Vfilename           = "/home/dpaiton/workspace/LIFLCA/output/Checkpoints/Checkpoint6000000/Recon_V.pvp";
+//    //Vfilename           = "/home/dpaiton/workspace/LIFLCA/output/heli_LCA/Checkpoints/Checkpoint6000000/Recon_V.pvp";
 ////
 //    VThresh             = -infinity;
 //    AMax                = infinity;   // prevent reconstruction from exceeding reasonable bounds
