@@ -38,13 +38,13 @@ if ~exist('imageNet_synset_flag', 'var') || isempty(imageNet_synset_flag)
 endif
 
 %% set up paths (edit this script to change paths to customize implementations
-if ~exist(workspace_path, 'dir') || isempty(workspace_path)
+if ~exist("workspace_path", 'var') || ~exist(workspace_path, 'dir') || isempty(workspace_path)
   setImagePaths;
 endif
 
 %% specify target image type and dimensions
 if ~exist('orientation_type', 'var') || isempty(orientation_type)
-  orientation_type = "any"; %%"landscape"; %%"square"; %%  "portrait"; %%
+  orientation_type = 'landscape'; %%"any"; %%""square"; %%  "portrait"; %%
   disp(["orientation_type 1= ", orientation_type]);
 endif
 target_resize_length = 256;
@@ -64,7 +64,7 @@ elseif strcmp(orientation_type, "any")  %% leave target size undefined until lat
 endif
 border_padding = 0; %%8;
 
-chip_flag = true;  %% if true, write resized chips to corresponding folders
+chip_flag = false; %%true;  %% if true, write resized chips to corresponding folders
 mask_flag = false;   %% if true, make mask images for visualization purposes
 
 %% diagnostic flags, causes figures to be displayed to screen rather
@@ -125,8 +125,12 @@ class_ID_list = (1:VOCopts.nclasses) * color_sep;
 num_classes = VOCopts.nclasses;
 util_path = [workspace_path, filesep, "PetaVision", filesep, "mlab", filesep, "util"];
 addpath(util_path);
-classID_data = cell(); %% size of cell is number of resized images, which
-%% we don't know yet...so grow classID_data dynamically
+if ~exist("classID_data") || isempty(classID_data)
+  classID_data = cell(); 
+  resized_filepathnames = cell();
+  %% size of cell is number of resized images, which
+  %% we don't know yet ...so grow classID_data dynamically
+endif
 
 %% load list of raw images
 training_path = fullfile(VOCdevkit_path, VOCopts.dataset, "JPEGImages");
@@ -201,10 +205,11 @@ target_W2H_ratio = [];
 if ~isempty(target_resized_width) && ~isempty(target_resized_height)
   target_W2H_ratio = target_resized_width / target_resized_height;
 endif
-num_resized = 0;
-num_annotated = 0;
-num_resized_failed = 0;
-num_non_RGB = 0;
+if ~exist("num_annotated", "var") || isempty(num_annotated)
+  num_annotated = 0;
+  num_resized_failed = 0;
+  num_non_RGB = 0;
+endif
 for i_raw = 1 : num_raw
   if mod(i_raw, ceil(num_raw/10)) == 0
     disp(["i_raw = ", num2str(i_raw)]);
@@ -337,12 +342,6 @@ for i_raw = 1 : num_raw
 %%  [padded_image] = addMirrorBCRGB(resized_image, border_padding);
   [padded_image] = addMirrorBC2(resized_image, border_padding);
 
-  %% write padded image to file, since this will be cropped to size(resized_image)
-  resized_image_path = fullfile(train_path, [raw_name, resized_ext]);
-  imwrite(uint8(padded_image), resized_image_path);
-  fputs(resized_fid, [resized_image_path, "\n"]);
-  num_resized = num_resized + 1;
-  
   %% fix bounding boxes
   % read annotation
   annotation_file = fullfile(annotation_path,[raw_name, annotation_ext]);
@@ -350,6 +349,12 @@ for i_raw = 1 : num_raw
     continue;
   endif
   num_annotated = num_annotated + 1;
+  %% write padded image to file, since this will be cropped to size(resized_image)
+  resized_image_path = fullfile(train_path, [raw_name, resized_ext]);
+  imwrite(uint8(padded_image), resized_image_path);
+  fputs(resized_fid, [resized_image_path, "\n"]);
+  resized_filepathnames{num_annotated} = resized_image_path;
+  
   rec=PASreadrecord(annotation_file);
   num_bbox = length(rec.objects);
   %% xmin, ymin, xmax, ymax
@@ -365,7 +370,7 @@ for i_raw = 1 : num_raw
     mask_image = zeros(size(resized_image));;
   endif
   classID_struct = struct;
-  classID_struct.time = double(num_resized);
+  classID_struct.time = double(num_annotated);
   classID_struct.values = [];
   num_active = 0;
   for i_bbox = 1 : num_bbox
@@ -378,7 +383,7 @@ for i_raw = 1 : num_raw
       if isempty(class_name_ndx)
        class_name_ndx = length(glossary_word{glossary_ndx,1})+1;
       endif
-      class_name = glossary_word{glossary_ndx,1}(1:class_name_ndx-1); 
+      class_name = [bbox_wnid, '_', glossary_word{glossary_ndx,1}(1:class_name_ndx-1)]; 
     endif
     raw_bbox = rec.objects(i_bbox).bbox;
     resized_bbox = zeros(size(raw_bbox));
@@ -411,7 +416,7 @@ for i_raw = 1 : num_raw
     if (resized_bbox(bbox_ymax) <= (resized_bbox(bbox_ymin) + min_bbox_size)) || (resized_bbox(bbox_xmax) <= (resized_bbox(bbox_xmin) + min_bbox_size))
       continue
     endif
-    CSV_bbox_str = [num2str(num_resized), ", "];
+    CSV_bbox_str = [num2str(num_annotated), ", "];
     CSV_bbox_str = [CSV_bbox_str, num2str(resized_bbox(bbox_xmin)), ", ", num2str(resized_bbox(bbox_ymin)), ", "];
     CSV_bbox_str = [CSV_bbox_str, num2str(resized_bbox(bbox_xmin)), ", ", num2str(resized_bbox(bbox_ymax)), ", "];
     CSV_bbox_str = [CSV_bbox_str, num2str(resized_bbox(bbox_xmax)), ", ", num2str(resized_bbox(bbox_ymax)), ", "];
@@ -507,12 +512,11 @@ if mask_flag
 endif
 disp(["num_raw = ", num2str(num_raw)]);
 disp(["num_non_RGB = ", num2str(num_non_RGB)]);
-disp(["num_resized = ", num2str(num_resized)]);
 disp(["num_annotated = ", num2str(num_annotated)]);
 disp(["num_resized_failed = ", num2str(num_resized_failed)]);
 
 
-if num_annotated > 0
+if ~imageNet_synset_flag && num_annotated > 0
   classID_file = [resized_list(1:strfind(resized_list,"_list")-1), ".pvp"]; %%
   writepvpsparseactivityfile(classID_file, classID_data, resized_width, resized_height, num_classes);
 endif

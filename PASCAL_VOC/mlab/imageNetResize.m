@@ -11,10 +11,18 @@ setImagePaths;
 
 imageNet_dir = "/Users/garkenyon/workspace/PASCAL_VOC/imageNet"; %% folder containing imageNet tar.gz fliles, 1 tar file per object category
 imageNet_annotation_path = [imageNet_dir, '/', 'Annotations'];  %% folder containing xml annotaion files packed as tar.gz files, 1 per object category
-%imageNet_list = glob([imageNet_dir, '/', '*.tar']);
-imageNet_list = glob([imageNet_dir, '/', 'n03790512.tar']);
+imageNet_list = glob([imageNet_dir, '/', '*.tar']);
+%%imageNet_list = glob([imageNet_dir, '/', 'n03790512.tar']);
 num_imageNet = length(imageNet_list);
 confirm_recursive_rmdir(0);
+
+%% basic data structure for holding sparse ground truth
+num_annotated = 0;  %% total number of resized images has to be computed on the fly 
+num_resized_failed = 0;
+num_non_RGB = 0;
+classID_data = cell(); %% size of cell is total number of resized images, which we don't know yet
+resized_filepathnames = cell();
+
 
 if exist([imageNet_dir, filesep, 'glossary.mat'],'file')
   load([imageNet_dir, filesep, 'glossary.mat'], '-text');
@@ -49,7 +57,7 @@ for i_imageNet = 1 : num_imageNet
   if isempty(class_name_ndx)
     class_name_ndx = length(glossary_word{glossary_ndx,1})+1;
   endif
-  imageNet_synset_classes{i_imageNet} = glossary_word{glossary_ndx,1}(1:class_name_ndx-1); 
+  imageNet_synset_classes{i_imageNet} = [imageNet_wnid, '_', glossary_word{glossary_ndx,1}(1:class_name_ndx-1)]; 
 endfor
 
 for i_imageNet = 1 : num_imageNet
@@ -78,5 +86,21 @@ for i_imageNet = 1 : num_imageNet
   %%imageNet_synset_name = imageNet_wnid;
   imageNet_synset_name = imageNet_synset_classes{i_imageNet}
   chipPASCAL;
-
 endfor
+
+%% shuffle 
+[~, imageNet_shuffle_ndx] = sort(rand(num_annotated,1));
+if length(classID_data) ~= num_annotated
+  warning(["length(classID_data) = ", num2str(length(classID_data)), " ~= num_annotated =", num2str(num_annotated)])
+  keyboard
+endif
+resized_filepathnames = resized_filepathnames(imageNet_shuffle_ndx(:));
+classID_data = classID_data(imageNet_shuffle_ndx);
+resized_list = [VOC_dataset_path, filesep, VOC_dataset, "_", orientation_type, "_list.txt"];
+resized_fid = fopen(resized_list, "w", "native");
+for i_resized = 1 : num_annotated
+  fputs(resized_fid, [resized_filepathnames{i_resized}, "\n"]);
+endfor
+fclose(resized_fid)
+classID_file = [resized_list(1:strfind(resized_list,"_list")-1), ".pvp"]; %%
+writepvpsparseactivityfile(classID_file, classID_data, resized_width, resized_height, num_classes);
