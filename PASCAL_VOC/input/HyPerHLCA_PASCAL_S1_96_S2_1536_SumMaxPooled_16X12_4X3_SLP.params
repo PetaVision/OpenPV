@@ -730,7 +730,6 @@ ANNLayer "S2SumPooled_4X3" = {
 
 
 
-
 //
 //Connections
 //
@@ -1226,7 +1225,7 @@ HyPerConn "S2ToS2MaxPooled_16X12" = {
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
+    plasticityFlag = false;
     pvpatchAccumulateType = "maxpooling";
      
     delay = 0;
@@ -1253,24 +1252,13 @@ HyPerConn "S2ToS2SumPooled_16X12" = {
     writeStep = -1;
     writeCompressedCheckpoints = false;
         
+    weightInitType = "MaxPoolingWeight"; 
+    normalizeMethod = "none"; //"normalizeSum";
+
     shrinkPatches = false;
     writeCompressedWeights = 0.0;
-    weightInitType = "MaxPoolingWeight"; //"UniformWeight";
-    //connectOnlySameFeatures = true;
-    //weightInit = 1.0;
-    normalizeMethod = "none"; //"normalizeSum";
-    //strength = 1.0;
-    //plasticityFlag = 0;
-    //pvpatchAccumulateType = "sumpooling";
-    //normalizeOnInitialize = true;
-    //normalizeOnWeightUpdate = false;
-    //minSumTolerated = 0.00001;
-    //normalizeArborsIndividually = 0;
-    //normalize_cutoff = 0.0;
-    //normalizeFromPostPerspective = true;
-    //symmetrizeWeights = false;
-    //rMinX = 0.0;
-    //rMinY = 0.0;
+    plasticityFlag = false;
+    pvpatchAccumulateType = "sumpooling";
      
     delay = 0;
      
@@ -1671,25 +1659,12 @@ HyPerConn "S2ToS2SumPooled_4X3" = {
     writeStep = -1;
     writeCompressedCheckpoints = false;
     
-    weightInitType = "MaxPoolingWeight"; //"UniformWeight";
-    //connectOnlySameFeatures = true;
-    //weightInit = 1.0;
-    normalizeMethod = "none"; //"normalizeSum";
-    //strength = 1.0;
-    //normalizeOnInitialize = true;
-    //normalizeOnWeightUpdate = false;
-    //minSumTolerated = 0.00001;
-    //normalizeArborsIndividually = 0;
-    //normalize_cutoff = 0.0;
-    //normalizeFromPostPerspective = true;
-    //symmetrizeWeights = false;
-    //rMinX = 0.0;
-    //rMinY = 0.0;
-    
+    weightInitType = "MaxPoolingWeight"; 
+    normalizeMethod = "none"; 
     
     shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    plasticityFlag = 0;
+    writeCompressedWeights = 0.0;
+    plasticityFlag = false;
     pvpatchAccumulateType = "sumpooling";
      
     delay = 0;
