@@ -17,13 +17,13 @@ HyPerCol "column" = {
     randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     stopTime                        = 250000; // in seconds
     progressInterval                = .0022675737; // dt
-    outputPath                      = "biglebowski";
+    outputPath                      = "newupdate";
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     checkpointRead                  = false; // deprecated
     checkpointWrite                 = true;
-    checkpointWriteDir              = "biglebowski/checkpoints";
-    checkpointWriteStepInterval     = 221; //numdelays
+    checkpointWriteDir              = "newupdate/checkpoints";
+    checkpointWriteStepInterval     = 2210; //numdelays
     deleteOlderCheckpoints          = false;
     writeProgressToErr              = true;
     outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
@@ -60,7 +60,7 @@ SoundStream "Sound" = {  // layer not used
 NewCochlearLayer "NewCochlear" = {
 
     restart = 0;
-    nxScale = 1024; //number of cochlear hair cells, useful as power of two (1024)
+    nxScale = 128; //number of cochlear hair cells, useful as power of two (1024)
     nyScale = 1;
     nf = 1;
     writeStep = .0022675737; //dt
@@ -79,8 +79,8 @@ NewCochlearLayer "NewCochlear" = {
     inputLayername = "Sound";
     targetChannel = 0;
 
-    equalTemperedFlag = false;
-    freqMin = 55;
+    equalTemperedFlag = true;
+    freqMin = 20;
     freqMax = 20000;
 
     dampingRatio = .5; // not used
@@ -108,7 +108,7 @@ NewCochlearLayer "NewCochlear" = {
 ANNLayer "PositiveCochlear" = {
 
     restart = 0;
-    nxScale = 1024; //numfreqs
+    nxScale = 128; //numfreqs
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
@@ -132,7 +132,7 @@ ANNLayer "PositiveCochlear" = {
 ANNLayer "NegativeCochlear" = {
 
     restart = 0;
-    nxScale = 1024; // numfreqs
+    nxScale = 128; // numfreqs
     nyScale = 1;
     nf = 1;
     marginWidth = 0;
@@ -157,7 +157,7 @@ ANNLayer "NegativeCochlear" = {
 ANNNormalizedErrorLayer "PositiveError" = {
 
     restart = 0;
-    nxScale = 1024; // same as Coclear nxScale
+    nxScale = 128; // same as Coclear nxScale
     nyScale = 1;
     nf = 45; //221
     initialWriteTime = 0;
@@ -185,7 +185,7 @@ ANNNormalizedErrorLayer "PositiveError" = {
 ANNNormalizedErrorLayer "NegativeError" = {
 
     restart = 0;
-    nxScale = 1024; // same as Coclear nxScale
+    nxScale = 128; // same as Coclear nxScale
     nyScale = 1;
     nf = 45; // 221
     initialWriteTime = 0;
@@ -228,7 +228,7 @@ HyPerLCALayer "A1" = {
     maxV = .02;
 
 
-    timeConstantTau = .04;
+    timeConstantTau = .02;
     timeConstantTauMinimum = 0;
     //slopeErrorStd = 0.01; // not used
 
@@ -251,7 +251,7 @@ HyPerLCALayer "A1" = {
 
 StreamReconLayer "PositiveRecon" = {
     restart = 0;
-    nxScale = 1024;
+    nxScale = 128;
     nyScale = 1;
     nf = 45;
     initialWriteTime = 0;
@@ -275,7 +275,7 @@ StreamReconLayer "PositiveRecon" = {
 
 StreamReconLayer "NegativeRecon" = {
     restart = 0;
-    nxScale = 1024;
+    nxScale = 128;
     nyScale = 1;
     nf = 45;
     initialWriteTime = 0;
@@ -300,7 +300,7 @@ StreamReconLayer "NegativeRecon" = {
 
 ANNLayer "FullRecon" = {
     restart = 0;
-    nxScale = 1024; //numfreqs
+    nxScale = 128; //numfreqs
     nyScale = 1;
     nf = 45; //numdelays
     marginWidth = 0;
@@ -367,7 +367,7 @@ KernelConn "PositiveCochlearToPositiveError" = {
     postLayerName = "PositiveError";
 
     channelCode = 0;
-    nxp         = 2047; //(2 * numfreqs) - 1 for all to all connection
+    nxp         = 255; //(2 * numfreqs) - 1 for all to all connection
     nyp         = 1;
     nfp         = 45;
 
@@ -401,7 +401,7 @@ KernelConn "NegativeCochlearToNegativeError" = {
     postLayerName = "NegativeError";
 
     channelCode = 0;
-    nxp         = 2047; //(2 * numfreqs) - 1 for all to all connection
+    nxp         = 255; //(2 * numfreqs) - 1 for all to all connection
     nyp         = 1;
     nfp         = 45;
 
@@ -434,7 +434,7 @@ KernelConn "A1ToPositiveError" = {
     preLayerName = "A1";
     postLayerName = "PositiveError";
     channelCode = 1;
-    nxp = 1024; // numfreqs
+    nxp = 128; // numfreqs
     nyp = 1;
     nfp = 45;  // numdelays
 
@@ -467,11 +467,11 @@ KernelConn "A1ToPositiveError" = {
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = .05; //.0022675737;
+    weightUpdatePeriod = .0022675737;
     initialWeightUpdateTime = .0022675737;
     initialWriteTime = 0.0;
 
-    dWMax = 0.0002; // 1.0; //0.05; //5.0;
+    dWMax = 0.00015; // 1.0; //0.05; //5.0;
     selfFlag = false;
     shmget_flag = false;
     pvpatchAccumulateType = "convolve";
@@ -486,7 +486,7 @@ KernelConn "A1ToNegativeError" = {
     preLayerName = "A1";
     postLayerName = "NegativeError";
     channelCode = 1;
-    nxp = 1024; // numfreqs
+    nxp = 128; // numfreqs
     nyp = 1;
     nfp = 45;
 
@@ -520,11 +520,11 @@ KernelConn "A1ToNegativeError" = {
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = .05; //.0022675737;
+    weightUpdatePeriod = .0022675737; //.0022675737;
     initialWeightUpdateTime = .0022675737; //199.0;
     initialWriteTime = 0.0;
 
-    dWMax = 0.0002; // 1.0; //0.05; //5.0;
+    dWMax = 0.00015; // 1.0; //0.05; //5.0;
     selfFlag = false;
     shmget_flag = false;
     pvpatchAccumulateType = "convolve";

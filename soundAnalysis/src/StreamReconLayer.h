@@ -19,6 +19,7 @@ namespace PV {
     public:
         StreamReconLayer(const char * name, HyPerCol * hc);
         virtual ~StreamReconLayer();
+        virtual bool activityIsSpiking() { return false; }
         
     protected:
         StreamReconLayer();

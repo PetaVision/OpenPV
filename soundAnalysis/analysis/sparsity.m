@@ -3,7 +3,7 @@
 %%
 
 addpath("~/newvision/PetaVision/mlab/util/");
-inputpvpfile = "~/newvision/sandbox/soundAnalysis/bigcochlea/a6_A1.pvp";
+inputpvpfile = "~/newvision/sandbox/soundAnalysis/tau20ms/a6_A1.pvp";
 
 a1 = readpvpfile(inputpvpfile);
 
@@ -17,7 +17,7 @@ size(a1{1}.values)
 
 for(k = 1:time)
 
-    output(k) = nnz(a1{k}.values)/128;
+    output(k) = nnz(a1{k}.values)/nf;
 
     for (j = 1:nf)
 

@@ -1,5 +1,5 @@
 addpath("~/newvision/PetaVision/mlab/util/");
-pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/welltempered/a1_NewCochlear.pvp";
+pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/biglebowski/checkpoints/a1_NewCochlear.pvp";
 
 
 [data, hdr] = readpvpfile(pvpfile,1000,300000,1); %% filename, displayperiod, end frame, start frame
@@ -22,7 +22,7 @@ cochleagraph = (outimg - min(outimg(:))) / (max(outimg(:)) - min(outimg(:)));
 
 
 
-pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/welltempered/a9_FullRecon.pvp";
+pvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/biglebowski/checkpoints/a9_FullRecon.pvp";
 
 
 [data, hdr] = readpvpfile(pvpfile,1000,300000,1);

@@ -1,6 +1,6 @@
 addpath("/Users/MLD/newvision/PetaVision/mlab/util/");
-pluspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/biglebowski/checkpoints/Checkpoint3315/A1ToPositiveError_W.pvp"
-minuspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/biglebowski/checkpoints/Checkpoint3315/A1ToNegativeError_W.pvp"
+pluspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/newupdate/checkpoints/Checkpoint77350/A1ToPositiveError_W.pvp"
+minuspvpfile = "/Users/MLD/newvision/sandbox/soundAnalysis/newupdate/checkpoints/Checkpoint77350/A1ToNegativeError_W.pvp"
 
 plusWcell = readpvpfile(pluspvpfile);
 minusWcell = readpvpfile(minuspvpfile);
@@ -29,39 +29,39 @@ W = plusW - minusW;
 
 %%%%%%%%%%%%%%%%%sparse stuff
 
-apvpfile = "~/newvision/sandbox/soundAnalysis/bigcochlea/a6_A1.pvp";
+%%apvpfile = "~/newvision/sandbox/soundAnalysis/biglebowski32nf/a6_A1.pvp";
 
-a1 = readpvpfile(apvpfile);
+%%a1 = readpvpfile(apvpfile);
 
-time = numel(a1)
-nf = numel(a1{1}.values(1,1,:))
+%%time = numel(a1)
+%%nf = numel(a1{1}.values(1,1,:))
 
-output = zeros(time,1);
-sparse = zeros(nf,1);
+%%output = zeros(time,1);
+%%sparse = zeros(nf,1);
 
-size(a1{1}.values)
+%%size(a1{1}.values)
 
-    for(k = 1:time)
+  %%  for(k = 1:time)
 
-        output(k) = nnz(a1{k}.values)/128;
+    %%    output(k) = nnz(a1{k}.values)/nf;
 
-        for (j = 1:nf)
+      %%  for (j = 1:nf)
 
-            sparse(j) = sparse(j) + ((a1{k}.values(1,1,j) > 0) / time);
+        %%    sparse(j) = sparse(j) + ((a1{k}.values(1,1,j) > 0) / time);
 
-    end
+    %%end
 
-end
+%%end
 
 
-[newsparse, oldsparse] = sort(sparse,1,"descend");
+%%[newsparse, oldsparse] = sort(sparse,1,"descend");
 
-dlmwrite('sparserank.txt',oldsparse,"-append");
+%%dlmwrite('sparserank.txt',oldsparse);
 
-bar(newsparse);
-xlabel("weights")
-ylabel("activity")
-print("sparsesorted.png");
+%%bar(newsparse);
+%%xlabel("weights")
+%%ylabel("activity")
+%%print("sparsesorted.png");
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -80,7 +80,7 @@ for(feature = 1:NF)
 
     weightrescaled = 127.5 + 127.5 * (weight / max(abs(weight(:))));
 
-    subplot(ceil(sqrt(NF)),ceil(sqrt(NF)),oldsparse(feature));
+    subplot(ceil(sqrt(NF)),ceil(sqrt(NF)),feature);
     imagesc(weightrescaled);
     %%xlabel(feature, 'FontSize', 4);
     %%title( feature, 'FontSize', 6 )
