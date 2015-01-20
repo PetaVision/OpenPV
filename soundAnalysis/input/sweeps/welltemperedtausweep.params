@@ -15,15 +15,15 @@ HyPerCol "column" = {
     ny                              = 1;
     dt                              = .0022675737; // downsampling = dt * sampleRate
     randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-    stopTime                        = 250000; // in seconds
+    stopTime                        = 5000; // in seconds
     progressInterval                = .0022675737; // dt
-    outputPath                      = "wtnewupdate";
+    outputPath                      = "welltemperedtausweep";
     filenamesContainLayerNames      = true;
     filenamesContainConnectionNames = true;
     checkpointRead                  = false; // deprecated
     checkpointWrite                 = true;
-    checkpointWriteDir              = "wtnewupdate/checkpoints";
-    checkpointWriteStepInterval     = 2210; //numdelays
+    checkpointWriteDir              = "welltemperedtausweep/checkpoints";
+    checkpointWriteStepInterval     = 22100; //numdelays
     deleteOlderCheckpoints          = false;
     writeProgressToErr              = true;
     outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
@@ -88,7 +88,7 @@ NewCochlearLayer "NewCochlear" = {
     sampleRate = 44100; //not used
     cochlearScale = 10000000; // used for reconstruction only
 
-    displayPeriod = .05; // nooot used
+    displayPeriod = .05; // not used
 
     //soundstream params
 
@@ -207,6 +207,7 @@ ANNNormalizedErrorLayer "NegativeError" = {
     errScale = .5;
 
     phase = 2;
+
 };
 
 HyPerLCALayer "A1" = {
@@ -244,6 +245,7 @@ HyPerLCALayer "A1" = {
     triggerFlag = false;
 
     phase = 3;
+
 };
 
 
@@ -255,7 +257,7 @@ StreamReconLayer "PositiveRecon" = {
     nyScale = 1;
     nf = 45;
     initialWriteTime = 0;
-    writeStep = .5;
+    writeStep = 5;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
@@ -279,12 +281,12 @@ StreamReconLayer "NegativeRecon" = {
     nyScale = 1;
     nf = 45;
     initialWriteTime = 0;
-    writeStep = .5;
+    writeStep = 5;
     mirrorBCflag = 0;
     valueBC = 0;
     writeSparseActivity = 0;
 
-    triggerLayerName = "Newochlear";
+    triggerLayerName = "NewCochlear";
     InitVType = "ZeroV";
     VThresh = -infinity;
     VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -392,6 +394,7 @@ KernelConn "PositiveCochlearToPositiveError" = {
     updateGSynFromPostPerspective = false;
     preActivityIsNotRate   = false;
     shmget_flag            = true;
+
 };
 
 
@@ -467,11 +470,11 @@ KernelConn "A1ToPositiveError" = {
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = .0022675737;
+    weightUpdatePeriod = .05; //.0022675737;
     initialWeightUpdateTime = .0022675737;
     initialWriteTime = 0.0;
 
-    dWMax = 0.0015; // 1.0; //0.05; //5.0;
+    dWMax = 0.00015; // 1.0; //0.05; //5.0;
     selfFlag = false;
     shmget_flag = false;
     pvpatchAccumulateType = "convolve";
@@ -520,11 +523,11 @@ KernelConn "A1ToNegativeError" = {
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    weightUpdatePeriod = .0022675737; //.0022675737;
+    weightUpdatePeriod = .05; //.0022675737;
     initialWeightUpdateTime = .0022675737; //199.0;
     initialWriteTime = 0.0;
 
-    dWMax = 0.0015; // 1.0; //0.05; //5.0;
+    dWMax = 0.00015; // 1.0; //0.05; //5.0;
     selfFlag = false;
     shmget_flag = false;
     pvpatchAccumulateType = "convolve";
@@ -652,5 +655,16 @@ StatsProbe "A1StatsFile" = {
 };
 
 
+ParameterSweep "A1":timeConstantTau = {
 
+    0.02; 0.04; 0.06; .08; .1;
 
+};
+
+ParameterSweep "column":checkpointWriteDir = {
+    "welltempered20ms/checkpoints";
+    "welltempered40ms/checkpoints";
+    "welltempered60ms/checkpoints";
+    "welltempered80ms/checkpoints";
+    "welltempered100ms/checkpoints";
+};
