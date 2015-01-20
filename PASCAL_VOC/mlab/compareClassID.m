@@ -14,7 +14,8 @@ addpath("~/workspace/PetaVision/mlab/util");
 addpath("~/workspace/PetaVision/mlab/HyPerLCA");
 
 plot_flag = true;
-output_dir = "/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape4";
+%%output_dir = "/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP_pvpmovie/VOC2007_landscape4";
+output_dir = "/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP/VOC2007_portrait";
 
 %%draw reconstructed image
 DoG_weights = [];
@@ -26,45 +27,48 @@ Recon_unwhiten_list = zeros(num_Recon_list,1);
 Recon_normalize_list = 1:num_Recon_list;
 %% list of (previous) layers to sum with current layer
 Recon_sum_list = cell(num_Recon_list,1);
-num_Recon_frames_per_layer = 10;
+num_Recon_frames_per_layer = 20;
 Recon_LIFO_flag = true;
 [Recon_hdr, Recon_fig,  Recon_fig_name, Recon_vals,  Recon_time, Recon_mean,  Recon_std] = analyzeUnwhitenedReconPVP(Recon_list, num_Recon_frames_per_layer, output_dir, plot_flag, Recon_sum_list, Recon_LIFO_flag);
 drawnow;
 
 %% sparse activity
-Sparse_list ={}; %% {["a10_"], ["GroundTruth"]}; 
-fraction_Sparse_frames_read = 0.01;
-min_Sparse_skip = 1;
-fraction_Sparse_progress = 10;
-num_epochs = 1;
-num_procs = 1;
-Sparse_frames_list = [];
-load_Sparse_flag = false;
-[Sparse_hdr, Sparse_hist_rank_array, Sparse_times_array, Sparse_percent_active_array, Sparse_percent_change_array, Sparse_std_array, Sparse_struct_array] = analyzeSparseEpochsPVP2(Sparse_list, output_dir, load_Sparse_flag, plot_flag, fraction_Sparse_frames_read, min_Sparse_skip, fraction_Sparse_progress, Sparse_frames_list, num_procs, num_epochs);
-drawnow;
-
-
-%pause;
-
-%% Error vs time
-nonSparse_list = {["a5_"], ["GroundTruthError_16X12"]; ["a11_"], ["GroundTruthError_4X3"]; ["a7_"], ["S2MaxPooled_16X12"]; ["a8_"], ["S2SumPooled_16X12"]; ["a13_"], ["S2MaxPooled_4X3"]; ["a14_"], ["S2SumPooled_4X3"]};
-num_nonSparse_list = size(nonSparse_list,1);
-nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-nonSparse_norm_list = {["a4_"], ["GroundTruthReconS2_16X12"]; ["a10_"], ["GroundTruthReconS2_4X3"]; [], []; [], []; [], []; [], []};
-nonSparse_norm_strength = ones(num_nonSparse_list,1);
-Sparse_std_ndx = [0 0 0 0 0 0]; %% 
-fraction_nonSparse_frames_read = 1;
-min_nonSparse_skip = 1;
-fraction_nonSparse_progress = 10;
-[nonSparse_times_array, nonSparse_RMS_array, nonSparse_norm_RMS_array, nonSparse_RMS_fig] = analyzeNonSparsePVP(nonSparse_list, nonSparse_skip, nonSparse_norm_list, nonSparse_norm_strength, Sparse_times_array, Sparse_std_array, Sparse_std_ndx, output_dir, plot_flag, fraction_nonSparse_frames_read, min_nonSparse_skip, fraction_nonSparse_progress);
-for i_nonSparse = 1 : num_nonSparse_list
-  figure(nonSparse_RMS_fig(i_nonSparse));
-  grid on
-  set(gca, 'linewidth', 2.0, 'color', [1 1 1]);
-endfor
-drawnow;
-%pause;
-
+%%%%Sparse_list = {["a3_"], ["GroundTruth_16X12"]; ["a9_"], ["GroundTruth_4X3"]}; 
+%%Sparse_list = {["a10_"], ["GroundTruth_16X12"]; ["a16_"], ["GroundTruth_4X3"]}; 
+%%fraction_Sparse_frames_read = 1.0;
+%%min_Sparse_skip = 1;
+%%fraction_Sparse_progress = 10;
+%%num_epochs = 1;
+%%num_procs = 1;
+%%Sparse_frames_list = [];
+%%load_Sparse_flag = false;
+%%[Sparse_hdr, Sparse_hist_rank_array, Sparse_times_array, Sparse_percent_active_array, Sparse_percent_change_array, Sparse_std_array, Sparse_struct_array] = analyzeSparseEpochsPVP2(Sparse_list, output_dir, load_Sparse_flag, plot_flag, fraction_Sparse_frames_read, min_Sparse_skip, fraction_Sparse_progress, Sparse_frames_list, num_procs, num_epochs);
+%%drawnow;
+%%
+%%
+%%%pause;
+%%
+%%%% Error vs time
+%%%%nonSparse_list = {["a5_"], ["GroundTruthError_16X12"]; ["a11_"], ["GroundTruthError_4X3"]};
+%%nonSparse_list = {["a12_"], ["GroundTruthError_16X12"]; ["a18_"], ["GroundTruthError_4X3"]};
+%%num_nonSparse_list = size(nonSparse_list,1);
+%%nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+%%nonSparse_norm_list = {["a11_"], ["GroundTruthReconS2_16X12"]; ["a17_"], ["GroundTruthReconS2_4X3"]}; %%; [], []; [], []; [], []; [], []};
+%%%%nonSparse_norm_list = {["a3_"], ["GroundTruth_16X12"]; ["a9_"], ["GroundTruth_4X3"]};
+%%nonSparse_norm_strength = ones(num_nonSparse_list,1);
+%%Sparse_std_ndx = [1 2]; %% 
+%%fraction_nonSparse_frames_read = 1;
+%%min_nonSparse_skip = 1;
+%%fraction_nonSparse_progress = 10;
+%%[nonSparse_times_array, nonSparse_RMS_array, nonSparse_norm_RMS_array, nonSparse_RMS_fig] = analyzeNonSparsePVP(nonSparse_list, nonSparse_skip, nonSparse_norm_list, nonSparse_norm_strength, Sparse_times_array, Sparse_std_array, Sparse_std_ndx, output_dir, plot_flag, fraction_nonSparse_frames_read, min_nonSparse_skip, fraction_nonSparse_progress);
+%%for i_nonSparse = 1 : num_nonSparse_list
+%%  figure(nonSparse_RMS_fig(i_nonSparse));
+%%  grid on
+%%  set(gca, 'linewidth', 2.0, 'color', [1 1 1]);
+%%endfor
+%%drawnow;
+%%%pause;
+%%
 
 classes={...
           'aeroplane'
@@ -94,11 +98,15 @@ JIEDDO_classes = classes(JIEDDO_class_ndx)
 
 for i_scale = 1 : 2
   if i_scale == 1
-    pred_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape3/a4_GroundTruthReconS2_16X12.pvp")
-    gt_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape3/a3_GroundTruth_16X12.pvp")
+    pred_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP/VOC2007_portrait/a11_GroundTruthReconS2_16X12.pvp")
+    gt_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP/VOC2007_portrait/a10_GroundTruth_16X12.pvp")
+%%    pred_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP_pvpmovie/VOC2007_landscape4/a4_GroundTruthReconS2_16X12.pvp")
+%%    gt_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP_pvpmovie/VOC2007_landscape4/a3_GroundTruth_16X12.pvp")
   elseif i_scale == 2
-    pred_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape4/a10_GroundTruthReconS2_4X3.pvp")
-    gt_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape4/a9_GroundTruth_4X3.pvp")
+    pred_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP/VOC2007_portrait/a17_GroundTruthReconS2_4X3.pvp")
+    gt_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP/VOC2007_portrait/a16_GroundTruth_4X3.pvp")
+%%    pred_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP_pvpmovie/VOC2007_landscape4/a10_GroundTruthReconS2_4X3.pvp")
+%%    gt_classID_file = fullfile("/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_SumMaxPooled_16X12_4X3_SLP_pvpmovie/VOC2007_landscape4/a9_GroundTruth_4X3.pvp")
   endif
   pred_classID_fid = fopen(pred_classID_file);
   pred_classID_hdr = readpvpheader(pred_classID_fid);
