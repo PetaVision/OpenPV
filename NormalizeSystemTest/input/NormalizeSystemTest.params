@@ -437,7 +437,7 @@ KernelConn "normalizeMax check connection" = {
    plasticityFlag = false;
    pvpatchAccumulateType = "maxpooling";
    preActivityIsNotRate = false;
-   writeStep = 1.0;
+   writeStep = -1.0;
    initialWriteTime = 0.0;
    writeCompressedWeights = false;
    writeCompressedCheckpoints = false;
@@ -448,8 +448,8 @@ KernelConn "normalizeMax check connection" = {
    shrinkPatches = false;
    updateGSynFromPostPerspective = false;
    
-   weightInitType = "UniformWeight";
-   weightInit = 1;
+   weightInitType = "MaxPoolingWeight"; //"UniformWeight";
+   //weightInit = 1;
    
    normalizeMethod = "none";
 };
