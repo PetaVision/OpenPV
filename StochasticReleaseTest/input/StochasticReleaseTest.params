@@ -9,7 +9,7 @@
 // There are six output layers, one per input layer.  Each connection
 // is a one-to-one conn with strength 0.473, using stochastic release.
 // Hence an output layer should have only values 0.473 or zero, with probability
-// of 0.473*(input value) being the input value.
+// of 0.473*(input value) being the input value multiplied by the HyPerCol dt.
 //
 // The input layers are ANNLayers that use InitV to initialize, to maintain the
 // the values we have an IdentConn going from each layer to itself on channel 0.

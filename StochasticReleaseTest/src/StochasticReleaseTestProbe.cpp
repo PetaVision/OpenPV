@@ -135,6 +135,7 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
          }
       }
    }
+   preact *= getParent()->getDeltaTime();
    if (preact < 0.0f) preact = 0.0f;
    if (preact > 1.0f) preact = 1.0f;
 
@@ -158,9 +159,10 @@ int StochasticReleaseTestProbe::computePValues(long int step, int f) {
       const int neuronsPerFeature = l->getNumGlobalNeurons()/nf;
       double mean = preact * neuronsPerFeature;
       double stddev = sqrt(neuronsPerFeature*preact*(1-preact));
-      pvalues[idx] = erfc(fabs(nnzf-mean)/sqrt(2)/stddev);
-      fprintf(outputstream->fp, "    Feature %d, nnz=%5d, expectation=%7.1f, std.dev.=%5.1f, p-value %f\n",
-              f, nnzf, mean, stddev, pvalues[idx]);
+      double numdevs = (nnzf-mean)/stddev;
+      pvalues[idx] = erfc(fabs(numdevs)/sqrt(2));
+      fprintf(outputstream->fp, "    Feature %d, nnz=%5d, expectation=%7.1f, std.dev.=%5.1f, discrepancy of %f deviations, p-value %f\n",
+              f, nnzf, mean, stddev, numdevs, pvalues[idx]);
    }
    assert(status==PV_SUCCESS);
    return status;
