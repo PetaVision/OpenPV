@@ -755,6 +755,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_triggerOffset(ioFlag);
    ioParam_weightUpdatePeriod(ioFlag);
    ioParam_initialWeightUpdateTime(ioFlag);
+   ioParam_updateGSynFromPostPerspective(ioFlag);
    ioParam_pvpatchAccumulateType(ioFlag);
    // ioParam_preActivityIsNotRate(ioFlag); // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
    // ioParam_convertRateToSpikeCount(ioFlag); // read by parent class BaseConnection
@@ -771,7 +772,6 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_nypShrunken(ioFlag);
    ioParam_nfp(ioFlag);
    ioParam_shrinkPatches(ioFlag);
-   ioParam_updateGSynFromPostPerspective(ioFlag);
    ioParam_normalizeMethod(ioFlag);
    if (normalizer != NULL) {
       normalizer->ioParamsFillGroup(ioFlag);
@@ -1002,7 +1002,8 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
          exit(EXIT_FAILURE);
       }
       //Make sure weightInitType matches if max pooled
-      if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING || pvpatchAccumulateType == ACCUMULATE_SUMPOOLING){
+      if((pvpatchAccumulateType == ACCUMULATE_MAXPOOLING || pvpatchAccumulateType == ACCUMULATE_SUMPOOLING) && 
+          !updateGSynFromPostPerspective){
          if(strcmp(weightInitTypeString, "MaxPoolingWeight") != 0){
             if (parent->columnId()==0) {
                fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType of maxpooling or sumpooling require a weightInitType of MaxPoolingWeight.\n",
