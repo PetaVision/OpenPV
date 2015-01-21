@@ -57,6 +57,7 @@ namespace PV {
         virtual void ioParam_sampleRate(enum ParamsIOFlag ioFlag);
         virtual void ioParam_dampingConstant(enum ParamsIOFlag ioFlag);
         virtual void ioParam_equalTemperedFlag(enum ParamsIOFlag ioFlag);
+        virtual void ioParam_spectrographFlag(enum ParamsIOFlag ioFlag);
   
         
         virtual void ioParam_soundInputPath(enum ParamsIOFlag ioFlag);
@@ -89,6 +90,7 @@ namespace PV {
         char* inputLayername;
         int targetChannel;
         int equalTemperedFlag;
+        int spectrographFlag;
         float dampingConstant;
         float omega;
         //float sampleRate;

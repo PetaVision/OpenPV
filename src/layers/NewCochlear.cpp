@@ -46,7 +46,7 @@ namespace PV {
     
     int NewCochlearLayer::initialize_base() {
         freqMin = 20; // hertz
-        freqMax = 4200; // hertz
+        freqMax = 20000; // hertz
         dampingConstant = 0;
         inputLayer = NULL;
         inputLayername = NULL;
@@ -56,7 +56,8 @@ namespace PV {
         vVal = NULL;
         xVal = NULL;
         omega = 0;
-        equalTemperedFlag = true;
+        equalTemperedFlag = false;
+        spectrographFlag = false;
         
         frameStart= 0;
         filename = NULL;
@@ -96,30 +97,49 @@ namespace PV {
         float newFreq = 0;
         float newradFreq = 0;
         
-        if (!equalTemperedFlag) {
-            
-            for(int i = 1; i < nxScale; i++){
-                float prevFreq = targetFreqs.back();
-                newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
-                //newFreq = prevFreq * powf(2,1/12.0); //for equal temperament
-                newradFreq = newFreq * 2 * PI;
-                targetFreqs.push_back(newFreq);
-                radianFreqs.push_back(newradFreq);
-                std::cout << ":: Frequency " << newFreq << "\n";
+        if (!spectrographFlag)  {
+        
+        
+            if (!equalTemperedFlag) {
+                
+                for(int i = 1; i < nx; i++){
+                    float prevFreq = targetFreqs.back();
+                    newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
+                    //newFreq = prevFreq * powf(2,1/12.0); //for equal temperament
+                    newradFreq = newFreq * 2 * PI;
+                    targetFreqs.push_back(newFreq);
+                    radianFreqs.push_back(newradFreq);
+                    std::cout << ":: Frequency " << newFreq << "\n";
+                }
             }
+            
+            else {
+                for(int i = 1; i < nx; i++){
+                    float prevFreq = targetFreqs.back();
+                    //newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
+                    newFreq = prevFreq * powf(2,1/12.0); //for equal temperament
+                    newradFreq = newFreq * 2 * PI;
+                    targetFreqs.push_back(newFreq);
+                    radianFreqs.push_back(newradFreq);
+                    std::cout << ":: Frequency " << newFreq << "\n";
+                }
+
+            }
+            
         }
         
         else {
-            for(int i = 1; i < nxScale; i++){
+            
+            for(int i = 1; i < nx; i++){
                 float prevFreq = targetFreqs.back();
-                //newFreq = 7e-10*powf(prevFreq,3) - 3e-6*powf(prevFreq,2) + 1.0041 * prevFreq + .6935;
-                newFreq = prevFreq * powf(2,1/12.0); //for equal temperament
+                float deltaFreq = (log(freqMax) - log(freqMin)) / nx;
+                newFreq = prevFreq * exp(deltaFreq); //for spectrograph
                 newradFreq = newFreq * 2 * PI;
                 targetFreqs.push_back(newFreq);
                 radianFreqs.push_back(newradFreq);
                 std::cout << ":: Frequency " << newFreq << "\n";
             }
-
+            
         }
         
         
@@ -206,7 +226,7 @@ namespace PV {
         //ioParam_inputLayername(ioFlag);
         ioParam_sampleRate(ioFlag);
         ioParam_equalTemperedFlag(ioFlag);
-        
+        ioParam_spectrographFlag(ioFlag);
         
         ioParam_soundInputPath(ioFlag);
         ioParam_frameStart(ioFlag);
@@ -249,6 +269,9 @@ namespace PV {
         parent->ioParamValueRequired(ioFlag, name, "equalTemperedFlag", &equalTemperedFlag);
     }
 
+    void NewCochlearLayer::ioParam_spectrographFlag(enum ParamsIOFlag ioFlag) {
+        parent->ioParamValueRequired(ioFlag, name, "spectrographFlag", &spectrographFlag);
+    }
     
     void NewCochlearLayer::ioParam_soundInputPath(enum ParamsIOFlag ioFlag) {
         parent->ioParamString(ioFlag, name, "soundInputPath", &filename, NULL, false/*warnIfAbsent*/);
@@ -265,7 +288,7 @@ namespace PV {
         
         float numSamples = nearbyint(dt / samplePeriod); //assumes dt is an integer multiple of samplePeriod
         
-      //  std::cout << ":: numSamples " << numSamples << "\n";
+      
         
         const PVLayerLoc * loc = getLayerLoc();
         int nx = loc->nx;
@@ -277,8 +300,7 @@ namespace PV {
         
         assert(fileStream);
         
-        // if (time >= nextSampleTime) {
-        //     nextSampleTime += (1.0 / sampleRate);
+        
         
         
         
