@@ -6,36 +6,8 @@
  */
 
 #include "DisparityLCALayer.hpp"
+#  include <kernels/HyPerLCALayer_update_state.cl>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void HyPerLCALayer_update_state(
-    const int numNeurons,
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
-    const int numChannels,
-
-    float * V,
-    const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
-    const float VWidth,
-    const bool selfInteract,
-    const float dt,
-    float * GSynHead,
-    float * activity);
-
-#ifdef __cplusplus
-}
-#endif
 
 namespace PV {
 
@@ -147,22 +119,4 @@ int DisparityLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * 
 }
 
 } /* namespace PV */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef PV_USE_OPENCL
-#  include <kernels/HyPerLCALayer_update_state.cl>
-#else
-#  undef PV_USE_OPENCL
-#  include <kernels/HyPerLCALayer_update_state.cl>
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
-
 
