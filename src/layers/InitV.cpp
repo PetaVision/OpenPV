@@ -191,6 +191,16 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * ic
    int filetype = getFileType(filename);
    if( filetype == PVP_FILE_TYPE) {
       PV_Stream * readFile = pvp_open_read_file(filename, icComm);
+      if (icComm->commRank()==0) {
+         if (readFile==NULL) {
+            fprintf(stderr, "InitV::calcVFromFile error: path \"%s\" could not be opened: %s.  Exiting.\n", filename, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+      }
+      else {
+         assert(readFile == NULL); // Only root process should be doing input/output
+      }
+      assert( icComm->commRank()==0 || readFile == NULL);
       assert( (readFile != NULL && icComm->commRank() == 0) || (readFile == NULL && icComm->commRank() != 0) );
       int numParams = NUM_BIN_PARAMS;
       int params[NUM_BIN_PARAMS];
