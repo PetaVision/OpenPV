@@ -161,11 +161,14 @@ Setting up your sandbox in your persistent volume:
    cd to mountData.
    Check out any sandboxes that you are planning on using. Ex:
    svn co http://svn.code.sf.net/p/petavision/code/sandbox/DepthLCA DepthLCA
+      or if you are planning on making commits:
+      svn co https://sourceForgeUserName@svn.code.sf.net/p/petavision/code/trunk PetaVision
    cd to ~/workspace.
    Edit CMakeLists.txt using your favorite editor.
    At the end of the file, add the absolute path to your sandbox to the cmakelists. Ex:
    add_subdirectory(/home/ec2-user/mountData/DepthLCA /home/ec2-user/mountData/DepthLCA)
    Note that the same directory is put twice into the command add_subdirectory.
+
 
 Building PetaVision
    cd to ~/workspace.
