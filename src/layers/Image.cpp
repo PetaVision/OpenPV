@@ -1658,7 +1658,7 @@ bool Image::constrainPoint(int * point, int min_x, int max_x, int min_y, int max
          new_y %= (2*(size_y+1));
          if (new_y<0) new_y++;
          new_y = abs(new_y);
-         if (new_y>=size_y) new_y = 2*size_y+1-new_y;
+         if (new_y>size_y) new_y = 2*size_y+1-new_y;
          new_y += min_y;
          break;
       case 2: // Stick to wall
@@ -1682,7 +1682,7 @@ bool Image::constrainPoint(int * point, int min_x, int max_x, int min_y, int max
 }
 
 bool Image::constrainBiases() {
-   return constrainPoint(biases, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
+   return constrainPoint(biases, stepSize, imageLoc.nxGlobal - getLayerLoc()->nxGlobal - stepSize, stepSize, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
 }
 
 bool Image::constrainOffsets() {
@@ -1691,7 +1691,7 @@ bool Image::constrainOffsets() {
    int oldOffsetY = getOffsetY(this->offsetAnchor, offsets[1]);
    newOffsets[0] = oldOffsetX; 
    newOffsets[1] = oldOffsetY; 
-   bool status = constrainPoint(newOffsets, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal - stepSize, biasConstraintMethod);
+   bool status = constrainPoint(newOffsets, 0, imageLoc.nxGlobal - getLayerLoc()->nxGlobal, 0, imageLoc.nyGlobal - getLayerLoc()->nyGlobal, biasConstraintMethod);
    int diffx = newOffsets[0] - oldOffsetX;
    int diffy = newOffsets[1] - oldOffsetY;
    offsets[0] = offsets[0] + diffx;
