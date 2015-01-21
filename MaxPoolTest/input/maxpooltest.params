@@ -93,7 +93,7 @@ MaxPoolTestLayer "maxPoolPost" = {
 };
 
 HyPerConn "origConn" = {
-    preLayerName = "maxPoolPre";
+    preLayerName = "maxPoolPost";
     postLayerName = "input";
     channelCode = -1; //Inhib b, doing nothing to input
     sharedWeights = true;
@@ -123,6 +123,46 @@ HyPerConn "origConn" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+     
+    delay = 0;
+     
+    convertRateToSpikeCount = false;
+    selfFlag = false;
+
+    updateGSynFromPostPerspective = true;
+    useWindowPost = false;
+
+    keepKernelsSynchronized             = true;
+};
+
+
+HyPerConn "input2maxPoolPre" = {
+    preLayerName = "input";
+    postLayerName = "maxPoolPre";
+    channelCode = 0; //Inhib b, doing nothing to input
+    sharedWeights = true;
+    nxp = 3; 
+    nyp = 3; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    writeCompressedWeights = false;
+    
+    weightInitType = "MaxPoolingWeight";
+        
+    normalizeMethod                     = "none";
+    //strength                            = 1;
+    //rMinX                               = 1.5;
+    //rMinY                               = 1.5;
+    //normalize_cutoff                    = 0;
+
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
     pvpatchAccumulateType = "maxpooling";
      
     delay = 0;
@@ -136,20 +176,20 @@ HyPerConn "origConn" = {
     keepKernelsSynchronized             = true;
 };
 
-TransposeConn "MaxPoolPre" = {
-    preLayerName = "input";
-    postLayerName = "maxPoolPre";
-    channelCode = 0; 
-    originalConnName = "origConn";
-    selfFlag = false;
-    convertRateToSpikeCount = false;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    delay = 0;
-    pvpatchAccumulateType = "maxpooling";
-    updateGSynFromPostPerspective = false;
-    receiveGpu = false;
-};
+//TransposeConn "MaxPoolPre" = {
+//    preLayerName = "input";
+//    postLayerName = "maxPoolPre";
+//    channelCode = 0; 
+//    originalConnName = "origConn";
+//    selfFlag = false;
+//    convertRateToSpikeCount = false;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    delay = 0;
+//    pvpatchAccumulateType = "maxpooling";
+//    updateGSynFromPostPerspective = false;
+//    receiveGpu = false;
+//};
 
 TransposeConn "MaxPoolPost" = {
     preLayerName = "input";
