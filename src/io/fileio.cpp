@@ -258,6 +258,7 @@ int PV_fseek(PV_Stream * pvstream, long offset, int whence) {
  * However, the function cannot guarantee recovery from errors.
  */
 size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream) {
+   assert(ferror(pvstream->fp)==0);
    int fwritecounts = 0;
    size_t writesize = nitems*size;
    size_t charswritten = (size_t) 0;
@@ -278,6 +279,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
       charswritten = fwrite(ptr, 1UL, writesize, pvstream->fp);
       if (charswritten == writesize) {
          if (hasfailed) {
+            clearerr(pvstream->fp);
             fprintf(stderr, "fwrite succeeded for \"%s\" on attempt %d.\n", pvstream->name, fwritecounts);
          }
          break;
@@ -285,6 +287,9 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
       else {
          hasfailed = true;
          fprintf(stderr, "fwrite failure for \"%s\" on attempt %d.  Return value %zu instead of %zu.  ", pvstream->name, fwritecounts, charswritten, writesize);
+         if (ferror(pvstream->fp)) {
+            fprintf(stderr, "   Error: %s\n", strerror(errno));
+         }
          if (fwritecounts<MAX_FILESYSTEMCALL_TRIES) {
             fprintf(stderr, "Retrying.\n");
             sleep(1);
@@ -2786,7 +2791,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
             if (fseekstatus == 0) {
                int numwritten = PV_fwrite(&temp_buffer[k_local], datasize, linesize, pvstream);
                if (numwritten != linesize) {
-                  fprintf(stderr, "gatherActivity error when writing: number of bytes attempted %d, number written %d\n", numwritten, numLocalNeurons);
+                  fprintf(stderr, "gatherActivity error when writing to \"%s\": number of bytes attempted %d, number written %d\n", pvstream->name, datasize*linesize, numwritten);
                   status = PV_FAILURE;
                }
             }
