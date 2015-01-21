@@ -38,6 +38,8 @@ int FilenameParsingGroundTruthLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    int status1 = ANNLayer::ioParamsFillGroup(ioFlag);
    ioParam_classes(ioFlag);
    ioParam_movieLayerName(ioFlag);
+   ioParam_gtClassTrueValue(ioFlag);
+   ioParam_gtClassFalseValue(ioFlag);
    movieLayer = dynamic_cast<Movie *>(parent->getLayerFromName(movieLayerName));
    if(movieLayer==NULL) {
       if (parent->columnId()==0) {
@@ -49,9 +51,17 @@ int FilenameParsingGroundTruthLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    return status1;
 }
 
+void FilenameParsingGroundTruthLayer::ioParam_gtClassTrueValue(enum ParamsIOFlag ioFlag) {
+      parent->ioParamValue(ioFlag, name, "gtClassTrueValue", &gtClassTrueValue, 1.0f, false);
+}
+
+
+void FilenameParsingGroundTruthLayer::ioParam_gtClassFalseValue(enum ParamsIOFlag ioFlag) {
+      parent->ioParamValue(ioFlag, name, "gtClassFalseValue", &gtClassFalseValue, -1.0f, false);
+}
+
 void FilenameParsingGroundTruthLayer::ioParam_movieLayerName(enum ParamsIOFlag ioFlag) {
       parent->ioParamStringRequired(ioFlag, name, "movieLayerName", &movieLayerName);
-
 }
 
 void FilenameParsingGroundTruthLayer::ioParam_classes(enum ParamsIOFlag ioFlag) {
@@ -103,10 +113,10 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt)
          int fi = featureIndex(nExt, loc->nx+loc->halo.rt+loc->halo.lt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
          int match = fil.find(classes[i]);
          if(0 <= match){
-            A[nExt] = 1;
+            A[nExt] = gtClassTrueValue;
          }
          else{
-            A[nExt] = -1;
+            A[nExt] = gtClassFalseValue;
          }
       }
       update_timer->stop();

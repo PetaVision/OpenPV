@@ -21,14 +21,19 @@ public:
    virtual int updateState(double timef, double dt);
    virtual bool needUpdate(double time, double dt);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   void ioParam_classes(enum ParamsIOFlag ioFlag);
-   void ioParam_movieLayerName(enum ParamsIOFlag ioFlag);
 private:
    std::ifstream inputfile;
    std::string * classes;
    int numClasses;
    char * movieLayerName;
    Movie * movieLayer;
+   float gtClassTrueValue;
+   float gtClassFalseValue;
+protected:
+   virtual void ioParam_classes(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_movieLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_gtClassTrueValue(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_gtClassFalseValue(enum ParamsIOFlag ioFlag);
 };
 
 } /* namespace PV */
