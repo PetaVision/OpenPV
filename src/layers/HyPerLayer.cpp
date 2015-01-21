@@ -656,14 +656,15 @@ int HyPerLayer::initializeState() {
    int status = PV_SUCCESS;
    PVParams * params = parent->parameters();
 
-   assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointFlag"));
    if (parent->getCheckpointReadFlag()) {
       double checkTime = parent->simulationTime();
       checkpointRead(parent->getCheckpointReadDir(), &checkTime);
    }
-   else if (initializeFromCheckpointFlag) {
-      assert(parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]);
-      status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
+   else if (parent->getInitializeFromCheckpointDir() && parent->getInitializeFromCheckpointDir()[0]) {
+      assert(!params->presentAndNotBeenRead(name, "initializeFromCheckpointFlag"));
+      if (initializeFromCheckpointFlag) {
+         status = readStateFromCheckpoint(parent->getInitializeFromCheckpointDir(), NULL);
+      }
    }
    else {
 #ifdef OBSOLETE // restartFlag Marked obsolete Dec 8, 2014.  Instead, set HyPerCol's initializeFromCheckpointDir to [outputPath]/Last and set layer's initializeFromCheckpointFlag to true
