@@ -66,6 +66,7 @@
 #include "../connections/FeedbackConn.hpp"
 #include "../connections/GapConn.hpp"
 #include "../connections/IdentConn.hpp"
+#include "../connections/ImprintConn.hpp"
 #include "../connections/KernelConn.hpp"
 #include "../connections/LCALIFLateralConn.hpp"
 #include "../connections/OjaSTDPConn.hpp"
@@ -168,7 +169,7 @@ void * CoreParamGroupHandler::createObject(char const * keyword, char const * na
          "FeedbackConn",
          "GapConn",
          "IdentConn",
-         //"ImprintConn",
+         "ImprintConn",
          "KernelConn", // Deprecated as of June 5, 2014, in favor of HyPerConn with sharedWeights = true
          "LCALIFLateralConn",
          "OjaSTDPConn",
@@ -442,6 +443,9 @@ void * CoreParamGroupHandler::createObject(char const * keyword, char const * na
    }
    if( !strcmp(keyword, "IdentConn") ) {
       addedObject = (void *) new IdentConn(name, hc);
+   }
+   if( !strcmp(keyword, "ImprintConn") ) {
+      addedObject = (void *) new ImprintConn(name, hc);
    }
    if( !strcmp(keyword, "KernelConn") ) {
       // Deprecated as of June 5, 2014.  Use HyPerConn with sharedWeight = true

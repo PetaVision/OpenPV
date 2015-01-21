@@ -385,14 +385,14 @@ private:
    
    long * postToPreActivity;
 
-   bool useMask;
-   char* maskLayerName;
-   HyPerLayer* mask;
 
 protected:
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    bool useWindowPost;
 #endif // OBSOLETE
+   bool useMask;
+   char* maskLayerName;
+   HyPerLayer* mask;
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
    int nxpShrunken, nypShrunken, offsetShrunken; // if user requires a smaller patch than is required by PetaVision

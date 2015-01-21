@@ -549,6 +549,10 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = (HyPerConn * ) new IdentConn(name, hc);
    }
+   if( !keywordMatched && !strcmp( classkeyword, "ImprintConn") ) {
+      keywordMatched = true;
+      addedConn = (HyPerConn * ) new ImprintConn(name, hc);
+   }
 #ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
    if( !keywordMatched && !strcmp(classkeyword, "NoSelfKernelConn") ) {
       keywordMatched = true;
