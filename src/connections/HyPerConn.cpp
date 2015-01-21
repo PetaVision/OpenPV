@@ -1001,6 +1001,19 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 #endif
          exit(EXIT_FAILURE);
       }
+      //Make sure weightInitType matches if max pooled
+      if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING || pvpatchAccumulateType == ACCUMULATE_SUMPOOLING){
+         if(strcmp(weightInitTypeString, "MaxPoolingWeight") != 0){
+            if (parent->columnId()==0) {
+               fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType of maxpooling or sumpooling require a weightInitType of MaxPoolingWeight.\n",
+                     parent->parameters()->groupKeywordFromName(name), name);
+            }
+#ifdef PV_USE_MPI
+            MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
+            exit(EXIT_FAILURE);
+         }
+      }
    }
 }
 
