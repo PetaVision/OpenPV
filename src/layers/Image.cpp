@@ -1608,9 +1608,9 @@ bool Image::constrainPoint(int * point, int min_x, int max_x, int min_y, int max
    bool moved_x = point[0] < min_x || point[0] > max_x;
    bool moved_y = point[1] < min_y || point[1] > max_y;
    if (moved_x) {
-      if (min_x >= max_x) {
-         fprintf(stderr, "Image::constrainPoint error.  min_x=%d and max_x= %d\n", min_x, max_x);
-         abort();
+      if (min_x > max_x) {
+         fprintf(stderr, "Image::constrainPoint error.  min_x=%d is greater than max_x= %d\n", min_x, max_x);
+         exit(EXIT_FAILURE);
       }
       int size_x = max_x-min_x;
       int new_x = point[0];
@@ -1644,9 +1644,9 @@ bool Image::constrainPoint(int * point, int min_x, int max_x, int min_y, int max
       point[0] = new_x;
    }
    if (moved_y) {
-      if (min_y >= max_y) {
-         fprintf(stderr, "Image::constrainPoint error.  min_y=%d and max_y=%d\n", min_y, max_y);
-         abort();
+      if (min_y > max_y) {
+         fprintf(stderr, "Image::constrainPoint error.  min_y=%d is greater than max_y=%d\n", min_y, max_y);
+         exit(EXIT_FAILURE);
       }
       int size_y = max_y-min_y;
       int new_y = point[1];
