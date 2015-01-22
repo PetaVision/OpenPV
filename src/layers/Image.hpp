@@ -113,12 +113,12 @@ protected:
    virtual void ioParam_stepSize(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief persistenceProb: If jitter flag is set, sets the probability that the offset returns to bias position
+    * @brief persistenceProb: If jitter flag is set, sets the probability that offset stays the same
     */
    virtual void ioParam_persistenceProb(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief recurrenceProb: If jitter flag is set, sets the probability that offset stays the same
+    * @brief recurrenceProb: If jitter flag is set, sets the probability that the offset returns to bias position
     */
    virtual void ioParam_recurrenceProb(enum ParamsIOFlag ioFlag);
 
