@@ -25,9 +25,6 @@ def plotWeights(weightDat,activityDat=None,arborIdxList=None,i_frame=0,margin=0,
     #       They are not the actual arbor/frame number. This is because
     #       there may be a writeStep that is not 1.
     #
-    # TODO: This would not be necessary if we knew writeStep, which we
-    #       would know if we included this function in a suite that reads
-    #       in parameter files.
 
     # weightDat should be dims [time, numArbors, numPatches, nyp, nxp, nfp]
     weight_vals = np.array(weightDat["values"])
@@ -116,7 +113,7 @@ def plotWeights(weightDat,activityDat=None,arborIdxList=None,i_frame=0,margin=0,
 
        out_list[i_arbor] = out_mat
 
-       #pdb.set_trace()
+       #TODO: Really need to clean up plotting code... It would be best to push it out to its own function
        if showPlot:
            if plotColor:
                plt.figure()

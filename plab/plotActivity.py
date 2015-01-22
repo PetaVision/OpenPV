@@ -15,10 +15,15 @@ import pdb
 def plotPercentActive(layer,showPlot=False,savePlot=False,saveName=''):
     numFrames     = len(layer["values"])
     percentActive = np.zeros(numFrames)
-    numElements = layer["values"][0].shape[1] #TODO: only works if coo sparse matrix
     for frame in range(numFrames):
-        numNotZero  = layer["values"][frame].nnz
-        percentActive[frame] = numNotZero/numElements
+        if isinstance(layer["values"][frame],np.ndarray):
+            numElements = np.ravel(layer["values"][frame]).shape[0]
+            numNotZero  = np.count_nonzero(layer["values"][frame])
+        else: # it is a sparse matrix
+            numElements = layer["values"][frame].shape[1] #TODO: only works if coo sparse matrix
+            numNotZero  = layer["values"][frame].nnz
+
+        percentActive[frame] = numNotZero/np.float(numElements)
 
     if showPlot:
         plt.figure()
