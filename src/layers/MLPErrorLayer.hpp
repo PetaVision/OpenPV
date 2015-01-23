@@ -20,6 +20,13 @@ public:
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
 protected:
+/**
+ * List of protect parameters for MLPErrorLayer
+ *
+ * @{
+ */
+   
+   
    MLPErrorLayer();
    virtual int initialize(const char * name, HyPerCol * hc);
    virtual int allocateV();
@@ -27,6 +34,13 @@ protected:
    virtual int checkpointWrite(const char * cpDir);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_ForwardLayername(enum ParamsIOFlag ioFlag);
+/**
+ * @brief lossFunction: defines the method by which the inhitory and excitatory channels are used for the errorProp
+ *   - squared: errorProp = GSynExt[ni] - GSynInh[ni]
+ *   - entropy: errorProp = GSynExt[ni]/GSynInh[ni]
+ *   - hidden: errorProp = GSynExt[ni]
+ */
+   
    virtual void ioParam_LossFunction(enum ParamsIOFlag ioFlag);
    virtual void ioParam_lastError(enum ParamsIOFlag ioFlag);
 
