@@ -35,31 +35,31 @@ HyPerCol "column" = {
   ny = 192; //256; // 
   dt = 1.0;
   dtAdaptFlag = true;
-  dtScaleMax = 10.0;
+  dtScaleMax = 2.0;
   dtScaleMin = 0.25;
-  dtChangeMax = 0.1;
+  dtChangeMax = 0.05;
   dtChangeMin = 0.0;
   dtMinToleratedTimeScale = 1.0e-4;
   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
   startTime =  0; //2400000; //
   stopTime =   1591000; // 52 landscape //7955 landscape images // 883 portrait images//  * displayPeriod
   progressInterval = 1000;
-  outputPath = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape";
+  outputPath = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape2";
   filenamesContainLayerNames = true;
   filenamesContainConnectionNames = true;
   defaultInitializeFromCheckpointFlag = false;
   checkpointWrite = true;
   //checkpointWriteTriggerMode = "step";
-  checkpointWriteDir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints";
+  checkpointWriteDir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape2/Checkpoints";
   checkpointWriteStepInterval = 50000;
   deleteOlderCheckpoints = false; //true;
     //suppressLastOutput = false;
-  initializeFromCheckpointDir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint180000";
+  initializeFromCheckpointDir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape2/Checkpoints/Checkpoint1591000";
   checkpointWriteTriggerMode = "step";
   writeProgressToErr = true;
   outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
   suppressLastOutput = false;
-  printParamsFilename = "PASCAL_VOC_PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP_VOC2007_landscape.params";
+  printParamsFilename = "PASCAL_VOC_PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP_VOC2007_landscape2.params";
   writeTimescales = true;
   verifyWrites = false; //true;
   errorOnNotANumber = false;
@@ -146,8 +146,7 @@ HyPerLCALayer "S1" = {
     //minV = -1.0;
     //maxV = .1; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint980000/S1_V.pvp";
-    Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2SumMaxPooled_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint260000/S1_V.pvp";
+    Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/S1_V.pvp";
     // 
     timeConstantTau = 100; //200; //100.0;
     //timeConstantTauMinimum = 10.0;
@@ -157,7 +156,7 @@ HyPerLCALayer "S1" = {
     AMax = infinity;
     AMin = 0;
     AShift = 0.0; //0.0; //0 -> hard threshold, 1 -> soft threshold
-    VWidth = 0.5; //0.05; //0.025; //0.025; //0.025; 
+    VWidth = 10.0; //0.05; //0.025; //0.025; //0.025; 
     selfInteract = true;   //
     triggerFlag = false;
     updateGpu = true;    
@@ -238,18 +237,17 @@ HyPerLCALayer "S2" = {
     //minV = -1.0;
     //maxV = .1; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint980000/S2_V.pvp";
-    Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2SumMaxPooled_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint260000/S2_V.pvp";
+    Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/S2_V.pvp";
     // 
     timeConstantTau = 100; 
     //timeConstantTauMinimum = 10.0;
     //slopeErrorStd = 0.01;
     // 
-    VThresh = 0.01; //0.005; // 0.025; //  
+    VThresh = 0.01; //0.01; // 0.025; //  
     AMax = infinity;
     AMin = 0;
     AShift = 0.0; //0.0; //0 -> hard threshold, 1 -> soft threshold
-    VWidth = 0.5; //0.1; 
+    VWidth = 10.0; //0.1; 
     selfInteract = true;   //
     triggerFlag = false;
     updateGpu = true;     
@@ -391,8 +389,8 @@ ANNLayer "GroundTruth_16X12" = {
   nyScale = 0.0625; // 
     nf = 20;
     initializeFromCheckpointFlag = false;
-    initialWriteTime = 2000.0;
-    writeStep = 2000.0;
+    initialWriteTime = 200.0;
+    writeStep = 200.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = true;
@@ -422,8 +420,8 @@ ANNLayer "GroundTruthReconS2_16X12" = {
   nyScale = 0.0625;
     nf = 20;
     initializeFromCheckpointFlag = false;
-    initialWriteTime = 2000.0;
-    writeStep = 2000.0;
+    initialWriteTime = 200.0;
+    writeStep = 200.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
@@ -455,8 +453,8 @@ ANNLayer "GroundTruthError_16X12" = {
   nyScale = 0.0625;
     nf = 20;
     initializeFromCheckpointFlag = false;
-    initialWriteTime = 2000.0;
-    writeStep = 2000;
+    initialWriteTime = 200.0;
+    writeStep = 200;
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
@@ -501,7 +499,7 @@ ANNLayer "S2MaxPooled_16X12" = {
     nf = 1536;
     initializeFromCheckpointFlag = false;
     initialWriteTime = 2000.0;
-    writeStep = 2000.0;
+    writeStep = -2000.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
@@ -529,7 +527,7 @@ ANNLayer "S2SumPooled_16X12" = {
     nf = 1536;
     initializeFromCheckpointFlag = false;
     initialWriteTime = 2000.0;
-    writeStep = 2000.0;
+    writeStep = -2000.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
@@ -560,8 +558,8 @@ ANNLayer "GroundTruth_4X3" = {
   nyScale = 0.015625; // 
     nf = 20;
     initializeFromCheckpointFlag = false;
-    initialWriteTime = 2000.0;
-    writeStep = 2000.0;
+    initialWriteTime = 200.0;
+    writeStep = 200.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = true;
@@ -591,8 +589,8 @@ ANNLayer "GroundTruthReconS2_4X3" = {
   nyScale = 0.015625;
     nf = 20;
     initializeFromCheckpointFlag = false;
-    initialWriteTime = 2000.0;
-    writeStep = 2000.0;
+    initialWriteTime = 200.0;
+    writeStep = 200.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
@@ -624,8 +622,8 @@ ANNLayer "GroundTruthError_4X3" = {
   nyScale = 0.015625;
     nf = 20;
     initializeFromCheckpointFlag = false;
-    initialWriteTime = 2000.0;
-    writeStep = 2000;
+    initialWriteTime = 200.0;
+    writeStep = 200;
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
@@ -670,7 +668,7 @@ ANNLayer "S2MaxPooled_4X3" = {
     nf = 1536;
     initializeFromCheckpointFlag = false;
     initialWriteTime = 2000.0;
-    writeStep = 2000.0;
+    writeStep = -2000.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
@@ -698,7 +696,7 @@ ANNLayer "S2SumPooled_4X3" = {
     nf = 1536;
     initializeFromCheckpointFlag = false;
     initialWriteTime = 2000.0;
-    writeStep = 2000.0;
+    writeStep = -2000.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
@@ -783,8 +781,7 @@ HyPerConn "S1ToImageReconS1Error" = {
     initializeFromCheckpointFlag = false;
     //
     weightInitType = "FileWeight";
-    //initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint980000/S1ToImageReconS1Error_W.pvp";
-    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2SumMaxPooled_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint260000/S1ToImageReconS1Error_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/S1ToImageReconS1Error_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -873,31 +870,12 @@ IdentConn "S1ToS1ReconS2Error" = {
     preLayerName = "S1";
     postLayerName = "S1ReconS2Error";
     channelCode = 0;
-    //nxp = 1; 
-    //nyp = 1; 
-    //nxpShrunken = 1; 
-    //nypShrunken = 1; 
-    //sharedWeights = true;
-    //numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     writeStep = -1;
-    //writeCompressedCheckpoints = false;
-    
-    //weightInitType = "OneToOneWeights"; //"UniformWeight";
-    //weightInit = 1.0;
-    //normalizeMethod = "none";
-    
-    //shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    //plasticityFlag = 0;
-    //pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
     preActivityIsNotRate = false;
-    //selfFlag = false;
-    //updateGSynFromPostPerspective = false;     
-    //receiveGpu = false;
 };
 
 
@@ -917,8 +895,7 @@ HyPerConn "S2ToS1ReconS2Error" = {
     initializeFromCheckpointFlag = false;
     //
     weightInitType = "FileWeight";
-    //initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint980000/S2ToS1ReconS2Error_W.pvp";
-    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2SumMaxPooled_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint260000/S2ToS1ReconS2Error_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/S2ToS1ReconS2Error_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -995,31 +972,12 @@ IdentConn "S1ReconS2ToS1ReconS2Error" = {
     preLayerName = "S1ReconS2";
     postLayerName = "S1ReconS2Error";
     channelCode = 1;
-    //nxp = 1; 
-    //nyp = 1; 
-    //nxpShrunken = 1; 
-    //nypShrunken = 1; 
-    //sharedWeights = true;
-    //numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     writeStep = -1;
-    //writeCompressedCheckpoints = false;
-    
-    //weightInitType = "OneToOneWeights"; //"UniformWeight";
-    //weightInit = 1.0;
-    //normalizeMethod = "none";
-    
-    //shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    //plasticityFlag = 0;
-    //pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
     preActivityIsNotRate = false;
-    //selfFlag = false;
-    //updateGSynFromPostPerspective = false;     
-    //receiveGpu = false;
 };
 
 
@@ -1103,30 +1061,12 @@ IdentConn "ImageReconS2ToImageReconS2Error" = {
     preLayerName = "ImageReconS2";
     postLayerName = "ImageReconS2Error";
     channelCode = 1;
-    //nxp = 1; 
-    //nyp = 1; 
-    //nxpShrunken = 1; 
-    //nypShrunken = 1; 
-    //sharedWeights = true;
-    //numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     writeStep = -1;
-    //writeCompressedCheckpoints = false;
-    
-    //weightInitType = "OneToOneWeights"; //"UniformWeight";
-    //weightInit = 1.0;
-    //normalizeMethod = "none";
-    
-    //shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    //plasticityFlag = 0;
-    //pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
     preActivityIsNotRate = false;
-    //selfFlag = false;
-    //updateGSynFromPostPerspective = false;     
     receiveGpu = false;
 };
 
@@ -1151,9 +1091,7 @@ HyPerConn "ClassIDToGroundTruth_16X12" = {
     writeStep = -1;
     writeCompressedCheckpoints = false;
     
-    weightInitType = "MaxPoolingWeight"; //"UniformWeight";
-    //connectOnlySameFeatures = true;
-    //weightInit = 1.0;
+    weightInitType = "MaxPoolingWeight"; 
     normalizeMethod = "none";
     
     shrinkPatches = false;
@@ -1176,31 +1114,12 @@ IdentConn "GroundTruthToGroundTruthError_16X12" = {
     preLayerName = "GroundTruth_16X12";
     postLayerName = "GroundTruthError_16X12";
     channelCode = 0;
-    //nxp = 1; 
-    //nyp = 1; 
-    //nxpShrunken = 1;
-    //nypShrunken = 1;
-    //sharedWeights = true;
-    //numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     writeStep = -1;
-    //writeCompressedCheckpoints = false;
     
-    //weightInitType = "OneToOneWeights"; //"UniformWeight";
-    //weightInit = 1.0;
-    //normalizeMethod = "none";
-    
-    //shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    //plasticityFlag = 0;
-    //pvpatchAccumulateType = "convolve";
-     
     delay = 0;
      
     preActivityIsNotRate = false;
-    //selfFlag = false;
-    //receiveGpu = false; //true;
-    //updateGSynFromPostPerspective = false;     
 };
 
 
@@ -1218,9 +1137,7 @@ HyPerConn "S2ToS2MaxPooled_16X12" = {
     writeStep = -1;
     writeCompressedCheckpoints = false;
     
-    weightInitType = "MaxPoolingWeight"; //"UniformWeight";
-    //connectOnlySameFeatures = true;
-    //weightInit = 1.0;
+    weightInitType = "MaxPoolingWeight"; 
     normalizeMethod = "none";
     
     shrinkPatches = false;
@@ -1275,7 +1192,7 @@ HyPerConn "S2MaxPooledToGroundTruthError_16X12" = {
     preLayerName = "S2MaxPooled_16X12";
     postLayerName = "GroundTruthError_16X12";
     channelCode = -1;
-    nxp = 1; // 7x7 -> 60x60 pixels converge to each ground truth tile
+    nxp = 1; 
     nyp = 1;
     nxpShrunken = 1;
     nypShrunken = 1;
@@ -1283,29 +1200,16 @@ HyPerConn "S2MaxPooledToGroundTruthError_16X12" = {
     numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     //
-    //weightInitType = "FileWeight";
-    ////initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint980000/S2MaxPooledToGroundTruthError_16X12_W.pvp";
-    //initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2SumMaxPooled_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint260000/S2MaxPooledToGroundTruthError_16X12_W.pvp";
-    //useListOfArborFiles = false;
-    //combineWeightFiles = false;
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -0.001;
-    wMaxInit = 0.001;
-    sparseFraction = 0.0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/S2MaxPooledToGroundTruthError_16X12_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -0.001;
+    //wMaxInit = 0.001;
+    //sparseFraction = 0.0;
     //
-    normalizeMethod = "none"; //"normalizeL2";
-    //normalizeMethod = "normalizeL2";
-    //strength = 10.0; //5.0;  
-    //minL2NormTolerated = 0;
-    //normalizeArborsIndividually = 0;
-    //normalize_cutoff = 0.0;
-    //normalizeFromPostPerspective = false;
-    //symmetrizeWeights = false;
-    //normalizeOnInitialize = true;
-    //normalizeOnWeightUpdate = true;
-    //rMinX = 0;
-    //rMinY = 0; 
-    //
+    normalizeMethod = "none"; 
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
@@ -1320,7 +1224,7 @@ HyPerConn "S2MaxPooledToGroundTruthError_16X12" = {
     triggerOffset = 1;
     triggerFlag = true;
     //initialWriteTime = 0.0;
-    dWMax = 0.005; //0.01; //
+    dWMax = 0.01; //0.01; //
     selfFlag = false;
     //shmget_flag = false;
     //
@@ -1337,7 +1241,7 @@ HyPerConn "S2SumPooledToGroundTruthError_16X12" = {
     preLayerName = "S2SumPooled_16X12";
     postLayerName = "GroundTruthError_16X12";
     channelCode = -1;
-    nxp = 1; // 7x7 -> 60x60 pixels converge to each ground truth tile
+    nxp = 1; 
     nyp = 1;
     nxpShrunken = 1;
     nypShrunken = 1;
@@ -1345,28 +1249,16 @@ HyPerConn "S2SumPooledToGroundTruthError_16X12" = {
     numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     //
-    //weightInitType = "FileWeight";
-    ////initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint980000/S2SumPooledToGroundTruthError_16X12_W.pvp";
-    //initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2SumMaxPooled_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint260000/S2SumPooledToGroundTruthError_16X12_W.pvp";
-    //useListOfArborFiles = false;
-    //combineWeightFiles = false;
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -0.001;
-    wMaxInit = 0.001;
-    sparseFraction = 0.0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/S2SumPooledToGroundTruthError_16X12_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -0.001;
+    //wMaxInit = 0.001;
+    //sparseFraction = 0.0;
     //
-    normalizeMethod = "none"; //"normalizeL2";
-    //normalizeMethod = "normalizeL2";
-    //strength = 10.0; //5.0;  
-    //minL2NormTolerated = 0;
-    //normalizeArborsIndividually = 0;
-    //normalize_cutoff = 0.0;
-    //normalizeFromPostPerspective = false;
-    //symmetrizeWeights = false;
-    //normalizeOnInitialize = true;
-    //normalizeOnWeightUpdate = true;
-    //rMinX = 0;
-    //rMinY = 0; 
+    normalizeMethod = "none"; 
     //
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
@@ -1382,7 +1274,7 @@ HyPerConn "S2SumPooledToGroundTruthError_16X12" = {
     triggerOffset = 1;
     triggerFlag = true;
     //initialWriteTime = 0.0;
-    dWMax = 0.005; //0.01; //
+    dWMax = 0.01; //0.01; //
     selfFlag = false;
     //shmget_flag = false;
     //
@@ -1407,28 +1299,16 @@ HyPerConn "BiasToGroundTruthError_16X12" = {
     numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     //
-    //weightInitType = "FileWeight";
-    ////initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint980000/BiasToGroundTruthError_16X12_W.pvp";
-    //initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2SumMaxPooled_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint260000/BiasToGroundTruthError_16X12_W.pvp";
-    //useListOfArborFiles = false;
-    //combineWeightFiles = false;
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -0.001;
-    wMaxInit = 0.001;
-    sparseFraction = 0.0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/BiasToGroundTruthError_16X12_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -0.001;
+    //wMaxInit = 0.001;
+    //sparseFraction = 0.0;
     //
-    normalizeMethod = "none"; //"normalizeL2";
-    //normalizeMethod = "normalizeL2";
-    //strength = 10.0; //5.0;  
-    //minL2NormTolerated = 0;
-    //normalizeArborsIndividually = 0;
-    //normalize_cutoff = 0.0;
-    //normalizeFromPostPerspective = false;
-    //symmetrizeWeights = false;
-    //normalizeOnInitialize = true;
-    //normalizeOnWeightUpdate = true;
-    //rMinX = 0;
-    //rMinY = 0; 
+    normalizeMethod = "none"; 
     //
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
@@ -1444,7 +1324,7 @@ HyPerConn "BiasToGroundTruthError_16X12" = {
     triggerOffset = 1;
     triggerFlag = true;
     //initialWriteTime = 0.0;
-    dWMax = 0.005; //0.01; //
+    dWMax = 0.01; //0.01; //
     selfFlag = false;
     shmget_flag = false;
     //
@@ -1514,31 +1394,14 @@ IdentConn "GroundTruthReconS2ToGroundTruthError_16X12" = {
     preLayerName = "GroundTruthReconS2_16X12";
     postLayerName = "GroundTruthError_16X12";
     channelCode = 1;
-    //nxp = 1; 
-    //nyp = 1; 
-    //nxpShrunken = 1; 
-    //nypShrunken = 1; 
-    //sharedWeights = true;
-    //numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     writeStep = -1;
-    //writeCompressedCheckpoints = false;
-    
-    //weightInitType = "OneToOneWeights"; //"UniformWeight";
-    //weightInit = 1.0;
-    //normalizeMethod = "none";
     
     shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    //plasticityFlag = 0;
-    //pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
     preActivityIsNotRate = false;
-    //selfFlag = false;
-    //updateGSynFromPostPerspective = false;     
-    //receiveGpu = false;
 };
 
 
@@ -1558,9 +1421,7 @@ HyPerConn "ClassIDToGroundTruth_4X3" = {
     writeStep = -1;
     writeCompressedCheckpoints = false;
     
-    weightInitType = "MaxPoolingWeight"; //"UniformWeight";
-    //connectOnlySameFeatures = true;
-    //weightInit = 1.0;
+    weightInitType = "MaxPoolingWeight"; 
     normalizeMethod = "none";
     
     shrinkPatches = false;
@@ -1583,31 +1444,14 @@ IdentConn "GroundTruthToGroundTruthError_4X3" = {
     preLayerName = "GroundTruth_4X3";
     postLayerName = "GroundTruthError_4X3";
     channelCode = 0;
-    //nxp = 1; 
-    //nyp = 1; 
-    //nxpShrunken = 1;
-    //nypShrunken = 1;
-    //sharedWeights = true;
-    //numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     writeStep = -1;
-    //writeCompressedCheckpoints = false;
-    
-    //weightInitType = "OneToOneWeights"; //"UniformWeight";
-    //weightInit = 1.0;
-    //normalizeMethod = "none";
     
     shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    //plasticityFlag = 0;
-    //pvpatchAccumulateType = "convolve";
      
     delay = 0;
      
     preActivityIsNotRate = false;
-    //selfFlag = false;
-    //receiveGpu = false; //true;
-    //updateGSynFromPostPerspective = false;     
 };
 
 
@@ -1625,9 +1469,7 @@ HyPerConn "S2ToS2MaxPooled_4X3" = {
     writeStep = -1;
     writeCompressedCheckpoints = false;
     
-    weightInitType = "MaxPoolingWeight"; //"UniformWeight";
-    //connectOnlySameFeatures = true;
-    //weightInit = 1.0;
+    weightInitType = "MaxPoolingWeight"; 
     normalizeMethod = "none";
     
     shrinkPatches = false;
@@ -1690,28 +1532,16 @@ HyPerConn "S2MaxPooledToGroundTruthError_4X3" = {
     numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     //
-    //weightInitType = "FileWeight";
-    ////initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint980000/S2MaxPooledToGroundTruthError_4X3_W.pvp";
-    //initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2SumMaxPooled_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint260000/S2MaxPooledToGroundTruthError_16X12_W.pvp";
-    //useListOfArborFiles = false;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/S2MaxPooledToGroundTruthError_4X3_W.pvp";
+    useListOfArborFiles = false;
     combineWeightFiles = false;
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -0.001;
-    wMaxInit = 0.001;
-    sparseFraction = 0.0;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -0.001;
+    //wMaxInit = 0.001;
+    //sparseFraction = 0.0;
     //
-    normalizeMethod = "none"; //"normalizeL2";
-    //normalizeMethod = "normalizeL2";
-    //strength = 10.0; //5.0;  
-    //minL2NormTolerated = 0;
-    //normalizeArborsIndividually = 0;
-    //normalize_cutoff = 0.0;
-    //normalizeFromPostPerspective = false;
-    //symmetrizeWeights = false;
-    //normalizeOnInitialize = true;
-    //normalizeOnWeightUpdate = true;
-    //rMinX = 0;
-    //rMinY = 0; 
+    normalizeMethod = "none"; 
     //
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
@@ -1727,7 +1557,7 @@ HyPerConn "S2MaxPooledToGroundTruthError_4X3" = {
     triggerOffset = 1;
     triggerFlag = true;
     //initialWriteTime = 0.0;
-    dWMax = 0.005; //0.01; //
+    dWMax = 0.01; //0.01; //
     selfFlag = false;
     //shmget_flag = false;
     //
@@ -1752,28 +1582,16 @@ HyPerConn "S2SumPooledToGroundTruthError_4X3" = {
     numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     //
-    //weightInitType = "FileWeight";
-    ////initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint980000/S2SumPooledToGroundTruthError_4X3_W.pvp";
-    //initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2SumMaxPooled_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint260000/S2SumPooledToGroundTruthError_16X12_W.pvp";
-    //useListOfArborFiles = false;
-    //combineWeightFiles = false;
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -0.001;
-    wMaxInit = 0.001;
-    sparseFraction = 0.0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/S2SumPooledToGroundTruthError_4X3_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -0.001;
+    //wMaxInit = 0.001;
+    //sparseFraction = 0.0;
     //
-    normalizeMethod = "none"; //"normalizeL2";
-    //normalizeMethod = "normalizeL2";
-    //strength = 10.0; //5.0;  
-    //minL2NormTolerated = 0;
-    //normalizeArborsIndividually = 0;
-    //normalize_cutoff = 0.0;
-    //normalizeFromPostPerspective = false;
-    //symmetrizeWeights = false;
-    //normalizeOnInitialize = true;
-    //normalizeOnWeightUpdate = true;
-    //rMinX = 0;
-    //rMinY = 0; 
+    normalizeMethod = "none"; 
     //
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
@@ -1789,7 +1607,7 @@ HyPerConn "S2SumPooledToGroundTruthError_4X3" = {
     triggerOffset = 1;
     triggerFlag = true;
     //initialWriteTime = 0.0;
-    dWMax = 0.005; //0.01; //
+    dWMax = 0.01; //0.01; //
     selfFlag = false;
     //shmget_flag = false;
     //
@@ -1806,7 +1624,7 @@ HyPerConn "BiasToGroundTruthError_4X3" = {
     preLayerName = "Bias_4X3";
     postLayerName = "GroundTruthError_4X3";
     channelCode = 1;
-    nxp = 1; // 7x7 -> 60x60 pixels converge to each ground truth tile
+    nxp = 1; 
     nyp = 1;
     nxpShrunken = 1;
     nypShrunken = 1;
@@ -1814,28 +1632,16 @@ HyPerConn "BiasToGroundTruthError_4X3" = {
     numAxonalArbors = 1;
     initializeFromCheckpointFlag = false;
     //
-    //weightInitType = "FileWeight";
-    ////initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint980000/BiasToGroundTruthError_4X3_W.pvp";
-    //initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2SumMaxPooled_1536_MLP/VOC2007_landscape/Checkpoints/Checkpoint260000/BiasToGroundTruthError_16X12_W.pvp";
-    //useListOfArborFiles = false;
-    //combineWeightFiles = false;
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -0.001;
-    wMaxInit = 0.001;
-    sparseFraction = 0.0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/BiasToGroundTruthError_4X3_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -0.001;
+    //wMaxInit = 0.001;
+    //sparseFraction = 0.0;
     //
-    normalizeMethod = "none"; //"normalizeL2";
-    //normalizeMethod = "normalizeL2";
-    //strength = 10.0; //5.0;  
-    //minL2NormTolerated = 0;
-    //normalizeArborsIndividually = 0;
-    //normalize_cutoff = 0.0;
-    //normalizeFromPostPerspective = false;
-    //symmetrizeWeights = false;
-    //normalizeOnInitialize = true;
-    //normalizeOnWeightUpdate = true;
-    //rMinX = 0;
-    //rMinY = 0; 
+    normalizeMethod = "none"; 
     //
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
@@ -1851,7 +1657,7 @@ HyPerConn "BiasToGroundTruthError_4X3" = {
     triggerOffset = 1;
     triggerFlag = true;
     //initialWriteTime = 0.0;
-    dWMax = 0.005; //0.01; //
+    dWMax = 0.01; //0.01; //
     selfFlag = false;
     shmget_flag = false;
     //
