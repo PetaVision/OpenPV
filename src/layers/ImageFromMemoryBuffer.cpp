@@ -47,6 +47,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
    memset(&imageLoc.halo, 0, sizeof(PVHalo));
 
    if (parent->columnId()==0) {
+      free(buffer);
       int buffersize = height*width*numbands;
       buffer = (pvadata_t *) malloc((size_t) buffersize * sizeof(pvadata_t));
       if (buffer==NULL) {
