@@ -1579,7 +1579,7 @@ int HyPerConn::allocateDataStructures() {
 
    status = constructWeights();
 
-   if (sharedWeights) {
+   if (sharedWeights && plasticityFlag) {
       const int numPatches = getNumDataPatches();
       const size_t patchSize = nxp*nyp*nfp;
       const size_t localSize = numPatches * patchSize;
@@ -3162,6 +3162,7 @@ void HyPerConn::addClone(PlasticCloneConn* conn){
 
 void HyPerConn::reduceNumKernelActivations(){
    if(sharedWeights){
+      assert(numKernelActivations);
 #ifdef PV_USE_MPI
       //Do mpi to update numKernelActivationss
       for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
@@ -3174,6 +3175,7 @@ void HyPerConn::reduceNumKernelActivations(){
 
 int HyPerConn::normalize_dW(int arbor_ID){
    if (sharedWeights) {
+      assert(numKernelActivations);
       reduceNumKernelActivations();
       for(int i = 0; i < clones.size(); i++){
          clones[i]->reduceNumKernelActivations();
