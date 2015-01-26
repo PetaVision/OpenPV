@@ -71,9 +71,11 @@ int DisparityLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * 
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
-   int num_neurons = nx*ny*nf;
+   int kx0 = loc->kx0;
+   int ky0 = loc->ky0;
    int nxGlobal = loc->nxGlobal;
    int nyGlobal = loc->nyGlobal;
+   int num_local_neurons = nx*ny*nf;
    //Only allow one mpi process for easy coding
    assert(nx == nxGlobal && ny == nyGlobal);
 
@@ -89,28 +91,38 @@ int DisparityLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * 
    std::string layerName = filename.substr(name_pos+1, len);
 
    //Calculate target index
-   int target_idx = kIndex((nx/2)-1, (ny/2)-1, neuronIdx, nx, ny, nf);
+   int target_global_x = (nxGlobal/2)-1;
+   int target_global_y = (nyGlobal/2)-1;
+   int target_f = neuronIdx;
 
    //Only update when the probe updates
    if (triggerLayer != NULL && triggerLayer->needUpdate(time, parent->getDeltaTime())){
       if(strcmp(name, layerName.c_str()) == 0){
-         for (int i = 0; i<num_neurons; i++){
-            if(i == target_idx){
-               V[i]=1.0;
-            }
-            else{
-               V[i]=0.0;
+         for (int yi = 0; yi < ny ; yi++){
+            for(int xi = 0; xi < nx; xi++){
+               for(int fi = 0; fi < nf; fi++){
+                  int target_local = kIndex(xi, yi, fi, nx, ny, nf);
+                  if((yi+ky0) == target_global_y &&
+                     (xi+kx0) == target_global_x &&
+                     (fi)     == target_f)
+                  {
+                     V[target_local]=1.0;
+                  }
+                  else{
+                     V[target_local]=0.0;
+                  }
+               }
             }
          }
       }
       else{
-         for (int i = 0; i<num_neurons; i++){
+         for (int i = 0; i<num_local_neurons; i++){
             V[i]=0.0;
          }
       }
    }
 
-   HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
+   HyPerLCALayer_update_state(num_local_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
          V, VThresh, AMax, AMin, AShift, VWidth, 
          selfInteract, dt/timeConstantTau, gSynHead, A);
 

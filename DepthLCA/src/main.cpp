@@ -8,7 +8,6 @@
 #include "BatchConn.hpp"
 #include "SLPError.hpp"
 #include "BinaryThresh.hpp"
-#include "ImprintConn.hpp"
 #include "DisparityMovie.hpp"
 #include "DisparityLCALayer.hpp"
 
@@ -44,9 +43,6 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    }
    if ( !strcmp(keyword, "BinaryThresh") ) {
       addedGroup = new BinaryThresh(name, hc);
-   }
-   if ( !strcmp(keyword, "ImprintConn") ) {
-      addedGroup = new ImprintConn(name, hc);
    }
    if ( !strcmp(keyword, "DisparityMovie") ) {
       addedGroup = new DisparityMovie(name, hc);
