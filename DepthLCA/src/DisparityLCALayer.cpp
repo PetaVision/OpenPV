@@ -76,8 +76,6 @@ int DisparityLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * 
    int nxGlobal = loc->nxGlobal;
    int nyGlobal = loc->nyGlobal;
    int num_local_neurons = nx*ny*nf;
-   //Only allow one mpi process for easy coding
-   assert(nx == nxGlobal && ny == nyGlobal);
 
    //Initialize with the neuron we're looking at on, with everything else off
    std::string filename = std::string(disparityLayer->getFilename());
