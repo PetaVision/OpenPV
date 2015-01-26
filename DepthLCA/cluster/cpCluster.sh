@@ -1,10 +1,10 @@
 #Grab all lines with node in the name
-nodenames=$(cat ./nodefile | awk '/ / {print $1}')
+nodenames=$(cat ~/workspace/DepthLCA/cluster/nodefile | awk '/ / {print $1}')
 
 #Copy data
 for node in $nodenames
 do
-   if [ "$node" != "compneuro@persona" ]
+   if [ "$node" != "persona" ]
    then
       #make sure the directory exists
       filename="$(pwd)"/$1
