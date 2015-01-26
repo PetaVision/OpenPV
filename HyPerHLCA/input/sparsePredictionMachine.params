@@ -1,0 +1,418 @@
+// PetaVision version something-point-something run at Mon Jan  5 18:59:24 2015
+// Compiled with MPI and run using 1 rows and 1 columns.
+// Compiled without OpenCL.
+// Compiled with CUDA.
+// Compiled with OpenMP parallel code and run using 8 threads.
+//
+//	Generate a sparse representation of the future
+//	Done when you predict the future perfectly
+// /home/bbroompeltz/workspace/HyPerHLCA
+// /nh/compneuro/Data/vine/sparseFuture/2015_01_13/log.txt
+
+
+//   __   __        __   __   ___     __   __   ___  __     __  ___    __                      __               ___    
+//  /__` |__)  /\  |__) /__` |__     |__) |__) |__  |  \ | /  `  |  | /  \ |\ |     |\/|  /\  /  ` |__| | |\ | |__     
+//  .__/ |    /~~\ |  \ .__/ |___    |    |  \ |___ |__/ | \__,  |  | \__/ | \|     |  | /~~\ \__, |  | | | \| |___    
+//                                                                                                                                                                                                                   
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    dtAdaptFlag                         = true;
+    dtScaleMax                          = 5;
+    dtScaleMin                          = 0.1;
+    dtChangeMax                         = 0.05;
+    dtChangeMin                         = 0;
+    dtMinToleratedTimeScale             = 0.0001;
+    stopTime                            = 1e+07;
+    progressInterval                    = 100;
+    writeProgressToErr                  = true;
+    verifyWrites                        = true;
+//  outputPath                          = "/home/ec2-user/mountData/sparsePredictionMachine";
+    outputPath							= "/nh/compneuro/Data/vine/sparseFuture/2015_01_13";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 480;
+    ny                                  = 480;
+    filenamesContainLayerNames          = 1;
+    filenamesContainConnectionNames     = 1;
+    initializeFromCheckpointDir         = "";
+    checkpointRead                      = false;
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "/nh/compneuro/Data/vine/sparseFuture/2015_01_13/Checkpoints";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 100000;
+    deleteOlderCheckpoints              = false;
+    writeTimescales                     = true;
+    errorOnNotANumber                   = false;
+};
+
+//                 ___  __   __  
+//  |     /\  \ / |__  |__) /__` 
+//  |___ /~~\  |  |___ |  \ .__/ 
+//                               
+
+Movie "Image" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    offsetAnchor                        = "tl";
+    offsetX                             = 96;
+    offsetY                             = 56;
+    writeImages                         = 0;
+    useImageBCflag                      = false;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = true;
+    normalizeStdDev                     = true;
+    jitterFlag                          = 0;
+    padValue                            = 0;
+    imageListPath                       = "/nh/compneuro/Data/vine/list/filenames_vineframes.txt";	// vineDataBase ?? can we get PetaVision to read in videos (not frames) using ffmpeg/opencv
+    displayPeriod                       = 100;			// ?
+    randomMovie                         = 0;
+    readPvpFile                         = false;
+    echoFramePathnameFlag               = true;
+    start_frame_index                   = 1;
+    skip_frame_index                    = 1;
+    writeFrameToTimestamp               = true;
+    flipOnTimescaleError                = true;
+    resetToStartOnLoop                  = false;
+};
+
+ANNNormalizedErrorLayer "PredictionError" = {			// using an adaptive timestep
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = true;
+    triggerLayerName					= "Image";
+    
+    writeStep                           = 10000;
+    initialWriteTime                    = 10000;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    VThresh                             = 0.003;
+    AMin                                = 0;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    errScale                            = 0.25;
+};
+
+ANNNormalizedErrorLayer "WorkingError" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 2;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = false;
+    writeStep                           = 10000;
+    initialWriteTime                    = 10000;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    VThresh                             = 0.003;
+    AMin                                = 0;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    errScale                            = 0.25;
+};
+
+HyPerLCALayer "V1" = {
+    nxScale                             = 0.5;						//
+    nyScale                             = 0.5;						//
+    nf                                  = 512;						//
+    phase                               = 3;						//
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "UniformRandomV";			//
+    minV                                = -1;						// Tune
+    maxV                                = 0.015;					// Tune
+    triggerFlag                         = false;
+    writeStep                           = 10000;
+    initialWriteTime                    = 0;
+    sparseLayer                         = true;
+    writeSparseValues                   = true;
+    updateGpu                           = true;
+    VThresh                             = 0.008;					// Tune
+    AMin                                = 0;						// Tune
+    AMax                                = 3.40282e+38;				
+    AShift                              = 0;
+    VWidth                              = 0.08;						// Tune
+    numChannels                         = 1;
+    timeConstantTau                     = 100;						// Tune
+    numWindowX                          = 1;
+    numWindowY                          = 1;
+    selfInteract                        = true;
+};
+
+//	///////
+//
+//	* Make multiple recon layers to visualize different future snap shots
+//	* Only need Recon to visualize, not used to train
+//	* Could use as a pseudo-weight adder before passing to Prediction Error
+//
+//	////////
+
+ANNLayer "Recon" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 4;						//
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";					//
+    triggerFlag                         = true;						//
+    triggerLayerName                    = "Image";					//
+    triggerOffset                       = 0;						//
+    writeStep                           = 10000;
+    initialWriteTime                    = 0;						//
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+};
+
+//   __   __             ___  __  ___    __        __  
+//  /  ` /  \ |\ | |\ | |__  /  `  |  | /  \ |\ | /__` 
+//  \__, \__/ | \| | \| |___ \__,  |  | \__/ | \| .__/ 
+//                                                     
+
+IdentConn "ImageToPredictionError" = {
+    preLayerName                        = "Image";
+    postLayerName                       = "PredictionError";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    receiveGpu                          = false;
+    // initWeightsFile                     was set to (NULL);
+    writeStep                           = -1;
+};
+
+IdentConn "ReconToPredictionError" = {
+    preLayerName                        = "Recon";
+    postLayerName                       = "PredictionError";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    receiveGpu                          = false;
+    // initWeightsFile                     was set to (NULL);
+    writeStep                           = -1;
+};
+
+IdentConn "PredictionErrorToWorkingError" = {
+    preLayerName                        = "PredictionError";
+    postLayerName                       = "WorkingError";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    receiveGpu                          = false;
+    // initWeightsFile                     was set to (NULL);
+    writeStep                           = -1;
+};
+
+
+KernelConn "V1ToWorkingLayer" = {
+    preLayerName                        = "V1";
+    postLayerName                       = "WorkingError";
+    channelCode                         = 1;
+    delay                               = [0.000000];					//
+    numAxonalArbors                     = 1;
+    convertRateToSpikeCount             = false;
+    weightInitType                      = "UniformRandomWeight";
+    // initWeightsFile                     was set to (NULL);
+    wMinInit                            = -1;
+    wMaxInit                            = 1;
+    sparseFraction                      = 0.9;							//
+    plasticityFlag                      = true;							//
+    triggerFlag                         = false;						//
+    weightUpdatePeriod                  = 100;							//			
+    initialWeightUpdateTime             = 0;							//
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 10000;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 30;
+    nyp                                 = 30;
+    nxpShrunken                         = 30;
+    nypShrunken                         = 30;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    updateGSynFromPostPerspective       = false;
+    normalizeMethod                     = "normalizeL2";
+    strength                            = 0.5;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = 0;
+    normalizeFromPostPerspective        = false;
+    minL2NormTolerated                  = 0;
+    dWMax                               = 10;
+    keepKernelsSynchronized             = true;
+    useMask                             = false;
+};
+
+TransposeConn "WorkingErrorToV1" = {
+    preLayerName                        = "WorkingError";
+    postLayerName                       = "V1";
+    channelCode                         = 0;
+    delay                               = [0.000000];					//
+    convertRateToSpikeCount             = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    updateGSynFromPostPerspective       = true;
+    useMask                             = false;
+    originalConnName                    = "V1ToWorkingLayer";
+};
+
+
+//	//////////////////
+//	
+//	SPARSE FUTURE
+//
+//	//////////////////               
+
+
+KernelConn "V1ToPredictionErrorDelay1dp" = {
+    preLayerName                        = "V1";
+    postLayerName                       = "PredictionError";
+    channelCode                         = -1;
+    delay                               = [000.000000];					//
+    numAxonalArbors                     = 1;
+    convertRateToSpikeCount             = false;
+    weightInitType                      = "UniformRandomWeight";		//
+    // initWeightsFile                     was set to (NULL);
+    weightInit                          = 0.033333;						//
+    plasticityFlag                      = true;							//
+    pvpatchAccumulateType               = "convolve";					//
+    writeStep                           = 10000;
+	initialWriteTime                    = 0;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 30;
+    nyp                                 = 30;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    updateGSynFromPostPerspective       = false;
+    normalizeMethod                     = "none";
+};
+
+KernelConn "V1ToPredictionErrorDelay2dp" = {
+    preLayerName                        = "V1";
+    postLayerName                       = "PredictionError";
+    channelCode                         = -1;
+    delay                               = [100.000000];					//
+    numAxonalArbors                     = 1;
+    convertRateToSpikeCount             = false;
+    weightInitType                      = "UniformRandomWeight";		//
+    // initWeightsFile                     was set to (NULL);
+    weightInit                          = 0.033333;						//
+    plasticityFlag                      = true;							//
+    pvpatchAccumulateType               = "convolve";					//
+    writeStep                           = 10000;
+	initialWriteTime                    = 0;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 30;
+    nyp                                 = 30;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    updateGSynFromPostPerspective       = false;
+    normalizeMethod                     = "none";
+};
+KernelConn "V1ToPredictionErrorDelay3dp" = {
+    preLayerName                        = "V1";
+    postLayerName                       = "PredictionError";
+    channelCode                         = -1;
+    delay                               = [200.000000];					//
+    numAxonalArbors                     = 1;
+    convertRateToSpikeCount             = false;
+    weightInitType                      = "UniformRandomWeight";		//
+    // initWeightsFile                     was set to (NULL);
+    weightInit                          = 0.033333;						//
+    plasticityFlag                      = true;							//
+    pvpatchAccumulateType               = "convolve";					//
+    writeStep                           = 10000;
+	initialWriteTime                    = 0;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 30;
+    nyp                                 = 30;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    updateGSynFromPostPerspective       = false;
+    normalizeMethod                     = "none";
+};
+
+
+CloneConn "V1ToPredictionErrorDelay1dpClone" = {
+    preLayerName                        = "V1";
+    postLayerName                       = "Recon";
+    channelCode                         = 1;
+    delay                               = [00.000000];						// same as originalConnName
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    updateGSynFromPostPerspective       = false;
+    originalConnName                    = "V1ToPredictionErrorDelay1dp";
+};
+CloneConn "V1ToPredictionErrorDelay2dpClone" = {
+    preLayerName                        = "V1";
+    postLayerName                       = "Recon";
+    channelCode                         = 1;
+    delay                               = [200.000000];						// same as originalConnName
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    updateGSynFromPostPerspective       = false;
+    originalConnName                    = "V1ToPredictionErrorDelay2dp";
+};
+CloneConn "V1ToPredictionErrorDelay3dpClone" = {
+    preLayerName                        = "V1";
+    postLayerName                       = "Recon";
+    channelCode                         = 1;
+    delay                               = [300.000000];						// same as originalConnName
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    updateGSynFromPostPerspective       = false;
+    originalConnName                    = "V1ToPredictionErrorDelay3dp";
+};
+
+
+
+StatsProbe "V1Stats" = {
+    targetLayer                         = "V1";
+    // message                             was set to (NULL);
+    // probeOutputFile                     was set to (NULL);
+    triggerFlag                         = false;
+    buffer                              = "Activity";
+    nnzThreshold                        = 0;
+};
