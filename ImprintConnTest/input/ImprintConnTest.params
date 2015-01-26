@@ -174,7 +174,6 @@ ImprintConn "imprintConnection" = {
     keepKernelsSynchronized             = true;
 
     imprintTimeThresh = 5;
-    imprintChance = 1;
 };
 
 CloneKernelConn "reconConnection" = {
