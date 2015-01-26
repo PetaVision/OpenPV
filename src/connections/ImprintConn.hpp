@@ -19,13 +19,12 @@ public:
    ImprintConn(const char * name, HyPerCol * hc);
    virtual ~ImprintConn();
 
-   //virtual int communicateInitInfo();
    virtual int allocateDataStructures();
-   // virtual int setPatchSize(const char * filename); // Now a protected method.
 
    virtual int update_dW(int arbor_ID);
    virtual int updateWeights(int arbor_ID);
-   //virtual int normalize_dW(int arbor_ID);
+   virtual int checkpointRead(const char * cpDir, double* timef);
+   virtual int checkpointWrite(const char * cpDir);
 
 protected:
    //int initialize(const char * name, HyPerCol * hc);

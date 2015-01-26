@@ -260,4 +260,58 @@ int ImprintConn::updateWeights(int arbor_ID){
    return PV_BREAK;
 }
 
+int ImprintConn::checkpointRead(const char * cpDir, double * timeptr) {
+   int status = HyPerConn::checkpointRead(cpDir, timeptr);
+   long numBuf = getNumDataPatches() * numberOfAxonalArborLists();
+   if( parent->columnId() == 0 ) {
+      char * filename = parent->pathInCheckpoint(cpDir, getName(), "_ImprintState.bin");
+      PV_Stream * pvstream = PV_fopen(filename, "r", false/*verifyWrites*/);
+      if( pvstream != NULL ) {
+         status = PV_fread(lastActiveTime, sizeof(double), numBuf, pvstream) == 1 ? status : PV_FAILURE;
+         PV_fclose(pvstream);
+      }
+      else {
+         fprintf(stderr, "Unable to read from \"%s\"\n", filename);
+         exit(-1);
+      }
+      free(filename);
+   }
+
+#ifdef PV_USE_MPI
+   if (parent->icCommunicator()->commSize()>1) {
+      //Communicate buffer size to rest of processes
+      MPI_Bcast(lastActiveTime, numBuf, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
+   }
+#endif // PV_USE_MPI
+   return status;
+}
+
+int ImprintConn::checkpointWrite(const char * cpDir) {
+   int status = HyPerConn::checkpointWrite(cpDir);
+   long numBuf = getNumDataPatches() * numberOfAxonalArborLists();
+   if( parent->columnId() == 0 ) {
+      int filenamesize = strlen(cpDir)+1+strlen(name)+18;
+      // The +1 is for the slash between cpDir and name; the +18 needs to be large enough to hold the suffix _PatternState.{bin,txt} plus the null terminator
+      char * filename = (char *) malloc( filenamesize*sizeof(char) );
+      assert(filename != NULL);
+      sprintf(filename, "%s/%s_ImprintState.bin", cpDir, name);
+      std::cout << "filename: " << filename << "\n";
+      PV_Stream * pvstream = PV_fopen(filename, "w", parent->getVerifyWrites());
+      if( pvstream != NULL ) {
+         status = PV_fwrite(lastActiveTime, sizeof(double), numBuf, pvstream) == numBuf ? status : PV_FAILURE;
+         PV_fclose(pvstream);
+      }
+      else {
+         fprintf(stderr, "Unable to write to \"%s\"\n", filename);
+         exit(-1);
+      }
+      if (status != PV_SUCCESS) {
+         fprintf(stderr, "Patterns::checkpointWrite error: %s \"%s\" failed writing to %s\n", parent->parameters()->groupKeywordFromName(name), name, filename);
+         exit(EXIT_FAILURE);
+      }
+      free(filename); filename=NULL;
+   }
+   return PV_SUCCESS;
+}
+
 } // end namespace PV
