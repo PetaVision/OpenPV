@@ -92,13 +92,16 @@ int SUPointProbe::communicateInitInfo() {
 }
 
 int SUPointProbe::outputState(double timef){
-   //Initialize with the neuron we're looking at on, with everything else off
-   std::string filename = std::string(disparityLayer->getFilename());
-   //Parse filename to grab layer name and neuron index
-   size_t und_pos = filename.find_last_of("_");
-   size_t ext_pos = filename.find_last_of(".");
-   fLoc = atoi(filename.substr(und_pos+1, ext_pos-und_pos-1).c_str());
-   PointProbe::outputState(timef);
+   if(parent->columnId()==0){
+      //Initialize with the neuron we're looking at on, with everything else off
+      std::string filename = std::string(disparityLayer->getFilename());
+      //Parse filename to grab layer name and neuron index
+      size_t und_pos = filename.find_last_of("_");
+      size_t ext_pos = filename.find_last_of(".");
+      fLoc = atoi(filename.substr(und_pos+1, ext_pos-und_pos-1).c_str());
+      PointProbe::outputState(timef);
+   }
+   return PV_SUCCESS;
 }
 
 /**
@@ -108,17 +111,17 @@ int SUPointProbe::outputState(double timef){
  * @kex
  */
 int SUPointProbe::writeState(double timef, HyPerLayer * l, int k, int kex) {
+   if(parent->columnId()==0){
+      assert(outputstream && outputstream->fp);
+      const pvdata_t * V = l->getV();
+      const pvdata_t * activity = l->getLayerData();
 
-   assert(outputstream && outputstream->fp);
-   const pvdata_t * V = l->getV();
-   const pvdata_t * activity = l->getLayerData();
-
-   fprintf(outputstream->fp, "%s t=%.1f", msg, timef);
-   fprintf(outputstream->fp, " feature=%d", fLoc);
-   fprintf(outputstream->fp, " a=%.5f", activity[kex]);
-   fprintf(outputstream->fp, "\n");
-   fflush(outputstream->fp);
-
+      fprintf(outputstream->fp, "%s t=%.1f", msg, timef);
+      fprintf(outputstream->fp, " feature=%d", fLoc);
+      fprintf(outputstream->fp, " a=%.5f", activity[kex]);
+      fprintf(outputstream->fp, "\n");
+      fflush(outputstream->fp);
+   }
    return PV_SUCCESS;
 }
 
