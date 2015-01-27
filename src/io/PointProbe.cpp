@@ -67,7 +67,6 @@ void PointProbe::ioParam_fLoc(enum ParamsIOFlag ioFlag) {
 int PointProbe::initOutputStream(const char * filename) {
    // Called by LayerProbe::initLayerProbe, which is called near the end of PointProbe::initPointProbe
    // So this->xLoc, yLoc, fLoc have been set.
-   const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
    if( filename != NULL ) {
       char * outputdir = getParent()->getOutputPath();
       char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
