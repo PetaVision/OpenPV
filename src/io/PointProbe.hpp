@@ -38,7 +38,7 @@ protected:
    virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_fLoc(enum ParamsIOFlag ioFlag);
    virtual int initOutputStream(const char * filename);
-   virtual int writeState(double timef, HyPerLayer * l, int k, int kex);
+   virtual int point_writeState(double timef, float outVVal, float outAVal);
 
 private:
    int initPointProbe_base();
