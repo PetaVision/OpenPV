@@ -131,9 +131,8 @@ function [Recon_hdr, ...
 	box off; axis off; axis image;
 	saveas(Recon_fig(i_Recon, i_frame), ...
 	       [Recon_dir, filesep, Recon_fig_name{i_Recon}, ".png"], "png");
-      else
-	imwrite(Recon_vals_tmp, [Recon_dir, filesep, Recon_fig_name{i_Recon}, ".png"], "png");
       endif
+      imwrite(Recon_vals_tmp, [Recon_dir, filesep, Recon_fig_name{i_Recon}, "_image", ".png"], "png");
 
 
 
