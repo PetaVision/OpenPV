@@ -10,6 +10,7 @@
 #include "BinaryThresh.hpp"
 #include "DisparityMovie.hpp"
 #include "DisparityLCALayer.hpp"
+#include "SUPointProbe.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -49,6 +50,9 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    }
    if ( !strcmp(keyword, "DisparityLCALayer") ) {
       addedGroup = new DisparityLCALayer(name, hc);
+   }
+   if ( !strcmp(keyword, "SUPointProbe") ) {
+      addedGroup = new SUPointProbe(name, hc);
    }
    return addedGroup;
 }

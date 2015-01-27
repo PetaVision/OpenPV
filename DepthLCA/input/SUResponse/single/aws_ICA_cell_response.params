@@ -54,7 +54,7 @@ DisparityMovie "LeftImage" = {
     imageListPath = "~/mountData/DepthLCA/input/SUResponse/single/aws_weightInput.txt";
     writeFrameToTimestamp = true;
     nf = 3;
-    writeStep = 1;//-1;
+    writeStep = -1;//-1;
     writeSparseActivity = false;
     displayPeriod = 1; //200;
     start_frame_index = 1;
@@ -140,10 +140,10 @@ ANNLayer "V1" = {
     numChannels = 1;
     numWindowX = 1;
     numWindowY = 1;
-    writeStep = 1.0;
+    writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
-    writeSparseActivity = 1;
+    writeSparseActivity = 0;
     writeSparseValues   = 1;
     //
     InitVType = "ZeroV";
@@ -286,4 +286,12 @@ TransposeConn "RightErrorToV1" = {
     #include "LeftErrorToV1";
     @preLayerName = "RightError";
     @originalConnName = "V1ToRightError";
+};
+
+//Probe to watch neuron activity
+SUPointProbe "V1Probe" = {
+   message = "SUAct";
+   probeOutputFile = "ICA_V1.probe";
+   targetName = "V1";
+   disparityLayerName = "LeftImage";
 };
