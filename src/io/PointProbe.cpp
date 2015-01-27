@@ -68,32 +68,19 @@ int PointProbe::initOutputStream(const char * filename) {
    // Called by LayerProbe::initLayerProbe, which is called near the end of PointProbe::initPointProbe
    // So this->xLoc, yLoc, fLoc have been set.
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-
-   const int kx0 = loc->kx0;
-   const int ky0 = loc->ky0;
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-   const int xLocLocal = xLoc - kx0;
-   const int yLocLocal = yLoc - ky0;
-   bool pointInLocalFrame = xLocLocal >= 0 && xLocLocal < nx && yLocLocal >=0 && yLocLocal < ny;
-   if (pointInLocalFrame) {
-      if( filename != NULL ) {
-         char * outputdir = getParent()->getOutputPath();
-         char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
-         sprintf(path, "%s/%s", outputdir, filename);
-         outputstream = PV_fopen(path, "w", false/*verifyWrites*/);
-         if( !outputstream ) {
-            fprintf(stderr, "LayerProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-         free(path);
+   if( filename != NULL ) {
+      char * outputdir = getParent()->getOutputPath();
+      char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
+      sprintf(path, "%s/%s", outputdir, filename);
+      outputstream = PV_fopen(path, "w", false/*verifyWrites*/);
+      if( !outputstream ) {
+         fprintf(stderr, "LayerProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
+         exit(EXIT_FAILURE);
       }
-      else {
-         outputstream = PV_stdout();
-      }
+      free(path);
    }
    else {
-      outputstream = NULL;
+      outputstream = PV_stdout();
    }
    return PV_SUCCESS;
 }
