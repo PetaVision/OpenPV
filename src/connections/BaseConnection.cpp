@@ -272,6 +272,7 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_channelCode(ioFlag);
    ioParam_delay(ioFlag);
    ioParam_numAxonalArbors(ioFlag);
+   ioParam_plasticityFlag(ioFlag);
    // ioParam_preActivityIsNotRate(ioFlag); // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
    ioParam_convertRateToSpikeCount(ioFlag);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -343,6 +344,10 @@ void BaseConnection::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
          fprintf(stdout, "HyPerConn:: Warning: Connection %s: Variable numAxonalArbors is set to 0. No connections will be made.\n", this->getName());
       }
    }
+}
+
+void BaseConnection::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "plasticityFlag", &plasticityFlag, true/*default value*/);
 }
 
 // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
@@ -544,7 +549,10 @@ void BaseConnection::setDelay(int arborId, float delay) {
 int BaseConnection::initializeState() {
    int status = PV_SUCCESS;
    assert(parent->getInitializeFromCheckpointDir()); // should never be null; it should be the empty string if not initializing from a checkpoint
-   if (parent->getCheckpointReadFlag()) {
+   if (!this->getPlasticityFlag() && parent->getSuppressNonplasticCheckpoints()) {
+      status = setInitialValues();
+   }
+   else if (parent->getCheckpointReadFlag()) {
       double checkTime = parent->simulationTime();
       checkpointRead(parent->getCheckpointReadDir(), &checkTime);
    }

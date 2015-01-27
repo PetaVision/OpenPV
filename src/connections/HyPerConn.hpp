@@ -117,9 +117,10 @@ public:
       return sharedWeights;
    }
 
-   inline bool getPlasticityFlag() {
-      return plasticityFlag;
-   };
+   //plasticityFlag moved to parent class BaseConnection on Jan 26, 2015.
+   //inline bool getPlasticityFlag() {
+   //   return plasticityFlag;
+   //};
 
    inline bool getKeepKernelsSynchronized() { 
       return keepKernelsSynchronized_flag;
@@ -422,7 +423,7 @@ protected:
    Timer * update_timer;
 
    bool sharedWeights; // Set to true for the old KernelConn behavior
-   bool plasticityFlag;
+   // bool plasticityFlag; // Moved to base class BaseConnection on Jan 26, 2015
    bool triggerFlag;
    bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
@@ -636,10 +637,11 @@ protected:
 
    virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief plasticityFlag: Specifies if the weights will be updated
-    */
-   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+   // plasticityFlag was moved to base class BaseConnection on Jan 26, 2015.
+   // /**
+   //  * @brief plasticityFlag: Specifies if the weights will be updated
+   //  */
+   // virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief weightUpdatePeriod: If plasticity flag is set, specifies the update period of weights

@@ -186,14 +186,6 @@ public:
     */
    virtual int insertProbe(BaseConnectionProbe* p);
 
-//   /**
-//    * A pure virtual method for applying the presynaptic layer's activity to
-//    * the postsynaptic GSyn.
-//    * gSyn is a pointer to the GSyn buffer to modify.
-//    * thread_gSyn is a pointer to a replicated buffer used by OpenMP threads.
-//    */
-//   virtual int deliverGSyn(pvgsyndata_t * gSyn, pvgsyndata_t ** thread_gSyn) = 0;
-
    /**
     * Returns the connection's name
     */
@@ -247,6 +239,10 @@ public:
    inline int numberOfAxonalArborLists() {
       return numAxonalArborLists;
    }
+
+   inline bool getPlasticityFlag() {
+      return plasticityFlag;
+   };
 
    /**
     * Returns the delay (in timesteps) belonging the given arbor.
@@ -429,6 +425,11 @@ protected:
     */
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
 
+   /**
+    * @brief plasticityFlag: Specifies if the weights will update
+    */
+   virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+
    // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
    // /**
    //  * @brief preActivityIsNotRate: If true, pre activity is spike rate. If false, pre activity is value
@@ -561,6 +562,7 @@ protected:
    HyPerLayer * post;
    ChannelType channel;
    int numAxonalArborLists; // number of axonal arbors from presynaptic layer
+   bool plasticityFlag;
    // bool preActivityIsNotRate; // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
    bool convertRateToSpikeCount; // Whether to check if pre-layer is spiking and, if it is not, scale activity by dt to convert it to a spike count
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)

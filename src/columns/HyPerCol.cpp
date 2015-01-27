@@ -145,6 +145,7 @@ int HyPerCol::initialize_base() {
    memset(lastCheckpointDir, 0, PV_PATH_MAX);
    defaultInitializeFromCheckpointFlag = false;
    suppressLastOutput = false;
+   suppressNonplasticCheckpoints = false;
    simTime = 0.0;
    startTime = 0.0;
    stopTime = 0.0;
@@ -533,6 +534,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_checkpointWriteTimeInterval(ioFlag);
    ioParam_deleteOlderCheckpoints(ioFlag);
    ioParam_suppressLastOutput(ioFlag);
+   ioParam_suppressNonplasticCheckpoints(ioFlag);
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
    return PV_SUCCESS;
@@ -958,6 +960,13 @@ void HyPerCol::ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
    if (!checkpointWriteFlag) {
       ioParamValue(ioFlag, name, "suppressLastOutput", &suppressLastOutput, false/*default value*/);
+   }
+}
+
+void HyPerCol::ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
+   if (checkpointWriteFlag) {
+      ioParamValue(ioFlag, name, "suppressNonplasticCheckpoints", &suppressNonplasticCheckpoints, suppressNonplasticCheckpoints);
    }
 }
 
@@ -2089,7 +2098,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       layers[l]->checkpointWrite(cpDir);
    }
    for( int c=0; c<numConnections; c++ ) {
-      connections[c]->checkpointWrite(cpDir);
+      if (suppressNonplasticCheckpoints) { connections[c]->checkpointWrite(cpDir); }
    }
    
    // Timers

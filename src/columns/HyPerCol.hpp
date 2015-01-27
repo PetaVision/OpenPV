@@ -126,7 +126,8 @@ public:
    bool getCheckpointReadFlag()           {return checkpointReadFlag;}
    const char * getCheckpointReadDir()    {return checkpointReadDir;}
    bool getCheckpointWriteFlag()          {return checkpointWriteFlag;}
-   bool getSuppresLastOutputFlag()        {return suppressLastOutput;}
+   bool getSuppressLastOutputFlag()        {return suppressLastOutput;}
+   bool getSuppressNonplasticCheckpoints() {return suppressNonplasticCheckpoints;}
    const char * getPrintParamsFilename()  {return printParamsFilename;}
    int getNumThreads()                    {return numThreads;}
    bool getWriteTimescales()              {return writeTimescales;}
@@ -359,6 +360,11 @@ private:
    virtual void ioParam_suppressLastOutput(enum ParamsIOFlag ioFlag);
 
    /**
+    * If checkpointWriteFlag is true and this flag is true, connections' checkpointWrite method will only be called for connections with plasticityFlag=false.
+    */
+   virtual void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief writeTimescales: If dtAdaptFlag, specifies if the timescales should be written
     * @details The timescales get written to outputPath/HyPerCol_timescales.txt.
     */
@@ -424,6 +430,7 @@ private:
    bool suppressLastOutput; // If checkpointWriteFlag is false and this flag is false, on exit a checkpoint is sent to the {outputPath}/Last directory.
                             // If checkpointWriteFlag is false and this flag is true, no checkpoint is done on exit.
                             // The flag has no effect if checkpointWriteFlag is true (in which case a checkpoint is written on exit to the next directory in checkpointWriteDir
+   bool suppressNonplasticCheckpoints; // If suppressNonplasticCheckpoints is true, only weights with plasticityFlag true will be checkpointed.  If false, all weights will be checkpointed.
 
    bool readyFlag;          // Initially false; set to true when communicateInitInfo, allocateDataStructures, and setInitialValues stages are completed
    double startTime;

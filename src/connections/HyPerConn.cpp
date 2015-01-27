@@ -749,7 +749,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    }
    ioParam_initializeFromCheckpointFlag(ioFlag);
    // ioParam_numAxonalArbors(ioFlag); // read by parent class BaseConnection
-   ioParam_plasticityFlag(ioFlag);
+   // ioParam_plasticityFlag(ioFlag); // read by parent class BaseConnection
    ioParam_triggerFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerOffset(ioFlag);
@@ -896,9 +896,10 @@ void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void HyPerConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "plasticityFlag", &plasticityFlag, true/*default value*/);
-}
+// ioParam_plasticityFlag was moved to the base class BaseConnection on Jan 26, 2015.
+//void HyPerConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
+//   parent->ioParamValue(ioFlag, name, "plasticityFlag", &plasticityFlag, true/*default value*/);
+//}
 
 void HyPerConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag){
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
@@ -1056,7 +1057,7 @@ void HyPerConn::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
-   if (parent->getCheckpointWriteFlag() || !parent->getSuppresLastOutputFlag()) {
+   if (parent->getCheckpointWriteFlag() || !parent->getSuppressLastOutputFlag()) {
       parent->ioParamValue(ioFlag, name, "writeCompressedCheckpoints", &writeCompressedCheckpoints, writeCompressedCheckpoints, /*warnifabsent*/true);
    }
 }
