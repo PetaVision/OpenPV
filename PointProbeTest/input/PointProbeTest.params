@@ -1,0 +1,106 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8; //1242;  // KITTI synced value
+    ny = 8;  //218;
+    dt = 1.0;
+    dtAdaptFlag = false;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0.0;
+    stopTime = 10.0;       // Depends on number of VINE video frames
+    progressInterval = 1.0;
+    outputPath = "output/";
+    printParamsFilename = "pv.params";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    initializeFromCheckpointDir = "";
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+    verifyWrites = false;
+    errorOnNotANumber = false;
+};
+
+Movie "Input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    readPvpFile = true;
+    imageListPath = "input/Input.pvp";
+    writeFrameToTimestamp = true;
+    writeStep = -1;
+    sparseLayer = false;
+    displayPeriod = 1;
+    start_frame_index = 0;
+    skip_frame_index = 0;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+ANNLayer "InputBuf" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = -1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0.0;
+    VWidth = 0.0;
+    // 
+    phase = 1; 
+    triggerFlag = false;
+};
+
+
+//Testing 4 points, such that when ran with mpi, it will test each process
+TestPointProbe "UpLeft" = {
+   targetLayer = "InputBuf";
+   xLoc = 1;
+   yLoc = 1;
+   fLoc = 0;
+}
+
+TestPointProbe "UpRight" = {
+   targetLayer = "InputBuf";
+   xLoc = 6;
+   yLoc = 1;
+   fLoc = 1;
+}
+
+TestPointProbe "DownLeft" = {
+   targetLayer = "InputBuf";
+   xLoc = 1;
+   yLoc = 6;
+   fLoc = 2;
+}
+
+TestPointProbe "DownRight" = {
+   targetLayer = "InputBuf";
+   xLoc = 6;
+   yLoc = 6;
+   fLoc = 0;
+}
+
+
+
