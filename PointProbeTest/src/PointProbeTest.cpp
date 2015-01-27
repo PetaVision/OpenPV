@@ -6,7 +6,7 @@
 
 
 #include <columns/buildandrun.hpp>
-#include "TestPointProbet.hpp"
+#include "TestPointProbe.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 

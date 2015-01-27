@@ -1,4 +1,4 @@
-debugParsing = false;
+debugParsing = true;
 
 HyPerCol "column" = {
     nx = 8; //1242;  // KITTI synced value
@@ -50,57 +50,34 @@ Movie "Input" = {
     //useParamsImage = true;
 };
 
-ANNLayer "InputBuf" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 3;
-    writeStep = -1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = false;
-    valueBC = 0.0;
-    sparseLayer = 0;
-    //
-    InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0.0;
-    VWidth = 0.0;
-    // 
-    phase = 1; 
-    triggerFlag = false;
-};
-
-
 //Testing 4 points, such that when ran with mpi, it will test each process
 TestPointProbe "UpLeft" = {
-   targetLayer = "InputBuf";
+   targetLayer = "Input";
    xLoc = 1;
    yLoc = 1;
    fLoc = 0;
-}
+};
 
 TestPointProbe "UpRight" = {
-   targetLayer = "InputBuf";
+   targetLayer = "Input";
    xLoc = 6;
    yLoc = 1;
    fLoc = 1;
-}
+};
 
 TestPointProbe "DownLeft" = {
-   targetLayer = "InputBuf";
+   targetLayer = "Input";
    xLoc = 1;
    yLoc = 6;
    fLoc = 2;
-}
+};
 
 TestPointProbe "DownRight" = {
-   targetLayer = "InputBuf";
+   targetLayer = "Input";
    xLoc = 6;
    yLoc = 6;
    fLoc = 0;
-}
+};
 
 
 
