@@ -65,21 +65,23 @@ void PointProbe::ioParam_fLoc(enum ParamsIOFlag ioFlag) {
 }
 
 int PointProbe::initOutputStream(const char * filename) {
-   // Called by LayerProbe::initLayerProbe, which is called near the end of PointProbe::initPointProbe
-   // So this->xLoc, yLoc, fLoc have been set.
-   if( filename != NULL ) {
-      char * outputdir = getParent()->getOutputPath();
-      char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
-      sprintf(path, "%s/%s", outputdir, filename);
-      outputstream = PV_fopen(path, "w", false/*verifyWrites*/);
-      if( !outputstream ) {
-         fprintf(stderr, "LayerProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
-         exit(EXIT_FAILURE);
+   if(parent->columnId()==0){
+      // Called by LayerProbe::initLayerProbe, which is called near the end of PointProbe::initPointProbe
+      // So this->xLoc, yLoc, fLoc have been set.
+      if( filename != NULL ) {
+         char * outputdir = getParent()->getOutputPath();
+         char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
+         sprintf(path, "%s/%s", outputdir, filename);
+         outputstream = PV_fopen(path, "w", false/*verifyWrites*/);
+         if( !outputstream ) {
+            fprintf(stderr, "LayerProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         free(path);
       }
-      free(path);
-   }
-   else {
-      outputstream = PV_stdout();
+      else {
+         outputstream = PV_stdout();
+      }
    }
    return PV_SUCCESS;
 }
@@ -117,22 +119,27 @@ int PointProbe::communicateInitInfo() {
  */
 int PointProbe::outputState(double timef)
 {
-   const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
+   if(parent->columnId()==0){
+      const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
 
-   const int kx0 = loc->kx0;
-   const int ky0 = loc->ky0;
-   const int nx = loc->nx;
-   const int ny = loc->ny;
-   const int xLocLocal = xLoc - kx0;
-   const int yLocLocal = yLoc - ky0;
-   if( xLocLocal < 0 || xLocLocal >= nx ||
-       yLocLocal < 0 || yLocLocal >= ny) return PV_SUCCESS;
-   const int nf = loc->nf;
+      const int kx0 = loc->kx0;
+      const int ky0 = loc->ky0;
+      const int nx = loc->nx;
+      const int ny = loc->ny;
+      const int xLocLocal = xLoc - kx0;
+      const int yLocLocal = yLoc - ky0;
+      if( xLocLocal < 0 || xLocLocal >= nx ||
+          yLocLocal < 0 || yLocLocal >= ny) return PV_SUCCESS;
+      const int nf = loc->nf;
 
-   const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
-   const int kex = kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+      const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
+      const int kex = kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
 
-   return writeState(timef, getTargetLayer(), k, kex);
+      return writeState(timef, getTargetLayer(), k, kex);
+   }
+   else{
+      return PV_SUCCESS;
+   }
 }
 
 /**
@@ -142,17 +149,17 @@ int PointProbe::outputState(double timef)
  * @kex
  */
 int PointProbe::writeState(double timef, HyPerLayer * l, int k, int kex) {
+   if(parent->columnId()==0){
+      assert(outputstream && outputstream->fp);
+      const pvdata_t * V = l->getV();
+      const pvdata_t * activity = l->getLayerData();
 
-   assert(outputstream && outputstream->fp);
-   const pvdata_t * V = l->getV();
-   const pvdata_t * activity = l->getLayerData();
-
-   fprintf(outputstream->fp, "%s t=%.1f", msg, timef);
-   fprintf(outputstream->fp, " V=%6.5f", V != NULL ? V[k] : 0.0f);
-   fprintf(outputstream->fp, " a=%.5f", activity[kex]);
-   fprintf(outputstream->fp, "\n");
-   fflush(outputstream->fp);
-
+      fprintf(outputstream->fp, "%s t=%.1f", msg, timef);
+      fprintf(outputstream->fp, " V=%6.5f", V != NULL ? V[k] : 0.0f);
+      fprintf(outputstream->fp, " a=%.5f", activity[kex]);
+      fprintf(outputstream->fp, "\n");
+      fflush(outputstream->fp);
+   }
    return PV_SUCCESS;
 }
 
