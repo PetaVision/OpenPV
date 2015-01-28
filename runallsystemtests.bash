@@ -404,6 +404,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
+testname=PointProbeTest
+cd "$testname"
+arglist="-p input/PointProbeTest.params"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
 testname=RandStateSystemTest
 cd "$testname"
 arglist="-p input/RandStateSystemTest.params"
