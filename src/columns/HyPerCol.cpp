@@ -2098,7 +2098,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       layers[l]->checkpointWrite(cpDir);
    }
    for( int c=0; c<numConnections; c++ ) {
-      if (suppressNonplasticCheckpoints) { connections[c]->checkpointWrite(cpDir); }
+      if (connections[c]->getPlasticityFlag() || !suppressNonplasticCheckpoints) { connections[c]->checkpointWrite(cpDir); }
    }
    
    // Timers
