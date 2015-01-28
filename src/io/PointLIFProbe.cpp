@@ -26,7 +26,7 @@ PointLIFProbe::PointLIFProbe() : PointProbe()
 PointLIFProbe::PointLIFProbe(const char * probeName, HyPerCol * hc) : PointProbe()
 {
    initPointLIFProbe_base();
-   initPointLIFProbe(probeName, hc);
+   initialize(probeName, hc);
 }
 
 int PointLIFProbe::initPointLIFProbe_base() {
@@ -35,8 +35,8 @@ int PointLIFProbe::initPointLIFProbe_base() {
    return PV_SUCCESS;
 }
 
-int PointLIFProbe::initPointLIFProbe(const char * probeName, HyPerCol * hc) {
-   int status = initPointProbe(probeName, hc);
+int PointLIFProbe::initialize(const char * probeName, HyPerCol * hc) {
+   int status = PointProbe::initialize(probeName, hc);
    writeTime = getParent()->getStartTime();
    return status;
 }

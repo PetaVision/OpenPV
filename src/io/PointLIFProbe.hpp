@@ -22,7 +22,7 @@ public:
 
 protected:
    PointLIFProbe();
-   int initPointLIFProbe(const char * probeName, HyPerCol * hc);
+   int initialize(const char * probeName, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
 

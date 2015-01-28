@@ -24,7 +24,7 @@ PointProbe::PointProbe(const char * probeName, HyPerCol * hc) :
    LayerProbe()
 {
    initPointProbe_base();
-   initPointProbe(probeName, hc);
+   initialize(probeName, hc);
 }
 
 PointProbe::~PointProbe()
@@ -39,7 +39,7 @@ int PointProbe::initPointProbe_base() {
    return PV_SUCCESS;
 }
 
-int PointProbe::initPointProbe(const char * probeName, HyPerCol * hc) {
+int PointProbe::initialize(const char * probeName, HyPerCol * hc) {
    int status = LayerProbe::initialize(probeName, hc);
    return status;
 }

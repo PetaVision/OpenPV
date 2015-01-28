@@ -32,7 +32,7 @@ protected:
    // bool sparseOutput;
 
    PointProbe();
-   int initPointProbe(const char * probeName, HyPerCol * hc);
+   int initialize(const char * probeName, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_xLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);
