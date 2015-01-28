@@ -147,11 +147,13 @@ int PointProbe::outputState(double timef)
       if(activity){
          aval = activity[kex];
       }
+#ifdef PV_USE_MPI
       //If not in root process, send to root process
       if(parent->columnId()!=0){
          MPI_Send(&vval, 1, MPI_FLOAT, 0, 0, parent->icCommunicator()->communicator());
          MPI_Send(&aval, 1, MPI_FLOAT, 0, 0, parent->icCommunicator()->communicator());
       }
+#endif
    }
 
    //Root process
@@ -162,11 +164,13 @@ int PointProbe::outputState(double timef)
 
       int srcRank = rankFromRowAndColumn(yRank, xRank, parent->icCommunicator()->numCommRows(), parent->icCommunicator()->numCommColumns());
 
+#ifdef PV_USE_MPI
       //If srcRank is not root process, MPI_Recv from that rank
       if(srcRank != 0){
          MPI_Recv(&vval, 1, MPI_FLOAT, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
          MPI_Recv(&aval, 1, MPI_FLOAT, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
       }
+#endif
       return point_writeState(timef, vval, aval);
    }
    else{
