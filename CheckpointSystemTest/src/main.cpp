@@ -13,6 +13,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 
 int main(int argc, char * argv[]) {
+   system("rm -rf checkpoints1 checkpoints2 output");
 
    int rank = 0;
    bool argerr = false;
