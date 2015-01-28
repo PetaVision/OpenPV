@@ -66,9 +66,8 @@ int SUPointProbe::communicateInitInfo() {
    //Target layer set in LayerProbe communicateInitInfo
    int status = LayerProbe::communicateInitInfo();
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-   //xLoc is supposed to be extended
-   xLoc = ((loc->nxGlobal/2) - 1) + loc->halo.rt;
-   yLoc = ((loc->nyGlobal/2) - 1) + loc->halo.up;
+   xLoc = ((loc->nxGlobal/2) - 1);
+   yLoc = ((loc->nyGlobal/2) - 1);
    //fLoc changes based on which neuron is being tested, grab from movie layer. Set to 0 for now
    fLoc = 0;
 
@@ -103,7 +102,7 @@ int SUPointProbe::outputState(double timef){
 #ifdef PV_USE_MPI
    MPI_Bcast(&fLoc, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
 #endif
-  PointProbe::outputState(timef);
+   PointProbe::outputState(timef);
    return PV_SUCCESS;
 }
 
@@ -113,15 +112,12 @@ int SUPointProbe::outputState(double timef){
  * @k
  * @kex
  */
-int SUPointProbe::writeState(double timef, HyPerLayer * l, int k, int kex) {
+int SUPointProbe::point_writeState(double timef, float outVVal, float outAVal) {
    if(parent->columnId()==0){
       assert(outputstream && outputstream->fp);
-      const pvdata_t * V = l->getV();
-      const pvdata_t * activity = l->getLayerData();
-
-      fprintf(outputstream->fp, "%s t=%.1f", msg, timef);
+      fprintf(outputstream->fp, "t=%.1f", timef);
       fprintf(outputstream->fp, " feature=%d", fLoc);
-      fprintf(outputstream->fp, " a=%.5f", activity[kex]);
+      fprintf(outputstream->fp, " a=%.5f", outAVal);
       fprintf(outputstream->fp, "\n");
       fflush(outputstream->fp);
    }
