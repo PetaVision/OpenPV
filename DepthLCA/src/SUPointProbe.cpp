@@ -23,7 +23,7 @@ SUPointProbe::SUPointProbe(const char * probeName, HyPerCol * hc) :
    PointProbe()
 {
    initSUPointProbe_base();
-   initPointProbe(probeName, hc);
+   initialize(probeName, hc);
 }
 
 SUPointProbe::~SUPointProbe()
@@ -99,8 +99,11 @@ int SUPointProbe::outputState(double timef){
       size_t und_pos = filename.find_last_of("_");
       size_t ext_pos = filename.find_last_of(".");
       fLoc = atoi(filename.substr(und_pos+1, ext_pos-und_pos-1).c_str());
-      PointProbe::outputState(timef);
    }
+#ifdef PV_USE_MPI
+   MPI_Bcast(&fLoc, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+#endif
+  PointProbe::outputState(timef);
    return PV_SUCCESS;
 }
 
