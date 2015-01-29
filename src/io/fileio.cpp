@@ -2185,7 +2185,9 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
             fprintf(stderr, "[%2d]: readWeights: bcast from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
                     comm->commRank(), src, arbor, numPatchItems, numPatches, localSize);
 #endif // DEBUG_OUTPUT
-            MPI_Bcast(cbuf, localSize, MPI_BYTE, src, mpi_comm);
+            if(comm->commSize() > 1){
+               MPI_Bcast(cbuf, localSize, MPI_BYTE, src, mpi_comm);
+            }
          }
          else {
             assert(header_file_type == PVP_WGT_FILE_TYPE);

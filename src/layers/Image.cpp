@@ -1107,11 +1107,11 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
             int status = system(systemstring.c_str());
             if(status != 0){
                if(attemptNum == numAttempts - 1){
-                  fprintf(stderr, "download command \"%s\" failed.  Exiting\n", systemstring.c_str());
+                  fprintf(stderr, "download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
                   exit(EXIT_FAILURE);
                }
                else{
-                  fprintf(stderr, "download command \"%s\" failed.  Retrying %d out of %d.\n", systemstring.c_str(), attemptNum+1, numAttempts);
+                  fprintf(stderr, "download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
                   sleep(1);
                }
             }
