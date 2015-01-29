@@ -8,9 +8,11 @@ HyPerCol "column" = {
     startTime                           = 0.0;
     stopTime                            = 1.0;
     dt                                  = 1.0;
+    dtAdaptFlag                         = false;
     randomSeed                          = 570934122;
     progressInterval                    = 1.0;
     writeProgressToErr                  = false;
+    verifyWrites                        = true;
     outputPath                          = "output/";
     printParamsFilename                 = "pv.params";
     filenamesContainLayerNames          = 2;
@@ -22,7 +24,10 @@ HyPerCol "column" = {
     // checkpointWriteStepInterval;
     // checkpointWriteTimeInterval;
     // deleteOlderCheckpoints;
+    // suppressNonplasticCheckpoints;
     suppressLastOutput                  = false;
+    writeTimeScales                     = true;
+    errorOnNotANumber                   = false;
 };
 
 ANNLayer "Layer A" = {
@@ -38,11 +43,15 @@ ANNLayer "Layer A" = {
     // GPUAccelerate;
     
     InitVType                           = "ZeroV";
+    
+    triggerFlag                         = false;
+    sparseLayer                         = false;
 
     VThresh                             = -infinity;
     AMin                                = -infinity;
     AShift                              = 0.0;
     AMax                                = infinity;
+    VWidth                              = 0.0;
 };
 
 ANNLayer "Layer B One to One" = {
@@ -59,10 +68,14 @@ ANNLayer "Layer B One to One" = {
     
     InitVType                           = "ZeroV";
 
+    triggerFlag                         = false;
+    sparseLayer                         = false;
+
     VThresh                             = -infinity;
     AMin                                = -infinity;
     AShift                              = 0.0;
     AMax                                = infinity;
+    VWidth                              = 0.0;
 };
 
 ANNLayer "Layer B Many to One" = {
@@ -79,10 +92,14 @@ ANNLayer "Layer B Many to One" = {
     
     InitVType                           = "ZeroV";
 
+    triggerFlag                         = false;
+    sparseLayer                         = false;
+
     VThresh                             = -infinity;
     AMin                                = -infinity;
     AShift                              = 0.0;
     AMax                                = infinity;
+    VWidth                              = 0.0;
 };
 
 ANNLayer "Layer B One to Many" = {
@@ -99,10 +116,14 @@ ANNLayer "Layer B One to Many" = {
     
     InitVType                           = "ZeroV";
 
+    triggerFlag                         = false;
+    sparseLayer                         = false;
+
     VThresh                             = -infinity;
     AMin                                = -infinity;
     AShift                              = 0.0;
     AMax                                = infinity;
+    VWidth                              = 0.0;
 };
 
 HyPerConn "Original Map for One to One Test" = {
@@ -122,7 +143,7 @@ HyPerConn "Original Map for One to One Test" = {
     updateGSynFromPostPerspective       = false;
     plasticityFlag                      = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     // initialWriteTime;
     // writeCompressedWeights;
@@ -135,6 +156,16 @@ HyPerConn "Original Map for One to One Test" = {
     sparseFraction                      = 0.0;
     
     normalizeMethod                     = "normalizeSum";
+    strength                            = 1.0;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = false;
+    normalizeFromPostPerspective        = false;
+    minSumTolerated                     = 0.0;
     
 };
 
@@ -146,7 +177,7 @@ TransposeConn "Transpose for One to One Test of TransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -160,7 +191,7 @@ TransposeConn "Transpose of Transpose for One to One Test of TransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -172,7 +203,7 @@ FeedbackConn "Transpose for One to One Test of FeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -184,7 +215,7 @@ FeedbackConn "Transpose of Transpose for One to One Test of FeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -207,7 +238,7 @@ HyPerConn "Original Map for Many to One Test" = {
     updateGSynFromPostPerspective       = false;
     plasticityFlag                      = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     // initialWriteTime;
     // writeCompressedWeights;
@@ -220,7 +251,16 @@ HyPerConn "Original Map for Many to One Test" = {
     sparseFraction                      = 0.0;
     
     normalizeMethod                     = "normalizeSum";
-    
+    strength                            = 1.0;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = false;
+    normalizeFromPostPerspective        = false;
+    minSumTolerated                     = 0.0;    
 };
 
 TransposeConn "Transpose for Many to One Test of TransposeConn" = {
@@ -231,7 +271,7 @@ TransposeConn "Transpose for Many to One Test of TransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -245,7 +285,7 @@ TransposeConn "Transpose of Transpose for Many to One Test of TransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -257,7 +297,7 @@ FeedbackConn "Transpose for Many to One Test of FeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -269,7 +309,7 @@ FeedbackConn "Transpose of Transpose for Many to One Test of FeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -292,7 +332,7 @@ HyPerConn "Original Map for One to Many Test" = {
     updateGSynFromPostPerspective       = false;
     plasticityFlag                      = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     // initialWriteTime;
     // writeCompressedWeights;
@@ -305,7 +345,16 @@ HyPerConn "Original Map for One to Many Test" = {
     sparseFraction                      = 0.0;
     
     normalizeMethod                     = "normalizeSum";
-    
+    strength                            = 1.0;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = false;
+    normalizeFromPostPerspective        = false;
+    minSumTolerated                     = 0.0;    
 };
 
 TransposeConn "Transpose for One to Many Test of TransposeConn" = {
@@ -316,7 +365,7 @@ TransposeConn "Transpose for One to Many Test of TransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -330,7 +379,7 @@ TransposeConn "Transpose of Transpose for One to Many Test of TransposeConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -342,7 +391,7 @@ FeedbackConn "Transpose for One to Many Test of FeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
@@ -354,7 +403,7 @@ FeedbackConn "Transpose of Transpose for One to Many Test of FeedbackConn" = {
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
+    convertRateToSpikeCount             = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
