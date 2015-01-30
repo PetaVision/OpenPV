@@ -2793,7 +2793,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
             if (fseekstatus == 0) {
                int numwritten = PV_fwrite(&temp_buffer[k_local], datasize, linesize, pvstream);
                if (numwritten != linesize) {
-                  fprintf(stderr, "gatherActivity error when writing to \"%s\": number of bytes attempted %d, number written %d\n", pvstream->name, datasize*linesize, numwritten);
+                  fprintf(stderr, "gatherActivity error when writing to \"%s\": number of bytes attempted %zu, number written %d\n", pvstream->name, datasize*linesize, numwritten);
                   status = PV_FAILURE;
                }
             }
