@@ -114,14 +114,6 @@ void TransposeConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
    // TransposeConn determines nyp from originalConn, during communicateInitInfo
 }
 
-void TransposeConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   // TransposeConn doesn't use nxpShrunken
-}
-
-void TransposeConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   // TransposeConn doesn't use nypShrunken
-}
-
 void TransposeConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    // TransposeConn determines nfp from originalConn, during communicateInitInfo
 }
@@ -302,12 +294,8 @@ int TransposeConn::setPatchSize() {
    // post->getLayerLoc()->nf must be the same as originalConn->preSynapticLayer()->getLayerLoc()->nf.
    // This requirement is checked in communicateInitInfo
 
-   nxpShrunken = nxp;
-   nypShrunken = nyp;
    parent->parameters()->handleUnnecessaryParameter(name, "nxp", nxp);
    parent->parameters()->handleUnnecessaryParameter(name, "nyp", nyp);
-   parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken", nxpShrunken);
-   parent->parameters()->handleUnnecessaryParameter(name, "nypShrunken", nypShrunken);
    parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp);
    return PV_SUCCESS;
 

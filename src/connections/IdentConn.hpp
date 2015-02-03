@@ -47,9 +47,7 @@ protected:
    virtual void ioParam_selfFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
    virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
    virtual void ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag);

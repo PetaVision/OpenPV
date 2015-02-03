@@ -136,16 +136,15 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch *** patches) {
                 nxPatch = weightPatch->nx;
                 nyPatch = weightPatch->ny;
                 offsetPatch = weightPatch->offset;
-                nkPatch  = callingConn->fPatchSize() * nxPatch;
                 pvwdata_t * wData = callingConn->get_wData(arborID,kPre);
                 delta_offset = wData - wData_head;
             }
             else {  // callingConn uses shared weights
-                delta_offset = callingConn->getOffsetShrunken();
-                nxPatch = callingConn->getNxpShrunken();
-                nyPatch = callingConn->getNypShrunken();
-                nkPatch  = callingConn->fPatchSize() * nxPatch;
+                delta_offset = 0;
+                nxPatch = callingConn->xPatchSize();
+                nyPatch = callingConn->yPatchSize();
             }
+            nkPatch  = callingConn->fPatchSize() * nxPatch;
             int dy_south = delta_offset / syPatch;
             assert(dy_south >= 0); assert(dy_south <= callingConn->yPatchSize());
             int dy_north = callingConn->yPatchSize() - nyPatch - dy_south;

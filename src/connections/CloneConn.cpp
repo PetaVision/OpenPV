@@ -149,12 +149,6 @@ void CloneConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
 void CloneConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
    // During the communication phase, nyp will be copied from originalConn
 }
-void CloneConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   // CloneConn does not use nxpShrunken
-}
-void CloneConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   // CloneConn does not use nypShrunken
-}
 
 void CloneConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    // During the communication phase, nfp will be copied from originalConn
@@ -229,13 +223,9 @@ int CloneConn::setPatchSize() {
    assert(originalConn);
    nxp = originalConn->xPatchSize();
    nyp = originalConn->yPatchSize();
-   nxpShrunken = originalConn->getNxpShrunken();
-   nypShrunken = originalConn->getNypShrunken();
    nfp = originalConn->fPatchSize();
    parent->parameters()->handleUnnecessaryParameter(name, "nxp", nxp);
    parent->parameters()->handleUnnecessaryParameter(name, "nyp", nyp);
-   parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken", nxpShrunken);
-   parent->parameters()->handleUnnecessaryParameter(name, "nypShrunken", nypShrunken);
    parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp);
    return PV_SUCCESS;
 }

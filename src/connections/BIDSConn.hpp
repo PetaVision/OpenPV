@@ -24,8 +24,6 @@ protected:
    virtual void ioParam_lateralRadius(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
 
    virtual void ioParam_jitterSource(enum ParamsIOFlag ioFlag);
    virtual void ioParam_jitter(enum ParamsIOFlag ioFlag);

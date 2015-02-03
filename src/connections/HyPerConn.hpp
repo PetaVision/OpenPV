@@ -146,18 +146,6 @@ public:
       return dWMax;
    }
 
-   inline int getNxpShrunken() {
-      return nxpShrunken;
-   }
-
-   inline int getNypShrunken() {
-      return nypShrunken;
-   }
-
-   inline int getOffsetShrunken() {
-      return offsetShrunken;
-   }
-
    inline int xPatchSize() {
       return nxp;
    }
@@ -396,7 +384,6 @@ protected:
    HyPerLayer* mask;
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
-   int nxpShrunken, nypShrunken, offsetShrunken; // if user requires a smaller patch than is required by PetaVision
    int sxp, syp, sfp; // stride in x,y,features
    // PVPatch       *** dwPatches;      // list of weight patches for storing changes to weights
    PVPatch*** wPostPatches; // post-synaptic linkage of weights // This is being deprecated in favor of TransposeConn
@@ -734,12 +721,12 @@ protected:
    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief nxpShrunken: Specifies a shrunken patch size
+    * @brief nxpShrunken: Specifies a shrunken patch size (deprecated)
     */
    virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief nypShrunken: Specifies a shrunken patch size
+    * @brief nypShrunken: Specifies a shrunken patch size (deprecated)
     */
    virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
 
@@ -1116,19 +1103,74 @@ protected:
    static inline int computeMargin(int prescale, int postscale, int patchsize) {
    // 2^prescale is the distance between adjacent neurons in pre-layer, thus a smaller prescale means a layer with more neurons
       int margin = 0;
-      if (prescale<postscale) { // Density of pre is greater than density of pre
+      if (prescale==postscale) {
          assert(patchsize%2==1);
+         margin = (patchsize-1)/2;
+      }
+      else if (prescale<postscale) { // Density of pre is greater than density of pre: many-to-one
+         // any patchsize is permissible
          int densityratio = (int) powf(2.0f,(float)(postscale-prescale));
-         margin = ((patchsize-1)/2) * densityratio;
+         assert(densityratio % 2 == 0);
+         margin = (patchsize-1) * densityratio/2;
       }
       else
       {
+         assert(prescale>postscale); // one-to-many
          int densityratio = (int) powf(2.0f,(float)(prescale-postscale));
          int numcells = patchsize/densityratio;
-         assert(numcells*densityratio==patchsize && numcells%2==1);
-         margin = (numcells-1)/2;
+         assert(numcells*densityratio==patchsize); // For one-to-many, patchsize must be a multiple of "many".
+         margin = numcells/2; // integer division is correct, no matter whether numcells is even or odd
       }
       return margin;
+   }
+
+   static inline int adjustedPatchDimension(int zPre, int preNeuronsPerPostNeuron, int postNeuronsPerPreNeuron, int nPost, int patchDim, int * postStartPtr, int * patchStartPtr, int * adjustedDim) {
+      float preInPostCoords; // The location, in postsynaptic restricted coordinates, of the presynaptic cell of this patch
+      if (postNeuronsPerPreNeuron > 1) {
+         preInPostCoords = zPre * postNeuronsPerPreNeuron + 0.5f*(postNeuronsPerPreNeuron-1);
+      }
+      else if (preNeuronsPerPostNeuron > 1) {
+         preInPostCoords = ((float) (2*zPre-(preNeuronsPerPostNeuron-1)))/((float) 2*preNeuronsPerPostNeuron);
+      }
+      else {
+         preInPostCoords = (float) zPre;
+      }
+      float postStartf = preInPostCoords - 0.5f*patchDim; // The location, in postsynaptic restricted coordinates of the start of an interval of length nxp and center xPreInPostCoords
+      float postStopf = preInPostCoords + 0.5f*patchDim; // The location of the end of the interval starting at xPostStartf.
+      // Everything between xPostStartf and xPostStopf, inclusive, is in the patch.
+      int postStart = (int) ceil(postStartf);
+      int postStop = (int) floor(postStopf) + 1;
+      assert(postStop-postStart==patchDim);
+      int patchStart = 0;
+      int patchStop = patchDim;
+      if (postStop<0) {
+         postStop=0;
+         postStart=0;
+         patchStart=0;
+         patchStop=0;
+      }
+      if (postStart<0) {
+         patchStart += -postStart;
+         postStart = 0;
+      }
+      if (postStart>nPost) {
+         postStart=nPost;
+         postStop=nPost;
+         patchStart=0;
+         patchStop=0;
+      }
+      if (postStop>nPost) {
+         patchStop-=(postStop-nPost);
+         postStop = nPost;
+      }
+      assert(postStop-postStart==patchStop-patchStart);
+      // calculate width of the edge-adjusted patch and perform sanity checks.
+      int width = patchStop - patchStart;
+      assert(width>=0 && width<=patchDim && patchStart>=0 && patchStart+width<=patchDim);
+      *postStartPtr = postStart;
+      *patchStartPtr = patchStart;
+      *adjustedDim = width;
+      return PV_SUCCESS;
    }
 
 };

@@ -53,14 +53,6 @@ void CopyConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
    // CopyConn determines nyp from originalConn, during communicateInitInfo
 }
 
-void CopyConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   // CopyConn doesn't use nxpShrunken
-}
-
-void CopyConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   // CopyConn doesn't use nypShrunken
-}
-
 void CopyConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    // CopyConn determines nfp from originalConn, during communicateInitInfo
 }
@@ -151,13 +143,9 @@ int CopyConn::communicateInitInfo() {
 int CopyConn::setPatchSize() {
    nxp = originalConn->xPatchSize();
    nyp = originalConn->yPatchSize();
-   nxpShrunken = originalConn->getNxpShrunken();
-   nypShrunken = originalConn->getNypShrunken();
    nfp = originalConn->fPatchSize();
    parent->parameters()->handleUnnecessaryParameter(name, "nxp", nxp);
    parent->parameters()->handleUnnecessaryParameter(name, "nyp", nyp);
-   parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken", nxpShrunken);
-   parent->parameters()->handleUnnecessaryParameter(name, "nypShrunken", nypShrunken);
    parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp);
    return PV_SUCCESS;
 }

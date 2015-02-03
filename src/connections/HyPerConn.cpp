@@ -205,9 +205,6 @@ int HyPerConn::initialize_base()
 {
    this->nxp = 1;
    this->nyp = 1;
-   this->nxpShrunken = nxp;
-   this->nypShrunken = nyp;
-   this->offsetShrunken = 0;
    this->nfp = -1; // A negative value for nfp will be converted to postsynaptic layer's nf.
    this->warnDefaultNfp = true;  // Issue a warning if default value of nfp (post's nf) is used.  Derived layers can set to false if only one nfp is allowed (e.g. IdentConn)
    this->sxp = 1;
@@ -1089,12 +1086,52 @@ void HyPerConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "nxp"));
-   parent->ioParamValue(ioFlag, name, "nxpShrunken", &nxpShrunken, nxp);
+   if (ioFlag==PARAMS_IO_READ) {
+      if (parent->parameters()->present(name, "nxpShrunken")) {
+         int nxpShrunken;
+         parent->ioParamValue(ioFlag, name, "nxpShrunken", &nxpShrunken, nxp);
+         if (nxpShrunken <= nxp) {
+            nxp = nxpShrunken;
+            if (parent->columnId()==0) {
+               fprintf(stderr, "%s \"%s\" warning: nxpShrunken is deprecated, as nxp can now take any of the values nxpShrunken could take before.  nxp will be set to %d and nxpShrunken will not be used.\n",
+                     parent->parameters()->groupKeywordFromName(name), name, nxp);
+            }
+         }
+         else {
+            if (parent->columnId()==0) {
+               fprintf(stderr, "%s \"%s\" warning: nxpShrunken is deprecated.  Instead, nxp can take any of the values nxpShrunken could take before.\n",
+                     parent->parameters()->groupKeywordFromName(name), name);
+               fprintf(stderr, "However, setting nxp to %d and nxpShrunken to the larger value %d is probably not what you meant.  Exiting.\n", nxp, nxpShrunken);
+            }
+            MPI_Barrier(parent->icCommunicator()->communicator());
+         }
+      }
+   }
 }
 
 void HyPerConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "nyp"));
-   parent->ioParamValue(ioFlag, name, "nypShrunken", &nypShrunken, nyp);
+   if (ioFlag==PARAMS_IO_READ) {
+      if (parent->parameters()->present(name, "nypShrunken")) {
+         int nypShrunken;
+         parent->ioParamValue(ioFlag, name, "nypShrunken", &nypShrunken, nyp);
+         if (nypShrunken <= nyp) {
+            nyp = nypShrunken;
+            if (parent->columnId()==0) {
+               fprintf(stderr, "%s \"%s\" warning: nypShrunken is deprecated, as nyp can now take any of the values nypShrunken could take before.  nyp will be set to %d and nypShrunken will not be used.\n",
+                     parent->parameters()->groupKeywordFromName(name), name, nyp);
+            }
+         }
+         else {
+            if (parent->columnId()==0) {
+               fprintf(stderr, "%s \"%s\" warning: nypShrunken is deprecated.  Instead, nyp can take any of the values nypShrunken could take before.\n",
+                     parent->parameters()->groupKeywordFromName(name), name);
+               fprintf(stderr, "However, setting nyp to %d and nypShrunken to the larger value %d is probably not what you meant.  Exiting.\n", nyp, nypShrunken);
+            }
+            MPI_Barrier(parent->icCommunicator()->communicator());
+         }
+      }
+   }
 }
 
 void HyPerConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
@@ -1131,37 +1168,6 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "normalizeMethod", &normalizeMethod);
    PVParams * params = parent->parameters();
    if (ioFlag == PARAMS_IO_READ) {
-#ifdef OBSOLETE // Marked obsolete July 17, 2014.  normalizeMethod is now a required parameter
-      if (!normalizeMethod) {
-         const char * normalize_method = NULL;
-         if (params->present(name, "normalize")) {
-            if (parent->columnId()==0) {
-               fprintf(stderr, "%s \"%s\" warning: normalize_flag is deprecated.\n",
-                     parent->parameters()->groupKeywordFromName(name), name);
-               fprintf(stderr, "Please use the string parameter normalizeMethod.\n");
-               fprintf(stderr, "'normalize = false;' should be replaced by 'normalizeMethod = \"none\"';\n");
-               fprintf(stderr, "and 'normalize = true;' should be replaced by setting normalizeMethod to one of\n");
-               fprintf(stderr, "\"normalizeSum\", \"normalizeL2\", \"normalizeScale\" ,\"normalizeMax\", or \"normalizeContrastZeroMean\".\n");
-            }
-         }
-         bool normalize_flag = params->value(name, "normalize", true/*default*/);
-         if (normalize_flag) {
-            if (params->value(name, "normalize_max", false/*default*/) != 0.0f) {
-               normalize_method = "normalizeMax";
-            }
-            if (params->value(name, "nomalize_RMS_amp", false/*default*/) != 0.0f) {
-               normalize_method = "normalizeL2";
-            }
-            else {
-               normalize_method = "normalizeSum";
-            }
-         }
-         else {
-            normalize_method = "";
-         }
-         normalizeMethod = strdup(normalize_method);
-      }
-#endif // OBSOLETE
       assert(normalizeMethod);
       if (normalizeMethod[0]!='\0') {
          if (!strcmp(normalizeMethod, "normalizeSum")) {
@@ -3887,11 +3893,8 @@ int HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int nDataP
    // could create only a single patch with following call
    //   return createPatches(numAxonalArborLists, nxp, nyp, nfp);
 
-   //assert(numAxonalArborLists == 1);
    assert(patches[arborId] == NULL);
 
-   //patches = (PVPatch**) calloc(sizeof(PVPatch*), nPatches);
-   //patches[arborId] = (PVPatch**) calloc(nPatches, sizeof(PVPatch*));
    if (shrinkPatches_flag || arborId == 0){
       patches[arborId] = createPatches(nWeightPatches, nxPatch, nyPatch);
       assert(patches[arborId] != NULL);
@@ -4072,149 +4075,27 @@ int HyPerConn::adjustAllPatches(
       size_t** inAPostOffset,
       int arborId){
 
-   const int layerNxPre = pre->getLayerLoc()->nx;
-   const int layerNyPre = pre->getLayerLoc()->ny;
-   const int layerNxPost = post->getLayerLoc()->nx;
-   const int layerNyPost = post->getLayerLoc()->ny;
+   const int xScaleDiff = pre->getXScale() - post->getXScale();
+   const int xPostNeuronsPerPreNeuron = xScaleDiff > 0 ? (int) pow(2,xScaleDiff) : 1;
+   const int xPreNeuronsPerPostNeuron = xScaleDiff < 0 ? (int) pow(2,-xScaleDiff) : 1;
 
-   const int xPostNeuronsPerPreNeuron = layerNxPre < layerNxPost ? layerNxPost/layerNxPre : 1;
-   assert(layerNxPre>=layerNxPost || layerNxPre*xPostNeuronsPerPreNeuron==layerNxPost);
-   const int xPreNeuronsPerPostNeuron = layerNxPre > layerNxPost ? layerNxPre/layerNxPost : 1;
-   assert(layerNxPre<=layerNxPost || layerNxPost*xPreNeuronsPerPostNeuron==layerNxPre);
-   const int yPostNeuronsPerPreNeuron = layerNyPre < layerNyPost ? layerNyPost/layerNyPre : 1;
-   assert(layerNyPre>=layerNyPost || layerNyPre*yPostNeuronsPerPreNeuron==layerNyPost);
-   const int yPreNeuronsPerPostNeuron = layerNyPre > layerNyPost ? layerNyPre/layerNyPost : 1;
-   assert(layerNyPre<=layerNyPost || layerNyPost*yPreNeuronsPerPostNeuron==layerNyPre);
+   const int yScaleDiff = pre->getYScale() - post->getYScale();
+   const int yPostNeuronsPerPreNeuron = yScaleDiff > 0 ? (int) pow(2,yScaleDiff) : 1;
+   const int yPreNeuronsPerPostNeuron = yScaleDiff < 0 ? (int) pow(2,-yScaleDiff) : 1;
 
-   int xPatchHead = (nxp-nxpShrunken)/2;
-   assert(2*xPatchHead == nxp-nxpShrunken);
-   int yPatchHead = (nyp-nypShrunken)/2;
-   assert(2*yPatchHead == nyp-nypShrunken);
-   offsetShrunken = kIndex(xPatchHead, yPatchHead, 0, nxp, nyp, nfp);
+   int xPatchHead = 0;
+   int yPatchHead = 0;
 
+   // can't use member variable numWeightPatches because GPUs might call this routine with a smaller block.  Calculate from input arguments
    int numWeightPatches = (nxPre + haloPre->lt + haloPre->rt) * (nyPre+haloPre->up + haloPre->dn) * nfPre; 
    for (int kex=0; kex<numWeightPatches; kex++) {
-   //for (int kex=0; kex<getNumWeightPatches(); kex++) {
-      // calculate xPostStart, xPostStop, xPatchStart, xPatchStop
-      int xHalfLength = (nxpShrunken-xPostNeuronsPerPreNeuron)/2;
-      assert(2*xHalfLength+xPostNeuronsPerPreNeuron==nxpShrunken);
-      int xPre = kxPos(kex, nxPre+haloPre->lt+haloPre->rt, nyPre+haloPre->dn+haloPre->up, nfPre)-haloPre->lt; // x-coordinate of presynaptic neuron tied to patch kex, in restricted coordinates.
-      // xCellStartInPostCoords will be the x-coordinate of the first neuron in the unit cell pre-synaptic site xPre,
-      // in postsynaptic restricted coordinates (i.e. leftmost restricted neuron is at x=0; rightmost is at x=post->getLayerLoc()->nx - 1.
-      // For a 1-1 connection, this is the same as xPre, but for 1-many or many-1 connections, we have to multiply or divide by "many".
-      int xCellStartInPostCoords = xPre;
-      if (xPostNeuronsPerPreNeuron>1) {
-         xCellStartInPostCoords *= xPostNeuronsPerPreNeuron;
-      }
-      else if (xPreNeuronsPerPostNeuron>1) {
-         // For a many-to-one connection, need to divide by "many", and discard the remainder,
-         // but in the left boundary region xPre is negative, so xPre/xPreNeuronsPerPostNeuron is not what we want.
-         if (xCellStartInPostCoords>=0) {
-            xCellStartInPostCoords /= xPreNeuronsPerPostNeuron;
-         }
-         else {
-            xCellStartInPostCoords = -(-xCellStartInPostCoords-1)/xPreNeuronsPerPostNeuron - 1;
-         }
-      }
-      int xPostStart = xCellStartInPostCoords - xHalfLength;
-      int xPostStop = xPostStart + nxpShrunken;
-      int xPatchStart = xPatchHead;
-      int xPatchStop = xPatchStart + nxpShrunken;
-
-      if (xPostStart < 0) {
-         int shrinkamount = -xPostStart;
-         xPatchStart += shrinkamount;
-         xPostStart = 0;
-      }
-      if (xPostStart > nxPost) { // This can happen if the pre-layer's boundary region is big and the patch size is small
-         int shrinkamount = xPostStart - nxPost;
-         xPatchStart -= shrinkamount;
-         xPostStart = nxPost;
-      }
-      if (xPostStop > nxPost) {
-         int shrinkamount = xPostStop - nxPost;
-         xPatchStop -= shrinkamount;
-         xPostStop = nxPost;
-      }
-      if (xPostStop < 0) {
-         int shrinkamount = -xPostStop;
-         xPatchStop += shrinkamount;
-         xPostStop = 0;
-      }
-      if (xPatchStart < 0) {
-         assert(xPatchStart==xPatchStop);
-         xPatchStart = 0;
-         xPatchStop = 0;
-      }
-      if (xPatchStop > (nxp+nxpShrunken)/2) {
-         assert(xPatchStart==xPatchStop);
-         xPatchStop = (nxp+nxpShrunken)/2;
-         xPatchStart = xPatchStop;
-      }
-      assert(xPostStop-xPostStart==xPatchStop-xPatchStart);
-
-      int nx = xPatchStop - xPatchStart;
-      assert(nx>=0 && nx<=nxpShrunken);
-      assert(xPatchStart>=0 && (xPatchStart<nxp || (nx==0 && xPatchStart==nxp)));
-
-      // calculate yPostStart, yPostStop, yPatchStart, yPatchStop
-      int yHalfLength = (nypShrunken-yPostNeuronsPerPreNeuron)/2;
-      assert(2*yHalfLength+yPostNeuronsPerPreNeuron==nypShrunken);
-      int yPre = kyPos(kex, nxPre+haloPre->lt+haloPre->rt, nyPre+haloPre->dn+haloPre->up, nfPre)-haloPre->up;
-      int yCellStartInPostCoords = yPre;
-      if (yPostNeuronsPerPreNeuron>1) {
-         yCellStartInPostCoords *= yPostNeuronsPerPreNeuron;
-      }
-      else if (yPreNeuronsPerPostNeuron>1) {
-         // For a many-to-one connection, need to divide by "many", and discard the remainder,
-         // but in the top boundary region yPre is negative, so yPre/yPreNeuronsPerPostNeuron is not what we want.
-         if (yCellStartInPostCoords>=0) {
-            yCellStartInPostCoords /= yPreNeuronsPerPostNeuron;
-         }
-         else {
-            yCellStartInPostCoords = -(-yCellStartInPostCoords-1)/yPreNeuronsPerPostNeuron - 1;
-         }
-      }
-      int yPostStart = yCellStartInPostCoords - yHalfLength;
-      int yPostStop = yPostStart + nypShrunken;
-      int yPatchStart = yPatchHead;
-      int yPatchStop = yPatchStart + nypShrunken;
-
-      if (yPostStart < 0) {
-         int shrinkamount = -yPostStart;
-         yPatchStart += shrinkamount;
-         yPostStart = 0;
-      }
-      if (yPostStart > nyPost) { // This can happen if the pre-layer's boundary region is big and the patch size is small
-         int shrinkamount = yPostStart - nyPost;
-         yPatchStart -= shrinkamount;
-         yPostStart = nyPost;
-      }
-      if (yPostStop > nyPost) {
-         int shrinkamount = yPostStop - nyPost;
-         yPatchStop -= shrinkamount;
-         yPostStop = nyPost;
-      }
-      if (yPostStop < 0) {
-         int shrinkamount = -yPostStop;
-         yPatchStop += shrinkamount;
-         yPostStop = 0;
-      }
-      if (yPatchStart < 0) {
-         assert(yPatchStart==yPatchStop);
-         yPatchStart = 0;
-         yPatchStop = 0;
-      }
-      if (yPatchStop > (nyp+nypShrunken)/2) {
-         assert(yPatchStart==yPatchStop);
-         yPatchStop = (nyp+nypShrunken)/2;
-         yPatchStart = yPatchStop;
-      }
-      assert(yPostStop-yPostStart==yPatchStop-yPatchStart);
-
-      int ny = yPatchStop - yPatchStart;
-      assert(ny>=0 && ny<=nypShrunken);
-      assert(yPatchStart>=0 && (yPatchStart<nyp || (ny==0 && yPatchStart==nyp)));
+      // calculate start of patch in postsynaptic restricted coordinates, and width of patch in postsynaptic restricted coordinates
+      int xPre = kxPos(kex, nxPre+haloPre->lt+haloPre->rt, nyPre+haloPre->dn+haloPre->up, nfPre)-haloPre->lt; // x-coordinate of presynaptic neuron tied to patch kex, in presynaptic restricted coordinates.
+      int xPostStart, xPatchStart, nxPatch;
+      int status = adjustedPatchDimension(xPre, xPreNeuronsPerPostNeuron, xPostNeuronsPerPreNeuron, nxPost, nxp, &xPostStart, &xPatchStart, &nxPatch);
+      int yPre = kyPos(kex, nxPre+haloPre->lt+haloPre->rt, nyPre+haloPre->dn+haloPre->up, nfPre)-haloPre->up; // y-coordinate of presynaptic neuron tied to patch kex, in presynaptic restricted coordinates.
+      int yPostStart, yPatchStart, nyPatch;
+      status = adjustedPatchDimension(yPre, yPreNeuronsPerPostNeuron, yPostNeuronsPerPreNeuron, nyPost, nyp, &yPostStart, &yPatchStart, &nyPatch);
 
       if(inAPostOffset){
          inAPostOffset[arborId][kex] = (size_t) kIndex(xPostStart+haloPost->lt,yPostStart+haloPost->up,0,nxPost+haloPost->lt+haloPost->rt,nyPost+haloPost->dn+haloPost->up,nfPost);
@@ -4224,7 +4105,7 @@ int HyPerConn::adjustAllPatches(
 
       PVPatch * w = inWPatches[arborId][kex];
       assert(w->offset==0);
-      pvpatch_adjust(w, sxp, syp, nx, ny, xPatchStart, yPatchStart);
+      pvpatch_adjust(w, sxp, syp, nxPatch, nyPatch, xPatchStart, yPatchStart);
    } // loop over patches
 
    return PV_SUCCESS;
@@ -4925,15 +4806,20 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
    int scaleDiff = scalePre - scalePost;
    bool goodsize;
 
-   if( scaleDiff > 0) {
-      // complain if patchSize is not an odd number times 2^xScaleDiff
-      int scaleFactor = (int) pow(2, (double) scaleDiff);
-      int shouldbeodd = patchSize/scaleFactor;
-      goodsize = shouldbeodd > 0 && shouldbeodd % 2 == 1 && patchSize == shouldbeodd*scaleFactor;
-   }
-   else {
+   if (scaleDiff == 0) {
       // complain if patchSize is not an odd number
       goodsize = patchSize > 0 && patchSize % 2 == 1;
+   }
+   else if (scaleDiff > 0) {
+      // complain if patchSize is not a multiple of 2^scaleDiff
+      int scaleFactor = (int) pow(2, (double) scaleDiff);
+      int multipleOfScaleFactor = patchSize/scaleFactor;
+      goodsize = multipleOfScaleFactor>0 && patchSize == multipleOfScaleFactor*scaleFactor;
+   }
+   else {
+      assert(scaleDiff < 0);
+      // any patch size is allowed
+      goodsize = true;
    }
    if( !goodsize ) {
       fprintf(stderr, "Error:  Connection: %s\n",name);
@@ -4942,14 +4828,18 @@ int HyPerConn::checkPatchSize(int patchSize, int scalePre, int scalePost, char d
       fprintf(stderr, "Patch size n%cp=%d is not compatible with presynaptic n%cScale %f\n",
               dim,patchSize,dim,pow(2,-scalePre));
       fprintf(stderr, "and postsynaptic n%cScale %f.\n",dim,pow(2,-scalePost));
-      if( scaleDiff > 0) {
+      if (scaleDiff ==0) {
+         fprintf(stderr, "(presynaptic scale) == (postsynaptic scale);\n");
+         fprintf(stderr, "therefore patch size must be odd\n");
+      }
+      if (scaleDiff > 0) {
          int scaleFactor = (int) pow(2, (float) scaleDiff);
          fprintf(stderr, "(postsynaptic scale) = %d * (presynaptic scale);\n", scaleFactor);
-         fprintf(stderr, "therefore compatible sizes are %d times an odd number.\n", scaleFactor);
+         fprintf(stderr, "therefore compatible sizes are multiples of %d.\n", scaleFactor);
       }
       else {
-         fprintf(stderr, "(presynaptic scale) >= (postsynaptic scale);\n");
-         fprintf(stderr, "therefore patch size must be odd\n");
+         // If scaleDiff < 0 any patch size is acceptable
+         assert(0);
       }
       fprintf(stderr, "Exiting.\n");
       exit(1);

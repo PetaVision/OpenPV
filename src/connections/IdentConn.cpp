@@ -167,24 +167,10 @@ void IdentConn::ioParam_nxp(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void IdentConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      nxpShrunken = 1;
-      parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken", 1);
-   }
-}
-
 void IdentConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       nyp = 1;
       parent->parameters()->handleUnnecessaryParameter(name, "nyp", 1);
-   }
-}
-
-void IdentConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      nypShrunken = 1;
-      parent->parameters()->handleUnnecessaryParameter(name, "nypShrunken", 1);
    }
 }
 

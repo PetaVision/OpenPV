@@ -107,20 +107,11 @@ int NormalizeL2::normalizeWeights() {
                int nxp = conn->xPatchSize();
                int nyp = conn->yPatchSize();
                int nfp = conn->fPatchSize();
-               int nxpShrunken = conn->getNxpShrunken();
-               int nypShrunken = conn->getNypShrunken();
-               int offsetShrunken = conn->getOffsetShrunken();
                int xPatchStride = conn->xPatchStride();
                int yPatchStride = conn->yPatchStride();
                int weights_per_patch = nxp*nyp*nfp;
                pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID) + patchindex * weights_per_patch;
-               if (offsetShrunken == 0){
-                   accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
-               }
-               else{
-                   accumulateSumSquaredShrunken(dataStartPatch, &sumsq,
-                           nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
-               }
+               accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
             }
             double l2norm = sqrt(sumsq);
             if (fabs(l2norm) <= minL2NormTolerated) {
@@ -148,20 +139,11 @@ int NormalizeL2::normalizeWeights() {
                int nxp = conn->xPatchSize();
                int nyp = conn->yPatchSize();
                int nfp = conn->fPatchSize();
-               int nxpShrunken = conn->getNxpShrunken();
-               int nypShrunken = conn->getNypShrunken();
-               int offsetShrunken = conn->getOffsetShrunken();
                int xPatchStride = conn->xPatchStride();
                int yPatchStride = conn->yPatchStride();
                int weights_per_patch = nxp*nyp*nfp;
                pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
-               if (offsetShrunken == 0){
-                   accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
-               }
-               else{
-                   accumulateSumSquaredShrunken(dataStartPatch, &sumsq,
-                           nxpShrunken, nypShrunken, offsetShrunken, xPatchStride, yPatchStride);
-               }
+               accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
             }
          }
          double l2norm = sqrt(sumsq);

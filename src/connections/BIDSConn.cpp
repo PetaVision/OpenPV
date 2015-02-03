@@ -48,22 +48,6 @@ void BIDSConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
    return;
 }
 
-void BIDSConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
-   // nxpShrunken depends on presynaptic density, so it is handled by setPatchSize in the communicateInitInfo stage
-   if (ioFlag==PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken");
-   }
-   return;
-}
-
-void BIDSConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
-   // nypShrunken depends on presynaptic density, so it is handled by setPatchSize in the communicateInitInfo stage
-   if (ioFlag==PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken");
-   }
-   return;
-}
-
 //@lateralRadius: the radius of the mathematical patch in 64x64 space
 void BIDSConn::ioParam_lateralRadius(enum ParamsIOFlag ioFlag) {
    parent->ioParamValueRequired(ioFlag, name, "lateralRadius", &lateralRadius);
@@ -88,19 +72,15 @@ int BIDSConn::setPatchSize()
    int xScale = (int)pow(2, xScalePre);
    //Convert to bids space, +1 to round up
    nxp = (1 + 2*(int)(ceil(lateralRadius/(double)xScale) + ceil(2.0 * jitter/(double)xScale)));
-   nxpShrunken = nxp;
 
    int yScalePre = pre->getYScale();
    int yScalePost = post->getYScale();
    int yScale = (int)pow(2, yScalePre);
    //Convert to bids space, +1 to round up
    nyp = (1 + 2*(int)(ceil(lateralRadius/(double)yScale) + ceil(2.0 * jitter/(double)yScale)));
-   nypShrunken = nyp;
 
    parent->parameters()->handleUnnecessaryParameter(name, "nxp", nxp);
    parent->parameters()->handleUnnecessaryParameter(name, "ny", nyp);
-   parent->parameters()->handleUnnecessaryParameter(name, "nxpShrunken", nxpShrunken);
-   parent->parameters()->handleUnnecessaryParameter(name, "nypShrunken", nypShrunken);
    return PV_SUCCESS;
 }
 

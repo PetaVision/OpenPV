@@ -53,16 +53,6 @@ protected:
    virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief CopyConn inherits nxpShrunken from the original connection, instead of reading it from parameters
-    */
-   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief CopyConn inherits nypShrunken from the original connection, instead of reading it from parameters
-    */
-   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief CopyConn inherits nfp from the original connection, instead of reading it from parameters
     */
    virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
