@@ -1,5 +1,5 @@
-function resizePatches(inputweightfile, outputweightfile, nxGlobalPost, nyGlobalPost, new_nxp, new_nyp, x_offset, y_offset);
-% resizeToShrunken(inputweightfile, outputweightfile, new_nxp, new_nyp, x_offset, y_offset)
+function resizePatches(inputweightfile, outputweightfile, new_nxp, new_nyp, nxGlobalPost, nyGlobalPost, x_offset, y_offset);
+% resizeToShrunken(inputweightfile, outputweightfile, new_nxp, new_nyp, nxGlobalPost, nyGlobalPost, x_offset, y_offset)
 %
 % Takes a pvp file as input (either shared weights or non-shared weights), and creates a
 % new pvpfile with new patch size given by new_nxp and new_nyp.
@@ -11,10 +11,6 @@ function resizePatches(inputweightfile, outputweightfile, nxGlobalPost, nyGlobal
 %         Currently, it should work to have inputweightfile and outputweight file be the same
 %         path, to modify weights in place, but this is not guaranteed to work in the future.
 %
-%     nxGlobalPost, nyGlobalPost.  The dimensions of the restricted postsynaptic layer.  If inputweightfile
-%         points to a shared-weights file, these arguments are ignored.  However, if weights are not shared,
-%         these arguments are needed in order to call writepvpweightfile.m
-%
 %     new_nxp, new_nyp.  The new patch dimensions.  Note that nfp cannot be changed in this script.
 %         If new_nxp is less than the inputweightfile's nxp, weights on the edges of the patches will
 %         be discarded.  This use was the motivation for this file, to provide a means to convert
@@ -24,6 +20,10 @@ function resizePatches(inputweightfile, outputweightfile, nxGlobalPost, nyGlobal
 %         If new_nxp is greater than the inputweightfile's nxp, the new patches will be padded with zeros.
 %
 %         The above applies to new_nyp and nyp in the same way.
+%
+%     nxGlobalPost, nyGlobalPost.  The dimensions of the restricted postsynaptic layer.  If inputweightfile
+%         points to a shared-weights file, these arguments are ignored.  However, if weights are not shared,
+%         these arguments are needed in order to call writepvpweightfile.m
 %
 %     x_offset, y_offset.  x_offset is the number of weights in the x-direction to discard from the start
 %         of the weight patch to discard.  If weights are being added to the start of the weight patch,
