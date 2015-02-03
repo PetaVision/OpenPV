@@ -158,22 +158,14 @@ int runparamsfile(int argc, char ** argv, char const * paramsfile) {
    int origNfp = origConn->fPatchSize();
    int copyNfp = copyConn->fPatchSize();
    assert(origNfp==copyNfp);
-   int origNxpShrunken = origConn->getNxpShrunken();
-   int copyNxpShrunken = copyConn->getNxpShrunken();
-   assert(origNxpShrunken==copyNxpShrunken);
-   int origNypShrunken = origConn->getNypShrunken();
-   int copyNypShrunken = copyConn->getNypShrunken();
-   assert(origNypShrunken==copyNypShrunken);
    int origNumArbors = origConn->numberOfAxonalArborLists();
    int copyNumArbors = copyConn->numberOfAxonalArborLists();
    assert(origNumArbors==copyNumArbors);
 
-   int xstart = (origNxp-origNxpShrunken)/2;
-   int ystart = (origNyp-origNypShrunken)/2;
    for (int arbor=0; arbor<origNumArbors; arbor++) {
       for (int patchindex=0; patchindex<origNumPatches; patchindex++) {
-         for (int y=ystart; y<ystart+origNypShrunken; y++) {
-            for (int x=xstart; x<xstart+origNxpShrunken; x++) {
+         for (int y=0; y<origNyp; y++) {
+            for (int x=0; x<origNxp; x++) {
                for (int f=0; f<origNfp; f++) {
                   int indexinpatch = kIndex(x,y,f,origNxp,origNyp,origNfp);
                   pvwdata_t origWeight = origConn->get_wDataHead(arbor, patchindex)[indexinpatch];
