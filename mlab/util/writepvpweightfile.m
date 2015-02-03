@@ -1,5 +1,5 @@
 function writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbPre, nxGlobalPost, nyGlobalPost, postweightsflag)
-    % Usage: writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbPre, shrinkpatchesflag)
+    % Usage: writepvpweightfile(filename, data, nxGlobalPre, nyGlobalPre, nfPre, nbPre, nxGlobalPost, nyGlobalPost, postweightsflag)
     % filename is the pvp file to be created.  If the file already
     % exists it will be clobbered.
     %
