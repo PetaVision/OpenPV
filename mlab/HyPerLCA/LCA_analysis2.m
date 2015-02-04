@@ -5,7 +5,7 @@ close all;
 more off
 pkg load all
 global plot_flag %% if true, plot graphical output to screen, else do not generate graphical outputy
-plot_flag = true; %%false; %%
+plot_flag = true; %%
 global load_flag %% if true, then load "saved" data structures rather than computing them 
 load_Sparse_flag = false;
 if plot_flag
@@ -106,11 +106,12 @@ elseif isunix
     checkpoint_children = ...
 	{"data_batch_all"}; %%
   elseif strcmp(run_type, "PASCAL_MLP")
-%%    output_dir = "/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape"
-    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP/VOC2007_landscape5"
-%%    checkpoint_parent = "/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP"
-    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_MLP"
-    checkpoint_children = {"VOC2007_landscape5"}; %%
+    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_portrait5AWS"
+    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP"
+    checkpoint_children = {"VOC2007_portrait5AWS"}; %%
+    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_LCA_dynamics_demo/VOC2007_landscape"
+    %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_LCA_dynamics_demo"
+    %%checkpoint_children = {"VOC2007_landscape"}; %%
   endif
 endif %% isunix
 addpath(pwd);
@@ -261,7 +262,7 @@ if analyze_Recon
     Recon_normalize_list = 1:num_Recon_list;
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
-  elseif strcmp(run_type, "PASCAL_MLP") 
+  elseif strcmp(run_type, "PASCAL_MLP") || strcmp(run_type, "PASCAL_LCA_demo") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% PASCAL_MLP list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -269,6 +270,11 @@ if analyze_Recon
 	{["a0_"],  ["Image"];
 	 ["a3_"],  ["ImageReconS1"];
 	 ["a7_"],  ["ImageReconS2"]};
+%%    Recon_list = ...
+%%	{["a0_"],  ["Image"]};
+%%    Recon_list = ...
+%%	{["a3_"],  ["ImageReconS1"];
+%%	 ["a7_"],  ["ImageReconS2"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     Recon_unwhiten_list = zeros(num_Recon_list,1);
@@ -321,7 +327,8 @@ if analyze_Recon
     [DoG_weights] = get_DoG_weights(DoG_center_path, DoG_surround_path);
   endif  %% unwhiten_flag
   
-  num_Recon_frames_per_layer = 1;
+  num_Recon_frames_per_layer = 5;
+  %%plot_flag = false;
   Recon_LIFO_flag = true;
   [Recon_hdr, ...
    Recon_fig, ...
@@ -342,6 +349,7 @@ if analyze_Recon
 		      Recon_normalize_list, ...
 		      Recon_LIFO_flag);
   drawnow;
+  %%plot_flag = true;
   
 endif %% analyze_Recon
 
@@ -603,7 +611,8 @@ if analyze_Sparse_flag
     Sparse_list = ...
 	{["a2_"],  ["S1"]; ...
 	 ["a5_"],  ["S2"]; ...
-	 ["a10_"],  ["GroundTruth"]}; 
+	 ["a10_"],  ["GroundTruth_16X12"]; ...
+	 ["a16_"],  ["GroundTruth_4X3"]}; 
   elseif strcmp(run_type, "CIFAR_gray")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_gray list
@@ -627,7 +636,7 @@ if analyze_Sparse_flag
   if load_Sparse_flag
     num_procs = 1;
   else
-    num_procs = 4;
+    num_procs = 1;
   endif
   [Sparse_hdr, ...
    Sparse_hist_rank_array, ...
@@ -846,25 +855,48 @@ if analyze_nonSparse_flag
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% PASCAL_MLP list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%    nonSparse_list = ...
+%%	{["a1_"], ["ImageReconS1Error"]; ...
+%%         ["a8_"], ["ImageReconS2Error"]; ...
+%%	 ["a4_"], ["S1ReconS2Error"]; ...
+%%	 ["a12_"], ["GroundTruthError_16X12"]; ...
+%%	 ["a14_"], ["S2MaxPooled_16X12"]; ...
+%%	 ["a15_"], ["S2SumPooled_16X12"]; ...
+%%	 ["a18_"], ["GroundTruthError_4X3"]; ...
+%%	 ["a20_"], ["S2MaxPooled_4X3"]; ...
+%%	 ["a21_"], ["S2SumPooled_4X3"]}; 
     nonSparse_list = ...
 	{["a1_"], ["ImageReconS1Error"]; ...
          ["a8_"], ["ImageReconS2Error"]; ...
 	 ["a4_"], ["S1ReconS2Error"]; ...
-	 ["a12_"], ["GroundTruthError"]}; 
+	 ["a12_"], ["GroundTruthError_16X12"]; ...
+	 ["a18_"], ["GroundTruthError_4X3"]}; 
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_skip(1) = 1;
     nonSparse_skip(2) = 1;
     nonSparse_skip(3) = 1;
+%%    nonSparse_norm_list = ...
+%%        {["a0_"], ["Image"]; ...
+%%         ["a0_"], ["Image"];...
+%%         ["a2_"], ["S1"];...
+%%         ["a10_"], ["GroundTruth_16x12"];...
+%%         [""], [""];...
+%%         [""], [""];...
+%%         ["a16_"], ["GroundTruth_4x3"];...
+%%         [""], [""];...
+%%         [""], [""]};
     nonSparse_norm_list = ...
         {["a0_"], ["Image"]; ...
          ["a0_"], ["Image"];...
          ["a2_"], ["S1"];...
-         ["a10_"], ["GroundTruth"]};
+         ["a10_"], ["GroundTruth_16x12"];...
+         ["a16_"], ["GroundTruth_4x3"]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength(1) = 1/sqrt(18*18);
     nonSparse_norm_strength(2) = 1/sqrt(18*18);
-    Sparse_std_ndx = [0 0 1 3]; 
+%%    Sparse_std_ndx = [0 0 1 3 0 0 4 0 0]; 
+    Sparse_std_ndx = [0 0 1 3 4]; 
   elseif strcmp(run_type, "CIFAR_gray") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% CIFAR_gray list
@@ -1170,7 +1202,7 @@ endif %% plot_ReconError
 
 
 
-plot_ErrorVsSparse = true && analyze_Sparse_flag && analyze_nonSparse_flag;
+plot_ErrorVsSparse = false && analyze_Sparse_flag && analyze_nonSparse_flag;
 if plot_ErrorVsSparse
   ErrorVsSparse_list = [nonSparse_list; ReconError_list];
   num_ErrorVsSparse_list = size(ErrorVsSparse_list,1);
@@ -2266,7 +2298,7 @@ if analyze_weights0_2
       endif
       %keyboard
       max_shrinkage = 8; %% 
-      weight_patch0_2_array = [];
+      weight_patch0_2_array = cell(num_figs0_2,1);
       for kf_pre1_2_rank = 1  : num_patches0_2
 	i_fig0_2 = ceil(kf_pre1_2_rank / num_patches0_2_per_fig);
 	kf_pre1_2_rank_per_fig = kf_pre1_2_rank - (i_fig0_2 - 1) * num_patches0_2_per_fig;
@@ -2388,7 +2420,7 @@ if analyze_weights0_2
 	  %%drawnow;
 	endif %% plot_weights0_2_flag && i_checkpoint == max_checkpoint
 
-	if isempty(weight_patch0_2_array) || kf_pre1_2_rank_per_fig == 1
+	if isempty(weight_patch0_2_array{i_fig0_2}) || kf_pre1_2_rank_per_fig == 1
 	  weight_patch0_2_array{i_fig0_2} = ...
 	      zeros(num_patches0_2_rows*(weights0_2_nyp_shrunken+2*pad_size), ...
 		    num_patches0_2_cols*(weights0_2_nxp_shrunken+2*pad_size), weights0_1_nfp);
@@ -2416,6 +2448,7 @@ if analyze_weights0_2
 
       if plot_weights0_2_flag && i_checkpoint == max_checkpoint
 	for i_fig0_2 = 1 : num_figs0_2
+	  figure(weights1_2_fig(i_fig0_2))
 	  saveas(weights1_2_fig(i_fig0_2), [weights1_2_dir, filesep, weights1_2_name, "_", num2str(i_fig0_2), ".png"], "png");
 	endfor
       endif
@@ -2462,12 +2495,12 @@ if analyze_weights0_2
 	imwrite(uint8(weight_patch0_2_array_uint8), ...
 		[weights1_2_movie_dir, filesep, weights1_2_name, "_", num2str(i_fig0_2), ".png"], "png");
 	
-	if i_checkpoint == max_checkpoint
-	  save("-mat", ...
-	       [weights1_2_movie_dir, filesep, weights1_2_name, "_", num2str(i_fig0_2), ".mat"], ...
-	       "weight_patch0_2_array{i_fig0_2}");
-	endif
       endfor
+      if i_checkpoint == max_checkpoint
+	save("-mat", ...
+	     [weights1_2_movie_dir, filesep, weights1_2_name, ".mat"], ...
+	     "weight_patch0_2_array");
+      endif
 
       %% make histogram of all weights
       if plot_weights0_2_flag && i_checkpoint == max_checkpoint
