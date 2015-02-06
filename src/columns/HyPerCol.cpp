@@ -859,7 +859,7 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
    // pass the option <-c foo/Checkpoint100> on the command line.
    // If "-c" was passed then checkpointReadDir will have been set by HyPerCol::initialize's call to parse_options.
    // If "-r" was passed then restartFromCheckpoint will  have been set.
-   if (!checkpointReadDir && !warmStart) {
+   if (ioFlag==PARAMS_IO_READ && !checkpointReadDir && !warmStart) {
       ioParamValue(ioFlag, name, "checkpointRead", &checkpointReadFlag, false/*default value*/, false/*warnIfAbsent*/);
       if (checkpointReadFlag) {
          ioParamStringRequired(ioFlag, name, "checkpointReadDir", &checkpointReadDirBase);
