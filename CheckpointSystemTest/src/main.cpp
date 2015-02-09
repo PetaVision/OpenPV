@@ -13,8 +13,6 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 
 int main(int argc, char * argv[]) {
-   system("rm -rf checkpoints1 checkpoints2 output");
-
    int rank = 0;
    bool argerr = false;
    int reqrtn = 0;
@@ -54,7 +52,16 @@ int main(int argc, char * argv[]) {
    }
 #endif // PV_USE_MPI
 
-   int status;
+   int status = 0;
+   if (rank==0) {
+      char const * rmcommand = "rm -rf checkpoints1 checkpoints2 output";
+      status = system(rmcommand);
+      if (status != 0) {
+         fprintf(stderr, "deleting old checkpoints and output directories failed: \"%s\" returned %d\n", rmcommand, status);
+         exit(EXIT_FAILURE);
+      }
+   }
+
    assert(reqrtn==0 || reqrtn==1);
    assert(usethreads==0 || usethreads==1);
    size_t cl_argc = 3+reqrtn+usethreads+(threadargno>0);
