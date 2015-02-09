@@ -221,15 +221,18 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
    }
    int rank = icComm->commRank();
 
+   int opencl_device = 0;  // default to GPU for now
+
+   char * param_file = NULL;
+   char * working_dir = NULL;
+   int restart = 0;
+   int numthreads = 1; //Default to 1 thread
+   bool reqrtn = false; // Default to not require pressing return to continue
+   parse_options(argc, argv, &reqrtn, &outputPath, &param_file,
+                 &opencl_device, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads);
+
 #ifdef PVP_DEBUG
-   bool reqrtn = false;
-   for(int arg=1; arg<argc; arg++) {
-      if( !strcmp(argv[arg], "--require-return")) {
-         reqrtn = true;
-         break;
-      }
-   }
-   if( reqrtn ) {
+   if (reqrtn) {
       if( rank == 0 ) {
          printf("Hit enter to begin! ");
          fflush(stdout);
@@ -250,15 +253,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
    connections = (BaseConnection **) malloc(connectionArraySize * sizeof(BaseConnection *));
    normalizers = (NormalizeBase **) malloc(normalizerArraySize * sizeof(NormalizeBase *));
-
-   int opencl_device = 0;  // default to GPU for now
-
-   char * param_file = NULL;
-   char * working_dir = NULL;
-   int restart = 0;
-   int numthreads = 1; //Default to 1 thread
-   parse_options(argc, argv, &outputPath, &param_file,
-                 &opencl_device, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads);
 
 //Either opencl or cuda, not both
 #if defined(PV_USE_OPENCL) && defined(PV_USE_CUDA)

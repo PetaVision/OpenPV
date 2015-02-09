@@ -8,7 +8,7 @@
 #ifndef IO_H_
 #define IO_H_
 
-//#include "../layers/PVLayerCube.h"
+#include <stdbool.h>
 #include "../include/pv_types.h"
 
 #ifdef PV_USE_MPI
@@ -91,8 +91,8 @@ int readFile(const char * filename, float * buf, int * nx, int * ny);
 int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf);
 int pv_center_image(float * V, int nx0, int ny0, int nx, int ny);
 
-int parse_options(int argc, char * argv[], char ** output_path,
-                  char ** param_file, int * opencl_device,
+int parse_options(int argc, char * argv[], bool * require_return,
+                  char ** output_path, char ** param_file, int * opencl_device,
                   unsigned int * random_seed, char ** working_dir,
                   int * restart, char ** checkpointReadDir, int * numthreads);
 
