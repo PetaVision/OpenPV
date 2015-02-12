@@ -72,7 +72,7 @@ CUDNN
 ----------------------------------
 Go to <https://developer.nvidia.com/cuDNN> and click Download at the bottom.
 Register with NVIDIA developers if need be, and wait for confirmation.
-Download CUDNN
+Download the Linux version of CUDNN
 (Optional: if you have access to NMC's compuneuro, grab it from here: `/nh/compneuro/Data/cuDNN`)
 
 Finalization
@@ -86,22 +86,16 @@ sudo apt-get upgrade
 
 Checking Out and Installing PetaVision
 ----------------------------------
+
 ~~~~~~~~~~~~~~~~~~~~{.sh}
 cd ${HOME}
 mkdir workspace
 cd workspace
-svn co https://username@svn.code.sf.net/p/petavision/code/trunk PetaVision
-svn co https://username@svn.code.sf.net/p/petavision/code/PVSystemTests PVSystemTests
-~~~~~~~~~~~~~~~~~~~~
-
-Optional: Check out your sandbox
-~~~~~~~~~~~~~~~~~~~~{.sh}
+svn co https://<useranme>@svn.code.sf.net/p/petavision/code/trunk PetaVision
+svn co https://<username>@svn.code.sf.net/p/petavision/code/PVSystemTests PVSystemTests
+#You can download your sandbox here
 cp PetaVision/docs/cmake/CMakeLists.txt .
-~~~~~~~~~~~~~~~~~~~~
-
-Add your sandbox directory to the CMakeLists you just added
-
-~~~~~~~~~~~~~~~~~~~~{.sh}
+#Here, you would add your sandbox to the end of CMakeLists
 ccmake .
 ~~~~~~~~~~~~~~~~~~~~
 
