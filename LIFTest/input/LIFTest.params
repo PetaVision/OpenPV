@@ -20,6 +20,7 @@ HyPerCol "column" = {
    stopTime                         = 2000.0;
    progressInterval                 = 100.0;
    writeProgressToErr               = false;
+   verifyWrites                     = false;
    errorOnNotANumber                = false;
    outputPath                       = "output";
    printParamsFilename              = "pv.params";
@@ -44,7 +45,7 @@ Image "input" = {
     frameNumber                     = 0;
     nf                              = 1;
     writeStep                       = -1;
-    writeSparseActivity             = false;
+    sparseLayer                     = false;
     phase                           = 0;
     useImageBCflag                  = false;
     mirrorBCflag                    = false;
@@ -54,8 +55,10 @@ Image "input" = {
     autoResizeFlag                  = false;
     writeImages                     = false;
     jitterFlag                      = false;
+    offsetAnchor                    = "tl";
     offsetX                         = 96;
     offsetY                         = 96;
+    padValue                        = 0.0;
 };
 
 ANNLayer "scaled input" = {
@@ -65,7 +68,7 @@ ANNLayer "scaled input" = {
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
     writeStep                       = -1;
-    writeSparseActivity             = false;
+    sparseLayer                     = false;
     phase                           = 0;
     triggerFlag                     = false;
 
@@ -85,7 +88,7 @@ Retina "retina" = {
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
     writeStep                       = -1;
-    writeSparseActivity             = true;
+    sparseLayer                     = true;
     writeSparseValues               = false;
     phase                           = 0;
     triggerFlag                     = false;
@@ -111,7 +114,7 @@ GenerativeLayer "Retina Spike Counter" = {
     valueV                          = 0;
 
     writeStep                       = -1.0;
-    writeSparseActivity             = false;
+    sparseLayer                     = false;
     phase                           = 0;
     triggerFlag                     = false;
 
@@ -134,7 +137,7 @@ LIFGap "LIFTest" = {
     writeStep                       = -1.0;
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
-    writeSparseActivity             = true;
+    sparseLayer                     = true;
     writeSparseValues               = false;
     phase                           = 0;
     triggerFlag                     = false;
@@ -169,7 +172,7 @@ GenerativeLayer "LIFTest Spike Counter" = {
     nf                              = 1;
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
-    writeSparseActivity             = false;
+    sparseLayer                     = false;
     
     InitVType                       = "ConstantV";
     valueV                          = 0;
@@ -200,7 +203,7 @@ GapLayer "GapTest" = {
     triggerFlag                     = false;
 
     writeStep                       = -1;
-    writeSparseActivity             = false;
+    sparseLayer                     = false;
 
     ampSpikelet                     = 50;
 };
@@ -212,7 +215,7 @@ LIFGap "LIFGapTest" = {
     writeStep                       = -1; // Value 0 means write every timestep, no matter what dt is
     mirrorBCflag                    = false;
     valueBC                         = 0.0;
-    writeSparseActivity             = true;
+    sparseLayer                     = true;
     writeSparseValues               = false;
     phase                           = 0;
     triggerFlag                     = false;
@@ -252,7 +255,7 @@ GenerativeLayer "LIFGapTest Spike Counter" = {
     valueV                          = 0;
 
     writeStep                       = -1;
-    writeSparseActivity             = false;
+    sparseLayer                     = false;
     phase                           = 0;
     triggerFlag                     = false;
 
@@ -280,7 +283,6 @@ HyPerConn "input to scaled input" = {
     delay                           = 0;
 
     writeStep                       = -1;
-    initFromLastFlag                = 0;
     
     weightInitType                  = "OneToOneWeights";
     weightInit                      = 2.0;
@@ -292,7 +294,7 @@ HyPerConn "input to scaled input" = {
     writeCompressedCheckpoints      = true;
     selfFlag                        = false;
     shrinkPatches                   = false;
-    preActivityIsNotRate            = false;
+    convertRateToSpikeCount         = false;
     updateGSynFromPostPerspective   = false;
 };
 
@@ -318,7 +320,6 @@ HyPerConn "retina to LIFTest" = {
     delay                           = 0;
 
     writeStep                       = -1;
-    initFromLastFlag                = 0;
     
     weightInitType                  = "OneToOneWeights";
     weightInit                      = 1.0;
@@ -330,7 +331,7 @@ HyPerConn "retina to LIFTest" = {
     writeCompressedCheckpoints      = true;
     selfFlag                        = false;
     shrinkPatches                   = false;
-    preActivityIsNotRate            = false;
+    convertRateToSpikeCount         = false;
     updateGSynFromPostPerspective   = false;
 };
 
@@ -362,16 +363,18 @@ GapConn "GapTest to LIFGapTest" = {
     normalize_cutoff                = false;  //
     normalizeFromPostPerspective    = true;
     normalizeArborsIndividually     = false;
+    normalizeOnInitialize           = true;
+    normalizeOnWeightUpdate         = true;
     minSumTolerated                 = 0.0;
     rMinX                           = 0; // Only count |x|>=rMinX when normalizing
     rMinY                           = 0; // Only count |y|>=rMinY when normalizing
+    nonnegativeConstraintFlag       = false;
     
-    symmetrizeWeights               = false;
     plasticityFlag                  = false;
     pvpatchAccumulateType           = "convolve";
     selfFlag                        = false;
     shrinkPatches                   = false;
-    preActivityIsNotRate            = false;
+    convertRateToSpikeCount         = false;
     updateGSynFromPostPerspective   = false;
     
     // writeCompressedWeights       = false;
