@@ -37,10 +37,19 @@ function writepvpsparseactivityfile(filename, data, nx, ny, nf)
    if isempty(data)
        error('writepvpsparseactivityfile:dataempty', 'data must have at least one frame');
    end%if
-   
-   for n=1:length(data)
+
+   numframes = length(data);
+   numneurons = nx*ny*nf;
+
+   for n=1:numframes
        if ~isempty(data{n}.values) && (~isvector(data{n}.values) || ~isnumeric(data{n}.values) || ~isequal(data{n}.values, round(data{n}.values)))
            error('writepvpsparseactivity:noninteger', 'data{%d}.values is not a vector of integers', n);
+       end%if
+       outofbounds = data{n}.values<0 | data{n}.values>=numneurons;
+       if any(outofbounds)
+          badindex = find(outofbounds, 1, 'first');
+          badvalue = data{n}.values(badindex);
+          error('writepvpsparseactivity:outofbounds', 'data{%d}.values must have values between 0 and nx*ny*nf-1=%d (first out-of-bounds values is entry %d, value %d)', n, numneurons-1, badindex, badvalue);
        end%if
    end%for
    
@@ -68,10 +77,10 @@ function writepvpsparseactivityfile(filename, data, nx, ny, nf)
    hdr(15) = 0;        % kx0, no longer used
    hdr(16) = 0;        % ky0, no longer used
    hdr(17) = 0;        % Presynaptic nb, not relevant for activity files
-   hdr(18) = length(data); % number of frames 
+   hdr(18) = numframes; % number of frames 
    hdr(19:20) = typecast(double(data{1}.time),'uint32'); % timestamp
    fwrite(fid,hdr,'uint32');
-   for frameno=1:length(data)   % allows either row vector or column vector.  isvector(data) was verified above
+   for frameno=1:numframes   % allows either row vector or column vector.  isvector(data) was verified above
        fwrite(fid,data{frameno}.time,'double');
        count = numel(data{frameno}.values);
        fwrite(fid,count,'uint32');
