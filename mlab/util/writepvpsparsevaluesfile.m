@@ -37,8 +37,11 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf)
    if isempty(data)
        error('writepvpsparsevaluesfile:dataempty', 'data must have at least one frame');
    end%if
+
+   numframes = length(data);
+   numneurons = nx*ny*nf;
    
-   for n=1:length(data)
+   for n=1:numframes
        if ~isempty(data{n}.values)
            if ismatrix(data{n}.values)
                sz = size(data{n}.values);
@@ -54,6 +57,13 @@ function writepvpsparsevaluesfile(filename, data, nx, ny, nf)
            if ~isequal(data{n}.values(:,1), round(data{n}.values(:,1)))
                error('writepvpsparsevalues:noninteger', 'data{%d}.values first column is not integral', n);
            end%if
+           outofbounds = data{n}.values(:,1)<0 | data{n}.values(:,1)>=numneurons;
+           if any(outofbounds)
+               badindex = find(outofbounds, 1, 'first');
+               badvalue = data{n}.values(badindex);
+               error('writepvpsparsevalues:outofbounds', 'data{%d}.values first column must have values between 0 and nx*ny*nf-1=%d (first out-of-bounds value is entry (%d,1), value %d)', n, numneurons-1, badindex, badvalue);
+           end%if
+
        end%if
    end%for
    
