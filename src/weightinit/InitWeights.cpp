@@ -18,10 +18,9 @@
 
 namespace PV {
 
-InitWeights::InitWeights(HyPerConn * conn)
-{
+InitWeights::InitWeights(char const * name, HyPerCol * hc) {
    initialize_base();
-   initialize(conn);
+   initialize(name, hc);
 }
 
 InitWeights::InitWeights()
@@ -31,13 +30,23 @@ InitWeights::InitWeights()
 
 InitWeights::~InitWeights()
 {
+   free(name); name = NULL;
    delete weightParams; weightParams = NULL;
 }
 
-int InitWeights::initialize(HyPerConn * conn)
-{
-   callingConn = conn;
-   weightParams = createNewWeightParams();
+int InitWeights::initialize(char const * name, HyPerCol * hc) {
+   if (name==NULL) {
+      fprintf(stderr, "InitWeights::initialize called with a name argument of null.\n");
+      exit(EXIT_FAILURE);
+   }
+   if (hc==NULL) {
+      fprintf(stderr, "InitWeights::initialize called with a HyPerCol argument of null.\n");
+      exit(EXIT_FAILURE);
+   }
+   this->name = strdup(name);
+   callingConn = NULL; // will be set during communicateInitInfo stage.
+   parentHyPerCol = hc;
+
    return PV_SUCCESS;
 }
 
@@ -45,7 +54,16 @@ int InitWeights::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // Read/write any params from the params file, typically
    // parent->ioParamValue(ioFlag, name, "param_name", &param, default_value);
 
-   int status = weightParams->ioParamsFillGroup(ioFlag);
+   if (ioFlag==PARAMS_IO_READ) {
+      weightParams = createNewWeightParams();
+   }
+   int status = PV_SUCCESS;
+   if (weightParams==NULL) {
+      status = PV_FAILURE;
+   }
+   else {
+      weightParams->ioParamsFillGroup(ioFlag);
+   }
    return status;
 }
 
@@ -54,13 +72,36 @@ int InitWeights::communicateParamsInfo() {
    // set any member variables that depend on other objects
    // having been initialized or communicateInitInfo'd
 
+   int status = PV_SUCCESS;
+   if (callingConn==NULL) {
+      BaseConnection * baseCallingConn = parentHyPerCol->getConnFromName(name);
+      if (baseCallingConn==NULL) {
+         status = PV_FAILURE;
+         if (parentHyPerCol->columnId()==0) {
+            fprintf(stderr, "InitWeights error: \"%s\" is not a connection in the column.\n", name);
+         }
+      }
+      else {
+         callingConn = dynamic_cast<HyPerConn *>(baseCallingConn);
+         if (callingConn==NULL) {
+            status = PV_FAILURE;
+            if (parentHyPerCol->columnId()==0) {
+               fprintf(stderr, "InitWeights error: \"%s\" is not a HyPerConn.\n", name);
+            }
+         }
+      }
+   }
+   MPI_Barrier(parentHyPerCol->icCommunicator()->communicator());
+   if (status == PV_FAILURE) {
+      exit(EXIT_FAILURE);
+   }
    return weightParams->communicateParamsInfo();
 }
 
 /*This method does the three steps involved in initializing weights.  Subclasses usually don't need to override this method.
  * Instead they should override calcWeights to do their own type of weight initialization.
  *
- * For KernelConns, patches should be NULL.
+ * For KernelConns (i.e., sharedWeights=true), patches should be NULL.
  *
  */
 int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
@@ -196,7 +237,7 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch *** patches) {
 
 
 InitWeightsParams * InitWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitWeightsParams(name, parentHyPerCol);
    return tempPtr;
 }
 
@@ -236,12 +277,17 @@ int InitWeights::calcWeights(pvwdata_t * dataStart, int dataPatchIndex, int arbo
 }
 
 int InitWeights::initialize_base() {
+   name = NULL;
    callingConn = NULL;
    weightParams = NULL;
+   parentHyPerCol = NULL;
    return PV_SUCCESS;
 }
 
 int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches, const char * filename, double * timeptr/*default=NULL*/) {
+   if (callingConn==NULL) {
+      callingConn = dynamic_cast<HyPerConn *>(parentHyPerCol->getConnFromName(name));
+   }
    InterColComm *icComm = callingConn->getParent()->icCommunicator();
    int numArbors = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();

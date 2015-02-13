@@ -13,10 +13,10 @@ InitGaborWeightsParams::InitGaborWeightsParams()
 {
    initialize_base();
 }
-InitGaborWeightsParams::InitGaborWeightsParams(HyPerConn * parentConn)
+InitGaborWeightsParams::InitGaborWeightsParams(const char * name, HyPerCol * hc)
                      : InitGauss2DWeightsParams() {
    initialize_base();
-   initialize(parentConn);
+   initialize(name, hc);
 }
 
 InitGaborWeightsParams::~InitGaborWeightsParams()
@@ -45,8 +45,8 @@ int InitGaborWeightsParams::initialize_base() {
    return 1;
 }
 
-int InitGaborWeightsParams::initialize(HyPerConn * parentConn) {
-   return InitGauss2DWeightsParams::initialize(parentConn);
+int InitGaborWeightsParams::initialize(const char * name, HyPerCol * hc) {
+   return InitGauss2DWeightsParams::initialize(name, hc);
 }
 
 int InitGaborWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

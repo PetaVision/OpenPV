@@ -25,7 +25,7 @@ class InitGauss2DWeightsParams;
 
 class InitBIDSLateral: public PV::InitWeights {
 public:
-   InitBIDSLateral(HyPerConn * conn);
+   InitBIDSLateral(char const * name, HyPerCol * hc);
    virtual ~InitBIDSLateral();
 
    virtual InitWeightsParams * createNewWeightParams();
@@ -39,7 +39,7 @@ public:
 
 protected:
    InitBIDSLateral();
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
 
 private:
    int initialize_base();

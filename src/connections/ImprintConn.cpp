@@ -14,10 +14,10 @@ ImprintConn::ImprintConn(){
    initialize_base();
 }
 
-ImprintConn::ImprintConn(const char * name, HyPerCol * hc) : HyPerConn()
+ImprintConn::ImprintConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) : HyPerConn()
 {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 ImprintConn::~ImprintConn() {

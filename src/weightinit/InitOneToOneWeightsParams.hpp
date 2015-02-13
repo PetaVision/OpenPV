@@ -21,7 +21,7 @@ namespace PV {
 class InitOneToOneWeightsParams: public PV::InitWeightsParams {
 public:
    InitOneToOneWeightsParams();
-   InitOneToOneWeightsParams(HyPerConn * parentConn);
+   InitOneToOneWeightsParams(const char * name, HyPerCol * hc);
    virtual ~InitOneToOneWeightsParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void calcOtherParams(int patchIndex);
@@ -31,7 +31,7 @@ public:
 
 protected:
    int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(const char * name, HyPerCol * hc);
    virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
 
 private:

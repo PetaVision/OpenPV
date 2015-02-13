@@ -13,10 +13,10 @@ InitBIDSLateralParams::InitBIDSLateralParams()
 {
    initialize_base();
 }
-InitBIDSLateralParams::InitBIDSLateralParams(HyPerConn * parentConn)
+InitBIDSLateralParams::InitBIDSLateralParams(const char * name, HyPerCol * hc)
                      : InitWeightsParams() {
    initialize_base();
-   initialize(parentConn);
+   initialize(name, hc);
 }
 
 InitBIDSLateralParams::~InitBIDSLateralParams()
@@ -36,8 +36,8 @@ int InitBIDSLateralParams::initialize_base() {
    return 1;
 }
 
-int InitBIDSLateralParams::initialize(HyPerConn * parentConn) {
-   return InitWeightsParams::initialize(parentConn);
+int InitBIDSLateralParams::initialize(const char * name, HyPerCol * hc) {
+   return InitWeightsParams::initialize(name, hc);
 
 }
 

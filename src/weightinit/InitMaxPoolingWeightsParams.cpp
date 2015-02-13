@@ -14,10 +14,10 @@ InitMaxPoolingWeightsParams::InitMaxPoolingWeightsParams()
    initialize_base();
 }
 
-InitMaxPoolingWeightsParams::InitMaxPoolingWeightsParams(HyPerConn * parentConn)
+InitMaxPoolingWeightsParams::InitMaxPoolingWeightsParams(const char * name, HyPerCol * hc)
                      : InitWeightsParams() {
    initialize_base();
-   initialize(parentConn);
+   initialize(name, hc);
 }
 
 InitMaxPoolingWeightsParams::~InitMaxPoolingWeightsParams()
@@ -29,8 +29,8 @@ int InitMaxPoolingWeightsParams::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitMaxPoolingWeightsParams::initialize(HyPerConn * parentConn) {
-   return InitWeightsParams::initialize(parentConn);
+int InitMaxPoolingWeightsParams::initialize(const char * name, HyPerCol * hc) {
+   return InitWeightsParams::initialize(name, hc);
 }
 
 int InitMaxPoolingWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

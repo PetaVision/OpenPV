@@ -25,7 +25,7 @@ class InitWeightsParams;
 
 class InitWeights {
 public:
-   InitWeights(HyPerConn * conn);
+   InitWeights(char const * name, HyPerCol * hc);
    virtual ~InitWeights();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
@@ -55,20 +55,22 @@ public:
 
 protected:
    InitWeights();
-   int initialize(HyPerConn * conn);
+   int initialize(const char * name, HyPerCol * hc);
    virtual int initRNGs(bool isKernel) { return PV_SUCCESS; }
    virtual int zeroWeightsOutsideShrunkenPatch(PVPatch *** patches);
-   int readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStart,int numPatches,
+   virtual int readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStart,int numPatches,
          const char * listOfArborsFilename, double * timef=NULL);
-   int readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataStart,int numPatches,
+   virtual int readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataStart,int numPatches,
          const char * fileOfWeightFiles, double * timef=NULL);
 
 private:
    int initialize_base();
 
 protected:
+   char * name;
    HyPerConn * callingConn;
    InitWeightsParams * weightParams;
+   HyPerCol * parentHyPerCol;
 
 };
 

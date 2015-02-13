@@ -11,10 +11,10 @@
 
 namespace PV {
 
-InitGaborWeights::InitGaborWeights(HyPerConn * conn)
+InitGaborWeights::InitGaborWeights(char const * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(conn);
+   initialize(name, hc);
 }
 
 InitGaborWeights::InitGaborWeights()
@@ -30,13 +30,13 @@ int InitGaborWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitGaborWeights::initialize(HyPerConn * conn) {
-   int status = InitGauss2DWeights::initialize(conn);
+int InitGaborWeights::initialize(char const * name, HyPerCol * hc) {
+   int status = InitGauss2DWeights::initialize(name, hc);
    return status;
 }
 
 InitWeightsParams * InitGaborWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitGaborWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitGaborWeightsParams(name, parentHyPerCol);
    return tempPtr;
 }
 

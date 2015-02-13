@@ -14,10 +14,10 @@ InitGaussianRandomWeightsParams::InitGaussianRandomWeightsParams()
    initialize_base();
 }
 
-InitGaussianRandomWeightsParams::InitGaussianRandomWeightsParams(HyPerConn * parentConn)
+InitGaussianRandomWeightsParams::InitGaussianRandomWeightsParams(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(parentConn);
+   initialize(name, hc);
 }
 
 InitGaussianRandomWeightsParams::~InitGaussianRandomWeightsParams()
@@ -31,8 +31,8 @@ int InitGaussianRandomWeightsParams::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitGaussianRandomWeightsParams::initialize(HyPerConn * parentConn) {
-   return InitRandomWeightsParams::initialize(parentConn);
+int InitGaussianRandomWeightsParams::initialize(const char * name, HyPerCol * hc) {
+   return InitRandomWeightsParams::initialize(name, hc);
 }
 
 int InitGaussianRandomWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

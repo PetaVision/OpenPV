@@ -17,7 +17,7 @@ namespace PV {
 class InitOneToOneWeightsWithDelaysParams: public PV::InitWeightsParams {
 public:
    InitOneToOneWeightsWithDelaysParams();
-   InitOneToOneWeightsWithDelaysParams(HyPerConn * parentConn);
+   InitOneToOneWeightsWithDelaysParams(const char * name, HyPerCol * hc);
    virtual ~InitOneToOneWeightsWithDelaysParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void calcOtherParams(int patchIndex);
@@ -27,7 +27,7 @@ public:
 
 protected:
    virtual int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(const char * name, HyPerCol * hc);
    virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
 
 private:

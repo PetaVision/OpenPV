@@ -15,7 +15,7 @@ namespace PV {
 
 class InitMaxPoolingWeights: public PV::InitWeights {
 public:
-   InitMaxPoolingWeights(HyPerConn * conn);
+   InitMaxPoolingWeights(char const * name, HyPerCol * hc);
    virtual ~InitMaxPoolingWeights();
    virtual InitWeightsParams * createNewWeightParams();
 
@@ -24,7 +24,7 @@ public:
 protected:
    InitMaxPoolingWeights();
    int initialize_base();
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
 
 
 };

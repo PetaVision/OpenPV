@@ -15,13 +15,13 @@ namespace PV {
 class InitMaxPoolingWeightsParams: public PV::InitWeightsParams {
 public:
    InitMaxPoolingWeightsParams();
-   InitMaxPoolingWeightsParams(HyPerConn * parentConn);
+   InitMaxPoolingWeightsParams(const char * name, HyPerCol * hc);
    virtual ~InitMaxPoolingWeightsParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
 protected:
    virtual int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(const char * name, HyPerCol * hc);
 
 
 };

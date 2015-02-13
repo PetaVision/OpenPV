@@ -13,10 +13,10 @@ InitGauss2DWeightsParams::InitGauss2DWeightsParams()
 {
    initialize_base();
 }
-InitGauss2DWeightsParams::InitGauss2DWeightsParams(HyPerConn * parentConn)
+InitGauss2DWeightsParams::InitGauss2DWeightsParams(const char * name, HyPerCol * hc)
                      : InitWeightsParams() {
    initialize_base();
-   initialize(parentConn);
+   initialize(name, hc);
 }
 
 InitGauss2DWeightsParams::~InitGauss2DWeightsParams()
@@ -44,8 +44,8 @@ int InitGauss2DWeightsParams::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitGauss2DWeightsParams::initialize(HyPerConn * parentConn) {
-   InitWeightsParams::initialize(parentConn);
+int InitGauss2DWeightsParams::initialize(const char * name, HyPerCol * hc) {
+   InitWeightsParams::initialize(name, hc);
 
    PVParams * params = parent->parameters();
    int status = PV_SUCCESS;

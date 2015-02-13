@@ -16,7 +16,7 @@ class ImprintConn: public HyPerConn {
 
 public:
    ImprintConn();
-   ImprintConn(const char * name, HyPerCol * hc);
+   ImprintConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual ~ImprintConn();
 
    virtual int allocateDataStructures();

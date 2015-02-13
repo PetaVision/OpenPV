@@ -15,7 +15,7 @@ namespace PV {
 class InitGaussianRandomWeightsParams: public PV::InitRandomWeightsParams {
 public:
    InitGaussianRandomWeightsParams();
-   InitGaussianRandomWeightsParams(HyPerConn * parentConn);
+   InitGaussianRandomWeightsParams(const char * name, HyPerCol * hc);
    virtual ~InitGaussianRandomWeightsParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
@@ -25,7 +25,7 @@ public:
 
 protected:
    virtual int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(const char * name, HyPerCol * hc);
    void ioParam_wGaussMean(enum ParamsIOFlag ioFlag);
    void ioParam_wGaussStdev(enum ParamsIOFlag ioFlag);
 

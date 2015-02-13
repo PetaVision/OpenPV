@@ -10,9 +10,9 @@
 
 namespace PV {
 
-InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(HyPerConn * conn) {
+InitSpreadOverArborsWeights::InitSpreadOverArborsWeights(char const * name, HyPerCol * hc) {
    initialize_base();
-   initialize(conn);
+   initialize(name, hc);
 }
 
 InitSpreadOverArborsWeights::InitSpreadOverArborsWeights()
@@ -28,13 +28,13 @@ int InitSpreadOverArborsWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitSpreadOverArborsWeights::initialize(HyPerConn * conn) {
-   int status = InitGauss2DWeights::initialize(conn);
+int InitSpreadOverArborsWeights::initialize(char const * name, HyPerCol * hc) {
+   int status = InitGauss2DWeights::initialize(name, hc);
    return status;
 }
 
 InitWeightsParams * InitSpreadOverArborsWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitSpreadOverArborsWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitSpreadOverArborsWeightsParams(name, parentHyPerCol);
    return tempPtr;
 }
 

@@ -22,7 +22,7 @@ class HyPerConn;
 class InitWeightsParams {
 public:
    InitWeightsParams();
-   InitWeightsParams(HyPerConn * pConn);
+   InitWeightsParams(char const * name, HyPerCol * hc);
    virtual ~InitWeightsParams();
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
@@ -60,7 +60,7 @@ public:
 
 protected:
    int initialize_base();
-   int initialize(HyPerConn * pConn);
+   int initialize(char const * name, HyPerCol * hc);
 
    char * name; //this is actually the Connection name
    HyPerLayer     * pre;

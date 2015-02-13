@@ -13,10 +13,10 @@ InitSpreadOverArborsWeightsParams::InitSpreadOverArborsWeightsParams()
 {
    initialize_base();
 }
-InitSpreadOverArborsWeightsParams::InitSpreadOverArborsWeightsParams(HyPerConn * parentConn)
+InitSpreadOverArborsWeightsParams::InitSpreadOverArborsWeightsParams(const char * name, HyPerCol * hc)
                      : InitGauss2DWeightsParams() {
    initialize_base();
-   initialize(parentConn);
+   initialize(name, hc);
 }
 
 InitSpreadOverArborsWeightsParams::~InitSpreadOverArborsWeightsParams()
@@ -33,8 +33,8 @@ int InitSpreadOverArborsWeightsParams::initialize_base() {
    return 1;
 }
 
-int InitSpreadOverArborsWeightsParams::initialize(HyPerConn * parentConn) {
-   return InitWeightsParams::initialize(parentConn);
+int InitSpreadOverArborsWeightsParams::initialize(const char * name, HyPerCol * hc) {
+   return InitWeightsParams::initialize(name, hc);
 }
 
 int InitSpreadOverArborsWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

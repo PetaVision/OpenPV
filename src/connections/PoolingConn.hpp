@@ -14,7 +14,7 @@ namespace PV {
 
 class PoolingConn : public HyPerConn {
 public:
-   PoolingConn(const char * name, HyPerCol * hc);
+   PoolingConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual ~PoolingConn();
 
    HyPerLayer * getPre2() { return pre2; }
@@ -25,7 +25,7 @@ public:
 
 protected:
    int initialize_base();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_secondaryPreLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_secondaryPostLayerName(enum ParamsIOFlag ioFlag);

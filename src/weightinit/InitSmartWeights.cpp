@@ -9,10 +9,10 @@
 
 namespace PV {
 
-InitSmartWeights::InitSmartWeights(HyPerConn * conn) : InitWeights() {
+InitSmartWeights::InitSmartWeights(char const * name, HyPerCol * hc) : InitWeights() {
 
    InitSmartWeights::initialize_base();
-   InitSmartWeights::initialize(conn);
+   InitSmartWeights::initialize(name, hc);
 }
 
 InitSmartWeights::InitSmartWeights()
@@ -28,8 +28,8 @@ int InitSmartWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitSmartWeights::initialize(HyPerConn * conn) {
-   int status = InitWeights::initialize(conn);
+int InitSmartWeights::initialize(char const * name, HyPerCol * hc) {
+   int status = InitWeights::initialize(name, hc);
    return status;
 }
 
@@ -42,7 +42,7 @@ int InitSmartWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, in
 }
 
 InitWeightsParams * InitSmartWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitWeightsParams(name, parentHyPerCol);
    return tempPtr;
 }
 

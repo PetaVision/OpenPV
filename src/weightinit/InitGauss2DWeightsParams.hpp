@@ -39,7 +39,7 @@ protected:
    /** @} */
 public:
    InitGauss2DWeightsParams();
-   InitGauss2DWeightsParams(HyPerConn * parentConn);
+   InitGauss2DWeightsParams(const char * name, HyPerCol * hc);
    virtual ~InitGauss2DWeightsParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual int communicateParamsInfo();
@@ -77,7 +77,7 @@ public:
 
 protected:
    int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(const char * name, HyPerCol * hc);
 
 
    bool needAspectParams();

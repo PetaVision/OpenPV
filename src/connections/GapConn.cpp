@@ -20,9 +20,9 @@ GapConn::GapConn()
    initialize_base();
 }
 
-GapConn::GapConn(const char * name, HyPerCol * hc) {
+GapConn::GapConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
    initialize_base();
-   GapConn::initialize(name, hc);
+   GapConn::initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 GapConn::~GapConn()
@@ -34,8 +34,8 @@ int GapConn::initialize_base(){
    return PV_SUCCESS;
 }
 
-int GapConn::initialize(const char * name, HyPerCol * hc) {
-   int status = HyPerConn::initialize(name, hc);
+int GapConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+   int status = HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
    return status;
 }
 

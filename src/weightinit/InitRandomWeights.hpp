@@ -21,7 +21,7 @@ public:
 
 protected:
    InitRandomWeights();
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
    virtual int initRNGs(bool isKernel);
    virtual int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParams, int patchIndex) = 0;
    // Subclasses must implement randomWeights.

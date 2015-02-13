@@ -14,7 +14,7 @@ namespace PV {
 
 class GapConn: public PV::HyPerConn {
 public:
-   GapConn(const char * name, HyPerCol * hc);
+   GapConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual ~GapConn();
    virtual int allocateDataStructures();
 protected:
@@ -23,7 +23,7 @@ protected:
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
 
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
 
 private:
    int initialize_base();

@@ -98,11 +98,34 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
    for( int k=0; k<numGroups; k++ ) {
       const char * kw = hcparams->groupKeywordFromIndex(k);
       const char * name = hcparams->groupNameFromIndex(k);
-      void * addedObject = handler->createObject(kw, name, hc); // Handler for groups understood by trunk
-      if (addedObject == NULL && customgroups != NULL) {
-         addedObject = customgroups(kw, name, hc); // Handler for custom groups
+      ParamGroupType groupType = handler->getGroupType(kw);
+      void * addedObject = NULL;
+      InitWeights * weightInitializer = NULL;
+      NormalizeBase * weightNormalizer = NULL;
+      switch(groupType) {
+      case UnrecognizedGroupType:
+         if (customgroups != NULL) {
+            addedObject = customgroups(kw, name, hc); // Handler for custom groups
+         }
+         break;
+      case HyPerColGroupType:
+         addedObject = handler->createHyPerCol(kw, name, hc);
+         break;
+      case LayerGroupType:
+         addedObject = handler->createLayer(kw, name, hc);
+         break;
+      case ConnectionGroupType:
+         addedObject = createConnection(handler, kw, name, hc);
+         break;
+      case ProbeGroupType:
+         addedObject = handler->createProbe(kw, name, hc);
+         break;
+      case ColProbeGroupType: // TODO: make ColProbe a subclass of BaseProbe and eliminate this group type.
+         addedObject = handler->createColProbe(kw, name, hc);
+         break;
+      default:
+         assert(0); // All possibilities for groupType are handled above
       }
-
       if(addedObject == NULL) {
          if (hc->icCommunicator()->commRank()==0) {
             fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
@@ -200,21 +223,51 @@ HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList,
       return NULL;
    }
 
-   ParamGroupHandler * handler = new CoreParamGroupHandler();
+   CoreParamGroupHandler * coreHandler = new CoreParamGroupHandler(); // The ParamGroupHandler for keywords known by trunk
    for( int k=0; k<numGroups; k++ ) {
       const char * kw = hcparams->groupKeywordFromIndex(k);
       const char * name = hcparams->groupNameFromIndex(k);
-      void * addedObject = handler->createObject(kw, name, hc); // Handler for groups understood by trunk
-      if (addedObject == NULL && groupHandlerList != NULL && numGroupHandlers > 0) {
-         for (int h=0; h<numGroupHandlers; h++) {
-            addedObject = groupHandlerList[0]->createObject(kw, name, hc); // Handler for custom groups
-            if (addedObject != 0) { break; }
-         }
-      }
-
-      if(addedObject == NULL) {
+      void * addedObject = NULL;
+      ParamGroupType groupType = UnrecognizedGroupType;
+      ParamGroupHandler * handler = getGroupHandlerFromList(kw, coreHandler, groupHandlerList, numGroupHandlers, &groupType);
+      if (handler == NULL) {
          if (hc->icCommunicator()->commRank()==0) {
-            fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
+            fprintf(stderr, "Error: parameter group \"%s\": %s is not recognized by any known ParamGroupHandler.\n", name, kw);
+         }
+         MPI_Barrier(hc->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      switch (groupType) {
+      case UnrecognizedGroupType:
+         assert(0); // UnrecognizedGroupType should only happen if handler==NULL, and vice versa.
+         break;
+      case HyPerColGroupType:
+         addedObject = handler->createHyPerCol(kw, name, hc);
+         break;
+      case LayerGroupType:
+         addedObject = handler->createLayer(kw, name, hc);
+         break;
+      case ConnectionGroupType:
+         addedObject = createConnection(handler, kw, name, hc);
+         break;
+      case ProbeGroupType:
+         addedObject = handler->createProbe(kw, name, hc);
+         break;
+      case ColProbeGroupType: // TODO: make ColProbe a subclass of BaseProbe and eliminate this group type.
+         addedObject = handler->createColProbe(kw, name, hc);
+         break;
+      case WeightInitializerGroupType:
+         addedObject = handler->createWeightInitializer(kw, name, hc);
+         break;
+      case WeightNormalizerGroupType:
+         addedObject = handler->createWeightNormalizer(kw, name, hc);
+         break;
+      default:
+          assert(0); // All possibilities for groupType are handled above
+      }
+      if (addedObject==NULL) {
+         if (hc->columnId()==0) {
+            fprintf(stderr, "Error creating %s \"%s\".\n", kw, name);
          }
          MPI_Barrier(hc->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -227,6 +280,37 @@ HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList,
       return NULL;
    }
    return hc;
+}
+
+ParamGroupHandler * getGroupHandlerFromList(char const * keyword, CoreParamGroupHandler * coreHandler, ParamGroupHandler ** groupHandlerList, int numGroupHandlers, ParamGroupType * foundGroupType) {
+   ParamGroupType groupType = coreHandler->getGroupType(keyword);
+   if (groupType != UnrecognizedGroupType) {
+      if (foundGroupType) { *foundGroupType = groupType; }
+      return coreHandler;
+   }
+   else {
+      for (int h=0; h<numGroupHandlers; h++) {
+         groupType = groupHandlerList[h]->getGroupType(keyword);
+         if (groupType != UnrecognizedGroupType) {
+            if (foundGroupType) { *foundGroupType = groupType; }
+            return groupHandlerList[h];
+         }
+      }
+   }
+   if (foundGroupType) { *foundGroupType = UnrecognizedGroupType; }
+   return NULL;
+}
+
+BaseConnection * createConnection(ParamGroupHandler * handler, char const * keyword, char const * groupname, HyPerCol * hc) {
+   // In general, we need the WeightInitializer and WeightNormalizer, to pass to the HyPerConn constructor.
+   // However, some subclasses may not need to have the initialization or normalization method specified (e.g. clones),
+   // so it is not an error at this point if the relevant parameters are absent.
+   char const * weightInitStr = hc->parameters()->stringValue(groupname, "weightInitType", false/*warnIfAbsent*/);
+   InitWeights * weightInitializer = (weightInitStr==NULL) ? NULL : handler->createWeightInitializer(weightInitStr, groupname, hc);
+   char const * weightNormalizeStr = hc->parameters()->stringValue(groupname, "normalizeMethod", false/*warnIfAbsent*/);
+   NormalizeBase * weightNormalizer = (weightNormalizer==NULL) ? NULL : handler->createWeightNormalizer(weightNormalizeStr, groupname, hc);
+   BaseConnection * baseConn = handler->createConnection(keyword, groupname, hc, weightInitializer, weightNormalizer);
+   return baseConn;
 }
 
 #ifdef OBSOLETE // Marked obsolete Jan 5, 2014.  Functionality was moved to CoreParamGroupHandler

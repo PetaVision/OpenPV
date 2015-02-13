@@ -17,7 +17,7 @@ namespace PV {
 class InitBIDSLateralParams: public PV::InitWeightsParams {
 public:
    InitBIDSLateralParams();
-   InitBIDSLateralParams(HyPerConn * parentConn);
+   InitBIDSLateralParams(const char * name, HyPerCol * hc);
    virtual ~InitBIDSLateralParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual int communicateParamsInfo();
@@ -33,7 +33,7 @@ public:
 
 protected:
    int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(const char * name, HyPerCol * hc);
    virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
    virtual void ioParam_falloffType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_lateralRadius(enum ParamsIOFlag ioFlag);

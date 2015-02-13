@@ -16,6 +16,10 @@
 
 #include "../columns/HyPerCol.hpp"
 
+#include "../weightinit/InitWeights.hpp"
+#include "../normalizers/NormalizeBase.hpp"
+
+#ifdef OBSOLETE // Marked obsolete Feb 6, 2015.  buildandrun builds these objects by calling CoreParamGroupHandler, so the include statements are in that class.
 #include "../layers/HyPerLayer.hpp"
 #include "../layers/ANNLayer.hpp"
 #include "../layers/GenerativeLayer.hpp"
@@ -117,7 +121,7 @@
 #include "../connections/OjaKernelConn.hpp"
 #include "../connections/STDP3Conn.hpp"
 #include "../connections/STDPConn.hpp"
-#endif // OBSOLETE
+#endif // OBSOLETE // Dec 29, 2014
 
 #include "../weightinit/InitWeights.hpp"
 #include "../weightinit/InitGauss2DWeights.hpp"
@@ -132,6 +136,8 @@
 #include "../weightinit/InitIdentWeights.hpp"
 #include "../weightinit/InitUniformWeights.hpp"
 #include "../weightinit/InitSpreadOverArborsWeights.hpp"
+#endif // OBSOLETE // Feb 6, 2015
+
 #ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
 #include "../weightinit/Init3DGaussWeights.hpp"
 #include "../weightinit/InitByArborWeights.hpp"
@@ -143,6 +149,7 @@
 #include "../weightinit/InitWindowed3DGaussWeights.hpp"
 #endif // OBSOLETE
 
+#ifdef OBSOLETE // Marked obsolete Feb 6, 2015.  buildandrun builds these objects by calling CoreParamGroupHandler, so the include statements are in that class.
 #include "../io/BaseConnectionProbe.hpp"
 #ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
 #include "../io/ReciprocalEnergyProbe.hpp"
@@ -166,13 +173,15 @@
 #include "../io/PatchProbe.hpp"
 #include "../io/PointLCALIFProbe.hpp"
 #include "../io/SparsityTermProbe.hpp"
-#endif // OBSOLETE
+#endif // OBSOLETE // Dec 29, 2014
+#endif // OBSOLETE // Feb 6, 2015
 
 #include "../io/ParamGroupHandler.hpp"
 #include "../io/CoreParamGroupHandler.hpp"
 
 using namespace PV;
 
+// The build, buildandrun1paramset, and buildandrun functions are included for backwards compatibility.  The three versions after them, which use ParamGroupHandler arguments, are preferred.
 int buildandrun(int argc, char * argv[],
                 int (*custominit)(HyPerCol *, int, char **) = NULL,
                 int (*customexit)(HyPerCol *, int, char **) = NULL,
@@ -184,6 +193,7 @@ int buildandrun1paramset(int argc, char * argv[],
                          PVParams * params);
 HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, const char *, HyPerCol *) = NULL, PVParams * params = NULL);
 
+// The build, buildandrun1paramset, and buildandrun functions below are preferred to the versions above.
 int buildandrun(int argc, char * argv[],
                 int (*custominit)(HyPerCol *, int, char **),
                 int (*customexit)(HyPerCol *, int, char **),
@@ -194,6 +204,8 @@ int buildandrun1paramset(int argc, char * argv[],
                          ParamGroupHandler ** groupHandlerList, int numGroupHandlers,
                          PVParams * params);
 HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList, int numGroupHandlers, PVParams * params);
+ParamGroupHandler * getGroupHandlerFromList(char const * keyword, CoreParamGroupHandler * coreHandler, ParamGroupHandler ** groupHandlerList, int numGroupHandlers, ParamGroupType * foundGroupType);
+BaseConnection * createConnection(ParamGroupHandler * handler, char const * keyword, char const * groupname, HyPerCol * hc);
 
 #ifdef OBSOLETE // Marked obsolete Jan 5, 2014.  Functionality was moved to CoreParamGroupHandler
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc);

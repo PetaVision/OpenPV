@@ -10,9 +10,9 @@
 
 namespace PV {
 
-InitUniformRandomWeights::InitUniformRandomWeights(HyPerConn * conn) {
+InitUniformRandomWeights::InitUniformRandomWeights(char const * name, HyPerCol * hc) {
    initialize_base();
-   initialize(conn);
+   initialize(name, hc);
 }
 
 InitUniformRandomWeights::InitUniformRandomWeights() {
@@ -26,13 +26,13 @@ int InitUniformRandomWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitUniformRandomWeights::initialize(HyPerConn * conn) {
-   int status = InitRandomWeights::initialize(conn);
+int InitUniformRandomWeights::initialize(char const * name, HyPerCol * hc) {
+   int status = InitRandomWeights::initialize(name, hc);
    return status;
 }
 
 InitWeightsParams * InitUniformRandomWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitUniformRandomWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitUniformRandomWeightsParams(name, parentHyPerCol);
    return tempPtr;
 }
 

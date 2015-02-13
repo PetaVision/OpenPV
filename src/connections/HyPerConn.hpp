@@ -54,7 +54,7 @@ class HyPerConn : public BaseConnection {
 
 public:
    friend class CloneConn;
-   HyPerConn(const char * name, HyPerCol * hc);
+   HyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual ~HyPerConn();
 //#ifdef PV_USE_OPENCL
 //   virtual int deliverOpenCL(Publisher * pub, const PVLayerCube * cube);
@@ -468,19 +468,11 @@ protected:
       wPatches = patches;
    }
 
-//   inline pvwdata_t*** getGSynPatchStart() {
-//      return gSynPatchStart;
-//   }
-
 public:
    inline size_t** getGSynPatchStart() {
       return gSynPatchStart;
    }
 protected:
-
-//   inline void setGSynPatchStart(pvwdata_t*** patchstart) {
-//      gSynPatchStart = patchstart;
-//   }
 
    inline void setGSynPatchStart(size_t** patchstart) {
       gSynPatchStart = patchstart;
@@ -529,9 +521,9 @@ protected:
    virtual int createArbors();
    void createArborsOutOfMemory();
    virtual int constructWeights();
-   int initialize(const char * name, HyPerCol * hc);
-   virtual int setWeightInitializer();
-   virtual InitWeights * createInitWeightsObject(const char * weightInitTypeStr);
+   int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer);
+   virtual int setWeightInitializer(); // Deprecated Feb 9, 2015; the preferred way of specifying the weight initialization is by passing an InitWeights argument to the constructor.
+   virtual InitWeights * createInitWeightsObject(const char * weightInitTypeStr); // Deprecated Feb 9, 2015.
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    /** 

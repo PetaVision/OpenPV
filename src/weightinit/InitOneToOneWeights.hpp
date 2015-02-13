@@ -18,7 +18,7 @@ class InitOneToOneWeightsParams;
 // TODO make InitOneToOneWeights a derived class of InitUniformWeights
 class InitOneToOneWeights: public PV::InitWeights {
 public:
-   InitOneToOneWeights(HyPerConn * conn);
+   InitOneToOneWeights(char const * name, HyPerCol * hc);
    virtual ~InitOneToOneWeights();
 
    virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
@@ -28,7 +28,7 @@ public:
 
 protected:
    InitOneToOneWeights();
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
    int createOneToOneConnection(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, float iWeight, InitWeightsParams * weightParamPtr);
 
 private:

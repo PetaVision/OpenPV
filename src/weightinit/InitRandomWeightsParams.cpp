@@ -15,9 +15,9 @@ InitRandomWeightsParams::InitRandomWeightsParams()
    // initialize_base();
 }
 
-InitRandomWeightsParams::InitRandomWeightsParams(HyPerConn * pConn) {
+InitRandomWeightsParams::InitRandomWeightsParams(const char * name, HyPerCol * hc) {
    // initialize_base();
-   initialize(pConn);
+   initialize(name, hc);
 }
 
 InitRandomWeightsParams::~InitRandomWeightsParams() {

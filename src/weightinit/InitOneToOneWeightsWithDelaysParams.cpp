@@ -13,10 +13,10 @@ InitOneToOneWeightsWithDelaysParams::InitOneToOneWeightsWithDelaysParams()
 {
    initialize_base();
 }
-InitOneToOneWeightsWithDelaysParams::InitOneToOneWeightsWithDelaysParams(HyPerConn * parentConn)
+InitOneToOneWeightsWithDelaysParams::InitOneToOneWeightsWithDelaysParams(const char * name, HyPerCol * hc)
                      : InitWeightsParams() {
    initialize_base();
-   initialize(parentConn);
+   initialize(name, hc);
 }
 
 InitOneToOneWeightsWithDelaysParams::~InitOneToOneWeightsWithDelaysParams()
@@ -29,8 +29,8 @@ int InitOneToOneWeightsWithDelaysParams::initialize_base() {
    return 1;
 }
 
-int InitOneToOneWeightsWithDelaysParams::initialize(HyPerConn * parentConn) {
-   return InitWeightsParams::initialize(parentConn);
+int InitOneToOneWeightsWithDelaysParams::initialize(const char * name, HyPerCol * hc) {
+   return InitWeightsParams::initialize(name, hc);
 }
 
 int InitOneToOneWeightsWithDelaysParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

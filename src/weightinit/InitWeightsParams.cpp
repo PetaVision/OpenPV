@@ -21,9 +21,9 @@ InitWeightsParams::InitWeightsParams()
 {
    initialize_base();
 }
-InitWeightsParams::InitWeightsParams(HyPerConn * pConn) {
+InitWeightsParams::InitWeightsParams(char const * name, HyPerCol * hc) {
    initialize_base();
-   initialize(pConn);
+   initialize(name, hc);
 }
 
 InitWeightsParams::~InitWeightsParams()
@@ -80,12 +80,12 @@ float InitWeightsParams::getWMax() {
    return parentConn->getWMax();
 }
 
-int InitWeightsParams::initialize(HyPerConn * pConn) {
+int InitWeightsParams::initialize(char const * name, HyPerCol * hc) {
    int status = PV_SUCCESS;
 
-   this->parentConn = pConn;
-   this->parent = parentConn->getParent();
-   this->setName(parentConn->getName());
+   this->parentConn = NULL;
+   this->parent = hc;
+   this->setName(name);
 
    return status;
 }
@@ -93,6 +93,7 @@ int InitWeightsParams::initialize(HyPerConn * pConn) {
 int InitWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    // Read/write any params from the params file, typically
    // parent->ioParamValue(ioFlag, name, "param_name", &param, default_value);
+   parentConn = dynamic_cast<HyPerConn *>(parent->getConnFromName(name));
    ioParam_initWeightsFile(ioFlag);
    ioParam_useListOfArborFiles(ioFlag);
    ioParam_combineWeightFiles(ioFlag);
@@ -133,6 +134,7 @@ int InitWeightsParams::communicateParamsInfo() {
    // to be called during communicateInitInfo stage;
    // set any member variables that depend on other objects
    // having been initialized or communicateInitInfo'd
+   assert(parentConn != NULL);
    this->pre = parentConn->getPre();
    this->post = parentConn->getPost();
    assert(this->pre && this->post);

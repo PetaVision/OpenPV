@@ -15,14 +15,14 @@ namespace PV {
 
 class InitUniformRandomWeights: public PV::InitRandomWeights {
 public:
-   InitUniformRandomWeights(HyPerConn * conn);
+   InitUniformRandomWeights(char const * name, HyPerCol * hc);
    virtual ~InitUniformRandomWeights();
 
    virtual InitWeightsParams * createNewWeightParams();
 
 protected:
    InitUniformRandomWeights();
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
    int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParams, int patchIndex);
 
 private:

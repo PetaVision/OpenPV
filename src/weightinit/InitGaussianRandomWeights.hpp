@@ -16,6 +16,7 @@ namespace PV {
 
 class InitGaussianRandomWeights: public PV::InitRandomWeights {
 public:
+   InitGaussianRandomWeights(char const * name, HyPerCol * hc);
    InitGaussianRandomWeights(HyPerConn * conn);
    virtual ~InitGaussianRandomWeights();
 
@@ -23,7 +24,7 @@ public:
 
 protected:
    InitGaussianRandomWeights();
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
    virtual int initRNGs(bool isKernel);
    virtual int randomWeights(pvdata_t * patchDataStart, InitWeightsParams *weightParamPtr, int patchIndex);
 

@@ -15,7 +15,7 @@ namespace PV {
 class BIDSConn : public PV::HyPerConn {
 
 public:
-   BIDSConn(const char * name, HyPerCol * hc);
+   BIDSConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    ~BIDSConn();
 
 protected:

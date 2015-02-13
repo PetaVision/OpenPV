@@ -15,7 +15,7 @@ namespace PV {
 
 class InitGauss2DWeights: public PV::InitWeights {
 public:
-   InitGauss2DWeights(HyPerConn * conn);
+   InitGauss2DWeights(char const * name, HyPerCol * hc);
    virtual ~InitGauss2DWeights();
 
    virtual InitWeightsParams * createNewWeightParams();
@@ -25,7 +25,7 @@ public:
 protected:
    InitGauss2DWeights();
    int initialize_base();
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
 
 private:
    int gauss2DCalcWeights(pvwdata_t * dataStart, InitGauss2DWeightsParams *weightParamPtr);

@@ -14,7 +14,7 @@ namespace PV {
 
 class InitRandomWeightsParams: public PV::InitWeightsParams {
 public:
-   InitRandomWeightsParams(HyPerConn * pConn);
+   InitRandomWeightsParams(const char * name, HyPerCol * hc);
    virtual ~InitRandomWeightsParams();
 
 protected:

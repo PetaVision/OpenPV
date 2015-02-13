@@ -18,8 +18,8 @@ int InitRandomWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitRandomWeights::initialize(HyPerConn * conn) {
-   int status = InitWeights::initialize(conn);
+int InitRandomWeights::initialize(char const * name, HyPerCol * hc) {
+   int status = InitWeights::initialize(name, hc);
    return status;
 }
 

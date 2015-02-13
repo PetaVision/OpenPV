@@ -12,9 +12,9 @@ namespace PV {
 //Comments in this conn are assuming a HyPerCol size of 256x256 and a bids_node layer of 1/4 the density.
 //Adjust numbers accordingly for a given simulation
 
-BIDSConn::BIDSConn(const char * name, HyPerCol * hc) {
+BIDSConn::BIDSConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
    initialize_base();
-   initialize(name, hc);
+   HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 int BIDSConn::initialize_base() {

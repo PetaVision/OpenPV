@@ -18,7 +18,7 @@ class InitSpreadOverArborsWeightsParams;
 
 class InitSpreadOverArborsWeights: public PV::InitGauss2DWeights {
 public:
-   InitSpreadOverArborsWeights(HyPerConn * conn);
+   InitSpreadOverArborsWeights(char const * name, HyPerCol * hc);
    virtual ~InitSpreadOverArborsWeights();
    virtual InitWeightsParams * createNewWeightParams();
 
@@ -26,7 +26,7 @@ public:
 
 protected:
    InitSpreadOverArborsWeights();
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
 
 private:
    int initialize_base();

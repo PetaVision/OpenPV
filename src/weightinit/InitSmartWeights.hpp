@@ -15,7 +15,7 @@ namespace PV {
 
 class InitSmartWeights: public PV::InitWeights {
 public:
-   InitSmartWeights(HyPerConn * conn);
+   InitSmartWeights(char const * name, HyPerCol * hc);
    InitSmartWeights();
    virtual ~InitSmartWeights();
 
@@ -24,7 +24,7 @@ public:
    virtual int calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, int patchIndex, int arborId);
 
 protected:
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
 
 private:
    int initialize_base();

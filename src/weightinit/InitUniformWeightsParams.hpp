@@ -15,7 +15,7 @@ namespace PV {
 class InitUniformWeightsParams: public PV::InitWeightsParams {
 public:
    InitUniformWeightsParams();
-   InitUniformWeightsParams(HyPerConn * parentConn);
+   InitUniformWeightsParams(const char * name, HyPerCol * hc);
    virtual ~InitUniformWeightsParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
@@ -25,7 +25,7 @@ public:
 
 protected:
    virtual int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(const char * name, HyPerCol * hc);
    virtual void ioParam_weightInit(enum ParamsIOFlag ioFlag);
    virtual void ioParam_connectOnlySameFeatures(enum ParamsIOFlag ioFlag);
 

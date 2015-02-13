@@ -16,6 +16,7 @@ namespace PV {
 class InitSpreadOverArborsWeightsParams: public PV::InitGauss2DWeightsParams {
 public:
    InitSpreadOverArborsWeightsParams();
+   InitSpreadOverArborsWeightsParams(char const * name, HyPerCol * hc);
    InitSpreadOverArborsWeightsParams(HyPerConn * parentConn);
    virtual ~InitSpreadOverArborsWeightsParams();
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
@@ -27,7 +28,7 @@ public:
 
 protected:
    int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(char const * name, HyPerCol * hc);
    void ioParam_weightInit(enum ParamsIOFlag ioFlag);
 
 private:

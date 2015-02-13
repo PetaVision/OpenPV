@@ -16,7 +16,7 @@ namespace PV {
 class InitCocircWeightsParams: public PV::InitGauss2DWeightsParams {
 public:
    InitCocircWeightsParams();
-   InitCocircWeightsParams(HyPerConn * parentConn);
+   InitCocircWeightsParams(const char * name, HyPerCol * hc);
    virtual ~InitCocircWeightsParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void calcOtherParams(int patchIndex);
@@ -49,7 +49,7 @@ public:
 
 protected:
    int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(const char * name, HyPerCol * hc);
    virtual void ioParam_sigmaCocirc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sigmaKurve(enum ParamsIOFlag ioFlag);
    // virtual void ioParam_sigmaChord(enum ParamsIOFlag ioFlag);

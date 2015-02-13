@@ -16,7 +16,7 @@ namespace PV {
 class InitGaborWeightsParams: public PV::InitGauss2DWeightsParams {
 public:
    InitGaborWeightsParams();
-   InitGaborWeightsParams(HyPerConn * parentConn);
+   InitGaborWeightsParams(const char * name, HyPerCol * hc);
    virtual ~InitGaborWeightsParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void calcOtherParams(int patchIndex);
@@ -28,7 +28,7 @@ public:
 
 protected:
    int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(const char * name, HyPerCol * hc);
    virtual void ioParam_lambda(enum ParamsIOFlag ioFlag);
    virtual void ioParam_phi(enum ParamsIOFlag ioFlag);
    virtual void ioParam_invert(enum ParamsIOFlag ioFlag);

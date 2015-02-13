@@ -15,7 +15,7 @@ namespace PV {
 class InitUniformRandomWeightsParams: public PV::InitRandomWeightsParams {
 public:
    InitUniformRandomWeightsParams();
-   InitUniformRandomWeightsParams(HyPerConn * parentConn);
+   InitUniformRandomWeightsParams(const char * name, HyPerCol * hc);
    virtual ~InitUniformRandomWeightsParams();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
@@ -26,7 +26,7 @@ public:
 
 protected:
    int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(const char * name, HyPerCol * hc);
    virtual void ioParam_wMinInit(enum ParamsIOFlag ioFlag);
    virtual void ioParam_wMaxInit(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sparseFraction(enum ParamsIOFlag ioFlag);

@@ -18,9 +18,9 @@ OjaSTDPConn::OjaSTDPConn()
 	initialize_base();
 }
 
-OjaSTDPConn::OjaSTDPConn(const char * name, HyPerCol * hc) {
+OjaSTDPConn::OjaSTDPConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 OjaSTDPConn::~OjaSTDPConn()
@@ -86,8 +86,8 @@ int OjaSTDPConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int OjaSTDPConn::initialize(const char * name, HyPerCol * hc) {
-   return HyPerConn::initialize(name, hc);
+int OjaSTDPConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+   return HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 // set member variables specified by user

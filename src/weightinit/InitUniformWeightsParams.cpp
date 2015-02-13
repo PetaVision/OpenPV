@@ -14,10 +14,10 @@ InitUniformWeightsParams::InitUniformWeightsParams()
    initialize_base();
 }
 
-InitUniformWeightsParams::InitUniformWeightsParams(HyPerConn * parentConn)
+InitUniformWeightsParams::InitUniformWeightsParams(const char * name, HyPerCol * hc)
                      : InitWeightsParams() {
    initialize_base();
-   initialize(parentConn);
+   initialize(name, hc);
 }
 
 InitUniformWeightsParams::~InitUniformWeightsParams()
@@ -31,8 +31,8 @@ int InitUniformWeightsParams::initialize_base() {
    return 1;
 }
 
-int InitUniformWeightsParams::initialize(HyPerConn * parentConn) {
-   return InitWeightsParams::initialize(parentConn);
+int InitUniformWeightsParams::initialize(const char * name, HyPerCol * hc) {
+   return InitWeightsParams::initialize(name, hc);
 }
 
 int InitUniformWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

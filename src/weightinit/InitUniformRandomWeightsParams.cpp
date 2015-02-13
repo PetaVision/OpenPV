@@ -14,10 +14,10 @@ InitUniformRandomWeightsParams::InitUniformRandomWeightsParams()
    initialize_base();
 }
 
-InitUniformRandomWeightsParams::InitUniformRandomWeightsParams(HyPerConn * parentConn)
+InitUniformRandomWeightsParams::InitUniformRandomWeightsParams(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(parentConn);
+   initialize(name, hc);
 }
 
 InitUniformRandomWeightsParams::~InitUniformRandomWeightsParams()
@@ -32,8 +32,8 @@ int InitUniformRandomWeightsParams::initialize_base() {
    return 1;
 }
 
-int InitUniformRandomWeightsParams::initialize(HyPerConn * parentConn) {
-   return InitWeightsParams::initialize(parentConn);
+int InitUniformRandomWeightsParams::initialize(const char * name, HyPerCol * hc) {
+   return InitWeightsParams::initialize(name, hc);
 }
 
 int InitUniformRandomWeightsParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

@@ -13,9 +13,9 @@ CopyConn::CopyConn() {
    initialize_base();
 }
 
-CopyConn::CopyConn(char const * name, HyPerCol * hc) {
+CopyConn::CopyConn(char const * name, HyPerCol * hc, NormalizeBase * weightNormalizer) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, hc, weightNormalizer);
 }
 
 int CopyConn::initialize_base() {
@@ -24,8 +24,8 @@ int CopyConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int CopyConn::initialize(char const * name, HyPerCol * hc) {
-   return HyPerConn::initialize(name, hc);
+int CopyConn::initialize(char const * name, HyPerCol * hc, NormalizeBase * weightNormalizer) {
+   return HyPerConn::initialize(name, hc, NULL, weightNormalizer);
 }
 
 int CopyConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

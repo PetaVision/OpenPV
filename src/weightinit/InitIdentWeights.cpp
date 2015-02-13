@@ -10,10 +10,10 @@
 
 namespace PV {
 
-InitIdentWeights::InitIdentWeights(HyPerConn * conn)
+InitIdentWeights::InitIdentWeights(char const * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(conn);
+   initialize(name, hc);
 }
 
 InitIdentWeights::InitIdentWeights()
@@ -29,13 +29,13 @@ int InitIdentWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitIdentWeights::initialize(HyPerConn * conn) {
-   int status = InitOneToOneWeights::initialize(conn);
+int InitIdentWeights::initialize(char const * name, HyPerCol * hc) {
+   int status = InitOneToOneWeights::initialize(name, hc);
    return status;
 }
 
 InitWeightsParams * InitIdentWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitIdentWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitIdentWeightsParams(name, parentHyPerCol);
    return tempPtr;
 }
 

@@ -21,7 +21,7 @@ class InitCocircWeightsParams;
 
 class InitCocircWeights: public PV::InitGauss2DWeights {
 public:
-   InitCocircWeights(HyPerConn * conn);
+   InitCocircWeights(char const * name, HyPerCol * hc);
    virtual ~InitCocircWeights();
 
    virtual int calcWeights(pvdata_t * dataStart, int patchIndex, int arborId);
@@ -30,7 +30,7 @@ public:
 
 protected:
    InitCocircWeights();
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
 
 private:
    int initialize_base();

@@ -18,7 +18,7 @@ class InitGaborWeightsParams;
 
 class InitGaborWeights: public PV::InitGauss2DWeights {
 public:
-   InitGaborWeights(HyPerConn * conn);
+   InitGaborWeights(char const * name, HyPerCol * hc);
    virtual ~InitGaborWeights();
 
    virtual int calcWeights(pvwdata_t * dataStart, int patchIndex, int arborId);
@@ -28,7 +28,7 @@ public:
 
 protected:
    InitGaborWeights();
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
 
 private:
    int initialize_base();

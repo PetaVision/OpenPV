@@ -22,9 +22,9 @@
 
 namespace PV {
 
-InitBIDSLateral::InitBIDSLateral(HyPerConn * conn){
+InitBIDSLateral::InitBIDSLateral(char const * name, HyPerCol * hc){
    initialize_base();
-   initialize(conn);
+   initialize(name, hc);
 }
 
 InitBIDSLateral::InitBIDSLateral(){
@@ -38,13 +38,13 @@ int InitBIDSLateral::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitBIDSLateral::initialize(HyPerConn * conn) {
-   int status = InitWeights::initialize(conn);
+int InitBIDSLateral::initialize(char const * name, HyPerCol * hc) {
+   int status = InitWeights::initialize(name, hc);
    return status;
 }
 
 InitWeightsParams * InitBIDSLateral::createNewWeightParams(){
-   InitWeightsParams * tempPtr = new InitBIDSLateralParams(callingConn);
+   InitWeightsParams * tempPtr = new InitBIDSLateralParams(name, parentHyPerCol);
    return tempPtr;
 }
 

@@ -15,7 +15,7 @@ namespace PV {
 
 class InitUniformWeights: public PV::InitWeights {
 public:
-   InitUniformWeights(HyPerConn * conn);
+   InitUniformWeights(char const * name, HyPerCol * hc);
    virtual ~InitUniformWeights();
    virtual InitWeightsParams * createNewWeightParams();
 
@@ -24,7 +24,7 @@ public:
 protected:
    InitUniformWeights();
    int initialize_base();
-   int initialize(HyPerConn * conn);
+   int initialize(char const * name, HyPerCol * hc);
 
 private:
   int uniformWeights(pvdata_t * dataStart, float iWeight, int kf, InitUniformWeightsParams *weightParamPtr, bool connectOnlySameFeatures = false);

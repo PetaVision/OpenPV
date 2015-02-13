@@ -9,9 +9,9 @@
 
 namespace PV {
 
-InitGauss2DWeights::InitGauss2DWeights(HyPerConn * conn) {
+InitGauss2DWeights::InitGauss2DWeights(char const * name, HyPerCol * hc) {
    initialize_base();
-   initialize(conn);
+   initialize(name, hc);
 }
 
 InitGauss2DWeights::InitGauss2DWeights() {
@@ -25,14 +25,13 @@ int InitGauss2DWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitGauss2DWeights::initialize(HyPerConn * conn) {
-   int status = InitWeights::initialize(conn);
+int InitGauss2DWeights::initialize(char const * name, HyPerCol * hc) {
+   int status = InitWeights::initialize(name, hc);
    return status;
 }
 
-
 InitWeightsParams * InitGauss2DWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitGauss2DWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitGauss2DWeightsParams(name, parentHyPerCol);
    return tempPtr;
 }
 

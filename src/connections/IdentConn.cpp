@@ -25,7 +25,7 @@ int IdentConn::initialize_base() {
 }  // end of IdentConn::initialize_base()
 
 int IdentConn::initialize(const char * name, HyPerCol * hc) {
-   int status = HyPerConn::initialize(name, hc);
+   int status = HyPerConn::initialize(name, hc, NULL, NULL);
    return status;
 }
 
@@ -63,7 +63,7 @@ void IdentConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
 
 void IdentConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
-      weightInitializer = new InitIdentWeights(this);
+      weightInitializer = new InitIdentWeights(name, parent);
       parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
    }
 }
@@ -195,7 +195,7 @@ void IdentConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag){
 }
 
 int IdentConn::setWeightInitializer() {
-   weightInitializer = (InitWeights *) new InitIdentWeights(this);
+   weightInitializer = (InitWeights *) new InitIdentWeights(name, parent);
    if( weightInitializer == NULL ) {
       fprintf(stderr, "IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, parent->icCommunicator()->commRank());
       exit(EXIT_FAILURE);

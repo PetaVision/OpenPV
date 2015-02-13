@@ -10,10 +10,10 @@
 
 namespace PV {
 
-InitMaxPoolingWeights::InitMaxPoolingWeights(HyPerConn * conn)
+InitMaxPoolingWeights::InitMaxPoolingWeights(const char * name, HyPerCol * hc)
 {
    initialize_base();
-   initialize(conn);
+   initialize(name, hc);
 }
 
 InitMaxPoolingWeights::InitMaxPoolingWeights()
@@ -29,13 +29,13 @@ int InitMaxPoolingWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitMaxPoolingWeights::initialize(HyPerConn * conn) {
-   int status = InitWeights::initialize(conn);
+int InitMaxPoolingWeights::initialize(const char * name, HyPerCol * hc) {
+   int status = InitWeights::initialize(name, hc);
    return status;
 }
 
 InitWeightsParams * InitMaxPoolingWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitMaxPoolingWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitMaxPoolingWeightsParams(name, parentHyPerCol);
    return tempPtr;
 }
 

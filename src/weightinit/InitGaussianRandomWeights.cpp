@@ -10,9 +10,9 @@
 
 namespace PV {
 
-InitGaussianRandomWeights::InitGaussianRandomWeights(HyPerConn * conn) {
+InitGaussianRandomWeights::InitGaussianRandomWeights(char const * name, HyPerCol * hc) {
    initialize_base();
-   initialize(conn);
+   initialize(name, hc);
 }
 
 InitGaussianRandomWeights::InitGaussianRandomWeights() {
@@ -28,13 +28,13 @@ int InitGaussianRandomWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitGaussianRandomWeights::initialize(HyPerConn * conn) {
-   int status = InitRandomWeights::initialize(conn);
+int InitGaussianRandomWeights::initialize(char const * name, HyPerCol * hc) {
+   int status = InitRandomWeights::initialize(name, hc);
    return status;
 }
 
 InitWeightsParams * InitGaussianRandomWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitGaussianRandomWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitGaussianRandomWeightsParams(name, parentHyPerCol);
    return tempPtr;
 }
 

@@ -10,9 +10,9 @@
 
 namespace PV {
 
-InitCocircWeights::InitCocircWeights(HyPerConn * conn) {
+InitCocircWeights::InitCocircWeights(char const * name, HyPerCol * hc) {
    initialize_base();
-   initialize(conn);
+   initialize(name, hc);
 }
 
 InitCocircWeights::InitCocircWeights()
@@ -28,13 +28,13 @@ int InitCocircWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitCocircWeights::initialize(HyPerConn * conn) {
-   int status = InitGauss2DWeights::initialize(conn);
+int InitCocircWeights::initialize(char const * name, HyPerCol * hc) {
+   int status = InitGauss2DWeights::initialize(name, hc);
    return status;
 }
 
 InitWeightsParams * InitCocircWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitCocircWeightsParams(callingConn);
+   InitWeightsParams * tempPtr = new InitCocircWeightsParams(name, parentHyPerCol);
    return tempPtr;
 }
 

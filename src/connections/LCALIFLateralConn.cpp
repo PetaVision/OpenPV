@@ -14,7 +14,7 @@ LCALIFLateralConn::LCALIFLateralConn()
    initialize_base();
 }
 
-LCALIFLateralConn::LCALIFLateralConn(const char * name, HyPerCol * hc) {
+LCALIFLateralConn::LCALIFLateralConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
    initialize_base();
    initialize(name, hc);
 }
@@ -32,8 +32,8 @@ int LCALIFLateralConn::initialize_base() {
    return PV_SUCCESS;
 }
 
-int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc) {
-   return HyPerConn::initialize(name, hc);
+int LCALIFLateralConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+   return HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 int LCALIFLateralConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

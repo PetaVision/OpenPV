@@ -8,9 +8,9 @@
 #include "PoolingConn.hpp"
 
 namespace PV {
-PoolingConn::PoolingConn(const char * name, HyPerCol * hc) {
+PoolingConn::PoolingConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, hc, weightInitializer, weightNormalizer);
 }  // end of PoolingConn::PoolingConn(const char *, HyPerCol *)
 
 int PoolingConn::initialize_base() {
@@ -19,8 +19,8 @@ int PoolingConn::initialize_base() {
     return PV_SUCCESS;
 }
 
-int PoolingConn::initialize(const char * name, HyPerCol * hc) {
-   int status = HyPerConn::initialize(name, hc);
+int PoolingConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+   int status = HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
    return status;
 }
 

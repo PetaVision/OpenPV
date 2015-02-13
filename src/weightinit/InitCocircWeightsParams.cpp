@@ -13,10 +13,10 @@ InitCocircWeightsParams::InitCocircWeightsParams()
 {
    initialize_base();
 }
-InitCocircWeightsParams::InitCocircWeightsParams(HyPerConn * parentConn)
+InitCocircWeightsParams::InitCocircWeightsParams(const char * name, HyPerCol * hc)
                      : InitGauss2DWeightsParams() {
    initialize_base();
-   initialize(parentConn);
+   initialize(name, hc);
 }
 
 InitCocircWeightsParams::~InitCocircWeightsParams()
@@ -60,8 +60,8 @@ int InitCocircWeightsParams::initialize_base() {
    return 1;
 }
 
-int InitCocircWeightsParams::initialize(HyPerConn * parentConn) {
-   InitGauss2DWeightsParams::initialize(parentConn);
+int InitCocircWeightsParams::initialize(const char * name, HyPerCol * hc) {
+   InitGauss2DWeightsParams::initialize(name, hc);
 
    PVParams * params = parent->parameters();
    int status = PV_SUCCESS;

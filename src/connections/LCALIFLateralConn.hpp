@@ -19,7 +19,7 @@ class LCALIFLateralConn: public PV::HyPerConn {
 
 // Methods
 public:
-   LCALIFLateralConn(const char * name, HyPerCol * hc);
+   LCALIFLateralConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual ~LCALIFLateralConn();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
@@ -37,7 +37,7 @@ public:
 
 protected:
    LCALIFLateralConn();
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_integrationTimeConstant(enum ParamsIOFlag ioFlag);
    virtual void ioParam_inhibitionTimeConstant(enum ParamsIOFlag ioFlag);

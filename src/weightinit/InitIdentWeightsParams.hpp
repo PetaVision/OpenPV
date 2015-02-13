@@ -15,14 +15,14 @@ namespace PV {
 class InitIdentWeightsParams: public PV::InitWeightsParams {
 public:
    InitIdentWeightsParams();
-   InitIdentWeightsParams(HyPerConn * parentConn);
+   InitIdentWeightsParams(const char * name, HyPerCol * hc);
    virtual ~InitIdentWeightsParams();
    void calcOtherParams(int patchIndex);
 
 
 protected:
    virtual int initialize_base();
-   int initialize(HyPerConn * parentConn);
+   int initialize(const char * name, HyPerCol * hc);
 };
 
 } /* namespace PV */

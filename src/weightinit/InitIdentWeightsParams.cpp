@@ -13,10 +13,10 @@ InitIdentWeightsParams::InitIdentWeightsParams()
 {
    initialize_base();
 }
-InitIdentWeightsParams::InitIdentWeightsParams(HyPerConn * parentConn)
+InitIdentWeightsParams::InitIdentWeightsParams(const char * name, HyPerCol * hc)
                      : InitWeightsParams() {
    initialize_base();
-   initialize(parentConn);
+   initialize(name, hc);
 }
 
 InitIdentWeightsParams::~InitIdentWeightsParams()
@@ -27,8 +27,8 @@ int InitIdentWeightsParams::initialize_base() {
    return PV_SUCCESS;
 }
 
-int InitIdentWeightsParams::initialize(HyPerConn * parentConn) {
-   return InitWeightsParams::initialize(parentConn);
+int InitIdentWeightsParams::initialize(const char * name, HyPerCol * hc) {
+   return InitWeightsParams::initialize(name, hc);
 }
 
 void InitIdentWeightsParams::calcOtherParams(int patchIndex) {

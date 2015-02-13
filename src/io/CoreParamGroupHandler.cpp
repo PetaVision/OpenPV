@@ -85,6 +85,20 @@
 #include "StatsProbe.hpp"
 #include "TextStreamProbe.hpp"
 #include "KernelProbe.hpp"
+#include "../weightinit/InitWeights.hpp"
+#include "../weightinit/InitGauss2DWeights.hpp"
+#include "../weightinit/InitCocircWeights.hpp"
+#include "../weightinit/InitSmartWeights.hpp"
+#include "../weightinit/InitUniformRandomWeights.hpp"
+#include "../weightinit/InitGaussianRandomWeights.hpp"
+#include "../weightinit/InitGaborWeights.hpp"
+#include "../weightinit/InitBIDSLateral.hpp"
+#include "../weightinit/InitOneToOneWeights.hpp"
+#include "../weightinit/InitOneToOneWeightsWithDelays.hpp"
+#include "../weightinit/InitIdentWeights.hpp"
+#include "../weightinit/InitUniformWeights.hpp"
+#include "../weightinit/InitSpreadOverArborsWeights.hpp"
+#include "../weightinit/InitMaxPoolingWeights.hpp"
 
 namespace PV {
 
@@ -94,176 +108,171 @@ CoreParamGroupHandler::CoreParamGroupHandler() {
 CoreParamGroupHandler::~CoreParamGroupHandler() {
 }
 
-void * CoreParamGroupHandler::createObject(char const * keyword, char const * name, HyPerCol * hc) {
-   const char * allowedkeywordarray[] = {
+ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
+   struct keyword_grouptype_entry  {char const * kw; ParamGroupType type;};
+   struct keyword_grouptype_entry keywordtable[] = {
          // HyPerCol
-         "HyPerCol",
+         {"HyPerCol", HyPerColGroupType},
 
          // Layers
-         "HyPerLayer",
-         "ANNErrorLayer",
-         "ANNLayer",
-         "ANNNormalizedErrorLayer",
-         "ANNSquaredLayer",
-         "ANNTriggerUpdateOnNewImageLayer", // Leaving ANNTriggerUpdateOnNewImageLayer in for now, to provide a meaningful error message if someone tries to use it (ANNTriggerUpdateOnNewImageLayer was marked obsolete Apr 23, 2014)
-         "ANNWhitenedLayer",
-         "BIDSCloneLayer",
-         "BIDSLayer",
-         "BIDSMovieCloneMap",
-         "BIDSSensorLayer",
-         "BinningLayer",
-         "CloneVLayer",
-         "ConstantLayer",
-         "CreateMovies",
-         "FilenameParsingGroundTruthLayer",
-         "GapLayer",
-         "GenerativeLayer",
-         "HyPerLCALayer",
-         "Image",
-         "ImageFromMemoryBuffer",
-         "IncrementLayer",
-         "KmeansLayer",
-         "LCALIFLayer",
-         "LIF",
-         "LIFGap",
-         "LabelErrorLayer",
-         "LabelLayer",
-         "LeakyIntegrator",
-         "LogLatWTAGenLayer",
-         "MLPErrorLayer",
-         "MLPForwardLayer",
-         "MLPOutputLayer",
-         "MLPSigmoidLayer",
-         "MatchingPursuitLayer",
-         "MatchingPursuitResidual",
-         "MaxPooling", // Obsolete; have the connection's pvpatchAccumulateType set to "maxpooling" (case insensitive).
-         "Movie",
-         "Patterns",
-         "PoolingANNLayer",
-         "PtwiseProductLayer",
-         "RescaleLayer",
-         "Retina",
-         "ShuffleLayer",
-         "SigmoidLayer",
-         "TextStream",
-         "TrainingLayer",
-         "WTALayer",
+         {"HyPerLayer", LayerGroupType},
+         {"ANNErrorLayer", LayerGroupType},
+         {"ANNLayer", LayerGroupType},
+         {"ANNNormalizedErrorLayer", LayerGroupType},
+         {"ANNSquaredLayer", LayerGroupType},
+         {"ANNTriggerUpdateOnNewImageLayer", LayerGroupType},
+         {"ANNWhitenedLayer", LayerGroupType},
+         {"BIDSCloneLayer", LayerGroupType},
+         {"BIDSLayer", LayerGroupType},
+         {"BIDSMovieCloneMap", LayerGroupType},
+         {"BIDSSensorLayer", LayerGroupType},
+         {"BinningLayer", LayerGroupType},
+         {"CloneVLayer", LayerGroupType},
+         {"ConstantLayer", LayerGroupType},
+         {"CreateMovies", LayerGroupType},
+         {"FilenameParsingGroundTruthLayer", LayerGroupType},
+         {"GapLayer", LayerGroupType},
+         {"GenerativeLayer", LayerGroupType},
+         {"HyPerLCALayer", LayerGroupType},
+         {"Image", LayerGroupType},
+         {"ImageFromMemoryBuffer", LayerGroupType},
+         {"IncrementLayer", LayerGroupType},
+         {"KmeansLayer", LayerGroupType},
+         {"LCALIFLayer", LayerGroupType},
+         {"LIF", LayerGroupType},
+         {"LIFGap", LayerGroupType},
+         {"LabelErrorLayer", LayerGroupType},
+         {"LabelLayer", LayerGroupType},
+         {"LeakyIntegrator", LayerGroupType},
+         {"LogLatWTAGenLayer", LayerGroupType},
+         {"MLPErrorLayer", LayerGroupType},
+         {"MLPForwardLayer", LayerGroupType},
+         {"MLPOutputLayer", LayerGroupType},
+         {"MLPSigmoidLayer", LayerGroupType},
+         {"MatchingPursuitLayer", LayerGroupType},
+         {"MatchingPursuitResidual", LayerGroupType},
+         {"MaxPooling", LayerGroupType},
+         {"Movie", LayerGroupType},
+         {"Patterns", LayerGroupType},
+         {"PoolingANNLayer", LayerGroupType},
+         {"PtwiseProductLayer", LayerGroupType},
+         {"RescaleLayer", LayerGroupType},
+         {"Retina", LayerGroupType},
+         {"ShuffleLayer", LayerGroupType},
+         {"SigmoidLayer", LayerGroupType},
+         {"TextStream", LayerGroupType},
+         {"TrainingLayer", LayerGroupType},
+         {"WTALayer", LayerGroupType},
 #ifdef PV_USE_SNDFILE
-         "NewCochlearLayer",
-         "SoundStream",
+         {"NewCochlearLayer", LayerGroupType},
+         {"SoundStream", LayerGroupType},
 #endif
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
-         "ANNDivInhLayer",
-         "ANNLabelLayer",
-         "ANNWeightedErrorLayer",
-         "AccumulateLayer",
-         "CliqueLayer",
-#endif // OBSOLETE
 
          // Connections
-         "HyPerConn",
-         "BIDSConn",
-         "CloneConn",
-         "CloneKernelConn", //Deprecated as of June 6, 2014, in favor of CloneConn with sharedWeights = true
-         "CopyConn",
-         "FeedbackConn",
-         "GapConn",
-         "IdentConn",
-         "ImprintConn",
-         "KernelConn", // Deprecated as of June 5, 2014, in favor of HyPerConn with sharedWeights = true
-         "LCALIFLateralConn",
-         "OjaSTDPConn",
-         "PlasticCloneConn",
-         "PoolingConn",
-         "TransposeConn",
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  Use HyPerConn instead of GenerativeConn and PoolingConn instead of PoolingGenConn
-         "GenerativeConn",
-         "PoolingGenConn",
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
-         "NoSelfKernelConn",
-         "SiblingConn",
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
-         "ReciprocalConn",
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-         "WindowConn",
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused connections.
-         "CliqueConn",
-         "InhibSTDPConn",
-         "LCALIFLateralKernelConn",
-         "MapReduceKernelConn",
-         "OjaKernelConn",
-         "STDP3Conn",
-         "STDPConn",
-#endif // OBSOLETE
+         {"HyPerConn", ConnectionGroupType},
+         {"BIDSConn", ConnectionGroupType},
+         {"CloneConn", ConnectionGroupType},
+         {"CloneKernelConn", ConnectionGroupType},
+         {"CopyConn", ConnectionGroupType},
+         {"FeedbackConn", ConnectionGroupType},
+         {"GapConn", ConnectionGroupType},
+         {"IdentConn", ConnectionGroupType},
+         {"ImprintConn", ConnectionGroupType},
+         {"KernelConn", ConnectionGroupType},
+         {"LCALIFLateralConn", ConnectionGroupType},
+         {"OjaSTDPConn", ConnectionGroupType},
+         {"PlasticCloneConn", ConnectionGroupType},
+         {"PoolingConn", ConnectionGroupType},
+         {"TransposeConn", ConnectionGroupType},
 
-         // Column Probes
-         "ColProbe",
-         "GenColProbe",
-         // Layer Probes
-         "LayerProbe",
-         "L2NormProbe",
-         "LayerFunctionProbe",
-         "LogLatWTAProbe",
-         "PointLIFProbe",
-         "PointProbe",
-         "RequireAllZeroActivityProbe",
-         "SparsityLayerProbe",
-         "StatsProbe",
-         "TextStreamProbe",
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
-         "PointLCALIFProbe",
-         "SparsityTermProbe",
-#endif // OBSOLETE
+         // ColProbes
+         {"ColProbe", ColProbeGroupType},
+         {"GenColProbe", ColProbeGroupType},
 
-         // Connection Probes
-         "KernelProbe",
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
-         "ReciprocalEnergyProbe",
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
-         "ConnStatsProbe",
-         "LCALIFLateralProbe",
-         "OjaConnProbe",
-         "OjaKernelSpikeRateProbe",
-         "PatchProbe",
-#endif // OBSOLETE
-         NULL
+         // Probes
+         // // Layer probes
+         {"LayerProbe", ProbeGroupType},
+         {"L2NormProbe", ProbeGroupType},
+         {"LayerFunctionProbe", ProbeGroupType},
+         {"LogLatWTAProbe", ProbeGroupType},
+         {"PointLIFProbe", ProbeGroupType},
+         {"PointProbe", ProbeGroupType},
+         {"RequireAllZeroActivityProbe", ProbeGroupType},
+         {"SparsityLayerProbe", ProbeGroupType},
+         {"StatsProbe", ProbeGroupType},
+         {"TextStreamProbe", ProbeGroupType},
+
+         // // Connection probes
+         {"KernelProbe", ProbeGroupType},
+
+         // Weight initializers
+         {"Gauss2DWeight", WeightInitializerGroupType},
+         {"CoCircWeight", WeightInitializerGroupType},
+         {"UniformWeight", WeightInitializerGroupType},
+         {"SmartWeight", WeightInitializerGroupType},
+         {"BIDSLateral", WeightInitializerGroupType},
+         {"UniformRandomWeight", WeightInitializerGroupType},
+         {"GaussianRandomWeight", WeightInitializerGroupType},
+         {"GaborWeight", WeightInitializerGroupType},
+         {"IdentWeight", WeightInitializerGroupType},
+         {"OneToOneWeights", WeightInitializerGroupType},
+         {"OneToOneWeightsWithDelays", WeightInitializerGroupType},
+         {"SpreadOverArborsWeight", WeightInitializerGroupType},
+         {"MaxPoolingWeight", WeightInitializerGroupType},
+         {"FileWeight", WeightInitializerGroupType},
+
+         {NULL, UnrecognizedGroupType}
    };
-   char const * allowedkeyword;
-   for (int k=0; (allowedkeyword = allowedkeywordarray[k])!=NULL; k++) {
-      if (!strcmp(keyword, allowedkeyword)) { break; }
+   ParamGroupType result = UnrecognizedGroupType;
+
+   for (int k=0; keywordtable[k].kw != NULL; k++) {
+      if (!strcmp(keywordtable[k].kw, keyword)) {
+         result = keywordtable[k].type;
+         break;
+      }
    }
-   if (allowedkeyword==NULL) {
-      return NULL; // Unrecognized keyword, but since there might be another ParamGroupHandler object that does recognize it, it's not an error.
+   return result;
+}
+
+HyPerCol * CoreParamGroupHandler::createHyPerCol(char const * keyword, char const * name, HyPerCol * hc) {
+   HyPerCol * addedHyPerCol = NULL;
+   if ( keyword && !strcmp(keyword, "HyPerCol")) {
+      addedHyPerCol = hc;
    }
 
-   void * addedObject = NULL;
-
-   // Column keyword
-   if ( !strcmp(keyword, "HyPerCol")) {
-      addedObject = (void *) hc;
+   if (addedHyPerCol==NULL) {
+      if (addedHyPerCol==NULL) {
+         if (hc->columnId()==0) {
+            fprintf(stderr, "createHyPerCol error: unable to add %s\n", keyword);
+         }
+         MPI_Barrier(hc->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
    }
 
-   // Layer keywords
-   if( !strcmp(keyword, "HyPerLayer") ) {
+   return addedHyPerCol;
+}
+
+HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const * name, HyPerCol * hc) {
+   HyPerLayer * addedLayer = NULL;
+   if (keyword==NULL) {
+      addedLayer = NULL;
+   }
+   else if( !strcmp(keyword, "HyPerLayer") ) {
       fprintf(stderr, "Group \"%s\": abstract class HyPerLayer cannot be instantiated.\n", name);
-      addedObject = NULL;
+      addedLayer = NULL;
    }
-   if( !strcmp(keyword, "ANNErrorLayer") ) {
-      addedObject = (void *) new ANNErrorLayer(name, hc);
+   else if( !strcmp(keyword, "ANNErrorLayer") ) {
+      addedLayer = new ANNErrorLayer(name, hc);
    }
-   if( !strcmp(keyword, "ANNLayer") ) {
-      addedObject = (void *) new ANNLayer(name, hc);
+   else if( !strcmp(keyword, "ANNLayer") ) {
+      addedLayer = new ANNLayer(name, hc);
    }
-   if( !strcmp(keyword, "ANNNormalizedErrorLayer") ) {
-      addedObject = (void *) new ANNNormalizedErrorLayer(name, hc);
+   else if( !strcmp(keyword, "ANNNormalizedErrorLayer") ) {
+      addedLayer = new ANNNormalizedErrorLayer(name, hc);
    }
-   if( !strcmp(keyword, "ANNSquaredLayer") ) {
-      addedObject = (void *) new ANNSquaredLayer(name, hc);
+   else if( !strcmp(keyword, "ANNSquaredLayer") ) {
+      addedLayer = new ANNSquaredLayer(name, hc);
    }
       if( !strcmp(keyword, "ANNTriggerUpdateOnNewImageLayer") ) {
          // ANNTriggerUpdateOnNewImageLayer is obsolete as of April 23, 2014.  Leaving it in the code for a while for a useful error message.
@@ -278,97 +287,97 @@ void * CoreParamGroupHandler::createObject(char const * keyword, char const * na
    #endif
          exit(EXIT_FAILURE);
       }
-   if( !strcmp(keyword, "ANNWhitenedLayer") ) {
-      addedObject = (void *) new ANNWhitenedLayer(name, hc);
+   else if( !strcmp(keyword, "ANNWhitenedLayer") ) {
+      addedLayer = new ANNWhitenedLayer(name, hc);
    }
-   if( !strcmp(keyword, "BIDSCloneLayer") ) {
-      addedObject = (void *) new BIDSCloneLayer(name, hc);
+   else if( !strcmp(keyword, "BIDSCloneLayer") ) {
+      addedLayer = new BIDSCloneLayer(name, hc);
    }
-   if( !strcmp(keyword, "BIDSLayer") ) {
-      addedObject = (void *) new BIDSLayer(name, hc);
+   else if( !strcmp(keyword, "BIDSLayer") ) {
+      addedLayer = new BIDSLayer(name, hc);
    }
-   if( !strcmp(keyword, "BIDSMovieCloneMap") ) {
-      addedObject = (void *) new BIDSMovieCloneMap(name, hc);
+   else if( !strcmp(keyword, "BIDSMovieCloneMap") ) {
+      addedLayer = new BIDSMovieCloneMap(name, hc);
    }
-   if( !strcmp(keyword, "BIDSSensorLayer") ) {
-      addedObject = (void *) new BIDSSensorLayer(name, hc);
+   else if( !strcmp(keyword, "BIDSSensorLayer") ) {
+      addedLayer = new BIDSSensorLayer(name, hc);
    }
-   if( !strcmp(keyword, "BinningLayer") ) {
-      addedObject = (void *) new BinningLayer(name, hc);
+   else if( !strcmp(keyword, "BinningLayer") ) {
+      addedLayer = new BinningLayer(name, hc);
    }
-   if( !strcmp(keyword, "CloneVLayer") ) {
-      addedObject = (void *) new CloneVLayer(name, hc);
+   else if( !strcmp(keyword, "CloneVLayer") ) {
+      addedLayer = new CloneVLayer(name, hc);
    }
-   if( !strcmp(keyword, "ConstantLayer") ) {
-      addedObject = (void *) new ConstantLayer(name, hc);
+   else if( !strcmp(keyword, "ConstantLayer") ) {
+      addedLayer = new ConstantLayer(name, hc);
    }
-   if( !strcmp(keyword, "CreateMovies") ) {
-      addedObject = (void *) new CreateMovies(name, hc);
+   else if( !strcmp(keyword, "CreateMovies") ) {
+      addedLayer = new CreateMovies(name, hc);
    }
-   if( !strcmp(keyword, "FilenameParsingGroundTruthLayer") ) {
-      addedObject = (void *) new FilenameParsingGroundTruthLayer(name, hc);
+   else if( !strcmp(keyword, "FilenameParsingGroundTruthLayer") ) {
+      addedLayer = new FilenameParsingGroundTruthLayer(name, hc);
    }
-   if( !strcmp(keyword, "GapLayer") ) {
-      addedObject = (void *) new GapLayer(name, hc);
+   else if( !strcmp(keyword, "GapLayer") ) {
+      addedLayer = new GapLayer(name, hc);
    }
-   if( !strcmp(keyword, "GenerativeLayer") ) {
-      addedObject = (void *) new GenerativeLayer(name, hc);
+   else if( !strcmp(keyword, "GenerativeLayer") ) {
+      addedLayer = new GenerativeLayer(name, hc);
    }
-   if( !strcmp(keyword, "HyPerLCALayer") ) {
-      addedObject = (void *) new HyPerLCALayer(name, hc);
+   else if( !strcmp(keyword, "HyPerLCALayer") ) {
+      addedLayer = new HyPerLCALayer(name, hc);
    }
-   if( !strcmp(keyword, "Image") ) {
-      addedObject = (void *) new Image(name, hc);
+   else if( !strcmp(keyword, "Image") ) {
+      addedLayer = new Image(name, hc);
    }
-   if( !strcmp(keyword, "ImageFromMemoryBuffer") ) {
-      addedObject = (void *) new ImageFromMemoryBuffer(name, hc);
+   else if( !strcmp(keyword, "ImageFromMemoryBuffer") ) {
+      addedLayer = new ImageFromMemoryBuffer(name, hc);
    }
-   if( !strcmp(keyword, "IncrementLayer") ) {
-      addedObject = (void *) new IncrementLayer(name, hc);
+   else if( !strcmp(keyword, "IncrementLayer") ) {
+      addedLayer = new IncrementLayer(name, hc);
    }
-   if( !strcmp(keyword, "KmeansLayer") ) {
-      addedObject = (void *) new KmeansLayer(name, hc);
+   else if( !strcmp(keyword, "KmeansLayer") ) {
+      addedLayer = new KmeansLayer(name, hc);
    }
-   if( !strcmp(keyword, "LCALIFLayer") ) {
-      addedObject = (void *) new LCALIFLayer(name, hc);
+   else if( !strcmp(keyword, "LCALIFLayer") ) {
+      addedLayer = new LCALIFLayer(name, hc);
    }
-   if( !strcmp(keyword, "LIF") ) {
-      addedObject = (void *) new LIF(name, hc);
+   else if( !strcmp(keyword, "LIF") ) {
+      addedLayer = new LIF(name, hc);
    }
-   if( !strcmp(keyword, "LIFGap") ) {
-      addedObject = (void *) new LIFGap(name, hc);
+   else if( !strcmp(keyword, "LIFGap") ) {
+      addedLayer = new LIFGap(name, hc);
    }
-   if( !strcmp(keyword, "LabelErrorLayer") ) {
-      addedObject = (void *) new LabelErrorLayer(name, hc);
+   else if( !strcmp(keyword, "LabelErrorLayer") ) {
+      addedLayer = new LabelErrorLayer(name, hc);
    }
-   if( !strcmp(keyword, "LabelLayer") ) {
-      addedObject = (void *) new LabelLayer(name, hc);
+   else if( !strcmp(keyword, "LabelLayer") ) {
+      addedLayer = new LabelLayer(name, hc);
    }
-   if( !strcmp(keyword, "LeakyIntegrator") ) {
-      addedObject = (void *) new LeakyIntegrator(name, hc);
+   else if( !strcmp(keyword, "LeakyIntegrator") ) {
+      addedLayer = new LeakyIntegrator(name, hc);
    }
-   if( !strcmp(keyword, "LogLatWTAGenLayer") ) {
-      addedObject = (void *) new LogLatWTAGenLayer(name, hc);
+   else if( !strcmp(keyword, "LogLatWTAGenLayer") ) {
+      addedLayer = new LogLatWTAGenLayer(name, hc);
    }
-   if( !strcmp(keyword, "MLPErrorLayer") ) {
-      addedObject = (void *) new MLPErrorLayer(name, hc);
+   else if( !strcmp(keyword, "MLPErrorLayer") ) {
+      addedLayer = new MLPErrorLayer(name, hc);
    }
-   if( !strcmp(keyword, "MLPForwardLayer") ) {
-      addedObject = (void *) new MLPForwardLayer(name, hc);
+   else if( !strcmp(keyword, "MLPForwardLayer") ) {
+      addedLayer = new MLPForwardLayer(name, hc);
    }
-   if( !strcmp(keyword, "MLPOutputLayer") ) {
-      addedObject = (void *) new MLPOutputLayer(name, hc);
+   else if( !strcmp(keyword, "MLPOutputLayer") ) {
+      addedLayer = new MLPOutputLayer(name, hc);
    }
-   if( !strcmp(keyword, "MLPSigmoidLayer") ) {
-      addedObject = (void *) new MLPSigmoidLayer(name, hc);
+   else if( !strcmp(keyword, "MLPSigmoidLayer") ) {
+      addedLayer = new MLPSigmoidLayer(name, hc);
    }
-   if( !strcmp(keyword, "MatchingPursuitLayer") ) {
-      addedObject = (void *) new MatchingPursuitLayer(name, hc);
+   else if( !strcmp(keyword, "MatchingPursuitLayer") ) {
+      addedLayer = new MatchingPursuitLayer(name, hc);
    }
-   if( !strcmp(keyword, "MatchingPursuitResidual") ) {
-      addedObject = (void *) new MatchingPursuitResidual(name, hc);
+   else if( !strcmp(keyword, "MatchingPursuitResidual") ) {
+      addedLayer = new MatchingPursuitResidual(name, hc);
    }
-   if( !strcmp(keyword, "MaxPooling") ) {
+   else if( !strcmp(keyword, "MaxPooling") ) {
       // MaxPooling was marked obsolete Oct 30, 2014
       if (hc->columnId()==0) {
          fprintf(stderr, "Params group \"%s\": MaxPooling is obsolete.  Use a different layer type and set the connections going to \"%s\" to use pvpatchAccumulateType = \"maxpooling\".\n", name, name);
@@ -376,149 +385,316 @@ void * CoreParamGroupHandler::createObject(char const * keyword, char const * na
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   if( !strcmp(keyword, "Movie") ) {
-      addedObject = (void *) new Movie(name, hc);
+   else if( !strcmp(keyword, "Movie") ) {
+      addedLayer = new Movie(name, hc);
    }
-   if( !strcmp(keyword, "Patterns") ) {
-      addedObject = (void *) new Patterns(name, hc);
+   else if( !strcmp(keyword, "Patterns") ) {
+      addedLayer = new Patterns(name, hc);
    }
-   if( !strcmp(keyword, "PoolingANNLayer") ) {
-      addedObject = (void *) new PoolingANNLayer(name, hc);
+   else if( !strcmp(keyword, "PoolingANNLayer") ) {
+      addedLayer = new PoolingANNLayer(name, hc);
    }
-   if( !strcmp(keyword, "PtwiseProductLayer") ) {
-      addedObject = (void *) new PtwiseProductLayer(name, hc);
+   else if( !strcmp(keyword, "PtwiseProductLayer") ) {
+      addedLayer = new PtwiseProductLayer(name, hc);
    }
-   if( !strcmp(keyword, "RescaleLayer") ) {
-      addedObject = (void *) new RescaleLayer(name, hc);
+   else if( !strcmp(keyword, "RescaleLayer") ) {
+      addedLayer = new RescaleLayer(name, hc);
    }
-   if( !strcmp(keyword, "Retina") ) {
-      addedObject = (void *) new Retina(name, hc);
+   else if( !strcmp(keyword, "Retina") ) {
+      addedLayer = new Retina(name, hc);
    }
-   if( !strcmp(keyword, "ShuffleLayer") ) {
-      addedObject = (void *) new ShuffleLayer(name, hc);
+   else if( !strcmp(keyword, "ShuffleLayer") ) {
+      addedLayer = new ShuffleLayer(name, hc);
    }
-   if( !strcmp(keyword, "SigmoidLayer") ) {
-      addedObject = (void *) new SigmoidLayer(name, hc);
+   else if( !strcmp(keyword, "SigmoidLayer") ) {
+      addedLayer = new SigmoidLayer(name, hc);
    }
-   if( !strcmp(keyword, "TextStream") ) {
-      addedObject = (void *) new TextStream(name, hc);
+   else if( !strcmp(keyword, "TextStream") ) {
+      addedLayer = new TextStream(name, hc);
    }
-   if( !strcmp(keyword, "TrainingLayer") ) {
-      addedObject = (void *) new TrainingLayer(name, hc);
+   else if( !strcmp(keyword, "TrainingLayer") ) {
+      addedLayer = new TrainingLayer(name, hc);
    }
-   if( !strcmp(keyword, "WTALayer") ) {
-      addedObject = (void *) new WTALayer(name, hc);
+   else if( !strcmp(keyword, "WTALayer") ) {
+      addedLayer = new WTALayer(name, hc);
    }
-#ifdef PV_USE_SNDFILE
-   if( !strcmp(keyword, "NewCochlearLayer") ) {
-      addedObject = (void *) new NewCochlearLayer(name, hc);
+#ifdef PV_USE_SNDFILE // TODO: move SoundFile stuff into its own library
+   else if( !strcmp(keyword, "NewCochlearLayer") ) {
+      addedObject = new NewCochlearLayer(name, hc);
    }
-   if( !strcmp(keyword, "SoundStream") ) {
-      addedObject = (void *) new SoundStream(name, hc);
+   else if( !strcmp(keyword, "SoundStream") ) {
+      addedObject = new SoundStream(name, hc);
    }
 #endif
 
-   // Connection keywords
-   if( !strcmp(keyword, "HyPerConn") ) {
-      addedObject = (void *) new HyPerConn(name, hc);
-   }
-   if( !strcmp(keyword, "BIDSConn") ) {
-      addedObject = (void *) new BIDSConn(name, hc);
-   }
-   if( !strcmp(keyword, "CloneConn") ) {
-      addedObject = (void *) new CloneConn(name, hc);
-   }
-   if( !strcmp(keyword, "CloneKernelConn") ) {
-      // Deprecated as of June 6, 2014.  Use CloneConn with sharedWeight = true
-      addedObject = (void *) new CloneKernelConn(name, hc);
-   }
-   if( !strcmp(keyword, "CopyConn") ) {
-      addedObject = (void *) new CopyConn(name, hc);
-   }
-   if( !strcmp(keyword, "FeedbackConn") ) {
-      addedObject = (void *) new FeedbackConn(name, hc);
-   }
-   if( !strcmp(keyword, "GapConn") ) {
-      addedObject = (void *) new GapConn(name, hc);
-   }
-   if( !strcmp(keyword, "IdentConn") ) {
-      addedObject = (void *) new IdentConn(name, hc);
-   }
-   if( !strcmp(keyword, "ImprintConn") ) {
-      addedObject = (void *) new ImprintConn(name, hc);
-   }
-   if( !strcmp(keyword, "KernelConn") ) {
-      // Deprecated as of June 5, 2014.  Use HyPerConn with sharedWeight = true
-      addedObject = (void *) new KernelConn(name, hc);
-   }
-   if( !strcmp(keyword, "LCALIFLateralConn") ) {
-      addedObject = (void *) new LCALIFLateralConn(name, hc);
-   }
-   if( !strcmp(keyword, "OjaSTDPConn") ) {
-      addedObject = (void *) new OjaSTDPConn(name, hc);
-   }
-   if( !strcmp(keyword, "PlasticCloneConn") ) {
-      addedObject = (void *) new PlasticCloneConn(name, hc);
-   }
-   if( !strcmp(keyword, "PoolingConn") ) {
-      addedObject = (void *) new PoolingConn(name, hc);
-   }
-   if( !strcmp(keyword, "TransposeConn") ) {
-      addedObject = (void *) new TransposeConn(name, hc);
+   if (addedLayer==NULL) {
+      if (addedLayer==NULL) {
+         if (hc->columnId()==0) {
+            fprintf(stderr, "createLayer error: unable to add %s\n", keyword);
+         }
+         MPI_Barrier(hc->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
    }
 
-   // Column Probe keywords
-   if( !strcmp(keyword, "ColProbe") ) {
-      addedObject = (void *) new ColProbe(name, hc);
+   return addedLayer;
+}
+
+BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, char const * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+   BaseConnection * addedConnection = NULL;
+
+   if (keyword==NULL) {
+      addedConnection = NULL;
    }
-   if( !strcmp(keyword, "GenColProbe") ) {
-      addedObject = (void *) new GenColProbe(name, hc);
+   else if( !strcmp(keyword, "HyPerConn") ) {
+      addedConnection = new HyPerConn(name, hc, weightInitializer, weightNormalizer);
    }
+   else if( !strcmp(keyword, "BIDSConn") ) {
+      addedConnection = new BIDSConn(name, hc, weightInitializer, weightNormalizer);
+   }
+   else if( !strcmp(keyword, "CloneConn") ) {
+      addedConnection = new CloneConn(name, hc);
+   }
+   else if( !strcmp(keyword, "CloneKernelConn") ) {
+      // Deprecated as of June 6, 2014.  Use CloneConn with sharedWeight = true
+      addedConnection = new CloneKernelConn(name, hc);
+   }
+   else if( !strcmp(keyword, "CopyConn") ) {
+      addedConnection = new CopyConn(name, hc, weightNormalizer);
+   }
+   else if( !strcmp(keyword, "FeedbackConn") ) {
+      addedConnection = new FeedbackConn(name, hc);
+   }
+   else if( !strcmp(keyword, "GapConn") ) {
+      addedConnection = new GapConn(name, hc, weightInitializer, weightNormalizer);
+   }
+   else if( !strcmp(keyword, "IdentConn") ) {
+      addedConnection = new IdentConn(name, hc);
+   }
+   else if( !strcmp(keyword, "ImprintConn") ) {
+      addedConnection = new ImprintConn(name, hc, weightInitializer, weightNormalizer);
+   }
+   else if( !strcmp(keyword, "KernelConn") ) {
+      // Deprecated as of June 5, 2014.  Use HyPerConn with sharedWeight = true
+      addedConnection = new KernelConn(name, hc, weightInitializer, weightNormalizer);
+   }
+   else if( !strcmp(keyword, "LCALIFLateralConn") ) {
+      addedConnection = new LCALIFLateralConn(name, hc, weightInitializer, weightNormalizer);
+   }
+   else if( !strcmp(keyword, "OjaSTDPConn") ) {
+      addedConnection = new OjaSTDPConn(name, hc, weightInitializer, weightNormalizer);
+   }
+   else if( !strcmp(keyword, "PlasticCloneConn") ) {
+      addedConnection = new PlasticCloneConn(name, hc);
+   }
+   else if( !strcmp(keyword, "PoolingConn") ) {
+      addedConnection = new PoolingConn(name, hc, weightInitializer, weightNormalizer);
+   }
+   else if( !strcmp(keyword, "TransposeConn") ) {
+      addedConnection = new TransposeConn(name, hc);
+   }
+
+   if (addedConnection==NULL) {
+      if (weightInitializer==NULL) {
+         if (hc->columnId()==0) {
+            fprintf(stderr, "createConnection error: unable to add %s\n", keyword);
+         }
+         MPI_Barrier(hc->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+
+   return addedConnection;
+}
+
+ColProbe * CoreParamGroupHandler::createColProbe(char const * keyword, char const * name, HyPerCol * hc) {
+   ColProbe * addedColProbe = NULL;
+
+   if (keyword==NULL) {
+      addedColProbe = NULL;
+   }
+   else if( !strcmp(keyword, "ColProbe") ) {
+      addedColProbe = new ColProbe(name, hc);
+   }
+   else if( !strcmp(keyword, "GenColProbe") ) {
+      addedColProbe = new GenColProbe(name, hc);
+   }
+
+   if (addedColProbe==NULL) {
+      if (addedColProbe==NULL) {
+         if (hc->columnId()==0) {
+            fprintf(stderr, "createColProbe error: unable to add %s\n", keyword);
+         }
+         MPI_Barrier(hc->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+
+   return addedColProbe;
+}
+
+BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const * name, HyPerCol * hc) {
+   BaseProbe * addedProbe = NULL;
 
    // Layer probe keywords
-   if( !strcmp(keyword, "LayerProbe") ) {
+   if (keyword==NULL) {
+      addedProbe = NULL;
+   }
+   else if( !strcmp(keyword, "LayerProbe") ) {
       fprintf(stderr, "LayerProbe \"%s\": Abstract class LayerProbe cannot be instantiated.\n", name);
-      addedObject = NULL;
+      addedProbe = NULL;
    }
-   if( !strcmp(keyword, "L2NormProbe") ) {
-      addedObject = (void *) new L2NormProbe(name, hc);
+   else if( !strcmp(keyword, "L2NormProbe") ) {
+      addedProbe = new L2NormProbe(name, hc);
    }
-   if( !strcmp(keyword, "LayerFunctionProbe") ) {
-      addedObject = (void *) new LayerFunctionProbe(name, hc);
+   else if( !strcmp(keyword, "LayerFunctionProbe") ) {
+      addedProbe = new LayerFunctionProbe(name, hc);
    }
-   if( !strcmp(keyword, "LogLatWTAProbe") ) {
-      addedObject = (void *) new LogLatWTAProbe(name, hc);
+   else if( !strcmp(keyword, "LogLatWTAProbe") ) {
+      addedProbe = new LogLatWTAProbe(name, hc);
    }
-   if( !strcmp(keyword, "PointLIFProbe") ) {
-      addedObject = (void *) new PointLIFProbe(name, hc);
+   else if( !strcmp(keyword, "PointLIFProbe") ) {
+      addedProbe = new PointLIFProbe(name, hc);
    }
-   if( !strcmp(keyword, "PointProbe") ) {
-      addedObject = (void *) new PointProbe(name, hc);
+   else if( !strcmp(keyword, "PointProbe") ) {
+      addedProbe = new PointProbe(name, hc);
    }
-   if( !strcmp(keyword, "RequireAllZeroActivityProbe") ) {
-      addedObject = (void *) new RequireAllZeroActivityProbe(name, hc);
+   else if( !strcmp(keyword, "RequireAllZeroActivityProbe") ) {
+      addedProbe = new RequireAllZeroActivityProbe(name, hc);
    }
-   if( !strcmp(keyword, "SparsityLayerProbe") ) {
-      addedObject = (void *) new SparsityLayerProbe(name, hc);
+   else if( !strcmp(keyword, "SparsityLayerProbe") ) {
+      addedProbe = new SparsityLayerProbe(name, hc);
    }
-   if( !strcmp(keyword, "StatsProbe") ) {
-      addedObject = (void *) new StatsProbe(name, hc);
+   else if( !strcmp(keyword, "StatsProbe") ) {
+      addedProbe = new StatsProbe(name, hc);
    }
-   if( !strcmp(keyword, "TextStreamProbe") ) {
-      addedObject = (void *) new TextStreamProbe(name, hc);
+   else if( !strcmp(keyword, "TextStreamProbe") ) {
+      addedProbe = new TextStreamProbe(name, hc);
    }
 
    // Connection probe keywords
-   if( !strcmp(keyword, "KernelProbe") ) {
-      addedObject = (void *) new KernelProbe(name, hc);
+   else if( !strcmp(keyword, "KernelProbe") ) {
+      addedProbe = new KernelProbe(name, hc);
    }
 
-   if (addedObject==NULL) {
-      fprintf(stderr, "Unable to add %s\n", keyword);
+   if (addedProbe==NULL) {
+      if (addedProbe==NULL) {
+         if (hc->columnId()==0) {
+            fprintf(stderr, "createProbe error: unable to add %s\n", keyword);
+         }
+         MPI_Barrier(hc->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+
+   return addedProbe;
+}
+
+InitWeights * CoreParamGroupHandler::createWeightInitializer(char const * keyword, char const * name, HyPerCol * hc) {
+   InitWeights * weightInitializer = NULL;
+
+   if (keyword==NULL) {
+      weightInitializer = NULL;
+   }
+   else if (!strcmp(keyword, "Gauss2DWeight")) {
+      weightInitializer = new InitGauss2DWeights(name, hc);
+   }
+   else if (!strcmp(keyword, "CoCircWeight")) {
+      weightInitializer = new InitCocircWeights(name, hc);
+   }
+   else if (!strcmp(keyword, "UniformWeight")) {
+      weightInitializer = new InitUniformWeights(name, hc);
+   }
+   else if (!strcmp(keyword, "SmartWeight")) {
+      weightInitializer = new InitSmartWeights(name, hc);
+   }
+   else if (!strcmp(keyword, "BIDSLateral")) {
+      weightInitializer = new InitBIDSLateral(name, hc);
+   }
+   else if (!strcmp(keyword, "UniformRandomWeight")) {
+      weightInitializer = new InitUniformRandomWeights(name, hc);
+   }
+   else if (!strcmp(keyword, "GaussianRandomWeight")) {
+      weightInitializer = new InitGaussianRandomWeights(name, hc);
+   }
+   else if (!strcmp(keyword, "GaborWeight")) {
+      weightInitializer = new InitGaborWeights(name, hc);
+   }
+   else if (!strcmp(keyword, "IdentWeight")) {
+      weightInitializer = new InitIdentWeights(name, hc);
+   }
+   else if (!strcmp(keyword, "OneToOneWeights")) {
+      weightInitializer = new InitOneToOneWeights(name, hc);
+   }
+   else if (!strcmp(keyword, "OneToOneWeightsWithDelays")) {
+      weightInitializer = new InitOneToOneWeightsWithDelays(name, hc);
+   }
+   else if (!strcmp(keyword, "SpreadOverArborsWeight")) {
+      weightInitializer = new InitSpreadOverArborsWeights(name, hc);
+   }
+   else if (!strcmp(keyword, "MaxPoolingWeight")) {
+      weightInitializer = new InitMaxPoolingWeights(name, hc);
+   }
+   else if (!strcmp(keyword, "FileWeight")) {
+      weightInitializer = new InitWeights(name, hc);
+   }
+
+   if (weightInitializer==NULL) {
+      if (hc->columnId()==0) {
+         fprintf(stderr, "createWeightInitializer error: unable to add %s\n", keyword);
+      }
+      MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
-   return addedObject;
+   return weightInitializer;
+}
+
+NormalizeBase * CoreParamGroupHandler::createWeightNormalizer(char const * keyword, char const * name, HyPerCol * hc) {
+   NormalizeBase * weightNormalizer = NULL;
+//   bool normalizeMethodChosen = true;
+//
+//   if (keyword==NULL) {
+//      weightNormalizer = NULL;
+//   }
+//   else if (!strcmp(keyword, "normalizeSum")) {
+//      // Coming soon! Still need to rework the normalizer hierarchy so that normalizers can be constructed before connections.
+//   }
+//   else if (!strcmp(keyword, "normalizeL2")) {
+//
+//   }
+//   else if (!strcmp(keyword, "normalizeMax")) {
+//
+//   }
+//   else if (!strcmp(keyword, "normalizeContrastZeroMean")) {
+//
+//   }
+//   else if (!strcmp(keyword, "normalizeScale")) {
+//
+//   }
+//   else if (!strcmp(keyword, "normalizeGroup")) {
+//
+//   }
+//   else if (!strcmp(keyword, "none")) {
+//      normalizeMethodChosen = false; // make sure that a null weightNormalizer is not treated as an error in this case.
+//   }
+//   else {
+//      if (hc->columnId()==0) {
+//         fprintf(stderr, "createWeightNormalizer error: unrecognized method %s\n", keyword);
+//      }
+//      MPI_Barrier(hc->icCommunicator()->communicator());
+//      exit(EXIT_FAILURE);
+//   }
+//
+//   if (weightNormalizer==NULL && normalizeMethodChosen==true) {
+//      if (hc->columnId()==0) {
+//         fprintf(stderr, "createWeightNormalizer error: unable to add %s\n", keyword);
+//      }
+//      MPI_Barrier(hc->icCommunicator()->communicator());
+//      exit(EXIT_FAILURE);
+//   }
+
+   return weightNormalizer;
 }
 
 } /* namespace PV */

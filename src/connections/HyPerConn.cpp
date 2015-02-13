@@ -18,6 +18,7 @@
 #include <iostream>
 #include "../layers/accumulate_functions.h"
 #include "../weightinit/InitWeights.hpp"
+#ifdef OBSOLETE // Marked obsolete Feb 9, 2014.  HyPerConn should not need to know about subclasses of InitWeights
 #include "../weightinit/InitGauss2DWeights.hpp"
 #include "../weightinit/InitCocircWeights.hpp"
 #include "../weightinit/InitSmartWeights.hpp"
@@ -31,6 +32,7 @@
 #include "../weightinit/InitUniformWeights.hpp"
 #include "../weightinit/InitMaxPoolingWeights.hpp"
 #include "../weightinit/InitSpreadOverArborsWeights.hpp"
+#endif // OBSOLETE // Marked obsolete Feb 9, 2014.  HyPerConn should not need to know about subclasses of InitWeights
 #ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
 #include "../weightinit/Init3DGaussWeights.hpp"
 #include "../weightinit/InitByArborWeights.hpp"
@@ -42,10 +44,12 @@
 #include "../normalizers/NormalizeScale.hpp"
 #endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
 #include "../normalizers/NormalizeBase.hpp"
+// TODO: Rework setting normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
 #include "../normalizers/NormalizeSum.hpp"
 #include "../normalizers/NormalizeL2.hpp"
 #include "../normalizers/NormalizeMax.hpp"
 #include "../normalizers/NormalizeContrastZeroMean.hpp"
+// TODO: Rework setting normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
 #include "TransposeConn.hpp"
 #include "PlasticCloneConn.hpp"
 #ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
@@ -53,6 +57,7 @@
    #include <sys/shm.h>
 #endif // USE_SHMGET
 #endif // OBSOLETE
+#include "../io/CoreParamGroupHandler.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,9 +94,9 @@ HyPerConn::HyPerConn()
    initialize_base();
 }
 
-HyPerConn::HyPerConn(const char * name, HyPerCol * hc) {
+HyPerConn::HyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 HyPerConn::~HyPerConn()
@@ -511,8 +516,16 @@ int HyPerConn::shrinkPatch(int kExt, int arborId) {
 }
 
 
-int HyPerConn::initialize(const char * name, HyPerCol * hc) {
-   int status = BaseConnection::initialize(name, hc);
+int HyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+   // It is okay for either of weightInitializer or weightNormalizer to be null at this point, either because we're in a subclass that doesn't need it, or because we are allowing for
+   // backward compatibility.
+   // The two lines needs to be before the call to BaseConnection::initialize, because that function calls ioParamsFillGroup,
+   // which will call ioParam_weightInitType and ioParam_normalizeMethod, which for reasons of backward compatibility
+   // will create the initializer and normalizer if those member variables are null.
+   this->weightInitializer = weightInitializer;
+   this->normalizer = weightNormalizer;
+
+   int status = BaseConnection::initialize(name, hc); // BaseConnection should *NOT* take weightInitializer or weightNormalizer as arguments, as it does not know about InitWeights or NormalizeBase
 
    assert(parent);
    PVParams * inputParams = parent->parameters();
@@ -540,9 +553,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc) {
       assert(0);
       break;
    }
-   // if (filename!=NULL) {
-   //    status |= readPatchSizeFromFile(filename);
-   // }
 
    ioAppend = parent->getCheckpointReadFlag();
 
@@ -564,11 +574,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc) {
    return status;
 }
 
-//int HyPerConn::setFilename() {
-//   PVParams * inputParams = parent->parameters();
-//   return setFilename(inputParams->stringValue(name, "initWeightsFile"));
-//}
-
 int HyPerConn::setWeightInitializer() {
    weightInitializer = createInitWeightsObject(weightInitTypeString);
    if( weightInitializer == NULL ) {
@@ -580,10 +585,16 @@ int HyPerConn::setWeightInitializer() {
 /*
  * This method parses the weightInitType parameter and creates an
  * appropriate InitWeight object for the chosen weight initialization.
- *
+ * The preferred method is now (Feb 9, 2015) to construct the InitWeights
+ * object using the connection's name and parent HyPerCol as arguments to the
+ * constructor, and then to pass the weight initializer in the constructor.
  */
 InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr) {
-
+   assert(weightInitializer == NULL);
+   CoreParamGroupHandler * initWeightsHandler = new CoreParamGroupHandler();
+   weightInitializer = initWeightsHandler->createWeightInitializer(weightInitTypeStr, name, parent);
+   delete initWeightsHandler;
+#ifdef OBSOLETE // Marked obsolete Feb 9, 2014. // Functionality moved into CoreParamGroupHandler
    if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
       weightInitializer = new InitGauss2DWeights(this);
    }
@@ -626,6 +637,7 @@ InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr)
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
       weightInitializer = new InitWeights(this);
    }
+
 #ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss3DWeight"))) {
       weightInitializer = new Init3DGaussWeights(this);
@@ -655,6 +667,7 @@ InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr)
    else {
       weightInitializer = NULL;
    }
+#endif // OBSOLETE // Marked obsolete Feb 9, 2014. Functionality moved into CoreParamGroupHandler
 
    return weightInitializer;
 }
@@ -883,7 +896,7 @@ void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    parent->ioParamString(ioFlag, name, "weightInitType", &weightInitTypeString, NULL, true/*warnIfAbsent*/);
-   if (ioFlag==PARAMS_IO_READ) {
+   if (ioFlag==PARAMS_IO_READ && weightInitializer==NULL) {
       int status = setWeightInitializer();
       if (status != PV_SUCCESS) {
          fprintf(stderr, "%s \"%s\": Rank %d process unable to construct weightInitializer\n",
@@ -1166,6 +1179,7 @@ void HyPerConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "normalizeMethod", &normalizeMethod);
+   // TODO: Rework setting normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
    PVParams * params = parent->parameters();
    if (ioFlag == PARAMS_IO_READ) {
       assert(normalizeMethod);
@@ -1223,6 +1237,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
          parent->addNormalizer(normalizer);
       }
    }
+   // TODO: Rework setting the normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
 }
 
 void HyPerConn::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
@@ -1463,7 +1478,7 @@ int HyPerConn::communicateInitInfo() {
       weightUpdateTime = 1;
    }
 
-   if (weightInitializer) weightInitializer->communicateParamsInfo();
+   if (weightInitializer) { weightInitializer->communicateParamsInfo(); }
 
    if (sharedWeights) {
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
@@ -1754,7 +1769,7 @@ InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
 }
 
 InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
-   return new InitWeights(this);
+   return new InitWeights(name, parent);
 }
 
 //#ifdef PV_USE_OPENCL
@@ -2611,15 +2626,13 @@ int HyPerConn::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
 int HyPerConn::readWeightsFromCheckpoint(const char * cpDir, double * timeptr) {
    clearWeights(get_wDataStart(), getNumDataPatches(), nxp, nyp, nfp);
    char * path = parent->pathInCheckpoint(cpDir, getName(), "_W.pvp");
-   InitWeights * weightsInitObject = new InitWeights(this);
    PVPatch *** patches_arg = sharedWeights ? NULL : wPatches;
    double filetime=0.0;
-   int status = weightsInitObject->readWeights(patches_arg, get_wDataStart(), getNumDataPatches(), path, &filetime);
+   int status = PV::readWeights(patches_arg, get_wDataStart(), numberOfAxonalArborLists(), getNumDataPatches(), nxp, nyp, nfp, path, parent->icCommunicator(), &filetime, pre->getLayerLoc());
    if (parent->columnId()==0 && timeptr && *timeptr != filetime) {
       fprintf(stderr, "Warning: \"%s\" checkpoint has timestamp %g instead of the expected value %g.\n", path, filetime, *timeptr);
    }
    free(path);
-   delete weightsInitObject;
    return status;
 }
 
