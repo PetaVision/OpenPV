@@ -15,15 +15,14 @@ namespace PV {
 class VaryingHyPerConn : public HyPerConn {
 
 public:
-   VaryingHyPerConn(const char * name, HyPerCol * hc);
+   VaryingHyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual ~VaryingHyPerConn();
    virtual int allocateDataStructures();
    virtual int updateWeights(int axonId = 0);
 
 protected:
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void readPlasticityFlag(PVParams * inputParams);
    virtual int calc_dW(int axonId);
 
 }; // end class VaryingHyPerConn

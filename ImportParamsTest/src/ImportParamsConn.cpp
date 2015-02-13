@@ -2,9 +2,9 @@
 
 namespace PV {
 
-ImportParamsConn::ImportParamsConn(const char * name, HyPerCol * hc){
+ImportParamsConn::ImportParamsConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer){
    initialize_base();
-   initialize(name, hc);
+   initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 int ImportParamsConn::initialize_base()
@@ -12,9 +12,9 @@ int ImportParamsConn::initialize_base()
    return PV_SUCCESS;
 }
 
-int ImportParamsConn::initialize(const char * name, HyPerCol * hc)
+int ImportParamsConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer)
 {
-   KernelConn::initialize(name, hc);
+   KernelConn::initialize(name, hc, weightInitializer, weightNormalizer);
 
    PVParams * params = parent->parameters();
    //Test grabbed array value

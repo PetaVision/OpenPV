@@ -7,9 +7,9 @@
 #include <assert.h>
 
 namespace PV {
-TriggerTestConn::TriggerTestConn(const char * name, HyPerCol * hc)
+TriggerTestConn::TriggerTestConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer)
 {
-   HyPerConn::initialize(name, hc);
+   HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 int TriggerTestConn::updateStateWrapper(double time, double dt){

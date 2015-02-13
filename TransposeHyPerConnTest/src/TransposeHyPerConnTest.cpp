@@ -15,6 +15,8 @@
 
 #include <float.h>
 #include <columns/buildandrun.hpp>
+#include <connections/TransposeConn.hpp>
+#include <layers/ANNLayer.hpp>
 
 using namespace PV;
 

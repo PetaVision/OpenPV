@@ -16,7 +16,7 @@ KernelConnDebugInitWeights::KernelConnDebugInitWeights()
    initialize_base();
 }
 
-KernelConnDebugInitWeights::KernelConnDebugInitWeights(const char * name, HyPerCol * hc) : HyPerConn()
+KernelConnDebugInitWeights::KernelConnDebugInitWeights(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) : HyPerConn()
 {
    initialize_base();
    KernelConnDebugInitWeights::initialize(name, hc);
@@ -32,8 +32,8 @@ int KernelConnDebugInitWeights::initialize_base() {
    return PV_SUCCESS;
 }
 
-int KernelConnDebugInitWeights::initialize(const char * name, HyPerCol * hc) {
-   HyPerConn::initialize(name, hc);
+int KernelConnDebugInitWeights::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+   HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
    return PV_SUCCESS;
 }
 

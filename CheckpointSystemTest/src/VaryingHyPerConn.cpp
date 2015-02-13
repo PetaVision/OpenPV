@@ -9,14 +9,14 @@
 
 namespace PV {
 
-VaryingHyPerConn::VaryingHyPerConn(const char * name, HyPerCol * hc) : HyPerConn() {
-   initialize(name, hc);
+VaryingHyPerConn::VaryingHyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) : HyPerConn() {
+   initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 VaryingHyPerConn::~VaryingHyPerConn() {}
 
-int VaryingHyPerConn::initialize(const char * name, HyPerCol * hc) {
-   return HyPerConn::initialize(name, hc);
+int VaryingHyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+   return HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 int VaryingHyPerConn::allocateDataStructures() {
@@ -71,10 +71,6 @@ int VaryingHyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 #endif // USE_SHMGET
 
    return 0;
-}
-
-void VaryingHyPerConn::readPlasticityFlag(PVParams * params) {
-   plasticityFlag = true;
 }
 
 }  // end of namespace PV block

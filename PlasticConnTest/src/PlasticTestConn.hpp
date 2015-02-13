@@ -14,7 +14,7 @@ namespace PV {
 
 class PlasticTestConn : public HyPerConn {
 public:
-	PlasticTestConn(const char * name, HyPerCol * hc);
+	PlasticTestConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
 	virtual ~PlasticTestConn();
 protected:
 	virtual int update_dW(int axonId);

@@ -16,7 +16,8 @@ class KernelTestGroupHandler: public ParamGroupHandler {
 public:
    KernelTestGroupHandler();
    virtual ~KernelTestGroupHandler();
-   virtual void * createObject(char const * keyword, char const * name, HyPerCol * hc);
+   virtual ParamGroupType getGroupType(char const * keyword);
+   virtual BaseProbe * createProbe(char const * keyword, char const * name, HyPerCol * hc);
 };
 
 } /* namespace PV */

@@ -19,12 +19,23 @@ KernelTestGroupHandler::KernelTestGroupHandler() {
 KernelTestGroupHandler::~KernelTestGroupHandler() {
 }
 
-void * KernelTestGroupHandler::createObject(char const * keyword, char const * name, HyPerCol * hc) {
+ParamGroupType KernelTestGroupHandler::getGroupType(char const * keyword) {
+   ParamGroupType result = UnrecognizedGroupType;
+   if (!strcmp(keyword, "KernelTestProbe")) {
+      result = ProbeGroupType;
+   }
+   else {
+      result = UnrecognizedGroupType;
+   }
+   return result;
+}
+
+BaseProbe * KernelTestGroupHandler::createProbe(char const * keyword, char const * name, HyPerCol * hc) {
    int status;
-   void * addedGroup = NULL;
+   BaseProbe * addedGroup = NULL;
    bool errorFound = false;
    if( !strcmp(keyword, "KernelTestProbe") ) {
-      addedGroup = (void *) new KernelTestProbe(name, hc);
+      addedGroup = new KernelTestProbe(name, hc);
       if( !addedGroup ) {
          fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
          errorFound = true;

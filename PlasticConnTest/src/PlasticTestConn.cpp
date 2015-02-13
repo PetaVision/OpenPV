@@ -9,8 +9,8 @@
 
 namespace PV {
 
-PlasticTestConn::PlasticTestConn(const char * name, HyPerCol * hc) : HyPerConn(){
-   HyPerConn::initialize(name, hc);
+PlasticTestConn::PlasticTestConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) : HyPerConn(){
+   HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 int PlasticTestConn::update_dW(int axonId) {

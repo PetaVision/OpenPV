@@ -16,10 +16,10 @@ HyPerConnDebugInitWeights::HyPerConnDebugInitWeights()
    initialize_base();
 }
 
-HyPerConnDebugInitWeights::HyPerConnDebugInitWeights(const char * name, HyPerCol * hc) : HyPerConn()
+HyPerConnDebugInitWeights::HyPerConnDebugInitWeights(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) : HyPerConn()
 {
    initialize_base();
-   HyPerConnDebugInitWeights::initialize(name, hc);
+   HyPerConnDebugInitWeights::initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 HyPerConnDebugInitWeights::~HyPerConnDebugInitWeights()
@@ -27,8 +27,8 @@ HyPerConnDebugInitWeights::~HyPerConnDebugInitWeights()
    free(otherConnName);
 }
 
-int HyPerConnDebugInitWeights::initialize(const char * name, HyPerCol * hc) {
-   HyPerConn::initialize(name, hc);
+int HyPerConnDebugInitWeights::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+   HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
    return PV_SUCCESS;
 }
 

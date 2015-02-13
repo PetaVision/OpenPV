@@ -17,11 +17,22 @@ public:
 
    virtual ~StochasticReleaseTestGroupHandler() {}
 
-   virtual void * createObject(char const * keyword, char const * name, HyPerCol * hc) {
+   virtual ParamGroupType getGroupType(char const * keyword) {
+      ParamGroupType result = UnrecognizedGroupType;
+      if (!strcmp(keyword, "StochasticReleaseTestProbe")) {
+         result = ProbeGroupType;
+      }
+      else {
+         result = UnrecognizedGroupType;
+      }
+      return result;
+   }
+
+   virtual BaseProbe * createProbe(char const * keyword, char const * name, HyPerCol * hc) {
       int status;
-      void * addedObject = NULL;
+      BaseProbe * addedObject = NULL;
       if( !strcmp(keyword, "StochasticReleaseTestProbe") ) {
-         addedObject = (void *) new StochasticReleaseTestProbe(name, hc);
+         addedObject = new StochasticReleaseTestProbe(name, hc);
          if( !addedObject ) {
             fprintf(stderr, "Group \"%s\": Unable to create %s\n", name, keyword);
          }

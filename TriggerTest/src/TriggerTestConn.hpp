@@ -11,7 +11,7 @@ namespace PV{
 
 class TriggerTestConn: public PV::HyPerConn{
 public:
-   TriggerTestConn(const char * name, HyPerCol * hc);
+   TriggerTestConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    int virtual updateStateWrapper (double time, double dt);
 };
 

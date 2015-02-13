@@ -15,7 +15,7 @@ namespace PV {
 class HyPerConnDebugInitWeights: public PV::HyPerConn {
 public:
    HyPerConnDebugInitWeights();
-   HyPerConnDebugInitWeights(const char * name, HyPerCol * hc);
+   HyPerConnDebugInitWeights(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual ~HyPerConnDebugInitWeights();
 
    virtual int communicateInitInfo();
@@ -24,7 +24,7 @@ public:
 
 
 protected:
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_channelCode(enum ParamsIOFlag ioFlag);
    virtual void ioParam_copiedConn(enum ParamsIOFlag ioFlag);
