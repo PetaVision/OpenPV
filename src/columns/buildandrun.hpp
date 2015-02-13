@@ -205,7 +205,7 @@ int buildandrun1paramset(int argc, char * argv[],
                          PVParams * params);
 HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList, int numGroupHandlers, PVParams * params);
 ParamGroupHandler * getGroupHandlerFromList(char const * keyword, CoreParamGroupHandler * coreHandler, ParamGroupHandler ** groupHandlerList, int numGroupHandlers, ParamGroupType * foundGroupType);
-BaseConnection * createConnection(ParamGroupHandler * handler, char const * keyword, char const * groupname, HyPerCol * hc);
+BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, ParamGroupHandler ** customHandlerList, int numGroupHandlers, char const * keyword, char const * groupname, HyPerCol * hc);
 
 #ifdef OBSOLETE // Marked obsolete Jan 5, 2014.  Functionality was moved to CoreParamGroupHandler
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc);

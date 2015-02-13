@@ -221,6 +221,14 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"MaxPoolingWeight", WeightInitializerGroupType},
          {"FileWeight", WeightInitializerGroupType},
 
+         {"normalizeSum", WeightNormalizerGroupType},
+         {"normalizeL2", WeightNormalizerGroupType},
+         {"normalizeMax", WeightNormalizerGroupType},
+         {"normalizeContrastZeroMean", WeightNormalizerGroupType},
+         {"normalizeScale", WeightNormalizerGroupType},
+         {"normalizeGroup", WeightNormalizerGroupType},
+         {"none", WeightNormalizerGroupType},
+
          {NULL, UnrecognizedGroupType}
    };
    ParamGroupType result = UnrecognizedGroupType;

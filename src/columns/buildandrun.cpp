@@ -94,7 +94,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
       return NULL;
    }
 
-   ParamGroupHandler * handler = new CoreParamGroupHandler();
+   CoreParamGroupHandler * handler = new CoreParamGroupHandler();
    for( int k=0; k<numGroups; k++ ) {
       const char * kw = hcparams->groupKeywordFromIndex(k);
       const char * name = hcparams->groupNameFromIndex(k);
@@ -115,7 +115,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
          addedObject = handler->createLayer(kw, name, hc);
          break;
       case ConnectionGroupType:
-         addedObject = createConnection(handler, kw, name, hc);
+         addedObject = createConnection(handler, NULL, 0, kw, name, hc);
          break;
       case ProbeGroupType:
          addedObject = handler->createProbe(kw, name, hc);
@@ -248,7 +248,7 @@ HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList,
          addedObject = handler->createLayer(kw, name, hc);
          break;
       case ConnectionGroupType:
-         addedObject = createConnection(handler, kw, name, hc);
+         addedObject = createConnection(coreHandler, groupHandlerList, numGroupHandlers, kw, name, hc);
          break;
       case ProbeGroupType:
          addedObject = handler->createProbe(kw, name, hc);
@@ -301,15 +301,41 @@ ParamGroupHandler * getGroupHandlerFromList(char const * keyword, CoreParamGroup
    return NULL;
 }
 
-BaseConnection * createConnection(ParamGroupHandler * handler, char const * keyword, char const * groupname, HyPerCol * hc) {
-   // In general, we need the WeightInitializer and WeightNormalizer, to pass to the HyPerConn constructor.
-   // However, some subclasses may not need to have the initialization or normalization method specified (e.g. clones),
-   // so it is not an error at this point if the relevant parameters are absent.
+BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, ParamGroupHandler ** customHandlerList, int numGroupHandlers, char const * keyword, char const * groupname, HyPerCol * hc) {
+   // The basic logic is:
+   //     get the weight initializer by reading the weightInitType parameter, and create an InitWeights object
+   //     get the weight normalizer by reading the normalizeMethod parameter, and create a NormalizeBase object
+   //     get the connection type from the keyword and create a BaseConnection object, passing the InitWeights and NormalizeBase objects to the connection's constructor.
+   //
+   // The complications are: the weightInitType, normalizeMethod, and connection type could in principle be handled by three different ParamGroupHandlers, so we have to call getGroupHandlerFromList for each one;
+   // and it is allowed for some subclasses not to have a weightInitType and/or a normalizeMethod parameter, so we have to allow for them to be null.
+   ParamGroupType groupType;
+   InitWeights * weightInitializer = NULL;
    char const * weightInitStr = hc->parameters()->stringValue(groupname, "weightInitType", false/*warnIfAbsent*/);
-   InitWeights * weightInitializer = (weightInitStr==NULL) ? NULL : handler->createWeightInitializer(weightInitStr, groupname, hc);
+   if (weightInitStr!=NULL) {
+      ParamGroupHandler * weightInitHandler = getGroupHandlerFromList(weightInitStr, coreGroupHandler, customHandlerList, numGroupHandlers, &groupType);
+      if (weightInitHandler==NULL || groupType != WeightInitializerGroupType) {
+         fprintf(stderr, "Connection %s error: weightInitType \"%s\" is not recognized.\n", keyword, weightInitStr);
+         exit(EXIT_FAILURE);
+      }
+      weightInitializer = weightInitHandler->createWeightInitializer(weightInitStr, groupname, hc);
+   }
+   NormalizeBase * weightNormalizer = NULL;
    char const * weightNormalizeStr = hc->parameters()->stringValue(groupname, "normalizeMethod", false/*warnIfAbsent*/);
-   NormalizeBase * weightNormalizer = (weightNormalizer==NULL) ? NULL : handler->createWeightNormalizer(weightNormalizeStr, groupname, hc);
-   BaseConnection * baseConn = handler->createConnection(keyword, groupname, hc, weightInitializer, weightNormalizer);
+   if (weightNormalizeStr!=NULL) {
+      ParamGroupHandler * normalizeHandler = getGroupHandlerFromList(weightNormalizeStr, coreGroupHandler, customHandlerList, numGroupHandlers, &groupType);
+      if (normalizeHandler==NULL || groupType != WeightNormalizerGroupType) {
+         fprintf(stderr, "Connection %s error: normalizeMethod \"%s\" is not recognized.\n", keyword, weightNormalizeStr);
+         exit(EXIT_FAILURE);
+      }
+      weightNormalizer = normalizeHandler->createWeightNormalizer(weightInitStr, groupname, hc);
+   }
+   ParamGroupHandler * connectionHandler = getGroupHandlerFromList(keyword, coreGroupHandler, customHandlerList, numGroupHandlers, &groupType);
+   if (connectionHandler==NULL || groupType != ConnectionGroupType) {
+      fprintf(stderr, "Connection %s error: connection type \"%s\" is not recognized.\n", keyword, weightNormalizeStr);
+      exit(EXIT_FAILURE);
+   }
+   BaseConnection * baseConn = connectionHandler->createConnection(keyword, groupname, hc, weightInitializer, weightNormalizer);
    return baseConn;
 }
 
