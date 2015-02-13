@@ -16,18 +16,18 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime= 100000000;
+    stopTime = 430000;
     progressStep = 5000;
-    outputPath = "/home/ec2-user/mountData/single_group_binoc/";
+    outputPath = "/home/ec2-user/mountData/LCA_ICA_train_single_group_nf_512/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/home/ec2-user/mountData/single_stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = true;
-    checkpointWriteDir = "/home/ec2-user/mountData/single_group_binoc/Checkpoints";
+    checkpointWriteDir = "/home/ec2-user/mountData/LCA_ICA_train_single_group_nf_512/Checkpoints";
     checkpointWriteStepInterval = 50000;
-    deleteOlderCheckpoints = false;
+    deleteOlderCheckpoints = true;
     //suppressLastOutput = false;
     writeProgressToErr = true;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
@@ -49,14 +49,14 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/home/ec2-user/mountData/kitti/list/image_02_aws.txt";
+    imageListPath = "/home/ec2-user/mountData/kitti/list/image_2_benchmark_aws_cluster.txt";
     writeFrameToTimestamp = true;
     nf = 3;
     writeStep = -1;
     initialWriteTime = 200;
     writeSparseActivity = false;
     displayPeriod = 200;
-    start_frame_index = 3200;
+    start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -155,7 +155,7 @@ ANNLayer "LeftRecon" = {
 
 Movie "RightImage" = {
     #include "LeftImage";
-    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_03_aws.txt";
+    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_3_benchmark_aws_cluster.txt";
 };
 
 ANNLayer "RightDownsample" = {
@@ -176,11 +176,11 @@ ANNLayer "RightRecon" = {
 
 // binoclular layers
 
-HyPerLCALayer "V1" = {
+HyPerLCALayer "LCA_V1" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 256; //2048 or 4096;
+    nf = 512; //2048 or 4096;
     numChannels = 1;
     numWindowX = 1;
     numWindowY = 1;
@@ -209,6 +209,31 @@ HyPerLCALayer "V1" = {
     //
     phase = 4;
 };
+
+//ICA layer
+
+//ANNLayer "ICA_V1" = {
+//    restart = 0;
+//    nxScale = .25;
+//    nyScale = .25;
+//    nf = 512;
+//    writeStep = 200;
+//    initialWriteTime = 200.0;
+//    mirrorBCflag = 0;
+//    writeSparseActivity = 0;
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    VMax =  infinity;
+//    VMin = -infinity;
+//    VShift = 0;
+//    VWidth = 0;
+//    phase = 4;  
+//    triggerFlag = true;
+//    triggerLayerName = "LeftImage";
+//    triggerOffset = 0;
+//};
+
+
 
 // connections
 
@@ -303,8 +328,8 @@ KernelConn "RightDownsampleToRightError" = {
 
 // binocular connections
 
-KernelConn "V1ToLeftError" = {
-    preLayerName = "V1";
+KernelConn "LCA_V1ToLeftError" = {
+    preLayerName = "LCA_V1";
     postLayerName = "LeftError";
     channelCode = 1;
     nxp = 66;
@@ -315,7 +340,7 @@ KernelConn "V1ToLeftError" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/saved_single_binoc/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/saved_single_nf_512/V1ToLeftError_W.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
@@ -339,12 +364,12 @@ KernelConn "V1ToLeftError" = {
     writeStep = -1;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = true;
-    triggerFlag = true;
-    triggerLayerName = "LeftImage";
-    triggerOffset = 1;
+    plasticityFlag = false;
+    //triggerFlag = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
     initialWriteTime = 0.0;
-    dWMax = 5; // 200.0 used for initial training
+    //dWMax = 5; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -355,11 +380,11 @@ KernelConn "V1ToLeftError" = {
     pvpatchAccumulateType = "convolve";
 };
 
-TransposeConn "LeftErrorToV1" = {
+TransposeConn "LeftErrorToLCA_V1" = {
     preLayerName = "LeftError";
-    postLayerName = "V1";
+    postLayerName = "LCA_V1";
     channelCode = 0;
-    originalConnName = "V1ToLeftError";
+    originalConnName = "LCA_V1ToLeftError";
     selfFlag = false;
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
@@ -371,12 +396,13 @@ TransposeConn "LeftErrorToV1" = {
     receiveGpu = true;
 };
 
-CloneKernelConn "V1ToLeftRecon" = {
-    preLayerName = "V1";
+
+CloneKernelConn "LCA_V1ToLeftRecon" = {
+    preLayerName = "LCA_V1";
     postLayerName = "LeftRecon";
     channelCode = 0;
     writeStep = -1;
-    originalConnName = "V1ToLeftError";
+    originalConnName = "LCA_V1ToLeftError";
     selfFlag = false;
     delay = 0;
     preActivityIsNotRate = false;
@@ -386,22 +412,47 @@ CloneKernelConn "V1ToLeftRecon" = {
 };
 
 //Right binocular connections
-KernelConn "V1ToRightError" = {
-    #include "V1ToLeftError";
+KernelConn "LCA_V1ToRightError" = {
+    #include "LCA_V1ToLeftError";
     @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
-    normalizeGroupName = "V1ToLeftError";
-    @initWeightsFile = "/home/ec2-user/mountData/saved_single_binoc/V1ToRightError_W.pvp";
+    normalizeGroupName = "LCA_V1ToLeftError";
+    @initWeightsFile = "/home/ec2-user/mountData/saved_single_nf_512/V1ToRightError_W.pvp";
 };
 
-TransposeConn "RightErrorToV1" = {
-    #include "LeftErrorToV1";
+TransposeConn "RightErrorToLCA_V1" = {
+    #include "LeftErrorToLCA_V1";
     @preLayerName = "RightError";
-    @originalConnName = "V1ToRightError";
+    @originalConnName = "LCA_V1ToRightError";
 };
 
-CloneKernelConn "V1ToRightRecon" = {
-    #include "V1ToLeftRecon";
+
+CloneKernelConn "LCA_V1ToRightRecon" = {
+    #include "LCA_V1ToLeftRecon";
     @postLayerName = "RightRecon";
-    @originalConnName = "V1ToRightError";
+    @originalConnName = "LCA_V1ToRightError";
 };
+
+//ICA connections
+//
+//TransposeConn "LeftDownsampleToICA_V1" = {
+//    preLayerName = "LeftDownsample";
+//    postLayerName = "ICA_V1";
+//    channelCode = 0;
+//    originalConnName = "LCA_V1ToLeftError";
+//    selfFlag = false;
+//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    shmget_flag = false;
+//    delay = 0;
+//    pvpatchAccumulateType = "convolve";
+//    updateGSynFromPostPerspective = true;
+//    receiveGpu = true;
+//};
+//
+//TransposeConn "RightDownsampleToICA_V1" = {
+//    #include "LeftDownsampleToICA_V1";
+//    @preLayerName = "RightDownsample";
+//    @originalConnName = "LCA_V1ToRightError";
+//};

@@ -11,24 +11,24 @@
 debugParsing = true;
 
 HyPerCol "column" = {
-    nx = 512; //1226, one pixel cropped from both sides;  // KITTI synced value
-    ny = 512;  //370, two pixels cropped from the top;
+    nx = 1200; //1242;  // KITTI synced value
+    ny = 360;  //218;
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime= 18000; //Loop through once
-    progressStep = 10;
-    outputPath = "~/mountData/SUResponse/single_ICA_cell_response/";
+    stopTime = 195;
+    progressStep = 5000;
+    outputPath = "/home/ec2-user/mountData/ICA_train_single_group_nf_512/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
-    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/Checkpoints";
-    //checkpointReadDirIndex = 315000;
+    //checkpointReadDir = "/home/ec2-user/mountData/single_stack_ndepth/Checkpoints";
+    //checkpointReadDirIndex = ;
     checkpointWrite = true;
-    checkpointWriteDir = "~/mountData/SUResponse/single_ICA_cell_response/Checkpoints";
-    checkpointWriteStepInterval = 5000;
+    checkpointWriteDir = "/home/ec2-user/mountData/ICA_train_single_group_nf_512/Checkpoints";
+    checkpointWriteStepInterval = 50000;
     deleteOlderCheckpoints = true;
-    suppressLastOutput = false;
+    //suppressLastOutput = false;
     writeProgressToErr = true;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
     dtAdaptFlag = true;
@@ -44,19 +44,18 @@ HyPerCol "column" = {
 
 // left eye layers
 
-//
-
-DisparityMovie "LeftImage" = {
+Movie "LeftImage" = {
     restart = 0;
-    nxScale = .5;
-    nyScale = .5;
+    nxScale = 1;
+    nyScale = 1;
     readPvpFile = false;
-    imageListPath = "~/mountData/DepthLCA/input/SUResponse/single/aws_weightInput.txt";
+    imageListPath = "/home/ec2-user/mountData/kitti/list/image_2_benchmark_aws_cluster_single.txt";
     writeFrameToTimestamp = true;
     nf = 3;
-    writeStep = 1;//-1;
+    writeStep = -1;
+    initialWriteTime = 200;
     writeSparseActivity = false;
-    displayPeriod = 1; //200;
+    displayPeriod = 1;
     start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
@@ -66,22 +65,35 @@ DisparityMovie "LeftImage" = {
     inverseFlag = false;
     normalizeLuminanceFlag = true;
     writeImages = false;
-    offsetAnchor = "cc"; //Offset anchor from bottom left
-    offsetX = -1; //-1 to match up with receptive field of 1 neuron
-    offsetY = -1;
+    offsetAnchor = "br"; //Offset anchor from bottom left
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
     randomMovie = 0;
     phase = 0;
-
-    numDisparity = 40;
-    dPixelDisparity = -2;
-    padValue = .5;
-
-    moveMethod = "altLeft";
-
     //useParamsImage = true;
 };
 
-ANNLayer "LeftError" = {
+ANNLayer "LeftDownsample" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 3;
+    writeStep = 1;
+    initialWriteTime = 1.0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax =  infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    phase = 1;  
+    triggerFlag = false;
+};
+
+ANNNormalizedErrorLayer "LeftError" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
@@ -95,83 +107,107 @@ ANNLayer "LeftError" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
     //
-    VThresh = -infinity; //Change this for efficiency
+    VThresh = 0; //Change this for efficiency
     VMax =  infinity;
-    VMin = -infinity;
+    VMin = 0;
     VShift = 0;
     VWidth = 0;
     valueBC = 0;
     //
-    errScale = .5; //Normal is .2
+    errScale = 1;
     //
     phase = 3;  
 };
 
-////
-//// Right eye layers
-////
+//
+// Right eye layers
 //
 
-DisparityMovie "RightImage" = {
+Movie "RightImage" = {
     #include "LeftImage";
-    @imageListPath = "~/mountData/DepthLCA/input/SUResponse/single/aws_weightInput.txt";
-    @dPixelDisparity = 2;
-    @moveMethod = "altRight";
+    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_3_benchmark_aws_cluster_single.txt";
 };
 
+ANNLayer "RightDownsample" = {
+    #include "LeftDownsample";
+};
 
-ANNLayer "RightError" = {
+ANNNormalizedErrorLayer "RightError" = {
     #include "LeftError";
-    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V_grow_1224x368y.pvp";
+    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V.pvp";
 };
-
-
-//
-// Right depth eye layers
-//
 
 // binoclular layers
 
-ANNLayer "V1" = {
+//ICA layer
+
+ANNLayer "ICA_V1" = {
     restart = 0;
-    nxScale = 0.25;
-    nyScale = 0.25;
-    nf = 256; //2048 or 4096;
-    numChannels = 1;
-    numWindowX = 1;
-    numWindowY = 1;
-    writeStep = -1.0;
-    initialWriteTime = 0.0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 512;
+    writeStep = 1;
+    initialWriteTime = 1.0;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
-    writeSparseValues   = 1;
-    //
     InitVType = "ZeroV";
-    //minV = -1.0;
-    //maxV = .03; //0.05 above VThresh
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2_V_grow_612x184y.pvp";
-    // 
-    //timeConstantTau = 200.0;
-    //slopeErrorStd = 0.01;
-    // 
-    dVThresh = 0;
-    VThresh = -infinity; //mean + 1 std of the positive input to error
-    VMax = infinity;
+    VThresh = -infinity;
+    VMax =  infinity;
     VMin = -infinity;
-    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
-    VWidth = 0.0; //Same as VThresh
-    //
-    phase = 4;
+    VShift = 0;
+    VWidth = 0;
+    phase = 4;  
 };
+
 
 
 // connections
 
 // Left eye connections
 
-KernelConn "LeftImageToLeftError" = {
+KernelConn "LeftImageToLeftDownsample" = {
     preLayerName = "LeftImage";
+    postLayerName = "LeftDownsample";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 10000;
+    rMax  = 3;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "LeftDownsampleToLeftError" = {
+    preLayerName = "LeftDownsample";
     postLayerName = "LeftError";
     channelCode = 0;
     nxp = 1; 
@@ -185,7 +221,7 @@ KernelConn "LeftImageToLeftError" = {
     //////////////////////
     //TODO What to do here????
     //////////////////////
-    weightInit = .0294;  // 1/sqrt(34*34);
+    weightInit = .008747;  // 1/sqrt(66*66*3);
     normalizeMethod = "none";
     
     shrinkPatches = false;
@@ -203,33 +239,40 @@ KernelConn "LeftImageToLeftError" = {
 
 // Right eye connections
 
-KernelConn "RightImageToRightError" = {
-    #include "LeftImageToLeftError";
+KernelConn "RightImageToRightDownsample" = {
+    #include "LeftImageToLeftDownsample";
     @preLayerName = "RightImage";
+    @postLayerName = "RightDownsample";
+};
+
+KernelConn "RightDownsampleToRightError" = {
+    #include "LeftDownsampleToLeftError";
+    @preLayerName = "RightDownsample";
     @postLayerName = "RightError";
 };
 
-// binocular connections
-//Left binocular connections
 
-KernelConn "V1ToLeftError" = {
-    preLayerName = "V1";
+// binocular connections
+
+KernelConn "ICA_V1ToLeftError" = {
+    preLayerName = "ICA_V1";
     postLayerName = "LeftError";
-    channelCode = -1; //No feedback
+    channelCode = -1;
     nxp = 66;
     nyp = 66;
     shrinkPatches = false;
     //
     numAxonalArbors = 1;
     initFromLastFlag = 0;
-    //
+    
     weightInitType = "FileWeight";
-    initWeightsFile = "~/mountData/saved_single/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/saved_single_nf_512/V1ToLeftError_W.pvp";
+
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
     //wMaxInit = 1.0;
     //sparseFraction = .90;
-    //
+    
     strength = 1; //.25/2  
     normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
     //normalizeMethod = "normalizeContrastZeroMean"; 
@@ -248,7 +291,11 @@ KernelConn "V1ToLeftError" = {
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
+    //triggerFlag = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
     initialWriteTime = 0.0;
+    //dWMax = 5; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -259,11 +306,11 @@ KernelConn "V1ToLeftError" = {
     pvpatchAccumulateType = "convolve";
 };
 
-TransposeConn "LeftErrorToV1" = {
+TransposeConn "LeftErrorToICA_V1" = {
     preLayerName = "LeftError";
-    postLayerName = "V1";
+    postLayerName = "ICA_V1";
     channelCode = 0;
-    originalConnName = "V1ToLeftError";
+    originalConnName = "ICA_V1ToLeftError";
     selfFlag = false;
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;
@@ -275,23 +322,18 @@ TransposeConn "LeftErrorToV1" = {
     receiveGpu = true;
 };
 
+
 //Right binocular connections
-KernelConn "V1ToRightError" = {
-    #include "V1ToLeftError";
+KernelConn "ICA_V1ToRightError" = {
+    #include "ICA_V1ToLeftError";
     @postLayerName = "RightError";
-    @initWeightsFile = "~/mountData/saved_single/V1ToRightError_W.pvp";
+    @normalizeMethod = "normalizeGroup";
+    normalizeGroupName = "ICA_V1ToLeftError";
+    @initWeightsFile = "/home/ec2-user/mountData/saved_single_nf_512/V1ToRightError_W.pvp";
 };
 
-TransposeConn "RightErrorToV1" = {
-    #include "LeftErrorToV1";
+TransposeConn "RightErrorToICA_V1" = {
+    #include "LeftErrorToICA_V1";
     @preLayerName = "RightError";
-    @originalConnName = "V1ToRightError";
-};
-
-//Probe to watch neuron activity
-SUPointProbe "V1Probe" = {
-   message = "SUAct";
-   probeOutputFile = "ICA_V1.probe";
-   targetName = "V1";
-   disparityLayerName = "LeftImage";
+    @originalConnName = "ICA_V1ToRightError";
 };
