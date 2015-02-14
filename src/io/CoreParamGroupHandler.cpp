@@ -91,7 +91,7 @@
 #include "../weightinit/InitSmartWeights.hpp"
 #include "../weightinit/InitUniformRandomWeights.hpp"
 #include "../weightinit/InitGaussianRandomWeights.hpp"
-#include "../weightinit/InitGaborWeights.hpp"
+// #include "../weightinit/InitGaborWeights.hpp" // Marked obsolete Feb 13, 2015.  GaborWeights moved to InitWeightsTest.
 #include "../weightinit/InitBIDSLateral.hpp"
 #include "../weightinit/InitOneToOneWeights.hpp"
 #include "../weightinit/InitOneToOneWeightsWithDelays.hpp"
@@ -213,7 +213,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"BIDSLateral", WeightInitializerGroupType},
          {"UniformRandomWeight", WeightInitializerGroupType},
          {"GaussianRandomWeight", WeightInitializerGroupType},
-         {"GaborWeight", WeightInitializerGroupType},
+         // {"GaborWeight", WeightInitializerGroupType}, // Moved to obsolete Feb 13, 2015.
          {"IdentWeight", WeightInitializerGroupType},
          {"OneToOneWeights", WeightInitializerGroupType},
          {"OneToOneWeightsWithDelays", WeightInitializerGroupType},
@@ -246,10 +246,7 @@ HyPerCol * CoreParamGroupHandler::createHyPerCol(char const * keyword, char cons
    HyPerCol * addedHyPerCol = NULL;
    if ( keyword && !strcmp(keyword, "HyPerCol")) {
       addedHyPerCol = hc;
-   }
-
-   if (addedHyPerCol==NULL) {
-      if (addedHyPerCol==NULL) {
+      if (dynamic_cast<HyPerCol *>(hc)==NULL) {
          if (hc->columnId()==0) {
             fprintf(stderr, "createHyPerCol error: unable to add %s\n", keyword);
          }
@@ -435,14 +432,12 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    }
 #endif
 
-   if (addedLayer==NULL) {
-      if (addedLayer==NULL) {
-         if (hc->columnId()==0) {
-            fprintf(stderr, "createLayer error: unable to add %s\n", keyword);
-         }
-         MPI_Barrier(hc->icCommunicator()->communicator());
-         exit(EXIT_FAILURE);
+   if (addedLayer==NULL && getGroupType(keyword)==LayerGroupType) {
+      if (hc->columnId()==0) {
+         fprintf(stderr, "createLayer error: unable to add %s\n", keyword);
       }
+      MPI_Barrier(hc->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
 
    return addedLayer;
@@ -502,14 +497,12 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
       addedConnection = new TransposeConn(name, hc);
    }
 
-   if (addedConnection==NULL) {
-      if (weightInitializer==NULL) {
-         if (hc->columnId()==0) {
-            fprintf(stderr, "createConnection error: unable to add %s\n", keyword);
-         }
-         MPI_Barrier(hc->icCommunicator()->communicator());
-         exit(EXIT_FAILURE);
+   if (addedConnection==NULL &&getGroupType(keyword)==ConnectionGroupType) {
+      if (hc->columnId()==0) {
+         fprintf(stderr, "createConnection error: unable to add %s\n", keyword);
       }
+      MPI_Barrier(hc->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
 
    return addedConnection;
@@ -528,14 +521,12 @@ ColProbe * CoreParamGroupHandler::createColProbe(char const * keyword, char cons
       addedColProbe = new GenColProbe(name, hc);
    }
 
-   if (addedColProbe==NULL) {
-      if (addedColProbe==NULL) {
-         if (hc->columnId()==0) {
-            fprintf(stderr, "createColProbe error: unable to add %s\n", keyword);
-         }
-         MPI_Barrier(hc->icCommunicator()->communicator());
-         exit(EXIT_FAILURE);
+   if (addedColProbe==NULL && getGroupType(keyword)==ColProbeGroupType) {
+      if (hc->columnId()==0) {
+         fprintf(stderr, "createColProbe error: unable to add %s\n", keyword);
       }
+      MPI_Barrier(hc->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
 
    return addedColProbe;
@@ -585,14 +576,12 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
       addedProbe = new KernelProbe(name, hc);
    }
 
-   if (addedProbe==NULL) {
-      if (addedProbe==NULL) {
+   if (addedProbe==NULL && getGroupType(keyword)==ProbeGroupType) {
          if (hc->columnId()==0) {
             fprintf(stderr, "createProbe error: unable to add %s\n", keyword);
          }
          MPI_Barrier(hc->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
-      }
    }
 
    return addedProbe;
@@ -625,9 +614,10 @@ InitWeights * CoreParamGroupHandler::createWeightInitializer(char const * keywor
    else if (!strcmp(keyword, "GaussianRandomWeight")) {
       weightInitializer = new InitGaussianRandomWeights(name, hc);
    }
-   else if (!strcmp(keyword, "GaborWeight")) {
-      weightInitializer = new InitGaborWeights(name, hc);
-   }
+   // GaborWeight marked obsolete Feb 13, 2015.  Only InitWeightsTest was using GaborWeights, so it was moved there as a test of using InitWeights objects defined outside of trunk.
+   // else if (!strcmp(keyword, "GaborWeight")) {
+   //    weightInitializer = new InitGaborWeights(name, hc);
+   // }
    else if (!strcmp(keyword, "IdentWeight")) {
       weightInitializer = new InitIdentWeights(name, hc);
    }
@@ -647,7 +637,7 @@ InitWeights * CoreParamGroupHandler::createWeightInitializer(char const * keywor
       weightInitializer = new InitWeights(name, hc);
    }
 
-   if (weightInitializer==NULL) {
+   if (weightInitializer==NULL && getGroupType(keyword)==WeightInitializerGroupType) {
       if (hc->columnId()==0) {
          fprintf(stderr, "createWeightInitializer error: unable to add %s\n", keyword);
       }
