@@ -13,15 +13,18 @@ HyPerCol "column" = {
    nx = 32;   
    ny = 32;
    dt = 1.0;
+   dtAdaptFlag = false;
    randomSeed = 977074598;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 4;  // num images plus (num layers + 1) * delay
-   progressStep = 5;
+   stopTime = 4.0;
+   progressInterval = 5.0;
    writeProgressToErr = false;
+   verifyWrites = false;
    outputPath = "output/";
+   printParamsFilename = "pv.params";
    filenamesContainLayerNames = false;
    filenamesContainConnectionNames = false;
-   checkpointRead = false;
+   initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false;
 };
@@ -39,7 +42,7 @@ Retina "Retina" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     spikingFlag = false;
     foregroundRate = 1000;
@@ -63,15 +66,15 @@ ANNLayer "L0" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "L1" = {
@@ -83,15 +86,15 @@ ANNLayer "L1" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "L2" = {
@@ -103,15 +106,15 @@ ANNLayer "L2" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 // ANNLayer "L3" = {
@@ -123,15 +126,15 @@ ANNLayer "L2" = {
 //     writeStep = 1.0;
 //     initialWriteTime = 0.0;
 //     mirrorBCflag = 1;
-//     writeSparseActivity = false;
+//     sparseLayer = false;
 // 
 //     InitVType = "ConstantV";
 //     valueV = 1.0;
 // 
 //     VThresh = -infinity;
-//     VMax = infinity;
-//     VMin = -infinity;
-//     VShift = 0.0;
+//     AMax = infinity;
+//     AMin = -infinity;
+//     AShift = 0.0;
 // };
 // 
 // ANNLayer "L4" = {
@@ -143,15 +146,15 @@ ANNLayer "L2" = {
 //     writeStep = 1.0;
 //     initialWriteTime = 0.0;
 //     mirrorBCflag = 1;
-//     writeSparseActivity = false;
+//     sparseLayer = false;
 // 
 //     InitVType = "ConstantV";
 //     valueV = 1.0;
 // 
 //     VThresh = -infinity;
-//     VMax = infinity;
-//     VMin = -infinity;
-//     VShift = 0.0;
+//     AMax = infinity;
+//     AMin = -infinity;
+//     AShift = 0.0;
 // };
 
 //layers connected using shared weights:
@@ -164,15 +167,15 @@ ANNLayer "L5" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "L6" = {
@@ -184,15 +187,15 @@ ANNLayer "L6" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "L7" = {
@@ -204,15 +207,15 @@ ANNLayer "L7" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "L8" = {
@@ -224,15 +227,15 @@ ANNLayer "L8" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "L9" = {
@@ -244,15 +247,15 @@ ANNLayer "L9" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 // HyPerConn connections: 
@@ -298,7 +301,7 @@ HyPerConn "Retina to L0" = {
    
    flankShift = 1.5;
    delay = 0;
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -347,7 +350,7 @@ HyPerConn "Retina to L1" = {
    plasticityFlag = false;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -381,7 +384,7 @@ HyPerConn "Retina to L2" = {
    plasticityFlag = 0;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -437,7 +440,7 @@ HyPerConn "Retina to L2" = {
 //    flankShift = 0;
 //    delay = 0;   
 // 
-//    preActivityIsNotRate = false;
+//    convertRateToSpikeCount = false;
 //    selfFlag = false;
 //   updateGSynFromPostPerspective = false;
 
@@ -493,7 +496,7 @@ HyPerConn "Retina to L2" = {
 //    
 //    flankShift = 0;
 //    delay = 0;   
-//    preActivityIsNotRate = false;
+//    convertRateToSpikeCount = false;
 //    selfFlag = false;
 //   updateGSynFromPostPerspective = false;
 // };
@@ -540,7 +543,7 @@ HyPerConn "Retina to L5" = {
    plasticityFlag = false;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -590,7 +593,7 @@ HyPerConn "Retina to L6" = {
    plasticityFlag = false;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -618,7 +621,7 @@ HyPerConn "Retina to L7" = {
    plasticityFlag = 0;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -671,7 +674,7 @@ HyPerConn "Retina to L8" = {
    
    flankShift = 0;
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -723,7 +726,7 @@ HyPerConn "Retina to L9" = {
    plasticityFlag = false;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -771,7 +774,7 @@ HyPerConnDebugInitWeights "Retina to L0 check" = {
    
    flankShift = 1.5;
    delay = 0;
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -820,7 +823,7 @@ HyPerConnDebugInitWeights "Retina to L1 check" = {
    plasticityFlag = false;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -854,7 +857,7 @@ HyPerConnDebugInitWeights "Retina to L2 check" = {
    plasticityFlag = false;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -907,7 +910,7 @@ HyPerConnDebugInitWeights "Retina to L2 check" = {
 //    
 //    flankShift = 0;
 //    delay = 0;   
-//    preActivityIsNotRate = false;
+//    convertRateToSpikeCount = false;
 //    selfFlag = false;
 //    updateGSynFromPostPerspective = false;
 // };
@@ -960,7 +963,7 @@ HyPerConnDebugInitWeights "Retina to L2 check" = {
 //    
 //    flankShift = 0;
 //    delay = 0;   
-//    preActivityIsNotRate = false;
+//    convertRateToSpikeCount = false;
 //    selfFlag = false;
 //    updateGSynFromPostPerspective = false;
 // };
@@ -1006,7 +1009,7 @@ KernelConnDebugInitWeights "Retina to L5 check" = {
    plasticityFlag = false;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -1055,7 +1058,7 @@ KernelConnDebugInitWeights "Retina to L6 check" = {
    plasticityFlag = false;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -1082,7 +1085,7 @@ KernelConnDebugInitWeights "Retina to L7 check" = {
    plasticityFlag = false;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -1126,7 +1129,7 @@ KernelConnDebugInitWeights "Retina to L8 check" = {
    plasticityFlag = false;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };
@@ -1170,7 +1173,7 @@ KernelConnDebugInitWeights "Retina to L9 check" = {
    plasticityFlag = false;
    
    delay = 0;   
-   preActivityIsNotRate = false;
+   convertRateToSpikeCount = false;
    selfFlag = false;
    updateGSynFromPostPerspective = false;
 };

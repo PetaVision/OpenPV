@@ -19,7 +19,7 @@ KernelConnDebugInitWeights::KernelConnDebugInitWeights()
 KernelConnDebugInitWeights::KernelConnDebugInitWeights(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) : HyPerConn()
 {
    initialize_base();
-   KernelConnDebugInitWeights::initialize(name, hc);
+   KernelConnDebugInitWeights::initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
 KernelConnDebugInitWeights::~KernelConnDebugInitWeights()
