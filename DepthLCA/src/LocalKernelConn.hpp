@@ -23,7 +23,6 @@ public:
 protected:
    LocalKernelConn();
    int initialize_base();
-   int initialize(const char * name, HyPerCol *hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_decay(enum ParamsIOFlag ioFlag);
    float decay;

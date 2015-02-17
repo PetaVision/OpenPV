@@ -16,7 +16,7 @@ BatchConn::BatchConn() {
 
 BatchConn::BatchConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, hc, NULL, NULL);
 }
 
 int BatchConn::initialize_base() {

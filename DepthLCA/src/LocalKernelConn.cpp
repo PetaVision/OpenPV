@@ -15,18 +15,13 @@ LocalKernelConn::LocalKernelConn() {
 
 LocalKernelConn::LocalKernelConn(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc);
+   initialize(name, hc, NULL, NULL);
 }
 
 int LocalKernelConn::initialize_base() {
    decay = .01;
    return PV_SUCCESS;
 }  // end of LocalKernelConn::initialize_base()
-
-int LocalKernelConn::initialize(const char * name, HyPerCol * hc) {
-   int status = KernelConn::initialize(name, hc);
-   return status;
-}
 
 int LocalKernelConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = KernelConn::ioParamsFillGroup(ioFlag);

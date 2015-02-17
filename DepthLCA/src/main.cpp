@@ -33,6 +33,7 @@ int main(int argc, char * argv[]) {
 #ifdef MAIN_USES_CUSTOMGROUPS
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
+
    if ( !strcmp(keyword, "LocalKernelConn") ) {
       addedGroup = new LocalKernelConn(name, hc);
    }
