@@ -23,7 +23,7 @@ set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/ CACHE PATH "Location of cuDNN libraries")
 
-set(CLANG_OMP TRUE CACHE PATH "Defines if we're compiling with Clang + omp support")
+set(CLANG_OMP TRUE CACHE BOOL "Defines if we're compiling with Clang + omp support")
 
 set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
 #set(Cuda_lib /usr/local/cuda-6.0/lib64 CACHE PATH "Location of opencl headers")
