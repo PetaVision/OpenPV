@@ -1,7 +1,7 @@
 OSX Installation
 ==================================
 
-This is a tutorial on getting PetaVision and running on OSX with GPU support, assuming you have a clean installation of OSX. Tested on OSX 10.9.5 (Maverics), but should work on Yosemite.
+This is a tutorial on getting PetaVision and running on OSX with GPU support, assuming you have a clean installation of OSX. Tested on OSX 10.9.5 (Maverics). If you have an NVIDIA card, upgrading to Yosimite currently creates issues with cuDNN that are fixed by reinstalling cuDNN.
 
 
 Requirements
