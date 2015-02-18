@@ -2,7 +2,7 @@ import os, sys
 import numpy as np
 from readPvpFile import readHeaderFile, readData, toFrame
 from scipy.misc.pilutil import imsave
-#import pdb
+import pdb
 
 def matToImage(mat):
    (Y, X, Z) = np.shape(mat)
@@ -40,7 +40,7 @@ def scaleMat(mat):
 # @outputDir The directory where the pvp files are located, as well as the directory to store output plots
 # @skipFrames Number of frames to skip in reconstructions
 ##
-def plotRecon(layernames, outputDir, skipFrames):
+def plotRecon(layernames, outputDir, skipFrames, startFrames=0, scale=True):
    reconDir = outputDir + "Recon/"
    if not os.path.exists(reconDir):
       os.makedirs(reconDir)
@@ -54,14 +54,26 @@ def plotRecon(layernames, outputDir, skipFrames):
       shape = (header["ny"], header["nx"], header["nf"])
       numPerFrame = shape[0] * shape[1] * shape[2]
 
-      #Read until errors out (EOF)
+      #Read until start frames
+      pvpFile.seek((numPerFrame*4+8)*startFrames,1)
+
       (idx, mat) = readData(pvpFile, shape, numPerFrame)
+      #if idx != -1:
+      #   #Read until errors out (EOF)
+      #   for i in range(startFrames):
+      #      (idx, mat) = readData(pvpFile, shape, numPerFrame)
+      #      if(idx == -1):
+      #         break
+
       #While not eof
       while idx != -1:
          print(layername + ": " + str(int(idx[0])))
          #color bands
          if header["nf"] == 1 or header["nf"] == 3:
-            img = scaleMat(mat)
+            if(scale):
+               img = scaleMat(mat)
+            else:
+               img = (np.uint8)(mat.squeeze()*256)
          else:
             img = matToImage(mat)
          imsave(reconDir + layername + str(int(idx[0])) + ".png", img)
