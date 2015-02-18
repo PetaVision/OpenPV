@@ -321,8 +321,8 @@ HyPerConn "LCA_V1ToSLP_Error" = {
    sharedWeights                       = true;
    weightInitType                      = "UniformRandomWeight";
    // initWeightsFile                     was set to (NULL);
-   wMinInit                            = -0.01;
-   wMaxInit                            = 0.01;
+   wMinInit                            = -0.005;
+   wMaxInit                            = 0.005;
    sparseFraction                      = 0.9;
    triggerFlag                         = false;
    weightUpdatePeriod                  = 1;
@@ -337,7 +337,7 @@ HyPerConn "LCA_V1ToSLP_Error" = {
    nyp                                 = 33;
    shrinkPatches                       = false;
    normalizeMethod                     = "none";
-   dWMax                               = 0.01;
+   dWMax                               = 0.005;
    useMask                             = true;
    maskLayerName = "DepthGT";
 };
