@@ -30,7 +30,8 @@ HyPerCol "column" = {
    stopTime = 5.0;  
    errorOnNotANumber = true;
    progressInterval = 10.0; //Program will output its progress at each progressStep
-   writeProgressToErr = false;  
+   writeProgressToErr = false;
+   verifyWrites = true;
    outputPath = "output/";
    printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
    filenamesContainLayerNames = false;  
@@ -52,8 +53,7 @@ Image "input" = {
     phase = 0;
     writeStep = -1;
     sparseLayer = false;
-    mirrorBCflag = false;
-    valueBC = 0.0;
+    mirrorBCflag = true;
     useImageBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
@@ -63,6 +63,7 @@ Image "input" = {
     offsetX = 0;
     offsetY = 0;
     jitterFlag = false;
+    padValue = 0.0;
 };
 
 ANNLayer "output1" = {
@@ -73,7 +74,7 @@ ANNLayer "output1" = {
     triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = true;
     sparseLayer = false;
 
     InitVType = "ZeroV";
@@ -93,7 +94,7 @@ ANNLayer "output2" = {
     triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = 1;
+    mirrorBCflag = true;
     sparseLayer = false;
 
     InitVType = "ZeroV";
@@ -119,7 +120,7 @@ HyPerConn "input_to_output1" = {
     numAxonalArbors = 1;
     sharedWeights = true;
     writeStep = -1;
-    initFromLastFlag = 0;
+    convertRateToSpikeCount = false;
     
     weightInitType = "UniformWeight";
     weightInit = 1.0;
@@ -127,14 +128,15 @@ HyPerConn "input_to_output1" = {
       
     strength = 1.0;
     normalizeMethod = "normalizeL2";
+    normalizeArborsIndividually = false;
     normalizeOnInitialize = true;
     normalizeOnWeightUpdate = true;
     nonnegativeConstraintFlag = false;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
+    normalize_cutoff = 0;
     normalizeFromPostPerspective = false;
     rMinX = 0.0;
     rMinY = 0.0;
+    minL2NormTolerated = 0;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
@@ -157,7 +159,7 @@ HyPerConn "input_to_output2" = {
     numAxonalArbors = 1;
     sharedWeights = true;
     writeStep = -1;
-    initFromLastFlag = 0;
+    convertRateToSpikeCount = false;
     
     weightInitType = "UniformWeight";
     weightInit = 1.0;
@@ -165,14 +167,6 @@ HyPerConn "input_to_output2" = {
       
     normalizeMethod = "normalizeGroup";
     normalizeGroupName = "input_to_output1";
-    normalizeOnInitialize = true;
-    normalizeOnWeightUpdate = true;
-    nonnegativeConstraintFlag = false;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-    rMinX = 0.0;
-    rMinY = 0.0;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
@@ -183,4 +177,22 @@ HyPerConn "input_to_output2" = {
     pvpatchAccumulateType = "Convolve";
     shrinkPatches = false;
     updateGSynFromPostPerspective = false;
+};
+
+AllConstantValueProbe "output1_probe" = {
+    targetLayer = "output1";
+    probeOutputFile ="output1_probe.txt";
+    triggerFlag                         = false;
+    buffer                              = "Activity";
+    nnzThreshold                        = 5.0e-7;
+    correctValue                        = 4.8820844; // 75/sqrt(236)
+};
+
+AllConstantValueProbe "output2_probe" = {
+    targetLayer = "output2";
+    probeOutputFile ="output2_probe.txt";
+    triggerFlag                         = false;
+    buffer                              = "Activity";
+    nnzThreshold                        = 5.0e-7;
+    correctValue                        = 1.7575502; // 27/sqrt(236)
 };

@@ -1,0 +1,33 @@
+/*
+ * AllConstantValueProbe.hpp
+ *
+ * A probe to check that a layer is constant, with a value given by the parameter "correctValue"
+ */
+
+#include <io/StatsProbe.hpp>
+
+namespace PV {
+
+class AllConstantValueProbe : public StatsProbe {
+public:
+   AllConstantValueProbe(const char * probeName, HyPerCol * hc);
+   ~AllConstantValueProbe();
+
+   pvadata_t getCorrectValue() { return correctValue; }
+
+   int outputState(double timed);
+
+protected:
+   AllConstantValueProbe();
+   int initAllConstantValueProbe(const char * probeName, HyPerCol * hc);
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_correctValue(enum ParamsIOFlag ioFlag);
+
+private:
+   int initialize_base();
+
+// Member variables
+   pvadata_t correctValue;
+};
+
+}
