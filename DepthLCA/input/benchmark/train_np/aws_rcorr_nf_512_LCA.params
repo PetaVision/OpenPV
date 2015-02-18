@@ -24,9 +24,9 @@ HyPerCol "column" = {
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
-    checkpointWrite = false;
-    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/benchmark/train/single_rcorr_LCA/Checkpoints";
-    checkpointWriteStepInterval = 10;
+    checkpointWrite = true;
+    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_LCA/Checkpoints";
+    checkpointWriteStepInterval = 50;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
     writeProgressToErr = true;
@@ -126,8 +126,8 @@ Movie "DepthImage" = {
 
 ANNLayer "DepthDownsample" = {
     restart = 0;
-    nxScale = .5;
-    nyScale = .5;
+    nxScale = .25;
+    nyScale = .25;
     nf = 1;
     writeStep = 1;
     initialWriteTime = 1.0;
@@ -146,8 +146,8 @@ ANNLayer "DepthDownsample" = {
 //This is the ground truth layer
 BinningLayer "DepthGT" = {
     restart = 0;
-    nxScale = .5; 
-    nyScale = .5;
+    nxScale = .25; 
+    nyScale = .25;
     nf = 128; //3 pixel error allowed, we may need to change this 
     writeStep = -1.0;
     initialWriteTime = 1.0;
@@ -264,8 +264,8 @@ BatchConn "LCA_V1ToDepthGT" = {
     preLayerName = "LCA_V1";
     postLayerName = "DepthGT";
     channelCode = -1;
-    nxp = 66;
-    nyp = 66;
+    nxp = 33;
+    nyp = 33;
     nfp = 128;
     shrinkPatches = false;
     //
@@ -278,12 +278,12 @@ BatchConn "LCA_V1ToDepthGT" = {
     weightInit = 0;
     //
     strength = 1; //.25/2  
-    normalizeMethod = "normalizeL2";
-    minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = false;
-    symmetrizeWeights = false;
+    normalizeMethod = "none";
+    //minL2NormTolerated = 0;
+    //normalizeArborsIndividually = 0;
+    //normalize_cutoff = 0.0;
+    //normalizeFromPostPerspective = false;
+    //symmetrizeWeights = false;
     //
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
@@ -311,7 +311,7 @@ BatchConn "LCA_V1ToDepthGT" = {
     useMask = true;
     maskLayerName = "DepthGT";
 
-    batchPeriod = 100;
+    batchPeriod = 25;
     sharedWeights = true;
 };
 
