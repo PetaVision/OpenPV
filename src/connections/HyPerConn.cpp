@@ -3187,7 +3187,7 @@ void HyPerConn::reduceNumKernelActivations(){
       //Do mpi to update numKernelActivationss
       for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
          int numKernelIndices = getNumDataPatches();
-         int ierr = MPI_Allreduce(MPI_IN_PLACE, numKernelActivations[arbor][0], numKernelIndices*nxp*nyp*nfp, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+         int ierr = MPI_Allreduce(MPI_IN_PLACE, numKernelActivations[arbor][0], numKernelIndices*nxp*nyp*nfp, MPI_LONG, MPI_SUM, parent->icCommunicator()->communicator());
       }
 #endif
    }
