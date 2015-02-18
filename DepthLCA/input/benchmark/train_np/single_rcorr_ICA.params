@@ -209,7 +209,7 @@ BatchConn "LCA_V1ToDepthGT" = {
     useMask = true;
     maskLayerName = "DepthGT";
 
-    batchPeriod = 100;
+    batchPeriod = 50;
     sharedWeights = true;
 };
 
