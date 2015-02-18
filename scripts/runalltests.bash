@@ -250,6 +250,13 @@ cd "$workspacedir"
 #cd "$workspacedir"
 echo "TODO: fix GPUSystemTest and maybe implement GPUs"
 
+testname=GroupNormalizationTest
+arglist="-p input/GroupNormalizationTest.params"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
 testname=ImageSystemTest
 arglist="-p input/multiframe_SystemTest.params"
 cd "$testname"
