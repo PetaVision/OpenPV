@@ -137,7 +137,7 @@ int BatchConn::normalize_dW(int arbor_ID){
             int numpatchitems = nxp*nyp*nfp;
             pvwdata_t * dwpatchdata = get_dwDataHead(loop_arbor,kernelindex);
             for( int n=0; n<numpatchitems; n++ ) {
-               double divisor = numKernelActivations[loop_arbor][kernelindex][n];
+               long divisor = numKernelActivations[loop_arbor][kernelindex][n];
                for(int i = 0; i < clones.size(); i++){
                   divisor += clones[i]->getNumKernelActivations(loop_arbor, kernelindex, n);
                }
