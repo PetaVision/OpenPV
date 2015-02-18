@@ -112,15 +112,6 @@ int BatchConn::defaultUpdate_dW(int arbor_ID) {
       }
    }
 
-   //If update from clones, update dw here as well
-   //Updates on all PlasticClones
-   for(int clonei = 0; clonei < clones.size(); clonei++){
-      assert(clones[clonei]->preSynapticLayer()->getNumExtended() == nExt);
-      for(int kExt=0; kExt<nExt;kExt++) {
-         clones[clonei]->defaultUpdateInd_dW(arbor_ID, kExt);
-      }
-   }
-
    return PV_SUCCESS;
 }
 
@@ -138,9 +129,7 @@ int BatchConn::normalize_dW(int arbor_ID){
             pvwdata_t * dwpatchdata = get_dwDataHead(loop_arbor,kernelindex);
             for( int n=0; n<numpatchitems; n++ ) {
                long divisor = numKernelActivations[loop_arbor][kernelindex][n];
-               for(int i = 0; i < clones.size(); i++){
-                  divisor += clones[i]->getNumKernelActivations(loop_arbor, kernelindex, n);
-               }
+               //Divisor should not overflow
                if(divisor != 0){
                   dwpatchdata[n] /= divisor;
                }
@@ -168,13 +157,15 @@ int BatchConn::updateState(double time, double dt){
       if (status==PV_BREAK) { break; }
       assert(status == PV_SUCCESS);
    }
-   sumKernels(0); //Sum all kernel activations
-   sumKernelActivations(); //Doing sum here as oppsed to average
 
    //Only update weights if batchIdx reaches batchPeriod
    std::cout << "batchIdx: " << batchIdx << "\n";
    if (batchIdx >= batchPeriod-1){
       std::cout << "Updating Batch\n";
+      //Do reduction when updating
+      sumKernels(0); //Sum all kernel activations
+      sumKernelActivations(); //Doing sum here as oppsed to average
+      //Normalize based on kernel activations
       normalize_dW(0);
       for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++){
          status = updateWeights(arborId);  // Apply changes in weights
