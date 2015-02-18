@@ -305,7 +305,7 @@ public:
 
    virtual void reduceNumKernelActivations();
 
-   virtual double getNumKernelActivations(int arbor_ID, int kernelIndex, int patchindex){
+   virtual long getNumKernelActivations(int arbor_ID, int kernelIndex, int patchindex){
       assert(arbor_ID < numberOfAxonalArborLists());
       assert(kernelIndex < getNumDataPatches());
       assert(patchindex < nxp*nyp*nfp);
@@ -448,7 +448,7 @@ protected:
    double lastUpdateTime;
 
    bool symmetrizeWeightsFlag;
-   int*** numKernelActivations;
+   long *** numKernelActivations;
    bool keepKernelsSynchronized_flag;
 
    // unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer

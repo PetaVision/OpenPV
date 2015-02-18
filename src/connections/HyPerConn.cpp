@@ -1606,11 +1606,11 @@ int HyPerConn::allocateDataStructures() {
       const size_t patchSize = nxp*nyp*nfp;
       const size_t localSize = numPatches * patchSize;
       
-      numKernelActivations = (int ***) malloc(this->numberOfAxonalArborLists() * sizeof(int**));
+      numKernelActivations = (long ***) malloc(this->numberOfAxonalArborLists() * sizeof(long**));
 
       for(int arbor_ID = 0; arbor_ID < this->numberOfAxonalArborLists(); arbor_ID++){
-         int * tempData = (int*) malloc(numPatches * sizeof(int) * patchSize);
-         int** singleArbor = (int **) malloc(numPatches * sizeof(int*));
+         long * tempData = (long*) malloc(numPatches * sizeof(long) * patchSize);
+         long ** singleArbor = (long **) malloc(numPatches * sizeof(long*));
          if(singleArbor == NULL || tempData == NULL) {
             fprintf(stderr, "Connection \"%s\" unable to allocate memory for numKernelActivations in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
             exit(PV_FAILURE);
@@ -3211,7 +3211,7 @@ int HyPerConn::normalize_dW(int arbor_ID){
             int numpatchitems = nxp*nyp*nfp;
             pvwdata_t * dwpatchdata = get_dwDataHead(loop_arbor,kernelindex);
             for( int n=0; n<numpatchitems; n++ ) {
-               double divisor = numKernelActivations[loop_arbor][kernelindex][n];
+               long divisor = numKernelActivations[loop_arbor][kernelindex][n];
                for(int i = 0; i < clones.size(); i++){
                   divisor += clones[i]->getNumKernelActivations(loop_arbor, kernelindex, n);
                }
