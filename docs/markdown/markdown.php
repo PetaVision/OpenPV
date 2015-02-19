@@ -11,8 +11,8 @@ PetaVision Documentaionn from Markdown
 - You **don't have to worry** about clicking formatting buttons.
 - Or fiddling with indentation. (Two spaces is all you need.)
   
-1) one reason
-2) two reasons to use this 
+* one reason
+* two reasons to use this 
 [www.google.com](Google.com)
 
 To see what else you can do with Markdown (including **tables**, **images**, **numbered lists**, and more) take a look at the [Cheatsheet][1]. And then try it out by typing in this box!
