@@ -7,9 +7,9 @@ addpath('~/workspace/PetaVision/mlab/util')
 % error threshold
 tau = 3;
 
-outdir = '/home/ec2-user/mountData/benchmark/validate/aws_rcorr_LCA/';
+outdir = '/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/';
 %timestamp = [outdir '/timestamps/DepthImage.txt'];
-outPvpFile = [outdir 'a6_RCorrRecon.pvp'];
+outPvpFile = [outdir 'a7_SLP_Recon.pvp'];
 gtPvpFile = [outdir 'a3_DepthDownsample.pvp'];
 scoreDir = [outdir 'scores/']
 
@@ -40,12 +40,11 @@ for(i = 1:numFrames)
    estData = data_est{i}.values' * 256;
    targetTime = data_est{i}.time;
    gtData = data_gt{i}.values' * 256;
-   keyboard
    outFilename = [scoreDir num2str(targetTime) '.png']
 
    d_err = disp_error(gtData,estData,tau);
    figure;
-   handle = imshow(disp_to_color([estData;gtData]));
+   handle = imshow(disp_to_color([estData;gtData], max(gtData(:))));
    title(sprintf('Error: %.2f %%',d_err*100));
    saveas(handle, outFilename);
 end

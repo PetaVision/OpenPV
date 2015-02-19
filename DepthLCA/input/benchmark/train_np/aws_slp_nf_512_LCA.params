@@ -53,7 +53,7 @@ Movie "LCA_V1" = {
     writeStep = -1;
     sparseLayer = true;
     displayPeriod = 1;
-    start_frame_index = 11;
+    start_frame_index = 22;
     skip_frame_index = 11;
     echoFramePathnameFlag = true;
     mirrorBCflag = true;
@@ -264,7 +264,7 @@ HyPerConn "DepthImageToDepthDownsample" = {
 KernelConn "LCA_V1ToLeftRecon" = {
     preLayerName = "LCA_V1";
     postLayerName = "LeftRecon";
-    channelCode = 1;
+    channelCode = 0;
     nxp = 66;
     nyp = 66;
     shrinkPatches = false;
@@ -319,11 +319,16 @@ HyPerConn "LCA_V1ToSLP_Error" = {
    convertRateToSpikeCount             = false;
    receiveGpu                          = false;
    sharedWeights                       = true;
-   weightInitType                      = "UniformRandomWeight";
-   // initWeightsFile                     was set to (NULL);
-   wMinInit                            = -0.005;
-   wMaxInit                            = 0.005;
-   sparseFraction                      = 0.9;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA_saved_run1/LCA_V1ToSLP_Error_W.pvp";
+   
+//   weightInitType                      = "UniformRandomWeight";
+//   // initWeightsFile                     was set to (NULL);
+//   wMinInit                            = -0.005;
+//   wMaxInit                            = 0.005;
+//   sparseFraction                      = 0.9;
+//
    triggerFlag                         = false;
    weightUpdatePeriod                  = 1;
    initialWeightUpdateTime             = 0;
