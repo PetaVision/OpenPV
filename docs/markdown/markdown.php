@@ -2,10 +2,13 @@
 
 <?php 
 $markdown = <<<content
-#PetaVision Documentaionn from Markdown
+#Markdown documentation using [Parsedown](http://parsedown.org/)
 -------------
 
-To create your own PetaVision Documentation page follow these rules for making a markdown document.
+To keep all documentation centrally location, some of the documentation pages
+on this website were generated using markdown text hosted on sourceforge.
+
+
 
 ## Quick tips
 
