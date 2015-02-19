@@ -8,8 +8,6 @@ $markdown = <<<content
 To keep all documentation centrally location, some of the documentation pages
 on this website were generated using markdown text hosted on sourceforge.
 
-
-
 ## Quick tips
 
 * To make a new paragraph, make sure to include an extra 
@@ -23,13 +21,14 @@ return between the lines (this isn't necessary with lists)
 * For example, I used the PHP application[Parsedown](http://parsedown.org/demo?example=bootstrap_readme)
 to convert this text into a document.
 
+Placing images is also quite simple.  Just use an ! followed by square brackets containing and parenthesis
 
-'<table>
-    <tr>
-        <td>Foo</td>
-    </tr>
-</table>'
-  
+'''
+![Alt text](/path/to/img.png "Optional title")
+'''
+
+![Cute kitty](http://catloves9.files.wordpress.com/2011/06/cute-kitten.jpg "Did this work?")  
+
 ## This is another test ... what you think about that!
 
 To see what else you can do with Markdown (including **tables**, **images**, **numbered lists**, and more) take a look at the [Cheatsheet][1]. And then try it out by typing in this box!
