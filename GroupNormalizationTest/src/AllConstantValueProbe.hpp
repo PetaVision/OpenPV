@@ -4,6 +4,9 @@
  * A probe to check that a layer is constant, with a value given by the parameter "correctValue"
  */
 
+#ifndef ALLCONSTANTVALUEPROBE_HPP_
+#define ALLCONSTANTVALUEPROBE_HPP_
+
 #include <io/StatsProbe.hpp>
 
 namespace PV {
@@ -28,6 +31,8 @@ private:
 
 // Member variables
    pvadata_t correctValue;
-};
+}; // class AllConstantValueProbe
 
-}
+}  // namespace PV
+
+#endif // ALLCONSTANTVALUEPROBE_HPP_

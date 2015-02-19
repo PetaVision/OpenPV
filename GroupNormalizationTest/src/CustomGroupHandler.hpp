@@ -5,6 +5,9 @@
  *      Author: pschultz
  */
 
+#ifndef CUSTOMGROUPHANDLER_HPP_
+#define CUSTOMGROUPHANDLER_HPP_
+
 #include <io/ParamGroupHandler.hpp>
 
 namespace PV {
@@ -21,3 +24,5 @@ public:
 }; /* class CustomGroupHandler */
 
 }  // namespace PV
+
+#endif // CUSTOMGROUPHANDLER_HPP_
