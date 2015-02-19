@@ -24,11 +24,11 @@ return between the lines (this isn't necessary with lists)
 to convert this text into a document.
 
 
-<table>
+'<table>
     <tr>
         <td>Foo</td>
     </tr>
-</table>
+</table>'
   
 
 
