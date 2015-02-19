@@ -99,6 +99,11 @@
 #include "../weightinit/InitUniformWeights.hpp"
 #include "../weightinit/InitSpreadOverArborsWeights.hpp"
 #include "../weightinit/InitMaxPoolingWeights.hpp"
+#include "../normalizers/NormalizeBase.hpp"
+#include "../normalizers/NormalizeSum.hpp"
+#include "../normalizers/NormalizeL2.hpp"
+#include "../normalizers/NormalizeMax.hpp"
+#include "../normalizers/NormalizeContrastZeroMean.hpp"
 
 namespace PV {
 
@@ -225,7 +230,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"normalizeL2", WeightNormalizerGroupType},
          {"normalizeMax", WeightNormalizerGroupType},
          {"normalizeContrastZeroMean", WeightNormalizerGroupType},
-         {"normalizeScale", WeightNormalizerGroupType},
          {"normalizeGroup", WeightNormalizerGroupType},
          {"none", WeightNormalizerGroupType},
 
@@ -650,47 +654,44 @@ InitWeights * CoreParamGroupHandler::createWeightInitializer(char const * keywor
 
 NormalizeBase * CoreParamGroupHandler::createWeightNormalizer(char const * keyword, char const * name, HyPerCol * hc) {
    NormalizeBase * weightNormalizer = NULL;
-//   bool normalizeMethodChosen = true;
-//
-//   if (keyword==NULL) {
-//      weightNormalizer = NULL;
-//   }
-//   else if (!strcmp(keyword, "normalizeSum")) {
-//      // Coming soon! Still need to rework the normalizer hierarchy so that normalizers can be constructed before connections.
-//   }
-//   else if (!strcmp(keyword, "normalizeL2")) {
-//
-//   }
-//   else if (!strcmp(keyword, "normalizeMax")) {
-//
-//   }
-//   else if (!strcmp(keyword, "normalizeContrastZeroMean")) {
-//
-//   }
-//   else if (!strcmp(keyword, "normalizeScale")) {
-//
-//   }
-//   else if (!strcmp(keyword, "normalizeGroup")) {
-//
-//   }
-//   else if (!strcmp(keyword, "none")) {
-//      normalizeMethodChosen = false; // make sure that a null weightNormalizer is not treated as an error in this case.
-//   }
-//   else {
-//      if (hc->columnId()==0) {
-//         fprintf(stderr, "createWeightNormalizer error: unrecognized method %s\n", keyword);
-//      }
-//      MPI_Barrier(hc->icCommunicator()->communicator());
-//      exit(EXIT_FAILURE);
-//   }
-//
-//   if (weightNormalizer==NULL && normalizeMethodChosen==true) {
-//      if (hc->columnId()==0) {
-//         fprintf(stderr, "createWeightNormalizer error: unable to add %s\n", keyword);
-//      }
-//      MPI_Barrier(hc->icCommunicator()->communicator());
-//      exit(EXIT_FAILURE);
-//   }
+   bool newNormalizer = false;
+
+   if (keyword==NULL) {
+      weightNormalizer = NULL;
+   }
+   else if (!strcmp(keyword, "normalizeSum")) {
+      newNormalizer = true;
+      weightNormalizer = new NormalizeSum(name, hc);
+   }
+   else if (!strcmp(keyword, "normalizeL2")) {
+      newNormalizer = true;
+      weightNormalizer = new NormalizeL2(name, hc);
+   }
+   else if (!strcmp(keyword, "normalizeMax")) {
+      newNormalizer = true;
+      weightNormalizer = new NormalizeMax(name, hc);
+   }
+   else if (!strcmp(keyword, "normalizeContrastZeroMean")) {
+      newNormalizer = true;
+      weightNormalizer = new NormalizeContrastZeroMean(name, hc);
+   }
+   else if (!strcmp(keyword, "normalizeGroup")) {
+      newNormalizer = false;
+      weightNormalizer = NULL;
+   }
+   else if (!strcmp(keyword, "") || !strcmp(keyword, "none")) {
+      newNormalizer = false;
+      weightNormalizer = NULL;
+   }
+
+   if (weightNormalizer==NULL && newNormalizer) {
+      assert(getGroupType(keyword)==WeightNormalizerGroupType);
+      if (hc->columnId()==0) {
+         fprintf(stderr, "createWeightInitializer error: unable to add %s\n", keyword);
+      }
+      MPI_Barrier(hc->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
 
    return weightNormalizer;
 }

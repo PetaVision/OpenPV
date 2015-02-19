@@ -21,12 +21,12 @@ namespace PV {
 
 class NormalizeGap: public PV::NormalizeSum {
 public:
-   NormalizeGap(const char * name, HyPerCol * hc, GapConn ** connectionList, int numConnections);
+   NormalizeGap(const char * name, HyPerCol * hc);
    virtual ~NormalizeGap();
 
 protected:
    NormalizeGap();
-   int initialize(const char * name, HyPerCol * hc, GapConn ** connectionList, int numConnections);
+   int initialize(const char * name, HyPerCol * hc);
    virtual void ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag);
 
 private:

@@ -15,7 +15,7 @@ namespace PV {
 class NormalizeMultiply: public NormalizeBase {
 // Member functions
 public:
-   NormalizeMultiply(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections);
+   NormalizeMultiply(const char * name, HyPerCol * hc);
    virtual ~NormalizeMultiply();
 
    const char * getName() { return name; }
@@ -59,7 +59,7 @@ public:
 
 protected:
    NormalizeMultiply();
-   int initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections);
+   int initialize(const char * name, HyPerCol * hc);
 
    int applyThreshold(pvwdata_t * dataPatchStart, int weights_in_patch, float wMax); // weights less than normalize_cutoff*max(weights) are zeroed out
 

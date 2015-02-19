@@ -13,17 +13,19 @@ NormalizeMax::NormalizeMax() {
    initialize_base();
 }
 
-NormalizeMax::NormalizeMax(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
-   initialize(name, hc, connectionList, numConnections);
+NormalizeMax::NormalizeMax(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
 }
 
 int NormalizeMax::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeMax::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
-   return NormalizeMultiply::initialize(name, hc, connectionList, numConnections);
+int NormalizeMax::initialize(const char * name, HyPerCol * hc) {
+   return NormalizeMultiply::initialize(name, hc);
 }
+
 
 int NormalizeMax::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = NormalizeMultiply::ioParamsFillGroup(ioFlag);

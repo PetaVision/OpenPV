@@ -9,11 +9,10 @@
 
 namespace PV {
 
-NormalizeMultiply::NormalizeMultiply(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
+NormalizeMultiply::NormalizeMultiply(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, connectionList, numConnections);
+   initialize(name, hc);
 }
-
 
 NormalizeMultiply::NormalizeMultiply() {
    initialize_base();
@@ -28,8 +27,8 @@ int NormalizeMultiply::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeMultiply::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
-   int status = NormalizeBase::initialize(name, hc, connectionList, numConnections);
+int NormalizeMultiply::initialize(const char * name, HyPerCol * hc) {
+   int status = NormalizeBase::initialize(name, hc);
    return status;
 }
 

@@ -524,6 +524,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer);
    virtual int setWeightInitializer(); // Deprecated Feb 9, 2015; the preferred way of specifying the weight initialization is by passing an InitWeights argument to the constructor.
    virtual InitWeights * createInitWeightsObject(const char * weightInitTypeStr); // Deprecated Feb 9, 2015.
+   int setWeightNormalizer(); // Included Feb 17, 2015 for backward compatibility only.  The preferred way of specifying the normalizer is by passing a NormalizeBase argument to the constructor.
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    /** 

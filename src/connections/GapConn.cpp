@@ -68,7 +68,7 @@ void GapConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && !parent->parameters()->stringPresent(name, "normalizeMethod")) {
       normalizeMethod = strdup("normalizeSum");
       GapConn * conn = this;
-      normalizer = new NormalizeGap(name, parent, &conn, 1);
+      normalizer = new NormalizeGap(name, parent);
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" warning: normalizeMethod defaults to normalizeSum for GapConns, but this parameter may be required in a future release, to be consistent with other HyPerConns.\n", parent->parameters()->groupKeywordFromName(name), name);
       }

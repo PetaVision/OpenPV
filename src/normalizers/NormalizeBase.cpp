@@ -25,7 +25,7 @@ int NormalizeBase::initialize_base() {
    numConnections = 0;
    strength = 1.0f;
    // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
-#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
+#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass if you want to restore this functionality
    symmetrizeWeightsFlag = false;
 #endif // OBSOLETE
    normalizeArborsIndividually = false;
@@ -37,19 +37,19 @@ int NormalizeBase::initialize_base() {
 // NormalizeBase does not directly call initialize since it is an abstract base class.
 // Subclasses should call NormalizeBase::initialize from their own initialize routine
 // This allows virtual methods called from initialize to be aware of which class's constructor was called.
-int NormalizeBase::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
+int NormalizeBase::initialize(const char * name, HyPerCol * hc) {
    // name is the name of a group in the PVParams object.  Parameters related to normalization should be in the indicated group.
 
    int status = PV_SUCCESS;
-   this->connectionList = (HyPerConn **) malloc(sizeof(*connectionList)*(size_t) numConns);
-   if (this->connectionList==NULL) {
-      fprintf(stderr, "Normalizer \"%s\": rank %d process unable to allocate array of pointers to %d connections.\n", name, hc->columnId(), numConns);
+   this->connectionList = NULL;
+   this->numConnections = 0;
+   this->name = strdup(name);
+   if (this->name==NULL) {
+      fprintf(stderr, "Rank %d error: unable to store name \"%s\" for normalizer object.\n", hc->columnId());
       exit(EXIT_FAILURE);
    }
-   this->numConnections = numConns;
-   memcpy(this->connectionList, connectionList, sizeof(*connectionList)*(size_t) numConns);
-   this->name = strdup(name);
    this->parentHyPerCol = hc;
+   status = hc->addNormalizer(this);
    return status;
 }
 
@@ -323,7 +323,13 @@ int NormalizeBase::symmetrizeWeights(HyPerConn * conn) {
 #endif // OBSOLETE
 
 int NormalizeBase::addConnToList(HyPerConn * newConn) {
-   HyPerConn ** newList = (HyPerConn **) realloc(connectionList, sizeof(*connectionList)*(numConnections+1));
+   HyPerConn ** newList = NULL;
+   if (connectionList) {
+      newList = (HyPerConn **) realloc(connectionList, sizeof(*connectionList)*(numConnections+1));
+   }
+   else {
+      newList = (HyPerConn **) malloc(sizeof(*connectionList)*(numConnections+1));
+   }
    if (newList==NULL) {
       fprintf(stderr, "Normalizer \"%s\" unable to add connection \"%s\" as connection number %d : %s\n", name, newConn->getName(), numConnections+1, strerror(errno));
       exit(EXIT_FAILURE);

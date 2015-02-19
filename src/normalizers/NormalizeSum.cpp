@@ -14,17 +14,17 @@ NormalizeSum::NormalizeSum() {
    initialize_base();
 }
 
-NormalizeSum::NormalizeSum(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
+NormalizeSum::NormalizeSum(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, connectionList, numConnections);
+   initialize(name, hc);
 }
 
 int NormalizeSum::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeSum::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConnections) {
-   return NormalizeMultiply::initialize(name, hc, connectionList, numConnections);
+int NormalizeSum::initialize(const char * name, HyPerCol * hc) {
+   return NormalizeMultiply::initialize(name, hc);
 }
 
 int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

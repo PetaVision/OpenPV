@@ -13,16 +13,17 @@ NormalizeL2::NormalizeL2() {
    initialize_base();
 }
 
-NormalizeL2::NormalizeL2(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
-   initialize(name, hc, connectionList, numConns);
+NormalizeL2::NormalizeL2(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
 }
 
 int NormalizeL2::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeL2::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
-   return NormalizeMultiply::initialize(name, hc, connectionList, numConns);
+int NormalizeL2::initialize(const char * name, HyPerCol * hc) {
+   return NormalizeMultiply::initialize(name, hc);
 }
 
 int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {

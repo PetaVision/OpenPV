@@ -44,7 +44,7 @@ public:
 
 protected:
    NormalizeBase();
-   int initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns);
+   int initialize(const char * name, HyPerCol * hc);
 
    virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
    // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply

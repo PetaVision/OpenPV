@@ -44,12 +44,12 @@
 #include "../normalizers/NormalizeScale.hpp"
 #endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
 #include "../normalizers/NormalizeBase.hpp"
-// TODO: Rework setting normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
+#ifdef OBSOLETE // Marked obsolete Feb 17, 2015.  Rework setting normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
 #include "../normalizers/NormalizeSum.hpp"
 #include "../normalizers/NormalizeL2.hpp"
 #include "../normalizers/NormalizeMax.hpp"
 #include "../normalizers/NormalizeContrastZeroMean.hpp"
-// TODO: Rework setting normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
+#endif // OBSOLETE // Marked obsolete Feb 17, 2015.  Rework setting normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
 #include "TransposeConn.hpp"
 #include "PlasticCloneConn.hpp"
 #ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
@@ -1178,66 +1178,34 @@ void HyPerConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "normalizeMethod", &normalizeMethod);
-   // TODO: Rework setting normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
-   PVParams * params = parent->parameters();
-   if (ioFlag == PARAMS_IO_READ) {
-      assert(normalizeMethod);
-      if (normalizeMethod[0]!='\0') {
-         if (!strcmp(normalizeMethod, "normalizeSum")) {
-            HyPerConn * conn = this;
-            normalizer = new NormalizeSum(name, parent, &conn, 1);
-         }
-         else if (!strcmp(normalizeMethod, "normalizeL2"))  {
-            HyPerConn * conn = this;
-            normalizer = new NormalizeL2(name, parent, &conn, 1);
-         }
-         else if (!strcmp(normalizeMethod, "normalizeMax")) {
-            HyPerConn * conn = this;
-            normalizer = new NormalizeMax(name, parent, &conn, 1);
-         }
-         else if (!strcmp(normalizeMethod, "normalizeContrastZeroMean")) {
-            HyPerConn * conn = this;
-            normalizer = new NormalizeContrastZeroMean(name, parent, &conn, 1);
-         }
-#ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
-         else if (!strcmp(normalizeMethod, "normalizeScale")) {
-            if (plasticityFlag) {
-                fprintf(stdout, "HyPerConn:: Warning: Connection %s: Setting both plastic weights and normalization by scaling. The weights will be multiplied by a factor strength after each learning step. Generally not a good idea. Make sure you know what you are doing!\n",name);
-            }
-            HyPerConn * conn = this;
-            normalizer = new NormalizeScale(name, parent, &conn, 1);
-         }
-#endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
-         else if (!strcmp(normalizeMethod, "normalizeGroup")) {
-            normalizer = NULL;
-            // During communicateInitInfo stage, normalizeGroupName will be converted
-            // to a normalizer and that normalizer's addConnToList method will be found
-         }
-         else if (!strcmp(normalizeMethod, "none")) {
-            normalizer = NULL;
-         }
-         else {
-            if (parent->columnId()==0) {
-               fprintf(stderr, "%s \"%s\": unrecognized normalizeMethod \"%s\".\n",
-                     parent->parameters()->groupKeywordFromName(name), name, normalizeMethod);
-               exit(EXIT_FAILURE);
-            }
-         }
-      }
-      else {
+   parent->ioParamString(ioFlag, name, "normalizeMethod", &normalizeMethod, NULL, true/*warnIfAbsent*/);
+   if (ioFlag==PARAMS_IO_READ) {
+      if (!strcmp(normalizeMethod, "")) {
          free(normalizeMethod);
          normalizeMethod = strdup("none");
-         if (parent->columnId()==0) {
-            printf("%s \"%s\": empty normalizeMethod string will be set to \"none\"\n", parent->parameters()->groupKeywordFromName(name), name);
-         }
-         normalizer = NULL;
       }
-      if (normalizer) {
-         parent->addNormalizer(normalizer);
+      if (normalizer==NULL) {
+         int status = setWeightNormalizer();
+         if (status != PV_SUCCESS) {
+            fprintf(stderr, "%s \"%s\": Rank %d process unable to construct weight normalizer\n",
+                  parent->parameters()->groupKeywordFromName(name), name, parent->columnId());
+            exit(EXIT_FAILURE);
+         }
       }
    }
-   // TODO: Rework setting the normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
+}
+
+int HyPerConn::setWeightNormalizer() {
+   assert(normalizer==NULL);
+   assert(normalizeMethod != NULL);
+   CoreParamGroupHandler * weightNormalizerHandler = new CoreParamGroupHandler();
+   normalizer = weightNormalizerHandler->createWeightNormalizer(normalizeMethod, name, parent);
+   delete weightNormalizerHandler;
+   int status = PV_SUCCESS;
+   if (normalizer) {
+      status = normalizer->addConnToList(this);
+   }
+   return status;
 }
 
 void HyPerConn::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {

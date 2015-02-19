@@ -13,16 +13,17 @@ NormalizeContrastZeroMean::NormalizeContrastZeroMean() {
    initialize_base();
 }
 
-NormalizeContrastZeroMean::NormalizeContrastZeroMean(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
-   initialize(name, hc, connectionList, numConns);
+NormalizeContrastZeroMean::NormalizeContrastZeroMean(const char * name, HyPerCol * hc) {
+   initialize_base();
+   initialize(name, hc);
 }
 
 int NormalizeContrastZeroMean::initialize_base() {
    return PV_SUCCESS;
 }
 
-int NormalizeContrastZeroMean::initialize(const char * name, HyPerCol * hc, HyPerConn ** connectionList, int numConns) {
-   return NormalizeBase::initialize(name, hc, connectionList, numConns);
+int NormalizeContrastZeroMean::initialize(const char * name, HyPerCol * hc) {
+   return NormalizeBase::initialize(name, hc);
 }
 
 int NormalizeContrastZeroMean::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
