@@ -166,20 +166,20 @@ if plot_weights
 
    weights_list = ...
        { ...
-        ["LCA_V1ToLeftRecon_W"]; ...
-        ["LCA_V1ToRightRecon_W"]; ...
+        %["LCA_V1ToLeftRecon_W"]; ...
+        %["LCA_V1ToRightRecon_W"]; ...
         ["LCA_V1ToDepthGT_W"]; ...
         };
    pre_list = ...
        { ...
-        ["LCA_V1_A"]; ...
-        ["LCA_V1_A"]; ...
+        %["LCA_V1_A"]; ...
+        %["LCA_V1_A"]; ...
         ["LCA_V1_A"]; ...
         };
    sparse_ndx = ...
         [   ...
-        1;  ...
-        1;  ...
+        %1;  ...
+        %1;  ...
         1;  ...
         ];
    checkpoints_list = {checkpoint_path};
@@ -212,8 +212,8 @@ if plot_weights
       checkpoint_dir = checkpoints_list{i_checkpoint,:};
       weights_file = [checkpoint_dir, filesep, weights_list{i_weights,1}, ".pvp"];
       if ~exist(weights_file, "file")
-	warning(["file does not exist: ", weights_file]);
-	continue;
+         warning(["file does not exist: ", weights_file]);
+         continue;
       endif
       weights_fid = fopen(weights_file);
       weights_hdr{i_weights} = readpvpheader(weights_fid);    
@@ -221,8 +221,8 @@ if plot_weights
 
       weight_time = weights_hdr{i_weights}.time;
       if weight_time > max_weight_time
-	max_weight_time = weight_time;
-	max_checkpoint = i_checkpoint;
+         max_weight_time = weight_time;
+         max_checkpoint = i_checkpoint;
       endif
     endfor %% i_checkpoint
 
@@ -230,8 +230,8 @@ if plot_weights
       checkpoint_dir = checkpoints_list{i_checkpoint,:};
       weights_file = [checkpoint_dir, filesep, weights_list{i_weights,1}, ".pvp"];
       if ~exist(weights_file, "file")
-	warning(["file does not exist: ", weights_file]);
-	continue;
+         warning(["file does not exist: ", weights_file]);
+         continue;
       endif
       weights_fid = fopen(weights_file);
       weights_hdr{i_weights} = readpvpheader(weights_fid);    
@@ -239,7 +239,7 @@ if plot_weights
 
       weights_filedata = dir(weights_file);
       weights_framesize = ...
-	  weights_hdr{i_weights}.recordsize*weights_hdr{i_weights}.numrecords+weights_hdr{i_weights}.headersize;
+        weights_hdr{i_weights}.recordsize*weights_hdr{i_weights}.numrecords+weights_hdr{i_weights}.headersize;
       tot_weights_frames = weights_filedata(1).bytes/weights_framesize;
       num_weights = 1;
       progress_step = ceil(tot_weights_frames / 10);
@@ -305,18 +305,14 @@ if plot_weights
 	patch_tmp2 = uint8(permute(patch_tmp2, [2,1,3])); %% uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
 	if plot_flag && i_checkpoint == max_checkpoint
      %Average over x and y to get only bin values
-     if(size(patch_tmp2, 3) > 1)
+     if(size(patch_tmp2, 3) == 1 || size(patch_tmp2, 3) == 3)
+        imagesc(patch_tmp2); 
+     else
         [nxp, nyp, nfp] = size(patch_tmp2);
         [drop, patch_tmp2] = max(patch_tmp2, [], 3);
-        imagesc(patch_tmp2, [1 nfp]); 
-        %%mean over nxp and nyp, leaving only nfp
-        %patch_tmp2 = squeeze(sum(sum(patch_tmp2, 1), 2)) / (nxp*nyp);
-        %patch_tmp2 = repmat(patch_tmp2, 1, nfp);
-        %%Repmat to fill square
-     else
-        imagesc(patch_tmp2); 
+        color_patch = disp_to_color(patch_tmp2, nfp);
+        imagesc(color_patch, [0 1]);
      end
-     colormap(gray);
 	  box off
 	  axis off
 	  axis image
@@ -333,17 +329,17 @@ if plot_weights
 	col_ndx = 1 + mod(j_patch-1, num_patches_cols);
 	row_ndx = 1 + floor((j_patch-1) / num_patches_cols);
 	weight_patch_array(((row_ndx-1)*size(patch_tmp2,1)+1):row_ndx*size(patch_tmp2,1), ...
-			   ((col_ndx-1)*size(patch_tmp2,2)+1):col_ndx*size(patch_tmp2,2),:) = ...
-	    patch_tmp2;
-      endfor  %% j_patch
-      if plot_flag && i_checkpoint == max_checkpoint
-	  saveas(weights_fig, [weights_dir, filesep, weights_name, ".png"], "png");
-      endif
-      if(ndims(weight_patch_array) ~= 2)
-         [M, I] = max(weight_patch_array, [], 3);
-         weight_patch_array = (I - 1) * 2;
-      end
-      imwrite((uint8)(weight_patch_array), [weights_movie_dir, filesep, weights_name, ".png"], "png");
+			   ((col_ndx-1)*size(patch_tmp2,2)+1):col_ndx*size(patch_tmp2,2),:) = patch_tmp2;
+   endfor  %% j_patch
+
+   if plot_flag && i_checkpoint == max_checkpoint
+     saveas(weights_fig, [weights_dir, filesep, weights_name, ".png"], "png");
+   endif
+
+   weight_patch_array = disp_to_color(weight_patch_array);
+   weight_patch_array = weight_patch_array * 255;
+
+   imwrite((uint8)(weight_patch_array), [weights_movie_dir, filesep, weights_name, ".png"], "png");
 
     endfor %% i_checkpoint
   endfor %% i_weights

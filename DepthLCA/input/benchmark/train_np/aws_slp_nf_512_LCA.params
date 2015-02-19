@@ -328,7 +328,7 @@ HyPerConn "LCA_V1ToSLP_Error" = {
 //   wMinInit                            = -0.005;
 //   wMaxInit                            = 0.005;
 //   sparseFraction                      = 0.9;
-//
+
    triggerFlag                         = false;
    weightUpdatePeriod                  = 1;
    initialWeightUpdateTime             = 0;
