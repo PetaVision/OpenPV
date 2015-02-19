@@ -2,18 +2,25 @@
 
 <?php 
 $markdown = <<<content
-[PetaVision Documentaionn from Markdown]
+#PetaVision Documentaionn from Markdown
 -------------
 
-...is really just ordinary text, *plain and simple*. How is it good for you?
+To create your own PetaVision Documentation page follow these rules for making a markdown document.
 
-You can write all the text that you need. 
-This is no extra line in between.
+## Quick tips
 
-This is an extra line in between.
+* To make a new paragraph, make sure to include an extra 
+return between the lines (this isn't necessary with lists)
+* When writing in code use and apostrophe 'like this' to get text formatted 
+* The number of pound symbols you use determines the number of the header h1, h2, h3 etc.
+
+### This is a third level header
+
+* To add a link, use square brackets for the link text, and parenthesies for the url.
+* For example, I used the PHP application[Parsedown](http://parsedown.org/demo?example=bootstrap_readme)
+to convert this text into a document.
 
 
-This is two lines in between.
 
   
 
