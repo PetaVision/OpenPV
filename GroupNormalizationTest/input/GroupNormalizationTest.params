@@ -13,10 +13,22 @@
 //  to all ones, and normalized together.
 //  A patch in the connection to output1 has 5x5x8=200 synapses.
 //  A patch in the connection to output2 has 3x3x4=36 synapses.
-//  The normalization is over all 236 synapses.
+//  Hence, the normalization is over all 236 synapses.
 //  Thus, for normalization method normalizeSum, with strength=1,
 //  each weight gets normalized to 1/236=0.0042372881
 //  For normalizeL2, it gets normalized to 1/sqrt(236)=0.0650944555
+//
+//  The input layer has constant value of 1, with mirroring on.
+//  Therefore, output from the 5x5x8 connection should have a constant value of
+//                5*5*3*(1/sqrt(236)) = 4.8820844,
+//
+//  and output from the 5x5x8 connection should have a constant value of
+//                3*3*4*(1/sqrt(236)) = 1.7575502
+//
+//  The custom group AllConstantValueProbe compares the activity of the output
+//  layer to the correct value, and exits with an error if either fMin or fMax
+//  are farther from the correct value than nnzThreshold, which is used as the
+//  tolerance.
 
 debugParsing = false;    // Debug the reading of this parameter file.
 
