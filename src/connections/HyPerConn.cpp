@@ -44,12 +44,12 @@
 #include "../normalizers/NormalizeScale.hpp"
 #endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
 #include "../normalizers/NormalizeBase.hpp"
-#ifdef OBSOLETE // Marked obsolete Feb 17, 2015.  Rework setting normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
+#ifdef OBSOLETE // Marked obsolete Feb 17, 2015.  HyPerConn should not need to know about subclasses of NormalizeBase
 #include "../normalizers/NormalizeSum.hpp"
 #include "../normalizers/NormalizeL2.hpp"
 #include "../normalizers/NormalizeMax.hpp"
 #include "../normalizers/NormalizeContrastZeroMean.hpp"
-#endif // OBSOLETE // Marked obsolete Feb 17, 2015.  Rework setting normalizer along the lines of weightInitializer.  HyPerConn should not need to know about subclasses of NormalizeBase
+#endif // OBSOLETE // Marked obsolete Feb 17, 2015.  HyPerConn should not need to know about subclasses of NormalizeBase
 #include "TransposeConn.hpp"
 #include "PlasticCloneConn.hpp"
 #ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
