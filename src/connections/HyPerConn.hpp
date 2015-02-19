@@ -899,6 +899,9 @@ public:
    void setAllocDeviceWeights(){
       allocDeviceWeights = true;
    }
+   void setAllocCudnnWeights(){
+      allocCudnnWeights = true;
+   }
 #ifdef PV_USE_OPENCL
    CLBuffer * getDeviceWData(){
 #endif
@@ -977,6 +980,7 @@ protected:
    virtual int allocateReceivePreKernel();
 
    bool allocDeviceWeights;
+   bool allocCudnnWeights;
    bool updatedDeviceWeights;
 
 #ifdef PV_USE_OPENCL
