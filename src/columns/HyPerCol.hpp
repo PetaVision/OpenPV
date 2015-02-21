@@ -190,6 +190,11 @@ public:
    void writeParamArray(const char * param_name, const T * array, int arraysize);
    char * pathInCheckpoint(const char * cpDir, const char * objectName, const char * suffix);
 
+#ifdef PV_USE_CUDA
+   void addGpuGroup(BaseConnection* conn, int gpuGroupIdx);
+   BaseConnection* getGpuGroupConn(int gpuGroupIdx);
+#endif
+
 private:
    int initialize_base();
    int initialize(const char * name, int argc, char ** argv, PVParams * inparams);
@@ -449,6 +454,12 @@ private:
    double progressInterval; // Output progress after simTime increases by this amount.
    double nextProgressTime; // Next time to output a progress message
    bool writeProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)
+
+#ifdef PV_USE_CUDA
+   //The list of GPU group showing which connection's buffer to use
+   BaseConnection** gpuGroupConns;
+   int numGpuGroup;
+#endif
 
 #ifdef PV_USE_OPENCL
    CLDevice * clDevice;    // object for running kernels on OpenCL device

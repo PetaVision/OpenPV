@@ -455,6 +455,8 @@ protected:
    // uint4 * rnd_state; // An array of RNGs.
    Random * randState;
 
+
+
 protected:
    HyPerConn();
    virtual int initNumWeightPatches();
@@ -820,6 +822,12 @@ protected:
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    /**
+    * @brief gpuGroupIdx: All connections in the same group uses the same GPU memory for weights
+    * @details Specify a group index. An index of -1 means no group (default)
+    */
+   virtual void ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief preDataLocal: If not using CUDNN, specifies if preData should be in local memory
     */
    virtual void ioParam_preDataLocal(enum ParamsIOFlag ioFlag);
@@ -899,9 +907,6 @@ public:
    void setAllocDeviceWeights(){
       allocDeviceWeights = true;
    }
-   void setAllocCudnnWeights(){
-      allocCudnnWeights = true;
-   }
 #ifdef PV_USE_OPENCL
    CLBuffer * getDeviceWData(){
 #endif
@@ -968,19 +973,25 @@ public:
    virtual int getNumFLocal(){return numFLocal;}
    
    bool getUpdatedDeviceWFlag(){
-      return updatedDeviceWeights;
+      //Always update if numarbors > 1
+      if(numAxonalArborLists > 1){
+         return true;
+      }
+      else{
+         return updatedDeviceWeights;
+      }
    }
    void setUpdatedDeviceWFlag(bool in){
       updatedDeviceWeights = in;
    }
    
 protected:
+   virtual int allocateDeviceWeights();
    virtual int allocateDeviceBuffers();
    virtual int allocateReceivePostKernel();
    virtual int allocateReceivePreKernel();
 
    bool allocDeviceWeights;
-   bool allocCudnnWeights;
    bool updatedDeviceWeights;
 
 #ifdef PV_USE_OPENCL
@@ -1004,9 +1015,9 @@ protected:
    PVCuda::CudaRecvPost* krRecvPost;        // Cuda kernel for update state call
    PVCuda::CudaRecvPre* krRecvPre;        // Cuda kernel for update state call
 #endif
-
+   bool ownsDeviceData;
+   int gpuGroupIdx;
    bool preDataLocal;
-
    int numXLocal;
    int numYLocal;
    int numFLocal;

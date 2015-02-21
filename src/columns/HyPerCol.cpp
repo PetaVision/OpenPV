@@ -168,6 +168,8 @@ int HyPerCol::initialize_base() {
 #endif
 #ifdef PV_USE_CUDA
    cudaDevice = NULL;
+   gpuGroupConns = NULL;
+   numGpuGroup = 0;
 #endif
 
    layers = NULL;
@@ -2377,10 +2379,70 @@ int HyPerCol::finalizeThreads()
 #endif
 #ifdef PV_USE_CUDA
    delete cudaDevice;
+   if(gpuGroupConns){
+      free(gpuGroupConns);
+   }
 #endif
    return 0;
 }
 #endif // PV_USE_OPENCL
+
+
+#ifdef PV_USE_CUDA
+void HyPerCol::addGpuGroup(BaseConnection* conn, int gpuGroupIdx){
+   //default gpuGroupIdx is -1, so do nothing if this is the case
+   if(gpuGroupIdx < 0){
+      return;
+   }
+   //Resize buffer if not big enough
+   if(gpuGroupIdx >= numGpuGroup){
+      int oldNumGpuGroup = numGpuGroup;
+      numGpuGroup = gpuGroupIdx + 1;
+      gpuGroupConns = (BaseConnection**) realloc(gpuGroupConns, numGpuGroup * sizeof(BaseConnection*)); 
+      //Initialize newly allocated part to NULL
+      for(int i = oldNumGpuGroup; i < numGpuGroup; i++){
+         gpuGroupConns[i] = NULL;
+      }
+   }
+   //If empty, fill
+   if(gpuGroupConns[gpuGroupIdx] == NULL){
+      gpuGroupConns[gpuGroupIdx] = conn;
+   }
+   //Otherwise, do nothing
+   
+   ////Base connection does not have patch size info. This check will be done in HyPerConn
+   //else{
+   //   //Check connection sizes to make sure they're the same
+   //   BaseConnection* origConn = gpuGroupConns[gpuGroupIdx];
+   //   //Different num arbors is okay, since GPU mem holds only one arbor at a time
+   //   //nxp, nyp, nfp, numKernels all have to be the same
+   //   if(origConn->xPatchSize() != conn->xPatchSize() ||
+   //      origConn->yPatchSize() != conn->yPatchSize() ||
+   //      origConn->fPatchSize() != conn->fPatchSize() ||
+   //      origConn->getNumDataPatches() != conn->getNumDataPatches()){
+   //         std::cout << "Connection " << conn->getName() << " of size (" <<
+   //         conn->getNumDataPatches() << ", " << 
+   //         conn->xPatchSize() << ", " <<
+   //         conn->yPatchSize() << ", " <<
+   //         conn->fPatchSize() << 
+   //         ") does not match the gpuGroupConnection " << 
+   //         origConn->getName() << " of size (" <<
+   //         origConn->getNumDataPatches() << ", " << 
+   //         origConn->xPatchSize() << ", " <<
+   //         origConn->yPatchSize() << ", " <<
+   //         origConn->fPatchSize() << ").\n";
+   //         exit(-1);
+   //   }
+   //}
+   return;
+}
+
+BaseConnection* HyPerCol::getGpuGroupConn(int gpuGroupIdx){
+   return gpuGroupConns[gpuGroupIdx];
+}
+#endif
+
+
 
 int HyPerCol::loadState()
 {

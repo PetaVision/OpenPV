@@ -119,8 +119,14 @@ HyPerConn::~HyPerConn()
 //   if((gpuAccelerateFlag)&&(!ignoreGPUflag)) {
 //      delete krRecvSyn;
 //
-   if (d_WData) {
-      delete d_WData;
+
+   if(ownsDeviceData){
+      if (d_WData) {
+         delete d_WData;
+         d_WData = NULL;
+      }
+   }
+   else{
       d_WData = NULL;
    }
    if (d_Patches){
@@ -149,8 +155,13 @@ HyPerConn::~HyPerConn()
    }
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-   if(cudnn_WData){
-      delete cudnn_WData;
+   if(ownsDeviceData){
+      if(cudnn_WData){
+         delete cudnn_WData;
+         cudnn_WData = NULL;
+      }
+   }
+   else{
       cudnn_WData = NULL;
    }
 #endif
@@ -305,9 +316,9 @@ int HyPerConn::initialize_base()
 #endif // OBSOLETE
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   ownsDeviceData = false;
    receiveGpu = false;
    allocDeviceWeights = false;
-   allocCudnnWeights = false;
    d_WData = NULL;
    d_Patches = NULL;
    d_GSynPatchStart = NULL;
@@ -320,6 +331,7 @@ int HyPerConn::initialize_base()
    numYLocal= 1;
    numFLocal = 1;
    preDataLocal = true;
+   gpuGroupIdx = -1;
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
    cudnn_WData = NULL;
 #endif
@@ -799,6 +811,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_maskLayerName(ioFlag);
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   ioParam_gpuGroupIdx(ioFlag);
    // ioParam_receiveGpu(ioFlag); // read by parent class BaseConnection
    ioParam_preDataLocal(ioFlag);
    //Only read numX, Y, and F local if not using CUDNN
@@ -810,6 +823,13 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 }
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+
+void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
+   //assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   if(receiveGpu){
+      parent->ioParamValue(ioFlag, name, "gpuGroupIdx", &gpuGroupIdx, gpuGroupIdx/*default*/, false/*warn if absent*/);
+   }
+}
 
 void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
    //assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
@@ -1482,28 +1502,14 @@ int HyPerConn::communicateInitInfo() {
    if(receiveGpu){
       //we need pre datastore, this conn's weights, and post gsyn on the channel of this connection
       pre->setAllocDeviceDatastore();
-      if(updateGSynFromPostPerspective){
-         TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (this);
-         if(sourceToTargetConn == NULL){
-            fprintf(stderr, "Layer \"%s\": Updating GSyn buffer from post perspective requires connection %s to be a TransposeConn.\n", post->getName(), getName());
-            abort();
-         }
-         //update conn to original connection
-         HyPerConn * targetToSourceConn = sourceToTargetConn->getOriginalConn();
-         assert(targetToSourceConn);
-         targetToSourceConn->setAllocDeviceWeights();
-         targetToSourceConn->setAllocCudnnWeights();
-      }
-      else{
-         setAllocDeviceWeights();
-      }
+      this->setAllocDeviceWeights();
       post->setAllocDeviceGSyn();
 
       //If recv from pre and pre layer is sparse, allocate activeIndices
       if(!updateGSynFromPostPerspective && pre->getSparseFlag()){
          pre->setAllocDeviceActiveIndices();
       }
-
+      
    }
 #endif
 
@@ -1789,6 +1795,33 @@ InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
 
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+
+int HyPerConn::allocateDeviceWeights(){
+#ifdef PV_USE_OPENCL
+   CLDevice * device = parent->getDevice();
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaDevice * device = parent->getDevice();
+#endif
+   const size_t size = getNumDataPatches() * xPatchSize() * yPatchSize() * fPatchSize() * sizeof(pvwdata_t);
+#ifdef PV_USE_OPENCL
+   d_WData = device->createBuffer(CL_MEM_READ_ONLY, size, NULL);
+#endif
+
+#ifdef PV_USE_CUDA
+   d_WData = device->createBuffer(size);
+   assert(d_WData);
+#endif
+
+#ifdef PV_USE_CUDNN
+   cudnn_WData = device->createBuffer(size);
+#endif
+
+   ownsDeviceData = true;
+   return PV_SUCCESS;
+
+}
+
 int HyPerConn::allocateDeviceBuffers()
 {
    int status = 0;
@@ -1800,49 +1833,86 @@ int HyPerConn::allocateDeviceBuffers()
    PVCuda::CudaDevice * device = parent->getDevice();
 #endif
 
+   bool needAlloc = true;
    if(allocDeviceWeights){
-      const size_t size = getNumDataPatches() * xPatchSize() * yPatchSize() * fPatchSize() * sizeof(pvwdata_t);
-#ifdef PV_USE_OPENCL
-      d_WData = device->createBuffer(CL_MEM_READ_ONLY, size, NULL);
-#endif
-
-#ifdef PV_USE_CUDA
-      d_WData = device->createBuffer(size);
-      assert(d_WData);
-#endif
-
+      //Check group here
+      if(gpuGroupIdx >= 0){
+         //Add to group if set
+         parent->addGpuGroup(this, gpuGroupIdx);
+         BaseConnection * b_conn = parent->getGpuGroupConn(gpuGroupIdx);
+         //This connection must exist if gpuGroupIdx >= 0
+         assert(b_conn);
+         HyPerConn * group_conn = dynamic_cast<HyPerConn *>(b_conn);
+         if(!group_conn){
+            std::cout << "FATAL ERROR: GPU group connection " << b_conn->getName() << " is not of type HyPerConn.\n";
+            exit(-1);
+         }
+         //If this connection is NOT the "base" group conn that allocates
+         //check dims and don't allocate
+         if(group_conn != this){
+            //Different num arbors is okay, since GPU mem holds only one arbor at a time
+            //nxp, nyp, nfp, numKernels all have to be the same
+            if(group_conn->xPatchSize() != this->xPatchSize() ||
+               group_conn->yPatchSize() != this->yPatchSize() ||
+               group_conn->fPatchSize() != this->fPatchSize() ||
+               group_conn->getNumDataPatches() != this->getNumDataPatches()){
+                  std::cout << "Connection " << this->getName() << " of size (" <<
+                  this->getNumDataPatches() << ", " << 
+                  this->xPatchSize() << ", " <<
+                  this->yPatchSize() << ", " <<
+                  this->fPatchSize() << 
+                  ") does not match the gpuGroupConnection " << 
+                  group_conn->getName() << " of size (" <<
+                  group_conn->getNumDataPatches() << ", " << 
+                  group_conn->xPatchSize() << ", " <<
+                  group_conn->yPatchSize() << ", " <<
+                  group_conn->fPatchSize() << ").\n";
+                  exit(-1);
+            }
+            //set d_WData to the group's d_WData
+            d_WData = group_conn->getDeviceWData();
+            assert(d_WData);
 #ifdef PV_USE_CUDNN
-      if(allocCudnnWeights){
-         setCudnnWData(device->createBuffer(size));
-      }
+            cudnn_WData = group_conn->getCudnnWData();
+            assert(cudnn_WData);
 #endif
+            needAlloc = false;
+         }
+      }
+      
+      if(needAlloc){
+         if(updateGSynFromPostPerspective){
+            HyPerConn * origConn;
+            TransposeConn* thisTranspose = dynamic_cast<TransposeConn*>(this);
+            if(!thisTranspose){
+               std::cout << "HyPerConn " << name << " must be a transpose conn to receive with gpus for now\n";
+               exit(EXIT_FAILURE);
+            }
+            origConn = thisTranspose->getOriginalConn();
+            //Check if origConn has allocated d_weights yet
+            if(!origConn->getDeviceWData()){
+               origConn->allocateDeviceWeights();
+            }
+            d_WData = origConn->getDeviceWData();
+#ifdef PV_USE_CUDNN
+            cudnn_WData = origConn->getCudnnWData();
+#endif
+         }
+         else{
+            allocateDeviceWeights();
+         }
+      }
    }
 
-   //We need orig to set syp
    if(receiveGpu){
       if(updateGSynFromPostPerspective){
          HyPerConn * origConn;
-
          TransposeConn* thisTranspose = dynamic_cast<TransposeConn*>(this);
          if(!thisTranspose){
             std::cout << "HyPerConn " << name << " must be a transpose conn to receive with gpus for now\n";
             exit(EXIT_FAILURE);
          }
          origConn = thisTranspose->getOriginalConn();
-
-//         if(allocDeviceWeights){
-//            const size_t size = origConn->getNumDataPatches() * origConn->xPatchSize()*origConn->yPatchSize()*origConn->fPatchSize() * sizeof(pvwdata_t);
-//#ifdef PV_USE_OPENCL
-//            origConn->setDeviceWData(device->createBuffer(CL_MEM_READ_ONLY, size, NULL));
-//#endif
-//#ifdef PV_USE_CUDA
-//            origConn->setDeviceWData(device->createBuffer(size));
-//#ifdef PV_USE_CUDNN
-//            origConn->setCudnnWData(device->createBuffer(size));
-//#endif
-//
-//#endif
-//         }
 
          int numPostRes = post->getNumNeurons();
 #ifdef PV_USE_OPENCL
@@ -1863,17 +1933,6 @@ int HyPerConn::allocateDeviceBuffers()
          }
       }
       else{
-//         if(allocDeviceWeights){
-//            const size_t size = getNumDataPatches() * xPatchSize() * yPatchSize() * fPatchSize() * sizeof(pvwdata_t);
-//#ifdef PV_USE_OPENCL
-//            d_WData = device->createBuffer(CL_MEM_READ_ONLY, size, NULL);
-//#endif
-//#ifdef PV_USE_CUDA
-//            d_WData = device->createBuffer(size);
-//            assert(d_WData);
-//#endif
-//         }
-
          //Calculate local pre size here
          const PVLayerLoc * preLoc = pre->getLayerLoc();
          const PVLayerLoc * postLoc = post->getLayerLoc();
@@ -2135,17 +2194,17 @@ int HyPerConn::allocateReceivePostKernel()
 #ifdef PV_USE_OPENCL
    CLBuffer* d_PreData = pre->getDeviceDatastore();
    CLBuffer* d_PostGSyn = post->getDeviceGSyn();
-   CLBuffer* d_origWData = origConn->getDeviceWData();
+   CLBuffer* d_origWData = this->getDeviceWData();
 #endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_PreData = pre->getDeviceDatastore();
    PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn();
-   PVCuda::CudaBuffer* d_origWData = origConn->getDeviceWData();
+   PVCuda::CudaBuffer* d_origWData = this->getDeviceWData();
 
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * cudnn_preData = pre->getCudnnDatastore();
    PVCuda::CudaBuffer * cudnn_gSyn = post->getCudnnGSyn();
-   PVCuda::CudaBuffer * cudnn_origWData = origConn->getCudnnWData();
+   PVCuda::CudaBuffer * cudnn_origWData = this->getCudnnWData();
    assert(cudnn_preData);
    assert(cudnn_gSyn);
    assert(cudnn_origWData);
@@ -3799,19 +3858,19 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
 
 
    bool updateWeights = false;
-   if(targetToSourceConn->getUpdatedDeviceWFlag()){
+   if(targetToSourceConn->getUpdatedDeviceWFlag() || gpuGroupIdx >= 0){
       //These weights should be orig conn weights
       float * h_weights = targetToSourceConn->get_wDataStart(arborID);
 
 #ifdef PV_USE_OPENCL
-      CLBuffer * d_weights = targetToSourceConn->getDeviceWData();
+      CLBuffer * d_weights = getDeviceWData();
 #endif
 #ifdef PV_USE_CUDA
-      PVCuda::CudaBuffer * d_weights = targetToSourceConn->getDeviceWData();
+      PVCuda::CudaBuffer * d_weights = getDeviceWData();
 #endif
       assert(d_weights);
       d_weights->copyToDevice(h_weights);
-      targetToSourceConn->setUpdatedDeviceWFlag(false);
+      setUpdatedDeviceWFlag(false);
       updateWeights = true;
    }
 
