@@ -116,14 +116,14 @@ int WTALayer::updateState(double timef, double dt) {
    for(int yi = 0; yi < srcLoc->ny; yi++){
       for(int xi = 0; xi < srcLoc->nx; xi++){
          //Find maximum output value in nf direction
-         float maxInput = -1;
-         float maxIndex = -1;
+         float maxInput = -99999999;
+         float maxIndex = -99999999;
          for(int fi = 0; fi < srcLoc->nf; fi++){
             int kExt = kIndex(xi, yi, fi,
                   srcLoc->nx+srcLoc->halo.lt+srcLoc->halo.rt,
                   srcLoc->ny+srcLoc->halo.up+srcLoc->halo.dn,
                   srcLoc->nf);
-            if(srcA[kExt] > maxInput){
+            if(srcA[kExt] > maxInput || fi == 0){
                maxInput = srcA[kExt];
                maxIndex = fi;
             }
