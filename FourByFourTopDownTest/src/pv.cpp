@@ -10,7 +10,7 @@
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc);
 
 int main(int argc, char * argv[]) {
-   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL);
+   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
    int num_cl_args;
    char ** cl_args;
    if( paramfileabsent ) {

@@ -33,7 +33,7 @@ int main(int argc, char * argv[]) {
    MPI_Initialized(&mpi_initialized_on_entry);
    if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
 #endif // PV_USE_MPI
-   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL);
+   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
    int num_cl_args;
    char ** cl_args;
    if( paramfileabsent ) {
@@ -89,7 +89,7 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
    }
    int rank = hc->icCommunicator()->commRank();
    char * paramsfilename;
-   pv_getopt_str(argc, argv, "-p", &paramsfilename);
+   pv_getopt_str(argc, argv, "-p", &paramsfilename, NULL/*paramusage*/);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "Rank %d: %s failed with return code %d.\n", rank, paramsfilename, status);
    }

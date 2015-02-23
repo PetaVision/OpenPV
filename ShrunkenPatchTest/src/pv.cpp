@@ -29,7 +29,7 @@ int main(int argc, char * argv[]) {
 
    int status;
    // If params file was not specified, add input/ShrunkenPatchTest.params to command line arguments
-   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL);
+   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
    int num_cl_args;
    char ** cl_args;
    if( paramfileabsent ) {

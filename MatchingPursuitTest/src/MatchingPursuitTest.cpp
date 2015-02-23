@@ -4,7 +4,7 @@
 void * customgroups(const char * keyword, const char * name, HyPerCol * hc);
 
 int main(int argc, char * argv[]) {
-   int paramfilestatus = pv_getopt_str(argc, argv, "-p", NULL);
+   int paramfilestatus = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
    int cl_argc = argc + (paramfilestatus!=0 ? 2 : 0);
    char ** cl_argv = (char **) malloc((size_t) (cl_argc+1) * sizeof(char *));
    assert(cl_argv!=NULL);

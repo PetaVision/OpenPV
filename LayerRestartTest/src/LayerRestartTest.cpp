@@ -37,7 +37,7 @@ int checkComparisonNonzero(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    int status;
-   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL);
+   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
    if( !paramfileabsent ) {
       fprintf(stderr, "%s runs a number of params files in sequence.  Do not include a '-p' option when running this program.\n", argv[0]);
       exit(EXIT_FAILURE);

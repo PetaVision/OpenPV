@@ -77,8 +77,8 @@ int buildandverify(int argc, char * argv[]) {
    /* PV::ANNLayer * layer = */ new PV::ANNLayer("layer", hc);
    int rows = -1;
    int columns = -1;
-   pv_getopt_int(argc, argv, "-rows", &rows);
-   pv_getopt_int(argc, argv, "-columns", &columns);
+   pv_getopt_int(argc, argv, "-rows", &rows, NULL/*paramusage*/);
+   pv_getopt_int(argc, argv, "-columns", &columns, NULL/*paramusage*/);
    assert(rows >= 0 && columns >= 0);
    int status = verifyLoc(hc, rows, columns);
    delete hc;
