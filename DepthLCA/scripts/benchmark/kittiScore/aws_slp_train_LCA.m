@@ -12,6 +12,7 @@ outdir = '/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/';
 outPvpFile = [outdir 'a7_SLP_Recon.pvp'];
 gtPvpFile = [outdir 'a3_DepthDownsample.pvp'];
 scoreDir = [outdir 'scores/']
+imageDir = '/nh/compneuro/Data/Depth/stereo_flow/multiview/training/image_2/'
 
 mkdir(scoreDir);
 
@@ -19,45 +20,39 @@ mkdir(scoreDir);
 [data_gt, hdr_gt] = readpvpfile(gtPvpFile);
 
 numFrames = hdr_est.nbands;
-
-%%Build timestamp matrix
-%time = zeros(1, numFrames);
-%gtFilenames = cell(1, numFrames);
-%
-%%Build timestamp matrix
-%%timeFile = fopen(timestamp, 'r');
-%
-%for(i = 1:numFrames)
-%   line = fgetl(timeFile);
-%   split = strsplit(line, ',');
-%   time(1,i) = str2num(split{2});
-%   gtFilenames(1,i) = split(3);
-%end
-
-%fclose(timeFile)
+errList = zeros(1, numFrames);
 
 for(i = 1:numFrames)
    estData = data_est{i}.values' * 256;
-   targetTime = data_est{i}.time;
    gtData = data_gt{i}.values' * 256;
-   outFilename = [scoreDir num2str(targetTime) '.png']
+
+   handle = figure;
+   targetTime = data_est{i}.time;
+   imageFilename = [imageDir sprintf('%06d_10.png', targetTime)];
+   outFilename = [scoreDir num2str(targetTime) '_EstVsImage.png']
+   im = imread(imageFilename);
+   [nx, ny, nf] = size(estData);
+   im = imresize(im, [nx, ny]);
+   subplot(2, 1, 1);
+   imshow(disp_to_color(estData));
+   subplot(2, 1, 2);
+   imshow(im);
+   %handle = imshow([disp_to_color(estData); im]);
+   saveas(handle, outFilename);
 
    d_err = disp_error(gtData,estData,tau);
+   errList(i) = d_err;
+
+   %Mask out estdata with mask
+   estData(find(gtData == 0)) = 0;
+   outFilename = [scoreDir num2str(targetTime) '_gtVsEst.png']
+
    figure;
-   handle = imshow(disp_to_color([estData;gtData], max(gtData(:))));
+   handle = imshow(disp_to_color([estData;gtData]));
    title(sprintf('Error: %.2f %%',d_err*100));
    saveas(handle, outFilename);
 end
-   
 
-
-
-%% flow demo
-%disp('Load and show optical flow field ... ');
-%F_est = flow_read('flow_est.png');
-%F_gt  = flow_read('flow_gt.png');
-%f_err = flow_error(F_gt,F_est,tau);
-%F_err = flow_error_image(F_gt,F_est);
-%figure,imshow([flow_to_color([F_est;F_gt]);F_err]);
-%title(sprintf('Error: %.2f %%',f_err*100));
-%figure,flow_error_histogram(F_gt,F_est);
+aveFile = fopen([scoreDir 'aveError.txt'], 'w');
+fprintf(aveFile, '%f', mean(errList(:)));
+fclose(aveFile);
