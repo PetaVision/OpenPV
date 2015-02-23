@@ -22,8 +22,8 @@ Communicator::Communicator(int* argc, char*** argv)
 
    // sprintf(commName, "[%2d]: ", icRank); // icRank not initialized yet; commName not used until later.
 
-   bool rowsDefined = pv_getopt_int(*argc,  *argv, "-rows", &numRows)==0;
-   bool colsDefined = pv_getopt_int(*argc, *argv, "-columns", &numCols)==0;
+   bool rowsDefined = pv_getopt_int(*argc,  *argv, "-rows", &numRows, NULL)==0;
+   bool colsDefined = pv_getopt_int(*argc, *argv, "-columns", &numCols, NULL)==0;
 
    if( rowsDefined && !colsDefined ) {
       numCols = (int) worldSize / numRows;

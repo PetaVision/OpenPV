@@ -230,8 +230,11 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
    int restart = 0;
    int numthreads = 1; //Default to 1 thread
    bool reqrtn = false; // Default to not require pressing return to continue
-   parse_options(argc, argv, &reqrtn, &outputPath, &param_file,
-                 &opencl_device, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads);
+   int numRows = 1;
+   int numColumns = 1;
+   bool paramusage[argc]; // array to indicate whether parse_options recognized the argument.
+   parse_options(argc, argv, paramusage, &reqrtn, &outputPath, &param_file,
+                 &opencl_device, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads, &numRows, &numColumns);
 
 #ifdef PVP_DEBUG
    if (reqrtn) {
@@ -248,6 +251,22 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
 #endif // PV_USE_MPI
    }
 #endif // PVP_DEBUG
+
+   if (rank==0) {
+      bool anyunusedparams = false;
+      int arg;
+      for (arg=1; arg<argc; arg++) {
+         if (paramusage[arg]==false) {
+            fprintf(stderr, "%s: argument %d, \"%s\", is not recognized.\n",
+                  argv[0], arg, argv[arg]);
+            anyunusedparams = true;
+         }
+      }
+      if (anyunusedparams) {
+         fprintf(stderr, "Error creating HyPerCol\n");
+         exit(EXIT_FAILURE);
+      }
+   }
 
    this->name = strdup(name);
    this->runTimer = new Timer(name, "column", "run    ");

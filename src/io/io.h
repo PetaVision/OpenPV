@@ -79,22 +79,22 @@ extern "C"
 {
 #endif // __cplusplus
 
-int pv_getopt(int argc, char * argv[], const char * opt);
-int pv_getopt_int(int argc, char * argv[], const char * opt, int *   iVal);
-int pv_getoptionalopt_int(int argc, char * argv[], const char * opt, int * iVal, int defaultVal);
-int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal);
-int pv_getopt_long(int argc, char * argv[], const char * opt, long int * ulVal);
-int pv_getopt_unsigned(int argc, char * argv[], const char * opt, unsigned int * uVal);
+int pv_getopt(int argc, char * argv[], const char * opt, bool * paramusage);
+int pv_getopt_int(int argc, char * argv[], const char * opt, int *   iVal, bool * paramusage);
+int pv_getoptionalopt_int(int argc, char * argv[], const char * opt, int * iVal, int defaultVal, bool * paramusage);
+int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal, bool * paramusage);
+int pv_getopt_long(int argc, char * argv[], const char * opt, long int * ulVal, bool * paramusage);
+int pv_getopt_unsigned(int argc, char * argv[], const char * opt, unsigned int * uVal, bool * paramusage);
 
 int readFile(const char * filename, float * buf, int * nx, int * ny);
 
 int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf);
 int pv_center_image(float * V, int nx0, int ny0, int nx, int ny);
 
-int parse_options(int argc, char * argv[], bool * require_return,
+int parse_options(int argc, char * argv[], bool * paramusage, bool * require_return,
                   char ** output_path, char ** param_file, int * opencl_device,
                   unsigned int * random_seed, char ** working_dir,
-                  int * restart, char ** checkpointReadDir, int * numthreads);
+                  int * restart, char ** checkpointReadDir, int * numthreads, int * numRows, int * numColumns);
 
 /** If a filename begins with "~/" or is "~", presume the user means the home directory.
  * The return value is the expanded path; e.g. if the home directory is /home/user1,

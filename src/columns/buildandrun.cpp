@@ -20,7 +20,7 @@ int buildandrun(int argc, char * argv[], int (*custominit)(HyPerCol *, int, char
 
    //Parse param file
    char * param_file = NULL;
-   pv_getopt_str(argc, argv, "-p", &param_file);
+   pv_getopt_str(argc, argv, "-p", &param_file, NULL);
    InterColComm * icComm = new InterColComm(&argc, &argv);
    PVParams * params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
    free(param_file);
@@ -149,7 +149,7 @@ int buildandrun(int argc, char * argv[],
                 ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
    //Parse param file
    char * param_file = NULL;
-   pv_getopt_str(argc, argv, "-p", &param_file);
+   pv_getopt_str(argc, argv, "-p", &param_file, NULL);
    InterColComm * icComm = new InterColComm(&argc, &argv);
    PVParams * params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
    free(param_file);
