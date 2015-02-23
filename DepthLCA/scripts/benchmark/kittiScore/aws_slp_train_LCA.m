@@ -22,15 +22,36 @@ mkdir(scoreDir);
 numFrames = hdr_est.nbands;
 errList = zeros(1, numFrames);
 
+%Build timestamp matrix
+time = zeros(1, numFrames);
+gtFilenames = cell(1, numFrames);
+
+%Build timestamp matrix
+timeFile = fopen(timestamp, 'r');
+
+for(i = 1:numFrames)
+   line = fgetl(timeFile);
+   split = strsplit(line, ',');
+   time(1,i) = str2num(split{2});
+   frameName = strsplit(split{3}, '/'){end};
+   gtFilenames(1,i) = frameName;
+end
+
+fclose(timeFile)
+
 for(i = 1:numFrames)
    estData = data_est{i}.values' * 256;
    gtData = data_gt{i}.values' * 256;
 
    handle = figure;
    targetTime = data_est{i}.time;
-   imageFilename = [imageDir sprintf('%06d_10.png', targetTime)];
+   targetFrame = gtFilenames{1, i};
+   imageFilename = [imageDir, targetFrame]
+
+   system(['aws s3 cp ', imageFilename, ' tmpImg.png']);
+
    outFilename = [scoreDir num2str(targetTime) '_EstVsImage.png']
-   im = imread(imageFilename);
+   im = imread('tmpImg.png');
    [nx, ny, nf] = size(estData);
    im = imresize(im, [nx, ny]);
    subplot(2, 1, 1);
