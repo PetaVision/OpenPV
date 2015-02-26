@@ -1550,7 +1550,7 @@ void PVParams::action_parameter_def(char * id, double val)
       printf("action_parameter_def: %s = %lf\n", id, val);
       fflush(stdout);
    }
-   if( checkDuplicates(id) != PV_SUCCESS ) exit(EXIT_FAILURE);
+   if( checkDuplicates(id, val) != PV_SUCCESS ) exit(EXIT_FAILURE);
    Parameter * p = new Parameter(id, val);
    stack->push(p);
 }
@@ -1601,7 +1601,7 @@ void PVParams::action_parameter_array(char * id)
    }
    int status = currentParamArray->setName(id);
    assert(status==PV_SUCCESS);
-   if( checkDuplicates(id) != PV_SUCCESS ) exit(EXIT_FAILURE);
+   if( checkDuplicates(id, 0.0) != PV_SUCCESS ) exit(EXIT_FAILURE);
    arrayStack->push(currentParamArray);
    currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
 }
@@ -1667,7 +1667,7 @@ void PVParams::action_parameter_string_def(const char * id, const char * stringv
       printf("action_parameter_string_def: %s = %s\n", id, stringval);
       fflush(stdout);
    }
-   if( checkDuplicates(id) != PV_SUCCESS ) exit(EXIT_FAILURE);
+   if( checkDuplicates(id, 0.0) != PV_SUCCESS ) exit(EXIT_FAILURE);
    char * param_value = stripQuotationMarks(stringval);
    assert(param_value);
    ParameterString * pstr = new ParameterString(id, param_value);
@@ -1713,7 +1713,7 @@ void PVParams::action_parameter_filename_def(const char * id, const char * strin
       printf("action_parameter_filename_def: %s = %s\n", id, stringval);
       fflush(stdout);
    }
-   if( checkDuplicates(id) != PV_SUCCESS ) exit(EXIT_FAILURE);
+   if( checkDuplicates(id, 0.0) != PV_SUCCESS ) { exit(EXIT_FAILURE); }
    char * param_value = stripQuotationMarks(stringval);
    assert(param_value);
    ParameterString * pstr = NULL;
@@ -1887,12 +1887,19 @@ void PVParams::action_sweep_values_filename(const char * stringval)
    free(filename);
 }
 
-int PVParams::checkDuplicates(const char * paramName) {
+int PVParams::checkDuplicates(const char * paramName, double val) {
    int status = PV_SUCCESS;
    for( int k=0; k<stack->size(); k++ ) {
-      if( !strcmp(paramName, stack->peek(k)->name() ) ) {
-         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous parameter name\n", getRank(), paramName);
-         status = PV_FAILURE;
+      Parameter * parm = stack->peek(k);
+      if( !strcmp(paramName, parm->name() ) ) {
+         double oldval = parm->value();
+         if ( val == oldval) {
+            fprintf(stderr, "Warning: parameter name \"%s\" duplicates a previous parameter name and value (%s = %f)\n", paramName, oldval, val);
+         }
+         else {
+            fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous parameter name with inconsistent values (%f versus %f)\n", getRank(), paramName, oldval, val);
+            status = PV_FAILURE;
+         }
          break;
       }
    }

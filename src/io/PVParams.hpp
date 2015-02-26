@@ -292,7 +292,7 @@ private:
    int setSweepSize();
    void addGroup(char * keyword, char * name);
    void addActiveParamSweep(const char * group_name, const char * param_name);
-   int checkDuplicates(const char * paramName);
+   int checkDuplicates(const char * paramName, double val);
    int newActiveParamSweep();
    int clearHasBeenReadFlags();
    static char * stripQuotationMarks(const char *s);

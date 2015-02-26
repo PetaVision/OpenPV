@@ -796,7 +796,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_nfp(ioFlag);
    ioParam_shrinkPatches(ioFlag);
    ioParam_normalizeMethod(ioFlag);
-   if (normalizer != NULL) {
+   if (normalizer != NULL && !strcmp(normalizer->getName(), this->getName())) {
       normalizer->ioParamsFillGroup(ioFlag);
    }
    ioParam_normalizeGroupName(ioFlag);
@@ -1213,6 +1213,9 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
             exit(EXIT_FAILURE);
          }
       }
+      if (normalizer!=NULL) {
+         normalizer->addConnToList(this);
+      }
    }
 }
 
@@ -1223,9 +1226,6 @@ int HyPerConn::setWeightNormalizer() {
    normalizer = weightNormalizerHandler->createWeightNormalizer(normalizeMethod, name, parent);
    delete weightNormalizerHandler;
    int status = PV_SUCCESS;
-   if (normalizer) {
-      status = normalizer->addConnToList(this);
-   }
    return status;
 }
 
@@ -1235,21 +1235,6 @@ void HyPerConn::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
    // even though HyPerConn::ioParam_normalizeMethod itself always sets normalizeMethod
    if (normalizeMethod && !strcmp(normalizeMethod, "normalizeGroup")) {
       parent->ioParamStringRequired(ioFlag, name, "normalizeGroupName", &normalizeGroupName);
-   }
-}
-
-void HyPerConn::ioParam_strength(enum ParamsIOFlag ioFlag, float * strength, bool warnIfAbsent) {
-   // Not called by HyPerConn directly, but as both the normalizer and
-   // weightInitializer hierarchies use the strength parameter,
-   // it is put here so that both can use the same function.
-   // This also means that we can make sure that outputParams only
-   // writes the strength parameter once, even if it's used in two
-   // different contexts.
-   if (ioFlag != PARAMS_IO_WRITE || !strengthParamHasBeenWritten) {
-      parent->ioParamValue(ioFlag, name, "strength", strength, *strength, warnIfAbsent);
-   }
-   if (ioFlag == PARAMS_IO_WRITE) {
-      strengthParamHasBeenWritten = true;
    }
 }
 

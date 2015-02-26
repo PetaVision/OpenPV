@@ -23,6 +23,7 @@ set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
 set(PV_BUILD_SHARED FALSE CACHE BOOL "Defines if the pv object is built as a shared object")
+set(CLANG_OMP TRUE CACHE BOOL "Defines if we're compiling with Clang + omp support")
 
 set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
 

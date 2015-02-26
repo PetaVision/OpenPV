@@ -49,7 +49,7 @@ int InitBIDSLateralParams::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void InitBIDSLateralParams::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   parentConn->ioParam_strength(ioFlag, &strength, true/*warnIfAbsent*/);
+   parent->ioParamValue(ioFlag, name, "strength", &strength, strength/*default value*/, true/*warnIfAbsent*/);
 }
 
 void InitBIDSLateralParams::ioParam_falloffType(enum ParamsIOFlag ioFlag) {

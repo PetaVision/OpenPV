@@ -328,7 +328,7 @@ BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, Para
          fprintf(stderr, "Connection %s error: normalizeMethod \"%s\" is not recognized.\n", keyword, weightNormalizeStr);
          exit(EXIT_FAILURE);
       }
-      weightNormalizer = normalizeHandler->createWeightNormalizer(weightInitStr, groupname, hc);
+      weightNormalizer = normalizeHandler->createWeightNormalizer(weightNormalizeStr, groupname, hc);
    }
    ParamGroupHandler * connectionHandler = getGroupHandlerFromList(keyword, coreGroupHandler, customHandlerList, numGroupHandlers, &groupType);
    if (connectionHandler==NULL || groupType != ConnectionGroupType) {

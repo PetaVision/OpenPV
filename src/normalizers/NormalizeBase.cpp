@@ -54,7 +54,7 @@ int NormalizeBase::initialize(const char * name, HyPerCol * hc) {
 }
 
 int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   ioParam_strength(ioFlag);
+      ioParam_strength(ioFlag);
    // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
 #ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
    ioParam_symmetrizeWeights(ioFlag);
@@ -66,8 +66,7 @@ int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeBase::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   connectionList[0]->ioParam_strength(ioFlag, &strength, true/*warnIfAbsent*/);
-   // TODO: How should we handle groups?  Should strength be a vector?  Should all connections have the same strength?
+   parent()->ioParamValue(ioFlag, name, "strength", &strength, strength/*default*/, true/*warn if absent*/);
 }
 
 // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply

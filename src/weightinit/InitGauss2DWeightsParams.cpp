@@ -98,7 +98,7 @@ void InitGauss2DWeightsParams::ioParam_rMin(enum ParamsIOFlag ioFlag) {
 }
 
 void InitGauss2DWeightsParams::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   parentConn->ioParam_strength(ioFlag, &strength, true/*warnIfAbsent*/);
+   parent->ioParamValue(ioFlag, name, "strength", &strength, strength/*default value*/, true/*warnIfAbsent*/);
 }
 
 void InitGauss2DWeightsParams::ioParam_numOrientationsPost(enum ParamsIOFlag ioFlag) {

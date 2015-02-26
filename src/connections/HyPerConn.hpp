@@ -803,23 +803,6 @@ protected:
     */
    virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
 
-public:
-   /**
-    * @brief strength: A value that specifies the strength of the connection
-    * @details - @link InitGauss2DWeightsParams Gauses2DWeight@endlink: 
-    *   Sets initialization of sum of the weights to strength
-    * - @link Init3DGaussWeightsParams Gauss3DWeight@endlink:
-    *   Sets initialization of sum of the weights to strength
-    * - @link NormalizeSum normalizeSum@endlink:
-    *   Sets sum of weights to strength
-    * - @link NormalizeL2 normalizeL2@endlink:
-    *   Sets normaliztion L2 to strength 
-    * - @link NormalizeMax normalizeMax@endlink:
-    *   Sets normalization max to strength
-    */
-   virtual void ioParam_strength(enum ParamsIOFlag, float * strength, bool warnIfAbsent=true);
-protected:
-
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    /**
     * @brief gpuGroupIdx: All connections in the same group uses the same GPU memory for weights
