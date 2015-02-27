@@ -7,9 +7,9 @@ Nz = ceil(nz/2)*2;
 
 assert(mod(Nx,2)==0 && mod(Ny,2)==0 && mod(Nz,2)==0);
 
-X = repmat((-Nx/2+1:Nx/2),[Ny,1,Nz]);
-Y = repmat((-Ny/2+1:Ny/2)',[1,Nx,Nz]);
-Z = repmat(reshape(-Nz/2+1:Nz/2,[1 1 Nz]), [Ny Nx 1]);
+X = repmat((-Nx/2:Nx/2-1),[Ny,1,Nz]);
+Y = repmat((-Ny/2:Ny/2-1)',[1,Nx,Nz]);
+Z = repmat(reshape(-Nz/2:Nz/2-1,[1 1 Nz]), [Ny Nx 1]);
 rsq = X.^2 + Y.^2 + Z.^2;
 
 % The power spectrum falls off in such a way that the integral over the

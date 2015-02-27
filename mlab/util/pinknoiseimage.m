@@ -7,8 +7,8 @@ N = ceil(n/2)*2;
 assert(mod(M,2)==0 && mod(N,2)==0);
 
 
-X = repmat((-N/2+1:N/2),M,1);
-Y = repmat((-M/2+1:M/2)',1,N);
+X = repmat((-N/2:N/2-1),M,1);
+Y = repmat((-M/2:M/2-1)',1,N);
 rsq = X.^2 + Y.^2;
 
 randphase = exp(2i*pi*rand(M,N));
