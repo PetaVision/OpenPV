@@ -193,7 +193,7 @@ public:
    inline pvwdata_t* getPlasticIncr(int kPre, int arborId) {
       return
             plasticityFlag ?
-                  &dwDataStart[arborId][kPre * nxp * nyp * nfp
+                  &dwDataStart[arborId][patchStartIndex(kPre)
                         + wPatches[arborId][kPre]->offset] :
                   NULL;
    }
@@ -211,11 +211,11 @@ public:
    }
 
    inline pvwdata_t* get_wDataHead(int arborId, int dataIndex) {
-      return &wDataStart[arborId][dataIndex * nxp * nyp * nfp];
+      return &wDataStart[arborId][patchStartIndex(dataIndex)];
    }
 
    inline pvwdata_t* get_wData(int arborId, int patchIndex) {
-      return &wDataStart[arborId][patchToDataLUT(patchIndex) * nxp * nyp * nfp
+      return &wDataStart[arborId][patchStartIndex(patchToDataLUT(patchIndex))
             + wPatches[arborId][patchIndex]->offset];
    }
 
@@ -224,11 +224,11 @@ public:
    }
 
    inline pvwdata_t* get_dwDataHead(int arborId, int dataIndex) {
-      return &dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
+      return &dwDataStart[arborId][patchStartIndex(dataIndex)];
    }
 
    inline pvwdata_t* get_dwData(int arborId, int patchIndex) {
-      return &dwDataStart[arborId][patchToDataLUT(patchIndex) * nxp * nyp * nfp
+      return &dwDataStart[arborId][patchStartIndex(patchToDataLUT(patchIndex))
             + wPatches[arborId][patchIndex]->offset];
    }
 
@@ -237,7 +237,7 @@ public:
    }
 
    inline pvwdata_t* getWPostData(int arbor, int patchIndex) {
-      return &wPostDataStart[arbor][patchIndex * nxpPost * nypPost * nfpPost]
+      return &wPostDataStart[arbor][postPatchStartIndex(patchIndex)]
             + wPostPatches[arbor][patchIndex]->offset;
    }
 
@@ -510,6 +510,14 @@ protected:
 
    inline void set_dwDataStart(int arborId, pvwdata_t* pIncrStart) {
       dwDataStart[arborId] = pIncrStart;
+   }
+
+   inline size_t patchStartIndex(int patchIndex) {
+      return (size_t) patchIndex * (size_t) (nxp*nyp*nfp);
+   }
+
+   inline size_t postPatchStartIndex(int patchIndex) {
+      return (size_t) patchIndex * (size_t) (nxpPost*nypPost*nfpPost);
    }
 
    int calcUnitCellIndex(int patchIndex, int* kxUnitCellIndex = NULL,

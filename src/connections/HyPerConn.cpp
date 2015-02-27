@@ -485,7 +485,7 @@ int HyPerConn::shrinkPatch(int kExt, int arborId) {
 
    PVPatch *weights = getWeights(kExt,arborId);
 
-   pvwdata_t * w = &get_wDataStart(arborId)[kIndex*nxp*nyp*nfp+weights->offset];
+   pvwdata_t * w = &get_wDataStart(arborId)[patchStartIndex(kIndex)+weights->offset];
 
    int nx = weights->nx;
    int ny = weights->ny;
@@ -3231,6 +3231,10 @@ void HyPerConn::reduceNumKernelActivations(){
       //Do mpi to update numKernelActivationss
       for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
          int numKernelIndices = getNumDataPatches();
+         if ((long int) numKernelIndices * (long int) (nxp*nyp*nfp) - 1L > (long int) INT_MAX) {
+            fprintf(stderr, "numKernelIndices %d too large for MPI_Allreduce\n");
+            exit(EXIT_FAILURE);
+         }
          int ierr = MPI_Allreduce(MPI_IN_PLACE, numKernelActivations[arbor][0], numKernelIndices*nxp*nyp*nfp, MPI_LONG, MPI_SUM, parent->icCommunicator()->communicator());
       }
 #endif
@@ -3289,7 +3293,7 @@ int HyPerConn::reduceKernels(const int arborID) {
       return PV_BREAK;
    }
    const int numPatches = getNumDataPatches();
-   const size_t patchSize = nxp*nyp*nfp;
+   const size_t patchSize = (size_t)nxp * (size_t)nyp * (size_t)nfp;
    const size_t localSize = numPatches * patchSize;
    const size_t arborSize = localSize * this->numberOfAxonalArborLists();
 
@@ -3307,7 +3311,7 @@ int HyPerConn::updateWeights(int arborId)
    // add dw to w
    for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
       pvwdata_t * w_data_start = get_wDataStart(kArbor);
-      for( int k=0; k<nxp*nyp*nfp*getNumDataPatches(); k++ ) {
+      for( long int k=0; k<patchStartIndex(getNumDataPatches()); k++ ) {
          w_data_start[k] += get_dwDataStart(kArbor)[k];
       }
    }
@@ -4010,7 +4014,7 @@ int HyPerConn::clearWeights(pvwdata_t ** dataStart, int numPatches, int nxp, int
 }
 
 int HyPerConn::clearWeights(pvwdata_t * arborDataStart, int numPatches, int nxp, int nyp, int nfp) {
-   for( int w=0; w<numPatches*nxp*nyp*nfp; w++ ) {
+   for( long int w=0; w<patchStartIndex(numPatches); w++ ) {
       arborDataStart[w] = 0.0f;
    }
    return PV_SUCCESS;
@@ -4317,7 +4321,7 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
                kxPrePatch = kxPost - kxPostHead;
                kyPrePatch = kyPost - kyPostHead;
                int kPrePatch = kfPost * sfp + kxPrePatch * sxp + kyPrePatch * syp;
-               pvwdata_t * preData = get_wDataStart(arborID) + nxp*nyp*nfp*kPre + getWeights(kPre,arborID)->offset;
+               pvwdata_t * preData = get_wDataStart(arborID) + patchStartIndex(kPre) + getWeights(kPre,arborID)->offset;
                postData[kp] = preData[kPrePatch];
             }
          }
@@ -4439,7 +4443,7 @@ PVPatch **** HyPerConn::point2PreSynapticWeights()
                kxPrePatch = kxPost - kxPostHead;
                kyPrePatch = kyPost - kyPostHead;
                int kPrePatch = kfPost * sfp + kxPrePatch * sxp + kyPrePatch * syp;
-               pvwdata_t * preData = get_wDataStart(arborID) + nxp*nyp*nfp*kPre + getWeights(kPre,arborID)->offset;
+               pvwdata_t * preData = get_wDataStart(arborID) + patchStartIndex(kPre) + getWeights(kPre,arborID)->offset;
                postData[kp] = &(preData[kPrePatch]);
                // wPostPatches[arborID][kPost]->data[kp] = preData[kPrePatch];
 
@@ -4786,7 +4790,7 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvwdata_t ** dataStart, i
          double sum = 0;
          double sum2 = 0;
          float maxVal = -FLT_MAX;
-         status = sumWeights(nx, ny, offset, dataStart[arborId] + k * nxp * nyp * nfp,
+         status = sumWeights(nx, ny, offset, dataStart[arborId] + patchStartIndex(k),
                &sum, &sum2, &maxVal);
          int num_weights = nx * ny * nfp;
          float sigma2 = (sum2 / num_weights) - (sum / num_weights) * (sum / num_weights);
@@ -4816,7 +4820,7 @@ int HyPerConn::checkNormalizeArbor(PVPatch ** patches, pvwdata_t ** dataStart, i
             }
             double sum, sum2;
             float maxVal;
-            status = sumWeights(nx, ny, offset, dataStart[kArbor] + kPatch*nxp*nyp*nfp, &sum, &sum2, &maxVal);
+            status = sumWeights(nx, ny, offset, dataStart[kArbor] + patchStartIndex(kPatch), &sum, &sum2, &maxVal);
             assert( (status == PV_SUCCESS) || (status == PV_BREAK) );
             sumAll += sum;
             sum2All += sum2;
@@ -4926,13 +4930,27 @@ int HyPerConn::setPatchStrides() {
 
 pvwdata_t * HyPerConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch)
 {
+   bool overflow = false; // Do sanity checking on the size of the weight allocation.
+
    int sx = nfPatch;
    int sy = sx * nxPatch;
+   if (sy / sx != nxPatch) { overflow = true; }
    int sp = sy * nyPatch;
+   if (sp / sy != nyPatch) { overflow = true; }
 
    size_t patchSize = sp * sizeof(pvwdata_t);
+   if (patchSize / sp != sizeof(pvwdata_t) ) { overflow = true; }
    size_t dataSize = nPatches * patchSize;
+   if (dataSize / nPatches != patchSize) { overflow = true; }
    size_t arborSize = dataSize * this->numberOfAxonalArborLists();
+   if (arborSize / dataSize != this->numberOfAxonalArborLists()) { overflow = true; }
+
+   if (overflow) {
+      fprintf(stderr, "Connection \"%s\" is too big (%d patches of size nxPatch=%d by nyPatch=%d by nfPatch=%d; %d arbors, weight size=%zu bytes).  Exiting.\n",
+            this->getName(), nPatches, nxPatch, nyPatch, nfPatch, this->numberOfAxonalArborLists(), sizeof(pvwdata_t));
+      exit(EXIT_FAILURE);
+   }
+
    pvwdata_t * dataPatches = NULL;
 #ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
