@@ -1821,6 +1821,7 @@ int HyPerConn::allocateDeviceBuffers()
    bool needAlloc = true;
    if(allocDeviceWeights){
       //Check group here
+#ifdef PV_USE_CUDA
       if(gpuGroupIdx >= 0){
          //Add to group if set
          parent->addGpuGroup(this, gpuGroupIdx);
@@ -1864,6 +1865,7 @@ int HyPerConn::allocateDeviceBuffers()
             needAlloc = false;
          }
       }
+#endif // PV_USE_CUDA
       
       if(needAlloc){
          if(updateGSynFromPostPerspective){
