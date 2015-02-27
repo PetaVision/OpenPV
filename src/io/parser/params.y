@@ -224,8 +224,12 @@ include_directive : T_INCLUDE T_STRING ';'
                         { handler->action_include_directive($2); }
                   ;
 
-parameter_sweep : T_ID T_STRING ':' T_ID '=' '{' sweep_values '}' ';'
-                        { handler->action_parameter_sweep($1,$2,$4); }
+parameter_sweep_id : T_ID T_STRING ':' T_ID '='
+                      { handler->action_parameter_sweep_open($1, $2, $4); }
+                   ;
+
+parameter_sweep : parameter_sweep_id '{' sweep_values '}' ';'
+                        { handler->action_parameter_sweep_close(); }
                 ;
 
 sweep_values : /* empty */

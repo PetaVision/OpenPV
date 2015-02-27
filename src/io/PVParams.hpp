@@ -253,7 +253,8 @@ public:
    void action_parameter_filename_def(const char * id, const char * stringval);
    void action_parameter_filename_def_overwrite(const char * id, const char * stringval);
    void action_include_directive(const char * stringval);
-   void action_parameter_sweep(const char * id, const char * groupname, const char * paramname);
+   void action_parameter_sweep_open(const char * id, const char * groupname, const char * paramname);
+   void action_parameter_sweep_close();
    void action_sweep_values_number(double val);
    void action_sweep_values_string(const char * stringval);
    void action_sweep_values_filename(const char * stringval);
@@ -286,6 +287,9 @@ private:
 
    char* currGroupKeyword;
    char* currGroupName;
+
+   char * currSweepGroupName;
+   char * currSweepParamName;
 
    int initialize(size_t initialSize, InterColComm * icComm);
    int parsefile(const char * filename);

@@ -1821,18 +1821,17 @@ void PVParams::action_include_directive(const char * stringval) {
    stringStack = includeGroup->copyStringStack();
 }
 
-void PVParams::action_parameter_sweep(const char * id, const char * groupname, const char * paramname)
+void PVParams::action_parameter_sweep_open(const char * id, const char * groupname, const char * paramname)
 {
    if (disable) return;
    if (!strcmp(id, "ParameterSweep")) {
       // strip quotation marks from groupname
-      char * groupname_noquotes = stripQuotationMarks(groupname);
-      assert(groupname_noquotes);
-      addActiveParamSweep(groupname_noquotes, paramname);
-      free(groupname_noquotes);
+      currSweepGroupName = stripQuotationMarks(groupname);
+      assert(currSweepGroupName);
+      currSweepParamName = strdup(paramname);
       if (debugParsing && getRank() == 0) {
          fflush(stdout);
-         printf("action_sweep_values_number: %s for group %s, parameter \"%s\" parsed successfully\n", id, groupname, paramname);
+         printf("action_parameter_sweep_open: %s for group %s, parameter \"%s\" starting\n", id, groupname, paramname);
          fflush(stdout);
       }
    }
@@ -1841,6 +1840,19 @@ void PVParams::action_parameter_sweep(const char * id, const char * groupname, c
          fprintf(stderr, "action_parameter_sweep: unrecognized id %s, skipping.\n", id);
       }
    }
+}
+
+void PVParams::action_parameter_sweep_close()
+{
+   if (disable) return;
+   addActiveParamSweep(currSweepGroupName, currSweepParamName);
+   if(debugParsing && getRank()==0 ) {
+      printf("action_parameter_group: ParameterSweep for %s \"%s\" parsed successfully.\n", currSweepGroupName, currSweepParamName);
+      fflush(stdout);
+   }
+   // build a parameter group
+   free(currSweepGroupName);
+   free(currSweepParamName);
 }
 
 void PVParams::action_sweep_values_number(double val)
