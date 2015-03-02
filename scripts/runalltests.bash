@@ -433,6 +433,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
+testname=RescaleLayerTest
+cd "$testname"
+arglist="-p input/RescaleLayerTest.params"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
 testname=ShrunkenPatchFlagTest
 cd "$testname"
 arglist="-p input/ShrunkenPatchFlagTest.params" # parameter filename is in main()
