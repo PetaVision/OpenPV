@@ -16,7 +16,8 @@ class RescaleLayerTestGroupHandler: public ParamGroupHandler {
 public:
    RescaleLayerTestGroupHandler();
    virtual ~RescaleLayerTestGroupHandler();
-   virtual void * createObject(char const * keyword, char const * name, HyPerCol * hc);
+   virtual ParamGroupType getGroupType(char const * keyword);
+   virtual BaseProbe * createProbe(char const * keyword, char const * name, HyPerCol * hc);
 };
 
 } /* namespace PV */

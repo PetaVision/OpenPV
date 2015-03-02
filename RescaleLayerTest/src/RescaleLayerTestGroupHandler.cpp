@@ -19,18 +19,29 @@ RescaleLayerTestGroupHandler::RescaleLayerTestGroupHandler() {
 RescaleLayerTestGroupHandler::~RescaleLayerTestGroupHandler() {
 }
 
-void * RescaleLayerTestGroupHandler::createObject(char const * keyword, char const * name, HyPerCol * hc) {
+ParamGroupType RescaleLayerTestGroupHandler::getGroupType(char const * keyword) {
+   ParamGroupType result = UnrecognizedGroupType;
+   if (!strcmp(keyword, "RescaleLayerTestProbe")) {
+      result = ProbeGroupType;
+   }
+   else {
+      result = UnrecognizedGroupType;
+   }
+   return result;
+}
+
+BaseProbe * RescaleLayerTestGroupHandler::createProbe(char const * keyword, char const * name, HyPerCol * hc) {
    int status;
-   void * addedGroup = NULL;
+   BaseProbe * addedProbe = NULL;
    bool errorFound = false;
    if( !strcmp(keyword, "RescaleLayerTestProbe") ) {
-      addedGroup = (void *) new RescaleLayerTestProbe(name, hc);
-      if( !addedGroup ) {
+      addedProbe = new RescaleLayerTestProbe(name, hc);
+      if( !addedProbe ) {
          fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
          errorFound = true;
       }
    }
-   return addedGroup;
+   return addedProbe;
 }
 
 } /* namespace PV */
