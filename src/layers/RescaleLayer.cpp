@@ -54,20 +54,11 @@ int RescaleLayer::communicateInitInfo() {
    return status;
 }
 
-// should inherit this method by default
-// !!!Error??? CloneVLayer::allocateDataStructures() sets clayer->V = originalLayer->getV(), so free(clayer->V) below would seem to free V of original layer
-// int RescaleLayer::allocateDataStructures() {
-//    int status = CloneVLayer::allocateDataStructures();
-//    free(clayer->V);
-//    clayer->V = originalLayer->getV();
+//Rescale layer does not use the V buffer, so absolutly fine to clone off of an null V layer
+int RescaleLayer::allocateV() {
+   //Do nothing
+}
 
-//    // Should have been initialized with zero channels, so GSyn should be NULL and freeChannels() call should be unnecessary
-//    assert(GSyn==NULL);
-//    // // don't need conductance channels
-//    // freeChannels();
-
-//    return status;
-//}
 
 int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
   //readOriginalLayerName(params);  // done in CloneVLayer
