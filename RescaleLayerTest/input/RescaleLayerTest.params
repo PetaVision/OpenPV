@@ -124,6 +124,23 @@ RescaleLayer "rescalemeanstd" = {
    targetStd = 1.0;
 };
 
+RescaleLayer "rescalel2" = {
+   nxScale = 1.0;
+   nyScale = 1.0;
+   nf = 1;
+   phase = 2;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   sparseLayer = false;
+   mirrorBCflag = false;
+   valueBC = 0.0;
+   triggerFlag = false;
+      
+   originalLayerName = "unrescaledlayer";
+   rescaleMethod = "l2";
+   patchSize = 64; //number elements in patch
+};
+
 RescaleLayer "rescalepointmeanstd" = {
    nxScale = 1.0;
    nyScale = 1.0;
@@ -192,6 +209,13 @@ RescaleLayerTestProbe "rescalemaxmin_probe" = {
 RescaleLayerTestProbe "rescalemeanstd_probe" = {
    targetLayer                         = "rescalemeanstd";
    probeOutputFile                     = "rescalemeanstd_probe.txt";
+   triggerFlag                         = false;
+   nnzThreshold                        = 0;
+};
+
+RescaleLayerTestProbe "rescalel2_probe" = {
+   targetLayer                         = "rescalel2";
+   probeOutputFile                     = "rescalel2_probe.txt";
    triggerFlag                         = false;
    nnzThreshold                        = 0;
 };

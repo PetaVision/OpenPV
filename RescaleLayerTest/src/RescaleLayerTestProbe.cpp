@@ -94,14 +94,23 @@ int RescaleLayerTestProbe::outputState(double timed)
          status = PV_FAILURE;
       }
    }
-   else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "meanstd")) {
+   //l2 norm with a patch size of 1 (default) should be the same as rescaling with meanstd with target mean 0 and std of 1/sqrt(patchsize)
+   else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "meanstd") || !strcmp(targetRescaleLayer->getRescaleMethod(), "l2")) {
       if (!isRoot) { return PV_SUCCESS; }
-      float targetMean = targetRescaleLayer->getTargetMean();
+      float targetMean, targetStd;
+      if(!strcmp(targetRescaleLayer->getRescaleMethod(), "meanstd")){
+         targetMean = targetRescaleLayer->getTargetMean();
+         targetStd = targetRescaleLayer->getTargetStd();
+      }
+      else{
+         targetMean = 0;
+         targetStd = 1/sqrt((float)targetRescaleLayer->getL2PatchSize());
+      }
+
       if (fabs(avg-targetMean)>tolerance) {
          fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has mean %f instead of target mean %f\n", getName(), targetRescaleLayer->getName(), avg, targetMean);
          status = PV_FAILURE;
       }
-      float targetStd = targetRescaleLayer->getTargetStd();
       if (sigma>tolerance && fabs(sigma-targetStd)>tolerance) {
          fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has std.dev. %f instead of target std.dev. %f\n", getName(), targetRescaleLayer->getName(), sigma, targetStd);
          status = PV_FAILURE;
