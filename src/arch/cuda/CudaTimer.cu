@@ -19,7 +19,7 @@ CudaTimer::CudaTimer(double init_time):PV::Timer(init_time)
 
 CudaTimer::CudaTimer(const char * timermessage, double init_time):PV::Timer(timermessage, init_time)
 {
-   handleError(cudaEventCreate(&startEvent), "Start even creation");
+   handleError(cudaEventCreate(&startEvent), "Start event creation");
    handleError(cudaEventCreate(&stopEvent), "Stop event creation");
    time = 0;
 }

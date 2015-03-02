@@ -2025,15 +2025,12 @@ float HyPerLayer::syncGpu(){
 #endif
    }
 
-   if(recvGpu){
+   bool updateNeeded = needUpdate(parent->simulationTime(), parent->getDeltaTime());
+   if(recvGpu && updateNeeded){
       time += gpu_recvsyn_timer->accumulateTime();
    }
-   if(updateGpu){
+   if(updateGpu && updateNeeded){
       time += gpu_update_timer->accumulateTime();
-      
-      //Moved to publish
-      //int status = updateActiveIndices();
-      //assert(status == PV_SUCCESS);
    }
    return time;
 }
