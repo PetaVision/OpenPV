@@ -34,6 +34,7 @@ int RescaleLayer::initialize_base() {
    targetMean = 0;
    targetStd = 1;
    rescaleMethod = NULL;
+   patchSize = 1;
    return PV_SUCCESS;
 }
 
@@ -84,6 +85,9 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
       ioParam_targetMean(ioFlag);
       ioParam_targetStd(ioFlag);
    }
+   else if(strcmp(rescaleMethod, "l2") == 0){
+      ioParam_patchSize(ioFlag);
+   }
    else if(strcmp(rescaleMethod, "zerotonegative") == 0){
    }
    else{
@@ -100,10 +104,11 @@ void RescaleLayer::ioParam_rescaleMethod(enum ParamsIOFlag ioFlag){
          strcmp(rescaleMethod, "maxmin")!=0 &&
          strcmp(rescaleMethod, "meanstd")!=0 &&
          strcmp(rescaleMethod, "pointmeanstd")!=0 &&
+         strcmp(rescaleMethod, "l2")!=0 &&
          strcmp(rescaleMethod, "zerotonegative")!=0
       ) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod \"%s\" does not exist. Current implemented methods are maxmin, meanstd, and pointmeanstd.\n",
+         fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod \"%s\" does not exist. Current implemented methods are maxmin, meanstd, l2, and pointmeanstd.\n",
                name, rescaleMethod);
       }
 #ifdef PV_USE_MPI
@@ -138,6 +143,13 @@ void RescaleLayer::ioParam_targetStd(enum ParamsIOFlag ioFlag){
    assert(!parent->parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
    if ((strcmp(rescaleMethod, "meanstd")==0) || (strcmp(rescaleMethod, "pointmeanstd")==0)) {
       parent->ioParamValue(ioFlag, name, "targetStd", &targetStd, targetStd);
+   }
+}
+
+void RescaleLayer::ioParam_patchSize(enum ParamsIOFlag ioFlag){
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
+   if (strcmp(rescaleMethod, "l2")==0) {
+      parent->ioParamValue(ioFlag, name, "patchSize", &patchSize, patchSize);
    }
 }
 
@@ -254,6 +266,65 @@ int RescaleLayer::updateState(double timef, double dt) {
              }
           }
           else {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+             for (int k = 0; k < numNeurons; k++){
+                int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
+                int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                      locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
+                A[kext] = originalA[kextOriginal];
+             }
+          }
+       }
+       else if(strcmp(rescaleMethod, "l2") == 0){
+          float sum = 0;
+          float sumsq = 0;
+          //Find sum of originalA
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : sum)
+#endif
+          for (int k = 0; k < numNeurons; k++){
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                                               locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
+             sum += originalA[kextOriginal];
+          }
+
+#ifdef PV_USE_MPI
+          MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+
+          float mean = sum / originalLayer->getNumGlobalNeurons();
+
+          //Find (val - mean)^2 of originalA
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : sumsq)
+#endif
+          for (int k = 0; k < numNeurons; k++){
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                   locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
+             sumsq += (originalA[kextOriginal] - mean) * (originalA[kextOriginal] - mean);
+          }
+
+#ifdef PV_USE_MPI
+          MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+          float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
+          // The difference between the if and the else clauses is only in the computation of A[kext], but this
+          // way the std != 0.0 conditional is only evaluated once, not every time through the for-loop.
+          if (std != 0.0) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+             for (int k = 0; k < numNeurons; k++){
+                int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
+                int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                      locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
+                A[kext] = ((originalA[kextOriginal] - mean) * (1/(std * sqrt((float)patchSize))));
+             }
+          }
+          else {
+             std::cout << "Warining: std of layer " << originalLayer->getName() << " is 0, layer remains unchanged\n";
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif

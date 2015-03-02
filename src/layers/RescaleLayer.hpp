@@ -27,6 +27,7 @@ public:
    float getTargetMin() { return targetMin; }
    float getTargetMean() { return targetMean; }
    float getTargetStd() { return targetStd; }
+   float getL2PatchSize() { return patchSize; }
    char const * getRescaleMethod() { return rescaleMethod; }
 protected:
    RescaleLayer();
@@ -38,6 +39,7 @@ protected:
    void ioParam_targetMean(enum ParamsIOFlag ioFlag);
    void ioParam_targetStd(enum ParamsIOFlag ioFlag);
    void ioParam_rescaleMethod(enum ParamsIOFlag ioFlag);
+   void ioParam_patchSize(enum ParamsIOFlag ioFlag);
 private:
    int initialize_base();
    //bool checkIfUpdateNeeded();
@@ -52,6 +54,7 @@ protected:
    float targetMean;
    float targetStd;
    char * rescaleMethod; //can be either maxmin or meanstd
+   int patchSize;
 };
 
 }
