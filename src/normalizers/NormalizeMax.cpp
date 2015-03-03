@@ -80,7 +80,7 @@ int NormalizeMax::normalizeWeights() {
             float max = 0.0f;
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
-               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               pvwdata_t * dataStartPatch = conn0->get_wDataHead(arborID, weights_per_patch);
                accumulateMax(dataStartPatch, weights_per_patch, &max);
             }
             if (max <= minMaxTolerated) {
@@ -89,7 +89,7 @@ int NormalizeMax::normalizeWeights() {
             }
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
-               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               pvwdata_t * dataStartPatch = conn0->get_wDataHead(arborID, patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor/max);
             }
          }
