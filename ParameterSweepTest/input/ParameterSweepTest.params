@@ -13,16 +13,19 @@ HyPerCol "column" = {
    nx = 16;   
    ny = 16;
    dt = 1.0;
+   dtAdaptFlag = false;
    randomSeed = 1946576187;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 10;
-   progressStep = 10;
+   stopTime = 10.0;
+   progressInterval = 10;
    writeProgressToErr = false;
+   verifyWrites = true;
    //outputPath = "output/";
+   printParamsFilename = "pv.params";
    filenamesContainLayerNames = false;
    filenamesContainConnectionNames = false;
-   checkpointRead = false;
    checkpointWrite = false;
+   initializeFromCheckpointDir = "";
    suppressLastOutput = false;
 };
 
@@ -38,7 +41,7 @@ Image "input" = {
     nf = 1;
     phase = 0;
     writeStep = -1;
-    writeSparseActivity = false;
+    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
     useImageBCflag = false;
@@ -60,14 +63,14 @@ ANNLayer "output" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift=0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    <AShift>=0.0;
 };
 
 ANNLayer "output1x1" = {
@@ -79,14 +82,14 @@ ANNLayer "output1x1" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift=0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    <AShift>=0.0;
 };
 
 ANNLayer "output3x3" = {
@@ -98,14 +101,14 @@ ANNLayer "output3x3" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift=0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    <AShift>=0.0;
 };
 
 ANNLayer "output5x5" = {
@@ -117,14 +120,14 @@ ANNLayer "output5x5" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift=0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    <AShift>=0.0;
 };
 
 ANNLayer "output7x7" = {
@@ -136,14 +139,14 @@ ANNLayer "output7x7" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift=0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    <AShift>=0.0;
 };
 
 ANNLayer "comparison1x1" = {
@@ -155,14 +158,14 @@ ANNLayer "comparison1x1" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift=0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    <AShift>=0.0;
 };
 
 ANNLayer "comparison3x3" = {
@@ -174,14 +177,14 @@ ANNLayer "comparison3x3" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift=0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    <AShift>=0.0;
 };
 
 ANNLayer "comparison5x5" = {
@@ -193,14 +196,14 @@ ANNLayer "comparison5x5" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift=0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    <AShift>=0.0;
 };
 
 ANNLayer "comparison7x7" = {
@@ -212,14 +215,14 @@ ANNLayer "comparison7x7" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift=0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    <AShift>=0.0;
 };
 
 KernelConn "input to output" = {
@@ -231,7 +234,6 @@ KernelConn "input to output" = {
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
     weightInit = 1.0;
@@ -247,7 +249,7 @@ KernelConn "input to output" = {
 
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 };
 
 KernelConn "input to output1x1" = {
@@ -259,7 +261,6 @@ KernelConn "input to output1x1" = {
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
     weightInit = 1.0;
@@ -275,7 +276,7 @@ KernelConn "input to output1x1" = {
 
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 };
 
 KernelConn "input to output3x3" = {
@@ -287,7 +288,6 @@ KernelConn "input to output3x3" = {
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
     weightInit = 1.0;
@@ -303,7 +303,7 @@ KernelConn "input to output3x3" = {
 
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 };
 
 KernelConn "input to output5x5" = {
@@ -315,7 +315,6 @@ KernelConn "input to output5x5" = {
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
     weightInit = 1.0;
@@ -331,7 +330,7 @@ KernelConn "input to output5x5" = {
 
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 };
 
 KernelConn "input to output7x7" = {
@@ -343,7 +342,6 @@ KernelConn "input to output7x7" = {
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
     weightInit = 1.0;
@@ -359,7 +357,7 @@ KernelConn "input to output7x7" = {
 
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 };
 
 IdentConn "output to comparison1x1" = {
