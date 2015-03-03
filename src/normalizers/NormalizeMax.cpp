@@ -68,10 +68,6 @@ int NormalizeMax::normalizeWeights() {
 
    status = NormalizeMultiply::normalizeWeights(); // applies normalize_cutoff threshold and symmetrizeWeights
 
-   int nxp = conn0->xPatchSize();
-   int nyp = conn0->yPatchSize();
-   int nfp = conn0->fPatchSize();
-   int weights_per_patch = nxp*nyp*nfp;
    int nArbors = conn0->numberOfAxonalArborLists();
    int numDataPatches = conn0->getNumDataPatches();
    if (normalizeArborsIndividually) {
@@ -80,7 +76,11 @@ int NormalizeMax::normalizeWeights() {
             float max = 0.0f;
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
-               pvwdata_t * dataStartPatch = conn0->get_wDataHead(arborID, weights_per_patch);
+               int nxp = conn->xPatchSize();
+               int nyp = conn->yPatchSize();
+               int nfp = conn->fPatchSize();
+               int weights_per_patch = nxp*nyp*nfp;
+               pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID, patchindex);
                accumulateMax(dataStartPatch, weights_per_patch, &max);
             }
             if (max <= minMaxTolerated) {
@@ -89,7 +89,11 @@ int NormalizeMax::normalizeWeights() {
             }
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
-               pvwdata_t * dataStartPatch = conn0->get_wDataHead(arborID, patchindex);
+               int nxp = conn->xPatchSize();
+               int nyp = conn->yPatchSize();
+               int nfp = conn->fPatchSize();
+               int weights_per_patch = nxp*nyp*nfp;
+               pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID, patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor/max);
             }
          }
@@ -101,7 +105,11 @@ int NormalizeMax::normalizeWeights() {
          for (int arborID = 0; arborID<nArbors; arborID++) {
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
-               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               int nxp = conn->xPatchSize();
+               int nyp = conn->yPatchSize();
+               int nfp = conn->fPatchSize();
+               int weights_per_patch = nxp*nyp*nfp;
+               pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
                accumulateMax(dataStartPatch, weights_per_patch, &max);
             }
          }
@@ -112,7 +120,11 @@ int NormalizeMax::normalizeWeights() {
          for (int arborID = 0; arborID<nArbors; arborID++) {
             for (int c=0; c<numConnections; c++) {
                HyPerConn * conn = connectionList[c];
-               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               int nxp = conn->xPatchSize();
+               int nyp = conn->yPatchSize();
+               int nfp = conn->fPatchSize();
+               int weights_per_patch = nxp*nyp*nfp;
+               pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID,patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor/max);
             }
          }

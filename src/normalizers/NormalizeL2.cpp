@@ -123,7 +123,7 @@ int NormalizeL2::normalizeWeights() {
                int nyp = conn->yPatchSize();
                int nfp = conn->fPatchSize();
                int weights_per_patch = nxp*nyp*nfp;
-               pvwdata_t * dataStartPatch = conn0->get_wDataStart(arborID) + patchindex * weights_per_patch;
+               pvwdata_t * dataStartPatch = conn0->get_wDataHead(arborID, patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor/l2norm);
             }
          }
@@ -141,7 +141,7 @@ int NormalizeL2::normalizeWeights() {
                int xPatchStride = conn->xPatchStride();
                int yPatchStride = conn->yPatchStride();
                int weights_per_patch = nxp*nyp*nfp;
-               pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
+               pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID, patchindex);
                accumulateSumSquared(dataStartPatch, weights_per_patch, &sumsq);
             }
          }
@@ -157,7 +157,7 @@ int NormalizeL2::normalizeWeights() {
                int nyp = conn->yPatchSize();
                int nfp = conn->fPatchSize();
                int weights_per_patch = nxp*nyp*nfp;
-               pvwdata_t * dataStartPatch = conn->get_wDataStart(arborID)+patchindex*weights_per_patch;
+               pvwdata_t * dataStartPatch = conn->get_wDataHead(arborID, patchindex);
                normalizePatch(dataStartPatch, weights_per_patch, scale_factor/l2norm);
             }
          }
