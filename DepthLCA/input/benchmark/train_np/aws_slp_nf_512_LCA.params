@@ -18,7 +18,7 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/";
+    //outputPath = "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
@@ -321,7 +321,7 @@ HyPerConn "LCA_V1ToSLP_Error" = {
    sharedWeights                       = true;
 
    weightInitType = "FileWeight";
-   initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA_saved_run1/LCA_V1ToSLP_Error_W.pvp";
+   initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/Last/LCA_V1ToSLP_Error_W.pvp";
    
 //   weightInitType                      = "UniformRandomWeight";
 //   // initWeightsFile                     was set to (NULL);
@@ -342,7 +342,7 @@ HyPerConn "LCA_V1ToSLP_Error" = {
    nyp                                 = 33;
    shrinkPatches                       = false;
    normalizeMethod                     = "none";
-   dWMax                               = 0.005;
+   dWMax                               = 0.0001;
    useMask                             = true;
    maskLayerName = "DepthGT";
 };
@@ -368,4 +368,10 @@ CloneConn "LCA_V1ToSLP_Recon_Buffer" = {
    useWindowPost = false;
    updateGSynFromPostPerspective = false;
    pvpatchAccumulateType = "convolve";
+};
+
+//Running 2 times
+ParameterSweep "column":outputPath = {
+    "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/";
+    "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/";
 };

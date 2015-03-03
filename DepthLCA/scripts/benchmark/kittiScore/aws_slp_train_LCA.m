@@ -8,11 +8,11 @@ addpath('~/workspace/PetaVision/mlab/util')
 tau = 3;
 
 outdir = '/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/';
-%timestamp = [outdir '/timestamps/DepthImage.txt'];
+timestamp = [outdir '/timestamps/DepthImage.txt'];
 outPvpFile = [outdir 'a7_SLP_Recon.pvp'];
 gtPvpFile = [outdir 'a3_DepthDownsample.pvp'];
 scoreDir = [outdir 'scores/']
-imageDir = '/nh/compneuro/Data/Depth/stereo_flow/multiview/training/image_2/'
+imageDir = 's3://kitti/stereo_flow/multiview/training/image_2/'
 
 mkdir(scoreDir);
 
@@ -55,9 +55,9 @@ for(i = 1:numFrames)
    [nx, ny, nf] = size(estData);
    im = imresize(im, [nx, ny]);
    subplot(2, 1, 1);
-   imshow(disp_to_color(estData));
-   subplot(2, 1, 2);
    imshow(im);
+   subplot(2, 1, 2);
+   imshow(disp_to_color(estData));
    %handle = imshow([disp_to_color(estData); im]);
    saveas(handle, outFilename);
 

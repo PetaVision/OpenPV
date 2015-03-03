@@ -18,14 +18,14 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime= 100000000;
     progressStep = 5000;
-    outputPath = "/home/ec2-user/mountData/single_group_binoc_nf_512_white/";
+    outputPath = "/home/ec2-user/mountData/dictLearn/aws_white";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/home/ec2-user/mountData/single_stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = true;
-    checkpointWriteDir = "/home/ec2-user/mountData/single_group_binoc_nf_512_white/Checkpoints";
+    checkpointWriteDir = "/home/ec2-user/mountData/dictLearn/aws_white/Checkpoints";
     checkpointWriteStepInterval = 50000;
     deleteOlderCheckpoints = true;
     //suppressLastOutput = false;
@@ -56,7 +56,7 @@ Movie "LeftImage" = {
     initialWriteTime = 200;
     writeSparseActivity = false;
     displayPeriod = 200;
-    start_frame_index = 0;
+    start_frame_index = 1000;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -217,7 +217,7 @@ HyPerLCALayer "V1" = {
     //
     InitVType = "UniformRandomV";
     minV = -1.0;
-    maxV = .015; //0.05 above VThresh
+    maxV = .02; //0.05 above VThresh
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2_V.pvp";
     // 
@@ -365,7 +365,7 @@ KernelConn "LeftGanglionToLeftError" = {
     //////////////////////
     //TODO What to do here????
     //////////////////////
-    weightInit = .01515;  // 1/sqrt(66*66*3);
+    weightInit = .01515;  // 1/sqrt(66*66);
     normalizeMethod = "none";
     
     shrinkPatches = false;
@@ -421,13 +421,13 @@ KernelConn "V1ToLeftError" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     
-    //weightInitType = "FileWeight";
-    //initWeightsFile = "/home/ec2-user/mountData/saved_single_nf_512/V1ToLeftError_W.pvp";
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/ec2-user/mountData/dictLearn/aws_white_saved/V1ToLeftError_W.pvp";
 
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -1.0;
-    wMaxInit = 1.0;
-    sparseFraction = .90;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+    //sparseFraction = .90;
     
     strength = 1; //.25/2  
     normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
@@ -451,7 +451,7 @@ KernelConn "V1ToLeftError" = {
     triggerLayerName = "LeftImage";
     triggerOffset = 1;
     initialWriteTime = 0.0;
-    dWMax = 5; // 200.0 used for initial training
+    dWMax = 10; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -498,7 +498,7 @@ KernelConn "V1ToRightError" = {
     @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
     normalizeGroupName = "V1ToLeftError";
-    //@initWeightsFile = "/home/ec2-user/mountData/saved_single_nf_512/V1ToRightError_W.pvp";
+    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/aws_white_saved/V1ToRightError_W.pvp";
 };
 
 TransposeConn "RightErrorToV1" = {
