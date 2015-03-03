@@ -544,8 +544,8 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
 
    InterColComm * icComm = parent->icCommunicator();
 
-   float nxglobalfloat = nearbyintf(nxScale * parent->getNxGlobal());
-   layerLoc->nxGlobal = (int) nxglobalfloat;
+   float nxglobalfloat = nxScale * parent->getNxGlobal();
+   layerLoc->nxGlobal = (int) nearbyintf(nxglobalfloat);
    if (fabs(nxglobalfloat-layerLoc->nxGlobal)>0.0001) {
       if (parent->columnId()==0) {
          fprintf(stderr, "Size of column is compatible with nxScale of layer \"%s\".\n", getName());
@@ -554,8 +554,8 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
       status = PV_FAILURE;
    }
 
-   float nyglobalfloat = nearbyintf(nyScale * parent->getNyGlobal());
-   layerLoc->nyGlobal = (int) nyglobalfloat;
+   float nyglobalfloat = nyScale * parent->getNyGlobal();
+   layerLoc->nyGlobal = (int) nearbyintf(nyglobalfloat);
    if (fabs(nxglobalfloat-layerLoc->nxGlobal)>0.0001) {
       if (parent->columnId()==0) {
          fprintf(stderr, "Size of column is compatible with nyScale of layer \"%s\".\n", getName());
