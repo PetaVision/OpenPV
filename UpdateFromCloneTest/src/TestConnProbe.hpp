@@ -10,7 +10,7 @@
 
 namespace PV {
 
-class TestConnProbe:BaseHyPerConnProbe {
+class TestConnProbe: public BaseHyPerConnProbe {
 
 // Methods
 public:

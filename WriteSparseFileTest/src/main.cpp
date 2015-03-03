@@ -8,7 +8,6 @@
 #include <io/RequireAllZeroActivityProbe.hpp>
 #include <layers/Movie.cpp>
 
-#define MAIN_USES_CUSTOMGROUPS
 #define CORRECT_PVP_NX 32 // The x-dimension in the "correct.pvp" file.  Needed by generate()
 #define CORRECT_PVP_NY 32 // The y-dimension in the "correct.pvp" file.  Needed by generate()
 #define CORRECT_PVP_NF 8 // The number of features in the "correct.pvp" file.  Needed by generate()
@@ -20,9 +19,6 @@ int generate(int argc, char * argv[], int rank);
 int testrun(int argc, char * argv[], int rank);
 int testcheckpoint(int argc, char * argv[], int rank);
 int testioparams(int argc, char * argv[], int rank);
-
-void * customgroup(const char * name, const char * groupname, HyPerCol * hc);
-// customgroups is for adding objects not supported by build().
 
 int main(int argc, char * argv[]) {
    int rank = 0;
@@ -363,9 +359,4 @@ int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
       exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;
-}
-
-void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
-   void * addedGroup = NULL;
-   return addedGroup;
 }
