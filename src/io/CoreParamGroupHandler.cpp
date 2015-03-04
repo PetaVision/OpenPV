@@ -14,10 +14,6 @@
 #include "../layers/ANNNormalizedErrorLayer.hpp"
 #include "../layers/ANNSquaredLayer.hpp"
 #include "../layers/ANNWhitenedLayer.hpp"
-#include "../layers/BIDSCloneLayer.hpp"
-#include "../layers/BIDSLayer.hpp"
-#include "../layers/BIDSMovieCloneMap.hpp"
-#include "../layers/BIDSSensorLayer.hpp"
 #include "../layers/BinningLayer.hpp"
 #include "../layers/CloneVLayer.hpp"
 #include "../layers/ConstantLayer.hpp"
@@ -59,7 +55,6 @@
 #include "../layers/SoundStream.hpp"
 #endif // PV_USE_SNDFILE
 #include "../connections/HyPerConn.hpp"
-#include "../connections/BIDSConn.hpp"
 #include "../connections/CloneConn.hpp"
 #include "../connections/CloneKernelConn.hpp"
 #include "../connections/CopyConn.hpp"
@@ -92,7 +87,6 @@
 #include "../weightinit/InitUniformRandomWeights.hpp"
 #include "../weightinit/InitGaussianRandomWeights.hpp"
 // #include "../weightinit/InitGaborWeights.hpp" // Marked obsolete Feb 13, 2015.  GaborWeights moved to InitWeightsTest.
-#include "../weightinit/InitBIDSLateral.hpp"
 #include "../weightinit/InitOneToOneWeights.hpp"
 #include "../weightinit/InitOneToOneWeightsWithDelays.hpp"
 #include "../weightinit/InitIdentWeights.hpp"
@@ -127,10 +121,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"ANNSquaredLayer", LayerGroupType},
          {"ANNTriggerUpdateOnNewImageLayer", LayerGroupType},
          {"ANNWhitenedLayer", LayerGroupType},
-         {"BIDSCloneLayer", LayerGroupType},
-         {"BIDSLayer", LayerGroupType},
-         {"BIDSMovieCloneMap", LayerGroupType},
-         {"BIDSSensorLayer", LayerGroupType},
          {"BinningLayer", LayerGroupType},
          {"CloneVLayer", LayerGroupType},
          {"ConstantLayer", LayerGroupType},
@@ -175,7 +165,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 
          // Connections
          {"HyPerConn", ConnectionGroupType},
-         {"BIDSConn", ConnectionGroupType},
          {"CloneConn", ConnectionGroupType},
          {"CloneKernelConn", ConnectionGroupType},
          {"CopyConn", ConnectionGroupType},
@@ -215,7 +204,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"CoCircWeight", WeightInitializerGroupType},
          {"UniformWeight", WeightInitializerGroupType},
          {"SmartWeight", WeightInitializerGroupType},
-         {"BIDSLateral", WeightInitializerGroupType},
          {"UniformRandomWeight", WeightInitializerGroupType},
          {"GaussianRandomWeight", WeightInitializerGroupType},
          // {"GaborWeight", WeightInitializerGroupType}, // Moved to obsolete Feb 13, 2015.
@@ -298,18 +286,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
       }
    else if( !strcmp(keyword, "ANNWhitenedLayer") ) {
       addedLayer = new ANNWhitenedLayer(name, hc);
-   }
-   else if( !strcmp(keyword, "BIDSCloneLayer") ) {
-      addedLayer = new BIDSCloneLayer(name, hc);
-   }
-   else if( !strcmp(keyword, "BIDSLayer") ) {
-      addedLayer = new BIDSLayer(name, hc);
-   }
-   else if( !strcmp(keyword, "BIDSMovieCloneMap") ) {
-      addedLayer = new BIDSMovieCloneMap(name, hc);
-   }
-   else if( !strcmp(keyword, "BIDSSensorLayer") ) {
-      addedLayer = new BIDSSensorLayer(name, hc);
    }
    else if( !strcmp(keyword, "BinningLayer") ) {
       addedLayer = new BinningLayer(name, hc);
@@ -455,9 +431,6 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
    }
    else if( !strcmp(keyword, "HyPerConn") ) {
       addedConnection = new HyPerConn(name, hc, weightInitializer, weightNormalizer);
-   }
-   else if( !strcmp(keyword, "BIDSConn") ) {
-      addedConnection = new BIDSConn(name, hc, weightInitializer, weightNormalizer);
    }
    else if( !strcmp(keyword, "CloneConn") ) {
       addedConnection = new CloneConn(name, hc);
@@ -608,9 +581,6 @@ InitWeights * CoreParamGroupHandler::createWeightInitializer(char const * keywor
    }
    else if (!strcmp(keyword, "SmartWeight")) {
       weightInitializer = new InitSmartWeights(name, hc);
-   }
-   else if (!strcmp(keyword, "BIDSLateral")) {
-      weightInitializer = new InitBIDSLateral(name, hc);
    }
    else if (!strcmp(keyword, "UniformRandomWeight")) {
       weightInitializer = new InitUniformRandomWeights(name, hc);
