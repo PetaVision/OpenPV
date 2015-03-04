@@ -15,7 +15,7 @@
 
 namespace PV {
 
-class ParameterSweepTestProbe : StatsProbe {
+class ParameterSweepTestProbe : public StatsProbe {
 public:
 	ParameterSweepTestProbe(const char * probeName, HyPerCol * hc);
 	virtual ~ParameterSweepTestProbe();
