@@ -18,12 +18,14 @@ void * customgroup(const char * name, const char * groupname, HyPerCol * hc);
 int main(int argc, char * argv[]) {
 
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   MPI_Init(&argc, &argv);
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    if (rank==0) {
       printf("%s was compiled without GPUs.  Exiting\n", argv[0]);
    }
    MPI_Barrier(MPI_COMM_WORLD);
+   MPI_Finalize();
    return EXIT_SUCCESS;
 #endif
 
