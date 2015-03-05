@@ -42,18 +42,19 @@ disp(['Reshaping pvp files']);
 v1_act = zeros(numTimes, nf, nx, ny);
 depth_act = zeros(numTimes, nx, ny);
 for(t = 1:length(v1_data))
+   %TODO check if layer is sparse
    N = nx * ny * nf;
    active_ndx = v1_data{t}.values(:, 1);
    active_vals = v1_data{t}.values(:, 2);
-   full_v1 = full(sparse(active_ndx+1, 1, active_vals, N, 1, N));
+   tmp_v1 = full(sparse(active_ndx+1, 1, active_vals, N, 1, N));
    %pv does [nf, nx, ny] ordering
-   reshaped_v1 = reshape(full_v1, [nf, nx, ny]);
-   v1_act(t, :, :, :) = reshaped_v1;
+   tmp_v1 = reshape(tmp_v1, [nf, nx, ny]);
+   v1_act(t, :, :, :) = tmp_v1;
    depth_act(t, :, :) = depth_data{t}.values;
 end
 
 %Take out unnessessary depth_data and v1_data for memory
-clear depth_data v1_data;
+clear depth_data v1_data tmp_v1 active_ndx active_vals;
 
 disp(['Histograming Depth']);
 %bin depth_act into 64 bins, and use the index as the new matrix
@@ -62,9 +63,9 @@ disp(['Histograming Depth']);
 
 %Given a depth and neuron, we want to find the family of the maximum activity
 %Final out matrix will be [neuronIdx, depth, sample patch]
-outVals = zeros(nf, numDepthBins - 1, sampleDim * sampleDim);
 edgeMag = floor(sampleDim / 2);
 for(ni = 1:nf)
+   outVals = zeros(numDepthBins - 1, sampleDim * sampleDim);
    disp(['Calculating neuron ', num2str(ni), ' out of ' , num2str(nf)]);
    %Take a slice and squeeze out singleton dimension
    v1_slice = reshape(v1_act(:, ni, :, :), numTimes, nx, ny);
@@ -98,9 +99,8 @@ for(ni = 1:nf)
                disp('maxVal not size of 1');
                keyboard
             end
-               
-            %Set to outVal
-            outVal(ni, di-1, sampleDimIdx) = maxVal;
+            %Set to outVals
+            outVals(di-1, sampleDimIdx) = maxVal;
             %Increment sampleDimIdx
             sampleDimIdx += 1;
          end
@@ -112,7 +112,7 @@ for(ni = 1:nf)
    handle = figure;
    hold on;
    for(plotIdx = 1:sampleDim * sampleDim)
-      plot(outVals(ni, :, plotIdx));
+      plot(outVals(:, plotIdx));
    end
    hold off;
    print(handle, [plotOutDir, num2str(ni), '.png']);
