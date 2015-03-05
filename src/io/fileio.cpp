@@ -2088,6 +2088,19 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    int * wgtParams = &params[NUM_BIN_PARAMS];
    int status = pvp_read_header(filename, comm, timed, &header_file_type, &header_data_type, params, &numParams);
 
+   // rank zero process broadcasts params to all processes, so it's enough for rank zero process to do the error checking
+   if (comm->commRank()==0) {
+      if (numParams != NUM_WGT_PARAMS) {
+         fprintf(stderr, "Reading weights file \"%s\": expected %d parameters in header but received %d\n", filename, NUM_WGT_PARAMS, numParams);
+         exit(EXIT_FAILURE);
+      }
+      if (params[INDEX_WGT_NXP] != nxp || params[INDEX_WGT_NYP]) {
+         fprintf(stderr, "readWeights error: called with nxp=%d, nyp=%d, but \"%s\" has nxp=%d, nyp=%d\n", nxp, nyp, filename, NUM_WGT_PARAMS, numParams);
+         exit(EXIT_FAILURE);
+      }
+
+   }
+
    const int nxFileBlocks = params[INDEX_NX_PROCS];
    const int nyFileBlocks = params[INDEX_NY_PROCS];
    
