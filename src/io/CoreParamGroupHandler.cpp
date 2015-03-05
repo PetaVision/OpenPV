@@ -405,10 +405,10 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    }
 #ifdef PV_USE_SNDFILE // TODO: move SoundFile stuff into its own library
    else if( !strcmp(keyword, "NewCochlearLayer") ) {
-      addedObject = new NewCochlearLayer(name, hc);
+      addedLayer = new NewCochlearLayer(name, hc);
    }
    else if( !strcmp(keyword, "SoundStream") ) {
-      addedObject = new SoundStream(name, hc);
+      addedLayer = new SoundStream(name, hc);
    }
 #endif
 
