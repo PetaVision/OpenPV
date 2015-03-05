@@ -55,6 +55,7 @@
 #include "../layers/SigmoidLayer.hpp"
 #include "../layers/MLPSigmoidLayer.hpp"
 #include "../layers/RescaleLayer.hpp"
+#include "../layers/RunningAverageLayer.hpp"
 #include "../layers/ShuffleLayer.hpp"
 #include "../layers/ANNSquaredLayer.hpp"
 #include "../layers/ANNWhitenedLayer.hpp"

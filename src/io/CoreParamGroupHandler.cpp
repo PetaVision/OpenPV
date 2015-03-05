@@ -44,6 +44,7 @@
 #include "../layers/PoolingANNLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
 #include "../layers/RescaleLayer.hpp"
+#include "../layers/RunningAverageLayer.hpp"
 #include "../layers/Retina.hpp"
 #include "../layers/ShuffleLayer.hpp"
 #include "../layers/SigmoidLayer.hpp"
@@ -153,6 +154,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"PoolingANNLayer", LayerGroupType},
          {"PtwiseProductLayer", LayerGroupType},
          {"RescaleLayer", LayerGroupType},
+         {"RunningAverageLayer", LayerGroupType},
          {"Retina", LayerGroupType},
          {"ShuffleLayer", LayerGroupType},
          {"SigmoidLayer", LayerGroupType},
@@ -386,6 +388,9 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    }
    else if( !strcmp(keyword, "RescaleLayer") ) {
       addedLayer = new RescaleLayer(name, hc);
+   }
+   else if( !strcmp(keyword, "RunningAverageLayer") ) {
+      addedLayer = new RunningAverageLayer(name, hc);
    }
    else if( !strcmp(keyword, "Retina") ) {
       addedLayer = new Retina(name, hc);

@@ -545,6 +545,10 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new RescaleLayer(name, hc);
    }
+   if( !strcmp(classkeyword, "RunningAverageLayer") ) {
+      keywordMatched = true;
+      addedLayer = (HyPerLayer *) new RunningAverageLayer(name, hc);
+   }
    if (!strcmp(classkeyword, "MatchingPursuitLayer")) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new MatchingPursuitLayer(name, hc);
