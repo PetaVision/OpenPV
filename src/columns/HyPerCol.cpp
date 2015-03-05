@@ -150,7 +150,7 @@ int HyPerCol::initialize_base() {
    startTime = 0.0;
    stopTime = 0.0;
    deltaTime = DELTA_T;
-   dtAdaptFlag = true;
+   dtAdaptFlag = false;
    deltaTimeBase = DELTA_T;
    timeScale = 1.0;
    timeScaleTrue = 1.0;
