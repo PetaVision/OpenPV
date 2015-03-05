@@ -2094,7 +2094,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
          fprintf(stderr, "Reading weights file \"%s\": expected %d parameters in header but received %d\n", filename, NUM_WGT_PARAMS, numParams);
          exit(EXIT_FAILURE);
       }
-      if (params[NUM_BIN_PARAMS+INDEX_WGT_NXP] != nxp || params[NUM_BIN_PARAMS+INDEX_WGT_NYP]) {
+      if (params[NUM_BIN_PARAMS+INDEX_WGT_NXP] != nxp || params[NUM_BIN_PARAMS+INDEX_WGT_NYP] != nyp) {
          fprintf(stderr, "readWeights error: called with nxp=%d, nyp=%d, but \"%s\" has nxp=%d, nyp=%d\n", nxp, nyp, filename, params[NUM_BIN_PARAMS+INDEX_WGT_NXP], params[NUM_BIN_PARAMS+INDEX_WGT_NYP]);
          exit(EXIT_FAILURE);
       }
