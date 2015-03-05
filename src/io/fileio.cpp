@@ -2094,11 +2094,10 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
          fprintf(stderr, "Reading weights file \"%s\": expected %d parameters in header but received %d\n", filename, NUM_WGT_PARAMS, numParams);
          exit(EXIT_FAILURE);
       }
-      if (params[INDEX_WGT_NXP] != nxp || params[INDEX_WGT_NYP]) {
-         fprintf(stderr, "readWeights error: called with nxp=%d, nyp=%d, but \"%s\" has nxp=%d, nyp=%d\n", nxp, nyp, filename, NUM_WGT_PARAMS, numParams);
+      if (params[NUM_BIN_PARAMS+INDEX_WGT_NXP] != nxp || params[NUM_BIN_PARAMS+INDEX_WGT_NYP]) {
+         fprintf(stderr, "readWeights error: called with nxp=%d, nyp=%d, but \"%s\" has nxp=%d, nyp=%d\n", nxp, nyp, filename, params[NUM_BIN_PARAMS+INDEX_WGT_NXP], params[NUM_BIN_PARAMS+INDEX_WGT_NYP]);
          exit(EXIT_FAILURE);
       }
-
    }
 
    const int nxFileBlocks = params[INDEX_NX_PROCS];
