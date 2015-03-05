@@ -29,8 +29,6 @@ MomentumConn::~MomentumConn() {
 int MomentumConn::initialize_base() {
    prev_dwDataStart = NULL;
    momentumTau = .25;
-   momentumPeriod = 1;
-   momentumPeriodIdx = 0;
    momentumMethod = NULL;
    return PV_SUCCESS;
 }
@@ -64,7 +62,6 @@ int MomentumConn::allocateDataStructures(){
 int MomentumConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_momentumTau(ioFlag);
-   ioParam_momentumPeriod(ioFlag);
    ioParam_momentumMethod(ioFlag);
    return status;
 }
@@ -72,18 +69,6 @@ int MomentumConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag){
    if(plasticityFlag){
       parent->ioParamValue(ioFlag, name, "momentumTau", &momentumTau, momentumTau);
-   }
-}
-
-/**
- * @brief momentumPeriod: The number of weight updates before the momentum term updates
- */
-void MomentumConn::ioParam_momentumPeriod(enum ParamsIOFlag ioFlag){
-   if(plasticityFlag){
-      parent->ioParamValue(ioFlag, name, "momentumPeriod", &momentumPeriod, momentumPeriod);
-      if(momentumPeriod < 1){
-         momentumPeriod = 1;
-      }
    }
 }
 
@@ -140,21 +125,14 @@ int MomentumConn::updateState(double time, double dt){
       assert(status == PV_SUCCESS);
    }
    
-   //TODO: when updating prev_dwDataStart, make sure to get average
    //Update prev_dwData buffer
-   if(momentumPeriodIdx >= momentumPeriod - 1){
-      momentumPeriodIdx = 0;
-      assert(prev_dwDataStart);
-      //After reduce, copy over to prev_dwData
-      std::memcpy(*prev_dwDataStart, *get_dwDataStart(),
-            sizeof(pvwdata_t) *
-            numberOfAxonalArborLists() * 
-            nxp * nyp * nfp *
-            getNumDataPatches());
-   }
-   else{
-      momentumPeriodIdx++;
-   }
+   assert(prev_dwDataStart);
+   //After reduce, copy over to prev_dwData
+   std::memcpy(*prev_dwDataStart, *get_dwDataStart(),
+         sizeof(pvwdata_t) *
+         numberOfAxonalArborLists() * 
+         nxp * nyp * nfp *
+         getNumDataPatches());
 
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++){
       status = updateWeights(arborId);  // Apply changes in weights
@@ -192,13 +170,6 @@ int MomentumConn::applyMomentum(int arbor_ID){
       }
    }
    else{
-//      //No clobbering for non-shared weights
-//#ifdef PV_USE_OPENMP_THREADS
-//#pragma omp parallel for
-//#endif
-//      for(int kExt=0; kExt<nExt;kExt++) {
-//         applyIndMomentum(arbor_ID, kExt);
-//      }
       std::cout << "Momentum not implemented for non-shared weights\n";
       exit(-1);
    }
@@ -206,35 +177,35 @@ int MomentumConn::applyMomentum(int arbor_ID){
 }
 
 
-//int MomentumConn::applyIndMomentum(int arbor_ID, int kExt){
-//   int sya = (post->getLayerLoc()->nf * (post->getLayerLoc()->nx + post->getLayerLoc()->halo.lt + post->getLayerLoc()->halo.rt));
-//   PVPatch * weights = getWeights(kExt,arbor_ID);
-//
-//   //Offset, since post is in res space, should be right for both mask and post layer
-//   size_t offset = getAPostOffset(kExt, arbor_ID);
-//
-//   int ny = weights->ny;
-//   int nk = weights->nx * nfp;
-//
-//   int kernelIndex = patchIndexToDataIndex(kExt);
-//   pvwdata_t * dwdata = get_dwData(arbor_ID, kExt);
-//   pvwdata_t * prev_dwdata = get_prev_dwData(arbor_ID, kExt);
-//   int lineoffsetw = 0;
-//   for( int y=0; y<ny; y++ ) {
-//      for( int k=0; k<nk; k++ ) {
-//         const pvwdata_t prev_dw = prev_dwdata[lineoffsetw + k];
-//         if(!strcmp(momentumMethod, "simple")){
-//            dwdata[lineoffsetw + k] += momentumTau * prev_dw;
-//         }
-//         else if(!strcmp(momentumMethod, "viscosity")){
-//            dwdata[lineoffsetw + k] = momentumTau * (prev_dw + dwdata[lineoffsetw + k]) * (1 - exp(- parent->getDeltaTime() / momentumTau));
-//         }
-//      }
-//      lineoffsetw += syp;
-//   }
-//   return PV_SUCCESS;
-//}
 
-//TODO Checkpointing
+int MomentumConn::checkpointWrite(const char * cpDir) {
+   HyPerConn::checkpointWrite(cpDir);
+   char filename[PV_PATH_MAX];
+   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_prev_dW.pvp", cpDir, name);
+   if(chars_needed >= PV_PATH_MAX) {
+      if ( parent->icCommunicator()->commRank()==0 ) {
+         fprintf(stderr, "HyPerConn::checkpointFilename error: path \"%s/%s_W.pvp\" is too long.\n", cpDir, name);
+      }
+      abort();
+   }
+   PVPatch *** patches_arg = sharedWeights ? NULL : get_wPatches();
+   int status = writeWeights(patches_arg, prev_dwDataStart, getNumDataPatches(), filename, parent->simulationTime(), writeCompressedCheckpoints, /*last*/true);
+   assert(status==PV_SUCCESS);
+   return PV_SUCCESS;
+}
+
+int MomentumConn::checkpointRead(const char * cpDir, double * timeptr) {
+   HyPerConn::checkpointRead(cpDir, timeptr);
+   clearWeights(prev_dwDataStart, getNumDataPatches(), nxp, nyp, nfp);
+   char * path = parent->pathInCheckpoint(cpDir, getName(), "_prev_dW.pvp");
+   PVPatch *** patches_arg = sharedWeights ? NULL : get_wPatches();
+   double filetime=0.0;
+   int status = PV::readWeights(patches_arg, prev_dwDataStart, numberOfAxonalArborLists(), getNumDataPatches(), nxp, nyp, nfp, path, parent->icCommunicator(), &filetime, pre->getLayerLoc());
+   if (parent->columnId()==0 && timeptr && *timeptr != filetime) {
+      fprintf(stderr, "Warning: \"%s\" checkpoint has timestamp %g instead of the expected value %g.\n", path, filetime, *timeptr);
+   }
+   free(path);
+   return status;
+}
 
 } // end namespace PV

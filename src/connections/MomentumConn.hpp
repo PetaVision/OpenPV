@@ -21,11 +21,11 @@ public:
 
    virtual int updateState(double time, double dt);
    virtual int applyMomentum(int arbor_ID);
-   //virtual int applyIndMomentum(int arbor_ID, int kExt);
+   virtual int checkpointRead(const char * cpDir, double* timef);
+   virtual int checkpointWrite(const char * cpDir);
 protected:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_momentumTau(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_momentumPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_momentumMethod(enum ParamsIOFlag ioFlag);
    inline pvwdata_t* get_prev_dwDataHead(int arborId, int dataIndex) {
       return &prev_dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
@@ -35,8 +35,6 @@ private:
    int initialize_base();
    pvwdata_t** prev_dwDataStart;
    float momentumTau;
-   int momentumPeriod;
-   int momentumPeriodIdx;
    char* momentumMethod;
 
 
