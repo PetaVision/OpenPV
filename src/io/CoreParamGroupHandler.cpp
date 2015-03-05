@@ -64,6 +64,7 @@
 #include "../connections/ImprintConn.hpp"
 #include "../connections/KernelConn.hpp"
 #include "../connections/LCALIFLateralConn.hpp"
+#include "../connections/MomentumConn.hpp"
 #include "../connections/OjaSTDPConn.hpp"
 #include "../connections/PlasticCloneConn.hpp"
 #include "../connections/PoolingConn.hpp"
@@ -174,6 +175,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"ImprintConn", ConnectionGroupType},
          {"KernelConn", ConnectionGroupType},
          {"LCALIFLateralConn", ConnectionGroupType},
+         {"MomentumConn", ConnectionGroupType},
          {"OjaSTDPConn", ConnectionGroupType},
          {"PlasticCloneConn", ConnectionGroupType},
          {"PoolingConn", ConnectionGroupType},
@@ -460,6 +462,9 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
    }
    else if( !strcmp(keyword, "LCALIFLateralConn") ) {
       addedConnection = new LCALIFLateralConn(name, hc, weightInitializer, weightNormalizer);
+   }
+   else if( !strcmp(keyword, "MomentumConn") ) {
+      addedConnection = new MomentumConn(name, hc, weightInitializer, weightNormalizer);
    }
    else if( !strcmp(keyword, "OjaSTDPConn") ) {
       addedConnection = new OjaSTDPConn(name, hc, weightInitializer, weightNormalizer);
