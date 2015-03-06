@@ -22,7 +22,7 @@ PV::ParamGroupType PVtextGroupHandler::getGroupType(char const * keyword) {
 
 PV::HyPerLayer * PVtextGroupHandler::createLayer(char const * keyword, char const * name, PV::HyPerCol * hc) {
    PV::HyPerLayer * layer = NULL;
-   if (keyword == NULL) { return layer; }
+   if (keyword == NULL || getGroupType(keyword) != PV::LayerGroupType) { return layer; }
    else if (!strcmp(keyword, "TextStream")) { layer = new TextStream(name, hc); }
    
    if (layer==NULL) {
@@ -34,7 +34,7 @@ PV::HyPerLayer * PVtextGroupHandler::createLayer(char const * keyword, char cons
 
 PV::BaseProbe * PVtextGroupHandler::createProbe(char const * keyword, char const * name, PV::HyPerCol * hc) {
    PV::BaseProbe * probe = NULL;
-   if (keyword == NULL) { return probe; }
+   if (keyword == NULL || getGroupType(keyword) != PV::ProbeGroupType) { return probe; }
    else if (!strcmp(keyword, "TextStreamProbe")) { probe = new TextStreamProbe(name, hc); }
    
    if (probe==NULL) {

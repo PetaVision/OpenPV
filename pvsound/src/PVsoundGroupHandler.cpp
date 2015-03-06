@@ -22,7 +22,7 @@ PV::ParamGroupType PVsoundGroupHandler::getGroupType(char const * keyword) {
 
 PV::HyPerLayer * PVsoundGroupHandler::createLayer(char const * keyword, char const * name, PV::HyPerCol * hc) {
    PV::HyPerLayer * layer = NULL;
-   if (keyword == NULL) { return layer; }
+   if (keyword == NULL || getGroupType(keyword) != PV::LayerGroupType) { return layer; }
    else if (!strcmp(keyword, "NewCochlearLayer")) { layer = new NewCochlearLayer(name, hc); }
    else if (!strcmp(keyword, "SoundStream")) { layer = new SoundStream(name, hc); }
    
