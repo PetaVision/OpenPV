@@ -48,7 +48,7 @@
 #include "../layers/Retina.hpp"
 #include "../layers/ShuffleLayer.hpp"
 #include "../layers/SigmoidLayer.hpp"
-#include "../layers/TextStream.hpp"
+// #include "../layers/TextStream.hpp" // Marked obsolete Mar 6, 2015
 #include "../layers/TrainingLayer.hpp"
 #include "../layers/WTALayer.hpp"
 #ifdef PV_USE_SNDFILE
@@ -80,7 +80,7 @@
 #include "RequireAllZeroActivityProbe.hpp"
 #include "SparsityLayerProbe.hpp"
 #include "StatsProbe.hpp"
-#include "TextStreamProbe.hpp"
+// #include "TextStreamProbe.hpp" // Marked obsolete Mar 6, 2015
 #include "KernelProbe.hpp"
 #include "../weightinit/InitWeights.hpp"
 #include "../weightinit/InitGauss2DWeights.hpp"
@@ -158,7 +158,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"Retina", LayerGroupType},
          {"ShuffleLayer", LayerGroupType},
          {"SigmoidLayer", LayerGroupType},
-         {"TextStream", LayerGroupType},
+//         {"TextStream", LayerGroupType}, // Marked obsolete Mar 6, 2015
          {"TrainingLayer", LayerGroupType},
          {"WTALayer", LayerGroupType},
 #ifdef PV_USE_SNDFILE
@@ -198,7 +198,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"RequireAllZeroActivityProbe", ProbeGroupType},
          {"SparsityLayerProbe", ProbeGroupType},
          {"StatsProbe", ProbeGroupType},
-         {"TextStreamProbe", ProbeGroupType},
+//         {"TextStreamProbe", ProbeGroupType}, // Marked obsolete Mar 6, 2015
 
          // // Connection probes
          {"KernelProbe", ProbeGroupType},
@@ -401,9 +401,11 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "SigmoidLayer") ) {
       addedLayer = new SigmoidLayer(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Mar 6, 2015
    else if( !strcmp(keyword, "TextStream") ) {
       addedLayer = new TextStream(name, hc);
    }
+#endif // OBSOLETE
    else if( !strcmp(keyword, "TrainingLayer") ) {
       addedLayer = new TrainingLayer(name, hc);
    }
@@ -554,9 +556,11 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
    else if( !strcmp(keyword, "StatsProbe") ) {
       addedProbe = new StatsProbe(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Mar 6, 2015
    else if( !strcmp(keyword, "TextStreamProbe") ) {
       addedProbe = new TextStreamProbe(name, hc);
    }
+#endif // OBSOLETE
 
    // Connection probe keywords
    else if( !strcmp(keyword, "KernelProbe") ) {
