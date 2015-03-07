@@ -1,0 +1,132 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 2; //1242;  // KITTI synced value
+    ny = 2;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0.0;
+    numSteps = 10;       // Depends on number of VINE video frames
+    progressStep = 1;
+    //Change this
+    outputPath = "output/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false;
+    checkpointWrite = true;
+    checkpointWriteDir = "output/Checkpoints";
+    checkpointWriteStepInterval = 1;
+    deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+};
+
+Movie "pre" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    imageListPath                    = "input/input.pvp";
+    readPvpFile                      = true;
+    echoFramePathnameFlag            = true;
+    nf                               = 1;
+    phase                            = 0;
+    writeStep                        = -1;
+    // initialWriteTime
+    writeSparseActivity              = false;
+    mirrorBCflag                     = false;
+    useImageBCflag                   = false;
+    inverseFlag                      = false;
+    normalizeLuminanceFlag           = false;
+    autoResizeFlag                   = false;
+    writeImages                      = false;
+    offsetX                          = 0;
+    offsetY                          = 0;
+    jitterFlag                       = false;
+    randomMovie                      = false;
+    displayPeriod                    = 1;
+    start_frame_index                = 0;
+    skip_frame_index                 = 0;
+};
+
+ConstantLayer "post" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ConstantV";
+    valueV = 1.0;
+
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    VShift = 0;
+    // 
+    phase = 1; 
+    triggerFlag = false;
+};
+
+MomentumConn "preToPost" = {
+    preLayerName = "pre";
+    postLayerName = "post";
+    channelCode = -1; //Inhib b, doing nothing to input
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    writeCompressedWeights = false;
+    sharedWeights = true;
+    
+    weightInitType = "UniformWeight";
+    wInit = 0;
+        
+    normalizeMethod                     = "none";
+    //strength                            = 1;
+    //rMinX                               = 1.5;
+    //rMinY                               = 1.5;
+    //normalize_cutoff                    = 0;
+
+    normalizeArborsIndividually = false;
+    normalizeFromPostPerspective = false;
+
+    minL2NormTolerated                  = 0;
+
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    triggerFlag = true;
+    triggerLayerName = "pre";
+    pvpatchAccumulateType = "convolve";
+
+    dWMax = 1;
+    momentumTau = .5;
+    momentumMethod = "simple";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+
+    updateGSynFromPostPerspective = false;
+    useWindowPost = false;
+
+    keepKernelsSynchronized             = true;
+};
+
+StatsProbe "movieprobe" = {
+   targetLayer = "pre";
+};
+
+
+MomentumConnTestProbe "connprobe" = {
+    targetConnection = "preToPost";
+};
