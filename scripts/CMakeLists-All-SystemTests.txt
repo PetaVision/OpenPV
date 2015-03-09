@@ -144,4 +144,4 @@ add_subdirectory(TransposeConnTest)
 add_subdirectory(TriggerTest)
 add_subdirectory(UnequalPatchSizeTest)
 add_subdirectory(UpdateFromCloneTest)
-add_subdirectory(WindowSystemTest)
+#add_subdirectory(WindowSystemTest) # Windowing was marked obsolete Dec 2, 2014
