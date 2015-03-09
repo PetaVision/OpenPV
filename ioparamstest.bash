@@ -531,20 +531,21 @@ openmpirun -np 1 Debug/$testname $args 2>&1 > ${testname}_ioparams.log ||
     echo "$testname FAILED" >> ${testname}_ioparams.log
 mv $params{.bak,}
 
-testname=WindowSystemTest
-params="input/postTest.params"
-outdir="output"
-outparams="$outdir/pv.params"
-args="-p $params"
-echo ==== $testname ====
-cd $wd/$testname
-rm -r $outdir
-openmpirun -np 1 Debug/$testname $args
-mv $params{,.bak}
-cp -p $outparams $params
-openmpirun -np 1 Debug/$testname $args 2>&1 > ${testname}_ioparams.log ||
-    echo "$testname FAILED" >> ${testname}_ioparams.log
-mv $params{.bak,}
+# # Windowing was marked obsolete Dec 2, 2014
+#testname=WindowSystemTest
+#params="input/postTest.params"
+#outdir="output"
+#outparams="$outdir/pv.params"
+#args="-p $params"
+#echo ==== $testname ====
+#cd $wd/$testname
+#rm -r $outdir
+#openmpirun -np 1 Debug/$testname $args
+#mv $params{,.bak}
+#cp -p $outparams $params
+#openmpirun -np 1 Debug/$testname $args 2>&1 > ${testname}_ioparams.log ||
+#    echo "$testname FAILED" >> ${testname}_ioparams.log
+#mv $params{.bak,}
 
 exit
 
