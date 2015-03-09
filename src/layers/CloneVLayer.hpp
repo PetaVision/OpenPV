@@ -17,6 +17,7 @@ public:
    CloneVLayer(const char * name, HyPerCol * hc);
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
+   virtual int requireChannel(int channelNeeded, int * numChannelsResult);
    virtual int allocateGSyn();
    virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis);
    virtual bool activityIsSpiking() { return false;}

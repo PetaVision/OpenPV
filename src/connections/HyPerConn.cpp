@@ -1330,6 +1330,13 @@ int HyPerConn::communicateInitInfo() {
    // subclass's communicateInitInfo() should call the parent class's communicateInitInfo().
 
    int status = BaseConnection::communicateInitInfo();
+   if (status != PV_SUCCESS) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\": communicateInitInfo failed.\n", parent->parameters()->groupKeywordFromName(name), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
    assert(this->preSynapticLayer()!=NULL && this->postSynapticLayer()!=NULL);
    handleDefaultSelfFlag();
 

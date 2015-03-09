@@ -482,19 +482,17 @@ int BaseConnection::communicateInitInfo() {
    }
 
    // Make sure post-synaptic layer has enough channels.
-   int num_channels_check;
-   status = this->postSynapticLayer()->requireChannel((int) this->getChannel(), &num_channels_check);
-   if (status != PV_SUCCESS) { return status; }
-
-   if(num_channels_check <= (int) this->getChannel()) {
-      if (this->getParent()->columnId()==0) {
+   int num_channels_check = 0;
+   int ch = (int) this->getChannel();
+   if (ch>=0) {
+      status = this->postSynapticLayer()->requireChannel(ch, &num_channels_check);
+   }
+   assert(status != PV_SUCCESS || num_channels_check > (int) this->getChannel()); // if requireChannel passes, layer's numChannels should be large enough for the connection's channel
+   if (status != PV_SUCCESS) {
+      if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: postsynaptic layer \"%s\" failed to add channel %d\n",
                this->getParent()->parameters()->groupKeywordFromName(this->getName()), this->getName(), this->postSynapticLayer()->getName(), (int) this->getChannel());
       }
-#ifdef PV_USE_MPI
-      MPI_Barrier(this->getParent()->icCommunicator()->communicator());
-#endif
-      exit(EXIT_FAILURE);
    }
    return status;
 }

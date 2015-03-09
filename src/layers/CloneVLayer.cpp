@@ -113,6 +113,13 @@ int CloneVLayer::allocateV() {
    return PV_SUCCESS;
 }
 
+int CloneVLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
+   if (parent->columnId()==0) {
+      fprintf(stderr, "%s \"%s\": layers derived from CloneVLayer do not have GSyn channels (requireChannel called with channel %d)\n", parent->parameters()->groupKeywordFromName(name), name, channelNeeded);
+   }
+   return PV_FAILURE;
+}
+
 int CloneVLayer::allocateGSyn() {
    assert(GSyn == NULL);
    return PV_SUCCESS;

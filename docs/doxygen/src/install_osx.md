@@ -13,7 +13,7 @@ Requirements
 
 XCode
 ----------------------------------
-XCode is needed by homebrew and gcc/g++/clang. Here's now to get it.
+XCode is needed by homebrew and gcc/g++/clang. Here's how to get it.
 - Go to the apple store and search for xcode
 - Click get, then install. Put in your Apple account information
 - After it's installed, we need to accept the xcode license.
