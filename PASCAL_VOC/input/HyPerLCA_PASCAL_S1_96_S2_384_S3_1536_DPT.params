@@ -1,0 +1,617 @@
+// PetaVision version something-point-something run at Sat Jan 24 04:21:52 2015
+// Compiled with MPI and run using 1 rows and 1 columns.
+// Compiled without OpenCL.
+// Compiled with CUDA.
+// Compiled with OpenMP parallel code and run using 64 threads.
+
+HyPerCol "column" = {
+  startTime                           = 0;
+  dt                                  = 1;
+  dtAdaptFlag                         = true;
+  dtScaleMax                          = 1;
+  dtScaleMin                          = 0.125;
+  dtChangeMax                         = 0.01;
+  dtChangeMin                         = 0;
+  dtMinToleratedTimeScale             = 0.0001;
+  stopTime                            = 1591600; //350200; //
+  progressInterval                    = 1000;
+  writeProgressToErr                  = true;
+  verifyWrites                        = false;
+  outputPath                          = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_384_S3_1536_DPT/VOC2007_landscape";
+  printParamsFilename                 = "PASCAL_S1_96_S2_384_S3_1536_DPT_VOC2007_landscape.params";
+  randomSeed                          = 1234567890;
+  nx                                  = 256;
+  ny                                  = 192;
+  filenamesContainLayerNames          = 1;
+  filenamesContainConnectionNames     = 1;
+  initializeFromCheckpointDir         = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_384_S3_1536_DPT/VOC2007_landscape/Checkpoints/Checkpoint1591600";
+  defaultInitializeFromCheckpointFlag = false;
+  checkpointRead                      = false;
+  checkpointWrite                     = true;
+  checkpointWriteDir                  = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_384_S3_1536_DPT/VOC2007_landscape/Checkpoints";
+  checkpointWriteTriggerMode          = "step";
+  checkpointWriteStepInterval         = 10000;
+  deleteOlderCheckpoints              = true;
+  writeTimescales                     = true;
+  errorOnNotANumber                   = false;
+  suppressNonplasticCheckpoints       = false;
+};
+
+Movie "Image" = {
+  nxScale                             = 1;
+  nyScale                             = 1;
+  nf                                  = 3;
+  phase                               = 0;
+  mirrorBCflag                        = true;
+  initializeFromCheckpointFlag        = false;
+  writeStep                           = 4000;
+  initialWriteTime                    = 4000;
+  sparseLayer                         = false;
+  updateGpu                           = false;
+  offsetAnchor                        = "tl";
+  offsetX                             = 2;
+  offsetY                             = 1;
+  writeImages                         = 0;
+  useImageBCflag                      = false;
+  autoResizeFlag                      = false;
+  inverseFlag                         = false;
+  normalizeLuminanceFlag              = true;
+  normalizeStdDev                     = true;
+  jitterFlag                          = 0;
+  padValue                            = 0;
+  imageListPath                       = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_landscape_195X260_list.txt";
+  displayPeriod                       = 1000;
+  randomMovie                         = 0;
+  readPvpFile                         = false;
+  echoFramePathnameFlag               = true;
+  start_frame_index                   = 0;
+  skip_frame_index                    = 0;
+  writeFrameToTimestamp               = true;
+  flipOnTimescaleError                = true;
+  resetToStartOnLoop                  = false;
+};
+
+// S1 layers
+ANNNormalizedErrorLayer "ImageReconS1Error" = {
+  nxScale                             = 1;
+  nyScale                             = 1;
+  nf                                  = 3;
+  phase                               = 1;
+  mirrorBCflag                        = false;
+  valueBC                             = 0;
+  initializeFromCheckpointFlag        = false;
+  InitVType                           = "ZeroV";
+  triggerFlag                         = false;
+  writeStep                           = 10000;
+  initialWriteTime                    = 10000;
+  sparseLayer                         = false;
+  updateGpu                           = false;
+  VThresh                             = 0;
+  AMin                                = 0;
+  AMax                                = 3.40282e+38;
+  AShift                              = 0;
+  VWidth                              = 0;
+  errScale                            = 1;
+};
+
+HyPerLCALayer "S1" = {
+  nxScale                             = 0.5;
+  nyScale                             = 0.5;
+  nf                                  = 96;
+  phase                               = 2;
+  mirrorBCflag                        = false;
+  valueBC                             = 0;
+  initializeFromCheckpointFlag        = false;
+  //InitVType                           = "InitVFromFile";
+  //Vfilename                           = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_S3_1536X4/VOC2007_landscape/Checkpoints/Checkpoint30000/S1_V.pvp";
+  InitVType                           = "UniformRandomV";
+  minV                                 = -1.0;
+  maxV                                 = .05; 
+  triggerFlag                         = false;
+  writeStep                           = 1000;
+  initialWriteTime                    = 1000;
+  sparseLayer                         = true;
+  writeSparseValues                   = true;
+  updateGpu                           = true;
+  VThresh                             = 0.025;
+  AMin                                = 0;
+  AMax                                = 3.40282e+38;
+  AShift                              = 0;
+  VWidth                              = 10;
+  numChannels                         = 1;
+  timeConstantTau                     = 100;
+  numWindowX                          = 1;
+  numWindowY                          = 1;
+  selfInteract                        = true;
+};
+
+ANNLayer "ImageReconS1" = {
+  nxScale                             = 1;
+  nyScale                             = 1;
+  nf                                  = 3;
+  phase                               = 3;
+  mirrorBCflag                        = false;
+  valueBC                             = 0;
+  initializeFromCheckpointFlag        = false;
+  InitVType                           = "ZeroV";
+  triggerFlag                         = false;
+  writeStep                           = 10000;
+  initialWriteTime                    = 10001;
+  sparseLayer                         = false;
+  updateGpu                           = false;
+  VThresh                             = -3.40282e+38;
+  AMin                                = -3.40282e+38;
+  AMax                                = 3.40282e+38;
+  AShift                              = 0;
+  VWidth                              = 0;
+};
+
+// S2 layers
+ANNErrorLayer "S1ReconS2Error" = {
+  nxScale                             = 0.5;
+  nyScale                             = 0.5;
+  nf                                  = 96;
+  phase                               = 3;
+  mirrorBCflag                        = false;
+  valueBC                             = 0;
+  initializeFromCheckpointFlag        = false;
+  InitVType                           = "ZeroV";
+  triggerFlag                         = false;
+  writeStep                           = -1;
+  sparseLayer                         = false;
+  updateGpu                           = false;
+  VThresh                             = 0;
+  AMin                                = 0;
+  AMax                                = 3.40282e+38;
+  AShift                              = 0;
+  VWidth                              = 0;
+  errScale                            = 1;
+};
+
+HyPerLCALayer "S2" = {
+#include "S1";
+  @nxScale                             = 0.25;
+  @nyScale                             = 0.25;
+  @nf                                  = 384;
+  @phase                               = 4;
+  //@Vfilename                           = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_S3_1536X4/VOC2007_landscape/Checkpoints/Checkpoint30000/S2_V.pvp";
+  @InitVType                           = "UniformRandomV";
+  @minV                                 = -1.0;
+  @maxV                                 = .04; 
+  @VThresh                             = 0.025;
+};
+
+ANNLayer "S1ReconS2" = {
+#include "ImageReconS1";
+  @nxScale                             = 0.5;
+  @nyScale                             = 0.5;
+  @nf                                  = 96;
+  @phase                               = 5;
+  @writeStep                          = -1;
+};
+
+ANNLayer "ImageReconS2" = {
+#include "ImageReconS1";
+  @phase                               = 6;
+};
+
+ANNLayer "ImageReconS2Error" = {
+#include "ImageReconS2";
+  @nxScale                             = 0.5;
+  @nyScale                             = 0.5;
+  @phase                               = 7;
+};
+
+// S3 layers
+ANNErrorLayer "S2ReconS3Error" = {
+#include "S1ReconS2Error";
+  @nxScale                             = 0.25;
+  @nyScale                             = 0.25;
+  @nf                                  = 384;
+  @phase                               = 6;
+};
+
+HyPerLCALayer "S3" = {
+#include "S2";
+  @nxScale                             = 0.125;
+  @nyScale                             = 0.125;
+  @nf                                  = 1536; 
+  @phase                               = 7;
+  @VThresh                             = 0.025;
+  //@Vfilename                           = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_384_S3_1536_DPT/VOC2007_landscape/Checkpoints/Checkpoint30000/S3_V.pvp";
+};
+
+ANNLayer "S2ReconS3" = {
+#include "S1ReconS2";
+  @nxScale                             = 0.25;
+  @nyScale                             = 0.25;
+  @nf                                  = 384;
+  @phase                               = 8;
+};
+
+ANNLayer "S1ReconS3" = {
+#include "S1ReconS2";
+  @phase                               = 9;
+};
+
+ANNLayer "ImageReconS3" = {
+#include "ImageReconS2";
+  @phase                               = 10;
+};
+
+ANNLayer "ImageReconS3Error" = {
+#include "ImageReconS2Error";
+  @nxScale                             = 0.25;
+  @nyScale                             = 0.25;
+  @phase                               = 11;  
+};
+
+
+//
+//Connections
+//
+
+HyPerConn "ImageToImageReconS1Error" = {
+  preLayerName                        = "Image";
+  postLayerName                       = "ImageReconS1Error";
+  channelCode                         = 0;
+  delay                               = [0.000000];
+  numAxonalArbors                     = 1;
+  plasticityFlag                      = false;
+  convertRateToSpikeCount             = false;
+  receiveGpu                          = false;
+  sharedWeights                       = true;
+  weightInitType                      = "OneToOneWeights";
+  // initWeightsFile                     was set to (NULL);
+  weightInit                          = 0.032075015; //0.0555;
+  initializeFromCheckpointFlag        = false;
+  updateGSynFromPostPerspective       = false;
+  pvpatchAccumulateType               = "convolve";
+  writeStep                           = -1;
+  writeCompressedCheckpoints          = false;
+  selfFlag                            = false;
+  nxp                                 = 1;
+  nyp                                 = 1;
+  shrinkPatches                       = false;
+  normalizeMethod                     = "none";
+};
+
+MomentumConn "S1ToImageReconS1Error" = {
+  preLayerName                        = "S1";
+  postLayerName                       = "ImageReconS1Error";
+  channelCode                         = -1;
+  delay                               = [0.000000];
+  numAxonalArbors                     = 1;
+  plasticityFlag                      = true;
+  convertRateToSpikeCount             = false;
+  receiveGpu                          = false;
+  sharedWeights                       = true;
+  //weightInitType                      = "FileWeight";
+  //initWeightsFile                     = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_384_S3_1536_DPT/VOC2007_landscape/Checkpoints/Checkpoint30000/S1ToImageReconS1Error_W.pvp";
+  //useListOfArborFiles                 = false;
+  //combineWeightFiles                  = false;
+  weightInitType                      = "UniformRandomWeight";
+  wMinInit                            = -1.0;
+  wMaxInit                            = 1.0;
+  sparseFraction                      = 0.0;
+  initializeFromCheckpointFlag        = false;
+  triggerFlag                         = true;
+  triggerLayerName                    = "Image";
+  triggerOffset                       = 0;
+  updateGSynFromPostPerspective       = false;
+  pvpatchAccumulateType               = "convolve";
+  writeStep                           = -1;
+  writeCompressedCheckpoints          = false;
+  selfFlag                            = false;
+  combine_dW_with_W_flag              = false;
+  nxp                                 = 18;
+  nyp                                 = 18;
+  shrinkPatches                       = false;
+  normalizeMethod                     = "normalizeL2";
+  strength                            = 1;
+  normalizeArborsIndividually         = false;
+  normalizeOnInitialize               = true;
+  normalizeOnWeightUpdate             = true;
+  rMinX                               = 0;
+  rMinY                               = 0;
+  nonnegativeConstraintFlag           = false;
+  normalize_cutoff                    = 0;
+  normalizeFromPostPerspective        = false;
+  minL2NormTolerated                  = 0;
+  dWMax                               = 0.1;
+  momentumMethod                      = "viscosity";
+  momentumTau                         = 100.0;
+  keepKernelsSynchronized             = true;
+  useMask                             = false;
+  //imprintTimeThresh                   = 250000;
+};
+
+TransposeConn "ImageReconS1ErrorToS1" = {
+  preLayerName                        = "ImageReconS1Error";
+  postLayerName                       = "S1";
+  channelCode                         = 0;
+  delay                               = [0.000000];
+  convertRateToSpikeCount             = false;
+  receiveGpu                          = true;
+  updateGSynFromPostPerspective       = true;
+  pvpatchAccumulateType               = "convolve";
+  writeStep                           = -1;
+  writeCompressedCheckpoints          = false;
+  selfFlag                            = false;
+  useMask                             = false;
+  originalConnName                    = "S1ToImageReconS1Error";
+};
+
+//TransposeConn "S1ToImageReconS1" = {
+//  preLayerName                        = "S1";
+//  postLayerName                       = "ImageReconS1";
+//  channelCode                         = 0;
+//  delay                               = [0.000000];
+//  convertRateToSpikeCount             = false;
+//  receiveGpu                          = true; //false;
+//  updateGSynFromPostPerspective       = true; //false;
+//  pvpatchAccumulateType               = "convolve";
+//  writeStep                           = -1;
+//  writeCompressedCheckpoints          = false;
+//  selfFlag                            = false;
+//  originalConnName                    = "ImageReconS1ErrorToS1";
+//};
+
+CloneConn "S1ToImageReconS1" = {
+  preLayerName                        = "S1";
+  postLayerName                       = "ImageReconS1";
+  channelCode                         = 0;
+  delay                               = [0.000000];
+  convertRateToSpikeCount             = false;
+  receiveGpu                          = false;
+  updateGSynFromPostPerspective       = false;
+  pvpatchAccumulateType               = "convolve";
+  writeStep                           = -1;
+  writeCompressedCheckpoints          = false;
+  selfFlag                            = false;
+  originalConnName                    = "S1ToImageReconS1Error";
+};
+
+IdentConn "ImageReconS1ToImageReconS1Error" = {
+  preLayerName                        = "ImageReconS1";
+  postLayerName                       = "ImageReconS1Error";
+  channelCode                         = 1;
+  delay                               = [0.000000];
+  // initWeightsFile                     was set to (NULL);
+  writeStep                           = -1;
+};
+
+
+// S2 connections
+HyPerConn "ImageReconS1ToImageReconS2Error" = {
+#include "ImageToImageReconS1Error";
+  @preLayerName                        = "ImageReconS1";
+  @postLayerName                       = "ImageReconS2Error";
+  @weightInitType                      = "UniformWeight";
+  initWeight                          = 1.0;
+  connectOnlySameFeatures             = true;
+  @normalizeMethod                     = "normalizeSum";
+  strength                            = 1;
+  normalizeArborsIndividually         = false;
+  normalizeOnInitialize               = true;
+  normalizeOnWeightUpdate             = true;
+  rMinX                               = 0;
+  rMinY                               = 0;
+  nonnegativeConstraintFlag           = false;
+  normalize_cutoff                    = 0;
+  normalizeFromPostPerspective        = true;
+  minL2NormTolerated                  = 0;
+};
+
+
+IdentConn "S1ToS1ReconS2Error" = {
+  preLayerName                        = "S1";
+  postLayerName                       = "S1ReconS2Error";
+  channelCode                         = 0;
+  delay                               = [0.000000];
+  // initWeightsFile                     was set to (NULL);
+  writeStep                           = -1;
+};
+
+MomentumConn "S2ToS1ReconS2Error" = {
+#include "S1ToImageReconS1Error";
+  @preLayerName                        = "S2";
+  @postLayerName                       = "S1ReconS2Error";
+  //@initWeightsFile                     = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_384_S3_1536_DPT/VOC2007_landscape/Checkpoints/Checkpoint30000/S2ToS1ReconS2Error_W.pvp";
+  @nxp                                 = 10;
+  @nyp                                 = 10;
+  //@strength                            = 0.25;
+};
+
+MomentumConn "S2ToImageReconS2Error" = {
+#include "S1ToImageReconS1Error";
+  @preLayerName                        = "S2";
+  @postLayerName                       = "ImageReconS2Error";
+  @channelCode                         = 1;
+  //@initWeightsFile                     = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_384_S3_1536_DPT/VOC2007_landscape/Checkpoints/Checkpoint30000/S2ToS1ReconS2Error_W.pvp";
+  @normalizeMethod                     = "normalizeGroup";
+  normalizeGroupName                   = "S2ToS1ReconS2Error";
+  //@strength                            = 0.25;
+};
+
+TransposeConn "S1ReconS2ErrorToS2" = {
+#include "ImageReconS1ErrorToS1";
+  @preLayerName                        = "S1ReconS2Error";
+  @postLayerName                       = "S2";
+  @originalConnName                    = "S2ToS1ReconS2Error";
+};
+
+TransposeConn "ImageReconS2ErrorToS2" = {
+#include "ImageReconS1ErrorToS1";
+  @preLayerName                        = "ImageReconS2Error";
+  @postLayerName                       = "S2";
+  @originalConnName                    = "S2ToImageReconS2Error";
+};
+
+//TransposeConn "S2ToS1ReconS2" = {
+//#include "S1ReconS2ErrorToS2";
+//  @preLayerName                        = "S2";
+//  @postLayerName                       = "S1ReconS2";
+//  @originalConnName                    = "S1ReconS2ErrorToS2";
+//};
+
+CloneConn "S2ToS1ReconS2" = {
+#include "S1ToImageReconS1";
+  @preLayerName                        = "S2";
+  @postLayerName                       = "S1ReconS2";
+  @originalConnName                    = "S2ToS1ReconS2Error";
+};
+
+//TransposeConn "S1ReconS2ToImageReconS2" = {
+//#include "ImageReconS1ErrorToS1";
+//  @preLayerName                        = "S1ReconS2";
+//  @postLayerName                       = "ImageReconS2";
+//  @originalConnName                    = "ImageReconS1ErrorToS1";
+//};
+
+CloneConn "S1ReconS2ToImageReconS2" = {
+#include "S1ToImageReconS1";
+  @preLayerName                        = "S1ReconS2";
+  @postLayerName                       = "ImageReconS2";
+  @originalConnName                    = "S1ToImageReconS1Error";
+};
+
+IdentConn "S1ReconS2ToS1ReconS2Error" = {
+  preLayerName                        = "S1ReconS2";
+  postLayerName                       = "S1ReconS2Error";
+  channelCode                         = 1;
+  delay                               = [0.000000];
+  // initWeightsFile                     was set to (NULL);
+  writeStep                           = -1;
+};
+
+//HyPerConn "ImageReconS2ToImageReconS2Error" = {
+//#include "ImageReconS1ToImageReconS2Error";
+//  @preLayerName                        = "ImageReconS2";
+//  @channelCode                         = 1;
+//};
+
+IdentConn "ImageReconS2ToImageReconS1Error" = {
+  preLayerName                        = "ImageReconS2";
+  postLayerName                       = "ImageReconS1Error";
+  channelCode                         = 1;
+  delay                               = [0.000000];
+  // initWeightsFile                     was set to (NULL);
+  writeStep                           = -1;
+};
+
+
+// S3 Connections
+
+HyPerConn "ImageReconS2ToImageReconS3Error" = {
+#include "ImageReconS1ToImageReconS2Error";
+  @preLayerName                        = "ImageReconS2";
+  @postLayerName                       = "ImageReconS3Error";
+};
+
+
+IdentConn "S2ToS2ReconS3Error" = {
+  preLayerName                        = "S2";
+  postLayerName                       = "S2ReconS3Error";
+  channelCode                         = 0;
+  delay                               = [0.000000];
+  // initWeightsFile                     was set to (NULL);
+  writeStep                           = -1;
+};
+
+MomentumConn "S3ToS2ReconS3Error" = {
+#include "S2ToS1ReconS2Error";
+  @preLayerName                        = "S3";
+  @postLayerName                       = "S2ReconS3Error";
+  //@initWeightsFile                     = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_384_S3_1536_DPT/VOC2007_landscape/Checkpoints/Checkpoint30000/S3ToS2ReconS3Error_W.pvp";
+};
+
+MomentumConn "S3ToImageReconS3Error" = {
+#include "S2ToImageReconS2Error";
+  @preLayerName                        = "S3";
+  @postLayerName                       = "ImageReconS3Error";
+  //@initWeightsFile                     = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_384_S3_1536_DPT/VOC2007_landscape/Checkpoints/Checkpoint30000/S2ToS1ReconS2Error_W.pvp";
+  @normalizeGroupName                   = "S3ToS2ReconS3Error";
+};
+
+TransposeConn "S2ReconS3ErrorToS3" = {
+#include "S1ReconS2ErrorToS2";
+  @preLayerName                        = "S2ReconS3Error";
+  @postLayerName                       = "S3";
+  @originalConnName                    = "S3ToS2ReconS3Error";
+};
+
+TransposeConn "ImageReconS3ErrorToS3" = {
+#include "ImageReconS2ErrorToS2";
+  @preLayerName                        = "ImageReconS3Error";
+  @postLayerName                       = "S3";
+  @originalConnName                    = "S3ToImageReconS3Error";
+};
+
+//TransposeConn "S3ToS2ReconS3" = {
+//#include "S2ReconS3ErrorToS3";
+//  @preLayerName                        = "S3";
+//  @postLayerName                       = "S2ReconS3";
+//  @originalConnName                    = "S2ReconS3ErrorToS3";
+//};
+
+CloneConn "S3ToS2ReconS3" = {
+#include "S2ToS1ReconS2";
+  @preLayerName                        = "S3";
+  @postLayerName                       = "S2ReconS3";
+  @originalConnName                    = "S3ToS2ReconS3Error";
+};
+
+//TransposeConn "S2ReconS3ToS1ReconS3" = {
+//#include "ImageReconS3ErrorToS3";
+//  @preLayerName                        = "S2ReconS3";
+//  @postLayerName                       = "S1ReconS3";
+//  @originalConnName                    = "S1ReconS2ErrorToS2";
+//};
+
+CloneConn "S2ReconS3ToS1ReconS3" = {
+#include "S2ToS1ReconS2";
+  @preLayerName                        = "S2ReconS3";
+  @postLayerName                       = "S1ReconS3";
+  @originalConnName                    = "S2ToS1ReconS2Error";
+};
+
+//TransposeConn "S1ReconS3ToImageReconS3" = {
+//#include "S1ToImageReconS1";
+//  @preLayerName                        = "S1ReconS3";
+//  @postLayerName                       = "ImageReconS3";
+//  @originalConnName                    = "ImageReconS1ErrorToS1";
+//};
+
+CloneConn "S1ReconS3ToImageReconS3" = {
+#include "S1ToImageReconS1";
+  @preLayerName                        = "S1ReconS3";
+  @postLayerName                       = "ImageReconS3";
+  @originalConnName                    = "S1ToImageReconS1Error";
+};
+
+IdentConn "S2ReconS3ToS2ReconS3Error" = {
+  preLayerName                        = "S2ReconS3";
+  postLayerName                       = "S2ReconS3Error";
+  channelCode                         = 1;
+  delay                               = [0.000000];
+  // initWeightsFile                     was set to (NULL);
+  writeStep                           = -1;
+};
+
+//HyPerConn "ImageReconS3ToImageReconS3Error" = {
+//#include "ImageReconS2ToImageReconS3Error";
+//  @preLayerName                        = "ImageReconS3";
+//  @channelCode                         = 1;
+//};
+
+HyPerConn "ImageReconS3ToImageReconS2Error" = {
+#include "ImageReconS1ToImageReconS2Error";
+  @preLayerName                        = "ImageReconS3";
+  @postLayerName                       = "ImageReconS2Error";
+  @channelCode                         = 1;
+};
+
+
+
+
