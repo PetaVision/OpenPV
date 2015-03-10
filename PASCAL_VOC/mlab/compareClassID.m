@@ -14,7 +14,8 @@ addpath("~/workspace/PetaVision/mlab/util");
 addpath("~/workspace/PetaVision/mlab/HyPerLCA");
 
 plot_flag = true;
-output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape";
+output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP_pvpmovieX2/VOC2007_portrait4bAWS";
+%%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape2";
 
 %%draw reconstructed image
 DoG_weights = [];
@@ -32,7 +33,8 @@ Recon_LIFO_flag = true;
 drawnow;
 
 %% sparse activity
-Sparse_list ={["a10_"], ["GroundTruth_16X12"]; ["a16_"], ["GroundTruth_4X3"]}; 
+Sparse_list ={["a4_"], ["GroundTruth_16X12"]; ["a15_"], ["GroundTruth_4X3"]}; 
+%%Sparse_list ={["a10_"], ["GroundTruth_16X12"]; ["a16_"], ["GroundTruth_4X3"]}; 
 fraction_Sparse_frames_read = 1;
 min_Sparse_skip = 1;
 fraction_Sparse_progress = 10;
@@ -47,12 +49,14 @@ drawnow;
 %pause;
 
 %% Error vs time
-nonSparse_list = {["a12_"], ["GroundTruthError_16X12"]; ["a18_"], ["GroundTruthError_4X3"]}; %%; ["a7_"], ["S2MaxPooled_16X12"]; ["a8_"], ["S2SumPooled_16X12"]; ["a13_"], ["S2MaxPooled_4X3"]; ["a14_"], ["S2SumPooled_4X3"]};
+nonSparse_list = {["a6_"], ["GroundTruthReconS1Error_16X12"]; ["a11_"], ["GroundTruthReconS2Error_16X12"]; ["a17_"], ["GroundTruthReconS1Error_4X3"]; ["a22_"], ["GroundTruthReconS2Error_4X3"]}; 
+%%nonSparse_list = {["a12_"], ["GroundTruthError_16X12"]; ["a18_"], ["GroundTruthError_4X3"]}; 
 num_nonSparse_list = size(nonSparse_list,1);
 nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-nonSparse_norm_list = {["a10_"], ["GroundTruth_16X12"]; ["a16_"], ["GroundTruth_4X3"]}; %%; [], []; [], []; [], []; [], []};
+nonSparse_norm_list = {["a3_"], ["GroundTruth_16X12"]; ["a3_"], ["GroundTruth_16X12"]; ["a15_"], ["GroundTruth_4X3"]; ["a15_"], ["GroundTruth_4X3"]}; 
+%%nonSparse_norm_list = {["a10_"], ["GroundTruth_16X12"]; ["a16_"], ["GroundTruth_4X3"]}; 
 nonSparse_norm_strength = ones(num_nonSparse_list,1);
-Sparse_std_ndx = [1 2]; %% 
+Sparse_std_ndx = [1 2 1 2]; %% 
 fraction_nonSparse_frames_read = 1;
 min_nonSparse_skip = 1;
 fraction_nonSparse_progress = 10;
@@ -92,13 +96,19 @@ JIEDDO_class_ndx = [2 6 7 14 15 19];
 JIEDDO_classes = classes(JIEDDO_class_ndx)
 
 
-for i_scale = 1 : 2
+for i_scale = 1 : 4
   if i_scale == 1
-    pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/a11_GroundTruthReconS2_16X12.pvp")
-    gt_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/a10_GroundTruth_16X12.pvp")
+    pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP_pvpmovieX2/VOC2007_portrait4bAWS/a5_GroundTruthReconS1_16X12.pvp")
+    gt_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP_pvpmovieX2/VOC2007_portrait4bAWS/a4_GroundTruth_16X12.pvp")
   elseif i_scale == 2
-    pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/a17_GroundTruthReconS2_4X3.pvp")
-    gt_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/a16_GroundTruth_4X3.pvp")
+    pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP_pvpmovieX2/VOC2007_portrait4bAWS/a10_GroundTruthReconS2_16X12.pvp")
+    gt_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP_pvpmovieX2/VOC2007_portrait4bAWS/a4_GroundTruth_16X12.pvp")
+  elseif i_scale == 3
+    pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP_pvpmovieX2/VOC2007_portrait4bAWS/a16_GroundTruthReconS1_4X3.pvp")
+    gt_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP_pvpmovieX2/VOC2007_portrait4bAWS/a15_GroundTruth_4X3.pvp")
+  elseif i_scale == 4
+    pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP_pvpmovieX2/VOC2007_portrait4bAWS/a21_GroundTruthReconS2_4X3.pvp")
+    gt_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP_pvpmovieX2/VOC2007_portrait4bAWS/a15_GroundTruth_4X3.pvp")
   endif
   pred_classID_fid = fopen(pred_classID_file);
   pred_classID_hdr = readpvpheader(pred_classID_fid);
@@ -125,7 +135,7 @@ for i_scale = 1 : 2
   %%pred_classID_sum = zeros(length(JIEDDO_class_ndx), 1);
   %%pred_classID_sum2 = zeros(length(JIEDDO_class_ndx), 1);
   classID_colormap = prism(length(JIEDDO_class_ndx)+0); %%hot(gt_hdr.nf+1); %%rainbow(length(JIEDDO_class_ndx)); %%prism(length(JIEDDO_class_ndx));
-  use_false_positive_thresh = false;
+  use_false_positive_thresh = false; %%true; %%
   false_positive_thresh = .99;
   for i_frame = 100 : min(pred_num_frames, gt_num_frames) 
       
@@ -274,7 +284,7 @@ for i_scale = 1 : 2
 	  pred_classID_band(:,:,2) = pred_classID_band(:,:,2) * pred_class_color(2)*255;
 	  pred_classID_band(:,:,3) = pred_classID_band(:,:,3) * pred_class_color(3)*255;
 	  pred_classID_heatmap = pred_classID_heatmap + pred_classID_band .* (pred_classID_heatmap < pred_classID_band);
-	  th = text(3, ceil(i_JIEDDO_classID*pred_hdr.ny/length(JIEDDO_class_ndx)), classes{i_JIEDDO_classID});
+	  th = text(3, ceil(i_JIEDDO_classID*pred_hdr.ny/length(JIEDDO_class_ndx)), classes{i_classID});
 	  pred_classID_heatmap(ceil(i_JIEDDO_classID*pred_hdr.ny/length(JIEDDO_class_ndx)):ceil(i_JIEDDO_classID*pred_hdr.ny/length(JIEDDO_class_ndx)), 1:2, 1) = pred_class_color(1)*255;
 	  pred_classID_heatmap(ceil(i_JIEDDO_classID*pred_hdr.ny/length(JIEDDO_class_ndx)):ceil(i_JIEDDO_classID*pred_hdr.ny/length(JIEDDO_class_ndx)), 1:2, 2) = pred_class_color(2)*255;
 	  pred_classID_heatmap(ceil(i_JIEDDO_classID*pred_hdr.ny/length(JIEDDO_class_ndx)):ceil(i_JIEDDO_classID*pred_hdr.ny/length(JIEDDO_class_ndx)), 1:2, 3) = pred_class_color(3)*255;
@@ -302,13 +312,16 @@ for i_scale = 1 : 2
 	subplot(2,3,i_subplot, 'color', [0 0 0])
 	%%
 	pos_hist = squeeze(pred_classID_hist(:,i_JIEDDO_classID,1)) ./ squeeze(pred_classID_norm(:,i_JIEDDO_classID,1));
-	bh_pos = bar(classID_hist_bins, pos_hist, "stacked", "facecolor", "g", "edgecolor", "g");
+	hist_width_tmp = round(num_classID_bins/8);
+	bins_tmp = [pred_classID_thresh_bin(i_JIEDDO_classID)-hist_width_tmp:pred_classID_thresh_bin(i_JIEDDO_classID)+hist_width_tmp];
+	bins_tmp_fixed = bins_tmp(find(bins_tmp>0,1,"first"):find(bins_tmp<num_classID_bins,1,"last"));
+	bh_pos = bar(classID_hist_bins(bins_tmp_fixed), pos_hist(bins_tmp_fixed), "stacked", "facecolor", "g", "edgecolor", "g");
 	%%hist_fig = figure("name", ["hist_negative: ", num2str(pred_time, "%i")]);
 	axis off
 	 box off
 	 hold on
 	 neg_hist = squeeze(pred_classID_hist(:,i_JIEDDO_classID,2)) ./ squeeze(pred_classID_norm(:,i_JIEDDO_classID,2));
-	 bh_neg = bar(classID_hist_bins, neg_hist, "stacked", "facecolor", "r", "edgecolor", "r");
+	 bh_neg = bar(classID_hist_bins(bins_tmp_fixed), neg_hist(bins_tmp_fixed), "stacked", "facecolor", "r", "edgecolor", "r");
 	 max_pos_hist = max(pos_hist(:));
 	 max_neg_hist = max(neg_hist(:));
 	 lh = line([pred_classID_thresh(i_JIEDDO_classID) pred_classID_thresh(i_JIEDDO_classID)], [0 max(max_pos_hist,max_neg_hist)]);
