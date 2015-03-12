@@ -5,12 +5,55 @@
 
 
 #include <columns/buildandrun.hpp>
+#include <io/ParamGroupHandler.hpp>
 #include "CPTestInputLayer.hpp"
 #include "VaryingHyPerConn.hpp"
 
-void * customgroup(const char * keyword, const char * name, HyPerCol * hc);
-int customexit(HyPerCol * hc, int argc, char * argv[]);
+class CustomGroupHandler : public ParamGroupHandler {
+public:
+   CustomGroupHandler() {}
+   virtual ~CustomGroupHandler() {}
+   virtual ParamGroupType getGroupType(char const * keyword) {
+      ParamGroupType result = UnrecognizedGroupType;
+      if (keyword==NULL) { result = UnrecognizedGroupType; }
+      else if (!strcmp(keyword, "CPTestInputLayer")) { result = LayerGroupType; }
+      else if (!strcmp(keyword, "VaryingHyPerConn")) { result = ConnectionGroupType; }
+      else { result = UnrecognizedGroupType; }
+      return result;
+   }
+   virtual HyPerLayer * createLayer(char const * keyword, char const * name, HyPerCol * hc) {
+      HyPerLayer * addedLayer = NULL;
+      bool matched = false;
+      if (keyword==NULL) { addedLayer = NULL; }
+      else if (!strcmp(keyword, "CPTestInputLayer")) {
+         matched = true;
+         addedLayer = new CPTestInputLayer(name, hc);
+      }
+      else { addedLayer = NULL; }
+      if (matched && !addedLayer) {
+         fprintf(stderr, "Rank %d process unable to create %s \"%s\".\n", hc->columnId(), keyword, name);
+         exit(EXIT_FAILURE);
+      }
+      return addedLayer;
+   }
+   virtual BaseConnection * createConnection(char const * keyword, char const * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+      BaseConnection * addedConn = NULL;
+      bool matched = false;
+      if (keyword==NULL) { addedConn = NULL; }
+      else if (!strcmp(keyword, "VaryingHyPerConn")) {
+         matched = true;
+         addedConn = new VaryingHyPerConn(name, hc);
+      }
+      else { addedConn = NULL; }
+      if (matched && !addedConn) {
+         fprintf(stderr, "Rank %d process unable to create %s \"%s\".\n", hc->columnId(), keyword, name);
+         exit(EXIT_FAILURE);
+      }
+      return addedConn;
+   }
+}; // class CustomGroupHandler
 
+int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    int rank = 0;
@@ -62,6 +105,8 @@ int main(int argc, char * argv[]) {
       }
    }
 
+   ParamGroupHandler * customGroupHandler = new CustomGroupHandler;
+
    assert(reqrtn==0 || reqrtn==1);
    assert(usethreads==0 || usethreads==1);
    size_t cl_argc = 3+reqrtn+usethreads+(threadargno>0);
@@ -82,7 +127,7 @@ int main(int argc, char * argv[]) {
    }
    assert(cl_arg==cl_argc);
    cl_args[cl_arg] = NULL;
-   status = buildandrun((int) cl_argc, cl_args, NULL, NULL, &customgroup);
+   status = buildandrun((int) cl_argc, cl_args, NULL, NULL, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
       exit(status);
@@ -112,7 +157,7 @@ int main(int argc, char * argv[]) {
    }
    assert(cl_arg==cl_argc);
    cl_args[cl_arg++] = NULL;
-   status = buildandrun(cl_argc, cl_args, NULL, &customexit, &customgroup);
+   status = buildandrun(cl_argc, cl_args, NULL, &customexit, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
    }
@@ -126,22 +171,6 @@ int main(int argc, char * argv[]) {
    }
    free(cl_args);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
-}
-
-void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
-   void * addedGroup = NULL;
-   PVParams * params = hc->parameters();
-   char * preLayerName = NULL;
-   char * postLayerName = NULL;
-   if( !strcmp(keyword, "CPTestInputLayer") ) {
-      addedGroup = (void *) new CPTestInputLayer(name, hc);
-   }
-   if( !strcmp(keyword, "VaryingHyPerConn") ) {
-      addedGroup = (void * ) new VaryingHyPerConn(name, hc);
-   }
-   free(preLayerName); preLayerName = NULL;
-   free(postLayerName); postLayerName = NULL;
-   return addedGroup;
 }
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
@@ -158,7 +187,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       }
       char * shellcommand;
       char c;
-      const char * fmtstr = "diff -r -q -x timers.txt %s/Checkpoint%d %s/Checkpoint%d";
+      const char * fmtstr = "diff -r -q -x timers.txt -x pv.params %s/Checkpoint%d %s/Checkpoint%d";
       int len = snprintf(&c, 1, fmtstr, cpdir1, index, cpdir2, index);
       shellcommand = (char *) malloc(len+1);
       if( shellcommand == NULL) {
