@@ -2,61 +2,95 @@
 %%  -Wesley Chavez
 %%
 %% -----Hints-----
-%% Copy this file to your PV output directory (outputPath in params file) and edit lines 20-26 accordingly.
+%% Copy this file to your PV output directory (outputPath in params file) and edit lines 26-30 accordingly.
 %% 
 %% Write all layers and connections at the end of a display period (initialWriteTime = displayPeriod*n or displayPeriod*n - 1 and writeStep = displayPeriod*k, n and k are integers > 0)
 %% Sync the write times of Input and Recon layers for comparison (writeStep and initialWriteTime in params file).
 %% Sync the write times of Input and Error layers for more useful RMS values (more useful than just standard deviation of Error values).
-%% Sync the write times of Error and V1 layers for error vs sparsity graph.
+%% Sync the write times of Error and V1 layers for Error vs V1sparsity graph.
 %% You know what, just sync all your write times.
 %%
-%% If you want to run this script while your PetaVision implementation is still running, don't change the order of readpvpfile commands below.
+%% If you want to run this script while your PetaVision implementation is still running, don't change the order of readpvpfile commands.
 %%
 %% -----ToDo-----
 %% Add functionality to read from Checkpoint pvp files (no write time synchronization needed).
 %% Convolve 2nd layer (V2,S2,etc.) weights with 1st layer (V1,S1) weights for visualization in image space.
 %% Figure out how to plot/save everything without user input (Octave asks "-- less -- (f)orward, (b)ack, (q)uit" after plotting). 
 
-addpath('~/workspace/PetaVision/mlab/util');
 
-datainput = readpvpfile('a3_GanglionRescaled.pvp',10);
-dataerr = readpvpfile('a4_Error.pvp',10);
-[dataV1 headerV1] = readpvpfile('a5_V1.pvp',10);
-datarecon = readpvpfile('a6_Recon.pvp',10);
-dataw = readpvpfile('w4_V1ToError.pvp',10);
+% Counts number of figures plotted, initialize to zero (Doesn't include input and recon imwrites)
+numFigures = 0; 
+
+addpath('~/workspace/PetaVision/mlab/util'); 
+
+inputpvp = 'a3_GanglionRescaled.pvp'
+errpvp = 'a4_Error.pvp'
+V1pvp = 'a5_V1.pvp'
+reconpvp = 'a6_Recon.pvp'
+weightspvp = 'w4_V1ToError.pvp'
+
+%How many of the most recent inputs/recons in the pvp files you want to write
+numImagesToWrite = 5;
 
 
-%%%% Input
-for i = size(datainput,1)-4:size(datainput,1)
-   t = datainput{i}.time;
-   p = datainput{i}.values;
+
+%%%% Input    Only last numImagesToWrite frames are written 
+inputdata = readpvpfile(inputpvp,10);
+
+% Save these for error computation
+for i = 1:size(inputdata,1)
+   t_input(i) = inputdata{i}.time;
+   inputstd(i) = std(inputdata{i}.values(:));
+end
+
+% Normalize and write input images
+for i = size(inputdata,1)-numImagesToWrite+1:size(inputdata,1)
+   t = inputdata{i}.time;
+   p = inputdata{i}.values;
    disp (['Ganglion size: ', num2str(size(p))]);
    p = p-min(p(:));
    p = p*255/max(p(:));
    p = permute(p,[2 1 3]);
    p = uint8(p);
-   imwrite(p,['Ganglion_' sprintf('%.08d',t) '.png']);
+   outFile = ['Ganglion_' sprintf('%.08d',t) '.png']
+   imwrite(p,outFile);
 end
+clear inputdata;
 
-%%%% Recon
-for i = size(datarecon,1)-4:size(datarecon,1)
-   t = datarecon{i}.time;
-   p = datarecon{i}.values;
+
+
+%%%% Recon    Only last numImagesToWrite frames are read and written
+fid = fopen(reconpvp,'r');
+reconheader = readpvpheader(fid);
+fclose(fid);
+if (reconheader.nbands < numImagesToWrite)
+   display('Recon pvp was only written to %d times, but numImagesToWrite is specified as %d\n', reconheader.nbands, numImagesToWrite);
+end
+recondata = readpvpfile(reconpvp,10, reconheader.nbands, reconheader.nbands-numImagesToWrite+1);
+
+% Normalize and write recon images
+for i = 1:size(recondata,1)
+   t = recondata{i}.time;
+   p = recondata{i}.values;
    disp (['Recon size: ', num2str(size(p))]);
    p = p-min(p(:));
    p = p*255/max(p(:));
    p = permute(p,[2 1 3]);
    p = uint8(p);
-   imwrite(p,['Recon_' sprintf('%.08d',t) '.png']);
+   outFile = ['Recon_' sprintf('%.08d',t) '.png']
+   imwrite(p,outFile);
 end
+clear recondata;
+
 
 
 %%%% Error
 %% If write-times for input layer and error were synced, plot RMS error.  Else, plot std of error values. 
+errdata = readpvpfile(errpvp,10);
 
 
-for i = 1:size(datainput,1)
-   if (dataerr{i}.time == datainput{i}.time)
+for i = 1:size(t_input,2)  % If PetaVision implementation is still running, errdata might contain more frames, even if synced with input, since errpvp is read after inputpvp. 
+   if (errdata{i}.time == t_input(i))
       syncedtimes = 1;
    else
       syncedtimes = 0;
@@ -65,54 +99,64 @@ for i = 1:size(datainput,1)
 end
 
 if (syncedtimes)
-   for i = 1:size(datainput,1)
-      t_err(i) = dataerr{i}.time;
-      err(i) = std(dataerr{i}.values(:))/std(datainput{i}.values(:));
+   for i = 1:size(t_input,2)
+      t_err(i) = errdata{i}.time;
+      err(i) = std(errdata{i}.values(:))/inputstd(i);
    end
-
-   h_err = figure(1);
+   numFigures++;
+   h_err = figure(numFigures);
    plot(t_err,err);
-   print(h_err,['RMS_Error_' sprintf('%.08d',t_err(length(t_err))) '.png']);
+   outFile = ['RMS_Error_' sprintf('%.08d',t_err(length(t_err))) '.png']
+   print(h_err,outFile);
 else
-   for i = 1:size(dataerr,1)
-      t_err(i) = dataerr{i}.time;
-      err(i) = std(dataerr{i}.values(:));
+   for i = 1:size(errdata,1)
+      t_err(i) = errdata{i}.time;
+      err(i) = std(errdata{i}.values(:));
    end
-
-   h_err = figure(1);
+   numFigures++;
+   h_err = figure(numFigures);
    plot(t_err,err);
-   print(h_err,['Std_Error_' sprintf('%.08d',t_err(length(t_err))) '.png']);
+   outFile = ['Std_Error_' sprintf('%.08d',t_err(length(t_err))) '.png']
+   print(h_err,outFile);
 end
+clear errdata;
+
 
 
 %%%% V1 Sparsity and activity per feature
-numV1neurons = headerV1.nx*headerV1.ny*headerV1.nf;
-for i = 1:size(dataV1,1)
-   t_V1(i) = dataV1{i}.time;
-   sparsity(i) = size(dataV1{i}.values,1)/(numV1neurons);
-   if (i == size(dataV1,1))
-      V1_yxf = zeros(1,numV1neurons);
-      V1_yxf(dataV1{i}.values(:,1)+1) = dataV1{i}.values(:,2);
-      V1_yxf = reshape(V1_yxf,[headerV1.nf headerV1.nx headerV1.ny]);
-      V1_yxf = permute(V1_yxf,[3 2 1]);
-      for j = 1:headerV1.nf
-         meanfeatureval = mean(mean(V1_yxf));
-         meanfeatureval = meanfeatureval(:)';
-      end
+[V1data V1header] = readpvpfile(V1pvp,10);
+V1numneurons = V1header.nx*V1header.ny*V1header.nf;
+for i = 1:size(V1data,1)
+   t_V1(i) = V1data{i}.time;
+   V1sparsity(i) = size(V1data{i}.values,1)/(V1numneurons);
+   if (i == size(V1data,1))
+      V1_yxf = zeros(1,V1numneurons);
+      V1_yxf(V1data{i}.values(:,1)+1) = V1data{i}.values(:,2);
+      V1_yxf = reshape(V1_yxf,[V1header.nf V1header.nx V1header.ny]);
+      V1_yxf = permute(V1_yxf,[3 2 1]);  % Reshaped to actual size of V1 layer
+      V1meanfeaturevals = mean(mean(V1_yxf));
+      V1meanfeaturevals = V1meanfeaturevals(:)';
+      t_V1_sortedweights = t_V1(i);
    end   
 end
-h_V1 = figure(2);
-plot(t_V1,sparsity);
-print(h_V1,['V1_Sparsity_' sprintf('%.08d',t_V1(length(t_V1))) '.png']);
+numFigures++;
+h_V1 = figure(numFigures);
+plot(t_V1,V1sparsity);
+outFile = ['V1_Sparsity_' sprintf('%.08d',t_V1(length(t_V1))) '.png']
+print(h_V1,outFile);
 
-h_V1feats = figure(3);
-bar(meanfeatureval);
-print(h_V1feats,['MeanFeatureValues_' sprintf('%.08d',t_V1(length(t_V1))) '.png'])
+numFigures++;
+h_V1featvals = figure(numFigures);
+bar(V1meanfeaturevals);
+outFile = ['MeanFeatureValues_' sprintf('%.08d',t_V1(length(t_V1))) '.png']
+print(h_V1featvals,outFile);
+clear V1data;
+
 
 
 %%%% Error vs Sparse    Print this graph if V1 and Error write times are synced. (blue = first write time, red = last write time)
-for i = 1:size(dataerr,1)
-   if (dataV1{i}.time == dataerr{i}.time)
+for i = 1:size(t_err,2)  % If PetaVision implementation is still running, V1data might contain more frames, even if synced with input, since V1pvp is read after errpvp.
+   if (t_V1(i) == t_err(i))
       syncedtimes = 1;
    else
       syncedtimes = 0;
@@ -121,45 +165,63 @@ for i = 1:size(dataerr,1)
 end
 
 if (syncedtimes)
-   h_V1vsSparse = figure(4);
+   numFigures++;
+   h_ErrorvsSparse = figure(numFigures);
    c=linspace(0,1,length(err));
-   scatter(sparsity(1:length(err)),err,[],c);
+   scatter(V1sparsity(1:length(err)),err,[],c);
    xlabel('Sparsity');
    ylabel('Error');
-   print(h_V1vsSparse,['ErrorVsSparse_' sprintf('%.08d',t_V1(length(t_V1))) '.png']);
+   outFile = ['ErrorVsSparse_' sprintf('%.08d',t_V1(length(t_V1))) '.png']
+   print(h_ErrorvsSparse,outFile);
 end
 
 
 
-%%%% Weights     Each patch is normalized individually.
-t = dataw{size(dataw,1)}.time;
-numpatches = size(dataw{size(dataw,1)}.values{1})(4)
-for i = 1:numpatches
-   patch{i} = dataw{size(dataw,1)}.values{1}(:,:,:,i);
-   patch{i} = patch{i}-min(patch{i}(:));
-   patch{i} = patch{i}*255/max(patch{i}(:));
-   patch{i} = uint8(permute(patch{i},[2 1 3]));
-end
-subplot_x = ceil(sqrt(numpatches));
-subplot_y = ceil(numpatches/subplot_x);
+%%%% Weights     Only last weights frame is analyzed.  Each weightspatch is normalized individually.
+fid = fopen(weightspvp,'r');
+weightsheader = readpvpheader(fid);
+fclose(fid);
+weightsfiledata=dir(weightspvp);
+weightsframesize = weightsheader.recordsize*weightsheader.numrecords+weightsheader.headersize;
+weightsnumframes = weightsfiledata(1).bytes/weightsframesize;
+weightsdata = readpvpfile(weightspvp,10,weightsnumframes,weightsnumframes);
+t = weightsdata{size(weightsdata,1)}.time;
+weightsnumpatches = size(weightsdata{size(weightsdata,1)}.values{1})(4)
 
-h_weights1 = figure(5);
-for i = 1:numpatches
+for i = 1:weightsnumpatches
+   weightspatch{i} = weightsdata{size(weightsdata,1)}.values{1}(:,:,:,i);
+   weightspatch{i} = weightspatch{i}-min(weightspatch{i}(:));
+   weightspatch{i} = weightspatch{i}*255/max(weightspatch{i}(:));
+   weightspatch{i} = uint8(permute(weightspatch{i},[2 1 3]));
+end
+subplot_x = ceil(sqrt(weightsnumpatches));
+subplot_y = ceil(weightsnumpatches/subplot_x);
+
+numFigures++;
+h_weightsbyindex = figure(numFigures);
+for i = 1:weightsnumpatches
    i
    fflush(1);
    subplot(subplot_y,subplot_x,i);
-   imshow(patch{i});
+   imshow(weightspatch{i});
 end
-print(h_weights1,['WeightsByFeatureIndex_' sprintf('%.08d',t) '.png']);
+outFile = ['WeightsByFeatureIndex_' sprintf('%.08d',t) '.png']
+print(h_weightsbyindex,outFile);
 
-[dontcare sortedindex] = sort(meanfeatureval);
+[dontcare sortedindex] = sort(V1meanfeaturevals);
 sortedindex = fliplr(sortedindex);
-h_weights2 = figure(6);
-for i = 1:numpatches
+numFigures++;
+h_weightsbyactivity = figure(numFigures);
+for i = 1:weightsnumpatches
    i
    fflush(1);
    subplot(subplot_y,subplot_x,i);
-   imshow(patch{sortedindex(i)});
+   imshow(weightspatch{sortedindex(i)});
 end
-print(h_weights2,['WeightsByActivity_' sprintf('%.08d',t) '.png']);
-
+if (t == t_V1_sortedweights)
+   outFile = ['WeightsByActivity_' sprintf('%.08d',t) '.png']
+   print(h_weightsbyactivity,outFile);
+else  % If last V1pvp write time and last weightspvp write time are not the same, specifies both
+   outFile = ['Weights_' sprintf('%.08d',t) '_ByActivity@_' sprintf('%.08d',t_V1_sortedweights) '.png']
+   print(h_weightsbyactivity,outFile);
+end
