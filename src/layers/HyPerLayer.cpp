@@ -548,7 +548,7 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
    layerLoc->nxGlobal = (int) nearbyintf(nxglobalfloat);
    if (fabs(nxglobalfloat-layerLoc->nxGlobal)>0.0001) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Size of column is compatible with nxScale of layer \"%s\".\n", getName());
+         fprintf(stderr, "nxScale of layer \"%s\" is incompatible with size of column.\n", getName());
          fprintf(stderr, "Column nx %d multiplied by nxScale %f must be an integer.\n", parent->getNxGlobal(), nxScale);
       }
       status = PV_FAILURE;
@@ -558,7 +558,7 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
    layerLoc->nyGlobal = (int) nearbyintf(nyglobalfloat);
    if (fabs(nxglobalfloat-layerLoc->nxGlobal)>0.0001) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Size of column is compatible with nyScale of layer \"%s\".\n", getName());
+         fprintf(stderr, "nyScale of layer \"%s\" is incompatible with size of column.\n", getName());
          fprintf(stderr, "Column ny %d multiplied by nyScale %f must be an integer.\n", parent->getNyGlobal(), nxScale);
       }
       status = PV_FAILURE;
