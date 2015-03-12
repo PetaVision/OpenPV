@@ -1369,7 +1369,10 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          }
          printParamsPath += "printParamsFirename";
       }
-      outputParams(printParamsPath.c_str());
+      //Only do this for root mpi
+      if(columnId() == 0){
+         outputParams(printParamsPath.c_str());
+      }
 
       // publish initial conditions
       //
