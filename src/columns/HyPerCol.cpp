@@ -1369,10 +1369,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          }
          printParamsPath += "printParamsFirename";
       }
-      //Only do this for root mpi
-      if(columnId() == 0){
-         outputParams(printParamsPath.c_str());
-      }
+      outputParams(printParamsPath.c_str());
 
       // publish initial conditions
       //
@@ -2240,18 +2237,18 @@ int HyPerCol::outputParams(char const * path) {
 #endif
    assert(printParamsStream==NULL);
    char printParamsPath[PV_PATH_MAX];
-   if( strlen(path) >= (size_t) PV_PATH_MAX ) {
-      fprintf(stderr, "outputParams called with too long a filename.  Parameters will not be printed.\n");
-      status = ENAMETOOLONG;
-   }
-   else {
-      printParamsStream = PV_fopen(path, "w", getVerifyWrites());
-      if( printParamsStream == NULL ) {
-         status = errno;
-         fprintf(stderr, "outputParams error opening \"%s\" for writing: %s\n", path, strerror(errno));
+   if(rank == 0){
+      if( strlen(path) >= (size_t) PV_PATH_MAX ) {
+         fprintf(stderr, "outputParams called with too long a filename.  Parameters will not be printed.\n");
+         status = ENAMETOOLONG;
       }
-   }
-   if (status == 0) {
+      else {
+         printParamsStream = PV_fopen(path, "w", getVerifyWrites());
+         if( printParamsStream == NULL ) {
+            status = errno;
+            fprintf(stderr, "outputParams error opening \"%s\" for writing: %s\n", path, strerror(errno));
+         }
+      }
       assert(printParamsStream != NULL);
 
       time_t t = time(NULL);
@@ -2279,55 +2276,55 @@ int HyPerCol::outputParams(char const * path) {
       if (checkpointReadFlag) {
          fprintf(printParamsStream->fp, "// Started from checkpoint \"%s\"\n", checkpointReadDir);
       }
+   }
 
-      // Parent HyPerCol params
-      status = ioParams(PARAMS_IO_WRITE);
+   // Parent HyPerCol params
+   status = ioParams(PARAMS_IO_WRITE);
+   if( status != PV_SUCCESS ) {
+      fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
+      exit(EXIT_FAILURE);
+   }
+
+   // HyPerLayer params
+   for (int l=0; l<numLayers; l++) {
+      HyPerLayer * layer = layers[l];
+      status = layer->ioParams(PARAMS_IO_WRITE);
       if( status != PV_SUCCESS ) {
          fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
          exit(EXIT_FAILURE);
       }
+   }
 
-      // HyPerLayer params
-      for (int l=0; l<numLayers; l++) {
-         HyPerLayer * layer = layers[l];
-         status = layer->ioParams(PARAMS_IO_WRITE);
-         if( status != PV_SUCCESS ) {
-            fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
-            exit(EXIT_FAILURE);
-         }
+   // BaseConnection params
+   for (int c=0; c<numConnections; c++) {
+      BaseConnection * connection = connections[c];
+      status = connection->ioParams(PARAMS_IO_WRITE);
+      if( status != PV_SUCCESS ) {
+         fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
+         exit(EXIT_FAILURE);
       }
+   }
 
-      // BaseConnection params
-      for (int c=0; c<numConnections; c++) {
-         BaseConnection * connection = connections[c];
-         status = connection->ioParams(PARAMS_IO_WRITE);
-         if( status != PV_SUCCESS ) {
-            fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
-            exit(EXIT_FAILURE);
-         }
-      }
+   // Probe params
 
-      // Probe params
+   // ColProbes
+   for (int p=0; p<numColProbes; p++) {
+      colProbes[p]->ioParams(PARAMS_IO_WRITE);
+   }
 
-      // ColProbes
-      for (int p=0; p<numColProbes; p++) {
-         colProbes[p]->ioParams(PARAMS_IO_WRITE);
-      }
+   // LayerProbes
+   for (int l=0; l<numLayers; l++) {
+      layers[l]->outputProbeParams();
+   }
 
-      // LayerProbes
-      for (int l=0; l<numLayers; l++) {
-         layers[l]->outputProbeParams();
-      }
+   // BaseConnectionProbes
+   for (int c=0; c<numConnections; c++) {
+      connections[c]->outputProbeParams();
+   }
 
-      // BaseConnectionProbes
-      for (int c=0; c<numConnections; c++) {
-         connections[c]->outputProbeParams();
-      }
-
-      if (printParamsStream) {
-         PV_fclose(printParamsStream);
-         printParamsStream = NULL;
-      }
+   if (printParamsStream) {
+      PV_fclose(printParamsStream);
+      printParamsStream = NULL;
    }
    return status;
 }
