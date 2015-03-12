@@ -799,6 +799,7 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
    ioParamString(ioFlag, name, "printParamsFilename", &printParamsFilename, "pv.params");
+   assert(printParamsFilename);
 }
 
 void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
@@ -1360,7 +1361,15 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       }
 
       parameters()->warnUnread();
-      if (printParamsFilename!=NULL) outputParams();
+      std::string printParamsPath = "";
+      if (printParamsFilename!=NULL && printParamsFilename[0] != '\0') {
+         if (printParamsFilename[0] != '/') {
+            printParamsPath += outputPath;
+            printParamsPath += "/";
+         }
+         printParamsPath += "printParamsFirename";
+      }
+      outputParams(printParamsPath.c_str());
 
       // publish initial conditions
       //
@@ -2157,6 +2166,10 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       PV_fclose(timescalefile);
    }
 
+   std::string checkpointedParamsFile = cpDir;
+   checkpointedParamsFile += "/";
+   checkpointedParamsFile += "pv.params";
+   this->outputParams(checkpointedParamsFile.c_str());
 
    // Note: timeinfo should be done at the end of the checkpointing, so that its presence serves as a flag that the checkpoint has completed.
    if( columnId()==0 ) {
@@ -2215,7 +2228,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
-int HyPerCol::outputParams() {
+int HyPerCol::outputParams(char const * path) {
    int status = PV_SUCCESS;
 #ifdef PV_USE_MPI
    int rank=icComm->commRank();
@@ -2224,28 +2237,20 @@ int HyPerCol::outputParams() {
 #endif
    assert(printParamsStream==NULL);
    char printParamsPath[PV_PATH_MAX];
-   if( rank == 0 && printParamsFilename != NULL && printParamsFilename[0] != '\0' ) {
-      int len = 0;
-      if (printParamsFilename[0] == '/') { // filename is absolute path
-         len = snprintf(printParamsPath, PV_PATH_MAX, "%s", printParamsFilename);
-      }
-      else { // filename is relative path from outputPath
-         len = snprintf(printParamsPath, PV_PATH_MAX, "%s/%s", outputPath, printParamsFilename);
-      }
-      if( len >= PV_PATH_MAX ) {
-         fprintf(stderr, "outputParams: ");
-         if (printParamsFilename[0] != '/') fprintf(stderr, "outputPath + ");
-         fprintf(stderr, "printParamsFilename gives too long a filename.  Parameters will not be printed.\n");
-      }
-      else {
-         printParamsStream = PV_fopen(printParamsPath, "w", getVerifyWrites());
-         if( printParamsStream == NULL ) {
-            status = errno;
-            fprintf(stderr, "outputParams error opening \"%s\" for writing: %s\n", printParamsPath, strerror(errno));
-         }
+   if( strlen(path) >= (size_t) PV_PATH_MAX ) {
+      fprintf(stderr, "outputParams called with too long a filename.  Parameters will not be printed.\n");
+      status = ENAMETOOLONG;
+   }
+   else {
+      printParamsStream = PV_fopen(path, "w", getVerifyWrites());
+      if( printParamsStream == NULL ) {
+         status = errno;
+         fprintf(stderr, "outputParams error opening \"%s\" for writing: %s\n", path, strerror(errno));
       }
    }
-   if (printParamsStream != NULL) {
+   if (status == 0) {
+      assert(printParamsStream != NULL);
+
       time_t t = time(NULL);
       fprintf(printParamsStream->fp, "// PetaVision version something-point-something run at %s", ctime(&t)); // newline is included in output of ctime
 #ifdef PV_USE_MPI
@@ -2271,56 +2276,56 @@ int HyPerCol::outputParams() {
       if (checkpointReadFlag) {
          fprintf(printParamsStream->fp, "// Started from checkpoint \"%s\"\n", checkpointReadDir);
       }
-   }
-   // Parent HyPerCol params
-   status = ioParams(PARAMS_IO_WRITE);
-   if( status != PV_SUCCESS ) {
-      fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
-      exit(EXIT_FAILURE);
-   }
 
-   // HyPerLayer params
-   for (int l=0; l<numLayers; l++) {
-      HyPerLayer * layer = layers[l];
-      status = layer->ioParams(PARAMS_IO_WRITE);
+      // Parent HyPerCol params
+      status = ioParams(PARAMS_IO_WRITE);
       if( status != PV_SUCCESS ) {
          fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
          exit(EXIT_FAILURE);
       }
-   }
 
-   // BaseConnection params
-   for (int c=0; c<numConnections; c++) {
-      BaseConnection * connection = connections[c];
-      status = connection->ioParams(PARAMS_IO_WRITE);
-      if( status != PV_SUCCESS ) {
-         fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
-         exit(EXIT_FAILURE);
+      // HyPerLayer params
+      for (int l=0; l<numLayers; l++) {
+         HyPerLayer * layer = layers[l];
+         status = layer->ioParams(PARAMS_IO_WRITE);
+         if( status != PV_SUCCESS ) {
+            fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
+            exit(EXIT_FAILURE);
+         }
+      }
+
+      // BaseConnection params
+      for (int c=0; c<numConnections; c++) {
+         BaseConnection * connection = connections[c];
+         status = connection->ioParams(PARAMS_IO_WRITE);
+         if( status != PV_SUCCESS ) {
+            fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
+            exit(EXIT_FAILURE);
+         }
+      }
+
+      // Probe params
+
+      // ColProbes
+      for (int p=0; p<numColProbes; p++) {
+         colProbes[p]->ioParams(PARAMS_IO_WRITE);
+      }
+
+      // LayerProbes
+      for (int l=0; l<numLayers; l++) {
+         layers[l]->outputProbeParams();
+      }
+
+      // BaseConnectionProbes
+      for (int c=0; c<numConnections; c++) {
+         connections[c]->outputProbeParams();
+      }
+
+      if (printParamsStream) {
+         PV_fclose(printParamsStream);
+         printParamsStream = NULL;
       }
    }
-
-   // Probe params
-
-   // ColProbes
-   for (int p=0; p<numColProbes; p++) {
-      colProbes[p]->ioParams(PARAMS_IO_WRITE);
-   }
-
-   // LayerProbes
-   for (int l=0; l<numLayers; l++) {
-      layers[l]->outputProbeParams();
-   }
-
-   // BaseConnectionProbes
-   for (int c=0; c<numConnections; c++) {
-      connections[c]->outputProbeParams();
-   }
-
-   if (printParamsStream) {
-      PV_fclose(printParamsStream);
-      printParamsStream = NULL;
-   }
-
    return status;
 }
 

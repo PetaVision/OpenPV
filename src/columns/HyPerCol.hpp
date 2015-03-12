@@ -399,7 +399,7 @@ private:
    int checkpointWrite(const char * cpDir);
    int writeTimers(FILE* stream);
 
-   int outputParams();
+   int outputParams(char const * path);
 
    virtual double adaptTimeScale();
 
