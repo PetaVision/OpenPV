@@ -66,6 +66,15 @@ protected:
 
    /**
     * @brief autoResizeFlag: If set to true, the image will be resized to the layer
+    * @details 
+    *  For the auto resize flag, PV checks which side (x or y) is the shortest, relative to the
+    *  hypercolumn size specified.  Then it determines the largest chunk it can possibly take
+    *  from the image with the correct aspect ratio determined by hypercolumn.  It then
+    *  determines the offset needed in the long dimension to center the cropped image,
+    *  and reads in that portion of the image.  The offset can optionally be translated by
+    *  offset{X,Y} specified in the params file (values can be positive or negative).
+    *  If the specified offset takes the cropped image outside the image file, it uses the
+    *  largest-magnitude offset that stays within the image file's borders.
     */
    virtual void ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag);
 
