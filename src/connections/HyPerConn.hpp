@@ -639,7 +639,7 @@ protected:
    virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief initialWeightUpdateTime: If plasticity flag is set, specifies the inital weight update time
+    * @brief initialWeightUpdateTime: If plasticity flag is set, specifies the inital weight update time; ignored if triggerFlag = true
     */
    virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
 
