@@ -1198,7 +1198,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
             buf[k] -= image_ave;
          }
          // set std dev to 1
-         double image_std = sqrt(image_ave2 - image_ave*image_ave);
+         double image_std = sqrt(image_ave2 - image_ave*image_ave); // std = 1/N * sum((x[i]-sum(x[i])^2) ~ 1/N * sum(x[i]^2) - (sum(x[i])/N)^2 | Note: this permits running std w/o needing to first calc avg (although we already have avg)
          if(image_std == 0){
             for (int k=0; k<n; k++) {
                buf[k] = .5;
