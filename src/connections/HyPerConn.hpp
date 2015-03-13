@@ -683,7 +683,7 @@ protected:
    virtual void ioParam_initialWriteTime(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeCompressedWeights: If writeStep >= 0, weights written our are bytes as opposed to floats.
+    * @brief writeCompressedWeights: If writeStep >= 0, weights written out are bytes as opposed to floats.
     */
    virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
 
