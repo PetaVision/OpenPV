@@ -1367,7 +1367,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
             printParamsPath += outputPath;
             printParamsPath += "/";
          }
-         printParamsPath += "printParamsFirename";
+         printParamsPath += printParamsFilename;
       }
       outputParams(printParamsPath.c_str());
 
