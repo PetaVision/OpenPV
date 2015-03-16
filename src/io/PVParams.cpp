@@ -1906,7 +1906,7 @@ int PVParams::checkDuplicates(const char * paramName, double val) {
       if( !strcmp(paramName, parm->name() ) ) {
          double oldval = parm->value();
          if ( val == oldval) {
-            fprintf(stderr, "Warning: parameter name \"%s\" duplicates a previous parameter name and value (%s = %f)\n", paramName, oldval, val);
+            fprintf(stderr, "Warning: parameter name \"%s\" duplicates a previous parameter name and value (%s = %f)\n", paramName, parm->name(), val);
          }
          else {
             fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous parameter name with inconsistent values (%f versus %f)\n", getRank(), paramName, oldval, val);
