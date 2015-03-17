@@ -51,10 +51,10 @@
 // #include "../layers/TextStream.hpp" // Marked obsolete Mar 6, 2015
 #include "../layers/TrainingLayer.hpp"
 #include "../layers/WTALayer.hpp"
-#ifdef PV_USE_SNDFILE
+#ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
 #include "../layers/NewCochlear.h"
 #include "../layers/SoundStream.hpp"
-#endif // PV_USE_SNDFILE
+#endif // OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
 #include "../connections/HyPerConn.hpp"
 #include "../connections/CloneConn.hpp"
 #include "../connections/CloneKernelConn.hpp"
@@ -161,10 +161,10 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 //         {"TextStream", LayerGroupType}, // Marked obsolete Mar 6, 2015
          {"TrainingLayer", LayerGroupType},
          {"WTALayer", LayerGroupType},
-#ifdef PV_USE_SNDFILE
+#ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
          {"NewCochlearLayer", LayerGroupType},
          {"SoundStream", LayerGroupType},
-#endif
+#endif // OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
 
          // Connections
          {"HyPerConn", ConnectionGroupType},
@@ -412,14 +412,14 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "WTALayer") ) {
       addedLayer = new WTALayer(name, hc);
    }
-#ifdef PV_USE_SNDFILE // TODO: move SoundFile stuff into its own library
+#ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
    else if( !strcmp(keyword, "NewCochlearLayer") ) {
       addedLayer = new NewCochlearLayer(name, hc);
    }
    else if( !strcmp(keyword, "SoundStream") ) {
       addedLayer = new SoundStream(name, hc);
    }
-#endif
+#endif // OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
 
    if (addedLayer==NULL && getGroupType(keyword)==LayerGroupType) {
       if (hc->columnId()==0) {

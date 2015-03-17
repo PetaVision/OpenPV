@@ -339,7 +339,7 @@ BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, Para
    return baseConn;
 }
 
-#ifdef OBSOLETE // Marked obsolete Jan 5, 2014.  Functionality was moved to CoreParamGroupHandler
+#ifdef OBSOLETE // Marked obsolete Jan 5, 2015.  Functionality was moved to CoreParamGroupHandler
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc) {
    return hc;
 }
@@ -432,11 +432,13 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new WTALayer(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Text-related classes moved to auxlib/pvtext
    if( !strcmp(classkeyword, "TextStream") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new TextStream(name, hc);
    }
-#ifdef PV_USE_SNDFILE
+#endif // OBSOLETE // Marked obsolete Mar 16, 2015.  Text-related classes moved to auxlib/pvtext
+#ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
    if( !strcmp(classkeyword, "SoundStream") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new SoundStream(name, hc);
@@ -445,7 +447,7 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
         keywordMatched = true;
         addedLayer = (HyPerLayer *) new NewCochlearLayer(name, hc);
     }
-#endif
+#endif // OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
    if( !strcmp(classkeyword, "Image") ) {
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new Image(name, hc);
@@ -599,7 +601,7 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new CliqueLayer(name, hc);
    }
-#endif // OBSOLETE
+#endif // OBSOLETE // Marked obsolete Dec 29, 2014.
    status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    if( !keywordMatched ) {
       fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
@@ -965,7 +967,7 @@ int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyP
    filename = NULL;
    return PV_SUCCESS;
 }
-#endif // OBSOLETE
+#endif // OBSOLETE // Marked obsolete Jan 5, 2015.  Functionality was moved to CoreParamGroupHandler
 
 int checknewobject(void * object, const char * kw, const char * name, HyPerCol * hc) {
    int status = PV_SUCCESS;

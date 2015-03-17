@@ -37,11 +37,13 @@
 #include "../layers/BinningLayer.hpp"
 #include "../layers/WTALayer.hpp"
 #include "../layers/GapLayer.hpp"
+#ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Text-related classes have been moved to auxlib/pvtext
 #include "../layers/TextStream.hpp"
-#ifdef PV_USE_SNDFILE
+#endif // Marked obsolete Mar 16, 2015.  Text-related classes have been moved to auxlib/pvtext
+#ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes have been moved to auxlib/pvsound
 #include "../layers/SoundStream.hpp"
 #include "../layers/NewCochlear.h"
-#endif
+#endif // Marked obsolete Mar 16, 2015.  Sound-related classes have been moved to auxlib/pvsound
 #include "../layers/Image.hpp"
 #include "../layers/CreateMovies.hpp"
 #include "../layers/ImageFromMemoryBuffer.hpp"
@@ -208,7 +210,7 @@ HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList,
 ParamGroupHandler * getGroupHandlerFromList(char const * keyword, CoreParamGroupHandler * coreHandler, ParamGroupHandler ** groupHandlerList, int numGroupHandlers, ParamGroupType * foundGroupType);
 BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, ParamGroupHandler ** customHandlerList, int numGroupHandlers, char const * keyword, char const * groupname, HyPerCol * hc);
 
-#ifdef OBSOLETE // Marked obsolete Jan 5, 2014.  Functionality was moved to CoreParamGroupHandler
+#ifdef OBSOLETE // Marked obsolete Jan 5, 2015.  Functionality was moved to CoreParamGroupHandler
 HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
@@ -221,7 +223,7 @@ BaseConnection * getConnFromParameterGroup(const char * groupName, HyPerCol * hc
 LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
 int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayer, char ** message, const char ** filename);
 int decodeChannel(int channel, ChannelType * channelType);
-#endif // OBSOLETE
+#endif // OBSOLETE // Marked obsolete Jan 5, 2015.  Functionality was moved to CoreParamGroupHandler
 int checknewobject(void * object, const char * kw, const char * name, HyPerCol * hc);
 
 #endif /* BUILDANDRUN_HPP_ */

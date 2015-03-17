@@ -17,7 +17,8 @@ set(CMAKE_MODULE_PATH "${PV_DIR}/docs/cmake/Modules/")
 set(OPEN_MP_THREADS TRUE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
 set(OPEN_CL_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
 set(CUDA_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
-set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
+# Sound-related classes moved to auxlib/pvsound Mar 16, 2015
+# set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 
 set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
@@ -55,15 +56,16 @@ if(CUDA_GPU)
     endif(CUDNN)
 endif(CUDA_GPU)
 
-if (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
-    find_package(LIBSNDFILE)
-endif (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
-
-if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
-   include_directories(${LIBSNDFILE_INCLUDE_DIR})
-   add_definitions(-DPV_USE_SNDFILE)
-   set(LIB_SND_FILE_FLAGS_ADDED TRUE)
-endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
+# Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
+# if (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
+#     find_package(LIBSNDFILE)
+# endif (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
+# 
+# if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
+#    include_directories(${LIBSNDFILE_INCLUDE_DIR})
+#    add_definitions(-DPV_USE_SNDFILE)
+#    set(LIB_SND_FILE_FLAGS_ADDED TRUE)
+# endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
 
 # The user may specify a non-standard compiler name for MPI
 #  For example, the user may type:

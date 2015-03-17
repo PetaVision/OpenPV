@@ -25,7 +25,8 @@ set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location
 set(PV_BUILD_SHARED FALSE CACHE BOOL "Defines if the pv object is built as a shared object")
 set(CLANG_OMP TRUE CACHE BOOL "Defines if we're compiling with Clang + omp support")
 
-set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
+# Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
+# set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
 
 IF(APPLE AND CLANG_OMP)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
@@ -145,22 +146,24 @@ endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
 set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
 set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 
-if (LIB_SND_FILE AND NOT DEFINED LIBSNDFILE_FOUND)
-    MESSAGE("-- Searching for SND library ............")
-    find_package(LIBSNDFILE)
-endif (LIB_SND_FILE AND NOT DEFINED LIBSNDFILE_FOUND)
+# Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
+# if (LIB_SND_FILE AND NOT DEFINED LIBSNDFILE_FOUND)
+#     MESSAGE("-- Searching for SND library ............")
+#     find_package(LIBSNDFILE)
+# endif (LIB_SND_FILE AND NOT DEFINED LIBSNDFILE_FOUND)
 
 if (CUDA_GPU)
     MESSAGE("-- Searching for CUDA library ............")
     find_package(CUDA)
 endif (CUDA_GPU)
 
-#Include compiler directive and include directory for LIBSNDFILE
-if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
-   include_directories(${LIBSNDFILE_INCLUDE_DIR})
-   add_definitions(-DPV_USE_SNDFILE)
-   set(LIB_SND_FILE_FLAGS_ADDED)
-endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
+# Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
+# #Include compiler directive and include directory for LIBSNDFILE
+# if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
+#    include_directories(${LIBSNDFILE_INCLUDE_DIR})
+#    add_definitions(-DPV_USE_SNDFILE)
+#    set(LIB_SND_FILE_FLAGS_ADDED)
+# endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
 
 #IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 #   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g3; -G3; -O0)
@@ -200,9 +203,10 @@ endif(CUDA_GPU)
 # Link executable to external libraries
 target_link_libraries(pv ${GDAL_LIBRARY})
 target_link_libraries(pv ${MPI_LIBRARY})
-IF(LIBSNDFILE_FOUND)
-   target_link_libraries(pv ${LIBSNDFILE_LIBRARY})
-ENDIF(LIBSNDFILE_FOUND)
+# Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
+# IF(LIBSNDFILE_FOUND)
+#    target_link_libraries(pv ${LIBSNDFILE_LIBRARY})
+# ENDIF(LIBSNDFILE_FOUND)
 
 IF(CUDNN)
    IF(APPLE)
