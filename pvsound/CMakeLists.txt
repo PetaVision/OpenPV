@@ -27,9 +27,9 @@ set(CLANG_OMP FALSE CACHE BOOL "Defines if we're compiling with Clang + omp supp
 set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../trunk CACHE PATH "The base PetaVision directory")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
-IF(CUDA_GPU AND CUDA_GPU)
-   message(FATAL_ERROR "CUDA_GPU and OPEN_CL_GPU cannot both be false")
-ENDIF(CUDA_GPU AND CUDA_GPU)
+IF(CUDA_GPU AND OPEN_CL_GPU)
+   message(FATAL_ERROR "CUDA_GPU and OPEN_CL_GPU cannot both be true")
+ENDIF(CUDA_GPU AND OPEN_CL_GPU)
 
 IF(NOT EXISTS "${PV_DIR}")
    message(FATAL_ERROR "PV_DIR \"${PV_DIR}\" does not exist.")

@@ -27,9 +27,9 @@ set(CLANG_OMP FALSE CACHE BOOL "Defines if we're compiling with Clang + omp supp
 set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../trunk CACHE PATH "The base PetaVision directory")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
-IF(CUDA_GPU AND CUDA_GPU)
-   message(FATAL_ERROR "CUDA_GPU and OPEN_CL_GPU cannot both be false")
-ENDIF(CUDA_GPU AND CUDA_GPU)
+IF(CUDA_GPU AND OPEN_CL_GPU)
+   message(FATAL_ERROR "CUDA_GPU and OPEN_CL_GPU cannot both be true")
+ENDIF(CUDA_GPU AND OPEN_CL_GPU)
 
 IF(NOT EXISTS "${PV_DIR}")
    message(FATAL_ERROR "PV_DIR \"${PV_DIR}\" does not exist.")
@@ -106,6 +106,10 @@ if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
     MESSAGE("-- Searching for MPI library ............")
     find_package(MPI REQUIRED)
 endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+if (NOT GDAL_FOUND)
+    MESSAGE("-- Searching for GDAL library ...........")
+    find_package(GDAL REQUIRED)
+endif (NOT GDAL_FOUND)
 
 set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
 set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
@@ -165,5 +169,4 @@ IF(CUDNN)
       target_link_libraries(${PV_AUXLIB_NAME} ${CUDNN_PATH}/libcudnn.so)
    ENDIF(APPLE)
 ENDIF(CUDNN)
-
 
