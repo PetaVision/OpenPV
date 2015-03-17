@@ -20,9 +20,9 @@ set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
 set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
 
-IF(CUDA_GPU AND CUDA_GPU)
-   message(FATAL_ERROR "CUDA_GPU and OPEN_CL_GPU cannot both be false")
-ENDIF(CUDA_GPU AND CUDA_GPU)
+IF(CUDA_GPU AND OPEN_CL_GPU)
+   message(FATAL_ERROR "CUDA_GPU and OPEN_CL_GPU cannot both be true")
+ENDIF(CUDA_GPU AND OPEN_CL_GPU)
 
 IF(NOT EXISTS "${PV_DIR}")
    message(FATAL_ERROR "PV_DIR \"${PV_DIR}\" does not exist.")
