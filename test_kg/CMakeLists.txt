@@ -64,16 +64,6 @@ endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
 set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
 set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 
-if (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
-    find_package(LIBSNDFILE)
-endif (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
-
-if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
-   include_directories(${LIBSNDFILE_INCLUDE_DIR})
-   add_definitions(-DPV_USE_SNDFILE)
-   set(LIB_SND_FILE_FLAGS_ADDED TRUE)
-endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
-
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
 
@@ -91,14 +81,11 @@ else(CUDA_GPU)
 endif(CUDA_GPU)
 
 target_link_libraries(${PV_PROJECT_NAME} pv)
-#
-## target_link_libraries commands no longer needed because the libraries are included in libpv.so
-## Link executable to external libraries
-#target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
-#IF(LIBSNDFILE_FOUND)
-#   target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
-#ENDIF(LIBSNDFILE_FOUND)
-#
+
+# still needed on Mac if pv is built as a shared object library
+target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
+
+## target_link_libraries command no longer needed because the libraries are included in libpv.so
 #IF(CUDNN)
 #   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
 #ENDIF(CUDNN)
