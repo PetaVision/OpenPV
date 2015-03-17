@@ -738,7 +738,7 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
       long int numSteps = params->value(name, "numSteps");
       stopTime = startTime + numSteps * deltaTimeBase;
       if (columnId()==0) {
-         fprintf(stderr, "Warning: numSteps is deprecated.  Use startTime, stopTime and deltaTime instead.\n");
+         fprintf(stderr, "Warning: numSteps is deprecated.  Use startTime, stopTime and dt instead.\n");
          fprintf(stderr, "    stopTime set to %f\n", stopTime);
       }
       return;

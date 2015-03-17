@@ -360,11 +360,14 @@ protected:
 
    /**
     * The default behavior of BaseConnection::handleMissingPreAndPostLayerNames.
-    * It tries to parse the name argument of the connection in the form "PRE to POST".
-    * Then "PRE" put into *preLayerNamePtr and "POST" is put into *postLayerNamePtr.
-    * It fails if name does not contain the string " to ", or if it contains it in more than one place.
+    * It tries to parse the name argument of the connection in the form "PreLayerToPostLayer".
+    * Then "PreLayer" put into *preLayerNamePtr and "PostLayer" is put into *postLayerNamePtr, and PV_SUCCESS is returned.
+    * If name does not contain the string "To", or if it contains it in more than one place, then PV_FAILURE is returned
+    * and *preLayerNamePtr and *postLayerNamePtr are not changed.
+    * rank is the rank of the process under MPI; the root process will print a message to stderr if the routine fails; non-root process will not.
+    * This routine uses malloc to fill *{pre,post}LayerNamePtr, so the routine calling this one is responsible for freeing them.
     */
-   static int inferPreAndPostFromConnName(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr);
+   static int inferPreAndPostFromConnName(const char * name, int rank, char ** preLayerNamePtr, char ** postLayerNamePtr);
 
 
    /**

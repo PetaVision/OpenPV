@@ -162,21 +162,23 @@ void BaseConnection::setConvertRateToSpikeCount(bool convertRateToSpikeCountFlag
 }
 
 int BaseConnection::handleMissingPreAndPostLayerNames() {
-   return inferPreAndPostFromConnName(this->getName(), this->getParent()->parameters(), &preLayerName, &postLayerName);
+   return inferPreAndPostFromConnName(this->getName(), this->getParent()->columnId(), &preLayerName, &postLayerName);
 }
 
-int BaseConnection::inferPreAndPostFromConnName(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr) {
-   // If the connection name has the form "ABC to XYZ", then pre will be ABC and post will be XYZ.
-   // If either of the intended pre- or post-layer names contains the string " to ", this method cannot be used to infer them.
+int BaseConnection::inferPreAndPostFromConnName(const char * name, int rank, char ** preLayerNamePtr, char ** postLayerNamePtr) {
+   // If the connection name has the form "AbcToXyz", then *preLayerNamePtr will be Abc and *postLayerNamePtr will be Xyz.
+   // If either of the intended pre- or post-layer names contains the string "To", this method cannot be used to infer them:
+   // it returns PV_FAILURE if the string contains either more or less than one occurrence of the string "To", and does not change
+   // *preLayerNamePtr or *postLayerNamePtr
    // This routine uses malloc to fill *{pre,post}LayerNamePtr, so the routine calling this one is responsible for freeing them.
 
    int status = PV_SUCCESS;
-   // Check to see if the string " to " appears exactly once in name
-   // If so, use part preceding " to " as pre-layer, and part after " to " as post.
-   const char * separator = " to ";
+   // Check to see if the string "To" appears exactly once in name
+   // If so, use part preceding "To" as pre-layer, and part after "To" as post.
+   const char * separator = "To";
    const char * locto = strstr(name, separator);
    if( locto != NULL ) {
-      const char * nextto = strstr(locto+1, separator); // Make sure " to " doesn't appear again.
+      const char * nextto = strstr(locto+1, separator); // Make sure "To" doesn't appear again.
       if( nextto == NULL ) {
          int seplen = strlen(separator);
 
@@ -202,18 +204,18 @@ int BaseConnection::inferPreAndPostFromConnName(const char * name, PVParams * pa
       }
       else {
          status = PV_FAILURE;
-         if (params->getInterColComm()->commRank()==0) {
+         if (rank==0) {
             fprintf(stderr, "Unable to infer pre and post from connection name \"%s\":\n", name);
-            fprintf(stderr, "The string \" to \" cannot appear in the name more than once.\n");
+            fprintf(stderr, "The string \"To\" cannot appear in the name more than once.\n");
          }
       }
    }
    else {
       status = PV_FAILURE;
-      if (params->getInterColComm()->commRank()==0) {
+      if (rank==0) {
          fprintf(stderr, "Unable to infer pre and post from connection name \"%s\".\n", name);
-         fprintf(stderr, "The connection name must have the form \"ABC to XYZ\", to infer the names,\n");
-         fprintf(stderr, "but the string \" to \" does not appear.\n");
+         fprintf(stderr, "The connection name must have the form \"AbcToXyz\", to infer the names,\n");
+         fprintf(stderr, "but the string \"To\" does not appear.\n");
       }
    }
    return status;
