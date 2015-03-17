@@ -3,16 +3,13 @@
  * Author: slundquist
  */
 
-#ifdef PV_USE_SNDFILE
-
 #include "SoundProbe.hpp"
 #include <include/pv_arch.h>
 #include <layers/HyPerLayer.hpp>
 #include <assert.h>
 #include <string.h>
 
-namespace PV {
-SoundProbe::SoundProbe(const char * probeName, HyPerCol * hc)
+SoundProbe::SoundProbe(const char * probeName, PV::HyPerCol * hc)
    : StatsProbe()
 {
    init_base();
@@ -39,7 +36,7 @@ int SoundProbe::init_base() {
    return PV_SUCCESS;
 }
 
-int SoundProbe::initSoundProbe(const char * probeName, HyPerCol * hc) {
+int SoundProbe::initSoundProbe(const char * probeName, PV::HyPerCol * hc) {
     nextDisplayTime = hc->getStartTime();
     std::cout << "initdisplaytime: " << nextDisplayTime << "\n";
 
@@ -112,8 +109,4 @@ int SoundProbe::outputState(double timed){
     } //end of forloop over samples
     return PV_SUCCESS;
 }
-
-}
-
-#endif // PV_USE_SNDFILE
 

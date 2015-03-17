@@ -7,16 +7,14 @@
 
 #include "CochlearLayer.hpp"
 
-namespace PV {
-
 CochlearLayer::CochlearLayer() {
    initialize_base();
 }
 
-CochlearLayer::CochlearLayer(const char * name, HyPerCol * hc) {
+CochlearLayer::CochlearLayer(const char * name, PV::HyPerCol * hc) {
    initialize_base();
    initialize(name, hc);
-}  // end CochlearLayer::CochlearLayer(const char *, HyPerCol *)
+}  // end CochlearLayer::CochlearLayer(const char *, PV::HyPerCol *)
 
 CochlearLayer::~CochlearLayer() {
    targetFreqs.clear();
@@ -45,7 +43,7 @@ int CochlearLayer::initialize_base() {
     timestep = 0;
 }
 
-int CochlearLayer::initialize(const char * name, HyPerCol * hc) {
+int CochlearLayer::initialize(const char * name, PV::HyPerCol * hc) {
    int status = ANNLayer::initialize(name, hc);
 
     nextDisplayTime = hc->getStartTime();
@@ -272,13 +270,10 @@ int CochlearLayer::updateState(double time, double dt){
     if (time >= nextDisplayTime){
         nextDisplayTime += displayPeriod;
         //Copy V to A buffer
-        HyPerLayer::setActivity();
+        PV::HyPerLayer::setActivity();
     }
     
    update_timer->stop();
    return PV_SUCCESS;
     
 }
-
-}  // end namespace PV
-

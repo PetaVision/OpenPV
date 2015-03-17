@@ -3,53 +3,15 @@
  *
  */
 
+
 #include <columns/buildandrun.hpp>
-#include "SoundProbe.hpp"
-#include "CochlearLayer.hpp"
-#include "inverseCochlearLayer.hpp"
-#include "inverseNewCochlearLayer.hpp"
-#include "StreamReconLayer.h"
-
-
-#define MAIN_USES_CUSTOMGROUPS
-
-#ifdef MAIN_USES_CUSTOMGROUPS
-void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * hc);
-// customgroups is for adding objects not supported by build().
-#endif // MAIN_USES_ADDCUSTOM
+#include <PVsoundGroupHandler.hpp>
+#include "soundAnalysisGroupHandler.hpp"
 
 int main(int argc, char * argv[]) {
-
-	int status;
-#ifdef MAIN_USES_CUSTOMGROUPS
-	status = buildandrun(argc, argv, NULL, NULL, &addcustomgroup);
-#else
-	status = buildandrun(argc, argv);
-#endif // MAIN_USES_CUSTOMGROUPS
-	return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   ParamGroupHandler * customGroupHandlers[2];
+   customGroupHandlers[0] = new PVsound::PVsoundGroupHandler;
+   customGroupHandlers[1] = new soundAnalysisGroupHandler;
+   int status = buildandrun(argc, argv, NULL, NULL, customGroupHandlers, 2);
+   return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
-#ifdef MAIN_USES_CUSTOMGROUPS
-void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * hc) {
-    void * addedGroup = NULL;
-#ifdef PV_USE_SNDFILE
-    if ( !strcmp(keyword, "SoundProbe") ) {
-       addedGroup = new SoundProbe(groupname, hc);
-    }
-#endif // PV_USE_SNDFILE
-    if ( !strcmp(keyword, "CochlearLayer") ) {
-       addedGroup = new CochlearLayer(groupname, hc);
-    }
-    if ( !strcmp(keyword, "inverseCochlearLayer") ) {
-       addedGroup = new inverseCochlearLayer(groupname, hc);
-    }
-    if ( !strcmp(keyword, "inverseNewCochlearLayer") ) {
-        addedGroup = new inverseNewCochlearLayer(groupname, hc);
-    }
-    if ( !strcmp(keyword, "StreamReconLayer") ) {
-        addedGroup = new StreamReconLayer(groupname, hc);
-    }
-   
-    return addedGroup;
-}
-#endif // MAIN_USE_CUSTOMGROUPS

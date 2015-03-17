@@ -6,21 +6,20 @@
  */
 
 #include "inverseCochlearLayer.hpp"
+#include <NewCochlear.h>
 
 #define INVERSECOCHLEARLAYER_NF 1
 // Two features, one for real part, one for imaginary part
 // imaginary part should be negligible; change to one feature when that happens
 
-namespace PV {
-
 inverseCochlearLayer::inverseCochlearLayer() {
    initialize_base();
 }
 
-inverseCochlearLayer::inverseCochlearLayer(const char * name, HyPerCol * hc) {
+inverseCochlearLayer::inverseCochlearLayer(const char * name, PV::HyPerCol * hc) {
    initialize_base();
    initialize(name, hc);
-}  // end inverseCochlearLayer::inverseCochlearLayer(const char *, HyPerCol *)
+}  // end inverseCochlearLayer::inverseCochlearLayer(const char *, PV::HyPerCol *)
 
 inverseCochlearLayer::~inverseCochlearLayer() {
    if(inputLayername){
@@ -76,7 +75,7 @@ int inverseCochlearLayer::initialize_base() {
    return PV_SUCCESS;
 }
 
-int inverseCochlearLayer::initialize(const char * name, HyPerCol * hc) {
+int inverseCochlearLayer::initialize(const char * name, PV::HyPerCol * hc) {
    int status = ANNLayer::initialize(name, hc);
    //Initialize any other member variables here
     nextDisplayTime = hc->getStartTime();
@@ -101,7 +100,7 @@ int inverseCochlearLayer::communicateInitInfo(){
 
    //Grab the cochlear layer
     
-   HyPerLayer* tempLayer = parent->getLayerFromName(cochlearLayername);
+   PV::HyPerLayer* tempLayer = parent->getLayerFromName(cochlearLayername);
    if (tempLayer == NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: CochlearLayerName \"%s\" is not a layer in the HyPerCol.\n",
@@ -110,7 +109,7 @@ int inverseCochlearLayer::communicateInitInfo(){
       exit(EXIT_FAILURE);
    }
 
-   cochlearLayer = dynamic_cast <NewCochlearLayer*> (tempLayer); //this should be new cochlear layer
+   cochlearLayer = dynamic_cast <PVsound::NewCochlearLayer*> (tempLayer); //this should be new cochlear layer
    if (cochlearLayer == NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: CochlearLayerName \"%s\" is not a CochlearLayer.\n",
@@ -273,7 +272,7 @@ int inverseCochlearLayer::updateState(double time, double dt){
        //*outV is where the output data should go
 
     //Copy V to A buffer
-       HyPerLayer::setActivity();
+       PV::HyPerLayer::setActivity();
       // clayer->activity->data[0] *= 0.25; // With bufferLength 1, sound is reproduced well but at a higher amplitude
       // clayer->activity->data[1] *= 0.25; // This corrects the amplitude to approximately its original value
                                              // But I think the correction factor depends on frequency.  --pfs Jun 23, 2014
@@ -296,6 +295,4 @@ int inverseCochlearLayer::ringBuffer(int level) {
    assert(b>=0 && b<bufferLength);
    return b;
 }
-
-}  // end namespace PV
 

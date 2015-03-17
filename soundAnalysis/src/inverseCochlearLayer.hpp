@@ -9,13 +9,11 @@
 #define INVERSECOCHLEARLAYER_HPP_
 
 #include <layers/ANNLayer.hpp>
-#include <layers/NewCochlear.h>
+#include <NewCochlear.h>
 
-namespace PV {
-
-class inverseCochlearLayer : public ANNLayer{
+class inverseCochlearLayer : public PV::ANNLayer{
 public:
-   inverseCochlearLayer(const char* name, HyPerCol * hc);
+   inverseCochlearLayer(const char* name, PV::HyPerCol * hc);
    virtual ~inverseCochlearLayer();
    virtual int updateState (double time, double dt);
 
@@ -24,7 +22,7 @@ public:
 protected:
    inverseCochlearLayer();
 
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char * name, PV::HyPerCol * hc);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
@@ -42,9 +40,9 @@ private:
    char* inputLayername;
    char* cochlearLayername;
    //The layer to grab the input from
-   HyPerLayer* inputLayer;
+   PV::HyPerLayer* inputLayer;
    //The cochlear layer to grab nessessary parameters from
-   NewCochlearLayer* cochlearLayer;
+   PVsound::NewCochlearLayer* cochlearLayer;
    
    int bufferLength;
    pvdata_t ** xhistory; // ring buffer of past x_k(t_j).
@@ -62,6 +60,4 @@ private:
 
 }; // end of class inverseCochlearLayer
 
-}  // end namespace PV
-
-#endif /* ANNLAYER_HPP_ */
+#endif /* INVERSECOCHLEARLAYER_HPP_ */

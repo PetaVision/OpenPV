@@ -11,11 +11,9 @@
 #include <layers/ANNLayer.hpp>
 #include <vector>
 
-namespace PV {
-
-class CochlearLayer : public ANNLayer{
+class CochlearLayer : public PV::ANNLayer{
 public:
-   CochlearLayer(const char* name, HyPerCol * hc);
+   CochlearLayer(const char* name, PV::HyPerCol * hc);
    virtual ~CochlearLayer();
    virtual int updateState (double time, double dt);
     
@@ -32,7 +30,7 @@ public:
 protected:
    CochlearLayer();
 
-   int initialize(const char * name, HyPerCol * hc);
+   int initialize(const char * name, PV::HyPerCol * hc);
 
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_FreqMinMax(enum ParamsIOFlag ioFlag);
@@ -53,7 +51,7 @@ private:
    std::vector <float> omegas;
    std::vector <float> dampingConstants;
     std::vector <float> cochlearScales;
-   HyPerLayer* inputLayer;
+   PV::HyPerLayer* inputLayer;
    char* inputLayername;
    int targetChannel;
    float dampingConstant;
@@ -68,6 +66,4 @@ private:
 
 }; // end of class CochlearLayer
 
-}  // end namespace PV
-
-#endif /* ANNLAYER_HPP_ */
+#endif /* COCHLEARLAYER_HPP_ */

@@ -12,26 +12,20 @@
 #include <iostream>
 #include <layers/HyPerLayer.hpp>
 
-
-namespace PV {
+class StreamReconLayer : public PV::HyPerLayer{
+public:
+    StreamReconLayer(const char * name, PV::HyPerCol * hc);
+    virtual ~StreamReconLayer();
+    virtual bool activityIsSpiking() { return false; }
     
-    class StreamReconLayer : public HyPerLayer{
-    public:
-        StreamReconLayer(const char * name, HyPerCol * hc);
-        virtual ~StreamReconLayer();
-        virtual bool activityIsSpiking() { return false; }
-        
-    protected:
-        StreamReconLayer();
-        virtual int updateState (double time, double dt);
-        
-    private:
-        int initialize_base();
-        int bufferLevel;
-        
-    }; // end of class streamreconlayer
+protected:
+    StreamReconLayer();
+    virtual int updateState (double time, double dt);
     
-}  // end namespace PV
-
-
+private:
+    int initialize_base();
+    int bufferLevel;
+    
+}; // end of class streamreconlayer
+    
 #endif /* defined(STREAMRECONLAYER_H_) */

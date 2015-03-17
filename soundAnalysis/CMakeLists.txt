@@ -1,12 +1,16 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.8)
 
-#Set CMAKE_MODULE_PATH
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
-
 string(FIND ${CMAKE_CURRENT_SOURCE_DIR} "/" pos REVERSE)
 MATH(EXPR pos ${pos}+1)
 string(SUBSTRING ${CMAKE_CURRENT_SOURCE_DIR} ${pos} -1 PV_PROJECT_NAME)
+
+set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../trunk CACHE PATH "The base PetaVision directory")
+set(PVSOUND_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../auxlib/pvsound CACHE PATH "The pvsound directory")
+
+#Set CMAKE_MODULE_PATH
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PVSOUND_DIR}/Modules/")
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
@@ -16,6 +20,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
 endif (NOT CMAKE_BUILD_TYPE)
+
+IF(APPLE AND CLANG_OMP)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
+ENDIF(APPLE AND CLANG_OMP)
 
 if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -DPV_USE_THREADS")
@@ -38,12 +47,18 @@ set(PV_SOURCE_DIR "${PV_DIR}/src")
 set(PV_BINARY_DIR "${PV_DIR}/lib")
 set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
+set(PVSOUND_SRC_DIR "${PVSOUND_DIR}/src")
+set(PVSOUND_LIB_DIR "${PVSOUND_DIR}/lib")
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 if (NOT GDAL_FOUND)
     find_package(GDAL REQUIRED)
 endif (NOT GDAL_FOUND)
+
+if (NOT LIBSNDFILE_FOUND)
+    find_package(LIBSNDFILE REQUIRED)
+endif (NOT LIBSNDFILE_FOUND)
 
 # The user may specify a non-standard compiler name for MPI
 #  For example, the user may type:
@@ -59,21 +74,13 @@ endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
 set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
 set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 
-if (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
-    find_package(LIBSNDFILE)
-endif (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
-
-if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
-   include_directories(${LIBSNDFILE_INCLUDE_DIR})
-   add_definitions(-DPV_USE_SNDFILE)
-   set(LIB_SND_FILE_FLAGS_ADDED TRUE)
-endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
-
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
+include_directories(${PVSOUND_SRC_DIR})
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
+link_directories(${PVSOUND_LIB_DIR})
 
 # Add executable
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
@@ -86,13 +93,11 @@ else(CUDA_GPU)
 endif(CUDA_GPU)
 
 target_link_libraries(${PV_PROJECT_NAME} pv)
-#
+target_link_libraries(${PV_PROJECT_NAME} pvsound)
+
 ## target_link_libraries commands no longer needed because the libraries are included in libpv.so
 ## Link executable to external libraries
 #target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
-#IF(LIBSNDFILE_FOUND)
-#   target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
-#ENDIF(LIBSNDFILE_FOUND)
 #
 #IF(CUDNN)
 #   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
