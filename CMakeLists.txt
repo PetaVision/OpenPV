@@ -15,11 +15,18 @@ set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision CACHE PATH "The base petavi
 set(OPEN_MP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
 set(OPEN_CL_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
 set(CUDA_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
-set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
 set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
+
+IF(CUDA_GPU AND CUDA_GPU)
+   message(FATAL_ERROR "CUDA_GPU and OPEN_CL_GPU cannot both be false")
+ENDIF(CUDA_GPU AND CUDA_GPU)
+
+IF(NOT EXISTS "${PV_DIR}")
+   message(FATAL_ERROR "PV_DIR \"${PV_DIR}\" does not exist.")
+ENDIF(NOT EXISTS "${PV_DIR}")
 
 if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -DPV_USE_THREADS")
