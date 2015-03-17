@@ -39,7 +39,7 @@ public:
          addedLayer = new PlasticConnTestLayer(name, hc);
       }
       if (addedLayer==NULL) {
-         fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", keyword, name);
+         fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", hc->columnId(), keyword, name);
          exit(EXIT_FAILURE);
       }
       return addedLayer;
@@ -52,7 +52,7 @@ public:
          addedConn = new PlasticTestConn(name, hc, weightInitializer, weightNormalizer);
       }
       if (addedConn==NULL) {
-         fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", keyword, name);
+         fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", hc->columnId(), keyword, name);
          exit(EXIT_FAILURE);
       }
       return addedConn;
@@ -65,7 +65,7 @@ public:
          addedProbe = new PlasticConnTestProbe(name, hc);
       }
       if (addedProbe==NULL) {
-         fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", keyword, name);
+         fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", hc->columnId(), keyword, name);
          exit(EXIT_FAILURE);
       }
       return addedProbe;

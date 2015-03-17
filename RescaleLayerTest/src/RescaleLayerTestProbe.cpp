@@ -62,7 +62,7 @@ int RescaleLayerTestProbe::outputState(double timed)
    pvadata_t const * A = targetRescaleLayer->getLayerData();
    pvpotentialdata_t const * V = targetRescaleLayer->getV();
    if (targetRescaleLayer->getRescaleMethod()==NULL) {
-      fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" does not have rescaleMethod set.  Exiting.\n");
+      fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" does not have rescaleMethod set.  Exiting.\n", name, targetRescaleLayer->getName());
       status = PV_FAILURE;
    }
    else if (!strcmp(targetRescaleLayer->getRescaleMethod(), "maxmin")) {
@@ -95,7 +95,7 @@ int RescaleLayerTestProbe::outputState(double timed)
 
       bool iscolinear = colinear(nk, ny, origStrideYExtended, rescaleStrideYExtended, origData, rescaledData, tolerance, NULL, NULL, NULL);
       if (!iscolinear) {
-         fprintf(stderr, "RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n");
+         fprintf(stderr, "RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", targetRescaleLayer->getName());
          status = PV_FAILURE;
       }
    }
@@ -138,7 +138,7 @@ int RescaleLayerTestProbe::outputState(double timed)
 
       bool iscolinear = colinear(nk, ny, origStrideYExtended, rescaleStrideYExtended, origData, rescaledData, tolerance, NULL, NULL, NULL);
       if (!iscolinear) {
-         fprintf(stderr, "RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n");
+         fprintf(stderr, "RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", targetRescaleLayer->getName());
          status = PV_FAILURE;
       }
    }
@@ -178,7 +178,8 @@ int RescaleLayerTestProbe::outputState(double timed)
          }
          bool iscolinear = colinear(nf, 1, 0, 0, &originalData[k], &rescaledData[kExtended], tolerance, NULL, NULL, NULL);
          if (!iscolinear) {
-            fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, starting at restricted neuron %d, is not colinear.\n");
+            fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\", location in rank %d, starting at restricted neuron %d, is not a linear rescaling.\n",
+                  getName(), targetRescaleLayer->getName(), parent->columnId(), k);
             status = PV_FAILURE;
          }
       }

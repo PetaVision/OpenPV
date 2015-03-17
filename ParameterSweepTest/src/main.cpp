@@ -37,7 +37,7 @@ public:
          addedProbe = new ParameterSweepTestProbe(name, hc);
       }
       if (addedProbe==NULL) {
-         fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", keyword, name);
+         fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", hc->columnId(), keyword, name);
          exit(EXIT_FAILURE);
       }
       return addedProbe;
