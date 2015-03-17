@@ -2091,7 +2091,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    // rank zero process broadcasts params to all processes, so it's enough for rank zero process to do the error checking
    if (comm->commRank()==0) {
       if (numParams != NUM_WGT_PARAMS) {
-         fprintf(stderr, "Reading weights file \"%s\": expected %d parameters in header but received %d\n", filename, NUM_WGT_PARAMS, numParams);
+         fprintf(stderr, "Reading weights file \"%s\": expected %zu parameters in header but received %d\n", filename, NUM_WGT_PARAMS, numParams);
          exit(EXIT_FAILURE);
       }
       if (params[NUM_BIN_PARAMS+INDEX_WGT_NXP] != nxp || params[NUM_BIN_PARAMS+INDEX_WGT_NYP] != nyp) {

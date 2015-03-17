@@ -3241,7 +3241,7 @@ void HyPerConn::reduceNumKernelActivations(){
       for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
          int numKernelIndices = getNumDataPatches();
          if ((long int) numKernelIndices * (long int) (nxp*nyp*nfp) - 1L > (long int) INT_MAX) {
-            fprintf(stderr, "numKernelIndices %d too large for MPI_Allreduce\n");
+            fprintf(stderr, "numKernelIndices %d too large for MPI_Allreduce\n", numKernelIndices);
             exit(EXIT_FAILURE);
          }
          int ierr = MPI_Allreduce(MPI_IN_PLACE, numKernelActivations[arbor][0], numKernelIndices*nxp*nyp*nfp, MPI_LONG, MPI_SUM, parent->icCommunicator()->communicator());

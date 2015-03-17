@@ -54,9 +54,10 @@ int RescaleLayer::communicateInitInfo() {
    return status;
 }
 
-//Rescale layer does not use the V buffer, so absolutly fine to clone off of an null V layer
+//Rescale layer does not use the V buffer, so absolutely fine to clone off of an null V layer
 int RescaleLayer::allocateV() {
    //Do nothing
+   return PV_SUCCESS;
 }
 
 

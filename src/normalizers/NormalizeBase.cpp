@@ -45,7 +45,7 @@ int NormalizeBase::initialize(const char * name, HyPerCol * hc) {
    this->numConnections = 0;
    this->name = strdup(name);
    if (this->name==NULL) {
-      fprintf(stderr, "Rank %d error: unable to store name \"%s\" for normalizer object.\n", hc->columnId());
+      fprintf(stderr, "Rank %d error: unable to allocate memory for name \"%s\" of normalizer object.\n", hc->columnId(), name);
       exit(EXIT_FAILURE);
    }
    this->parentHyPerCol = hc;
