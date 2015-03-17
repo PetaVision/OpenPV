@@ -19,11 +19,17 @@ int ComparisonLayer::updateState(double timef, double dt) {
    ANNLayer::updateState(timef, dt);
    int numNeurons = getNumNeurons();
    pvdata_t * A = getCLayer()->activity->data;
+
+   pvdata_t * GSynExt = getChannel(CHANNEL_EXC); //guess
+   pvdata_t * GSynInh = getChannel(CHANNEL_INH); //gt
+
    const PVLayerLoc * loc = getLayerLoc(); 
+   float thresh = .5;
    for(int ni = 0; ni < getNumNeurons(); ni++){
-      int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-      //.1 is the error allowed
-      assert(fabs(A[nExt]) <= .1);
+      float guess = GSynExt[ni] <= thresh ? 0:1;
+      float actual = GSynInh[ni];
+      assert(guess == actual);
+
    }
    return PV_SUCCESS;
 }

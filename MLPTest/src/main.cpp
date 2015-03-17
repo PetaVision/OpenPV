@@ -74,7 +74,9 @@ int main(int argc, char * argv[]) {
    char * cl_args[cl_argc];
    cl_args[0] = strdup(argv[0]);
    cl_args[1] = strdup("-p");
+
    cl_args[2] = strdup("input/MLPTrain.params");
+
    if(threading && reqrtn){
       assert(cl_argc==6);
       cl_args[3] = strdup("-t");
@@ -102,6 +104,27 @@ int main(int argc, char * argv[]) {
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
    }
+
+   free(cl_args[2]);
+   cl_args[2] = strdup("input/AlexTrain.params");
+   status = buildandrun(cl_argc, cl_args, NULL, NULL, &addcustomgroup);
+   if( status != PV_SUCCESS ) {
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
+   }
+
+   free(cl_args[2]);
+   cl_args[2] = strdup("input/AlexTest.params");
+   status = buildandrun(cl_argc, cl_args, NULL, NULL, &addcustomgroup);
+   if( status != PV_SUCCESS ) {
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
+   }
+
+
+
+
+
+
+
 
 #ifdef PV_USE_MPI
    MPI_Finalize();

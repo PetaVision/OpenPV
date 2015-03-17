@@ -63,7 +63,7 @@ int GTLayer::updateState(double timef, double dt) {
       int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       switch(iVal){
          case 0:
-            A[nExt] = -1;
+            A[nExt] = 0;
             break;
          case 1:
             A[nExt] = 1;
