@@ -39,11 +39,11 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int check_clone_id = -1;
    int check_sigmoid_id = -1;
    for (int k=0; k<hc->numberOfLayers(); k++) {
-      if (!strcmp(hc->getLayer(k)->getName(), "check_clone")) {
+      if (!strcmp(hc->getLayer(k)->getName(), "CheckClone")) {
          assert(check_clone_id<0);
          check_clone_id = k;
       }
-      if (!strcmp(hc->getLayer(k)->getName(), "check_sigmoid")) {
+      if (!strcmp(hc->getLayer(k)->getName(), "CheckSigmoid")) {
          assert(check_sigmoid_id<0);
          check_sigmoid_id = k;
       }

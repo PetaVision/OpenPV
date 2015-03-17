@@ -48,7 +48,7 @@ ANNLayer "Comparison" = {
     VWidth = 0.0;
 };
 
-IdentConn "Maintain Comparison" = {
+IdentConn "MaintainComparison" = {
     preLayerName = "Comparison";
     postLayerName = "Comparison";
     channelCode = 0;

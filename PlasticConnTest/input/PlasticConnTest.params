@@ -30,7 +30,7 @@ HyPerCol "column" = {
 // layers
 //
 
-PlasticConnTestLayer "pre" = {
+PlasticConnTestLayer "Pre" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -52,7 +52,7 @@ PlasticConnTestLayer "pre" = {
 };
 
 
-PlasticConnTestLayer "post" = {
+PlasticConnTestLayer "Post" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -76,7 +76,7 @@ PlasticConnTestLayer "post" = {
 
 
 
-PlasticTestConn "pre to post" = {
+PlasticTestConn "PreToPost" = {
     channelCode = 0;
     sharedWeights = true;
     nxp = 5;
@@ -111,8 +111,8 @@ PlasticTestConn "pre to post" = {
 };
 
 // PlasticConnTestProbe "probe"
-PlasticConnTestProbe "probe" = {
-    targetConnection = "pre to post";
+PlasticConnTestProbe "Probe" = {
+    targetConnection = "PreToPost";
     probeOutputFile = "PreToPostProbe.txt";
     kernelIndex = 0;
     arborId = 0;

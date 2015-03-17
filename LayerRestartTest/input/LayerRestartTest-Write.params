@@ -73,7 +73,7 @@ ANNLayer "Copy" = {
     VWidth = 0.0;
 };
 
-Image "Random Image" = {
+Image "RandomImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -115,13 +115,13 @@ ANNLayer "Comparison" = {
     VWidth = 0.0;
 };
 
-IdentConn "Image to Copy" = {
+IdentConn "ImageToCopy" = {
     channelCode = 0;   
     writeStep = -1;
     delay = 0;         
 };
 
-IdentConn "Random Image to Comparison" = {
+IdentConn "RandomImageToComparison" = {
     channelCode = 0;   
     writeStep = -1;
     delay = 0;         

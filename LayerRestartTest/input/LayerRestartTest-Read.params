@@ -95,13 +95,13 @@ ANNLayer "Comparison" = {
     VWidth = 0.0;
 };
 
-IdentConn "Image to Comparison" = {
+IdentConn "ImageToComparison" = {
     channelCode = 0;   
     writeStep = -1;
     delay = 0;         
 };
 
-IdentConn "Maintain Copy" = {
+IdentConn "MaintainCopy" = {
     preLayerName = "Copy";
     postLayerName = "Copy";
     channelCode = 0;
@@ -109,7 +109,7 @@ IdentConn "Maintain Copy" = {
     delay = 0;
 };
 
-IdentConn "Copy to Comparison" = {
+IdentConn "CopyToComparison" = {
     channelCode = 1;   
     writeStep = -1;
     delay = 0;         

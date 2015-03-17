@@ -37,7 +37,7 @@ HyPerCol "column" = {
 // layers
 //
 
-Image "input" = {
+Image "Input" = {
     restart                     = 0;
     nxScale                     = 4;
     nyScale                     = 4;
@@ -58,7 +58,7 @@ Image "input" = {
     offsetY                     = 0;
 };
 
-ANNLayer "downsampled" = {
+ANNLayer "Downsampled" = {
     restart                     = false;
     nxScale                     = 1;
     nyScale                     = 1;
@@ -68,7 +68,7 @@ ANNLayer "downsampled" = {
     valueBC                     = 0.0;
     InitVType                   = "ZeroV";
     triggerFlag                 = true;
-    triggerLayerName            = "input";
+    triggerLayerName            = "Input";
     triggerOffset               = 0;
     writeStep                   = -1;
     initialWriteTime            = 0;
@@ -81,7 +81,7 @@ ANNLayer "downsampled" = {
     VWidth                      = 0;
 };
 
-Retina "retina on" = {
+Retina "RetinaOn" = {
     nxScale                     = 1;
     nyScale                     = 1;
     nf                          = 1;
@@ -107,7 +107,7 @@ Retina "retina on" = {
     absRefractoryPeriod         = 0;
 };
 
-Retina "retina off" = {
+Retina "RetinaOff" = {
     nxScale                     = 1;
     nyScale                     = 1;
     nf                          = 1;
@@ -134,7 +134,7 @@ Retina "retina off" = {
     absRefractoryPeriod         = 0;
 };
 
-LIFGap "lif layer" = {
+LIFGap "LIFLayer" = {
     restart                     = 0;
     nxScale                     = 1;
     nyScale                     = 1;
@@ -169,7 +169,7 @@ LIFGap "lif layer" = {
     method                      = "arma";
 };
 
-KernelConn "input to downsampled" = {
+KernelConn "InputToDownsampled" = {
    channelCode                  = 0;
    nxp                          = 1;
    nyp                          = 1;
@@ -201,9 +201,9 @@ KernelConn "input to downsampled" = {
 };
 
 
-KernelConn "center on" = {
-   preLayerName                 = "downsampled";
-   postLayerName                = "retina on";
+KernelConn "CenterOn" = {
+   preLayerName                 = "Downsampled";
+   postLayerName                = "RetinaOn";
    channelCode                  = 0;
    nxp                          = 1; 
    nyp                          = 1; 
@@ -237,9 +237,9 @@ KernelConn "center on" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "surround on" = {
-   preLayerName                 = "downsampled";
-   postLayerName                = "retina on";
+KernelConn "SurroundOn" = {
+   preLayerName                 = "Downsampled";
+   postLayerName                = "RetinaOn";
    channelCode                  = 1;
    nxp                          = 3;
    nyp                          = 3;
@@ -272,9 +272,9 @@ KernelConn "surround on" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "center off" = {
-   preLayerName                 = "downsampled";
-   postLayerName                = "retina off";
+KernelConn "CenterOff" = {
+   preLayerName                 = "Downsampled";
+   postLayerName                = "RetinaOff";
    channelCode                  = 1;
    nxp                          = 1; 
    nyp                          = 1; 
@@ -309,8 +309,8 @@ KernelConn "center off" = {
 };
 
 KernelConn "surround off" = {
-   preLayerName                 = "downsampled";
-   postLayerName                = "retina off";
+   preLayerName                 = "Downsampled";
+   postLayerName                = "RetinaOff";
    channelCode                  = 0;
    nxp                          = 3;
    nyp                          = 3;
@@ -343,7 +343,7 @@ KernelConn "surround off" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "retina on to lif layer" = {
+KernelConn "RetinaOnToLIFLayer" = {
    channelCode                 = 0;
    nxp                         = 1;
    nyp                         = 1;
@@ -367,7 +367,7 @@ KernelConn "retina on to lif layer" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "retina off to lif layer" = {
+KernelConn "RetinaOffToLIFLayer" = {
    channelCode                 = 0;
    nxp                         = 1;
    nyp                         = 1;

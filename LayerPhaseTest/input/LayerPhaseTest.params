@@ -54,35 +54,40 @@ HyPerCol "column" = {
    nx = 32;   
    ny = 32;
    dt = 1.0;
+   dtAdaptFlag = false;
    randomSeed = 505557946;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 20;
-   progressStep = 1;
+   stopTime = 20;
+   progressInterval = 1;
    outputPath = "output";
+   printParamsFilename = "pv.params";
    filenamesContainLayerNames = false;
    filenamesContainConnectionNames = false;
-   checkpointRead = false;
+   initializeFromCheckpointDir = "";
    checkpointWrite = false;
    // checkpointWriteDir = "checkpoints";
    // checkpointWriteStepInterval = 1;
    suppressLastOutput = false;
    writeProgressToErr = true;
+   verifyWrites = true;
    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+   errorOnNotANumber = false;
 };
 
 //
 // layers
 //
 
-Retina "retina" = {
+Retina "Retina" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
     writeStep = -1.0;
     mirrorBCflag = 1;
+    triggerFlag = false;
     spikingFlag = 0;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
 
     foregroundRate = 1000;
     backgroundRate = 1000;
@@ -95,40 +100,44 @@ Retina "retina" = {
     phase = 0;
 };
 
-ANNLayer "reconstruction" = {
+ANNLayer "Reconstruction" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
     writeStep = -1;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    triggerFlag = false;
+    sparseLayer = 0;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0;
+    VWidth = 0;
     
     phase = 1;
 };
 
-ANNLayer "error" = {
+ANNLayer "Error" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
     writeStep = -1;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    triggerFlag = false;
+    sparseLayer = 0;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0;
+    VWidth = 0;
     
     phase = 2;
 };
@@ -140,14 +149,16 @@ ANNLayer "V1" = {
     nf = 1;
     writeStep = -1;
     mirrorBCflag = 1;
-    writeSparseActivity = 0;
+    triggerFlag = false;
+    sparseLayer = 0;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0;
+    VWidth = 0;
     
     phase = 3;
 };
@@ -157,34 +168,34 @@ ANNLayer "V1" = {
 //
 
 
-IdentConn "retina to error" = {
+IdentConn "RetinaToError" = {
     channelCode = 0;
     writeStep = -1;    
     delay = 0;
 };
 
 
-IdentConn "error to V1" = {
+IdentConn "ErrorToV1" = {
     channelCode = 0;
     writeStep = -1;    
     delay = 0;
 };
 
 
-IdentConn "V1 to reconstruction" = {
+IdentConn "V1ToReconstruction" = {
     channelCode = 0;
     writeStep = -1;    
     delay = 0;
 };
 
 
-IdentConn "reconstruction to error" = {
+IdentConn "ReconstructionToError" = {
     channelCode = 1;
     writeStep = -1;    
     delay = 0;
 };
 
-IdentConn "V1 to V1" = {
+IdentConn "V1ToV1" = {
     channelCode = 0;
     writeStep = -1;
     delay = 0;
@@ -194,25 +205,31 @@ IdentConn "V1 to V1" = {
 // Probes
 //
 
-LayerPhaseTestProbe "Reconstruction probe" = {
-    targetLayer = "reconstruction";
+LayerPhaseTestProbe "ReconstructionProbe" = {
+    targetLayer = "Reconstruction";
     probeOutputFile = "recon_stats.txt";
+    triggerFlag = false;
+    nnzThreshold = 0.0;
     message = "reconstruction probe     ";
     equilibriumValue = 1.0;
     equilibriumTime = 2.0;
 };
 
-LayerPhaseTestProbe "Error probe" = {
-    targetLayer = "error";
+LayerPhaseTestProbe "ErrorProbe" = {
+    targetLayer = "Error";
     probeOutputFile = "error_stats.txt";
+    triggerFlag = false;
+    nnzThreshold = 0.0;
     message = "error probe              ";
     equilibriumValue = 0.0;
     equilibriumTime = 2.0;
 };
 
-LayerPhaseTestProbe "V1 probe" = {
+LayerPhaseTestProbe "V1Probe" = {
     targetLayer = "V1";
     probeOutputFile = "V1_stats.txt";
+    triggerFlag = false;
+    nnzThreshold = 0.0;
     message = "V1 probe                 ";
     equilibriumValue = 1.0;
     equilibriumTime = 1.0;

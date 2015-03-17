@@ -37,7 +37,7 @@ HyPerCol "column" = {
 
 
 // this is a input layer
-Image "input" = {
+Image "Input" = {
     restart = 0;  // make only a certain layer restart
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
@@ -59,7 +59,7 @@ Image "input" = {
     jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
 };
 
-ANNLayer "output" = {
+ANNLayer "Output" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
@@ -81,7 +81,7 @@ ANNLayer "output" = {
     VWidth = 0.0;
 };
 
-CloneVLayer "clone" = {
+CloneVLayer "Clone" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
@@ -93,10 +93,10 @@ CloneVLayer "clone" = {
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-    originalLayerName = "output";
+    originalLayerName = "Output";
 };
 
-ANNLayer "check_clone" = {
+ANNLayer "CheckClone" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
@@ -118,7 +118,7 @@ ANNLayer "check_clone" = {
     VWidth = 0.0;
 };
 
-SigmoidLayer "sigmoid" = {
+SigmoidLayer "Sigmoid" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
@@ -130,7 +130,7 @@ SigmoidLayer "sigmoid" = {
     mirrorBCflag = 1;
     writeSparseActivity = false;
 
-    originalLayerName = "output";
+    originalLayerName = "Output";
     
     Vrest = 0.2;
     VthRest = 0.4;
@@ -139,7 +139,7 @@ SigmoidLayer "sigmoid" = {
     SigmoidAlpha = 0.25;
 };
 
-ANNLayer "duplicate_sigmoid" = {
+ANNLayer "DuplicateSigmoid" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
@@ -160,7 +160,7 @@ ANNLayer "duplicate_sigmoid" = {
     VWidth = 0.0;
 };
 
-ANNLayer "check_sigmoid" = {
+ANNLayer "CheckSigmoid" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
@@ -184,9 +184,9 @@ ANNLayer "check_sigmoid" = {
 
 //this is a layer for connection
 
-KernelConn "input to output" = {
-    preLayerName = "input";
-    postLayerName = "output";
+KernelConn "InputToOutput" = {
+    preLayerName = "Input";
+    postLayerName = "Output";
     channelCode = 0;
 
 // we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
@@ -234,9 +234,9 @@ KernelConn "input to output" = {
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 };
 
-KernelConn "output to duplicate_sigmoid" = {
-    preLayerName = "output";
-    postLayerName = "duplicate_sigmoid";
+KernelConn "OutputToDuplicateSigmoid" = {
+    preLayerName = "Output";
+    postLayerName = "DuplicateSigmoid";
     channelCode = 0;
 
 // we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
@@ -268,25 +268,25 @@ KernelConn "output to duplicate_sigmoid" = {
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 };
 
-IdentConn "output to check_clone" = {
+IdentConn "OutputToCheckClone" = {
     channelCode = 1;
     delay = 0;
     writeStep = -1;
 };
 
-IdentConn "clone to check_clone" = {
+IdentConn "CloneToCheckClone" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
 };
 
-IdentConn "duplicate_sigmoid to check_sigmoid" = {
+IdentConn "DuplicateSigmoidToCheckSigmoid" = {
     channelCode = 1;
     delay = 0;
     writeStep = -1;
 };
 
-IdentConn "sigmoid to check_sigmoid" = {
+IdentConn "SigmoidToCheckSigmoid" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;

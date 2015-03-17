@@ -13,24 +13,27 @@ HyPerCol "column" = {
    nx = 16;   
    ny = 16;
    dt = 1.0;
+   dtAdaptFlag = false;
    randomSeed = 1724094279;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   numSteps = 5;
-   progressStep = 5;
+   stopTime = 5.0;
+   progressInterval = 5.0;
    writeProgressToErr = false;
+   verifyWrites = true;
    outputPath = "output/";
-   outputNamesOfLayersAndConns = "Names.txt";
+   printParamsFilename = "pv.params";
    filenamesContainLayerNames = false;
    filenamesContainConnectionNames = false;
-   checkpointRead = false;
+   initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false;
+   errorOnNotANumber = false;
 };
 
 //
 // layers
 //
-Image "input" = {
+Image "Input" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -38,7 +41,7 @@ Image "input" = {
     nf = 1;
     phase = 0;
     writeStep = -1;
-    writeSparseActivity = false;
+    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
     
@@ -47,12 +50,14 @@ Image "input" = {
     useImageBCflag = false;
     autoResizeFlag = false;
     writeImages = false;
+    offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
     jitterFlag = false;
+    padValue = false;
 };
 
-ANNLayer "output1" = {
+ANNLayer "Output1" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -61,17 +66,19 @@ ANNLayer "output1" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
+    triggerFlag = false;
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
-ANNLayer "output2" = {
+ANNLayer "Output2" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -80,17 +87,19 @@ ANNLayer "output2" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
+    triggerFlag = false;
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
-ANNLayer "comparison" = {
+ANNLayer "Comparison" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -99,26 +108,28 @@ ANNLayer "comparison" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
+    triggerFlag = false;
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
-KernelConn "all arbors at once" = {
-    preLayerName = "input";
-    postLayerName = "output1";
+HyPerConn "AllArborsAtOnce" = {
+    preLayerName = "Input";
+    postLayerName = "Output1";
     channelCode = 0;
     nxp = 3;
     nyp = 3;
     // nfp = 1; // initWeightsFile is set so nfp is taken from that file
     numAxonalArbors = 5;
+    sharedWeights = true;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
     initWeightsFile = "input/concat.pvp";
@@ -134,22 +145,21 @@ KernelConn "all arbors at once" = {
 
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 };
 
-KernelConn "arbors split into files" = {
-    preLayerName = "input";
-    postLayerName = "output2";
+HyPerConn "ArborsSplitIntoFiles" = {
+    preLayerName = "Input";
+    postLayerName = "Output2";
     channelCode = 0;
     nxp = 3;
     nyp = 3;
     // nfp = 1; // initWeightsFile is set so nfp is taken from that file
     numAxonalArbors = 5;
+    sharedWeights = true;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
     initWeightsFile = "input/ArborFiles.txt";
@@ -165,19 +175,18 @@ KernelConn "arbors split into files" = {
 
     pvpatchAccumulateType = "convolve";
     shrinkPatches = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
     selfFlag = false;
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 };
 
-IdentConn "output1 to comparison" = {
+IdentConn "Output1ToComparison" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
 };
 
-IdentConn "output2 to comparison" = {
+IdentConn "Output2ToComparison" = {
     channelCode = 1;
     delay = 0;
     writeStep = -1;

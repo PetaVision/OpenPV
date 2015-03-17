@@ -22,7 +22,7 @@ HyPerCol "column" = {
     suppressLastOutput = false;
 };
 
-Movie "8x8 Images" = {
+Movie "8x8Images" = {
     imageListPath = "./input/image08x08sequence_full.txt";
     start_frame_index = 0;
     skip_frame_index = 0;
@@ -52,7 +52,7 @@ Movie "8x8 Images" = {
     readPvpFile = false;
 };
 
-Movie "16x16 Images" = {
+Movie "16x16Images" = {
     imageListPath = "./input/image16x16sequence_full.txt";
     start_frame_index = 0;
     skip_frame_index = 0;
@@ -82,7 +82,7 @@ Movie "16x16 Images" = {
     readPvpFile = false;
 };
 
-Movie "32x32 Images" = {
+Movie "32x32Images" = {
     imageListPath = "./input/image32x32sequence_full.txt";
     start_frame_index = 0;
     skip_frame_index = 0;
@@ -112,7 +112,7 @@ Movie "32x32 Images" = {
     readPvpFile = false;
 };
 
-ANNLayer "pre 16x16 singleband" = {
+ANNLayer "Pre16x16Singleband" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -131,7 +131,7 @@ ANNLayer "pre 16x16 singleband" = {
     VShift = 0.0;
 };
 
-ANNLayer "pre 16x16 multiband" = {
+ANNLayer "Pre16x16Multiband" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -150,7 +150,7 @@ ANNLayer "pre 16x16 multiband" = {
     VShift = 0.0;
 };
 
-ANNLayer "post 8x8 singleband" = {
+ANNLayer "Post8x8Singleband" = {
     restart = 0;
     nxScale = 0.5;
     nyScale = 0.5;
@@ -169,7 +169,7 @@ ANNLayer "post 8x8 singleband" = {
     VShift = 0.0;
 };
 
-ANNLayer "post 8x8 multiband" = {
+ANNLayer "Post8x8Multiband" = {
     restart = 0;
     nxScale = 0.5;
     nyScale = 0.5;
@@ -188,7 +188,7 @@ ANNLayer "post 8x8 multiband" = {
     VShift = 0.0;
 };
 
-ANNLayer "post 16x16 singleband" = {
+ANNLayer "Post16x16Singleband" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -207,7 +207,7 @@ ANNLayer "post 16x16 singleband" = {
     VShift = 0.0;
 };
 
-ANNLayer "post 16x16 multiband" = {
+ANNLayer "Post16x16Multiband" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -226,7 +226,7 @@ ANNLayer "post 16x16 multiband" = {
     VShift = 0.0;
 };
 
-ANNLayer "post 32x32 singleband" = {
+ANNLayer "Post32x32Singleband" = {
     restart = 0;
     nxScale = 2;
     nyScale = 2;
@@ -245,7 +245,7 @@ ANNLayer "post 32x32 singleband" = {
     VShift = 0.0;
 };
 
-ANNLayer "post 32x32 multiband" = {
+ANNLayer "Post32x32Multiband" = {
     restart = 0;
     nxScale = 2;
     nyScale = 2;
@@ -264,13 +264,13 @@ ANNLayer "post 32x32 multiband" = {
     VShift = 0.0;
 };
 
-IdentConn "16x16 Images to pre 16x16 singleband" = {
+IdentConn "16x16ImagesToPre16x16Singleband" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
 };
 
-KernelConn "16x16 Images to pre 16x16 multiband" = {
+KernelConn "16x16ImagesToPre16x16Multiband" = {
     channelCode = 0;
     nxp = 1;
     nyp = 1;
@@ -298,13 +298,13 @@ KernelConn "16x16 Images to pre 16x16 multiband" = {
     
 };
 
-IdentConn "8x8 Images to post 8x8 singleband" = {
+IdentConn "8x8ImagesToPost8x8Singleband" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
 };
 
-KernelConn "8x8 Images to post 8x8 multiband" = {
+KernelConn "8x8ImagesToPost8x8Multiband" = {
     channelCode = 0;
     nxp = 1;
     nyp = 1;
@@ -331,13 +331,13 @@ KernelConn "8x8 Images to post 8x8 multiband" = {
     preActivityIsNotRate = false;
 };
 
-IdentConn "16x16 Images to post 16x16 singleband" = {
+IdentConn "16x16ImagesToPost16x16Singleband" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
 };
 
-KernelConn "16x16 Images to post 16x16 multiband" = {
+KernelConn "16x16ImagesToPost16x16Multiband" = {
     channelCode = 0;
     nxp = 1;
     nyp = 1;
@@ -364,13 +364,13 @@ KernelConn "16x16 Images to post 16x16 multiband" = {
     preActivityIsNotRate = false;
 };
 
-IdentConn "32x32 Images to post 32x32 singleband" = {
+IdentConn "32x32ImagesToPost32x32Singleband" = {
     channelCode = 0;
     delay = 0;
     writeStep = -1;
 };
 
-KernelConn "32x32 Images to post 32x32 multiband" = {
+KernelConn "32x32ImagesToPost32x32Multiband" = {
     channelCode = 0;
     nxp = 1;
     nyp = 1;
@@ -397,7 +397,7 @@ KernelConn "32x32 Images to post 32x32 multiband" = {
     preActivityIsNotRate = false;
 };
 
-KernelConn "pre 16x16 singleband to post 16x16 singleband" = {
+KernelConn "Pre16x16SinglebandToPost16x16Singleband" = {
     channelCode = -1;
     nxp = 5;
     nyp = 5;
@@ -427,7 +427,7 @@ KernelConn "pre 16x16 singleband to post 16x16 singleband" = {
     weightUpdatePeriod = 1.0;
 };
 
-KernelConn "pre 16x16 singleband to post 16x16 multiband" = {
+KernelConn "Pre16x16SinglebandToPost16x16Multiband" = {
     channelCode = -1;
     nxp = 5;
     nyp = 5;
@@ -457,7 +457,7 @@ KernelConn "pre 16x16 singleband to post 16x16 multiband" = {
     preActivityIsNotRate = false;
 };
 
-KernelConn "pre 16x16 multiband to post 16x16 singleband" = {
+KernelConn "Pre16x16MultibandToPost16x16Singleband" = {
     channelCode = -1;
     nxp = 5;
     nyp = 5;
@@ -487,7 +487,7 @@ KernelConn "pre 16x16 multiband to post 16x16 singleband" = {
     preActivityIsNotRate = false;
 };
 
-KernelConn "pre 16x16 multiband to post 16x16 multiband" = {
+KernelConn "Pre16x16MultibandToPost16x16Multiband" = {
     channelCode = -1;
     nxp = 5;
     nyp = 5;
@@ -517,7 +517,7 @@ KernelConn "pre 16x16 multiband to post 16x16 multiband" = {
     preActivityIsNotRate = false;
 };
 
-KernelConn "pre 16x16 singleband to post 8x8 singleband" = {
+KernelConn "Pre16x16SinglebandToPost8x8Singleband" = {
     channelCode = -1;
     nxp = 5;
     nyp = 5;
@@ -544,7 +544,7 @@ KernelConn "pre 16x16 singleband to post 8x8 singleband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "pre 16x16 singleband to post 8x8 multiband" = {
+KernelConn "Pre16x16SinglebandToPost8x8Multiband" = {
     channelCode = -1;
     nxp = 5;
     nyp = 5;
@@ -573,7 +573,7 @@ KernelConn "pre 16x16 singleband to post 8x8 multiband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "pre 16x16 multiband to post 8x8 singleband" = {
+KernelConn "Pre16x16MultibandToPost8x8Singleband" = {
     channelCode = -1;
     nxp = 5;
     nyp = 5;
@@ -601,7 +601,7 @@ KernelConn "pre 16x16 multiband to post 8x8 singleband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "pre 16x16 multiband to post 8x8 multiband" = {
+KernelConn "Pre16x16MultibandToPost8x8Multiband" = {
     channelCode = -1;
     nxp = 5;
     nyp = 5;
@@ -628,7 +628,7 @@ KernelConn "pre 16x16 multiband to post 8x8 multiband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "pre 16x16 singleband to post 32x32 singleband" = {
+KernelConn "Pre16x16SinglebandToPost32x32Singleband" = {
     channelCode = -1;
     nxp = 10;
     nyp = 10;
@@ -655,7 +655,7 @@ KernelConn "pre 16x16 singleband to post 32x32 singleband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "pre 16x16 singleband to post 32x32 multiband" = {
+KernelConn "Pre16x16SinglebandToPost32x32Multiband" = {
     channelCode = -1;
     nxp = 10;
     nyp = 10;
@@ -682,7 +682,7 @@ KernelConn "pre 16x16 singleband to post 32x32 multiband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "pre 16x16 multiband to post 32x32 singleband" = {
+KernelConn "Pre16x16MultibandToPost32x32Singleband" = {
     channelCode = -1;
     nxp = 10;
     nyp = 10;
@@ -709,7 +709,7 @@ KernelConn "pre 16x16 multiband to post 32x32 singleband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "pre 16x16 multiband to post 32x32 multiband" = {
+KernelConn "Pre16x16MultibandToPost32x32Multiband" = {
     channelCode = -1;
     nxp = 10;
     nyp = 10;

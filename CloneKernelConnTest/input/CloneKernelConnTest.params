@@ -23,10 +23,13 @@ HyPerCol "column" = {
    stopTime = 10;
    progressInterval = 10;
    writeProgressToErr = false;
+   verifyWrites = true;
+   errorOnNotANumber = false;
    outputPath = "output/";
    printParamsFilename = "pv.params";
    filenamesContainLayerNames = false;
    filenamesContainConnectionNames = false;
+   initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false;
 };
@@ -35,49 +38,51 @@ HyPerCol "column" = {
 // layers
 //
 
-Movie "input" = {
+Movie "Input" = {
     imageListPath = "./input/images.txt";
 
-    restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 1;
     phase = 0;
     writeStep = -1;
-    writeSparseActivity = false;
+    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
     useImageBCflag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;  
     autoResizeFlag = false;  
+    padValue = 0;
     
     writeImages = false;
+    writeFrameToTimestamp = false;
 
     displayPeriod = 100;
+    flipOnTimescaleError = false;
     randomMovie = true;
     randomMovieProb = 0.25;
     // start_frame_index = 0;
     // skip_frame_index = 0;
     // echoFramePathnameFlag = false;
     jitterFlag = false;
+    offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
-    writeFrameToTimestamp = true;
+    resetToStartOnLoop = false;
 };
 
-ANNLayer "retina" = {
-    restart = 0;
+ANNLayer "Retina" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
-    writeSparseActivity = false;
-    triggerFlag = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -88,18 +93,17 @@ ANNLayer "retina" = {
     VWidth = 0.0;
 };
 
-ANNLayer "output from original" = {
-    restart = 0;
+ANNLayer "OutputFromOriginal" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
-    writeSparseActivity = false;
-    triggerFlag = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -110,40 +114,38 @@ ANNLayer "output from original" = {
     VWidth = 0.0;
 };
 
-ANNLayer "output from clone" = {
-    restart = 0;
+ANNLayer "OutputFromClone" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
-    writeSparseActivity = false;
-    AShift = 0.0;
-    VWidth = 0.0;
-    triggerFlag = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
 };
 
-ANNLayer "comparison" = {
-    restart = 0;
+ANNLayer "Comparison" = {
     nxScale = 1;
     nyScale = 1;
     nf = 8;
     phase = 0;
+    triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
     valueBC = 0.0;
-    writeSparseActivity = false;
-    triggerFlag = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -154,10 +156,11 @@ ANNLayer "comparison" = {
     VWidth = 0.0;
 };
 
-KernelConn "original" = {
-    preLayerName = "input";
-    postLayerName = "output from original";
+HyPerConn "Original" = {
+    preLayerName = "Input";
+    postLayerName = "OutputFromOriginal";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 7;
     nyp = 7;
     nfp = 8;
@@ -186,12 +189,17 @@ KernelConn "original" = {
     symmetrizeWeights = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    rMinX = 0;
+    rMinY = 0;
+    nonnegativeConstraintFlag = false;
 
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     plasticityFlag = false;
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 
     delay = 0;
 
@@ -200,11 +208,11 @@ KernelConn "original" = {
     updateGSynFromPostPerspective = false;
 };
 
-CloneConn "clone" = {
-    preLayerName = "input";
-    postLayerName = "output from clone";
+CloneConn "Clone" = {
+    preLayerName = "Input";
+    postLayerName = "OutputFromClone";
     
-    originalConnName = "original";
+    originalConnName = "Original";
 
     channelCode = 0;
 
@@ -214,7 +222,7 @@ CloneConn "clone" = {
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
     selfFlag = false;
-    preActivityIsNotRate = false;
+    convertRateToSpikeCount = false;
 
     delay = 0;
     
@@ -222,36 +230,36 @@ CloneConn "clone" = {
     updateGSynFromPostPerspective = false;
 };
 
-IdentConn "excitatory output" = {
-    preLayerName = "output from original";
-    postLayerName = "comparison";
+IdentConn "ExcitatoryOutput" = {
+    preLayerName = "OutputFromOriginal";
+    postLayerName = "Comparison";
 
     channelCode = 0;
     writeStep = -1;    
     delay = 0;
 };
 
-IdentConn "inhibitory output" = {
-    preLayerName = "output from clone";
-    postLayerName = "comparison";
+IdentConn "InhibitoryOutput" = {
+    preLayerName = "OutputFromClone";
+    postLayerName = "Comparison";
 
     channelCode = 1;
     writeStep = -1;
     delay = 0;
 };
 
-IdentConn "input to retina" = {
+IdentConn "InputToRetina" = {
     channelCode = 0;
     writeStep = -1;
     delay = 0;
 };
 
-CloneKernelConnTestProbe "comparison probe" = {
-    targetLayer = "comparison";
-    probeOutputFile = "comparison_stats.txt";
+CloneKernelConnTestProbe "ComparisonProbe" = {
+    targetLayer = "Comparison";
+    probeOutputFile = "Comparison_stats.txt";
     message = "CloneKernelConnTest probe      ";
-    triggerFlag = false;
     buffer = "Activity";
+    triggerFlag = false;
     nnzThreshold = 0.0;
 };
 

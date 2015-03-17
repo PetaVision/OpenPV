@@ -29,7 +29,7 @@ HyPerCol "column" = {
     errorOnNotANumber                   = false;
 };
 
-Image "input" = {
+Image "Input" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -64,13 +64,13 @@ Image "input" = {
     // useParamsImage;
 };
 
-IdentConn "input to residual" = {
+IdentConn "InputToResidual" = {
     channelCode                         = 0;
     delay                               = 0;
     writeStep                           = -1;
 };
 
-MatchingPursuitResidual "residual" = {
+MatchingPursuitResidual "Residual" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -93,9 +93,9 @@ MatchingPursuitResidual "residual" = {
     VWidth                              = 0.0;
 };
 
-FeedbackConn "residual to matching_pursuit_layer" = {
+FeedbackConn "ResidualToMatchingPursuitLayer" = {
     channelCode                         = 0;
-    originalConnName                    = "matching_pursuit_layer to residual";
+    originalConnName                    = "MatchingPursuitLayerToResidual";
     delay                               = 0;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -107,7 +107,7 @@ FeedbackConn "residual to matching_pursuit_layer" = {
     selfFlag                            = false;
 };
 
-IdentConn "matching_pursuit_layer to residual" = {
+IdentConn "MatchingPursuitLayerToResidual" = {
     channelCode                         = 1;
     delay                               = 0;
     writeStep                           = -1;
@@ -117,7 +117,7 @@ IdentConn "matching_pursuit_layer to residual" = {
     
 };
 
-MatchingPursuitLayer "matching_pursuit_layer" = {
+MatchingPursuitLayer "MatchingPursuitLayer" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -140,8 +140,8 @@ MatchingPursuitLayer "matching_pursuit_layer" = {
     traceFile                           = "pursuit.txt"; // The file for the tracePursuit output.  If empty or absent, use standard output.  A relative path is relative to outputPath directory
 };
 
-L2NormProbe "residual L2 error" = {
-    targetLayer                         = "residual";
+L2NormProbe "ResidualL2Error" = {
+    targetLayer                         = "Residual";
     message                             = "residual L2 error      ";
     probeOutputFile                     = "residual_error.txt";
     parentGenColProbe                   = "";
@@ -149,7 +149,7 @@ L2NormProbe "residual L2 error" = {
     nnzThreshold                        = 0.0;
 };
 
-MatchingPursuitProbe "matching_pursuit_layer probe" = {
-    targetLayer                         = "matching_pursuit_layer";
+MatchingPursuitProbe "MatchingPursuitLayerProbe" = {
+    targetLayer                         = "MatchingPursuitLayer";
     triggerFlag                         = false;
 };

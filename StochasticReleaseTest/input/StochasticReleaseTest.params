@@ -41,7 +41,7 @@ HyPerCol "column" = {
 // Layers
 //
 
-Image "input" = {
+Image "Input" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
@@ -66,7 +66,7 @@ Image "input" = {
     padValue = 0;
 };
 
-ANNLayer "output" = {
+ANNLayer "Output" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
@@ -92,7 +92,7 @@ ANNLayer "output" = {
 // Connections
 //
 
-HyPerConn "input to output" = {
+HyPerConn "InputToOutput" = {
     channelCode = 0;
 
     nxp = 1;
@@ -119,8 +119,8 @@ HyPerConn "input to output" = {
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 };
 
-StochasticReleaseTestProbe "output Probe" = {
-    targetLayer = "output";
+StochasticReleaseTestProbe "OutputProbe" = {
+    targetLayer = "Output";
     message = "output stats  ";
     probeOutputFile = "output_probe.txt";    
     triggerFlag = false;

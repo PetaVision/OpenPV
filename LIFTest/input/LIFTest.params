@@ -38,7 +38,7 @@ HyPerCol "column" = {
 // layers
 //
 
-Image "input" = {
+Image "Input" = {
     nxScale                         = 1;
     nyScale                         = 1;
     imagePath                       = "input/inputimage.pvp";
@@ -61,7 +61,7 @@ Image "input" = {
     padValue                        = 0.0;
 };
 
-ANNLayer "scaled input" = {
+ANNLayer "ScaledInput" = {
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -81,7 +81,7 @@ ANNLayer "scaled input" = {
     VWidth                          = 0.0;
 };
 
-Retina "retina" = {
+Retina "Retina" = {
     nxScale                         = 1.;
     nyScale                         = 1.;
     nf                              = 1;
@@ -103,7 +103,7 @@ Retina "retina" = {
     burstDuration                   = 1000;
 };
 
-GenerativeLayer "Retina Spike Counter" = {
+GenerativeLayer "RetinaSpikeCounter" = {
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -166,7 +166,7 @@ LIFGap "LIFTest" = {
     method                          = "a";
 };
 
-GenerativeLayer "LIFTest Spike Counter" = {
+GenerativeLayer "LIFTestSpikeCounter" = {
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -244,7 +244,7 @@ LIFGap "LIFGapTest" = {
     method                          = "a";
 };
 
-GenerativeLayer "LIFGapTest Spike Counter" = {
+GenerativeLayer "LIFGapTestSpikeCounter" = {
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -271,9 +271,9 @@ GenerativeLayer "LIFGapTest Spike Counter" = {
     persistence                     = 0.0;
 };
 
-HyPerConn "input to scaled input" = {
-    preLayerName                    = "input";
-    postLayerName                   = "scaled input";
+HyPerConn "InputToScaledInput" = {
+    preLayerName                    = "Input";
+    postLayerName                   = "ScaledInput";
     channelCode                     = 0;
     sharedWeights                   = true;
     nxp                             = 1;
@@ -298,19 +298,19 @@ HyPerConn "input to scaled input" = {
     updateGSynFromPostPerspective   = false;
 };
 
-IdentConn "scaled input to retina" = {
+IdentConn "ScaledInputToRetina" = {
     channelCode                     = 0;
     delay                           = 0;    
     writeStep                       = -1;
 };
 
-IdentConn "retina to Retina Spike Counter" = {
+IdentConn "RetinaToRetinaSpikeCounter" = {
     channelCode                     = 0;
     delay                           = 0;    
     writeStep                       = -1;
 };
 
-HyPerConn "retina to LIFTest" = {
+HyPerConn "RetinaToLIFTest" = {
     channelCode                     = 0;
     sharedWeights                   = true;
     nxp                             = 1;
@@ -335,13 +335,13 @@ HyPerConn "retina to LIFTest" = {
     updateGSynFromPostPerspective   = false;
 };
 
-IdentConn "LIFTest to LIFTest Spike Counter" = {
+IdentConn "LIFTestToLIFTestSpikeCounter" = {
     channelCode                     = 0;
     delay                           = 0;    
     writeStep                       = -1;
 };
 
-GapConn "GapTest to LIFGapTest" = {
+GapConn "GapTestToLIFGapTest" = {
     preLayerName                    = "GapTest";
     postLayerName                   = "LIFGapTest";
     // channelCode                  = 3;
@@ -383,15 +383,15 @@ GapConn "GapTest to LIFGapTest" = {
     // initialWriteTime             = 0;
 };
 
-IdentConn "LIFGapTest to LIFGapTest Spike Counter" = {
+IdentConn "LIFGapTestToLIFGapTestSpikeCounter" = {
     channelCode                     = 0;
     delay                           = 0;
     
     writeStep                       = -1;
 };
 
-LIFTestProbe "LIFGapTest Spike Count Probe" = {
-    targetLayer                     = "LIFGapTest Spike Counter";
+LIFTestProbe "LIFGapTestSpikeCountProbe" = {
+    targetLayer                     = "LIFGapTestSpikeCounter";
     probeOutputFile                 = "SpikeRates.txt";
     message                         = "Spike Rates File               ";
     triggerFlag                     = false;
