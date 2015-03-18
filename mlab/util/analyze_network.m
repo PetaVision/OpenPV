@@ -17,9 +17,13 @@
 %% Convolve 2nd layer (V2,S2,etc.) weights with 1st layer (V1,S1) weights for visualization in image space.
 %% Figure out how to plot/save everything without user input (Octave asks "-- less -- (f)orward, (b)ack, (q)uit" after plotting). 
 
+addpath('~/workspace/PetaVision/plab'); 
 addpath('~/workspace/PetaVision/mlab/util'); 
 numImagesToWrite = 5;
 
+system('python ~/workspace/PetaVision/plab/get_names.py');
+system('python ~/workspace/PetaVision/plab/analysis_parse.py');
+system('rm layers.txt connections.txt');
 fid = fopen('found_pvps.txt', 'r');
 sparsepvps_notformatted = fgetl(fid);
 errpvps_notformatted = fgetl(fid);
