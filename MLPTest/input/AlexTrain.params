@@ -103,14 +103,14 @@ GTLayer "gt" = {
     writeSparseActivity = false;
     InitVType = "ZeroV";
     inFilename = "input/train/gt.txt";
-    phase = 3;
+    phase = 0;
     //rectified
     VThresh = 0;
     VMax = infinity;
     VMin = 0;
 };
 
-ANNLayer "Error1" = {
+ANNLayer "Error1Buf" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
@@ -123,13 +123,34 @@ ANNLayer "Error1" = {
     phase = 6;
 };
 
+PtwiseProductLayer "Error1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    writeStep = -1; //Change based on display period
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    phase = 7;
+};
+
 ANNLayer "FinalError" = {
-   #include "Error1";
+   #include "Error1Buf";
    @nxScale = 1;
    @nyScale = 1;
    @nf = 1;
    @phase = 5;
 };
+
+//PtwiseProductLayer "FinalError" = {
+//   #include "Error1";
+//   @nxScale = 1;
+//   @nyScale = 1;
+//   @nf = 1;
+//   @phase = 8;
+//};
 
 //Connections
 KernelConn "W1" = {
@@ -202,7 +223,7 @@ KernelConn "B1" = {
     plasticityFlag = 1;
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 1.0;
-    dWMax = .1; // 200.0 used for initial training 
+    dWMax = .01; // 200.0 used for initial training 
     delay = 0;
      
     preActivityIsNotRate = false;
@@ -245,7 +266,7 @@ CloneKernelConn "W2Clone" = {
 
 TransposeConn "W2T" = {
     preLayerName = "FinalError";
-    postLayerName = "Error1";
+    postLayerName = "Error1Buf";
     channelCode = 0; //On excitatory channel
     originalConnName = "W2";
     selfFlag = false;
@@ -255,6 +276,24 @@ TransposeConn "W2T" = {
     delay = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
+};
+
+IdentConn "Error1BufToError1" = {
+   preLayerName                        = "Error1Buf";
+   postLayerName                       = "Error1";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+IdentConn "HiddenLayer1ToError1" = {
+   preLayerName                        = "HiddenLayer1";
+   postLayerName                       = "Error1";
+   channelCode                         = 1;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
 };
 
 KernelConn "B2" = {

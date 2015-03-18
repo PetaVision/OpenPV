@@ -61,7 +61,7 @@ int InputLayer::updateState(double timef, double dt) {
    //std::cout << timef << ": input val:" << iVal << "\n";
    //
    int negVal;
-   negVal = -1;
+   negVal = 0;
    for(int ni = 0; ni < getNumNeurons(); ni++){
       int nExt = kIndexExtended(ni, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       int fi = featureIndex(nExt, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);

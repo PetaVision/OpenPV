@@ -29,6 +29,7 @@ int ComparisonLayer::updateState(double timef, double dt) {
       float guess = GSynExt[ni] <= thresh ? 0:1;
       float actual = GSynInh[ni];
       assert(guess == actual);
+      //std::cout << "guess: " << guess << " actual: " << actual << "\n";
 
    }
    return PV_SUCCESS;
