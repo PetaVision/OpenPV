@@ -31,7 +31,6 @@ inputpvps_notformatted = fgetl(fid);
 weightspvps_notformatted = fgetl(fid);
 reconpvps_notformatted = fgetl(fid);
 fclose(fid);
-
 sparsepvps = strsplit(sparsepvps_notformatted,',')
 errpvps = strsplit(errpvps_notformatted,',')
 inputpvps = strsplit(inputpvps_notformatted,',')
@@ -40,7 +39,7 @@ reconpvps = strsplit(reconpvps_notformatted,',')
 
 prefix='a[0123456789]+_';
 suffix='.pvp';
-
+system('mkdir Analysis');
 
 %%%% Input    Only last numImagesToWrite frames are written 
 %%%% 
@@ -86,7 +85,7 @@ for i = 1:size(uniqueinputpvps,2)
             p = p*255/max(p(:));
             p = permute(p,[2 1 3]);
             p = uint8(p);
-            outFile = [uniqueinputpvps{i}(endPrefix+1:startSuffix-1) '_' sprintf('%.08d',t) '.png']
+            outFile = ['Analysis/' uniqueinputpvps{i}(endPrefix+1:startSuffix-1) '_' sprintf('%.08d',t) '.png']
             imwrite(p,outFile);
          end
       else
@@ -97,7 +96,7 @@ for i = 1:size(uniqueinputpvps,2)
             p = p*255/max(p(:));
             p = permute(p,[2 1 3]);
             p = uint8(p);
-            outFile = [uniqueinputpvps{i}(endPrefix+1:startSuffix-1) '_' sprintf('%.08d',t) '.png']
+            outFile = ['Analysis/' uniqueinputpvps{i}(endPrefix+1:startSuffix-1) '_' sprintf('%.08d',t) '.png']
             imwrite(p,outFile);
          end
       end
@@ -142,7 +141,7 @@ for i = 1:size(reconpvps,2)
          p = p*255/max(p(:));
          p = permute(p,[2 1 3]);
          p = uint8(p);
-         outFile = [reconpvps{i}(endPrefix+1:startSuffix-1) '_' sprintf('%.08d',t) '.png']
+         outFile = ['Analysis/' reconpvps{i}(endPrefix+1:startSuffix-1) '_' sprintf('%.08d',t) '.png']
          imwrite(p,outFile);
       end
    else 
@@ -182,7 +181,7 @@ for i = 1:size(errpvps,2)
       end
       h_err = figure;
       plot(t_err{i},err{i});
-      outFile = [errpvps{i}(endPrefix+1:startSuffix-1) '_RMS_' sprintf('%.08d',t_err{i}(length(t_err{i}))) '.png']
+      outFile = ['Analysis/' errpvps{i}(endPrefix+1:startSuffix-1) '_RMS_' sprintf('%.08d',t_err{i}(length(t_err{i}))) '.png']
       print(h_err,outFile);
    else
       for j = 1:size(errdata,1)
@@ -191,7 +190,7 @@ for i = 1:size(errpvps,2)
       end
       h_err = figure;
       plot(t_err{i},err{i});
-      outFile = [errpvps{i}(endPrefix+1:startSuffix-1) '_Std_' sprintf('%.08d',t_err{i}(length(t_err{i}))) '.png']
+      outFile = ['Analysis/' errpvps{i}(endPrefix+1:startSuffix-1) '_Std_' sprintf('%.08d',t_err{i}(length(t_err{i}))) '.png']
       print(h_err,outFile);
    end
 end
@@ -228,12 +227,12 @@ for i = 1:size(uniquesparsepvps,2)
    end
    h_sparse = figure;
    plot(unique_t_sparse{i},unique_sparsity{i});
-   outFile = [uniquesparsepvps{i}(endPrefix+1:startSuffix-1) '_Sparsity_' sprintf('%.08d',unique_t_sparse{i}(length(unique_t_sparse{i}))) '.png']
+   outFile = ['Analysis/' uniquesparsepvps{i}(endPrefix+1:startSuffix-1) '_Sparsity_' sprintf('%.08d',unique_t_sparse{i}(length(unique_t_sparse{i}))) '.png']
    print(h_sparse,outFile);
 
    h_sparsefeaturevals = figure;
    bar(unique_sparsemeanfeaturevals{i});
-   outFile = [uniquesparsepvps{i}(endPrefix+1:startSuffix-1) '_MeanFeatureValues_' sprintf('%.08d',unique_t_sparse{i}(length(unique_t_sparse{i}))) '.png']
+   outFile = ['Analysis/' uniquesparsepvps{i}(endPrefix+1:startSuffix-1) '_MeanFeatureValues_' sprintf('%.08d',unique_t_sparse{i}(length(unique_t_sparse{i}))) '.png']
    print(h_sparsefeaturevals,outFile);
 end
 clear sparsedata;
@@ -279,7 +278,7 @@ if(err_flag && sparse_flag)
          end
          xlabel('Sparsity');
          ylabel('Error');
-         outFile = [uniquesparsepvps{i}(endPrefix+1:startSuffix-1) '_SparsityVsError_' sprintf('%.08d',t_sparse{i}(length(t_sparse{i}))) '.png']
+         outFile = ['Analysis/' uniquesparsepvps{i}(endPrefix+1:startSuffix-1) '_SparsityVsError_' sprintf('%.08d',t_sparse{i}(length(t_sparse{i}))) '.png']
          print(h_SparsevsError,outFile);
       end
    end
@@ -324,7 +323,7 @@ for i = 1:size(weightspvps,2)
       subplot(subplot_y,subplot_x,j);
       imshow(weightspatch{j});
    end
-   outFile = [weightspvps{i}(endPrefix+1:startSuffix-1) '_WeightsByFeatureIndex_' sprintf('%.08d',t) '.png']
+   outFile = ['Analysis/' weightspvps{i}(endPrefix+1:startSuffix-1) '_WeightsByFeatureIndex_' sprintf('%.08d',t) '.png']
    print(h_weightsbyindex,outFile);
    if ((sparse_flag) && !(isempty(sparsemeanfeaturevals{i})))
       [dontcare sortedindex] = sort(sparsemeanfeaturevals{i});
@@ -335,10 +334,10 @@ for i = 1:size(weightspvps,2)
          imshow(weightspatch{sortedindex(j)});
       end
       if (t == t_sparsemeanfeaturevals{i})
-         outFile = [weightspvps{i}(endPrefix+1:startSuffix-1) '_WeightsByActivity_' sprintf('%.08d',t) '.png']
+         outFile = ['Analysis/' weightspvps{i}(endPrefix+1:startSuffix-1) '_WeightsByActivity_' sprintf('%.08d',t) '.png']
          print(h_weightsbyactivity,outFile);
       else  % If last sparse pvp write time and last weights pvp write time are not the same, specifies both
-         outFile = [weightspvps{i}(endPrefix+1:startSuffix-1) '_Weights_' sprintf('%.08d',t) 'ByActivity@_' sprintf('%.08d',t_sparsemeanfeaturevals{i}) '.png']
+         outFile = ['Analysis/' weightspvps{i}(endPrefix+1:startSuffix-1) '_Weights_' sprintf('%.08d',t) 'ByActivity@_' sprintf('%.08d',t_sparsemeanfeaturevals{i}) '.png']
          print(h_weightsbyactivity,outFile);
       end
    end
