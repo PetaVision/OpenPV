@@ -28,7 +28,7 @@ public:
    virtual ~SoundStream();
    virtual int allocateDataStructures();
    virtual int updateState(double time, double dt);
-   virtual bool activityIsSpiking() { false; }
+   virtual bool activityIsSpiking() { return false; }
 
 private:
    int initialize_base();
