@@ -94,6 +94,7 @@ endif(CUDA_GPU)
 
 target_link_libraries(${PV_PROJECT_NAME} pv)
 target_link_libraries(${PV_PROJECT_NAME} pvsound)
+target_link_libraries(${PV_PROJECT_NAME} sndfile)
 
 ## target_link_libraries commands no longer needed because the libraries are included in libpv.so
 ## Link executable to external libraries

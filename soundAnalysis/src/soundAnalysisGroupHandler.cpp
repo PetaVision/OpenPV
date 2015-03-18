@@ -54,7 +54,7 @@ PV::HyPerLayer * soundAnalysisGroupHandler::createLayer(char const * keyword, ch
       addedLayer = new inverseNewCochlearLayer(name, hc);
    }
    if (addedLayer==NULL) {
-      fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", keyword, name);
+      fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", hc->columnId(), keyword, name);
       exit(EXIT_FAILURE);
    }
    return addedLayer;
