@@ -1,4 +1,4 @@
-%%  analyze_network.m - An analysis tool for first-layer PetaVision implementations
+%%  analyze_network.m - An analysis tool for PetaVision implementations
 %%  -Wesley Chavez 3/18/15
 %%
 %% -----Hints-----
