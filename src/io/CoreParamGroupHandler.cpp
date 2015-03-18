@@ -37,8 +37,10 @@
 #include "../layers/MLPForwardLayer.hpp"
 #include "../layers/MLPOutputLayer.hpp"
 #include "../layers/MLPSigmoidLayer.hpp"
+#ifdef OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
 #include "../layers/MatchingPursuitLayer.hpp"
 #include "../layers/MatchingPursuitResidual.hpp"
+#endif // OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
 #include "../layers/Movie.hpp"
 #include "../layers/Patterns.hpp"
 #include "../layers/PoolingANNLayer.hpp"
@@ -146,8 +148,10 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"MLPForwardLayer", LayerGroupType},
          {"MLPOutputLayer", LayerGroupType},
          {"MLPSigmoidLayer", LayerGroupType},
+#ifdef OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
          {"MatchingPursuitLayer", LayerGroupType},
          {"MatchingPursuitResidual", LayerGroupType},
+#endif // OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
          {"MaxPooling", LayerGroupType},
          {"Movie", LayerGroupType},
          {"Patterns", LayerGroupType},
@@ -360,12 +364,14 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "MLPSigmoidLayer") ) {
       addedLayer = new MLPSigmoidLayer(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
    else if( !strcmp(keyword, "MatchingPursuitLayer") ) {
       addedLayer = new MatchingPursuitLayer(name, hc);
    }
    else if( !strcmp(keyword, "MatchingPursuitResidual") ) {
       addedLayer = new MatchingPursuitResidual(name, hc);
    }
+#endif // OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
    else if( !strcmp(keyword, "MaxPooling") ) {
       // MaxPooling was marked obsolete Oct 30, 2014
       if (hc->columnId()==0) {

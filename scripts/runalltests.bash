@@ -343,12 +343,13 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
-testname=MatchingPursuitTest
-arglist=""
-cd "$testname"
-runandecho $testname $testname Debug/$testname $arglist
-mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$workspacedir"
+# # Moved to auxlib/matchingpursuit Mar 18, 2015
+# testname=MatchingPursuitTest
+# arglist=""
+# cd "$testname"
+# runandecho $testname $testname Debug/$testname $arglist
+# mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+# cd "$workspacedir"
 
 testname=MaxPoolTest
 arglist="-p input/maxpooltest.params"
