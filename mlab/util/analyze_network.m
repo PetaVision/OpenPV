@@ -2,6 +2,14 @@
 %%  -Wesley Chavez 3/18/15
 %%
 %% -----Hints-----
+%% BEFORE RUNNING THIS SCRIPT FOR THE FIRST TIME:
+%% Add the PetaVision mlab/util directory to your .octaverc or .matlabrc file, which is probably in your home (~) directory.
+%% Example:    addpath("~/workspace/PetaVision/mlab/util")
+%%
+%% IMPORTANT: 
+%% Run this script from your outputPath directory.  outputPath is specified in your pv.params file.
+%% Analysis figures will be written to *outputPath*/Analysis
+%%
 %% IN YOUR PARAMS FILE:
 %% Write all layers and connections at the end of a display period (initialWriteTime = displayPeriod*n or displayPeriod*n - 1 and writeStep = displayPeriod*k, n and k are integers > 0)
 %% Sync the write times of Input and Recon layers for comparison (writeStep and initialWriteTime in params file).
@@ -17,13 +25,23 @@
 %% Convolve 2nd layer (V2,S2,etc.) weights with 1st layer (V1,S1) weights for visualization in image space.
 %% Figure out how to plot/save everything without user input (Octave asks "-- less -- (f)orward, (b)ack, (q)uit" after plotting). 
 
-addpath('~/workspace/PetaVision/plab'); 
-addpath('~/workspace/PetaVision/mlab/util'); 
-numImagesToWrite = 5;
+numImagesToWrite = 5;  % The number of inputs/recons to write
 
-system('python ~/workspace/PetaVision/plab/get_names.py');
-system('python ~/workspace/PetaVision/plab/analysis_parse.py');
+paths = path;
+path_separation = pathsep;
+path_separation_indices = findstr(paths,path_separation);
+mlab_util_index = findstr(paths,'/mlab/util');
+if (isempty(mlab_util_index))
+   display('Please add the PetaVision mlab/util directory to your .octaverc or .matlabrc file, which is probably in your home (~) directory, then you may run this script.');
+   display('Example:    addpath("~/workspace/PetaVision/mlab/util")');
+   exit;
+end
+startpath = path_separation_indices(path_separation_indices < mlab_util_index)(size(path_separation_indices(path_separation_indices < mlab_util_index),2))+1;
+pv_path = paths(startpath:mlab_util_index-1);
+status = system(['python ' pv_path  '/plab/get_names.py']);
+status = system(['python ' pv_path  '/plab/analysis_parse.py']);
 system('rm layers.txt connections.txt');
+
 fid = fopen('found_pvps.txt', 'r');
 sparsepvps_notformatted = fgetl(fid);
 errpvps_notformatted = fgetl(fid);
@@ -31,6 +49,7 @@ inputpvps_notformatted = fgetl(fid);
 weightspvps_notformatted = fgetl(fid);
 reconpvps_notformatted = fgetl(fid);
 fclose(fid);
+
 sparsepvps = strsplit(sparsepvps_notformatted,',')
 errpvps = strsplit(errpvps_notformatted,',')
 inputpvps = strsplit(inputpvps_notformatted,',')
