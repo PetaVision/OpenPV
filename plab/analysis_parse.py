@@ -1,12 +1,3 @@
-
-# Generate a list of relevent connections and layers by interpreting
-# a pv.params file and the .pvp files within the same directory.
-
-# Script also uses "layers.txt" and "connections.txt" in the same
-# directory. Both can be generated from the PetaVision website by 
-# running the script get_names.py.
-
-
 from os import listdir
 import os
 import re
@@ -58,6 +49,8 @@ with open(layer_loc) as f1:
     layer_dict = [line.strip("\n") for line in f1] 
 with open(conn_loc) as f2:
     conn_dict = [line.strip("\n") for line in f2]
+print(layer_dict)
+print(conn_dict)
 
 # Create lists of names, types, etc. from the param file:
 colNx = 0
@@ -225,7 +218,7 @@ for i in error_layer:
             error_input.append(layer_names[pre])
 
 for c,i in enumerate(layer_names):
-    if re.search("Recon",i):
+    if re.search("Recon",i) or re.search("recon",i):
         n = layer_values[c][layer_vars.index("nf")]
         if n == '1' or n == '3':
             recon_name.append(i)
