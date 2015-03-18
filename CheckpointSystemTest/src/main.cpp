@@ -57,45 +57,38 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    int rank = 0;
-   bool argerr = false;
-   int reqrtn = 0;
-   int usethreads = 0;
-   int threadargno = -1;
-   for (int k=1; k<argc; k++) {
-      if (!strcmp(argv[k], "--require-return")) {
-         reqrtn = 1;
-      }
-      else if (!strcmp(argv[k], "-t")) {
-         usethreads = 1;
-         if (k<argc-1 && argv[k+1][0] != '-') {
-            k++;
-            threadargno = k;
-         }
-      }
-      else {
-         argerr = true;
-         break;
-      }
-   }
 #ifdef PV_USE_MPI
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   if (argerr) {
-      if (rank==0) {
-         fprintf(stderr, "%s: run without input arguments (except for --require-return); the necessary arguments are hardcoded.\n", argv[0]);
-      }
-      MPI_Barrier(MPI_COMM_WORLD);
-      MPI_Finalize();
-      exit(EXIT_FAILURE);
-   }
-#else // PV_USE_MPI
-   if (argerr) {
-      fprintf(stderr, "%s: run without input arguments (except for --require-return); the necessary arguments are hardcoded.\n", argv[0]);
-      exit(EXIT_FAILURE);
-   }
 #endif // PV_USE_MPI
+   char const * paramFile1 = "input/CheckpointParameters1.params";
+   char const * paramFile2 = "input/CheckpointParameters2.params";
+   int status = PV_SUCCESS;
+   if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
+      if (rank==0) {
+         fprintf(stderr, "%s should be run without the params file argument.\n", argv[0]);
+      }
+      status = PV_FAILURE;
+   }
+   if (pv_getopt_str(argc, argv, "-c", NULL, NULL)==0) {
+      if (rank==0) {
+         fprintf(stderr, "%s should be run without the checkpoint directory argument.\n", argv[0]);
+      }
+      status = PV_FAILURE;
+   }
+   if (pv_getopt(argc, argv, "-r", NULL)==0) {
+      if (rank==0) {
+         fprintf(stderr, "%s should be run without the checkpoint directory argument.\n", argv[0]);
+      }
+      status = PV_FAILURE;
+   }
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "This test uses two hard-coded params files, %s and %s. The second run is started from a checkpoint from the first run, and the results of the two runs are compared.\n",
+            paramFile1, paramFile2);
+      MPI_Barrier(MPI_COMM_WORLD);
+      exit(EXIT_FAILURE);
+   }
 
-   int status = 0;
    if (rank==0) {
       char const * rmcommand = "rm -rf checkpoints1 checkpoints2 output";
       status = system(rmcommand);
@@ -107,69 +100,50 @@ int main(int argc, char * argv[]) {
 
    ParamGroupHandler * customGroupHandler = new CustomGroupHandler;
 
-   assert(reqrtn==0 || reqrtn==1);
-   assert(usethreads==0 || usethreads==1);
-   size_t cl_argc = 3+reqrtn+usethreads+(threadargno>0);
-   char ** cl_args = (char **) malloc((cl_argc+1)*sizeof(char *));
-   assert(cl_args!=NULL);
-   int cl_arg = 0;
-   cl_args[cl_arg++] = strdup(argv[0]);
-   cl_args[cl_arg++] = strdup("-p");
-   cl_args[cl_arg++] = strdup("input/CheckpointParameters1.params");
-   if (reqrtn) {
-      cl_args[cl_arg++] = strdup("--require-return");
+   int pv_argc1 = 2 + argc; // command line arguments, plus "-p" plus paramFile1
+   int pv_argc2 = 4 + argc; // pv_argc1 arguments with paramFile2 in place of paramFile1, plus "-c", plus checkpoint directory
+   assert(pv_argc1 < pv_argc2); // so we can allocate based on pv_argc2 and be sure it will hold pv_argc1 arguments.
+   char ** pv_argv = (char **) calloc((pv_argc2+1), sizeof(char *));
+   assert(pv_argv!=NULL);
+   int pv_arg=0;
+   for (pv_arg = 0; pv_arg < argc; pv_arg++) {
+      pv_argv[pv_arg] = strdup(argv[pv_arg]);
+      assert(pv_argv[pv_arg]);
    }
-   if (usethreads) {
-      cl_args[cl_arg++] = strdup("-t");
-      if (threadargno>0) {
-         cl_args[cl_arg++] = strdup(argv[threadargno]);
-      }
-   }
-   assert(cl_arg==cl_argc);
-   cl_args[cl_arg] = NULL;
-   status = buildandrun((int) cl_argc, cl_args, NULL, NULL, &customGroupHandler, 1);
+   assert(pv_arg==argc);
+   pv_argv[pv_arg++] = strdup("-p");
+   pv_argv[pv_arg++] = strdup(paramFile1);
+   assert(pv_arg==pv_argc1 && pv_arg==argc+2);
+   assert(pv_argv[argc]!=NULL && pv_argv[argc+1]!=NULL && pv_argv[argc+2]==NULL);
+
+   status = buildandrun((int) pv_argc1, pv_argv, NULL, NULL, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", pv_argv[0], rank, paramFile1, status);
       exit(status);
    }
-   for (size_t arg=0; arg<cl_argc; arg++) {
-       free(cl_args[arg]);
-   }
-   free(cl_args);
 
-   cl_argc = 5+reqrtn+usethreads+(threadargno>0);;
-   cl_args = (char **) malloc((cl_argc+1)*sizeof(char *));
-   assert(cl_args);
-   cl_arg = 0;
-   cl_args[cl_arg++] = strdup(argv[0]);
-   cl_args[cl_arg++] = strdup("-p");
-   cl_args[cl_arg++] = strdup("input/CheckpointParameters2.params");
-   cl_args[cl_arg++] = strdup("-c");
-   cl_args[cl_arg++] = strdup("checkpoints1/Checkpoint12");
-   if (reqrtn) {
-      cl_args[cl_arg++] = strdup("--require-return");
-   }
-   if (usethreads) {
-      cl_args[cl_arg++] = strdup("-t");
-      if (threadargno>0) {
-         cl_args[cl_arg++] = strdup(argv[threadargno]);
-      }
-   }
-   assert(cl_arg==cl_argc);
-   cl_args[cl_arg++] = NULL;
-   status = buildandrun(cl_argc, cl_args, NULL, &customexit, &customGroupHandler, 1);
+   free(pv_argv[argc+1]);
+   pv_argv[argc+1] = strdup(paramFile2);
+   assert(pv_argv[argc+1]);
+   assert(pv_arg==argc+2);
+   pv_argv[pv_arg++] = strdup("-c");
+   pv_argv[pv_arg++] = strdup("checkpoints1/Checkpoint12");
+   assert(pv_arg==pv_argc2 && pv_arg==argc+4);
+   assert(pv_argv[argc+2]!=NULL && pv_argv[argc+3]!=NULL && pv_argv[argc+4]==NULL);
+
+   status = buildandrun(pv_argc2, pv_argv, NULL, &customexit, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", pv_argv[0], rank, paramFile2, status);
    }
+
+   for (size_t arg=0; arg<pv_argc2; arg++) {
+       free(pv_argv[arg]);
+   }
+   free(pv_argv);
 
 #ifdef PV_USE_MPI
    MPI_Finalize();
 #endif
-
-   for (size_t arg=0; arg<cl_argc; arg++) {
-       free(cl_args[arg]);
-   }
-   free(cl_args);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
