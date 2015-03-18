@@ -65,7 +65,7 @@ add_subdirectory(LayerRestartTest)
 add_subdirectory(LCATest)
 add_subdirectory(LIFTest)
 add_subdirectory(MarginWidthTest)
-add_subdirectory(MatchingPursuitTest)
+# add_subdirectory(MatchingPursuitTest) # Moved to auxlib/matchingpursuit Mar 18, 2015
 add_subdirectory(MaxPoolTest)
 add_subdirectory(MovieSystemTest)
 add_subdirectory(MomentumTest)
