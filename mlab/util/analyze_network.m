@@ -37,8 +37,7 @@ if (isempty(mlab_util_index))
    exit;
 end
 startpath = path_separation_indices(path_separation_indices < mlab_util_index)(size(path_separation_indices(path_separation_indices < mlab_util_index),2))+1;
-pv_path = paths(startpath:mlab_util_index-1);
-status = system(['python ' pv_path  '/plab/get_names.py']);
+status = system(['python ' pv_path  '/plab/get_names.py ' pv_path]);
 status = system(['python ' pv_path  '/plab/analysis_parse.py']);
 system('rm layers.txt connections.txt');
 
