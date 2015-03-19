@@ -1,5 +1,5 @@
 /*
- * main.cpp for MLPTest
+ * main.cpp
  *
  */
 
@@ -13,71 +13,125 @@ void * addcustomgroup(const char * keyword, const char * groupname, HyPerCol * h
 
 int main(int argc, char * argv[]) {
    int rank;
+   bool argerr = false;
+   int reqrtn = 0;
+   int threading = 0;
+
+   if (argc > 1){
+      for(int i = 1; i < argc; i++){
+         //Allowed arguments are -t and --require-return
+         if(strcmp(argv[i], "-t") == 0){
+            if(i+1 >= argc || argv[i+1][0] == '-'){
+               //Do nothing
+            }
+            else{
+               int numthreads = atoi(argv[i+1]);
+               if(numthreads != 4){
+                  std::cout << "Hardcoding to 4 threads\n";
+               }
+               i++;
+            }
+            threading = 2;
+            argerr |= false;
+         }
+         else if(strcmp(argv[i], "--require-return") == 0){
+            reqrtn = 1;
+            argerr |= false;
+         }
+         else{
+            //error
+            argerr = true;
+         }
+      }
+   }
+   if (argerr) {
+      fprintf(stderr, "%s: run without input arguments (except for --require-return or -t); the necessary arguments are hardcoded.\n", argv[0]);
+      exit(EXIT_FAILURE);
+   }
 #ifdef PV_USE_MPI
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif // PV_USE_MPI
 
-   if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
-      if (rank==0) {
-         fprintf(stderr, "%s should be run without the params file argument.\n", argv[0]);
-         fprintf(stderr, "This test hard-codes the necessary params file.\n");
-      }
-      MPI_Barrier(MPI_COMM_WORLD);
-      exit(EXIT_FAILURE);
+#undef REQUIRE_RETURN
+#ifdef REQUIRE_RETURN
+   int charhit;
+   fflush(stdout);
+   if( rank == 0 ) {
+      printf("Hit enter to begin! ");
+      fflush(stdout);
+      charhit = getc(stdin);
    }
-   int pv_argc = argc+2; // input arguments, plus "-p", plus params file argument
-   char ** pv_argv = (char **) malloc((pv_argc+1)*sizeof(char *));
-   assert(pv_argv);
-   int pv_arg=0;
-   for (pv_arg = 0; pv_arg < argc; pv_arg++) {
-      pv_argv[pv_arg] = strdup(argv[pv_arg]);
-      assert(pv_argv[pv_arg]);
-   }
-   assert(pv_arg==argc);
-   pv_argv[pv_arg] = strdup("-p");
-   assert(pv_argv[pv_arg]!=NULL);
-   int paramFileArgIndex = pv_arg+1;
-   pv_argv[paramFileArgIndex] = NULL; // this will hold params filename
-   pv_argv[pv_argc]=NULL;
+#ifdef PV_USE_MPI
+   MPI_Bcast(&charhit, 1, MPI_INT, 0, MPI_COMM_WORLD);
+#endif
+#endif // REQUIRE_RETURN
 
-   int status = PV_SUCCESS;
+   int status;
+   assert(reqrtn==0 || reqrtn==1);
+   assert(threading == 0 || threading == 2);
+   int cl_argc = 3+reqrtn+threading;
+   char * cl_args[cl_argc];
+   cl_args[0] = strdup(argv[0]);
+   cl_args[1] = strdup("-p");
 
-   free(pv_argv[paramFileArgIndex]);
-   pv_argv[paramFileArgIndex] = strdup("input/MLPTest.params");
-   assert(pv_argv[paramFileArgIndex]);
-   status = buildandrun(pv_argc, pv_argv, NULL, NULL, &addcustomgroup);
-   if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
+   cl_args[2] = strdup("input/MLPTrain.params");
+
+   if(threading && reqrtn){
+      assert(cl_argc==6);
+      cl_args[3] = strdup("-t");
+      cl_args[4] = strdup("4");
+      cl_args[5] = strdup("--require-return");
    }
-   status = buildandrun(pv_argc, pv_argv, NULL, NULL, &addcustomgroup);
+   else if (threading) {
+      assert(cl_argc==5);
+      cl_args[3] = strdup("-t");
+      cl_args[4] = strdup("4");
+   }
+   else if (reqrtn){
+      assert(cl_argc==4);
+      cl_args[3] = strdup("--require-return");
+   }
+   status = buildandrun(cl_argc, cl_args, NULL, NULL, &addcustomgroup);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
       exit(status);
    }
 
-   free(pv_argv[paramFileArgIndex]);
-   pv_argv[2] = strdup("input/AlexTrain.params");
-   assert(pv_argv[paramFileArgIndex]);
-   status = buildandrun(pv_argc, pv_argv, NULL, NULL, &addcustomgroup);
+   free(cl_args[2]);
+   cl_args[2] = strdup("input/MLPTest.params");
+   status = buildandrun(cl_argc, cl_args, NULL, NULL, &addcustomgroup);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
    }
 
-   free(pv_argv[paramFileArgIndex]);
-   pv_argv[paramFileArgIndex] = strdup("input/AlexTest.params");
-   assert(pv_argv[paramFileArgIndex]);
-   status = buildandrun(pv_argc, pv_argv, NULL, NULL, &addcustomgroup);
+   free(cl_args[2]);
+   cl_args[2] = strdup("input/AlexTrain.params");
+   status = buildandrun(cl_argc, cl_args, NULL, NULL, &addcustomgroup);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
    }
+
+   free(cl_args[2]);
+   cl_args[2] = strdup("input/AlexTest.params");
+   status = buildandrun(cl_argc, cl_args, NULL, NULL, &addcustomgroup);
+   if( status != PV_SUCCESS ) {
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], cl_args[2], status);
+   }
+
+
+
+
+
+
+
 
 #ifdef PV_USE_MPI
    MPI_Finalize();
 #endif
 
-   for (int i=0; i<pv_argc; i++) {
-      free(pv_argv[i]);
+   for (int i=0; i<cl_argc; i++) {
+      free(cl_args[i]);
    }
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
