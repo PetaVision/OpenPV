@@ -62,6 +62,11 @@ protected:
 private:
     int transposeSharedWeights(int arborId);
     int transposeNonsharedWeights(int arborId);
+
+    /**
+     * Calculates the parameters of the the region that needs to be sent to adjoining processes using MPI.
+     * Used only in the sharedWeights=false case, because in that case an individual weight's pre and post neurons can live in different processes.
+     */
     int mpiexchangesize(int neighbor, int * size, int * startx, int * stopx, int * starty, int * stopy, int * blocksize, size_t * buffersize);
 // Member variables
 protected:
