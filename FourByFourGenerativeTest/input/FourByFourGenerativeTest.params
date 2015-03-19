@@ -280,7 +280,7 @@ PtwiseProductLayer "Energy AnaLayer A" = {
 //  8  Flat AnaLayer A to Pooling AnaLayer A                 IdentConn         -
 //  9  Flat AnaLayer A to Arrow AnaLayer A                   IdentConn         -
 //
-// 10  Arrow AnaLayer A to Layer B                           PoolingConn       aux (weights B)
+// 10  Arrow AnaLayer A to Layer B                           BiLinearConn      aux (weights B)
 // 11  Layer A to CataLayer B                                CloneConn         - (weights B)
 // 12  CataLayer B to Layer A                                TransposeConn     + (weights B^T)
 // 13  Layer B to Flat AnaLayer A                            CloneConn         - (weights B^T)
@@ -442,7 +442,7 @@ IdentConn "Flat AnaLayer A to Arrow AnaLayer A" = {
     delay = 0;
 };
 
-PoolingConn "Arrow AnaLayer A to Layer B" = {
+BiLinearConn "Arrow AnaLayer A to Layer B" = {
     preLayerName = "Arrow AnaLayer A";
     postLayerName = "Layer B";
     secondaryPreLayerName = "Layer A";
