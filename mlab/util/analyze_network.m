@@ -37,6 +37,7 @@ if (isempty(mlab_util_index))
    exit;
 end
 startpath = path_separation_indices(path_separation_indices < mlab_util_index)(size(path_separation_indices(path_separation_indices < mlab_util_index),2))+1;
+pv_path = paths(startpath:mlab_util_index-1)
 status = system(['python ' pv_path  '/plab/get_names.py ' pv_path]);
 status = system(['python ' pv_path  '/plab/analysis_parse.py']);
 system('rm layers.txt connections.txt');
@@ -273,6 +274,7 @@ if(err_flag && sparse_flag)
    for i = 1:size(errpvps,2)
       syncedtimes1{i} = 0;
       if !((isempty(t_sparse{i}))||(isempty(t_err{i})))
+         keyboard;
          for j = 1:size(t_err{i},2)  % If PetaVision implementation is still running, sparse data might contain more frames, even if synced with input, since sparse pvps are read after error pvps.
             if (t_sparse{i}(j) == t_err{i}(j))
                syncedtimes1{i} = 1;
