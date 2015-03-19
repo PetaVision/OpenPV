@@ -1,5 +1,5 @@
 /*
- * pv.cpp
+ * main .cpp file for CopyConnTest
  *
  */
 
@@ -17,6 +17,16 @@ int main(int argc, char * argv[]) {
    MPI_Init(&argc, &argv);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif // PV_USE_MPI
+
+   if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
+      if (rank==0) {
+         fprintf(stderr, "%s should be run without the params file argument.\n", argv[0]);
+         fprintf(stderr, "This test uses several hard-coded params files\n");
+      }
+      MPI_Barrier(MPI_COMM_WORLD);
+      exit(EXIT_FAILURE);
+    }
+
    int status = PV_SUCCESS;
 
    if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, "input/CopyConnInitializeTest.params"); }
@@ -40,68 +50,35 @@ int main(int argc, char * argv[]) {
 // Note that this check makes assumptions on the normalization method, although normalizeSum, normalizeL2 and normalizeMax all satisfy them.
 int runparamsfile(int argc, char ** argv, char const * paramsfile) {
    //
-   // Process input arguments.  The only input arguments allowed are --require-return and -t.
-   // The parameter file is hardcoded below.
+   // argv should not contain a "-p" argument.  buildandrun is called with the argv arguments augmented by "-p" and paramsfile
    //
+   assert(pv_getopt_str(argc, argv, "-p", NULL, NULL)==-1);
    int rank = 0;
 #ifdef PV_USE_MPI
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif // PV_USE_MPI
-   bool argerr = false;
-   int reqrtn = 0;
-   int usethreads = 0;
-   int threadargno = -1;
-   for (int k=1; k<argc; k++) {
-      if (!strcmp(argv[k], "--require-return")) {
-         reqrtn = 1;
-      }
-      else if (!strcmp(argv[k], "-t")) {
-         usethreads = 1;
-         if (k<argc-1 && argv[k+1][0] != '-') {
-            k++;
-            threadargno = k;
-         }
-      }
-      else {
-         argerr = true;
-         break;
-      }
+   int pv_argc = 2+argc;
+   char ** pv_argv = (char **) malloc((pv_argc+1)*sizeof(char *));
+   assert(pv_argv!=NULL);
+   int pv_arg=0;
+   for (pv_arg = 0; pv_arg < argc; pv_arg++) {
+      pv_argv[pv_arg] = strdup(argv[pv_arg]);
+      assert(pv_argv[pv_arg]);
    }
-   if (argerr) {
-      if (rank==0) {
-         fprintf(stderr, "%s: run without input arguments (except for --require-return, if desired); the necessary arguments are hardcoded.\n", argv[0]);
-      }
-      MPI_Barrier(MPI_COMM_WORLD);
-      return PV_FAILURE;
-   }
+   assert(pv_arg==argc);
+   pv_argv[pv_arg++] = strdup("-p");
+   pv_argv[pv_arg++] = strdup(paramsfile);
+   assert(pv_arg==pv_argc && pv_arg==argc+2);
+   assert(pv_argv[argc]!=NULL && pv_argv[argc+1]!=NULL);
+   pv_argv[pv_argc]=NULL;
 
-   assert(reqrtn==0 || reqrtn==1);
-   assert(usethreads==0 || usethreads==1);
-   size_t cl_argc = 3+reqrtn+usethreads+(threadargno>0);
-   char ** cl_args = (char **) malloc((cl_argc+1)*sizeof(char *));
-   assert(cl_args!=NULL);
-   int cl_arg = 0;
-   cl_args[cl_arg++] = strdup(argv[0]);
-   cl_args[cl_arg++] = strdup("-p");
-   cl_args[cl_arg++] = strdup(paramsfile);
-   if (reqrtn) {
-      cl_args[cl_arg++] = strdup("--require-return");
-   }
-   if (usethreads) {
-      cl_args[cl_arg++] = strdup("-t");
-      if (threadargno>0) {
-         cl_args[cl_arg++] = strdup(argv[threadargno]);
-      }
-   }
-   assert(cl_arg==cl_argc);
-   cl_args[cl_arg] = NULL;
    int status = PV_SUCCESS;
-   HyPerCol * hc = build((int) cl_argc, cl_args);
+   HyPerCol * hc = build((int) pv_argc, pv_argv);
    if (hc != NULL) {
       status = hc->run();
       if( status != PV_SUCCESS ) {
          if (rank==0) {
-            fprintf(stderr, "%s: running with params file %s returned error %d.\n", cl_args[0], paramsfile, status);
+            fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], paramsfile, status);
          }
       }
    }
@@ -109,10 +86,10 @@ int runparamsfile(int argc, char ** argv, char const * paramsfile) {
       status = PV_FAILURE;
    }
 
-   for (size_t arg=0; arg<cl_argc; arg++) {
-       free(cl_args[arg]);
+   for (int arg=0; arg<pv_argc; arg++) {
+       free(pv_argv[arg]);
    }
-   free(cl_args);
+   free(pv_argv);
 
    if (status != PV_SUCCESS) {
       delete hc;
