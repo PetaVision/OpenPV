@@ -1,5 +1,5 @@
 /*
- * pv.cpp
+ * main .cpp file for CheckpointSystemTest
  *
  */
 
@@ -83,8 +83,10 @@ int main(int argc, char * argv[]) {
       status = PV_FAILURE;
    }
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "This test uses two hard-coded params files, %s and %s. The second run is started from a checkpoint from the first run, and the results of the two runs are compared.\n",
-            paramFile1, paramFile2);
+      if (rank==0) {
+         fprintf(stderr, "This test uses two hard-coded params files, %s and %s. The second run is started from a checkpoint from the first run, and the results of the two runs are compared.\n",
+               paramFile1, paramFile2);
+      }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
    }
