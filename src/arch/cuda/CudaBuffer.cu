@@ -57,7 +57,7 @@ int CudaBuffer::copyFromDevice(void * h_ptr, size_t in_size)
       printf("copyFromDevice: in_size of %zu is bigger than buffer size of %zu\n", in_size, this->size);
       exit(-1);
    }
-   handleError(cudaMemcpyAsync(h_ptr, d_ptr, in_size, cudaMemcpyDeviceToHost, stream), "Copying device from device");
+   handleError(cudaMemcpyAsync(h_ptr, d_ptr, in_size, cudaMemcpyDeviceToHost, stream), "Copying buffer from device");
    return 0;
 }
 

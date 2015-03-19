@@ -1,45 +1,45 @@
 /*
- * PoolingConn.cpp
+ * BiLinearConn.cpp
  *
  *  Created on: Apr 25, 2011
  *      Author: peteschultz
  */
 
-#include "PoolingConn.hpp"
+#include "BiLinearConn.hpp"
 
 namespace PV {
-PoolingConn::PoolingConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+BiLinearConn::BiLinearConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
    initialize_base();
    initialize(name, hc, weightInitializer, weightNormalizer);
-}  // end of PoolingConn::PoolingConn(const char *, HyPerCol *)
+}  // end of BiLinearConn::BiLinearConn(const char *, HyPerCol *)
 
-int PoolingConn::initialize_base() {
+int BiLinearConn::initialize_base() {
     pre2 = NULL;
     post2 = NULL;
     return PV_SUCCESS;
 }
 
-int PoolingConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
+int BiLinearConn::initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
    int status = HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
    return status;
 }
 
-int PoolingConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int BiLinearConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_secondaryPreLayerName(ioFlag);
    ioParam_secondaryPostLayerName(ioFlag);
    return status;
 }
 
-void PoolingConn::ioParam_secondaryPreLayerName(enum ParamsIOFlag ioFlag) {
+void BiLinearConn::ioParam_secondaryPreLayerName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "secondaryPreLayerName", &preLayerName2);
 }
 
-void PoolingConn::ioParam_secondaryPostLayerName(enum ParamsIOFlag ioFlag) {
+void BiLinearConn::ioParam_secondaryPostLayerName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "secondaryPostLayerName", &postLayerName2);
 }
 
-int PoolingConn::communicateInitInfo() {
+int BiLinearConn::communicateInitInfo() {
    int status = HyPerConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
    pre2 = parent->getLayerFromName(preLayerName2);
@@ -54,7 +54,7 @@ int PoolingConn::communicateInitInfo() {
    return status;
 }
 
-bool PoolingConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * layer2) {
+bool BiLinearConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * layer2) {
 	int nx1 = layer1->getLayerLoc()->nx;
 	int nx2 = layer2->getLayerLoc()->nx;
 	int ny1 = layer1->getLayerLoc()->ny;
@@ -75,9 +75,9 @@ bool PoolingConn::checkLayersCompatible(HyPerLayer * layer1, HyPerLayer * layer2
         fprintf(stderr, "Layer \"%*s\": nx=%d, ny=%d, nf=%d, halo=(%d,%d,%d,%d)\n", len, name2, nx2, ny2, nf2, halo2->lt, halo2->rt, halo2->dn, halo2->up);
     }
     return result;
-}  // end of PoolingConn::PoolingConn(HyPerLayer *, HyPerLayer *)
+}  // end of BiLinearConn::BiLinearConn(HyPerLayer *, HyPerLayer *)
 
-int PoolingConn::updateWeights(int axonID) {
+int BiLinearConn::updateWeights(int axonID) {
     int nPre = preSynapticLayer()->getNumNeurons();
     int nx = preSynapticLayer()->getLayerLoc()->nx;
     int ny = preSynapticLayer()->getLayerLoc()->ny;
@@ -113,7 +113,7 @@ int PoolingConn::updateWeights(int axonID) {
     return PV_SUCCESS;
 }
 
-PoolingConn::~PoolingConn() {
+BiLinearConn::~BiLinearConn() {
    free(preLayerName2); preLayerName2 = NULL;
    free(postLayerName2); postLayerName2 = NULL;
 }

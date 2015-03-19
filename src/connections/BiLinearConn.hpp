@@ -1,21 +1,21 @@
 /*
- * PoolingConn.hpp
+ * BiLinearConn.hpp
  *
  *  Created on: Apr 25, 2011
  *      Author: peteschultz
  */
 
-#ifndef POOLINGCONN_HPP_
-#define POOLINGCONN_HPP_
+#ifndef BILINEARCONN_HPP_
+#define BILINEARCONN_HPP_
 
 #include "HyPerConn.hpp"
 
 namespace PV {
 
-class PoolingConn : public HyPerConn {
+class BiLinearConn : public HyPerConn {
 public:
-   PoolingConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
-   virtual ~PoolingConn();
+   BiLinearConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
+   virtual ~BiLinearConn();
 
    HyPerLayer * getPre2() { return pre2; }
    HyPerLayer * getPost2() { return post2; }
@@ -35,7 +35,7 @@ protected:
    char * postLayerName2;
    HyPerLayer * pre2;
    HyPerLayer * post2;
-};  // end class PoolingConn
+};  // end class BiLinearConn
 
 }  // end namespace PV
 
