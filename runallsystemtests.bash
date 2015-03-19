@@ -18,6 +18,8 @@
 #
 # To run with threads, do "runalltests.bash --threads".  This will pass the argument "-t" to the tests.
 # To run with a specific number of threads, do "runalltests.bash --threads=<number>"
+#
+# To specify a GPU devices argument, do "runalltests.bash -d <number>"
 
 # Navigate to directory containing systems tests.
 cd $(dirname "$0")
@@ -39,8 +41,8 @@ function runandecho() {
     shift
     logfilebasename=$1
     shift
-    echo $valgrindcommand $* $threadopt
-    if $valgrindcommand $* $threadopt &> ${logfilebasename}_1.log
+    echo $valgrindcommand $* $threadopt $gpudeviceopt
+    if $valgrindcommand $* $threadopt $gpudeviceopt &> ${logfilebasename}_1.log
     then
         result=passed
     else
@@ -57,9 +59,13 @@ PV_MPIRUN=""
 # Set default to not use threads
 threadopt=""
 
+# Set default to not use a GPU device argument
+gpudeviceopt=""
+
 # Check for --nompi option, or set PV_MPIRUN using --mpirun= option
-for opt in "$@"
+while test $# -gt 0
 do
+    opt="$1"
     if test "$opt" = "--nompi"
     then
         usempi=0
@@ -87,7 +93,23 @@ do
             exit 1
         fi
         threadopt=" -t ${threadnum}"
+    elif test "$opt" = "-d"
+    then
+        if test $# -eq 0
+        then
+            echo "$0: -d option requires an argument" > /dev/stderr
+            exit 1
+        fi
+        shift
+        deviceargnum="$1"
+        if test -z "$(echo "$deviceargnum" | egrep '^-?[0-9]+$')"
+        then
+            echo "$0: -d option requires a numerical argument (positive or negative integer)" > /dev/stderr
+            exit 1
+        fi
+        gpudeviceopt=" -d ${deviceargnum}"
     fi
+    shift
 done
 
 if test "$usempi" = 0
@@ -115,8 +137,8 @@ else
         logfilebasename=$1
         shift
         logfilename="${logfilebasename}_${numprocs}.log"
-        echo $PV_MPIRUN -np $numprocs $* $threadopt
-        if $PV_MPIRUN -np $numprocs $valgrindcommand $* $threadopt &> "${logfilename}"
+        echo $PV_MPIRUN -np $numprocs $* $threadopt $gpudeviceopt
+        if $PV_MPIRUN -np $numprocs $valgrindcommand $* $threadopt $gpudeviceopt &> "${logfilename}"
         then
             result=passed
         else
