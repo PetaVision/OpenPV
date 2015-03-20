@@ -18,7 +18,7 @@ set(CUDA_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
-set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
+set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
 
 IF(CUDA_GPU AND OPEN_CL_GPU)
    message(FATAL_ERROR "CUDA_GPU and OPEN_CL_GPU cannot both be true")
