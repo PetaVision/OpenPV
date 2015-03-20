@@ -854,7 +854,9 @@ protected:
    virtual void handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
    virtual PVPatch*** initializeWeights(PVPatch*** arbors, pvwdata_t** dataStart);
    virtual InitWeights* getDefaultInitWeightsMethod(const char* keyword);
+#ifdef OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
    virtual InitWeights* handleMissingInitWeights(PVParams* params);
+#endif // OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
    virtual int createWeights(PVPatch*** patches, int nWeightPatches, int nDataPatches, int nxPatch,
          int nyPatch, int nfPatch, int arborId);
    int createWeights(PVPatch*** patches, int arborId);

@@ -1749,9 +1749,11 @@ InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
    exit(EXIT_FAILURE);
 }
 
+#ifdef OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
 InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
    return new InitWeights(name, parent);
 }
+#endif // OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
 
 //#ifdef PV_USE_OPENCL
 //void HyPerConn::initIgnoreGPUFlag() {
