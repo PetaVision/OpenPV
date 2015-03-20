@@ -15,6 +15,10 @@ namespace PVCuda {
 CudaBuffer::CudaBuffer(size_t inSize, cudaStream_t stream)
 {
    handleError(cudaMalloc(&d_ptr, inSize), "CudaBuffer constructor");
+   if(!d_ptr){
+      printf("Cuda Buffer allocation error\n");
+      exit(-1);
+   }
    this->size = inSize;
    this->stream = stream;
 }

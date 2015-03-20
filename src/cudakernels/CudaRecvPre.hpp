@@ -44,6 +44,7 @@ typedef struct PVPatch_ {
 
       bool isSparse;
       unsigned int * activeIndices;
+      long numActive;
    };
 
 
@@ -76,6 +77,7 @@ public:
    );
 
    void set_dt_factor(float new_dt_factor) { params.dt_factor = new_dt_factor; }
+   void set_numActive(long new_numActive) { params.numActive = new_numActive; }
 
 protected:
    //This is the function that should be overwritten in child classes

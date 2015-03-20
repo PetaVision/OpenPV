@@ -3632,6 +3632,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
+   assert(krRecvPre);
    //Check if we need to update based on connection's channel
    if(getChannel() == CHANNEL_NOUPDATE){
       return PV_SUCCESS;
@@ -3732,14 +3733,13 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
       setUpdatedDeviceWFlag(false);
    }
 
-#ifdef PV_USE_OPENCL
-   //Grab kernel from conn
-   CLKernel * krRecvPre = getKrRecvPre();        // CL kernel for update state call
-#endif
-#ifdef PV_USE_CUDA
-   PVCuda::CudaKernel * krRecvPre = getKrRecvPre();        // CL kernel for update state call
-#endif
-   assert(krRecvPre);
+//#ifdef PV_USE_OPENCL
+//   //Grab kernel from conn
+//   CLKernel * krRecvPre = getKrRecvPre();        // CL kernel for update state call
+//#endif
+//#ifdef PV_USE_CUDA
+//   PVCuda::CudaKernel * krRecvPre = getKrRecvPre();        // CL kernel for update state call
+//#endif
 
    //int totX = conn->getNumPostGroupX();
    //int totY = conn->getNumPostGroupY();
@@ -3766,6 +3766,8 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
 #endif
 
 #ifdef PV_USE_CUDA
+   krRecvPre->set_numActive(totActiveNeuron);
+
    int maxThreads = parent->getDevice()->get_max_threads();
    int numLocalThreads = totPatchSize < maxThreads ? totPatchSize : maxThreads;
 
@@ -3803,6 +3805,8 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    else {
       dt_factor = getConvertToRateDeltaTimeFactor();
    }
+
+   assert(krRecvPost);
 #ifdef PV_USE_CUDA
    krRecvPost->set_dt_factor(dt_factor);
 #endif // PV_USE_CUDA
@@ -3872,13 +3876,12 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
       updateWeights = true;
    }
 
-#ifdef PV_USE_OPENCL
-   CLKernel * krRecvPost = getKrRecvPost();        // CL kernel for update state call
-   assert(krRecvPost);
-#endif
-#ifdef PV_USE_CUDA
-   PVCuda::CudaRecvPost * krRecvPost = getKrRecvPost();        // CL kernel for update state call
-   assert(krRecvPost);
+//#ifdef PV_USE_OPENCL
+//   CLKernel * krRecvPost = getKrRecvPost();        // CL kernel for update state call
+//   assert(krRecvPost);
+//#endif
+//#ifdef PV_USE_CUDA
+//   PVCuda::CudaRecvPost * krRecvPost = getKrRecvPost();        // CL kernel for update state call
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
    if(updatePreAct){
       krRecvPost->permuteDatastorePVToCudnn();
@@ -3889,7 +3892,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    //Permute GSyn
    krRecvPost->permuteGSynPVToCudnn(sourceToTargetConn->getChannel());
 #endif // defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-#endif // PV_USE_CUDA
+//#endif // PV_USE_CUDA
 
    int totF = targetNf;
    int totX = targetNx;

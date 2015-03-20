@@ -572,7 +572,8 @@ protected:
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 public:
 
-   virtual float syncGpu();
+   virtual void syncGpu();
+   virtual float addGpuTimers();
 
    void copyAllGSynToDevice();
    void copyAllGSynFromDevice();

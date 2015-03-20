@@ -2012,19 +2012,11 @@ int HyPerLayer::recvAllSynapticInput() {
    return status;
 }
 
+
+
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-float HyPerLayer::syncGpu(){
+float HyPerLayer::addGpuTimers(){
    float time = 0;
-
-   if(recvGpu || updateGpu){
-#ifdef PV_USE_CUDA
-      parent->getDevice()->syncDevice();
-#endif
-#ifdef PV_USE_OPENCL
-      parent->getDevice()->syncDevice();
-#endif
-   }
-
    bool updateNeeded = needUpdate(parent->simulationTime(), parent->getDeltaTime());
    if(recvGpu && updateNeeded){
       time += gpu_recvsyn_timer->accumulateTime();
@@ -2033,6 +2025,17 @@ float HyPerLayer::syncGpu(){
       time += gpu_update_timer->accumulateTime();
    }
    return time;
+}
+
+void HyPerLayer::syncGpu(){
+   if(recvGpu || updateGpu){
+#ifdef PV_USE_CUDA
+      parent->getDevice()->syncDevice();
+#endif
+#ifdef PV_USE_OPENCL
+      parent->getDevice()->syncDevice();
+#endif
+   }
 }
 #endif
 

@@ -20,6 +20,10 @@ void HyPerLayer_recv_pre(
    //Put this on cpu
    int fullPatchSize = params.nfp * params.nxp * params.nyp;
 
+   if(tIndex >= fullPatchSize * params.numActive){
+      return;
+   }
+
    unsigned int neuronIndex = tIndex / fullPatchSize;
    if(params.isSparse){
       kPreExt = params.activeIndices[neuronIndex];

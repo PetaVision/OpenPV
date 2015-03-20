@@ -1821,6 +1821,7 @@ int HyPerCol::advanceTime(double sim_time)
             }
          }
       }
+      getDevice()->syncDevice();
 
       //Update for non gpu recv and gpu update
       for(std::vector<HyPerLayer*>::iterator it = updateLayerBufferGpu.begin(); it < updateLayerBufferGpu.end(); it++){
@@ -1831,6 +1832,7 @@ int HyPerCol::advanceTime(double sim_time)
          }
       }
 
+      getDevice()->syncDevice();
       //Barriers for all gpus, and copy back all data structures
       for(int l = 0; l < numLayers; l++) {
          if (layers[l]->getPhase() != phase) continue;
@@ -1838,7 +1840,7 @@ int HyPerCol::advanceTime(double sim_time)
          layers[l]->copyAllActivityFromDevice();
          layers[l]->copyAllVFromDevice();
          layers[l]->copyAllGSynFromDevice();
-         layers[l]->syncGpu();
+         layers[l]->addGpuTimers();
          phaseRecvTimers[phase]->stop();
       }
 
