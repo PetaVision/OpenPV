@@ -266,7 +266,7 @@ cd "$workspacedir"
 testname=GPUSystemTest
 logfilebasename=GPUSystemTest_preTest
 cd "$testname"
-arglist="-d 0 -p input/preTest.params"
+arglist="-p input/preTest.params"
 runandecho $testname $logfilebasename Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
@@ -274,7 +274,7 @@ cd "$workspacedir"
 testname=GPUSystemTest
 logfilebasename=GPUSystemTest_preTest
 cd "$testname"
-arglist="-d 0 -p input/preTest.params"
+arglist="-p input/preTest.params"
 runandecho $testname $logfilebasename Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
@@ -282,7 +282,7 @@ cd "$workspacedir"
 testname=GPUSystemTest
 logfilebasename=GPUSystemTest_postTest
 cd "$testname"
-arglist="-d 0 -p input/postTest.params"
+arglist="-p input/postTest.params"
 runandecho $testname $logfilebasename Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
@@ -290,7 +290,7 @@ cd "$workspacedir"
 testname=GPUSystemTest
 logfilebasename=GPUSystemTest_postTestOneToMany
 cd "$testname"
-arglist="-d 0 -p input/postTestOneToMany.params"
+arglist="-p input/postTestOneToMany.params"
 runandecho $testname $logfilebasename Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
@@ -298,7 +298,7 @@ cd "$workspacedir"
 testname=GPUSystemTest
 logfilebasename=GPUSystemTest_postTest_linked
 cd "$testname"
-arglist="-d 0 -p input/postTest_linked.params"
+arglist="-p input/postTest_linked.params"
 runandecho $testname $logfilebasename Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
@@ -306,7 +306,7 @@ cd "$workspacedir"
 testname=GPUSystemTest
 logfilebasename=GPUSystemTest_HyPerLCAGpuTest
 cd "$testname"
-arglist="-d 0 -p input/HyPerLCAGpuTest.params"
+arglist="-p input/HyPerLCAGpuTest.params"
 runandecho $testname $logfilebasename Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
