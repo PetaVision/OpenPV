@@ -927,7 +927,7 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "sparseLayer"));
    }
    if (sparseLayer)
-      parent->ioParamValue(ioFlag, name, "writeSparseValues", &writeSparseValues, false/*default value*/);
+      parent->ioParamValue(ioFlag, name, "writeSparseValues", &writeSparseValues, true/*default value*/);
 }
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -2011,7 +2011,6 @@ int HyPerLayer::recvAllSynapticInput() {
    }
    return status;
 }
-
 
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
