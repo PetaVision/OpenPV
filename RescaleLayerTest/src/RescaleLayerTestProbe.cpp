@@ -95,7 +95,7 @@ int RescaleLayerTestProbe::outputState(double timed)
 
       bool iscolinear = colinear(nk, ny, origStrideYExtended, rescaleStrideYExtended, origData, rescaledData, tolerance, NULL, NULL, NULL);
       if (!iscolinear) {
-         fprintf(stderr, "RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", targetRescaleLayer->getName());
+         fprintf(stderr, "RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", getName(), targetRescaleLayer->getName());
          status = PV_FAILURE;
       }
    }
@@ -138,7 +138,7 @@ int RescaleLayerTestProbe::outputState(double timed)
 
       bool iscolinear = colinear(nk, ny, origStrideYExtended, rescaleStrideYExtended, origData, rescaledData, tolerance, NULL, NULL, NULL);
       if (!iscolinear) {
-         fprintf(stderr, "RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", targetRescaleLayer->getName());
+         fprintf(stderr, "RescaleLayerTestProbe \"%s\": Rescale layer \"%s\" data is not a linear rescaling of original membrane potential.\n", getName(), targetRescaleLayer->getName());
          status = PV_FAILURE;
       }
    }
