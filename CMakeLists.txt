@@ -17,7 +17,7 @@ endif (NOT CMAKE_BUILD_TYPE)
 # Variables to set on the command line
 set(OPEN_MP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
 set(OPEN_CL_GPU FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
-set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
+set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
 set(CUDA_GPU FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 set(CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")

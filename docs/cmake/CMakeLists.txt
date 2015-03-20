@@ -26,8 +26,7 @@ set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/ CACHE PATH "
 
 set(CLANG_OMP TRUE CACHE BOOL "Defines if we're compiling with Clang + omp support")
 
-set(OpenCL_dir /usr/local/cuda-6.0/ CACHE PATH "Location of opencl headers")
-#set(Cuda_lib /usr/local/cuda-6.0/lib64 CACHE PATH "Location of opencl headers")
+set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
 
 if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -DPV_USE_THREADS")
