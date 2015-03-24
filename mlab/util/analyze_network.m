@@ -183,13 +183,15 @@ for i = 1:size(errpvps,2)
    [startPrefix,endPrefix] = regexp(errpvps{i},prefix);
    [startSuffix,endSuffix] = regexp(errpvps{i},suffix);
    syncedtimes = 0;
-   if !(isempty(t_input{i}))
-      for j = 1:size(t_input{i},2)  % If PetaVision implementation is still running, errdata might contain more frames, even if synced with input, since errpvp is read after inputpvp. 
-         if (errdata{j}.time == t_input{i}(j))
-            syncedtimes = 1;
-         else
-            syncedtimes = 0;
-            break;
+   if (input_flag)
+      if !(isempty(t_input{i}))
+         for j = 1:size(t_input{i},2)  % If PetaVision implementation is still running, errdata might contain more frames, even if synced with input, since errpvp is read after inputpvp. 
+            if (errdata{j}.time == t_input{i}(j))
+               syncedtimes = 1;
+            else
+               syncedtimes = 0;
+               break;
+            end
          end
       end
    end
@@ -324,10 +326,10 @@ for i = 1:size(weightspvps,2)
    weightsnumframes = weightsfiledata(1).bytes/weightsframesize;
    weightsdata = readpvpfile(weightspvps{i},100,weightsnumframes,weightsnumframes);
    numcolors = size(weightsdata{1}.values{1})(3);
-   if !((numcolors == 1) || (numcolors == 3))
-      display(['Not writing ' weightspvps{i}(endPrefix+1:startSuffix-1) ' weights; numColors currently needs to be 1 or 3 for visualization.']);
-      continue;
-   end
+  % if !((numcolors == 1) || (numcolors == 3))
+  %    display(['Not writing ' weightspvps{i}(endPrefix+1:startSuffix-1) ' weights; numColors currently needs to be 1 or 3 for visualization.']);
+  %    continue;
+  % end
    t = weightsdata{size(weightsdata,1)}.time;
    weightsnumpatches = size(weightsdata{size(weightsdata,1)}.values{1})(4)
    subplot_x = ceil(sqrt(weightsnumpatches));
