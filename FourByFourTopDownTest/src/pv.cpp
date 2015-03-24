@@ -4,7 +4,7 @@
  */
 
 #include <columns/buildandrun.hpp>
-#include <io/io.c>
+#include <io/io.h>
 #include "TopDownTestProbe.hpp"
 
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc);

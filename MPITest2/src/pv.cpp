@@ -11,7 +11,7 @@
 // MPITestProbe checks whether he above suppositions are satisfied
 
 #include <columns/buildandrun.hpp>
-#include <io/io.c>
+#include <io/io.h>
 #include "MPITestProbe.hpp"
 #include "MPITestLayer.hpp"
 #include <assert.h>

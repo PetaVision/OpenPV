@@ -11,7 +11,7 @@
 // ShrunkenPatchProbe checks whether he above suppositions are satisfied
 
 #include <columns/buildandrun.hpp>
-#include <io/io.c>
+#include <io/io.h>
 #include "CustomGroupHandler.hpp"
 #include <assert.h>
 

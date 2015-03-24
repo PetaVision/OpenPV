@@ -17,7 +17,7 @@
  */
 
 #include <columns/buildandrun.hpp>
-#include <io/io.c>
+#include <io/io.h>
 #ifdef PV_USE_MPI
 #  include <mpi.h>
 #endif
