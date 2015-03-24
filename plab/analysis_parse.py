@@ -218,7 +218,8 @@ for i in error_layer:
             error_input.append(layer_names[pre])
 
 for c,i in enumerate(layer_names):
-    if re.search("Recon",i) or re.search("recon",i):
+    
+    if (re.search("Recon",i) or re.search("recon",i)) and not re.search("Error",i):
         n = layer_values[c][layer_vars.index("nf")]
         if n == '1' or n == '3':
             recon_name.append(i)
