@@ -223,17 +223,19 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
-testname=FourByFourGenerativeTest
-arglist=""
-cd "$testname"
-runandecho $testname $testname Debug/$testname $arglist
-cd "$workspacedir"
+# # Moved to inactivesandboxes/SymmetryBreakingGenerative Mar 24, 2015
+#testname=FourByFourGenerativeTest
+#arglist=""
+#cd "$testname"
+#runandecho $testname $testname Debug/$testname $arglist
+#cd "$workspacedir"
 
-testname=FourByFourTopDownTest
-arglist=""
-cd "$testname"
-runandecho $testname $testname Debug/$testname $arglist
-cd "$workspacedir"
+# # Moved to inactivesandboxes/SymmetryBreakingGenerative Mar 24, 2015
+#testname=FourByFourTopDownTest
+#arglist=""
+#cd "$testname"
+#runandecho $testname $testname Debug/$testname $arglist
+#cd "$workspacedir"
 
 testname=GenericSystemTest
 arglist="-p input/GenericSystemTest.params -c checkpoints/Checkpoint6 --testall"
