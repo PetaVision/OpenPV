@@ -362,7 +362,7 @@ int TransposeConn::constructWeights(){
    gSynPatchStart = this->originalConn->postConn->getGSynPatchStart();
    aPostOffset = this->originalConn->postConn->getAPostOffset();
    dwDataStart = this->originalConn->postConn->get_dwDataStart();
-
+   return PV_SUCCESS;
 }
 
 int TransposeConn::deleteWeights() {
