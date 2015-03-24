@@ -102,59 +102,12 @@ ANNLayer "outputTest" = {
     triggerFlag = false;
 };
 
-//KernelConn "tempConn" = {
-//    preLayerName = "input";
-//    postLayerName = "outputRecvGpu";
-//    channelCode = -1; //Inhib b, doing nothing to input
-//    nxp = 13; 
-//    nyp = 13; 
-//    numAxonalArbors = 1;
-//    initFromLastFlag = 0;  // 1;  // restart
-//    writeStep = -1;
-//    initialWriteTime = 0.0;
-//    writeCompressedWeights = false;
-//    
-//    weightInitType = "UniformRandomWeight";
-//    wMinInit = -1;
-//    wMaxInit = 1;
-//    sparseFraction = 0;
-//        
-//    normalizeMethod                     = "none";
-//    //strength                            = 1;
-//    //rMinX                               = 1.5;
-//    //rMinY                               = 1.5;
-//    //normalize_cutoff                    = 0;
-//
-//    normalizeArborsIndividually = false;
-//    normalizeFromPostPerspective = false;
-//
-//    minL2NormTolerated                  = 0;
-//
-//    symmetrizeWeights = false;
-//    
-//    shrinkPatches = false;
-//    //writeCompressedWeights = 0.0;
-//    writeCompressedCheckpoints = false;
-//    plasticityFlag = 0;
-//    pvpatchAccumulateType = "convolve";
-//     
-//    delay = 0;
-//     
-//    preActivityIsNotRate = false;
-//    selfFlag = false;
-//
-//    updateGSynFromPostPerspective = false;
-//    useWindowPost = false;
-//
-//    keepKernelsSynchronized             = true;
-//};
-
-KernelConn "origConn" = {
-    preLayerName = "outputRecvGpu";
-    postLayerName = "input";
-    channelCode = -1; //Inhib b, doing nothing to input
-    nxp = 18; 
-    nyp = 18; 
+KernelConn "cpuConn" = {
+    preLayerName = "input";
+    postLayerName = "outputRecv";
+    channelCode = 0;
+    nxp = 10; 
+    nyp = 10; 
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
@@ -165,6 +118,9 @@ KernelConn "origConn" = {
     wMinInit = -1;
     wMaxInit = 1;
     sparseFraction = 0;
+
+    //weightInitType = "UniformWeight";
+    //weightInit = 1;
         
     normalizeMethod                     = "none";
     //strength                            = 1;
@@ -174,9 +130,6 @@ KernelConn "origConn" = {
 
     normalizeArborsIndividually = false;
     normalizeFromPostPerspective = false;
-
-    minL2NormTolerated                  = 0;
-
     symmetrizeWeights = false;
     
     shrinkPatches = false;
@@ -190,42 +143,25 @@ KernelConn "origConn" = {
     preActivityIsNotRate = false;
     selfFlag = false;
 
-    updateGSynFromPostPerspective = false;
+    updateGSynFromPostPerspective = true;
+    receiveGpu = false;
     useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };
 
-TransposeConn "TransposeConn" = {
-    preLayerName = "input";
-    postLayerName = "outputRecv";
-    channelCode = 0; 
-    originalConnName = "origConn";
-    selfFlag = false;
-    preActivityIsNotRate = false;
-    writeStep = -1;
-    delay = 0;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = true;
-    receiveGpu = false;
-};
-
-TransposeConn "gpuTransposeConn" = {
+CloneKernelConn "gpuConn" = {
     preLayerName = "input";
     postLayerName = "outputRecvGpu";
     channelCode = 0;
-    originalConnName = "origConn";
+    writeStep = -1;
+    originalConnName = "cpuConn";
     selfFlag = false;
-    preActivityIsNotRate = false;
-    writeStep = -1.0;
     delay = 0;
-    pvpatchAccumulateType = "convolve";
+    preActivityIsNotRate = false;
     updateGSynFromPostPerspective = true;
-    receiveGpu = true;
-    preDataLocal = true;
-    numXLocal = 64;
-    numYLocal = 1;
-    numFLocal = 1;
+    receiveGpu = false;
+    pvpatchAccumulateType = "convolve";
 };
 
 IdentConn "RecvPostTest" = {
