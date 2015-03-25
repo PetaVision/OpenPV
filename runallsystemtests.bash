@@ -282,6 +282,14 @@ mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
 
 testname=GPUSystemTest
+logfilebasename=GPUSystemTest_postTestNoTranspose
+cd "$testname"
+arglist="-p input/postTestNoTranspose.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=GPUSystemTest
 logfilebasename=GPUSystemTest_postTest
 cd "$testname"
 arglist="-p input/postTest.params"
@@ -498,10 +506,27 @@ mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
 testname=ReceiveFromPostTest
+logfilebasename=ReceiveFromPostTest_margins
+cd "$testname"
+arglist="-p input/postTest_margins.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=ReceiveFromPostTest
+logfilebasename=ReceiveFromPostTest_NoTranspose
+cd "$testname"
+arglist="-p input/postTestNoTranspose.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=ReceiveFromPostTest
+logfilebasename=ReceiveFromPostTest_PostTest
 cd "$testname"
 arglist="-p input/postTest.params"
-runandecho $testname $testname Debug/$testname $arglist
-mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
 
 testname=RescaleLayerTest

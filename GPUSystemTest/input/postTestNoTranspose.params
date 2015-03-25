@@ -114,13 +114,13 @@ KernelConn "cpuConn" = {
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
     
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -1;
-    wMaxInit = 1;
-    sparseFraction = 0;
-
-    //weightInitType = "UniformWeight";
-    //weightInit = 1;
+//    weightInitType = "UniformRandomWeight";
+//    wMinInit = -1;
+//    wMaxInit = 1;
+//    sparseFraction = 0;
+//
+    weightInitType = "UniformWeight";
+    weightInit = 1;
         
     normalizeMethod                     = "none";
     //strength                            = 1;
@@ -150,18 +150,52 @@ KernelConn "cpuConn" = {
     keepKernelsSynchronized             = true;
 };
 
-CloneKernelConn "gpuConn" = {
+KernelConn "gpuConn" = {
     preLayerName = "input";
     postLayerName = "outputRecvGpu";
     channelCode = 0;
+    nxp = 10; 
+    nyp = 10; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
-    originalConnName = "cpuConn";
-    selfFlag = false;
+    initialWriteTime = 0.0;
+    writeCompressedWeights = false;
+    
+//    weightInitType = "UniformRandomWeight";
+//    wMinInit = -1;
+//    wMaxInit = 1;
+//    sparseFraction = 0;
+//
+    weightInitType = "UniformWeight";
+    weightInit = 1;
+        
+    normalizeMethod                     = "none";
+    //strength                            = 1;
+    //rMinX                               = 1.5;
+    //rMinY                               = 1.5;
+    //normalize_cutoff                    = 0;
+
+    normalizeArborsIndividually = false;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+     
     delay = 0;
+     
     preActivityIsNotRate = false;
+    selfFlag = false;
+
     updateGSynFromPostPerspective = true;
     receiveGpu = false;
-    pvpatchAccumulateType = "convolve";
+    useWindowPost = false;
+
+    keepKernelsSynchronized             = true;
 };
 
 IdentConn "RecvPostTest" = {

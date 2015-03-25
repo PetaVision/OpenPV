@@ -428,7 +428,7 @@ KernelConn "NormalizeMaxConnection" = {
    minMaxTolerated = 0;
 };
 
-KernelConn "NormalizeMaxCheckConnection" = {
+PoolingConn "NormalizeMaxCheckConnection" = {
    preLayerName = "NormalizeMaxOutput";
    postLayerName = "NormalizeMaxCheck";
    channelCode = 0;
@@ -448,7 +448,7 @@ KernelConn "NormalizeMaxCheckConnection" = {
    shrinkPatches = false;
    updateGSynFromPostPerspective = false;
    
-   weightInitType = "MaxPoolingWeight"; //"UniformWeight";
+   //weightInitType = "MaxPoolingWeight"; //"UniformWeight";
    //weightInit = 1;
    
    normalizeMethod = "none";
