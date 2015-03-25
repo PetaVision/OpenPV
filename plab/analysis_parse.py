@@ -207,7 +207,7 @@ for c,i in enumerate(layer_names):
             print(layer_names[pre] + " " + layer_names[post])
             if layer_names[pre] == i:
                 if re.search("Error",layer_types[post]):
-                    if conn_values[d][ccx] == '1':
+                    if conn_values[d][ccx] != '0':
                         error_layer.append(layer_names[post])
                         sparse_layer.append(layer_names[pre])
                         sparse_to_error.append(conn_names[d])
@@ -246,6 +246,13 @@ for i in sparse_to_error:
 for i in recon_name:
     recon.append("_" + i + ".pvp")
     masterlist.append(recon[-1])
+
+print(hyper)
+print(err)
+print(input)
+print(w)
+print(recon)
+
 
 actual_pvp = []
 for i in listdir(output_dir):
