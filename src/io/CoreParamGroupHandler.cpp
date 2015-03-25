@@ -20,7 +20,9 @@
 #include "../layers/CreateMovies.hpp"
 #include "../layers/FilenameParsingGroundTruthLayer.hpp"
 #include "../layers/GapLayer.hpp"
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/GenerativeLayer.hpp"
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/HyPerLCALayer.hpp"
 #include "../layers/Image.hpp"
 #include "../layers/ImageFromMemoryBuffer.hpp"
@@ -32,7 +34,9 @@
 #include "../layers/LabelErrorLayer.hpp"
 #include "../layers/LabelLayer.hpp"
 #include "../layers/LeakyIntegrator.hpp"
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/LogLatWTAGenLayer.hpp"
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/MLPErrorLayer.hpp"
 #include "../layers/MLPForwardLayer.hpp"
 #include "../layers/MLPOutputLayer.hpp"
@@ -43,7 +47,9 @@
 #endif // OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
 #include "../layers/Movie.hpp"
 #include "../layers/Patterns.hpp"
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/PoolingANNLayer.hpp"
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/PtwiseProductLayer.hpp"
 #include "../layers/RescaleLayer.hpp"
 #include "../layers/RunningAverageLayer.hpp"
@@ -73,11 +79,14 @@
 #include "../connections/BiLinearConn.hpp"
 #include "../connections/PoolingConn.hpp"
 #include "../connections/TransposeConn.hpp"
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../connections/BiLinearConn.hpp"
-#include "../connections/TransposeConn.hpp"
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "L2NormProbe.hpp"
 #include "LayerFunctionProbe.hpp"
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "LogLatWTAProbe.hpp"
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "PointLIFProbe.hpp"
 #include "PointProbe.hpp"
 #include "RequireAllZeroActivityProbe.hpp"
@@ -132,7 +141,9 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"CreateMovies", LayerGroupType},
          {"FilenameParsingGroundTruthLayer", LayerGroupType},
          {"GapLayer", LayerGroupType},
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"GenerativeLayer", LayerGroupType},
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"HyPerLCALayer", LayerGroupType},
          {"Image", LayerGroupType},
          {"ImageFromMemoryBuffer", LayerGroupType},
@@ -144,7 +155,9 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"LabelErrorLayer", LayerGroupType},
          {"LabelLayer", LayerGroupType},
          {"LeakyIntegrator", LayerGroupType},
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"LogLatWTAGenLayer", LayerGroupType},
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"MLPErrorLayer", LayerGroupType},
          {"MLPForwardLayer", LayerGroupType},
          {"MLPOutputLayer", LayerGroupType},
@@ -156,7 +169,9 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"MaxPooling", LayerGroupType},
          {"Movie", LayerGroupType},
          {"Patterns", LayerGroupType},
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"PoolingANNLayer", LayerGroupType},
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"PtwiseProductLayer", LayerGroupType},
          {"RescaleLayer", LayerGroupType},
          {"RunningAverageLayer", LayerGroupType},
@@ -198,7 +213,9 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"LayerProbe", ProbeGroupType},
          {"L2NormProbe", ProbeGroupType},
          {"LayerFunctionProbe", ProbeGroupType},
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"LogLatWTAProbe", ProbeGroupType},
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"PointLIFProbe", ProbeGroupType},
          {"PointProbe", ProbeGroupType},
          {"RequireAllZeroActivityProbe", ProbeGroupType},
@@ -315,9 +332,11 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "GapLayer") ) {
       addedLayer = new GapLayer(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "GenerativeLayer") ) {
       addedLayer = new GenerativeLayer(name, hc);
    }
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "HyPerLCALayer") ) {
       addedLayer = new HyPerLCALayer(name, hc);
    }
@@ -351,9 +370,11 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "LeakyIntegrator") ) {
       addedLayer = new LeakyIntegrator(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "LogLatWTAGenLayer") ) {
       addedLayer = new LogLatWTAGenLayer(name, hc);
    }
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "MLPErrorLayer") ) {
       addedLayer = new MLPErrorLayer(name, hc);
    }
@@ -388,9 +409,11 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "Patterns") ) {
       addedLayer = new Patterns(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "PoolingANNLayer") ) {
       addedLayer = new PoolingANNLayer(name, hc);
    }
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "PtwiseProductLayer") ) {
       addedLayer = new PtwiseProductLayer(name, hc);
    }
@@ -549,9 +572,11 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
    else if( !strcmp(keyword, "LayerFunctionProbe") ) {
       addedProbe = new LayerFunctionProbe(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "LogLatWTAProbe") ) {
       addedProbe = new LogLatWTAProbe(name, hc);
    }
+#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "PointLIFProbe") ) {
       addedProbe = new PointLIFProbe(name, hc);
    }
