@@ -75,6 +75,7 @@ int ANNLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_VMax(ioFlag);
    ioParam_VShift(ioFlag);
    ioParam_VWidth(ioFlag);
+   ioParam_clearGSynInterval(ioFlag);
 
    if (ioFlag == PARAMS_IO_READ) {
       status = checkVThreshParams(parent->parameters());
@@ -126,6 +127,13 @@ void ANNLayer::ioParam_VShift(enum ParamsIOFlag ioFlag) {
 
 void ANNLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, (pvdata_t) 0);
+}
+
+void ANNLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "clearGSynInterval", &clearGSynInterval, 0.0);
+   if (ioFlag==PARAMS_IO_READ) {
+      nextGSynClearTime = parent->getStartTime();
+   }
 }
 
 //#ifdef PV_USE_OPENCL
@@ -238,6 +246,19 @@ int ANNLayer::checkVThreshParams(PVParams * params) {
    return PV_SUCCESS;
 }
 
+int ANNLayer::resetGSynBuffers(double timef, double dt) {
+   int status = PV_SUCCESS;
+   if (GSyn == NULL) return PV_SUCCESS;
+   bool clearNow = clearGSynInterval <= 0 || timef >= nextGSynClearTime;
+   if (clearNow) {
+      resetGSynBuffers_HyPerLayer(this->getNumNeurons(), getNumChannels(), GSyn[0]);
+   }
+   if (clearNow > 0) {
+      nextGSynClearTime += clearGSynInterval;   
+   }
+   return status;
+}
+
 //! new ANNLayer update state, to add support for GPU kernel.
 //
 /*!
@@ -292,6 +313,22 @@ int ANNLayer::setActivity() {
    status = setActivity_HyPerLayer(num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
    if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), AMin, VThresh, AShift, VWidth, getCLayer()->activity->data, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
    if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(num_neurons, getV(), AMax, getCLayer()->activity->data, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+   return status;
+}
+
+int ANNLayer::checkpointRead(char const * cpDir, double * timeptr) {
+   int status = HyPerLayer::checkpointRead(cpDir, timeptr);
+   if (status==PV_SUCCESS) {
+      status = parent->readScalarFromFile(cpDir, getName(), "nextGSynClearTime", &nextGSynClearTime, parent->simulationTime()-parent->getDeltaTime());
+   }
+   return status;
+}
+
+int ANNLayer::checkpointWrite(char const * cpDir) {
+   int status = HyPerLayer::checkpointWrite(cpDir);
+   if (status==PV_SUCCESS) {
+      status = parent->writeScalarToFile(cpDir, getName(), "nextGSynClearTime", nextGSynClearTime);
+   }
    return status;
 }
 
