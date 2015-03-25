@@ -1633,7 +1633,7 @@ int HyPerConn::allocatePreToPostBuffer(){
       }
    }
    else{
-      fprintf(stderr,"sourceToTargetScaleX= %d, sourceToTargetScaleY= %d: the case of many-to-one in one dimension and one-to-many in the other"
+      fprintf(stderr,"sourceToTargetScaleX= %f, sourceToTargetScaleY= %f: the case of many-to-one in one dimension and one-to-many in the other"
             "has not yet been implemented.\n", sourceToTargetScaleX, sourceToTargetScaleY);
       exit(1);
    }
