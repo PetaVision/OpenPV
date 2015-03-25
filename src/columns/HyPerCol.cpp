@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <fts.h>
 #include <fstream>
+#include <time.h>
 
 namespace PV {
 
@@ -141,6 +142,7 @@ int HyPerCol::initialize_base() {
    nextCPWriteStep = 0L;
    cpWriteTimeInterval = -1.0;
    nextCPWriteTime = 0.0;
+   cpWriteClockInterval = -1.0;
    deleteOlderCheckpoints = false;
    memset(lastCheckpointDir, 0, PV_PATH_MAX);
    defaultInitializeFromCheckpointFlag = false;
@@ -363,20 +365,24 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
       timeScaleStream.open(timeScaleFileName);
    }
 
-   if(checkpointWriteFlag && checkpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
+   if(checkpointWriteFlag) {
       switch (checkpointWriteTriggerMode) {
       case CPWRITE_TRIGGER_STEP:
          nextCPWriteStep = initialStep;
          nextCPWriteTime = startTime; // Should be unnecessary
          cpWriteTimeInterval = -1;
+         cpWriteClockInterval = -1.0;
          break;
       case CPWRITE_TRIGGER_TIME:
          nextCPWriteStep = initialStep; // Should be unnecessary
          nextCPWriteTime = startTime;
          cpWriteStepInterval = -1;
+         cpWriteClockInterval = -1.0;
          break;
       case CPWRITE_TRIGGER_CLOCK:
-         assert(0); // Using clock time to checkpoint has not been implemented yet.
+         nextCPWriteClock = time(NULL);
+         cpWriteTimeInterval = -1;
+         cpWriteStepInterval = -1;
          break;
       default:
          assert(0); // All cases of checkpointWriteTriggerMode should have been covered above.
@@ -547,6 +553,8 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_checkpointWriteTriggerMode(ioFlag);
    ioParam_checkpointWriteStepInterval(ioFlag);
    ioParam_checkpointWriteTimeInterval(ioFlag);
+   ioParam_checkpointWriteClockInterval(ioFlag);
+   ioParam_checkpointWriteClockUnit(ioFlag);
    ioParam_deleteOlderCheckpoints(ioFlag);
    ioParam_suppressLastOutput(ioFlag);
    ioParam_suppressNonplasticCheckpoints(ioFlag);
@@ -928,13 +936,6 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
          }
          else if (!strcmp(checkpointWriteTriggerModeString, "clock") || !strcmp(checkpointWriteTriggerModeString, "Clock") || !strcmp(checkpointWriteTriggerModeString, "CLOCK")) {
             checkpointWriteTriggerMode = CPWRITE_TRIGGER_CLOCK;
-            if (columnId()==0) {
-               fprintf(stderr, "HyPerCol \"%s\": checkpointWriteTriggerMode \"clock\" has not been implemented yet.\n", name);
-            }
-#ifdef PV_USE_MPI
-            MPI_Barrier(icCommunicator()->communicator());
-#endif
-            exit(EXIT_FAILURE);
          }
          else {
             if (columnId()==0) {
@@ -966,6 +967,65 @@ void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
 	   if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
 	      ioParamValue(ioFlag, name, "checkpointWriteTimeInterval", &cpWriteTimeInterval, deltaTimeBase);
 	   }
+   }
+}
+
+void HyPerCol::ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
+   if (checkpointWriteFlag) {
+      assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
+      if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
+         ioParamValueRequired(ioFlag, name, "checkpointWriteClockInterval", &cpWriteClockInterval);
+      }
+   }
+}
+
+void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
+   if (checkpointWriteFlag) {
+      assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
+      if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_CLOCK) {
+         assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerClockInterval"));
+         ioParamString(ioFlag, name, "checkpointWriteClockUnit", &cpWriteClockUnitString, "seconds");
+         if (ioFlag==PARAMS_IO_READ) {
+            assert(cpWriteClockUnitString);
+            for (size_t n=0; n<strlen(cpWriteClockUnitString); n++) {
+               cpWriteClockUnitString[n] = tolower(cpWriteClockUnitString[n]);
+            }
+            if (!strcmp(cpWriteClockUnitString, "second") || !strcmp(cpWriteClockUnitString, "seconds") || !strcmp(cpWriteClockUnitString, "sec") || !strcmp(cpWriteClockUnitString, "s")) {
+               free(cpWriteClockUnitString);
+               cpWriteClockUnitString=strdup("seconds");
+               cpWriteClockSeconds = (time_t) cpWriteClockInterval;
+            }
+            else if (!strcmp(cpWriteClockUnitString, "minute") || !strcmp(cpWriteClockUnitString, "minutes") || !strcmp(cpWriteClockUnitString, "min") || !strcmp(cpWriteClockUnitString, "m")) {
+               free(cpWriteClockUnitString);
+               cpWriteClockUnitString=strdup("minutes");
+               cpWriteClockSeconds = (time_t) (60.0 * cpWriteTimeInterval);
+            }
+            else if (!strcmp(cpWriteClockUnitString, "hour") || !strcmp(cpWriteClockUnitString, "hours") || !strcmp(cpWriteClockUnitString, "hr") || !strcmp(cpWriteClockUnitString, "h")) {
+               free(cpWriteClockUnitString);
+               cpWriteClockUnitString=strdup("hours");
+               cpWriteClockSeconds = (time_t) (3600.0 * cpWriteTimeInterval);
+            }
+            else if (!strcmp(cpWriteClockUnitString, "day") || !strcmp(cpWriteClockUnitString, "days")) {
+               free(cpWriteClockUnitString);
+               cpWriteClockUnitString=strdup("days");
+               cpWriteClockSeconds = (time_t) (86400.0 * cpWriteTimeInterval);
+            }
+            else {
+               if (columnId()==0) {
+                  fprintf(stderr, "checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", \"minutes\", \"hours\", or \"days\".\n", cpWriteClockUnitString);
+               }
+               MPI_Barrier(icCommunicator()->communicator());
+               exit(EXIT_FAILURE);
+            }
+            if (cpWriteClockUnitString==NULL) {
+               // would get executed if a strdup(cpWriteClockUnitString) statement fails.
+               fprintf(stderr, "Error in rank %d process converting checkpointWriteClockUnit: %s\n", columnId(), strerror(errno));
+               exit(EXIT_FAILURE);
+            }
+         }
+      }
    }
 }
 
@@ -1958,23 +2018,39 @@ int HyPerCol::advanceTime(double sim_time)
 bool HyPerCol::advanceCPWriteTime() {
    // returns true if nextCPWrite{Step,Time} has been advanced
    bool advanceCPTime;
-   if( cpWriteStepInterval>0 ) {
-      assert(cpWriteTimeInterval<0.0);
+   time_t now; // needed only by CPWRITE_TRIGGER_CLOCK, but can't declare variables inside a case
+   switch (this->checkpointWriteTriggerMode) {
+   case CPWRITE_TRIGGER_STEP:
+      assert(cpWriteStepInterval>0 && cpWriteTimeInterval<0 && cpWriteClockInterval<0.0);
       advanceCPTime = currentStep >= nextCPWriteStep;
       if( advanceCPTime ) {
          nextCPWriteStep += cpWriteStepInterval;
       }
-   }
-   else if( cpWriteTimeInterval>0.0) {
-      assert(cpWriteStepInterval<0);
+      break;
+   case CPWRITE_TRIGGER_TIME:
+      assert(cpWriteStepInterval<0 && cpWriteTimeInterval>0 && cpWriteClockInterval<0.0);
       advanceCPTime = simTime >= nextCPWriteTime;
       if( advanceCPTime ) {
          nextCPWriteTime += cpWriteTimeInterval;
       }
-   }
-   else {
-      assert( false ); // routine should only be called if one of cpWrite{Step,Time}Interval is positive
-      advanceCPTime = false;
+      break;
+   case CPWRITE_TRIGGER_CLOCK:
+      assert(cpWriteStepInterval<0 && cpWriteTimeInterval<0 && cpWriteClockInterval>0.0);
+      now = time(NULL);
+      advanceCPTime = now >= nextCPWriteClock;
+      if (advanceCPTime) {
+         if (columnId()==0) {
+            printf("Checkpoint triggered at %s", ctime(&now));
+         }
+         nextCPWriteClock += cpWriteClockSeconds;
+         if (columnId()==0) {
+            printf("Next checkpoint trigger will be at %s", ctime(&nextCPWriteClock));
+         }
+      }
+      break;
+   default:
+      assert(0); // all possible cases are considered above.
+      break;
    }
    return advanceCPTime;
 }

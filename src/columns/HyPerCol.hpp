@@ -31,9 +31,11 @@
 
 #include <vector>
 
+namespace PV {
+
 enum CheckpointWriteTriggerMode { CPWRITE_TRIGGER_STEP, CPWRITE_TRIGGER_TIME, CPWRITE_TRIGGER_CLOCK };
 
-namespace PV {
+typedef enum { CLOCK_SECOND, CLOCK_MINUTE, CLOCK_HOUR, CLOCK_DAY} TimeUnit;
 
 //class HyPerLayer;
 //class InterColComm;
@@ -355,6 +357,16 @@ private:
    virtual void ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag);
 
    /**
+    * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies the amount of clock time between checkpoints.  The units are specified using the parameter checkpointWriteClockUnit
+    */
+   virtual void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies the amount of clock time between checkpoints.  The units are specified using the parameter checkpointWriteClockUnit
+    */
+   virtual void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief deleteOlderCheckpoints: If checkpointWrite, specifies if the run should delete older checkpoints when writing new ones.
     */
    virtual void ioParam_deleteOlderCheckpoints(enum ParamsIOFlag ioFlag);
@@ -429,6 +441,11 @@ private:
    long int nextCPWriteStep;
    double cpWriteTimeInterval;
    double nextCPWriteTime;
+   double cpWriteClockInterval; // If checkpoint mode is clock, the clock time between checkpoints, in the units specified by checkpointWriteClockUnit
+   time_t cpWriteClockSeconds; // If checkpoint mode is clock, the clock time between checkpoints, in seconds
+   char * cpWriteClockUnitString; // If checkpoint mode is clock, the string that specifies the units.  "seconds", "minutes", "hours", or "days".
+
+   time_t nextCPWriteClock;
    bool deleteOlderCheckpoints; // If true, whenever a checkpoint other than the first is written, the preceding checkpoint is deleted. Default is false.
    char lastCheckpointDir[PV_PATH_MAX]; // Holds the last checkpoint directory written; used if deleteOlderCheckpoints is true.
 
