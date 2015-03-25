@@ -1347,7 +1347,6 @@ int HyPerConn::setPostPatchSize() {
    //parent->parameters()->handleUnnecessaryParameter(name, "nyp", nyp);
    //parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp);
 
-   std::cout << nxp << "," << nyp << "," << nfp << "   " << nxpPost << "," << nypPost << "," << nfpPost << "\n";
    return PV_SUCCESS;
 }
 
