@@ -27,11 +27,12 @@ HyPerCol "column" = {
    filenamesContainLayerNames       = false;
    filenamesContainConnectionNames  = false;
    initializeFromCheckpointDir      = "";
-   checkpointWrite                  = false;
-   // checkpointWriteDir               = "Checkpoints";
-   // checkpointWriteStepInterval      = 4000;
-   // deleteOlderCheckpoints           = false;
-   suppressLastOutput               = false;
+   checkpointWrite                  = true;
+   checkpointWriteDir               = "Checkpoints";
+   checkpointWriteTriggerMode       = "time";
+   checkpointWriteTimeInterval      = 100.0;
+   deleteOlderCheckpoints           = false;
+   // suppressLastOutput               = false;
 };
 
 //
@@ -103,7 +104,7 @@ Retina "Retina" = {
     burstDuration                   = 1000;
 };
 
-GenerativeLayer "RetinaSpikeCounter" = {
+ANNLayer "RetinaSpikeCounter" = {
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -123,11 +124,7 @@ GenerativeLayer "RetinaSpikeCounter" = {
     AMin                            = -infinity;
     VThresh                         = -infinity;
     VWidth                          = 0.0;
-    relaxation                      = 1;
-    activityThreshold               = 0.0;
-    auxChannelCoeff                 = 0.0;
-    sparsityTermCoefficient         = 0.0;
-    persistence                     = 0.0;
+    clearGSynInterval               = infinity;
 };
 
 LIFGap "LIFTest" = {
@@ -166,7 +163,7 @@ LIFGap "LIFTest" = {
     method                          = "a";
 };
 
-GenerativeLayer "LIFTestSpikeCounter" = {
+ANNLayer "LIFTestSpikeCounter" = {
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -186,11 +183,7 @@ GenerativeLayer "LIFTestSpikeCounter" = {
     AMin                            = -infinity;
     VThresh                         = -infinity;
     VWidth                          = 0.0;
-    relaxation                      = 1;
-    activityThreshold               = 0.0;
-    auxChannelCoeff                 = 0.0;
-    sparsityTermCoefficient         = 0.0;
-    persistence                     = 0.0;
+    clearGSynInterval               = infinity;
 };
 
 GapLayer "GapTest" = {
@@ -244,7 +237,7 @@ LIFGap "LIFGapTest" = {
     method                          = "a";
 };
 
-GenerativeLayer "LIFGapTestSpikeCounter" = {
+ANNLayer "LIFGapTestSpikeCounter" = {
     nxScale                         = 1;
     nyScale                         = 1;
     nf                              = 1;
@@ -264,11 +257,7 @@ GenerativeLayer "LIFGapTestSpikeCounter" = {
     AMin                            = -infinity;
     VThresh                         = -infinity;
     VWidth                          = 0.0;
-    relaxation                      = 1;
-    activityThreshold               = 0.0;
-    auxChannelCoeff                 = 0.0;
-    sparsityTermCoefficient         = 0.0;
-    persistence                     = 0.0;
+    clearGSynInterval               = infinity;
 };
 
 HyPerConn "InputToScaledInput" = {
