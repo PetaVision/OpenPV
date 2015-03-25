@@ -71,6 +71,7 @@
 #include "../connections/OjaSTDPConn.hpp"
 #include "../connections/PlasticCloneConn.hpp"
 #include "../connections/BiLinearConn.hpp"
+#include "../connections/PoolingConn.hpp"
 #include "../connections/TransposeConn.hpp"
 #include "../connections/BiLinearConn.hpp"
 #include "../connections/TransposeConn.hpp"
@@ -185,6 +186,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"OjaSTDPConn", ConnectionGroupType},
          {"PlasticCloneConn", ConnectionGroupType},
          {"BiLinearConn", ConnectionGroupType},
+         {"PoolingConn", ConnectionGroupType},
          {"TransposeConn", ConnectionGroupType},
 
          // ColProbes
@@ -487,6 +489,9 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
    }
    else if( !strcmp(keyword, "BiLinearConn") ) {
       addedConnection = new BiLinearConn(name, hc, weightInitializer, weightNormalizer);
+   }
+   else if( !strcmp(keyword, "PoolingConn") ) {
+      addedConnection = new PoolingConn(name, hc);
    }
    else if( !strcmp(keyword, "TransposeConn") ) {
       addedConnection = new TransposeConn(name, hc);

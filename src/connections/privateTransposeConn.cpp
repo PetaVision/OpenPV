@@ -9,15 +9,15 @@
 
 namespace PV {
 
-privateTransposeConn::privateTransposeConn(const char * name, HyPerCol * hc, HyPerConn * parentConn) {
-   int status = initialize(name, hc, parentConn);
+privateTransposeConn::privateTransposeConn(const char * name, HyPerCol * hc, HyPerConn * parentConn, bool needWeights) {
+   int status = initialize(name, hc, parentConn, needWeights);
 }
 
 privateTransposeConn::~privateTransposeConn() {
 }  // privateTransposeConn::~privateTransposeConn()
 
 //privateTransposeConn initialize will be called during parentConn's communicate
-int privateTransposeConn::initialize(const char * name, HyPerCol * hc, HyPerConn * parentConn) {
+int privateTransposeConn::initialize(const char * name, HyPerCol * hc, HyPerConn * parentConn, bool needWeights) {
    int status = PV_SUCCESS;
    status = setParent(hc);
    assert(status == PV_SUCCESS);
@@ -53,6 +53,8 @@ int privateTransposeConn::initialize(const char * name, HyPerCol * hc, HyPerConn
    assert(status == PV_SUCCESS);
    status = checkPatchDimensions();
    assert(status == PV_SUCCESS);
+
+   this->needAllocWeights = needWeights;
 
    //Set parentConn's pre and post connections
    return status;
@@ -123,6 +125,55 @@ int privateTransposeConn::allocateDataStructures() {
    return PV_SUCCESS;
 }
 
+int privateTransposeConn::constructWeights(){
+   int sx = nfp;
+   int sy = sx * nxp;
+   int sp = sy * nyp;
+   int nPatches = getNumDataPatches();
+   int status = PV_SUCCESS;
+
+   //assert(!parent->parameters()->presentAndNotBeenRead(name, "shrinkPatches"));
+   
+   // createArbors() uses the value of shrinkPatches.  It should have already been read in ioParamsFillGroup.
+   //allocate the arbor arrays:
+   createArbors();
+
+   setPatchStrides();
+
+   ////allocate weight patches and axonal arbors for each arbor
+   ////Allocate all the weights
+   //bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
+   if (needAllocWeights){
+     wDataStart[0] = allocWeights(nPatches, nxp, nyp, nfp);
+     assert(this->get_wDataStart(0) != NULL);
+   }
+   for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
+      status = createWeights(wPatches, arborId);
+      assert(wPatches[arborId] != NULL);
+
+      if (needAllocWeights){
+         if (arborId > 0){  // wDataStart already allocated
+            wDataStart[arborId] = (this->get_wDataStart(0) + sp * nPatches * arborId);
+            assert(this->wDataStart[arborId] != NULL);
+         }
+      }
+      if (shrinkPatches_flag || arborId == 0){
+         status |= adjustAxonalArbors(arborId);
+      }
+   }  // arborId
+
+   //call to initializeWeights moved to BaseConnection::initializeState()
+   status |= initPlasticityPatches();
+   assert(status == 0);
+   if (shrinkPatches_flag) {
+      for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
+         shrinkPatches(arborId);
+      }
+   }
+
+   return status;
+}
+
 //Called in allocateDataStructures, not needed for privateTransposeConn
 int privateTransposeConn::initializeDelays(const float * fDelayArray, int size){
    return PV_SUCCESS;
@@ -167,6 +218,7 @@ int privateTransposeConn::finalizeUpdate(double time, double dt) {
 }
 
 int privateTransposeConn::transpose(int arborId) {
+   if(!needAllocWeights) return PV_SUCCESS;
    return sharedWeights ? transposeSharedWeights(arborId) : transposeNonsharedWeights(arborId);
 }
 

@@ -35,12 +35,23 @@ void pvpatch_accumulate(int nk, float* restrict v, float a, pvwdata_t* restrict 
 }
 #endif
 
-int pvpatch_accumulate_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr) {
+int pvpatch_accumulate_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
    int status = 0;
    int k;
    //float dv = 0.0f;
-   for (k = 0; k < nk; k++) {
+   for (k = 0; k < nk; k+=sf) {
       *v += dt_factor*a[k]*w[k];
+      //dv = dv + a[k]*w[k];
+   }
+   //*v = *v + dt_factor*dv;
+   return status;
+}
+int pvpatch_sumpooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
+   int status = 0;
+   int k;
+   //float dv = 0.0f;
+   for (k = 0; k < nk; k+=sf) {
+      *v += dt_factor*a[k]*w[0];
       //dv = dv + a[k]*w[k];
    }
    //*v = *v + dt_factor*dv;
@@ -81,12 +92,12 @@ int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, pvwdata_t*
    return err;
 }
 
-int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr) {
+int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
    int status = 0;
    uint4 * rng = (uint4 *) auxPtr;
    int k;
    float dv = 0.0f;
-   for (k = 0; k < nk; k++) {
+   for (k = 0; k < nk; k+sf) {
       *rng = cl_random_get(*rng);
       double p = (double) rng->s0/cl_random_max(); // 0.0 < p < 1.0
       dv += (p<a[k]*dt_factor)*w[k];
@@ -119,12 +130,13 @@ int pvpatch_sum_pooling(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT 
    return err;
 }
 
-int pvpatch_max_pooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr) {
+int pvpatch_max_pooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
    int status = 0;
    int k;
    float vmax = *v;
-   for (k = 0; k < nk; k++) {
-      vmax = vmax > a[k]*w[k] ? vmax : a[k]*w[k];
+   for (k = 0; k < nk; k+=sf) {
+      //vmax = vmax > a[k]*w[k] ? vmax : a[k]*w[k];
+      vmax = vmax > a[k]*w[0] ? vmax : a[k]*w[0];
    }
    *v = vmax;
    return status;

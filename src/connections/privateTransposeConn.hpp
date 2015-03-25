@@ -14,7 +14,7 @@ namespace PV {
 
 class privateTransposeConn: public HyPerConn {
 public:
-   privateTransposeConn(const char * name, HyPerCol * hc, HyPerConn * parentConn);
+   privateTransposeConn(const char * name, HyPerCol * hc, HyPerConn * parentConn, bool needWeights=true);
    virtual ~privateTransposeConn();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
@@ -28,25 +28,8 @@ public:
    virtual int deliver();
 
 protected:
-    int initialize(const char * name, HyPerCol * hc, HyPerConn * parentConn);
+    int initialize(const char * name, HyPerCol * hc, HyPerConn * parentConn, bool needWeights);
     virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_nfp(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_shrinkPatches(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
-    //virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
     virtual int setPatchSize();
     virtual int setNeededRNGSeeds() {return 0;}
     virtual int setInitialValues();
@@ -55,10 +38,12 @@ protected:
     virtual int calc_dW(int arborId){return PV_BREAK;};
     virtual int reduceKernels(int arborID);
     virtual int initializeDelays(const float * fDelayArray, int size);
+   virtual int constructWeights();
 
 private:
     int transposeSharedWeights(int arborId);
     int transposeNonsharedWeights(int arborId);
+    bool needAllocWeights;
 
     /**
      * Calculates the parameters of the the region that needs to be sent to adjoining processes using MPI.

@@ -268,7 +268,7 @@ int TransposeConn::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
 
-   originalConn->setNeedPost();
+   originalConn->setNeedPost(true);
 
    //Synchronize margines of this post and orig pre, and vice versa
    originalConn->preSynapticLayer()->synchronizeMarginWidth(post);
@@ -332,7 +332,7 @@ int TransposeConn::allocateDataStructures() {
       return PV_POSTPONE;
    }
 
-   bool setNeedPost = false;
+   bool tempNeedPost = false;
    //Turn off need post so postConn doesn't get allocated
    if(needPost){
       needPost = false;
@@ -340,12 +340,12 @@ int TransposeConn::allocateDataStructures() {
       //TODO this buffer is only needed if this transpose conn is receiving from post
       originalConn->postConn->allocatePreToPostBuffer();
       postToPreActivity = originalConn->postConn->getPostToPreActivity();
-      setNeedPost = true;
+      tempNeedPost = true;
    }
    HyPerConn::allocateDataStructures();
 
    //Set nessessary buffers
-   if(setNeedPost){
+   if(tempNeedPost){
       needPost = true;
    }
 

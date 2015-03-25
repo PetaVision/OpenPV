@@ -295,6 +295,7 @@ int HyPerConn::initialize_base()
 
    this->postToPreActivity = NULL;
    this->needFinalize = true;
+   this->needAllocPostWeights = true;
 
    lastUpdateTime = 0.f;
    symmetrizeWeightsFlag = false;
@@ -435,23 +436,23 @@ int HyPerConn::constructWeights()
 
    setPatchStrides();
 
-   //allocate weight patches and axonal arbors for each arbor
-   //Allocate all the weights
-   bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
-   if (!is_pooling_from_pre_perspective){
+   ////allocate weight patches and axonal arbors for each arbor
+   ////Allocate all the weights
+   //bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
+   //if (!is_pooling_from_pre_perspective){
      wDataStart[0] = allocWeights(nPatches, nxp, nyp, nfp);
      assert(this->get_wDataStart(0) != NULL);
-   }
+   //}
    for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
       status = createWeights(wPatches, arborId);
       assert(wPatches[arborId] != NULL);
 
-      if (!is_pooling_from_pre_perspective){
+      //if (!is_pooling_from_pre_perspective){
          if (arborId > 0){  // wDataStart already allocated
             wDataStart[arborId] = (this->get_wDataStart(0) + sp * nPatches * arborId);
             assert(this->wDataStart[arborId] != NULL);
          }
-      }
+      //}
       if (shrinkPatches_flag || arborId == 0){
          status |= adjustAxonalArbors(arborId);
       }
@@ -554,12 +555,16 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weight
       accumulateFunctionFromPostPointer = &pvpatch_accumulate_stochastic_from_post;
       break;
    case ACCUMULATE_MAXPOOLING:
-      accumulateFunctionPointer = &pvpatch_max_pooling;
-      accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
+      std::cout << "ACCUMULATE_MAXPOOLING not allowed in HyPerConn, use PoolingConn instead\n";
+      exit(-1);
+      //accumulateFunctionPointer = &pvpatch_max_pooling;
+      //accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
       break;
    case ACCUMULATE_SUMPOOLING:
-      accumulateFunctionPointer = &pvpatch_sum_pooling;
-      accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
+      std::cout << "ACCUMULATE_SUMPOOLING not allowed in HyPerConn, use PoolingConn instead\n";
+      exit(-1);
+      //accumulateFunctionPointer = &pvpatch_sum_pooling;
+      //accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
       break;
    default:
       assert(0);
@@ -1012,6 +1017,7 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
       else if (strcmp(pvpatchAccumulateTypeString,"stochastic")==0) {
          pvpatchAccumulateType = ACCUMULATE_STOCHASTIC;
       }
+      //IOParam for different pooling types is still handled here, TODO, move this to PoolingConn
       else if ((strcmp(pvpatchAccumulateTypeString,"maxpooling")==0) ||
 	       (strcmp(pvpatchAccumulateTypeString,"max_pooling")==0) ||
 	       (strcmp(pvpatchAccumulateTypeString,"max pooling")==0)) {
@@ -1032,20 +1038,21 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 #endif
          exit(EXIT_FAILURE);
       }
-      //Make sure weightInitType matches if max pooled
-      if((pvpatchAccumulateType == ACCUMULATE_MAXPOOLING || pvpatchAccumulateType == ACCUMULATE_SUMPOOLING) && 
-          !updateGSynFromPostPerspective){
-         if(strcmp(weightInitTypeString, "MaxPoolingWeight") != 0){
-            if (parent->columnId()==0) {
-               fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType of maxpooling or sumpooling require a weightInitType of MaxPoolingWeight.\n",
-                     parent->parameters()->groupKeywordFromName(name), name);
-            }
-#ifdef PV_USE_MPI
-            MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
-            exit(EXIT_FAILURE);
-         }
-      }
+//Case now handled in PoolingConn
+//      //Make sure weightInitType matches if max pooled
+//      if((pvpatchAccumulateType == ACCUMULATE_MAXPOOLING || pvpatchAccumulateType == ACCUMULATE_SUMPOOLING) && 
+//          !updateGSynFromPostPerspective){
+//         if(strcmp(weightInitTypeString, "MaxPoolingWeight") != 0){
+//            if (parent->columnId()==0) {
+//               fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType of maxpooling or sumpooling require a weightInitType of MaxPoolingWeight.\n",
+//                     parent->parameters()->groupKeywordFromName(name), name);
+//            }
+//#ifdef PV_USE_MPI
+//            MPI_Barrier(parent->icCommunicator()->communicator());
+//#endif
+//            exit(EXIT_FAILURE);
+//         }
+      //}
    }
 }
 
@@ -1302,6 +1309,48 @@ void HyPerConn::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
+int HyPerConn::setPostPatchSize() {
+   // If postConn is many-to-one, the transpose connection is one-to-many; then xscaleDiff > 0.
+   // Similarly, if postConn is one-to-many, xscaleDiff < 0.
+
+   // Some of the code duplication might be eliminated by adding some functions to convert.h
+
+   assert(pre && post);
+
+   int xscaleDiff = post->getXScale() - pre->getXScale();
+   int nxp_orig = xPatchSize();
+   int nyp_orig = yPatchSize();
+   nxpPost = nxp_orig;
+   if(xscaleDiff > 0 ) {
+      nxpPost *= (int) pow( 2, xscaleDiff );
+   }
+   else if(xscaleDiff < 0) {
+      nxpPost /= (int) pow(2,-xscaleDiff);
+      assert(nxp_orig==nxpPost*pow( 2, (float) (-xscaleDiff) ));
+   }
+
+   int yscaleDiff = post->getYScale() - pre->getYScale();
+   nypPost = nyp_orig;
+   if(yscaleDiff > 0 ) {
+      nypPost *= (int) pow( 2, yscaleDiff );
+   }
+   else if(yscaleDiff < 0) {
+      nypPost /= (int) pow(2,-yscaleDiff);
+      assert(nyp_orig==nypPost*pow( 2, (float) (-yscaleDiff) ));
+   }
+
+   nfpPost = pre->getLayerLoc()->nf;
+   // post->getLayerLoc()->nf must be the same as postConn->preSynapticLayer()->getLayerLoc()->nf.
+   // This requirement is checked in communicateInitInfo
+
+   //parent->parameters()->handleUnnecessaryParameter(name, "nxp", nxp);
+   //parent->parameters()->handleUnnecessaryParameter(name, "nyp", nyp);
+   //parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp);
+
+   std::cout << nxp << "," << nyp << "," << nfp << "   " << nxpPost << "," << nypPost << "," << nfpPost << "\n";
+   return PV_SUCCESS;
+}
+
 int HyPerConn::communicateInitInfo() {
    // HyPerConns need to tell the parent HyPerCol how many random number
    // seeds they need.  At the start of HyPerCol::run, the parent HyPerCol
@@ -1423,6 +1472,25 @@ int HyPerConn::communicateInitInfo() {
       status = PV_MARGINWIDTH_FAILURE;
    }
 
+
+   //TODO take this out
+   status = setPostPatchSize();
+   //xmargin = computeMargin(post->getXScale(), pre->getXScale(), nxpPost);
+   //ymargin = computeMargin(post->getYScale(), pre->getYScale(), nypPost);
+   //receivedxmargin = 0;
+   //statusx = post->requireMarginWidth(xmargin, &receivedxmargin, 'x');
+   //if (statusx != PV_SUCCESS) {
+   //   fprintf(stderr,"Margin Failure for layer %s.  Received x-margin is %d, but connection \"%s\" requires margin of at least %d\n", pre->getName(),receivedxmargin, name, xmargin);
+   //   status = PV_MARGINWIDTH_FAILURE;
+   //}
+   //receivedymargin = 0;
+   //statusy = post->requireMarginWidth(ymargin, &receivedymargin, 'y');
+   //if (statusy != PV_SUCCESS) {
+   //   fprintf(stderr,"Margin Failure for layer %s.  Received y-margin is %d, but connection \"%s\" requires margin of at least %d\n", pre->getName(),receivedymargin, name, ymargin);
+   //   status = PV_MARGINWIDTH_FAILURE;
+   //}
+
+
    //Trigger stuff
    if(triggerFlag){
       triggerLayer = parent->getLayerFromName(triggerLayerName);
@@ -1525,6 +1593,9 @@ int HyPerConn::allocatePreToPostBuffer(){
    const int targetNy = targetLoc->ny;
    const int targetNf = targetLoc->nf;
 
+   float sourceToTargetScaleX = (float)sourceNx/targetNx;
+   float sourceToTargetScaleY = (float)sourceNy/targetNy;
+
    const PVHalo * sourceHalo = &sourceLoc->halo;
    const PVHalo * targetHalo = &targetLoc->halo;
 
@@ -1532,35 +1603,71 @@ int HyPerConn::allocatePreToPostBuffer(){
 
    postToPreActivity = (long*)malloc(sizeof(long) * numRestricted);
    assert(postToPreActivity);
-   for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
-      int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-      //Get start index of source from gsyn in restricted
-      // We have to use gSynPatchStart instead of aPostOffset because originalConn's post-synaptic layer's nb may not be the same as conn's pre-layer's nb.
-      int sourceRes = postConn->getGSynPatchStart(kTargetExt, 0);
-      int sourceExt= kIndexExtended(sourceRes, sourceNx, sourceNy, sourceNf, sourceHalo->lt, sourceHalo->rt, sourceHalo->dn, sourceHalo->up);
-      int sourceXExt = kxPos(sourceExt, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
-      int sourceYExt = kyPos(sourceExt, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
-      int sourceF = featureIndex(sourceExt, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
 
-      //Grab patch given the post
-      //We grab this value from host memory since all we're taking from it is the offset
-      //Note that we're grabbing only arbor 0, since without the shrink patches flag, all arbors must have the same geometry
-      PVPatch * shrunkenWeights = postConn->getWeights(kTargetExt, 0);
-      //Grab offset
-      int offset = shrunkenWeights->offset;
-      //Get x and y in patch space
-      //conn is target to source
-      int patchX = kxPos(offset, postConn->xPatchSize(), postConn->yPatchSize(), postConn->fPatchSize());
-      int patchY = kyPos(offset, postConn->xPatchSize(), postConn->yPatchSize(), postConn->fPatchSize());
+   //origpre many, origpost one
+   if(sourceToTargetScaleX >= 1 && sourceToTargetScaleY >= 1){
+      for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
+         int kTargetXRes = kxPos(kTargetRes, targetNx, targetNy, targetNf);
+         int kTargetYRes = kyPos(kTargetRes, targetNx, targetNy, targetNf);
 
-      //Move source X and Y to offset
-      sourceXExt -= patchX; 
-      sourceYExt -= patchY; 
+         int xVal = (sourceToTargetScaleX * kTargetXRes) - ((postConn->xPatchSize() - sourceToTargetScaleX)/2);
+         int yVal = (sourceToTargetScaleY * kTargetYRes) - ((postConn->yPatchSize() - sourceToTargetScaleY)/2);
 
-      //Change sourceExt back to extended source index, but unshrunken
-      //Store this value in a buffer to avoid recalculation
-      postToPreActivity[kTargetRes] = kIndex(sourceXExt, sourceYExt, sourceF, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
+         postToPreActivity[kTargetRes] = kIndex(xVal + sourceHalo->lt, yVal + sourceHalo->up, 0,
+               sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->up + sourceHalo->dn, sourceNf); 
+      }
    }
+   //origpost many, origpre one
+   else if(sourceToTargetScaleX < 1 && sourceToTargetScaleY < 1){
+      int targetToSourceScaleX = (float)1/sourceToTargetScaleX;
+      int targetToSourceScaleY = (float)1/sourceToTargetScaleY;
+      for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
+         int kTargetXRes = kxPos(kTargetRes, targetNx, targetNy, targetNf);
+         int kTargetYRes = kyPos(kTargetRes, targetNx, targetNy, targetNf);
+         int kTargetF = featureIndex(kTargetRes, targetNx, targetNy, targetNf);
+
+         int xVal = ((2*kTargetXRes + 1)/(2*targetToSourceScaleX)) - (postConn->xPatchSize()/2);
+         int yVal = ((2*kTargetYRes + 1)/(2*targetToSourceScaleY)) - (postConn->yPatchSize()/2);
+         postToPreActivity[kTargetRes] = kIndex(xVal + sourceHalo->lt, yVal + sourceHalo->up, 0,
+               sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->up + sourceHalo->dn, sourceNf); 
+      }
+   }
+   else{
+      fprintf(stderr,"sourceToTargetScaleX= %d, sourceToTargetScaleY= %d: the case of many-to-one in one dimension and one-to-many in the other"
+            "has not yet been implemented.\n", sourceToTargetScaleX, sourceToTargetScaleY);
+      exit(1);
+   }
+
+
+   //   int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
+   //   //Get start index of source from gsyn in restricted
+   //   // We have to use gSynPatchStart instead of aPostOffset because originalConn's post-synaptic layer's nb may not be the same as conn's pre-layer's nb.
+   //   int sourceRes = postConn->getGSynPatchStart(kTargetExt, 0);
+   //   int sourceExt= kIndexExtended(sourceRes, sourceNx, sourceNy, sourceNf, sourceHalo->lt, sourceHalo->rt, sourceHalo->dn, sourceHalo->up);
+   //   int sourceXExt = kxPos(sourceExt, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
+   //   int sourceYExt = kyPos(sourceExt, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
+   //   int sourceF = featureIndex(sourceExt, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
+
+   //   //Grab patch given the post
+   //   //We grab this value from host memory since all we're taking from it is the offset
+   //   //Note that we're grabbing only arbor 0, since without the shrink patches flag, all arbors must have the same geometry
+   //   PVPatch * shrunkenWeights = postConn->getWeights(kTargetExt, 0);
+   //   //Grab offset
+   //   int offset = shrunkenWeights->offset;
+   //   //Get x and y in patch space
+   //   //conn is target to source
+   //   int patchX = kxPos(offset, postConn->xPatchSize(), postConn->yPatchSize(), postConn->fPatchSize());
+   //   int patchY = kyPos(offset, postConn->xPatchSize(), postConn->yPatchSize(), postConn->fPatchSize());
+
+   //   //Move source X and Y to offset
+   //   sourceXExt -= patchX; 
+   //   sourceYExt -= patchY; 
+
+   //   //Change sourceExt back to extended source index, but unshrunken
+   //   //Store this value in a buffer to avoid recalculation
+   //   postToPreActivity[kTargetRes] = kIndex(sourceXExt, sourceYExt, sourceF, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
+   //}
+   
    return PV_SUCCESS;
 }
 
@@ -1680,11 +1787,10 @@ int HyPerConn::allocateDataStructures() {
    if(needPost){
       char privateConnName [PV_PATH_MAX];
       sprintf(privateConnName, "&%s_privatePostConn", this->name);
-      postConn = new privateTransposeConn(privateConnName, parent, this);
+      postConn = new privateTransposeConn(privateConnName, parent, this, needAllocPostWeights);
       assert(postConn);
       postConn->allocateDataStructures();
    }
-
    //Can't do this with shrink patches flag
    if(needPost && !shrinkPatches_flag){
       allocatePreToPostBuffer();
@@ -2694,9 +2800,9 @@ int HyPerConn::readWeightsFromCheckpoint(const char * cpDir, double * timeptr) {
 }
 
 int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
-  if((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)){
-    return PV_SUCCESS;
-  }
+  //if((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)){
+  //  return PV_SUCCESS;
+  //}
    int status = readStateFromCheckpoint(cpDir, timeptr);
 
    status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
@@ -2719,9 +2825,9 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
 }
 
 int HyPerConn::checkpointWrite(const char * cpDir) {
-  if((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)){
-    return PV_SUCCESS;
-  }
+  //if((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)){
+  //  return PV_SUCCESS;
+  //}
    char filename[PV_PATH_MAX];
    int status = checkpointFilename(filename, PV_PATH_MAX, cpDir);
    assert(status==PV_SUCCESS);
@@ -2766,17 +2872,17 @@ int HyPerConn::writeTimers(FILE* stream){
 
 float HyPerConn::minWeight(int arborId)
 {
-   bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
-   if (is_pooling_from_pre_perspective){
-     if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
-       return 1.0;
-     }
-     else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-       int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
-       int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
-       return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
-     }
-   }
+   //bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
+   //if (is_pooling_from_pre_perspective){
+   //  if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+   //    return 1.0;
+   //  }
+   //  else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+   //    int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
+   //    int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
+   //    return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
+   //  }
+   //}
 
    const int num_data_patches = getNumDataPatches();
    float min_weight = FLT_MAX;
@@ -2806,17 +2912,17 @@ float HyPerConn::minWeight(int arborId)
 
 float HyPerConn::maxWeight(int arborId)
 {
-   bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
-   if (is_pooling_from_pre_perspective){
-     if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
-       return 1.0;
-     }
-     else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-       int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
-       int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
-       return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
-     }
-   }
+   //bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
+   //if (is_pooling_from_pre_perspective){
+   //  if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+   //    return 1.0;
+   //  }
+   //  else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+   //    int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
+   //    int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
+   //    return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
+   //  }
+   //}
    const int num_data_patches = getNumDataPatches();
    float max_weight = -FLT_MAX;
    if (sharedWeights) {
@@ -3515,6 +3621,7 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 #pragma omp parallel for
       for(int ni = 0; ni < numNeurons; ni++){
          //Different for maxpooling
+         //TODO, move this to PoolingConn
          if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
             for(int ti = 0; ti < parent->getNumThreads(); ti++){
                gSynPatchHead[ni] = gSynPatchHead[ni] < thread_gSyn[ti][ni] ? thread_gSyn[ti][ni] : gSynPatchHead[ni];
@@ -3590,10 +3697,6 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
 
    //get source layer's extended y stride
    int sy  = (sourceNx+sourceHalo->lt+sourceHalo->rt)*sourceNf;
-   //get source layer's patch y stride
-   int syp = postConn->yPatchStride();
-   //Iterate through y patch
-   int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
 
    //The start of the gsyn buffer
    pvdata_t * gSynPatchHead = post->getChannel(this->getChannel());
@@ -3604,13 +3707,14 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
       exit(EXIT_FAILURE);
    }
 
+   int sf = 1;
+
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
    for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++){
       //Change restricted to extended post neuron
       int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
       bool inWindow;
       inWindow = inWindowExt(arborID, akTargetExt);
@@ -3623,14 +3727,18 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
       //Calculate target's start of gsyn
       pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
 
-      int kernelIndex = postConn->patchToDataLUT(kTargetExt);
       uint4 * rngPtr = getRandState(kTargetRes);
+      float* activityStartBuf = &(activity->data[startSourceExt]); 
 
-      for (int ky = 0; ky < postConn->yPatchSize(); ky++){
-         float * activityY = &(activity->data[startSourceExt + ky*sy]);
-         pvwdata_t * weightY = postConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
-         (accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
-      }
+      //pvwdata_t* weightStartBuf = targetToSourceConn->get_wDataHead(arborID, kernelIndex);
+      //int sf = 1;
+      //for (int ky = 0; ky < yPatchSize; ky++){
+      //   float * activityY = &(activityStartBuf[ky*sy]);
+      //   pvwdata_t * weightY = weightStartBuf + ky*syp;
+      //   //TODO add sf here
+      //   (accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
+      //}
+      deliverOnePostNeuronActivity(arborID, kTargetExt, sy, activityStartBuf, gSynPatchPos, dt_factor, rngPtr);
    }
    return PV_SUCCESS;
 }
@@ -3648,8 +3756,12 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
    if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
       dt_factor = getParent()->getDeltaTime();
    }
-   else {
+   else if (getPvpatchAccumulateType()==ACCUMULATE_CONVOLVE) {
       dt_factor = getConvertToRateDeltaTimeFactor();
+   }
+   else{
+      std::cout << "Pooling accumulate not implemented for GPUs";
+      exit(-1);
    }
 #ifdef PV_USE_CUDA
    krRecvPre->set_dt_factor(dt_factor);
@@ -3807,8 +3919,12 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
       dt_factor = getParent()->getDeltaTime();
    }
-   else {
+   else if (getPvpatchAccumulateType()==ACCUMULATE_CONVOLVE) {
       dt_factor = getConvertToRateDeltaTimeFactor();
+   }
+   else{
+      std::cout << "Pooling accumulate not implemented for GPUs";
+      exit(-1);
    }
 
    assert(krRecvPost);
@@ -3928,6 +4044,27 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
 }
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
+
+void HyPerConn::deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, uint4 * rngPtr){
+
+   //get source layer's patch y stride
+   int syp = postConn->yPatchStride();
+   int yPatchSize = postConn->yPatchSize();
+   //Iterate through y patch
+   int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
+   int kernelIndex = postConn->patchToDataLUT(kTargetExt);
+
+   pvwdata_t* weightStartBuf = postConn->get_wDataHead(arborID, kernelIndex);
+   int sf = 1;
+   int offset = 0;
+   for (int ky = 0; ky < yPatchSize; ky++){
+      float * activityY = &(activityStartBuf[ky*inSy+offset]);
+      pvwdata_t * weightY = weightStartBuf + ky*syp;
+      //TODO add sf here
+      (accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr, sf);
+   }
+}
+
 void HyPerConn::deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr) {
    PVPatch * weights = getWeights(patchIndex, arbor);
    const int nk = weights->nx * fPatchSize();
@@ -3940,27 +4077,28 @@ void HyPerConn::deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t
    // modified GTK: 1/10/15 to fix bug and to implement sum_pooling
    int offset = 0;
    int sf = 1;
-   if((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)){
-     const PVLayerLoc * preLoc = pre->getLayerLoc();
-     const int kfPre = featureIndex(patchIndex, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
-     offset = kfPre;
-     sf = fPatchSize();
-     pvwdata_t w = 1.0;
-     if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-       float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
-       float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-       w = 1.0/(weights->nx*weights->ny*relative_XScale*relative_YScale);
-     }
-     for (int y = 0; y < ny; y++) {
-       (accumulateFunctionPointer)(nk, postPatchStart + y*sy + offset, a, &w, auxPtr, sf);
-     }
-   }
-   else{
+   //Moved to PoolingConn
+   //if((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)){
+   //  const PVLayerLoc * preLoc = pre->getLayerLoc();
+   //  const int kfPre = featureIndex(patchIndex, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
+   //  offset = kfPre;
+   //  sf = fPatchSize();
+   //  pvwdata_t w = 1.0;
+   //  if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+   //    float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
+   //    float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
+   //    w = 1.0/(weights->nx*weights->ny*relative_XScale*relative_YScale);
+   //  }
+   //  for (int y = 0; y < ny; y++) {
+   //    (accumulateFunctionPointer)(nk, postPatchStart + y*sy + offset, a, &w, auxPtr, sf);
+   //  }
+   //}
+   //else{
      weightDataStart = get_wData(arbor,patchIndex); // make this a pvwdata_t const *?
      for (int y = 0; y < ny; y++) {
        (accumulateFunctionPointer)(nk, postPatchStart + y*sy + offset, a, weightDataStart + y*syw + offset, auxPtr, sf);
      }
-   }
+   //}
 }
 
 int HyPerConn::createWeights(PVPatch *** patches, int nWeightPatches, int nDataPatches, int nxPatch,

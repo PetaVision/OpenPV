@@ -97,11 +97,12 @@ public:
     * Uses presynaptic layer's activity to modify the postsynaptic GSyn or thread_gSyn
     */
    virtual int deliver();
-   void deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
+   virtual void deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
+   virtual void deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, uint4 * rngPtr);
     
    GSynAccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
    int (*accumulateFunctionPointer)(int nk, float* v, float a, pvwdata_t* w, void* auxPtr, int sf);
-   int (*accumulateFunctionFromPostPointer)(int nk, float* v, float* a, pvwdata_t* w, float dt_factor, void* auxPtr);
+   int (*accumulateFunctionFromPostPointer)(int nk, float* v, float* a, pvwdata_t* w, float dt_factor, void* auxPtr, int sf);
 
    double getWeightUpdatePeriod() {return weightUpdatePeriod;}
    double getWeightUpdateTime() {return weightUpdateTime;}
@@ -331,7 +332,7 @@ public:
    virtual int dataIndexToUnitCellIndex(int dataIndex, int* kx = NULL, int* ky =
          NULL, int* kf = NULL);
 
-   void setNeedPost(){needPost = true;}
+   void setNeedPost(bool inBool){needPost = inBool;}
 
 #ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
@@ -352,6 +353,7 @@ protected:
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
    int numWeightPatches; // Number of PVPatch structures in buffer pointed to by wPatches[arbor]
    int numDataPatches;   // Number of blocks of pvwdata_t's in buffer pointed to by wDataStart[arbor]
+   bool needAllocPostWeights;
 
    std::vector <PlasticCloneConn*> clones; //A vector of plastic clones that are cloning from this connection
 
@@ -384,11 +386,10 @@ private:
    long * postToPreActivity;
 
    bool needPost;
-   //privateTransposeConn* postConn;
-   HyPerConn* postConn;
 
 
 protected:
+   HyPerConn* postConn;
    bool needFinalize;
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    bool useWindowPost;
@@ -864,6 +865,7 @@ protected:
    int setPostLayerName(const char * post_name);
    virtual int initPlasticityPatches();
    virtual int setPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses override if they have specialized ways of setting patch size that needs to go in the communicate stage.
+   virtual int setPostPatchSize(); // Sets nxp, nyp, nfp if weights are loaded from file.  Subclasses override if they have specialized ways of setting patch size that needs to go in the communicate stage.
                                // (e.g. BIDSConn uses pre and post layer size to set nxp,nyp, but pre and post aren't set until communicateInitInfo().
    virtual void handleDefaultSelfFlag(); // If selfFlag was not set in params, set it in this function.
    virtual PVPatch*** initializeWeights(PVPatch*** arbors, pvwdata_t** dataStart);
