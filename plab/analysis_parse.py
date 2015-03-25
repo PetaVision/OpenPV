@@ -9,10 +9,24 @@ import math
 ############################################################
 
 # Input files and sources for connection/layer name:
-param_location = ("./pv.params")
+
 layer_loc = ("./layers.txt")
 conn_loc = ("./connections.txt")
 output_dir = (".")
+
+# Find a .params file, and throw an error if more than one is found.                                                                        
+foundparams = []
+param_location = ""
+for i in listdir(output_dir):
+    if re.search(".+\.params$",i):
+        foundparams.append(re.search(".+\.params$",i).group())
+if len(foundparams) > 1:
+    print("Warning: Multiple params files found. Parsing " + foundparams[0])
+elif len(foundparams) == 0:
+    print("Warning: No params files found in output directory.")
+else:
+    param_location = "./" + foundparams[0]
+    print("Parsing " + foundparams[0])
 
 # Lists of variables to look for in each layer and conn, plus defaults if they are not found.
 
@@ -281,7 +295,7 @@ for i in listdir(output_dir):
 
 for i in masterlist:
     if re.search("^_", i):
-        print("Warning: " + i + " not found in " + output_dir)
+        print("Warning: " + i + " not found")
 
 for i in actual_pvp:
     if not i in masterlist:
