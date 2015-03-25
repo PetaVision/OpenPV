@@ -951,21 +951,17 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
 
 void HyPerCol::ioParam_checkpointWriteStepInterval(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-	   assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
-	   if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
-	      ioParamValue(ioFlag, name, "checkpointWriteStepInterval", &cpWriteStepInterval, 1L);
-	   }
+   assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
+   if(checkpointWriteFlag && checkpointWriteTriggerMode == CPWRITE_TRIGGER_STEP) {
+      ioParamValue(ioFlag, name, "checkpointWriteStepInterval", &cpWriteStepInterval, 1L);
    }
 }
 
 void HyPerCol::ioParam_checkpointWriteTimeInterval(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
-   if (checkpointWriteFlag) {
-	   assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
-	   if(checkpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
-	      ioParamValue(ioFlag, name, "checkpointWriteTimeInterval", &cpWriteTimeInterval, deltaTimeBase);
-	   }
+   assert(!params->presentAndNotBeenRead(name, "checkpointWriteTriggerMode"));
+   if(checkpointWriteFlag && checkpointWriteTriggerMode == CPWRITE_TRIGGER_TIME) {
+      ioParamValue(ioFlag, name, "checkpointWriteTimeInterval", &cpWriteTimeInterval, deltaTimeBase);
    }
 }
 

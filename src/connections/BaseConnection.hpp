@@ -499,6 +499,13 @@ protected:
     */
    virtual bool needUpdate(double time, double dt) = 0;
 
+private:
+   /**
+    * Called by the constructor, initialize_base() sets member variables
+    * to safe values (e.g. pointers to NULL) and parameters to default values.
+    */
+   int initialize_base();
+
    /**
     * Allocates the delays array and calls setDelay() for each arbor.  fDelayArray is an array of length size,
     * of delays, measured in the same units as the parent HyPerCol's dt.
@@ -508,15 +515,7 @@ protected:
     * If size=numArbors, delays[k] is calculated from fDelayArray[k].
     * If size is any other value, it is an error.
     */
-   virtual int initializeDelays(const float * fDelayArray, int size);
-   
-private:
-   /**
-    * Called by the constructor, initialize_base() sets member variables
-    * to safe values (e.g. pointers to NULL) and parameters to default values.
-    */
-   int initialize_base();
-
+   int initializeDelays(const float * fDelayArray, int size);
 
 // static methods
 public:
