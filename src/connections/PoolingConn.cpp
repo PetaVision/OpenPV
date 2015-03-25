@@ -184,6 +184,10 @@ float PoolingConn::minWeight(int arborId){
      int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
      return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
    }
+   else {
+	   assert(0); // only possibilities are ACCUMULATE_MAXPOOLING and ACCUMULATE_SUMPOOLING
+	   return 0.0; // gets rid of a compile warning
+   }
 }
 
 float PoolingConn::maxWeight(int arborId){
@@ -194,6 +198,10 @@ float PoolingConn::maxWeight(int arborId){
      int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
      int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
      return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
+   }
+   else {
+	   assert(0); // only possibilities are ACCUMULATE_MAXPOOLING and ACCUMULATE_SUMPOOLING
+	   return 0.0; // gets rid of a compile warning
    }
 }
 
