@@ -50,7 +50,7 @@
 #include "../normalizers/NormalizeMax.hpp"
 #include "../normalizers/NormalizeContrastZeroMean.hpp"
 #endif // OBSOLETE // Marked obsolete Feb 17, 2015.  HyPerConn should not need to know about subclasses of NormalizeBase
-#include "TransposeConn.hpp"
+#include "privateTransposeConn.hpp"
 #include "PlasticCloneConn.hpp"
 #ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
@@ -120,13 +120,8 @@ HyPerConn::~HyPerConn()
 //      delete krRecvSyn;
 //
 
-   if(ownsDeviceData){
-      if (d_WData) {
-         delete d_WData;
-         d_WData = NULL;
-      }
-   }
-   else{
+   if (d_WData) {
+      delete d_WData;
       d_WData = NULL;
    }
    if (d_Patches){
@@ -155,13 +150,8 @@ HyPerConn::~HyPerConn()
    }
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-   if(ownsDeviceData){
-      if(cudnn_WData){
-         delete cudnn_WData;
-         cudnn_WData = NULL;
-      }
-   }
-   else{
+   if(cudnn_WData){
+      delete cudnn_WData;
       cudnn_WData = NULL;
    }
 #endif
@@ -209,6 +199,10 @@ HyPerConn::~HyPerConn()
       free(thread_gSyn);
       thread_gSyn = NULL;
    }
+
+   if(needPost && postConn){
+      delete postConn;
+   }
 }
 
 //!
@@ -234,6 +228,10 @@ int HyPerConn::initialize_base()
 
    this->io_timer     = NULL;
    this->update_timer = NULL;
+
+
+   this->postConn = NULL;
+   this->needPost = false;
 
    // this->wMin = 0.0;
    // this->wMax = 1.0;
@@ -296,6 +294,7 @@ int HyPerConn::initialize_base()
    this->clones.clear();
 
    this->postToPreActivity = NULL;
+   this->needFinalize = true;
 
    lastUpdateTime = 0.f;
    symmetrizeWeightsFlag = false;
@@ -316,7 +315,6 @@ int HyPerConn::initialize_base()
 #endif // OBSOLETE
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   ownsDeviceData = false;
    receiveGpu = false;
    allocDeviceWeights = false;
    d_WData = NULL;
@@ -429,7 +427,8 @@ int HyPerConn::constructWeights()
    int nPatches = getNumDataPatches();
    int status = PV_SUCCESS;
 
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "shrinkPatches"));
+   //assert(!parent->parameters()->presentAndNotBeenRead(name, "shrinkPatches"));
+   
    // createArbors() uses the value of shrinkPatches.  It should have already been read in ioParamsFillGroup.
    //allocate the arbor arrays:
    createArbors();
@@ -1487,6 +1486,11 @@ int HyPerConn::communicateInitInfo() {
       groupNormalizer->addConnToList(this);
    }
 
+   //Check if need transpose
+   if(updateGSynFromPostPerspective){
+      needPost = true;
+   }
+
 //GPU stuff
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    //Here, the connection tells all participating recev layers to allocate memory on gpu
@@ -1505,8 +1509,61 @@ int HyPerConn::communicateInitInfo() {
    }
 #endif
 
+
    return status;
 }
+
+int HyPerConn::allocatePreToPostBuffer(){
+   //update conn to original connection
+   const PVLayerLoc * sourceLoc = preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * targetLoc = postSynapticLayer()->getLayerLoc();
+
+   const int sourceNx = sourceLoc->nx;
+   const int sourceNy = sourceLoc->ny;
+   const int sourceNf = sourceLoc->nf;
+   const int targetNx = targetLoc->nx;
+   const int targetNy = targetLoc->ny;
+   const int targetNf = targetLoc->nf;
+
+   const PVHalo * sourceHalo = &sourceLoc->halo;
+   const PVHalo * targetHalo = &targetLoc->halo;
+
+   const int numRestricted = postSynapticLayer()->getNumNeurons();
+
+   postToPreActivity = (long*)malloc(sizeof(long) * numRestricted);
+   assert(postToPreActivity);
+   for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
+      int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
+      //Get start index of source from gsyn in restricted
+      // We have to use gSynPatchStart instead of aPostOffset because originalConn's post-synaptic layer's nb may not be the same as conn's pre-layer's nb.
+      int sourceRes = postConn->getGSynPatchStart(kTargetExt, 0);
+      int sourceExt= kIndexExtended(sourceRes, sourceNx, sourceNy, sourceNf, sourceHalo->lt, sourceHalo->rt, sourceHalo->dn, sourceHalo->up);
+      int sourceXExt = kxPos(sourceExt, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
+      int sourceYExt = kyPos(sourceExt, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
+      int sourceF = featureIndex(sourceExt, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
+
+      //Grab patch given the post
+      //We grab this value from host memory since all we're taking from it is the offset
+      //Note that we're grabbing only arbor 0, since without the shrink patches flag, all arbors must have the same geometry
+      PVPatch * shrunkenWeights = postConn->getWeights(kTargetExt, 0);
+      //Grab offset
+      int offset = shrunkenWeights->offset;
+      //Get x and y in patch space
+      //conn is target to source
+      int patchX = kxPos(offset, postConn->xPatchSize(), postConn->yPatchSize(), postConn->fPatchSize());
+      int patchY = kyPos(offset, postConn->xPatchSize(), postConn->yPatchSize(), postConn->fPatchSize());
+
+      //Move source X and Y to offset
+      sourceXExt -= patchX; 
+      sourceYExt -= patchY; 
+
+      //Change sourceExt back to extended source index, but unshrunken
+      //Store this value in a buffer to avoid recalculation
+      postToPreActivity[kTargetRes] = kIndex(sourceXExt, sourceYExt, sourceF, sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->dn + sourceHalo->up, sourceNf);
+   }
+   return PV_SUCCESS;
+}
+
 
 void HyPerConn::handleDefaultSelfFlag() {
    if (!parent->parameters()->present(name, "selfFlag")) {
@@ -1619,64 +1676,18 @@ int HyPerConn::allocateDataStructures() {
       }
    }
 
-   //Allocate a post to pre activity buffer needed for gpu and receive from post
-   //Note that this has to be a transpose conn to do this, TODO take out this restriction
-   //Cast to transpose conn
-   TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (this);
+   //Allocate private transpose conn
+   if(needPost){
+      char privateConnName [PV_PATH_MAX];
+      sprintf(privateConnName, "&%s_privatePostConn", this->name);
+      postConn = new privateTransposeConn(privateConnName, parent, this);
+      assert(postConn);
+      postConn->allocateDataStructures();
+   }
+
    //Can't do this with shrink patches flag
-   if(sourceToTargetConn && !shrinkPatches_flag){
-      //update conn to original connection
-      HyPerConn * targetToSourceConn = sourceToTargetConn->getOriginalConn();
-      const PVLayerLoc * oSourceLoc = targetToSourceConn->postSynapticLayer()->getLayerLoc();
-      const PVLayerLoc * oTargetLoc = targetToSourceConn->preSynapticLayer()->getLayerLoc();
-      const PVLayerLoc * aSourceLoc = preSynapticLayer()->getLayerLoc();
-      const PVLayerLoc * aTargetLoc = postSynapticLayer()->getLayerLoc();
-
-      const int sourceNx = aSourceLoc->nx;
-      const int sourceNy = aSourceLoc->ny;
-      const int sourceNf = aSourceLoc->nf;
-      const int targetNx = aTargetLoc->nx;
-      const int targetNy = aTargetLoc->ny;
-      const int targetNf = aTargetLoc->nf;
-
-      const PVHalo * aSourceHalo = &aSourceLoc->halo;
-      const PVHalo * oSourceHalo = &oSourceLoc->halo;
-      const PVHalo * aTargetHalo = &aTargetLoc->halo;
-      const PVHalo * oTargetHalo = &oTargetLoc->halo;
-
-      const int numRestricted = postSynapticLayer()->getNumNeurons();
-
-      postToPreActivity = (long*)malloc(sizeof(long) * numRestricted);
-      for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
-         int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetHalo->lt, oTargetHalo->rt, oTargetHalo->dn, oTargetHalo->up);
-         int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetHalo->lt, aTargetHalo->rt, aTargetHalo->dn, aTargetHalo->up);
-         //Get start index of source from gsyn in restricted
-         // We have to use gSynPatchStart instead of aPostOffset because originalConn's post-synaptic layer's nb may not be the same as conn's pre-layer's nb.
-         int sourceRes = targetToSourceConn->getGSynPatchStart(okTargetExt, 0);
-         int sourceExt= kIndexExtended(sourceRes, sourceNx, sourceNy, sourceNf, aSourceHalo->lt, aSourceHalo->rt, aSourceHalo->dn, aSourceHalo->up);
-         int sourceXExt = kxPos(sourceExt, sourceNx + aSourceHalo->lt + aSourceHalo->rt, sourceNy + aSourceHalo->dn + aSourceHalo->up, sourceNf);
-         int sourceYExt = kyPos(sourceExt, sourceNx + aSourceHalo->lt + aSourceHalo->rt, sourceNy + aSourceHalo->dn + aSourceHalo->up, sourceNf);
-         int sourceF = featureIndex(sourceExt, sourceNx + aSourceHalo->lt + aSourceHalo->rt, sourceNy + aSourceHalo->dn + aSourceHalo->up, sourceNf);
-
-         //Grab patch given the post
-         //We grab this value from host memory since all we're taking from it is the offset
-         //Note that we're grabbing only arbor 0, since without the shrink patches flag, all arbors must have the same geometry
-         PVPatch * shrunkenWeights = targetToSourceConn->getWeights(okTargetExt, 0);
-         //Grab offset
-         int offset = shrunkenWeights->offset;
-         //Get x and y in patch space
-         //conn is target to source
-         int patchX = kxPos(offset, targetToSourceConn->xPatchSize(), targetToSourceConn->yPatchSize(), targetToSourceConn->fPatchSize());
-         int patchY = kyPos(offset, targetToSourceConn->xPatchSize(), targetToSourceConn->yPatchSize(), targetToSourceConn->fPatchSize());
-
-         //Move source X and Y to offset
-         sourceXExt -= patchX; 
-         sourceYExt -= patchY; 
-
-         //Change sourceExt back to extended source index, but unshrunken
-         //Store this value in a buffer to avoid recalculation
-         postToPreActivity[kTargetRes] = kIndex(sourceXExt, sourceYExt, sourceF, sourceNx + aSourceHalo->lt + aSourceHalo->rt, sourceNy + aSourceHalo->dn + aSourceHalo->up, sourceNf);
-      }
+   if(needPost && !shrinkPatches_flag){
+      allocatePreToPostBuffer();
    }
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -1790,6 +1801,30 @@ InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
+int HyPerConn::allocatePostDeviceWeights(){
+#ifdef PV_USE_OPENCL
+   CLDevice * device = parent->getDevice();
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaDevice * device = parent->getDevice();
+#endif
+
+   const size_t size = postConn->getNumDataPatches() * postConn->xPatchSize() * postConn->yPatchSize() * postConn->fPatchSize() * sizeof(pvwdata_t);
+#ifdef PV_USE_OPENCL
+   d_WData = device->createBuffer(CL_MEM_READ_ONLY, size, NULL);
+#endif
+#ifdef PV_USE_CUDA
+   d_WData = device->createBuffer(size);
+   assert(d_WData);
+#endif
+
+#ifdef PV_USE_CUDNN
+   cudnn_WData = device->createBuffer(size);
+#endif
+   return PV_SUCCESS;
+
+}
+
 int HyPerConn::allocateDeviceWeights(){
 #ifdef PV_USE_OPENCL
    CLDevice * device = parent->getDevice();
@@ -1810,8 +1845,6 @@ int HyPerConn::allocateDeviceWeights(){
 #ifdef PV_USE_CUDNN
    cudnn_WData = device->createBuffer(size);
 #endif
-
-   ownsDeviceData = true;
    return PV_SUCCESS;
 
 }
@@ -1878,21 +1911,7 @@ int HyPerConn::allocateDeviceBuffers()
       
       if(needAlloc){
          if(updateGSynFromPostPerspective){
-            HyPerConn * origConn;
-            TransposeConn* thisTranspose = dynamic_cast<TransposeConn*>(this);
-            if(!thisTranspose){
-               std::cout << "HyPerConn " << name << " must be a transpose conn to receive with gpus for now\n";
-               exit(EXIT_FAILURE);
-            }
-            origConn = thisTranspose->getOriginalConn();
-            //Check if origConn has allocated d_weights yet
-            if(!origConn->getDeviceWData()){
-               origConn->allocateDeviceWeights();
-            }
-            d_WData = origConn->getDeviceWData();
-#ifdef PV_USE_CUDNN
-            cudnn_WData = origConn->getCudnnWData();
-#endif
+            allocatePostDeviceWeights();
          }
          else{
             allocateDeviceWeights();
@@ -1902,14 +1921,6 @@ int HyPerConn::allocateDeviceBuffers()
 
    if(receiveGpu){
       if(updateGSynFromPostPerspective){
-         HyPerConn * origConn;
-         TransposeConn* thisTranspose = dynamic_cast<TransposeConn*>(this);
-         if(!thisTranspose){
-            std::cout << "HyPerConn " << name << " must be a transpose conn to receive with gpus for now\n";
-            exit(EXIT_FAILURE);
-         }
-         origConn = thisTranspose->getOriginalConn();
-
          int numPostRes = post->getNumNeurons();
 #ifdef PV_USE_OPENCL
          d_PostToPreActivity = device->createBuffer(CL_MEM_READ_ONLY, numPostRes*sizeof(long), NULL); 
@@ -1919,7 +1930,7 @@ int HyPerConn::allocateDeviceBuffers()
 #endif
 
          if(sharedWeights){
-            int numWeightPatches = origConn->getNumWeightPatches();
+            int numWeightPatches = postConn->getNumWeightPatches();
 #ifdef PV_USE_OPENCL
             d_Patch2DataLookupTable = device->createBuffer(CL_MEM_READ_ONLY, numWeightPatches * sizeof(int), NULL);  
 #endif
@@ -2173,15 +2184,6 @@ int HyPerConn::allocateReceivePostKernel()
    krRecvPost = new PVCuda::CudaRecvPost(device);
 #endif
 
-   //We need orig to set syp
-   //This is a patch, the real fix is to store post weights if receiving from post
-   TransposeConn* thisTranspose = dynamic_cast<TransposeConn*>(this);
-   if(!thisTranspose){
-      std::cout << "HyPerConn " << name << " must be a transpose conn to receive with gpus for now\n";
-      exit(EXIT_FAILURE);
-   }
-
-   HyPerConn * origConn = thisTranspose->getOriginalConn();
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
    const PVHalo* preHalo = &pre->getLayerLoc()->halo;
@@ -2214,21 +2216,21 @@ int HyPerConn::allocateReceivePostKernel()
 
 
    int sy  = (preLoc->nx+preHalo->rt+preHalo->lt)*preLoc->nf;
-   int syp = origConn->yPatchStride();
-   int numPerStride = origConn->xPatchSize() * origConn->fPatchSize();
+   int syp = postConn->yPatchStride();
+   int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
    float dt_factor = getConvertToRateDeltaTimeFactor();
    int i_sharedWeights = sharedWeights;
 
-   const PVHalo* oHalo = &origConn->preSynapticLayer()->getLayerLoc()->halo;
+   const PVHalo* oHalo = &postConn->preSynapticLayer()->getLayerLoc()->halo;
    int oNblt = oHalo->lt;
    int oNbrt = oHalo->rt;
    int oNbup = oHalo->up;
    int oNbdn = oHalo->dn;
 
    //nxp, nyp, and nfp should be orig conn's
-   int oNxp = origConn->xPatchSize();
-   int oNyp = origConn->yPatchSize();
-   int oNfp = origConn->fPatchSize();
+   int oNxp = postConn->xPatchSize();
+   int oNyp = postConn->yPatchSize();
+   int oNfp = postConn->fPatchSize();
    int postNx = postLoc->nx;
    int postNy = postLoc->ny;
    int postNf = postLoc->nf;
@@ -2250,7 +2252,7 @@ int HyPerConn::allocateReceivePostKernel()
    //Need to set orig connection's patch2datalookuptable
    d_PostToPreActivity->copyToDevice(postToPreActivity);
 
-   d_Patch2DataLookupTable->copyToDevice(origConn->getPatchToDataLUT());
+   d_Patch2DataLookupTable->copyToDevice(postConn->getPatchToDataLUT());
 
    //In receive from post, we need to make sure x, y, and f local size is divisible by the actual number of post neurons
    if(postLoc->nx % numXLocal != 0){
@@ -2755,6 +2757,9 @@ int HyPerConn::writeTimers(FILE* stream){
       for (int p=0; p<numProbes; p++){
          probes[p]->writeTimer(stream);
       }
+      if(needPost){
+         postConn->writeTimers(stream);
+      }
    }
    return PV_SUCCESS;
 }
@@ -2985,15 +2990,7 @@ int HyPerConn::updateStateWrapper(double time, double dt){
          lastUpdateTime = time;
       }
       computeNewWeightUpdateTime(time, weightUpdateTime);
-
-      //Sanity check, take this out once convinced layer's nextUpdateTime is the same as weightUpdateTime
-      //No way to make this assertion, cause nextUpdateTime/weightUpdateTime updates happen at different times
-      //if(triggerFlag){
-      //   if(weightUpdateTime != triggerLayer->getNextUpdateTime()){
-      //      std::cout << "Layer " << name << ": weightUpdateTime (" << weightUpdateTime << ") and layer's getNextUpdateTime (" << triggerLayer->getNextUpdateTime() << ") mismatch\n";
-      //   }
-      //   //assert(weightUpdateTime == triggerLayer->getNextUpdateTime());
-      //}
+      needFinalize = true;
    }
    return status;
 }
@@ -3034,6 +3031,17 @@ int HyPerConn::updateState(double time, double dt)
 
    update_timer->stop();
    return status;
+}
+
+int HyPerConn::finalizeUpdate(double timed, double dt){
+   if (!needFinalize) { return PV_SUCCESS; }
+   //Update postConn if needed
+   if(needPost){
+      int status = postConn->finalizeUpdate(timed, dt);
+      assert(status == PV_SUCCESS);
+   }
+   needFinalize = false;
+   return PV_SUCCESS;
 }
 
 int HyPerConn::calc_dW(int arborId) {
@@ -3532,13 +3540,13 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
    assert(post->getChannel(getChannel()));
 
    //Cast to transpose conn
-   TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (this);
-   if(sourceToTargetConn == NULL){
-      fprintf(stderr, "HyPerConn \"%s\": deliverPostsynapticPerspective requires the connection to be a TransposeConn.\n", name);
-      abort();
-   }
-   //update conn to original connection
-   HyPerConn * targetToSourceConn = sourceToTargetConn->getOriginalConn();
+   //TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (this);
+   //if(sourceToTargetConn == NULL){
+   //   fprintf(stderr, "HyPerConn \"%s\": deliverPostsynapticPerspective requires the connection to be a TransposeConn.\n", name);
+   //   abort();
+   //}
+   ////update conn to original connection
+   //HyPerConn * targetToSourceConn = sourceToTargetConn->getOriginalConn();
    // Don't need TransposeConn to have the same pre and post as originalConn but flipped.  nx,ny,nf must be consistent, but that's checked in initialization.
     ////Assert that the transpose is opposite of the original connection
     //if(targetToSourceConn->preSynapticLayer()->getLayerId() != sourceToTargetConn->postSynapticLayer()->getLayerId() ||
@@ -3555,7 +3563,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
    int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
-   printf("[%d]: HyPerLayr::pullSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numRestricted, activity, this, sourceToTargetConn);
+   printf("[%d]: HyPerLayr::pullSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numRestricted, activity, this, this);
    fflush(stdout);
 #endif // DEBUG_OUTPUT
 
@@ -3567,32 +3575,28 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
       dt_factor = getConvertToRateDeltaTimeFactor();
    }
 
-   const PVLayerLoc * oSourceLoc = targetToSourceConn->postSynapticLayer()->getLayerLoc();
-   const PVLayerLoc * oTargetLoc = targetToSourceConn->preSynapticLayer()->getLayerLoc();
-   const PVLayerLoc * aSourceLoc = sourceToTargetConn->preSynapticLayer()->getLayerLoc();
-   const PVLayerLoc * aTargetLoc = post->getLayerLoc();
+   const PVLayerLoc * sourceLoc = preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * targetLoc = post->getLayerLoc();
 
-   const int sourceNx = aSourceLoc->nx;
-   const int sourceNy = aSourceLoc->ny;
-   const int sourceNf = aSourceLoc->nf;
-   const int targetNx = aTargetLoc->nx;
-   const int targetNy = aTargetLoc->ny;
-   const int targetNf = aTargetLoc->nf;
+   const int sourceNx = sourceLoc->nx;
+   const int sourceNy = sourceLoc->ny;
+   const int sourceNf = sourceLoc->nf;
+   const int targetNx = targetLoc->nx;
+   const int targetNy = targetLoc->ny;
+   const int targetNf = targetLoc->nf;
 
-   const PVHalo * aSourceHalo = &aSourceLoc->halo;
-   const PVHalo * oSourceHalo = &oSourceLoc->halo;
-   const PVHalo * aTargetHalo = &aTargetLoc->halo;
-   const PVHalo * oTargetHalo = &oTargetLoc->halo;
+   const PVHalo * sourceHalo = &sourceLoc->halo;
+   const PVHalo * targetHalo = &targetLoc->halo;
 
    //get source layer's extended y stride
-   int sy  = (sourceNx+aSourceHalo->lt+aSourceHalo->rt)*sourceNf;
+   int sy  = (sourceNx+sourceHalo->lt+sourceHalo->rt)*sourceNf;
    //get source layer's patch y stride
-   int syp = targetToSourceConn->yPatchStride(); // Should be correct even if targetToSourceConn points to a different layer than sourceToTargetConn's pre.
+   int syp = postConn->yPatchStride();
    //Iterate through y patch
-   int numPerStride = targetToSourceConn->xPatchSize() * targetToSourceConn->fPatchSize();
+   int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
 
    //The start of the gsyn buffer
-   pvdata_t * gSynPatchHead = post->getChannel(sourceToTargetConn->getChannel());
+   pvdata_t * gSynPatchHead = post->getChannel(this->getChannel());
 
    long * startSourceExtBuf = getPostToPreActivity();
    if(!startSourceExtBuf){
@@ -3605,8 +3609,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
 #endif
    for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++){
       //Change restricted to extended post neuron
-      int akTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, aTargetHalo->lt, aTargetHalo->rt, aTargetHalo->dn, aTargetHalo->up);
-      int okTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, oTargetHalo->lt, oTargetHalo->rt, oTargetHalo->dn, oTargetHalo->up);
+      int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
 
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
       bool inWindow;
@@ -3620,12 +3623,12 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
       //Calculate target's start of gsyn
       pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
 
-      int kernelIndex = targetToSourceConn->patchToDataLUT(okTargetExt);
+      int kernelIndex = postConn->patchToDataLUT(kTargetExt);
       uint4 * rngPtr = getRandState(kTargetRes);
 
-      for (int ky = 0; ky < targetToSourceConn->yPatchSize(); ky++){
+      for (int ky = 0; ky < postConn->yPatchSize(); ky++){
          float * activityY = &(activity->data[startSourceExt + ky*sy]);
-         pvwdata_t * weightY = targetToSourceConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
+         pvwdata_t * weightY = postConn->get_wDataHead(arborID, kernelIndex) + ky*syp;
          (accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
       }
    }
@@ -3787,14 +3790,14 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    }
    assert(post->getChannel(getChannel()));
 
-   //Cast to transpose conn
-   TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (this);
-   if(sourceToTargetConn == NULL){
-      fprintf(stderr, "Layer \"%s\": Updating GSyn buffer from post perspective requires connection %s to be a TransposeConn.\n", post->getName(), getName());
-      abort();
-   }
+   ////Cast to transpose conn
+   //TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (this);
+   //if(sourceToTargetConn == NULL){
+   //   fprintf(stderr, "Layer \"%s\": Updating GSyn buffer from post perspective requires connection %s to be a TransposeConn.\n", post->getName(), getName());
+   //   abort();
+   //}
    //update conn to original connection
-   HyPerConn * targetToSourceConn = sourceToTargetConn->getOriginalConn();
+   //HyPerConn * targetToSourceConn = sourceToTargetConn->getOriginalConn();
 
    assert(arborID >= 0);
    //Get number of neurons restricted target
@@ -3816,25 +3819,23 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    krRecvPost->setKernelArg(17, sizeof(float), &dt_factor); // WARNING: if OpenCL receive kernel parameters change, the hard-coded 17 might need to be changed.
 #endif // PV_USE_OPENCL
 
-   const PVLayerLoc * oSourceLoc = targetToSourceConn->postSynapticLayer()->getLayerLoc();
-   const PVLayerLoc * oTargetLoc = targetToSourceConn->preSynapticLayer()->getLayerLoc();
-   const PVLayerLoc * aSourceLoc = sourceToTargetConn->preSynapticLayer()->getLayerLoc();
-   const PVLayerLoc * aTargetLoc = post->getLayerLoc();
-   const PVHalo * aSourceHalo = &aSourceLoc->halo;
+   const PVLayerLoc * sourceLoc = pre->getLayerLoc();
+   const PVLayerLoc * targetLoc = post->getLayerLoc();
+   const PVHalo * sourceHalo = &sourceLoc->halo;
 
-   const int sourceNx = aSourceLoc->nx;
-   const int sourceNy = aSourceLoc->ny;
-   const int sourceNf = aSourceLoc->nf;
-   const int targetNx = aTargetLoc->nx;
-   const int targetNy = aTargetLoc->ny;
-   const int targetNf = aTargetLoc->nf;
+   const int sourceNx = sourceLoc->nx;
+   const int sourceNy = sourceLoc->ny;
+   const int sourceNf = sourceLoc->nf;
+   const int targetNx = targetLoc->nx;
+   const int targetNy = targetLoc->ny;
+   const int targetNf = targetLoc->nf;
 
    //get source layer's extended y stride
-   int sy  = (sourceNx+aSourceHalo->rt+aSourceHalo->lt)*sourceNf;
+   int sy  = (sourceNx+sourceHalo->rt+sourceHalo->lt)*sourceNf;
    //get source layer's patch y stride
-   int syp = targetToSourceConn->yPatchStride(); // Should be correct even if targetToSourceConn points to a different layer than sourceToTargetConn's pre.
+   int syp = postConn->yPatchStride();
    //Iterate through y patch
-   int numPerStride = targetToSourceConn->xPatchSize() * targetToSourceConn->fPatchSize();
+   int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
 
    long * startSourceExtBuf = getPostToPreActivity();
    if(!startSourceExtBuf){
@@ -3845,26 +3846,26 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    bool updatePreAct = false;
    //Update pre activity, post gsyn, and conn weights
    //Only if they're updated
-   if(sourceToTargetConn->preSynapticLayer()->getUpdatedDeviceDatastoreFlag()){
+   if(pre->getUpdatedDeviceDatastoreFlag()){
       float * h_preDatastore = activity->data;
 #ifdef PV_USE_OPENCL
-      CLBuffer * d_preDatastore = sourceToTargetConn->preSynapticLayer()->getDeviceDatastore();
+      CLBuffer * d_preDatastore = pre->getDeviceDatastore();
 #endif
 #ifdef PV_USE_CUDA
-      PVCuda::CudaBuffer* d_preDatastore = sourceToTargetConn->preSynapticLayer()->getDeviceDatastore();
+      PVCuda::CudaBuffer* d_preDatastore = pre->getDeviceDatastore();
 #endif
       assert(d_preDatastore);
       d_preDatastore->copyToDevice(h_preDatastore);
       //Device now has updated
-      sourceToTargetConn->preSynapticLayer()->setUpdatedDeviceDatastoreFlag(false);
+      pre->setUpdatedDeviceDatastoreFlag(false);
       updatePreAct = true;
    }
 
 
    bool updateWeights = false;
-   if(targetToSourceConn->getUpdatedDeviceWFlag() || gpuGroupIdx >= 0){
+   if(this->getUpdatedDeviceWFlag() || gpuGroupIdx >= 0){
       //These weights should be orig conn weights
-      float * h_weights = targetToSourceConn->get_wDataStart(arborID);
+      float * h_weights = postConn->get_wDataStart(arborID);
 
 #ifdef PV_USE_OPENCL
       CLBuffer * d_weights = getDeviceWData();
@@ -3892,7 +3893,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
       krRecvPost->permuteWeightsPVToCudnn();
    }
    //Permute GSyn
-   krRecvPost->permuteGSynPVToCudnn(sourceToTargetConn->getChannel());
+   krRecvPost->permuteGSynPVToCudnn(this->getChannel());
 #endif // defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
 //#endif // PV_USE_CUDA
 
@@ -3920,7 +3921,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
 #endif
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-   krRecvPost->permuteGSynCudnnToPV(sourceToTargetConn->getChannel());
+   krRecvPost->permuteGSynCudnnToPV(this->getChannel());
 #endif
 
    return PV_SUCCESS;

@@ -45,6 +45,9 @@ class CloneConn;
 class PlasticCloneConn;
 class NormalizeBase;
 class Random;
+class TransposeConn;
+
+class privateTransposeConn;
 
 /**
  * A HyPerConn identifies a connection between two layers
@@ -54,6 +57,9 @@ class HyPerConn : public BaseConnection {
 
 public:
    friend class CloneConn;
+   friend class TransposeConn;
+   friend class privateTransposeConn;
+   
    HyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual ~HyPerConn();
 //#ifdef PV_USE_OPENCL
@@ -71,6 +77,7 @@ public:
    virtual int outputState(double time, bool last = false);
    virtual int updateStateWrapper(double time, double dt); // Generally shouldn't be overridden; override updateState instead.  Made virtual only so that BaseConnection didn't need to define the member variables and functions used by HyPerConn::updateStateWrapper.
    virtual int updateState(double time, double dt);
+   virtual int finalizeUpdate(double timed, double dt);
    virtual int defaultUpdateInd_dW(int arbor_ID, int kExt);
    virtual bool needUpdate(double time, double dt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
@@ -312,7 +319,7 @@ public:
       return numKernelActivations[arbor_ID][kernelIndex][patchindex];
    }
 
-   virtual long* getPostToPreActivity(){
+   virtual long * getPostToPreActivity(){
       return postToPreActivity;
    }
 
@@ -323,6 +330,8 @@ public:
          NULL, int* kf = NULL);
    virtual int dataIndexToUnitCellIndex(int dataIndex, int* kx = NULL, int* ky =
          NULL, int* kf = NULL);
+
+   void setNeedPost(){needPost = true;}
 
 #ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
@@ -374,8 +383,13 @@ private:
    
    long * postToPreActivity;
 
+   bool needPost;
+   //privateTransposeConn* postConn;
+   HyPerConn* postConn;
+
 
 protected:
+   bool needFinalize;
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
    bool useWindowPost;
 #endif // OBSOLETE
@@ -861,6 +875,7 @@ protected:
          int nyPatch, int nfPatch, int arborId);
    int createWeights(PVPatch*** patches, int arborId);
    virtual pvwdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
+   virtual int allocatePreToPostBuffer();
    int clearWeights(pvwdata_t** dataStart, int numPatches, int nx, int ny, int nf);
    virtual int adjustAllPatches(int nxPre, int nyPre, int nfPre, const PVHalo * haloPre, int nxPost, int nyPost, int nfPost, const PVHalo * haloPost, PVPatch*** inWPatches, size_t** inGSynPatchStart, size_t** inAPostOffset, int arborId);
    virtual int adjustAxonalArbors(int arborId);
@@ -979,6 +994,7 @@ public:
    }
    
 protected:
+   virtual int allocatePostDeviceWeights();
    virtual int allocateDeviceWeights();
    virtual int allocateDeviceBuffers();
    virtual int allocateReceivePostKernel();
@@ -1008,7 +1024,6 @@ protected:
    PVCuda::CudaRecvPost* krRecvPost;        // Cuda kernel for update state call
    PVCuda::CudaRecvPre* krRecvPre;        // Cuda kernel for update state call
 #endif
-   bool ownsDeviceData;
    int gpuGroupIdx;
    bool preDataLocal;
    int numXLocal;
