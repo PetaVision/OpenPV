@@ -641,7 +641,7 @@ const char * Movie::advanceFileName() {
                }
             }
          }
-      }while(reset && frameNumber < startFrameIndex);
+      }while(resetToStartOnLoop && reset && frameNumber < startFrameIndex);
       assert(inputfile && strlen(inputfile)>(size_t) 0);
       char * expandedpath = expandLeadingTilde(inputfile);
       if (strlen(expandedpath)>=PV_PATH_MAX) {
