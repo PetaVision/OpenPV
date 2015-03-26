@@ -274,7 +274,13 @@ void Movie::ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag) {
 void Movie::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
    if (!randomMovie) {
-      parent->ioParamValue(ioFlag, name, "start_frame_index", &startFrameIndex, 0/*default value*/);
+      parent->ioParamValue(ioFlag, name, "start_frame_index", &startFrameIndex, 1/*default value*/);
+      if (startFrameIndex<0) {
+         if(parent->columnId()==0) {
+            fprintf(stderr, "Warning: start_frame_index of %d changed to 1.\n");
+         }
+         startFrameIndex=1;
+      }
    }
 }
 
@@ -635,7 +641,7 @@ const char * Movie::advanceFileName() {
                }
             }
          }
-      }while(reset && frameNumber < startFrameIndex+1);
+      }while(reset && frameNumber < startFrameIndex);
       assert(inputfile && strlen(inputfile)>(size_t) 0);
       char * expandedpath = expandLeadingTilde(inputfile);
       if (strlen(expandedpath)>=PV_PATH_MAX) {
