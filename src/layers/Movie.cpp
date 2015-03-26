@@ -275,7 +275,7 @@ void Movie::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
    if (!randomMovie) {
       parent->ioParamValue(ioFlag, name, "start_frame_index", &startFrameIndex, 1/*default value*/);
-      if (startFrameIndex<0) {
+      if (startFrameIndex<=0) {
          if(parent->columnId()==0) {
             fprintf(stderr, "Warning: start_frame_index of %d changed to 1.\n", startFrameIndex);
          }
