@@ -31,8 +31,11 @@ InterColComm::~InterColComm()
    free(publishers); publishers = NULL;
 }
 
-int InterColComm::addPublisher(HyPerLayer* pub, int numItems, int numLevels, bool isSparse)
+int InterColComm::addPublisher(HyPerLayer* pub)
 {
+   int numItems = pub->getNumExtended();
+   int numLevels = pub->getNumDelayLevels();
+   int isSparse = pub->getSparseFlag();
    int pubId = pub->getLayerId();
    if( pubId >= publisherArraySize) {
       int status = resizePublishersArray(pubId+1);

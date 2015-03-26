@@ -92,7 +92,7 @@ public:
    InterColComm(int * argc, char *** argv);
    virtual ~InterColComm();
 
-   int addPublisher(HyPerLayer * pub, int numItems, int numLevels, bool isSparse);
+   int addPublisher(HyPerLayer * pub);
    int clearPublishers();
    int publish(HyPerLayer * pub, PVLayerCube * cube);
    int subscribe(BaseConnection * conn);
