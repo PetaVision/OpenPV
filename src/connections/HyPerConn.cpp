@@ -916,7 +916,7 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, false/*default*/, true/*warn if absent*/);
+   parent->ioParamValue(ioFlag, name, "sharedWeights", &sharedWeights, true/*default*/, true/*warn if absent*/);
 }
 
 void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
