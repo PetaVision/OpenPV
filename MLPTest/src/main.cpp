@@ -50,6 +50,8 @@ int main(int argc, char * argv[]) {
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
    }
+
+   free(pv_argv[paramFileArgIndex]);
    pv_argv[paramFileArgIndex] = strdup("input/MLPTest.params");
    assert(pv_argv[paramFileArgIndex]);
    status = buildandrun(pv_argc, pv_argv, NULL, NULL, &addcustomgroup);
@@ -59,7 +61,7 @@ int main(int argc, char * argv[]) {
    }
 
    free(pv_argv[paramFileArgIndex]);
-   pv_argv[2] = strdup("input/AlexTrain.params");
+   pv_argv[paramFileArgIndex] = strdup("input/AlexTrain.params");
    assert(pv_argv[paramFileArgIndex]);
    status = buildandrun(pv_argc, pv_argv, NULL, NULL, &addcustomgroup);
    if( status != PV_SUCCESS ) {
