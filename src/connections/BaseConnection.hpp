@@ -555,6 +555,8 @@ public:
       return status;
    }
 
+   int getDelayArraySize(){return delayArraySize;}
+
 // member variables
 protected:
    char * name;

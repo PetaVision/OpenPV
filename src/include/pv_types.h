@@ -47,6 +47,11 @@ enum GSynAccumulateType {
    ACCUMULATE_SUMPOOLING = 3
 };
 
+enum PVDataType{
+   PV_FLOAT = 0,
+   PV_INT = 1,
+};
+
 typedef struct PVPatch_ {
    unsigned int offset;
    unsigned short nx, ny;

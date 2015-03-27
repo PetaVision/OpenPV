@@ -3576,24 +3576,24 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 #pragma omp parallel for schedule(guided)
 #endif
    for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
-      int kPre;
+      int kPreExt;
       if(activity->isSparse){
-         kPre = activity->activeIndices[loopIndex];
+         kPreExt = activity->activeIndices[loopIndex];
       }
       else{
-         kPre = loopIndex;
+         kPreExt = loopIndex;
       }
 
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
       bool inWindow;
       //Post layer receives synaptic input
       //Only with respect to post layer
-      int kPost = layerIndexExt(kPre, preLoc, postLoc);
+      int kPost = layerIndexExt(kPreExt, preLoc, postLoc);
       inWindow = inWindowExt(arborID, kPost);
       if(!inWindow) continue;
 #endif // OBSOLETE
 
-      float a = activity->data[kPre] * dt_factor;
+      float a = activity->data[kPreExt] * dt_factor;
       if (a == 0.0f) continue;
 
       //If we're using thread_gSyn, set this here
@@ -3609,7 +3609,7 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 #else // PV_USE_OPENMP_THREADS
       gSynPatchHead = post->getChannel(getChannel());
 #endif // PV_USE_OPENMP_THREADS
-      deliverOnePreNeuronActivity(kPre, arborID, a, gSynPatchHead, getRandState(kPre));
+      deliverOnePreNeuronActivity(kPreExt, arborID, a, gSynPatchHead, getRandState(kPreExt));
    }
 #ifdef PV_USE_OPENMP_THREADS
    //Accumulate back into gSyn // Should this be done in HyPerLayer where it can be done once, as opposed to once per connection?
@@ -3634,9 +3634,10 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
       }
    }
 #endif
-
    return PV_SUCCESS;
 }
+
+
 
 int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) {
    //Check channel number for noupdate
@@ -4064,14 +4065,14 @@ void HyPerConn::deliverOnePostNeuronActivity(int arborID, int kTargetExt, int in
    }
 }
 
-void HyPerConn::deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr) {
-   PVPatch * weights = getWeights(patchIndex, arbor);
+void HyPerConn::deliverOnePreNeuronActivity(int kPreExt, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr) {
+   PVPatch * weights = getWeights(kPreExt, arbor);
    const int nk = weights->nx * fPatchSize();
    const int ny = weights->ny;
    const int sy  = getPostNonextStrides()->sy;       // stride in layer
    const int syw = yPatchStride();                   // stride in patch
    pvwdata_t * weightDataStart = NULL; 
-   pvgsyndata_t * postPatchStart = postBufferStart + getGSynPatchStart(patchIndex, arbor);
+   pvgsyndata_t * postPatchStart = postBufferStart + getGSynPatchStart(kPreExt, arbor);
    // modified GTK: 12/25/14 to allow for efficient implementation of max_pooling
    // modified GTK: 1/10/15 to fix bug and to implement sum_pooling
    int offset = 0;
@@ -4093,9 +4094,9 @@ void HyPerConn::deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t
    //  }
    //}
    //else{
-     weightDataStart = get_wData(arbor,patchIndex); // make this a pvwdata_t const *?
+     weightDataStart = get_wData(arbor,kPreExt); // make this a pvwdata_t const *?
      for (int y = 0; y < ny; y++) {
-       (accumulateFunctionPointer)(nk, postPatchStart + y*sy + offset, a, weightDataStart + y*syw + offset, auxPtr, sf);
+       (accumulateFunctionPointer)(0, nk, postPatchStart + y*sy + offset, a, weightDataStart + y*syw + offset, auxPtr, sf);
      }
    //}
 }

@@ -55,7 +55,7 @@ DerivedLayer::initialize(arguments) {
 
 #include "../layers/accumulate_functions.h"
 #include "../layers/PVLayerCube.h"
-#include "../layers/LayerDataInterface.hpp"
+#include "../layers/BaseLayer.hpp"
 #include "../columns/DataStore.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "../columns/InterColComm.hpp"
@@ -119,7 +119,7 @@ class InitV;
 class PVParams;
 class BaseConnection;
 
-class HyPerLayer : public LayerDataInterface {
+class HyPerLayer : public BaseLayer{
 
 
 protected:
@@ -129,6 +129,8 @@ protected:
     * @name HyPerLayer Parameters
     * @{
     */
+
+   virtual void ioParam_dataType(enum ParamsIOFlag ioFlag);
    
    /**
     * @brief nxScale: Defines the relationship between the x column size and the layer size.
@@ -273,6 +275,7 @@ public:
    virtual double calcTimeScale()          {return -1.0;};
    virtual double getTimeScale()      {return -1.0;};
    virtual bool activityIsSpiking() = 0; // Pure virtual method so that subclasses are forced to implement it.
+   PVDataType getDataType()          {return dataType;}
 protected:
 
    /**
@@ -560,6 +563,9 @@ protected:
    char* triggerLayerName;
    double triggerOffset;
    HyPerLayer* triggerLayer;
+
+   char* dataTypeString;
+   PVDataType dataType;
 
 
    double lastUpdateTime; // The most recent time that the layer's activity is updated, used as a cue for publisher to exchange borders

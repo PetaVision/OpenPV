@@ -50,6 +50,7 @@
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/PoolingANNLayer.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
+#include "../layers/PoolingIndexLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
 #include "../layers/RescaleLayer.hpp"
 #include "../layers/RunningAverageLayer.hpp"
@@ -79,6 +80,7 @@
 #include "../connections/BiLinearConn.hpp"
 #include "../connections/PoolingConn.hpp"
 #include "../connections/TransposeConn.hpp"
+#include "../connections/TransposePoolingConn.hpp"
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../connections/BiLinearConn.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
@@ -172,6 +174,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"PoolingANNLayer", LayerGroupType},
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
+         {"PoolingIndexLayer", LayerGroupType},
          {"PtwiseProductLayer", LayerGroupType},
          {"RescaleLayer", LayerGroupType},
          {"RunningAverageLayer", LayerGroupType},
@@ -203,6 +206,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"BiLinearConn", ConnectionGroupType},
          {"PoolingConn", ConnectionGroupType},
          {"TransposeConn", ConnectionGroupType},
+         {"TransposePoolingConn", ConnectionGroupType},
 
          // ColProbes
          {"ColProbe", ColProbeGroupType},
@@ -414,6 +418,9 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
       addedLayer = new PoolingANNLayer(name, hc);
    }
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
+   else if( !strcmp(keyword, "PoolingIndexLayer") ) {
+      addedLayer = new PoolingIndexLayer(name, hc);
+   }
    else if( !strcmp(keyword, "PtwiseProductLayer") ) {
       addedLayer = new PtwiseProductLayer(name, hc);
    }
@@ -518,6 +525,9 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
    }
    else if( !strcmp(keyword, "TransposeConn") ) {
       addedConnection = new TransposeConn(name, hc);
+   }
+   else if( !strcmp(keyword, "TransposePoolingConn") ) {
+      addedConnection = new TransposePoolingConn(name, hc);
    }
 
    if (addedConnection==NULL &&getGroupType(keyword)==ConnectionGroupType) {

@@ -170,6 +170,9 @@ int HyPerLayer::initialize_base() {
    
    this->numSynchronizedMarginWidthLayers = 0;
    this->synchronizedMarginWidthLayers = NULL;
+   
+   dataType = PV_FLOAT;
+   dataTypeString = NULL;
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 //   this->krUpdate = NULL;
@@ -767,7 +770,27 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    ioParam_updateGpu(ioFlag);
 #endif // PV_USE_OPENCL
+   ioParam_dataType(ioFlag);
    return PV_SUCCESS;
+}
+
+void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
+   this->getParent()->ioParamString(ioFlag, this->getName(), "dataType", &dataTypeString, NULL, false/*warnIfAbsent*/);
+   if(dataTypeString == NULL){
+      //Default value
+      dataType = PV_FLOAT;
+      return;
+   }
+   if(!strcmp(dataTypeString, "float")){
+      dataType = PV_FLOAT;
+   }
+   else if(!strcmp(dataTypeString, "int")){
+      dataType = PV_INT;
+   }
+   else{
+      std::cout << "BaseLayer " << name << " Error: dataType not recognized, can be \"float\" or \"int\"\n";
+      exit(-1);
+   }
 }
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)

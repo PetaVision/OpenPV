@@ -46,7 +46,6 @@ class PlasticCloneConn;
 class NormalizeBase;
 class Random;
 class TransposeConn;
-
 class privateTransposeConn;
 
 /**
@@ -59,6 +58,7 @@ public:
    friend class CloneConn;
    friend class TransposeConn;
    friend class privateTransposeConn;
+   friend class TransposePoolingConn;
    
    HyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual ~HyPerConn();
@@ -101,7 +101,7 @@ public:
    virtual void deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, uint4 * rngPtr);
     
    GSynAccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
-   int (*accumulateFunctionPointer)(int nk, float* v, float a, pvwdata_t* w, void* auxPtr, int sf);
+   int (*accumulateFunctionPointer)(int kPreRes, int nk, float* v, float a, pvwdata_t* w, void* auxPtr, int sf);
    int (*accumulateFunctionFromPostPointer)(int nk, float* v, float* a, pvwdata_t* w, float dt_factor, void* auxPtr, int sf);
 
    double getWeightUpdatePeriod() {return weightUpdatePeriod;}
@@ -333,6 +333,7 @@ public:
          NULL, int* kf = NULL);
 
    void setNeedPost(bool inBool){needPost = inBool;}
+   void setNeedAllocPostWeights (bool inBool){needAllocPostWeights = inBool;}
 
 #ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
 #ifdef USE_SHMGET
@@ -901,11 +902,11 @@ protected:
 
    void connOutOfMemory(const char* funcname);
 
-   int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
-   int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
+   virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
+   virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
-   int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
+   virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
+   virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
    float getConvertToRateDeltaTimeFactor();

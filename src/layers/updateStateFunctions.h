@@ -207,6 +207,8 @@ int setActivity_GapLayer(int numNeurons,
 KERNEL
 int resetGSynBuffers_HyPerLayer(int numNeurons, int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead);
 KERNEL
+int resetGSynBuffers_PoolingIndexLayer(int numNeurons, int num_channels, CL_MEM_GLOBAL float * GSynHead);
+KERNEL
 int resetGSynBuffers_SigmoidLayer();
 
 //Gaussian function prototype TODO: maybe this can go somewhere else?
@@ -1079,6 +1081,29 @@ int resetGSynBuffers_HyPerLayer(int numNeurons, int num_channels, CL_MEM_GLOBAL 
 #endif // PV_USE_OPENCL
       {
          channelStart[k] = 0.0f;
+      }
+   }
+   return PV_SUCCESS;
+}
+
+//TODO merge this with resetGSynBuffers_HyPerLayer with a template
+KERNEL
+int resetGSynBuffers_PoolingIndexLayer(int numNeurons, int num_channels, CL_MEM_GLOBAL int * GSynHead) {
+//int resetGSynBuffers_PoolingIndexLayer(int numNeurons, int num_channels, CL_MEM_GLOBAL float * GSynHead) {
+   for( int ch = 0; ch < num_channels; ch ++ ) {
+      //CL_MEM_GLOBAL float * channelStart = &GSynHead[ch*numNeurons];
+      CL_MEM_GLOBAL int * channelStart = &GSynHead[ch*numNeurons];
+      int k;
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif
+      for( k=0; k<numNeurons; k++ )
+#else
+      k = getIndex();
+#endif // PV_USE_OPENCL
+      {
+         channelStart[k] = -1;
       }
    }
    return PV_SUCCESS;

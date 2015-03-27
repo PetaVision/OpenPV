@@ -5,7 +5,7 @@ extern "C" {
 #endif
 
 #ifdef COMPRESS_PHI
-void pvpatch_accumulate(int nk, float* restrict v, float a, pvwdata_t* restrict w,
+void pvpatch_accumulate(int kPreExt, int nk, float* restrict v, float a, pvwdata_t* restrict w,
                         float* restrict m)
 {
    const float scale = 33.3;
@@ -22,7 +22,7 @@ void pvpatch_accumulate(int nk, float* restrict v, float a, pvwdata_t* restrict 
    }
 }
 #else
-  int pvpatch_accumulate(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
+  int pvpatch_accumulate(int kPreExt, int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
 {
    int k;
    int err = 0;
@@ -46,17 +46,6 @@ int pvpatch_accumulate_from_post(int nk, float * RESTRICT v, float * RESTRICT a,
    //*v = *v + dt_factor*dv;
    return status;
 }
-int pvpatch_sumpooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
-   int status = 0;
-   int k;
-   //float dv = 0.0f;
-   for (k = 0; k < nk; k+=sf) {
-      *v += dt_factor*a[k]*w[0];
-      //dv = dv + a[k]*w[k];
-   }
-   //*v = *v + dt_factor*dv;
-   return status;
-}
 
 int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, float* RESTRICT m)
 {
@@ -74,7 +63,7 @@ int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT 
    return err;
 }
 
-int pvpatch_accumulate_stochastic(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
+int pvpatch_accumulate_stochastic(int kPreExt, int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
 {
    uint4 * rng = (uint4 *) auxPtr;
    long along = (long) (a*cl_random_max());
@@ -97,7 +86,7 @@ int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * 
    uint4 * rng = (uint4 *) auxPtr;
    int k;
    float dv = 0.0f;
-   for (k = 0; k < nk; k+=sf) {
+   for (k = 0; k < nk; k+sf) {
       *rng = cl_random_get(*rng);
       double p = (double) rng->s0/cl_random_max(); // 0.0 < p < 1.0
       dv += (p<a[k]*dt_factor)*w[k];
@@ -106,28 +95,26 @@ int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * 
    return status;
 }
 
-int pvpatch_max_pooling(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
+int pvpatch_max_pooling(int kPreGlobalExt, int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
 {
   int k;
   int err = 0;
   float compareval;
+  //float * gate = (float *)auxPtr;
+  int * gate = (int*)auxPtr;
   for (k = 0; k < nk; k+=sf) {
     //     v[k] = v[k] > a*w[k] ? v[k] : a*w[k];
-     v[k] = v[k] > a*w[0] ? v[k] : a*w[0];
+    //v[k] = v[k] > a*w[0] ? v[k] : a*w[0];
+    float checkVal = a*w[0];
+    if(v[k] <= checkVal){
+       v[k] = checkVal;
+       if(gate){
+          gate[k] = kPreGlobalExt;
+          //printf("Writing to address %p idx %d, writing to address %p val%f\n", &(gate[k]), kPreGlobalExt, &(v[k]), checkVal);
+       }
+    }
   }
   return err;
-}
-
-int pvpatch_sum_pooling(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
-{
-   int k;
-   int err = 0;
-   float accumval = 0;
-   for (k = 0; k < nk; k+=sf) {
-      accumval = a*w[0];
-      v[k] += accumval;
-   }
-   return err;
 }
 
 int pvpatch_max_pooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
@@ -141,6 +128,32 @@ int pvpatch_max_pooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a
    *v = vmax;
    return status;
 }
+
+int pvpatch_sum_pooling(int kPreExt, int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
+{
+   int k;
+   int err = 0;
+   float accumval = 0;
+   for (k = 0; k < nk; k+=sf) {
+      accumval = a*w[0];
+      v[k] += accumval;
+   }
+   return err;
+}
+
+int pvpatch_sumpooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
+   int status = 0;
+   int k;
+   //float dv = 0.0f;
+   for (k = 0; k < nk; k+=sf) {
+      *v += dt_factor*a[k]*w[0];
+      //dv = dv + a[k]*w[k];
+   }
+   //*v = *v + dt_factor*dv;
+   return status;
+}
+
+
 
 #ifdef __cplusplus
 }
