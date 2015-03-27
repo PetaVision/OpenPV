@@ -39,7 +39,7 @@ HyPerCol "column" = {
 
 
 // this is a input layer
-Image "input" = {
+Image "Input" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
@@ -62,7 +62,7 @@ Image "input" = {
 };
 
 //an output layer
-ANNLayer "output" = {
+ANNLayer "Output" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 8; // 8 outputs 
@@ -85,9 +85,9 @@ ANNLayer "output" = {
 
 //HyPerConns are connections between two layers
 
-HyPerConn "input to output" = {
-    preLayerName = "input";
-    postLayerName = "output";
+HyPerConn "InputToOutput" = {
+    preLayerName = "Input";
+    postLayerName = "Output";
     channelCode = 0;
 
 // we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
