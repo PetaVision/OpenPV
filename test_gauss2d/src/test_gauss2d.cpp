@@ -9,7 +9,6 @@
 
 #include <layers/HyPerLayer.hpp>
 #include <connections/HyPerConn.hpp>
-#include <connections/KernelConn.hpp>
 #include <io/io.h>
 #include <assert.h>
 
@@ -17,7 +16,7 @@
 
 using namespace PV;
 
-int check_kernel_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre,
+int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre,
 		int axonID);
 
 int main(int argc, char * argv[])
@@ -43,7 +42,7 @@ int main(int argc, char * argv[])
    
    PV::HyPerConn * cHyPer = new HyPerConn("test_gauss2d hyperconn", hc);
 
-   PV::KernelConn * cKernel = new KernelConn("test_gauss2d kernelconn", hc);
+   PV::HyPerConn * cKernel = new HyPerConn("test_gauss2d kernelconn", hc);
 
    PV::Example * pre2 = new PV::Example(pre2_layer_name, hc);
    assert(pre2);
@@ -54,16 +53,16 @@ int main(int argc, char * argv[])
          new HyPerConn("test_gauss2d hyperconn 1 to 2", hc);
    assert(cHyPer1to2);
 
-   PV::KernelConn * cKernel1to2 =
-         new KernelConn("test_gauss2d kernelconn 1 to 2", hc);
+   PV::HyPerConn * cKernel1to2 =
+         new HyPerConn("test_gauss2d kernelconn 1 to 2", hc);
    assert(cKernel1to2);
 
    PV::HyPerConn * cHyPer2to1 =
          new HyPerConn("test_gauss2d hyperconn 2 to 1", hc);
    assert(cHyPer2to1);
 
-   PV::KernelConn * cKernel2to1 =
-         new KernelConn("test_gauss2d kernelconn 2 to 1", hc);
+   PV::HyPerConn * cKernel2to1 =
+         new HyPerConn("test_gauss2d kernelconn 2 to 1", hc);
    assert(cKernel2to1);
    
    int status = 0;
@@ -108,8 +107,10 @@ int main(int argc, char * argv[])
    return 0;
 }
 
-int check_kernel_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre, int axonID)
+int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre, int axonID)
 {
+   assert(cKernel->usingSharedWeights()==true);
+   assert(cHyPer->usingSharedWeights()==false);
    int status = 0;
    PVPatch * hyperPatch = cHyPer->getWeights(kPre, axonID);
    PVPatch * kernelPatch = cKernel->getWeights(kPre, axonID);
