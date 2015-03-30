@@ -10,13 +10,14 @@
 #include "Example.hpp"
 #include <layers/HyPerLayer.hpp>
 #include <connections/HyPerConn.hpp>
-#include <connections/KernelConn.hpp>
 #include <io/io.h>
 #include <assert.h>
 
 using namespace PV;
 
-int check_cocirc_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre,
+// First argument to check_cocirc_vs_hyper should have sharedWeights = false
+// Second argument should have sharedWeights = true
+int check_cocirc_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre,
 		int axonID);
 
 int main(int argc, char * argv[])
@@ -32,7 +33,7 @@ int main(int argc, char * argv[])
    assert(post);
    PV::HyPerConn * cHyPer = new HyPerConn("test_cocirc hyperconn", hc);
    assert(cHyPer);
-   PV::KernelConn * cCocirc = new KernelConn("test_cocirc cocircconn", hc);
+   PV::HyPerConn * cCocirc = new HyPerConn("test_cocirc cocircconn", hc);
    assert(cCocirc);
    
    PV::Example * pre2 = new PV::Example("test_cocirc pre 2", hc);
@@ -41,11 +42,11 @@ int main(int argc, char * argv[])
    assert(post2);
    PV::HyPerConn * cHyPer1to2 = new HyPerConn("test_cocirc hyperconn 1 to 2", hc);
    assert(cHyPer1to2);
-   PV::KernelConn * cCocirc1to2 = new KernelConn("test_cocirc cocircconn 1 to 2", hc);
+   PV::HyPerConn * cCocirc1to2 = new HyPerConn("test_cocirc cocircconn 1 to 2", hc);
    assert(cCocirc1to2);
    PV::HyPerConn * cHyPer2to1 = new HyPerConn("test_cocirc hyperconn 2 to 1", hc);
    assert(cHyPer2to1);
-   PV::KernelConn * cCocirc2to1 = new KernelConn("test_cocirc cocircconn 2 to 1", hc);
+   PV::HyPerConn * cCocirc2to1 = new HyPerConn("test_cocirc cocircconn 2 to 1", hc);
    assert(cCocirc2to1);
    
    for (int l=0; l<hc->numberOfLayers(); l++) {
@@ -81,8 +82,10 @@ int main(int argc, char * argv[])
    return 0;
 }
 
-int check_cocirc_vs_hyper(HyPerConn * cHyPer, KernelConn * cKernel, int kPre, int axonID)
+int check_cocirc_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre, int axonID)
 {
+   assert(cKernel->usingSharedWeights()==true);
+   assert(cHyPer->usingSharedWeights()==false);
    int status = 0;
    PVPatch * hyperPatch = cHyPer->getWeights(kPre, axonID);
    PVPatch * cocircPatch = cKernel->getWeights(kPre, axonID);
