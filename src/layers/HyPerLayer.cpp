@@ -767,9 +767,10 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_initialWriteTime(ioFlag);
    ioParam_sparseLayer(ioFlag);
    ioParam_writeSparseValues(ioFlag);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+
+   // GPU-specific parameter.  If not using GPUs, we read it anyway, with warnIfAbsent set to false, to prevent unnecessary warnings from unread or missing parameters.
    ioParam_updateGpu(ioFlag);
-#endif // PV_USE_OPENCL
+
    ioParam_dataType(ioFlag);
    return PV_SUCCESS;
 }
@@ -793,16 +794,22 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag){
    parent->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu);
 #ifdef PV_USE_OPENCL
    if(updateGpu){
-      std::cout << "Updating from gpu is not implemented with opencl yet\n";
+      std::cout << "Updating from gpu is not implemented with OpenCL yet\n";
    }
-#endif
+#endif // PV_USE_OPENCL
+#else
+   // If not using GPUs, we ignore this parameter.  But we don't want to send
+   // a "not been read" warning, so that the same param file can be used with
+   // or without GPUs.  So call ioParamValue with a dummy argument.
+   bool dummyFlag = false;
+   parent->ioParamValue(ioFlag, name, "updateGpu", &dummyFlag, dummyFlag/*default*/, false/*warnIfAbsent*/);
+#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 }
-#endif
 
 void HyPerLayer::ioParam_nxScale(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "nxScale", &nxScale, nxScale);

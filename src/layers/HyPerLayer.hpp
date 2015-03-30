@@ -133,6 +133,12 @@ protected:
    virtual void ioParam_dataType(enum ParamsIOFlag ioFlag);
    
    /**
+    * @brief updateGpu: When compiled using CUDA or OpenCL GPU acceleration, this flag tells whether this layer's updateState method should use the GPU.
+    * The flag is ignored if PetaVision was compiled without GPU acceleration.
+    */
+   virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief nxScale: Defines the relationship between the x column size and the layer size.
     * @details Must be 2^n or 1/2^n
     */
@@ -282,9 +288,6 @@ protected:
     * The function that calls all ioParam functions
     */
    virtual int  ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag);
-#endif
 
    static int equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2);
 #ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  HyPerLayer::recv* methods moved to HyPerConn::deliver* methods
