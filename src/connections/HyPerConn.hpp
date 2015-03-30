@@ -827,20 +827,22 @@ protected:
     */
    virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    /**
     * @brief gpuGroupIdx: All connections in the same group uses the same GPU memory for weights
-    * @details Specify a group index. An index of -1 means no group (default)
+    * @details Specify a group index. An index of -1 means no group (default).
+    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
     */
    virtual void ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief preDataLocal: If not using CUDNN, specifies if preData should be in local memory
+    * @brief preDataLocal: If not using CUDNN, specifies if preData should be in local memory.
+    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
     */
    virtual void ioParam_preDataLocal(enum ParamsIOFlag ioFlag);
    /**
     * @brief numXLocal: Specifies number of local threads to run in x direction
     * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
+    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
     */
    virtual void ioParam_numXLocal(enum ParamsIOFlag ioFlag);
    /**
@@ -848,6 +850,7 @@ protected:
     * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
     * Must be divisible by post layer x size. numXLocal * numYLocal * numFLocal must be less
     * than the amount of local threads specified by the hardware.
+    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
     */
    virtual void ioParam_numYLocal(enum ParamsIOFlag ioFlag);
    /**
@@ -855,11 +858,11 @@ protected:
     * @details Only set if receiving from gpu. Not used if using receive CUDNN from post. 
     * If using preDataLocal and recv form post, must be set to 1. numXLocal * numYLocal * numFLocal
     * must be less than the amount of local threads specified by the hardware. Must be set to 1.
+    * This parameter is ignored if PetaVision was compiled without GPU acceleration.
     */
    virtual void ioParam_numFLocal(enum ParamsIOFlag ioFlag);
 
 
-#endif
    /** @} */
 
    int setPreLayerName(const char * pre_name);
