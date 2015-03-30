@@ -180,7 +180,7 @@ Most of these variables should already be set up, but here are the important one
    CUDA_GPU: True
    CUDA_RELEASE: True
    CUDNN: True
-   CUDNN_PATH: /home/ec2-user/cuDNN/cudnn-6.5-linux-R1
+   CUDNN_PATH: /home/ec2-user/cuDNN/cudnn-6.5-linux-x64-R2-rc1
    Open_MP_THREADS: True
 
    Press c to configure. Press e to exit the print statements.
