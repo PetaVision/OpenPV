@@ -102,7 +102,7 @@ public:
     
    GSynAccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
    int (*accumulateFunctionPointer)(int kPreRes, int nk, float* v, float a, pvwdata_t* w, void* auxPtr, int sf);
-   int (*accumulateFunctionFromPostPointer)(int nk, float* v, float* a, pvwdata_t* w, float dt_factor, void* auxPtr, int sf);
+   int (*accumulateFunctionFromPostPointer)(int kPreRes, int nk, float* v, float* a, pvwdata_t* w, float dt_factor, void* auxPtr, int sf);
 
    double getWeightUpdatePeriod() {return weightUpdatePeriod;}
    double getWeightUpdateTime() {return weightUpdateTime;}

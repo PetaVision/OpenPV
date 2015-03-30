@@ -35,7 +35,7 @@ void pvpatch_accumulate(int kPreExt, int nk, float* restrict v, float a, pvwdata
 }
 #endif
 
-int pvpatch_accumulate_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
+int pvpatch_accumulate_from_post(int kPreExt, int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
    int status = 0;
    int k;
    //float dv = 0.0f;
@@ -81,7 +81,7 @@ int pvpatch_accumulate_stochastic(int kPreExt, int nk, float* RESTRICT v, float 
    return err;
 }
 
-int pvpatch_accumulate_stochastic_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
+int pvpatch_accumulate_stochastic_from_post(int kPreExt, int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
    int status = 0;
    uint4 * rng = (uint4 *) auxPtr;
    int k;
@@ -99,7 +99,6 @@ int pvpatch_max_pooling(int kPreGlobalExt, int nk, float* RESTRICT v, float a, p
 {
   int k;
   int err = 0;
-  float compareval;
   //float * gate = (float *)auxPtr;
   int * gate = (int*)auxPtr;
   for (k = 0; k < nk; k+=sf) {
@@ -117,15 +116,30 @@ int pvpatch_max_pooling(int kPreGlobalExt, int nk, float* RESTRICT v, float a, p
   return err;
 }
 
-int pvpatch_max_pooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
+int pvpatch_max_pooling_from_post(int kPreGlobalExt, int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
    int status = 0;
    int k;
    float vmax = *v;
+   int* gate = (int*)auxPtr;
+   int gateMax;
+   if(gate){
+      gateMax = *gate;
+   }
    for (k = 0; k < nk; k+=sf) {
       //vmax = vmax > a[k]*w[k] ? vmax : a[k]*w[k];
-      vmax = vmax > a[k]*w[0] ? vmax : a[k]*w[0];
+      //vmax = vmax > a[k]*w[0] ? vmax : a[k]*w[0];
+      float checkVal = a[k]*w[0];
+      if(vmax <= checkVal){
+         vmax = checkVal;
+         if(gate){
+            gateMax = kPreGlobalExt+k;
+         }
+      }
    }
    *v = vmax;
+   if(gate){
+      *gate = gateMax;
+   }
    return status;
 }
 
@@ -141,7 +155,7 @@ int pvpatch_sum_pooling(int kPreExt, int nk, float* RESTRICT v, float a, pvwdata
    return err;
 }
 
-int pvpatch_sumpooling_from_post(int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
+int pvpatch_sumpooling_from_post(int kPreExt, int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
    int status = 0;
    int k;
    //float dv = 0.0f;

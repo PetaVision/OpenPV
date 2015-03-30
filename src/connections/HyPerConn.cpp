@@ -3639,17 +3639,8 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
       //Looping over neurons first to be thread safe
 #pragma omp parallel for
       for(int ni = 0; ni < numNeurons; ni++){
-         //Different for maxpooling
-         //TODO, move this to PoolingConn
-         if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
-            for(int ti = 0; ti < parent->getNumThreads(); ti++){
-               gSynPatchHead[ni] = gSynPatchHead[ni] < thread_gSyn[ti][ni] ? thread_gSyn[ti][ni] : gSynPatchHead[ni];
-            }
-         }
-         else{
-            for(int ti = 0; ti < parent->getNumThreads(); ti++){
-               gSynPatchHead[ni] += thread_gSyn[ti][ni];
-            }
+         for(int ti = 0; ti < parent->getNumThreads(); ti++){
+            gSynPatchHead[ni] += thread_gSyn[ti][ni];
          }
       }
    }
@@ -4081,7 +4072,7 @@ void HyPerConn::deliverOnePostNeuronActivity(int arborID, int kTargetExt, int in
       float * activityY = &(activityStartBuf[ky*inSy+offset]);
       pvwdata_t * weightY = weightStartBuf + ky*syp;
       //TODO add sf here
-      (accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr, sf);
+      (accumulateFunctionFromPostPointer)(0, numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr, sf);
    }
 }
 

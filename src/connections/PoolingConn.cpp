@@ -492,59 +492,113 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
    return PV_SUCCESS;
 }
 
-//void PoolingConn::deliverOnePreNeuronActivity(int kPreExt, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr) {
-//   PVPatch * weights = getWeights(kPreExt, arbor);
-//   const int nk = weights->nx * fPatchSize();
-//   const int ny = weights->ny;
-//   const int sy  = getPostNonextStrides()->sy;       // stride in layer
-//   const int syw = yPatchStride();                   // stride in patch
-//   pvwdata_t * weightDataStart = NULL; 
-//   pvgsyndata_t * postPatchStart = postBufferStart + getGSynPatchStart(kPreExt, arbor);
-//   int offset = 0;
-//   int sf = 1;
-//   const PVLayerLoc * preLoc = pre->getLayerLoc();
-//   const int kfPre = featureIndex(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
-//   const int kPreRes = kIndexRestricted(kPreExt, preLoc->nx, preLoc->ny, preLoc->nf,
-//      preLoc->halo.lt, preLoc->halo.rt, preLoc->halo.dn, preLoc->halo.up);
-//   //-1 means oob
-//   //
-//   if(needGating){
-//      auxPtr = gateIdxBuffer;
-//   }
-//   offset = kfPre;
-//   sf = fPatchSize();
-//   pvwdata_t w = 1.0;
-//   if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-//     float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
-//     float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-//     w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
-//   }
-//   for (int y = 0; y < ny; y++) {
-//     (accumulateFunctionPointer)(kPreRes, nk, postPatchStart + y*sy + offset, a, &w, auxPtr, sf);
-//   }
-//}
-
-void PoolingConn::deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, uint4 * rngPtr){
-
-   pvwdata_t * weightY = NULL; //No weights in pooling
-   int sf = postConn->fPatchSize();
-   int yPatchSize = postConn->yPatchSize();
-   int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
-
-   const PVLayerLoc * postLoc = post->getLayerLoc();
-   const int kfPost = featureIndex(kTargetExt, postLoc->nx + postLoc->halo.lt + postLoc->halo.rt, postLoc->ny + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
-   int offset = kfPost;
-
-   pvwdata_t w = 1.0;
-   if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-     float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
-     float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-     w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) {
+   //Check channel number for noupdate
+   if(getChannel() == CHANNEL_NOUPDATE){
+      return PV_SUCCESS;
    }
-   for (int ky = 0; ky < yPatchSize; ky++){
-      float * activityY = &(activityStartBuf[ky*inSy+offset]);
-      (accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, &w, dt_factor, rngPtr, sf);
+   assert(post->getChannel(getChannel()));
+
+   assert(arborID >= 0);
+   //Get number of neurons restricted target
+   const int numPostRestricted = post->getNumNeurons();
+
+   float dt_factor;
+   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
+      dt_factor = getParent()->getDeltaTime();
    }
+   else {
+      dt_factor = getConvertToRateDeltaTimeFactor();
+   }
+
+   const PVLayerLoc * sourceLoc = preSynapticLayer()->getLayerLoc();
+   const PVLayerLoc * targetLoc = post->getLayerLoc();
+
+   const int sourceNx = sourceLoc->nx;
+   const int sourceNy = sourceLoc->ny;
+   const int sourceNf = sourceLoc->nf;
+   const int targetNx = targetLoc->nx;
+   const int targetNy = targetLoc->ny;
+   const int targetNf = targetLoc->nf;
+
+   const PVHalo * sourceHalo = &sourceLoc->halo;
+   const PVHalo * targetHalo = &targetLoc->halo;
+
+   //get source layer's extended y stride
+   int sy  = (sourceNx+sourceHalo->lt+sourceHalo->rt)*sourceNf;
+
+   //The start of the gsyn buffer
+   pvdata_t * gSynPatchHead = post->getChannel(this->getChannel());
+
+   clearGateIdxBuffer();
+   int* gatePatchHead = NULL;
+   if(needPostIndexLayer){
+      gatePatchHead = postIndexLayer->getChannel(CHANNEL_EXC);
+   }
+
+
+   long * startSourceExtBuf = getPostToPreActivity();
+   if(!startSourceExtBuf){
+      std::cout << "HyPerLayer::recvFromPost error getting preToPostActivity from connection. Is shrink_patches on?\n";
+      exit(EXIT_FAILURE);
+   }
+
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+   for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++){
+      //Change restricted to extended post neuron
+      int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
+#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
+      bool inWindow;
+      inWindow = inWindowExt(arborID, akTargetExt);
+      if(!inWindow) continue;
+#endif // OBSOLETE
+
+      //Read from buffer
+      long startSourceExt = startSourceExtBuf[kTargetRes];
+
+      //Calculate target's start of gsyn
+      pvdata_t * gSynPatchPos = gSynPatchHead + kTargetRes;
+
+      int* gatePatchPos = NULL;
+      if(needPostIndexLayer){
+         gatePatchPos = gatePatchHead + kTargetRes;
+      }
+
+      float* activityStartBuf = &(activity->data[startSourceExt]); 
+
+      pvwdata_t * weightY = NULL; //No weights in pooling
+      int sf = postConn->fPatchSize();
+      int yPatchSize = postConn->yPatchSize();
+      int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
+
+      const PVLayerLoc * postLoc = post->getLayerLoc();
+      const int kfPost = featureIndex(kTargetExt, postLoc->nx + postLoc->halo.lt + postLoc->halo.rt, postLoc->ny + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
+      int offset = kfPost;
+
+      pvwdata_t w = 1.0;
+      if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+        float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
+        float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
+        w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+      }
+
+      for (int ky = 0; ky < yPatchSize; ky++){
+         int kPreExt = startSourceExt + ky*sy+offset;
+         const int kxPreExt = kxPos(kPreExt, sourceLoc->nx + sourceLoc->halo.lt + sourceLoc->halo.rt, sourceLoc->ny + sourceLoc->halo.dn + sourceLoc->halo.up, sourceLoc->nf);
+         const int kyPreExt = kyPos(kPreExt, sourceLoc->nx + sourceLoc->halo.lt + sourceLoc->halo.rt, sourceLoc->ny + sourceLoc->halo.dn + sourceLoc->halo.up, sourceLoc->nf);
+         const int kfPre = featureIndex(kPreExt, sourceLoc->nx + sourceLoc->halo.lt + sourceLoc->halo.rt, sourceLoc->ny + sourceLoc->halo.dn + sourceLoc->halo.up, sourceLoc->nf);
+         const int kxPreGlobalExt = kxPreExt + sourceLoc->kx0;
+         const int kyPreGlobalExt = kyPreExt + sourceLoc->ky0;
+         const int kPreGlobalExt = kIndex(kxPreGlobalExt, kyPreGlobalExt, kfPre, sourceLoc->nxGlobal + sourceLoc->halo.lt + sourceLoc->halo.rt, sourceLoc->nyGlobal + sourceLoc->halo.up + sourceLoc->halo.dn, sourceLoc->nf);
+
+         float * activityY = &(activityStartBuf[ky*sy+offset]);
+
+         (accumulateFunctionFromPostPointer)(kPreGlobalExt, numPerStride, gSynPatchPos, activityY, &w, dt_factor, gatePatchPos, sf);
+      }
+   }
+   return PV_SUCCESS;
 }
 
 } // end namespace PV
