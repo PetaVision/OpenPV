@@ -7,6 +7,7 @@
 
 #include "CustomGroupHandler.hpp"
 #include "MaxPoolTestLayer.hpp"
+#include "GatePoolTestLayer.hpp"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -27,6 +28,9 @@ ParamGroupType CustomGroupHandler::getGroupType(char const * keyword) {
    else if (!strcmp(keyword, "MaxPoolTestLayer")) {
       result = LayerGroupType;
    }
+   else if (!strcmp(keyword, "GatePoolTestLayer")) {
+      result = LayerGroupType;
+   }
    else {
       result = UnrecognizedGroupType;
    }
@@ -39,10 +43,13 @@ HyPerLayer * CustomGroupHandler::createLayer(char const * keyword, char const * 
    bool errorFound = false;
    if( !strcmp(keyword, "MaxPoolTestLayer") ) {
       addedLayer = new MaxPoolTestLayer(name, hc);
-      if( !addedLayer ) {
-         fprintf(stderr, "Group \"%s\": Unable to create layer\n", name);
-         errorFound = true;
-      }
+   }
+   else if( !strcmp(keyword, "GatePoolTestLayer") ) {
+      addedLayer = new GatePoolTestLayer(name, hc);
+   }
+   if( !addedLayer ) {
+      fprintf(stderr, "Group \"%s\": Unable to create layer\n", name);
+      errorFound = true;
    }
    return addedLayer;
 }

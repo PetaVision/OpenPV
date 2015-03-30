@@ -25,31 +25,31 @@ int MaxPoolTestLayer::updateState(double timef, double dt){
    //We only care about restricted space
    for(int iY = loc->halo.up; iY < ny + loc->halo.up; iY++){
       for(int iX = loc->halo.lt; iX < nx + loc->halo.lt; iX++){
-	for(int iFeature = 0; iFeature < nf; iFeature++){
-	  int idx = kIndex(iX, iY, iFeature, nx+loc->halo.lt+loc->halo.rt, ny+loc->halo.dn+loc->halo.up, nf);
-	  //Input image is set up to have max values in 3rd feature dimension
-	  //3rd dimension, top left is 128, bottom right is 191
-	  //Y axis spins fastest
-	  float actualvalue = A[idx];
-	  
-	  int xval = iX+kx0-loc->halo.lt;
-	  int yval = iY+ky0-loc->halo.up;
-	  //Patches on edges have same answer as previous neuron
-	  if(xval == 7){
-	    xval -= 1;
-	  }
-	  if(yval == 7){
-            yval -= 1;
-	  }
-	  
-	  // modified GTK: 1/10/15, modified to test spatial max pooling over a feature plane 
-	  //float expectedvalue = 8*xval+yval+137;
-	  float expectedvalue = (yval+1)+8*(xval+1)+64*iFeature;
-	  if(actualvalue != expectedvalue){
-          std::cout << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << ".  Discrepancy is a whopping " << actualvalue - expectedvalue << "!  Horrors!" << "\n";
-          isCorrect = false;
-	  }
-	}
+	      for(int iFeature = 0; iFeature < nf; iFeature++){
+	        int idx = kIndex(iX, iY, iFeature, nx+loc->halo.lt+loc->halo.rt, ny+loc->halo.dn+loc->halo.up, nf);
+	        //Input image is set up to have max values in 3rd feature dimension
+	        //3rd dimension, top left is 128, bottom right is 191
+	        //Y axis spins fastest
+	        float actualvalue = A[idx];
+	        
+	        int xval = iX+kx0-loc->halo.lt;
+	        int yval = iY+ky0-loc->halo.up;
+	        //Patches on edges have same answer as previous neuron
+	        if(xval == 7){
+	          xval -= 1;
+	        }
+	        if(yval == 7){
+                  yval -= 1;
+	        }
+	        
+	        // modified GTK: 1/10/15, modified to test spatial max pooling over a feature plane 
+	        //float expectedvalue = 8*xval+yval+137;
+	        float expectedvalue = (yval+1)+8*(xval+1)+64*iFeature;
+	        if(actualvalue != expectedvalue){
+                std::cout << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << ".  Discrepancy is a whopping " << actualvalue - expectedvalue << "!  Horrors!" << "\n";
+                isCorrect = false;
+	        }
+	      }
       }
    }
    if(!isCorrect){
