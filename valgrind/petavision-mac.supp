@@ -126,3 +126,12 @@
    fun:__sfp
    fun:fopen
 }
+
+{
+   <suppression_leak_printf_malloc>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:printf
+}
+
