@@ -448,12 +448,11 @@ protected:
     */
    virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    /**
-    * @brief receiveGpu: If true, the connection uses GPU acceleration to update the postsynaptic layer's GSyn.
+    * @brief receiveGpu: If true and PetaVision was compiled with GPU acceleration, the connection uses the GPU to update the postsynaptic layer's GSyn.
+    * If compiled without GPU acceleration, this flag is ignored.
     */
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
    /**
     * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory set in HyPerCol.

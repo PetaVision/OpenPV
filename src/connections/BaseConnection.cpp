@@ -269,6 +269,7 @@ int BaseConnection::ioParams(enum ParamsIOFlag ioFlag) {
 }
 
 int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = PV_SUCCESS;
    ioParam_preLayerName(ioFlag);
    ioParam_postLayerName(ioFlag);
    ioParam_channelCode(ioFlag);
@@ -277,10 +278,11 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_plasticityFlag(ioFlag);
    // ioParam_preActivityIsNotRate(ioFlag); // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
    ioParam_convertRateToSpikeCount(ioFlag);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+
+   // GPU-specific parameter.  If not using GPUs, we read it anyway, with warnIfAbsent set to false, to prevent unnecessary warnings from unread or missing parameters.
    ioParam_receiveGpu(ioFlag);
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   return PV_SUCCESS;
+
+   return status;
 }
 
 void BaseConnection::ioParam_preLayerName(enum ParamsIOFlag ioFlag) {
@@ -379,11 +381,18 @@ void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "convertRateToSpikeCount", &convertRateToSpikeCount, false/*default value*/);
 }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
-   this->getParent()->ioParamValue(ioFlag, this->getName(), "receiveGpu", &receiveGpu, false/*default*/, false/*warn if absent*/);
-}
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   parent->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, false/*default*/, true/*warn if absent*/);
+#else
+   // If not using GPUs, we ignore this parameter.  But we don't want to send
+   // a "not been read" warning, so that the same param file can be used with
+   // or without GPUs.  So call ioParamValue with a dummy argument.
+   bool dummyFlag = false;
+   parent->ioParamValue(ioFlag, name, "receiveGpu", &dummyFlag, dummyFlag/*default*/, false/*warn if absent*/);
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+}
+
 
 void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
    assert(parent->getInitializeFromCheckpointDir()); // If we're not initializing any layers or connections from a checkpoint, this should be the empty string, not null.
