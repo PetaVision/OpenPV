@@ -1,2 +1,9 @@
 #define PV_VERSION_MAJOR @PV_VERSION_MAJOR@
 #define PV_VERSION_MINOR @PV_VERSION_MINOR@
+
+#define PV_DIR "@PV_DIR@"
+#cmakedefine PV_USE_THREADS
+#cmakedefine PV_OPENCL
+#cmakedefine PV_CUDA
+#cmakedefine PV_CUDNN
+#cmakedefine PV_BUILD_SHARED
