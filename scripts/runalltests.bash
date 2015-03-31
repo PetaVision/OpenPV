@@ -18,6 +18,8 @@
 #
 # To run with threads, do "runalltests.bash --threads".  This will pass the argument "-t" to the tests.
 # To run with a specific number of threads, do "runalltests.bash --threads=<number>"
+#
+# To specify a GPU devices argument, do "runalltests.bash -d <number>"
 
 # Navigate to eclipse workspace directory.
 if test "${0%/*}" != "$0"
@@ -40,8 +42,8 @@ function runandecho() {
     shift
     logfilebasename=$1
     shift
-    echo $valgrindcommand $* $threadopt
-    if $valgrindcommand $* $threadopt &> ${logfilebasename}_1.log
+    echo $valgrindcommand $* $threadopt $gpudeviceopt
+    if $valgrindcommand $* $threadopt $gpudeviceopt &> ${logfilebasename}_1.log
     then
         result=passed
     else
@@ -58,9 +60,13 @@ PV_MPIRUN=""
 # Set default to not use threads
 threadopt=""
 
+# Set default to not use a GPU device argument
+gpudeviceopt=""
+
 # Check for --nompi option, or set PV_MPIRUN using --mpirun= option
-for opt in "$@"
+while test $# -gt 0
 do
+    opt="$1"
     if test "$opt" = "--nompi"
     then
         usempi=0
@@ -88,7 +94,23 @@ do
             exit 1
         fi
         threadopt=" -t ${threadnum}"
+    elif test "$opt" = "-d"
+    then
+        if test $# -eq 0
+        then
+            echo "$0: -d option requires an argument" > /dev/stderr
+            exit 1
+        fi
+        shift
+        deviceargnum="$1"
+        if test -z "$(echo "$deviceargnum" | egrep '^-?[0-9]+$')"
+        then
+            echo "$0: -d option requires a numerical argument (positive or negative integer)" > /dev/stderr
+            exit 1
+        fi
+        gpudeviceopt=" -d ${deviceargnum}"
     fi
+    shift
 done
 
 if test "$usempi" = 0
@@ -116,8 +138,8 @@ else
         logfilebasename=$1
         shift
         logfilename="${logfilebasename}_${numprocs}.log"
-        echo $PV_MPIRUN -np $numprocs $valgrindcommand $* $threadopt
-        if $PV_MPIRUN -np $numprocs $valgrindcommand $* $threadopt &> "${logfilename}"
+        echo $PV_MPIRUN -np $numprocs $* $threadopt $gpudeviceopt
+        if $PV_MPIRUN -np $numprocs $valgrindcommand $* $threadopt $gpudeviceopt &> "${logfilename}"
         then
             result=passed
         else
@@ -195,8 +217,8 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
-testname=ConvertToGrayScaleTest
-arglist="-p input/ConvertToGrayScaleTest.params"
+testname=ConvertToGrayscaleTest
+arglist="-p input/ConvertToGrayscaleTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
@@ -244,16 +266,71 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
-#testname=GPUSystemTest
-#cd "$testname"
-#arglist="-d 0 -p input/test_gpu.params"
-#runandecho $testname $testname Debug/$testname $arglist
-#mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-#cd "$workspacedir"
-echo "TODO: fix GPUSystemTest and maybe implement GPUs"
+testname=GPUSystemTest
+logfilebasename=GPUSystemTest_preTest
+cd "$testname"
+arglist="-p input/preTest.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=GPUSystemTest
+logfilebasename=GPUSystemTest_preTest
+cd "$testname"
+arglist="-p input/preTest.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=GPUSystemTest
+logfilebasename=GPUSystemTest_postTestNoTranspose
+cd "$testname"
+arglist="-p input/postTestNoTranspose.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=GPUSystemTest
+logfilebasename=GPUSystemTest_postTest
+cd "$testname"
+arglist="-p input/postTest.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=GPUSystemTest
+logfilebasename=GPUSystemTest_postTestOneToMany
+cd "$testname"
+arglist="-p input/postTestOneToMany.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=GPUSystemTest
+logfilebasename=GPUSystemTest_postTest_linked
+cd "$testname"
+arglist="-p input/postTest_linked.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=GPUSystemTest
+logfilebasename=GPUSystemTest_HyPerLCAGpuTest
+cd "$testname"
+arglist="-p input/HyPerLCAGpuTest.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
 
 testname=GroupNormalizationTest
 arglist="-p input/GroupNormalizationTest.params"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=ImageOffsetTest
+arglist="-p input/ImageOffsetTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
@@ -354,10 +431,19 @@ cd "$workspacedir"
 # cd "$workspacedir"
 
 testname=MaxPoolTest
+logfilebasename=MaxPoolTest_Pooling
 arglist="-p input/maxpooltest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
-mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=MaxPoolTest
+logfilebasename=MaxPoolTest_Unpooling
+arglist="-p input/gateTest.params"
+cd "$testname"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
 
 testname=MLPTest
@@ -430,10 +516,27 @@ mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
 testname=ReceiveFromPostTest
+logfilebasename=ReceiveFromPostTest_margins
+cd "$testname"
+arglist="-p input/postTest_margins.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=ReceiveFromPostTest
+logfilebasename=ReceiveFromPostTest_NoTranspose
+cd "$testname"
+arglist="-p input/postTestNoTranspose.params"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=ReceiveFromPostTest
+logfilebasename=ReceiveFromPostTest_PostTest
 cd "$testname"
 arglist="-p input/postTest.params"
-runandecho $testname $testname Debug/$testname $arglist
-mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
 
 testname=RescaleLayerTest
@@ -460,6 +563,13 @@ cd "$workspacedir"
 testname=StochasticReleaseTest
 cd "$testname"
 arglist="-p input/StochasticReleaseTest.params"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=SumPoolingTest
+cd "$testname"
+arglist="-p input/sumpooltest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
