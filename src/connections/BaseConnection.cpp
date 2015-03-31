@@ -51,7 +51,7 @@ int BaseConnection::initialize(const char * name, HyPerCol * hc) {
    int status = PV_SUCCESS;
    if (status == PV_SUCCESS) status = setParent(hc);
    if (status == PV_SUCCESS) status = setName(name);
-   if(status == PV_SUCCESS) status = setPreAndPostLayerNames();
+   // if(status == PV_SUCCESS) status = setPreAndPostLayerNames(); // Moved into ioParams
 
    this->connId = this->getParent()->addConnection(this);
    if (status == PV_SUCCESS) status = ioParams(PARAMS_IO_READ);
@@ -227,29 +227,25 @@ int BaseConnection::getPreAndPostLayerNames(const char * name, PVParams * params
    int status = PV_SUCCESS;
    *preLayerNamePtr = NULL;
    *postLayerNamePtr = NULL;
-   const char * preLayerNameParam = params->stringValue(name, "preLayerName", false);
-   const char * postLayerNameParam = params->stringValue(name, "postLayerName", false);
-   if (preLayerNameParam != NULL && postLayerNameParam != NULL) {
-      *preLayerNamePtr = strdup(preLayerNameParam);
-      *postLayerNamePtr = strdup(postLayerNameParam);
+   if (preLayerName == NULL && postLayerName == NULL) {
+      if (params->getInterColComm()->commRank()==0) {
+         printf("Connection \"%s\": preLayerName and postLayerName will be inferred in the communicateInitInfo stage.\n", name);
+      }
    }
-   else if (preLayerNameParam==NULL && postLayerNameParam!=NULL) {
+   else if (preLayerName==NULL && postLayerName!=NULL) {
       status = PV_FAILURE;
       if (params->getInterColComm()->commRank()==0) {
          fprintf(stderr, "Connection \"%s\" error: if postLayerName is specified, preLayerName must be specified as well.\n", name);
       }
    }
-   else if (preLayerNameParam!=NULL && postLayerNameParam==NULL) {
+   else if (preLayerName!=NULL && postLayerName==NULL) {
       status = PV_FAILURE;
       if (params->getInterColComm()->commRank()==0) {
          fprintf(stderr, "Connection \"%s\" error: if preLayerName is specified, postLayerName must be specified as well.\n", name);
       }
    }
    else {
-      assert(preLayerNameParam==NULL && postLayerNameParam==NULL);
-      if (params->getInterColComm()->commRank()==0) {
-         printf("Connection \"%s\": preLayerName and postLayerName will be inferred in the communicateInitInfo stage.\n", name);
-      }
+      assert(preLayerName!=NULL && postLayerName!=NULL);
    }
 #ifdef PV_USE_MPI
    MPI_Barrier(params->getInterColComm()->communicator());
@@ -272,6 +268,9 @@ int BaseConnection::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV_SUCCESS;
    ioParam_preLayerName(ioFlag);
    ioParam_postLayerName(ioFlag);
+   if (preLayerName == NULL || postLayerName == NULL) {
+      status = setPreAndPostLayerNames();
+   }
    ioParam_channelCode(ioFlag);
    ioParam_delay(ioFlag);
    ioParam_numAxonalArbors(ioFlag);
