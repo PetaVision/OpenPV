@@ -430,10 +430,19 @@ cd "$workspacedir"
 # cd "$workspacedir"
 
 testname=MaxPoolTest
+logfilebasename=MaxPoolTest_Pooling
 arglist="-p input/maxpooltest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
-mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=MaxPoolTest
+logfilebasename=MaxPoolTest_Unpooling
+arglist="-p input/gateTest.params"
+cd "$testname"
+runandecho $testname $logfilebasename Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
 
 testname=MLPTest
@@ -553,6 +562,13 @@ cd "$workspacedir"
 testname=StochasticReleaseTest
 cd "$testname"
 arglist="-p input/StochasticReleaseTest.params"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=SumPoolingTest
+cd "$testname"
+arglist="-p input/sumpooltest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
