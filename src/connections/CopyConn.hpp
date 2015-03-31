@@ -88,6 +88,11 @@ protected:
    virtual void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
 
    /**
+    * @brief keepKernelsSynchronized is not used by CopyConn.
+    */
+   virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief originalConnName (required): The name of the connection the weights will be copied from
     */
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
