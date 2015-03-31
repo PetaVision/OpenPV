@@ -177,6 +177,11 @@ HyPerConn::~HyPerConn()
       this->postToPreActivity = NULL;
    }
 
+   if (maskLayerName) {
+      free(maskLayerName);
+      maskLayerName = NULL;
+   }
+
    if (triggerLayerName) {
       free(triggerLayerName);
       triggerLayerName = NULL;

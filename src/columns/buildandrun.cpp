@@ -134,6 +134,7 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
          exit(EXIT_FAILURE);
       }
    }
+   delete handler;
 
    if( hc->numberOfLayers() == 0 ) {
       fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", hc->getName());
