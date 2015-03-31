@@ -1066,6 +1066,9 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
    if(useImageBCflag){ //Expand dimensions to the extended space
       loc->nx = loc->nx + loc->halo.lt + loc->halo.rt;
       loc->ny = loc->ny + loc->halo.dn + loc->halo.up;
+      //TODO this seems to fix the pvp ext vs res offset if imageBC flag is on, but only for no mpi runs
+      //offsetX = offsetX - loc->halo.lt;
+      //offsetY = offsetY - loc->halo.up;
    }
 
    // read the image and scatter the local portions
