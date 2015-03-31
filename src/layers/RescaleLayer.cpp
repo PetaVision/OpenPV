@@ -82,6 +82,8 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
    }
    else if(strcmp(rescaleMethod, "zerotonegative") == 0){
    }
+   else if(strcmp(rescaleMethod, "softmax")){
+   }
    else{
       fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd.\n",
             name);
@@ -97,10 +99,11 @@ void RescaleLayer::ioParam_rescaleMethod(enum ParamsIOFlag ioFlag){
          strcmp(rescaleMethod, "meanstd")!=0 &&
          strcmp(rescaleMethod, "pointmeanstd")!=0 &&
          strcmp(rescaleMethod, "l2")!=0 &&
+         strcmp(rescaleMethod, "softmax")!=0 &&
          strcmp(rescaleMethod, "zerotonegative")!=0
       ) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod \"%s\" does not exist. Current implemented methods are maxmin, meanstd, l2, and pointmeanstd.\n",
+         fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod \"%s\" does not exist. Current implemented methods are maxmin, meanstd, l2, softmax, and pointmeanstd.\n",
                name, rescaleMethod);
       }
 #ifdef PV_USE_MPI
@@ -370,6 +373,36 @@ int RescaleLayer::updateState(double timef, double dt) {
                       int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
                       A[kext] = originalA[kextOrig];
                    }
+                }
+             }
+          }
+       }
+       else if(strcmp(rescaleMethod, "softmax") == 0){
+          int nx = loc->nx;
+          int ny = loc->ny;
+          int nf = loc->nf;
+          PVHalo const * halo = &loc->halo;
+          PVHalo const * haloOrig = &locOriginal->halo;
+          //Loop through all nx and ny
+	  // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+          for(int iY = 0; iY < ny; iY++){ 
+             for(int iX = 0; iX < nx; iX++){ 
+                //Find sum expx in feature space
+                float sumexpx = 0;
+                for(int iF = 0; iF < nf; iF++){
+                   int kext = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+                   sumexpx += exp(originalA[kext]);
+                }
+                // Difference in the if-part and else-part is only in the value assigned to A[kext], but this way the std != 0
+                // conditional does not have to be reevaluated every time through the for loop.
+                // can't pragma omp parallel the for loops because it was already parallelized in the outermost for-loop
+                for(int iF = 0; iF < nf; iF++){
+                   int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+                   int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
+                   A[kext] = (exp(originalA[kextOrig])/sumexpx);
                 }
              }
           }

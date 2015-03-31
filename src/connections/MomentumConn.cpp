@@ -30,6 +30,7 @@ int MomentumConn::initialize_base() {
    prev_dwDataStart = NULL;
    momentumTau = .25;
    momentumMethod = NULL;
+   momentumDecay = 0;
    return PV_SUCCESS;
 }
 
@@ -63,6 +64,7 @@ int MomentumConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
    ioParam_momentumTau(ioFlag);
    ioParam_momentumMethod(ioFlag);
+   ioParam_momentumDecay(ioFlag);
    return status;
 }
 
@@ -77,14 +79,23 @@ void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag){
  * @details Assuming a = dwMax * pre * post
  * simple: deltaW(t) = a + momentumTau * deltaW(t-1)
  * viscosity: deltaW(t) = momentumTau * (deltaW(t-1) + a) * (1-e^(-deltaT/momentumTau))
+ * alex: deltaW(t) = momentumTau * delta(t-1) - momentumDecay * dwMax * w(t) - a
  */
 void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag){
    if(plasticityFlag){
       parent->ioParamStringRequired(ioFlag, name, "momentumMethod", &momentumMethod);
-      if(strcmp(momentumMethod, "simple") != 0 && strcmp(momentumMethod, "viscosity") != 0){
-         std::cout << "MomentumConn " << name << ": momentumMethod of " << momentumMethod << " is not known, options are \"simple\" and \"viscosity\"\n";
+      if(strcmp(momentumMethod, "simple") != 0 &&
+         strcmp(momentumMethod, "viscosity") != 0 &&
+         strcmp(momentumMethod, "alex")){
+         std::cout << "MomentumConn " << name << ": momentumMethod of " << momentumMethod << " is not known, options are \"simple\", \"viscosity\", and \"alex\"\n";
          exit(-1);
       }
+   }
+}
+
+void MomentumConn::ioParam_momentumDecay(enum ParamsIOFlag ioFlag){
+   if(plasticityFlag){
+      parent->ioParamValue(ioFlag, name, "momentumTau", &momentumTau, momentumTau);
    }
 }
 
@@ -165,6 +176,12 @@ int MomentumConn::applyMomentum(int arbor_ID){
          else if(!strcmp(momentumMethod, "viscosity")){
             for(int k = 0; k < nxp*nyp*nfp; k++){
                dwdata_start[k] = momentumTau * (prev_dw_start[k] + dwdata_start[k]) * (1 - exp(- parent->getDeltaTime() / momentumTau));
+            }
+         }
+         else if(!strcmp(momentumMethod, "alex")){
+            pvwdata_t * wdata_start = get_wData(arbor_ID, kernelIdx);
+            for(int k = 0; k < nxp*nyp*nfp; k++){
+               dwdata_start[k] = momentumTau * prev_dw_start[k] - momentumDecay * getDWMax()* wdata_start[k] - dwdata_start[k];
             }
          }
       }
