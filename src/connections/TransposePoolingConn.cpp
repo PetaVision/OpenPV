@@ -47,8 +47,47 @@ int TransposePoolingConn::initialize_base() {
 }  // TransposePoolingConn::initialize_base()
 
 int TransposePoolingConn::initialize(const char * name, HyPerCol * hc) {
-   int status = PV_SUCCESS;
-   if (status == PV_SUCCESS) status = HyPerConn::initialize(name, hc, NULL, NULL);
+   // It is okay for either of weightInitializer or weightNormalizer to be null at this point, either because we're in a subclass that doesn't need it, or because we are allowing for // backward compatibility.
+   // The two lines needs to be before the call to BaseConnection::initialize, because that function calls ioParamsFillGroup,
+   // which will call ioParam_weightInitType and ioParam_normalizeMethod, which for reasons of backward compatibility
+   // will create the initializer and normalizer if those member variables are null.
+   this->weightInitializer = NULL;
+   this->normalizer = NULL;
+
+   int status = BaseConnection::initialize(name, hc); // BaseConnection should *NOT* take weightInitializer or weightNormalizer as arguments, as it does not know about InitWeights or NormalizeBase
+
+   assert(parent);
+   PVParams * inputParams = parent->parameters();
+
+   //set accumulateFunctionPointer
+   assert(!inputParams->presentAndNotBeenRead(name, "pvpatchAccumulateType"));
+   switch (pvpatchAccumulateType) {
+   case ACCUMULATE_CONVOLVE:
+      std::cout << "ACCUMULATE_CONVOLVE not allowed in TransposePoolingConn\n";
+      exit(-1);
+      break;
+   case ACCUMULATE_STOCHASTIC:
+      std::cout << "ACCUMULATE_STOCASTIC not allowed in TransposePoolingConn\n";
+      exit(-1);
+      break;
+   case ACCUMULATE_MAXPOOLING:
+      accumulateFunctionPointer = &pvpatch_max_pooling;
+      accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
+      break;
+   case ACCUMULATE_SUMPOOLING:
+      accumulateFunctionPointer = &pvpatch_sum_pooling;
+      accumulateFunctionFromPostPointer = &pvpatch_sumpooling_from_post;
+      break;
+   default:
+      assert(0);
+      break;
+   }
+
+   //ioAppend = parent->getCheckpointReadFlag();
+
+   this->io_timer     = new Timer(getName(), "conn", "io     ");
+   this->update_timer = new Timer(getName(), "conn", "update ");
+
    return status;
 }
 
@@ -242,9 +281,9 @@ int TransposePoolingConn::communicateInitInfo() {
    status = HyPerConn::communicateInitInfo(); // calls setPatchSize()
    if (status != PV_SUCCESS) return status;
 
-   if(!originalConn->needPostIndex()){
+   if(!originalConn->needPostIndex() && pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
       if (parent->columnId()==0) {
-         fprintf(stderr, "TransposePoolingConn \"%s\" error: original pooling conn \"%s\" needs to have a postIndexLayer.\n", name, originalConnName);
+         fprintf(stderr, "TransposePoolingConn \"%s\" error: original pooling conn \"%s\" needs to have a postIndexLayer if unmax pooling.\n", name, originalConnName);
          status = PV_FAILURE;
       }
    }
@@ -255,11 +294,10 @@ int TransposePoolingConn::communicateInitInfo() {
       fprintf(stderr, "TransposePoolingConn \"%s\" warning: originalConn's post layer phase is greater or equal than this layer's post. Behavior undefined.\n", name);
    }
 
-   if(originalConn->getPvpatchAccumulateType() != ACCUMULATE_MAXPOOLING){
-      fprintf(stderr, "TransposePoolingConn \"%s\" error: originalConn is not doing max pooling. TransposePoolingConn requires max pooling for the original conn.\n", name);
+   if(originalConn->getPvpatchAccumulateType() != getPvpatchAccumulateType()){
+      fprintf(stderr, "TransposePoolingConn \"%s\" error: originalConn accumulateType does not match this layer's accumulate type.\n", name);
       exit(-1);
    }
-
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * origPostLoc = originalConn->postSynapticLayer()->getLayerLoc();
@@ -296,19 +334,21 @@ int TransposePoolingConn::communicateInitInfo() {
    originalConn->postSynapticLayer()->synchronizeMarginWidth(pre);
    pre->synchronizeMarginWidth(originalConn->postSynapticLayer());
 
-   //Sync pre margins
-   //Synchronize margines of this post and the postIndexLayer, and vice versa
-   pre->synchronizeMarginWidth(originalConn->getPostIndexLayer());
-   originalConn->getPostIndexLayer()->synchronizeMarginWidth(pre);
+   if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+      //Sync pre margins
+      //Synchronize margines of this post and the postIndexLayer, and vice versa
+      pre->synchronizeMarginWidth(originalConn->getPostIndexLayer());
+      originalConn->getPostIndexLayer()->synchronizeMarginWidth(pre);
 
-   //Need to tell postIndexLayer the number of delays needed by this connection
-   int allowedDelay = originalConn->getPostIndexLayer()->increaseDelayLevels(getDelayArraySize());
-   if( allowedDelay < getDelayArraySize()) {
-      if( this->getParent()->columnId() == 0 ) {
-         fflush(stdout);
-         fprintf(stderr, "Connection \"%s\": attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", this->getName(), getDelayArraySize(), allowedDelay);
+      //Need to tell postIndexLayer the number of delays needed by this connection
+      int allowedDelay = originalConn->getPostIndexLayer()->increaseDelayLevels(getDelayArraySize());
+      if( allowedDelay < getDelayArraySize()) {
+         if( this->getParent()->columnId() == 0 ) {
+            fflush(stdout);
+            fprintf(stderr, "Connection \"%s\": attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", this->getName(), getDelayArraySize(), allowedDelay);
+         }
+         exit(EXIT_FAILURE);
       }
-      exit(EXIT_FAILURE);
    }
 
 
@@ -487,17 +527,18 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
    }
 
    //Grab postIdxLayer's data
-   PoolingIndexLayer* postIndexLayer = originalConn->getPostIndexLayer();
-   assert(postIndexLayer);
-   //Make sure this layer is an integer layer
-   assert(postIndexLayer->getDataType() == PV_INT);
-   //DataStore * store = parent->icCommunicator()->publisherStore(postIndexLayer->getLayerId());
-   //int delay = getDelay(arborID);
+   int* postIdxData = NULL;
+   if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+      PoolingIndexLayer* postIndexLayer = originalConn->getPostIndexLayer();
+      assert(postIndexLayer);
+      //Make sure this layer is an integer layer
+      assert(postIndexLayer->getDataType() == PV_INT);
+      DataStore * store = parent->icCommunicator()->publisherStore(postIndexLayer->getLayerId());
+      int delay = getDelay(arborID);
 
-   ////TODO this is currently a hack, need to properly implement data types.
-   ////int* postIdxData = (int*) store->buffer(LOCAL, delay);
-   //float* postIdxData = (float*)store->buffer(LOCAL, delay);
-   int* postIdxData = postIndexLayer->getActivity();
+      //TODO this is currently a hack, need to properly implement data types.
+      postIdxData = (int*) store->buffer(LOCAL, delay);
+   }
 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(guided)
@@ -511,44 +552,8 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
          kPreExt = loopIndex;
       }
 
-      //Only doing global restricted
-      const int kxPreExt = kxPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
-      const int kyPreExt = kyPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
-      const int kfPre = featureIndex(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
-
-      const int kxPreGlobalExt = kxPreExt + preLoc->kx0;
-      const int kyPreGlobalExt = kyPreExt + preLoc->ky0;
-      if(kxPreGlobalExt < preLoc->halo.lt || kxPreGlobalExt >= preLoc->nxGlobal + preLoc->halo.lt ||
-         kyPreGlobalExt < preLoc->halo.up || kyPreGlobalExt >= preLoc->nyGlobal + preLoc->halo.up){
-         continue;
-      }
-
       float a = activity->data[kPreExt];
-      //if (a == 0.0f) continue;
-
-      //Convert stored global extended index into local extended index
-      int postGlobalExtIdx = postIdxData[kPreExt];
-
-      //Make sure the index is in bounds
-      assert(postGlobalExtIdx >= 0 && postGlobalExtIdx <
-            (postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt) * 
-            (postLoc->nyGlobal + postLoc->halo.up + postLoc->halo.dn) * 
-            postLoc->nf);
-
-      const int kxPostGlobalExt = kxPos(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
-      const int kyPostGlobalExt = kyPos(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
-      const int kfPost = featureIndex(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
-
-      const int kxPostLocalRes = kxPostGlobalExt - postLoc->kx0 - postLoc->halo.lt;
-      const int kyPostLocalRes = kyPostGlobalExt - postLoc->ky0 - postLoc->halo.up;
-      if(kxPostLocalRes < 0 || kxPostLocalRes >= postLoc->nx|| 
-         kyPostLocalRes < 0 || kyPostLocalRes >= postLoc->ny){
-         continue;
-      }
-
-      const int kPostLocalRes = kIndex(kxPostLocalRes, kyPostLocalRes, kfPost, postLoc->nx, postLoc->ny, postLoc->nf);
-
-      //printf("address: %p  kPreExt: %d idxout: %d, activity: %f\n", &(postIdxData[kPreExt]), kPreExt, kPostLocalRes, a);
+      if (a == 0.0f) continue;
 
       //If we're using thread_gSyn, set this here
       pvdata_t * gSynPatchHead;
@@ -563,7 +568,63 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
 #else // PV_USE_OPENMP_THREADS
       gSynPatchHead = post->getChannel(getChannel());
 #endif // PV_USE_OPENMP_THREADS
-      gSynPatchHead[kPostLocalRes] = a;
+
+      const int kxPreExt = kxPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
+      const int kyPreExt = kyPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
+      const int kfPre = featureIndex(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
+
+      if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+         const int kxPreGlobalExt = kxPreExt + preLoc->kx0;
+         const int kyPreGlobalExt = kyPreExt + preLoc->ky0;
+         if(kxPreGlobalExt < preLoc->halo.lt || kxPreGlobalExt >= preLoc->nxGlobal + preLoc->halo.lt ||
+            kyPreGlobalExt < preLoc->halo.up || kyPreGlobalExt >= preLoc->nyGlobal + preLoc->halo.up){
+            continue;
+         }
+
+         //Convert stored global extended index into local extended index
+         int postGlobalExtIdx = postIdxData[kPreExt];
+
+         //Make sure the index is in bounds
+         assert(postGlobalExtIdx >= 0 && postGlobalExtIdx <
+               (postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt) * 
+               (postLoc->nyGlobal + postLoc->halo.up + postLoc->halo.dn) * 
+               postLoc->nf);
+
+         const int kxPostGlobalExt = kxPos(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
+         const int kyPostGlobalExt = kyPos(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
+         const int kfPost = featureIndex(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
+
+         const int kxPostLocalRes = kxPostGlobalExt - postLoc->kx0 - postLoc->halo.lt;
+         const int kyPostLocalRes = kyPostGlobalExt - postLoc->ky0 - postLoc->halo.up;
+         if(kxPostLocalRes < 0 || kxPostLocalRes >= postLoc->nx|| 
+            kyPostLocalRes < 0 || kyPostLocalRes >= postLoc->ny){
+            continue;
+         }
+
+         const int kPostLocalRes = kIndex(kxPostLocalRes, kyPostLocalRes, kfPost, postLoc->nx, postLoc->ny, postLoc->nf);
+         gSynPatchHead[kPostLocalRes] = a;
+      }
+      else{
+         PVPatch * weights = getWeights(kPreExt, arborID);
+         const int nk = weights->nx * fPatchSize();
+         const int ny = weights->ny;
+         pvgsyndata_t * postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arborID);
+         const int sy  = getPostNonextStrides()->sy;       // stride in layer
+
+         int offset = kfPre;
+         int sf = fPatchSize();
+
+         pvwdata_t w = 1.0;
+         if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+           float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
+           float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
+           w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+         }
+         void* auxPtr = NULL;
+         for (int y = 0; y < ny; y++) {
+            (accumulateFunctionPointer)(0, nk, postPatchStart + y*sy + offset, a, &w, auxPtr, sf);
+         }
+      }
    }
 
 #ifdef PV_USE_OPENMP_THREADS
@@ -575,8 +636,13 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
 #pragma omp parallel for
       for(int ni = 0; ni < numNeurons; ni++){
          for(int ti = 0; ti < parent->getNumThreads(); ti++){
-            if(gSynPatchHead[ni] < fabs(thread_gSyn[ti][ni])){
-               gSynPatchHead[ni] = thread_gSyn[ti][ni];
+            if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+               if(gSynPatchHead[ni] < fabs(thread_gSyn[ti][ni])){
+                  gSynPatchHead[ni] = thread_gSyn[ti][ni];
+               }
+            }
+            else{
+               gSynPatchHead[ni] += thread_gSyn[ti][ni];
             }
          }
       }
