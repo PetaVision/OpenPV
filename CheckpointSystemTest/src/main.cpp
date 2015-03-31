@@ -42,7 +42,7 @@ public:
       if (keyword==NULL) { addedConn = NULL; }
       else if (!strcmp(keyword, "VaryingHyPerConn")) {
          matched = true;
-         addedConn = new VaryingHyPerConn(name, hc);
+         addedConn = new VaryingHyPerConn(name, hc, weightInitializer, weightNormalizer);
       }
       else { addedConn = NULL; }
       if (matched && !addedConn) {
@@ -137,6 +137,8 @@ int main(int argc, char * argv[]) {
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", pv_argv[0], rank, paramFile2, status);
    }
+
+   delete customGroupHandler;
 
    for (size_t arg=0; arg<pv_argc2; arg++) {
        free(pv_argv[arg]);
