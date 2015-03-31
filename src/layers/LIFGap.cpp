@@ -136,8 +136,7 @@ LIFGap::LIFGap(const char * name, HyPerCol * hc, PVLayerType type) {
 
 LIFGap::~LIFGap()
 {
-
-   // gapStrength points into conductances, already freed by LIF destructor
+   free(gapStrength);
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {
 //      delete clG_Gap;
@@ -218,7 +217,7 @@ int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, const
 int LIFGap::allocateConductances(int num_channels) {
    // this->sumGap = 0.0f;
    int status = LIF::allocateConductances(num_channels-1); // CHANNEL_GAP doesn't have a conductance per se.
-   gapStrength = (pvgsyndata_t *) calloc((size_t) getNumNeurons(), sizeof(*gapStrength)); // G_E+getNumNeurons()*CHANNEL_GAP;
+   gapStrength = (pvgsyndata_t *) calloc((size_t) getNumNeurons(), sizeof(*gapStrength));
    if(gapStrength == NULL) {
       fprintf(stderr, "%s layer \"%s\": rank %d process unable to allocate memory for gapStrength: %s\n",
               parent->parameters()->groupKeywordFromName(getName()), getName(), parent->columnId(), strerror(errno));
