@@ -8,6 +8,7 @@
 #include "CustomGroupHandler.hpp"
 #include "SumPoolTestLayer.hpp"
 #include "InputLayer.hpp"
+#include "GatePoolTestLayer.hpp"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -31,6 +32,9 @@ ParamGroupType CustomGroupHandler::getGroupType(char const * keyword) {
    else if (!strcmp(keyword, "InputLayer")) {
       result = LayerGroupType;
    }
+   else if (!strcmp(keyword, "GatePoolTestLayer")) {
+      result = LayerGroupType;
+   }
    else {
       result = UnrecognizedGroupType;
    }
@@ -46,6 +50,9 @@ HyPerLayer * CustomGroupHandler::createLayer(char const * keyword, char const * 
    }
    else if( !strcmp(keyword, "InputLayer") ) {
       addedLayer = new InputLayer(name, hc);
+   }
+   else if( !strcmp(keyword, "GatePoolTestLayer") ) {
+      addedLayer = new GatePoolTestLayer(name, hc);
    }
 
    if( !addedLayer ) {

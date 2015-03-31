@@ -1,12 +1,12 @@
-#include "SumPoolTestLayer.hpp"
+#include "GatePoolTestLayer.hpp"
 
 namespace PV {
 
-SumPoolTestLayer::SumPoolTestLayer(const char * name, HyPerCol * hc){
+GatePoolTestLayer::GatePoolTestLayer(const char * name, HyPerCol * hc){
    ANNLayer::initialize(name, hc);
 }
 
-int SumPoolTestLayer::updateState(double timef, double dt){
+int GatePoolTestLayer::updateState(double timef, double dt){
    //Do update state of ANN Layer first
    ANNLayer::updateState(timef, dt);
 
@@ -31,20 +31,14 @@ int SumPoolTestLayer::updateState(double timef, double dt){
 
            float actualvalue = A[ext_idx];
            
-           int xval = iX + kx0 - loc->halo.lt;
-           int yval = iY + ky0 - loc->halo.up;
+           int xval = (iX + kx0 - loc->halo.lt)/2;
+           int yval = (iY + ky0 - loc->halo.up)/2;
            assert(xval >= 0 && xval < loc->nxGlobal);
            assert(yval >= 0 && yval < loc->nxGlobal);
 
            float expectedvalue;
-           if(nxScale == .5){
-              expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5;
-           }
-           else{
-              int res_idx = kIndex(xval, yval, 0, nxGlobal, nyGlobal, 1);
-              //TODO different features define different offsets into this index
-              expectedvalue = iFeature * nxGlobal * nyGlobal + res_idx;
-           }
+           expectedvalue = iFeature * 64 + yval * 16 + xval * 2 + 4.5;
+
            if(fabs(actualvalue - expectedvalue) >= 1e-4){
                 std::cout << "Connection " << name << " Mismatch at (" << iX << "," << iY << ") : actual value: " << actualvalue << " Expected value: " << expectedvalue << ".  Discrepancy is a whopping " << actualvalue - expectedvalue << "!  Horrors!" << "\n";
                 isCorrect = false;
@@ -62,11 +56,11 @@ int SumPoolTestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-//int SumPoolTestLayer::checkpointRead(const char * cpDir, double * timeptr) {
+//int GatePoolTestLayer::checkpointRead(const char * cpDir, double * timeptr) {
 //   return PV_SUCCESS;
 //}
 //
-//int SumPoolTestLayer::checkpointWrite(const char * cpDir) {
+//int GatePoolTestLayer::checkpointWrite(const char * cpDir) {
 //   return PV_SUCCESS;
 //}
 

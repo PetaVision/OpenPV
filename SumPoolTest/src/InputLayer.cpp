@@ -58,6 +58,13 @@ int InputLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
+//int InputLayer::checkpointRead(const char * cpDir, double * timeptr) {
+//   return PV_SUCCESS;
+//}
+//
+//int InputLayer::checkpointWrite(const char * cpDir) {
+//   return PV_SUCCESS;
+//}
 
 
 } /* namespace PV */
