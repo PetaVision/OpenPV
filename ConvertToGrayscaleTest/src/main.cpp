@@ -54,6 +54,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
             }
          }
       }
+      free(databuffer);
       if (status == PV_SUCCESS) {
          printf("%s succeeded.\n", argv[0]);
       }
