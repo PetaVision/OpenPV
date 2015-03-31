@@ -33,6 +33,7 @@ HyPerCol "column" = {
    checkpointWriteTimeInterval      = 100.0;
    deleteOlderCheckpoints           = false;
    // suppressLastOutput               = false;
+   suppressNonplasticCheckpoints    = false;
 };
 
 //
@@ -80,6 +81,7 @@ ANNLayer "ScaledInput" = {
     AMin                            = -infinity;
     VThresh                         = -infinity;
     VWidth                          = 0.0;
+    clearGSynInterval               = 0.0;
 };
 
 Retina "Retina" = {
