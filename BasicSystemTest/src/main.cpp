@@ -38,6 +38,7 @@ int main(int argc, char * argv[]) {
 #ifdef MAIN_USES_CUSTOMGROUPS
    ParamGroupHandler * customGroupHandler = new CustomGroupHandler();
    status = buildandrun(argc, argv, NULL, NULL, &customGroupHandler, 1/*numGroupHandlers*/);
+   delete customGroupHandler;
 #else
    status = buildandrun(argc, argv);
 #endif // MAIN_USES_CUSTOMGROUPS
