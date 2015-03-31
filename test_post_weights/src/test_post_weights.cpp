@@ -49,6 +49,10 @@ int main(int argc, char * argv[])
    HyPerConn * c3 = new HyPerConn("test_post_weights L3 to L2", hc);
    assert(c3);
    assert(c3->numberOfAxonalArborLists() == 1);
+   
+   // We're not calling hc->run() because we don't execute any timesteps.
+   // But we still need to allocate the weights, so we call the
+   // layers' and connections' communicate and allocate methods externally.
 
    l1->communicateInitInfo();
    l2->communicateInitInfo();
@@ -63,6 +67,10 @@ int main(int argc, char * argv[])
    c1->allocateDataStructures();
    c2->allocateDataStructures();
    c3->allocateDataStructures();
+
+   // Don't need to call initializeState methods:
+   // we don't look at the layer values, and the weight values are
+   // set by calling set_weights_to_source_index
 
    // set weights to be k index source in pre-synaptic layer
    //
