@@ -1525,7 +1525,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
                if(globalResK == -1){
                   continue;
                }
-               globalResIndices[indiciesIdx] = indices[j];
+               globalResIndices[indiciesIdx] = globalResK;
                indiciesIdx++;
             }
             localResActive = indiciesIdx;
