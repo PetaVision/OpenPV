@@ -7,6 +7,7 @@
 
 #include "PoolingConn.hpp"
 #include <cstring>
+#include <cmath>
 
 namespace PV {
 
@@ -351,8 +352,22 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
    assert(arborID >= 0);
    const int numExtended = activity->numItems;
 
+   float resetVal = 0;
+   if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+      resetVal = -INFINITY;
+      float* gSyn = post->getChannel(getChannel());
+      //gSyn is res
 #ifdef PV_USE_OPENMP_THREADS
-   //Clear all thread gsyn buffer
+#pragma omp parallel for
+#endif
+      for(int i = 0; i < post->getNumNeurons(); i++){
+         gSyn[i] = resetVal;
+      }
+      
+   }
+
+#ifdef PV_USE_OPENMP_THREADS
+   //Clear all gsyn buffers
    if(thread_gSyn){
       int numNeurons = post->getNumNeurons();
 #ifdef PV_USE_OPENMP_THREADS
@@ -361,10 +376,13 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
       for(int i = 0; i < parent->getNumThreads() * numNeurons; i++){
          int ti = i/numNeurons;
          int ni = i % numNeurons;
-         thread_gSyn[ti][ni] = 0;
+         thread_gSyn[ti][ni] = resetVal;
       }
    }
 #endif // PV_USE_OPENMP_THREADS
+   
+   
+
    clearGateIdxBuffer();
 
    int numLoop;
@@ -417,7 +435,6 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
       if(needPostIndexLayer){
          gatePatchHead = postIndexLayer->getChannel(CHANNEL_EXC);
       }
-
 #endif // PV_USE_OPENMP_THREADS
       //deliverOnePreNeuronActivity(kPreExt, arborID, a, gSynPatchHead, gatePatchHead);
       
