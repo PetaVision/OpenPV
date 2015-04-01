@@ -1,21 +1,41 @@
 #ifndef PV_ARCH_H
 #define PV_ARCH_H
 
-#include "cMakeHeader.h" /* Loads preprocessor directives set by CMake */
-
-/* Note: defining or undefining
- * PV_USE_THREADS, PV_OPENCL, PV_CUDA, PV_CUDNN
- * were moved into cMakeHeader.h on Mar 25, 2015.
- */
-
 /* define this for 64 bit architectures */
 #define PV_ARCH_64
 
 /* define this if using a vendor supplied MPI library */
 #define PV_USE_MPI
 
+/* define this if using OpenCL for threads on CPU or GPU */
+#ifdef PV_OPENCL
+#define PV_USE_OPENCL
+#else
+#undef PV_USE_OPENCL
+#endif //PV_OPENCL
+
+/* define this if using CUDA for threads on CPU or GPU */
+#ifdef PV_CUDA
+#define PV_USE_CUDA
+#else
+#undef PV_USE_CUDA
+#endif //PV_CUDA
+
+#ifdef PV_CUDNN
+#define PV_USE_CUDNN
+#else
+#undef PV_USE_CUDNN
+#endif
+
 /* define this if using OpenGL library for online graphics */
 #undef PV_USE_OPENGL
+
+/*Defining use of open mp for threading*/
+#ifdef PV_USE_THREADS
+#define PV_USE_OPENMP_THREADS
+#else
+#undef PV_USE_OPENMP_THREADS
+#endif //PV_USE_THREADS
 
 /* define this if using GDAL library to read/write images */
 #define PV_USE_GDAL
