@@ -197,6 +197,7 @@ int MomentumConn::applyMomentum(int arbor_ID){
 
 int MomentumConn::checkpointWrite(const char * cpDir) {
    HyPerConn::checkpointWrite(cpDir);
+   if (!plasticityFlag) return PV_SUCCESS;
    char filename[PV_PATH_MAX];
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_prev_dW.pvp", cpDir, name);
    if(chars_needed >= PV_PATH_MAX) {
@@ -213,6 +214,7 @@ int MomentumConn::checkpointWrite(const char * cpDir) {
 
 int MomentumConn::checkpointRead(const char * cpDir, double * timeptr) {
    HyPerConn::checkpointRead(cpDir, timeptr);
+   if (!plasticityFlag) return PV_SUCCESS;
    clearWeights(prev_dwDataStart, getNumDataPatches(), nxp, nyp, nfp);
    char * path = parent->pathInCheckpoint(cpDir, getName(), "_prev_dW.pvp");
    PVPatch *** patches_arg = sharedWeights ? NULL : get_wPatches();
