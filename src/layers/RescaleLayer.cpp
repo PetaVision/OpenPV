@@ -82,10 +82,10 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
    }
    else if(strcmp(rescaleMethod, "zerotonegative") == 0){
    }
-   else if(strcmp(rescaleMethod, "softmax")){
+   else if(strcmp(rescaleMethod, "softmax") == 0){
    }
    else{
-      fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd.\n",
+      fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd, softmax.\n",
             name);
       exit(PV_FAILURE);
    }
