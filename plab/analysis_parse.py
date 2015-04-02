@@ -17,7 +17,10 @@ output_dir = (".")
 # Find a .params file, and throw an error if more than one is found.                                                                        
 foundparams = []
 param_location = ""
+print(listdir(output_dir))
 for i in listdir(output_dir):
+    if re.search("^\.",i):
+        continue
     if re.search(".+\.params$",i):
         foundparams.append(re.search(".+\.params$",i).group())
 if len(foundparams) > 1:
