@@ -47,7 +47,8 @@ int InitGaussianRandomWeights::initRNGs(bool isKernel) {
    else {
       gaussianRandState = new GaussianRandom(callingConn->getParent(), callingConn->preSynapticLayer()->getLayerLoc(), true/*isExtended*/);
    }
-   if (randState == NULL) {
+
+   if (gaussianRandState == NULL) {
       fprintf(stderr, "InitRandomWeights error in rank %d process: unable to create object of class Random.\n", callingConn->getParent()->columnId());
       exit(EXIT_FAILURE);
    }
