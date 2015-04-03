@@ -134,5 +134,6 @@ add_subdirectory(TriggerTest)
 add_subdirectory(UnequalPatchSizeTest)
 add_subdirectory(UpdateFromCloneTest)
 #add_subdirectory(WindowSystemTest)
+add_subdirectory(WriteActivitySparseTest)
 add_subdirectory(WriteSparseFileTest)
 # # Insert additional add_subdirectory commands to add other projects.

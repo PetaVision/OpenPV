@@ -732,6 +732,13 @@ cd "$workspacedir"
 #mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 #cd "$workspacedir"
 
+testname=WriteActivitySparseTest
+cd "$testname"
+arglist=""
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
 testname=WriteSparseFileTest
 cd "$testname"
 arglist="-p input/WriteSparseFileTest.params -c checkpoints/Checkpoint6 --testall"
