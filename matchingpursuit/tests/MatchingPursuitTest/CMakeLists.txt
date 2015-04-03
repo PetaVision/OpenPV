@@ -4,6 +4,17 @@ cmake_minimum_required(VERSION 2.8)
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
+set(PV_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../trunk" CACHE PATH "The base PetaVision directory")
+set(PVMATCHINGPURSUIT_DIR "${PV_DIR}/../auxlib/matchingpursuit" CACHE PATH "The base directory for the PV MatchingPursuit library")
+
+IF(NOT EXISTS "${PV_DIR}")
+   message(FATAL_ERROR "PV_DIR \"${PV_DIR}\" does not exist.")
+ENDIF(NOT EXISTS "${PV_DIR}")
+
+IF(NOT EXISTS "${PVMATCHINGPURSUIT_DIR}")
+   message(FATAL_ERROR "PVMATCHINGPURSUIT_DIR \"${PVMATCHINGPURSUIT_DIR}\" does not exist.")
+ENDIF(NOT EXISTS "${PVMATCHINGPURSUIT_DIR}")
+
 string(FIND ${CMAKE_CURRENT_SOURCE_DIR} "/" pos REVERSE)
 MATH(EXPR pos ${pos}+1)
 string(SUBSTRING ${CMAKE_CURRENT_SOURCE_DIR} ${pos} -1 PV_PROJECT_NAME)
@@ -41,6 +52,8 @@ endif (PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
 
 set(PV_SOURCE_DIR "${PV_DIR}/src")
 set(PV_BINARY_DIR "${PV_DIR}/lib")
+set(PVMATCHINGPURSUIT_LIBRARY_DIR "${PVMATCHINGPURSUIT_DIR}/lib")
+set(PVMATCHINGPURSUIT_SOURCE_DIR "${PVMATCHINGPURSUIT_DIR}/src")
 set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
@@ -66,9 +79,11 @@ set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
+include_directories(${PVMATCHINGPURSUIT_SOURCE_DIR})
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
+link_directories(${PVMATCHINGPURSUIT_LIBRARY_DIR})
 
 # Add executable
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
@@ -81,6 +96,7 @@ else(PV_USE_CUDA)
 endif(PV_USE_CUDA)
 
 target_link_libraries(${PV_PROJECT_NAME} pv)
+target_link_libraries(${PV_PROJECT_NAME} matchingpursuit)
 
 # still needed on Mac if pv is built as a shared object library
 target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})

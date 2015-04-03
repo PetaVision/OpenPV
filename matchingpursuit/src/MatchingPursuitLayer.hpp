@@ -13,7 +13,7 @@
 
 struct matchingpursuit_mpi_data { pvdata_t maxval; int maxloc; int mpirank;};
 
-namespace MatchingPursuit {
+namespace PVMatchingPursuit {
 
 class MatchingPursuitLayer: public PV::HyPerLayer {
 public:
@@ -69,5 +69,5 @@ protected:
    int activeIndex;
 };
 
-} /* namespace MatchingPursuit */
+} /* namespace PVMatchingPursuit */
 #endif /* MATCHINGPURSUITLAYER_HPP_ */

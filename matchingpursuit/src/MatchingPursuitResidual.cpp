@@ -7,7 +7,7 @@
 
 #include "MatchingPursuitResidual.hpp"
 
-namespace MatchingPursuit {
+namespace PVMatchingPursuit {
 
 MatchingPursuitResidual::MatchingPursuitResidual(const char * name, PV::HyPerCol * hc) {
    initialize_base();
@@ -57,4 +57,4 @@ int MatchingPursuitResidual::updateState(double timed, double dt) {
 MatchingPursuitResidual::~MatchingPursuitResidual() {
 }
 
-} /* namespace MatchingPursuit */
+} /* namespace PVMatchingPursuit */

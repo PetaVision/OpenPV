@@ -26,7 +26,7 @@
 #include "MatchingPursuitLayer.hpp"
 #include <connections/HyPerConn.hpp>
 
-namespace MatchingPursuit {
+namespace PVMatchingPursuit {
 
 MatchingPursuitLayer::MatchingPursuitLayer() {
    initialize_base();
@@ -330,4 +330,4 @@ int MatchingPursuitLayer::outputState(double timed, bool last) {
    return status;
 }
 
-} /* namespace MatchingPursuit */
+} /* namespace PVMatchingPursuit */

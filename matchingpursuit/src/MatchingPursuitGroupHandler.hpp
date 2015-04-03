@@ -10,7 +10,7 @@
 
 #include <io/ParamGroupHandler.hpp>
 
-namespace MatchingPursuit {
+namespace PVMatchingPursuit {
 
 class MatchingPursuitGroupHandler : public PV::ParamGroupHandler {
 public:
@@ -23,6 +23,6 @@ public:
 
 }; // class MatchingPursuitGroupHandler
 
-}  // namespace MatchingPursuit
+}  // namespace PVMatchingPursuit
 
 #endif // MATCHINGPURSUITGROUPHANDLER_HPP_

@@ -1,7 +1,7 @@
 #include <columns/buildandrun.hpp>
-#include "MatchingPursuitProbe.hpp"
-
-void * customgroups(const char * keyword, const char * name, HyPerCol * hc);
+#include <io/ParamGroupHandler.hpp>
+#include <MatchingPursuitGroupHandler.hpp>
+#include "CustomGroupHandler.hpp"
 
 int main(int argc, char * argv[]) {
    int paramfilestatus = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
@@ -20,18 +20,13 @@ int main(int argc, char * argv[]) {
    }
    cl_argv[cl_argc] = NULL;
 
-   int status = buildandrun(cl_argc, cl_argv, NULL, NULL, &customgroups);
+   PV::ParamGroupHandler * customGroupHandlers[2];
+   customGroupHandlers[0] = new PVMatchingPursuit::MatchingPursuitGroupHandler;
+   customGroupHandlers[1] = new CustomGroupHandler;
+   int status = buildandrun(cl_argc, cl_argv, NULL, NULL, customGroupHandlers, 2);
    for (int a=0; a<cl_argc; a++) {
       free(cl_argv[a]); cl_argv[a]=NULL;
    }
    free(cl_argv); cl_argv = NULL;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
-}
-
-void * customgroups(const char * keyword, const char * name, HyPerCol * hc) {
-   void * addedGroup = NULL;
-   if (!strcmp(keyword, "MatchingPursuitProbe")) {
-      addedGroup = new MatchingPursuitProbe(name, hc);
-   }
-   return addedGroup;
 }

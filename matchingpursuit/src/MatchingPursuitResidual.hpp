@@ -11,7 +11,7 @@
 #include <layers/ANNLayer.hpp>
 #include <layers/Movie.hpp>
 
-namespace MatchingPursuit {
+namespace PVMatchingPursuit {
 
 class MatchingPursuitResidual: public PV::ANNLayer {
 public:
@@ -32,5 +32,5 @@ protected:
    bool inputInV; // set to false on initialization when trigger layer triggers; set to true after updateState loads GSynExc into V.
 };
 
-} /* namespace MatchingPursuit */
+} /* namespace PVMatchingPursuit */
 #endif /* MATCHINGPURSUITRESIDUAL_HPP_ */

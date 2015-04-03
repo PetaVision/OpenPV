@@ -9,7 +9,7 @@
 #include "MatchingPursuitLayer.hpp"
 #include "MatchingPursuitResidual.hpp"
 
-namespace MatchingPursuit {
+namespace PVMatchingPursuit {
 
 PV::ParamGroupType MatchingPursuitGroupHandler::getGroupType(char const * keyword) {
    PV::ParamGroupType result = PV::UnrecognizedGroupType;
@@ -33,4 +33,4 @@ PV::HyPerLayer * MatchingPursuitGroupHandler::createLayer(char const * keyword, 
    return layer;
 }
 
-}  // namespace MatchingPursuit
+}  // namespace PVMatchingPursuit
