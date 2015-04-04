@@ -567,9 +567,18 @@ runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
-testname=SumPoolingTest
+testname=SumPoolTest
 cd "$testname"
 arglist="-p input/sumpooltest.params"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=SumPoolTest
+logfilebasename=SumPoolTest_Unpooling
+cd "$testname"
+arglist="-p input/unpoolTest.params"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
