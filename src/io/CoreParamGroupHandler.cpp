@@ -37,6 +37,7 @@
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/LogLatWTAGenLayer.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
+#include "../layers/MaskLayer.hpp"
 #include "../layers/MLPErrorLayer.hpp"
 #include "../layers/MLPForwardLayer.hpp"
 #include "../layers/MLPOutputLayer.hpp"
@@ -160,6 +161,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"LogLatWTAGenLayer", LayerGroupType},
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
+         {"MaskLayer", LayerGroupType},
          {"MLPErrorLayer", LayerGroupType},
          {"MLPForwardLayer", LayerGroupType},
          {"MLPOutputLayer", LayerGroupType},
@@ -379,6 +381,9 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
       addedLayer = new LogLatWTAGenLayer(name, hc);
    }
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
+   else if( !strcmp(keyword, "MaskLayer") ) {
+      addedLayer = new MaskLayer(name, hc);
+   }
    else if( !strcmp(keyword, "MLPErrorLayer") ) {
       addedLayer = new MLPErrorLayer(name, hc);
    }
