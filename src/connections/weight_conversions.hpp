@@ -30,6 +30,6 @@ static inline pvdata_t uncompressWeight(float w, pvdata_t minVal, pvdata_t maxVa
    return w;
 }
 
-};  // end namespace PV
+}  // end namespace PV
 
 #endif /* WEIGHT_CONVERSIONS_H_ */

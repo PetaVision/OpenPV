@@ -82,7 +82,7 @@ public:
    bool hasBeenRead()          { return hasBeenReadFlag; }
    int outputString(FILE * fp, int indentation);
    void clearHasBeenRead()     { hasBeenReadFlag = false; }
-   void setValue(const char * s) { free(paramValue); paramValue = strdup(s);}
+   void setValue(const char * s) { free(paramValue); paramValue = s?strdup(s):NULL;}
    ParameterString* copyParameterString() {return new ParameterString(paramName, paramValue);}
 
 private:

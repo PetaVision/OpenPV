@@ -173,8 +173,8 @@ ParameterArray* ParameterArray::copyParameterArray(){
  */
 ParameterString::ParameterString(const char * name, const char * value)
 {
-   paramName = strdup(name);
-   paramValue = strdup(value);
+   paramName = name ? strdup(name) : NULL;
+   paramValue = value ? strdup(value) : NULL;
    hasBeenReadFlag = false;
 }
 
@@ -1669,7 +1669,7 @@ void PVParams::action_parameter_string_def(const char * id, const char * stringv
    }
    if( checkDuplicates(id, 0.0) != PV_SUCCESS ) exit(EXIT_FAILURE);
    char * param_value = stripQuotationMarks(stringval);
-   assert(param_value);
+   assert(!stringval || param_value); // stringval can be null, but if stringval is not null, param_value should also be non-null
    ParameterString * pstr = new ParameterString(id, param_value);
    stringStack->push(pstr);
    free(param_value);
@@ -1700,7 +1700,7 @@ void PVParams::action_parameter_string_def_overwrite(const char * id, const char
       exit(EXIT_FAILURE);
    }
    char * param_value = stripQuotationMarks(stringval);
-   assert(param_value);
+   assert(!stringval || param_value); // stringval can be null, but if stringval is not null, param_value should also be non-null
    //Set to new value
    currParam->setValue(param_value);
    free(param_value);
@@ -1875,7 +1875,7 @@ void PVParams::action_sweep_values_string(const char * stringval)
       fflush(stdout);
    }
    char * string = stripQuotationMarks(stringval);
-   assert(string);
+   assert(!stringval || string); // stringval can be null, but if stringval is not null, string should also be non-null
    activeParamSweep->pushStringValue(string);
    free(string);
 }
@@ -1943,12 +1943,13 @@ int PVParams::checkDuplicates(const char * paramName, double val) {
 char * PVParams::stripQuotationMarks(const char * s) {
    // If a string has quotes as its first and last character, return the
    // part of the string inside the quotes, e.g. {'"', 'c', 'a', 't', '"'}
-   // becomes {'c', 'a', 't'}.  If the string does not have quotes at the
+   // becomes {'c', 'a', 't'}.  If the string is null or does not have quotes at the
    // beginning and end, return NULL.
    // It is the responsibility of the routine that calls stripQuotationMarks
    // to free the returned string to avoid a memory leak.
-   int len = strlen(s);
+   if (s==NULL) { return NULL;}
    char * noquotes = NULL;
+   int len = strlen(s);
    if ( len >=2 && s[0]=='"' && s[len-1]=='"' ) {
       noquotes = (char *) calloc(len-1, sizeof(char));
       memcpy(noquotes, s+1, len-2);

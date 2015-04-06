@@ -1088,7 +1088,7 @@ void HyPerCol::writeParamString(const char * param_name, const char * svalue) {
          fprintf(printParamsStream->fp, "    %-35s = \"%s\";\n", param_name, svalue);
       }
       else {
-         fprintf(printParamsStream->fp, "    // %-35s was set to (NULL);\n", param_name);
+         fprintf(printParamsStream->fp, "    %-35s = NULL;\n", param_name);
       }
    }
 }
