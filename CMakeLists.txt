@@ -73,8 +73,8 @@ add_subdirectory(ConvertToGrayscaleTest)
 add_subdirectory(CopyConnTest)
 add_subdirectory(DatastoreDelayTest)
 add_subdirectory(DelaysToFeaturesTest)
-add_subdirectory(FourByFourGenerativeTest)
-add_subdirectory(FourByFourTopDownTest)
+#add_subdirectory(FourByFourGenerativeTest) # Moved to inactivesandboxes/SymmetryBreakingGenerative Apr 6, 2015
+#add_subdirectory(FourByFourTopDownTest) # Moved to inactivesandboxes/SymmetryBreakingGenerative Apr 6, 2015
 add_subdirectory(GenericSystemTest)
 add_subdirectory(GPUSystemTest)
 add_subdirectory(GroupNormalizationTest)
