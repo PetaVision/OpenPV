@@ -91,10 +91,11 @@ add_subdirectory(LCATest)
 add_subdirectory(LIFTest)
 add_subdirectory(MarginWidthTest)
 # add_subdirectory(MatchingPursuitTest) # Moved to auxlib/matchingpursuit Mar 18, 2015
+add_subdirectory(MaskLayerTest)
 add_subdirectory(MaxPoolTest)
 add_subdirectory(MovieSystemTest)
 add_subdirectory(MomentumTest)
-add_subdirectory(MLPTest)
+#add_subdirectory(MLPTest) # Moved to auxlib/mlearning
 add_subdirectory(MPITest2)
 add_subdirectory(NormalizeSystemTest)
 add_subdirectory(ParameterSweepTest)
