@@ -255,7 +255,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {NULL, UnrecognizedGroupType}
    };
    ParamGroupType result = UnrecognizedGroupType;
-
+   if (keyword==NULL) { return result; }
    for (int k=0; keywordtable[k].kw != NULL; k++) {
       if (!strcmp(keywordtable[k].kw, keyword)) {
          result = keywordtable[k].type;
