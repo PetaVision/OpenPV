@@ -1232,6 +1232,12 @@ void HyPerConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    parent->ioParamString(ioFlag, name, "normalizeMethod", &normalizeMethod, NULL, true/*warnIfAbsent*/);
    if (ioFlag==PARAMS_IO_READ) {
+      if (normalizeMethod==NULL) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Error in %s \"%s\": specifying a normalizeMethod string is required.\n", parent->parameters()->groupKeywordFromName(name), name);
+            exit(EXIT_FAILURE);
+         }
+      }
       if (!strcmp(normalizeMethod, "")) {
          free(normalizeMethod);
          normalizeMethod = strdup("none");
