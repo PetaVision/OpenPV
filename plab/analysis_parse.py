@@ -223,7 +223,7 @@ for c,i in enumerate(layer_names):
         for pre,post,d in zip(pre_index,post_index,range(0, len(conn_names))):
             print(layer_names[pre] + " " + layer_names[post])
             if layer_names[pre] == i:
-                if re.search("Error",layer_types[post]):
+                if re.search("Error",layer_types[post]) or re.search("Mask",layer_types[post]):
                     if conn_values[d][ccx] != '0':
                         error_layer.append(layer_names[post])
                         sparse_layer.append(layer_names[pre])
