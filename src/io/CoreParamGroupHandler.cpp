@@ -38,10 +38,12 @@
 #include "../layers/LogLatWTAGenLayer.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/MaskLayer.hpp"
+#ifdef OBSOLETE //Marked obsolete April 6, 2015. Moved to auxlib/mlearning
 #include "../layers/MLPErrorLayer.hpp"
 #include "../layers/MLPForwardLayer.hpp"
 #include "../layers/MLPOutputLayer.hpp"
 #include "../layers/MLPSigmoidLayer.hpp"
+#endif
 #ifdef OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
 #include "../layers/MatchingPursuitLayer.hpp"
 #include "../layers/MatchingPursuitResidual.hpp"
@@ -162,10 +164,12 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"LogLatWTAGenLayer", LayerGroupType},
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"MaskLayer", LayerGroupType},
+#ifdef OBSOLETE // Marked obsolete 4/6/15.  MLP classes moved to auxlib/mlearning
          {"MLPErrorLayer", LayerGroupType},
          {"MLPForwardLayer", LayerGroupType},
          {"MLPOutputLayer", LayerGroupType},
          {"MLPSigmoidLayer", LayerGroupType},
+#endif // OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
 #ifdef OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
          {"MatchingPursuitLayer", LayerGroupType},
          {"MatchingPursuitResidual", LayerGroupType},
@@ -384,6 +388,8 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "MaskLayer") ) {
       addedLayer = new MaskLayer(name, hc);
    }
+
+#ifdef OBSOLETE // Marked obsolete 4/6/15. Moved to auxlib/mlearning
    else if( !strcmp(keyword, "MLPErrorLayer") ) {
       addedLayer = new MLPErrorLayer(name, hc);
    }
@@ -396,6 +402,8 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "MLPSigmoidLayer") ) {
       addedLayer = new MLPSigmoidLayer(name, hc);
    }
+#endif
+
 #ifdef OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
    else if( !strcmp(keyword, "MatchingPursuitLayer") ) {
       addedLayer = new MatchingPursuitLayer(name, hc);
