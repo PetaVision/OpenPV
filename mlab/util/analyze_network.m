@@ -151,8 +151,8 @@ for i = 1:size(reconpvps,2)
    end
    [startPrefix,endPrefix] = regexp(reconpvps{i},prefix);
    [startSuffix,endSuffix] = regexp(reconpvps{i},suffix);
-   % Normalize and write recon images
-   if ((reconheader.nf == 1) || (reconheader.nf == 3))
+   % Normalize and write RGB recon images 
+   if (reconheader.nf == 3)
       for j = 1:size(recondata,1)
          t = recondata{j}.time;
          p = recondata{j}.values;
@@ -164,7 +164,22 @@ for i = 1:size(reconpvps,2)
          imwrite(p,outFile);
       end
    else 
-      display(['Not writing ' reconpvps{i}(endPrefix+1:startSuffix-1) ' layer; nf needs to be 1 or 3 for visualization.']);
+   % Normalize across all features and write a recon image for each feature.
+      for j = 1:size(recondata,1)
+         t = recondata{j}.time;
+         p = recondata{j}.values;
+         minp = min(p(:));
+         maxp = max(p(:));
+         for k = 1:reconheader.nf
+            p_nf = p(:,:,k);
+            p_nf = p_nf-minp);
+            p_nf = p_nf*255/maxp);
+            p_nf = permute(p_nf,[2 1 3]);
+            p_nf = uint8(p_nf);
+            outFile = ['Analysis/' reconpvps{i}(endPrefix+1:startSuffix-1) '_Feature_' sprintf('%.03d',k) '_'  sprintf('%.08d',t) '.png']
+            imwrite(p_nf,outFile);
+         end
+      end
    end
 end
 clear recondata;
