@@ -294,17 +294,38 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
    printf("============================= srcPath is %s\n", srcPath);
 #endif
 
+   int threadstatus = PV_SUCCESS;
 #ifdef PV_USE_OPENMP_THREADS
-   if(numthreads == 0){
-      numthreads = omp_get_max_threads();
+   int maxthreads = omp_get_max_threads();
+   if(pv_getopt(argc, argv, "-t", NULL)==0) {
+      if (numthreads == 0){
+         numthreads = maxthreads;
+      }
+      omp_set_num_threads(numthreads);
    }
-   omp_set_num_threads(numthreads);
-#else
+   else {
+      threadstatus = PV_FAILURE;
+   }
+   if (columnId()==0) {
+      printf("Maximum number of OpenMP threads is %d\n", maxthreads);
+      if(threadstatus == PV_SUCCESS) {
+         printf("Number of threads used is %d\n", numthreads);
+      }
+      else {
+         fflush(stdout);
+         fprintf(stderr, "%s was compiled with PV_USE_OPENMP_THREADS; therefore the \"-t\" argument is required.\n", argv[0]);
+      }
+   }
+   if (threadstatus !=PV_SUCCESS) {
+      MPI_Barrier(icComm->communicator());
+      exit(EXIT_FAILURE);
+   }
+#else // PV_USE_OPENMP_THREADS
    if(numthreads != 1){
       std::cout << "PetaVision must be compiled with OpenMP to run with threads" << "\n";
       exit(PV_FAILURE);
    }
-#endif
+#endif // PV_USE_OPENMP_THREADS
    //set numthreads to member variable
    this->numThreads = numthreads;
 

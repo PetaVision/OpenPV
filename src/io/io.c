@@ -25,6 +25,10 @@ void usage()
    printf(" [-d <OpenCL device>]\n");
    printf(" [-w <working directory>]\n");
    printf(" [-r|-c <checkpoint directory>]\n");
+#ifdef PV_USE_OPENMP_THREADS
+   printf(" [-t [number of threads]\n");
+#endif // PV_USE_OPENMP_THREADS
+
 }
 
 /**
