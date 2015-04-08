@@ -16,17 +16,33 @@ int main(int argc, char * argv[]) {
    const char * paramfile1 = "input/RandStateSystemTest1.params";
    const char * paramfile2 = "input/RandStateSystemTest2.params";
 
+   int rank=0;
 #ifdef PV_USE_MPI
    MPI_Init(&argc, &argv);
-   int rank;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif // PV_USE_MPI
 
-   int cl_argc = 3;
-   char * cl_argv[3];
-   cl_argv[0] = argv[0];
-   cl_argv[1] = strdup("-p");
-   cl_argv[2] = strdup(paramfile1);
+   if (pv_getopt(argc, argv, "-p", NULL)==0) {
+      if (rank==0) {
+         fprintf(stderr, "%s does not take -p as an option.  Instead the necessary params files are hard-coded.\n", argv[0]);
+      }
+#ifdef PV_USE_MPI
+      MPI_Barrier(MPI_COMM_WORLD);
+#endif // PV_USE_MPI
+      exit(EXIT_FAILURE);
+   }
+
+   int cl_argc = argc + 2;
+   char ** cl_argv = (char **) calloc(sizeof(cl_argc+1),sizeof(char *));
+   assert(cl_argv);
+   for (int k=0; k<argc; k++) {
+      cl_argv[k] = strdup(argv[k]);
+      assert(cl_argv[k]);
+   }
+   int paramfile_argnum = argc+1;
+   cl_argv[paramfile_argnum-1] = strdup("-p");
+   cl_argv[paramfile_argnum] = strdup(paramfile1);
+   cl_argv[paramfile_argnum+1] = NULL;
 
    int status1 = buildandrun(cl_argc, cl_argv, NULL, NULL, NULL);
    if (status1 != PV_SUCCESS) {
@@ -34,15 +50,13 @@ int main(int argc, char * argv[]) {
       return EXIT_FAILURE;
    }
 
-   free(cl_argv[2]);
-   cl_argv[2] = strdup(paramfile2);
+   free(cl_argv[paramfile_argnum]);
+   cl_argv[paramfile_argnum] = strdup(paramfile2);
    int status2 = buildandrun(cl_argc, cl_argv, NULL, &customexit, NULL);
    if (status2 != PV_SUCCESS) {
-      fprintf(stderr, "%s failed on param file %s.\n", cl_argv[0], cl_argv[2]);
+      fprintf(stderr, "%s failed on param file %s.\n", cl_argv[0], cl_argv[paramfile_argnum]);
    }
    int status = status1==PV_SUCCESS && status2==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
-   free(cl_argv[2]);
-   free(cl_argv[1]);
 
 #ifdef PV_USE_MPI
    MPI_Finalize();
@@ -61,6 +75,12 @@ int main(int argc, char * argv[]) {
    }
 #endif // PV_USE_MPI
 
+   for (int k=0; k<argc; k++) {
+      free(cl_argv[k]);
+   }
+   free(cl_argv[paramfile_argnum-1]);
+   free(cl_argv[paramfile_argnum]);
+   free(cl_argv);
 
    return status;
 }
