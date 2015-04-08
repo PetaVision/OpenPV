@@ -322,7 +322,10 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
    }
 #else // PV_USE_OPENMP_THREADS
    if(numthreads != 1){
-      std::cout << "PetaVision must be compiled with OpenMP to run with threads" << "\n";
+      if (columnId()==0) {
+         std::cout << "PetaVision must be compiled with OpenMP to run with threads" << "\n";
+      }
+      MPI_Barrier(icComm->communicator());
       exit(PV_FAILURE);
    }
 #endif // PV_USE_OPENMP_THREADS
