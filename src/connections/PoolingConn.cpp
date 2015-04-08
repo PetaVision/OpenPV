@@ -142,7 +142,7 @@ int PoolingConn::communicateInitInfo() {
    const PVLayerLoc * postLoc = post->getLayerLoc();
    
    if(preLoc->nf != postLoc->nf){
-      std::cout << "Pooling Layer " << name << " error:  preLayer " << pre->getName() << " nf of " << preLoc->nf << " does not match postLayer " << post->getName() << " nf of " << preLoc->nf << ". Features must match\n";
+      std::cout << "Pooling Layer " << name << " error:  preLayer " << pre->getName() << " nf of " << preLoc->nf << " does not match postLayer " << post->getName() << " nf of " << postLoc->nf << ". Features must match\n";
       exit(-1);
    }
 
@@ -520,13 +520,7 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
    //Get number of neurons restricted target
    const int numPostRestricted = post->getNumNeurons();
 
-   float dt_factor;
-   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
-      dt_factor = getParent()->getDeltaTime();
-   }
-   else {
-      dt_factor = getConvertToRateDeltaTimeFactor();
-   }
+   float dt_factor = getConvertToRateDeltaTimeFactor();
 
    const PVLayerLoc * sourceLoc = preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * targetLoc = post->getLayerLoc();
