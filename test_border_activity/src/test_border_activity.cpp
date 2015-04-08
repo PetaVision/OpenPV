@@ -24,7 +24,6 @@
 // The activity in L1 given a 7x7 weight patch,
 // with all weights initialized to 1.
 //
-#define ARGC 3
 #define UNIFORM_ACTIVITY_VALUE 49
 
 using namespace PV;
@@ -35,16 +34,39 @@ int main(int argc, char * argv[])
 {
    int status = 0;
 
-   char * cl_args[ARGC+1];
-   cl_args[0] = strdup(argv[0]);
-   cl_args[1] = strdup("-p");
-   cl_args[2] = strdup("input/test_border_activity.params");
-   cl_args[ARGC] = NULL;
-   HyPerCol * hc = new HyPerCol("column", ARGC, cl_args);
-   for( int k=0; k<ARGC; k++ )
-   {
-      free(cl_args[k]);
+   int rank=0;
+#ifdef PV_USE_MPI
+   MPI_Init(&argc, &argv);
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif // PV_USE_MPI
+
+   if (pv_getopt(argc, argv, "-p", NULL)==0) {
+      if (rank==0) {
+         fprintf(stderr, "%s does not take -p as an option.  Instead the necessary params file is hard-coded.\n", argv[0]);
+      }
+#ifdef PV_USE_MPI
+      MPI_Barrier(MPI_COMM_WORLD);
+#endif // PV_USE_MPI
+      exit(EXIT_FAILURE);
    }
+
+   int cl_argc = argc+2;
+   char ** cl_argv = (char **) calloc((size_t)(cl_argc+1),sizeof(char *));
+   assert(cl_argv);
+   for (int k=0; k<argc; k++) {
+      cl_argv[k] = strdup(argv[k]);
+      assert(cl_argv[k]);
+   }
+   cl_argv[argc] = strdup("-p");
+   int paramfile_argnum = argc+1;
+   cl_argv[paramfile_argnum] = strdup("input/test_border_activity.params");
+   cl_argv[paramfile_argnum+1] = NULL;
+   HyPerCol * hc = new HyPerCol("column", cl_argc, cl_argv);
+   for( int k=0; k<cl_argc; k++ )
+   {
+      free(cl_argv[k]);
+   }
+   free(cl_argv); cl_argv=NULL;
 
    const char * imageLayerName = "test_border_activity image";
    const char * retinaLayerName = "test_border_activity retina";
@@ -72,6 +94,11 @@ int main(int argc, char * argv[])
    status = check_activity(l1);
 
    delete hc;
+
+#ifdef PV_USE_MPI
+   MPI_Finalize();
+#endif // PV_USE_MPI
+
    return status;
 }
 
