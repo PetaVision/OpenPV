@@ -21,6 +21,20 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre,
 
 int main(int argc, char * argv[])
 {
+   if (pv_getopt(argc, argv, "-p", NULL)==0) {
+#ifdef PV_USE_MPI
+      MPI_Init(&argc, &argv);
+      int rank = 0;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      if (rank==0) {
+         fprintf(stderr, "%s does not take a -p argument; the necessary param file is hardcoded.\n", argv[0]);
+      }
+      MPI_Barrier(MPI_COMM_WORLD);
+      MPI_Finalize();
+      exit(EXIT_FAILURE);
+#endif // PV_USE_MPI
+   }
+
    int const cl_argc = argc+2;
    char ** cl_argv = (char **) calloc((size_t) (cl_argc+1), sizeof(char *));
    assert(cl_argv);
