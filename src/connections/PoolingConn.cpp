@@ -506,6 +506,14 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
       }
    }
 #endif
+   if(activity->isSparse){
+      pvdata_t * gSyn = post->getChannel(getChannel());
+      for (int k=0; k<post->getNumNeurons(); k++) {
+         if (gSyn[k]==-INFINITY) {
+            gSyn[k] = 0.0f;
+         }
+      }
+   }
    return PV_SUCCESS;
 }
 
