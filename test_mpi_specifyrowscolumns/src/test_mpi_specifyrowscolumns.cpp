@@ -36,35 +36,71 @@ int main(int argc, char * argv[]) {
    int mpi_initialized_on_entry;
    MPI_Initialized(&mpi_initialized_on_entry);
    if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
+   int rank = 0;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    int numProcs;
    MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 
    if( numProcs != 6) {
-      fprintf(stderr, "%s: this test can only be used under MPI with exactly six processes.\n", argv[0]);
       // TODO Greater than six should be permissible, with the excess over 6 being idle
+      if (rank==0) {
+         fprintf(stderr, "%s: this test can only be used under MPI with exactly six processes.\n", argv[0]);
+      }
+      MPI_Barrier(MPI_COMM_WORLD);
+      exit(EXIT_FAILURE);
+   }
+   
+   if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
+      if (rank==0) {
+         fprintf(stderr, "%s should be run without the params file argument.\n", argv[0]);
+      }
+      status = PV_FAILURE;
+   }
+   if (pv_getopt_int(argc, argv, "-rows", NULL, NULL)==0) {
+      if (rank==0) {
+         fprintf(stderr, "%s should be run without the rows argument.\n", argv[0]);
+      }
+      status = PV_FAILURE;
+   }
+   if (pv_getopt_int(argc, argv, "-columns", NULL, NULL)==0) {
+      if (rank==0) {
+         fprintf(stderr, "%s should be run without the columns argument.\n", argv[0]);
+      }
+      status = PV_FAILURE;
+   }
+   if (status != PV_SUCCESS) {
+      if (rank==0) {
+         fprintf(stderr, "The necessary parameters are hardcoded.\n");
+      }
+      MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
    }
 
-#define TEST_MPI_SPECIFYROWCOLUMNS_ARGC 7
-   char * cl_args[TEST_MPI_SPECIFYROWCOLUMNS_ARGC];
-   cl_args[0] = argv[0];
-   cl_args[1] = strdup("-p");
-   cl_args[2] = strdup("input/test_mpi_specifyrowscolumns.params");
-   cl_args[3] = strdup("-rows");
-   cl_args[4] = strdup("2");
-   cl_args[5] = strdup("-columns");
-   cl_args[6] = strdup("3");
-   buildandverify(TEST_MPI_SPECIFYROWCOLUMNS_ARGC, cl_args);
-
-   free(cl_args[4]);
-   cl_args[4] = strdup("3");
-   free(cl_args[6]);
-   cl_args[6] = strdup("2");
-   buildandverify(TEST_MPI_SPECIFYROWCOLUMNS_ARGC, cl_args);
-
-   for( int arg=1; arg<TEST_MPI_SPECIFYROWCOLUMNS_ARGC; arg++ ) {
-      free(cl_args[arg]);
+   int pv_argc = argc+6;
+   char ** pv_argv = (char **) calloc((size_t) (pv_argc+1), sizeof(char *));
+   assert(pv_argv);
+   for (int k=0; k<argc; k++) {
+      pv_argv[k] = strdup(argv[k]);
+      assert(pv_argv[k]);
    }
+   pv_argv[argc] = strdup("-p");
+   pv_argv[argc+1] = strdup("input/test_mpi_specifyrowscolumns.params");
+   pv_argv[argc+2] = strdup("-rows");
+   pv_argv[argc+3] = strdup("2");
+   pv_argv[argc+4] = strdup("-columns");
+   pv_argv[argc+5] = strdup("3");
+   buildandverify(pv_argc, pv_argv);
+
+   free(pv_argv[argc+3]);
+   pv_argv[argc+3] = strdup("3");
+   free(pv_argv[argc+5]);
+   pv_argv[argc+5] = strdup("2");
+   buildandverify(pv_argc, pv_argv);
+
+   for( int arg=1; arg<pv_argc; arg++ ) {
+      free(pv_argv[arg]);
+   }
+   free(pv_argv);
    if( !mpi_initialized_on_entry ) MPI_Finalize();
    return status;
 }
