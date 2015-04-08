@@ -510,7 +510,7 @@ cd "$workspacedir"
 
 testname=RandStateSystemTest
 cd "$testname"
-arglist="-p input/RandStateSystemTest.params"
+arglist=""
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
