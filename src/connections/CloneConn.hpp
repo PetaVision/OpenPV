@@ -30,8 +30,35 @@ public:
 
    HyPerConn * getOriginalConn(){return originalConn;}
 
+   virtual int allocateDataStructures();
+   virtual int finalizeUpdate(double timed, double dt);
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_OPENCL
+   virtual CLBuffer * getDeviceWData(){
+#endif
+#ifdef PV_USE_CUDA
+   virtual PVCuda::CudaBuffer * getDeviceWData(){
+#endif
+      return originalConn->getDeviceWData();
+   }
+
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   virtual PVCuda::CudaBuffer * getCudnnWData(){
+      return originalConn->getCudnnWData();
+   }
+#endif
+#endif
+
 protected:
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   virtual int allocatePostDeviceWeights();
+   virtual int allocateDeviceWeights();
+#endif
+
    CloneConn();
+   virtual int allocatePostConn();
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);

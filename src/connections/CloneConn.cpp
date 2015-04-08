@@ -192,8 +192,24 @@ int CloneConn::communicateInitInfo() {
    // the clone's param group, and issue a warning (if the param has the right
    // value) or an error (if it has the wrong value).
    int status = cloneParameters();
+
    status = HyPerConn::communicateInitInfo();
    if (status != PV_SUCCESS) return status;
+
+   //Don't allocate post, just grab in allocate from orig
+   if(needPost){
+      originalConn->setNeedPost(true);
+   }
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   if(updateGSynFromPostPerspective && receiveGpu || allocPostDeviceWeights){
+      originalConn->setAllocPostDeviceWeights();
+   }
+   if(!updateGSynFromPostPerspective && receiveGpu || allocDeviceWeights){
+      originalConn->setAllocDeviceWeights();
+   }
+#endif
+
 
    // Presynaptic layers of the CloneConn and its original conn must have the same size, or the patches won't line up with each other.
    const PVLayerLoc * preLoc = pre->getLayerLoc();
@@ -218,6 +234,45 @@ int CloneConn::communicateInitInfo() {
 
    return status;
 }
+
+//#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+//void CloneConn::setAllocDeviceWeights(){
+//   originalConn->setAllocDeviceWeights();
+//   cloneNeedDeviceWeights = true;
+//   allocDeviceWeights = false;
+//}
+//#endif
+
+
+//Overwriting HyPerConn's allocate, since it needs to just grab postConn and preToPostActivity from orig conn
+int CloneConn::allocatePostConn(){
+   postConn = originalConn->postConn;
+   postToPreActivity = originalConn->postToPreActivity;
+}
+
+int CloneConn::allocateDataStructures() {
+   if (!originalConn->getDataStructuresAllocatedFlag()) {
+      if (parent->columnId()==0) {
+         const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
+         printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
+      }
+      return PV_POSTPONE;
+   }
+   int status = HyPerConn::allocateDataStructures();
+   return status;
+}
+
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+//Device buffers live in origConn
+int CloneConn::allocateDeviceWeights(){
+   return PV_SUCCESS;
+}
+int CloneConn::allocatePostDeviceWeights(){
+   return PV_SUCCESS;
+}
+#endif
+
 
 int CloneConn::setPatchSize() {
    assert(originalConn);
@@ -255,6 +310,11 @@ int CloneConn::updateState(double time, double dt) {
    return PV_SUCCESS;
 }
 
+int CloneConn::finalizeUpdate(double timed, double dt){
+   //Orig conn is in charge of calling finalizeUpdate for postConn.
+   return PV_SUCCESS;
+}
+
 int CloneConn::deleteWeights() {
    // Have to make sure not to free memory belonging to originalConn.
    // Set pointers that point into originalConn to NULL so that free() has no effect
@@ -276,6 +336,8 @@ int CloneConn::deleteWeights() {
 CloneConn::~CloneConn() {
    free(originalConnName);
    deleteWeights();
+   postConn = NULL;
+   postToPreActivity = NULL;
 }
 
 } // end namespace PV

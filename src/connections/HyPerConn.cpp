@@ -323,6 +323,7 @@ int HyPerConn::initialize_base()
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    receiveGpu = false;
    allocDeviceWeights = false;
+   allocPostDeviceWeights = false;
    d_WData = NULL;
    d_Patches = NULL;
    d_GSynPatchStart = NULL;
@@ -330,7 +331,7 @@ int HyPerConn::initialize_base()
    d_Patch2DataLookupTable = NULL;
    krRecvPost = NULL;
    krRecvPre = NULL;
-   updatedDeviceWeights = true; //Start off as always updated
+   //updatedDeviceWeights = true; //Start off as always updated
    numXLocal= 1;
    numYLocal= 1;
    numFLocal = 1;
@@ -1596,7 +1597,12 @@ int HyPerConn::communicateInitInfo() {
    if(receiveGpu){
       //we need pre datastore, this conn's weights, and post gsyn on the channel of this connection
       pre->setAllocDeviceDatastore();
-      this->setAllocDeviceWeights();
+      if(updateGSynFromPostPerspective){
+         this->setAllocPostDeviceWeights();
+      }
+      else{
+         this->setAllocDeviceWeights();
+      }
       post->setAllocDeviceGSyn();
 
       //If recv from pre and pre layer is sparse, allocate activeIndices
@@ -1612,6 +1618,7 @@ int HyPerConn::communicateInitInfo() {
 }
 
 int HyPerConn::allocatePreToPostBuffer(){
+   if(postToPreActivity){return PV_SUCCESS;}
    //update conn to original connection
    const PVLayerLoc * sourceLoc = preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * targetLoc = postSynapticLayer()->getLayerLoc();
@@ -1747,6 +1754,22 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataS
    return patches;
 }
 
+int HyPerConn::allocatePostConn(){
+   //Allocate private transpose conn
+   if(needPost){
+      char privateConnName [PV_PATH_MAX];
+      sprintf(privateConnName, "&%s_privatePostConn", this->name);
+      postConn = new privateTransposeConn(privateConnName, parent, this);
+      assert(postConn);
+      postConn->allocateDataStructures();
+   }
+   //Can't do this with shrink patches flag
+   if(needPost && !shrinkPatches_flag){
+      allocatePreToPostBuffer();
+   }
+}
+
+
 int HyPerConn::allocateDataStructures() {
    int status = BaseConnection::allocateDataStructures();
    initNumWeightPatches();
@@ -1813,18 +1836,7 @@ int HyPerConn::allocateDataStructures() {
       }
    }
 
-   //Allocate private transpose conn
-   if(needPost){
-      char privateConnName [PV_PATH_MAX];
-      sprintf(privateConnName, "&%s_privatePostConn", this->name);
-      postConn = new privateTransposeConn(privateConnName, parent, this, needAllocPostWeights);
-      assert(postConn);
-      postConn->allocateDataStructures();
-   }
-   //Can't do this with shrink patches flag
-   if(needPost && !shrinkPatches_flag){
-      allocatePreToPostBuffer();
-   }
+   allocatePostConn();
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    status = allocateDeviceBuffers();
@@ -1938,27 +1950,8 @@ InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
 int HyPerConn::allocatePostDeviceWeights(){
-#ifdef PV_USE_OPENCL
-   CLDevice * device = parent->getDevice();
-#endif
-#ifdef PV_USE_CUDA
-   PVCuda::CudaDevice * device = parent->getDevice();
-#endif
-
-   const size_t size = postConn->getNumDataPatches() * postConn->xPatchSize() * postConn->yPatchSize() * postConn->fPatchSize() * sizeof(pvwdata_t);
-#ifdef PV_USE_OPENCL
-   d_WData = device->createBuffer(CL_MEM_READ_ONLY, size, NULL);
-#endif
-#ifdef PV_USE_CUDA
-   d_WData = device->createBuffer(size);
-   assert(d_WData);
-#endif
-
-#ifdef PV_USE_CUDNN
-   cudnn_WData = device->createBuffer(size);
-#endif
-   return PV_SUCCESS;
-
+   assert(postConn);
+   postConn->allocateDeviceWeights();
 }
 
 int HyPerConn::allocateDeviceWeights(){
@@ -1968,7 +1961,7 @@ int HyPerConn::allocateDeviceWeights(){
 #ifdef PV_USE_CUDA
    PVCuda::CudaDevice * device = parent->getDevice();
 #endif
-   const size_t size = getNumDataPatches() * xPatchSize() * yPatchSize() * fPatchSize() * sizeof(pvwdata_t);
+   const size_t size = numberOfAxonalArborLists() * getNumDataPatches() * xPatchSize() * yPatchSize() * fPatchSize() * sizeof(pvwdata_t);
 #ifdef PV_USE_OPENCL
    d_WData = device->createBuffer(CL_MEM_READ_ONLY, size, NULL);
 #endif
@@ -1997,7 +1990,7 @@ int HyPerConn::allocateDeviceBuffers()
 #endif
 
    bool needAlloc = true;
-   if(allocDeviceWeights){
+   if(allocDeviceWeights || allocPostDeviceWeights){
       //Check group here
 #ifdef PV_USE_CUDA
       if(gpuGroupIdx >= 0){
@@ -2019,14 +2012,17 @@ int HyPerConn::allocateDeviceBuffers()
             if(group_conn->xPatchSize() != this->xPatchSize() ||
                group_conn->yPatchSize() != this->yPatchSize() ||
                group_conn->fPatchSize() != this->fPatchSize() ||
-               group_conn->getNumDataPatches() != this->getNumDataPatches()){
+               group_conn->getNumDataPatches() != this->getNumDataPatches() ||
+               group_conn->numberOfAxonalArborLists() != this->numberOfAxonalArborLists()){
                   std::cout << "Connection " << this->getName() << " of size (" <<
+                  this->numberOfAxonalArborLists() << ", " <<
                   this->getNumDataPatches() << ", " << 
                   this->xPatchSize() << ", " <<
                   this->yPatchSize() << ", " <<
                   this->fPatchSize() << 
                   ") does not match the gpuGroupConnection " << 
                   group_conn->getName() << " of size (" <<
+                  group_conn->numberOfAxonalArborLists() << ", " <<
                   group_conn->getNumDataPatches() << ", " << 
                   group_conn->xPatchSize() << ", " <<
                   group_conn->yPatchSize() << ", " <<
@@ -2046,10 +2042,10 @@ int HyPerConn::allocateDeviceBuffers()
 #endif // PV_USE_CUDA
       
       if(needAlloc){
-         if(updateGSynFromPostPerspective){
+         if(allocPostDeviceWeights){
             allocatePostDeviceWeights();
          }
-         else{
+         else if(allocDeviceWeights){
             allocateDeviceWeights();
          }
       }
@@ -2190,7 +2186,7 @@ int HyPerConn::allocateReceivePreKernel()
    assert(d_PreData);
    assert(d_PostGSyn);
 
-   assert(d_WData);
+   assert(getDeviceWData());
    assert(d_Patches);
    assert(d_GSynPatchStart);
 
@@ -2285,7 +2281,7 @@ int HyPerConn::allocateReceivePreKernel()
       d_GSynPatchStart,
 
       d_PreData,
-      d_WData,
+      getDeviceWData(),
       d_PostGSyn,
       d_Patch2DataLookupTable,
 
@@ -2328,17 +2324,17 @@ int HyPerConn::allocateReceivePostKernel()
 #ifdef PV_USE_OPENCL
    CLBuffer* d_PreData = pre->getDeviceDatastore();
    CLBuffer* d_PostGSyn = post->getDeviceGSyn();
-   CLBuffer* d_origWData = this->getDeviceWData();
+   CLBuffer* d_origWData = postConn->getDeviceWData();
 #endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_PreData = pre->getDeviceDatastore();
    PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn();
-   PVCuda::CudaBuffer* d_origWData = this->getDeviceWData();
+   PVCuda::CudaBuffer* d_origWData = postConn->getDeviceWData();
 
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * cudnn_preData = pre->getCudnnDatastore();
    PVCuda::CudaBuffer * cudnn_gSyn = post->getCudnnGSyn();
-   PVCuda::CudaBuffer * cudnn_origWData = this->getCudnnWData();
+   PVCuda::CudaBuffer * cudnn_origWData = postConn->getCudnnWData();
    assert(cudnn_preData);
    assert(cudnn_gSyn);
    assert(cudnn_origWData);
@@ -3085,7 +3081,6 @@ bool HyPerConn::needUpdate(double time, double dt){
    }
 }
 
-
 int HyPerConn::updateStateWrapper(double time, double dt){
    int status = PV_SUCCESS;
    if(needUpdate(time, dt)){
@@ -3118,9 +3113,9 @@ int HyPerConn::updateStateWrapper(double time, double dt){
          }
       }
       else {
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-         updatedDeviceWeights = true;
-#endif
+//#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+//         updatedDeviceWeights = true;
+//#endif
          status = updateState(time, dt);
          //Update lastUpdateTime
          lastUpdateTime = time;
@@ -3171,11 +3166,19 @@ int HyPerConn::updateState(double time, double dt)
 
 int HyPerConn::finalizeUpdate(double timed, double dt){
    if (!needFinalize) { return PV_SUCCESS; }
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   if(allocDeviceWeights){
+      updateDeviceWeights();
+   }
+#endif
+
    //Update postConn if needed
    if(needPost){
       int status = postConn->finalizeUpdate(timed, dt);
       assert(status == PV_SUCCESS);
    }
+
    needFinalize = false;
    return PV_SUCCESS;
 }
@@ -3765,7 +3768,37 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
    return PV_SUCCESS;
 }
 
+
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+void HyPerConn::updateDeviceWeights(){
+   //wDataStart is one big buffer, so this should grab everything
+   float * h_weights = get_wDataStart(0);
+#ifdef PV_USE_OPENCL
+   CLBuffer * d_weights = getDeviceWData();
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * d_weights = getDeviceWData();
+#endif
+   assert(d_weights);
+   d_weights->copyToDevice(h_weights);
+
+   //Need barrier here?
+   parent->getDevice()->syncDevice();
+
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   //Set local sizes here
+   const PVLayerLoc * preLoc = pre->getLayerLoc();
+   const PVLayerLoc * postLoc = post->getLayerLoc();
+   //float preToPostScaleX = (float)postLoc->nx/((float)preLoc->nx);
+   //float preToPostScaleY = (float)postLoc->ny/((float)preLoc->ny);
+   //float preToPostScaleX = (float)preLoc->nx/((float)postLoc->nx);
+   //float preToPostScaleY = (float)preLoc->ny/((float)postLoc->ny);
+
+   assert(cudnn_WData);
+   cudnn_WData->permuteWeightsPVToCudnn(d_weights->getPointer(), parent->getDevice(), numberOfAxonalArborLists(), getNumDataPatches(), nxp, nyp, nfp);
+#endif
+}
+
 int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID) {
    assert(krRecvPre);
    //Check if we need to update based on connection's channel
@@ -3859,18 +3892,8 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
       preSynapticLayer()->setUpdatedDeviceDatastoreFlag(false);
    }
 
-   if(getUpdatedDeviceWFlag()){
-      float * h_weights = get_wDataStart(arborID);
-#ifdef PV_USE_OPENCL
-      CLBuffer * d_weights = getDeviceWData();
-#endif
-#ifdef PV_USE_CUDA
-      PVCuda::CudaBuffer * d_weights = getDeviceWData();
-#endif
-      assert(d_weights);
-      d_weights->copyToDevice(h_weights);
-      setUpdatedDeviceWFlag(false);
-   }
+   //This is being updated in FinalizeUpdate
+   //updateDeviceWeights();
 
 //#ifdef PV_USE_OPENCL
 //   //Grab kernel from conn
@@ -4000,22 +4023,22 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    }
 
 
-   bool updateWeights = false;
-   if(this->getUpdatedDeviceWFlag() || gpuGroupIdx >= 0){
-      //These weights should be orig conn weights
-      float * h_weights = postConn->get_wDataStart(arborID);
-
-#ifdef PV_USE_OPENCL
-      CLBuffer * d_weights = getDeviceWData();
-#endif
-#ifdef PV_USE_CUDA
-      PVCuda::CudaBuffer * d_weights = getDeviceWData();
-#endif
-      assert(d_weights);
-      d_weights->copyToDevice(h_weights);
-      setUpdatedDeviceWFlag(false);
-      updateWeights = true;
-   }
+//   bool updateWeights = false;
+//   if(this->getUpdatedDeviceWFlag() || gpuGroupIdx >= 0){
+//      //These weights should be orig conn weights
+//      float * h_weights = postConn->get_wDataStart(arborID);
+//
+//#ifdef PV_USE_OPENCL
+//      CLBuffer * d_weights = getDeviceWData();
+//#endif
+//#ifdef PV_USE_CUDA
+//      PVCuda::CudaBuffer * d_weights = getDeviceWData();
+//#endif
+//      assert(d_weights);
+//      d_weights->copyToDevice(h_weights);
+//      setUpdatedDeviceWFlag(false);
+//      updateWeights = true;
+//   }
 
 //#ifdef PV_USE_OPENCL
 //   CLKernel * krRecvPost = getKrRecvPost();        // CL kernel for update state call
@@ -4027,9 +4050,9 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    if(updatePreAct){
       krRecvPost->permuteDatastorePVToCudnn();
    }
-   if(updateWeights){
-      krRecvPost->permuteWeightsPVToCudnn();
-   }
+   //if(updateWeights){
+   //   krRecvPost->permuteWeightsPVToCudnn();
+   //}
    //Permute GSyn
    krRecvPost->permuteGSynPVToCudnn(this->getChannel());
 #endif // defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)

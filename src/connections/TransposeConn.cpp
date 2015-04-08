@@ -22,13 +22,9 @@ TransposeConn::TransposeConn(const char * name, HyPerCol * hc) {
 TransposeConn::~TransposeConn() {
    free(originalConnName); originalConnName = NULL;
    deleteWeights();
-   if(needPost){
-      postConn = NULL;
-   }
+   postConn = NULL;
    //Transpose conn doesn't allocate postToPreActivity
-   if(this->postToPreActivity){
-      postToPreActivity = NULL;
-   }
+   postToPreActivity = NULL;
 }  // TransposeConn::~TransposeConn()
 
 int TransposeConn::initialize_base() {
@@ -227,8 +223,8 @@ int TransposeConn::communicateInitInfo() {
    numAxonalArborLists = originalConn->numberOfAxonalArborLists();
    parent->parameters()->handleUnnecessaryParameter(name, "numAxonalArbors", numAxonalArborLists);
 
-   plasticityFlag = originalConn->getPlasticityFlag();
-   parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
+   //plasticityFlag = originalConn->getPlasticityFlag();
+   //parent->parameters()->handleUnnecessaryParameter(name, "plasticityFlag", plasticityFlag);
 
    if(originalConn->getShrinkPatches_flag()) {
       if (parent->columnId()==0) {
@@ -269,6 +265,16 @@ int TransposeConn::communicateInitInfo() {
    }
 
    originalConn->setNeedPost(true);
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   if(updateGSynFromPostPerspective && receiveGpu || allocPostDeviceWeights){
+      originalConn->setAllocDeviceWeights();
+   }
+   if(!updateGSynFromPostPerspective && receiveGpu || allocDeviceWeights){
+      originalConn->setAllocPostDeviceWeights();
+   }
+#endif
+   
 
    //Synchronize margines of this post and orig pre, and vice versa
    originalConn->preSynapticLayer()->synchronizeMarginWidth(post);
@@ -320,7 +326,24 @@ int TransposeConn::setPatchSize() {
    parent->parameters()->handleUnnecessaryParameter(name, "nyp", nyp);
    parent->parameters()->handleUnnecessaryParameter(name, "nfp", nfp);
    return PV_SUCCESS;
+}
 
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+//Device buffers live in origConn
+int TransposeConn::allocateDeviceWeights(){
+   return PV_SUCCESS;
+}
+int TransposeConn::allocatePostDeviceWeights(){
+   return PV_SUCCESS;
+}
+#endif
+
+//Set this post to orig
+int TransposeConn::allocatePostConn(){
+   std::cout << "Connection " << name << " setting " << originalConn->getName() << " as postConn\n";
+   postConn = originalConn;
+   originalConn->postConn->allocatePreToPostBuffer();
+   postToPreActivity = originalConn->postConn->getPostToPreActivity();
 }
 
 int TransposeConn::allocateDataStructures() {
@@ -332,22 +355,7 @@ int TransposeConn::allocateDataStructures() {
       return PV_POSTPONE;
    }
 
-   bool tempNeedPost = false;
-   //Turn off need post so postConn doesn't get allocated
-   if(needPost){
-      needPost = false;
-      postConn = originalConn;
-      //TODO this buffer is only needed if this transpose conn is receiving from post
-      originalConn->postConn->allocatePreToPostBuffer();
-      postToPreActivity = originalConn->postConn->getPostToPreActivity();
-      tempNeedPost = true;
-   }
    HyPerConn::allocateDataStructures();
-
-   //Set nessessary buffers
-   if(tempNeedPost){
-      needPost = true;
-   }
 
    normalizer = NULL;
    
@@ -400,7 +408,7 @@ PVPatch*** TransposeConn::initializeWeights(PVPatch*** patches, pvwdata_t** data
 }
 
 bool TransposeConn::needUpdate(double timed, double dt) {
-   return plasticityFlag && originalConn->getLastUpdateTime() > lastUpdateTime;
+   return false;
 }
 
 int TransposeConn::updateState(double time, double dt) {
@@ -409,6 +417,11 @@ int TransposeConn::updateState(double time, double dt) {
 
 double TransposeConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
    return weightUpdateTime; // TransposeConn does not use weightUpdateTime to determine when to update
+}
+
+int TransposeConn::finalizeUpdate(double timed, double dt){
+   //Orig conn is in charge of calling finalizeUpdate for postConn.
+   return PV_SUCCESS;
 }
 
 //int TransposeConn::finalizeUpdate(double time, double dt) {

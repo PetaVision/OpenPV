@@ -24,9 +24,33 @@ public:
    virtual bool needUpdate(double timed, double dt);
    virtual int updateState(double time, double dt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
-   //virtual int finalizeUpdate(double time, double dt);
+   virtual int finalizeUpdate(double time, double dt);
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#ifdef PV_USE_OPENCL
+   virtual CLBuffer * getDeviceWData(){
+#endif
+#ifdef PV_USE_CUDA
+   virtual PVCuda::CudaBuffer * getDeviceWData(){
+#endif
+      return originalConn->postConn->getDeviceWData();
+   }
+
+#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+   virtual PVCuda::CudaBuffer * getCudnnWData(){
+      return originalConn->postConn->getCudnnWData();
+   }
+#endif
+#endif
 
 protected:
+
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   virtual int allocatePostDeviceWeights();
+   virtual int allocateDeviceWeights();
+#endif
+
+
     int initialize_base();
     int initialize(const char * name, HyPerCol * hc);
     virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
@@ -61,6 +85,7 @@ protected:
     virtual int calc_dW(int arborId){return PV_BREAK;};
     //virtual int reduceKernels(int arborID);
     virtual int constructWeights();
+    virtual int allocatePostConn();
 
 private:
     //int transposeSharedWeights(int arborId);

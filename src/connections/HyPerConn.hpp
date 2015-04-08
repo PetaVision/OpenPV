@@ -882,6 +882,8 @@ protected:
    int createWeights(PVPatch*** patches, int arborId);
    virtual pvwdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
    virtual int allocatePreToPostBuffer();
+   virtual int allocatePostConn();
+
    int clearWeights(pvwdata_t** dataStart, int numPatches, int nx, int ny, int nf);
    virtual int adjustAllPatches(int nxPre, int nyPre, int nfPre, const PVHalo * haloPre, int nxPost, int nyPost, int nfPost, const PVHalo * haloPost, PVPatch*** inWPatches, size_t** inGSynPatchStart, size_t** inAPostOffset, int arborId);
    virtual int adjustAxonalArbors(int arborId);
@@ -917,15 +919,25 @@ protected:
 //GPU variables
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 public:
+   bool getAllocDeviceWeights(){
+      return allocDeviceWeights;
+   }
+   bool getAllocPostDeviceWeights(){
+      return allocPostDeviceWeights;
+   }
+
    //TODO check if kernel name is ever needed
    void setAllocDeviceWeights(){
-      allocDeviceWeights = true;
+      allocDeviceWeights= true;
+   }
+   void setAllocPostDeviceWeights(){
+      allocPostDeviceWeights = true;
    }
 #ifdef PV_USE_OPENCL
-   CLBuffer * getDeviceWData(){
+   virtual CLBuffer * getDeviceWData(){
 #endif
 #ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer * getDeviceWData(){
+   virtual PVCuda::CudaBuffer * getDeviceWData(){
 #endif
       return d_WData;
    }
@@ -955,7 +967,7 @@ public:
    }
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-   PVCuda::CudaBuffer * getCudnnWData(){
+   virtual PVCuda::CudaBuffer * getCudnnWData(){
       return cudnn_WData;
    }
    void setCudnnWData(PVCuda::CudaBuffer* inBuf){
@@ -965,7 +977,7 @@ public:
 
 #ifdef PV_USE_OPENCL
    void clFinishW(){ 
-      if(allocDeviceWeights && d_WData){
+      if(allocDeviceWeights&& d_WData){
          d_WData->finish();
       }
    }
@@ -986,18 +998,18 @@ public:
    virtual int getNumYLocal(){return numYLocal;}
    virtual int getNumFLocal(){return numFLocal;}
    
-   bool getUpdatedDeviceWFlag(){
-      //Always update if numarbors > 1
-      if(numAxonalArborLists > 1){
-         return true;
-      }
-      else{
-         return updatedDeviceWeights;
-      }
-   }
-   void setUpdatedDeviceWFlag(bool in){
-      updatedDeviceWeights = in;
-   }
+   //virtual bool getUpdatedDeviceWFlag(){
+   //   //Always update if numarbors > 1
+   //   if(numAxonalArborLists > 1){
+   //      return true;
+   //   }
+   //   else{
+   //      return updatedDeviceWeights;
+   //   }
+   //}
+   //void setUpdatedDeviceWFlag(bool in){
+   //   updatedDeviceWeights = in;
+   //}
    
 protected:
    virtual int allocatePostDeviceWeights();
@@ -1005,9 +1017,12 @@ protected:
    virtual int allocateDeviceBuffers();
    virtual int allocateReceivePostKernel();
    virtual int allocateReceivePreKernel();
+   virtual void updateDeviceWeights();
 
    bool allocDeviceWeights;
-   bool updatedDeviceWeights;
+   bool allocPostDeviceWeights;
+   //bool updatedDeviceWeights;
+   
 
 #ifdef PV_USE_OPENCL
    CLBuffer * d_WData;
@@ -1035,6 +1050,7 @@ protected:
    int numXLocal;
    int numYLocal;
    int numFLocal;
+
 
 
 //   bool gpuAccelerateFlag; // Whether to accelerate the connection on a GPU

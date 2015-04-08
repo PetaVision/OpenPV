@@ -8,10 +8,13 @@
 #ifndef CUDABUFFER_HPP_
 #define CUDABUFFER_HPP_
 
+
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace PVCuda {
 #include <cuda_runtime_api.h>
+
+class CudaDevice;
 
 /**
  * A class to handle device memory allocations and transfers
@@ -58,6 +61,8 @@ public:
     * #return Returns the size of the device memory
     */
    size_t getSize(){return size;}
+
+   void permuteWeightsPVToCudnn(void *d_inPtr, CudaDevice* device, int numArbors, int numKernels, int nxp, int nyp, int nfp);
 
 protected:
    void * d_ptr;                       // pointer to buffer on host

@@ -589,25 +589,25 @@ void CudaRecvPost::permuteGSynCudnnToPV(int channel){
    handleCallError("Permute GSyn CUDNN to PV");
 }
 
-void CudaRecvPost::permuteWeightsPVToCudnn(){
-   //outFeatures is number of kernels
-   int outFeatures = params.nf;
-
-   //Rest is patch sizes
-   int ny = params.nyp;
-   int nx = params.nxp;
-   int inFeatures = params.nfp;
-
-   //Calculate grid and work size
-   int numWeights = outFeatures * params.manyScaleX * params.manyScaleY * ny * nx * inFeatures;
-   int blockSize = device->get_max_threads();
-   //Ceil to get all weights
-   int gridSize = ceil((float)numWeights/blockSize);
-   //Call function
-   //printf("Calling weights PV To Cudnn with (%d, %d, %d, %d)\n", outFeatures, ny, nx, inFeatures);
-   CudaPermuteWeightsPVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_weights, params.weights, outFeatures, ny, nx, inFeatures, params.manyScaleX, params.manyScaleY);
-   handleCallError("Permute weights PV to CUDNN");
-}
+//void CudaRecvPost::permuteWeightsPVToCudnn(){
+//   //outFeatures is number of kernels
+//   int outFeatures = params.nf;
+//
+//   //Rest is patch sizes
+//   int ny = params.nyp;
+//   int nx = params.nxp;
+//   int inFeatures = params.nfp;
+//
+//   //Calculate grid and work size
+//   int numWeights = outFeatures * params.manyScaleX * params.manyScaleY * ny * nx * inFeatures;
+//   int blockSize = device->get_max_threads();
+//   //Ceil to get all weights
+//   int gridSize = ceil((float)numWeights/blockSize);
+//   //Call function
+//   //printf("Calling weights PV To Cudnn with (%d, %d, %d, %d)\n", outFeatures, ny, nx, inFeatures);
+//   CudaPermuteWeightsPVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_weights, params.weights, outFeatures, ny, nx, inFeatures, params.manyScaleX, params.manyScaleY);
+//   handleCallError("Permute weights PV to CUDNN");
+//}
 
 #endif
 
