@@ -236,10 +236,8 @@ for i in error_layer:
 
 for c,i in enumerate(layer_names):
     
-    if (re.search("Recon",i) or re.search("recon",i)) and not re.search("Error",i):
-        n = layer_values[c][layer_vars.index("nf")]
-        if n == '1' or n == '3':
-            recon_name.append(i)
+    if (re.search("Recon",i) or re.search("recon",i)):
+        recon_name.append(i)
 
 hyper = []
 err = []
