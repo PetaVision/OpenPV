@@ -584,6 +584,9 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
          //Convert stored global extended index into local extended index
          int postGlobalExtIdx = postIdxData[kPreExt];
 
+         // If all inputs are zero and input layer is sparse, postGlobalExtIdx will still be -1.
+         if(postGlobalExtIdx == -1) { continue; }
+
          //Make sure the index is in bounds
          assert(postGlobalExtIdx >= 0 && postGlobalExtIdx <
                (postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt) * 
