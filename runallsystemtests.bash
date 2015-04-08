@@ -665,7 +665,7 @@ testname=test_mpi_specifyrowscolumns
 if test $usempi -eq 1
 then
     cd "$testname"
-    arglist="-p input/test_mpi_specifyrowscolumns"
+    arglist=""
     mpirunandecho 6 $testname $testname Debug/$testname $arglist
 else
     echo "Skipping MPI-only test $testname"
