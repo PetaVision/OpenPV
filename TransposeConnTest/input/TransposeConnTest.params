@@ -133,8 +133,6 @@ HyPerConn "Original Map for One to One Test" = {
     sharedWeights                       = true;
     nxp                                 = 7;
     nyp                                 = 7;
-    nxpShrunken                         = 7;
-    nypShrunken                         = 7;
     nfp                                 = 4;
     numAxonalArbors                     = 2;
     // useWindowPost;
@@ -228,8 +226,6 @@ HyPerConn "Original Map for Many to One Test" = {
     sharedWeights                       = true;
     nxp                                 = 7;
     nyp                                 = 7;
-    nxpShrunken                         = 7;
-    nypShrunken                         = 7;
     nfp                                 = 8;
     numAxonalArbors                     = 2;
     // useWindowPost;
@@ -322,8 +318,6 @@ HyPerConn "Original Map for One to Many Test" = {
     sharedWeights                       = true;
     nxp                                 = 28;
     nyp                                 = 28;
-    nxpShrunken                         = 28;
-    nypShrunken                         = 28;
     nfp                                 = 2;
     numAxonalArbors                     = 2;
     // useWindowPost;
