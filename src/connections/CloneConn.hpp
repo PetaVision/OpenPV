@@ -33,6 +33,10 @@ public:
    virtual int allocateDataStructures();
    virtual int finalizeUpdate(double timed, double dt);
 
+   virtual long * getPostToPreActivity(){
+      return originalConn->getPostToPreActivity();
+   }
+
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 #ifdef PV_USE_OPENCL
    virtual CLBuffer * getDeviceWData(){
@@ -49,6 +53,15 @@ public:
    }
 #endif
 #endif
+
+   //If this layer needs to allocate device weights, set orig conn's alloc weights
+   virtual void setAllocDeviceWeights(){
+      originalConn->setAllocDeviceWeights();
+   }
+   //Vice versa
+   virtual void setAllocPostDeviceWeights(){
+      originalConn->setAllocPostDeviceWeights();
+   }
 
 protected:
 

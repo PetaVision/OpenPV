@@ -1656,8 +1656,11 @@ int HyPerConn::allocatePreToPostBuffer(){
 
          postToPreActivity[kTargetRes] = kIndex(xVal + sourceHalo->lt, yVal + sourceHalo->up, 0,
                sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->up + sourceHalo->dn, sourceNf); 
+
+         //std::cout << "kTarget: (" << kTargetXRes << ", " << kTargetYRes << ")  kSource: (" << xVal << ", " << yVal << ")\n";
       }
    }
+
    //origpost many, origpre one
    else if(sourceToTargetScaleX < 1 && sourceToTargetScaleY < 1){
       int targetToSourceScaleX = (float)1/sourceToTargetScaleX;
@@ -1665,10 +1668,14 @@ int HyPerConn::allocatePreToPostBuffer(){
       for (int kTargetRes = 0; kTargetRes < numRestricted; kTargetRes++){
          int kTargetXRes = kxPos(kTargetRes, targetNx, targetNy, targetNf);
          int kTargetYRes = kyPos(kTargetRes, targetNx, targetNy, targetNf);
-         int kTargetF = featureIndex(kTargetRes, targetNx, targetNy, targetNf);
 
-         int xVal = ((2*kTargetXRes + 1)/(2*targetToSourceScaleX)) - (postConn->xPatchSize()/2);
-         int yVal = ((2*kTargetYRes + 1)/(2*targetToSourceScaleY)) - (postConn->yPatchSize()/2);
+         int centerX = floor((float)kTargetXRes/(targetToSourceScaleX/2));
+         int centerY = floor((float)kTargetYRes/(targetToSourceScaleY/2));
+         int offsetX = postConn->xPatchSize()-1;
+         int offsetY = postConn->yPatchSize()-1;
+
+         int xVal = floor(((float)centerX - offsetX)/2);
+         int yVal = floor(((float)centerY - offsetY)/2);
          postToPreActivity[kTargetRes] = kIndex(xVal + sourceHalo->lt, yVal + sourceHalo->up, 0,
                sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->up + sourceHalo->dn, sourceNf); 
       }
@@ -1771,6 +1778,7 @@ int HyPerConn::allocatePostConn(){
    //Can't do this with shrink patches flag
    if(needPost && !shrinkPatches_flag){
       status = allocatePreToPostBuffer();
+      postConn->allocatePreToPostBuffer();
    }
    return status;
 }
@@ -2388,7 +2396,7 @@ int HyPerConn::allocateReceivePostKernel()
 
    //Since it never changes, set this buffer here
    //Need to set orig connection's patch2datalookuptable
-   d_PostToPreActivity->copyToDevice(postToPreActivity);
+   d_PostToPreActivity->copyToDevice(getPostToPreActivity());
 
    d_Patch2DataLookupTable->copyToDevice(postConn->getPatchToDataLUT());
 

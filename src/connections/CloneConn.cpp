@@ -247,7 +247,7 @@ int CloneConn::communicateInitInfo() {
 //Overwriting HyPerConn's allocate, since it needs to just grab postConn and preToPostActivity from orig conn
 int CloneConn::allocatePostConn(){
    postConn = originalConn->postConn;
-   postToPreActivity = originalConn->postToPreActivity;
+   //postToPreActivity = originalConn->postToPreActivity;
    return PV_SUCCESS;
 }
 

@@ -926,11 +926,10 @@ public:
       return allocPostDeviceWeights;
    }
 
-   //TODO check if kernel name is ever needed
-   void setAllocDeviceWeights(){
+   virtual void setAllocDeviceWeights(){
       allocDeviceWeights= true;
    }
-   void setAllocPostDeviceWeights(){
+   virtual void setAllocPostDeviceWeights(){
       allocPostDeviceWeights = true;
    }
 #ifdef PV_USE_OPENCL
