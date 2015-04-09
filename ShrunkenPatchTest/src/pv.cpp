@@ -39,6 +39,7 @@ int main(int argc, char * argv[]) {
    }
    ParamGroupHandler * customGroupHandler = new CustomGroupHandler;
    status = buildandrun(num_cl_args, cl_args, NULL, NULL, &customGroupHandler, 1)==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   delete customGroupHandler;
    if( paramfileabsent ) {
       free(cl_args[1]);
       free(cl_args[2]);

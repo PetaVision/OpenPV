@@ -14,5 +14,6 @@ int main(int argc, char * argv[]) {
    RescaleLayerTestGroupHandler * groupHandlerList[1];
    groupHandlerList[0] = new RescaleLayerTestGroupHandler();
    status = buildandrun(argc, argv, NULL, NULL, (ParamGroupHandler **) groupHandlerList, 1);
+   delete groupHandlerList[0];
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

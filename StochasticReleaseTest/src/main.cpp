@@ -49,5 +49,6 @@ int main(int argc, char * argv[]) {
    int status;
    StochasticReleaseTestGroupHandler * customGroupHandler = new StochasticReleaseTestGroupHandler;
    status = buildandrun(argc, argv, NULL, NULL, (PV::ParamGroupHandler **) &customGroupHandler, 1);
+   delete customGroupHandler;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
