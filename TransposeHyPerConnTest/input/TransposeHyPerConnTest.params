@@ -51,6 +51,7 @@ ANNLayer "Layer A" = {
     AShift                              = 0.0;
     AMax                                = infinity;
     VWidth                              = 0.0;
+    clearGSynInterval                   = 0.0;
 };
 
 ANNLayer "Layer B One to One" = {
@@ -75,6 +76,7 @@ ANNLayer "Layer B One to One" = {
     AShift                              = 0.0;
     AMax                                = infinity;
     VWidth                              = 0.0;
+    clearGSynInterval                   = 0.0;
 };
 
 ANNLayer "Layer B Many to One" = {
@@ -99,6 +101,7 @@ ANNLayer "Layer B Many to One" = {
     AShift                              = 0.0;
     AMax                                = infinity;
     VWidth                              = 0.0;
+    clearGSynInterval                   = 0.0;
 };
 
 ANNLayer "Layer B One to Many" = {
@@ -123,6 +126,7 @@ ANNLayer "Layer B One to Many" = {
     AShift                              = 0.0;
     AMax                                = infinity;
     VWidth                              = 0.0;
+    clearGSynInterval                   = 0.0;
 };
 
 HyPerConn "Original Map for One to One Test" = {
@@ -132,8 +136,6 @@ HyPerConn "Original Map for One to One Test" = {
     sharedWeights                       = false;
     nxp                                 = 7;
     nyp                                 = 7;
-    nxpShrunken                         = 7;
-    nypShrunken                         = 7;
     nfp                                 = 4;
     numAxonalArbors                     = 2;
     // useWindowPost;
@@ -226,8 +228,6 @@ HyPerConn "Original Map for Many to One Test" = {
     sharedWeights                       = false;
     nxp                                 = 7;
     nyp                                 = 7;
-    nxpShrunken                         = 7;
-    nypShrunken                         = 7;
     nfp                                 = 8;
     numAxonalArbors                     = 2;
     // useWindowPost;
@@ -320,8 +320,6 @@ HyPerConn "Original Map for One to Many Test" = {
     sharedWeights                       = false;
     nxp                                 = 28;
     nyp                                 = 28;
-    nxpShrunken                         = 28;
-    nypShrunken                         = 28;
     nfp                                 = 2;
     numAxonalArbors                     = 2;
     // useWindowPost;
