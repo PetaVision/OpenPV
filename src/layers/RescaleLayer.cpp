@@ -22,6 +22,7 @@ RescaleLayer::RescaleLayer(const char * name, HyPerCol * hc) {
 
 RescaleLayer::~RescaleLayer()
 {
+   free(rescaleMethod);
    // Handled by CloneVLayer destructor
    // free(originalLayerName);
    // clayer->V = NULL;

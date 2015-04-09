@@ -834,14 +834,14 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
 void HyPerConn::ioParam_gpuGroupIdx(enum ParamsIOFlag ioFlag) {
-   //assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    if(receiveGpu){
       parent->ioParamValue(ioFlag, name, "gpuGroupIdx", &gpuGroupIdx, gpuGroupIdx/*default*/, false/*warn if absent*/);
    }
 }
 
 void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
-   //assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
 #ifndef PV_USE_CUDNN
    if(receiveGpu){
       parent->ioParamValue(ioFlag, name, "preDataLocal", &preDataLocal, true/*default*/, false/*warn if absent*/);
@@ -850,7 +850,7 @@ void HyPerConn::ioParam_preDataLocal(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
-   //assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
       //If we're using cudnn and updating from post, we don't need numX, Y, and F local
@@ -865,7 +865,7 @@ void HyPerConn::ioParam_numXLocal(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_numYLocal(enum ParamsIOFlag ioFlag) {
-   //assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
 #ifdef PV_USE_CUDNN
@@ -879,7 +879,7 @@ void HyPerConn::ioParam_numYLocal(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_numFLocal(enum ParamsIOFlag ioFlag) {
-   //assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "receiveGpu"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "updateGSynFromPostPerspective"));
    if(receiveGpu){
 #ifdef PV_USE_CUDNN
@@ -974,19 +974,25 @@ void HyPerConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag){
 }
 
 void HyPerConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
-   if (triggerFlag) {
-      parent->ioParamStringRequired(ioFlag, name, "triggerLayerName", &triggerLayerName);
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+      if (triggerFlag) {
+         parent->ioParamStringRequired(ioFlag, name, "triggerLayerName", &triggerLayerName);
+      }
    }
 }
 
 void HyPerConn::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
-   if (triggerFlag) {
-      parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
-      if(triggerOffset < 0){
-         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset);
-         exit(EXIT_FAILURE);
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+      if (triggerFlag) {
+         parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
+         if(triggerOffset < 0){
+            fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset);
+            exit(EXIT_FAILURE);
+         }
       }
    }
 }
@@ -1150,6 +1156,7 @@ void HyPerConn::ioParam_nyp(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "nyp", &nyp, 1);
 }
 
+// nxpShrunken and nypShrunken were deprecated Feb 2, 2015
 void HyPerConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "nxp"));
    if (ioFlag==PARAMS_IO_READ) {
@@ -1334,7 +1341,9 @@ void HyPerConn::ioParam_useMask(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if(plasticityFlag){
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "useMask"));
       if(useMask){
          parent->ioParamStringRequired(ioFlag, name, "maskLayerName", &maskLayerName);
       }
@@ -1535,14 +1544,9 @@ int HyPerConn::communicateInitInfo() {
 #endif
          exit(EXIT_FAILURE);
       }
-      //Use either triggering or weightUpdatePeriod
-      //If not default values, print warning
-      if((weightUpdatePeriod != 1 || weightUpdateTime != 0) && parent->columnId()==0 ){
-         std::cout << "Warning: Connection " << name << " trigger flag is set, ignoring weightUpdatePeriod and initialWeightUpdateTime\n";
-      }
+
       //Although weightUpdatePeriod and weightUpdateTime is being set here, if trigger flag is set, they are not being used
       //Only updating for backwards compatibility
-      //getDeltaUpdateTime can return -1 (if it never updates), so set plasticity flag off if so
       weightUpdatePeriod = triggerLayer->getDeltaUpdateTime();
       if(weightUpdatePeriod <= 0){
          if(plasticityFlag == true){
@@ -1554,7 +1558,7 @@ int HyPerConn::communicateInitInfo() {
          fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) of the attached trigger layer\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset, weightUpdatePeriod);
          exit(EXIT_FAILURE);
       }
-      weightUpdateTime = 1;
+      weightUpdateTime = parent->getDeltaTime();
    }
 
    if (weightInitializer) { weightInitializer->communicateParamsInfo(); }
@@ -1755,18 +1759,20 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataS
 }
 
 int HyPerConn::allocatePostConn(){
+   int status = PV_SUCCESS;
    //Allocate private transpose conn
    if(needPost){
       char privateConnName [PV_PATH_MAX];
       sprintf(privateConnName, "&%s_privatePostConn", this->name);
       postConn = new privateTransposeConn(privateConnName, parent, this);
       assert(postConn);
-      postConn->allocateDataStructures();
+      status = postConn->allocateDataStructures();
    }
    //Can't do this with shrink patches flag
    if(needPost && !shrinkPatches_flag){
-      allocatePreToPostBuffer();
+      status = allocatePreToPostBuffer();
    }
+   return status;
 }
 
 
@@ -3478,8 +3484,10 @@ int HyPerConn::updateWeights(int arborId)
 
 double HyPerConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
    //Only called if plasticity flag is set
-   while(time >= weightUpdateTime){
-      weightUpdateTime += weightUpdatePeriod;
+   if (!triggerFlag) {
+      while(time >= weightUpdateTime){
+         weightUpdateTime += weightUpdatePeriod;
+      }
    }
    return weightUpdateTime;
 }

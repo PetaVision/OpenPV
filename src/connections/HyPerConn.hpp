@@ -742,12 +742,12 @@ protected:
    /**
     * @brief nxpShrunken: Specifies a shrunken patch size (deprecated)
     */
-   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nxpShrunken(enum ParamsIOFlag ioFlag); // Deprecated Feb 2, 2015
 
    /**
     * @brief nypShrunken: Specifies a shrunken patch size (deprecated)
     */
-   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_nypShrunken(enum ParamsIOFlag ioFlag); // Deprecated Feb 2, 2015
 
    /**
     * @brief nfp: Specifies the post feature patch size

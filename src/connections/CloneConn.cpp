@@ -248,6 +248,7 @@ int CloneConn::communicateInitInfo() {
 int CloneConn::allocatePostConn(){
    postConn = originalConn->postConn;
    postToPreActivity = originalConn->postToPreActivity;
+   return PV_SUCCESS;
 }
 
 int CloneConn::allocateDataStructures() {

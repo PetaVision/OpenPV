@@ -246,8 +246,14 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
    int blocksize[NUM_NEIGHBORHOOD];
    MPI_Request request[NUM_NEIGHBORHOOD];
    size_t buffersize[NUM_NEIGHBORHOOD];
+   bool hasRestrictedNeighbor[NUM_NEIGHBORHOOD];
    for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
-      if (neighbor==LOCAL || icComm->neighborIndex(parent->columnId(), neighbor)<0 ) {
+      hasRestrictedNeighbor[neighbor] = neighbor!=LOCAL &&
+                                        icComm->neighborIndex(parent->columnId(), neighbor)>=0 &&
+                                        icComm->reverseDirection(parent->columnId(), neighbor) + neighbor == NUM_NEIGHBORHOOD;
+   }
+   for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
+      if (hasRestrictedNeighbor[neighbor]==false ) {
          size[neighbor] = 0;
          startx[neighbor] = -1;
          starty[neighbor] = -1;
@@ -276,10 +282,9 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
    }
 
    for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
-      if (neighbor==LOCAL) { continue; }
+      if (!hasRestrictedNeighbor[neighbor]) { continue; }
       int nbrIdx = icComm->neighborIndex(parent->columnId(), neighbor);
-      if (nbrIdx<0) { continue; }
-      if (icComm->reverseDirection(parent->columnId(), neighbor) + neighbor != NUM_NEIGHBORHOOD) { continue; }
+      assert(nbrIdx>=0); // If neighborIndex is negative, there is no neighbor in that direction so hasRestrictedNeighbor should be false
 
       char * b = (char *) sendbuf[neighbor];
       for (int y=starty[neighbor]; y<stopy[neighbor]; y++) {
@@ -346,10 +351,9 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
 
 #ifdef PV_USE_MPI
    for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
-      if (neighbor==LOCAL) { continue; }
+      if (!hasRestrictedNeighbor[neighbor]) { continue; }
       int nbrIdx = icComm->neighborIndex(parent->columnId(), neighbor);
-      if (nbrIdx<0) { continue; }
-      if (icComm->reverseDirection(parent->columnId(), neighbor) + neighbor != NUM_NEIGHBORHOOD) { continue; }
+      assert(nbrIdx>=0); // If neighborIndex is negative, there is no neighbor in that direction so hasRestrictedNeighbor should be false
 
       MPI_Recv(recvbuf[neighbor], buffersize[neighbor], MPI_CHAR, nbrIdx, icComm->getReverseTag(neighbor), icComm->communicator(), MPI_STATUS_IGNORE);
       char * b = (char *) recvbuf[neighbor];
@@ -411,7 +415,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
       free(recvbuf[neighbor]); recvbuf[neighbor] = NULL;
    }
 
-   // Free the send buffers.  Since a different process receives and it might be behind, need to
+   // Free the send buffers.  Since a different process receives and it might be behind, need to call MPI_Test to see if the send was received.
    int numsent = 0;
    for (int neighbor=0; neighbor<NUM_NEIGHBORHOOD; neighbor++) {
       if (request[neighbor]) {

@@ -716,7 +716,12 @@ ParameterSweep::~ParameterSweep() {
    free(groupName); groupName = NULL;
    free(paramName); paramName = NULL;
    free(valuesNumber); valuesNumber = NULL;
-   free(valuesString); valuesString = NULL;
+   if (valuesString!=NULL) {
+      for (int k=0; k<numValues; k++) {
+         free(valuesString[k]);
+      }
+      free(valuesString); valuesString = NULL;
+   }
 }
 
 int ParameterSweep::setGroupAndParameter(const char * groupname, const char * parametername) {

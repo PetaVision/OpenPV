@@ -393,6 +393,7 @@ int InitWeights::readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStar
       }
       arbor += thisfilearbors;
    }  // while
+   pvp_close_file(arborstream, icComm);
    return PV_SUCCESS;
 }
 
