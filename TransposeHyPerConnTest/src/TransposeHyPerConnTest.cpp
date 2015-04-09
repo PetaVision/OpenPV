@@ -85,6 +85,7 @@ int main(int argc, char * argv[]) {
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-many case, FeedbackConn");
 
    delete hc;
+   delete params;
    delete icComm;
    return status;
 }
