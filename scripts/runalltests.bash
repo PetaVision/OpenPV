@@ -446,12 +446,13 @@ runandecho $testname $logfilebasename Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $logfilebasename Debug/$testname $arglist
 cd "$workspacedir"
 
-testname=MLPTest
-arglist=""
-cd "$testname"
-runandecho $testname $testname Debug/$testname $arglist
-mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
-cd "$workspacedir"
+##Moved to auxlib/mlearning 4/6/2015
+#testname=MLPTest
+#arglist=""
+#cd "$testname"
+#runandecho $testname $testname Debug/$testname $arglist
+#mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+#cd "$workspacedir"
 
 testname=MovieSystemTest
 arglist="-p input/MovieSystemTest.params"
@@ -658,7 +659,7 @@ testname=test_mpi_specifyrowscolumns
 if test $usempi -eq 1
 then
     cd "$testname"
-    arglist="-p input/test_mpi_specifyrowscolumns"
+    arglist=""
     mpirunandecho 6 $testname $testname Debug/$testname $arglist
 else
     echo "Skipping MPI-only test $testname"
