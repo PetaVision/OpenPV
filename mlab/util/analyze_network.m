@@ -176,7 +176,11 @@ for i = 1:size(reconpvps,2)
             p_nf = p_nf*255/maxp;
             p_nf = permute(p_nf,[2 1 3]);
             p_nf = uint8(p_nf);
-            outFile = ['Analysis/' reconpvps{i}(endPrefix+1:startSuffix-1) '_Feature_' sprintf('%.03d',k) '_'  sprintf('%.08d',t) '.png']
+            if (reconheader.nf == 1)
+               outFile = ['Analysis/' reconpvps{i}(endPrefix+1:startSuffix-1) '_' sprintf('%.08d',t) '.png']
+            else
+               outFile = ['Analysis/' reconpvps{i}(endPrefix+1:startSuffix-1) '_Feature_' sprintf('%.03d',k) '_'  sprintf('%.08d',t) '.png']
+            end
             imwrite(p_nf,outFile);
          end
       end
