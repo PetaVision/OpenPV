@@ -344,6 +344,7 @@ int TransposeConn::allocatePostConn(){
    postConn = originalConn;
    //originalConn->postConn->allocatePostToPreBuffer();
    //postToPreActivity = originalConn->postConn->getPostToPreActivity();
+   return PV_SUCCESS;
 }
 
 int TransposeConn::allocateDataStructures() {

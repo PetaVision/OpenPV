@@ -52,7 +52,6 @@ public:
       return originalConn->getCudnnWData();
    }
 #endif
-#endif
 
    //If this layer needs to allocate device weights, set orig conn's alloc weights
    virtual void setAllocDeviceWeights(){
@@ -62,6 +61,7 @@ public:
    virtual void setAllocPostDeviceWeights(){
       originalConn->setAllocPostDeviceWeights();
    }
+#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
 protected:
 
