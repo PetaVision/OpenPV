@@ -18,6 +18,7 @@ public:
    virtual ~CustomGroupHandler();
    virtual ParamGroupType getGroupType(char const * keyword);
    virtual HyPerLayer * createLayer(char const * keyword, char const * name, HyPerCol * hc);
+   virtual BaseConnection * createConnection(char const * keyword, char const * name, PV::HyPerCol * hc, PV::InitWeights * weightInitializer=NULL, PV::NormalizeBase * weightNormalizer=NULL);
 };
 
 } /* namespace PV */

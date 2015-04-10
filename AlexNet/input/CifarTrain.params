@@ -14,7 +14,7 @@ HyPerCol "column" = {
    dt = 1.0;  //time step in ms.	     
    randomSeed = 2394853940;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
-   stopTime = 10000000.0; //100 training steps  
+   stopTime = 1000000.0; //100 training steps  
    progressInterval = 5000.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
    outputPath = "/nh/compneuro/Data/AlexNetOut/CIFAR/";
@@ -55,19 +55,19 @@ Movie "input" = {
     readPvpFile = false;
     imageListPath = "/nh/compneuro/Data/CIFAR/CIFAR_train_images.txt";
     writeFrameToTimestamp = true;
-    nf = 1;
+    nf = 3;
     writeStep = 1;
     initialWriteTime = 1;
     writeSparseActivity = false;
     displayPeriod = 1;
-    start_frame_index = 1;
+    start_frame_index = 2;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
-    mirrorBCflag = true;
+    mirrorBCflag = false;
     jitterFlag = 0;
     useImageBCflag = false;
     inverseFlag = false;
-    normalizeLuminanceFlag = true;
+    normalizeLuminanceFlag = false;
     writeImages = false;
     offsetAnchor = "br"; //Offset anchor from bottom left
     offsetX = 0;
@@ -77,6 +77,24 @@ Movie "input" = {
     phase = 0;
     //useParamsImage = true;
 };
+
+RescaleLayer "inputNorm" = {
+    restart                         = false;
+    originalLayerName               = "input";
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 3;
+    mirrorBCflag                    = false;
+    //
+    writeStep                       = -1;
+    initialWriteTime                = 200;
+    writeSparseActivity             = false;
+    //
+    rescaleMethod                   = "meanstd"; //Can be either meanstd or maxmin
+    valueBC = 0;
+    phase                           = 1;
+};
+
 
 //[conv1]
 //type=conv
@@ -101,7 +119,7 @@ ANNLayer "conv1" = {
     VThresh = 0;
     VMax = infinity;
     VMin = 0;
-    phase = 1;
+    phase = 2;
 };
 
 //[pool1]
@@ -131,7 +149,7 @@ ANNLayer "pool1" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    phase = 2; 
+    phase = 3; 
     triggerFlag = false;
 };
 
@@ -153,28 +171,26 @@ PoolingIndexLayer "pool1Indicies" = {
     AShift = 0.0;
     VWidth = 0.0;
     // 
-    phase = 3; 
+    phase = 4; 
     triggerFlag = false;
 };
 
-
-
-RescaleLayer "rnorm1" = {
-    restart                         = false;
-    originalLayerName               = "pool1";
-    nxScale                         = .5;
-    nyScale                         = .5;
-    nf                              = 32;
-    mirrorBCflag                    = false;
-    //
-    writeStep                       = -1;
-    initialWriteTime                = 200;
-    writeSparseActivity             = false;
-    //
-    rescaleMethod                   = "pointmeanstd"; //Can be either meanstd or maxmin
-    valueBC = 0;
-    phase                           = 4;
-};
+//RescaleLayer "rnorm1" = {
+//    restart                         = false;
+//    originalLayerName               = "pool1";
+//    nxScale                         = .5;
+//    nyScale                         = .5;
+//    nf                              = 32;
+//    mirrorBCflag                    = false;
+//    //
+//    writeStep                       = -1;
+//    initialWriteTime                = 200;
+//    writeSparseActivity             = false;
+//    //
+//    rescaleMethod                   = "pointmeanstd"; //Can be either meanstd or maxmin
+//    valueBC = 0;
+//    phase                           = 5;
+//};
 
 //[conv2]
 //type=conv
@@ -193,7 +209,7 @@ ANNLayer "conv2" = {
    @nxScale = .5;
    @nyScale = .5;
    @nf = 32;
-   @phase = 5;
+   @phase = 6;
 };
 
 //[pool2]
@@ -222,26 +238,26 @@ ANNLayer "pool2" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    phase = 6; 
+    phase = 7; 
     triggerFlag = false;
 };
 
-RescaleLayer "rnorm2" = {
-    restart                         = false;
-    originalLayerName               = "pool2";
-    nxScale                         = .25;
-    nyScale                         = .25;
-    nf                              = 32;
-    mirrorBCflag                    = false;
-    //
-    writeStep                       = -1;
-    initialWriteTime                = 200;
-    writeSparseActivity             = false;
-    //
-    rescaleMethod                   = "pointmeanstd"; //Can be either meanstd or maxmin
-    valueBC = 0;
-    phase                           = 7;
-};
+//RescaleLayer "rnorm2" = {
+//    restart                         = false;
+//    originalLayerName               = "pool2";
+//    nxScale                         = .25;
+//    nyScale                         = .25;
+//    nf                              = 32;
+//    mirrorBCflag                    = false;
+//    //
+//    writeStep                       = -1;
+//    initialWriteTime                = 200;
+//    writeSparseActivity             = false;
+//    //
+//    rescaleMethod                   = "pointmeanstd"; //Can be either meanstd or maxmin
+//    valueBC = 0;
+//    phase                           = 8;
+//};
 
 //[conv3]
 //type=conv
@@ -260,7 +276,7 @@ ANNLayer "conv3" = {
    @nxScale = .25;
    @nyScale = .25;
    @nf = 64;
-   @phase = 8;
+   @phase = 9;
 };
 
 //[pool3]
@@ -289,7 +305,7 @@ ANNLayer "pool3" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
-    phase = 9; 
+    phase = 10; 
     triggerFlag = false;
 };
 
@@ -309,10 +325,10 @@ ANNLayer "fullyconnected" = {
     writeSparseActivity = 0;
     InitVType = "ZeroV";
     //rectified
-    VThresh = 0;
-    VMax = infinity;
-    VMin = 0;
-    phase = 10;
+    //VThresh = 0;
+    //VMax = infinity;
+    //VMin = 0;
+    phase = 11;
 };
 
 //[probs]
@@ -326,13 +342,13 @@ RescaleLayer "softmax" = {
     nf                              = 10;
     mirrorBCflag                    = false;
     //
-    writeStep                       = -1;
+    writeStep                       = 1;
     initialWriteTime                = 200;
     writeSparseActivity             = false;
     //
     rescaleMethod                   = "softmax"; //Can be either meanstd or maxmin
     valueBC = 0;
-    phase                           = 11;
+    phase                           = 12;
 };
 
 CIFARGTLayer "gt" = {
@@ -340,20 +356,19 @@ CIFARGTLayer "gt" = {
     nxScale = .03125; 
     nyScale = .03125;
     nf = 10;
-    writeStep = -1;
+    writeStep = 1;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = false;
     InitVType = "ZeroV";
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    startFrame = 1;
-    inFilename = "/nh/compneuro/Data/CIFAR/CIFAR_train_images.txt";
+    imageLayerName = "input";
     phase = 0;
 };
 
-//Back prop error layers, starting from the back
-SoftMaxBackprop "FinalError" = {
+//For printing purposes
+ProbeLayer "Score" = {
     restart = 0;
     nxScale = .03125;
     nyScale = .03125;
@@ -363,8 +378,21 @@ SoftMaxBackprop "FinalError" = {
     writeSparseActivity = 0;
     InitVType = "ZeroV";
     VThresh = -infinity;
-    ForwardLayername = "fullyconnected";
-    phase = 12;
+    phase = 13;
+};
+
+//Back prop error layers, starting from the back
+ANNLayer "FinalError" = {
+    restart = 0;
+    nxScale = .03125;
+    nyScale = .03125;
+    nf = 10;
+    writeStep = -1; //Change based on display period
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    phase = 13;
 };
 
 ANNLayer "Error3Buf" = {
@@ -377,20 +405,21 @@ ANNLayer "Error3Buf" = {
     writeSparseActivity = 0;
     InitVType = "ZeroV";
     VThresh = -infinity;
-    phase = 13;
+    phase = 14;
 };
 
-PtwiseProductLayer "Error3" = {
+MaskLayer "Error3" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
     nf = 64;
-    writeStep = -1; //Change based on display period
+    writeStep = 1; //Change based on display period
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     InitVType = "ZeroV";
     VThresh = -infinity;
-    phase = 14;
+    phase = 15;
+    maskLayerName = "conv3";
 };
 
 ANNLayer "Error2Buf" = {
@@ -398,15 +427,16 @@ ANNLayer "Error2Buf" = {
    @nxScale = .25;
    @nyScale = .25;
    @nf = 32;
-   @phase = 15;
+   @phase = 16;
 };
 
-PtwiseProductLayer "Error2" = {
+MaskLayer "Error2" = {
    #include "Error3";
    @nxScale = .5;
    @nyScale = .5;
    @nf = 32;
-   @phase = 16;
+   @phase = 17;
+   @maskLayerName = "conv2";
 };
 
 ANNLayer "Error1Buf" = {
@@ -414,15 +444,16 @@ ANNLayer "Error1Buf" = {
    @nxScale = .5;
    @nyScale = .5;
    @nf = 32;
-   @phase = 17;
+   @phase = 18;
 };
 
-PtwiseProductLayer "Error1" = {
+MaskLayer "Error1" = {
    #include "Error3";
    @nxScale = 1;
    @nyScale = 1;
    @nf = 32;
-   @phase = 18;
+   @phase = 19;
+   @maskLayerName = "conv1";
 };
 
 //Connections
@@ -433,7 +464,7 @@ PtwiseProductLayer "Error1" = {
 //initW=0.0001
 //filterSize=5
 MomentumConn "W1Plasticity" = {
-    preLayerName = "input";
+    preLayerName = "inputNorm";
     postLayerName = "Error1";
     channelCode = -1; //Does not update on this channel
     nxp = 3; //Trying for filterSize of 6, which from the pre perspective is 3 
@@ -441,13 +472,19 @@ MomentumConn "W1Plasticity" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
+    sharedWeights = true;
     
     weightInitType = "GaussianRandomWeight";
     wGaussMean = 0;
-    wGaussStdev = .0001;
+    wGaussStdev = .01;
         
     strength = 1.0;  
-    normalizeMethod = "none";
+    normalizeMethod = "normalizeL2"; 
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
@@ -456,10 +493,10 @@ MomentumConn "W1Plasticity" = {
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 1.0;
 
-    dWMax = 0.001; // 200.0 used for initial training
-    momentumTau = 0.9;
-    momentumDecay = .004;
-    momentumMethod = "alex";
+    dWMax = 0.0001; // 200.0 used for initial training
+    momentumTau = 100;
+    //momentumDecay = .004;
+    momentumMethod = "viscosity";
     delay = 0;
      
     preActivityIsNotRate = false;
@@ -500,10 +537,10 @@ MomentumConn "B1Plasticity" = {
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 1.0;
 
-    dWMax = 0.002; // 200.0 used for initial training
-    momentumTau = 0.9;
+    dWMax = 0.0001; // 200.0 used for initial training
+    momentumTau = 100;
     momentumDecay = 0;
-    momentumMethod = "alex";
+    momentumMethod = "viscosity";
     delay = 0;
      
     preActivityIsNotRate = false;
@@ -518,7 +555,7 @@ MomentumConn "B1Plasticity" = {
 };
 
 CloneKernelConn "W1" = {
-    preLayerName = "input";
+    preLayerName = "inputNorm";
     postLayerName = "conv1";
     channelCode = 0; //On exc channel
     writeStep = -1;
@@ -559,7 +596,7 @@ CloneKernelConn "B1" = {
 PoolingConn "conv1ToPool1" = {
     preLayerName = "conv1";
     postLayerName = "pool1";
-    channelCode = 0; //Inhib b, doing nothing to input
+    channelCode = 0;
     sharedWeights = true;
     nxp = 2; //Trying for sizeX of 4, which translates to this connection having a patch size of 2 
     nyp = 2; 
@@ -614,16 +651,16 @@ PoolingConn "conv1ToPool1" = {
 //wc=0.004
 MomentumConn "W2Plasticity" = {
     #include "W1Plasticity";
-    @preLayerName = "rnorm1";
+    @preLayerName = "pool1";
     @postLayerName = "Error2";
     @nxp = 3; 
     @nyp = 3; 
     //weightInitType = "GaussianRandomWeight";
     @wGaussMean = 0;
     @wGaussStdev = .01;
-    @dWMax = 0.001; // 200.0 used for initial training
-    @momentumTau = 0.9;
-    @momentumDecay = .004;
+    @dWMax = 0.0001; // 200.0 used for initial training
+    //@momentumTau = 0.9;
+    //@momentumDecay = .004;
     //momentumMethod = "alex";
     @useMask = false;
 };
@@ -637,16 +674,16 @@ MomentumConn "B2Plasticity" = {
     @postLayerName = "Error2";
     @nxp = 16;
     @nyp = 16;
-    @dWMax = 0.002; // 200.0 used for initial training
-    @momentumTau = 0.9;
-    @momentumDecay = 0;
+    @dWMax = 0.0002; // 200.0 used for initial training
+    //@momentumTau = 0.9;
+    //@momentumDecay = 0;
     //@momentumMethod = "alex";
     @useMask = false;
 };
 
 CloneKernelConn "W2" = {
    #include "W1";
-   @preLayerName = "rnorm1";
+   @preLayerName = "pool1";
    @postLayerName = "conv2";
    @originalConnName = "W2Plasticity";
 };
@@ -697,16 +734,16 @@ PoolingConn "conv2ToPool2" = {
 //wc=0.004
 MomentumConn "W3Plasticity" = {
     #include "W1Plasticity";
-    @preLayerName = "rnorm2";
+    @preLayerName = "pool2";
     @postLayerName = "Error3";
     @nxp = 3; 
     @nyp = 3; 
     //weightInitType = "GaussianRandomWeight";
     @wGaussMean = 0;
     @wGaussStdev = .01;
-    @dWMax = 0.001; // 200.0 used for initial training
-    @momentumTau = 0.9;
-    @momentumDecay = .004;
+    @dWMax = 0.0001; // 200.0 used for initial training
+    //@momentumTau = 0.9;
+    //@momentumDecay = .004;
     //momentumMethod = "alex";
     @useMask = false;
 };
@@ -720,16 +757,16 @@ MomentumConn "B3Plasticity" = {
     @postLayerName = "Error3";
     @nxp = 8; 
     @nyp = 8;
-    @dWMax = 0.002; // 200.0 used for initial training
-    @momentumTau = 0.9;
-    @momentumDecay = 0;
+    @dWMax = 0.0002; // 200.0 used for initial training
+    //@momentumTau = 0.9;
+    //@momentumDecay = 0;
     //@momentumMethod = "alex";
     @useMask = false;
 };
 
 CloneKernelConn "W3" = {
    #include "W1";
-   @preLayerName = "rnorm2";
+   @preLayerName = "pool2";
    @postLayerName = "conv3";
    @originalConnName = "W3Plasticity";
 };
@@ -776,13 +813,12 @@ MomentumConn "W4Plasticity" = {
     @postLayerName = "FinalError";
     @nxp = 1; 
     @nyp = 1; 
-    //weightInitType = "GaussianRandomWeight";
-    @wGaussMean = 0;
+    @writeStep = -1;
+    @sharedWeights = true;
     @wGaussStdev = .01;
-    @dWMax = 0.001; // 200.0 used for initial training
-    @momentumTau = 0.9;
-    @momentumDecay = 1;
-    //momentumMethod = "alex";
+    @dWMax = 0.0001; // 200.0 used for initial training
+    @momentumTau = 100;
+    @momentumMethod = "viscosity";
     @useMask = false;
 };
 
@@ -795,18 +831,25 @@ MomentumConn "B4Plasticity" = {
     @postLayerName = "FinalError";
     @nxp = 1;
     @nyp = 1;
-    @dWMax = 0.002; // 200.0 used for initial training
-    @momentumTau = 0.9;
-    @momentumDecay = 0;
+    @dWMax = 0.0002; // 200.0 used for initial training
+    //@momentumTau = 0.9;
+    //@momentumDecay = 0;
     //@momentumMethod = "alex";
     @useMask = false;
 };
 
-CloneKernelConn "W4" = {
-   #include "W1";
-   @preLayerName = "pool3";
-   @postLayerName = "fullyconnected";
-   @originalConnName = "W4Plasticity";
+CloneConn "W4" = {
+    preLayerName = "pool3";
+    postLayerName = "fullyconnected";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "W4Plasticity";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
 };
 
 CloneKernelConn "B4" = {
@@ -815,9 +858,28 @@ CloneKernelConn "B4" = {
     @originalConnName = "B4Plasticity";
 };
 
+//Score connections
+IdentConn "gtToScore" = {
+   preLayerName                        = "gt";
+   postLayerName                       = "Score";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+IdentConn "softmaxToScore" = {
+   preLayerName                        = "softmax";
+   postLayerName                       = "Score";
+   channelCode                         = 1;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
 //Error connections, stating from back
 //Goes gt - guess
-IdentConn "HiddenLayer1ToError1" = {
+IdentConn "gtToFinalError" = {
    preLayerName                        = "gt";
    postLayerName                       = "FinalError";
    channelCode                         = 0;
@@ -839,7 +901,7 @@ TransposeConn "W4T" = {
     preLayerName = "FinalError";
     postLayerName = "Error3Buf";
     channelCode = 0; //On excitatory channel
-    originalConnName = "W4";
+    originalConnName = "W4Plasticity";
     selfFlag = false;
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     writeStep = 1000;
@@ -865,20 +927,11 @@ TransposePoolingConn "Error3BufToError3" = {
     updateGSynFromPostPerspective = false;
 };
 
-IdentConn "conv3ToError3" = {
-   preLayerName                        = "conv3";
-   postLayerName                       = "Error3";
-   channelCode                         = 1;
-   delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
-   writeStep                           = -1;
-};
-
 TransposeConn "W3T" = {
     preLayerName = "Error3";
     postLayerName = "Error2Buf";
     channelCode = 0; //On excitatory channel
-    originalConnName = "W3";
+    originalConnName = "W3Plasticity";
     selfFlag = false;
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     writeStep = 1000;
@@ -904,20 +957,11 @@ TransposePoolingConn "Error2BufToError2" = {
     updateGSynFromPostPerspective = false;
 };
 
-IdentConn "conv2ToError2" = {
-   preLayerName                        = "conv2";
-   postLayerName                       = "Error2";
-   channelCode                         = 1;
-   delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
-   writeStep                           = -1;
-};
-
 TransposeConn "W2T" = {
     preLayerName = "Error2";
     postLayerName = "Error1Buf";
     channelCode = 0; //On excitatory channel
-    originalConnName = "W2";
+    originalConnName = "W2Plasticity";
     selfFlag = false;
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     writeStep = 1000;
@@ -943,21 +987,12 @@ TransposePoolingConn "Error1BufToError1" = {
     updateGSynFromPostPerspective = false;
 };
 
-IdentConn "conv1ToError1" = {
-   preLayerName                        = "conv1";
-   postLayerName                       = "Error1";
-   channelCode                         = 1;
-   delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
-   writeStep                           = -1;
-};
-
 //W1T is not actually used, here for analysis purposes
 TransposeConn "W1T" = {
     preLayerName = "Error1";
-    postLayerName = "input";
+    postLayerName = "inputNorm";
     channelCode = -1; //On excitatory channel
-    originalConnName = "W1";
+    originalConnName = "W1Plasticity";
     selfFlag = false;
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     writeStep = 1000;

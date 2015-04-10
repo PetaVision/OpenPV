@@ -1,23 +1,42 @@
 /*
- * ReceiveFromPostTest
- *
+ * pv.cpp
  *
  */
 
-
 #include <columns/buildandrun.hpp>
 #include "CustomGroupHandler.hpp"
-
-#define MAIN_USES_CUSTOMGROUPS
+#include <MLearningGroupHandler.hpp>
 
 int main(int argc, char * argv[]) {
 
-#ifdef MAIN_USES_CUSTOMGROUPS
-   ParamGroupHandler * customGroupHandler = new CustomGroupHandler;
-   int status = buildandrun(argc, argv, NULL, NULL, &customGroupHandler, 1);
-#else // MAIN_USES_CUSTOMGROUPS
-   int status = buildandrun(argc, argv, NULL, NULL, NULL, 0);
-#endif // MAIN_USES_CUSTOMGROUPS
+	int status;
+   PV::ParamGroupHandler * customGroupHandlers[2];
+   customGroupHandlers[0] = new PVMLearning::MLearningGroupHandler;
+   customGroupHandlers[1] = new PV::CustomGroupHandler;
 
-   return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+	status = buildandrun(argc, argv, NULL, NULL, customGroupHandlers, 2);
+	return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
+
+//#ifdef MAIN_USES_CUSTOMGROUPS
+//void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
+//   void * addedGroup = NULL;
+//   if( !strcmp(keyword, "CIFARGTLayer") ) {
+//      addedGroup= new CIFARGTLayer(name, hc);
+//   }
+//   if( !strcmp(keyword, "SoftMaxBackprop") ) {
+//      addedGroup= new SoftMaxBackprop(name, hc);
+//   }
+//   if( !strcmp(keyword, "ProbeLayer") ) {
+//      addedGroup= new ProbeLayer(name, hc);
+//   }
+//   if( !strcmp(keyword, "BatchConn") ) {
+//      addedGroup= new BatchConn(name, hc);
+//   }
+//   if( !addedGroup) {
+//      fprintf(stderr, "Group \"%s\": Unable to create layer\n", name);
+//      exit(-1);
+//   }
+//   return addedGroup;
+//}
+//#endif

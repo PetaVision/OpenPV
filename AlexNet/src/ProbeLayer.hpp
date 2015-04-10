@@ -11,6 +11,10 @@ public:
 
 protected:
    int updateState(double timef, double dt);
+   double sumDistance;
+   long numExamples;
+   long numCorrect;
+   int dispPeriod;
 
 private:
 };

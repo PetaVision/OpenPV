@@ -4,6 +4,18 @@ cmake_minimum_required(VERSION 2.8)
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
+set(PV_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../trunk" CACHE PATH "The base PetaVision directory")
+set(PVMLEARNING_DIR "${PV_DIR}/../auxlib/mlearning" CACHE PATH "The base
+directory for the PV mlearning library")
+
+IF(NOT EXISTS "${PV_DIR}")
+   message(FATAL_ERROR "PV_DIR \"${PV_DIR}\" does not exist.")
+ENDIF(NOT EXISTS "${PV_DIR}")
+
+IF(NOT EXISTS "${PVMLEARNING_DIR}")
+   message(FATAL_ERROR "PVMLEARNING_DIR \"${PVMLEARNING_DIR}\" does not exist.")
+ENDIF(NOT EXISTS "${PVMLEARNING_DIR}")
+
 string(FIND ${CMAKE_CURRENT_SOURCE_DIR} "/" pos REVERSE)
 MATH(EXPR pos ${pos}+1)
 string(SUBSTRING ${CMAKE_CURRENT_SOURCE_DIR} ${pos} -1 PV_PROJECT_NAME)
@@ -22,25 +34,27 @@ IF(APPLE AND CLANG_OMP)
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
 ENDIF(APPLE AND CLANG_OMP)
 
-if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -DPV_USE_THREADS")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp -DPV_USE_THREADS")
-   set(OPEN_MP_THREADS_FLAGS_ADDED TRUE)
-endif (OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
+if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+   set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)
+endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
 
-if(OPEN_CL_GPU AND NOT DEFINED OPEN_CL_GPU_FLAGS_ADDED)
+if(PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
    IF(APPLE)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework opencl -DPV_OPENCL")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -framework opencl -DPV_OPENCL")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework opencl")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -framework opencl")
    ELSE(APPLE)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL -DPV_OPENCL")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL -DPV_OPENCL")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL")
    ENDIF(APPLE)
-   set(OPEN_CL_GPU_FLAGS_ADDED TRUE)
-endif (OPEN_CL_GPU AND NOT DEFINED OPEN_CL_GPU_FLAGS_ADDED)
+   set(PV_USE_OPENCL_FLAGS_ADDED TRUE)
+endif (PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
 
 set(PV_SOURCE_DIR "${PV_DIR}/src")
 set(PV_BINARY_DIR "${PV_DIR}/lib")
+set(PVMLEARNING_LIBRARY_DIR "${PVMLEARNING_DIR}/lib")
+set(PVMLEARNING_SOURCE_DIR  "${PVMLEARNING_DIR}/src")
 set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
@@ -64,42 +78,32 @@ endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
 set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
 set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 
-if (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
-    find_package(LIBSNDFILE)
-endif (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
-
-if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
-   include_directories(${LIBSNDFILE_INCLUDE_DIR})
-   add_definitions(-DPV_USE_SNDFILE)
-   set(LIB_SND_FILE_FLAGS_ADDED TRUE)
-endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
-
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
+include_directories(${PVMLEARNING_SOURCE_DIR})
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
+link_directories(${PVMLEARNING_LIBRARY_DIR})
 
 # Add executable
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
 
-if(CUDA_GPU)
+if(PV_USE_CUDA)
    cuda_add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
-else(CUDA_GPU)
+else(PV_USE_CUDA)
    add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
-endif(CUDA_GPU)
+endif(PV_USE_CUDA)
 
 target_link_libraries(${PV_PROJECT_NAME} pv)
-#
-## target_link_libraries commands no longer needed because the libraries are included in libpv.so
-## Link executable to external libraries
-#target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
-#IF(LIBSNDFILE_FOUND)
-#   target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
-#ENDIF(LIBSNDFILE_FOUND)
-#
-#IF(CUDNN)
+target_link_libraries(${PV_PROJECT_NAME} mlearning)
+
+# still needed on Mac if pv is built as a shared object library
+target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
+
+## target_link_libraries command no longer needed because the libraries are included in libpv.so
+#IF(PV_USE_CUDNN)
 #   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
-#ENDIF(CUDNN)
+#ENDIF(PV_USE_CUDNN)
 #
