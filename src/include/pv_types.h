@@ -130,9 +130,7 @@ typedef struct PVLayer_ {
    PVLayerType layerType;  // the type/subtype of the layer (ie, Type_LIFSimple2)
 
    PVLayerLoc loc;
-   int   xScale, yScale;   // scale (2**scale) by which layer (dx,dy) is expanded
-   float dx, dy;           // distance between neurons in the layer
-   float xOrigin, yOrigin; // origin of the layer (depends on iCol)
+   int   xScale, yScale;   // layersize=2**(-scale)*columnsize.  Layers with positive xScale are more dense in the x-dimension.
 
    PVLayerCube * activity;  // activity buffer FROM this layer
    float * prevActivity;    // time of previous activity

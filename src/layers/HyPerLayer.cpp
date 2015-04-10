@@ -313,12 +313,6 @@ int HyPerLayer::initClayer() {
    clayer->xScale = xScale;
    clayer->yScale = yScale;
 
-   clayer->dx = powf(2.0f, (float) xScale);
-   clayer->dy = powf(2.0f, (float) yScale);
-
-   clayer->xOrigin = 0.5 + clayer->loc.kx0 * clayer->dx;
-   clayer->yOrigin = 0.5 + clayer->loc.ky0 * clayer->dy;
-
    // Other fields of clayer will be set in allocateClayerBuffers, or during updateState
    return status;
 }
