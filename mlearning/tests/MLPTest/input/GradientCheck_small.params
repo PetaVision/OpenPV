@@ -58,7 +58,7 @@ InputLayer "train" = {
     mirrorBCflag = 0;
     writeSparseActivity = false;
     InitVType = "ZeroV";
-    inFilename = "input/train/input_nand.txt";
+    inFilename = "input/train/input.txt";
     phase = 0;
     ////rectified
     //VThresh = 0;
@@ -94,7 +94,7 @@ GTLayer "gt" = {
     mirrorBCflag = 0;
     writeSparseActivity = false;
     InitVType = "ZeroV";
-    inFilename = "input/train/gt_nand.txt";
+    inFilename = "input/train/gt.txt";
     phase = 0;
     ////rectified
     //VThresh = 0;
@@ -103,19 +103,19 @@ GTLayer "gt" = {
     constantValue = true;
 };
 
-ComparisonLayer "comparison" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    writeStep = -1; //Change based on display period
-    initialWriteTime = 999.0; //Change based on display period 
-    mirrorBCflag = 1;
-    writeSparseActivity = 0;
-    InitVType = "ZeroV";
-    VThresh = -infinity;
-    phase = 5;
-};
+//ComparisonLayer "comparison" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 1;
+//    writeStep = -1; //Change based on display period
+//    initialWriteTime = 999.0; //Change based on display period 
+//    mirrorBCflag = 1;
+//    writeSparseActivity = 0;
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    phase = 5;
+//};
 
 ANNLayer "FinalError" = {
    nxScale = 1;
@@ -164,6 +164,7 @@ GradientCheckConn "W1Plasticity" = {
 
     estLayerName = "FinalLayer";
     gtLayerName = "gt";
+    costFunction = "sqerr";
 };
 
 KernelConn "B1Plasticity" = {
@@ -243,20 +244,20 @@ IdentConn "FinalLayerToFinalError" = {
     delay = 0;
 };
 
-//GT on inh, estimated on excitatory
-IdentConn "GTToComparison" = {
-    preLayerName = "gt";
-    postLayerName = "comparison";
-    channelCode = 0;
-    writeStep = -1;    
-    delay = 0;
-};
-
-IdentConn "FinalLayerToComparison" = {
-    preLayerName = "FinalLayer";
-    postLayerName = "comparison";
-    channelCode = 1; 
-    writeStep = -1;    
-    delay = 0;
-};
+////GT on inh, estimated on excitatory
+//IdentConn "GTToComparison" = {
+//    preLayerName = "gt";
+//    postLayerName = "comparison";
+//    channelCode = 0;
+//    writeStep = -1;    
+//    delay = 0;
+//};
+//
+//IdentConn "FinalLayerToComparison" = {
+//    preLayerName = "FinalLayer";
+//    postLayerName = "comparison";
+//    channelCode = 1; 
+//    writeStep = -1;    
+//    delay = 0;
+//};
 

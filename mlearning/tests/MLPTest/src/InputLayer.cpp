@@ -68,7 +68,7 @@ int InputLayer::updateState(double timef, double dt) {
    assert(loc->nf == 2);
    //Set binary values of xor values
    
-   //std::cout << timef << ": input val:" << iVal << "\n";
+   std::cout << timef << ": input val:" << iVal << "\n";
    
    int negVal;
    negVal = -1;

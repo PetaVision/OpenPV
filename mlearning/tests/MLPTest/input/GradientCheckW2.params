@@ -60,10 +60,10 @@ InputLayer "train" = {
     InitVType = "ZeroV";
     inFilename = "input/train/input.txt";
     phase = 0;
-    //rectified
-    VThresh = 0;
-    VMax = infinity;
-    VMin = 0;
+    ////rectified
+    //VThresh = 0;
+    //VMax = infinity;
+    //VMin = 0;
     constantValue = true;
 };
 
@@ -172,8 +172,8 @@ KernelConn "W1Plasticity" = {
     writeStep = -1;
     
     weightInitType = "UniformRandomWeight";
-    wMinInit = -1; //sqrt(3/2);
-    wMaxInit = 1;
+    wMinInit = -.1; //sqrt(3/2);
+    wMaxInit = .1;
         
     strength = 1.0;  
     normalizeMethod = "none";
@@ -208,8 +208,8 @@ KernelConn "B1Plasticity" = {
     sharedWeights = true;
     
     weightInitType = "UniformRandomWeight";
-    wMinInit = -1.225; //sqrt(3/2);
-    wMaxInit = 1.225;
+    wMinInit = 0; //sqrt(3/2);
+    wMaxInit = 0;
         
     strength = 1.0;  
     normalizeMethod = "none";
@@ -230,7 +230,7 @@ KernelConn "B1Plasticity" = {
     pvpatchAccumulateType = "convolve";
 };
 
-CloneKernelConn "W1" = {
+CloneConn "W1" = {
     preLayerName = "train";
     postLayerName = "HiddenLayer1";
     channelCode = 0; //On exc channel
@@ -244,7 +244,7 @@ CloneKernelConn "W1" = {
     pvpatchAccumulateType = "convolve";
 };
 
-CloneKernelConn "B1" = {
+CloneConn "B1" = {
     preLayerName = "onesLayer";
     postLayerName = "HiddenLayer1";
     channelCode = 0; //On exc channel
@@ -269,8 +269,8 @@ GradientCheckConn "W2Plasticity" = {
     writeStep = -1;
     
     weightInitType = "UniformRandomWeight";
-    wMinInit = -1.732; //sqrt(3/1);
-    wMaxInit = 1.732;
+    wMinInit = -.1; //sqrt(3/1);
+    wMaxInit = .1;
         
     strength = 1.0;  
     normalizeMethod = "none";
@@ -293,23 +293,31 @@ GradientCheckConn "W2Plasticity" = {
 
     estLayerName = "FinalLayer";
     gtLayerName = "gt";
+    costFunction = "sqerr";
 };
 
 KernelConn "B2Plasticity" = {
    #include "B1Plasticity";
    @postLayerName = "FinalError";
-   @wMinInit = -1.732; //sqrt(3/1);
-   @wMaxInit = 1.732;
+   @wMinInit = 0; //sqrt(3/1);
+   @wMaxInit = 0;
 };
 
-CloneKernelConn "W2" = {
-   #include "W1";
-   @preLayerName = "HiddenLayer1";
-   @postLayerName = "FinalLayer";
-   @originalConnName = "W2Plasticity";
+CloneConn "W2" = {
+    preLayerName = "HiddenLayer1";
+    postLayerName = "FinalLayer";
+    originalConnName = "W2Plasticity";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
 };
 
-CloneKernelConn "B2" = {
+CloneConn "B2" = {
    #include "B1";
    @postLayerName = "FinalLayer";
    @originalConnName = "B2Plasticity";
@@ -319,7 +327,7 @@ TransposeConn "W2T" = {
     preLayerName = "FinalError";
     postLayerName = "Error1";
     channelCode = 0; //On excitatory channel
-    originalConnName = "W2Plasticity"; //TODO this is transpose of a clone. Check this
+    originalConnName = "W2Plasticity";
     selfFlag = false;
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     writeStep = -1;

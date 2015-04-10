@@ -78,6 +78,17 @@ int main(int argc, char * argv[]) {
 
    int status = PV_SUCCESS;
 
+   //free(pv_argv[paramFileArgIndex]);
+   //pv_argv[paramFileArgIndex] = strdup("input/GradientCheck_small.params");
+   //assert(pv_argv[paramFileArgIndex]);
+   //status = buildandrun(pv_argc, pv_argv, NULL, NULL, customGroupHandlers, 2);
+   //if( status != PV_SUCCESS ) {
+   //   fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
+   //}
+   // 
+
+   //exit(1);
+
    free(pv_argv[paramFileArgIndex]);
    pv_argv[paramFileArgIndex] = strdup("input/GradientCheckW1.params");
    assert(pv_argv[paramFileArgIndex]);

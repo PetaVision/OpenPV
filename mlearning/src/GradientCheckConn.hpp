@@ -23,15 +23,18 @@ protected:
    GradientCheckConn();
    int initialize_base();
    float getSqErrCost();
+   float getLogErrCost();
    float getCost();
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_gtLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_estLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_costFunction(enum ParamsIOFlag ioFlag);
    //virtual int clear_dW();
 
 private:
    char* estLayerName;
    char* gtLayerName;
+   char* costFunction;
    PV::HyPerLayer* estLayer;
    PV::HyPerLayer* gtLayer;
    bool firstRun;
