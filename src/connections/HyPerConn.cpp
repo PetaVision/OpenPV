@@ -1657,7 +1657,7 @@ int HyPerConn::allocatePreToPostBuffer(){
          postToPreActivity[kTargetRes] = kIndex(xVal + sourceHalo->lt, yVal + sourceHalo->up, 0,
                sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->up + sourceHalo->dn, sourceNf); 
 
-         //std::cout << "kTarget: (" << kTargetXRes << ", " << kTargetYRes << ")  kSource: (" << xVal << ", " << yVal << ")\n";
+         //std::cout << "ManyToOne postToPre  kTarget: (" << kTargetXRes << ", " << kTargetYRes << ")  kSource: (" << xVal << ", " << yVal << ")\n";
       }
    }
 
@@ -1678,6 +1678,7 @@ int HyPerConn::allocatePreToPostBuffer(){
          int yVal = floor(((float)centerY - offsetY)/2);
          postToPreActivity[kTargetRes] = kIndex(xVal + sourceHalo->lt, yVal + sourceHalo->up, 0,
                sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->up + sourceHalo->dn, sourceNf); 
+         //std::cout << "OneToMany postToPre  kTarget: (" << kTargetXRes << ", " << kTargetYRes << ")  kSource: (" << xVal << ", " << yVal << ")\n";
       }
    }
    else{
