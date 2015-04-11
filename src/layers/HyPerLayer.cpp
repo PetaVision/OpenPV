@@ -553,10 +553,10 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
 
    float nyglobalfloat = nyScale * parent->getNyGlobal();
    layerLoc->nyGlobal = (int) nearbyintf(nyglobalfloat);
-   if (fabs(nxglobalfloat-layerLoc->nxGlobal)>0.0001) {
+   if (fabs(nyglobalfloat-layerLoc->nyGlobal)>0.0001) {
       if (parent->columnId()==0) {
          fprintf(stderr, "nyScale of layer \"%s\" is incompatible with size of column.\n", getName());
-         fprintf(stderr, "Column ny %d multiplied by nyScale %f must be an integer.\n", parent->getNyGlobal(), nxScale);
+         fprintf(stderr, "Column ny %d multiplied by nyScale %f must be an integer.\n", parent->getNyGlobal(), nyScale);
       }
       status = PV_FAILURE;
    }
