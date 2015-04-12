@@ -404,6 +404,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                    int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
                    A[kext] = (exp(originalA[kextOrig])/sumexpx);
+                   assert(A[kext] >= 0 && A[kext] <= 1);
                 }
              }
           }

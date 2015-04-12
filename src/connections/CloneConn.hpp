@@ -32,6 +32,7 @@ public:
 
    virtual int allocateDataStructures();
    virtual int finalizeUpdate(double timed, double dt);
+   //virtual void initPatchToDataLUT();
 
    virtual long * getPostToPreActivity(){
       return originalConn->getPostToPreActivity();

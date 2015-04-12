@@ -267,10 +267,10 @@ int TransposeConn::communicateInitInfo() {
    originalConn->setNeedPost(true);
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   if(updateGSynFromPostPerspective && receiveGpu || allocPostDeviceWeights){
+   if((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights){
       originalConn->setAllocDeviceWeights();
    }
-   if(!updateGSynFromPostPerspective && receiveGpu || allocDeviceWeights){
+   if((!updateGSynFromPostPerspective && receiveGpu) || allocDeviceWeights){
       originalConn->setAllocPostDeviceWeights();
    }
 #endif

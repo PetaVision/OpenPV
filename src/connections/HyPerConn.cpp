@@ -1967,6 +1967,7 @@ InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
 int HyPerConn::allocatePostDeviceWeights(){
    assert(postConn);
    postConn->allocateDeviceWeights();
+   return PV_SUCCESS;
 }
 
 int HyPerConn::allocateDeviceWeights(){

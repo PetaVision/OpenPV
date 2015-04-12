@@ -90,6 +90,11 @@ int CloneConn::createAxonalArbors(int arborId) {
    return PV_SUCCESS;
 }
 
+//void CloneConn::initPatchToDataLUT() {
+//   assert(patch2datalookuptable==NULL);
+//   patch2datalookuptable = originalConn->getPatchToDataLUT();
+//}
+
 PVPatch *** CloneConn::initializeWeights(PVPatch *** patches, pvdata_t ** dataStart) {
    return patches;
    // nothing to be done as the weight patches point to originalConn's space.
@@ -202,10 +207,10 @@ int CloneConn::communicateInitInfo() {
    }
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   if(updateGSynFromPostPerspective && receiveGpu || allocPostDeviceWeights){
+   if((updateGSynFromPostPerspective && receiveGpu) || allocPostDeviceWeights){
       originalConn->setAllocPostDeviceWeights();
    }
-   if(!updateGSynFromPostPerspective && receiveGpu || allocDeviceWeights){
+   if((!updateGSynFromPostPerspective && receiveGpu) || allocDeviceWeights){
       originalConn->setAllocDeviceWeights();
    }
 #endif
@@ -229,6 +234,10 @@ int CloneConn::communicateInitInfo() {
    // Make sure the original's and the clone's margin widths stay equal
    originalConn->preSynapticLayer()->synchronizeMarginWidth(pre);
    pre->synchronizeMarginWidth(originalConn->preSynapticLayer());
+
+   //// Make sure the original's and the clone's margin widths stay equal
+   //originalConn->postSynapticLayer()->synchronizeMarginWidth(post);
+   //post->synchronizeMarginWidth(originalConn->postSynapticLayer());
 
    //Redudant read in case it's a clone of a clone
 
