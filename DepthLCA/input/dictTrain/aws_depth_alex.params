@@ -10,15 +10,15 @@ HyPerCol "column" = {
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
 
-   outputPath = "/nh/compneuro/Data/Depth/dictLearn/depth_alex";
+   outputPath = "/home/ec2-user/mountData/dictLearn/depth_alex";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
 
    checkpointRead = false; //true;
    checkpointWrite = true;
-   checkpointWriteDir = "/nh/compneuro/Data/Depth/dictLearn/depth_alex/Checkpoints";
-   checkpointWriteStepInterval = 5000;
-   deleteOlderCheckpoints = false;
+   checkpointWriteDir = "/home/ec2-user/mountData/dictLearn/depth_alex/Checkpoints";
+   checkpointWriteStepInterval = 50;
+   deleteOlderCheckpoints = true;
    //suppressLastOutput = false;
    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
 };
@@ -34,7 +34,7 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/nh/compneuro/Data/KITTI/list/image_02.txt";
+    imageListPath = "/home/ec2-user/mountData/kitti/list/image_02_aws.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
@@ -126,7 +126,7 @@ RescaleLayer "LeftRescale" = {
 
 Movie "RightImage" = {
     #include "LeftImage";
-    @imageListPath = "/nh/compneuro/Data/KITTI/list/image_03.txt";
+    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_03_aws.txt";
 };
 
 ANNLayer "RightBipolar" = {
@@ -166,7 +166,7 @@ Movie "DepthImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false; 
-    imageListPath = "/nh/compneuro/Data/KITTI/list/depth.txt";
+    imageListPath = "/home/ec2-user/mountData/kitti/list/depth_aws.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
@@ -261,6 +261,7 @@ ANNLayer "FinalLayer" = {
    @phase = 5;
    @VThresh = -infinity;
    @VMin = -infinity;
+   @writeStep = 1; //Change based on display period
 };
 
 MaskLayer "FinalError" = {

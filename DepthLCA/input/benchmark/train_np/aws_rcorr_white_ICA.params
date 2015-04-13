@@ -18,15 +18,15 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_LCA/";
+    outputPath = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_white_ICA/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = false;
-    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_LCA/Checkpoints";
-    checkpointWriteStepInterval = 50;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/benchmark/train/single_rcorr_LCA/Checkpoints";
+    checkpointWriteStepInterval = 10;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
     writeProgressToErr = true;
@@ -42,20 +42,19 @@ HyPerCol "column" = {
 // layers
 //
 
-Movie "LCA_V1" = {
+Movie "ICA_V1" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
     nf = 512;
     readPvpFile = true;
-    imageListPath = "~/mountData/LCA_train_single_group_nf_512/a8_LCA_V1.pvp";
+    imageListPath = "~/mountData/benchmark/a12_V1_ICA.pvp";
     writeFrameToTimestamp = true;
-    writeStep = 1;
-    sparseLayer = true;
-    writeSparseValues = true;
+    writeStep = -1;
+    sparseLayer = false;
     displayPeriod = 1;
-    start_frame_index = 22;
-    skip_frame_index = 11;
+    start_frame_index = 2;
+    skip_frame_index = 1;
     echoFramePathnameFlag = true;
     mirrorBCflag = true;
     jitterFlag = 0;
@@ -69,30 +68,6 @@ Movie "LCA_V1" = {
     randomMovie = 0;
     phase = 0;
     //useParamsImage = true;
-};
-
-ANNLayer "LeftRecon" = {
-    restart = 0;
-    nxScale = .5;
-    nyScale = .5;
-    nf = 3;
-    writeStep = 1.0;
-    initialWriteTime = 1.0; //1 + writestep
-    mirrorBCflag = 0;
-    writeSparseActivity = 0;
-    //
-    //movieLayerName = "LeftImage";
-    InitVType = "ZeroV";
-    //
-    VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
-    VWidth = 0;
-    valueBC = 0;
-    // 
-    phase = 1;
-    //
 };
 
 //Depth ground truth layers
@@ -221,8 +196,7 @@ BinningLayer "DepthGT" = {
 //    phase = 5;
 //};
 
-//Depth connections
-HyPerConn "DepthImageToDepthDownsample" = {
+PoolingConn "DepthImageToDepthDownsample" = {
     preLayerName = "DepthImage";
     postLayerName = "DepthDownsample";
     channelCode = 0; //Inhib b, doing nothing to input
@@ -235,14 +209,11 @@ HyPerConn "DepthImageToDepthDownsample" = {
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
     
-    weightInitType = "MaxPoolingWeight";
-        
     normalizeMethod                     = "none";
     //strength                            = 1;
     //rMinX                               = 1.5;
     //rMinY                               = 1.5;
     //normalize_cutoff                    = 0;
-
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
@@ -262,8 +233,8 @@ HyPerConn "DepthImageToDepthDownsample" = {
 };
 
 //Reverse correlation connections
-BatchConn "LCA_V1ToDepthGT" = {
-    preLayerName = "LCA_V1";
+BatchConn "ICA_V1ToDepthGT" = {
+    preLayerName = "ICA_V1";
     postLayerName = "DepthGT";
     channelCode = -1;
     nxp = 33;
@@ -315,53 +286,6 @@ BatchConn "LCA_V1ToDepthGT" = {
 
     batchPeriod = 100;
     sharedWeights = true;
-};
-
-KernelConn "LCA_V1ToLeftRecon" = {
-    preLayerName = "LCA_V1";
-    postLayerName = "LeftRecon";
-    channelCode = 0;
-    nxp = 66;
-    nyp = 66;
-    shrinkPatches = false;
-    //
-    numAxonalArbors = 1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/saved_single_nf_512/V1ToLeftError_W.pvp";
-
-    strength = 1; //.25/2  
-    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
-    //normalizeMethod = "normalizeContrastZeroMean"; 
-    //SET PARAMS TO NEW NORMALIZATION METHOD
-    minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = false;
-    symmetrizeWeights = false;
-    //
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    keepKernelsSynchronized = true; 
-    combine_dW_with_W_flag = false; 
-    //
-    writeStep = -1;
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    //triggerFlag = true;
-    //triggerLayerName = "LeftImage";
-    //triggerOffset = 1;
-    initialWriteTime = 0.0;
-    //dWMax = 5; // 200.0 used for initial training
-    selfFlag = false;
-    shmget_flag = false;
-    //
-    delay = 0;
-    //
-    useWindowPost = false;
-    updateGSynFromPostPerspective = false;
-    pvpatchAccumulateType = "convolve";
 };
 
 ////SLP Connections
@@ -419,3 +343,4 @@ KernelConn "LCA_V1ToLeftRecon" = {
 //    updateGSynFromPostPerspective = false;
 //    pvpatchAccumulateType = "convolve";
 //};
+

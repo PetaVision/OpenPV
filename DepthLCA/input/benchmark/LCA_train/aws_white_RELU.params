@@ -16,16 +16,16 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime= 100000000;
+    stopTime = 195;
     progressStep = 5000;
-    outputPath = "/home/ec2-user/mountData/dictLearn/aws_white_small";
+    outputPath = "/home/ec2-user/mountData/benchmark/RELUTrain/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/home/ec2-user/mountData/single_stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = true;
-    checkpointWriteDir = "/home/ec2-user/mountData/dictLearn/aws_white_small/Checkpoints";
+    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/RELUTrain/Checkpoints";
     checkpointWriteStepInterval = 50000;
     deleteOlderCheckpoints = true;
     //suppressLastOutput = false;
@@ -49,14 +49,14 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/home/ec2-user/mountData/kitti/list/image_02_aws.txt";
+    imageListPath = "/home/ec2-user/mountData/kitti/list/image_2_benchmark_aws_cluster_single.txt";
     writeFrameToTimestamp = true;
     nf = 1;
-    writeStep = 200;
+    writeStep = -1;
     initialWriteTime = 200;
     writeSparseActivity = false;
-    displayPeriod = 200;
-    start_frame_index = 4250;
+    displayPeriod = 1;
+    start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -81,8 +81,8 @@ ANNLayer "LeftBipolar" = {
    phase                               = 1;
    mirrorBCflag                        = true;
    InitVType                           = "ZeroV";
-   triggerFlag                         = true;
-   triggerLayerName                    = "LeftImage";
+   //triggerFlag                         = true;
+   //triggerLayerName                    = "LeftImage";
    triggerOffset                       = 0;
    writeStep                           = -1;
    sparseLayer                         = false;
@@ -101,8 +101,8 @@ ANNLayer "LeftGanglion" = {
    phase                               = 2;
    mirrorBCflag                        = true;
    InitVType                           = "ZeroV";
-   triggerFlag                         = true;
-   triggerLayerName                    = "LeftImage";
+   //triggerFlag                         = true;
+   //triggerLayerName                    = "LeftImage";
    triggerOffset                       = 0;
    writeStep                           = -1;
    initialWriteTime                    = 200;
@@ -123,35 +123,35 @@ RescaleLayer "LeftRescale" = {
     nf                              = 1;
     mirrorBCflag                    = true;
     //
-    writeStep                       = 200;
-    initialWriteTime                = 200;
+    writeStep                       = -1;
+    initialWriteTime                = 1;
     writeSparseActivity             = false;
     //
     rescaleMethod                   = "l2"; //Can be either meanstd or maxmin
-    patchSize                       = 100; //10*10
+    patchSize                       = 4356; //66*66
     valueBC = 0;
     phase                           = 3;
-    triggerFlag                         = true;
-    triggerLayerName = "LeftImage";
+    //triggerFlag                         = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 0;
 };
 
-ANNNormalizedErrorLayer "LeftError" = {
+ANNErrorLayer "LeftError" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
     nf = 1;
-    writeStep = 200;
-    initialWriteTime = 200.0;
+    writeStep = 1;
+    initialWriteTime = 1.0;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
-    //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
     //
-    VThresh = 0; //Change this for efficiency
+    VThresh = -infinity; //Change this for efficiency
     VMax =  infinity;
-    VMin = 0;
+    VMin = -infinity;
     VShift = 0;
     VWidth = 0;
     valueBC = 0;
@@ -167,7 +167,7 @@ ANNLayer "LeftRecon" = {
     nxScale = .5;
     nyScale = .5;
     nf = 1;
-    writeStep = 200.0;
+    writeStep = -1.0;
     initialWriteTime = 200.0; //1 + writestep
     mirrorBCflag = 0;
     writeSparseActivity = 0;
@@ -184,9 +184,9 @@ ANNLayer "LeftRecon" = {
     // 
     phase = 6;
     //
-    triggerFlag = 1;
-    triggerLayerName = "LeftImage";
-    triggerOffset = 1;
+    //triggerFlag = 1;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
 };
 
 //
@@ -195,17 +195,17 @@ ANNLayer "LeftRecon" = {
 
 Movie "RightImage" = {
     #include "LeftImage";
-    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_03_aws.txt";
+    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_3_benchmark_aws_cluster_single.txt";
 };
 
 ANNLayer "RightBipolar" = {
     #include "LeftBipolar";
-    @triggerLayerName = "RightImage";
+    //@triggerLayerName = "RightImage";
 };
 
 ANNLayer "RightGanglion" = {
     #include "LeftGanglion";
-    @triggerLayerName = "RightImage";
+    //@triggerLayerName = "RightImage";
 };
 
 RescaleLayer "RightRescale" = {
@@ -213,7 +213,7 @@ RescaleLayer "RightRescale" = {
    @originalLayerName = "RightGanglion";
 };
 
-ANNNormalizedErrorLayer "RightError" = {
+ANNErrorLayer "RightError" = {
     #include "LeftError";
     //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V.pvp";
 };
@@ -221,43 +221,28 @@ ANNNormalizedErrorLayer "RightError" = {
 // for visualization only, makes no output
 ANNLayer "RightRecon" = {
     #include "LeftRecon";
-    @triggerLayerName = "RightImage";
+    //@triggerLayerName = "RightImage";
 };
 
 // binoclular layers
 
-HyPerLCALayer "V1" = {
+ANNLayer "V1" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 512; //2048 or 4096;
-    numChannels = 1;
-    numWindowX = 1;
-    numWindowY = 1;
-    writeStep = 200.0;
-    initialWriteTime = 200.0;
+    nf = 512;
+    writeStep = 1;
+    initialWriteTime = 1.0;
     mirrorBCflag = 0;
-    writeSparseActivity = 1;
-    writeSparseValues   = 1;
-    //
-    InitVType = "UniformRandomV";
-    minV = -1.0;
-    maxV = .02; //0.05 above VThresh
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2_V.pvp";
-    // 
-    timeConstantTau = 200.0;
-    slopeErrorStd = 0.01;
-    // 
-    dVThresh = 0;
-    VThresh = 0.02;
-    VMax = infinity;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    //Positive only
+    VThresh = 0;
+    VMax =  infinity;
     VMin = 0;
-    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
-    VWidth = 0.05; //Same as VThresh
-    updateGpu = true;
-    //
-    phase = 5;
+    VShift = 0;
+    VWidth = 0;
+    phase = 4;  
 };
 
 // connections
@@ -413,12 +398,12 @@ IdentConn "RightRescaleToRightError" = {
 
 // binocular connections
 
-MomentumConn "V1ToLeftError" = {
+HyPerConn "V1ToLeftError" = {
     preLayerName = "V1";
     postLayerName = "LeftError";
-    channelCode = 1;
-    nxp = 10;
-    nyp = 10;
+    channelCode = -1;
+    nxp = 66;
+    nyp = 66;
     shrinkPatches = false;
     //
     numAxonalArbors = 1;
@@ -426,7 +411,7 @@ MomentumConn "V1ToLeftError" = {
     sharedWeights = true;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/dictLearn/aws_white_small_saved/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/dictLearn/aws_white_saved/V1ToLeftError_W.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
@@ -450,16 +435,12 @@ MomentumConn "V1ToLeftError" = {
     writeStep = -1;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = true;
-    triggerFlag = true;
-    triggerLayerName = "LeftImage";
-    triggerOffset = 1;
+    plasticityFlag = false;
+    //triggerFlag = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
     initialWriteTime = 0.0;
-
-    dWMax = .05; // 200.0 used for initial training
-    momentumTau = 100;
-    momentumMethod = "viscosity";
-
+    //dWMax = 5; // 200.0 used for initial training
     selfFlag = false;
     shmget_flag = false;
     //
@@ -501,12 +482,12 @@ CloneKernelConn "V1ToLeftRecon" = {
 };
 
 //Right binocular connections
-MomentumConn "V1ToRightError" = {
+HyPerConn "V1ToRightError" = {
     #include "V1ToLeftError";
     @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
     normalizeGroupName = "V1ToLeftError";
-    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/aws_white_small_saved/V1ToRightError_W.pvp";
+    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/aws_white_saved/V1ToRightError_W.pvp";
 };
 
 TransposeConn "RightErrorToV1" = {

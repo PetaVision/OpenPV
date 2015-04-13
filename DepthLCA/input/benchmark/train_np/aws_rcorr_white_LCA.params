@@ -18,14 +18,14 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_LCA/";
+    outputPath = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_white_LCA/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = false;
-    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_LCA/Checkpoints";
+    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_white_LCA/Checkpoints";
     checkpointWriteStepInterval = 50;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
@@ -48,7 +48,7 @@ Movie "LCA_V1" = {
     nyScale = .25;
     nf = 512;
     readPvpFile = true;
-    imageListPath = "~/mountData/LCA_train_single_group_nf_512/a8_LCA_V1.pvp";
+    imageListPath = "~/mountData/benchmark/a12_V1_LCA.pvp";
     writeFrameToTimestamp = true;
     writeStep = 1;
     sparseLayer = true;
@@ -221,8 +221,7 @@ BinningLayer "DepthGT" = {
 //    phase = 5;
 //};
 
-//Depth connections
-HyPerConn "DepthImageToDepthDownsample" = {
+PoolingConn "DepthImageToDepthDownsample" = {
     preLayerName = "DepthImage";
     postLayerName = "DepthDownsample";
     channelCode = 0; //Inhib b, doing nothing to input
@@ -235,14 +234,11 @@ HyPerConn "DepthImageToDepthDownsample" = {
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
     
-    weightInitType = "MaxPoolingWeight";
-        
     normalizeMethod                     = "none";
     //strength                            = 1;
     //rMinX                               = 1.5;
     //rMinY                               = 1.5;
     //normalize_cutoff                    = 0;
-
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;

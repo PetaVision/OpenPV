@@ -16,17 +16,17 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
+    stopTime = 93; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_LCA/";
+    outputPath = "/home/ec2-user/mountData/benchmark/validate/aws_white_rcorr_LCA/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = false;
-    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_LCA/Checkpoints";
-    checkpointWriteStepInterval = 50;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/benchmark/train/single_rcorr_LCA/Checkpoints";
+    checkpointWriteStepInterval = 10;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
     writeProgressToErr = true;
@@ -48,13 +48,13 @@ Movie "LCA_V1" = {
     nyScale = .25;
     nf = 512;
     readPvpFile = true;
-    imageListPath = "~/mountData/LCA_train_single_group_nf_512/a8_LCA_V1.pvp";
+    imageListPath = "~/mountData/benchmark/a12_V1_LCA.pvp";
     writeFrameToTimestamp = true;
-    writeStep = 1;
+    writeStep = -1;
     sparseLayer = true;
     writeSparseValues = true;
     displayPeriod = 1;
-    start_frame_index = 22;
+    start_frame_index = 1111;
     skip_frame_index = 11;
     echoFramePathnameFlag = true;
     mirrorBCflag = true;
@@ -75,7 +75,7 @@ ANNLayer "LeftRecon" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-    nf = 3;
+    nf = 1;
     writeStep = 1.0;
     initialWriteTime = 1.0; //1 + writestep
     mirrorBCflag = 0;
@@ -107,7 +107,7 @@ Movie "DepthImage" = {
     writeStep = -1;
     sparseLayer = false;
     displayPeriod = 1;
-    start_frame_index = 1;
+    start_frame_index = 100;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
     mirrorBCflag = false;
@@ -166,6 +166,40 @@ BinningLayer "DepthGT" = {
     phase = 2;
 };
 
+ANNLayer "RCorrBuf" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 128;
+    writeStep = -1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    phase = 5; //Same as other recons
+};
+
+WTALayer "RCorrRecon" = {
+    restart = 0;
+    nxScale = .25; 
+    nyScale = .25;
+    nf = 1; 
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    delay = 0;
+    originalLayerName = "RCorrBuf";
+    phase = 6;
+};
+
+
 ////SLP layers
 //ANNLayer "SLP_Error" = {
 //    nxScale                             = 0.5;
@@ -221,8 +255,7 @@ BinningLayer "DepthGT" = {
 //    phase = 5;
 //};
 
-//Depth connections
-HyPerConn "DepthImageToDepthDownsample" = {
+PoolingConn "DepthImageToDepthDownsample" = {
     preLayerName = "DepthImage";
     postLayerName = "DepthDownsample";
     channelCode = 0; //Inhib b, doing nothing to input
@@ -235,14 +268,11 @@ HyPerConn "DepthImageToDepthDownsample" = {
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
     
-    weightInitType = "MaxPoolingWeight";
-        
     normalizeMethod                     = "none";
     //strength                            = 1;
     //rMinX                               = 1.5;
     //rMinY                               = 1.5;
     //normalize_cutoff                    = 0;
-
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
@@ -262,10 +292,10 @@ HyPerConn "DepthImageToDepthDownsample" = {
 };
 
 //Reverse correlation connections
-BatchConn "LCA_V1ToDepthGT" = {
+KernelConn "LCA_V1ToRCorrBuf" = {
     preLayerName = "LCA_V1";
-    postLayerName = "DepthGT";
-    channelCode = -1;
+    postLayerName = "RCorrBuf";
+    channelCode = 0;
     nxp = 33;
     nyp = 33;
     nfp = 128;
@@ -274,18 +304,18 @@ BatchConn "LCA_V1ToDepthGT" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
-    //weightInitType = "FileWeight";
-    //initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToDepthGT_W.pvp";
-    weightInitType = "UniformWeight";
-    weightInit = 0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_white_LCA/Last/LCA_V1ToDepthGT_W.pvp";
+    //weightInitType = "UniformWeight";
+    //weightInit = 0;
     //
     strength = 1; //.25/2  
-    normalizeMethod = "normalizeL2";
-    minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = false;
-    symmetrizeWeights = false;
+    normalizeMethod = "none";
+    //minL2NormTolerated = 0;
+    //normalizeArborsIndividually = 0;
+    //normalize_cutoff = 0.0;
+    //normalizeFromPostPerspective = false;
+    //symmetrizeWeights = false;
     //
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 
@@ -295,7 +325,7 @@ BatchConn "LCA_V1ToDepthGT" = {
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
 
-    plasticityFlag = true;
+    plasticityFlag = false;
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 1.0;
 
@@ -310,10 +340,6 @@ BatchConn "LCA_V1ToDepthGT" = {
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
 
-    useMask = true;
-    maskLayerName = "DepthGT";
-
-    batchPeriod = 100;
     sharedWeights = true;
 };
 
@@ -329,7 +355,7 @@ KernelConn "LCA_V1ToLeftRecon" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/saved_single_nf_512/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/dictLearn/aws_white_saved/V1ToLeftError_W.pvp";
 
     strength = 1; //.25/2  
     normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean

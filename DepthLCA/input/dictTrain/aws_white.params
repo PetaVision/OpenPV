@@ -56,7 +56,7 @@ Movie "LeftImage" = {
     initialWriteTime = 200;
     writeSparseActivity = false;
     displayPeriod = 200;
-    start_frame_index = 8025;
+    start_frame_index = 11025;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -456,7 +456,7 @@ MomentumConn "V1ToLeftError" = {
     triggerOffset = 1;
     initialWriteTime = 0.0;
 
-    dWMax = .2; // 200.0 used for initial training
+    dWMax = .05; // 200.0 used for initial training
     momentumTau = 100;
     momentumMethod = "viscosity";
 
