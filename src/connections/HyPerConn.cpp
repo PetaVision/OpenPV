@@ -18,7 +18,7 @@
 #include <iostream>
 #include "../layers/accumulate_functions.h"
 #include "../weightinit/InitWeights.hpp"
-#ifdef OBSOLETE // Marked obsolete Feb 9, 2014.  HyPerConn should not need to know about subclasses of InitWeights
+#ifdef OBSOLETE // Marked obsolete Feb 9, 2015.  HyPerConn should not need to know about subclasses of InitWeights
 #include "../weightinit/InitGauss2DWeights.hpp"
 #include "../weightinit/InitCocircWeights.hpp"
 #include "../weightinit/InitSmartWeights.hpp"
@@ -32,7 +32,7 @@
 #include "../weightinit/InitUniformWeights.hpp"
 #include "../weightinit/InitMaxPoolingWeights.hpp"
 #include "../weightinit/InitSpreadOverArborsWeights.hpp"
-#endif // OBSOLETE // Marked obsolete Feb 9, 2014.  HyPerConn should not need to know about subclasses of InitWeights
+#endif // OBSOLETE // Marked obsolete Feb 9, 2015.  HyPerConn should not need to know about subclasses of InitWeights
 #ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
 #include "../weightinit/Init3DGaussWeights.hpp"
 #include "../weightinit/InitByArborWeights.hpp"
@@ -617,7 +617,7 @@ InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr)
    CoreParamGroupHandler * initWeightsHandler = new CoreParamGroupHandler();
    weightInitializer = initWeightsHandler->createWeightInitializer(weightInitTypeStr, name, parent);
    delete initWeightsHandler;
-#ifdef OBSOLETE // Marked obsolete Feb 9, 2014. // Functionality moved into CoreParamGroupHandler
+#ifdef OBSOLETE // Marked obsolete Feb 9, 2015. // Functionality moved into CoreParamGroupHandler
    if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
       weightInitializer = new InitGauss2DWeights(this);
    }
@@ -690,7 +690,7 @@ InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr)
    else {
       weightInitializer = NULL;
    }
-#endif // OBSOLETE // Marked obsolete Feb 9, 2014. Functionality moved into CoreParamGroupHandler
+#endif // OBSOLETE // Marked obsolete Feb 9, 2015. Functionality moved into CoreParamGroupHandler
 
    return weightInitializer;
 }
