@@ -1618,6 +1618,41 @@ int HyPerConn::communicateInitInfo() {
 #endif
 
 
+   //TODO this is a temporary check, since there's a bug in PV with the new patch sizes with receiving from post. Fix this bug.
+   if(updateGSynFromPostPerspective){
+      float preToPostScaleX = (float)pre->getLayerLoc()->nx/post->getLayerLoc()->nx;
+      float preToPostScaleY = (float)pre->getLayerLoc()->ny/post->getLayerLoc()->ny;
+      //One to many
+      bool allowed = true;
+      if(preToPostScaleX <= 1 && preToPostScaleY <= 1){
+         int postToPreScaleX = 1/preToPostScaleX;
+         int postToPreScaleY = 1/preToPostScaleY;
+         float valx = (float)nxp/postToPreScaleX;
+         float valy = (float)nyp/postToPreScaleY;
+         if(valx != floor(valx) || valy != floor(valy)){
+            allowed = false;
+         }
+         if((int)valx%2 != 1 || (int)valy%2 != 1){
+            allowed = false;
+         }
+         if(!allowed){
+            std::cout << "Connection " << name << ": Receiving from post currently is bugged with new patch sizes. Patch size must be odd times many.\n";
+            exit(-1);
+         }
+         
+      }
+      else{
+         if(nxp%2 != 1 || nyp%2 != 1){
+            allowed = false;
+         }
+         if(!allowed){
+            std::cout << "Connection " << name << ": Receiving from post currently is bugged with new patch sizes. Patch size must be odd.\n";
+            exit(-1);
+         }
+      }
+
+   }
+
    return status;
 }
 
