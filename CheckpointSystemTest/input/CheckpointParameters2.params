@@ -1,311 +1,339 @@
-//
-// CheckpointSystemTest2.params
-//
-// created by peteschultz: Nov 10, 2011
-//
-
-//  A params file for testing checkpointing.
-//  CheckpointParameters1.params runs a simulation for 50 timesteps, checkpointing every 4 timesteps.
-//  CheckpointParameters2.params runs a simulation for starting with the previous t=12 checkpoint, until t=50, checkpointing every 4 timestep.
-//  The result of the two simulations should be the same.
-//
-
 debugParsing = false;
 
 HyPerCol "column" = {
-   nx = 8;   
-   ny = 8;
-   dt = 1.0;
-   dtAdaptFlag = true;
-   randomSeed = 1860277205;  // if not set here,  clock time is used to generate seed
-   startTime = 0.0;
-   stopTime = 50;
-   progressInterval = 10;
-   writeProgressToErr = false;
-   outputPath = "output";
-   outputNamesOfLayersAndConns = "Names.txt";
-   filenamesContainLayerNames = true;
-   filenamesContainConnectionNames = true;
-   checkpointWrite = true;
-   checkpointWriteDir = "checkpoints2";
-   checkpointWriteStepInterval = 4;
-   deleteOlderCheckpoints = false;
-   printParamsFilename = "pv2.params";
+    startTime                           = 0;
+    dt                                  = 1;
+    dtAdaptFlag                         = false;
+    stopTime                            = 50;
+    progressInterval                    = 10;
+    writeProgressToErr                  = false;
+    verifyWrites                        = true;
+    outputPath                          = "output";
+    printParamsFilename                 = "pv2.params";
+    randomSeed                          = 1860277205;
+    nx                                  = 8;
+    ny                                  = 8;
+    filenamesContainLayerNames          = 1;
+    filenamesContainConnectionNames     = 1;
+    initializeFromCheckpointDir         = "";
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "checkpoints2";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 4;
+    deleteOlderCheckpoints              = false;
+    suppressNonplasticCheckpoints       = false;
+    writeTimescales                     = true;
+    errorOnNotANumber                   = false;
 };
 
-//
-// layers
-//
-
 CPTestInputLayer "input" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    writeSparseActivity = false;
-    mirrorBCflag = false;
-    valueBC = 0.0;
-    // InitVType = "ZeroV"; // inited from checkpoint
-    VMax = infinity;
-    VMin = -infinity;
-    VThresh = -infinity;
-    VShift = 0.0;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ConstantV";
+    valueV                              = -70;
+    triggerFlag                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
 };
 
 ANNLayer "output no delay" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = true;
-
-    // InitVType = "ZeroV"; // inited from checkpoint
-
-    VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    InitVType                           = "ConstantV";
+    valueV                              = -70;
+    triggerFlag                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = true;
+    writeSparseValues                   = true;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
 };
 
 ANNLayer "output with delay" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = true;
-
-    // InitVType = "ZeroV"; // inited from checkpoint
-
-    VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    InitVType                           = "ConstantV";
+    valueV                              = -70;
+    triggerFlag                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = true;
+    writeSparseValues                   = true;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
 };
 
 ANNLayer "output arbor" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = true;
-
-    // InitVType = "ZeroV"; // inited from checkpoint
-
-    VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    InitVType                           = "ConstantV";
+    valueV                              = -70;
+    triggerFlag                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = true;
+    writeSparseValues                   = true;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
 };
 
 ANNLayer "output from full hyperconn" = {
-    restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    nf = 1;
-    phase = 0;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    mirrorBCflag = 1;
-    writeSparseActivity = true;
-
-    // InitVType = "ZeroV"; // inited from checkpoint
-
-    VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    InitVType                           = "ConstantV";
+    valueV                              = -70;
+    triggerFlag                         = false;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    sparseLayer                         = true;
+    writeSparseValues                   = true;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
 };
 
 VaryingHyPerConn "conn no delay" = {
-    preLayerName = "input";
-    postLayerName = "output no delay";
-    channelCode = 0;
-    sharedWeights = true;
-    nxp = 1;
-    nyp = 1;
-    nfp = 1;
-    numAxonalArbors = 1;
-    writeStep = 1;
-    initialWriteTime = 0;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 2;
-    sigma = infinity;
-    rMax  = infinity;
-    rMin = 0;
-    deltaThetaMax = 6.283185;
-    thetaMax = 1.0;
-    numFlanks = 1;
-    flankShift = false;
-    rotate = false;
-    bowtieFlag = false;
-    combineWeightFiles = false;
-      
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeMethod = "none";
-
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
-    //plasticityFlag = true;
-    combine_dW_with_W_flag = false;
-    dWMax = 1.0;
-    selfFlag = false;
-    keepKernelsSynchronized = true;
-    weightUpdatePeriod = 1;
-    initialWeightUpdateTime = 0;
-
-    delay = 0;
-
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
-    updateGSynFromPostPerspective = false;
+    preLayerName                        = "input";
+    postLayerName                       = "output no delay";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "Gauss2DWeight";
+    initWeightsFile                     = NULL;
+    aspect                              = 2;
+    sigma                               = 3.40282e+38;
+    rMax                                = 3.40282e+38;
+    rMin                                = 0;
+    strength                            = 1;
+    deltaThetaMax                       = 6.28319;
+    thetaMax                            = 1;
+    numFlanks                           = 1;
+    flankShift                          = 0;
+    rotate                              = 0;
+    bowtieFlag                          = false;
+    triggerFlag                         = false;
+    weightUpdatePeriod                  = 1;
+    initialWeightUpdateTime             = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "none";
+    dWMax                               = 1;
+    keepKernelsSynchronized             = true;
+    useMask                             = false;
+    gpuGroupIdx                         = 0;
+    preDataLocal                        = false;
+    numXLocal                           = 0;
+    numYLocal                           = 0;
+    numFLocal                           = 0;
 };
 
 VaryingHyPerConn "conn with delay" = {
-    preLayerName = "input";
-    postLayerName = "output with delay";
-    channelCode = 0;
-    sharedWeights = true;
-    nxp = 1;
-    nyp = 1;
-    nfp = 1;
-    numAxonalArbors = 1;
-    writeStep = 1;
-    initialWriteTime = 0.0;
-    initFromLastFlag = 0;
-    
-    weightInitType = "Gauss2DWeight";
-    aspect = 2;
-    sigma = infinity;
-    rMax  = infinity;
-    rMin = 0;
-    deltaThetaMax = 6.283185;
-    thetaMax = 1.0;
-    numFlanks = 1;
-    flankShift = false;
-    rotate = false;
-    bowtieFlag = false;
-    combineWeightFiles = false;
-      
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeMethod = "none";
-
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
-    //plasticityFlag = true;
-    combine_dW_with_W_flag = false;
-    dWMax = 1.0;
-    selfFlag = false;
-    keepKernelsSynchronized = true;
-    weightUpdatePeriod = 1.0;
-    initialWeightUpdateTime = 0.0;
-
-    delay = 2;
-
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
-    updateGSynFromPostPerspective = false;
+    preLayerName                        = "input";
+    postLayerName                       = "output with delay";
+    channelCode                         = 0;
+    delay                               = [2.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "Gauss2DWeight";
+    initWeightsFile                     = NULL;
+    aspect                              = 2;
+    sigma                               = 3.40282e+38;
+    rMax                                = 3.40282e+38;
+    rMin                                = 0;
+    strength                            = 1;
+    deltaThetaMax                       = 6.28319;
+    thetaMax                            = 1;
+    numFlanks                           = 1;
+    flankShift                          = 0;
+    rotate                              = 0;
+    bowtieFlag                          = false;
+    triggerFlag                         = false;
+    weightUpdatePeriod                  = 1;
+    initialWeightUpdateTime             = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "none";
+    dWMax                               = 1;
+    keepKernelsSynchronized             = true;
+    useMask                             = false;
+    gpuGroupIdx                         = 0;
+    preDataLocal                        = false;
+    numXLocal                           = 0;
+    numYLocal                           = 0;
+    numFLocal                           = 0;
 };
 
 HyPerConn "input to output arbor" = {
-    preLayerName = "input";
-    postLayerName = "output arbor";
-    channelCode = 0;
-    sharedWeights = true;
-    numAxonalArbors = 4;
-    useWindowPost = false;
-    nxp = 3;
-    nyp = 3;
-    nfp = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    initFromLastFlag = 0;
-    
-    weightInit=1;
-    
-    weightInitType = "SpreadOverArborsWeight";
-    deltaThetaMax = 0.0;
-    thetaMax = 0.0;
-    rotate = 0.0;
-    useListOfArborFiles = false;
-    combineWeightFiles = false;
-      
-    normalizeMethod = "normalizeSum";
-    strength = 9.0;  // 1.0 x post->num_neurons / pre->num_neurons
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
-
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
-    updateGSynFromPostPerspective = false;
-
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    selfFlag = false;
-
-    delay = 0;     
+    preLayerName                        = "input";
+    postLayerName                       = "output arbor";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 4;
+    plasticityFlag                      = false;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "SpreadOverArborsWeight";
+    initWeightsFile                     = NULL;
+    aspect                              = 1;
+    sigma                               = 0.8;
+    rMax                                = 1.4;
+    rMin                                = 0;
+    strength                            = 9;
+    weightInit                          = 1;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 3;
+    nyp                                 = 3;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "normalizeSum";
+    strength                            = 9;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = 0;
+    normalizeFromPostPerspective        = false;
+    minSumTolerated                     = 0;
+    gpuGroupIdx                         = 0;
+    preDataLocal                        = false;
+    numXLocal                           = 0;
+    numYLocal                           = 0;
+    numFLocal                           = 0;
 };
 
 VaryingHyPerConn "full hyperconn" = {
-    preLayerName = "input";
-    postLayerName = "output from full hyperconn";
-    channelCode = 0;
-    sharedWeights = false;
-    numAxonalArbors = 1;
-    nxp = 1;
-    nyp = 1;
-    nfp = 1;
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-    initFromLastFlag = 0;
-        
-    weightInitType = "SmartWeight";
-    combineWeightFiles = false;
-
-    normalizeMethod = "none";
-
-    preActivityIsNotRate = false;
-    pvpatchAccumulateType = "convolve";
-    shrinkPatches = false;
-    updateGSynFromPostPerspective = false;
-
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
-    //plasticityFlag = false;
-    combine_dW_with_W_flag = false;
-    selfFlag = false;
-
-    delay = 0;     
+    preLayerName                        = "input";
+    postLayerName                       = "output from full hyperconn";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = false;
+    weightInitType                      = "SmartWeight";
+    initWeightsFile                     = NULL;
+    triggerFlag                         = false;
+    weightUpdatePeriod                  = 1;
+    initialWeightUpdateTime             = 0;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 1;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "none";
+    dWMax                               = 1;
+    useMask                             = false;
+    gpuGroupIdx                         = 0;
+    preDataLocal                        = false;
+    numXLocal                           = 0;
+    numYLocal                           = 0;
+    numFLocal                           = 0;
 };
 
 IdentConn "selfconnection for output with delay" = {
-    preLayerName = "output with delay";
-    postLayerName = "output with delay";
-    channelCode = 1;
-    delay = 0;
-    writeStep = -1;
-    combineWeightFiles = false;
+    preLayerName                        = "output with delay";
+    postLayerName                       = "output with delay";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    receiveGpu                          = false;
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+    gpuGroupIdx                         = 0;
+    preDataLocal                        = false;
+    numXLocal                           = 0;
+    numYLocal                           = 0;
+    numFLocal                           = 0;
 };
