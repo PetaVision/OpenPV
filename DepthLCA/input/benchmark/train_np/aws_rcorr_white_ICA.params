@@ -282,7 +282,7 @@ BatchConn "ICA_V1ToDepthGT" = {
     pvpatchAccumulateType = "convolve";
 
     useMask = true;
-    maskLayerName = "DepthGT";
+    maskLayerName = "DepthDownsample";
 
     batchPeriod = 100;
     sharedWeights = true;
