@@ -93,6 +93,21 @@ protected:
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
 
    /**
+    * @brief dWMax is not used by CopyConn.
+    */
+   virtual void ioParam_dWMax(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief useMask is not used by CopyConn.
+    */
+   virtual void ioParam_useMask(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief maskLayerName is not used by CopyConn.
+    */
+   virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief originalConnName (required): The name of the connection the weights will be copied from
     */
    virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
