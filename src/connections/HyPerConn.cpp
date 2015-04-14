@@ -3374,16 +3374,38 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
 #endif // OBSOLETE
    PVPatch * weights = getWeights(kExt,arbor_ID);
 
-   //Offset, since post is in res space, should be right for both mask and post layer
    size_t offset = getAPostOffset(kExt, arbor_ID);
    const pvdata_t * postactRef = &postactbuf[offset];
 
    int sym = 0;
    const pvdata_t * maskactRef = NULL;
    if(useMask){
+      const PVLayerLoc * maskLoc = mask->getLayerLoc();
+      //Calculate mask offset, must account for different size margins and the num features
+      //offsetX and Y are restricted indices into post
+      size_t offsetX, offsetY;
+      offsetX = kxPos(offset, postLoc->nx+postLoc->halo.lt+postLoc->halo.rt,
+        postLoc->ny+postLoc->halo.up+postLoc->halo.dn,
+        postLoc->nf) - postLoc->halo.lt;
+      offsetY = kyPos(offset, postLoc->nx+postLoc->halo.lt+postLoc->halo.rt,
+        postLoc->ny+postLoc->halo.up+postLoc->halo.dn,
+        postLoc->nf) - postLoc->halo.up;
+      //Sanity check, offset should be in restricted
+      assert(offsetX >= 0 && offsetX < postLoc->nx+postLoc->halo.lt);
+      assert(offsetY >= 0 && offsetY < postLoc->ny+postLoc->halo.up);
+      //Convert to maskOffsetX and Y, extended (in mask)
+      size_t maskOffsetX, maskOffsetY;
+      maskOffsetX = offsetX + maskLoc->halo.lt;
+      maskOffsetY = offsetY + maskLoc->halo.up;
+      //Convert to extIndex into mask
+      size_t maskOffset = kIndex(maskOffsetX, maskOffsetY, 0,
+            maskLoc->nx+maskLoc->halo.lt+maskLoc->halo.rt,
+            maskLoc->ny+maskLoc->halo.up+maskLoc->halo.dn,
+            maskLoc->nf); //This should take into account if maskLoc's nf is either 1 or the size of post
+
       const pvdata_t * maskactbuf = mask->getLayerData();
-      maskactRef = &maskactbuf[offset];
-      sym = (mask->getLayerLoc()->nf * (mask->getLayerLoc()->nx + mask->getLayerLoc()->halo.lt + mask->getLayerLoc()->halo.rt));
+      maskactRef = &maskactbuf[maskOffset];
+      sym = (maskLoc->nf * (maskLoc->nx + maskLoc->halo.lt + maskLoc->halo.rt));
    }
    
 
