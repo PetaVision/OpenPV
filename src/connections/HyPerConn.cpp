@@ -3383,6 +3383,9 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
    }
 #endif // OBSOLETE
    PVPatch * weights = getWeights(kExt,arbor_ID);
+   int ny = weights->ny;
+   int nk = weights->nx * nfp;
+   if (ny==0 || nk==0) { return PV_SUCCESS; }
 
    size_t offset = getAPostOffset(kExt, arbor_ID);
    const pvdata_t * postactRef = &postactbuf[offset];
@@ -3401,8 +3404,8 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
         postLoc->ny+postLoc->halo.up+postLoc->halo.dn,
         postLoc->nf) - postLoc->halo.up;
       //Sanity check, offset should be in restricted
-      assert(offsetX >= 0 && offsetX < postLoc->nx+postLoc->halo.lt);
-      assert(offsetY >= 0 && offsetY < postLoc->ny+postLoc->halo.up);
+      assert(offsetX < postLoc->nx+postLoc->halo.lt);
+      assert(offsetY < postLoc->ny+postLoc->halo.up);
       //Convert to maskOffsetX and Y, extended (in mask)
       size_t maskOffsetX, maskOffsetY;
       maskOffsetX = offsetX + maskLoc->halo.lt;
@@ -3417,10 +3420,6 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
       maskactRef = &maskactbuf[maskOffset];
       sym = (maskLoc->nf * (maskLoc->nx + maskLoc->halo.lt + maskLoc->halo.rt));
    }
-   
-
-   int ny = weights->ny;
-   int nk = weights->nx * nfp;
 
    int kernelIndex = patchIndexToDataIndex(kExt);
 
