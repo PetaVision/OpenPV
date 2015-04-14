@@ -59,9 +59,22 @@ int MaskLayer::communicateInitInfo() {
    const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
    const PVLayerLoc * loc = getLayerLoc();
    assert(maskLoc != NULL && loc != NULL);
-   if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal || maskLoc->nf != loc->nf) {
+   if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" does not have the same dimensions.\n",
+         fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
+                 parent->parameters()->groupKeywordFromName(name), name, maskLayerName);
+         fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+                 maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
+      }
+#ifdef PV_USE_MPI
+      MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
+      exit(EXIT_FAILURE);
+   }
+
+   if(maskLoc->nf != 1 && maskLoc->nf != loc->nf){
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
                  parent->parameters()->groupKeywordFromName(name), name, maskLayerName);
          fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
@@ -79,28 +92,32 @@ int MaskLayer::communicateInitInfo() {
 
 int MaskLayer::updateState(double time, double dt)
 {
-   //Break here
-
    ANNLayer::updateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
    const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
    pvdata_t * maskActivity = maskLayer->getActivity();
    pvdata_t * A = getActivity();
 
-
-
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
 
-
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
    for(int ni = 0; ni < num_neurons; ni++){
+      int kThisRes = ni;
       int kThisExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-      int kMaskExt = kIndexExtended(ni, nx, ny, nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
+      int kMaskRes;
+      if(maskLoc->nf == 1){
+         kMaskRes = ni/nf;
+      }
+      else{
+         kMaskRes = ni;
+      }
+      int kMaskExt = kIndexExtended(ni, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
+
       //Set value to 0, otherwise, updateState from ANNLayer should have taken care of it
       if(maskActivity[kMaskExt] == 0){
          A[kThisExt] = 0;
