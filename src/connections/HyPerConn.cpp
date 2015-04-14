@@ -58,6 +58,7 @@
 #endif // USE_SHMGET
 #endif // OBSOLETE
 #include "../io/CoreParamGroupHandler.hpp"
+#include <limits>
 
 #ifdef __cplusplus
 extern "C" {
@@ -271,7 +272,7 @@ int HyPerConn::initialize_base()
    this->normalize_zero_offset = false;
    this->normalize_cutoff = 0.0f;
    this->normalize_RMS_amp = false;
-   this->dWMax            = 1;
+   this->dWMax            = std::numeric_limits<float>::quiet_NaN();
    this->strengthParamHasBeenWritten = false;
 
 #ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
