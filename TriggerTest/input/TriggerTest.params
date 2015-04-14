@@ -10,15 +10,15 @@ HyPerCol "column" = {
    nx                               = 8;
    ny                               = 8;
    dt                               = 1.0;
+   dtAdaptFlag                      = false;
    randomSeed                       = 1234567890;
    startTime                        = 0.0;
-   numSteps                         = 500;
-   progressStep                     = 1;
+   stopTime                         = 500.0;
+   progressInterval                 = 1;
    writeProgressToErr               = false;
    outputPath                       = "output/";
    filenamesContainLayerNames       = 2;
    filenamesContainConnectionNames  = 2;
-   checkpointRead                   = false;
    checkpointWrite                  = false;
    // checkpointWriteDir               = "output/checkpoints";
    // checkpointWriteStepInterval      = 10000;
@@ -42,7 +42,7 @@ Movie "input" = {
     phase                            = 0;
     writeStep                        = -1;
     // initialWriteTime
-    writeSparseActivity              = false;
+    sparseLayer                      = false;
     mirrorBCflag                     = true;
     useImageBCflag                   = false;
     inverseFlag                      = false;
@@ -67,16 +67,10 @@ TriggerTestLayer "notrigger" = {
     writeStep                        = -1;
     // initialWriteTime
     mirrorBCflag                     = true;
-    writeSparseActivity              = false;
+    sparseLayer                      = false;
 
     InitVType                        = "ZeroV";
 
-    VThresh                          = -infinity;
-    VMax                             = infinity;
-    VMin                             = -infinity;
-    VShift                           = 0.0;
-    VWidth                           = 0.0;
-    
     triggerFlag                      = false;
 };
 
@@ -89,16 +83,10 @@ TriggerTestLayer "trigger0" = {
     writeStep                        = -1;
     // initialWriteTime
     mirrorBCflag                     = true;
-    writeSparseActivity              = false;
+    sparseLayer                      = false;
 
     InitVType                        = "ZeroV";
 
-    VThresh                          = -infinity;
-    VMax                             = infinity;
-    VMin                             = -infinity;
-    VShift                           = 0.0;
-    VWidth                           = 0.0;
-    
     triggerFlag                      = true;
     triggerLayerName                   = "input";
     triggerOffset                    = 0;
@@ -113,16 +101,10 @@ TriggerTestLayer "trigger1" = {
     writeStep                        = -1;
     // initialWriteTime
     mirrorBCflag                     = true;
-    writeSparseActivity              = false;
+    sparseLayer                      = false;
 
     InitVType                        = "ZeroV";
 
-    VThresh                          = -infinity;
-    VMax                             = infinity;
-    VMin                             = -infinity;
-    VShift                           = 0.0;
-    VWidth                           = 0.0;
-    
     triggerFlag                      = true;
     triggerLayerName                   = "input";
     triggerOffset                    = 1;
@@ -137,16 +119,10 @@ TriggerTestLayer "trigger2" = {
     writeStep                        = -1;
     // initialWriteTime
     mirrorBCflag                     = true;
-    writeSparseActivity              = false;
+    sparseLayer                      = false;
 
     InitVType                        = "ZeroV";
 
-    VThresh                          = -infinity;
-    VMax                             = infinity;
-    VMin                             = -infinity;
-    VShift                           = 0.0;
-    VWidth                           = 0.0;
-    
     triggerFlag                      = true;
     triggerLayerName                   = "input";
     triggerOffset                    = 2;
@@ -170,17 +146,11 @@ TriggerTestConn "inputToNoTrigger" = {
     
     weightInitType = "IdentWeight";
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "none";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
+    dWMax = 1.0;
     selfFlag = false;  // conntect to itself
 
     delay = 0;
@@ -210,17 +180,11 @@ TriggerTestConn "inputToTrigger0" = {
     
     weightInitType = "IdentWeight";
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "none";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
+    dWMax = 1.0;
     selfFlag = false;  // conntect to itself
 
     delay = 0;
@@ -251,17 +215,11 @@ TriggerTestConn "inputToTrigger1" = {
     
     weightInitType = "IdentWeight";
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "none";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
+    dWMax = 1.0;
     selfFlag = false;  // conntect to itself
 
     delay = 0;
@@ -292,17 +250,11 @@ TriggerTestConn "inputToTrigger2" = {
     
     weightInitType = "IdentWeight";
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "none";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
+    dWMax = 1.0;
     selfFlag = false;  // conntect to itself
 
     delay = 0;
@@ -333,17 +285,11 @@ TriggerTestConn "inputToNoPeriod" = {
     
     weightInitType = "IdentWeight";
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "none";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
+    dWMax = 1.0;
     selfFlag = false;  // conntect to itself
 
     delay = 0;
@@ -373,17 +319,11 @@ TriggerTestConn "inputToPeriod0" = {
     
     weightInitType = "IdentWeight";
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "none";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
+    dWMax = 1.0;
     selfFlag = false;  // conntect to itself
 
     delay = 0;
@@ -415,17 +355,11 @@ TriggerTestConn "inputToPeriod1" = {
     
     weightInitType = "IdentWeight";
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "none";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
+    dWMax = 1.0;
     selfFlag = false;  // conntect to itself
 
     delay = 0;
@@ -457,17 +391,11 @@ TriggerTestConn "inputToPeriod2" = {
     
     weightInitType = "IdentWeight";
       
-    strength = 1.0;  // 1.0 x post->num_neurons / pre->num_neurons
     normalizeMethod = "none";
-    normalizeArborsIndividually = false;
-    normalize_cutoff = 0;
-    symmetrizeWeights = 0;
-    preActivityIsNotRate = false;
-    minSumTolerated = 0.0;
-    normalizeFromPostPerspective = false;
 
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
+    dWMax = 1.0;
     selfFlag = false;  // conntect to itself
 
     delay = 0;
