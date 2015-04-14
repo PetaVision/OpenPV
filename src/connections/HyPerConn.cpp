@@ -1020,7 +1020,15 @@ void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
    PVParams * params = parent->parameters();
-   // stochasticReleaseFlag deprecated on Aug 22, 2013.
+   // stochasticReleaseFlag deprecated on Aug 22, 2013, and declared obsolete Apr 10, 2015.
+   if (ioFlag==PARAMS_IO_READ && params->present(name, "stochasticReleaseFlag")) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: parameter stochasticReleaseFlag is obsolete.  Instead, set pvpatchAccumulateType to either \"convolve\" (the default) or \"stochastic\".\n", parent->parameters()->groupKeywordFromName(name), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+#ifdef OBSOLETE // Marked obsolete April 10, 2015.  stochasticReleaseFlag no longer gives a warning, but an error.
    if (ioFlag==PARAMS_IO_READ && params->present(name, "stochasticReleaseFlag")) {
       bool stochasticReleaseFlag = params->value(name, "stochasticReleaseFlag")!=0.0;
       const char * pvpatch_accumulate_string = stochasticReleaseFlag ? "stochastic" : "convolve";
@@ -1037,6 +1045,7 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
       pvpatchAccumulateType = stochasticReleaseFlag ? ACCUMULATE_STOCHASTIC : ACCUMULATE_CONVOLVE;
       return;
    }
+#endif // OBSOLETE // Marked obsolete April 10, 2015.  stochasticReleaseFlag no longer gives a warning, but an error.
    parent->ioParamString(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString, "convolve");
    if (ioFlag==PARAMS_IO_READ) {
       // Convert string to lowercase so that capitalization doesn't matter.
