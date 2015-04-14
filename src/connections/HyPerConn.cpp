@@ -1233,7 +1233,7 @@ void HyPerConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag) 
 void HyPerConn::ioParam_dWMax(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
-      parent->ioParamValue(ioFlag, name, "dWMax", &dWMax, dWMax, true/*warnIfAbsent*/);
+      parent->ioParamValueRequired(ioFlag, name, "dWMax", &dWMax);
    }
 }
 
