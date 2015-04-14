@@ -1088,6 +1088,10 @@ int HyPerLayer::communicateInitInfo()
    return status;
 }
 
+char const * HyPerLayer::getOutputStatePath() {
+   return clayer->activeFP->name;
+}
+
 int HyPerLayer::openOutputStateFile() {
    char filename[PV_PATH_MAX];
    char posFilename[PV_PATH_MAX];
@@ -1104,23 +1108,6 @@ int HyPerLayer::openOutputStateFile() {
    default:
       assert(0);
       break;
-   }
-
-   if(sparseLayer){
-      switch( parent->includeLayerName() ) {
-      case 0:
-         snprintf(posFilename, PV_PATH_MAX, "%s/a%d.pos", parent->getOutputPath(), layerId);
-         break;
-      case 1:
-         snprintf(posFilename, PV_PATH_MAX, "%s/a%d_%s.pos", parent->getOutputPath(), layerId, name);
-         break;
-      case 2:
-         snprintf(posFilename, PV_PATH_MAX, "%s/%s.pos", parent->getOutputPath(), name);
-         break;
-      default:
-         assert(0);
-         break;
-      }
    }
 
    // initialize writeActivityCalls and writeSparseActivityCalls
@@ -1169,9 +1156,6 @@ int HyPerLayer::openOutputStateFile() {
    MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
 #endif
    clayer->activeFP = pvp_open_write_file(filename, icComm, ioAppend);
-   //if(sparseLayer){
-   //   clayer->posFP = pvp_open_write_file(posFilename, icComm, ioAppend);
-   //}
    return PV_SUCCESS;
 }
 

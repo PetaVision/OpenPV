@@ -471,6 +471,8 @@ public:
 
    int getPhase()                    {return this->phase;}
 
+   char const * getOutputStatePath();
+
    // implementation of LayerDataInterface interface
    //
    const pvdata_t   * getLayerData(int delay=0);

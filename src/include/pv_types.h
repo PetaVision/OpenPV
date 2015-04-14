@@ -124,7 +124,6 @@ typedef struct PVLayer_ {
    //unsigned int   numActive;      // # neurons that fired
    //unsigned int * activeIndices;  // indices of neurons that fired
    PV_Stream    * activeFP;       // file of sparse activity
-   //PV_Stream    * posFP;          // file of sparse activity frame positions
 
    // TODO - deprecate?
    PVLayerType layerType;  // the type/subtype of the layer (ie, Type_LIFSimple2)
