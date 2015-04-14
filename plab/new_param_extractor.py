@@ -1,4 +1,5 @@
 from os import listdir
+import os.path
 import re
 import sys
 import math
@@ -9,8 +10,8 @@ import math
 
 # Input files and sources for connection/layer name:
 param_location = ("./pv.params")
-layer_loc = ("./layers.txt")
-conn_loc = ("./connections.txt")
+llines = listdir(sys.argv[1] + "/src/layers")
+clines = listdir(sys.argv[1] + "/src/connections")
 
 # Colorby determines should be set to 'dimension', 'phase', or 'type':
 colorby = "phase"
@@ -37,8 +38,6 @@ layer_ignore = ["",""]
 conn_ignore = ["","","","0.000000",""]
 
 
-
-
 ############################################################
 ####################### PARSING ############################
 ############################################################
@@ -58,10 +57,22 @@ layer_ignore = ["","","","",""] + layer_ignore
 
 # Build dictionaries of connection and layer names:
 
-with open(layer_loc) as f1:
-    layer_dict = [line.strip("\n") for line in f1] 
-with open(conn_loc) as f2:
-    conn_dict = [line.strip("\n") for line in f2]
+layer_dict = []
+conn_dict = []
+
+for i in llines:
+    j = re.search(".+(?=cpp)", i)
+    if j:
+        k = re.search("\w+", j.group())
+        if k:
+            layer_dict.append(k.group())
+for i in clines:
+    j = re.search(".+(?=cpp)", i)
+    if j:
+        k = re.search("\w+", j.group())
+        if k:
+            conn_dict.append(k.group())
+
 print(layer_dict)
 print(conn_dict)
 
@@ -209,7 +220,7 @@ for i in conn_values:
 print(duplicated_conns)
 stars = []
 for i in range(0, len(duplicated_conns)):
-    stars.append('*'*(i+1))
+    stars.append(str(i+1))
 
 
 # Calculate layer dimensions, put them on the front of the string
