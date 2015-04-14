@@ -269,7 +269,6 @@ HyPerConn "input to output arbor" = {
     nfp                                 = 1;
     shrinkPatches                       = false;
     normalizeMethod                     = "normalizeSum";
-    strength                            = 9;
     normalizeArborsIndividually         = false;
     normalizeOnInitialize               = true;
     normalizeOnWeightUpdate             = true;
