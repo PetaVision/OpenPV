@@ -391,19 +391,27 @@ int RescaleLayer::updateState(double timef, double dt) {
 #endif
           for(int iY = 0; iY < ny; iY++){ 
              for(int iX = 0; iX < nx; iX++){ 
-                //Find sum expx in feature space
+                //There can exit overflow/underflow problems with exp()
+                //Find mean and subtract from all values to bring values closer to 0
+                float sum = 0;
+                for(int iF = 0; iF < nf; iF++){
+                   int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+                   sum += originalA[kextOrig];
+                }
+                float mean = sum/nf;
+                //Find sum expx in feature space, accounting for mean
                 float sumexpx = 0;
                 for(int iF = 0; iF < nf; iF++){
-                   int kext = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-                   sumexpx += exp(originalA[kext]);
+                   int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+                   sumexpx += exp(originalA[kextOrig] - mean);
                 }
-                // Difference in the if-part and else-part is only in the value assigned to A[kext], but this way the std != 0
-                // conditional does not have to be reevaluated every time through the for loop.
+                //Error checking for sumexpx = 0
+                assert(sumexpx != 0);
                 // can't pragma omp parallel the for loops because it was already parallelized in the outermost for-loop
                 for(int iF = 0; iF < nf; iF++){
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                    int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
-                   A[kext] = (exp(originalA[kextOrig])/sumexpx);
+                   A[kext] = exp(originalA[kextOrig] - mean)/sumexpx;
                    assert(A[kext] >= 0 && A[kext] <= 1);
                 }
              }
