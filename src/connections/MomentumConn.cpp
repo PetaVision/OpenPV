@@ -95,7 +95,11 @@ void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag){
 
 void MomentumConn::ioParam_momentumDecay(enum ParamsIOFlag ioFlag){
    if(plasticityFlag){
-      parent->ioParamValue(ioFlag, name, "momentumTau", &momentumTau, momentumTau);
+      parent->ioParamValue(ioFlag, name, "momentumDecay", &momentumDecay, momentumDecay);
+      if(momentumDecay < 0 || momentumDecay > 1){
+         std::cout << "MomentumConn " << name << ": momentumDecay must be between 0 and 1 inclusive\n";
+         exit(-1);
+      }
    }
 }
 
@@ -166,22 +170,22 @@ int MomentumConn::applyMomentum(int arbor_ID){
 #pragma omp parallel for
 #endif
       for(int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++){
-         pvwdata_t * dwdata_start = get_dwDataHead(arbor_ID, kernelIdx);
-         pvwdata_t* prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
+         pvwdata_t * dwdata_start  = get_dwDataHead(arbor_ID, kernelIdx);
+         pvwdata_t * prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
+         pvwdata_t * wdata_start   = get_wData(arbor_ID, kernelIdx);
          if(!strcmp(momentumMethod, "simple")){
             for(int k = 0; k < nxp*nyp*nfp; k++){
-               dwdata_start[k] += momentumTau * prev_dw_start[k];
+               dwdata_start[k] += momentumTau * prev_dw_start[k] - momentumDecay*wdata_start[k];
             }
          }
          else if(!strcmp(momentumMethod, "viscosity")){
             for(int k = 0; k < nxp*nyp*nfp; k++){
-               dwdata_start[k] = momentumTau * (prev_dw_start[k] + dwdata_start[k]) * (1 - exp(- parent->getDeltaTime() / momentumTau));
+               dwdata_start[k] = momentumTau * (prev_dw_start[k] + dwdata_start[k]) * (1 - exp(- parent->getDeltaTime() / momentumTau)) - momentumDecay*wdata_start[k];
             }
          }
          else if(!strcmp(momentumMethod, "alex")){
-            pvwdata_t * wdata_start = get_wData(arbor_ID, kernelIdx);
             for(int k = 0; k < nxp*nyp*nfp; k++){
-               dwdata_start[k] = momentumTau * prev_dw_start[k] - momentumDecay * getDWMax()* wdata_start[k] - dwdata_start[k];
+               dwdata_start[k] = momentumTau * prev_dw_start[k] - (1-momentumDecay) * getDWMax()* wdata_start[k] - dwdata_start[k];
             }
          }
       }
