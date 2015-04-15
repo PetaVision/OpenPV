@@ -1,5 +1,5 @@
-Amazon Web Services Installation
-===============================
+AWS Installation
+==============================
 
 Welcome to the cloud. Here's everything you need to know about how to get your favorite run on Amazon's AWS services.
 

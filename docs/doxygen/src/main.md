@@ -10,6 +10,8 @@ Currently, the PetaVision library contains classes for implementing both spiking
 
 - [About Us](src/about_us.md)
 - Installation
-   + [AWS Installation](src/install_aws.md)
-   + [OSX Installation](src/install_osx.md)
-   + [Ubuntu Installation](src/install_ubuntu.md)
+    -[AWS Install](src/install_aws.md)
+    -[OSX Install](src/install_osx.md)
+    -[Ubuntu Install](src/install_ubuntu.md)
+
+

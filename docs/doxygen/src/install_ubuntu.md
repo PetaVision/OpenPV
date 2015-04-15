@@ -3,7 +3,6 @@ Ubuntu Installation
 
 This is a tutorial on getting PetaVision and running on Ubuntu-14.04 with GPU support, assuming you have a clean installation of Ubuntu.
 
-
 Requirements
 ----------------------------------
 - An NVIDIA card with compute capabilities 3.0 or above. Check at <https://developer.nvidia.com/cuda-gpus> to see if your video card is supported
