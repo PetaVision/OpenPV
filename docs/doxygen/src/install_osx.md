@@ -25,7 +25,7 @@ Xcode
 ----------------------------------
 Xcode is needed by homebrew and gcc/g++/clang. Here's how to get it.
 - Go to the Apple App Store and search for Xcode
-- Click get, then install. Put in your Apple ID information
+- Click 'GET', then 'INSTALL'. Put in your Apple ID information
 - After it's installed, we need to accept the Xcode license.
    + Run the Xcode application
    + Follow the onscreen prompt until you see the main Xcode screen
@@ -98,9 +98,9 @@ Run `which clang` to verify that it's pointing to `${HOME}/clang-omp/build/Relea
 Releases can be found at <https://www.openmprtl.org/download#stable-releases>
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-mv ~/Downloads/name_of_openmp_runtime_library.tgz ~/clang-omp
+mv ~/Downloads/name_of_openmp_runtime_library.tar ~/clang-omp
 cd ~/clang-omp
-tar -xvf name_of_openmp_runtime_library.tgz
+tar -xvf name_of_openmp_runtime_library.tar
 cd libomp_oss
 cmake CMakeLists.txt
 make -j8
@@ -123,9 +123,18 @@ OpenMPI
 With the new version of Clang installed, we can now install Open MPI using the new Clang.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
+brew install gcc --without-multilib
 brew install openmpi
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+*Note*: Installing GCC can take a couple of hours.  You need to use the '--without-multilib' flag or Homebrew will issue the caveat:
+
+~~~~~~~~~~~~~~~~~~~~~~~~
+GCC has been built with multilib support. Notably, OpenMP may not work:
+  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60670
+If you need OpenMP support you may want to
+  brew reinstall gcc --without-multilib
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 GDAL
 ----------------------------------
