@@ -102,7 +102,6 @@ HyPerConn "InputToOutput" = {
     numAxonalArbors = 1;
     sharedWeights = true;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     deltaThetaMax = 6.283185;
