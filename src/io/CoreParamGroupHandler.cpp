@@ -14,6 +14,7 @@
 #include "../layers/ANNNormalizedErrorLayer.hpp"
 #include "../layers/ANNSquaredLayer.hpp"
 #include "../layers/ANNWhitenedLayer.hpp"
+#include "../layers/BackgroundLayer.hpp"
 #include "../layers/BinningLayer.hpp"
 #include "../layers/CloneVLayer.hpp"
 #include "../layers/ConstantLayer.hpp"
@@ -140,6 +141,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"ANNSquaredLayer", LayerGroupType},
          {"ANNTriggerUpdateOnNewImageLayer", LayerGroupType},
          {"ANNWhitenedLayer", LayerGroupType},
+         {"BackgroundLayer", LayerGroupType},
          {"BinningLayer", LayerGroupType},
          {"CloneVLayer", LayerGroupType},
          {"ConstantLayer", LayerGroupType},
@@ -323,6 +325,9 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
       }
    else if( !strcmp(keyword, "ANNWhitenedLayer") ) {
       addedLayer = new ANNWhitenedLayer(name, hc);
+   }
+   else if( !strcmp(keyword, "BackgroundLayer") ) {
+      addedLayer = new BackgroundLayer(name, hc);
    }
    else if( !strcmp(keyword, "BinningLayer") ) {
       addedLayer = new BinningLayer(name, hc);

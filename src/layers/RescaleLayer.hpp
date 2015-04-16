@@ -1,9 +1,6 @@
 /*
- * RescaleLayer.hpp
- * can be used to implement Sigmoid junctions
- *
- *  Created on: May 11, 2011
- *      Author: garkenyon
+ * RescaleLayer.cpp
+ * Rescale layer is a cloneVLayer, grabs activity from orig layer and rescales it
  */
 
 #ifndef RESCALELAYER_HPP_
