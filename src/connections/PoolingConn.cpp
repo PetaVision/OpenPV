@@ -78,13 +78,7 @@ void PoolingConn::ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag) {
 
 void PoolingConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
-      parent->ioParamString(ioFlag, name, "normalizeMethod", &normalizeMethod, "none", true/*warnIfAbsent*/);
-      //If string is not none
-      if(strcmp(normalizeMethod, "none")){
-         std::cout << "PoolingConn does not allow a normalize method\n";
-         exit(-1);
-      }
-
+      parent->parameters()->handleUnnecessaryStringParameter(name, "normalizeMethod", "none", false/*case_insensitive*/);
    }
 }
 
