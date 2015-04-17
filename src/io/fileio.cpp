@@ -391,11 +391,12 @@ size_t PV_fread(void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RES
       curptr += charsread_thispass;
       freadcounts++;
       if (freadcounts<MAX_FILESYSTEMCALL_TRIES) {
-         fprintf(stderr, "fread failure for \"%s\" on attempt %d.  %lu bytes written; %lu bytes still to write so far.\n", pvstream->name, freadcounts, charsread_thispass, stilltoread);
+         fprintf(stderr, "fread failure for \"%s\" on attempt %d.  %lu bytes read; %lu bytes still to read so far.\n", pvstream->name, freadcounts, charsread_thispass, stilltoread);
          sleep(1);
       }
       else {
-         fprintf(stderr, "PV_fread failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded, and %lu bytes of %lu written.\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES, readsize-stilltoread, readsize);
+         fprintf(stderr, "PV_fread failure for \"%s\": MAX_FILESYSTEMCALL_TRIES = %d exceeded, and %lu bytes of %lu read.\n", pvstream->name, MAX_FILESYSTEMCALL_TRIES, readsize-stilltoread, readsize);
+         break;
       }
    }
    return (readsize - stilltoread)/size;
