@@ -82,8 +82,10 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
    }
    else if(strcmp(rescaleMethod, "softmax") == 0){
    }
+   else if(strcmp(rescaleMethod, "logreg") == 0){
+   }
    else{
-      fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd, softmax.\n",
+      fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd, softmax, and logreg.\n",
             name);
       exit(PV_FAILURE);
    }
@@ -92,23 +94,6 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
 
 void RescaleLayer::ioParam_rescaleMethod(enum ParamsIOFlag ioFlag){
    parent->ioParamStringRequired(ioFlag, name, "rescaleMethod", &rescaleMethod);
-   if (
-         strcmp(rescaleMethod, "maxmin")!=0 &&
-         strcmp(rescaleMethod, "meanstd")!=0 &&
-         strcmp(rescaleMethod, "pointmeanstd")!=0 &&
-         strcmp(rescaleMethod, "l2")!=0 &&
-         strcmp(rescaleMethod, "softmax")!=0 &&
-         strcmp(rescaleMethod, "zerotonegative")!=0
-      ) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod \"%s\" does not exist. Current implemented methods are maxmin, meanstd, l2, softmax, and pointmeanstd.\n",
-               name, rescaleMethod);
-      }
-#ifdef PV_USE_MPI
-      MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
-      exit(PV_FAILURE);
-   }
 }
 
 void RescaleLayer::ioParam_targetMax(enum ParamsIOFlag ioFlag){
@@ -412,6 +397,22 @@ int RescaleLayer::updateState(double timef, double dt) {
                    assert(A[kext] >= 0 && A[kext] <= 1);
                 }
              }
+          }
+       }
+       else if(strcmp(rescaleMethod, "logreg") == 0){
+          int nx = loc->nx;
+          int ny = loc->ny;
+          int nf = loc->nf;
+          //Loop through all nx and ny
+	  // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+          for (int k = 0; k < numNeurons; k++){
+             int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                   locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
+             A[kext] = (float)1/(1+exp(originalA[kextOriginal]));
           }
        }
        else if(strcmp(rescaleMethod, "zerotonegative") == 0){
