@@ -511,6 +511,7 @@ private:
 //   HyPerColRunDelegate * runDelegate; // runs time loop
 
    Timer * runTimer;
+   Timer * checkpointTimer;
    //Phase timers
    Timer ** phaseRecvTimers;
 

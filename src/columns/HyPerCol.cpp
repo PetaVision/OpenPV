@@ -91,6 +91,7 @@ HyPerCol::~HyPerCol()
    }
 
    delete runTimer;
+   delete checkpointTimer;
 
    for (int k=0; k<numColProbes; k++) {
       delete colProbes[k];
@@ -194,6 +195,7 @@ int HyPerCol::initialize_base() {
    icComm = NULL;
 //   runDelegate = NULL;
    runTimer = NULL;
+   checkpointTimer = NULL;
    phaseRecvTimers = NULL;
    numColProbes = 0;
    colProbes = NULL;
@@ -272,6 +274,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
 
    this->name = strdup(name);
    this->runTimer = new Timer(name, "column", "run    ");
+   this->checkpointTimer = new Timer(name, "column", "checkpoint ");
 
    layers = (HyPerLayer **) malloc(layerArraySize * sizeof(HyPerLayer *));
    connections = (BaseConnection **) malloc(connectionArraySize * sizeof(BaseConnection *));
@@ -2029,9 +2032,6 @@ int HyPerCol::advanceTime(double sim_time)
 
    }
 
-   // double outputTime = simTime; // so that outputState is called with the correct time
-   //                             // but doesn't effect runTimer
-
    runTimer->stop();
 
    outputState(simTime);
@@ -2190,6 +2190,7 @@ int HyPerCol::writeTimers(FILE* stream){
    int rank=columnId();
    if (rank==0) {
       runTimer->fprint_time(stream);
+      checkpointTimer->fprint_time(stream);
       icCommunicator()->fprintTime(stream);
       for (int c=0; c<numConnections; c++) {
          connections[c]->writeTimers(stream);
@@ -2208,6 +2209,7 @@ int HyPerCol::writeTimers(FILE* stream){
 }
 
 int HyPerCol::checkpointWrite(const char * cpDir) {
+   checkpointTimer->start();
    if (columnId()==0) {
       printf("Checkpointing to directory \"%s\" at simTime = %f\n", cpDir, simTime);
       struct stat timeinfostat;
@@ -2336,6 +2338,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    if (icComm->commRank()==0) {
       fprintf(stderr, "checkpointWrite complete. simTime = %f\n", simTime);
    }
+   checkpointTimer->stop();
    return PV_SUCCESS;
 }
 
