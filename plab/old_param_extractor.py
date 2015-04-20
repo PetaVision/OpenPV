@@ -8,9 +8,9 @@ import math
 ############################################################
 
 # Input files and sources for connection/layer name:
-param_location = ("./pv.params")
-llines = listdir(sys.argv[1] + "/src/layers")
-clines = listdir(sys.argv[1] + "/src/connections")
+param_location = (sys.argv[1])
+llines = listdir(sys.argv[2] + "/src/layers")
+clines = listdir(sys.argv[2] + "/src/connections")
 
 # Colorby determines should be set to 'dimension', 'phase', or 'type':
 colorby = "phase"

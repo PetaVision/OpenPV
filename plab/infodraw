@@ -1,0 +1,31 @@
+#!/bin/bash
+if [ -z "$1" ]
+then
+    echo "Please enter a params file to draw:"
+    read pfile
+fi
+if [ ! -z "$1" ]
+then
+    pfile=$1
+fi
+if [ ! -f $1 ]
+then
+    echo "$1 not found."
+    exit 1
+    if [ ! -f $pfile ]
+    then
+	echo "$pfile not found."
+	exit 1
+    fi
+fi
+
+olddir=$PWD
+cd ${0%/*}
+plabdir=$PWD
+cd $olddir
+parentdir="$(dirname "$plabdir")"
+python $plabdir/old_param_extractor.py $pfile $parentdir
+mermaid param_graph
+rm param_graph
+mv param_graph.png "$pfile.png"
+open "$pfile.png"
