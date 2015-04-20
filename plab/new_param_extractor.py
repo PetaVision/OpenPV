@@ -11,8 +11,8 @@ import math
 # Input files and sources for connection/layer name:
 abs = os.path.expanduser("~")
 param_location = str(sys.argv[1])
-llines = listdir(abs + "/workspace/PetaVision/src/layers")
-clines = listdir(abs + "/workspace/PetaVision/src/connections")
+llines = listdir(sys.argv[2] + "/src/layers")
+clines = listdir(sys.argv[2] + "/src/connections")
 
 # Colorby determines should be set to 'dimension', 'phase', or 'type':
 colorby = "phase"

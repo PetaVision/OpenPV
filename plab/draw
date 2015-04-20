@@ -23,7 +23,8 @@ olddir=$PWD
 cd ${0%/*}
 plabdir=$PWD
 cd $olddir
-python $plabdir/new_param_extractor.py $pfile
+parentdir="$(dirname "$plabdir")"
+python $plabdir/new_param_extractor.py $pfile $parentdir
 mermaid param_graph
 rm param_graph
 mv param_graph.png "$pfile.png"
