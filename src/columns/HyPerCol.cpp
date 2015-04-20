@@ -1358,6 +1358,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    startTime = start_time;
    stopTime = stop_time;
    deltaTime = dt;
+   memset(lastCheckpointDir, 0, PV_PATH_MAX); // If starting a new run, there is no lastCheckpoint.
 
    if (!readyFlag) {
       layerStatus = (int *) calloc((size_t) numLayers, sizeof(int));
