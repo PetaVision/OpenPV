@@ -27,5 +27,8 @@ parentdir="$(dirname "$plabdir")"
 python $plabdir/new_param_extractor.py $pfile $parentdir
 mermaid param_graph
 rm param_graph
-mv param_graph.png "$pfile.png"
-open "$pfile.png"
+filename=$(basename "$pfile")
+extension="${filename##*.}"
+filename="${filename%.*}"
+mv param_graph.png "$filename.png"
+open "$filename.png"
