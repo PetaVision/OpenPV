@@ -19,8 +19,11 @@ then
     fi
 fi
 
-echo "in python_scripts"
-python ~/workspace/PetaVision/plab/new_param_extractor.py $pfile
+olddir=$PWD
+cd ${0%/*}
+plabdir=$PWD
+cd $olddir
+python $plabdir/new_param_extractor.py $pfile
 mermaid param_graph
 rm param_graph
 mv param_graph.png "$pfile.png"
