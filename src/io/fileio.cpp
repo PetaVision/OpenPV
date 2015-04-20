@@ -2928,7 +2928,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
          //TODO for non-spiking
          if (offsetX < 0 || offsetX + layerLoc->nxGlobal > fileLoc->nxGlobal ||
                offsetY < 0 || offsetY + layerLoc->nyGlobal > fileLoc->nyGlobal) {
-            fprintf(stderr, "scatterActivity error: offset window does not completely fit inside image frame. This case has not been implemented yet for nonspiking activity files.\n");
+            fprintf(stderr, "scatterActivity error: offset window does not completely fit inside frame defined by image file \"%s\". This case has not been implemented yet for nonspiking activity files.\n", pvstream->name);
             exit(EXIT_FAILURE);
          }
 
