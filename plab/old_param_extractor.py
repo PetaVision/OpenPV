@@ -30,13 +30,11 @@ bmax = "ff"
 # Lists of variables to look for in each layer and conn, plus defaults if they are not found.
 
 layer_vars = ["originalLayerName","phase"]
-conn_vars = ["channelCode","maskLayerName","plasticityFlag","delay","originalConnName"]
+conn_vars = ["channelCode","maskLayerName","plasticityFlag","delay","originalConnName","weightInitType","initWeightsFile","pvpatchAccumulateType"]
 layer_default = ["",""]
-conn_default = ["","","","",""]
+conn_default = ["","","","","","","",""]
 layer_ignore = ["",""]
-conn_ignore = ["","","","0.000000",""]
-
-
+conn_ignore = ["","","","0.000000","","NULL","",""]
 
 
 ############################################################
@@ -103,29 +101,33 @@ def findregex(reg, line):
 with open(param_location, "r") as file:
     for line in file:
 
+# Ignore lines commented with //
+
+        if re.search("^\s+\/\/",line):
+            continue
+
 # Check if current line is specifying colNx or colNy
 
-            if re.search("nx\s", line):
+        if re.search("nx\s", line):
                 colNx = float(re.search("-?\d+(\.\d+)?", line).group())
                 continue
-            if re.search("ny\s", line):
+        if re.search("ny\s", line):
                 colNy = float(re.search("-?\d+(\.\d+)?", line).group())
                 continue
 
 # Create two full-content lists of lists, containing all lines in all conn/layer objects
         
-            for i in layer_dict:
+        for i in layer_dict:
                 type_regex = "\A" + i + "\s"
                 name_regex = ["(?<=" + i + ").+", "\w+"]
                 layer = re.search(type_regex, line)
                 if layer:
-                    
                     layer_types.append(findregex(["\w+(?=\s)"],layer.group()))
                     layer_names.append(findregex(name_regex, line))
                     objectFlag = "Layer"
                     layer_content.append([])
             
-            for i in conn_dict:
+        for i in conn_dict:
                 type_regex = "\A" + i + "\s"
                 name_regex = ["(?<=" + i + ").+", "\w+"]
                 conn = re.search(type_regex, line)
@@ -135,9 +137,9 @@ with open(param_location, "r") as file:
                     objectFlag = "Conn"
                     conn_content.append([])
             
-            if objectFlag == "Layer":
+        if objectFlag == "Layer":
                 layer_content[-1].append(line)
-            if objectFlag == "Conn":
+        if objectFlag == "Conn":
                 conn_content[-1].append(line)
 
 # Go through content lists, extracting desired values and saving them into lists of lists.
@@ -167,7 +169,12 @@ for i in conn_content:
         found = False
         for d,k in enumerate(i):
             if re.search(j + " ",k):
-                val = findregex(["(?<=" + j + ").+", "-?\w+(\.\w+)?"],k)
+                #START INITWEIGHTSFILE KLUGE
+                if j == "initWeightsFile":
+                    val = re.findall("(?<=/)[\w\.]+",k)[-1]
+                #END INITWEIGHTSFILE KLUGE
+                else: 
+                    val = findregex(["(?<=" + j + ").+", "-?\w+(\.\w+)?"],k)
                 found = True
                 if val == conn_ignore[c]:
                     conn_values[-1].append("")
@@ -339,7 +346,10 @@ for pre,post,c in zip(pre_index,post_index,range(0, len(conn_names))):
             if conn_values[c][j] == "":
                 continue
             else:
-                f.write(conn_vars[j] + ": " + conn_values[c][j])
+                if conn_vars[j] == "initWeightsFile" or conn_vars[j] == "pvpatchAccumulateType":
+                    f.write(conn_values[c][j])
+                else:
+                    f.write(conn_vars[j] + ": " + conn_values[c][j])
             if j != len(conn_vars)-1:
                 f.write("<br>")
     f.write("|" + layer_names[post] + ";\n")
