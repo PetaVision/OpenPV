@@ -47,7 +47,7 @@ set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of OpenCL headers")
 set(PV_USE_CUDA FALSE CACHE BOOL "Defines whether PetaVision uses CUDA GPU")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines whether CUDA compiles with optimization")
 set(PV_USE_CUDNN FALSE CACHE BOOL "Defines whether PetaVision uses CUDA's cuDNN library")
-set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
+set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/ CACHE PATH "Location of cuDNN libraries")
 set(PV_BUILD_SHARED FALSE CACHE BOOL "Defines whether the pv object is built as a shared object")
 set(CLANG_OMP TRUE CACHE BOOL "Defines whether we're compiling with Clang + omp support")
 
