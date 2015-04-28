@@ -91,7 +91,7 @@ protected:
 
    /**
     * @brief normalizeStdDev: This flag is used if normalizeLuminanceFlag is true.
-    * If normalizeStdDev is set to true, the image will normalize with a mean of 0.5 and std of 1
+    * If normalizeStdDev is set to true, the image will normalize with a mean of 0 and std of 1
     * If normalizeStdDev is set to false, the image will normalize with a min of 0 and a max of 1
     */
    virtual void ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag);

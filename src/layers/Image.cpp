@@ -1179,7 +1179,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
    // now buf is loc->nf by loc->nx by loc->ny
 
    // if normalizeLuminanceFlag == true:
-   //     if normalizeStdDev is true, then scale so that average luminance to be 0.5 and std. dev. of luminance to be 1.
+   //     if normalizeStdDev is true, then scale so that average luminance to be 0 and std. dev. of luminance to be 1.
    //     if normalizeStdDev is false, then scale so that minimum is 0 and maximum is 1
    if(normalizeLuminanceFlag){
       if (normalizeStdDev){
@@ -1235,7 +1235,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
          else{ // image_max == image_min, set to gray
             //float image_shift = 0.5f - image_ave;
             for (int k=0; k<n; k++) {
-               buf[k] += 0.5f; //image_shift;
+               buf[k] = 0.5f; //image_shift;
             }
          }
       }
