@@ -84,13 +84,15 @@ protected:
    virtual void ioParam_inverseFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief normalizeLuminanceFlag: If set to true, will normalize the image with a max of 1 and a min of 0
+    * @brief normalizeLuminanceFlag: If set to true, will normalize the image.
+    * The normalization method is determined by the normalizeStdDev parameter.
     */
    virtual void ioParam_normalizeLuminanceFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief normalizeStdDev: If normalizeLuminanceFlag and normalizeStdDev is set to true, the image will
-    * normalize with a mean of 0 and std of 1
+    * @brief normalizeStdDev: This flag is used if normalizeLuminanceFlag is true.
+    * If normalizeStdDev is set to true, the image will normalize with a mean of 0.5 and std of 1
+    * If normalizeStdDev is set to false, the image will normalize with a min of 0 and a max of 1
     */
    virtual void ioParam_normalizeStdDev(enum ParamsIOFlag ioFlag);
 

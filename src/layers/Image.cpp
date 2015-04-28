@@ -616,8 +616,9 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       MPI_Bcast(&dataType, 1, MPI_INT, 0, mpi_comm);
 #endif // PV_USE_MPI
 
+      // GDAL defines whether a band is binary, not whether the image as a whole is binary.
+      // Set isBinary to false if any band is not binary (metadata doesn't have NBITS=1)
       for(int iBand = 0; iBand < GDALGetRasterCount(dataset); iBand++){
-         bool bandIsBinary = true;
          GDALRasterBandH hBand = GDALGetRasterBand(dataset, iBand+1);
          metadata = GDALGetMetadata(hBand, "Image_Structure");
          if(CSLCount(metadata) > 0){
@@ -625,7 +626,6 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
             for(int i = 0; metadata[i] != NULL; i++){
                if(strcmp(metadata[i], "NBITS=1") == 0){
                   found = true;
-                  isBinary &= true;
                   break;
                }
             }
@@ -1178,10 +1178,11 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
    
    // now buf is loc->nf by loc->nx by loc->ny
 
-   // if normalizeLuminanceFlag == true then force average luminance to be 0.5
-   bool normalize_standard_dev = normalizeStdDev;
+   // if normalizeLuminanceFlag == true:
+   //     if normalizeStdDev is true, then scale so that average luminance to be 0.5 and std. dev. of luminance to be 1.
+   //     if normalizeStdDev is false, then scale so that minimum is 0 and maximum is 1
    if(normalizeLuminanceFlag){
-      if (normalize_standard_dev){
+      if (normalizeStdDev){
          double image_sum = 0.0f;
          double image_sum2 = 0.0f;
          for (int k=0; k<n; k++) {
