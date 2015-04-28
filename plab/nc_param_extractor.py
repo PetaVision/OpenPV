@@ -30,11 +30,11 @@ bmax = "ff"
 # Lists of variables to look for in each layer and conn, plus defaults if they are not found.
 
 layer_vars = ["originalLayerName","phase"]
-conn_vars = ["channelCode","maskLayerName","plasticityFlag","delay","originalConnName","weightInitType","initWeightsFile","pvpatchAccumulateType"]
+conn_vars = ["channelCode","maskLayerName","plasticityFlag","delay","originalConnName","weightInitType","initWeightsFile","pvpatchAccumulateType","nxp","nyp","nfp"]
 layer_default = ["",""]
-conn_default = ["","","","","","","",""]
+conn_default = ["","","","","","","","","","",""]
 layer_ignore = ["",""]
-conn_ignore = ["","","","0.000000","","NULL","",""]
+conn_ignore = ["","","","0.000000","","NULL","NULL","","","",""]
 
 
 ############################################################
@@ -336,17 +336,20 @@ for c,i in enumerate(layer_names):
 
 for pre,post,c in zip(pre_index,post_index,range(0, len(conn_names))):
     f.write(layer_names[pre] + "-->|" + conn_types[c])
+    if not conn_values[c][10] == "" and not conn_values[c][11] == "" and not conn_values[c][12] == "":
+        f.write("<br>" + conn_values[c][10] + ":" + conn_values[c][11] + ":" + conn_values[c][12])
     if len(conn_vars) == 2:
         continue
     else:
         f.write("<br>")
         # To display less information about Conns, change the starting value
         # of the loop below from "2" to "5"
-        for j in range(2, len(conn_vars)):
+        # The -3 on len(conn_vars) keeps the final three elements (the dimensionality)
+        for j in range(2, len(conn_vars)-3):
             if conn_values[c][j] == "":
                 continue
             else:
-                if conn_vars[j] == "initWeightsFile" or conn_vars[j] == "pvpatchAccumulateType":
+                if conn_vars[j] == "initWeightsFile" or conn_vars[j] == "pvpatchAccumulateType" or conn_vars[j] == "weightInitType":
                     f.write(conn_values[c][j])
                 else:
                     f.write(conn_vars[j] + ": " + conn_values[c][j])
