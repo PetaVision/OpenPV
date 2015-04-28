@@ -2101,12 +2101,12 @@ int HyPerConn::allocateDeviceBuffers()
          }
       }
 #endif // PV_USE_CUDA
-      
+
       if(needAlloc){
          if(allocPostDeviceWeights){
             allocatePostDeviceWeights();
          }
-         else if(allocDeviceWeights){
+         if(allocDeviceWeights){
             allocateDeviceWeights();
          }
       }
