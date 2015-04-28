@@ -34,7 +34,7 @@ conn_vars = ["channelCode","maskLayerName","plasticityFlag","delay","originalCon
 layer_default = ["",""]
 conn_default = ["","","","","","","",""]
 layer_ignore = ["",""]
-conn_ignore = ["","","","0.000000","","NULL","",""]
+conn_ignore = ["","","","0.000000","","NULL","NULL",""]
 
 
 ############################################################
@@ -170,7 +170,7 @@ for i in conn_content:
         for d,k in enumerate(i):
             if re.search(j + " ",k):
                 #START INITWEIGHTSFILE KLUGE
-                if j == "initWeightsFile":
+                if j == "initWeightsFile" and re.findall("(?<=/)[\w\.]+",k):
                     val = re.findall("(?<=/)[\w\.]+",k)[-1]
                 #END INITWEIGHTSFILE KLUGE
                 else: 
