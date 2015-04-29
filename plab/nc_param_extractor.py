@@ -20,11 +20,11 @@ line_types = ["0", "1"]
 line_colorcode = ["0f0","f00"]
 
 # Color ranges for coloring layer shapes
-rmin = "77"
+rmin = "aa"
 rmax = "dd"
-gmin = "77"
+gmin = "aa"
 gmax = "dd"
-bmin = "99"
+bmin = "ee"
 bmax = "ff"
 
 # Lists of variables to look for in each layer and conn, plus defaults if they are not found.
