@@ -509,6 +509,14 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
       int xscaleq = (int) pow(2,-xscalediff);
       int yscaleq = (int) pow(2,-yscalediff);
 
+      int kerneloffsetx = 0;
+      int kerneloffsety = 0;
+      if(nxp%2 == 0){
+         kerneloffsetx = xscaleq/2;
+      }
+      if(nyp%2 == 0){
+         kerneloffsety = yscaleq/2;
+      }
 
       for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
          // PVPatch * kpFB = getKernelPatch(0, kernelnumberFB);
@@ -528,11 +536,16 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
                   int nypFF = postConn->yPatchSize();
                   assert(numFBKernelPatches == postConn->fPatchSize() * xscaleq * yscaleq);
                   int kfFF = featureIndex(kernelnumberFB, xscaleq, yscaleq, postConn->fPatchSize());
-                  int kxFFoffset = kxPos(kernelnumberFB, xscaleq, yscaleq, postConn->fPatchSize());
+
+                  //Calculate x and y position of the FB kernel, with an offset for the case of even patches
+                  int kxFFoffset = (kxPos(kernelnumberFB, xscaleq, yscaleq, postConn->fPatchSize()) + kerneloffsetx) % xscaleq;
                   int kxFF = (nxp - 1 - kxFB) * xscaleq + kxFFoffset;
-                  int kyFFoffset = kyPos(kernelnumberFB, xscaleq, yscaleq, postConn->fPatchSize());
+
+                  int kyFFoffset = (kyPos(kernelnumberFB, xscaleq, yscaleq, postConn->fPatchSize()) + kerneloffsety) % yscaleq;
                   int kyFF = (nyp - 1 - kyFB) * yscaleq + kyFFoffset;
+
                   int kIndexFF = kIndex(kxFF, kyFF, kfFF, nxpFF, nypFF, postConn->fPatchSize());
+
                   // can the calls to kxPos, kyPos, featureIndex be replaced by one call to patchIndexToKernelIndex?
                   dataStartFB[kIndexFB] = dataStartFF[kIndexFF];
                   // kpFB->data[kIndexFB] = kpFF->data[kIndexFF];
@@ -541,9 +554,19 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
          }
       }
    }
-   else if( xscalediff > 0 && yscalediff > 0) {
+   else if( xscalediff >= 0 && yscalediff >= 0) {
       int xscaleq = (int) pow(2,xscalediff);
       int yscaleq = (int) pow(2,yscalediff);
+
+      int kerneloffsetx = 0;
+      int kerneloffsety = 0;
+      if((nxp/xscaleq)%2 == 0){
+         kerneloffsetx = xscaleq/2;
+      }
+      if((nyp/yscaleq)%2 == 0){
+         kerneloffsety = yscaleq/2;
+      }
+
       for( int kernelnumberFB = 0; kernelnumberFB < numFBKernelPatches; kernelnumberFB++ ) {
          // PVPatch * kpFB = getKernelPatch(0, kernelnumberFB);
          pvwdata_t * dataStartFB = get_wDataHead(arborId, kernelnumberFB);
@@ -551,9 +574,9 @@ int privateTransposeConn::transposeSharedWeights(int arborId) {
          int nyFB = nyp; // kpFB->ny;
          int nfFB = nfp;
          for( int kyFB = 0; kyFB < nyFB; kyFB++ ) {
-            int precelloffsety = kyFB % yscaleq;
+            int precelloffsety = (kyFB + kerneloffsety) % yscaleq;
             for( int kxFB = 0; kxFB < nxFB; kxFB++ ) {
-               int precelloffsetx = kxFB % xscaleq;
+               int precelloffsetx = (kxFB + kerneloffsetx) % xscaleq;
                for( int kfFB = 0; kfFB < nfFB; kfFB++ ) {
                   int kernelnumberFF = (precelloffsety*xscaleq + precelloffsetx)*nfFB + kfFB;
                   pvwdata_t * dataStartFF = postConn->get_wDataHead(arborId, kernelnumberFF);
