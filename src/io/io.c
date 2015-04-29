@@ -22,7 +22,8 @@ void usage()
    // printf(" [-n <number of timesteps>]\n");
    printf(" [-o <output directory>\n");
    printf(" [-s <random number generator seed>]\n");
-   printf(" [-d <OpenCL device>]\n");
+   printf(" [-d <GPU device>]\n");
+   printf(" [-l <output log file>]\n");
    printf(" [-w <working directory>]\n");
    printf(" [-r|-c <checkpoint directory>]\n");
 #ifdef PV_USE_OPENMP_THREADS
@@ -40,7 +41,7 @@ void usage()
  * @device
  */
 int parse_options(int argc, char * argv[], bool * paramusage, bool * require_return,
-                  char ** output_path, char ** param_file, int * opencl_device,
+                  char ** output_path, char ** param_file, char ** log_file, int * opencl_device,
                   unsigned int * random_seed, char ** working_dir,
                   int * restart, char ** checkpointReadDir,
                   int * numthreads, int * num_rows, int * num_columns)
@@ -70,6 +71,7 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
    pv_getoptionalopt_int(argc, argv, "-t", numthreads, 0, paramusage);
    pv_getopt_str(argc, argv, "-o", output_path, paramusage);
    pv_getopt_str(argc, argv, "-p", param_file, paramusage);
+   pv_getopt_str(argc, argv, "-l", log_file, paramusage);
    pv_getopt_unsigned(argc, argv, "-s", random_seed, paramusage);
    pv_getopt_str(argc, argv, "-w", working_dir, paramusage);
    if (pv_getopt(argc, argv, "-r", paramusage) == 0) { *restart = 1; }

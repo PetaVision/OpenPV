@@ -231,14 +231,27 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
 
    char * param_file = NULL;
    char * working_dir = NULL;
+   char * log_file = NULL;
    int restart = 0;
    int numthreads = 1; //Default to 1 thread
    bool reqrtn = false; // Default to not require pressing return to continue
    int numRows = 1;
    int numColumns = 1;
    bool paramusage[argc]; // array to indicate whether parse_options recognized the argument.
-   parse_options(argc, argv, paramusage, &reqrtn, &outputPath, &param_file,
+   parse_options(argc, argv, paramusage, &reqrtn, &outputPath, &param_file, &log_file,
                  &opencl_device, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads, &numRows, &numColumns);
+
+
+   //Set up log file if it exists
+   if(log_file){
+      //Open log file for stdout
+      if(!freopen(log_file, "w", stdout)){
+         std::cout << "Error opening file " << log_file << " for writing\n";
+         exit(-1);
+      }
+      //Redirect stderr to stdout
+      dup2(fileno(stdout), fileno(stderr));
+   }
 
 #ifdef PVP_DEBUG
    if (reqrtn) {

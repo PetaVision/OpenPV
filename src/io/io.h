@@ -92,7 +92,7 @@ int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvwdata_t * data,
 int pv_center_image(float * V, int nx0, int ny0, int nx, int ny);
 
 int parse_options(int argc, char * argv[], bool * paramusage, bool * require_return,
-                  char ** output_path, char ** param_file, int * opencl_device,
+                  char ** output_path, char ** param_file, char ** log_file, int * opencl_device,
                   unsigned int * random_seed, char ** working_dir,
                   int * restart, char ** checkpointReadDir, int * numthreads, int * numRows, int * numColumns);
 
