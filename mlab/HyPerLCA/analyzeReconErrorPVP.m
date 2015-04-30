@@ -232,10 +232,16 @@ function [ReconError_times_array, ...
 	    ReconError_norm_RMS = ReconError_norm_RMS(1:num_ReconError_frames);
 	    break;
 	  else
+	    downsample_factor_row = ceil(size(ReconError_norm_vals,1)/size(ReconError_vals,1));
+	    downsample_factor_col = ceil(size(ReconError_norm_vals,2)/size(ReconError_vals,2));
+	    downsample_factor_feature = ceil(size(ReconError_norm_vals,3)/size(ReconError_vals,3));
+	    ReconError_norm_vals_downsampled = ReconError_norm_vals(1:downsample_factor_row:end,1:downsample_factor_col:end,:);
 	    ReconError_RMS(i_frame) = ...
-		std(ReconError_vals(:) - ReconError_norm_strength(i_ReconError) * ReconError_norm_vals(:)) / ...
-		sqrt(mean(ReconError_norm_strength(i_ReconError).^2 * ...
-			  (ReconError_norm_vals(:).^2 + (ReconError_norm_vals(:)==0).^2)));
+		std(ReconError_vals(:) - ReconError_norm_strength(i_ReconError) * ReconError_norm_vals_downsampled(:)) / ...
+		(std(ReconError_norm_strength(i_ReconError) * ...
+			  (ReconError_norm_vals(:) + all(ReconError_norm_vals(:)==0))));
+%5		sqrt(mean(ReconError_norm_strength(i_ReconError).^2 * ...
+%5			  (ReconError_norm_vals(:).^2 + (ReconError_norm_vals(:)==0).^2)));
 	  endif
 	endif %% ~isempty(ReconError_norm_struct)
 	
@@ -303,7 +309,8 @@ function [ReconError_times_array, ...
 
     ReconError_times_array{init_ReconError_list+i_ReconError} = ReconError_times;
     ReconError_RMS_array{init_ReconError_list+i_ReconError} = ReconError_RMS;
-    ReconError_norm_RMS_array{init_ReconError_list+i_ReconError} = ReconError_norm_strength(i_ReconError)*ones(size(ReconError_RMS));
+    %%ReconError_norm_RMS_array{init_ReconError_list+i_ReconError} = ReconError_norm_strength(i_ReconError)*ones(size(ReconError_RMS));
+    ReconError_norm_RMS_array{init_ReconError_list+i_ReconError} = ones(size(ReconError_RMS));
   endfor  %% i_ReconError
   %%keyboard;
 
