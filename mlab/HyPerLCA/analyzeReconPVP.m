@@ -141,8 +141,21 @@ function [Recon_hdr, ...
 	if j_frame > num_Recon_frames(i_Recon)
 	  continue;
 	endif
-	Recon_vals{i_Recon}{i_frame} = Recon_vals{i_Recon}{i_frame} + ...
-	    Recon_vals{sum_ndx}{j_frame};
+	downsample_factor_row = size(Recon_vals{sum_ndx}{j_frame},1) / size(Recon_vals{i_Recon}{i_frame},1);
+	downsample_factor_col = size(Recon_vals{sum_ndx}{j_frame},2) / size(Recon_vals{i_Recon}{i_frame},2);
+	if downsample_factor_row > 1 || downsample_factor_col > 1
+	  Recon_vals_downsampled = reshape(Recon_vals{sum_ndx}{j_frame}, [size(Recon_vals{i_Recon}{i_frame},1), downsample_factor_row, size(Recon_vals{i_Recon}{i_frame},2), downsample_factor_col, size(Recon_vals{i_Recon}{i_frame},3)]);
+	  Recon_vals_downsampled = squeeze(mean(mean(Recon_vals_downsampled,4), 2));
+	else
+	  Recon_vals_downsampled = Recon_vals{sum_ndx}{j_frame};
+	endif
+	Recon_vals{i_Recon}{i_frame} = ...
+	    ((Recon_vals{i_Recon}{i_frame} -min(Recon_vals{i_Recon}{i_frame}(:))) / ...
+	     (((max(Recon_vals{i_Recon}{i_frame}(:)) - min(Recon_vals{i_Recon}{i_frame}(:)))) + ...
+	      (max(Recon_vals{i_Recon}{i_frame}(:)) == min(Recon_vals{i_Recon}{i_frame}(:))))) + ...
+	    ((Recon_vals_downsampled - min(Recon_vals_downsampled(:))) / ...
+	     ((max(Recon_vals_downsampled(:)) - min(Recon_vals_downsampled(:))) + ...
+	      (max(Recon_vals_downsampled(:)) == min(Recon_vals_downsampled(:)))));
 	Recon_fig_name{i_Recon} = [Recon_fig_name{i_Recon}, "_", Recon_list{sum_ndx,2}];
       endfor %% i_sum
       mean_Recon_tmp = mean(Recon_vals{i_Recon}{i_frame}(:));
@@ -152,6 +165,19 @@ function [Recon_hdr, ...
       Recon_fig_name{i_Recon} = [Recon_fig_name{i_Recon}, "_", num2str(Recon_time{i_Recon}(i_frame), "%08d")];
       Recon_vals_tmp = ...
 	  permute(Recon_vals{i_Recon}{i_frame},[2,1,3]);
+
+      if num_Recon_colors > 3
+	Recon_colormap = prism(num_Recon_colors+1);
+	Recon_vals_tmp2 = zeros([size(Recon_vals_tmp,1),size(Recon_vals_tmp,2),3]);
+	for Recon_color_ndx = 1 : num_Recon_colors
+	  Recon_color = Recon_colormap(Recon_color_ndx,:);
+	  Recon_vals_tmp2(:,:,1) = squeeze(Recon_vals_tmp2(:,:,1)) + squeeze(Recon_vals_tmp(:,:,Recon_color_ndx) .* Recon_color(1));
+	  Recon_vals_tmp2(:,:,2) = squeeze(Recon_vals_tmp2(:,:,2)) + squeeze(Recon_vals_tmp(:,:,Recon_color_ndx) .* Recon_color(2));
+	  Recon_vals_tmp2(:,:,3) = squeeze(Recon_vals_tmp2(:,:,3)) + squeeze(Recon_vals_tmp(:,:,Recon_color_ndx) .* Recon_color(3));
+	endfor
+	Recon_vals_tmp = Recon_vals_tmp2;
+      endif
+
       Recon_vals_tmp = ...
 	  (Recon_vals_tmp - min(Recon_vals_tmp(:))) / ...
 	  ((max(Recon_vals_tmp(:))-min(Recon_vals_tmp(:))) + ...
