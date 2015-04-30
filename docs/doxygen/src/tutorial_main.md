@@ -18,42 +18,44 @@ The following tutorials will take you through installing and using the fundament
  4. \subpage classification "Whole Image Classification"
 
 
-\page mermaid Visualize your params file
+\page mermaid Visualize The Params File
 
-Summary
------------------------------------
 Visualization is one of the fastest and easiest ways to determine if your params file is set-up as you intended and has become a popular debugging tool for PetaVision.  In this tutorial, you will install Mermaid and use it to generate a flow diagram of your params file.
 
 Install Mermaid
 -----------------------------------
-For OSX, download the ‘node’ .pkg file from https://nodejs.org/download/; this will install the npm package manager.  If you are using a package manager, please refer to this link on [how to install nodejs](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager
+1) For OSX, download the ‘node’ .pkg file from https://nodejs.org/download/; this will install the npm package manager.  If you are using a package manager, please refer to this link on [how to install nodejs](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager
 ): 
 
-After you install nodejs, in your command line install mermaid and phantomjs:
+2) After you install nodejs, in your command line install mermaid and phantomjs:
 
     > sudo npm install -g mermaid
     > sudo npm install -g phantomjs
+    
+3) Mermaid will interpret plain text files and output .png files. To test your install, make a test document with the following text (ignoring quotes):
 
-Mermaid will interpret plain text files and output .png files. To test your install, make a test document (test.txt) with the following text:
+	“graph TB;
+	 a -—> b; “
 
-    graph LR;
-    a -—> b;
+4) Enter the following commands:
 
-Navigate to the directory where you saved test.txt and run mermaid:
+	> mermaid your_test_file
+	> open your_test_file.png
 
-    > mermaid test.txt
+5) This should create and display a png with the same name as your text file, displaying a simple flowchart. 
 
-You should get an output like this titled test.txt.png
-
-Set-up Params Parser
+DRAWING A DIAGRAM
 -----------------------------------
 
-Draw a Params Diagram
------------------------------------
+Make a copy of the params file you would like to draw and place it in the same directory as the python script “integrated_param_extractor.py”. In a default install of a sandbox or the PetaVision trunk, this script can be found in PetaVision/plab.
 
-Conclusion
------------------------------------
+In this directory, enter the following commands:
 
+	> python integrated_param_extractory.py ~/workspace/Petavision
+	> mermaid param_graph
+	> open param_graph.png
+
+(As with the test suggested above, the first command creates an input file named “param_graph” for the mermaid CLI, the second creates a .png file from it)
 
 
 

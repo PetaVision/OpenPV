@@ -179,11 +179,13 @@ CMake options:
 ~~~~~~~~~~~~~~~~~~~~
 CLANG_OMP = (ON or OFF) #Whether the compiler uses the OpenMP/Clang compiler
 CMAKE_BUILD_TYPE = (Release or Debug) #Whether to optimize for performance or for debugging
-CUDA_GPU = (ON or OFF) #Whether to use CUDA GPU acceleration
+...
 CUDA_RELEASE = (ON or OFF) #Whether to Optimization for Cuda
-CUDNN = True #Whether to use CUDNN
 CUDNN_PATH = /path/to/cudnn/folder #The path to the cuDNN folder you downloaded/copied
-OPEN_MP_THREADS = (ON or OFF) #Whether to use OpenMP threading
+...
+PV_USE_CUDA = (ON or OFF) #Whether to use CUDA GPU acceleration
+PV_USE_CUDNN = True #Whether to use CUDNN
+PV_USE_OPENMP_THREADS = (ON or OFF) #Whether to use OpenMP threading
 ~~~~~~~~~~~~~~~~~~~~
 
 If some of these options do not show up on ccmake, fill the ones you can, press c to configure, and look again for variables
