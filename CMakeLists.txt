@@ -9,7 +9,7 @@ enable_testing()
 cmake_minimum_required(VERSION 2.8)
 
 #Define function for adding a test to the test harness
-macro(AddPVTest BaseName ParamNames inFlags inMpi inDepends)
+macro(AddPVTest BaseName ParamNames inFlags inMpi)
    #Case based on size of paramNames
    list(LENGTH ${ParamNames} numParams)
    #No params case
@@ -29,10 +29,8 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi inDepends)
             mpirun -np 4 Debug/${BaseName} ${inFlags} -l
             ${testName}_4.log)
          #Add dependencies
-         if(${inDepends})
-            set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
-            set_tests_properties(${testName}_4 PROPERTIES DEPENDS ${testName}_2)
-         endif(${inDepends})
+         set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
+         set_tests_properties(${testName}_4 PROPERTIES DEPENDS ${testName}_2)
       endif(${inMpi})
    else(${numParams} EQUAL 0)
       #Multiple params here
@@ -57,10 +55,8 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi inDepends)
                mpirun -np 4 Debug/${BaseName} -p input/${param}.params ${inFlags} -l
                ${testName}_4.log)
             #Add dependencies
-            if(${inDepends})
-               set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
-               set_tests_properties(${testName}_4 PROPERTIES DEPENDS ${testName}_2)
-            endif(${inDepends})
+            set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
+            set_tests_properties(${testName}_4 PROPERTIES DEPENDS ${testName}_2)
          endif(${inMpi})
       endforeach(param)
    endif(${numParams} EQUAL 0)
@@ -216,283 +212,242 @@ set(testBaseName BasicSystemTest) #The base name of the test
 set(testParams BasicSystemTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName AdjustAxonalArborsTest) #The base name of the test
 set(testParams AdjustAxonalArborsTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ArborSystemTest) #The base name of the test
 set(testParams test_arbors) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName BackgroundLayerTest) #The base name of the test
 set(testParams repTest norepTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName BinningLayerTest) #The base name of the test
 set(testParams BinningLayerTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName CheckpointSystemTest) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends TRUE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName CloneHyPerConnTest) #The base name of the test
 set(testParams CloneHyPerConnTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName CloneKernelConnTest) #The base name of the test
 set(testParams CloneKernelConnTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName CloneVLayerTest) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ConnectionRestartTest) #The base name of the test
 set(testParams ConnectionRestartTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ConvertToGrayscaleTest) #The base name of the test
 set(testParams ConvertToGrayscaleTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName CopyConnTest) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName DatastoreDelayTest) #The base name of the test
 set(testParams DatastoreDelayTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName DelaysToFeaturesTest) #The base name of the test
 set(testParams test_delays) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
-
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName GenericSystemTest) #The base name of the test
 set(testParams GenericSystemTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -c checkpoints/Checkpoint6 --testall -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends TRUE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName GPUSystemTest) #The base name of the test
 set(testParams preTest postTest postTestNoTranspose postTestOneToMany
    postTest_linked postTestGpuGroup HyPerLCAGpuTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName GroupNormalizationTest) #The base name of the test
 set(testParams GroupNormalizationTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ImageOffsetTest) #The base name of the test
 set(testParams ImageOffsetTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ImageSystemTest) #The base name of the test
 set(testParams multiframe_SystemTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ImportParamsTest) #The base name of the test
 set(testParams ImportParamsTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ImprintConnTest) #The base name of the test
 set(testParams ImprintConnTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName InitWeightsTest) #The base name of the test
 set(testParams test_initweights) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName KernelActivationTest) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName KernelTest) #The base name of the test
 set(testParams test_kernel test_kernel_normalizepost_shrunken) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName LayerPhaseTest) #The base name of the test
 set(testParams LayerPhaseTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName LayerRestartTest) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends TRUE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName LCATest) #The base name of the test
 set(testParams LCATest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -c checkpoints/Checkpoint6 --testall -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends TRUE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName LIFTest) #The base name of the test
 set(testParams LIFTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName MarginWidthTest) #The base name of the test
 set(testParams MarginWidthTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName MaskLayerTest) #The base name of the test
 set(testParams maskTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName MaxPoolTest) #The base name of the test
 set(testParams maxpooltest gateTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName MovieSystemTest) #The base name of the test
 set(testParams MovieSystemTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName MPITest2) #The base name of the test
 set(testParams MPI_test) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName NormalizeSystemTest) #The base name of the test
 set(testParams NormalizeSystemTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi FALSE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ParameterSweepTest) #The base name of the test
 set(testParams ParameterSweepTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName PlasticConnTest) #The base name of the test
 set(testParams PlasticConnTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName PlasticTransposeConnTest) #The base name of the test
 set(testParams PlasticTransposeConnTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName PointProbeTest) #The base name of the test
 set(testParams PointProbeTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName RandStateSystemTest) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends TRUE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ReadArborFileTest) #The base name of the test
 set(testParams ReadArborFileTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ReceiveFromPostTest) #The base name of the test
 set(testParams postTest_margins postTestNoTranspose 
@@ -500,119 +455,102 @@ set(testParams postTest_margins postTestNoTranspose
    postTest_OneToMany) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName RescaleLayerTest) #The base name of the test
 set(testParams RescaleLayerTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ShrunkenPatchFlagTest) #The base name of the test
 set(testParams ShrunkenPatchFlagTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ShrunkenPatchTest) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName StochasticReleaseTest) #The base name of the test
 set(testParams StochasticReleaseTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName SumPoolTest) #The base name of the test
 set(testParams sumpooltest unpoolTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_border_activity) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_cocirc) #The base name of the test
 set(testParams test_cocirc) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_constant_input) #The base name of the test
 set(testParams test_constant_input) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_delta) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi FALSE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_delta_pos) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi FALSE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_extend_border) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi FALSE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_kg) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi FALSE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_kxpos) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi FALSE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_kypos) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi FALSE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_mirror_BCs) #The base name of the test
 set(testParams test_mirror_BCs) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_mpi_specifyrowscolumns) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
 #This addtest is hard coded because this test requires a run with 6 mpi processes only
 add_test(${testBaseName}_6 ${CMAKE_COMMAND} -E chdir ${testBaseName}
    mpirun -np 6 Debug/${testBaseName} ${testFlags} -l
@@ -623,76 +561,65 @@ set(testBaseName test_nearby_neighbor) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi FALSE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_patch_head) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi FALSE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_post_weights) #The base name of the test
 set(testParams test_post_weights) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName test_sign) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi FALSE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName TriggerTest) #The base name of the test
 set(testParams TriggerTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName TransposeConnTest) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName TransposeHyPerConnTest) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName UnequalPatchSizeTest) #The base name of the test
 set(testParams UnequalPatchSizeTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName UpdateFromCloneTest) #The base name of the test
 set(testParams updateFromCloneTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends FALSE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName WriteActivitySparseTest) #The base name of the test
 set(testParams ) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends TRUE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName WriteSparseFileTest) #The base name of the test
 set(testParams WriteSparseFileTest) #Name of the parameter files in the input directory, leaving out .params
 set(testFlags -c checkpoints/Checkpoint6 --testall -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to petavision test
 set(testMpi TRUE) #Extra flags to pass to petavision test
-set(testDepends TRUE) #This variable defines if the test is required to run sequentially
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi} ${testDepends})
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
