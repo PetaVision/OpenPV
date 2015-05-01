@@ -1,12 +1,16 @@
 # Patch size and margin width requirements
 
-The internals of PetaVision make certain assumptions regarding layers'
-neuron densities, connections' patch sizes, and layers' margin widths. The
-code tests for these conditions and exits with an error if they are not met.
+The internals of PetaVision make certain assumptions regarding layers' neuron
+densities and connections' patch sizes. The code tests for these conditions
+and exits with an error if they are not met.  A connection's patch size also
+imposes minimum requirements on the width of margin between the restricted layer
+and extended layer.  PetaVision calculates the margin widths internally, but it is
+helpful to understand how the patch size leads to requirements on the margin width.
 
 The following discusses the x-direction (parameter nxScale in the layers and
 parameter nxp in the connections), but the same applies to the y-direction
-parameters. At present, a single marginWidth covers the x- and y-directions;
+parameters. nxp and nyp are independent parameters, and the margin widths in the
+x- and y- directions can be different.
 
 nxScale must be an integral power of two (1,2,4,... or 1/2, 1/4, 1/8,...).
 If the input parameters specify an nxScale that is not an integral power of
@@ -42,21 +46,21 @@ marginWidthPre must be at least (nxp-1)/2.
 ### Case 2: nxScalePost > nxScalePre
 (the post-synaptic layer has more neurons than the pre-synaptic layer)
 
-nxp must be an odd multiple of the nxScaleRatio
+nxp must be a multiple of the nxScaleRatio
 
 marginWidthPre must be at least ( (nxp/nxScaleRatio) - 1 )/2
 
 Example:  If the presynaptic layer is 32-by-32 and the postsynaptic
 layer is 128-by-128, then nxScaleRatio = 4.
 
-Hence, nxp must be an odd multiple of 4:  nxp = 4, 12, 20, 28, etc.
+Hence, nxp must be a multiple of 4:  nxp = 4, 8, 12, etc.
 If nxp = 20, then marginWidthPre must be at least (20/4 - 1)/2 = 2.
 
 ===============================================================
 ### Case 3: nxScalePost < nxScalePre
 (the post-synaptic layer has fewer neurons than the pre-synaptic layer)
 
-nxp must be odd.
+nxp can be any positive integer.
 
 marginWidthPre must be at least (nxp-1)/2 * (1/nxScaleRatio)
 (since nxScalePre will be a positive multiple of nxScalePost,
@@ -64,17 +68,6 @@ marginWidthPre must be at least (nxp-1)/2 * (1/nxScaleRatio)
 
 Example:  If the presynaptic layer is 128-by-128 and the postsynaptic
 layer is 64-by-64, then nxScaleRatio = 0.5.
-nxp must be odd.
 If nxp = 7, then marginWidthPre must be at least 3*2 = 6
 
 ===============================================================
-
-A final note:  when doing a non-MPI (single processor) run, marginWidth
-can be set to zero.  The program will give a warning, but not exit with
-an error.  However, the boundary effects may not be what you want.
-
-It is preferable to give the correct marginWidth and the correct boundary
-conditions.
-
-If you give a non-zero but insufficient marginWidth, the program will
-exit with an error, even in a non-MPI run.
