@@ -27,8 +27,10 @@ protected:
    BackgroundLayer();
    int initialize(const char * name, HyPerCol * hc);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   void ioParam_repFeatureNum(enum ParamsIOFlag ioFlag);
 private:
    int initialize_base();
+   int repFeatureNum;
 };
 
 }

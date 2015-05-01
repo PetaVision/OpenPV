@@ -26,6 +26,7 @@ BackgroundLayer::~BackgroundLayer()
 
 int BackgroundLayer::initialize_base() {
    originalLayer = NULL;
+   repFeatureNum = 1;
    return PV_SUCCESS;
 }
 
@@ -65,10 +66,10 @@ int BackgroundLayer::communicateInitInfo() {
 #endif
       exit(EXIT_FAILURE);
    }
-   if (srcLoc->nf + 1 != loc->nf) {
+   if ((srcLoc->nf + 1)*repFeatureNum != loc->nf) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: nf must have 1 more feature than originalLayer \"%s\" in BackgroundLayer.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, originalLayerName);
+         fprintf(stderr, "%s \"%s\" error: nf must have (n+1)*repFeatureNum (%d) features in BackgroundLayer \"%s\", where n is the orig layer number of features.\n",
+                 parent->parameters()->groupKeywordFromName(name), name, (srcLoc->nf+1)*repFeatureNum, originalLayerName);
          fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }
@@ -87,10 +88,18 @@ int BackgroundLayer::allocateV() {
    return PV_SUCCESS;
 }
 
+void BackgroundLayer::ioParam_repFeatureNum(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "repFeatureNum", &repFeatureNum, repFeatureNum);
+   if(repFeatureNum <= 0){
+      std::cout << "BackgroundLayer " << name << " error: repFeatureNum must an integer greater or equal to 1 (1 feature means no replication)\n";
+      exit(-1);
+   }
+}
 
 int BackgroundLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
   //readOriginalLayerName(params);  // done in CloneVLayer
    CloneVLayer::ioParamsFillGroup(ioFlag);
+   ioParam_repFeatureNum(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -111,7 +120,7 @@ int BackgroundLayer::updateState(double timef, double dt) {
    //Make sure all sizes match
    assert(locOriginal->nx == loc->nx);
    assert(locOriginal->ny == loc->ny);
-   assert(locOriginal->nf + 1 == loc->nf);
+   assert((locOriginal->nf + 1)*repFeatureNum == loc->nf);
 
    int nx = loc->nx;
    int ny = loc->ny;
@@ -131,17 +140,26 @@ int BackgroundLayer::updateState(double timef, double dt) {
          int outVal = 1;
          //Shift all features down by one
          for(int iF = 0; iF < origNf; iF++){
-            assert(iF+1 < thisNf);
             int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, origNf);
-            int kext = kIndex(iX, iY, iF + 1, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, thisNf);
-            A[kext] = originalA[kextOrig];
-            if(originalA[kextOrig] != 0){
+            float origActivity = originalA[kextOrig];
+            //outVal is the final out value for the background
+            if(origActivity != 0){
                outVal = 0;
             }
+            //Loop over replicated features
+            for(int repIdx = 0; repIdx < repFeatureNum; repIdx++){
+               //Index iF one down, multiply by replicate feature number, add repIdx offset
+               int newFeatureIdx = ((iF+1)*repFeatureNum) + repIdx;
+               assert(newFeatureIdx < thisNf);
+               int kext = kIndex(iX, iY, newFeatureIdx, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, thisNf);
+               A[kext] = origActivity;
+            }
          }
-         //Set background index to outVal
-         int kextBackground = kIndex(iX, iY, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, thisNf);
-         A[kextBackground] = outVal;
+         //Set background indices to outVal
+         for(int repIdx = 0; repIdx < repFeatureNum; repIdx++){
+            int kextBackground = kIndex(iX, iY, repIdx, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, thisNf);
+            A[kextBackground] = outVal;
+         }
       }
    }
    return status;
