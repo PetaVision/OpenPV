@@ -26,9 +26,11 @@ ConstantLayer "input" = {
     nf = 3;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = false;
+    mirrorBCflag = true;
     writeSparseActivity = 0;
     //
+    //InitVType = "ConstantV";
+    //valueV    = 1;
     InitVType = "UniformRandomV";
     minV = 0;
     maxV = 1;
@@ -42,12 +44,34 @@ ConstantLayer "input" = {
     triggerFlag = false;
 };
 
+//Image "input" = {
+//    nxScale = .5;
+//    nyScale = .5;
+//    imagePath = "input/oneval_3_3_small.pvp";
+//    nf = 1;
+//    phase = 0;
+//    writeStep = -1;
+//    sparseLayer = false;
+//    mirrorBCflag = false; 
+//    valueBC = 0.0;
+//    useImageBCflag = false;
+//    inverseFlag = false; 
+//    normalizeLuminanceFlag = false;
+//    autoResizeFlag = false;
+//    writeImages = false;
+//    offsetAnchor = "tl";
+//    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+//    offsetY = 0;
+//    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+//    padValue = false;
+//};
+
 ANNLayer "outputRecvPre" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-    nf = 32;
-    writeStep = -1.0;
+    nf = 10;
+    writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     writeSparseActivity = 0;
@@ -66,8 +90,8 @@ ANNLayer "outputRecvPost" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-    nf = 32;
-    writeStep = -1.0;
+    nf = 10;
+    writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     writeSparseActivity = 0;
@@ -86,8 +110,8 @@ ANNLayer "outputTest" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-    nf = 32;
-    writeStep = -1.0;
+    nf = 10;
+    writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     writeSparseActivity = 0;
@@ -102,25 +126,26 @@ ANNLayer "outputTest" = {
     triggerFlag = false;
 };
 
-KernelConn "preConn" = {
+HyPerConn "origConn" = {
     preLayerName = "input";
     postLayerName = "outputRecvPre";
-    channelCode = 0;
-    nxp = 10; 
-    nyp = 10; 
+    channelCode = 0; //Inhib b, doing nothing to input
+    nxp = 2; 
+    nyp = 2; 
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
-    writeStep = -1;
+    writeStep = 1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
+
+    sharedWeights = true;
     
+    //weightInitType = "UniformWeight";
+    //weightInit = 1;
     weightInitType = "UniformRandomWeight";
     wMinInit = -1;
     wMaxInit = 1;
     sparseFraction = 0;
-
-    //weightInitType = "UniformWeight";
-    //weightInit = 1;
         
     normalizeMethod                     = "none";
     //strength                            = 1;
@@ -136,6 +161,7 @@ KernelConn "preConn" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = 0;
+    dWMax = .01;
     pvpatchAccumulateType = "convolve";
      
     delay = 0;
@@ -149,71 +175,10 @@ KernelConn "preConn" = {
     keepKernelsSynchronized             = true;
 };
 
-//KernelConn "postConn" = {
-//    preLayerName = "input";
-//    postLayerName = "outputRecvPost";
-//    channelCode = 0;
-//    nxp = 7; 
-//    nyp = 7; 
-//    numAxonalArbors = 1;
-//    initFromLastFlag = 0;  // 1;  // restart
-//    writeStep = -1;
-//    initialWriteTime = 0.0;
-//    writeCompressedWeights = false;
-//    
-//    //weightInitType = "UniformRandomWeight";
-//    //wMinInit = -1;
-//    //wMaxInit = 1;
-//    //sparseFraction = 0;
-//
-//    weightInitType = "UniformWeight";
-//    weightInit = 1;
-//        
-//    normalizeMethod                     = "none";
-//    //strength                            = 1;
-//    //rMinX                               = 1.5;
-//    //rMinY                               = 1.5;
-//    //normalize_cutoff                    = 0;
-//
-//    normalizeArborsIndividually = false;
-//    normalizeFromPostPerspective = false;
-//    symmetrizeWeights = false;
-//    
-//    shrinkPatches = false;
-//    //writeCompressedWeights = 0.0;
-//    writeCompressedCheckpoints = false;
-//    plasticityFlag = 0;
-//    pvpatchAccumulateType = "convolve";
-//     
-//    delay = 0;
-//     
-//    preActivityIsNotRate = false;
-//    selfFlag = false;
-//
-//    updateGSynFromPostPerspective = true;
-//    useWindowPost = false;
-//
-//    keepKernelsSynchronized             = true;
-//};
-
-CloneKernelConn "postConn" = {
-    preLayerName = "input";
-    postLayerName = "outputRecvPost";
-    channelCode = 0;
-    writeStep = -1;
-    originalConnName = "preConn";
-    selfFlag = false;
-    delay = 0;
-    preActivityIsNotRate = false;
-    updateGSynFromPostPerspective = true;
-    receiveGpu = true;
-    pvpatchAccumulateType = "convolve";
-};
-
-//TransposeConn "preTransposeConn" = {
-//    preLayerName = "input";
-//    postLayerName = "outputRecvPre";
-//    channelCode = 0; //Does nothing to the input layer
+//TransposeConn "firstTranspose" = {
+//    preLayerName = "outputRecvPre";
+//    postLayerName = "input";
+//    channelCode = -1; //Does nothing to the input layer
 //    originalConnName = "origConn";
 //    selfFlag = false;
 //    preActivityIsNotRate = false;
@@ -223,18 +188,33 @@ CloneKernelConn "postConn" = {
 //    updateGSynFromPostPerspective = false;
 //};
 //
-//TransposeConn "postTransposeConn" = {
+//TransposeConn "secondTranspose" = {
 //    preLayerName = "input";
 //    postLayerName = "outputRecvPost";
 //    channelCode = 0;
-//    originalConnName = "origConn";
+//    originalConnName = "firstTranspose";
 //    selfFlag = false;
 //    preActivityIsNotRate = false;
 //    writeStep = -1.0;
 //    delay = 0;
 //    pvpatchAccumulateType = "convolve";
 //    updateGSynFromPostPerspective = true;
+//    receiveGpu = false;
 //};
+
+CloneConn "clone" = {
+    preLayerName = "input";
+    postLayerName = "outputRecvPost";
+    channelCode = 0;
+    originalConnName = "origConn";
+    selfFlag = false;
+    preActivityIsNotRate = false;
+    writeStep = -1.0;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
+    receiveGpu = false;
+};
 
 IdentConn "RecvPostTest" = {
     preLayerName = "outputRecvPost";

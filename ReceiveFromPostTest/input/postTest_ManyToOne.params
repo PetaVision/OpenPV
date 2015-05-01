@@ -15,7 +15,7 @@ HyPerCol "column" = {
     checkpointRead = false;
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
-    suppressLastOutput = true;
+    suppressLastOutput = false;
     writeProgressToErr = true;
 };
 
@@ -46,10 +46,10 @@ ANNLayer "outputRecvPre" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-    nf = 32;
-    writeStep = -1.0;
+    nf = 3;
+    writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = false;
+    mirrorBCflag = -1;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -66,10 +66,10 @@ ANNLayer "outputRecvPost" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-    nf = 32;
-    writeStep = -1.0;
+    nf = 3;
+    writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = false;
+    mirrorBCflag = -1;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -86,10 +86,10 @@ ANNLayer "outputTest" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-    nf = 32;
-    writeStep = -1.0;
+    nf = 3;
+    writeStep = 1.0;
     initialWriteTime = 0.0;
-    mirrorBCflag = false;
+    mirrorBCflag = -1;
     writeSparseActivity = 0;
     //
     InitVType = "ZeroV";
@@ -102,15 +102,16 @@ ANNLayer "outputTest" = {
     triggerFlag = false;
 };
 
-KernelConn "preConn" = {
-    preLayerName = "input";
-    postLayerName = "outputRecvPre";
-    channelCode = 0;
-    nxp = 10; 
-    nyp = 10; 
+KernelConn "origConn" = {
+    preLayerName = "outputRecvPost";
+    postLayerName = "input";
+    channelCode = -1; //Inhib b, doing nothing to input
+    nxp = 6; 
+    nyp = 6; 
+    nfp = 3;
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
-    writeStep = -1;
+    writeStep = 1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
     
@@ -118,15 +119,9 @@ KernelConn "preConn" = {
     wMinInit = -1;
     wMaxInit = 1;
     sparseFraction = 0;
-
-    //weightInitType = "UniformWeight";
-    //weightInit = 1;
         
-    normalizeMethod                     = "none";
-    //strength                            = 1;
-    //rMinX                               = 1.5;
-    //rMinY                               = 1.5;
-    //normalize_cutoff                    = 0;
+    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
+    minL2NormTolerated = 0;
 
     normalizeArborsIndividually = false;
     normalizeFromPostPerspective = false;
@@ -142,6 +137,7 @@ KernelConn "preConn" = {
      
     preActivityIsNotRate = false;
     selfFlag = false;
+    shmget_flag = false;
 
     updateGSynFromPostPerspective = false;
     useWindowPost = false;
@@ -149,92 +145,33 @@ KernelConn "preConn" = {
     keepKernelsSynchronized             = true;
 };
 
-//KernelConn "postConn" = {
-//    preLayerName = "input";
-//    postLayerName = "outputRecvPost";
-//    channelCode = 0;
-//    nxp = 7; 
-//    nyp = 7; 
-//    numAxonalArbors = 1;
-//    initFromLastFlag = 0;  // 1;  // restart
-//    writeStep = -1;
-//    initialWriteTime = 0.0;
-//    writeCompressedWeights = false;
-//    
-//    //weightInitType = "UniformRandomWeight";
-//    //wMinInit = -1;
-//    //wMaxInit = 1;
-//    //sparseFraction = 0;
-//
-//    weightInitType = "UniformWeight";
-//    weightInit = 1;
-//        
-//    normalizeMethod                     = "none";
-//    //strength                            = 1;
-//    //rMinX                               = 1.5;
-//    //rMinY                               = 1.5;
-//    //normalize_cutoff                    = 0;
-//
-//    normalizeArborsIndividually = false;
-//    normalizeFromPostPerspective = false;
-//    symmetrizeWeights = false;
-//    
-//    shrinkPatches = false;
-//    //writeCompressedWeights = 0.0;
-//    writeCompressedCheckpoints = false;
-//    plasticityFlag = 0;
-//    pvpatchAccumulateType = "convolve";
-//     
-//    delay = 0;
-//     
-//    preActivityIsNotRate = false;
-//    selfFlag = false;
-//
-//    updateGSynFromPostPerspective = true;
-//    useWindowPost = false;
-//
-//    keepKernelsSynchronized             = true;
-//};
+TransposeConn "preTransposeConn" = {
+    preLayerName = "input";
+    postLayerName = "outputRecvPre";
+    channelCode = 0; //Does nothing to the input layer
+    originalConnName = "origConn";
+    selfFlag = false;
+    preActivityIsNotRate = false;
+    writeStep = -1;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
+};
 
-CloneKernelConn "postConn" = {
+TransposeConn "postTransposeConn" = {
     preLayerName = "input";
     postLayerName = "outputRecvPost";
     channelCode = 0;
-    writeStep = -1;
-    originalConnName = "preConn";
+    originalConnName = "origConn";
     selfFlag = false;
-    delay = 0;
     preActivityIsNotRate = false;
-    updateGSynFromPostPerspective = true;
-    receiveGpu = true;
+    writeStep = -1.0;
+    shmget_flag = false;
+    delay = 0;
     pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
 };
-
-//TransposeConn "preTransposeConn" = {
-//    preLayerName = "input";
-//    postLayerName = "outputRecvPre";
-//    channelCode = 0; //Does nothing to the input layer
-//    originalConnName = "origConn";
-//    selfFlag = false;
-//    preActivityIsNotRate = false;
-//    writeStep = -1;
-//    delay = 0;
-//    pvpatchAccumulateType = "convolve";
-//    updateGSynFromPostPerspective = false;
-//};
-//
-//TransposeConn "postTransposeConn" = {
-//    preLayerName = "input";
-//    postLayerName = "outputRecvPost";
-//    channelCode = 0;
-//    originalConnName = "origConn";
-//    selfFlag = false;
-//    preActivityIsNotRate = false;
-//    writeStep = -1.0;
-//    delay = 0;
-//    pvpatchAccumulateType = "convolve";
-//    updateGSynFromPostPerspective = true;
-//};
 
 IdentConn "RecvPostTest" = {
     preLayerName = "outputRecvPost";
@@ -258,7 +195,3 @@ ReceiveFromPostProbe "testProbe" = {
    tolerance = 3e-3; // covers worst case with roundoff error 2^-24 and 3456 inputs 
 };
 
-//RequireAllZeroActivityProbe "testProbe" = {
-//    targetLayer = "outputTest";
-//    nnzThreshold = 1e-6;
-//};
