@@ -116,6 +116,22 @@ HyPerCol::~HyPerCol()
    if (dtAdaptFlag && writeTimescales){
       timeScaleStream.close();
    }
+
+   if(log_file){
+      //Flush all buffers
+      fflush(stdout);
+      fflush(stderr);
+      std::cout.flush();
+      std::cerr.flush();
+
+      //Restore stdout
+      dup2(origStdOut, fileno(stdout));
+      dup2(origStdErr, fileno(stderr));
+
+      //Close origStdOut file descriptors
+      close(origStdOut);
+      close(origStdErr);
+   }
 }
 
 
@@ -165,6 +181,9 @@ int HyPerCol::initialize_base() {
    // progressStep = 1L; // deprecated Dec 18, 2013
    progressInterval = 1.0;
    writeProgressToErr = false;
+   origStdOut = -1;
+   origStdErr = -1;
+   log_file = NULL;
 
 #ifdef PV_USE_OPENCL
    clDevice = NULL;
@@ -231,7 +250,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
 
    char * param_file = NULL;
    char * working_dir = NULL;
-   char * log_file = NULL;
    int restart = 0;
    int numthreads = 1; //Default to 1 thread
    bool reqrtn = false; // Default to not require pressing return to continue
@@ -244,12 +262,24 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
 
    //Set up log file if it exists
    if(log_file){
+      //Flush buffers before duplicating stdout
+      fflush(stdout);
+      fflush(stderr);
+      std::cout.flush();
+      std::cerr.flush();
+      //Save orig stdout and stderr
+      origStdOut = dup(fileno(stdout));
+      origStdErr = dup(fileno(stderr));
+      //Close current stdout and stderr
+      close(fileno(stdout));
+      close(fileno(stderr));
+
       //Open log file for stdout
       if(!freopen(log_file, "w", stdout)){
          std::cout << "Error opening file " << log_file << " for writing\n";
          exit(-1);
       }
-      //Redirect stderr to stdout
+      //Redirect stdout to stderr
       dup2(fileno(stdout), fileno(stderr));
    }
 

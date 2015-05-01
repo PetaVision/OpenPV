@@ -547,6 +547,11 @@ private:
    std::vector<HyPerLayer*> updateLayerBufferGpu;
    std::vector<HyPerLayer*> updateLayerBuffer;
 
+   int origStdOut;
+   int origStdErr;
+
+   char* log_file;
+
 }; // class HyPerCol
 
 } // namespace PV
