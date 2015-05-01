@@ -97,10 +97,11 @@ classes={...
          'tvmonitor'};
 
 JIEDDO_class_ndx = [2 6 7 14 15 19];
+JIEDDO_class_ndx_Shift = JIEDDO_class_ndx + 1;
 JIEDDO_classes = classes(JIEDDO_class_ndx)
 
 
-for i_scale = 1 : 4  %% gjkscale
+for i_scale = 4 : 4  %% gjkscale
   if i_scale == 1
     pred_classID_file = fullfile("VOC2007_portrait4bAWS/a5_GroundTruthReconS1_16X12.pvp")
     gt_classID_file = fullfile("VOC2007_portrait4bAWS/a4_GroundTruth_16X12.pvp")
@@ -331,13 +332,12 @@ for i_scale = 1 : 4  %% gjkscale
        gt_classID_cube = full(gt_active_sparse);
        gt_classID_cube = reshape(gt_classID_cube, [gt_hdr.nf, gt_hdr.nx, gt_hdr.ny]);
        gt_classID_cube = permute(gt_classID_cube, [3,2,1]); %% gjk
-       pred_classID_thresh;
        %% recon layer is not sparse
        pred_time = pred_data{i_frame}.time;
        pred_classID_cube = pred_data{i_frame}.values;
        pred_classID_cube = permute(pred_classID_cube, [2,1,3]);
        JIEDDO_classID_cube = pred_classID_cube(:,:,JIEDDO_class_ndx); %% there are only threshold for the JIEDDO
-       pred_classID_mask = double(JIEDDO_classID_cube >= repmat(pred_classID_thresh, [pred_hdr.ny, pred_hdr.nx, 1])); %% gjk
+       pred_classID_mask = double(JIEDDO_classID_cube >= repmat(pred_classID_thresh*1.6, [pred_hdr.ny, pred_hdr.nx, 1])); %% gjkthres
        pred_classID_confidences = cell(length(JIEDDO_class_ndx), 1);
        pred_classID_max_confidence = squeeze(max(squeeze(max(JIEDDO_classID_cube, [], 2)), [], 1));
        %% confidence is measured as a percentage relative to threshold
@@ -375,7 +375,7 @@ for i_scale = 1 : 4  %% gjkscale
                 printf('%12s %8i %8i %8i %8i %8i %8i %8i \n',classes{iclasses},numeratorConfusion(iclasses+1,:)); 
            endfor
 
-    denominatorConfusion(:,2:length(JIEDDO_class_ndx)+1) = squeeze(denominatorConfusionAll(:,JIEDDO_class_ndx));
+    denominatorConfusion(:,2:length(JIEDDO_class_ndx)+1) = squeeze(denominatorConfusionAll(:,JIEDDO_class_ndx_Shift));
     denominatorConfusion(:,1) = denominatorConfusionAll(:,1);     
     disp(pred_classID_file)
     printf('den %2i x %2i   noident   %s     %s     %s   %s  %s   %s \n',gt_hdr.nx, gt_hdr.ny,JIEDDO_classes{:}); 
@@ -391,8 +391,8 @@ for i_scale = 1 : 4  %% gjkscale
     errorConfusion = ratioConfusion .* errorConfusion;
 
     disp(pred_classID_file)
-    printf('ratio %2i x %2i    noident   %s      %s        %s      %s    %s     %s \n',gt_hdr.nx, gt_hdr.ny,JIEDDO_classes{:});                    
-    printf('    no ident   ');
+    printf('ratio%2ix%2i       noident   %s      %s        %s      %s    %s     %s \n',gt_hdr.nx, gt_hdr.ny,JIEDDO_classes{:});                    
+    printf('    noident    ');
     for iprint=1:length(JIEDDO_class_ndx)+1
     printf(' %4.1f+-%3.1f ',ratioConfusion(1,iprint),errorConfusion(1,iprint));
     endfor  
