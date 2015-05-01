@@ -9,7 +9,7 @@ HyPerCol "column" = {
     numSteps = 10;       // Depends on number of VINE video frames
     progressStep = 1;
     //Change this
-    outputPath = "output/";
+    outputPath = "output/oneToManyPatchSizeTest";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false;
