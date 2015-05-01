@@ -15,15 +15,11 @@
 
 int main(int argc, char * argv[])
 {
-   char * cl_args[4];
-   cl_args[0] = strdup(argv[0]);
-   cl_args[1] = strdup("-p");
-   cl_args[2] = strdup("input/test_mirror_BCs.params");
-   cl_args[3] = NULL;
+   //char * cl_args[4];
    PVLayerLoc sLoc, bLoc;
    PVLayerCube * sCube, * bCube;
 
-   PV::HyPerCol * hc = new PV::HyPerCol("test_mirror_BCs column", 3, cl_args);
+   PV::HyPerCol * hc = new PV::HyPerCol("test_mirror_BCs column", argc, argv);
    PV::Example * l = new PV::Example("test_mirror_BCs layer", hc);
 
    //FILE * fd = stdout;
@@ -254,9 +250,9 @@ int main(int argc, char * argv[])
    sCube = bCube = NULL;
 
    delete hc;
-   free(cl_args[0]);
-   free(cl_args[1]);
-   free(cl_args[2]);
+   //free(cl_args[0]);
+   //free(cl_args[1]);
+   //free(cl_args[2]);
 
    return 0;
 }
