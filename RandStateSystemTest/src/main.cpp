@@ -33,7 +33,7 @@ int main(int argc, char * argv[]) {
    }
 
    int cl_argc = argc + 2;
-   char ** cl_argv = (char **) calloc(sizeof(cl_argc+1),sizeof(char *));
+   char ** cl_argv = (char **) calloc(cl_argc+1,sizeof(char *));
    assert(cl_argv);
    for (int k=0; k<argc; k++) {
       cl_argv[k] = strdup(argv[k]);
