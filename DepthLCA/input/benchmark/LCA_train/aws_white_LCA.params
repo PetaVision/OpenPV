@@ -16,8 +16,8 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime = 430000;
-    progressStep = 5000;
+    stopTime = 39000;
+    progressStep = 1000;
     outputPath = "/home/ec2-user/mountData/benchmark/LCATrain/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
@@ -49,7 +49,7 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/home/ec2-user/mountData/kitti/list/image_2_benchmark_aws_cluster.txt";
+    imageListPath = "/home/ec2-user/mountData/kitti/list/image_2_benchmark_aws_cluster_single.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
@@ -150,7 +150,7 @@ ANNNormalizedErrorLayer "LeftError" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
     //
-    VThresh = 0.001; //Change this for efficiency
+    VThresh = 0; //Change this for efficiency
     VMax =  infinity;
     VMin = -infinity;
     VShift = 0;
@@ -196,7 +196,7 @@ ANNLayer "LeftRecon" = {
 
 Movie "RightImage" = {
     #include "LeftImage";
-    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_3_benchmark_aws_cluster.txt";
+    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_3_benchmark_aws_cluster_single.txt";
 };
 
 ANNLayer "RightBipolar" = {
@@ -255,7 +255,7 @@ HyPerLCALayer "V1" = {
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
-    VWidth = 0.05; //Same as VThresh
+    VWidth = 0.0; //Same as VThresh
     updateGpu = true;
     //
     phase = 5;
