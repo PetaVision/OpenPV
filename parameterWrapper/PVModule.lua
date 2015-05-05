@@ -18,6 +18,9 @@ local function valToString(val)
          end
       end
       io.write("]")
+   --strings
+   elseif(type(val) == "string") then
+      io.write("\"", val, "\"")
    --boolean
    elseif(type(val) == "boolean") then
       if(val) then
@@ -30,9 +33,7 @@ local function valToString(val)
       io.write("infinity")
    elseif(val == -math.huge) then
       io.write("-infinity")
-   --strings
-   elseif(val == "string") then
-      io.write("\"", val, "\"")
+   --numerical values
    else
       io.write(val)
    end

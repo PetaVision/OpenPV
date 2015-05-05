@@ -13,7 +13,7 @@ local pv = require "PVModule"
 
 -- Global variable, for debug parsing
 -- Needed by printConsole
-debugParsing = false;
+debugParsing = true;
 
 -- User defined variables
 local nxSize = 32
