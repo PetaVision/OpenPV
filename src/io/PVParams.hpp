@@ -215,8 +215,10 @@ class PVParams {
 public:
    PVParams(size_t initialSize, InterColComm * icComm); // TODO Should be const InterColComm * comm
    PVParams(const char * filename, size_t initialSize, InterColComm * icComm);
+   PVParams(const char * buffer, long int bufferLength, size_t initialSize, InterColComm * icComm);
    virtual ~PVParams();
 
+   int parseBufferInRootProcess(char * buffer, long int bufferLength);
    bool getParseStatus() { return parseStatus; }
    int   present(const char * groupName, const char * paramName);
    double value  (const char * groupName, const char * paramName);
@@ -292,7 +294,8 @@ private:
    char * currSweepParamName;
 
    int initialize(size_t initialSize, InterColComm * icComm);
-   int parsefile(const char * filename);
+   int parseFile(const char * filename);
+   int parseBuffer(const char * buffer, long int bufferLength);
    int setSweepSize();
    void addGroup(char * keyword, char * name);
    void addActiveParamSweep(const char * group_name, const char * param_name);

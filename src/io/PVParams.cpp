@@ -824,23 +824,34 @@ const char * ParameterSweep::getStringValue(int n) {
 /**
  * @filename
  * @initialSize
- * @hc
+ * @icComm
  */
 PVParams::PVParams(const char * filename, size_t initialSize, InterColComm * icComm)
 {
 
    initialize(initialSize, icComm);
-   parsefile(filename);
+   parseFile(filename);
 }
 
 /*
  * @initialSize
- * @hc
+ * @icComm
  */
 PVParams::PVParams(size_t initialSize, InterColComm * icComm)
 {
    initialize(initialSize, icComm);
-   parsefile(NULL);
+}
+
+/*
+ * @buffer
+ * @bufferLength
+ * @initialSize
+ * @icComm
+ */
+PVParams::PVParams(const char * buffer, long int bufferLength, size_t initialSize, InterColComm * icComm)
+{
+   initialize(initialSize, icComm);
+   parseBuffer(buffer, bufferLength);
 }
 
 PVParams::~PVParams()
@@ -899,44 +910,42 @@ int PVParams::newActiveParamSweep() {
    return status;
 }
 
-int PVParams::parsefile(const char * filename) {
+int PVParams::parseFile(const char * filename) {
    int rootproc = 0;
    char * paramBuffer = NULL;
    size_t bufferlen;
    if( icComm->commRank() == rootproc ) {
       if( filename == NULL ) {
-         const char * altfile = INPUT_PATH "inparams.txt";
-         printf("PVParams::parsefile: opening alternate input file \"%s\"\n", altfile);
-         fflush(stdout);
-         filename = altfile;
+         fprintf(stderr, "PVParams::parseFile: filename was null.\n");
+         exit(ENOENT);
       }
       struct stat filestatus;
       if( stat(filename, &filestatus) ) {
-         fprintf(stderr, "PVParams::parsefile ERROR getting status of file \"%s\": %s\n", filename, strerror(errno));
+         fprintf(stderr, "PVParams::parseFile ERROR getting status of file \"%s\": %s\n", filename, strerror(errno));
          exit(errno);
       }
       if( filestatus.st_mode & S_IFDIR ) {
-         fprintf(stderr, "PVParams::parsefile ERROR: specified file \"%s\" is a directory.\n", filename);
+         fprintf(stderr, "PVParams::parseFile ERROR: specified file \"%s\" is a directory.\n", filename);
          exit(EISDIR);
       }
       PV_Stream * paramstream = PV_fopen(filename, "r", false/*verifyWrites*/);
       if( paramstream == NULL ) {
-         fprintf(stderr, "PVParams::parsefile ERROR opening file \"%s\": %s\n", filename, strerror(errno));
+         fprintf(stderr, "PVParams::parseFile ERROR opening file \"%s\": %s\n", filename, strerror(errno));
          exit(errno);
       }
       if( PV_fseek(paramstream, 0, SEEK_END) != 0 ) {
-         fprintf(stderr, "PVParams::parsefile ERROR seeking end of file \"%s\": %s\n", filename, strerror(errno));
+         fprintf(stderr, "PVParams::parseFile ERROR seeking end of file \"%s\": %s\n", filename, strerror(errno));
          exit(errno);
       }
       bufferlen = (size_t) getPV_StreamFilepos(paramstream);
       paramBuffer = (char *) malloc(bufferlen);
       if( paramBuffer == NULL ) {
-         fprintf(stderr, "PVParams::parsefile: Rank %d process unable to allocate memory for params buffer\n", rootproc);
+         fprintf(stderr, "PVParams::parseFile: Rank %d process unable to allocate memory for params buffer\n", rootproc);
          exit(ENOMEM);
       }
       PV_fseek(paramstream, 0L, SEEK_SET);
       if( PV_fread(paramBuffer,1, (unsigned long int) bufferlen, paramstream) != bufferlen) {
-         fprintf(stderr, "PVParams::parsefile: ERROR reading params file \"%s\"", filename);
+         fprintf(stderr, "PVParams::parseFile: ERROR reading params file \"%s\"", filename);
          exit(EIO);
       }
       PV_fclose(paramstream);
@@ -958,20 +967,27 @@ int PVParams::parsefile(const char * filename) {
       bufferlen = (size_t) count;
       paramBuffer = (char *) malloc(bufferlen);
       if( paramBuffer == NULL ) {
-         fprintf(stderr, "PVParams::parsefile: Rank %d process unable to allocate memory for params buffer\n", icComm->commRank());
+         fprintf(stderr, "PVParams::parseFile: Rank %d process unable to allocate memory for params buffer\n", icComm->commRank());
          abort();
       }
       MPI_Recv(paramBuffer, (int) bufferlen, MPI_CHAR, rootproc, 31, icComm->communicator(), MPI_STATUS_IGNORE);
 #endif // PV_USE_MPI
    }
 
+   int status = parseBuffer(paramBuffer, bufferlen);
+   free(paramBuffer);
+   return status;
+}
+
+int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
+   // Assumes that each MPI process has the same contents in buffer.
+
    fflush(stdout);
    //This is where it calls the scanner and parser
-   parseStatus = pv_parseParameters(this, paramBuffer, bufferlen);
+   parseStatus = pv_parseParameters(this, buffer, bufferLength);
    if( parseStatus != 0 ) {
       fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", getRank(), parseStatus);
    }
-   free(paramBuffer);
 
    setSweepSize(); // Need to set sweepSize here, because if the outputPath sweep needs to be created we need to know the size.
 
@@ -985,7 +1001,7 @@ int PVParams::parsefile(const char * filename) {
          const char * param_name = sweep->getParamName();
          ParameterGroup * gp = group(group_name);
          if (gp == NULL) {
-            fprintf(stderr, "PVParams::parsefile error: ParameterSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
+            fprintf(stderr, "PVParams::parseBuffer error: ParameterSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
             exit(EXIT_FAILURE);
          }
          if ( !strcmp(gp->getGroupKeyword(),"HyPerCol") && !strcmp(param_name, "outputPath") ) {
@@ -1002,7 +1018,7 @@ int PVParams::parsefile(const char * filename) {
             }
          }
          if (hypercolgroupname == NULL) {
-            fprintf(stderr, "PVParams::parsefile error: params file does not have a HyPerCol group\n");
+            fprintf(stderr, "PVParams::parseBuffer error: no HyPerCol group\n");
             abort();
          }
          char dummy;
@@ -1054,6 +1070,34 @@ int PVParams::parsefile(const char * filename) {
    clearHasBeenReadFlags();
 
    return PV_SUCCESS;
+}
+
+int PVParams::parseBufferInRootProcess(char * buffer, long int bufferLength) {
+   // Under MPI, if this process is called, it should be called by all processes.
+#ifdef PV_USE_MPI
+   int status = PV_SUCCESS;
+   if (icComm->commRank()==0) {
+      MPI_Bcast(&bufferLength, 1, MPI_LONG, 0, icComm->communicator());
+      MPI_Bcast(buffer, bufferLength, MPI_CHAR, 0, icComm->communicator());
+      status = parseBuffer(buffer, bufferLength);
+   }
+   else {
+      long int bufLen;
+      char * buf = NULL;
+      MPI_Bcast(&bufLen, 1, MPI_LONG, 0, icComm->communicator());
+      buf = (char *) malloc((size_t) bufLen);
+      if (buf==NULL) {
+         fprintf(stderr, "Process %d: error allocating %ld bytes for PVParams buffer.\n", icComm->commRank(), bufLen);
+         exit(EXIT_FAILURE);
+      }
+      MPI_Bcast(buf, bufLen, MPI_CHAR, 0, icComm->communicator());
+      status = parseBuffer(buf, bufLen);
+      free(buf);
+   }
+#else // PV_USE_MPI
+   status = parseBuffer(buffer, bufferLength);
+#endif // PV_USE_MPI
+   return status;
 }
 
 int PVParams::setSweepSize() {
