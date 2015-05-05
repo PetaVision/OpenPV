@@ -6,8 +6,7 @@ INFINITY = math.huge
 local function valToString(val)
    --NULL value
    if(val == nil) then
-      --TODO double check this, I think lowercase null
-      write("null")
+      io.write("NULL")
    --Param sweep option
    elseif(type(val) == "table") then
       io.write("[")
@@ -82,7 +81,11 @@ end
 function PVModule.printConsole(parameterTable)
    --First value to print out is always debugParams
    --debugParsing should be a global variable, TODO, change this?
-   printKeyValue("debugParsing", debugParsing)
+   if(debugParsing == nil) then
+      printKeyValue("debugParsing", true)
+   else
+      printKeyValue("debugParsing", debugParsing)
+   end
    --Iterate through rest of group
    for k,v in pairs(parameterTable) do
       --Skip debugParams, already been done

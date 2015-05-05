@@ -9,6 +9,7 @@
 
 
 --Util module
+package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/PetaVision/parameterWrapper/PVModule.lua;"
 local pv = require "PVModule"
 
 -- Global variable, for debug parsing

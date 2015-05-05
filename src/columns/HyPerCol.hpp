@@ -499,6 +499,7 @@ private:
    // char * outputNamesOfLayersAndConns;  // path to file for writing list of layer names and connection names
    char * printParamsFilename; // filename for outputting the params, including defaults and excluding unread params
    PV_Stream * printParamsStream; // file pointer associated with printParamsFilename
+   PV_Stream * luaPrintParamsStream; // file pointer associated with the output lua file
    char * image_file;
    int nxGlobal;
    int nyGlobal;

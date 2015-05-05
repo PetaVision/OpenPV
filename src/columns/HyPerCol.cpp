@@ -205,6 +205,7 @@ int HyPerCol::initialize_base() {
    // outputNamesOfLayersAndConns = NULL;
    printParamsFilename = NULL;
    printParamsStream = NULL;
+   luaPrintParamsStream = NULL;
    image_file = NULL;
    nxGlobal = 0;
    nyGlobal = 0;
@@ -588,9 +589,14 @@ int HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
 int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char * group_name) {
    if (ioFlag == PARAMS_IO_WRITE && columnId()==0) {
       assert(printParamsStream);
+      assert(luaPrintParamsStream);
       const char * keyword = params->groupKeywordFromName(group_name);
       fprintf(printParamsStream->fp, "\n");
       fprintf(printParamsStream->fp, "%s \"%s\" = {\n", keyword, group_name);
+
+      fprintf(luaPrintParamsStream->fp, "{\n");
+      fprintf(luaPrintParamsStream->fp, "groupType = \"%s\";\n", keyword);
+      fprintf(luaPrintParamsStream->fp, "groupName = \"%s\";\n", group_name);
    }
    return PV_SUCCESS;
 }
@@ -636,7 +642,9 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 int HyPerCol::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_WRITE && columnId()==0) {
       assert(printParamsStream);
+      assert(luaPrintParamsStream);
       fprintf(printParamsStream->fp, "};\n");
+      fprintf(luaPrintParamsStream->fp, "};\n\n");
    }
    return PV_SUCCESS;
 }
@@ -1135,6 +1143,7 @@ template <typename T>
 void HyPerCol::writeParam(const char * param_name, T value) {
    if (columnId()==0) {
       assert(printParamsStream && printParamsStream->fp);
+      assert(luaPrintParamsStream && luaPrintParamsStream->fp);
       std::stringstream vstr("");
       if (typeid(value)==typeid(false)) {
          vstr << (value ? "true" : "false");
@@ -1143,6 +1152,7 @@ void HyPerCol::writeParam(const char * param_name, T value) {
          vstr << value;
       }
       fprintf(printParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str()); // Check: does vstr.str().c_str() work?
+      fprintf(luaPrintParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str()); // Check: does vstr.str().c_str() work?
    }
 }
 // Declare the instantiations of writeParam that occur in other .cpp files; otherwise you'll get linker errors.
@@ -1154,11 +1164,14 @@ template void HyPerCol::writeParam<bool>(const char * param_name, bool value);
 void HyPerCol::writeParamString(const char * param_name, const char * svalue) {
    if (columnId()==0) {
       assert(printParamsStream!=NULL && printParamsStream->fp!=NULL);
+      assert(luaPrintParamsStream && luaPrintParamsStream->fp);
       if (svalue!=NULL) {
          fprintf(printParamsStream->fp, "    %-35s = \"%s\";\n", param_name, svalue);
+         fprintf(luaPrintParamsStream->fp, "    %-35s = \"%s\";\n", param_name, svalue);
       }
       else {
          fprintf(printParamsStream->fp, "    %-35s = NULL;\n", param_name);
+         fprintf(luaPrintParamsStream->fp, "    %-35s = nil;\n", param_name);
       }
    }
 }
@@ -1167,13 +1180,17 @@ template <typename T>
 void HyPerCol::writeParamArray(const char * param_name, const T * array, int arraysize) {
    if (columnId()==0) {
       assert(printParamsStream!=NULL && printParamsStream->fp!=NULL && arraysize>=0);
+      assert(luaPrintParamsStream!=NULL && luaPrintParamsStream->fp!=NULL);
       assert(arraysize>=0);
       if (arraysize>0) {
          fprintf(printParamsStream->fp, "    %-35s = [", param_name);
+         fprintf(luaPrintParamsStream->fp, "    %-35s = {", param_name);
          for (int k=0; k<arraysize-1; k++) {
             fprintf(printParamsStream->fp, "%f,", array[k]);
+            fprintf(luaPrintParamsStream->fp, "%f,", array[k]);
          }
          fprintf(printParamsStream->fp, "%f];\n", array[arraysize-1]);
+         fprintf(luaPrintParamsStream->fp, "%f};\n", array[arraysize-1]);
       }
    }
 }
@@ -2395,7 +2412,7 @@ int HyPerCol::outputParams(char const * path) {
    assert(printParamsStream==NULL);
    char printParamsPath[PV_PATH_MAX];
    if(rank == 0){
-      if( strlen(path) >= (size_t) PV_PATH_MAX ) {
+      if( strlen(path+4) >= (size_t) PV_PATH_MAX ) {
          fprintf(stderr, "outputParams called with too long a filename.  Parameters will not be printed.\n");
          status = ENAMETOOLONG;
       }
@@ -2405,10 +2422,23 @@ int HyPerCol::outputParams(char const * path) {
             status = errno;
             fprintf(stderr, "outputParams error opening \"%s\" for writing: %s\n", path, strerror(errno));
          }
+         //Get new lua path
+         char luapath [PV_PATH_MAX];
+         strcpy(luapath, path);
+         strcat(luapath, ".lua");
+         luaPrintParamsStream = PV_fopen(luapath, "w", getVerifyWrites());
+         if( luaPrintParamsStream == NULL ) {
+            status = errno;
+            fprintf(stderr, "outputParams error opening \"%s\" for writing: %s\n", luapath, strerror(errno));
+         }
       }
       assert(printParamsStream != NULL);
+      assert(luaPrintParamsStream != NULL);
 
       time_t t = time(NULL);
+
+
+      //Params file output
       fprintf(printParamsStream->fp, "// PetaVision version something-point-something run at %s", ctime(&t)); // newline is included in output of ctime
 #ifdef PV_USE_MPI
       fprintf(printParamsStream->fp, "// Compiled with MPI and run using %d rows and %d columns.\n", icComm->numCommRows(), icComm->numCommColumns());
@@ -2433,6 +2463,39 @@ int HyPerCol::outputParams(char const * path) {
       if (checkpointReadFlag) {
          fprintf(printParamsStream->fp, "// Started from checkpoint \"%s\"\n", checkpointReadDir);
       }
+
+      //lua file output
+      fprintf(luaPrintParamsStream->fp, "-- PetaVision version something-point-something run at %s", ctime(&t)); // newline is included in output of ctime
+#ifdef PV_USE_MPI
+      fprintf(luaPrintParamsStream->fp, "-- Compiled with MPI and run using %d rows and %d columns.\n", icComm->numCommRows(), icComm->numCommColumns());
+#else // PV_USE_MPI
+      fprintf(luaPrintParamsStream->fp, "-- Compiled without MPI.\n");
+#endif // PV_USE_MPI
+#ifdef PV_USE_OPENCL
+      fprintf(luaPrintParamsStream->fp, "-- Compiled with OpenCL.\n");
+#else
+      fprintf(luaPrintParamsStream->fp, "-- Compiled without OpenCL.\n");
+#endif // PV_USE_OPENCL
+#ifdef PV_USE_CUDA
+      fprintf(luaPrintParamsStream->fp, "-- Compiled with CUDA.\n");
+#else
+      fprintf(luaPrintParamsStream->fp, "-- Compiled without CUDA.\n");
+#endif
+#ifdef PV_USE_OPENMP_THREADS
+      fprintf(luaPrintParamsStream->fp, "-- Compiled with OpenMP parallel code and run using %d threads.\n", numThreads);
+#else
+      fprintf(luaPrintParamsStream->fp, "-- Compiled without OpenMP parallel code.\n");
+#endif // PV_USE_OPENMP_THREADS
+      if (checkpointReadFlag) {
+         fprintf(luaPrintParamsStream->fp, "-- Started from checkpoint \"%s\"\n", checkpointReadDir);
+      }
+      //Load util module based on PVPath
+      fprintf(luaPrintParamsStream->fp, "-- Load util module in PV trunk: NOTE this may need to change\n"); 
+      fprintf(luaPrintParamsStream->fp, "package.path = package.path .. \";\" .. os.getenv(\"HOME\") .. \"/workspace/PetaVision/parameterWrapper/PVModule.lua\"\n"); 
+      fprintf(luaPrintParamsStream->fp, "local pv = require \"PVModule\"\n\n"); 
+      
+      fprintf(luaPrintParamsStream->fp, "-- Base table variable to store\n"); 
+      fprintf(luaPrintParamsStream->fp, "local pvParameters = {\n"); 
    }
 
    // Parent HyPerCol params
@@ -2479,9 +2542,19 @@ int HyPerCol::outputParams(char const * path) {
       connections[c]->outputProbeParams();
    }
 
+   if(rank == 0){
+      fprintf(luaPrintParamsStream->fp, "} --End of pvParameters\n"); 
+      fprintf(luaPrintParamsStream->fp, "\n-- Print out PetaVision approved parameter file to the console\n"); 
+      fprintf(luaPrintParamsStream->fp, "pv.printConsole(pvParameters)\n"); 
+   }
+
    if (printParamsStream) {
       PV_fclose(printParamsStream);
       printParamsStream = NULL;
+   }
+   if (luaPrintParamsStream) {
+      PV_fclose(luaPrintParamsStream);
+      luaPrintParamsStream = NULL;
    }
    return status;
 }
