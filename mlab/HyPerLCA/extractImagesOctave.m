@@ -1,14 +1,43 @@
 function extractImagesOctave(batch_name, cnt)
 
-% download CIFAR dataset from http://www.cs.toronto.edu/~kriz/cifar.html
-% batch_name:	mat file given as string, e.g 'data_batch_1.mat'
-% cnt:		most significant digit in unique file number
-%		accounts for having individual .mat files
-%		cnt = 3 will result in numbers 3xxxx
+%
+%   ___     ___  __        __  ___     __     ___       __                   __   ___  __  
+%  |__  \_/  |  |__)  /\  /  `  |     /  ` | |__   /\  |__)    |  |\/|  /\  / _` |__  /__` 
+%  |___ / \  |  |  \ /~~\ \__,  |     \__, | |    /~~\ |  \    |  |  | /~~\ \__> |___ .__/ 
+%                                                                                          
+%
+% 1) Download CIFAR dataset from http://www.cs.toronto.edu/~kriz/cifar.html
+%	Make sure to download the Matlab version
+%	Unzip the .tar file
+%
+% 2) Modify this file so that:
+%	mkdir('path/to/where/you/want/your/images')
+%	output_dir('match/the/first/path/to/where/you/want/your/images/')   Make sure to end with a '/'
+%
+% 3) Extract the CIFAR dataset:
+%	Navigate to the location of your unzipped cifar.mat files
+%	Open octave 
+%
+%	> addpath('~/path/to/PetaVision/mlab/HyPerLCA')
+%	> extractImagesOctave(batch_name, cnt)
+%
+%	 batch_name:	mat file given as string, e.g 'data_batch_1.mat'
+% 	 cnt:		most significant digit in unique file number
+%		        accounts for having individual .mat files
+%		        cnt = 3 will result in numbers 3xxxx
+%
+%	*NOTE: you can also navigate to ~/path/to/PetaVision/mlab/HyPerLCA
+%	       and avoid needing to use addpath('')
+%
+% 	You'll need to do this for each batch.mat file or you can make a 
+% 	wee lil script to loop over all the files yourself.
+%
+% 4) Go forth and prosper	
 
-% load CIFAR .mat file
-  load(batch_name)
-  mkdir('/Users/garkenyon/Pictures/CIFAR');
+ 
+
+ load(batch_name)
+  mkdir('/Users/bbroompeltz/Documents/workspace/dataset/CIFAR');
   if ~isempty(strfind(batch_name, 'data_batch_'))
     base_batch_name_start = strfind(batch_name, 'data_batch_');
   elseif ~isempty(strfind(batch_name, 'test_batch'))
@@ -18,7 +47,7 @@ function extractImagesOctave(batch_name, cnt)
   endif
   base_batch_name_end = strfind(batch_name, '.mat')-1;
   base_batch_name = batch_name(base_batch_name_start:base_batch_name_end);
-  output_dir = ['/Users/garkenyon/Pictures/CIFAR/',base_batch_name];
+  output_dir = ['/Users/bbroompeltz/Documents/workspace/dataset/CIFAR/',base_batch_name];
   mkdir(output_dir);
 				% get dimension of data extracted from .mat file
 				% xl = number of images, yl = size of image
