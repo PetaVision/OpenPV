@@ -1469,18 +1469,22 @@ int HyPerConn::communicateInitInfo() {
          status = PV_FAILURE;
          exit(-1);
       }
-      if(postLoc->nf != maskLoc->nf && maskLoc->nf != 1){
-         if (this->getParent()->columnId()==0) {
-            fprintf(stderr, "Connection \"%s\": Mask \"%s\" (%d, %d, %d) nf dimension must be either the same as post layer \"%s\" (%d, %d, %d) or 1\n", this->getName(), this->maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf, post->getName(), postLoc->nx, postLoc->ny, postLoc->nf);
-         }
-         status = PV_FAILURE;
-         exit(-1);
-      }
       //Make sure maskFeatureIdx is within bounds
       if(maskFeatureIdx >= maskLoc->nf || maskFeatureIdx < -1){
          fprintf(stderr, "Connection \"%s\": maskFeatureIdx must be between -1 (inclusive) and mask layer \"%s\" (%d, %d, %d) nf dimension (exclusive)\n", this->getName(), this->maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf);
          status = PV_FAILURE;
          exit(-1);
+      }
+
+      //This check is only required if a maskFeatureIdx is not specified, aka, pointwise masking
+      if(maskFeatureIdx == -1){
+         if(postLoc->nf != maskLoc->nf && maskLoc->nf != 1){
+            if (this->getParent()->columnId()==0) {
+               fprintf(stderr, "Connection \"%s\": Mask \"%s\" (%d, %d, %d) nf dimension must be either the same as post layer \"%s\" (%d, %d, %d) or 1\n", this->getName(), this->maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf, post->getName(), postLoc->nx, postLoc->ny, postLoc->nf);
+            }
+            status = PV_FAILURE;
+            exit(-1);
+         }
       }
    }
 
