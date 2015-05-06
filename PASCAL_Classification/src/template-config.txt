@@ -1,0 +1,3 @@
+imageLayer:"Image"
+resultLayer:"ConfidenceAboveThreshold_4X3"
+heatMapMontageDir:"heatMapMontage/"
