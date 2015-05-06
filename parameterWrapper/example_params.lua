@@ -21,7 +21,7 @@ local nxSize = 32
 local nySize = 32
 
 --Table constructor
---This is where we construct the basic table for the parameter. The constructor is your
+--This is where we explicitly construct the basic table for the parameter. The constructor is your
 --typical way to define a basic parameter file.
 --Note that this is an lua array, therefore, the keys must be iterated in order starting
 --from 1, with no other keys allowed
@@ -53,7 +53,12 @@ local basicParams = {
       checkpointWrite = false;
       suppressLastOutput = false
    };
+}
 
+--Adding multiple groups, outermost group must be an array
+pv.addGroup(basicParams, 
+--Start of groups to add
+{
    --
    -- layers
    --
@@ -151,8 +156,9 @@ local basicParams = {
       updateGSynFromPostPerspective = false;
    };
 } --End of table constructor
+) --End function call
 
---Adding a connection to the parameters
+--Adding a layer to the parameters
 --PVModule.addGroup(baseParameterTable, group)
 --Calling the pv module to add group to baseParameterTable
 pv.addGroup(
