@@ -311,6 +311,7 @@ int HyPerConn::initialize_base()
 
    useMask = false;
    maskLayerName = NULL;
+   maskFeatureIdx = -1;
    mask = NULL;
 
 #ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
@@ -820,6 +821,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 
    ioParam_useMask(ioFlag);
    ioParam_maskLayerName(ioFlag);
+   ioParam_maskFeatureIdx(ioFlag);
 
    // GPU-specific parameters.  If not using GPUs, we read them anyway, with warnIfAbsent set to false, to prevent unnecessary warnings from unread or missing parameters.
    ioParam_gpuGroupIdx(ioFlag);
@@ -1360,6 +1362,16 @@ void HyPerConn::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void HyPerConn::ioParam_maskFeatureIdx(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if(plasticityFlag){
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "useMask"));
+      if(useMask){
+         parent->ioParamValue(ioFlag, name, "maskFeatureIdx", &maskFeatureIdx, maskFeatureIdx);
+      }
+   }
+}
+
 int HyPerConn::setPostPatchSize() {
    // If postConn is many-to-one, the transpose connection is one-to-many; then xscaleDiff > 0.
    // Similarly, if postConn is one-to-many, xscaleDiff < 0.
@@ -1464,7 +1476,14 @@ int HyPerConn::communicateInitInfo() {
          status = PV_FAILURE;
          exit(-1);
       }
+      //Make sure maskFeatureIdx is within bounds
+      if(maskFeatureIdx >= maskLoc->nf || maskFeatureIdx < -1){
+         fprintf(stderr, "Connection \"%s\": maskFeatureIdx must be between -1 (inclusive) and mask layer \"%s\" (%d, %d, %d) nf dimension (exclusive)\n", this->getName(), this->maskLayerName, maskLoc->nx, maskLoc->ny, maskLoc->nf);
+         status = PV_FAILURE;
+         exit(-1);
+      }
    }
+
 
    if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC && (getConvertRateToSpikeCount() || pre->activityIsSpiking())) {
       if (parent->columnId()==0) {
@@ -3377,6 +3396,7 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
       maskOffsetX = offsetX + maskLoc->halo.lt;
       maskOffsetY = offsetY + maskLoc->halo.up;
       //Convert to extIndex into mask
+
       size_t maskOffset = kIndex(maskOffsetX, maskOffsetY, 0,
             maskLoc->nx+maskLoc->halo.lt+maskLoc->halo.rt,
             maskLoc->ny+maskLoc->halo.up+maskLoc->halo.dn,
@@ -3404,7 +3424,16 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
                maskVal = maskactRef[lineoffsetm+((int)k/postLoc->nf)];
             }
             else{
-               maskVal = maskactRef[lineoffsetm+k];
+               //If a maskFeatureIdx was specified
+               if(maskFeatureIdx >= 0){
+                  //k is an index into x/f space. Convert back to x space, and find the 0 feature index
+                  int startingMaskK = ((int)k/postLoc->nf) * postLoc->nf;
+                  //Offset into maskFeatureIdx
+                  maskVal = maskactRef[lineoffsetm + startingMaskK + maskFeatureIdx];
+               }
+               else{
+                  maskVal = maskactRef[lineoffsetm+k];
+               }
             }
          }
          if (maskVal != 0) {

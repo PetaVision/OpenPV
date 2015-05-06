@@ -397,6 +397,7 @@ protected:
 #endif // OBSOLETE
    bool useMask;
    char* maskLayerName;
+   int maskFeatureIdx;
    HyPerLayer* mask;
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
@@ -826,6 +827,12 @@ protected:
     * @brief maskLayerName: If using mask, specifies the layer to use as a binary mask layer
     */
    virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
+   
+   /**
+    * @brief maskLayerName: If using mask, specifies which feature dim to use for the mask
+    * @details Defaults to -1, which means point wise mask
+    */
+   virtual void ioParam_maskFeatureIdx(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief gpuGroupIdx: All connections in the same group uses the same GPU memory for weights
