@@ -1,0 +1,35 @@
+This directory contains a demonstration of PetaVision using the PASCAL
+classification task.
+
+It takes a list of image files from stdin and generates heat maps showing
+the confidence
+
+After downloading and compiling, there is some preparation that needs to
+be done before running.
+
+1. Copy src/template-config.txt to src/config.txt
+2. If you want to send the generated heat maps to a directory different
+   from "heatMapMontage", edit the heatMapMontageDir line in src/config.txt
+   Absolute paths and relative paths are both allowed; relative paths are
+   relative to PetaVision's working directory.
+3. The params files look for files in a directory called CurrentModel.
+   Because of the size of the files involved, we are not saving initialization
+   pvp files on the repository.  You can get them by going to
+   <google drive link goes here>
+   The CurrentModel directory needs to contain the following pvp files:
+      Classifiers/BiasS2ToGroundTruthReconS2Error_16X12_W.pvp
+      Classifiers/BiasS2ToGroundTruthReconS2Error_4X3_W.pvp
+      Classifiers/S2MaxPooledToGroundTruthReconS2Error_16X12_W.pvp
+      Classifiers/S2MaxPooledToGroundTruthReconS2Error_4X3_W.pvp
+      Classifiers/S2SumPooledToGroundTruthReconS2Error_16X12_W.pvp
+      Classifiers/S2SumPooledToGroundTruthReconS2Error_4X3_W.pvp
+      InitialV/S1Landscape_V.pvp
+      InitialV/S1Portrait_V.pvp
+      InitialV/S1Square_V.pvp
+      InitialV/S2Landscape_V.pvp
+      InitialV/S2Portrait_V.pvp
+      InitialV/S2Square_V.pvp
+      S1S2Weights/S1ToImageReconS1Error_W.pvp
+      S1S2Weights/S2ToS1ReconS2Error_W.pvp
+      Thresholds/ThresholdConn_16.pvp
+      Thresholds/ThresholdConn_64.pvp

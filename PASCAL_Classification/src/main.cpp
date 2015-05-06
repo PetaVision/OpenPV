@@ -7,13 +7,18 @@
 
 #define TEXTFILEBUFFERSIZE 1024
 
-int parseConfigFile(char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** heatMapMontageDirPtr);
+int parseConfigFile(char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** octaveCommandPtr, char ** heatMapMontageDirPtr);
 int parseConfigParameter(char const * inputLine, char const * configParameter, char ** parameterPtr, unsigned int lineNumber);
 char * getImageFileName(InterColComm * icComm);
 
 int main(int argc, char* argv[])
 {
     int status = PV_SUCCESS;
+
+    // clobber octave logfile; octave output will be appended to this file.
+    char const * octavelogfile = "octave.log";
+    FILE * octavefp = fopen(octavelogfile, "w");
+    fclose(octavefp);
 
     int octavepid = 0; // pid of the child octave process.
 
@@ -23,10 +28,11 @@ int main(int argc, char* argv[])
     // Parse config file for image layer, result layer, file of image files
     char * imageLayerName = NULL;
     char * resultLayerName = NULL;
+    char * octaveCommand = NULL;
     char * heatMapMontageDir = NULL;
     if (hc->columnId()==0)
     {
-        status = parseConfigFile(&imageLayerName, &resultLayerName, &heatMapMontageDir);
+        status = parseConfigFile(&imageLayerName, &resultLayerName, &octaveCommand, &heatMapMontageDir);
     }
 #ifdef PV_USE_MPI
     MPI_Bcast(&status, 1/*count*/, MPI_INT, 0/*rootprocess*/, hc->icCommunicator()->communicator());
@@ -259,6 +265,9 @@ int main(int argc, char* argv[])
         std::stringstream montagePath("");
         montagePath << heatMapMontageDir << "/frame" << imageFrameNumber << ".png";
 
+        free(imageFile);
+        imageFile = getImageFileName(hc->icCommunicator());
+
         if (hc->columnId()==0)
         {
             if (octavepid>0)
@@ -288,7 +297,7 @@ int main(int argc, char* argv[])
                         imageFrameNumber << ", " <<
                         resultFrameNumber << ", " <<
                         "\"" << montagePath.str() << "\"" << ");'" <<
-                        " 2> /dev/null > /dev/null";
+                        " 2>&1 >> " << octavelogfile;
                 system(octavecommandstream.str().c_str()); // Analysis of the result of the current frame
                 exit(EXIT_SUCCESS);
             }
@@ -296,9 +305,6 @@ int main(int argc, char* argv[])
             {
             }
         }
-
-        free(imageFile);
-        imageFile = getImageFileName(hc->icCommunicator());
     }
 
     delete hc;
@@ -309,7 +315,7 @@ int main(int argc, char* argv[])
     return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;   
 }
 
-int parseConfigFile(char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** heatMapMontageDirPtr)
+int parseConfigFile(char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** octaveCommandPtr, char ** heatMapMontageDirPtr)
 {
     unsigned int const numConfigParameters = 4;
     // This routine should only be called by the root process
@@ -322,6 +328,7 @@ int parseConfigFile(char ** imageLayerNamePtr, char ** resultLayerNamePtr, char 
     }
     *imageLayerNamePtr = NULL;
     *resultLayerNamePtr = NULL;
+    *octaveCommandPtr = NULL;
     *heatMapMontageDirPtr = NULL;
     char imagebuffer[TEXTFILEBUFFERSIZE];
     unsigned int linenumber=0;
@@ -355,6 +362,12 @@ int parseConfigFile(char ** imageLayerNamePtr, char ** resultLayerNamePtr, char 
             if (status != PV_SUCCESS) { break; }
             configParametersRead++;
         }
+        if (!strcmp(line,"octaveCommand"))
+        {
+            status = parseConfigParameter(line, value, octaveCommandPtr, linenumber);
+            if (status != PV_SUCCESS) { break; }
+            configParametersRead++;
+        }
         if (!strcmp(line,"heatMapMontageDir"))
         {
             status = parseConfigParameter(line, value, heatMapMontageDirPtr, linenumber);
@@ -370,6 +383,11 @@ int parseConfigFile(char ** imageLayerNamePtr, char ** resultLayerNamePtr, char 
     if (*resultLayerNamePtr==NULL)
     {
         fprintf(stderr, "resultLayer was not defined in %s.\n", CONFIG_FILE);
+        status = PV_FAILURE;
+    }
+    if (*octaveCommandPtr==NULL)
+    {
+        fprintf(stderr, "octaveCommand was not defined in %s.\n", CONFIG_FILE);
         status = PV_FAILURE;
     }
     if (*heatMapMontageDirPtr==NULL)
