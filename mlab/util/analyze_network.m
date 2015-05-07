@@ -260,7 +260,16 @@ for i = 1:size(uniquesparsepvps,2)
          sparse_yxf(sparsedata{j}.values(:,1)+1) = sparsedata{j}.values(:,2);
          sparse_yxf = reshape(sparse_yxf,[sparseheader.nf sparseheader.nx sparseheader.ny]);
          sparse_yxf = permute(sparse_yxf,[3 2 1]);  % Reshaped to actual size of sparse layer
-         unique_sparsemeanfeaturevals{i} = mean(mean(sparse_yxf));
+         unique_sparsemeanfeaturevals{i} = zeros(1,1,size(sparse_yxf,3));
+         if (size(sparse_yxf,1) == 1 || (size(sparse_yxf,2) == 1))  % unique_sparsemeanfeaturevals should be 1 x 1 x nf
+            if (size(sparse_yxf,1) == 1 && (size(sparse_yxf,2) == 1))
+               unique_sparsemeanfeaturevals{i} = sparse_yxf;
+            else
+               unique_sparsemeanfeaturevals{i} = mean(sparse_yxf);
+            end
+         else
+            unique_sparsemeanfeaturevals{i} = mean(mean(sparse_yxf));
+         end
          unique_sparsemeanfeaturevals{i} = unique_sparsemeanfeaturevals{i}(:)';
          unique_t_sparsemeanfeaturevals{i} = unique_t_sparse{i}(j);
       end   
