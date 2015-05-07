@@ -50,25 +50,8 @@ First time initialization
 This section explains how to get a new user set up on the aws account to do runs.
 
 ###Activate your account ################
-Email <pv_office@rfd.newmexicoconsortium.org> or contact an account administrator to create and set up your account. You should get a user name and a temporary password starting up.
-
-####Current Administrators: Activate a new account ###############
-- Log into aws console.
-- Under services, click IAM.
-- On the left tab, click Users.
-- Click Create New Users.
-- Enter a new user name.
-- Deselect Generate an access key for each user. Each user will create their own access keys to access s3. Click create.
-- Find the user that was just created, select it, click actions, and select Manage Password.
-- Select Assign an auto-generated password, and select Require user to create a new password at next sign-in. Click apply.
-- Click Download Credentials and send the file to the new user.
-- Select the user that was just created, select it, click actions, and select Add User to Group.
-- Select Developer, and click Add to Groups.
-
-###Log in to your account  ################
-Go to <https://petavision.signin.aws.amazon.com/console>.
-Open the credentials file given to you by the administrator to find out your user name and password.
-Sign in with your new user name and password.
+You can create an Amazon Web Services account at aws.amazon.com by following the Products link on that page.
+If you are in KenyonLab, email <pv_office@rfd.newmexicoconsortium.org> or contact an account administrator to create and set up your account.  You should get a user name and a temporary password.  For instructions on starting an instance from the PetaVision account, visit the KenyonLab AWS installation page.
 
 ###Create your ssh key pair ################
 Each instance must have an ssh key for security. Here's how to generate your own.
@@ -191,7 +174,7 @@ Most of these variables should already be set up, but here are the important one
 - CUDA_GPU: True
 - CUDA_RELEASE: True
 - CUDNN: True
-- CUDNN_PATH: /home/ec2-user/cuDNN/cudnn-6.5-linux-R1
+- CUDNN_PATH: /home/ec2-user/cuDNN/cudnn-6.5-linux-x64-R2-rc1u
 - Open_MP_THREADS: True
 
 Press c to configure. Press e to exit the print statements.
