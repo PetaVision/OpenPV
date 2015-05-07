@@ -13,7 +13,7 @@ function outimage = heatMapMontage(imagePvpFile, resultPvpFile, imageFrameNumber
 % outimage: an ny-by-nx-by-3 array giving the output image.  ny and nx are the same as the frame of imagePvpFile.
 %
 
-addpath('../PetaVision/mlab/util');
+addpath('../../trunk/mlab/util');
 
 if ~exist('tmp','dir')
    mkdir tmp
@@ -21,6 +21,8 @@ if ~exist('tmp','dir')
 else
    ownstmpdir = 0;
 end%if
+
+fprintf(1,'heatMapMontage: input image file \"%s\", frame %d\n', imagePvpFile, imageFrameNumber);
 
 [imagePvp,imgHdr] = readpvpfile(imagePvpFile, [], imageFrameNumber, imageFrameNumber);
 if (imgHdr.filetype != 4)
@@ -115,3 +117,5 @@ end%if
 %if ownstmpdir
 %   rmdir tmp;
 %end%if
+
+fprintf(1,'heatMapMontage: output heat map image \"%s\"\n', montagePath);

@@ -297,12 +297,14 @@ int main(int argc, char* argv[])
                         imageFrameNumber << ", " <<
                         resultFrameNumber << ", " <<
                         "\"" << montagePath.str() << "\"" << ");'" <<
-                        " 2>&1 >> " << octavelogfile;
+                        " >> " << octavelogfile << " 2>&1";
+                std::ofstream octavelogstream;
+                octavelogstream.open(octavelogfile, std::fstream::out | std::fstream::app);
+                octavelogstream << "Calling octave with the command\n";
+                octavelogstream << octavecommandstream.str() << "\n";
+                octavelogstream.close();
                 system(octavecommandstream.str().c_str()); // Analysis of the result of the current frame
                 exit(EXIT_SUCCESS);
-            }
-            else
-            {
             }
         }
     }
