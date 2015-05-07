@@ -594,9 +594,8 @@ int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char * group_na
       fprintf(printParamsStream->fp, "\n");
       fprintf(printParamsStream->fp, "%s \"%s\" = {\n", keyword, group_name);
 
-      fprintf(luaPrintParamsStream->fp, "{\n");
+      fprintf(luaPrintParamsStream->fp, "%s = {\n", group_name);
       fprintf(luaPrintParamsStream->fp, "groupType = \"%s\";\n", keyword);
-      fprintf(luaPrintParamsStream->fp, "groupName = \"%s\";\n", group_name);
    }
    return PV_SUCCESS;
 }
@@ -2491,7 +2490,7 @@ int HyPerCol::outputParams(char const * path) {
       }
       //Load util module based on PVPath
       fprintf(luaPrintParamsStream->fp, "-- Load util module in PV trunk: NOTE this may need to change\n"); 
-      fprintf(luaPrintParamsStream->fp, "package.path = package.path .. \";\" .. os.getenv(\"HOME\") .. \"/workspace/PetaVision/parameterWrapper/PVModule.lua\"\n"); 
+      fprintf(luaPrintParamsStream->fp, "package.path = package.path .. \";\" .. os.getenv(\"HOME\") .. \"/workspace/PetaVision/parameterWrapper/?.lua\"\n"); 
       fprintf(luaPrintParamsStream->fp, "local pv = require \"PVModule\"\n\n"); 
       
       fprintf(luaPrintParamsStream->fp, "-- Base table variable to store\n"); 
