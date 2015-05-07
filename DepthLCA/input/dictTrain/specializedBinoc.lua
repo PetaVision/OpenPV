@@ -1,32 +1,35 @@
 --Util module
-package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/PetaVision/parameterWrapper/PVModule.lua;"
-local pv = require "PVModule"
+--package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/PetaVision/parameterWrapper/PVModule.lua;"
+package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/PetaVision/parameterWrapper/?.lua;"
+--Parameter includes
+
+local pv = require("PVModule")
+local whiten = require("params.preprocess")
 
 -- Global variable, for debug parsing
 -- Needed by printConsole
-debugParsing = true;
+debugParsing = true
 
 -- User defined variables
 local nxSize = 1200
 local nySize = 360 
 local outputPath = "/nh/compneuro/Data/Depth/LCA/dictLearn/specializedBinoc/"
 
---Normalize
+--TODO change this parameter
+local leftImageListPath = "/home/ec2-user/mountData/kitti/list/image_02_aws.txt"
+local rightImageListPath = "/home/ec2-user/mountData/kitti/list/image_03_aws.txt"
+local displayPeriod = 200
+local startFrame = 1
+local dictPatchSize = 66
 
 --Table constructor
 --This is where we construct the basic table for the parameter. The constructor is your
 --typical way to define a basic parameter file.
 --Note that this is an lua array, therefore, the keys must be iterated in order starting
 --from 1, with no other keys allowed
-local basicParams = {
-   --Implicit key of 1; since lua is 1 indexed and no key is specified
-   --Each key must be an integer
-   --Value is a table of key/value pairs
-   --HyPerCol object
-   --"groupType" (note the quotes; no quotes means variable) is key, "HyPerCol" is value
-   {  
+local pvParams = {
+   column = {  
       groupType = "HyPerCol"; --String values
-      groupName = "column";
       nx = nxSize;  --Using user defined variables 
       ny = nySize;
       dt = 1.0;
@@ -43,7 +46,7 @@ local basicParams = {
       checkpointWrite = true;
       checkpointWriteDir = outputPath .. "/Checkpoints";
       checkpointWriteStepInterval = 10000;
-      suppressLastOutput = false
+      suppressLastOutput = false;
       errorOnNotANumber = true;
       outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
       dtAdaptFlag = true;
@@ -53,147 +56,96 @@ local basicParams = {
       dtChangeMin = 0.0;
    };
 
-   --
-   -- layers
-   --
-   -- Implicit key of 2 for same reason as above. This counter will keep incrementing for every non-keyed value specified
-   {
-      groupType = "Image";
-      groupName = "Input";
+   LeftImage = {
+      groupType = "Movie";
+      restart = 0;
       nxScale = 1;
       nyScale = 1;
-      imagePath = "input/sampleimage.png";
+      readPvpFile = false;
+      imageListPath = leftImageListPath;
+      writeFrameToTimestamp = true;
       nf = 1;
-      phase = 0;
-      writeStep = -1;
-      sparseLayer = false;
-      mirrorBCflag = false;
-      valueBC = 0.0;
+      writeStep = displayPeriod;
+      initialWriteTime = displayPeriod;
+      writeSparseActivity = false;
+      displayPeriod = displayPeriod;
+      start_frame_index = startFrame;
+      skip_frame_index = 1;
+      echoFramePathnameFlag = false;
+      mirrorBCflag = true;
+      jitterFlag = 0;
       useImageBCflag = false;
-      inverseFlag = false ;
-      normalizeLuminanceFlag = false;
-      autoResizeFlag = false;
+      inverseFlag = false;
+      normalizeLuminanceFlag = true;
       writeImages = false;
-      offsetAnchor = "tl";
+      offsetAnchor = "br";
       offsetX = 0;
       offsetY = 0;
-      jitterFlag = false;
-      padValue = false
+      autoResizeFlag = 0;
+      randomMovie = 0;
+      phase = 0;
    };
 
-   --an output layer
-   {
+   LeftWhitened = {
       groupType = "ANNLayer";
-      groupName = "Output";
-      nxScale = 1;
-      nyScale = 1;
-      nf = 8;
-      phase = 1;
-      triggerFlag = false;
-      writeStep = 1.0;
-      initialWriteTime = 0.0;
-      mirrorBCflag = 1;
-      sparseLayer = false;
-      InitVType = "ZeroV";
-      VThresh = INFINITY; --Infinity, user defined variable
-      AMax = INFINITY;
-      AMin = -INFINITY;
-      AShift = 0.0;
-      VWidth = 0.0;
-      clearGSynInterval = 0.0;
-   };
-
-   --a connection
-   {
-      groupType = "HyPerConn";
-      groupName = "InputToOutput";
-      preLayerName = "Input";
-      postLayerName = "Output";
-      channelCode = 0;
-      nxp = 7;
-      nyp = 7;
-      nfp = 8;
-      numAxonalArbors = 1;
-      sharedWeights = true;
-      writeStep = -1;
-      weightInitType = "Gauss2DWeight";
-      deltaThetaMax = 6.283185;
-      thetaMax = 1.0;
-      numFlanks = 1;
-      flankShift = 0;
-      rotate = false;
-      bowtieFlag = false;
-      aspect = 3;
-      sigma = 1;
-      rMax  = INFINITY;
-      rMin = 0;
-      numOrientationsPost = 8;
-      strength = 4.0;
-      normalizeMethod = "normalizeSum";
-      normalizeArborsIndividually = false;
-      normalizeOnInitialize = true;
-      normalizeOnWeightUpdate = true;
-      normalize_cutoff = 0;
-      convertRateToSpikeCount = false;
-      minSumTolerated = 0.0;
-      normalizeFromPostPerspective = false;
-      rMinX = 0.0;
-      rMinY = 0.0;
-      nonnegativeConstraintFlag = false;
-      writeCompressedCheckpoints = false;
-      plasticityFlag = false;
-      selfFlag = false;
-      delay = 0;
-
-      pvpatchAccumulateType = "Convolve";
-      shrinkPatches = false;
-      updateGSynFromPostPerspective = false;
+      nxScale                             = .5;
+      nyScale                             = .5;
+      nf                                  = nf;
+      phase                               = 4;
+      mirrorBCflag                        = true;
+      InitVType                           = "ZeroV";
+      triggerFlag                         = true;
+      triggerLayerName                    = "LeftImage";
+      triggerOffset                       = 0;
+      writeStep                           = displayPeriod;
+      initialWriteTime                    = displayPeriod;
+      sparseLayer                         = false; --How do we specify if the layer is sparse?
+      updateGpu                           = false;
+      VThresh                             = -INFINITY;
+      AMin                                = -INFINITY;
+      AMax                                = INFINITY;
+      AShift                              = 0;
+      VWidth                              = 0;
    };
 } --End of table constructor
 
---Adding a connection to the parameters
---PVModule.addGroup(baseParameterTable, group)
---Calling the pv module to add group to baseParameterTable
-pv.addGroup(
-   basicParams, --Base parameter table variable 
+--Include a rightImage and rightWhitened
+pv.addGroup(pvParams, "RightImage", pvParams["LeftImage"], 
    {
-      groupType = "ANNLayer";
-      groupName = "Output2";
-      nxScale = 1;
-      nyScale = 1;
-      nf = 8;
-      phase = 1;
-      triggerFlag = false;
-      writeStep = 1.0;
-      initialWriteTime = 0.0;
-      mirrorBCflag = 1;
-      sparseLayer = false;
-      InitVType = "ZeroV";
-      VThresh = INFINITY; --Infinity, user defined variable
-      AMax = INFINITY;
-      AMin = -INFINITY;
-      AShift = 0.0;
-      VWidth = 0.0;
-      clearGSynInterval = 0.0;
-   }
-) --End of function call
-
---Function to include a previously defined group
---Note that both are addGroup, only depends on if you specify a new group or
---if you call the function "getGroupFromName"
---Third parameter is a group that overwrites/adds parameters
---Make a new ANNLayer named "Output3", including from "Output2"
---Change nxScale and nyScale to .5
-pv.addGroup(basicParams,
-   pv.getGroupFromName(basicParams, "Output2"), 
-   --Overwriting params for this parameter group
-   {
-      groupName = "Output3";
-      nxScale = .5;
-      nyScale = .5;
+      imageListPath = rightImageListPath;
    }
 )
 
+pv.addGroup(pvParams, "RightWhitened", pvParams["LeftWhitened"], 
+   {
+      triggerLayerName = "RightImage";
+   }
+)
+
+--Include preprocessing layers
+--Left eye
+local leftWhiteGroups = whiten.ds2_white_rescale(
+   "Left", --Prefix
+   "LeftImage",
+   pvParams["LeftImage"], --Input layer
+   "LeftWhitened",
+   pvParams["LeftWhitened"], --Output layer
+   dictPatchSize * dictPatchSize -- Patch size to feed to l2 rescale
+)
+
+--Right eye
+local rightWhiteGroups = whiten.ds2_white_rescale(
+   "Right", --Prefix
+   "RightImage", --Input layer
+   pvParams["RightImage"],
+   "RightWhitened",
+   pvParams["RightWhitened"], --Output layer
+   dictPatchSize * dictPatchSize -- Patch size to feed to l2 rescale
+)
+
+pv.addGroup(pvParams, leftWhiteGroups)
+pv.addGroup(pvParams, rightWhiteGroups)
+
 --Prints out a PetaVision approved parameter file to the console
-pv.printConsole(basicParams)
+pv.printConsole(pvParams)
 
