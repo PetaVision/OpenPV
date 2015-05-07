@@ -183,7 +183,7 @@ int RescaleLayer::updateState(double timef, double dt) {
              for(int k=0; k<numNeurons; k++) {
                 int kExt = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
                 int kExtOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
-                      locOriginal->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+                      locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
                 A[kExt] = ((originalA[kExtOriginal] - minA)/rangeA) * (targetMax - targetMin) + targetMin;
              }
           }
