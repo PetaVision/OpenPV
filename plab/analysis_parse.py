@@ -14,7 +14,7 @@ layer_loc = ("./layers.txt")
 conn_loc = ("./connections.txt")
 output_dir = (".")
 
-# Find a .params file, and throw an error if more than one is found.                                                                        
+# Find a .params file, and throw an error if more than one is found.
 foundparams = []
 param_location = ""
 print(listdir(output_dir))
@@ -25,6 +25,7 @@ for i in listdir(output_dir):
         foundparams.append(re.search(".+\.params$",i).group())
 if len(foundparams) > 1:
     print("Warning: Multiple params files found. Parsing " + foundparams[0])
+    param_location = "./" + foundparams[0]
 elif len(foundparams) == 0:
     print("Warning: No params files found in output directory.")
 else:
@@ -32,6 +33,11 @@ else:
     print("Parsing " + foundparams[0])
 
 # Lists of variables to look for in each layer and conn, plus defaults if they are not found.
+print(param_location)
+print(param_location)
+print(param_location)
+print(param_location)
+print(param_location)
 
 layer_vars = ["originalLayerName","phase"]
 conn_vars = ["channelCode","maskLayerName","originalConnName","delay","plasticityFlag"]
@@ -63,7 +69,7 @@ layer_ignore = ["","","","",""] + layer_ignore
 # Build dictionaries of connection and layer names:
 
 with open(layer_loc) as f1:
-    layer_dict = [line.strip("\n") for line in f1] 
+    layer_dict = [line.strip("\n") for line in f1]
 with open(conn_loc) as f2:
     conn_dict = [line.strip("\n") for line in f2]
 print(layer_dict)
@@ -105,18 +111,18 @@ with open(param_location, "r") as file:
                 continue
 
 # Create two full-content lists of lists, containing all lines in all conn/layer objects
-        
+
             for i in layer_dict:
                 type_regex = "\A" + i + "\s"
                 name_regex = ["(?<=" + i + ").+", "\w+"]
                 layer = re.search(type_regex, line)
                 if layer:
-                    
+
                     layer_types.append(findregex(["\w+(?=\s)"],layer.group()))
                     layer_names.append(findregex(name_regex, line))
                     objectFlag = "Layer"
                     layer_content.append([])
-            
+
             for i in conn_dict:
                 type_regex = "\A" + i + "\s"
                 name_regex = ["(?<=" + i + ").+", "\w+"]
@@ -126,7 +132,7 @@ with open(param_location, "r") as file:
                     conn_names.append(findregex(name_regex, line))
                     objectFlag = "Conn"
                     conn_content.append([])
-            
+
             if objectFlag == "Layer":
                 layer_content[-1].append(line)
             if objectFlag == "Conn":
@@ -206,9 +212,9 @@ for i in layer_values:
 
 
 
-############################################################                                    
-################## DETERMINE PVP OUTPUTS  ##################                                    
-############################################################                                    
+############################################################
+################## DETERMINE PVP OUTPUTS  ##################
+############################################################
 
 
 sparse_layer = []
@@ -231,11 +237,11 @@ for c,i in enumerate(layer_names):
 
 for i in error_layer:
     for pre,post,d in zip(pre_index,post_index,range(0,len(conn_names))):
-        if layer_names[post] == i and conn_values[d][ccx] == '0':    
+        if layer_names[post] == i and conn_values[d][ccx] == '0':
             error_input.append(layer_names[pre])
 
 for c,i in enumerate(layer_names):
-    
+
     if (re.search("Recon",i) or re.search("recon",i)):
         recon_name.append(i)
 
