@@ -7,9 +7,8 @@
 -- Derived from BasicSystemTests
 --
 
-
 --Util module
-package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/PetaVision/parameterWrapper/PVModule.lua;"
+package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/PetaVision/parameterWrapper/?.lua;"
 local pv = require "PVModule"
 
 -- Global variable, for debug parsing
@@ -23,17 +22,14 @@ local nySize = 32
 --Table constructor
 --This is where we explicitly construct the basic table for the parameter. The constructor is your
 --typical way to define a basic parameter file.
---Note that this is an lua array, therefore, the keys must be iterated in order starting
---from 1, with no other keys allowed
 local basicParams = {
    --Implicit key of 1; since lua is 1 indexed and no key is specified
    --Each key must be an integer
    --Value is a table of key/value pairs
    --HyPerCol object
    --"groupType" (note the quotes; no quotes means variable) is key, "HyPerCol" is value
-   {  
+   column = {  
       groupType = "HyPerCol"; --String values
-      groupName = "column";
       nx = nxSize;  --Using user defined variables 
       ny = nySize;
       dt = 1.0;
@@ -56,16 +52,15 @@ local basicParams = {
 }
 
 --Adding multiple groups, outermost group must be an array
-pv.addGroup(basicParams, 
+pv.addMultiGroups(basicParams, 
 --Start of groups to add
 {
    --
    -- layers
    --
    -- Implicit key of 2 for same reason as above. This counter will keep incrementing for every non-keyed value specified
-   {
+   Input = {
       groupType = "Image";
-      groupName = "Input";
       nxScale = 1;
       nyScale = 1;
       imagePath = "input/sampleimage.png";
@@ -88,9 +83,8 @@ pv.addGroup(basicParams,
    };
 
    --an output layer
-   {
+   Output = {
       groupType = "ANNLayer";
-      groupName = "Output";
       nxScale = 1;
       nyScale = 1;
       nf = 8;
@@ -110,9 +104,8 @@ pv.addGroup(basicParams,
    };
 
    --a connection
-   {
+   InputToOutput = {
       groupType = "HyPerConn";
-      groupName = "InputToOutput";
       preLayerName = "Input";
       postLayerName = "Output";
       channelCode = 0;
@@ -163,9 +156,9 @@ pv.addGroup(basicParams,
 --Calling the pv module to add group to baseParameterTable
 pv.addGroup(
    basicParams, --Base parameter table variable 
-   {
+   "Output2", --Key value of the added group
+   { --Parameters for the group
       groupType = "ANNLayer";
-      groupName = "Output2";
       nxScale = 1;
       nyScale = 1;
       nf = 8;
@@ -186,45 +179,38 @@ pv.addGroup(
 ) --End of function call
 
 --This is the same as adding a group using the module
---DO NOT USE THIS CODE, use the addGroup interface instead
---Note that the table basicParams must be a list, aka, integer keys from 1 to numGroups
---continuous, with no other keys
---#basicParams means number of items in the LIST. +1 for 1 indexing
---
--- basicParams[#basicParams+1] = 
--- {
---    groupType = "ANNLayer";
---    groupName = "Output2";
---    nxScale = 1;
---    nyScale = 1;
---    nf = 8;
---    phase = 1;
---    triggerFlag = false;
---    writeStep = 1.0;
---    initialWriteTime = 0.0;
---    mirrorBCflag = 1;
---    sparseLayer = false;
---    InitVType = "ZeroV";
---    VThresh = INFINITY; --Infinity, user defined variable
---    AMax = INFINITY;
---    AMin = -INFINITY;
---    AShift = 0.0;
---    VWidth = 0.0;
---    clearGSynInterval = 0.0;
--- }
+--However, accessing basicParams directly will provide no protection from clobbering
+--This code will silently clobber the previously defined Output2 group
+basicParams["Output2"] = 
+{
+   groupType = "ANNLayer";
+   nxScale = 1;
+   nyScale = 1;
+   nf = 8;
+   phase = 1;
+   triggerFlag = false;
+   writeStep = 1.0;
+   initialWriteTime = 0.0;
+   mirrorBCflag = 1;
+   sparseLayer = false;
+   InitVType = "ZeroV";
+   VThresh = INFINITY; --Infinity, user defined variable
+   AMax = INFINITY;
+   AMin = -INFINITY;
+   AShift = 0.0;
+   VWidth = 0.0;
+   clearGSynInterval = 0.0;
+}
 
 --Function to include a previously defined group
---Note that both are addGroup, only depends on if you specify a new group or
---if you call the function "getGroupFromName"
 --Third parameter is a group that overwrites/adds parameters
 --Make a new ANNLayer named "Output3", including from "Output2"
 --Change nxScale and nyScale to .5
 pv.addGroup(basicParams,
-   pv.getGroupFromName(basicParams, "Output2"), 
-   --Overwriting params for this parameter group
+   "Output3", --New group key/name
+   basicParams["Output2"], --Previously defined group 
    {
-      groupName = "Output3";
-      nxScale = .5;
+      nxScale = .5; --Overwrite parameters
       nyScale = .5;
    }
 )
