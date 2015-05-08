@@ -97,7 +97,10 @@ function PVModule.printConsole(parameterTable)
    --First group must be HyPerCol, TODO, change this
    for k,v in pairs(parameterTable) do
       if(type(v) == "table") then
-         assert(v["groupType"] ~= nil)
+         if(v["groupType"] == nil) then
+            print("Error: group " .. k .. " does not have required parameter \"groupType\"")
+            os.exit()
+         end
          if(v["groupType"] == "HyPerCol") then
             printGroup(k, v)
             break
@@ -162,7 +165,7 @@ function PVModule.addGroup(parameterTable, newKey, group, overwrites)
       --Overwrite parameters in group
       for k,v in pairs(overwrites) do
          if(newGroup[k] == nil) then
-            io.write("Overwrite error: parameter ", k, " does not exist in ", group["groupType"], " \"", group["groupName"], "\"\n")
+            print("Overwrite error: parameter ".. k .." does not exist in " .. group["groupType"] .. " \"".. newKey.. "\"")
             os.exit()
          end
          --deepCopy may not be nessessary here, as overwrites is usually a user defined group

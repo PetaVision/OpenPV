@@ -194,7 +194,7 @@ function preprocess.ds2_white_rescale(prefix, inputLayerName, inputLayer, output
       sharedWeights = true;
    }
 
-   whiteParam[prefix .. "BipolarTo" .. prefix .. "GanglionSurround"] = {
+   whiteParams[prefix .. "BipolarTo" .. prefix .. "GanglionSurround"] = {
       groupType = "HyPerConn";
       preLayerName                        = prefix .. "Bipolar";
       postLayerName                       = prefix .. "Ganglion";
