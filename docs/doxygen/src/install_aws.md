@@ -50,8 +50,9 @@ First time initialization
 This section explains how to get a new user set up on the aws account to do runs.
 
 ###Activate your account ################
-You can create an Amazon Web Services account at aws.amazon.com by following the Products link on that page.
-If you are in KenyonLab, email <pv_office@rfd.newmexicoconsortium.org> or contact an account administrator to create and set up your account.  You should get a user name and a temporary password.  For instructions on starting an instance from the PetaVision account, visit the KenyonLab AWS installation page.
+To create an AWS account, go to [Amazon's AWS page](http://aws.amazon.com) and click on Products.
+
+If you are in Kenyon Lab, contact an account administrator to create and set up your account. You should get a user name and a temporary password starting up. Follow [these instructions](http://aws_pv_internal.html) for setting up a user in the PetaVision account.
 
 ###Create your ssh key pair ################
 Each instance must have an ssh key for security. Here's how to generate your own.

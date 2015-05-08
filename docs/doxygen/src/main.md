@@ -11,7 +11,7 @@ Installation Instructions:
 
 * [AWS Install](src/install_aws.md)
 
-* [OSX Install](src/install_osx.md)
+* [OS X Install](src/install_osx.md)
 
 * [Ubuntu Install](src/install_ubuntu.md)
 
