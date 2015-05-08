@@ -1,4 +1,5 @@
 imageLayer:"Image"
 resultLayer:"ConfidenceAboveThreshold_4X3"
 octaveCommand:"octave"
+octaveLogFile:"octave.log"
 heatMapMontageDir:"heatMapMontage/"
