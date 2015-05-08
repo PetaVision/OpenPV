@@ -1,0 +1,215 @@
+# V1 LCA Tutorial
+
+This basic tutorial is set up to walk you through downloading a dataset, performing
+unsupervised learning on a V1 dictionary of that dataset using the LCA algorithm, and
+finally looking at your output using one of our automated scripts.  In the next tutorial
+we will look at how to train an SLP classifier using your V1 dictionary.
+
+Our intended audience is aware of some key ideas in computational neuroscience:
+    Sparse Coding with LCA     Olshausen and Fields, 96
+    ...    
+    
+Depending on your internet connection and the speed of your machine
+(Many threaded CPUs + GPUs = faster) you should be able to get to Step 3,
+"Running PetaVision" and running the experiment in about one hour.
+Step 3 could take minutes to days depending on the speed of your machine and 
+how long you choose to train your network.
+
+# 0. Pre-requisites:
+
+    1. Successfully installed PetaVision and run a BasicSystemTest
+    2. Grab a cup of coffee and hunker down. 
+
+# 1. Get your dataset (we'll describe how to get the CIFAR dataset)
+
+## 1.1. Download CIFAR dataset: http://www.cs.toronto.edu/~kriz/cifar.html
+    
+If you are on the AWS server or on your local machine you can use wget
+
+    $ cd ~
+    $ mkdir dataset
+    $ cd dataset
+    $ wget "http://www.cs.toronto.edu/~kriz/cifar-10-matlab.tar.gz"
+    $ tar -zxvf cifar-10-matlab.tar.gz
+
+## 1.2. Extract CIFAR dataset using PetaVision/mlab/HyPerLCA/extractImagesOctave.m
+    
+You'll need to first modify extractImagesOctave.m
+Follow the instructions at the top of the script
+
+    $ cd ~/path/to/PetaVision/mlab/HyPerLCA
+    $ vim extractImagesOctave.m
+
+Make sure you saved your changes to the script before continuing
+
+## 1.3. Navigate to where you unzipped the cifar-10-matlab.tar.gz file and extract images
+    
+    $ cd ~/dataset/cifar-10-batches-mat/
+    $ octave
+
+    > addpath('path/to/PetaVision/mlab/HyPerLCA')
+    > extractImagesOctave('data_batch_1.mat',1)
+    > extractImagesOctave('data_batch_2.mat',2)
+    > extractImagesOctave('data_batch_3.mat',3)
+    > extractImagesOctave('data_batch_4.mat',4)
+    > extractImagesOctave('data_batch_5.mat',5)
+    > extractImagesOctave('test_batch.mat',0)
+
+* Note: I recognize this is not an elegant method, but it works and is clear
+
+## 1.4. Combine the data_batches to make a master file
+    
+Each run of extractImagesOctave produced a unique text file listing all the
+images in random order.  If you wish to expand your training dataset to 
+include all of the training images, you can concatenate them by copying them 
+to a common directory with different names (inelegant solution) and then doing:    
+
+    > cat *.txt > mixed_cifar.txt
+
+Congratulations!  You now have a massive training dataset along with a test set
+that you will use in the next tutorial in creating a classifier.  For now we
+are only concerned about using the dataset for unsupervised learning.
+    
+# 2. Fix up your params file
+    
+The params file is where each experiment is described in english for PetaVision.
+It details the different objects (ie. hypercol, layers, and connections) that 
+are used by PetaVision.
+    
+You'll be starting off with a params file that has already been tuned pretty
+well but feel free to modify parameters as you experiment to try to identify 
+different results.  
+    
+## 2.1. Get your params file: /PetaVision/docs/tutorial/basic/V1_LCA.params    
+    
+In the directory you will also see a V1_LCA.png that has a graphical 
+rendition of this params file.  If you are on AWS
+Copy this file to a directory you will be working from.  
+In the case of AWS, you may want to copy the params file to your EBS volume
+in the event that your instance gets outbid and shut down. 
+        
+## 2.2. Inspect the params file
+    
+First just look over the params and see if you can understand the general
+structure of a params file.  It is organized into three categories: 
+the 1.column, 2.layers, and 3.connections, to simulate a cortical column
+in the brain. 
+
+### 2.2.1. HyPerCol
+
+The column is what holds the whole experiment and all the layers are 
+proportional to the column.  In PetaVision the column object is called HyPerCol
+for 'High Performance Column'. The 'y' is there because it spells hyper 
+(a.k.a: legacy naming scheme stuff)
+
+For more details on the HyPerCol please read this page. [link]
+
+### 2.2.2. HyPerLayer
+
+The layers are where the neurons are contained and their dynamics described.
+You can set up a layers that convolve inputs, have self-self interactions, or
+even just duplicate the layer properties of another layer ... and more.
+All layers are subclassed from HyPerLayer and you can read about their individual
+properties my following some of the doxygen documentation.
+
+Some important parameters to notice are nxScale, nyScale and nf since they
+set up physical dimensions of the layer. phase and displayPeriod describe some
+of the temporal dynamics of the layer.  Most layers have their own unique
+properties that you can explore further on your own.  For now this is a good
+snapshot. The table below summarizes the types of layers we use and roles in 
+this experiment:
+        
+Layer Class             |  "Name"  |  Description
+------------------------|----------|------------------------------------------------
+Movie                   | "Image"  | loads image from imageListPath
+ANNNormalizedErrorLayer | "Error"  | computes residual error between Image and V1
+HyPerLCALayer           | "V1"     | makes a sparse representation of Image using LCA
+ANNLayer                | "Recon"  | output for visualization
+
+Before moving on to Connections, we should make a note about displayPeriod, writeStep, 
+triggerFlag, and phase. Movie has a parameter 'displayPeriod' that sets the number of 
+timesteps an image is shown. We then typically set the writeStep and initialWriteTime 
+to be some integer interval of displayPeriod, but this isn't necessary. For example if
+you want to see what the sparse reconstruction looks like while the same image is being
+shown to Movie, you can change the writeStep for "Recon" to 1 (just note that your
+output file will get very large very quickly.)
+
+While writeStep has to do with how frequently PetaVision outputs to the .pvp file 
+(this is the unique binary format used for PetaVision), the triggerFlag in more in with
+the dynamics of the layers.  Notice only the "Recon" layer has a trigger flag and that
+the triggerLayerName = "Image".  This means that PetaVision will only process the 
+convolution of the "Recon" after a new image is shown.  
+
+But don't we want it to make the convolution using the sparse representation found
+at the end of the displayPeriod?  Keen observation. This is where phase comes in.
+Phase determines the order of layers to update at a given timestep.  To get the 
+Recon from V1 before the new image makes its way to V1 and starts changing the 
+sparse representation, we set phases as follows: 
+
+Layer Class             |  "Name"    |  Phase
+------------------------|------------|------------
+Movie                   | "Image"    |    0
+ANNNormalizedErrorLayer | "Error"    |    1
+HyPerLCALayer           | "V1"       |    2
+ANNLayer                | "Recon"    |    1
+
+For more details on the HyPerLayer please read this page. [link]
+If you have questions about any of the parameters, search for them in the doxygen 
+documentation [link]
+        
+### 2.2.3. Connections
+        
+The connections connect neurons to other neurons in different layers.
+Similar to layers, connections are all subclassed from their base class HyPerConn.
+Connections are where the 'learning' of an artificial neural network happens.
+
+Connections in PetaVision are always described in terms of their pre and 
+postLayerName, their channel code, and their patch size (or receptive field).
+Some connection parameters are inherited from another connection such as 
+patch size for a TransposeConn or CloneKernelConn from the originalConnName.
+We use a naming convention of [PreLayerName]To[PostLayerName] but it is not
+required if you explictly define the pre and post layer. 
+        
+The following table summarizes the types of connections that are used and their
+roles in this experiment:
+
+Connection Class  |  "Name"        |   Description
+------------------|----------------|-------------------------------------------
+HyPerConn         | "ImageToError" | loads image from imageListPath
+MomentumConn      | "V1ToError"    | computes residual error between Image and V1
+TransposeConn     | "ErrorToV1"    | makes a sparse representation of Image using LCA
+CloneKernelConn   | "V1ToRecon"    | clone V1ToError and convolve with V1 to make a reconstruction
+
+    
+## 2.3. Customize the params file for a run on your system
+    
+### 2.3.1. HyPerCol "column"
+        
+### 2.3.2. Movie "Image" | 
+        
+### 2.3.3. [Optional: MomentumConn "V1ToError | Load weights from file]
+        
+This tutorial is designed to bring you from chaotic random weights to 
+beautiful colorful gabors.  However, if you don't want to wait for your
+dictionary to mature and want to start off with well trained weights,
+We have included a well trained dictionary located at:
+            
+~/path/to/PetaVision/docs/tutorial/V1_LCA/V1ToError_W.pvp
+            
+The connections link the layers and 
+            
+3. Running PetaVision
+
+4. Analyze Results
+
+5. Experiment
+
+6. Comments / Questions?
+
+I hope you found this tutorial helpful.  While thi
+
+If you identify any errors and opportunities for improvement to this tutorial, please
+contact the developers of PetaVision using the e-mail listed on sourceforge with 
+"V1_LCA_tutorial" in the subject line.
+        
+    

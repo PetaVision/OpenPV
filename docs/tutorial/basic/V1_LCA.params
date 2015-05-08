@@ -1,0 +1,264 @@
+//  V1_LCA.params
+//
+//  This params file is designed in conjunction with the V1_LCA_tutorial
+//  But can be used as a good starting point for most experiments in PetaVision
+
+// HyPerCol - hold the experiment; layer dimensions proportional to 
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    dtAdaptFlag                         = true;
+    dtScaleMax                          = 10;
+    dtScaleMin                          = 0.5;
+    dtChangeMax                         = 0.2;
+    dtChangeMin                         = 0;
+    dtMinToleratedTimeScale             = 0.0001;
+    stopTime                            = 1e+07;
+    progressInterval                    = 2000;
+    writeProgressToErr                  = true;
+    verifyWrites                        = true;
+    outputPath                          = "/nh/compneuro/Data/tutorial/cifar/output";
+    printParamsFilename                 = "S1_192_200_Soft_1.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 32;
+    ny                                  = 32;
+    filenamesContainLayerNames          = 1;
+    filenamesContainConnectionNames     = 1;
+    initializeFromCheckpointDir         = "";
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "/nh/compneuro/Data/tutorial/cifar/S1/Checkpoints/";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 1000000;
+    deleteOlderCheckpoints              = true;
+    suppressNonplasticCheckpoints       = false;
+    writeTimescales                     = true;
+    errorOnNotANumber                   = false;
+};
+
+//                 ___  __   __  
+//  |     /\  \ / |__  |__) /__` 
+//  |___ /~~\  |  |___ |  \ .__/ 
+//                               
+
+Movie "Image" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    writeStep                           = 10000;
+    initialWriteTime                    = 10000;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    useImageBCflag                      = false;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = true;
+    normalizeStdDev                     = true;
+    jitterFlag                          = 0;
+    padValue                            = 0;
+    imageListPath                       = "/nh/compneuro/Data/CIFAR/CIFAR_train_images.txt";
+    displayPeriod                       = 200;
+    randomMovie                         = 0;
+    readPvpFile                         = false;
+    echoFramePathnameFlag               = true;
+    start_frame_index                   = 1;
+    skip_frame_index                    = 0;
+    writeFrameToTimestamp               = true;
+    flipOnTimescaleError                = true;
+    resetToStartOnLoop                  = false;
+};
+
+ANNNormalizedErrorLayer "Error" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = false;
+    writeStep                           = 10000;
+    initialWriteTime                    = 10000;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = 0.001;
+    AMin                                = 0;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
+    errScale                            = 1;
+};
+
+HyPerLCALayer "V1" = {
+    nxScale                             = 0.5;
+    nyScale                             = 0.5;
+    nf                                  = 192;
+    phase                               = 2;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "UniformRandomV";
+    minV                                = -1;
+    maxV                                = 0.05;
+    triggerFlag                         = false;
+    writeStep                           = 200;
+    initialWriteTime                    = 200;
+    sparseLayer                         = true;
+    writeSparseValues                   = true;
+    updateGpu                           = true;
+    dataType                            = NULL;
+    VThresh                             = 0.025;
+    AMin                                = 0;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0.025;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
+    numChannels                         = 1;
+    timeConstantTau                     = 100;
+    numWindowX                          = 1;
+    numWindowY                          = 1;
+    selfInteract                        = true;
+};
+
+ANNLayer "Recon" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = true;
+    triggerLayerName                    = "Image";
+    triggerOffset                       = 0;
+    writeStep                           = 10000;
+    initialWriteTime                    = 10001;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
+};
+
+
+//   __   __             ___  __  ___    __        __  
+//  /  ` /  \ |\ | |\ | |__  /  `  |  | /  \ |\ | /__` 
+//  \__, \__/ | \| | \| |___ \__,  |  | \__/ | \| .__/ 
+//                                                     
+
+HyPerConn "ImageToError" = {
+    preLayerName                        = "Image";
+    postLayerName                       = "Error";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = false;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "OneToOneWeights";
+    initWeightsFile                     = NULL;
+    weightInit                          = 0.03125;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 3;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "none";
+};
+
+MomentumConn "V1ToError" = {
+    preLayerName                        = "V1";
+    postLayerName                       = "Error";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+
+//    weightInitType                      = "FileWeight";               // Uncomment these two lines
+//    initWeightsFile                     = "/nh/compneuro/Data/tutorial/cifar/output/Checkpoint2000000/S1ToError_W.pvp";
+    useListOfArborFiles                 = false;
+    combineWeightFiles                  = false;
+    triggerFlag                         = true;
+    triggerLayerName                    = "Image";
+    triggerOffset                       = 1;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 10000;
+    initialWriteTime                    = 1;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 16;
+    nyp                                 = 16;
+    nfp                                 = 3;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "normalizeL2";
+    strength                            = 1;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = 0;
+    normalizeFromPostPerspective        = false;
+    minL2NormTolerated                  = 0;
+    dWMax                               = 0.1;
+    keepKernelsSynchronized             = true;
+    useMask                             = false;
+    momentumTau                         = 100;
+    momentumMethod                      = "viscosity";
+    momentumTau                         = 100;
+};
+
+TransposeConn "ErrorToV1" = {
+    preLayerName                        = "Error";
+    postLayerName                       = "V1";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = true;
+    updateGSynFromPostPerspective       = true;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    gpuGroupIdx                         = -1;
+    originalConnName                    = "S1ToError";
+};
+
+CloneKernelConn "V1ToRecon" = {
+    preLayerName                        = "V1";
+    postLayerName                       = "Recon";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    originalConnName                    = "S1ToError";
+};
