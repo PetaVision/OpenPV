@@ -78,6 +78,8 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
    else if(strcmp(rescaleMethod, "l2") == 0){
       ioParam_patchSize(ioFlag);
    }
+   else if(strcmp(rescaleMethod, "pointResponseNormalization") == 0){
+   }
    else if(strcmp(rescaleMethod, "zerotonegative") == 0){
    }
    else if(strcmp(rescaleMethod, "softmax") == 0){
@@ -85,7 +87,7 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
    else if(strcmp(rescaleMethod, "logreg") == 0){
    }
    else{
-      fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd, softmax, and logreg.\n",
+      fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd, pointResponseNormalization, softmax, and logreg.\n",
             name);
       exit(PV_FAILURE);
    }
@@ -311,6 +313,46 @@ int RescaleLayer::updateState(double timef, double dt) {
                 int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                       locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
                 A[kext] = originalA[kextOriginal];
+             }
+          }
+       }
+       else if(strcmp(rescaleMethod, "pointResponseNormalization") == 0){
+          int nx = loc->nx;
+          int ny = loc->ny;
+          int nf = loc->nf;
+          PVHalo const * halo = &loc->halo;
+          PVHalo const * haloOrig = &locOriginal->halo;
+          //Loop through all nx and ny
+	  // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+          for(int iY = 0; iY < ny; iY++){ 
+             for(int iX = 0; iX < nx; iX++){ 
+                //Find sum sq in feature space
+                float sumsq = 0;
+                for(int iF = 0; iF < nf; iF++){
+                   int kext = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+                   sumsq += (originalA[kext]) * (originalA[kext]);
+                }
+                float divisor = sqrt(sumsq);
+                // Difference in the if-part and else-part is only in the value assigned to A[kext], but this way the std != 0
+                // conditional does not have to be reevaluated every time through the for loop.
+                // can't pragma omp parallel the for loops because it was already parallelized in the outermost for-loop
+                if (divisor != 0) {
+                   for(int iF = 0; iF < nf; iF++){
+                      int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+                      int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
+                      A[kext] = (originalA[kextOrig]/divisor);
+                   }
+                }
+                else {
+                   for(int iF = 0; iF < nf; iF++){
+                      int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+                      int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
+                      A[kext] = originalA[kextOrig];
+                   }
+                }
              }
           }
        }
