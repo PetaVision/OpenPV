@@ -204,7 +204,6 @@ int main(int argc, char* argv[])
             octavelogstream.open(octaveLogFile, std::fstream::out | std::fstream::app);
             octavelogstream << "Calling octave with the command\n";
             octavelogstream << octavecommandstream.str() << "\n";
-            octavelogstream << "octave called by process " << getpid() << ", whose parent is process " << getppid() << ".\n";
             octavelogstream.close();
             int systemstatus = system(octavecommandstream.str().c_str()); // Analysis of the result of the current frame
             octavelogstream.open(octaveLogFile, std::fstream::out | std::fstream::app);
@@ -213,7 +212,7 @@ int main(int argc, char* argv[])
             exit(EXIT_SUCCESS);
          }
          else {
-            printf("calling process=%d, octavepid=%d\n", getpid(), octavepid);
+            /* parent process */
          }
       }
    }
@@ -230,7 +229,6 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
 {
    // Under MPI, all process must call this function in parallel, but only the root process does I/O
    int status = PV_SUCCESS;
-   unsigned int const numConfigParameters = 6;
    FILE * parseConfigFileFP = NULL;
    if (icComm->commRank()==0) {
       parseConfigFileFP = fopen(CONFIG_FILE, "r");
@@ -249,7 +247,7 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
    struct fgetsresult line;
    unsigned int linenumber=0;
    unsigned int configParametersRead = 0;
-   while (configParametersRead < numConfigParameters)
+   while (configParametersRead < NUMCONFIGPARAMETERS)
    {
       linenumber++;
       if (icComm->commRank()==0) {
@@ -343,7 +341,7 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
       configParametersRead++;
       
    }
-   assert(configParametersRead==numConfigParameters);
+   assert(configParametersRead==NUMCONFIGPARAMETERS);
    if (icComm->commRank()==0) {
       fclose(parseConfigFileFP);
    }
@@ -423,8 +421,61 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
    int xStride, yStride, bandStride;
    int rank = icComm->commRank();
    if (rank==0) {
-      printf("Image \"%s\"\n", imageFile);
-      GDALDataset * gdalDataset = PV_GDALOpen(imageFile);
+      // Doubleplusungood: much code duplication from PV::Image::readImage
+      bool usingTempFile = false;
+      char * path = NULL;
+      if (strstr(imageFile, "://") != NULL) {
+         printf("Image from URL \"%s\"\n", imageFile);
+         usingTempFile = true;
+         std::string pathstring = "/tmp/temp.XXXXXX";
+         const char * ext = strrchr(imageFile, '.');
+         if (ext) { pathstring += ext; }
+         path = strdup(pathstring.c_str());
+         int fid;
+         fid=mkstemps(path, strlen(ext));
+         if (fid<0) {
+            fprintf(stderr,"Cannot create temp image file for image \"%s\".\n", imageFile);
+            exit(EXIT_FAILURE);
+         }   
+         close(fid);
+         std::string systemstring;
+         if (strstr(imageFile, "s3://") != NULL) {
+            systemstring = "aws s3 cp \'";
+            systemstring += imageFile;
+            systemstring += "\' ";
+            systemstring += path;
+         }   
+         else { // URLs other than s3://
+            systemstring = "wget -O ";
+            systemstring += path;
+            systemstring += " \'";
+            systemstring += imageFile;
+            systemstring += "\'";
+         }   
+
+         int const numAttempts = MAX_FILESYSTEMCALL_TRIES;
+         for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
+            int status = system(systemstring.c_str());
+            if(status != 0){ 
+               if(attemptNum == numAttempts - 1){ 
+                  fprintf(stderr, "download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
+                  exit(EXIT_FAILURE);
+               }   
+               else{
+                  fprintf(stderr, "download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
+                  sleep(1);
+               }
+            }
+            else{
+               break;
+            }
+         }
+      }
+      else {
+         printf("Image from file \"%s\"\n", imageFile);
+         path = strdup("imageFile");
+      }
+      GDALDataset * gdalDataset = PV_GDALOpen(path);
       if (gdalDataset==NULL)
       {
          fprintf(stderr, "setImageLayerMemoryBuffer: GDALOpen failed for image \"%s\".\n", imageFile);
@@ -506,6 +557,15 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
             GDT_Byte, layerNf, NULL, xStride*sizeof(uint8_t), yStride*sizeof(uint8_t), bandStride*sizeof(uint8_t));
 
       GDALClose(gdalDataset);
+      if (usingTempFile) {
+         int rmstatus = remove(path);
+         if (rmstatus) {
+            fprintf(stderr, "remove(\"%s\") failed.  Exiting.\n", path);
+            exit(EXIT_FAILURE);
+         }    
+      }
+      free(path);
+
       *imageBufferPtr = imageBuffer;
       *imageBufferSizePtr = imageBufferSize;
 
