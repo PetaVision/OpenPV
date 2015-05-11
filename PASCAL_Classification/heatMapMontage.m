@@ -108,7 +108,10 @@ end%if
 fprintf(1,'heatMapMontage: output heat map image \"%s\"\n', montagePath);
 
 if exist('displayCommand','var') && ~isempty(displayCommand)
-   system([displayCommand ' ' montagePath]);
+   displayCommandWithArg = [displayCommand ' ' montagePath];
+   fprintf(1, "displayCommand \"%s\"", displayCommandWithArg);
+   displayStatus = system(displayCommandWithArg);
+   fprintf(1,'displayCommand returned %d\n', displayStatus);
 end%if
 
 %for k=1:numcategories
