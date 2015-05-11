@@ -1082,7 +1082,7 @@ int Image::readImage(const char * filename, int offsetX, int offsetY, const char
          std::string pathstring = parent->getOutputPath();
          pathstring += "/temp.XXXXXX";
          const char * ext = strrchr(filename, '.');
-         pathstring += ext;
+         if (ext) { pathstring += ext; }
          path = strdup(pathstring.c_str());
          int fid;
          fid=mkstemps(path, strlen(ext));
