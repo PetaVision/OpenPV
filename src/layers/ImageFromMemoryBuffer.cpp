@@ -78,12 +78,6 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
             }
             double image_ave = image_sum / buffersize;
             double image_ave2 = image_sum2 / buffersize;
-   #ifdef PV_USE_MPI
-            MPI_Allreduce(MPI_IN_PLACE, &image_ave, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
-            image_ave /= parent->icCommunicator()->commSize();
-            MPI_Allreduce(MPI_IN_PLACE, &image_ave2, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
-            image_ave2 /= parent->icCommunicator()->commSize();
-   #endif
             // set mean to zero
             for (int k=0; k<buffersize; k++) {
                buffer[k] -= image_ave;
@@ -108,10 +102,6 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
                image_max = buffer[k] > image_max ? buffer[k] : image_max;
                image_min = buffer[k] < image_min ? buffer[k] : image_min;
             }
-   #ifdef PV_USE_MPI
-            MPI_Allreduce(MPI_IN_PLACE, &image_max, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
-            MPI_Allreduce(MPI_IN_PLACE, &image_min, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
-   #endif
             if (image_max > image_min){
                float image_stretch = 1.0f / (image_max - image_min);
                for (int k=0; k<buffersize; k++) {
