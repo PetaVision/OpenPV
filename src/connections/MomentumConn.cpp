@@ -172,7 +172,7 @@ int MomentumConn::applyMomentum(int arbor_ID){
       for(int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++){
          pvwdata_t * dwdata_start  = get_dwDataHead(arbor_ID, kernelIdx);
          pvwdata_t * prev_dw_start = get_prev_dwDataHead(arbor_ID, kernelIdx);
-         pvwdata_t * wdata_start   = get_wData(arbor_ID, kernelIdx);
+         pvwdata_t * wdata_start   = get_wDataHead(arbor_ID, kernelIdx);
          if(!strcmp(momentumMethod, "simple")){
             for(int k = 0; k < nxp*nyp*nfp; k++){
                dwdata_start[k] += momentumTau * prev_dw_start[k] - momentumDecay*wdata_start[k];
