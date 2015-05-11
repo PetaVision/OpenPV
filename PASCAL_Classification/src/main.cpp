@@ -13,7 +13,7 @@
 #endif // CONFIG_FILE
 
 int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
-int parseConfigParameter(char const * inputLine, char const * configParameter, char ** parameterPtr, unsigned int lineNumber);
+int parseConfigParameter(InterColComm * icComm, char const * inputLine, char const * configParameter, char ** parameterPtr, unsigned int lineNumber);
 char * getImageFileName(InterColComm * icComm);
 int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr);
 
@@ -273,37 +273,37 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
 
       if (!strcmp(line.contents,"imageLayer"))
       {
-         status = parseConfigParameter(line.contents, value, imageLayerNamePtr, linenumber);
+         status = parseConfigParameter(icComm, line.contents, value, imageLayerNamePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
          configParametersRead++;
       }
       if (!strcmp(line.contents,"resultLayer"))
       {
-         status = parseConfigParameter(line.contents, value, resultLayerNamePtr, linenumber);
+         status = parseConfigParameter(icComm, line.contents, value, resultLayerNamePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
          configParametersRead++;
       }
       if (!strcmp(line.contents,"octaveCommand"))
       {
-         status = parseConfigParameter(line.contents, value, octaveCommandPtr, linenumber);
+         status = parseConfigParameter(icComm, line.contents, value, octaveCommandPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
          configParametersRead++;
       }
       if (!strcmp(line.contents,"octaveLogFile"))
       {
-         status = parseConfigParameter(line.contents, value, octaveLogFilePtr, linenumber);
+         status = parseConfigParameter(icComm, line.contents, value, octaveLogFilePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
          configParametersRead++;
       }
       if (!strcmp(line.contents,"heatMapMontageDir"))
       {
-         status = parseConfigParameter(line.contents, value, heatMapMontageDirPtr, linenumber);
+         status = parseConfigParameter(icComm, line.contents, value, heatMapMontageDirPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
          configParametersRead++;
       }
       if (!strcmp(line.contents,"displayCommand"))
       {
-         status = parseConfigParameter(line.contents, value, displayCommandPtr, linenumber);
+         status = parseConfigParameter(icComm, line.contents, value, displayCommandPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
          configParametersRead++;
       }
@@ -349,7 +349,7 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
    return status;
 }
 
-int parseConfigParameter(char const * configParameter, char const * configValue, char ** parameterPtr, unsigned int lineNumber)
+int parseConfigParameter(InterColComm * icComm, char const * configParameter, char const * configValue, char ** parameterPtr, unsigned int lineNumber)
 {
    if (*parameterPtr != NULL)
    {
@@ -362,7 +362,10 @@ int parseConfigParameter(char const * configParameter, char const * configValue,
       fprintf(stderr, "Error setting %s from config file: %s\n", configParameter, strerror(errno));
       return PV_FAILURE;
    }
-   printf("%s set to \"%s\"\n", configParameter, configValue);
+   if (icComm->commRank()==0)
+   {
+      printf("%s set to \"%s\"\n", configParameter, configValue);
+   }
    return PV_SUCCESS;
 }
 
