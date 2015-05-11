@@ -16,16 +16,16 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime = 100000000;
+    stopTime= 100;
     progressStep = 5000;
-    outputPath = "/nh/compneuro/Data/Depth/LCA/single_group_binoc/";
+    outputPath = "/nh/compneuro/Data/Depth/LCA/single_ICA/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = true;
-    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/single_group_binoc/Checkpoints";
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/single_ICA/Checkpoints";
     checkpointWriteStepInterval = 10000;
     deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
@@ -49,14 +49,14 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/nh/compneuro/Data/KITTI/stereo_flow/multiview/training/image_0.txt";
+    imageListPath = "/nh/compneuro/Data/Depth/stereo_flow/multiview/training/image_2.txt";
     writeFrameToTimestamp = true;
     nf = 3;
     writeStep = -1;
-    initialWriteTime = 200;
+    initialWriteTime = 0;
     writeSparseActivity = false;
-    displayPeriod = 200;
-    start_frame_index = 0;
+    displayPeriod = 1;
+    start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -79,8 +79,8 @@ ANNLayer "LeftDownsample" = {
     nxScale = .5;
     nyScale = .5;
     nf = 3;
-    writeStep = 200;
-    initialWriteTime = 200.0;
+    writeStep = -1;
+    initialWriteTime = 0.0;
     mirrorBCflag = 1;
     writeSparseActivity = 0;
     InitVType = "ZeroV";
@@ -90,18 +90,18 @@ ANNLayer "LeftDownsample" = {
     VShift = 0;
     VWidth = 0;
     phase = 1;  
-    triggerFlag = true;
-    triggerLayerName = "LeftImage";
-    triggerOffset = 0;
+    //triggerFlag = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 0;
 };
 
-ANNNormalizedErrorLayer "LeftError" = {
+ANNLayer "LeftError" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
     nf = 3;
-    writeStep = 200;
-    initialWriteTime = 200.0;
+    writeStep = -1;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
@@ -109,7 +109,7 @@ ANNNormalizedErrorLayer "LeftError" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
     //
-    VThresh = 0.001; //Change this for efficiency
+    VThresh = -infinity; //Change this for efficiency
     VMax =  infinity;
     VMin = 0;
     VShift = 0;
@@ -127,8 +127,8 @@ ANNLayer "LeftRecon" = {
     nxScale = .5;
     nyScale = .5;
     nf = 3;
-    writeStep = 200.0;
-    initialWriteTime = 200.0; //1 + writestep
+    writeStep = -1.0;
+    initialWriteTime = 0.0; //1 + writestep
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
@@ -144,9 +144,9 @@ ANNLayer "LeftRecon" = {
     // 
     phase = 5;
     //
-    triggerFlag = 1;
-    triggerLayerName = "LeftImage";
-    triggerOffset = 1;
+    //triggerFlag = 1;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
 };
 
 //
@@ -155,15 +155,15 @@ ANNLayer "LeftRecon" = {
 
 Movie "RightImage" = {
     #include "LeftImage";
-    @imageListPath = "/nh/compneuro/Data/KITTI/stereo_flow/multiview/training/image_1.txt";
+    @imageListPath = "/nh/compneuro/Data/Depth/stereo_flow/multiview/training/image_3.txt";
 };
 
 ANNLayer "RightDownsample" = {
     #include "LeftDownsample";
-    @triggerLayerName = "RightImage";
+    //@triggerLayerName = "RightImage";
 };
 
-ANNNormalizedErrorLayer "RightError" = {
+ANNLayer "RightError" = {
     #include "LeftError";
     //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V.pvp";
 };
@@ -171,12 +171,12 @@ ANNNormalizedErrorLayer "RightError" = {
 // for visualization only, makes no output
 ANNLayer "RightRecon" = {
     #include "LeftRecon";
-    @triggerLayerName = "RightImage";
+    //@triggerLayerName = "RightImage";
 };
 
 // binoclular layers
 
-HyPerLCALayer "V1" = {
+ANNLayer "V1" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
@@ -184,28 +184,27 @@ HyPerLCALayer "V1" = {
     numChannels = 1;
     numWindowX = 1;
     numWindowY = 1;
-    writeStep = 200.0;
-    initialWriteTime = 200.0;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
     mirrorBCflag = 0;
-    writeSparseActivity = 1;
-    writeSparseValues   = 1;
+    writeSparseActivity = 0;
+    writeSparseValues   = 0;
     //
-    InitVType = "UniformRandomV";
-    minV = -1.0;
-    maxV = .015; //0.05 above VThresh
+    InitVType = "ZeroV";
+    //minV = -1.0;
+    //maxV = .015; //0.05 above VThresh
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2_V.pvp";
     // 
-    timeConstantTau = 200.0;
-    slopeErrorStd = 0.01;
+    //timeConstantTau = 200.0;
+    //slopeErrorStd = 0.01;
     // 
     dVThresh = 0;
-    VThresh = 0.004;
+    VThresh = -infinity;
     VMax = infinity;
-    VMin = 0;
+    VMin = -infinity;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
-    VWidth = 0.02; //Same as VThresh
-    updateGpu = true;
+    VWidth = 0.00; //Same as VThresh
     //
     phase = 4;
 };
@@ -315,7 +314,7 @@ KernelConn "V1ToLeftError" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_single_binoc/V1ToLeftError_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_single/V1ToLeftError_W.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
@@ -336,13 +335,13 @@ KernelConn "V1ToLeftError" = {
     keepKernelsSynchronized = true; 
     combine_dW_with_W_flag = false; 
     //
-    writeStep = 200;
+    writeStep = -1;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = 0;
-    triggerFlag = true;
-    triggerLayerName = "LeftImage";
-    triggerOffset = 1;
+    plasticityFlag = false;
+    //triggerFlag = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
     initialWriteTime = 0.0;
     dWMax = 3; // 200.0 used for initial training
     selfFlag = false;
@@ -391,7 +390,7 @@ KernelConn "V1ToRightError" = {
     @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
     normalizeGroupName = "V1ToLeftError";
-    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_single_binoc/V1ToRightError_W.pvp";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_single/V1ToRightError_W.pvp";
 };
 
 TransposeConn "RightErrorToV1" = {
