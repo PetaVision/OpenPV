@@ -1,4 +1,4 @@
-function outimage = heatMapMontage(imagePvpFile, resultPvpFile, imageFrameNumber, resultFrameNumber, montagePath)
+function outimage = heatMapMontage(imagePvpFile, resultPvpFile, imageFrameNumber, resultFrameNumber, montagePath, displayCommand)
 % outimage = heatMapMontage(imagePvpFile, resultPvpFile, imageFrameNumber, resultFrameNumber, montagePath)
 % Takes frames from two input pvp files, imagePvpFile and resultPvpFile and creates a montage compositing
 % the image pvp file with each of the features of the result pvp file.
@@ -105,6 +105,12 @@ if nargout>0
    outimage = imread(montagePath);
 end%if
 
+fprintf(1,'heatMapMontage: output heat map image \"%s\"\n', montagePath);
+
+if exist('displayCommand','var') && ~isempty(displayCommand)
+   system([displayCommand ' ' montagePath]);
+end%if
+
 %for k=1:numcategories
 %    category = categoryindices(k);
 %    resultPngFilename = sprintf('tmp/result-frame%04d-category%02d.png',resultFrameNumber, category);
@@ -117,5 +123,3 @@ end%if
 %if ownstmpdir
 %   rmdir tmp;
 %end%if
-
-fprintf(1,'heatMapMontage: output heat map image \"%s\"\n', montagePath);
