@@ -176,7 +176,14 @@ mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
 cd "$workspacedir"
 
 testname=BackgroundLayerTest
-arglist="-p input/BackgroundLayerTest.params"
+arglist="-p input/norepTest.params"
+cd "$testname"
+runandecho $testname $testname Debug/$testname $arglist
+mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
+cd "$workspacedir"
+
+testname=BackgroundLayerTest
+arglist="-p input/repTest.params"
 cd "$testname"
 runandecho $testname $testname Debug/$testname $arglist
 mpi_np2_np4_runandecho $testname $testname Debug/$testname $arglist
