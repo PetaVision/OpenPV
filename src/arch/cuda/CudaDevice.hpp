@@ -23,6 +23,9 @@ protected:
    int device_id;                         // device id (normally 0 for GPU, 1 for CPU)
 
 public:
+
+   static int getNumDevices();
+
    /**
     * A constructor to create the device object
     * @param device The device number to use

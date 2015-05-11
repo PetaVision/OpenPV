@@ -53,7 +53,6 @@ public:
    // HyPerCol(const char* name, int argc, char* argv[], const char * path); // Not defined in .cpp file
    virtual ~HyPerCol();
 
-   int initializeThreads(int device);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    int finalizeThreads();
 #endif //PV_USE_OPENCL
@@ -198,6 +197,9 @@ public:
 #endif
 
 private:
+   int initializeThreads(int device);
+   int getAutoGPUDevice();
+
    int initialize_base();
    int initialize(const char * name, int argc, char ** argv, PVParams * inparams);
    int ioParams(enum ParamsIOFlag ioFlag);

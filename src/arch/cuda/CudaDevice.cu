@@ -33,6 +33,12 @@ CudaDevice::~CudaDevice()
 #endif
 }
 
+int CudaDevice::getNumDevices(){
+   int returnVal;
+   handleError(cudaGetDeviceCount(&returnVal), "Static getting device count");
+   return returnVal;
+}
+
 int CudaDevice::initialize(int device)
 {
    int status = 0;
@@ -41,11 +47,6 @@ int CudaDevice::initialize(int device)
    handleError(cudaThreadExit(), "Thread exiting in initialize");
 
    handleError(cudaGetDeviceCount(&num_devices), "Getting device count");
-   printf("Num devices: %d\n", num_devices);
-   // get number of devices available
-   //
-
-   printf("Using device %d\n", device);
    handleError(cudaSetDevice(device), "Setting device");
 
    handleError(cudaStreamCreate(&stream), "Creating stream");
@@ -56,7 +57,6 @@ int CudaDevice::initialize(int device)
 #endif // PV_USE_OPENCL
    
 #ifdef PV_USE_CUDNN
-   printf("Setting up cudnn\n");
    //Testing cudnn here
    cudnnHandle_t tmpHandle;
    cudnnStatus_t cudnnStatus = cudnnCreate(&tmpHandle); 

@@ -2609,12 +2609,112 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
    return status;
 }
 
-int HyPerCol::initializeThreads(int device)
-{
-   if(device == -1){
-      //Device of -1 means to use mpi process for each device
-      device = icComm->commRank();
+int HyPerCol::getAutoGPUDevice(){
+   int mpiRank = icComm->commRank();
+   int numMpi = icComm->commSize();
+   char hostNameStr[PV_PATH_MAX];
+   gethostname(hostNameStr, PV_PATH_MAX);
+   size_t hostNameLen = strlen(hostNameStr) + 1; //+1 for null terminator
+
+   int returnGpuIdx = -1;
+
+   //Each rank communicates which host it is on
+   //Root process
+   if(mpiRank == 0){
+      //Allocate data structure for rank to host
+      char rankToHost[numMpi][PV_PATH_MAX];
+      assert(rankToHost);
+      //Allocate data structure for rank to maxGpu
+      int rankToMaxGpu[numMpi];
+      //Allocate final data structure for rank to GPU index
+      int rankToGpu[numMpi];
+      assert(rankToGpu);
+
+      for(int rank = 0; rank < numMpi; rank++){
+         if(rank == 0){
+            strcpy(rankToHost[rank], hostNameStr);
+            rankToMaxGpu[rank] = PVCuda::CudaDevice::getNumDevices();
+         }
+         else{
+            MPI_Recv(rankToHost[rank], PV_PATH_MAX, MPI_CHAR, rank, 0, icComm->communicator(), MPI_STATUS_IGNORE);
+            MPI_Recv(&(rankToMaxGpu[rank]), 1, MPI_INT, rank, 0, icComm->communicator(), MPI_STATUS_IGNORE);
+         }
+      }
+
+      //rankToHost now is an array such that the index is the rank, and the value is the host
+      //Convert to a map of vectors, such that the key is the host name and the value
+      //is a vector of mpi ranks that is running on that host
+      std::map<std::string, std::vector<int> > hostMap;
+      for(int rank = 0; rank < numMpi; rank++){
+         hostMap[std::string(rankToHost[rank])].push_back(rank);
+      }
+
+      //Determine what gpus to use per mpi
+      for(std::map<std::string, std::vector<int> >::const_iterator m_it = hostMap.begin();
+            m_it != hostMap.end(); ++m_it){
+         std::vector<int> rankVec = m_it->second;
+         int numRanksPerHost = rankVec.size();
+         assert(numRanksPerHost > 0);
+         //Grab maxGpus of current host
+         int maxGpus = rankToMaxGpu[rankVec[0]];
+         //Warnings for overloading/underloading gpus
+         if(numRanksPerHost != maxGpus){
+            fprintf(stderr, "HyPerCol:: Warning! Host %s (rank(s) ", m_it->first.c_str());
+            for(int v_i = 0; v_i < numRanksPerHost; v_i++){
+               if(v_i != numRanksPerHost-1){
+                  fprintf(stderr, "%d, ", rankVec[v_i]);
+               }
+               else{
+                  fprintf(stderr, "%d", rankVec[v_i]);
+               }
+            }
+            fprintf(stderr, ") is being %s, with %d mpi processes mapped to %d GPU(s)\n",
+                  numRanksPerHost < maxGpus ? "underloaded":"overloaded",
+                  numRanksPerHost, maxGpus);
+         }
+
+         //Match a rank to a gpu
+         for(int v_i = 0; v_i < numRanksPerHost; v_i++){
+            rankToGpu[rankVec[v_i]] = v_i % maxGpus;
+         }
+      }
+
+      //MPI sends to each process to specify which gpu the rank should use
+      for(int rank = 0; rank < numMpi; rank++){
+         if(rank == 0){
+            returnGpuIdx = rankToGpu[rank];
+         }
+         else{
+            MPI_Send(&(rankToGpu[rank]), 1, MPI_INT, rank, 0, icComm->communicator());
+         }
+      }
    }
+   //Non root process
+   else{
+      //Send host name
+      MPI_Send(hostNameStr, hostNameLen, MPI_CHAR, 0, 0, icComm->communicator());
+      //Send max gpus for that host
+      int maxGpu = PVCuda::CudaDevice::getNumDevices();
+      MPI_Send(&maxGpu, 1, MPI_INT, 0, 0, icComm->communicator());
+      //Recv gpu idx
+      MPI_Recv(&(returnGpuIdx), 1, MPI_INT, 0, 0, icComm->communicator(), MPI_STATUS_IGNORE);
+   }
+   assert(returnGpuIdx >= 0 && returnGpuIdx < PVCuda::CudaDevice::getNumDevices());
+   return returnGpuIdx;
+}
+
+int HyPerCol::initializeThreads(int in_device)
+{
+   int device;
+   if(in_device == -1){
+      //Device of -1 means to use mpi process for each device
+      device = getAutoGPUDevice();
+   }
+   else{
+      device = in_device;
+   }
+   std::cout << "Rank " << icComm->commRank() << " using GPU " << device << " out of " << PVCuda::CudaDevice::getNumDevices() << " device(s).\n";
+
 #ifdef PV_USE_OPENCL
    clDevice = new CLDevice(device);
 #endif
