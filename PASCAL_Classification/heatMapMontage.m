@@ -1,10 +1,13 @@
-function outimage = heatMapMontage(imagePvpFile, resultPvpFile, imageFrameNumber, resultFrameNumber, montagePath, displayCommand)
-% outimage = heatMapMontage(imagePvpFile, resultPvpFile, imageFrameNumber, resultFrameNumber, montagePath)
+function outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, montagePath, displayCommand)
+% outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, montagePath)
 % Takes frames from two input pvp files, imagePvpFile and resultPvpFile and creates a montage compositing
 % the image pvp file with each of the features of the result pvp file.
 %
 % imagePvpFile: the path to a pvp file containing the base image.
 % resultPvpFile: the path to a pvp file containing the results.
+% pv_dir: the path containing the function m-file readpvpfile.m (usually in <PV_DIR>/mlab/util).
+%    If empty, readpvpfile must be a recognized command after initializing octave.
+%    If nonempty, readpvpfile must be a recognized command after calling addpath(pv_dir);
 % imageFrameNumber: the index of the specific frame from imagePvpFile to use.  The beginning frame has index 1.
 % resultFrameNumber: the index of the specific frame from resultPvpFile to use.
 % montagePath: The path to write the output image to.  The output image has the same dimensions as the frame of imagePvpFile.
@@ -13,7 +16,12 @@ function outimage = heatMapMontage(imagePvpFile, resultPvpFile, imageFrameNumber
 % outimage: an ny-by-nx-by-3 array giving the output image.  ny and nx are the same as the frame of imagePvpFile.
 %
 
-addpath('../../trunk/mlab/util');
+if exist('pv_dir', 'var') && ~isempty(pv_dir)
+   addpath(pv_dir);
+end%if
+if isempty(which('readpvpfile'))
+   error("heatMapMontage:readpvpfilemissing","heatMapMontage error: missing command readpvpfile");
+end%if
 
 if ~exist('tmp','dir')
    mkdir tmp
@@ -26,14 +34,14 @@ fprintf(1,'heatMapMontage: input image file \"%s\", frame %d\n', imagePvpFile, i
 
 [imagePvp,imgHdr] = readpvpfile(imagePvpFile, [], imageFrameNumber, imageFrameNumber);
 if (imgHdr.filetype != 4)
-   error("heatmapmontage:expectingnonsparse","heatmapmontage expects %s to be a nonsparse layer",imagePvpFile);
+   error("heatMapMontage:expectingnonsparse","heatMapMontage expects %s to be a nonsparse layer",imagePvpFile);
 end%if
 %imageData = permute(imagePvp{1}.values,[2 1 3]); % keep image as color
 imageData = mean(imagePvp{1}.values,3)'; % convert image to gray
 
 [resultPvp,resultHdr] = readpvpfile(resultPvpFile, [], resultFrameNumber, resultFrameNumber);
 if (resultHdr.filetype != 4)
-   error("heatmapmontage:expectingnonsparse","heatmapmontage expects %s to be a nonsparse layer",resultPvpFile);
+   error("heatMapMontage:expectingnonsparse","heatMapMontage expects %s to be a nonsparse layer",resultPvpFile);
 end%if
 resultData = permute(resultPvp{1}.values,[2 1 3]);
 resultData = max(resultData-1,0);
@@ -43,7 +51,7 @@ categoryindices=[15 16]; %% to be determined :-)
 numcategories=numel(categoryindices);
 
 if(numel(classes)!=resultHdr.nf)
-   error("heatmapmontage:wrongnf","number of classes is %d but %s has %d features.",numel(classes),resultPvpFile,resultHdr.nf);
+   error("heatMapMontage:wrongnf","number of classes is %d but %s has %d features.",numel(classes),resultPvpFile,resultHdr.nf);
 end%if
 
 montagerows = floor(sqrt(numcategories));

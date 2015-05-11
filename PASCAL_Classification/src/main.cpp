@@ -194,6 +194,7 @@ int main(int argc, char* argv[])
             octavecommandstream << "octave --eval 'heatMapMontage(" <<
                   "\"" << imagePvpFile << "\"" << ", " <<
                   "\"" << resultPvpFile << "\"" << ", " <<
+                  "\"" << PV_DIR << "/mlab/util" << "\"" << ", " <<
                   imageFrameNumber << ", " <<
                   resultFrameNumber << ", " <<
                   "\"" << montagePath.str() << "\"" << ", " <<
