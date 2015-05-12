@@ -47,8 +47,10 @@ resultData = permute(resultPvp{1}.values,[2 1 3]);
 resultData = max(resultData-1,0);
 
 classes={'background'; 'aeroplane'; 'bicycle'; 'bird'; 'boat'; 'bottle'; 'bus'; 'car'; 'cat'; 'chair'; 'cow'; 'diningtable'; 'dog'; 'horse'; 'motorbike'; 'person'; 'pottedplant'; 'sheep'; 'sofa'; 'train'; 'tvmonitor'};
-categoryindices=[15 16]; %% to be determined :-)
+categoryindices=2:21; % Which categories to display.  background=1, aeroplane=2, etc.
+categoriesperrow=5;
 numcategories=numel(categoryindices);
+categoriespercolumn=ceil(numcategories/categoriesperrow);
 
 if(numel(classes)!=resultHdr.nf)
    error("heatMapMontage:wrongnf","number of classes is %d but %s has %d features.",numel(classes),resultPvpFile,resultHdr.nf);
@@ -72,9 +74,15 @@ maxconfcolor = [0 1 0];
 for k=1:256
    cmap(k,:) = (k-1)/255*maxconfcolor + (256-k)/255*zeroconfcolor;
 end%for
+montageImage = uint8(zeros((size(imageData,1)+64)*categoriespercolumn, size(imageData,2)*categoriesperrow,3));
 
 for k=1:numcategories
     category = categoryindices(k);
+    fprintf(1,'%2d: %s\n', k, classes{category});
+    fflush(1);
+    categorycolumn = mod(k-1,categoriesperrow)+1;
+    categoryrow = (k-categorycolumn)/categoriesperrow+1;
+    assert(categoryrow==round(categoryrow));
     thisclass = classes{category};
     resultDataTrunc = max(resultData(:,:,category),0);
     if maxResultData != 0
@@ -91,23 +99,18 @@ for k=1:numcategories
     compositedFilename = sprintf('tmp/composited-frame%04d-category%02d.png', imageFrameNumber, category);
     compositecommandstring = sprintf('composite -blend 30%% %s %s %s', imagePngFilename, resultPngFilename, compositedFilename);
     status = system(compositecommandstring); assert(status==0);
+    tileImage = imread(compositedFilename);
+    if (size(tileImage,3)==1), tileImage=repmat(tileImage,[1 1 3]); end;
+    labelImage = imread(['labels/label', classes{category}, '256.png']);
+    if (size(labelImage,3)==1), labelImage=repmat(labelImage,[1 1 3]); end;
+    imresize(labelImage,[64,size(imageData,2)]);
+    xstart = size(imageData,2)*(categorycolumn-1);
+    ystart = (size(imageData,1)+64)*(categoryrow-1);
+    montageImage(ystart+(1:64),xstart+(1:size(imageData,2)),:) = labelImage;
+    montageImage(ystart+64+(1:size(imageData,1)),xstart+(1:size(imageData,2)),:) = tileImage;
 end%for
 
-montagecommandstring = 'montage ';
-for k=1:numcategories
-    category = categoryindices(k);
-    thisclass = classes{category};
-    montagecommandstring = [montagecommandstring, 'labels/label', thisclass, '.png' ' '];
-end%for
-for k=1:numcategories
-    category = categoryindices(k);
-    compositedFilename = sprintf('tmp/composited-frame%04d-category%02d.png',imageFrameNumber, category);
-    montagecommandstring = [montagecommandstring, compositedFilename, ' '];
-end%for
-montagecommandstring = [montagecommandstring, '-tile ', num2str(numcategories), 'x2 '];
-montagecommandstring = [montagecommandstring, montagePath];
-
-status = system(montagecommandstring); assert(status==0);
+imwrite(montageImage, montagePath);
 
 if nargout>0
    outimage = imread(montagePath);
