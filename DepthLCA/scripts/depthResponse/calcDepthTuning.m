@@ -7,6 +7,8 @@ function calcDepthTuning(plotOutDir, v1ActFile, depthFile, dictPvpFiles, sampleD
    disp(['Reading pvp files']);
    [left_w_data, left_hdr] = readpvpfile(dictPvpFiles{1});
    [right_w_data, right_hdr] = readpvpfile(dictPvpFiles{2});
+   %[v1_data, v1_hdr] = readpvpfile(v1ActFile, 0, 20, 1);
+   %[depth_data, depth_hdr] = readpvpfile(depthFile, 0, 20, 1);
    [v1_data, v1_hdr] = readpvpfile(v1ActFile);
    [depth_data, depth_hdr] = readpvpfile(depthFile);
 
@@ -18,8 +20,8 @@ function calcDepthTuning(plotOutDir, v1ActFile, depthFile, dictPvpFiles, sampleD
       v1_data(1) = [];
    end
 
-   assert(v1_data{1}.time == depth_data{1}.time);
-   assert(v1_data{2}.time == depth_data{2}.time);
+   %assert(v1_data{1}.time == depth_data{1}.time);
+   %assert(v1_data{2}.time == depth_data{2}.time);
    assert(v1_hdr.nxGlobal == depth_hdr.nxGlobal);
    assert(v1_hdr.nyGlobal == depth_hdr.nyGlobal);
    assert(depth_hdr.nf == 1);
@@ -60,7 +62,8 @@ function calcDepthTuning(plotOutDir, v1ActFile, depthFile, dictPvpFiles, sampleD
    %Note that 1 is now the DNC region
    [drop, depth_act] = histc(depth_act, 0:(1/numDepthBins):1);
 
-   %Data structure to hold kurtosis values
+   %Data structure to hold stat values
+   peakMeanVals = zeros(nf, 1);
    kurtVals = zeros(nf, 1);
 
    %Given a depth and neuron, we want to find the family of the maximum activity
@@ -96,7 +99,7 @@ function calcDepthTuning(plotOutDir, v1ActFile, depthFile, dictPvpFiles, sampleD
                %Convert back to linear index
                linIdxs = sub2ind([numTimes, nx, ny], t, newx, newy);
                %Find maximum activity of v1 activity slice
-               maxVal = max(v1_slice(linIdxs)(:));
+               maxVal = max(abs(v1_slice(linIdxs)(:)));
                if(length(maxVal) ~= 1)
                   disp('maxVal not size of 1');
                   keyboard
@@ -111,10 +114,25 @@ function calcDepthTuning(plotOutDir, v1ActFile, depthFile, dictPvpFiles, sampleD
          assert(sampleDimIdx == (sampleDim * sampleDim)+1);
          sampleDimIdx = 1;
       end
+
+      %outVals is a matrix with [Depth, # of lines per position]
+
       %Calculate kurtosis, finding a kurtosis per sampleDim 
       kurtVals(ni) = mean(kurtosis(outVals, 1, 1));
+      %Calculate peak - mean
+      meanPosVals = mean(outVals, 2);
+      %Scale values
+      normMeanPosVals = meanPosVals/max(meanPosVals);
+      peakMeanVals(ni) = 1-mean(normMeanPosVals);
+
+      
+      
 
       handle = figure;
+      if(size(left_w_data{1}.values{1}, 3) == 1)
+         colormap(gray)
+      end
+
       subplot(2, 2, 1);
       imagesc(permute(left_w_data{1}.values{1}(:, :, :, ni), [2, 1, 3]));
       subplot(2, 2, 2);
@@ -126,13 +144,15 @@ function calcDepthTuning(plotOutDir, v1ActFile, depthFile, dictPvpFiles, sampleD
       end
       hold off;
 
-      title(['Depth Vs Activation   Kurtosis: ', num2str(kurtVals(ni))]);
+      title(['Depth Vs Activation   Kurtosis: ', num2str(kurtVals(ni)), '  PeakMean: ', num2str(peakMeanVals(ni))]);
       xlabel('Far Depth                 Near Depth');
       ylabel('Activation');
       print(handle, [plotOutDir, num2str(ni), '.png']);
       close(handle)
    end
 
+
+   %%Kurtosis
    %Write mean and std of kurtosis in file
    kurtFile = fopen([plotOutDir, 'kurtosis.txt'], 'w');
    fprintf(kurtFile, 'kurtosis: %f +- %f\n', mean(kurtVals(:)), std(kurtVals(:)));
@@ -150,8 +170,24 @@ function calcDepthTuning(plotOutDir, v1ActFile, depthFile, dictPvpFiles, sampleD
    title('Hist of kurtosis values');
    print(handle, [plotOutDir, 'kurtHist.png']);
 
+   %%PeakMean
+   %Write mean and std of peak mean in file
+   peakMeanFile = fopen([plotOutDir, 'peakmean.txt'], 'w');
+   fprintf(peakMeanFile, 'peakmean: %f +- %f\n', mean(peakMeanVals(:)), std(peakMeanVals(:)));
+   [sortedPeakMean , sortedPeakMeanIdxs] = sort(peakMeanVals, 'descend');
+
+   %Write ranking by peakMean
+   for(ni = 1:nf)
+      fprintf(peakMeanFile, '%d: %f\n', sortedPeakMeanIdxs(ni), sortedPeakMean(ni));
+   end
+   fclose(peakMeanFile);
+
+   %Create histogram of peak mean elements
+   handle = figure;
+   %hist(peakMeanVals, [0:.5:10]);
+   hist(peakMeanVals, [0.4:.05:.85]);
+   title('Hist of peak mean values');
+   print(handle, [plotOutDir, 'peakMeanHist.png']);
+
 end
-
-
-
 
