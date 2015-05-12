@@ -474,15 +474,6 @@ ANNLayer "ConfidenceAboveThreshold_4X3" = {
     clearGSynInterval                   = 0;
 };
 
-IdentConn "ImageToImageRescaled" = {
-    preLayerName                        = "Image";
-    postLayerName                       = "ImageRescaled";
-    channelCode                         = 1;
-    delay                               = [0.000000];
-    initWeightsFile                     = NULL;
-    writeStep                           = -1;
-};
-
 HyPerConn "ImageRescaledToImageReconS1Error" = {
     preLayerName                        = "ImageRescaled";
     postLayerName                       = "ImageReconS1Error";
