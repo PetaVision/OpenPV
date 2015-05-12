@@ -2659,7 +2659,7 @@ int HyPerCol::getAutoGPUDevice(){
          int maxGpus = rankToMaxGpu[rankVec[0]];
          //Warnings for overloading/underloading gpus
          if(numRanksPerHost != maxGpus){
-            fprintf(stderr, "HyPerCol:: Warning! Host %s (rank(s) ", m_it->first.c_str());
+            fprintf(stderr, "HyPerCol:: Warning! Host \"%s\" (rank[s] ", m_it->first.c_str());
             for(int v_i = 0; v_i < numRanksPerHost; v_i++){
                if(v_i != numRanksPerHost-1){
                   fprintf(stderr, "%d, ", rankVec[v_i]);
@@ -2668,7 +2668,7 @@ int HyPerCol::getAutoGPUDevice(){
                   fprintf(stderr, "%d", rankVec[v_i]);
                }
             }
-            fprintf(stderr, ") is being %s, with %d mpi processes mapped to %d GPU(s)\n",
+            fprintf(stderr, ") is being %s, with %d mpi processes mapped to %d total GPU[s]\n",
                   numRanksPerHost < maxGpus ? "underloaded":"overloaded",
                   numRanksPerHost, maxGpus);
          }
@@ -2681,6 +2681,8 @@ int HyPerCol::getAutoGPUDevice(){
 
       //MPI sends to each process to specify which gpu the rank should use
       for(int rank = 0; rank < numMpi; rank++){
+         std::cout << "Rank " << rank << " on host \"" << rankToHost[rank] << "\" (" << rankToMaxGpu[rank] << " GPU[s]) using GPU index " <<
+            rankToGpu[rank] << "\n";
          if(rank == 0){
             returnGpuIdx = rankToGpu[rank];
          }
@@ -2713,7 +2715,6 @@ int HyPerCol::initializeThreads(int in_device)
    else{
       device = in_device;
    }
-   std::cout << "Rank " << icComm->commRank() << " using GPU " << device << " out of " << PVCuda::CudaDevice::getNumDevices() << " device(s).\n";
 
 #ifdef PV_USE_OPENCL
    clDevice = new CLDevice(device);
