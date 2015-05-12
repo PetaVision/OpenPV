@@ -477,7 +477,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
       }
       else {
          printf("Image from file \"%s\"\n", imageFile);
-         path = strdup("imageFile");
+         path = strdup(imageFile);
       }
       GDALDataset * gdalDataset = PV_GDALOpen(path);
       if (gdalDataset==NULL)
