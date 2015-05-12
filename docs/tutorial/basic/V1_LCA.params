@@ -1,35 +1,35 @@
 //  V1_LCA.params
 //
 //  This params file is designed in conjunction with the V1_LCA_tutorial
-//  But can be used as a good starting point for most experiments in PetaVision
+//  And can be used as a good starting point for most experiments in PetaVision
 
 // HyPerCol - hold the experiment; layer dimensions proportional to 
 
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
-    dtAdaptFlag                         = true;
+    dtAdaptFlag                         = true;         // keep true; allows adaptive timestepping; the following dt parameters have been found to be good through experimentation
     dtScaleMax                          = 10;
     dtScaleMin                          = 0.5;
     dtChangeMax                         = 0.2;
     dtChangeMin                         = 0;
     dtMinToleratedTimeScale             = 0.0001;
-    stopTime                            = 1e+07;
+!    stopTime                            = 10000;       // How long do you want to run your experiment? Must be a multiple of dt. Currently set to run through entire dataset 5 times: 200(displayPeriod)*
     progressInterval                    = 2000;
     writeProgressToErr                  = true;
     verifyWrites                        = true;
-    outputPath                          = "/nh/compneuro/Data/tutorial/cifar/output";
-    printParamsFilename                 = "S1_192_200_Soft_1.params";
-    randomSeed                          = 1234567890;
+!    outputPath                          = "~/workspace/V1_LCA/output";     // Set the path for where you want PetaVision to output
+    printParamsFilename                 = "pv.params";                      // This will be printed to the outputPath
+    randomSeed                          = 1234567890;                                               
     nx                                  = 32;
-    ny                                  = 32;
+    ny                                  = 32;                                                       
     filenamesContainLayerNames          = 1;
     filenamesContainConnectionNames     = 1;
     initializeFromCheckpointDir         = "";
-    checkpointWrite                     = true;
-    checkpointWriteDir                  = "/nh/compneuro/Data/tutorial/cifar/S1/Checkpoints/";
+!    checkpointWrite                     = true;
+!    checkpointWriteDir                  = "/nh/compneuro/Data/tutorial/cifar/S1/Checkpoints/";
     checkpointWriteTriggerMode          = "step";
-    checkpointWriteStepInterval         = 1000000;
+!    checkpointWriteStepInterval         = 1000000;
     deleteOlderCheckpoints              = true;
     suppressNonplasticCheckpoints       = false;
     writeTimescales                     = true;
@@ -39,20 +39,21 @@ HyPerCol "column" = {
 //                 ___  __   __  
 //  |     /\  \ / |__  |__) /__` 
 //  |___ /~~\  |  |___ |  \ .__/ 
-//                               
+//    
+// The layers are where the neurons are contained and their dynamics described.                           
 
 Movie "Image" = {
-    nxScale                             = 1;
+    nxScale                             = 1;                // number of pixels = nx(from "column")*nxScale = 32 * 1 = 32
     nyScale                             = 1;
     nf                                  = 3;
     phase                               = 0;
-    mirrorBCflag                        = true;
-    writeStep                           = 10000;
-    initialWriteTime                    = 10000;
+    mirrorBCflag                        = true; 
+    writeStep                           = 2000;             // print out every 10th image (displayPeriod = 200)
+    initialWriteTime                    = 2000;             // starting with the 10th image
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
-    offsetAnchor                        = "tl";
+    offsetAnchor                        = "tl";             
     offsetX                             = 0;
     offsetY                             = 0;
     writeImages                         = 0;
@@ -63,8 +64,8 @@ Movie "Image" = {
     normalizeStdDev                     = true;
     jitterFlag                          = 0;
     padValue                            = 0;
-    imageListPath                       = "/nh/compneuro/Data/CIFAR/CIFAR_train_images.txt";
-    displayPeriod                       = 200;
+!    imageListPath                       = "~/workspace/input/mixed_cifar.txt";     // you created this text file at the beginning of the tutorial; contains paths to all images for dataset
+    displayPeriod                       = 200;                                      // How many 
     randomMovie                         = 0;
     readPvpFile                         = false;
     echoFramePathnameFlag               = true;
@@ -84,12 +85,12 @@ ANNNormalizedErrorLayer "Error" = {
     valueBC                             = 0;
     InitVType                           = "ZeroV";
     triggerFlag                         = false;
-    writeStep                           = 10000;
-    initialWriteTime                    = 10000;
+!    writeStep                           = 2000;                        // writes every 10 images; modify if you want to print more or less frequently
+!    initialWriteTime                    = 2000;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
-    VThresh                             = 0.001;
+    VThresh                             = 0.001;                        // hard threshold of 0.001
     AMin                                = 0;
     AMax                                = 3.40282e+38;
     AShift                              = 0;
@@ -109,16 +110,16 @@ HyPerLCALayer "V1" = {
     minV                                = -1;
     maxV                                = 0.05;
     triggerFlag                         = false;
-    writeStep                           = 200;
-    initialWriteTime                    = 200;
+!    writeStep                           = 200;         // Let's write out V1 every frame, 200 matches "Image" displayPeriod)
+!    initialWriteTime                    = 200;
     sparseLayer                         = true;
     writeSparseValues                   = true;
     updateGpu                           = true;
     dataType                            = NULL;
-    VThresh                             = 0.025;
+    VThresh                             = 0.025;            // 
     AMin                                = 0;
     AMax                                = 3.40282e+38;
-    AShift                              = 0.025;
+    AShift                              = 0.025;            // In combination with Vthresh = 0.025, this creates a soft threshold
     VWidth                              = 0;
     clearGSynInterval                   = 0;
     numChannels                         = 1;
@@ -139,8 +140,8 @@ ANNLayer "Recon" = {
     triggerFlag                         = true;
     triggerLayerName                    = "Image";
     triggerOffset                       = 0;
-    writeStep                           = 10000;
-    initialWriteTime                    = 10001;
+    writeStep                           = 2000;
+    initialWriteTime                    = 2001;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
