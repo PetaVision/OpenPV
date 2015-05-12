@@ -2610,13 +2610,13 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
 }
 
 int HyPerCol::getAutoGPUDevice(){
+   int returnGpuIdx = -1;
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    int mpiRank = icComm->commRank();
    int numMpi = icComm->commSize();
    char hostNameStr[PV_PATH_MAX];
    gethostname(hostNameStr, PV_PATH_MAX);
    size_t hostNameLen = strlen(hostNameStr) + 1; //+1 for null terminator
-
-   int returnGpuIdx = -1;
 
    //Each rank communicates which host it is on
    //Root process
@@ -2702,6 +2702,10 @@ int HyPerCol::getAutoGPUDevice(){
       MPI_Recv(&(returnGpuIdx), 1, MPI_INT, 0, 0, icComm->communicator(), MPI_STATUS_IGNORE);
    }
    assert(returnGpuIdx >= 0 && returnGpuIdx < PVCuda::CudaDevice::getNumDevices());
+#else
+   //This function should never be called when not running with GPUs
+   assert(false);
+#endif
    return returnGpuIdx;
 }
 
