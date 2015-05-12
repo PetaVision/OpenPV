@@ -11,7 +11,7 @@ HyPerCol "column" = {
     dtMinToleratedTimeScale             = 0.0001;
     stopTime                            = 200;
     progressInterval                    = 1;
-    writeProgressToErr                  = false;
+    writeProgressToErr                  = true;
     verifyWrites                        = false;
     outputPath                          = "output/";
     printParamsFilename                 = "square.params";
@@ -56,23 +56,23 @@ ImageFromMemoryBuffer "Image" = {
     padValue                            = 0;
 };
 
-RescaleLayer "ImageNormalized" = {
+RescaleLayer "ImageRescaled" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
     phase                               = 1;
-    mirrorBCflag                        = true;
+    mirrorBCflag                        = false;
     valueBC                             = 0;
     triggerFlag                         = false;
     writeStep                           = 200;
-    initialWriteTime                    = 200;
+    initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
     originalLayerName                   = "Image";
     rescaleMethod                       = "meanstd";
-    targetMean                          = 0.0;
-    targetStd                           = 1.0;
+    targetMean                          = 0;
+    targetStd                           = 1;
 };
 
 ANNNormalizedErrorLayer "ImageReconS1Error" = {
@@ -474,8 +474,17 @@ ANNLayer "ConfidenceAboveThreshold_4X3" = {
     clearGSynInterval                   = 0;
 };
 
-HyPerConn "ImageNormalizedToImageReconS1Error" = {
-    preLayerName                        = "ImageNormalized";
+IdentConn "ImageToImageRescaled" = {
+    preLayerName                        = "Image";
+    postLayerName                       = "ImageRescaled";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+};
+
+HyPerConn "ImageRescaledToImageReconS1Error" = {
+    preLayerName                        = "ImageRescaled";
     postLayerName                       = "ImageReconS1Error";
     channelCode                         = 0;
     delay                               = [0.000000];

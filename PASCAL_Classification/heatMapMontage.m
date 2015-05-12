@@ -68,12 +68,11 @@ assert(upsampleNy==round(upsampleNy));
 imagePngFilename = sprintf('tmp/image%04d.png', imageFrameNumber);
 imwrite(imageData,imagePngFilename);
 
-cmap = zeros(256,3);
 zeroconfcolor = [0.5 0.5 0.5];
 maxconfcolor = [0 1 0];
-for k=1:256
-   cmap(k,:) = (k-1)/255*maxconfcolor + (256-k)/255*zeroconfcolor;
-end%for
+imageblendcoeff = 0.3;
+% heatmap image will be imageblendcoeff * imagedata plus (1-imageblendcoeff) * heatmap data, where
+% the heatmap is converted to color using zeroconfcolor and maxconfcolor
 montageImage = uint8(zeros((size(imageData,1)+64)*categoriespercolumn, size(imageData,2)*categoriesperrow,3));
 
 for k=1:numcategories
@@ -90,20 +89,18 @@ for k=1:numcategories
     end%if
     resultUpsampledY = upsamplefill(resultDataTrunc,upsampleNx-1,'COPY');
     resultUpsampled = upsamplefill(resultUpsampledY',upsampleNy-1,'COPY')';
-    %rgb = [0 1 0]; % hsv2rgb([(k-1)/numcategories, 1, 1]); % commented out since we're using the same cmap for each category
-    %cmap = bsxfun(@times, rgb, linspace(0,1,256)');
-    resultPngFilename = sprintf('tmp/result-frame%04d-category%02d.png',resultFrameNumber, category);
-    %resultUpsampled = (1+resultUpsampled)/2;
-    resultUpsampled = resultUpsampled*255;
-    imwrite(resultUpsampled, cmap, resultPngFilename);
-    compositedFilename = sprintf('tmp/composited-frame%04d-category%02d.png', imageFrameNumber, category);
-    compositecommandstring = sprintf('composite -blend 30%% %s %s %s', imagePngFilename, resultPngFilename, compositedFilename);
-    status = system(compositecommandstring); assert(status==0);
-    tileImage = imread(compositedFilename);
+    resultColor = zeros([size(resultUpsampled),3]);
+    for b=1:3
+        resultColor(:,:,b) = zeroconfcolor(b)+(maxconfcolor(b)-zeroconfcolor(b))*resultUpsampled;
+    end%for
+    %resultPngFilename = sprintf('tmp/result-frame%04d-category%02d.png',resultFrameNumber, category);
+    keyboard;
+    tileImage = imageblendcoeff * imageData + (1-imageblendcoeff) * resultUpsampled;
     if (size(tileImage,3)==1), tileImage=repmat(tileImage,[1 1 3]); end;
     labelImage = imread(['labels/label', classes{category}, '256.png']);
     if (size(labelImage,3)==1), labelImage=repmat(labelImage,[1 1 3]); end;
-    imresize(labelImage,[64,size(imageData,2)]);
+    labelImage = imresize(labelImage,[64,size(imageData,2)]);
+
     xstart = size(imageData,2)*(categorycolumn-1);
     ystart = (size(imageData,1)+64)*(categoryrow-1);
     montageImage(ystart+(1:64),xstart+(1:size(imageData,2)),:) = labelImage;
