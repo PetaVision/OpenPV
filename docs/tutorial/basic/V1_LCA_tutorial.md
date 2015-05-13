@@ -4,17 +4,21 @@ This basic tutorial is set up to walk you through downloading a dataset, perform
 
 Our intended audience is aware of some key ideas in computational neuroscience:
     Sparse Coding with LCA     Olshausen and Fields, 96
-    ...    
     
 But honestly you can get through this without reading any of those papers. You may just miss out on appreciating how cool it is what you are doing :p
     
 Depending on your internet connection and the speed of your machine you should be able to get to Step 3, "Running PetaVision" and running the experiment in about an hour. Step 3 could take minutes to days depending on the speed of your machine (Many threaded CPUs + GPUs = faster) and how long you choose to train your network.
+
+* NOTE: Directory paths assume you organized your workspace as: ~/workspace/PetaVision
+If this not where you put your PetaVision build, take note of where it is and update the file paths accordingly as you move through the tutorial.
 
 [TOC]
 
 # 0. Pre-requisites:
 
 1. Successfully build PetaVision and run a BasicSystemTest
+    - If you are 
+    - If you are on AWS start with the PetaVision Public AMI for a quick start with all the goodies installed
 2. Grab a cup of coffee and hunker down. 
 
 # 1. Get your dataset 
@@ -39,7 +43,7 @@ If you are on the AWS server or on your local machine you can use wget
 
 You will be using PetaVision/mlab/HyPerLCA/extractImagesOctave.m, but first you'll need to first modify extractImagesOctave.m by pointing to the correct local directories. Follow the instructions at the top of the script.
 
-    $ cd ~/path/to/PetaVision/mlab/HyPerLCA
+    $ cd ~/workspace/PetaVision/mlab/HyPerLCA
     $ vim extractImagesOctave.m
 
 Make sure you saved your changes to the script before continuing
@@ -182,7 +186,7 @@ This tutorial is designed to bring you from chaotic random weights to beautiful 
 Parameter       |       What to do
 ----------------|------------------------------------------------------------
 weightInitType  | Uncomment the one ending with "FileWeight";
-initWeightsFile | Change to point to ~/path/to/PetaVision/docs/tutorial/V1_LCA/V1ToError_W.pvp
+initWeightsFile | Change to point to ~/workspace/PetaVision/docs/tutorial/V1_LCA/V1ToError_W.pvp
 
 Delete or comment out with two slashes // the following paramaters
 
