@@ -2470,9 +2470,11 @@ int HyPerConn::allocateReceivePostKernel()
       localBufSizeY = oNyp + ((preToPostScaleY * numYLocal) - 1);
    }
 
-   std::cout << "preToPostScale: (" << preToPostScaleX << "," << preToPostScaleY << ")\n";
-   std::cout << "patch size: (" << oNxp << "," << oNyp << ") numLocal: (" << numXLocal << "," << numYLocal << ")\n";
-   std::cout << "local sizes: (" << localBufSizeX << "," << localBufSizeY << ")\n";
+   if (parent->columnId()==0) {
+      std::cout << "preToPostScale: (" << preToPostScaleX << "," << preToPostScaleY << ")\n";
+      std::cout << "patch size: (" << oNxp << "," << oNyp << ") numLocal: (" << numXLocal << "," << numYLocal << ")\n";
+      std::cout << "local sizes: (" << localBufSizeX << "," << localBufSizeY << ")\n";
+   }
    
 #ifdef PV_USE_OPENCL
    //Set arguments
