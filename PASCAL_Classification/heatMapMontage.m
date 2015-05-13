@@ -24,7 +24,7 @@ if isempty(which('readpvpfile'))
 end%if
 
 if ~exist('tmp','dir')
-   mkdir tmp
+   % mkdir tmp
    ownstmpdir = 1;
 else
    ownstmpdir = 0;
@@ -48,7 +48,7 @@ resultData = max(resultData-1,0);
 
 classes={'background'; 'aeroplane'; 'bicycle'; 'bird'; 'boat'; 'bottle'; 'bus'; 'car'; 'cat'; 'chair'; 'cow'; 'diningtable'; 'dog'; 'horse'; 'motorbike'; 'person'; 'pottedplant'; 'sheep'; 'sofa'; 'train'; 'tvmonitor'};
 categoryindices=2:21; % Which categories to display.  background=1, aeroplane=2, etc.
-categoriesperrow=5;
+categoriesperrow=7;
 numcategories=numel(categoryindices);
 categoriespercolumn=ceil(numcategories/categoriesperrow);
 
@@ -65,20 +65,19 @@ upsampleNy = size(imageData,1)/size(resultData,1);
 assert(upsampleNx==round(upsampleNx));
 assert(upsampleNy==round(upsampleNy));
 
-imagePngFilename = sprintf('tmp/image%04d.png', imageFrameNumber);
-imwrite(imageData,imagePngFilename);
+%imagePngFilename = sprintf('tmp/image%04d.png', imageFrameNumber);
+%imwrite(imageData,imagePngFilename);
 
 zeroconfcolor = [0.5 0.5 0.5];
 maxconfcolor = [0 1 0];
 imageblendcoeff = 0.3;
 % heatmap image will be imageblendcoeff * imagedata plus (1-imageblendcoeff) * heatmap data, where
 % the heatmap is converted to color using zeroconfcolor and maxconfcolor
-montageImage = uint8(zeros((size(imageData,1)+64)*categoriespercolumn, size(imageData,2)*categoriesperrow,3));
+montageImage = zeros((size(imageData,1)+64)*categoriespercolumn, size(imageData,2)*categoriesperrow,3);
 
+imageDataBlend = imageblendcoeff*imageData;
 for k=1:numcategories
     category = categoryindices(k);
-    fprintf(1,'%2d: %s\n', k, classes{category});
-    fflush(1);
     categorycolumn = mod(k-1,categoriesperrow)+1;
     categoryrow = (k-categorycolumn)/categoriesperrow+1;
     assert(categoryrow==round(categoryrow));
@@ -89,15 +88,14 @@ for k=1:numcategories
     end%if
     resultUpsampledY = upsamplefill(resultDataTrunc,upsampleNx-1,'COPY');
     resultUpsampled = upsamplefill(resultUpsampledY',upsampleNy-1,'COPY')';
-    resultColor = zeros([size(resultUpsampled),3]);
-    for b=1:3
-        resultColor(:,:,b) = zeroconfcolor(b)+(maxconfcolor(b)-zeroconfcolor(b))*resultUpsampled;
-    end%for
     %resultPngFilename = sprintf('tmp/result-frame%04d-category%02d.png',resultFrameNumber, category);
-    keyboard;
-    tileImage = imageblendcoeff * imageData + (1-imageblendcoeff) * resultUpsampled;
+    tileImage = zeros([size(imageData),3]);
+    for b=1:3
+       tileImage(:,:,b) = zeroconfcolor(b) + (maxconfcolor(b)-zeroconfcolor(b))*resultUpsampled;
+       tileImage(:,:,b) = imageblendcoeff * imageData + (1-imageblendcoeff) * tileImage(:,:,b);
+    end%for
     if (size(tileImage,3)==1), tileImage=repmat(tileImage,[1 1 3]); end;
-    labelImage = imread(['labels/label', classes{category}, '256.png']);
+    labelImage = double(imread(['labels/label', classes{category}, '256.png']))/255;
     if (size(labelImage,3)==1), labelImage=repmat(labelImage,[1 1 3]); end;
     labelImage = imresize(labelImage,[64,size(imageData,2)]);
 
@@ -106,7 +104,6 @@ for k=1:numcategories
     montageImage(ystart+(1:64),xstart+(1:size(imageData,2)),:) = labelImage;
     montageImage(ystart+64+(1:size(imageData,1)),xstart+(1:size(imageData,2)),:) = tileImage;
 end%for
-
 imwrite(montageImage, montagePath);
 
 if nargout>0
