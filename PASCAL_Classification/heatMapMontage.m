@@ -24,8 +24,8 @@ if isempty(which('readpvpfile'))
 end%if
 
 if ~exist('tmp','dir')
-   % mkdir tmp
-   ownstmpdir = 1;
+    mkdir tmp
+    ownstmpdir = 1;
 else
    ownstmpdir = 0;
 end%if
@@ -44,22 +44,37 @@ if (resultHdr.filetype != 4)
    error("heatMapMontage:expectingnonsparse","heatMapMontage expects %s to be a nonsparse layer",resultPvpFile);
 end%if
 resultData = permute(resultPvp{1}.values,[2 1 3]);
-resultData = max(resultData-1,0);
+resultData = max(resultData,0);
 
 classes={'background'; 'aeroplane'; 'bicycle'; 'bird'; 'boat'; 'bottle'; 'bus'; 'car'; 'cat'; 'chair'; 'cow'; 'diningtable'; 'dog'; 'horse'; 'motorbike'; 'person'; 'pottedplant'; 'sheep'; 'sofa'; 'train'; 'tvmonitor'};
 categoryindices=2:21; % Which categories to display.  background=1, aeroplane=2, etc.
-categoriesperrow=7;
-numcategories=numel(categoryindices);
-categoriespercolumn=ceil(numcategories/categoriesperrow);
+numCategories=numel(categoryindices);
+
+numColumns = 1:numCategories;
+numRows = ceil(numCategories./numColumns);
+totalSizeY = (size(imageData,1)+64+10)*numRows;
+totalSizeX = (size(imageData,2)+64+10)*numColumns;
+aspectRatio = totalSizeX./totalSizeY;
+ldfgr = abs(log(aspectRatio) - log((1+sqrt(5))/2));
+numColumns = find(ldfgr==min(ldfgr),1);
+numRows = numRows(numColumns);
+while (numColumns-1)*numRows >= numCategories
+    numColumns = numColumns-1;
+end%while
+while (numRows-1)*numColumns >= numCategories
+    numRows = numRows-1;
+end%while
+assert(numRows*numColumns >= numCategories);
 
 if(numel(classes)!=resultHdr.nf)
    error("heatMapMontage:wrongnf","number of classes is %d but %s has %d features.",numel(classes),resultPvpFile,resultHdr.nf);
 end%if
 
-montagerows = floor(sqrt(numcategories));
-montagecols = ceil(numcategories/montagerows);
-assert(montagerows*montagecols>=numcategories);
-maxResultData = 0.50; % max(resultData(:)); % the confidence that will be mapped to maximum brightness
+montagerows = floor(sqrt(numCategories));
+montagecols = ceil(numCategories/montagerows);
+assert(montagerows*montagecols>=numCategories);
+thresholdLevel = 1.00; % the confidence that will be mapped to minimum brightness
+saturationLevel = 1.50; % max(resultData(:)); % the confidence that will be mapped to maximum brightness
 upsampleNx = size(imageData,2)/size(resultData,2);
 upsampleNy = size(imageData,1)/size(resultData,1);
 assert(upsampleNx==round(upsampleNx));
@@ -73,19 +88,23 @@ maxconfcolor = [0 1 0];
 imageblendcoeff = 0.3;
 % heatmap image will be imageblendcoeff * imagedata plus (1-imageblendcoeff) * heatmap data, where
 % the heatmap is converted to color using zeroconfcolor and maxconfcolor
-montageImage = zeros((size(imageData,1)+64)*categoriespercolumn, size(imageData,2)*categoriesperrow,3);
+montageImage = zeros((size(imageData,1)+64+10)*numRows, (size(imageData,2)+10)*numColumns,3);
+% The +10 creates a border around each tile in the montage
 
 imageDataBlend = imageblendcoeff*imageData;
-for k=1:numcategories
+for k=1:numCategories
     category = categoryindices(k);
-    categorycolumn = mod(k-1,categoriesperrow)+1;
-    categoryrow = (k-categorycolumn)/categoriesperrow+1;
+    categorycolumn = mod(k-1,numColumns)+1;
+    categoryrow = (k-categorycolumn)/numColumns+1;
     assert(categoryrow==round(categoryrow));
     thisclass = classes{category};
-    resultDataTrunc = max(resultData(:,:,category),0);
-    if maxResultData != 0
-        resultDataTrunc = min(resultDataTrunc/maxResultData,1);
+    maxConfidence = max(max(resultData(:,:,category)));
+    isWinner = maxConfidence==max(resultData(:));
+    resultDataTrunc = max(resultData(:,:,category),thresholdLevel)-thresholdLevel;
+    if saturationLevel-thresholdLevel != 0
+        resultDataTrunc = min(resultDataTrunc/(saturationLevel-thresholdLevel),1);
     end%if
+    assert(all(resultDataTrunc(:)>=0) && all(resultDataTrunc(:)<=1));
     resultUpsampledY = upsamplefill(resultDataTrunc,upsampleNx-1,'COPY');
     resultUpsampled = upsamplefill(resultUpsampledY',upsampleNy-1,'COPY')';
     %resultPngFilename = sprintf('tmp/result-frame%04d-category%02d.png',resultFrameNumber, category);
@@ -95,13 +114,32 @@ for k=1:numcategories
        tileImage(:,:,b) = imageblendcoeff * imageData + (1-imageblendcoeff) * tileImage(:,:,b);
     end%for
     if (size(tileImage,3)==1), tileImage=repmat(tileImage,[1 1 3]); end;
-    labelImage = double(imread(['labels/label', classes{category}, '256.png']))/255;
-    if (size(labelImage,3)==1), labelImage=repmat(labelImage,[1 1 3]); end;
-    labelImage = imresize(labelImage,[64,size(imageData,2)]);
 
-    xstart = size(imageData,2)*(categorycolumn-1);
-    ystart = (size(imageData,1)+64)*(categoryrow-1);
-    montageImage(ystart+(1:64),xstart+(1:size(imageData,2)),:) = labelImage;
+    if isWinner
+        captionColor = 'blue';
+    else
+        captionColor = 'gray';
+    end%if
+
+    file = sprintf('tmp/label%s.png', classes{category});
+    makeLabelCommand = sprintf('convert -background white -fill %s -size %dx32 -pointsize 24 -gravity center label:%s %s', captionColor, size(imageData,2), classes{category}, file);
+    system(makeLabelCommand);
+    img = readImageMagickFile(file);
+    delete(file);
+
+    valueFile = sprintf('tmp/value%s.png', classes{category});
+    makeValueCommand = sprintf('convert -background white -fill %s -size %dx32 -pointsize 24 -gravity center label:%f %s', captionColor, size(imageData,2), maxConfidence, valueFile);
+    system(makeValueCommand);
+    valueImage = readImageMagickFile(valueFile);
+    delete(valueFile);
+
+    xstart = (size(imageData,2)+10)*(categorycolumn-1)+5;
+    ystart = (size(imageData,1)+64+10)*(categoryrow-1)+5;
+    % The +10 provides a 10-pixel border around each image.
+    % The +5 places the tile in the middle of the region with 10-pixel border.
+    % The +64 is because each tile includes the caption, which is 64 pixels high.
+    montageImage(ystart+(1:32),xstart+(1:size(imageData,2)),:) = img;
+    montageImage(ystart+(33:64),xstart+(1:size(imageData,2)),:) = valueImage;
     montageImage(ystart+64+(1:size(imageData,1)),xstart+(1:size(imageData,2)),:) = tileImage;
 end%for
 imwrite(montageImage, montagePath);
@@ -119,7 +157,7 @@ if exist('displayCommand','var') && ~isempty(displayCommand)
    fprintf(1,'displayCommand returned %d\n', displayStatus);
 end%if
 
-%for k=1:numcategories
+%for k=1:numCategories
 %    category = categoryindices(k);
 %    resultPngFilename = sprintf('tmp/result-frame%04d-category%02d.png',resultFrameNumber, category);
 %    delete(resultPngFilename);
@@ -128,6 +166,30 @@ end%if
 %end%for
 %delete(imagePngFilename);
 %
-%if ownstmpdir
-%   rmdir tmp;
-%end%if
+if ownstmpdir
+   rmdir tmp;
+end%if
+
+end%function
+
+function img = readImageMagickFile(file)
+[img,cmap] = imread(file);
+if isempty(cmap)
+   if isequal(class(img),'uint8')
+      img = double(img)/255;
+   end%if
+   if size(img,3)==1
+      img=repmat(img,[1 1 3]);
+   end%if
+else
+   assert(numel(size(img))==2);
+   v = img;
+   img = zeros([size(v) 3]);
+   for n=1:size(v,2)
+      for m=1:size(v,1)
+         img(m,n,:) = cmap(v(m,n)+1,:);
+      end%for
+   end%for
+end%if
+
+end%function
