@@ -75,9 +75,9 @@ The params file is where each experiment is described in english for PetaVision.
     
 You'll be starting off with a params file that has already been tuned pretty well but feel free to modify parameters as you experiment to try to identify different results.  
     
-## 2.1. Get your params file: /PetaVision/docs/tutorial/basic/V1_LCA.params    
+## 2.1. Get your params file: V1_LCA.params    
     
-In the directory you will also see a V1_LCA.png that has a graphical rendition of this params file.  If you are on AWS copy this file to a directory or EBS you will be working from.  
+In the directory /PetaVision/docs/tutorial/basic/ you will also see a V1_LCA.png that has a graphical rendition of this params file.  If you are on AWS copy this file to a directory or EBS you will be working from.  
 
 In the case of AWS, you may want to copy the params file to your EBS volume in the event that your instance gets outbid and shut down. 
         
