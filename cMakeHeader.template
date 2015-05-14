@@ -7,3 +7,4 @@
 #cmakedefine PV_USE_OPENCL
 #cmakedefine PV_USE_CUDA
 #cmakedefine PV_USE_CUDNN
+#cmakedefine PV_SVN_VERSION "@PV_SVN_VERSION@"

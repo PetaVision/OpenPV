@@ -146,6 +146,30 @@ foreach(LIN ${contents})
    endif(PV_USE_CUDA)
 endforeach(LIN ${contents})
 
+find_package(Subversion)
+if (Subversion_FOUND)
+   set(SVNVERSION_COMMAND "${Subversion_SVN_EXECUTABLE}version")
+   # !! lack of space between ${Subversion_SVN_EXECUTABLE} and version is deliberate:
+   # !! Subversion_SVN_EXECUTABLE returns svn, and we want to call svnversion.
+   execute_process(COMMAND "${SVNVERSION_COMMAND}" "${CMAKE_CURRENT_SOURCE_DIR}"
+                   OUTPUT_VARIABLE PV_SVN_VERSION
+                   ERROR_VARIABLE PV_SVN_ERROR
+                   RESULT_VARIABLE PV_SVN_RESULT
+                   OUTPUT_STRIP_TRAILING_WHITESPACE)
+   if (${PV_SVN_RESULT} EQUAL 0)
+      if ("${PV_SVN_VERSION}" EQUAL "Unversioned directory")
+         set(PV_SVN_VERSION "unknown svn repository version")
+      else ("${PV_SVN_VERSION}" EQUAL "Unversioned directory")
+         string(REGEX REPLACE "M$" " with local modifications" PV_SVN_VERSION "${PV_SVN_VERSION}")
+         set(PV_SVN_VERSION "svn repository version ${PV_SVN_VERSION}")
+      endif ("${PV_SVN_VERSION}" EQUAL "Unversioned directory")
+   else (${PV_SVN_RESULT} EQUAL 0)
+      set(PV_SVN_VERSION "unknown svn repository version")
+   endif (${PV_SVN_RESULT} EQUAL 0)
+else (Subversion_FOUND)
+   set(PV_SVN_VISION "unknown svn repository version")
+endif (Subversion_FOUND)
+
 # Header file to pass CMake settings to source code
 configure_file (
    "cMakeHeader.template"
