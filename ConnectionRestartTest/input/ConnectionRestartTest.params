@@ -45,7 +45,7 @@ Image "input" = {
     nf = 1; 
     phase = 0; 
     writeStep = -1;  
-    writeSparseActivity = false; 
+    sparseLayer = false; 
     mirrorBCflag = false;    
     valueBC = 0.0;
     useImageBCflag = false;
@@ -69,7 +69,7 @@ ANNLayer "output_from_weightInitType" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -90,7 +90,7 @@ ANNLayer "output_from_initializeFromCheckpoint" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
     

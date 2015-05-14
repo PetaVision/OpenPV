@@ -39,7 +39,7 @@ Retina "Retina" = {
     triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     mirrorBCflag = true;
     spikingFlag = false;
 
@@ -62,7 +62,7 @@ ANNLayer "L0" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -83,7 +83,7 @@ ANNLayer "Lx1" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -104,7 +104,7 @@ ANNLayer "Lx2" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -126,7 +126,7 @@ ANNLayer "Lx4" = {
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -148,7 +148,7 @@ ANNLayer "Lx1_2" = {
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -170,7 +170,7 @@ ANNLayer "Lx1_4" = {
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -193,7 +193,6 @@ KernelConn "Retina to L0" = {
     numAxonalArbors = 1;
     writeStep = -1;
     writeCompressedCheckpoints = false;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1;
@@ -231,7 +230,6 @@ KernelConn "L0 to Lx1" = {
     numAxonalArbors = 1;
     writeStep = -1;
     writeCompressedCheckpoints = false;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1;
@@ -270,7 +268,6 @@ KernelConn "L0 to Lx2" = {
     numAxonalArbors = 1;
     writeStep = -1;
     writeCompressedCheckpoints = false;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1; //2;
@@ -315,7 +312,6 @@ KernelConn "L0 to Lx4" = {
     numAxonalArbors = 1;
     writeStep = -1;
     writeCompressedCheckpoints = false;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1; //4;
@@ -360,7 +356,6 @@ KernelConn "L0 to Lx1_2" = {
     numAxonalArbors = 1;
     writeStep = -1;
     writeCompressedCheckpoints = false;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 2;
@@ -405,7 +400,6 @@ KernelConn "L0 to Lx1_4" = {
     numAxonalArbors = 1;
     writeStep = -1;
     writeCompressedCheckpoints = false;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1;

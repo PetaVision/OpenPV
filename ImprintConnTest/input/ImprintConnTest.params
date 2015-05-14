@@ -138,7 +138,6 @@ ImprintConn "imprintConnection" = {
     nxp = 4; 
     nyp = 4; 
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     
     weightInitType = "UniformWeight";

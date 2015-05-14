@@ -45,7 +45,7 @@ Image "Input" = {
     nf                          = 1;
     phase                       = 0;
     writeStep                   = -1;
-    writeSparseActivity         = false;
+    sparseLayer                 = false;
     mirrorBCflag                = false;
     valueBC                     = 0.0;
     useImageBCflag              = false;
@@ -72,7 +72,7 @@ ANNLayer "Downsampled" = {
     triggerOffset               = 0;
     writeStep                   = -1;
     initialWriteTime            = 0;
-    writeSparseActivity         = false;
+    sparseLayer                 = false;
 
     VThresh                     = -infinity;
     AMin                        = -infinity;
@@ -91,7 +91,7 @@ Retina "RetinaOn" = {
     mirrorBCflag                = true;
     spikingFlag                 = true;  // false (no quotes) is translated to 0
     
-    writeSparseActivity         = true;
+    sparseLayer                 = true;
     writeStep                   = -1;
 
     foregroundRate              = 200;   // Hz // Max poisson spiking rate when input is 255
@@ -117,7 +117,7 @@ Retina "RetinaOff" = {
     mirrorBCflag                = true;
     spikingFlag                 = true;  // false (no quotes) is translated to 0
     
-    writeSparseActivity         = true;
+    sparseLayer                 = true;
     writeSparseValues           = false; // spiking retinas have binary activities
     writeStep                   = -1;
 
@@ -140,7 +140,7 @@ LIFGap "LIFLayer" = {
     nyScale                     = 1;
     nf                          = 1;
     phase                       = 0;
-    writeSparseActivity         = true;
+    sparseLayer                 = true;
     writeStep                   = -1.0;
     mirrorBCflag                = false;
     valueBC                     = 0.0;
@@ -177,7 +177,6 @@ KernelConn "InputToDownsampled" = {
    numAxonalArbors              = 1;
    delay                        = 0;
 
-   initFromLastFlag             = 0;
    writeStep                    = -1;
    // initialWriteTime             = 1;
 
@@ -211,7 +210,6 @@ KernelConn "CenterOn" = {
    numAxonalArbors              = 1;
    delay                        = 0;
    
-   initFromLastFlag             = 0;  
    writeStep                    = -1;
    // initialWriteTime             = 1;
 
@@ -247,7 +245,6 @@ KernelConn "SurroundOn" = {
    numAxonalArbors              = 1;
    delay                        = 0;
 
-   initFromLastFlag             = 0;
    writeStep                    = -1;
 
    weightInitType               = "Gauss2DWeight";
@@ -282,7 +279,6 @@ KernelConn "CenterOff" = {
    numAxonalArbors              = 1;
    delay                        = 0;
    
-   initFromLastFlag             = 0;  
    writeStep                    = -1;
    // initialWriteTime             = 1;
 
@@ -318,7 +314,6 @@ KernelConn "surround off" = {
    numAxonalArbors              = 1;
    delay                        = 0;
 
-   initFromLastFlag             = 0;
    writeStep                    = -1;
 
    weightInitType               = "Gauss2DWeight";
@@ -352,7 +347,6 @@ KernelConn "RetinaOnToLIFLayer" = {
    delay                       = 0;
 
    writeStep                   = -1;
-   initFromLastFlag            = 0;
 
    weightInitType              = "OneToOneWeights";
    weightInit                  = 1.0;
@@ -376,7 +370,6 @@ KernelConn "RetinaOffToLIFLayer" = {
    delay                       = 0;
 
    writeStep                   = -1;
-   initFromLastFlag            = 0;
     
    weightInitType              = "OneToOneWeights";
    weightInit                  = 1.0;

@@ -27,7 +27,7 @@ ConstantLayer "input" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     
     InitVType = "UniformRandomV";
     minV = 0;
@@ -53,7 +53,7 @@ ANNLayer "outputRecv1_1" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -73,7 +73,7 @@ ANNLayer "outputRecv1_2" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -93,7 +93,7 @@ ANNLayer "outputRecv2_1" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -113,7 +113,7 @@ ANNLayer "Test1_1AndTest1_2" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -133,7 +133,7 @@ ANNLayer "Test1_1AndTest2_1" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -153,7 +153,7 @@ ANNLayer "Test1_2AndTest2_1" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -172,7 +172,6 @@ KernelConn "origConn_1" = {
     nxp = 18; 
     nyp = 18; 
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
@@ -208,7 +207,6 @@ KernelConn "origConn_1" = {
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };

@@ -30,7 +30,7 @@ InputLayer "input" = {
     nyScale = 1;
     nf = 3;
     writeStep = -1.0;
-    initialWriteTime = 0.0;
+    // initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
     sparseLayer = 0;
@@ -41,6 +41,7 @@ InputLayer "input" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
     // 
     phase = 0; 
     triggerFlag = false;
@@ -52,7 +53,7 @@ SumPoolTestLayer "sumPoolPre" = {
     nyScale = 1;
     nf = 3;
     writeStep = -1.0;
-    initialWriteTime = 0.0;
+    // initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
     sparseLayer = 0;
@@ -63,6 +64,7 @@ SumPoolTestLayer "sumPoolPre" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
     // 
     phase = 1; 
     triggerFlag = false;
@@ -74,7 +76,7 @@ SumPoolTestLayer "sumPoolPost" = {
     nyScale = 1;
     nf = 3;
     writeStep = -1.0;
-    initialWriteTime = 0.0;
+    // initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
     sparseLayer = 0;
@@ -85,6 +87,7 @@ SumPoolTestLayer "sumPoolPost" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
     // 
     phase = 1; 
     triggerFlag = false;
@@ -98,21 +101,13 @@ PoolingConn "input2sumPoolPre" = {
     nxp = 3; 
     nyp = 3; 
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
-    initialWriteTime = 0.0;
+    // initialWriteTime = 0.0;
     writeCompressedWeights = false;
-    
-    normalizeMethod                     = "none";
-    //strength                            = 1;
-    //rMinX                               = 1.5;
-    //rMinY                               = 1.5;
-    //normalize_cutoff                    = 0;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
-    plasticityFlag = 0;
     pvpatchAccumulateType = "sumpooling";
      
     delay = 0;
@@ -121,9 +116,10 @@ PoolingConn "input2sumPoolPre" = {
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
+
+    needPostIndexLayer = false;
 };
 
 PoolingConn "input2sumPoolPost" = {

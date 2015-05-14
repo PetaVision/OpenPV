@@ -42,7 +42,7 @@ Movie "Image" = {
     imageListPath = "input/files.txt";
     nf = 1;
     writeStep = -1;
-    writeSparseActivity = false;
+    sparseLayer = false;
     displayPeriod = 1;
     start_frame_index = 1;
     skip_frame_index = 1;
@@ -72,7 +72,7 @@ ANNErrorLayer "Error" = {
     initialWriteTime = 100.0;
     writeStep = 100;
     mirrorBCflag = 0;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     triggerFlag = false;
 
     InitVType = "ZeroV";
@@ -82,6 +82,7 @@ ANNErrorLayer "Error" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
     valueBC = 0;
     errScale = 1;
     
@@ -112,7 +113,6 @@ HyPerConn "delayArbor" = {
     numAxonalArbors  = 16;
     writeStep        = 100;
     initialWriteTime = 100;
-    initFromLastFlag = 0;
 
     weightInitType = "OneToOneWeightsWithDelays";
     weightInit = 1.0;

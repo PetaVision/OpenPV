@@ -27,7 +27,7 @@ ConstantLayer "input" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = true;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     //InitVType = "ConstantV";
     //valueV    = 1;
@@ -74,7 +74,7 @@ ANNLayer "outputRecvPre" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -94,7 +94,7 @@ ANNLayer "outputRecvPost" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -114,7 +114,7 @@ ANNLayer "outputTest" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -170,7 +170,6 @@ HyPerConn "origConn" = {
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };

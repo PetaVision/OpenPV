@@ -52,7 +52,7 @@ Image "input" = {
     nf = 1;
     phase = 0;
     writeStep = -1;
-    writeSparseActivity = false;
+    writeSparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
     useImageBCflag = false;
@@ -81,7 +81,7 @@ ANNNormalizedErrorLayer "residual" = {
     mirrorBCflag = true;
     triggerFlag = false;
     writeStep = -1;
-    writeSparseActivity = false;
+    writeSparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -107,7 +107,7 @@ HyPerLCALayer "V1" = {
     triggerFlag                         = false;
     writeStep                           = -1;
     initialWriteTime                    = 1.44e+06;
-    writeSparseActivity                 = true;
+    writeSparseLayer                    = true;
     writeSparseValues                   = true;
     VThresh                             = 0.025;
     AMin                                = 0;
@@ -136,7 +136,7 @@ ANNLayer "reconstruction" = {
     triggerFlag                         = false;
     writeStep                           = 1.0;
     initialWriteTime                    = 1.0;
-    writeSparseActivity                 = false;
+    sparseLayer                         = false;
     VThresh                             = -infinity;
     AMin                                = -infinity;
     AMax                                = infinity;
@@ -234,7 +234,7 @@ Movie "correct" = {
     valueBC = 0.0;
     writeStep = 1.0;
     initialWriteTime = 1.0;
-    writeSparseActivity = false;
+    writeSparseLayer = false;
 
     imageListPath = "input/correct.pvp";
     offsetX = 0;
@@ -264,7 +264,7 @@ ANNLayer "comparison" = {
     triggerFlag = false;
     writeStep = 1.0;
     initialWriteTime = 1.0;
-    writeSparseActivity = false;
+    writeSparseLayer = false;
 
     InitVType = "ZeroV";
 

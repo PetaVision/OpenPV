@@ -30,4 +30,7 @@ ANNLayer "layer" = {
     VThresh = -infinity;
     VMax = infinity;
     VMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+    clearGSynInterval = 0.0;
 };

@@ -31,7 +31,7 @@ TestImage "test_constant_input image" = {
     mirrorBCflag = true;
     triggerFlag = false;
     writeStep = -1;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     constantVal = 1.0;
 };
@@ -45,7 +45,7 @@ Retina "test_constant_input retina" = {
     valueBC = 0.0;
     triggerFlag = false;
     writeStep = -1;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     spikingFlag = false;
     foregroundRate = 1000; // Hertz; times are measured in milliseconds

@@ -43,7 +43,7 @@ Retina "Input" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    
    spikingFlag = true;
    foregroundRate = 1000;
@@ -66,7 +66,7 @@ ANNLayer "NormalizeSumOutput" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;
@@ -85,7 +85,7 @@ ANNLayer "NormalizeSumCheck" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;
@@ -104,7 +104,7 @@ ANNSquaredLayer "NormalizeL2Output" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;
@@ -123,7 +123,7 @@ ANNLayer "NormalizeL2Check" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;
@@ -142,7 +142,7 @@ ANNLayer "NormalizeMaxOutput" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;
@@ -161,7 +161,7 @@ ANNLayer "NormalizeMaxCheck" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
 
    AMax = infinity;
@@ -180,7 +180,7 @@ ANNLayer "NormalizeContrastZeroMeanOutput" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;
@@ -199,7 +199,7 @@ ANNSquaredLayer "NormalizeContrastZeroMeanOutputSquared" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;
@@ -218,7 +218,7 @@ ANNLayer "NormalizeContrastZeroMeanCheckMean" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;
@@ -237,7 +237,7 @@ ANNLayer "NormalizeContrastZeroMeanCheckVariance" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;

@@ -232,7 +232,6 @@ PoolingConn "input2maxPoolPre" = {
     nxp = 3; 
     nyp = 3; 
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
@@ -258,7 +257,6 @@ PoolingConn "input2maxPoolPre" = {
     postIndexLayerName = "maxPoolIndexPre";
 
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };
@@ -271,7 +269,6 @@ PoolingConn "input2maxPoolPost" = {
     nxp = 3; 
     nyp = 3; 
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
@@ -297,7 +294,6 @@ PoolingConn "input2maxPoolPost" = {
     postIndexLayerName = "maxPoolIndexPost";
 
     updateGSynFromPostPerspective = true;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };

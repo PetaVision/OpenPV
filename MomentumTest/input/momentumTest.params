@@ -32,7 +32,7 @@ Movie "pre" = {
     phase                            = 0;
     writeStep                        = -1;
     // initialWriteTime
-    writeSparseActivity              = false;
+    sparseLayer                      = false;
     mirrorBCflag                     = false;
     useImageBCflag                   = false;
     inverseFlag                      = false;
@@ -56,7 +56,7 @@ ConstantLayer "post" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ConstantV";
     valueV = 1.0;
@@ -77,7 +77,6 @@ MomentumConn "preToPost" = {
     nxp = 1; 
     nyp = 1; 
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
@@ -117,7 +116,6 @@ MomentumConn "preToPost" = {
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };

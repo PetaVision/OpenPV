@@ -59,7 +59,7 @@ Movie "input" = {
     phase                            = 0;
     writeStep                        = -1;
     // initialWriteTime
-    writeSparseActivity              = false;
+    sparseLayer                      = false;
     mirrorBCflag                     = true;
     useImageBCflag                   = false;
     inverseFlag                      = false;
@@ -84,7 +84,7 @@ ANNLayer "ganglion" = {
     writeStep                        = -1;
     // initialWriteTime
     mirrorBCflag                     = true;
-    writeSparseActivity              = false;
+    sparseLayer                      = false;
 
     InitVType                        = "ZeroV";
 
@@ -108,7 +108,7 @@ Movie "correctoutput" = {
     phase                            = 0;
     writeStep                        = -1;
     // initialWriteTime
-    writeSparseActivity              = false;
+    sparseLayer                      = false;
     mirrorBCflag                     = true;
     useImageBCflag                   = false;
     inverseFlag                      = false;
@@ -133,7 +133,7 @@ ANNLayer "comparison" = {
     writeStep                        = -1;
     // initialWriteTime
     mirrorBCflag                     = true;
-    writeSparseActivity              = false;
+    sparseLayer                      = false;
 
     InitVType                        = "ZeroV";
 
@@ -156,7 +156,6 @@ KernelConn "input_to_ganglion" = {
     nfp                              = 1;
     numAxonalArbors                  = 1;
     writeStep                        = -1;
-    initFromLastFlag                 = 0;
     
     weightInitType                   = "UniformWeight";
     weightInit                       = 1.0;

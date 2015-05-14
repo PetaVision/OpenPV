@@ -26,7 +26,7 @@ Image "test_border_activity image" = {
    valueBC = 0.0;
    writeStep = 1.0;
    initialWriteTime = 0.0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    writeImages = false;
    restart = false;
 
@@ -50,7 +50,7 @@ Retina "test_border_activity retina" = {
    spikingFlag = false;
    writeStep = 1.0;
    initialWriteTime = 0.0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    restart = false;
 
    foregroundRate = 1000;
@@ -71,7 +71,7 @@ ANNLayer "test_border_activity layer" = {
    valueBC = 0.0;
    writeStep = 1.0;
    initialWriteTime = 0.0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    restart = false;
    InitVType = "ZeroV";
    
@@ -80,6 +80,7 @@ ANNLayer "test_border_activity layer" = {
    VThresh = -infinity;
    VShift = 0.0;
    VWidth = 0.0;
+   clearGSynInterval = 0.0;
 };
 
 HyPerConn "test_border_activity connection 1" = {

@@ -27,7 +27,7 @@ ConstantLayer "originput" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "UniformRandomV";
     minV = 0;
@@ -50,7 +50,7 @@ ANNLayer "inputPre" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "UniformRandomV";
     minV = 0;
@@ -73,7 +73,7 @@ ANNLayer "inputPost" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "UniformRandomV";
     minV = 0;
@@ -96,7 +96,7 @@ ANNLayer "inputKnown" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "UniformRandomV";
     minV = 0;
@@ -119,7 +119,7 @@ ANNLayer "outputRecvPre" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -139,7 +139,7 @@ ANNLayer "outputRecvPost" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -159,7 +159,7 @@ ANNLayer "outputRecvKnown" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -179,7 +179,7 @@ ANNLayer "outputTestPrePost" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -199,7 +199,7 @@ ANNLayer "outputTestPreKnown" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -219,7 +219,7 @@ ANNLayer "outputTestPostKnown" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -265,7 +265,6 @@ KernelConn "origConnPrePost" = {
     nxp = 6; 
     nyp = 6; 
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
@@ -300,7 +299,6 @@ KernelConn "origConnPrePost" = {
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };
@@ -338,7 +336,6 @@ KernelConn "origConnKnown" = {
     nxp = 6; 
     nyp = 6; 
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
@@ -373,7 +370,6 @@ KernelConn "origConnKnown" = {
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };
@@ -399,7 +395,6 @@ KernelConn "fakeConn" = {
     nxp = 9; 
     nyp = 9; 
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
@@ -431,7 +426,6 @@ KernelConn "fakeConn" = {
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };

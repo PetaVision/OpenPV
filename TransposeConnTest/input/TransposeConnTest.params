@@ -52,6 +52,7 @@ ANNLayer "Layer A" = {
     AShift                              = 0.0;
     AMax                                = infinity;
     VWidth                              = 0.0;
+    clearGSynInterval                   = 0.0;
 };
 
 ANNLayer "Layer B One to One" = {
@@ -76,6 +77,7 @@ ANNLayer "Layer B One to One" = {
     AShift                              = 0.0;
     AMax                                = infinity;
     VWidth                              = 0.0;
+    clearGSynInterval                   = 0.0;
 };
 
 ANNLayer "Layer B Many to One" = {
@@ -100,6 +102,7 @@ ANNLayer "Layer B Many to One" = {
     AShift                              = 0.0;
     AMax                                = infinity;
     VWidth                              = 0.0;
+    clearGSynInterval                   = 0.0;
 };
 
 ANNLayer "Layer B One to Many" = {
@@ -124,6 +127,7 @@ ANNLayer "Layer B One to Many" = {
     AShift                              = 0.0;
     AMax                                = infinity;
     VWidth                              = 0.0;
+    clearGSynInterval                   = 0.0;
 };
 
 HyPerConn "Original Map for One to One Test" = {
@@ -135,7 +139,6 @@ HyPerConn "Original Map for One to One Test" = {
     nyp                                 = 7;
     nfp                                 = 4;
     numAxonalArbors                     = 2;
-    // useWindowPost;
     delay                               = 0;
     shrinkPatches                       = false;
     updateGSynFromPostPerspective       = false;
@@ -228,7 +231,6 @@ HyPerConn "Original Map for Many to One Test" = {
     nyp                                 = 7;
     nfp                                 = 8;
     numAxonalArbors                     = 2;
-    // useWindowPost;
     delay                               = 0;
     shrinkPatches                       = false;
     updateGSynFromPostPerspective       = false;
@@ -320,7 +322,6 @@ HyPerConn "Original Map for One to Many Test" = {
     nyp                                 = 28;
     nfp                                 = 2;
     numAxonalArbors                     = 2;
-    // useWindowPost;
     delay                               = 0;
     shrinkPatches                       = false;
     updateGSynFromPostPerspective       = false;

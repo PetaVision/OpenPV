@@ -53,17 +53,12 @@ BackgroundLayer "background" = {
     nyScale = 1;
     nf = 20; //One more than input * rep
     writeStep = -1.0;
-    initialWriteTime = 0.0;
+    // initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
     sparseLayer = 0;
     //
     InitVType = "ZeroV";
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0.0;
-    VWidth = 0.0;
     repFeatureNum = 4; //Replicating each feature 4 times
     // 
     phase = 1; 
@@ -102,7 +97,7 @@ ComparisonLayer "compare" = {
     nyScale = 1;
     nf = 20;
     writeStep = -1.0;
-    initialWriteTime = 0.0;
+    // initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
     sparseLayer = 0;
@@ -113,6 +108,7 @@ ComparisonLayer "compare" = {
     AMin = -infinity; 
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
     // 
     phase = 2; 
     triggerFlag = false;

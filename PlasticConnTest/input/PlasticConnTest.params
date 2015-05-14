@@ -40,7 +40,7 @@ PlasticConnTestLayer "Pre" = {
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
@@ -62,7 +62,7 @@ PlasticConnTestLayer "Post" = {
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ConstantV";
     valueV = 1.0;
@@ -85,7 +85,6 @@ PlasticTestConn "PreToPost" = {
     numAxonalArbors = 1;
     writeStep = 1.0;
     initialWriteTime = 0.0;
-    initFromLastFlag = 0;
     
     weightInitType = "UniformWeight";
     weightInit = 0.0;

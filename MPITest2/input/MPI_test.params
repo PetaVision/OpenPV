@@ -40,7 +40,7 @@ MPITestLayer "L0" = {
     writeStep = -1;
     mirrorBCflag = false;
     valueBC = 0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ConstantV";
     valueV = 1.0;
@@ -61,7 +61,7 @@ ANNLayer "Lx1" = {
     writeStep = -1;
     mirrorBCflag = false;
     valueBC = 0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
 
@@ -81,7 +81,7 @@ ANNLayer "Lx2" = {
     writeStep = -1;
     mirrorBCflag = false;
     valueBC = 0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
 
@@ -101,7 +101,7 @@ ANNLayer "Lx4" = {
     writeStep = -1;
     mirrorBCflag = false;
     valueBC = 0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
 
@@ -122,7 +122,7 @@ ANNLayer "Lx1_2" = {
     writeStep = -1;
     mirrorBCflag = false;
     valueBC = 0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
 
@@ -143,7 +143,7 @@ ANNLayer "Lx1_4" = {
     writeStep = -1;
     mirrorBCflag = false;
     valueBC = 0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
 
@@ -167,7 +167,6 @@ KernelConn "L0 to Lx1" = {
     nfp = 4;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1;
@@ -213,7 +212,6 @@ KernelConn "L0 to Lx2" = {
     nfp = 8;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1; //2;
@@ -259,7 +257,6 @@ KernelConn "L0 to Lx4" = {
     nfp = 16;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1; //4;
@@ -305,7 +302,6 @@ KernelConn "L0 to Lx1_2" = {
     nfp = 2;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 2;
@@ -351,7 +347,6 @@ KernelConn "L0 to Lx1_4" = {
     nfp = 1;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1;

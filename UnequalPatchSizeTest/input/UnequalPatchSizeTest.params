@@ -42,7 +42,7 @@ Image "input" = {
     nf = 1;
     phase = 0;
     writeStep = -1;
-    writeSparseActivity = false;
+    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
     useImageBCflag = false;
@@ -64,7 +64,7 @@ ANNLayer "output" = {
     writeStep = -1;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -74,6 +74,7 @@ ANNLayer "output" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
 };
 
 Image "correct" = {
@@ -85,7 +86,7 @@ Image "correct" = {
     nf = 1;
     phase = 0;
     writeStep = -1;
-    writeSparseActivity = false;
+    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
     useImageBCflag = false;
@@ -107,7 +108,7 @@ ANNLayer "compare" = {
     writeStep = -1;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
-    writeSparseActivity = false;
+    sparseLayer = false;
 
     InitVType = "ZeroV";
 
@@ -117,6 +118,7 @@ ANNLayer "compare" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
 };
 
 HyPerConn "input_to_output" = {

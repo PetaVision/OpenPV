@@ -142,7 +142,6 @@ TriggerTestConn "inputToNoTrigger" = {
     nfp = 1; 
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "IdentWeight";
       
@@ -176,7 +175,6 @@ TriggerTestConn "inputToTrigger0" = {
     nfp = 1; 
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "IdentWeight";
       
@@ -211,7 +209,6 @@ TriggerTestConn "inputToTrigger1" = {
     nfp = 1; 
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "IdentWeight";
       
@@ -246,7 +243,6 @@ TriggerTestConn "inputToTrigger2" = {
     nfp = 1; 
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "IdentWeight";
       
@@ -281,7 +277,6 @@ TriggerTestConn "inputToNoPeriod" = {
     nfp = 1; 
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "IdentWeight";
       
@@ -315,7 +310,6 @@ TriggerTestConn "inputToPeriod0" = {
     nfp = 1; 
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "IdentWeight";
       
@@ -351,7 +345,6 @@ TriggerTestConn "inputToPeriod1" = {
     nfp = 1; 
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "IdentWeight";
       
@@ -387,7 +380,6 @@ TriggerTestConn "inputToPeriod2" = {
     nfp = 1; 
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "IdentWeight";
       

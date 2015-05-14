@@ -43,7 +43,7 @@ DatastoreDelayTestLayer "input" = {
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
     VMax = infinity;
@@ -62,7 +62,7 @@ ANNLayer "output" = {
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
     VMax = infinity;
@@ -81,7 +81,7 @@ ANNLayer "outputArbor" = {
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
     VMax = infinity;
@@ -143,9 +143,7 @@ KernelConn "delayArbor" = {
     delay       = [0, 1, 2, 3, 4];
     
     numAxonalArbors  = 5;
-    useWindowPost    = false;
     writeStep        = -1;
-    initFromLastFlag = 0;
 
     weightInitType = "OneToOneWeights";
     weightInit = 1.0;

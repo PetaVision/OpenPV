@@ -38,7 +38,7 @@ Image "Image" = {
     nf = 3;
     phase = 0;
     writeStep = -1;
-    writeSparseActivity = false;
+    sparseLayer = false;
     mirrorBCflag = false;
     valueBC = 0.0;
     writeImages = false;
@@ -62,7 +62,7 @@ ANNLayer "Copy" = {
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
 
     InitVType = "ZeroV";
 
@@ -84,7 +84,7 @@ ANNLayer "Comparison" = {
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
 
     InitVType = "ZeroV";
 

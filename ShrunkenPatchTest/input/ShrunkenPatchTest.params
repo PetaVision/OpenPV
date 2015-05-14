@@ -40,7 +40,7 @@ ShrunkenPatchTestLayer "L0" = {
     writeStep = -1;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ConstantV";
     valueV = 1.0;
@@ -61,7 +61,7 @@ ANNLayer "Lx2_with_unshrunken" = {
     writeStep = -1;
     mirrorBCflag = 0;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
 
@@ -81,7 +81,7 @@ ANNLayer "Lx4_with_unshrunken" = {
     writeStep = -1;
     mirrorBCflag = 0;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
 
@@ -101,7 +101,7 @@ ANNLayer "Lx2_with_shrunken" = {
     writeStep = -1;
     mirrorBCflag = 0;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
 
@@ -121,7 +121,7 @@ ANNLayer "Lx4_with_shrunken" = {
     writeStep = -1;
     mirrorBCflag = 0;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
 
@@ -140,7 +140,7 @@ ANNLayer "Lx4_with_shrunken_tall" = {
     writeStep = -1;
     mirrorBCflag = 0;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
 
@@ -159,7 +159,7 @@ ANNLayer "Lx4_with_shrunken_wide" = {
     writeStep = -1;
     mirrorBCflag = 0;
     valueBC = 0.0;
-    writeSparseActivity = false;
+    sparseLayer = false;
     
     InitVType = "ZeroV";
 
@@ -182,7 +182,6 @@ KernelConn "L0toLx2unshrunken" = {
     nfp = 8;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1; //2;
@@ -228,7 +227,6 @@ KernelConn "L0toLx4unshrunken" = {
     nfp = 16;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1; //4;
@@ -276,7 +274,6 @@ KernelConn "L0toLx2shrunken" = {
     nfp = 8;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1; //2;
@@ -324,7 +321,6 @@ KernelConn "L0toLx4shrunken" = {
     nfp = 16;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1; //4;
@@ -371,7 +367,6 @@ KernelConn "L0toLx4shrunken_tall" = {
     nfp = 16;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1; //4;
@@ -418,7 +413,6 @@ KernelConn "L0toLx4shrunken_wide" = {
     nfp = 16;
     numAxonalArbors = 1;
     writeStep = -1;
-    initFromLastFlag = 0;
     
     weightInitType = "Gauss2DWeight";
     aspect = 1; //4;

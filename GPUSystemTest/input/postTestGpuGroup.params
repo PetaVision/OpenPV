@@ -27,7 +27,7 @@ ConstantLayer "input1" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "UniformRandomV";
     minV = 0;
@@ -50,7 +50,7 @@ ANNLayer "outputRecv1" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -70,7 +70,7 @@ ANNLayer "outputRecvGpu1" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -90,7 +90,7 @@ ANNLayer "outputTest1" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -110,7 +110,7 @@ ConstantLayer "input2" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "UniformRandomV";
     minV = 0;
@@ -133,7 +133,7 @@ ANNLayer "outputRecv2" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -153,7 +153,7 @@ ANNLayer "outputRecvGpu2" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -173,7 +173,7 @@ ANNLayer "outputTest2" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -227,7 +227,6 @@ KernelConn "origConn1" = {
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };
@@ -323,7 +322,6 @@ KernelConn "origConn2" = {
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };

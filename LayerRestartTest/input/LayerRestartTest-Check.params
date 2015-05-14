@@ -37,7 +37,7 @@ ANNLayer "Comparison" = {
     initialWriteTime = 0.0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
 
     InitVType = "ZeroV";
 

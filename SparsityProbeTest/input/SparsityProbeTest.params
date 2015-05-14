@@ -41,7 +41,7 @@ Movie "input" = {
     phase                            = 0;
     writeStep                        = -1;
     // initialWriteTime
-    writeSparseActivity              = false;
+    sparseLayer                      = false;
     mirrorBCflag                     = true;
     useImageBCflag                   = false;
     inverseFlag                      = false;

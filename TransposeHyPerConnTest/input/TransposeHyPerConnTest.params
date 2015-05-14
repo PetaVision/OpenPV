@@ -138,7 +138,6 @@ HyPerConn "Original Map for One to One Test" = {
     nyp                                 = 7;
     nfp                                 = 4;
     numAxonalArbors                     = 2;
-    // useWindowPost;
     delay                               = 0;
     shrinkPatches                       = false;
     updateGSynFromPostPerspective       = false;
@@ -230,7 +229,6 @@ HyPerConn "Original Map for Many to One Test" = {
     nyp                                 = 7;
     nfp                                 = 8;
     numAxonalArbors                     = 2;
-    // useWindowPost;
     delay                               = 0;
     shrinkPatches                       = false;
     updateGSynFromPostPerspective       = false;
@@ -322,7 +320,6 @@ HyPerConn "Original Map for One to Many Test" = {
     nyp                                 = 28;
     nfp                                 = 2;
     numAxonalArbors                     = 2;
-    // useWindowPost;
     delay                               = 0;
     shrinkPatches                       = false;
     updateGSynFromPostPerspective       = false;

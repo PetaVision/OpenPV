@@ -27,7 +27,7 @@ ConstantLayer "input" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "UniformRandomV";
     minV = 0;
@@ -49,7 +49,7 @@ ANNLayer "outputRecv" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -69,7 +69,7 @@ ANNLayer "outputRecvGpu" = {
     writeStep = 1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -89,7 +89,7 @@ ANNLayer "outputTest" = {
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
-    writeSparseActivity = 0;
+    sparseLayer = 0;
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
@@ -108,7 +108,6 @@ KernelConn "origConn" = {
     nxp = 9; 
     nyp = 9; 
     numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
     initialWriteTime = 0.0;
     writeCompressedWeights = false;
@@ -146,7 +145,6 @@ KernelConn "origConn" = {
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };
