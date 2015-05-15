@@ -1,34 +1,38 @@
 # V1 LCA Tutorial
 
-This basic tutorial will walk you through 1) downloading a dataset, 2) unsupervised training of a V1 dictionary using the LCA algorithm, and 3) analyzing the output using one of our automated scripts.  In the next tutorial we will look at how to train an SLP classifier using the V1 dictionary you train here.
+This basic tutorial is set up to walk you through downloading a dataset, performing unsupervised learning on a V1 dictionary of that dataset using the LCA algorithm, and finally looking at your output using one of our automated scripts.  In the next tutorial we will look at how to train an SLP classifier using the V1 dictionary you train here.
 
-The intended audience of this tutorial is able to use some command line tool (eg. Terminal) to build and execute programs, edit text files (eg. vim, emacs), and is familiar with some essential ideas of [artificial neural networks](http://neuralnetworksanddeeplearning.com/chap1.html).  This tutorial guides you in creating a sparse representation (V1) of an image and a subsequent reconstructions using the LCA algorithm described by Christopher Rozell, Don Johnson, Richard Baraniuk, and Bruno Olshausen: [Locally Competitive Algorithms for Sparse Approximations[(http://www.ece.rice.edu/~dhj/rozell_icip2007.pdf).
+Our intended audience is aware of some key ideas in computational neuroscience:
+    Sparse Coding with LCA     Olshausen and Fields, 96
+    
+But honestly you can get through this without reading any of those papers. You may just miss out on appreciating how cool it is what you are doing :p
     
 Depending on your internet connection and the speed of your machine you should be able to get to Step 3, "Running PetaVision" and running the experiment in about an hour. Step 3 could take minutes to days depending on the speed of your machine (Many threaded CPUs + GPUs = faster) and how long you choose to train your network.
+
+* NOTE: Directory paths assume you organized your workspace as: ~/workspace/PetaVision
+If this not where you put your PetaVision build, take note of where it is and update the file paths accordingly as you move through the tutorial.
 
 [TOC]
 
 # 0. Pre-requisites:
 
-1. Successfully build PetaVision and run a BasicSystemTest.  
-    - [AWS Installation](https://sourceforge.net/p/petavision/wiki/Install%20PetaVision%20AWS/)
-    - [Ubuntu Installation](https://sourceforge.net/p/petavision/wiki/Install%20PetaVision%20Ubuntu/)
-    - [OSX Installation](https://sourceforge.net/p/petavision/wiki/Install%20PetaVision%20OSX/)
-    
+1. Successfully build PetaVision and run a BasicSystemTest
+    - If you are 
+    - If you are on AWS start with the PetaVision Public AMI for a quick start with all the goodies installed
 2. Grab a cup of coffee and hunker down. 
 
 # 1. Get your dataset 
 
 You can run this tutorial using any Dataset but since we like the K.I.S.S. principle, we're going to walk through getting a popular and well documented dataset: CIFAR.
 
-CIFAR consists of 50k training images plus 10k test images in 10 categories for classification.  The images are 32x32 color images of the following categories: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck.  The dataset is hosted by the CS department at the University Toronto by Alex Krizhevsky (name sake for award winning 'AlexNet' implementation on Caffe).  This data set is simple to work with (from a whole image classification perspective) and since the images are small you will be able to run your experiments much faster than if you were try using larger pictures. 
+CIFAR consists of 50k training images of 10 categories (5k each) plus 10k test images for classification.  The images are 32x32 color images of the following categories: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck.  The dataset is hosted by the CS department at the University Toronto by Alex Krizhevsky (name sake for award winning 'AlexNet' implementation on Caffe).  This data set is simple to work with (from a whole image classification perspective) and since the images are small you will be able to run your experiments much faster than if you were try using full frame pictures. 
 
 For more information about the CIFAR dataset: http://www.cs.toronto.edu/~kriz/cifar.html
 
 ## 1.1. Download CIFAR dataset
 
-Either visit the [CIFAR website](http://www.cs.toronto.edu/~kriz/cifar.html) or use the command line to get and unzip the database:
- 
+If you are on the AWS server or on your local machine you can use wget
+
     $ cd ~
     $ mkdir dataset
     $ cd dataset
@@ -37,16 +41,16 @@ Either visit the [CIFAR website](http://www.cs.toronto.edu/~kriz/cifar.html) or 
 
 ## 1.2. Extract CIFAR dataset 
 
-You can write your own script to extract and organize the CIFAR images, or you can use the one we're already prepared called 'extractImagesOctave.m'.  The script is located in the PetaVision trunk: PetaVision/mlab/HyPerLCA/extractImagesOctave.m. To use the script, you'll first need to modify extractImagesOctave.m by pointing to the correct local directories. Open the octave script in your favorite text editor and following the instructions.
+You will be using PetaVision/mlab/HyPerLCA/extractImagesOctave.m, but first you'll need to first modify extractImagesOctave.m by pointing to the correct local directories. Follow the instructions at the top of the script.
 
     $ cd ~/workspace/PetaVision/mlab/HyPerLCA
     $ vim extractImagesOctave.m
 
-Make sure you saved your changes to the script before continuing to the next step. 
+Make sure you saved your changes to the script before continuing
 
 ## 1.3.  Extract images using octave script
     
-Navigate to where you unzipped the cifar-10-matlab.tar.gz file and extract the images in octave:
+Navigate to where you unzipped the cifar-10-matlab.tar.gz file and extract the images in octave
 
     $ cd ~/dataset/cifar-10-batches-mat/
     $ octave
@@ -59,33 +63,28 @@ Navigate to where you unzipped the cifar-10-matlab.tar.gz file and extract the i
     > extractImagesOctave('data_batch_5.mat',5)
     > extractImagesOctave('test_batch.mat',0)
 
+* Note: I recognize this is not an elegant method, but it works and is clear
+
 ## 1.4. Combine the data_batches to make a master file
     
-Each run of extractImagesOctave produced a unique text file listing all the images in random order called 'randorder.txt'.  If you wish to expand your training dataset to  include all of the training images, you can concatenate them by copying them to a common directory with different names (to avoid clobbering the files) and then doing:    
+Each run of extractImagesOctave produced a unique text file listing all the images in random order.  If you wish to expand your training dataset to  include all of the training images, you can concatenate them by copying them to a common directory with different names (inelegant solution) and then doing:    
 
     $ cat *.txt > mixed_cifar.txt
 
 Congratulations!  You now have a massive training dataset along with a test set that you will use in the next tutorial in creating a classifier.  For now we are only concerned about using the dataset for unsupervised learning.
     
-# 2. The Params File
+# 2. Fix up your params file
     
-The params file is where each experiment is described in English for PetaVision. It details the different objects (ie. column, layers, and connections) that are used by PetaVision.
+The params file is where each experiment is described in english for PetaVision. It details the different objects (ie. hypercol, layers, and connections) that are used by PetaVision.
     
 You'll be starting off with a params file that has already been tuned pretty well but feel free to modify parameters as you experiment to try to identify different results.  
-
-The following picture is a simplified graphical representation of the params file for this run.
-
-[[include repo=code path=/trunk/docs/tutorial/basic/V1_LCA_simple.png]]
-
-If you are using the PetaVision Public AMI, you can make these drawings of any params file just by typing:
-
-    $ draw [name of params file]
     
-## 2.1. Find your params file: V1_LCA.params    
+## 2.1. Get your params file: V1_LCA.params    
     
-Go to where you downloaded PetaVision and navigate to: /PetaVision/docs/tutorial/basic/
+In the directory /PetaVision/docs/tutorial/basic/ you will also see a V1_LCA.png that has a graphical rendition of this params file.  If you are on AWS copy this file to a directory or EBS you will be working from.  
+
 In the case of AWS, you may want to copy the params file to your EBS volume in the event that your instance gets outbid and shut down. 
-
+        
 ## 2.2. Inspect the params file
     
 First just look over the params and see if you can understand the general structure of a params file.  It is organized into three categories: the 1.column, 2.layers, and 3.connections, to simulate a cortical column in the brain. The params file you will be using is commented to help guide you along to highlight this structure of the params file. 
@@ -136,11 +135,6 @@ HyPerLCALayer           | "V1"       |    2
 ANNLayer                | "Recon"    |    1
 
 
-
-**********
-*********       Absolute Value of the Error Layer
-*******
-
 For more details on the HyPerLayer parameters please read the documentation:[HyPerLayer Parameters](http://petavision.sourceforge.net/doxygen/html/classPV_1_1HyPerLayer.html#member-group)
 
         
@@ -169,9 +163,6 @@ For more details on the HyPerConn parameters please read the documentation: [HyP
 ## 2.3. Customize the params file for a run on your system
 
 The params file is tagged to let you know where you have to edit parameters before you run. The parameter will have a ! symbol at the beginning of the line if you need to edit it. If a parameter is tagged, there will be a small commented instruction following the tag. Before you move on to running the experiment, make sure you delete every !. When done, save the file and you will be ready to start your run.  The sections below identify  objects to make sure to review, however there are some extra ! comments you will want to look for (eg. writeStep is commented in all the layers since you may want to adjust depending on how frequently you plan to 
-
-* NOTE: Directory paths assume you organized your workspace as: ~/workspace/PetaVision
-If this not where you put your PetaVision build, take note of where it is and update the file paths accordingly as you move through the tutorial.
 
 ### 2.3.1. HyPerCol "column"
 
