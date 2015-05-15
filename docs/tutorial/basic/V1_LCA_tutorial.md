@@ -75,7 +75,8 @@ You'll be starting off with a params file that has already been tuned pretty wel
 
 The following picture is a simplified graphical representation of the params file for this run.
 
-[[include repo=code path=/trunk/docs/tutorial/basic/V1_LCA_simple.png]]
+![V1-LCA](https://sourceforge.net/p/petavision/code/HEAD/tree/trunk/docs/tutorial/basic/V1_LCA_simple.png?format=raw)
+
 
 If you are using the PetaVision Public AMI, you can make these drawings of any params file just by typing:
 
