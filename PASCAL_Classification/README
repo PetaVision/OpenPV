@@ -4,35 +4,22 @@ classification task.
 It takes a list of image files from stdin and generates heat maps showing
 the confidence of each category.
 
-After downloading and compiling, there is some preparation that needs to
-be done before running.
+There is some preparation that needs to be done before running.
 
-1. Copy src/template-config.txt to src/config.txt
-   The config file controls the following settings:
-      imageLayer          The name of the ImageFromMemoryBuffer layer used for input
-      resultLayer         The name of the HyPerLayer containing the confidences
-      octaveCommand       The octave shell command.  The function m-file heatMapMontage.m is called
-                          using <octaveCommand> --eval "heatMapMontage(arguments);".
-                          Octave is called in parallel with PetaVision, but the demo does not start a new
-                          octave until the previous octave has completed.
-      octaveLogFile       The log file for the octave jobs
-                          (clobbered at beginning of running the demo; each octave process
-                          appends to the existing octaveLogFile).
-      heatMapMontageDir   The directory to write the generated heat maps into.
-                          Filenames in this directory have the form frame1.png, frame2.png, etc.
-                          Absolute paths and relative paths are both allowed; relative paths are
-                          relative to PetaVision's working directory.
-      displayCommand      (optional) The external shell command to display the generated heat map.
-                          It is called each time a heat map image is generated, with the path to the
-                          new heat map filename as the argument.  If present, the demo will wait until
-                          the display command completes before continuing the run.
-   The template-config.txt file shows the expected format.
+1. Extra installation requirements: The demo runs an octave script that uses the octave function upsamplefill.m, which is in octave the octave signal package, version 1.3.0 or later.
+If you don’t have Octave installed, or you do but it is missing upsamplefill, you can run the demo and generate output pvp files, but the output heat maps will not be generated.  
+Start octave and run “which upsamplefill”.  If the result is empty, you will either have to install the octave signal package, version 1.3.0 or later (which requires Octave version 3.8 or later); or copy upsamplefill.m from another machine.  The AWS instance has this package installed, so everything should be ready to go on AWS.
 
-2. The params files look for files in a directory called CurrentModel.
-   Because of the size of the files involved, we are not saving initialization
-   pvp files on the repository.  You can get them by going to
-   <google drive link goes here>
-   The CurrentModel directory needs to contain the following pvp files:
+2. Get the demo from the repository.  The demo is in https://svn.code.sf.net/p/petavision/code/demo/PASCAL_Classification.
+If you checked out the entire repository at once, run “svn update".
+If you checked out, say, trunk and PVSystemTests separately, but not the entire repository, you can also check out demo/PASCAL_Classification separately.  In what follows, “PASCAL_Classification” will refer to the directory that corresponds to https://svn.code.sf.net/p/petavision/code/demo/PASCAL_Classification, regardless of how it was checked out.
+
+3. Assuming that you build PetaVision using a CMakeLists.txt file in the directory that contains PetaVision (the workspace directory), add an add_subdirectory command with the relative path to PASCAL_Classification (probably either "add_subdirectory(PASCAL_Classification)" or "add_subdirectory(demo/PASCAL_Classification)”.
+
+4. Copy the file "PASCAL_Classification/src/template-config.txt" to "PASCAL_Classification/src/config.txt”.  The reason I created a config.txt file is to be able to make changes to a few settings without needing to recompile.  src/config.txt is in svn:ignore, so local changes to that file, if desired, won’t trigger local modifications to the repository. A description of the config.txt file is below.
+
+5. The params files look for files in a directory called CurrentModel.
+The CurrentModel directory needs to contain the following pvp files:
       Classifiers/BiasS2ToGroundTruthReconS2Error_16X12_W.pvp
       Classifiers/BiasS2ToGroundTruthReconS2Error_4X3_W.pvp
       Classifiers/S2MaxPooledToGroundTruthReconS2Error_16X12_W.pvp
@@ -49,3 +36,45 @@ be done before running.
       S1S2Weights/S2ToS1ReconS2Error_W.pvp
       Thresholds/ThresholdConn_16.pvp (currently the 16:1 downsampling part of the hierarchy is commented out)
       Thresholds/ThresholdConn_64.pvp
+Because of the size of the files involved, we are not saving initialization pvp files on the repository.  We are planning to make these files available through a Google Drive link.  If you have access to the NMC machines, you can get them by going to /nh/compneuro/Data/PASCAL_VOC/demo_PASCAL_Classification_Models
+scp the NMC machine’s directory /nh/compneuro/Data/PASCAL_VOC/demo_PASCAL_Classification_Models/ClassifierModels/ into the local machine’s PASCAL_Classification/ClassifierModels/
+Then cd to the PASCAL_Classification/ directory and run the following commands
+ln -s ../ClassifierModels/Classifiers/landscape7a Classifiers
+ln -s ../ClassifierModels/InitialV/landscape5 InitialV
+ln -s ../ClassifierModels/S1S2Weights/landscape7 S1S2Weights
+ln -s ../ClassifierModels/Thresholds/landscape8b Thresholds
+
+If more update files appear in the ClassifierModels directory, these links can be updated to use them.
+
+6. cd to the workspace directory and run ccmake.  The demo adds one new cache variable, “CONFIG_FILE”.  It’s default is PASCAL_Classification/src/config.txt (hence step 4 above; cmake will error out if CONFIG_FILE does not point to an existing file).
+
+7. Run make.  The executable file that gets generated in in PASCAL_Classification/DIRECTORY/PASCAL_Classification, where DIRECTORY is the directory determined by the CMAKE_BUILD_TYPE and BUILD_DIR cmake variables.
+
+8. cd to PASCAL_Classification and run the command
+DIRECTORY/PASCAL_Classification -p paramsfiles/portrait.params
+Add an mpiexec wrapper and additional PetaVision arguments according to the setup of your machine.  There are three params files included in the paramsfiles directory.  portrait.params resizes and crops images to 192x256 pixels; landscape.params, 256x192 pixels, and square.params, 256x256 pixels.
+
+After some initialization messages, a prompt “Enter filename:” appears.  Enter the path of an image file (acceptable formats include jpg, png, or any file format understood by your GDAL installation).  Relative paths are relative to PetaVision’s working directory (the directory you were in when you ran the program, unless you used the -w option).
+
+The program runs for 200 iterations, and then prompts for another filename.  You can either enter another image file, or type ctrl-D to end input.  Once you’ve done so, the program runs for another 200 timesteps, and it also launches octave to create the heat map for the first image.  Octave runs in a separate process and will end by itself.  Each image will launch a new octave process.  The program waits until the previous octave process finishes before starting the next one.  However, octave typically finishes by the time the program is ready for the next image, so this is rarely an issue.
+
+9.  Output:  The program creates the following:
+output/   This directory contains the .pvp files created by calls to outputState.  You can change this directory in config.txt
+heatMapMontage/  This directory contains the .png files created by the calling the octave heatMapMontage m-file.  You can change this directory in config.txt
+octave.log A log file consisting of the octave commands called, and the output of those commands.
+
+The config.txt file:
+The config.txt file consists of lines that specify runtime configuration settings.  The syntax is restrictive: the name of a setting, a colon, and the value of the setting as a string in quotes.  Currently, there is no facility to add comments.
+The settings are as follows:
+
+imageLayer (required): the name of the ImageFromMemoryBuffer layer, defined in the params file, that will be used as the background of the heat maps.  The layer must exist and must be an ImageFromMemoryBuffer layer.
+
+resultLayer (required): the name of the HyPerLayer, defined in the params file, that gives the confidence of each tile in the input image.  The layer must exist and must be in the HyPerLayer hierarchy.
+octaveCommand (required): the name of the command used to run octave from the command line.  The demo calls octave with the argument ‘—eval heatMapMontage(arguments)’ and expects that the heatMapMontage.m command will be executed.
+
+octaveLogFile (required): the name of the log file containing the octave commands and messages printed by octave, to either stdout or stderr
+
+heatMapMontageDir (required): the directory that will contain the heat maps.  The files produced in this directory will be called frame1.png, frame2.png, etc.
+
+displayCommand (optional): If present, and if the string is nonempty, this octave will call this command with an argument of the heat map file in heatMapMontageDir once it is created.  Octave uses the system() command to do this, so the display command must finish before the next frame can be processed.  By setting this to “display”, for example, you can use the ImageMagick display command to view the heat maps as they are produced, although you will have to close each window before proceeding.  On Macs, the “open” command will open the heat map in Preview, and you will not have to close the window before proceeding.
+
