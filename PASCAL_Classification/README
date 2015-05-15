@@ -38,13 +38,14 @@ The CurrentModel directory needs to contain the following pvp files:
       Thresholds/ThresholdConn_64.pvp
 Because of the size of the files involved, we are not saving initialization pvp files on the repository.  We are planning to make these files available through a Google Drive link.  If you have access to the NMC machines, you can get them by going to /nh/compneuro/Data/PASCAL_VOC/demo_PASCAL_Classification_Models
 scp the NMC machine’s directory /nh/compneuro/Data/PASCAL_VOC/demo_PASCAL_Classification_Models/ClassifierModels/ into the local machine’s PASCAL_Classification/ClassifierModels/
-Then cd to the PASCAL_Classification/ directory and run the following commands
+Create the directory PASCAL_Classification/CurrentModel and cd to it.
+Then enter the following commands. 
 ln -s ../ClassifierModels/Classifiers/landscape7a Classifiers
 ln -s ../ClassifierModels/InitialV/landscape5 InitialV
 ln -s ../ClassifierModels/S1S2Weights/landscape7 S1S2Weights
 ln -s ../ClassifierModels/Thresholds/landscape8b Thresholds
 
-If more update files appear in the ClassifierModels directory, these links can be updated to use them.
+As new update files appear in the ClassifierModels directory, these links can be updated to use them.
 
 6. cd to the workspace directory and run ccmake.  The demo adds one new cache variable, “CONFIG_FILE”.  It’s default is PASCAL_Classification/src/config.txt (hence step 4 above; cmake will error out if CONFIG_FILE does not point to an existing file).
 
