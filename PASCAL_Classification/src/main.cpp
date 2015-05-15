@@ -162,9 +162,6 @@ int main(int argc, char* argv[])
       if (rank==0) { PV_fclose(resultPvpStream); }
       assert(numParams==20);
 
-      free(imageFile);
-      imageFile = getImageFileName(hc->icCommunicator());
-
       if (rank==0) {
          int resultFrameNumber = params[INDEX_NBANDS];
          std::stringstream montagePath("");
@@ -216,6 +213,9 @@ int main(int argc, char* argv[])
             /* parent process */
          }
       }
+
+      free(imageFile);
+      imageFile = getImageFileName(hc->icCommunicator());
    }
 
    delete hc;

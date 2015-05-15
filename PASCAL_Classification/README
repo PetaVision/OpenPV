@@ -57,7 +57,7 @@ Add an mpiexec wrapper and additional PetaVision arguments according to the setu
 
 After some initialization messages, a prompt “Enter filename:” appears.  Enter the path of an image file (acceptable formats include jpg, png, or any file format understood by your GDAL installation).  Relative paths are relative to PetaVision’s working directory (the directory you were in when you ran the program, unless you used the -w option).
 
-The program runs for 200 iterations, and then prompts for another filename.  You can either enter another image file, or type ctrl-D to end input.  Once you’ve done so, the program runs for another 200 timesteps, and it also launches octave to create the heat map for the first image.  Octave runs in a separate process and will end by itself.  Each image will launch a new octave process.  The program waits until the previous octave process finishes before starting the next one.  However, octave typically finishes by the time the program is ready for the next image, so this is rarely an issue.
+The program runs for 200 iterations, and then calls Octave to create a heat map for the image.  It then prompts for another filename.  Octave is called in parallel, so the program does not need to wait for Octave to finish before it starts the 200 iterations for the second filename.  However, the program does wait until one octave process finishes before it will start the next octave process.  Octave typically finishes by the time the program is ready for the next image, so this is rarely an issue.
 
 9.  Output:  The program creates the following:
 output/   This directory contains the .pvp files created by calls to outputState.  You can change this directory in config.txt
