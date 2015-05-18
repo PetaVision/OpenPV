@@ -1,13 +1,3 @@
-// // HyPerHLCA.params
-//
-// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
-//
-//
-// Implements the locally competitive algorithm described in
-// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
-// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
-///////////////////////////
-
 debugParsing = true;
 
 HyPerCol "column" = {
@@ -318,9 +308,10 @@ HyPerConn "LCA_V1ToSLP_Recon_Buffer" = {
    //initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/Last/LCA_V1ToSLP_Error_W.pvp";
    
    weightInitType                      = "UniformRandomWeight";
-   // initWeightsFile                     was set to (NULL);
-   wMinInit                            = -0.1;
-   wMaxInit                            = 0.1;
+   //// initWeightsFile                     was set to (NULL);
+
+   wMinInit                            = -0.01;
+   wMaxInit                            = 0.01;
 
    triggerFlag                         = false;
    weightUpdatePeriod                  = 1;
@@ -359,8 +350,18 @@ IdentConn "SLP_Recon_BufferToSLP_Error" = {
 };
 
 
-////Running 2 times
+//Running 2 times
 //ParameterSweep "column":outputPath = {
-//    "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/";
-//    "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/";
+//    "/home/ec2-user/mountData/benchmark/train/aws_slp_white_LCA/";
+//    "/home/ec2-user/mountData/benchmark/train/aws_slp_white_LCA/";
+//};
+//
+//ParameterSweep "LCA_V1ToSLP_Recon_Buffer":weightInitType = {
+//    "UniformRandomWeight";
+//    "FileWeight";
+//};
+//
+//ParameterSweep "LCA_V1ToSLP_Recon_Buffer":initWeightsFile = {
+//    NULL;
+//    "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/Last/LCA_V1ToSLP_Error_W.pvp";
 //};
