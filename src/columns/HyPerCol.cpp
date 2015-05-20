@@ -2302,6 +2302,11 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       std::string timerpathstring = cpDir;
       timerpathstring += "/";
       timerpathstring += "timers.txt";
+
+      //std::string timercsvstring = cpDir;
+      //timercsvstring += "/";
+      //timercsvstring += "timers.csv";
+
       const char * timerpath = timerpathstring.c_str();
       PV_Stream * timerstream = PV_fopen(timerpath, "w", getVerifyWrites());
       if (timerstream==NULL) {
@@ -2310,7 +2315,16 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       }
       writeTimers(timerstream->fp);
 
+      //const char * timercsvpath = timercsvstring.c_str();
+      //PV_Stream * timercsvstream = PV_fopen(timercsvpath, "w", getVerifyWrites());
+      //if (timercsvstream==NULL) {
+      //   fprintf(stderr, "Unable to open \"%s\" for checkpointing timer information: %s\n", timercsvpath, strerror(errno));
+      //   exit(EXIT_FAILURE);
+      //}
+      //writeCSV(timercsvstream->fp);
+
       PV_fclose(timerstream); timerstream = NULL;
+      //PV_fclose(timercsvstream); timercsvstream = NULL;
    }
 
    // write adaptive time step info if dtAdaptFlag == true
