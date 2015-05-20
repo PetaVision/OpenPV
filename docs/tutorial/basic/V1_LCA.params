@@ -18,7 +18,7 @@ HyPerCol "column" = {
     progressInterval                    = 2000;
     writeProgressToErr                  = true;
     verifyWrites                        = true;
-!    outputPath                          = "~/workspace/V1_LCA/output";     // Set the path for where you want PetaVision to output
+!    outputPath                          = "~/workspace/V1_LCA/output";     // Set the path for where you want PetaVision to output; // [AWS?] set path to EBS ~/mountData/V1_LCA/output
     printParamsFilename                 = "pv.params";                      // This will be printed to the outputPath
     randomSeed                          = 1234567890;                                               
     nx                                  = 32;
@@ -27,7 +27,7 @@ HyPerCol "column" = {
     filenamesContainConnectionNames     = 1;
     initializeFromCheckpointDir         = "";
     checkpointWrite                     = true;             // We want the checkpoint for our future experiments
-!    checkpointWriteDir                  = "~/workspace/V1_LCA/output/Checkpoints/";    
+!    checkpointWriteDir                  = "~/workspace/V1_LCA/output/Checkpoints/";    // If you are on AWS and started a EBS volume make path to ~/mountData/V1_LCA/output/Checkpoints/ 
     checkpointWriteTriggerMode          = "step";
     checkpointWriteStepInterval         = 10000000;        // Checkpoint after each run through the dataset
     deleteOlderCheckpoints              = true;             // true = only retain the last checkpoint (saves space)
