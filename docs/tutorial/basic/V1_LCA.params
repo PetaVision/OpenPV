@@ -249,7 +249,7 @@ TransposeConn "ErrorToV1" = {
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     gpuGroupIdx                         = -1;
-    originalConnName                    = "S1ToError";
+    originalConnName                    = "V1ToError";
 };
 
 CloneKernelConn "V1ToRecon" = {
@@ -264,5 +264,5 @@ CloneKernelConn "V1ToRecon" = {
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
-    originalConnName                    = "S1ToError";
+    originalConnName                    = "V1ToError";
 };

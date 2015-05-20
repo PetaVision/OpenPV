@@ -77,7 +77,6 @@ The following picture is a simplified graphical representation of the params fil
 
 ![V1-LCA](https://sourceforge.net/p/petavision/code/HEAD/tree/trunk/docs/tutorial/basic/V1_LCA_simple.png?format=raw)
 
-
 If you are using the PetaVision Public AMI, you can make these drawings of any params file just by typing:
 
     $ draw [name of params file]
@@ -89,7 +88,7 @@ In the case of AWS, you may want to copy the params file to your EBS volume in t
 
 ## 2.2. Inspect the params file
     
-First just look over the params and see if you can understand the general structure of a params file.  It is organized into three categories: the 1.column, 2.layers, and 3.connections, to simulate a cortical column in the brain. The params file you will be using is commented to help guide you along to highlight this structure of the params file. 
+First, just look over the params and see if you can understand the general structure of a params file.  It is organized into three categories: the 1) column, 2) layers, and 3) connections, to simulate a cortical column, with neurons and axons/dendrites in the brain. The params file you will be using is commented to help guide you along to highlight this structure of the params file. 
 
 ### 2.2.1. HyPerCol
 
@@ -123,7 +122,7 @@ ANNNormalizedErrorLayer | "Error"  | computes residual error between Image and V
 HyPerLCALayer           | "V1"     | makes a sparse representation of Image using LCA
 ANNLayer                | "Recon"  | output for visualization
 
-Before moving on to Connections, we should make a note about displayPeriod, writeStep,  triggerFlag, and phase. Movie has a parameter 'displayPeriod' that sets the number of  timesteps an image is shown. We then typically set the writeStep and initialWriteTime to be some integer interval of displayPeriod, but this isn't necessary. For example if you want to see what the sparse reconstruction looks like while the same image is being shown to Movie, you can change the writeStep for "Recon" to 1 (just note that your output file will get very large very quickly so you may want change the stopTime to a smaller value if you want this sort of visualization).
+Let's look more closely at some more of the layer parameters: displayPeriod, writeStep,  triggerFlag, and phase. Movie has a parameter 'displayPeriod' that sets the number of  timesteps an image is shown. We then typically set the writeStep and initialWriteTime to be some integer interval of displayPeriod, but this isn't necessary. For example if you want to see what the sparse reconstruction looks like while the same image is being shown to Movie, you can change the writeStep for "Recon" to 1 (just note that your output file will get very large very quickly so you may want change the stopTime to a smaller value if you want this sort of visualization).
 
 While writeStep has to do with how frequently PetaVision outputs to the .pvp file (this is the unique binary format used for PetaVision), the triggerFlag in more in with the dynamics of the layers.  Notice only the "Recon" layer has a trigger flag and that the triggerLayerName = "Image".  This means that PetaVision will only process the convolution of the "Recon" after a new image is shown.  
 
@@ -294,11 +293,21 @@ One extra step for you AWS users: scp the files from the AWS instance to your lo
 
     $ scp -r -i ~/.ssh/cred ec2-user@[000.000.000.000]:/home/ec2-user/mountData/V1_LCA/output/Analysis .
 
-# 5. Experiment
+# 5. Run PetaVision with the Test Dataset
+
+Now that you have run PetaVision, trained a dictionary, and reviewed the weights and reconstructions, let's use that dictionary on some test data.
+
+# 6. Experiment with Parameters
 
 Now is your chance to explore and experiment some with the different parameters.  Maybe you want to reduce the displayPeriod, modify the threshold, or change the learning rate of your connections.  Perhaps you want to use a totally different dataset.  
 
 Whatever you do, be sure to come back and tune in when we use the weights that you just trained to design a SLP classifier. 
+
+
+
+*******
+******          Run the Test Dataset
+*****
 
 # 6. Comments / Questions?
 
