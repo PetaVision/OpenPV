@@ -78,7 +78,7 @@ void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag){
  * @brief momentumMethod: The momentum method to use
  * @details Assuming a = dwMax * pre * post
  * simple: deltaW(t) = a + momentumTau * deltaW(t-1)
- * viscosity: deltaW(t) = momentumTau * (deltaW(t-1) + a) * (1-e^(-deltaT/momentumTau))
+ * viscosity: deltaW(t) = (deltaW(t-1) * exp(-1/momentumTau)) + a
  * alex: deltaW(t) = momentumTau * delta(t-1) - momentumDecay * dwMax * w(t) - a
  */
 void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag){
@@ -180,12 +180,15 @@ int MomentumConn::applyMomentum(int arbor_ID){
          }
          else if(!strcmp(momentumMethod, "viscosity")){
             for(int k = 0; k < nxp*nyp*nfp; k++){
-               dwdata_start[k] = momentumTau * (prev_dw_start[k] + dwdata_start[k]) * (1 - exp(- parent->getDeltaTime() / momentumTau)) - momentumDecay*wdata_start[k];
+               //dwdata_start[k] = momentumTau * (prev_dw_start[k] + dwdata_start[k]) * (1 - exp(-1.0/ momentumTau)) - momentumDecay*wdata_start[k];
+               dwdata_start[k] = (prev_dw_start[k] * exp(-1.0/ momentumTau)) + dwdata_start[k] - momentumDecay*wdata_start[k];
             }
          }
          else if(!strcmp(momentumMethod, "alex")){
             for(int k = 0; k < nxp*nyp*nfp; k++){
-               dwdata_start[k] = momentumTau * prev_dw_start[k] - (1-momentumDecay) * getDWMax()* wdata_start[k] - dwdata_start[k];
+               //Last term might have sign wrong
+               //dwdata_start[k] = momentumTau * prev_dw_start[k] - (1-momentumDecay) * getDWMax()* wdata_start[k] - dwdata_start[k];
+               dwdata_start[k] = momentumTau * prev_dw_start[k] - (1-momentumDecay) * getDWMax()* wdata_start[k] + dwdata_start[k];
             }
          }
       }
