@@ -10,12 +10,31 @@ Depending on your internet connection and the speed of your machine you should b
 
 # 0. Pre-requisites:
 
-1. Successfully build PetaVision and run a BasicSystemTest.  
+1. Successfully build PetaVision from the 'PetaVision Public AMI'
     - [AWS Installation](https://sourceforge.net/p/petavision/wiki/Install%20PetaVision%20AWS/)
     - [Ubuntu Installation](https://sourceforge.net/p/petavision/wiki/Install%20PetaVision%20Ubuntu/)
     - [OSX Installation](https://sourceforge.net/p/petavision/wiki/Install%20PetaVision%20OSX/)
     
-2. Grab a cup of coffee and hunker down. 
+    These tutorials will take you through downloading and building PetaVision.  You can do everything in this tutorial using the PVSystemTests/BasicSystemTest build of PetaVision or another sandbox (eg. HyPerHLCA), but both and others will work.  For this tutorial, however, let's assume you are using the HyPerHLCA sandbox of PetaVision. 
+    
+2. Know how to move around directories and edit/copy files using the command-line:
+
+    Almost all of this tutorial is performed using the command line.  If this is your first time using the command line (eg. Terminal on OSX or Linux and Powershell for Windows), please search for a basic tutorial.  The key commands in Terminal you will need to use are 'ls', 'cd', 'cp', 'mv', and 'rm'.  I recommend this website [LinuxCommand.org](http://linuxcommand.org/index.php) for a quick primer.  
+
+3. Know basic vim/emacs commands:
+    
+    You'll have to edit some files using a command-line text editor.  You only need to know a couple of commands that you can learn from any decent tutorial. Try this website [Learn Vim Progressively](http://yannesposito.com/Scratch/en/blog/Learn-Vim-Progressively/) or from the command line type 'vimtutor' to open up a vim walkthrough in the vim environment.  You can navigate vim using your arrow keys. The important basic commands include:
+    
+    vim command  |    what it does
+-----------------|-----------------------------------------
+vim file.txt     | 'actually a terminal bash command'; opens file.txt in vim
+i                | start insert mode at the cursor
+Esc              | exit insert mode
+:wq              | save and quit the file you were working on in vim
+:q!              | force quit without saving
+    
+
+3. Grab a cup of coffee and let's get started!
 
 # 1. Get your dataset 
 
@@ -58,13 +77,21 @@ Navigate to where you unzipped the cifar-10-matlab.tar.gz file and extract the i
     > extractImagesOctave('data_batch_4.mat',4)
     > extractImagesOctave('data_batch_5.mat',5)
     > extractImagesOctave('test_batch.mat',0)
+    >
+    > quit
 
-## 1.4. Combine the data_batches to make a master file
+## 1.4. Combine the data_batches to make a master file list
     
-Each run of extractImagesOctave produced a unique text file listing all the images in random order called 'randorder.txt'.  If you wish to expand your training dataset to  include all of the training images, you can concatenate them by copying them to a common directory with different names (to avoid clobbering the files) and then doing:    
+Each run of extractImagesOctave produced a unique text file listing all the images in random order called 'randorder.txt' in the directory where  If you wish to expand your training dataset to include all of the training images, you can concatenate them by copying them to a common directory with different names (to avoid clobbering the files). Say you made the output directory for you CIFAR images ~/mountData/dataset/CIFAR:
 
+    $ cd ~/mountData/dataset/CIFAR/   
+    $ cp data_batch_1/randorder.txt ./rand1.txt
+    $ cp data_batch_2/randorder.txt ./rand2.txt
+    $ cp data_batch_3/randorder.txt ./rand3.txt
+    $ cp data_batch_4/randorder.txt ./rand4.txt
+    $ cp data_batch_5/randorder.txt ./rand5.txt
     $ cat *.txt > mixed_cifar.txt
-
+    
 Congratulations!  You now have a massive training dataset along with a test set that you will use in the next tutorial in creating a classifier.  For now we are only concerned about using the dataset for unsupervised learning.
     
 # 2. The Params File
@@ -135,11 +162,6 @@ ANNNormalizedErrorLayer | "Error"    |    1
 HyPerLCALayer           | "V1"       |    2
 ANNLayer                | "Recon"    |    1
 
-
-
-**********
-*********       Absolute Value of the Error Layer
-*******
 
 For more details on the HyPerLayer parameters please read the documentation:[HyPerLayer Parameters](http://petavision.sourceforge.net/doxygen/html/classPV_1_1HyPerLayer.html#member-group)
 

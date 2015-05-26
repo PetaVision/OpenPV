@@ -3,6 +3,8 @@ AWS Installation
 
 Welcome to the cloud. Here's everything you need to know about how to get your favorite run on Amazon's AWS services.
 
+[TOC]
+
 Introduction
 -------------------------------
 Amazon AWS is a suite of tools to provide a virtual computing environment for end users. Here are the services we'll be using.
@@ -20,7 +22,7 @@ Amazon AWS is a suite of tools to provide a virtual computing environment for en
 - S3: Simple Storage Service
    + Long term shared storage. We don't have file io access to S3; everything must be downloaded/uploaded through https or AWS CLI. Databases and checkpoints will be stored here.
 
-There exists a PetaVision AMI that has everything set up for PetaVision on GPUs. Additionally, the following software is installed on the image:
+There exists a PetaVision AMI called 'PetaVision Public AMI' that has everything set up for PetaVision on GPUs. Additionally, the following software is installed on the image:
 - Octave
 - Python
 - ffmpeg
@@ -81,12 +83,13 @@ Starting an Instance
 An AWS Instance allows the user to create a virtual environment to do runs. We do spot instances to save money, and already have the PetaVision capabilities to restart a run if it does die. For more information on spot instances, go to http://aws.amazon.com/ec2/purchasing-options/spot-instances/.
 
 ###Creating a Spot Instance  ##############
-- Go to the EC2 management page. Click AMI under Images in the left tab.
-- Find the AMI marked `CURRENT WORKING AMI`. Select it and click launch.
+- Go to the EC2 management page. Click Instances under Instances in the left tab.
+- Click Launch Instance.  Click on Community AMIs in the left tab.
+- Using the search bar, find the AMI marked `PetaVision Public AMI`. Click Select.
 - Pick a GPU instance (g2.2xlarge). Click next.
 - (Note that there are additional steps involved if you are launching an mpi cluster of instances on this screen under the MPI Clusters section)
 - Check Request Spot Instances under Purchasing option
-- Type in an appropriate maximum price.
+- Type in an appropriate maximum price (approximately $0.15 - $0.20 above the current price is usually safe to insulate you from changes in price).
 - Under subnet, pick one of the 3 choices based on the current price (Table when selecting a spot instance) and price history (Spot Requests under Instances, Price History up top. Select instance type as g2.2xlarge).
 - Note the subnet.
 - Click next.
@@ -101,6 +104,8 @@ An AWS Instance allows the user to create a virtual environment to do runs. We d
 Spot instances will take a few minutes to fulfill. Looking under Instances in the left tab, you can see the status of your request.
 Once your instance is started, name the instance something relevant.
 
+The PetaVision Public AMI already includes all the code and tools you will need to start a PetaVision. You will still wat
+
 
 Working with a running instance
 -------------------------------
@@ -111,11 +116,15 @@ Working with a running instance
 ssh ec2-user@public_ip_address
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+- After attached to your AWS run, update the instance:
+~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
+sudo yum update
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - Copy data to your instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 scp sourceFile ec2-user@public_ip_address:\~/destinationFile
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 Creating an EBS persistent volume
 -------------------------------
@@ -155,15 +164,19 @@ Because the instance was booted from a PetaVision AMI, all of petavision should 
 ###Setting up your sandbox in your persistent volume ##############
 - cd to mountData.
 - Check out any sandboxes that you are planning on using. Ex:
-   + svn co http://svn.code.sf.net/p/petavision/code/sandbox/DepthLCA DepthLCA (read only)
+   + svn co http://svn.code.sf.net/p/petavision/code/sandbox/HyPerHLCA HyPerHCLA            (this is read only)
    + svn co https://sourceForgeUserName@svn.code.sf.net/p/petavision/code/trunk PetaVision
+   + svn co http://svn.code.sf.net/p/petavision/code/sandbox/PVSystemTests PVSystemTests    (this is a standard sandbox useful for checking PetaVision)
 - cd to ~/workspace.
-- Edit CMakeLists.txt using your favorite editor.
+- Edit CMakeLists.txt using your favorite command-line text editor. (eg. vim or emacs)
 - At the end of the file, add the absolute path to your sandbox to the cmakelists. Ex:
-   + add_subdirectory(/home/ec2-user/mountData/DepthLCA /home/ec2-user/mountData/DepthLCA)
+   + add_subdirectory(/home/ec2-user/mountData/HyPerHLCA /home/ec2-user/mountData/HyPerHLCA)
    + Note that the same directory is put twice into the command add_subdirectory.
 
 ###Building PetaVision ################
+Note for those new to working with source code: the process of building a program takes the text/code description of a program and compiles that into a executable (0's and 1's) that a computer understands.  Think of it as creating a .exe file for a windows computer using a text description of what the program should do, which in our case is saved in the source files that end in .cpp and .hpp since we are working with C++. 
+
+Compiling the program takes two steps. The first step involves creating the instructions for the compiler which will do the heavy lifting of making the program. We use the open-sourced software CMake to create those instructions using CMakeLists.txt as our input to CMake.  After using CMake, we will use a compiler (GCC on linux and Clang on the OSX) to actually make the executable program using the command 'make'.  The process is all quite easy, but hopefully this was useful information for you newbies. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 cd ~/workspace.
@@ -181,7 +194,6 @@ Most of these variables should already be set up, but here are the important one
 Press c to configure. Press e to exit the print statements.
 Repeat until the g option appears and press g. 
 cd to your sandbox and run `make -j 8`
-
 
 S3
 -------------------------------

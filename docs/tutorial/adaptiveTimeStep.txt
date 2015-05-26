@@ -1,0 +1,41 @@
+Adaptive timescale (better adaptive time
+
+goal: 
+1) avoid / recover from instabilities
+	- runs used to blow up from numerical instabilities / take forever
+	-
+
+dt = dt/tau 		
+	- really adjusting tau, 
+	
+if error high:
+	increase tau to max default value
+	
+
+if error low:
+
+
+adjusting rate of exp
+
+
+tau never changes,  
+	dt that the layer is told to used
+	
+dt/tau	
+
+argument dt that gets passed to update state, 
+
+sending update state dt/tau
+
+updateState(t, dt) 		where dt = dt/tau
+
+dt = .5		tau = 10
+dt = 1		tau = 20
+
+dt is determined by the adapt timescale stuff at the hypercol level
+	- what's the largest the largest you can afford
+	- chooses the lowest of all the layers
+
+numerical instabilities occur, b/c you have a rate of change 
+and you are going to 
+if the derivative is too big, you can over shoot .. 
