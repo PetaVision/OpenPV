@@ -117,7 +117,7 @@ IdentConn "inputToMaskOut" = {
    writeStep                           = -1;
 };
 
-IdentConn "maskToTest" = {
+IdentConn "maskOutToTest" = {
    preLayerName                        = "maskOut";
    postLayerName                       = "test";
    channelCode                         = 0;
@@ -130,6 +130,15 @@ IdentConn "inputToTest" = {
    preLayerName                        = "input";
    postLayerName                       = "test";
    channelCode                         = 1;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+IdentConn "maskToTest" = {
+   preLayerName                        = "mask";
+   postLayerName                       = "test";
+   channelCode                         = 2;
    delay                               = [0.000000];
    // initWeightsFile                     was set to (NULL);
    writeStep                           = -1;

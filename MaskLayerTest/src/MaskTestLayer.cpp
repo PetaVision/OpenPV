@@ -17,24 +17,28 @@ int MaskTestLayer::updateState(double timef, double dt){
 
    pvdata_t * GSynExt = getChannel(CHANNEL_EXC); //gated
    pvdata_t * GSynInh = getChannel(CHANNEL_INH); //gt
+   pvdata_t * GSynInhB = getChannel(CHANNEL_INHB); //mask
 
    bool isCorrect = true;
    //Grab the activity layer of current layer
    //We only care about restricted space
-   int numActive = 0;
+   
    for (int k = 0; k < getNumNeurons(); k++){
    //std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
-      if(GSynExt[k]){
-         numActive++;
+      if(GSynInhB[k]){
          if(GSynExt[k] != GSynInh[k]){
              std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
              isCorrect = false;
          }
       }
+      else{
+         if(GSynExt[k] != 0){
+             std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+             isCorrect = false;
+         }
+      }
    }
    
-   //Make sure all activity isn't 0
-   assert(numActive != 0);
 
    if(!isCorrect){
       exit(-1);
