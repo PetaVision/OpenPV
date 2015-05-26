@@ -18,13 +18,23 @@ public:
    virtual ~ANNNormalizedErrorLayer();
    virtual double calcTimeScale();
    virtual double getTimeScale();
+   virtual int updateState(double time, double dt);
+   virtual int communicateInitInfo();
 protected:
    ANNNormalizedErrorLayer();
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_useMask(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
    int initialize(const char * name, HyPerCol * hc);
 private:
    int initialize_base();
    double timeScale;
+   float inputMag;
    std::ofstream timeScaleStream;
+
+   bool useMask;
+   char* maskLayerName;
+   HyPerLayer* maskLayer;
 };
 
 } /* namespace PV */
