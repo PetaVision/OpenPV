@@ -325,11 +325,8 @@ Now is your chance to explore and experiment some with the different parameters.
 
 Whatever you do, be sure to come back and tune in when we use the weights that you just trained to design a SLP classifier. 
 
-
-
-*******
 ******          Run the Test Dataset
-*****
+
 
 # 6. Comments / Questions?
 
