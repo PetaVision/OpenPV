@@ -1224,6 +1224,7 @@ int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
 
 
 static inline int _mkdir(const char *dir) {
+   mode_t dirmode = S_IRWXU | S_IRGRP | S_IXGRP;
    char tmp[PV_PATH_MAX];
    char *p = NULL;
    int status = 0;
@@ -1242,13 +1243,13 @@ static inline int _mkdir(const char *dir) {
    for(p = tmp + 1; *p; p++)
       if(*p == '/') {
          *p = 0;
-         status |= mkdir(tmp, S_IRWXU);
+         status |= mkdir(tmp, dirmode);
          if(status != 0 && errno != EEXIST){
             return status;
          }
          *p = '/';
       }
-   status |= mkdir(tmp, S_IRWXU);
+   status |= mkdir(tmp, dirmode);
    if(errno == EEXIST){
       status = 0;
    }
