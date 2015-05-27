@@ -197,7 +197,7 @@ public:
 #endif
 
 private:
-   int initializeThreads(int device);
+   int initializeThreads(char* in_device);
    int getAutoGPUDevice();
 
    int initialize_base();

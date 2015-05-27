@@ -22,7 +22,7 @@ void usage()
    // printf(" [-n <number of timesteps>]\n");
    printf(" [-o <output directory>\n");
    printf(" [-s <random number generator seed>]\n");
-   printf(" [-d <GPU device>]\n");
+   printf(" [-d [<GPU device>,<GPU device>,...]]\n");
    printf(" [-l <output log file>]\n");
    printf(" [-w <working directory>]\n");
    printf(" [-r|-c <checkpoint directory>]\n");
@@ -41,7 +41,7 @@ void usage()
  * @device
  */
 int parse_options(int argc, char * argv[], bool * paramusage, bool * require_return,
-                  char ** output_path, char ** param_file, char ** log_file, int * opencl_device,
+                  char ** output_path, char ** param_file, char ** log_file, char ** gpu_devices,
                   unsigned int * random_seed, char ** working_dir,
                   int * restart, char ** checkpointReadDir,
                   int * numthreads, int * num_rows, int * num_columns)
@@ -67,7 +67,7 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
    } 
    *require_return = reqrtn;
 
-   pv_getopt_int(argc, argv, "-d", opencl_device, paramusage);
+   pv_getopt_str(argc, argv, "-d", gpu_devices, paramusage);
    pv_getoptionalopt_int(argc, argv, "-t", numthreads, 0, paramusage);
    pv_getopt_str(argc, argv, "-o", output_path, paramusage);
    pv_getopt_str(argc, argv, "-p", param_file, paramusage);

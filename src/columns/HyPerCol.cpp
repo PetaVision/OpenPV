@@ -247,8 +247,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
    }
    int rank = icComm->commRank();
 
-   int opencl_device = 0;  // default to GPU for now
-
+   char* gpu_devices = NULL; 
    char * param_file = NULL;
    char * working_dir = NULL;
    int restart = 0;
@@ -258,7 +257,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
    int numColumns = 1;
    bool paramusage[argc]; // array to indicate whether parse_options recognized the argument.
    parse_options(argc, argv, paramusage, &reqrtn, &outputPath, &param_file, &log_file,
-                 &opencl_device, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads, &numRows, &numColumns);
+                 &gpu_devices, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads, &numRows, &numColumns);
 
 
    //Set up log file if it exists
@@ -560,7 +559,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
 
    // run only on GPU for now
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   initializeThreads(opencl_device);
+   //Default to auto assign gpus
+   initializeThreads(gpu_devices);
 #endif
 
    //Only print rank for comm rank 0
@@ -2724,15 +2724,45 @@ int HyPerCol::getAutoGPUDevice(){
    return returnGpuIdx;
 }
 
-int HyPerCol::initializeThreads(int in_device)
+int HyPerCol::initializeThreads(char* in_device)
 {
+   int numMpi = icComm->commSize();
    int device;
-   if(in_device == -1){
+
+   //default value
+   if(in_device == NULL){
       //Device of -1 means to use mpi process for each device
       device = getAutoGPUDevice();
    }
    else{
-      device = in_device;
+      std::vector <int> deviceVec;
+      std::stringstream ss(in_device);
+      std::string stoken;
+      //Grabs strings from ss into item, seperated by commas
+      //TODO does this support no tokens?
+      while(std::getline(ss, stoken, ',')){
+         //Convert stoken to integer
+         for(std::string::const_iterator k = stoken.begin(); k != stoken.end(); ++k){
+            if(!isdigit(*k)){
+               fprintf(stderr, "Device specification error: %s contains unrecognized characters. Must be comma seperated integers greater or equal to 0 with no other characters allowed (including spaces).\n", in_device);
+               abort();
+            }
+         }
+         deviceVec.push_back(atoi(stoken.c_str()));
+      }
+      //Check length of deviceVec
+      //Allowed cases are 1 device specified or greater than or equal to number of mpi processes devices specified
+      if(deviceVec.size() == 1){
+         device = deviceVec[0];
+      }
+      else if(deviceVec.size() >= numMpi){
+         device = deviceVec[icComm->commRank()];
+      }
+      else{
+         fprintf(stderr, "Device specification error: Number of devices specified (%d) must be either 1 or greater than number of mpi processes (%d).\n", deviceVec.size(), numMpi);
+         abort();
+      }
+      std::cout << "MPI Process " << icComm->commRank() << " using device " << device << "\n";
    }
 
 #ifdef PV_USE_OPENCL
