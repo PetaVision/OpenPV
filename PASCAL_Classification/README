@@ -40,14 +40,14 @@ Because of the size of the files involved, we are not saving initialization pvp 
 scp the NMC machine’s directory /nh/compneuro/Data/PASCAL_VOC/demo_PASCAL_Classification_Models/ClassifierModels/ into the local machine’s PASCAL_Classification/ClassifierModels/
 Create the directory PASCAL_Classification/CurrentModel and cd to it.
 Then enter the following commands. 
-ln -s ../ClassifierModels/Classifiers/landscape7a Classifiers
-ln -s ../ClassifierModels/InitialV/landscape5 InitialV
-ln -s ../ClassifierModels/S1S2Weights/landscape7 S1S2Weights
-ln -s ../ClassifierModels/Thresholds/landscape8b Thresholds
+ln -s ../ClassifierModels/Classifiers/landscape12b Classifiers
+ln -s ../ClassifierModels/InitialV/landscape12 InitialV
+ln -s ../ClassifierModels/S1S2Weights/landscape12 S1S2Weights
+ln -s ../ClassifierModels/Thresholds/landscape12b Thresholds
 
 As new update files appear in the ClassifierModels directory, these links can be updated to use them.
 
-6. cd to the workspace directory and run ccmake.  The demo adds one new cache variable, “CONFIG_FILE”.  It’s default is PASCAL_Classification/src/config.txt (hence step 4 above; cmake will error out if CONFIG_FILE does not point to an existing file).
+6. cd to the workspace directory and run ccmake.  The demo adds one new cache variable, “CONFIG_FILE”.  Its default is PASCAL_Classification/src/config.txt (hence step 4 above; cmake will error out if CONFIG_FILE does not point to an existing file).
 
 7. Run make.  The executable file that gets generated in in PASCAL_Classification/DIRECTORY/PASCAL_Classification, where DIRECTORY is the directory determined by the CMAKE_BUILD_TYPE and BUILD_DIR cmake variables.
 
@@ -77,5 +77,5 @@ octaveLogFile (required): the name of the log file containing the octave command
 
 heatMapMontageDir (required): the directory that will contain the heat maps.  The files produced in this directory will be called frame1.png, frame2.png, etc.
 
-displayCommand (optional): If present, and if the string is nonempty, this octave will call this command with an argument of the heat map file in heatMapMontageDir once it is created.  Octave uses the system() command to do this, so the display command must finish before the next frame can be processed.  By setting this to “display”, for example, you can use the ImageMagick display command to view the heat maps as they are produced, although you will have to close each window before proceeding.  On Macs, the “open” command will open the heat map in Preview, and you will not have to close the window before proceeding.
+displayCommand (optional): If present, and if the string is nonempty, the heatMapMontage.m function will call this command with an argument of the heat map file in heatMapMontageDir once it is created.  Octave uses the system() command to do this, so the display command must finish before the next frame can be processed.  By setting this to “display”, for example, you can use the ImageMagick display command to view the heat maps as they are produced, although you will have to close each window before proceeding.  On Macs, the “open” command will open the heat map in Preview, and you will not have to close the window before proceeding.
 
