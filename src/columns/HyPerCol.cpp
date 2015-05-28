@@ -2759,7 +2759,7 @@ int HyPerCol::initializeThreads(char* in_device)
          device = deviceVec[icComm->commRank()];
       }
       else{
-         fprintf(stderr, "Device specification error: Number of devices specified (%d) must be either 1 or greater than number of mpi processes (%d).\n", deviceVec.size(), numMpi);
+         fprintf(stderr, "Device specification error: Number of devices specified (%zu) must be either 1 or greater than number of mpi processes (%d).\n", deviceVec.size(), numMpi);
          abort();
       }
       std::cout << "MPI Process " << icComm->commRank() << " using device " << device << "\n";
