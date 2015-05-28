@@ -653,16 +653,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = new GapConn(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  Use HyPerConn instead of GenerativeConn and PoolingConn instead of PoolingGenConn
-   if( !keywordMatched && !strcmp(classkeyword, "GenerativeConn") ) {
-      keywordMatched = true;
-      addedConn = new GenerativeConn(name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "PoolingGenConn") ) {
-      keywordMatched = true;
-      addedConn = new PoolingGenConn(name, hc);
-   }
-#endif // OBSOLETE
    if( !keywordMatched && !strcmp( classkeyword, "IdentConn") ) {
       keywordMatched = true;
       addedConn = (HyPerConn * ) new IdentConn(name, hc);
@@ -671,22 +661,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = (HyPerConn * ) new ImprintConn(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
-   if( !keywordMatched && !strcmp(classkeyword, "NoSelfKernelConn") ) {
-      keywordMatched = true;
-      addedConn = new NoSelfKernelConn(name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "SiblingConn") ) {
-      keywordMatched = true;
-      addedConn = new SiblingConn(name, hc);
-   }
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used
-   if( !keywordMatched && !strcmp(classkeyword, "ReciprocalConn") ) {
-      keywordMatched = true;
-      addedConn = new ReciprocalConn(name, hc);
-   }
-#endif // OBSOLETE
    if( !keywordMatched && !strcmp(classkeyword, "TransposeConn") ) {
       keywordMatched = true;
       addedConn = new TransposeConn(name, hc);
@@ -832,12 +806,6 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
    // PVParams * params = hc->parameters();
    bool keywordMatched = false;
    int status = PV_SUCCESS;
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
-   if( !strcmp(classkeyword, "ReciprocalEnergyProbe") ) {
-      keywordMatched = true;
-      addedProbe = new ReciprocalEnergyProbe(name, hc);
-   }
-#endif // OBSOLETE
    if( !strcmp(classkeyword, "KernelProbe") ) {
       keywordMatched = true;
       addedProbe = new KernelProbe(name, hc);

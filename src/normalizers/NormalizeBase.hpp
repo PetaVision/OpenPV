@@ -37,9 +37,6 @@ public:
    const char * getName() {return name;}
    const float getStrength() {return strength;}
    // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
-#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
-   const bool  getSymmetrizeWeightsFlag() {return symmetrizeWeightsFlag;}
-#endif // OBSOLETE
    const bool  getNormalizeArborsIndividuallyFlag() {return normalizeArborsIndividually;}
 
 protected:
@@ -47,10 +44,6 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
 
    virtual void ioParam_strength(enum ParamsIOFlag ioFlag);
-   // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
-#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
-   virtual void ioParam_symmetrizeWeights(enum ParamsIOFlag ioFlag);
-#endif // OBSOLETE
    virtual void ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag);
    virtual void ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag);
@@ -65,10 +58,6 @@ protected:
    int accumulateMaxAbs(pvwdata_t * dataPatchStart, int weights_in_patch, float * max);
    int accumulateMax(pvwdata_t * dataPatchStart, int weights_in_patch, float * max);
    int accumulateMin(pvwdata_t * dataPatchStart, int weights_in_patch, float * max);
-   // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
-#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
-   int symmetrizeWeights(HyPerConn * conn); // may be used by several subclasses
-#endif // OBSOLETE
    static void normalizePatch(pvwdata_t * dataStart, int weights_per_patch, float multiplier);
    HyPerCol * parent() { return parentHyPerCol; }
 
@@ -82,10 +71,6 @@ protected:
    HyPerConn ** connectionList;
    int numConnections;
    float strength;                    // Value to normalize to; precise interpretation depends on normalization method
-   // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
-#ifdef OBSOLETE // Marked obsolete Oct 24, 2014.  symmetrizeWeights is too specialized for NormalizeBase.  Create a new subclass to restore this functionality
-   bool symmetrizeWeightsFlag;        // Whether to call symmetrizeWeights.  Only meaningful if pre->nf==post->nf and connection is one-to-one
-#endif // OBSOLETE
 
    bool normalizeArborsIndividually;  // If true, each arbor is treated as its own connection.  If false, each patch groups all arbors together and normalizes them in common.
 

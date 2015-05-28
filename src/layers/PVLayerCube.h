@@ -22,14 +22,6 @@ int           pvcube_delete(PVLayerCube * cube);
 size_t        pvcube_size(int numItems);
 int           pvcube_setAddr(PVLayerCube * cube);
 
-#ifdef OBSOLETE // Marked Obsolete Sept 11, 2014.  Anything that calls these functions are themselves obsolete.
-PVPatch * pvpatch_new(int nx, int ny); // PVPatch * pvpatch_new(int nx, int ny, int nf);
-int       pvpatch_delete(PVPatch * p);
-
-pvdata_t * pvpatches_new(PVPatch ** patches, int nx, int ny, int nf, int nPatches);
-int       pvpatch_inplace_delete(PVPatch * p);
-#endif // OBSOLETE
-
 #ifdef __cplusplus
 }
 #endif

@@ -19,44 +19,6 @@
 extern "C" {
 #endif
 
-#ifdef OBSOLETE // Marked Obsolete Sept 11, 2014.  Anything that calls these functions are themselves obsolete.
-///////////////////////////////////////////////////////
-// pvpatch interface implementation
-//
-
-// PVPatch * pvpatch_new(int nx, int ny, int nf)
-PVPatch * pvpatch_new(int nx, int ny)
-{
-   // int sf = 1;
-   // int sx = nf;
-   // int sy = sx * nx;
-
-   PVPatch * p = (PVPatch *) malloc(sizeof(PVPatch));
-   assert(p != NULL);
-
-   // pvdata_t * data = NULL;
-
-   pvpatch_init(p, nx, ny); // pvpatch_init(p, nx, ny, nf, sx, sy, sf, data);
-
-   return p;
-}
-
-int pvpatch_delete(PVPatch* p)
-{
-   free(p);
-   return 0;
-}
-
-int pvpatch_inplace_delete(PVPatch* p)
-{
-   free(p);
-   return 0;
-}
-
-
-
-#endif // OBSOLETE
-
 ///////////////////////////////////////////////////////
 // PVLayerCube interface implementation
 //

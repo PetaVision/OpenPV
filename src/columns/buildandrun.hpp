@@ -81,10 +81,6 @@
 #include "../layers/AccumulateLayer.hpp"
 #include "../layers/CliqueLayer.hpp"
 #endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete April 23, 2014.
-// Use ANNLayer with triggerFlag set to true and triggerLayerName for the triggering layer
-#include "../layers/ANNTriggerUpdateOnNewImageLayer.hpp"
-#endif // OBSOLETE
 #include "../layers/ConstantLayer.hpp"
 #include "../layers/FilenameParsingGroundTruthLayer.hpp"
 #include "../connections/BaseConnection.hpp"
@@ -96,18 +92,7 @@
 #include "../connections/KernelConn.hpp"
 #include "../connections/CloneKernelConn.hpp"
 #include "../connections/GapConn.hpp"
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  Use HyPerConn instead of GenerativeConn and PoolingConn instead of PoolingGenConn
-#include "../connections/GenerativeConn.hpp"
-#include "../connections/PoolingGenConn.hpp"
-#endif // OBSOLETE
 #include "../connections/IdentConn.hpp"
-#ifdef OBSOLETE // Marked obsolete Oct 20, 2014.  Normalizers are being generalized to allow for group normalization
-#include "../connections/NoSelfKernelConn.hpp"
-#include "../connections/SiblingConn.hpp"
-#endif // OBSOLETE
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
-#include "../connections/ReciprocalConn.hpp"
-#endif // OBSOLETE
 #include "../connections/TransposeConn.hpp"
 #include "../connections/FeedbackConn.hpp"
 #include "../connections/LCALIFLateralConn.hpp"
@@ -154,9 +139,6 @@
 
 #ifdef OBSOLETE // Marked obsolete Feb 6, 2015.  buildandrun builds these objects by calling CoreParamGroupHandler, so the include statements are in that class.
 #include "../io/BaseConnectionProbe.hpp"
-#ifdef OBSOLETE // Marked obsolete Nov 25, 2014.  No longer used.
-#include "../io/ReciprocalEnergyProbe.hpp"
-#endif // OBSOLETE
 #include "../io/KernelProbe.hpp"
 #include "../io/TextStreamProbe.hpp"
 #include "../io/LayerProbe.hpp"
