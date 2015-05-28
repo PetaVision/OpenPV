@@ -903,7 +903,7 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
       }
       if (random_seed < 10000000) {
          fprintf(stderr, "Error: random seed %u is too small. Use a seed of at least 10000000.\n", random_seed);
-         abort();
+         exit(EXIT_FAILURE);
       }
 
       random_seed_obj = random_seed;
@@ -929,7 +929,7 @@ void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "filenamesContainLayerNames", &filenamesContainLayerNames, 0);
    if(filenamesContainLayerNames < 0 || filenamesContainLayerNames > 2) {
       fprintf(stderr,"HyPerCol %s: filenamesContainLayerNames must have the value 0, 1, or 2.\n", name);
-      abort();
+      exit(EXIT_FAILURE);
    }
 }
 
@@ -937,7 +937,7 @@ void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag)
    ioParamValue(ioFlag, name, "filenamesContainConnectionNames", &filenamesContainConnectionNames, 0);
    if(filenamesContainConnectionNames < 0 || filenamesContainConnectionNames > 2) {
       fprintf(stderr,"HyPerCol %s: filenamesContainConnectionNames must have the value 0, 1, or 2.\n", name);
-      abort();
+      exit(EXIT_FAILURE);
    }
 }
 
@@ -1575,7 +1575,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          if(chars_printed >= PV_PATH_MAX) {
             if (icComm->commRank()==0) {
                fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
-               abort();
+               exit(EXIT_FAILURE);
             }
          }
          if ( !checkpointReadFlag || strcmp(checkpointReadDir, cpDir) ) {
@@ -2157,12 +2157,12 @@ int HyPerCol::checkpointRead() {
       int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", checkpointReadDir);
       if (chars_needed >= PV_PATH_MAX) {
          fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", checkpointReadDir);
-         abort();
+         exit(EXIT_FAILURE);
       }
       PV_Stream * timestampfile = PV_fopen(timestamppath,"r",false/*verifyWrites*/);
       if (timestampfile == NULL) {
          fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
-         abort();
+         exit(EXIT_FAILURE);
       }
       long int startpos = getPV_StreamFilepos(timestampfile);
       PV_fread(&timestamp,1,timestamp_size,timestampfile);
@@ -2198,7 +2198,7 @@ int HyPerCol::checkpointRead() {
          int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", checkpointReadDir);
          if (chars_needed >= PV_PATH_MAX) {
             fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", checkpointReadDir);
-            abort();
+            exit(EXIT_FAILURE);
          }
          PV_Stream * timescalefile = PV_fopen(timescalepath,"r",false/*verifyWrites*/);
          if (timescalefile == NULL) {
@@ -2277,7 +2277,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       int chars_needed = snprintf(timeinfofilename, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
       if (chars_needed >= PV_PATH_MAX) {
          fprintf(stderr, "HyPerCol::checkpointWrite error: path \"%s/timeinfo.bin\" is too long.\n", cpDir);
-         abort();
+         exit(EXIT_FAILURE);
       }
       int statstatus = stat(timeinfofilename, &timeinfostat);
       if (statstatus == 0) {
@@ -2285,7 +2285,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
          int unlinkstatus = unlink(timeinfofilename);
          if (unlinkstatus != 0) {
             fprintf(stderr, "Error deleting \"%s\": %s\n", timeinfofilename, strerror(errno));
-            abort();
+            exit(EXIT_FAILURE);
          }
       }
    }
@@ -2337,11 +2337,11 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       assert(timescalefile);
       if (PV_fwrite(&timeScale,1,sizeof(double),timescalefile) != sizeof(double)) {
          fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScale to %s\n", timescalefile->name);
-         abort();
+         exit(EXIT_FAILURE);
       }
       if (PV_fwrite(&timeScaleTrue,1,sizeof(double),timescalefile) != sizeof(double)) {
          fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleTrue to %s\n", timescalefile->name);
-         abort();
+         exit(EXIT_FAILURE);
       }
       PV_fclose(timescalefile);
       chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.txt", cpDir);
@@ -2610,7 +2610,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
       if(chars_printed >= PV_PATH_MAX) {
          if (icComm->commRank()==0) {
             fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
-            abort();
+            exit(EXIT_FAILURE);
          }
       }
       checkpointWrite(cpDir);
@@ -2745,7 +2745,7 @@ int HyPerCol::initializeThreads(char* in_device)
          for(std::string::const_iterator k = stoken.begin(); k != stoken.end(); ++k){
             if(!isdigit(*k)){
                fprintf(stderr, "Device specification error: %s contains unrecognized characters. Must be comma seperated integers greater or equal to 0 with no other characters allowed (including spaces).\n", in_device);
-               abort();
+               exit(EXIT_FAILURE);
             }
          }
          deviceVec.push_back(atoi(stoken.c_str()));
@@ -2760,7 +2760,7 @@ int HyPerCol::initializeThreads(char* in_device)
       }
       else{
          fprintf(stderr, "Device specification error: Number of devices specified (%zu) must be either 1 or greater than number of mpi processes (%d).\n", deviceVec.size(), numMpi);
-         abort();
+         exit(EXIT_FAILURE);
       }
       std::cout << "MPI Process " << icComm->commRank() << " using device " << device << "\n";
    }
@@ -2970,17 +2970,17 @@ int HyPerCol::writeScalarToFile(const char * cp_dir, const char * group_name, co
       int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, group_name, val_name);
       if (chars_needed >= PV_PATH_MAX) {
          fprintf(stderr, "writeScalarToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
-         abort();
+         exit(EXIT_FAILURE);
       }
       PV_Stream * pvstream = PV_fopen(filename, "w", getVerifyWrites());
       if (pvstream==NULL) {
          fprintf(stderr, "writeScalarToFile error: unable to open path %s for writing.\n", filename);
-         abort();
+         exit(EXIT_FAILURE);
       }
       int num_written = PV_fwrite(&val, sizeof(val), 1, pvstream);
       if (num_written != 1) {
          fprintf(stderr, "writeScalarToFile error while writing to %s.\n", filename);
-         abort();
+         exit(EXIT_FAILURE);
       }
       PV_fclose(pvstream);
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, group_name, val_name);
@@ -2989,7 +2989,7 @@ int HyPerCol::writeScalarToFile(const char * cp_dir, const char * group_name, co
       fs.open(filename);
       if (!fs) {
          fprintf(stderr, "writeScalarToFile error: unable to open path %s for writing.\n", filename);
-         abort();
+         exit(EXIT_FAILURE);
       }
       fs << val;
       fs << std::endl; // Can write as fs << val << std::endl, but eclipse flags that as an error 'Invalid overload of std::endl'
@@ -3012,7 +3012,7 @@ int HyPerCol::readScalarFromFile(const char * cp_dir, const char * group_name, c
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, group_name, val_name); // Could use pathInCheckpoint if not for the .bin
       if(chars_needed >= PV_PATH_MAX) {
          fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
-         abort();
+         exit(EXIT_FAILURE);
       }
       PV_Stream * pvstream = PV_fopen(filename, "r", getVerifyWrites());
       *val = default_value;
