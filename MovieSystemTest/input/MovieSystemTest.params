@@ -28,20 +28,24 @@ HyPerCol "column" = {
    nx                               = 8;
    ny                               = 8;
    dt                               = 1.0;
+   dtAdaptFlag                      = 0.0;
    randomSeed                       = 1234567890;
    startTime                        = 0.0;
-   numSteps                         = 320;
-   progressStep                     = 1000;
+   stopTime                         = 320;
+   progressInterval                 = 1000;
    writeProgressToErr               = false;
+   verifyWrites                     = true;
    outputPath                       = "output/";
+   printParamsFilename              = "pv.params";
    filenamesContainLayerNames       = 2;
    filenamesContainConnectionNames  = 2;
-   checkpointRead                   = false;
+   initializeFromCheckpointDir      = "";
    checkpointWrite                  = false;
    // checkpointWriteDir               = "output/checkpoints";
    // checkpointWriteStepInterval      = 10000;
    // deleteOlderCheckpoints           = true;
    suppressLastOutput               = false;
+   errorOnNotANumber                = false;
 };
 
 //
@@ -60,19 +64,25 @@ Movie "input" = {
     writeStep                        = -1;
     // initialWriteTime
     sparseLayer                      = false;
+    updateGpu                        = false;
     mirrorBCflag                     = true;
     useImageBCflag                   = false;
     inverseFlag                      = false;
     normalizeLuminanceFlag           = false;
     autoResizeFlag                   = false;
     writeImages                      = false;
+    offsetAnchor                     = "tl";
     offsetX                          = 0;
     offsetY                          = 0;
     jitterFlag                       = false;
+    padValue                         = 0;
     randomMovie                      = false;
     displayPeriod                    = 5;
-    start_frame_index                = 0;
+    start_frame_index                = 1;
     skip_frame_index                 = 0;
+    writeFrameToTimestamp            = true;
+    flipOnTimescaleError             = true;
+    resetToStartOnLoop               = false;
 };
 
 ANNLayer "ganglion" = {
@@ -85,16 +95,17 @@ ANNLayer "ganglion" = {
     // initialWriteTime
     mirrorBCflag                     = true;
     sparseLayer                      = false;
+    updateGpu                        = false;
+    triggerFlag                      = false;
 
     InitVType                        = "ZeroV";
 
     VThresh                          = -infinity;
-    VMax                             = infinity;
-    VMin                             = -infinity;
-    VShift                           = 0.0;
+    AMax                             = infinity;
+    AMin                             = -infinity;
+    AShift                           = 0.0;
     VWidth                           = 0.0;
-    
-    //movieLayerName                   = "input";
+    clearGSynInterval                = 0.0;
 };
 
 Movie "correctoutput" = {
@@ -109,19 +120,25 @@ Movie "correctoutput" = {
     writeStep                        = -1;
     // initialWriteTime
     sparseLayer                      = false;
+    updateGpu                        = false;
     mirrorBCflag                     = true;
     useImageBCflag                   = false;
     inverseFlag                      = false;
     normalizeLuminanceFlag           = false;
     autoResizeFlag                   = false;
     writeImages                      = false;
+    offsetAnchor                     = "tl";
     offsetX                          = 0;
     offsetY                          = 0;
     jitterFlag                       = false;
+    padValue                         = 0;
     randomMovie                      = false;
     displayPeriod                    = 5;
-    start_frame_index                = 0;
+    start_frame_index                = 1;
     skip_frame_index                 = 0;
+    writeFrameToTimestamp            = true;
+    flipOnTimescaleError             = true;
+    resetToStartOnLoop               = false;
 };
 
 ANNLayer "comparison" = {
@@ -134,23 +151,25 @@ ANNLayer "comparison" = {
     // initialWriteTime
     mirrorBCflag                     = true;
     sparseLayer                      = false;
+    updateGpu                        = false;
+    triggerFlag                      = false;
 
     InitVType                        = "ZeroV";
 
     VThresh                          = -infinity;
-    VMax                             = infinity;
-    VMin                             = -infinity;
-    VShift                           = 0.0;
+    AMax                             = infinity;
+    AMin                             = -infinity;
+    AShift                           = 0.0;
     VWidth                           = 0.0;
-    
-    movieLayerName                   = "input";
+    clearGSynInterval                = 0.0;
 };
 
-KernelConn "input_to_ganglion" = {
+HyPerConn "input_to_ganglion" = {
     preLayerName                     = "input";
     postLayerName                    = "ganglion";
     channelCode                      = 0;
 
+    sharedWeights                    = false;
     nxp                              = 3;
     nyp                              = 3;
     nfp                              = 1;
@@ -159,8 +178,8 @@ KernelConn "input_to_ganglion" = {
     
     weightInitType                   = "UniformWeight";
     weightInit                       = 1.0;
+    connectOnlySameFeatures          = false;
     
-    strength                         = 1.0;
     normalizeMethod                  = "none";
 
     writeCompressedCheckpoints       = false;
@@ -172,7 +191,8 @@ KernelConn "input_to_ganglion" = {
     pvpatchAccumulateType            = "Convolve";
     shrinkPatches                    = false;
     updateGSynFromPostPerspective    = false;
-    preActivityIsNotRate             = false;
+    convertRateToSpikeCount          = false;
+    receiveGpu                       = false;
 };
 
 IdentConn "ganglion_to_comparison" = {
@@ -194,4 +214,7 @@ IdentConn "correctoutput_to_comparison" = {
 TestAllZerosProbe "comparison probe" = {
     targetLayer = "comparison";
     message = "comparison                    ";
+    probeOutputFile = NULL;
+    triggerFlag = false;
+    nnzThreshold = 0;
 };
