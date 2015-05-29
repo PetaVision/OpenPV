@@ -176,7 +176,7 @@ Because the instance was booted from a PetaVision AMI, all of petavision should 
 ###Building PetaVision ################
 Note for those new to working with source code: the process of building a program takes the text/code description of a program and compiles that into a executable (0's and 1's) that a computer understands.  Think of it as creating a .exe file for a windows computer using a text description of what the program should do, which in our case is saved in the source files that end in .cpp and .hpp since we are working with C++. 
 
-Compiling the program takes two steps. The first step involves creating the instructions for the compiler which will do the heavy lifting of making the program. We use the open-sourced software CMake to create those instructions using CMakeLists.txt as our input to CMake.  After using CMake, we will use a compiler (GCC on linux and Clang on the OSX) to actually make the executable program using the command 'make'.  The process is all quite easy, but hopefully this was useful information for you newbies. 
+Compiling the program takes two steps. The first step involves creating the instructions for the compiler which will do the heavy lifting of making the program. We use the open-sourced software CMake to create those instructions using CMakeLists.txt as our input to CMake.  After using CMake, we will use a compiler (GCC on linux and Clang on OS X) to actually make the executable program using the command 'make'.  The process is all quite easy, but hopefully this was useful information for you newbies. 
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 cd ~/workspace.
@@ -227,7 +227,7 @@ There are several ways to upload data to S3 to an existing bucket.
 
 ####EBS Volume to S3 (preferred) #######################
 - Getting your database on S3:
-- Download your database, most likely to mountData. Make sure you're EBS volume is big enough to store all of the database.
+- Download your database, most likely to mountData. Make sure your EBS volume is big enough to store all of the database.
 - cd to the outer directory of your database.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 aws s3 cp --recursive myDatabaseFolder s3://yourBin/myDatabaseFolder

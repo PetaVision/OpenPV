@@ -6,12 +6,12 @@ The following tutorials will take you through installing and using the fundament
 
  1. Download, Build & Run SystemTest
     -  [AWS Installation](../tutorial/install/install_aws.md)
-    -  [OSX Installation](../tutorial/install/install_osx.md)
+    -  [OS X Installation](../tutorial/install/install_osx.md)
     -  [Ubuntu Installation](../tutorial/install/install_ubuntu.md)
     -  [Ubuntu Installation](/../tutorial/install/install_ubuntu.md)
     -  [Ubuntu Installation](install_ubuntu.md)
     
- 2. \subpage mermaid "Visualize your params file (only OSX)"
+ 2. \subpage mermaid "Visualize your params file (only OS X)"
  
  3. \subpage v1lca "Train and Visualize a V1 Dictionary"
  
@@ -24,7 +24,7 @@ Visualization is one of the fastest and easiest ways to determine if your params
 
 Install Mermaid
 -----------------------------------
-1) For OSX, download the ‘node’ .pkg file from https://nodejs.org/download/; this will install the npm package manager.  If you are using a package manager, please refer to this link on [how to install nodejs](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager
+1) For OS X, download the ‘node’ .pkg file from https://nodejs.org/download/; this will install the npm package manager.  If you are using a package manager, please refer to this link on [how to install nodejs](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager
 ): 
 
 2) After you install nodejs, in your command line install mermaid and phantomjs:
