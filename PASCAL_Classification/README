@@ -59,6 +59,10 @@ After some initialization messages, a prompt “Enter filename:” appears.  Ent
 
 The program runs for 200 iterations, and then calls Octave to create a heat map for the image.  It then prompts for another filename.  Octave is called in parallel, so the program does not need to wait for Octave to finish before it starts the 200 iterations for the second filename.  However, the program does wait until one octave process finishes before it will start the next octave process.  Octave typically finishes by the time the program is ready for the next image, so this is rarely an issue.
 
+NOTE: If the run is interrupted, you can restart the harness from a checkpoint using the -c option.  However, remember that
+the filenames are supplied from standard input; you will need to start from the first filename that would have been supplied
+after the time of interruption.
+
 9.  Output:  The program creates the following:
 output/   This directory contains the .pvp files created by calls to outputState.  You can change this directory in config.txt
 heatMapMontage/  This directory contains the .png files created by the calling the octave heatMapMontage m-file.  You can change this directory in config.txt
