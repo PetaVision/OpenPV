@@ -3,8 +3,7 @@ clear all; close all; dbstop error;
 addpath('devkit/matlab/')
 addpath('~/workspace/PetaVision/mlab/util')
 
-
-outDir = '/home/ec2-user/mountData/plots/'
+outdir = '/home/ec2-user/mountData/plots/'
 LCAdir = '/home/ec2-user/mountData/benchmark/validate/aws_white_rcorr_LCA/';
 RELUdir = '/home/ec2-user/mountData/benchmark/validate/aws_white_rcorr_RELU/'
 
@@ -23,28 +22,29 @@ tau = 3;
 scoreDir = [outdir 'scores/']
 mkdir(scoreDir);
 
-
 %[data_gt, hdr_gt] = readpvpfile(gtPvpFile);
 %[data_LCA, hdr_LCA] = readpvpfile(LCAFilename);
 %[data_RELU, hdr_RELU] = readpvpfile(RELUFilename);
 
-%Reading smaller for debugging
-[data_gt, hdr_gt] = readpvpfile(gtPvpFile, 1, 10, 0, 0);
-[data_LCA, hdr_LCA] = readpvpfile(LCAFilename, 1, 10, 0, 0);
-[data_RELU, hdr_RELU] = readpvpfile(RELUFilename, 1, 10, 0, 0);
+%numFrames = hdr_gt.nbands;
+%%Sanity checks
+%assert(numFrames == hdr_LCA.nbands);
+%assert(numFrames == hdr_RELU.nbands);
 
-numFrames = hdr_gt.nbands;
-%Sanity checks
-assert(numFrames == hdr_LCA.nbands);
-assert(numFrames == hdr_RELU.nbands);
+%Reading smaller for debugging
+[data_gt, hdr_gt] = readpvpfile(gtPvpFile, 0, 10, 0, 0);
+[data_LCA, hdr_LCA] = readpvpfile(LCAFilename, 0, 10, 0, 0);
+[data_RELU, hdr_RELU] = readpvpfile(RELUFilename, 0, 10, 0, 0);
+
+numFrames = length(data_gt);
+assert(numFrames == length(data_LCA));
+assert(numFrames == length(data_RELU));
 
 %Build timestamp matrix
 time = zeros(numFrames, 1);
 gtFilenames = cell(numFrames, 1);
 
-%Build timestamp matrix
 timeFile = fopen(timestamp, 'r');
-
 for(i = 1:numFrames)
    line = fgetl(timeFile);
    split = strsplit(line, ',');
@@ -60,12 +60,16 @@ LCA_errList = zeros(numFrames, 1);
 RELU_errList = zeros(numFrames, 1);
 
 %%Find absolute gt scale first
-maxGT = 0;
-minGT = 256;
+maxGT = -inf;
+minGT = inf;
 for(i = 1:numFrames)
    gtData = data_gt{i}.values' * 256; %Do we need to round here?
    curr_maxGT = max(gtData(:));
-   curr_minGT = min(gtData(:));
+   %Do not include 0 px value DNC area in finding min
+   tmpGTData = gtData;
+   tmpGTData(find(gtData == 0)) = inf;
+   curr_minGT = min(tmpGTData(:));
+
    if(curr_maxGT > maxGT)
       maxGT = curr_maxGT;
    end
@@ -73,26 +77,60 @@ for(i = 1:numFrames)
       minGT = curr_minGT;
    end
 end
+minGT = floor(minGT);
+maxGT = ceil(maxGT);
 
-keyboard
-      
+for(i = 1:numFrames)
+   %Get all data
+   GTData = data_gt{i}.values' * 256;
+   LCAData = data_LCA{i}.values' * 256;
+   RELUData = data_RELU{i}.values' * 256;
+   %Mask out estdata with mask
+   LCAData(find(GTData == 0)) = 0;
+   RELUData(find(GTData == 0)) = 0;
+
+   %Image data
+   targetTime = data_gt{i}.time;
+   targetFrame = gtFilenames{i, 1};
+   imageFilename = [imageDir, targetFrame]
+   system(['aws s3 cp ', imageFilename, ' tmpImg.png']);
+   image = imread('tmpImg.png');
+
+   %Make figure
+   h = figure;
+   %Image
+   subplot(4, 1, 1);
+   imagesc(image);
+   axis off;
+   %GT
+   subplot(4, 1, 2);
+   imagesc(GTData, [minGT maxGT]);
+   colormap(jet);
+   axis off;
+   %LCA
+   subplot(4, 1, 3);
+   imagesc(LCAData, [minGT maxGT]);
+   colormap(jet);
+   axis off;
+   %RELU
+   subplot(4, 1, 4);
+   imagesc(RELUData, [minGT maxGT]);
+   colormap(jet);
+   axis off;
+
+   keyboard
+end
 
 
-%for(i = 1:numFrames)
-%   estData = data_est{i}.values' * 256;
-%   gtData = data_gt{i}.values' * 256;
-%
-%   handle = figure;
-%   targetTime = data_est{i}.time;
-%   targetFrame = gtFilenames{1, i};
-%   imageFilename = [imageDir, targetFrame]
-%
-%   system(['aws s3 cp ', imageFilename, ' tmpImg.png']);
-%
-%   outFilename = [scoreDir num2str(targetTime) '_EstVsImage.png']
-%   im = imread('tmpImg.png');
-%   [nx, ny, nf] = size(estData);
-%
+
+
+
+
+
+
+
+
+
 %   %TODO reszie other way
 %   im = imresize(im, [nx, ny]);
 %   subplot(2, 1, 1);
@@ -105,8 +143,6 @@ keyboard
 %   d_err = disp_error(gtData,estData,tau);
 %   errList(i) = d_err;
 %
-%   %Mask out estdata with mask
-%   estData(find(gtData == 0)) = 0;
 %   outFilename = [scoreDir num2str(targetTime) '_gtVsEst.png']
 %
 %   figure;
