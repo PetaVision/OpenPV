@@ -18,14 +18,14 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime= 100000000;
     progressStep = 5000;
-    outputPath = "/home/ec2-user/mountData/dictLearn/aws_white_nf_1024";
+    outputPath = "/home/ec2-user/mountData2/dictLearn/aws_white_nf_2048";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
-    //checkpointReadDir = "/home/ec2-user/mountData/single_stack_ndepth/Checkpoints";
+    //checkpointReadDir = "/home/ec2-user/mountData2/single_stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = true;
-    checkpointWriteDir = "/home/ec2-user/mountData/dictLearn/aws_white_nf_1024/Checkpoints";
+    checkpointWriteDir = "/home/ec2-user/mountData2/dictLearn/aws_white_nf_2048/Checkpoints";
     checkpointWriteStepInterval = 50000;
     deleteOlderCheckpoints = true;
     //suppressLastOutput = false;
@@ -35,7 +35,7 @@ HyPerCol "column" = {
     dtScaleMax = 5.0;
     dtScaleMin = 0.25;
     dtChangeMax = 0.05;
-    dtChangeMin = 0.0;
+    dtChangeMin = -0.01;
 };
 
 //
@@ -49,14 +49,14 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/home/ec2-user/mountData/kitti/list/image_02_aws.txt";
+    imageListPath = "/home/ec2-user/mountData2/kitti/list/image_02_aws.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = 200;
     initialWriteTime = 200;
     writeSparseActivity = false;
     displayPeriod = 200;
-    start_frame_index = 11025;
+    start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -195,7 +195,7 @@ ANNLayer "LeftRecon" = {
 
 Movie "RightImage" = {
     #include "LeftImage";
-    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_03_aws.txt";
+    @imageListPath = "/home/ec2-user/mountData2/kitti/list/image_03_aws.txt";
 };
 
 ANNLayer "RightBipolar" = {
@@ -230,7 +230,7 @@ HyPerLCALayer "V1" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 1024; //2048 or 4096;
+    nf = 2048; //2048 or 4096;
     numChannels = 1;
     numWindowX = 1;
     numWindowY = 1;
@@ -426,7 +426,7 @@ MomentumConn "V1ToLeftError" = {
     sharedWeights = true;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/dictLearn/aws_white_saved/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData2/dictLearn/saved_aws_2048/V1ToLeftError_W.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
@@ -506,7 +506,7 @@ MomentumConn "V1ToRightError" = {
     @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
     normalizeGroupName = "V1ToLeftError";
-    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/aws_white_saved/V1ToRightError_W.pvp";
+    @initWeightsFile = "/home/ec2-user/mountData2/dictLearn/saved_aws_2048/V1ToRightError_W.pvp";
 };
 
 TransposeConn "RightErrorToV1" = {
