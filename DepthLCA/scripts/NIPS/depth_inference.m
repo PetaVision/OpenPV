@@ -1,16 +1,19 @@
 clear all; close all; dbstop error;
 
-addpath('devkit/matlab/')
+%addpath('devkit/matlab/')
 addpath('~/workspace/PetaVision/mlab/util')
 
-outdir = '/home/ec2-user/mountData/plots/'
-LCAdir = '/home/ec2-user/mountData/benchmark/validate/aws_white_rcorr_LCA/';
-RELUdir = '/home/ec2-user/mountData/benchmark/validate/aws_white_rcorr_RELU/'
+%outdir =  '/nh/compneuro/Data/Depth/LCA/benchmark/validate/plots/';
+outdir =  'outplots/'
+LCAdir =  '/nh/compneuro/Data/Depth/LCA/benchmark/validate/aws_white_rcorr_LCA/';
+RELUdir = '/nh/compneuro/Data/Depth/LCA/benchmark/validate/aws_white_rcorr_RELU/';
 
 %These should be equivelent for LCA or RELU
 timestamp = [LCAdir '/timestamps/DepthImage.txt'];
 gtPvpFile = [LCAdir 'a3_DepthDownsample.pvp'];
-imageDir = 's3://kitti/stereo_flow/multiview/training/image_2/'
+
+%imageDir = 's3://kitti/stereo_flow/multiview/training/image_2/';
+imageDir = '/nh/compneuro/Data/KITTI/stereo_flow/multiview/training/image_2/'
 
 %Estimate pvps
 LCAFilename = [LCAdir 'a6_RCorrRecon.pvp'];
@@ -19,22 +22,51 @@ RELUFilename = [RELUdir 'a5_RCorrRecon.pvp'];
 % error threshold for error calculation
 tau = 3;
 
-scoreDir = [outdir 'scores/']
+scoreDir = [outdir 'scores/'];
 mkdir(scoreDir);
 
-%[data_gt, hdr_gt] = readpvpfile(gtPvpFile);
-%[data_LCA, hdr_LCA] = readpvpfile(LCAFilename);
-%[data_RELU, hdr_RELU] = readpvpfile(RELUFilename);
 
-%numFrames = hdr_gt.nbands;
-%%Sanity checks
-%assert(numFrames == hdr_LCA.nbands);
-%assert(numFrames == hdr_RELU.nbands);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function outI = toColor(I, maxDisp)
 
-%Reading smaller for debugging
-[data_gt, hdr_gt] = readpvpfile(gtPvpFile, 0, 10, 0, 0);
-[data_LCA, hdr_LCA] = readpvpfile(LCAFilename, 0, 10, 0, 0);
-[data_RELU, hdr_RELU] = readpvpfile(RELUFilename, 0, 10, 0, 0);
+outI = double(I(:))/maxDisp;
+map = [0 0 0 114; 0 0 1 185; 1 0 0 114; 1 0 1 174; ...
+       0 1 0 114; 0 1 1 185; 1 1 0 114; 1 1 1 0];
+
+bins  = map(1:end-1,4);
+cbins = cumsum(bins);
+bins  = bins./cbins(end);
+cbins = cbins(1:end-1) ./ cbins(end);
+ind   = min(sum(repmat(outI(:)', [6 1]) > repmat(cbins(:), [1 numel(outI)])),6) + 1;
+bins  = 1 ./ bins;
+cbins = [0; cbins];
+
+outI = (outI-cbins(ind)) .* bins(ind);
+outI = min(max(map(ind,1:3) .* repmat(1-outI, [1 3]) + map(ind+1,1:3) .* repmat(outI, [1 3]),0),1);
+
+outI = reshape(outI, [size(I, 1) size(I, 2) 3]);
+end
+
+function d_err = disp_error (D_gt,D_est,tau)
+   %Change to 0-255 px values
+   if(max(D_gt(:)) <= 1)
+      D_gt = D_gt * 255;
+      D_est = D_est * 255;
+   end
+   E = abs(D_gt-D_est);
+   E(D_gt<=0) = 0;
+   d_err = length(find(E>tau))/length(find(D_gt>0));
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+[data_gt, hdr_gt] = readpvpfile(gtPvpFile);
+[data_LCA, hdr_LCA] = readpvpfile(LCAFilename);
+[data_RELU, hdr_RELU] = readpvpfile(RELUFilename);
+
+%%Reading less frames for debugging
+%[data_gt, hdr_gt] = readpvpfile(gtPvpFile, 0, 10, 0, 0);
+%[data_LCA, hdr_LCA] = readpvpfile(LCAFilename, 0, 10, 0, 0);
+%[data_RELU, hdr_RELU] = readpvpfile(RELUFilename, 0, 10, 0, 0);
 
 numFrames = length(data_gt);
 assert(numFrames == length(data_LCA));
@@ -58,99 +90,77 @@ fclose(timeFile)
 %List to keep track of error values
 LCA_errList = zeros(numFrames, 1);
 RELU_errList = zeros(numFrames, 1);
-
-%%Find absolute gt scale first
-maxGT = -inf;
-minGT = inf;
-for(i = 1:numFrames)
-   gtData = data_gt{i}.values' * 256; %Do we need to round here?
-   curr_maxGT = max(gtData(:));
-   %Do not include 0 px value DNC area in finding min
-   tmpGTData = gtData;
-   tmpGTData(find(gtData == 0)) = inf;
-   curr_minGT = min(tmpGTData(:));
-
-   if(curr_maxGT > maxGT)
-      maxGT = curr_maxGT;
-   end
-   if(curr_minGT < minGT)
-      minGT = curr_minGT;
-   end
-end
-minGT = floor(minGT);
-maxGT = ceil(maxGT);
-
-for(i = 1:numFrames)
+for(i = 2:numFrames)
    %Get all data
-   GTData = data_gt{i}.values' * 256;
-   LCAData = data_LCA{i}.values' * 256;
-   RELUData = data_RELU{i}.values' * 256;
+   GTData = data_gt{i}.values';
+   LCAData = data_LCA{i}.values';
+   RELUData = data_RELU{i}.values';
+
+   %Get max data for current frame
+   curr_maxGT = max(GTData(:));
+
+   LCA_errList(i) = disp_error(GTData, LCAData, tau);
+   RELU_errList(i) = disp_error(GTData, RELUData, tau);
+
+   %Calc target nx and ny
+   targetNx = size(GTData, 2) * 4;
+   targetNy = size(GTData, 1) * 4;
+
    %Mask out estdata with mask
    LCAData(find(GTData == 0)) = 0;
    RELUData(find(GTData == 0)) = 0;
-
    %Image data
    targetTime = data_gt{i}.time;
    targetFrame = gtFilenames{i, 1};
-   imageFilename = [imageDir, targetFrame]
-   system(['aws s3 cp ', imageFilename, ' tmpImg.png']);
-   image = imread('tmpImg.png');
+   imageFilename = [imageDir, targetFrame];
+   %system(['aws s3 cp ', imageFilename, ' tmpImg.png']);
+   %image = imread('tmpImg.png');
+   image = imread(imageFilename);
 
-   %Make figure
-   h = figure;
-   %Image
-   subplot(4, 1, 1);
-   imagesc(image);
-   axis off;
-   %GT
-   subplot(4, 1, 2);
-   imagesc(GTData, [minGT maxGT]);
-   colormap(jet);
-   axis off;
-   %LCA
-   subplot(4, 1, 3);
-   imagesc(LCAData, [minGT maxGT]);
-   colormap(jet);
-   axis off;
-   %RELU
-   subplot(4, 1, 4);
-   imagesc(RELUData, [minGT maxGT]);
-   colormap(jet);
-   axis off;
+   [imageNy, imageNx, nf] = size(image);
+   assert(imageNy >= targetNy);
+   assert(imageNx >= targetNx);
+   offsetX = imageNx - targetNx + 1;
+   offsetY = imageNy - targetNy + 1;
 
-   keyboard
+   %Crop from left and top
+   cropImg = double(image(offsetY:end, offsetX:end, :))/255;
+
+   %Resize to size of image
+   GTData =   imresize(GTData, [targetNy, targetNx], 'nearest');
+   LCAData =  imresize(LCAData, [targetNy, targetNx], 'nearest');
+   RELUData = imresize(RELUData, [targetNy, targetNx], 'nearest');
+
+
+   %To color
+   GTData = toColor(GTData, curr_maxGT);
+   LCAData = toColor(LCAData, curr_maxGT);
+   RELUData = toColor(RELUData, curr_maxGT);
+
+   %White margin of 20 px in between images
+   horMargin = ones(20, targetNx, 3);
+
+   %Cat all images together
+   outImg = [cropImg; horMargin; GTData; horMargin; LCAData; horMargin; RELUData];
+
+   outFilename = [scoreDir targetFrame(1:end-4) '_depth_inference.png']
+   imwrite(outImg, outFilename);
 end
 
+%Inference error score
+LCA_ErrorFile = fopen([scoreDir, 'LCA_error.txt'], 'w');
+fprintf(LCA_ErrorFile, 'Error: %f +- %f\n', mean(LCA_errList(:)), std(LCA_errList(:)));
+[LCA_sortedError, LCA_sortedErrorIdx] = sort(LCA_errList);
 
+RELU_ErrorFile= fopen([scoreDir, 'RELU_error.txt'], 'w');
+fprintf(RELU_ErrorFile, 'Error: %f +- %f\n', mean(RELU_errList(:)), std(RELU_errList(:)));
+[RELU_sortedError, RELU_sortedErrorIdx] = sort(RELU_errList);
 
+%Write ranking
+for(ni = 1:numFrames-1)
+   fprintf(LCA_ErrorFile, '%s: %f\n', gtFilenames{LCA_sortedErrorIdx(ni), 1}(1:end-4), LCA_sortedError(ni));
+   fprintf(RELU_ErrorFile, '%s: %f\n', gtFilenames{RELU_sortedErrorIdx(ni), 1}(1:end-4), RELU_sortedError(ni));
+end
 
-
-
-
-
-
-
-
-%   %TODO reszie other way
-%   im = imresize(im, [nx, ny]);
-%   subplot(2, 1, 1);
-%   imshow(im);
-%   subplot(2, 1, 2);
-%   imshow(disp_to_color(estData));
-%   %handle = imshow([disp_to_color(estData); im]);
-%   saveas(handle, outFilename);
-%
-%   d_err = disp_error(gtData,estData,tau);
-%   errList(i) = d_err;
-%
-%   outFilename = [scoreDir num2str(targetTime) '_gtVsEst.png']
-%
-%   figure;
-%   handle = imshow(disp_to_color([estData;gtData]));
-%   title(sprintf('Error: %.2f %%',d_err*100));
-%   saveas(handle, outFilename);
-%end
-%
-%aveFile = fopen([scoreDir 'aveError.txt'], 'w');
-%fprintf(aveFile, '%f', mean(errList(:)));
-%fclose(aveFile);
+fclose(LCA_ErrorFile);
+fclose(RELU_ErrorFile);
