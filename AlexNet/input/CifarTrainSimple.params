@@ -260,10 +260,10 @@ MomentumConn "W1Plasticity" = {
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 1.0;
 
-    dWMax = 0.001; // 200.0 used for initial training
-    momentumTau = 100;
-    //momentumDecay = .004;
-    momentumMethod = "viscosity";
+    dWMax = 0.01; // 200.0 used for initial training
+    momentumTau = .9;
+    momentumDecay = .0005;
+    momentumMethod = "alex";
     delay = 0;
      
     preActivityIsNotRate = false;
@@ -289,7 +289,7 @@ MomentumConn "B1Plasticity" = {
     sharedWeights = true;
     
     weightInitType = "UniformWeight";
-    weightInit = 0;
+    weightInit = 1;
         
     strength = 1.0;  
     normalizeMethod = "none";
@@ -379,9 +379,9 @@ MomentumConn "W4Plasticity" = {
     initialWeightUpdateTime = 1.0;
 
     dWMax = 0.001; // 200.0 used for initial training
-    momentumTau = 100;
-    //momentumDecay = .004;
-    momentumMethod = "viscosity";
+    momentumTau = .9;
+    momentumDecay = .0005;
+    momentumMethod = "alex";
     delay = 0;
      
     preActivityIsNotRate = false;
