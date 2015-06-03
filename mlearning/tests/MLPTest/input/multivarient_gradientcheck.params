@@ -1,0 +1,352 @@
+//
+// CifarTrain.params
+//
+// Alex net on cifar
+// created by slundquist: Mar 21, 2014
+//
+
+
+debugParsing = true;    // Debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx = 1;   //2 inputs
+   ny = 1;
+   dt = 1.0;  //time step in ms.	     
+   randomSeed = 2394853940;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
+   stopTime = 10.0; //100 training steps  
+   progressInterval = 5000.0; //Program will output its progress at each progressStep
+   writeProgressToErr = false;  
+   outputPath = "/nh/compneuro/Data/AlexNetOut/CIFAR/";
+   filenamesContainLayerNames = true;  
+   filenamesContainConnectionNames = true;
+   checkpointRead = false;  
+   checkpointWrite = true;
+   checkpointWriteDir = "/nh/compneuro/Data/AlexNetOut/CIFAR/Checkpoints";
+   checkpointWriteStepInterval = 50000;
+   suppressLastOutput = false; //Save the last output as checkpoint.
+};
+
+//
+// layers
+//
+
+ConstantLayer "onesLayer" = {
+    restart = 0;
+    nxScale = .03125; 
+    nyScale = .03125;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
+//The input layer of data
+//Note that the layer name matches train.txt
+Movie "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = false;
+    imageListPath = "/nh/compneuro/Data/CIFAR/CIFAR_train_images.txt";
+    writeFrameToTimestamp = true;
+    nf = 3;
+    writeStep = 1;
+    initialWriteTime = 1;
+    writeSparseActivity = false;
+    displayPeriod = 1600;
+    start_frame_index = 2;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = false;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetAnchor = "br"; //Offset anchor from bottom left
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+RescaleLayer "inputNorm" = {
+    restart                         = false;
+    originalLayerName               = "input";
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 3;
+    mirrorBCflag                    = false;
+    //
+    writeStep                       = -1;
+    initialWriteTime                = 200;
+    writeSparseActivity             = false;
+    //
+    rescaleMethod                   = "meanstd"; //Can be either meanstd or maxmin
+    valueBC = 0;
+    phase                           = 1;
+};
+
+//[fc10]
+//type=fc
+//outputs=10
+//inputs=pool3
+//initW=0.01
+ANNLayer "layer2" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 2;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    //rectified
+    //VThresh = 0;
+    //VMax = infinity;
+    //VMin = 0;
+    phase = 11;
+};
+
+//[probs]
+//type=softmax
+//inputs=fc10
+RescaleLayer "softmax" = {
+    restart                         = false;
+    originalLayerName               = "fullyconnected";
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 2;
+    mirrorBCflag                    = false;
+    //
+    writeStep                       = -1;
+    initialWriteTime                = 200;
+    writeSparseActivity             = false;
+    //
+    rescaleMethod                   = "softmax"; //Can be either meanstd or maxmin
+    valueBC = 0;
+    phase                           = 12;
+};
+
+CIFARGTLayer "gt" = {
+    restart = 0;
+    nxScale = .03125; 
+    nyScale = .03125;
+    nf = 10;
+    writeStep = 1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ZeroV";
+    //define a linear relation between its input and output, with some hard cut-off.
+    VThresh = -infinity;   
+    startFrame = 1;
+    inFilename = "/nh/compneuro/Data/CIFAR/CIFAR_train_images.txt";
+    phase = 0;
+    constantValue = true;
+};
+
+//For printing purposes
+ProbeLayer "Score" = {
+    restart = 0;
+    nxScale = .03125;
+    nyScale = .03125;
+    nf = 10;
+    writeStep = -1; //Change based on display period
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    phase = 13;
+};
+
+//Back prop error layers, starting from the back
+ANNLayer "FinalError" = {
+    restart = 0;
+    nxScale = .03125;
+    nyScale = .03125;
+    nf = 10;
+    writeStep = -1; //Change based on display period
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    ForwardLayername = "fullyconnected";
+    phase = 13;
+};
+
+//[fc10]
+//epsW=0.001
+//epsB=0.002
+//momW=0.9
+//momB=0.9
+//wc=1
+//type=fc
+//outputs=10
+//inputs=pool3
+//initW=0.01
+GradientCheckConn "W4Plasticity" = {
+    preLayerName = "pool3";
+    postLayerName = "FinalError";
+    channelCode = -1; //Does not update on this channel
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    sharedWeights = true;
+    
+    weightInitType = "GaussianRandomWeight";
+    wGaussMean = 0;
+    wGaussStdev = .1;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 1;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+
+    dWMax = 0.1; // 200.0 used for initial training
+    momentumTau = 100;
+    //momentumDecay = .004;
+    momentumMethod = "viscosity";
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+
+   //Masking out zeros, since this layer is receiving gated max pool values
+    //useMask = true;
+    //maskLayerName = "Error1";
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+
+    estLayerName = "softmax";
+    gtLayerName = "gt";
+    costFunction = "logerr";
+};
+
+//epsB=0.002
+//momB=0.9
+//wc=0
+//initB=0
+HyPerConn "B4Plasticity" = {
+    preLayerName = "onesLayer";
+    postLayerName = "FinalError";
+    channelCode = -1; //Does not update on this channel
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "UniformWeight";
+    weightInit = 0;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+
+    dWMax = 0.002; // 200.0 used for initial training
+    //momentumTau = 100;
+    //momentumDecay = 0;
+    //momentumMethod = "viscosity";
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+
+   //Masking out zeros, since this layer is receiving gated max pool values
+    //useMask = true;
+    //maskLayerName = "Error1";
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneConn "W4" = {
+    preLayerName = "pool3";
+    postLayerName = "fullyconnected";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "W4Plasticity";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "B4" = {
+    preLayerName = "onesLayer";
+    postLayerName = "fullyconnected";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "B4Plasticity";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = true;
+    pvpatchAccumulateType = "convolve";
+};
+
+//Score connections
+IdentConn "gtToScore" = {
+   preLayerName                        = "gt";
+   postLayerName                       = "Score";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+IdentConn "softmaxToScore" = {
+   preLayerName                        = "softmax";
+   postLayerName                       = "Score";
+   channelCode                         = 1;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+//Error connections, stating from back
+//Goes gt - guess
+IdentConn "gtToFinalError" = {
+   preLayerName                        = "gt";
+   postLayerName                       = "FinalError";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+IdentConn "softmaxToFinalError" = {
+   preLayerName                        = "softmax";
+   postLayerName                       = "FinalError";
+   channelCode                         = 1;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
