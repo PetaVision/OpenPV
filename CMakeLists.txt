@@ -124,7 +124,6 @@ if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
 endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
 
 
-add_subdirectory(AlexNetTest)
 add_subdirectory(AdjustAxonalArborsTest)
 add_subdirectory(ArborSystemTest)
 add_subdirectory(BackgroundLayerTest)
