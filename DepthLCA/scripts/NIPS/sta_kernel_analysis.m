@@ -2,9 +2,9 @@ clear all; close all; dbstop error;
 
 %addpath('devkit/matlab/')
 addpath('~/workspace/PetaVision/mlab/util')
-outdir =  'outplots/'
-LCAdir =  '/nh/compneuro/Data/Depth/LCA/benchmark/validate/aws_white_rcorr_LCA/';
-RELUdir = '/nh/compneuro/Data/Depth/LCA/benchmark/validate/aws_white_rcorr_RELU/';
+outdir =  '~/NIPS/'
+LCAdir =  '~/NIPS/data/aws_white_rcorr_LCA/';
+RELUdir = '~/NIPS/data/aws_white_rcorr_RELU/';
 
 %For rcorr patches
 targetNeurons = [239, 3, 308]; %1 indexed
@@ -124,7 +124,7 @@ set(0, 'DefaultTextFontWeight', 'bold');
 set(0, 'DefaultTextFontName', 'Times');
 set(0, 'DefaultAxesFontSize', 20);
 set(0, 'DefaultAxesFontName', 'Times');
-set(0, 'DefaultLineLineWidth', 10);
+set(0, 'DefaultLineLineWidth', 20);
 
 %Sum over x, make one depth plot per every # neurons, goes from heavy red (top) to light red (bot)
 for ni = 1:length(targetNeurons)
@@ -160,13 +160,16 @@ for ni = 1:length(targetNeurons)
       end
    end
    hold off
-   legend([h_LCA, h_RELU], 'SCANN', 'RELU');
+   L = legend([h_LCA, h_RELU], 'SCANN', 'ReLU');
+   legend left
+   legend boxoff
+   set(L, 'FontSize', 30);
    set(gca, 'xticklabel', []);
-   xlabel('Far                          Near', 'FontSize', 26);
-   ylabel('STA Activation', 'FontSize', 26);
+   %xlabel('Far                                     Near', 'FontSize', 30);
+   %ylabel('STA Activation', 'FontSize', 30);
    
    outFilename = [patchDir, num2str(target_ni), '_lineplot.png'];
-   print -F18 outFilename;
+   saveas(handle, outFilename);
 end
 
 %Sum over x only, make heatmap
