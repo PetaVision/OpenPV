@@ -8,7 +8,7 @@ setenv("GNUTERM","dumb");
 outDir = '~/NIPS/';
 %dataDir = '/nh/compneuro/Data/Depth/';
 dataDir = '~/NIPS/data/';
-loadData = true;
+loadData = false;
 
 LCA_v1ActFile = [dataDir, 'a12_V1_LCA.pvp'];
 RELU_v1ActFile = [dataDir, 'a12_V1_RELU.pvp'];
@@ -35,8 +35,8 @@ saveFilename = [outDir, 'tuningData.mat']
 if(loadData)
    load(saveFilename);
 else
-   [LCA_outVals, LCA_kurtVals, LCA_peakMean] = calcDepthTuning(LCA_v1ActFile, depthFile, sampleDim, numDepthBins);
-   [RELU_outVals, RELU_kurtVals, RELU_peakMean] = calcDepthTuning(RELU_v1ActFile, depthFile, sampleDim, numDepthBins);
+   [LCA_outVals, LCA_kurtVals, LCA_peakMean] = calcDepthTuning(LCA_v1ActFile, depthFile, sampleDim, numDepthBins, 11);
+   [RELU_outVals, RELU_kurtVals, RELU_peakMean] = calcDepthTuning(RELU_v1ActFile, depthFile, sampleDim, numDepthBins, 1);
    save(saveFilename, 'LCA_outVals', 'LCA_kurtVals', 'LCA_peakMean', 'RELU_outVals', 'RELU_kurtVals', 'RELU_peakMean');
 end
 

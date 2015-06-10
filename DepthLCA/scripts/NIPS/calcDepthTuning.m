@@ -1,4 +1,4 @@
-function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFile, sampleDim, numDepthBins)
+function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFile, sampleDim, numDepthBins, skipNum)
    addpath('~/workspace/PetaVision/mlab/util');
 
    %[left_w_data, left_hdr] = readpvpfile(dictPvpFiles{1});
@@ -14,10 +14,10 @@ function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFil
    %sampleDim must be odd
    assert(mod(sampleDim, 2) == 1);
 
-   if(v1_data{1}.time ~= depth_data{1}.time)
-      %v1's first write is at time 0, remove
-      v1_data(1) = [];
-   end
+   %if(v1_data{1}.time ~= depth_data{1}.time)
+   %   %v1's first write is at time 0, remove
+   %   v1_data(1) = [];
+   %end
 
    %assert(v1_data{1}.time == depth_data{1}.time);
    %assert(v1_data{2}.time == depth_data{2}.time);
@@ -26,19 +26,19 @@ function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFil
    assert(depth_hdr.nf == 1);
 
    numTimes = length(depth_data);
+   assert(numTimes * skipNum <= length(v1_data));
+
+
    nx = v1_hdr.nxGlobal;
    ny = v1_hdr.nyGlobal;
    nf = v1_hdr.nf;
 
    disp(['Reshaping pvp files']);
 
-   splitIdx = 256;
-   nf1 = splitIdx;
-   nf2 = nf - splitIdx;
-
    %Use 2 arrays for storing v1 act
-   v1_act_1 = zeros(numTimes, nf1, nx, ny); 
-   v1_act_2 = zeros(numTimes, nf2, nx, ny);
+   v1_act = zeros(numTimes, nf, nx, ny); 
+
+   keyboard
 
    %%Reshape cell structs to be one big array
    %try
@@ -47,12 +47,12 @@ function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFil
    %   keyboard;
    %end
 
+   act_idx = 1;
    depth_act = zeros(numTimes, nx, ny);
-   for(t = 1:numTimes)
+   for(t = skipNum:skipNum:numTimes*skipNum)
       if(v1_hdr.filetype == 4)
          v1_vals = permute(v1_data{t}.values, [3, 1, 2]); 
-         v1_act_1(t, :, :, :) = v1_vals(1:splitIdx, :, :);
-         v1_act_2(t, :, :, :) = v1_vals(splitIdx+1:end, :, :);
+         v1_act(act_idx, :, :, :) = v1_vals;
       elseif(v1_hdr.filetype == 6)
          %TODO check if layer is sparse
          N = nx * ny * nf;
@@ -61,14 +61,13 @@ function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFil
          tmp_v1 = full(sparse(active_ndx+1, 1, active_vals, N, 1, N));
          %pv does [nf, nx, ny] ordering
          tmp_v1 = reshape(tmp_v1, [nf, nx, ny]);
-         %v1_act(t, :, :, :) = tmp_v1;
-         v1_act_1(t, :, :, :) = tmp_v1(1:splitIdx, :, :);
-         v1_act_2(t, :, :, :) = tmp_v1(splitIdx+1:end, :, :);
+         v1_act(act_idx, :, :, :) = tmp_v1;
       else
          disp(['Error: filetype ', v1_hdr.filetype, ' not supported']);
          assert(-1);
       endif
-      depth_act(t, :, :) = depth_data{t}.values;
+      depth_act(act_idx, :, :) = depth_data{act_idx}.values;
+      act_idx += 1;
    endfor
 
    %Take out unnessessary depth_data and v1_data for memory
@@ -92,11 +91,7 @@ function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFil
       currOutVals = zeros(numDepthBins - 1, sampleDim * sampleDim);
       disp(['Calculating neuron ', num2str(ni), ' out of ' , num2str(nf)]);
       %Take a slice and squeeze out singleton dimension
-      if(ni <= splitIdx)
-         v1_slice = reshape(v1_act_1(:, ni, :, :), numTimes, nx, ny);
-      else
-         v1_slice = reshape(v1_act_2(:, ni-splitIdx, :, :), numTimes, nx, ny);
-      end
+      v1_slice = reshape(v1_act(:, ni, :, :), numTimes, nx, ny);
       assert(size(v1_slice) == size(depth_act));
       for(di = 2:numDepthBins)
          %Find locations of a given depth
