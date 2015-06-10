@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
--- ATA validate for LCA
+-- ATA validate for RELU
 --
 -- Sheng Lundquist 6/9/15
 --

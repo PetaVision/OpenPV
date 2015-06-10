@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
--- ATA training 
+-- Generates a full downsample depth pvp file for depth tuning
 --
 -- Sheng Lundquist 6/9/15
 --
