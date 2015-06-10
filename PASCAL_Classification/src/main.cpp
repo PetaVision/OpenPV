@@ -6,13 +6,12 @@
 #include "cMakeHeader.h"
 
 #define TEXTFILEBUFFERSIZE 1024
-#define NUMCONFIGPARAMETERS 6
 
 #ifndef CONFIG_FILE
 #define CONFIG_FILE "src/config.txt"
 #endif // CONFIG_FILE
 
-int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
+int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
 int parseConfigParameter(InterColComm * icComm, char const * inputLine, char const * configParameter, char ** parameterPtr, unsigned int lineNumber);
 char * getImageFileName(InterColComm * icComm);
 int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr);
@@ -36,6 +35,7 @@ int main(int argc, char* argv[])
    // since they need to persist from one if(rank==0) statement to the next.
    char * imageLayerName = NULL;
    char * resultLayerName = NULL;
+   char * resultTextFile = NULL;
    char * octaveCommand = NULL;
    char * octaveLogFile = NULL;
    char * heatMapMontageDir = NULL;
@@ -48,40 +48,54 @@ int main(int argc, char* argv[])
    int octavepid = 0; // pid of the child octave process.
 
    // Parse config file for image layer, result layer, file of image files
-   status = parseConfigFile(icComm, &imageLayerName, &resultLayerName, &octaveCommand, &octaveLogFile, &heatMapMontageDir, &displayCommand);
+   status = parseConfigFile(icComm, &imageLayerName, &resultLayerName, &resultTextFile, &octaveCommand, &octaveLogFile, &heatMapMontageDir, &displayCommand);
    if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
    BaseLayer * imageBaseLayer = hc->getLayerFromName(imageLayerName);
    if (imageBaseLayer==NULL)
    {
-      fprintf(stderr, "%s error: no layer matches imageLayerName = \"%s\"\n", argv[0], imageLayerName);
+      if (rank==0) {
+         fprintf(stderr, "%s error: no layer matches imageLayerName = \"%s\"\n", argv[0], imageLayerName);
+      }
       status = PV_FAILURE;
    }
    ImageFromMemoryBuffer * imageLayer = dynamic_cast<ImageFromMemoryBuffer *>(imageBaseLayer);
    if (imageLayer==NULL)
    {
-      fprintf(stderr, "%s error: imageLayerName = \"%s\" is not an ImageFromMemoryBuffer layer\n", argv[0], imageLayerName);
+      if (rank==0) {
+         fprintf(stderr, "%s error: imageLayerName = \"%s\" is not an ImageFromMemoryBuffer layer\n", argv[0], imageLayerName);
+      }
       status = PV_FAILURE;
    }
 
    BaseLayer * resultBaseLayer = hc->getLayerFromName(resultLayerName);
    if (resultBaseLayer==NULL)
    {
-      fprintf(stderr, "%s error: no layer matches resultLayerName = \"%s\"\n", argv[0], resultLayerName);
+      if (rank==0) {
+         fprintf(stderr, "%s error: no layer matches resultLayerName = \"%s\"\n", argv[0], resultLayerName);
+      }
       status = PV_FAILURE;
    }
    HyPerLayer * resultLayer = dynamic_cast<HyPerLayer *>(resultBaseLayer);
    if (resultLayer==NULL)
    {
-      fprintf(stderr, "%s error: resultLayerName = \"%s\" is not a HyPerLayer\n", argv[0], resultLayerName);
+      if (rank==0) {
+         fprintf(stderr, "%s error: resultLayerName = \"%s\" is not a HyPerLayer\n", argv[0], resultLayerName);
+      }
       status = PV_FAILURE;
    }
 
    if (rank==0) {
       if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
 
-      // clobber octave logfile; octave output will be appended to this file.
-      FILE * octavefp = fopen(octaveLogFile, "w");
-      fclose(octavefp);
+      // clobber octave logfile unless starting from a checkpoint
+      if (hc->getCheckpointReadDir()==NULL) {
+         FILE * octavefp = fopen(octaveLogFile, "w"); // TODO: test for errors
+         fclose(octavefp);
+         if (resultTextFile) {
+            FILE * resultTextFP = fopen(resultTextFile, "w"); // TODO: test for errors
+            fclose(resultTextFP);
+         }
+      }
 
       layerNx = imageLayer->getLayerLoc()->nxGlobal;
       layerNy = imageLayer->getLayerLoc()->nyGlobal;
@@ -207,6 +221,14 @@ int main(int argc, char* argv[])
             octavelogstream.open(octaveLogFile, std::fstream::out | std::fstream::app);
             octavelogstream << "Octave command returned " << systemstatus << "\n";
             octavelogstream.close();
+
+            if (resultTextFile) {
+               int numGlobalResultLayer = resultLayer->getNumGlobalNeurons();
+               std::ofstream resultTextStream;
+               resultTextStream.open(resultTextFile, std::fstream::out | std::fstream::app);
+               resultTextStream.close();
+            }
+
             exit(EXIT_SUCCESS);
          }
          else {
@@ -226,7 +248,7 @@ int main(int argc, char* argv[])
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
+int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
 {
    // Under MPI, all process must call this function in parallel, but only the root process does I/O
    int status = PV_SUCCESS;
@@ -241,6 +263,7 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
    }
    *imageLayerNamePtr = NULL;
    *resultLayerNamePtr = NULL;
+   *resultTextFilePtr = NULL;
    *octaveCommandPtr = NULL;
    *heatMapMontageDirPtr = NULL;
    *displayCommandPtr = NULL;
@@ -248,7 +271,7 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
    struct fgetsresult line;
    unsigned int linenumber=0;
    unsigned int configParametersRead = 0;
-   while (configParametersRead < NUMCONFIGPARAMETERS)
+   while (true)
    {
       linenumber++;
       if (icComm->commRank()==0) {
@@ -280,6 +303,12 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
       if (!strcmp(line.contents,"resultLayer"))
       {
          status = parseConfigParameter(icComm, line.contents, value, resultLayerNamePtr, linenumber);
+         if (status != PV_SUCCESS) { break; }
+         configParametersRead++;
+      }
+      if (!strcmp(line.contents,"resultTextFile"))
+      {
+         status = parseConfigParameter(icComm, line.contents, value, resultTextFilePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
          configParametersRead++;
       }
@@ -342,7 +371,6 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
       configParametersRead++;
       
    }
-   assert(configParametersRead==NUMCONFIGPARAMETERS);
    if (icComm->commRank()==0) {
       fclose(parseConfigFileFP);
    }
