@@ -391,7 +391,7 @@ pv.addGroup(pvParams, "RightRescaleToRightError", pvParams["LeftRescaleToLeftErr
 pv.addGroup(pvParams, "V1ToLeftError", 
    {
       groupType = "HyPerConn";
-      preLayerName = "V1";
+      preLayerName = "V1_RELU";
       postLayerName = "LeftError";
       channelCode = -1;
       nxp = dictPatchSize;
@@ -443,7 +443,7 @@ pv.addMultiGroups(pvParams,
    LeftErrorToV1 = {
       groupType = "TransposeConn";
       preLayerName = "LeftError";
-      postLayerName = "V1";
+      postLayerName = "V1_RELU";
       channelCode = 1;
       originalConnName = "V1ToLeftError";
       selfFlag = false;

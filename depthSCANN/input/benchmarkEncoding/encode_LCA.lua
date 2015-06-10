@@ -19,7 +19,7 @@ local pv = require("PVModule")
 local nxSize = 1200 --Size of image
 local nySize = 360 
 local outputPath = "/home/ec2-user/output/benchmarkEncoding/encode_LCA/" --Output directory
-local writePeriod = 2200 --How often to write out
+local writePeriod = 200 --How often to write out
 local checkpointWriteStepInterval = 5000 --How often to checkpoint
 local stopTime = 430000 --Stopping time, 195 images (rounded)
 local progressStep = 5000; --How often to print out a status report
@@ -37,8 +37,7 @@ local dictPatchSize = 66 --Square patch, with this as the dimension
 local VThresh = 0.006 --Threshold parameter
 local VWidth = .05 --Threshold parameter
 
---nil for new dict, a checkpoint directory for loading weights
---local V1DictDir = nil
+--A checkpoint directory for loading weights
 local V1DictDir = "/home/ec2-user/saved_output/dictTrain/saved_binoc_512_white/"
 
 local pvParams = {
@@ -429,7 +428,7 @@ pv.addGroup(pvParams, "RightRescaleToRightError", pvParams["LeftRescaleToLeftErr
 pv.addGroup(pvParams, "V1ToLeftError", 
    {
       groupType = "HyPerConn";
-      preLayerName = "V1";
+      preLayerName = "V1_LCA";
       postLayerName = "LeftError";
       channelCode = 1;
       nxp = dictPatchSize;
@@ -481,7 +480,7 @@ pv.addMultiGroups(pvParams,
    LeftErrorToV1 = {
       groupType = "TransposeConn";
       preLayerName = "LeftError";
-      postLayerName = "V1";
+      postLayerName = "V1_LCA";
       channelCode = 0;
       originalConnName = "V1ToLeftError";
       selfFlag = false;
@@ -497,7 +496,7 @@ pv.addMultiGroups(pvParams,
 
    V1ToLeftRecon = {
       groupType = "CloneKernelConn";
-      preLayerName = "V1";
+      preLayerName = "V1_LCA";
       postLayerName = "LeftRecon";
       channelCode = 0;
       writeStep = -1;
