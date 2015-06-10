@@ -24,24 +24,6 @@ HyPerCol "column" = {
     dt = 1;
 };
 
-ANNLayer "V1" = {
-    initialWriteTime = 1;
-    mirrorBCflag = 0;
-    restart = 0;
-    phase = 5;
-    InitVType = "ZeroV";
-    nyScale = 0.25;
-    writeSparseValues = 1;
-    writeStep = 1;
-    VThresh = 0;
-    nf = 512;
-    writeSparseActivity = 1;
-    VMin = 0;
-    VWidth = 0;
-    VShift = 0;
-    nxScale = 0.25;
-};
-
 Movie "LeftImage" = {
     offsetAnchor = "br";
     start_frame_index = 1;
@@ -289,6 +271,24 @@ KernelConn "RightBipolarToRightGanglionSurround" = {
     normalize_cutoff = 0;
 };
 
+ANNLayer "V1_RELU" = {
+    initialWriteTime = 1;
+    mirrorBCflag = 0;
+    restart = 0;
+    phase = 5;
+    InitVType = "ZeroV";
+    nyScale = 0.25;
+    writeSparseValues = 1;
+    writeStep = 1;
+    VThresh = 0;
+    nf = 512;
+    writeSparseActivity = 1;
+    VMin = 0;
+    VWidth = 0;
+    VShift = 0;
+    nxScale = 0.25;
+};
+
 HyPerConn "V1ToLeftError" = {
     updateGSynFromPostPerspective = false;
     normalizeFromPostPerspective = false;
@@ -303,7 +303,7 @@ HyPerConn "V1ToLeftError" = {
     channelCode = -1;
     postLayerName = "LeftError";
     plasticityFlag = false;
-    preLayerName = "V1";
+    preLayerName = "V1_RELU";
     writeStep = -1;
     minL2NormTolerated = 0;
     initFromLastFlag = 0;
@@ -326,7 +326,7 @@ HyPerConn "V1ToLeftError" = {
 
 TransposeConn "RightErrorToV1" = {
     writeCompressedCheckpoints = false;
-    postLayerName = "V1";
+    postLayerName = "V1_RELU";
     updateGSynFromPostPerspective = true;
     preActivityIsNotRate = false;
     preLayerName = "RightError";
@@ -342,7 +342,7 @@ TransposeConn "RightErrorToV1" = {
 
 TransposeConn "LeftErrorToV1" = {
     writeCompressedCheckpoints = false;
-    postLayerName = "V1";
+    postLayerName = "V1_RELU";
     updateGSynFromPostPerspective = true;
     preActivityIsNotRate = false;
     preLayerName = "LeftError";
@@ -451,7 +451,7 @@ HyPerConn "V1ToRightError" = {
     postLayerName = "RightError";
     plasticityFlag = false;
     normalizeGroupName = "V1ToLeftError";
-    preLayerName = "V1";
+    preLayerName = "V1_RELU";
     weightInitType = "FileWeight";
     minL2NormTolerated = 0;
     initFromLastFlag = 0;

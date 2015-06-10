@@ -24,8 +24,8 @@ S = [chkptdirs(:).datenum].';
 chkptDir = {chkptdirs(S).name}{1}
 
 weightspvps = {
-   [outDir, '/Checkpoints/', chkptDir, '/V1_LCAToLeftError_W.pvp']; ...
-   [outDir, '/Checkpoints/', chkptDir, '/V1_LCAToRightError_W.pvp']; ...
+   [outDir, '/Checkpoints/', chkptDir, '/V1ToLeftError_W.pvp']; ...
+   [outDir, '/Checkpoints/', chkptDir, '/V1ToRightError_W.pvp']; ...
 }
 
 prefix='([^\/]*)$'
@@ -284,8 +284,11 @@ for i = 1:size(weightspvps,2)
    end
    [startPrefix,endPrefix] = regexp(weightspvps{i},prefix);
    [startSuffix,endSuffix] = regexp(weightspvps{i},suffix);
- 
    fid = fopen(weightspvps{i},'r');
+   if(fid == -1)
+      disp(['Error: File ', weightspvps{i}, ' not found\n']);
+      keyboard
+   end
    weightsheader = readpvpheader(fid);
    fclose(fid);
    weightsfiledata=dir(weightspvps{i});
