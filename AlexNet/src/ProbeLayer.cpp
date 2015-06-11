@@ -7,9 +7,8 @@ ProbeLayer::ProbeLayer(const char * name, HyPerCol * hc){
    sumDistance = 0;
    numExamples = 0;
    //TODO make this variable a parameter
-   dispPeriod = 100;
+   dispPeriod = 128;
 }
-
 
 int ProbeLayer::updateState(double timef, double dt){
    //Do update state of ANN Layer first
@@ -46,7 +45,7 @@ int ProbeLayer::updateState(double timef, double dt){
    numExamples++;
 
    if(numExamples % dispPeriod != 0) return PV_SUCCESS;
-   std::cout << "Current distance: " << (-sumCost) << "  Average distance: " << sumDistance/numExamples << "  Average Score: " << (float)numCorrect / numExamples << "\n";
+   std::cout << "Time: " << timef << " Current distance: " << (-sumCost) << "  Average distance: " << sumDistance/numExamples << "  Average Score: " << (float)numCorrect / numExamples << "\n";
 
    std::cout << "Guess: [";
    for(int ni = 0; ni < getNumNeurons(); ni++){

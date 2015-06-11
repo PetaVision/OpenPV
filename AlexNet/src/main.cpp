@@ -24,14 +24,8 @@ int main(int argc, char * argv[]) {
 //   if( !strcmp(keyword, "CIFARGTLayer") ) {
 //      addedGroup= new CIFARGTLayer(name, hc);
 //   }
-//   if( !strcmp(keyword, "SoftMaxBackprop") ) {
-//      addedGroup= new SoftMaxBackprop(name, hc);
-//   }
 //   if( !strcmp(keyword, "ProbeLayer") ) {
 //      addedGroup= new ProbeLayer(name, hc);
-//   }
-//   if( !strcmp(keyword, "BatchConn") ) {
-//      addedGroup= new BatchConn(name, hc);
 //   }
 //   if( !addedGroup) {
 //      fprintf(stderr, "Group \"%s\": Unable to create layer\n", name);
