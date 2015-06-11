@@ -304,9 +304,9 @@ int MomentumConn::applyMomentum(int arbor_ID){
          }
          else if(!strcmp(momentumMethod, "alex")){
             for(int k = 0; k < nxp*nyp*nfp; k++){
-               //Last term might have sign wrong
-               //dwdata_start[k] = momentumTau * prev_dw_start[k] - (1-momentumDecay) * getDWMax()* wdata_start[k] - dwdata_start[k];
-               dwdata_start[k] = momentumTau * prev_dw_start[k] - (1-momentumDecay) * getDWMax()* wdata_start[k] + dwdata_start[k];
+               //weight_inc[i] := momW * weight_inc[i-1] - wc * epsW * weights[i-1] + epsW * weight_grads[i]
+               //   weights[i] := weights[i-1] + weight_inc[i]
+               dwdata_start[k] = momentumTau * prev_dw_start[k] - momentumDecay * getDWMax()* wdata_start[k] + dwdata_start[k];
             }
          }
       }
