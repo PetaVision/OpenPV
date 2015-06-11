@@ -2726,6 +2726,7 @@ int HyPerCol::initializeThreads(char* in_device)
 
    //default value
    if(in_device == NULL){
+      std::cout << "Auto assigning GPUs\n";
       //Device of -1 means to use mpi process for each device
       device = getAutoGPUDevice();
    }
