@@ -75,61 +75,6 @@ int HyPerLCALayer::initialize_base()
    return PV_SUCCESS;
 }
 
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-bool HyPerLCALayer::inWindowExt(int windowId, int neuronIdxExt){
-   const PVLayerLoc * loc = this->getLayerLoc();
-   int globalExtX = kxPos(neuronIdxExt, loc->nx + loc->halo.lt + loc->halo.rt, loc->ny + loc->halo.dn + loc->halo.up, loc->nf) + loc->kx0;
-   int globalExtY = kyPos(neuronIdxExt, loc->nx + loc->halo.lt + loc->halo.rt, loc->ny + loc->halo.dn + loc->halo.up, loc->nf) + loc->ky0;
-   int outWindow = calcWindow(globalExtX, globalExtY);
-   //std::cout << globalExtX << "/" << loc->nxGlobal + 2*loc->nb << " " << globalExtY << "/" << loc->nyGlobal + 2*loc->nb << " " << outWindow << "," << windowId << "\n";
-   return (outWindow == windowId);
-}
-
-bool HyPerLCALayer::inWindowRes(int windowId, int neuronIdxRes){
-   const PVLayerLoc * loc = this->getLayerLoc();
-   int globalExtX = kxPos(neuronIdxRes, loc->nx, loc->ny, loc->nf) + loc->kx0;
-   int globalExtY = kyPos(neuronIdxRes, loc->nx, loc->ny, loc->nf) + loc->ky0;
-   int outWindow = calcWindow(globalExtX, globalExtY);
-   return (outWindow == windowId);
-}
-
-int HyPerLCALayer::calcWindow(int globalExtX, int globalExtY){
-   const PVLayerLoc * loc = this->getLayerLoc();
-   //Calculate x and y with symmetry on
-   if(windowSymX && globalExtX >= floor((loc->nxGlobal + loc->halo.lt + loc->halo.rt)/2)){
-      globalExtX = loc->nxGlobal + loc->halo.lt + loc->halo.rt - globalExtX - 1;
-   }
-   if(windowSymY && globalExtY >= floor((loc->nyGlobal + loc->halo.dn + loc->halo.up)/2)){
-      globalExtY = loc->nyGlobal + loc->halo.dn + loc->halo.up - globalExtY - 1;
-   }
-   //Calculate the window x and y
-   int windowX = floor(((float)globalExtX/(loc->nxGlobal+loc->halo.lt+loc->halo.rt)) * numWindowX);
-   int windowY = floor(((float)globalExtY/(loc->nyGlobal+loc->halo.dn+loc->halo.up)) * numWindowY);
-   //Change x and y into index
-   int windowIdx = (windowY * numWindowY) + windowX;
-   assert(windowIdx < getNumWindows());
-   assert(windowIdx >= 0);
-   return windowIdx;
-}
-
-int HyPerLCALayer::getNumWindows(){
-   int windowsX, windowsY;
-   if(windowSymX){
-      windowsX = ceil((float)numWindowX / 2);
-   }
-   else{
-      windowsX = numWindowX;
-   }
-   if(windowSymY){
-      windowsY = ceil((float)numWindowY / 2);
-   }
-   else{
-      windowsY = numWindowY;
-   }
-   return windowsX * windowsY;
-}
-#endif // OBSOLETE
-
 int HyPerLCALayer::initialize(const char * name, HyPerCol * hc)
 {
    ANNLayer::initialize(name, hc);

@@ -2215,15 +2215,6 @@ int HyPerCol::checkpointRead() {
       timeScaleTrue = timescale.timeScaleTrue;
    }
 
-#ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  Layers and connections' checkpointRead methods are called by their initializeState functions
-   double checkTime = simTime; // HyPerLayer::checkpointRead gives warnings if the files' timestamps are different from checkTime, but won't quit or change the value of checkTime
-   for( int l=0; l<numLayers; l++ ) {
-      layers[l]->checkpointRead(cpDir, &checkTime);
-   }
-   for( int c=0; c<numConnections; c++ ) {
-      connections[c]->checkpointRead(cpDir, &checkTime);
-   }
-#endif // OBSOLETE
    if(checkpointWriteFlag) {
       if( cpWriteStepInterval > 0) {
          assert(cpWriteTimeInterval<0.0f);

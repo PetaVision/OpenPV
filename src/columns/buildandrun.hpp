@@ -26,9 +26,6 @@
 #include "../layers/IncrementLayer.hpp"
 #include "../layers/LeakyIntegrator.hpp"
 #include "../layers/LogLatWTAGenLayer.hpp"
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  No longer used.
-#include "../layers/PursuitLayer.hpp"
-#endif // OBSOLETE
 #include "../layers/MatchingPursuitResidual.hpp"
 #include "../layers/PoolingANNLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
@@ -98,9 +95,6 @@
 #include "../connections/LCALIFLateralConn.hpp"
 #include "../connections/OjaSTDPConn.hpp"
 #include "../connections/PoolingConn.hpp"
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-#include "../connections/WindowConn.hpp"
-#endif // OBSOLETE
 #ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused connections.
 #include "../connections/CliqueConn.hpp"
 #include "../connections/InhibSTDPConn.hpp"

@@ -52,11 +52,6 @@
 #endif // OBSOLETE // Marked obsolete Feb 17, 2015.  HyPerConn should not need to know about subclasses of NormalizeBase
 #include "privateTransposeConn.hpp"
 #include "PlasticCloneConn.hpp"
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-   #include <sys/shm.h>
-#endif // USE_SHMGET
-#endif // OBSOLETE
 #include "../io/CoreParamGroupHandler.hpp"
 #include <limits>
 
@@ -275,11 +270,6 @@ int HyPerConn::initialize_base()
    this->dWMax            = std::numeric_limits<float>::quiet_NaN();
    this->strengthParamHasBeenWritten = false;
 
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-   //This flag is only set otherwise in kernelconn
-   this->useWindowPost = false;
-#endif // OBSOLETE
-
    this->updateGSynFromPostPerspective = false;
    this->thread_gSyn = NULL;
 
@@ -314,14 +304,6 @@ int HyPerConn::initialize_base()
    maskFeatureIdx = -1;
    mask = NULL;
 
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-   shmget_flag = false;
-   shmget_owner = NULL;
-   shmget_id = NULL;
-#endif // SHMGET
-#endif // OBSOLETE
-
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    receiveGpu = false;
    allocDeviceWeights = false;
@@ -348,19 +330,6 @@ int HyPerConn::initialize_base()
 }
 
 int HyPerConn::createArbors() {
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-   if (shmget_flag){
-      assert(sharedWeights);
-      shmget_id = (int *) calloc(this->numberOfAxonalArborLists(),
-            sizeof(int));
-      assert(shmget_id != NULL);
-      shmget_owner = (bool *) calloc(this->numberOfAxonalArborLists(),
-            sizeof(bool));
-      assert(shmget_owner != NULL);
-   }
-#endif // USE_SHMGET
-#endif // OBSOLETE
    wPatches = (PVPatch***) calloc(numAxonalArborLists, sizeof(PVPatch**));
    if( wPatches == NULL ) {
       createArborsOutOfMemory();
@@ -813,11 +782,7 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    }
    ioParam_normalizeGroupName(ioFlag);
    ioParam_dWMax(ioFlag);
-   ioParam_shmget_flag(ioFlag); // shmget_flag was marked obsolete Dec 9, 2014.  ioParam function still called to print warning
    ioParam_keepKernelsSynchronized(ioFlag);
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-   ioParam_useWindowPost(ioFlag);
-#endif // OBSOLETE
 
    ioParam_useMask(ioFlag);
    ioParam_maskLayerName(ioFlag);
@@ -1295,36 +1260,6 @@ void HyPerConn::ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void HyPerConn::ioParam_shmget_flag(enum ParamsIOFlag ioFlag) {
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
-   if (!sharedWeights) return;
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   parent->ioParamValue(ioFlag, name, "shmget_flag", &shmget_flag, shmget_flag, true/*warnIfAbsent*/);
-   if (plasticityFlag && shmget_flag) {
-       shmget_flag = false;
-       if (parent->columnId()==0) {
-          std::cout << "in HyPerConn::initialize: " << this->name
-                    << ", shmget_flag parameter specified as true, reset to false because plasticity_flag is true"
-                    << std::endl;
-       }
-   }
-#else
-   if (ioFlag == PARAMS_IO_READ) {
-      // mark as read so that shmget_flag doesn't get an unread-parameter warning.
-      // This way the same params file can be used with USE_SHMGET on or off.
-      parent->parameters()->value(name, "shmget_flag", false, false);
-   }
-#endif // USE_SHMGET
-#endif // OBSOLETE
-   if (parent->parameters()->present(name, "shmget_flag")) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\": shmget_flag is obsolete.\n", parent->parameters()->groupKeywordFromName(name), name);
-      }
-   }
-}
-
 void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
@@ -1332,18 +1267,6 @@ void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "keepKernelsSynchronized", &keepKernelsSynchronized_flag, sharedWeights, true/*warnIfAbsent*/);
    }
 }
-
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-void HyPerConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "numAxonalArbors"));
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if (sharedWeights && plasticityFlag && numAxonalArborLists>1) {
-      initialWeightUpdateTime = 1.0;
-      parent->ioParamValue(ioFlag, name, "useWindowPost", &useWindowPost, useWindowPost);
-   }
-}
-#endif // OBSOLETE
 
 void HyPerConn::ioParam_useMask(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
@@ -1597,11 +1520,6 @@ int HyPerConn::communicateInitInfo() {
    if (weightInitializer) { weightInitializer->communicateParamsInfo(); }
 
    if (sharedWeights) {
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-      if (pre->getNumWindows() != 1 && pre->getNumWindows() != this->numberOfAxonalArborLists()){
-         fprintf(stderr, "HyPerConn::Number of windows in %s is %d (calculated from symmetry), while number of arbors in %s is %d. Either some windows or arbors will not be used\n", pre->getName(), pre->getNumWindows(), name, this->numberOfAxonalArborLists());
-      }
-#endif // OBSOLETE
       fileType = PVP_KERNEL_FILE_TYPE;
    }
    else {
@@ -1776,19 +1694,6 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataS
 {
    PVPatch *** patches_arg = sharedWeights ? NULL : patches;
    weightInitializer->initializeWeights(patches_arg, dataStart);
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-#ifdef PV_USE_MPI
-   // insert synchronization barrier to ensure that all processes have finished loading portions of shared memory for which they
-   // might be responsible
-   //std::cout << "starting MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
-#ifdef PV_USE_MPI
-   MPI_Barrier(getParent()->icCommunicator()->communicator());
-#endif
-   //std::cout << "leaving MPI_Barrier in HyPerConn::initializeWeights: " << this->name << ", rank = " << getParent()->icCommunicator()->commRank() << std::endl;
-#endif // PV_USE_MPI
-#endif // USE_SHMGET
-#endif // OBSOLETE
    // normalizeWeights(); // normalizeWeights call moved to HyPerCol::run, to facilitate normalization of groups of connections
 #ifdef PV_USE_OPENCL
 // Copied over from KernelConn.
@@ -3359,20 +3264,6 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
    pvdata_t preact = preactbuf[kExt];
    if (skipPre(preact)) return PV_CONTINUE;
 
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-   bool inWindow = true;
-   // only check inWindow if number of arbors > 1
-   if (this->numberOfAxonalArborLists()>1){
-      if(useWindowPost){
-         int kPost = layerIndexExt(kExt, preLoc, postLoc);
-         inWindow = post->inWindowExt(arbor_ID, kPost);
-      }
-      else{
-         inWindow = pre->inWindowExt(arbor_ID, kExt);
-      }
-      if(!inWindow) return PV_CONTINUE;
-   }
-#endif // OBSOLETE
    PVPatch * weights = getWeights(kExt,arbor_ID);
    int ny = weights->ny;
    int nk = weights->nx * nfp;
@@ -3703,15 +3594,6 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
          kPreExt = loopIndex;
       }
 
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-      bool inWindow;
-      //Post layer receives synaptic input
-      //Only with respect to post layer
-      int kPost = layerIndexExt(kPreExt, preLoc, postLoc);
-      inWindow = inWindowExt(arborID, kPost);
-      if(!inWindow) continue;
-#endif // OBSOLETE
-
       float a = activity->data[kPreExt] * dt_factor;
       if (a == 0.0f) continue;
 
@@ -3825,11 +3707,6 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
    for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++){
       //Change restricted to extended post neuron
       int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-      bool inWindow;
-      inWindow = inWindowExt(arborID, akTargetExt);
-      if(!inWindow) continue;
-#endif // OBSOLETE
 
       //Read from buffer
       long startSourceExt = startSourceExtBuf[kTargetRes];
@@ -3839,17 +3716,6 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
 
       uint4 * rngPtr = getRandState(kTargetRes);
       float* activityStartBuf = &(activity->data[startSourceExt]); 
-
-      //pvwdata_t* weightStartBuf = targetToSourceConn->get_wDataHead(arborID, kernelIndex);
-      //int sf = 1;
-      //for (int ky = 0; ky < yPatchSize; ky++){
-      //   float * activityY = &(activityStartBuf[ky*sy]);
-      //   pvwdata_t * weightY = weightStartBuf + ky*syp;
-      //   //TODO add sf here
-      //   (accumulateFunctionFromPostPointer)(numPerStride, gSynPatchPos, activityY, weightY, dt_factor, rngPtr);
-      //}
-
-
 
       deliverOnePostNeuronActivity(arborID, kTargetExt, sy, activityStartBuf, gSynPatchPos, dt_factor, rngPtr);
    }
@@ -4306,30 +4172,6 @@ int HyPerConn::deleteWeights() {
       for (int arbor = 0; arbor < numAxonalArborLists; arbor++) {
          // entire arbor allocated as single block
          if (arbor == 0) {
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-            if (!shmget_flag) {
-               if (wDataStart[arbor] != NULL) {
-                  free(this->wDataStart[arbor]);
-               }
-            } else {
-               if (wDataStart[arbor] != NULL) {
-                  int shmget_status = shmdt(this->get_wDataStart(arbor));
-                  assert(shmget_status==0);
-                  if (shmget_owner[arbor]) {
-                     shmid_ds * shmget_ds = NULL;
-                     shmget_status = shmctl(shmget_id[arbor], IPC_RMID,
-                           shmget_ds);
-                     assert(shmget_status==0);
-                  }
-               }
-            }
-#else
-            if (wDataStart[arbor] != NULL) {
-               free(this->wDataStart[arbor]);
-            }
-#endif // USE_SHMGET
-#endif // OBSOLETE
             if (wDataStart[arbor] != NULL) {
                free(this->wDataStart[arbor]);
             }
@@ -4349,15 +4191,6 @@ int HyPerConn::deleteWeights() {
       }
       dwDataStart = NULL;
    } // wDataStart != NULL
-
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-   if (shmget_flag) {
-      free(shmget_id);
-      free(shmget_owner);
-   }
-#endif
-#endif // OBSOLETE
 
    if (wPostPatches != NULL) {
       for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
@@ -5054,84 +4887,6 @@ pvwdata_t * HyPerConn::allocWeights(int nPatches, int nxPatch, int nyPatch, int 
    }
 
    pvwdata_t * dataPatches = NULL;
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-   int arbor_ID = 0;
-   if (!shmget_flag) {
-      dataPatches = (pvwdata_t *) calloc(arborSize, sizeof(char));
-   } else {
-      assert(sharedWeights);
-      shmget_owner[arbor_ID] = true;
-      // shmget diagnostics
-#define SHMGET_DEBUG
-#ifdef SHMGET_DEBUG
-      if (arbor_ID == 0 || arbor_ID == (this->numberOfAxonalArborLists()-1)) {
-         std::cout << "rank = " << parent->icCommunicator()->commRank();
-         std::cout << ", arbor_ID = " << arbor_ID;
-      }
-#endif // SHMGET_DEBUG
-      // dataSize must be a multiple of PAGE_SIZE
-      size_t shmget_dataSize = (floor(arborSize / PAGE_SIZE) + 1) * PAGE_SIZE;
-      key_t key = IPC_PRIVATE;
-      const int max_arbors = 8712;
-      key = 11 + (this->getConnectionId() + 1) * max_arbors + arbor_ID; //hopefully unique key identifier for all shared memory associated with this connection arbor
-      int shmflg = (IPC_CREAT | IPC_EXCL | 0666);
-      char *segptr;
-
-      // check for existing segment associated with this key, delete existing segment if present, then insert barrier to ensure
-      // all processes have completed this check before attempting to create new shared memory segment
-      int shmget_existing_ID = shmget(key, shmget_dataSize, 0666);
-      if (shmget_existing_ID != -1){
-         shmid_ds * shmget_ds = NULL;
-         int shmctl_status = shmctl(shmget_existing_ID, IPC_RMID,
-               shmget_ds);
-         std::cout << "shmctl_status = " << shmctl_status << std::endl;
-         //          assert(shmget_status==0);
-      }
-#ifdef PV_USE_MPI
-      MPI_Barrier(getParent()->icCommunicator()->communicator());
-#endif // PV_USE_MPI
-
-
-      /* Open the shared memory segment - create if necessary */
-      if ((shmget_id[arbor_ID] = shmget(key, shmget_dataSize, shmflg))
-            == -1) {
-         if (errno != EEXIST) {
-            std::cout << std::endl;
-            std::cout << "key = " << key << ", shmget_dataSize = "
-                  << shmget_dataSize << ", shmflg = "
-                  << shmflg << std::endl;
-            perror("shmget: unable to create shared memory segment");
-            exit(1);
-         }
-         /* Segment already exists - try as a client */
-         shmget_owner[arbor_ID] = false;
-         int shmget_flag2 = (IPC_CREAT | 0666);
-         if ((shmget_id[arbor_ID] = shmget(key, shmget_dataSize,
-               shmget_flag2)) == -1) {
-            perror(
-                  "shmget: unable to obtain id of existing shared memory segment");
-            exit(1);
-         }
-      }
-#ifdef SHMGET_DEBUG
-      if (arbor_ID == 0 || arbor_ID == (this->numberOfAxonalArborLists()-1)) {
-         std::cout << ", shmget_owner = " << shmget_owner[arbor_ID]
-                                                          << std::endl;
-      }
-#endif // SHMGET_DEBUG
-      /* Attach (map) the shared memory segment into the current process */
-      if ((segptr = (char *) shmat(shmget_id[arbor_ID], 0, 0))
-            == (char *) -1) {
-         perror("shmat: unable to map shared memory segment");
-         exit(1);
-      }
-      dataPatches = (pvwdata_t *) segptr;
-   }
-#else
-   dataPatches = (pvwdata_t *) calloc(arborSize, sizeof(char));
-#endif // USE_SHMGET
-#endif // OBSOLETE
    dataPatches = (pvwdata_t *) calloc(arborSize, sizeof(char));
    if(dataPatches == NULL) {
       fprintf(stderr, "Error allocating weights for connection \"%s\": %s\n", getName(), strerror(errno));

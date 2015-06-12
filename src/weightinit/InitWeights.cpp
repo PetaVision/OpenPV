@@ -247,13 +247,6 @@ int InitWeights::calcWeights() {
    int numArbors = callingConn->numberOfAxonalArborLists();
    int numPatches = callingConn->getNumDataPatches();
    for (int arbor = 0; arbor < numArbors; arbor++) {
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-      bool * shmget_owner = callingConn->getShmgetOwnerHead();
-      bool shmget_flag = callingConn->getShmgetFlag();
-      if (shmget_flag && !shmget_owner[arbor]) continue;
-#endif // USE_SHMGET
-#endif // OBSOLETE
       for (int dataPatchIndex = 0;
             dataPatchIndex < numPatches;
             dataPatchIndex++) {
@@ -292,12 +285,6 @@ int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int nu
    int numArbors = callingConn->numberOfAxonalArborLists();
    const PVLayerLoc *preLoc = callingConn->preSynapticLayer()->getLayerLoc();
    double timed;
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-   bool * shmget_owner = callingConn->getShmgetOwnerHead();
-   bool shmget_flag = callingConn->getShmgetFlag();
-#endif
-#endif // OBSOLETE
    const int nxp = callingConn->xPatchSize();
    const int nyp = callingConn->yPatchSize();
    const int nfp = callingConn->fPatchSize();
@@ -310,14 +297,6 @@ int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int nu
    }
    else {
       status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, filename, icComm, &timed, preLoc);
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifndef USE_SHMGET
-      
-      int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, filename, icComm, &timed, preLoc);
-#else
-         int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, filename, icComm, &timed, preLoc, shmget_owner, shmget_flag);
-#endif // USE_SHMGET
-#endif // OBSOLETE
    }
    if (status != PV_SUCCESS) {
       fprintf(stderr, "PV::readWeights: problem reading weight file %s for connection %s, SHUTTING DOWN\n", filename, callingConn->getName());
@@ -372,19 +351,6 @@ int InitWeights::readListOfArborFiles(PVPatch *** patches, pvwdata_t ** dataStar
       const int nxp = callingConn->xPatchSize();
       const int nyp = callingConn->yPatchSize();
       const int nfp = callingConn->fPatchSize();
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.  shmget is no longer used.
-#ifndef USE_SHMGET
-         int status = PV::readWeights(patches ? &patches[arbor] : NULL, &dataStart[arbor], numArbors-arbor, numPatches, nxp, nyp, nfp, arborfilename, icComm, &timed, preLoc);
-#else
-         bool * shmget_owner = callingConn->getShmgetOwnerHead();
-         bool shmget_flag = callingConn->getShmgetFlag();
-
-         int status = PV::readWeights(patches ? &patches[arbor] : NULL,
-                 &dataStart[arbor], numArbors - arbor, numPatches, nxp, nyp, nfp,
-                 arborfilename, icComm, &timed, preLoc, shmget_owner,
-                 shmget_flag);
-#endif // USE_SHMGET
-#endif // OBSOLETE
 
       int status = PV::readWeights(patches ? &patches[arbor] : NULL, &dataStart[arbor], numArbors-arbor, numPatches, nxp, nyp, nfp, arborfilename, icComm, &timed, preLoc);
       if (status != PV_SUCCESS) {
@@ -449,15 +415,6 @@ int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataS
       const int nyp = callingConn->yPatchSize();
       const int nfp = callingConn->fPatchSize();
       int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, weightsfilename, icComm, &timed, preLoc);
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifndef USE_SHMGET
-      int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, weightsfilename, icComm, &timed, preLoc);
-#else
-      bool * shmget_owner = callingConn->getShmgetOwnerHead();
-      bool shmget_flag = callingConn->getShmgetFlag();
-      int status = PV::readWeights(patches, dataStart, numArbors, numPatches, nxp, nyp, nfp, weightsfilename, icComm, &timed, preLoc, shmget_owner, shmget_flag);
-#endif // USE_SHMGET
-#endif // OBSOLETE
       if (status != PV_SUCCESS) {
          fprintf(stderr, "PV::InitWeights::readWeights: problem reading arbor file %s, SHUTTING DOWN\n", weightsfilename);
          exit(EXIT_FAILURE);

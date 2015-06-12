@@ -287,9 +287,6 @@ public:
       return shrinkPatches_flag;
    }
 
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-   bool getUseWindowPost(){return useWindowPost;}
-#endif // OBSOLETE
    bool getUpdateGSynFromPostPerspective(){return updateGSynFromPostPerspective;}
 
    // uint4 * getRnd_state(int index) { return pvpatchAccumulateType==ACCUMULATE_STOCHASTIC ? &rnd_state[index] : NULL; }
@@ -324,20 +321,6 @@ public:
    void setNeedPost(bool inBool){needPost = inBool;}
    void setNeedAllocPostWeights (bool inBool){needAllocPostWeights = inBool;}
 
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-   virtual bool getShmgetFlag(){
-      return shmget_flag;
-   };
-   virtual bool getShmgetOwner(int arbor_ID = 0){
-      return (shmget_owner == NULL) ? false : shmget_owner[arbor_ID];
-   };
-   virtual bool * getShmgetOwnerHead(){
-      return  shmget_owner;
-   }
-#endif // SHMGET
-#endif // OBSOLETE
-
 protected:
    // char * filename; // Filename if loading weights from a file
    int fileparams[NUM_WGT_PARAMS]; // The header of the file named by the filename member variable
@@ -349,13 +332,6 @@ protected:
 
    //these were moved to private to ensure use of get/set methods and made in 3D pointers:
    //PVPatch       ** wPatches[MAX_ARBOR_LIST]; // list of weight patches, one set per neighbor
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-   bool shmget_flag;
-   bool *shmget_owner;
-   int *shmget_id;
-#endif // USE_SHMGET
-#endif // OBSOLETE
 private:
    PVPatch*** wPatches; // list of weight patches, one set per arbor
    // GTK:: gSynPatchStart redefined as offset from start of associated gSynBuffer
@@ -381,9 +357,6 @@ private:
 protected:
    HyPerConn* postConn;
    bool needFinalize;
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-   bool useWindowPost;
-#endif // OBSOLETE
    bool useMask;
    char* maskLayerName;
    int maskFeatureIdx;
@@ -790,23 +763,10 @@ protected:
    virtual void ioParam_normalizeGroupName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief sharedWeights: Deprecated
-    */
-   virtual void ioParam_shmget_flag(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief keepKernelsSynchronized: If using sharedWeights and plasticityFlag, sets if kernels should be synchronized during the run.
     */
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-   /**
-    * @brief useWindowPost: If using sharedWeights, numAxonalArbors, and plasticityFlag is set,
-    * specifies if windows are from post perspective.
-    */
-   virtual void ioParam_useWindowPost(enum ParamsIOFlag ioFlag);
-#endif // OBSOLETE
-
    /**
     * @brief useMask: Specifies if this connection is using a post mask for learning
     */

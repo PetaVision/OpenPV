@@ -98,13 +98,6 @@ int NormalizeBase::normalizeWeights() {
    assert((normalizeOnInitialize && connectionList[0]->getParent()->simulationTime() == connectionList[0]->getParent()->getStartTime()) ||
           (normalizeOnWeightUpdate && connectionList[0]->getParent()->simulationTime() == connectionList[0]->getLastUpdateTime()));
    int status = PV_SUCCESS;
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014
-#ifdef USE_SHMGET
-#ifdef PV_USE_MPI
-   if (conn->getShmgetFlag()) assert(conn->getShmgetOwner(0)); // Only called by subclasses of normalizeWeights, and if shmgetFlag is set, only by the owner
-#endif // PV_USE_MPI
-#endif // USE_SHMGET
-#endif // OBSOLETE
    for (int c=0; c<numConnections; c++) {
       HyPerConn * conn = connectionList[c];
    }

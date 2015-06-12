@@ -196,15 +196,6 @@ void TransposePoolingConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioF
    }
 }
 
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-void TransposePoolingConn::ioParam_useWindowPost(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      useWindowPost = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "useWindowPost");
-   }
-}
-#endif // OBSOLETE
-
 void TransposePoolingConn::ioParam_shrinkPatches(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       shrinkPatches_flag = false;

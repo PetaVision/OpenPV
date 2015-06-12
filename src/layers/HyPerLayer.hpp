@@ -174,11 +174,6 @@ protected:
    virtual void ioParam_valueBC(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief restart: Obsolete; used only to exit with an error if params file sets restart to true.
-    */
-   virtual void ioParam_restart(enum ParamsIOFlag ioFlag); // Deprecating in favor of initializeFromCheckpointFlag?
-
-   /**
     * @brief initializeFromCheckpointFlag: If set to true, initialize using checkpoint direcgtory set in HyPerCol.
     * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
     */
@@ -290,15 +285,6 @@ protected:
    virtual int  ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
    static int equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2);
-#ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  HyPerLayer::recv* methods moved to HyPerConn::deliver* methods
-   virtual int recvSynapticInput(HyPerConn * conn, const PVLayerCube * cube, int arborID);
-   virtual int recvSynapticInputFromPost(HyPerConn * conn, const PVLayerCube * activity, int arborID);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   virtual int recvSynapticInputGpu(HyPerConn * conn, const PVLayerCube * cube, int arborID);
-   virtual int recvSynapticInputFromPostGpu(HyPerConn * conn, const PVLayerCube * activity, int arborID);
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   void recvOnePreNeuronActivity(HyPerConn * conn, int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
-#endif // OBSOLETE
 
    int freeClayer();
 
@@ -344,13 +330,6 @@ public:
    // (i.e. methods for receiving synaptic input, updating internal state, publishing output)
    // ************************************************************************************//
    virtual int recvAllSynapticInput(); // Calls recvSynapticInput for each conn and each arborID
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-   //Method to see if the neuron is in the window. Default window id is mapped to the arbor id. Parent class is always true, and can be overwritten 
-   virtual bool inWindowExt(int windowId, int neuronIdxExt) {return true;};
-   virtual bool inWindowRes(int windowId, int neuronIdxRes) {return true;}; 
-   //Returns number of windows, with a default of 1 window for the entire layer
-   virtual int getNumWindows(){return 1;}
-#endif // OBSOLETE
 
    //An updateState wrapper that determines if updateState needs to be called
    virtual int updateStateWrapper (double time, double dt);
@@ -404,9 +383,6 @@ public:
    template <typename T>
    static int writeBufferFile(const char * filename, InterColComm * comm, double dtime, T ** buffers, int numbands, bool extended, const PVLayerLoc * loc);
 
-#ifdef OBSOLETE // Marked obsolete Dec 8, 2014.  Instead, set HyPerCol's initializeFromCheckpointDir to [outputPath]/Last and set layer's initializeFromCheckpointFlag to true
-   virtual int readState (double * timeptr);
-#endif // OBSOLETE
    virtual int outputState(double timef, bool last=false);
    virtual int writeActivity(double timed);
    virtual int writeActivitySparse(double timed, bool includeValues);

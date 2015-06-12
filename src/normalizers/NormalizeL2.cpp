@@ -74,17 +74,6 @@ int NormalizeL2::normalizeWeights() {
    }
 #endif // OBSOLETE
 
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-#ifdef PV_USE_MPI
-   if (conn->getShmgetFlag() && !conn->getShmgetOwner(0)) { // Assumes that all arbors are owned by the same process
-      MPI_Barrier(conn->getParent()->icCommunicator()->communicator());
-      return status;
-   }
-#endif // PV_USE_MPI
-#endif // USE_SHMGET
-#endif // OBSOLETE
-
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
       if (conn0->usingSharedWeights()==false) {
@@ -163,16 +152,6 @@ int NormalizeL2::normalizeWeights() {
          }
       }
    }
-#ifdef OBSOLETE // Marked obsolete Dec 9, 2014.
-#ifdef USE_SHMGET
-#ifdef PV_USE_MPI
-   if (conn->getShmgetFlag()) {
-      assert(conn->getShmgetOwner(0)); // Assumes that all arbors are owned by the same process
-      MPI_Barrier(conn->getParent()->icCommunicator()->communicator());
-   }
-#endif // PV_USE_MPI
-#endif // USE_SHMGET
-#endif // OBSOLETE
    return status;
 }
 

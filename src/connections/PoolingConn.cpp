@@ -562,11 +562,6 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
    for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++){
       //Change restricted to extended post neuron
       int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-      bool inWindow;
-      inWindow = inWindowExt(arborID, akTargetExt);
-      if(!inWindow) continue;
-#endif // OBSOLETE
 
       //Read from buffer
       long startSourceExt = startSourceExtBuf[kTargetRes];
