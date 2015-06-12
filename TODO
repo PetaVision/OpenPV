@@ -1,12 +1,6 @@
 This file contains a list of items to do.
 
-Kernel connections should be set using a HyPerConn member variable flag, as opposed to a separate class hierarchy
-
 Get rid of Channel_Type enum and instead use preprocessor directives if needed
-
-Weight .pvp files shouldn't depend on the mpi configuration being used when writing.
-
-No more activity buffer; things that write to activity should only write to DataStore
 
 More graceful aborting from errors under mpi.  There's a pv_log but it's preprocessor directived to fprintf
 
@@ -14,19 +8,8 @@ Add ffmpeg support
 
 PatternState.bin and .txt should only write the stuff being used
 
-DONE! -- params.pv should be pv.params, and include all parameters that were set to default values and exclude all parameters that were ignored.
-
-read[ParameterName] should be io[ParameterName] and have a write/!read flag; each io[ParameterName] should contain documentation for that parameter
-(this is so that pv.params will be automatically maintained as parameters are added)
-
-CloneKernelConn doesn't need to write checkpoints since it's a clone; make sure that pointers are set correctly when reading checkpoints.  Similarly, is writeStep needed for clones?
-
 Movie should be able to use autoResizeFlag when reading a PVP file (currently only does so for GDAL files)
 
 Get rid of LayerDataInterface, and have HyPerLayer and HyPerConn be derived from a HyPerObject layer
 
-Add an option to specify a wall clock frequency for checkpointing
-
-pvdata_t should be split into pvweight_t and pvactivity_t, perhaps also pvgsyn_t and pvpotential_t; provide support for varying precisions
-
-When reading from a checkpoint, should specify directory (Checkpoint[n] or Last) on command line instead of needing to mangle the params file
+Start using TODO list
