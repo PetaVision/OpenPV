@@ -484,7 +484,21 @@ HyPerConn "ImageToImageReconError" = {
   @postLayerName                       = "ImageReconError";
 };
 
+IdentConn "ImageDeconToImageDeconError" = {
+    preLayerName                        = "ImageDecon";
+    postLayerName                       = "ImageDeconError";
+    channelCode                         = 1;
+    delay                               = 0;
+    writeStep                           = -1;
+};
 
+IdentConn "ImageReconToImageDeconError" = {
+    preLayerName                        = "ImageRecon";
+    postLayerName                       = "ImageReconError";
+    channelCode                         = 1;
+    delay                               = 0;
+    writeStep                           = -1;
+};
 
 
 // S1 Connections
@@ -540,7 +554,7 @@ MomentumConn "S1ToImageDeconError" = {
 };
 
 TransposeConn "ImageDeconErrorToS1DeconError" = {
-    preLayerName                        = "ImageReconError";
+    preLayerName                        = "ImageDeconError";
     postLayerName                       = "S1DeconError";
     channelCode                         = 0;
     delay                               = [0.000000];
@@ -777,6 +791,21 @@ CloneConn "S2ReconS3ToS1ReconS3" = {
   @preLayerName                         = "S2ReconS3";
   @postLayerName                        = "S1ReconS3";
   @originalConnName                     = "S2ToS1ReconS2Error";
+};
+
+CloneConn "S1ReconS3ToImageReconS3" = {
+#include "S1ReconS2ToImageReconS2";
+  @preLayerName                         = "S1ReconS3";
+  @postLayerName                        = "ImageReconS3";
+  @originalConnName                     = "S1ToImageDeconError";
+};
+
+IdentConn "ImageReconS3ToImageRecon" = {
+    preLayerName                        = "ImageReconS3";
+    postLayerName                       = "ImageRecon";
+    channelCode                         = 0;
+    delay                               = 0;
+    writeStep                           = -1;
 };
 
 
