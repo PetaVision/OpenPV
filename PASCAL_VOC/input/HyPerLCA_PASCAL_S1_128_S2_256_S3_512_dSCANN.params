@@ -254,9 +254,18 @@ ANNLayer "ImageDeconS1" = {
 // S2 layers
 
 ANNErrorLayer "S1ReconS2Error" = {
-#include "S1DeconS2Error";
+#include "S1DeconError";
   @phase                               = 4;
 };
+
+ANNErrorLayer "S2DeconError" = {
+#include "S1DeconError";
+  @nxScale                             = 0.25;
+  @nyScale                             = 0.25;
+  @nf                                  = 256;
+  @phase                               = 4;
+};
+
 
 HyPerLCALayer "S2" = {
 #include "S1";
@@ -299,15 +308,6 @@ ANNLayer "ImageReconS2" = {
 
 // S3 layers
 
-ANNErrorLayer "S2DeconError" = {
-#include "S1DeconError";
-  @nxScale                             = 0.25;
-  @nyScale                             = 0.25;
-  @nf                                  = 256;
-  @phase                               = 6;
-};
-
-
 ANNErrorLayer "S2ReconS3Error" = {
 #include "S1ReconS2Error";
   @nxScale                             = 0.25;
@@ -315,6 +315,15 @@ ANNErrorLayer "S2ReconS3Error" = {
   @nf                                  = 256;
   @phase                               = 6;  
 };
+
+ANNErrorLayer "S3DeconError" = {
+#include "S2DeconError";
+  @nxScale                             = 0.125;
+  @nyScale                             = 0.125;
+  @nf                                  = 512;
+  @phase                               = 5;
+};
+
 
 HyPerLCALayer "S3" = {
 #include "S2";
