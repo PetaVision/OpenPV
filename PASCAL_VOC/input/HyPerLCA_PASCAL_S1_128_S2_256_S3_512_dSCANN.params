@@ -47,17 +47,17 @@ HyPerCol "column" = {
     progressInterval                    = 1000;
     writeProgressToErr                  = true;
     verifyWrites                        = false;
-    outputPath                          = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscapeAWS";
-    printParamsFilename                 = "PASCAL_S1_128_S2_256_S3_512_dSCANN_VOC2007_landscapeAWS.params";
+    outputPath                          = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape";
+    printParamsFilename                 = "PASCAL_S1_128_S2_256_S3_512_dSCANN_VOC2007_landscape.params";
     randomSeed                          = 1234567890;
     nx                                  = 256;
     ny                                  = 192;
     filenamesContainLayerNames          = 1;
     filenamesContainConnectionNames     = 1;
-    initializeFromCheckpointDir         = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscapeAWS/Checkpoints/Checkpoint950000";
+    initializeFromCheckpointDir         = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape/Checkpoints/Checkpoint950000";
     defaultInitializeFromCheckpointFlag = false;
     checkpointWrite                     = true;
-    checkpointWriteDir                  = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscapeAWS/Checkpoints";
+    checkpointWriteDir                  = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape/Checkpoints";
     checkpointWriteTriggerMode          = "step";
     checkpointWriteStepInterval         = 40000;
     deleteOlderCheckpoints              = false;
@@ -91,7 +91,7 @@ Movie "Image" = {
     normalizeStdDev                     = true;
     jitterFlag                          = 0;
     padValue                            = 0;
-    imageListPath                       = "/home/ec2-user/mountData/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
+    imageListPath                       = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
     displayPeriod                       = 400;
     randomMovie                         = 0;
     readPvpFile                         = false;
@@ -221,7 +221,7 @@ HyPerLCALayer "S1" = {
   valueBC                             = 0;
   initializeFromCheckpointFlag        = false;
   //InitVType                           = "InitVFromFile";
-  //Vfilename                           = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscapeAWS/Checkpoints/Checkpoint3183200/S1_V.pvp";
+  //Vfilename                           = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape/Checkpoints/Checkpoint3183200/S1_V.pvp";
   InitVType                           = "UniformRandomV";
   minV                                = -1.0;
   maxV                                = .05; //0.05 above VThresh    
@@ -250,6 +250,11 @@ ANNLayer "ImageDeconS1" = {
   @phase                               = 4; 
 };
 
+ANNLayer "ImageReconS1" = {
+#include "ImageRecon";
+  @phase                               = 4; 
+};
+
 
 // S2 layers
 
@@ -273,7 +278,7 @@ HyPerLCALayer "S2" = {
   @nyScale                             = 0.25;
   @nf                                  = 256; 
   //@timeConstantTau                     = 400; //800; 
-  //@Vfilename = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscapeAWS/Checkpoints/Checkpoint3183200/S2_V.pvp";
+  //@Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape/Checkpoints/Checkpoint3183200/S2_V.pvp";
   //@VThresh                             = 0.025; //
   @phase                               = 5;  
 };
@@ -331,7 +336,7 @@ HyPerLCALayer "S3" = {
   @nyScale                             = 0.125;
   @nf                                  = 512; 
   //@timeConstantTau                     = 400; // 1200; 
-  //@Vfilename = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscapeAWS/Checkpoints/Checkpoint3183200/S3_V.pvp";
+  //@Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape/Checkpoints/Checkpoint3183200/S3_V.pvp";
   //@VThresh                             = 0.025; //
   @phase                               = 7;  
 };
@@ -350,7 +355,7 @@ ANNLayer "S2DeconS3" = {
 };
 
 ANNLayer "S1ReconS3" = {
-#include "ImageRecon";
+#include "S2ReconS3";
   @nxScale                             = 0.5;
   @nyScale                             = 0.5;
   @nf                                  = 128;
@@ -382,10 +387,10 @@ Movie "GroundTruthPixels" = {
 #include "Image";
   @nf                                  = 20;
   @sparseLayer                         = true;
-  @writeSparseValues                   = false;
+  writeSparseValues                   = false;
   @autoResizeFlag                      = false;
   @normalizeLuminanceFlag              = false;
-  @imageListPath                       = "/home/ec2-user/mountData/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
+  @imageListPath                       = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
   @readPvpFile                         = true;
 };
 
@@ -399,14 +404,14 @@ ANNLayer "GroundTruthNoBackground" = {
   @triggerLayerName                    = "GroundTruthPixels";
   @triggerOffset                       = 0;
   @sparseLayer                         = true;
-  @writeSparseValues                   = false;
+  writeSparseValues                   = false;
 };
 
 BackgroundLayer "GroundTruth" = {
   nxScale                             = 0.125;
   nyScale                             = 0.125;
   nf                                  = 21; //One more than input * rep
-  writeStep                           = 40000.0;
+  writeStep                           = 4000.0;
   initialWriteTime                    = 4000.0;
   mirrorBCflag                        = false;
   valueBC                             = 0.0;
@@ -422,11 +427,13 @@ BackgroundLayer "GroundTruth" = {
 };
 
 ANNErrorLayer "GroundTruthReconS3Error" = {
-#include "ImageDeconError";
+#include "S1DeconError";
   @nxScale                             = 0.125;
   @nyScale                             = 0.125;
   @nf                                  = 21;
   @phase                               = 3;
+  @writeStep                           = 4000.0;
+  @initialWriteTime                    = 4000.0;
 };
 
 ANNLayer "GroundTruthReconS3" = {
@@ -493,7 +500,7 @@ MomentumConn "S1ToImageDeconError" = {
     receiveGpu                          = false;
     sharedWeights                       = true;
     //weightInitType                      = "FileWeight";
-    //initWeightsFile                     = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscapeAWS/Checkpoints/Checkpoint3183200/S1ToImageDeconError_W.pvp";
+    //initWeightsFile                     = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape/Checkpoints/Checkpoint3183200/S1ToImageDeconError_W.pvp";
     //useListOfArborFiles                 = false;
     //combineWeightFiles                  = false;
     weightInitType                      = "UniformRandomWeight";
@@ -568,12 +575,12 @@ CloneConn "S1ToImageDeconS1" = {
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
-    originalConnName                    = "S1ToImageReconError";
+    originalConnName                    = "S1ToImageDeconError";
 };
 
 CloneConn "S1ToImageReconS1" = {
 #include "S1ToImageDeconS1";
-    postLayerName                       = "ImageReconS1";
+    @postLayerName                       = "ImageReconS1";
 };
 
 IdentConn "ImageDeconS1ToImageDecon" = {
@@ -611,12 +618,12 @@ MomentumConn "S2ToS1ReconS2Error" = {
   @postLayerName                        = "S1ReconS2Error";
   @nxp                                  = 10;
   @nyp                                  = 10;
-  //@initWeightsFile = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscapeAWS/Checkpoints/Checkpoint3183200/S2ToS1ReconS2Error_W.pvp";
+  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape/Checkpoints/Checkpoint3183200/S2ToS1ReconS2Error_W.pvp";
 };
 
 
 TransposeConn "S1ReconS2ErrorToS2" = {
-#include "ImageDeconErrorToS1";
+#include "ImageDeconErrorToS1DeconError";
   @preLayerName                         = "S1ReconS2Error";
   @postLayerName                        = "S2";
   @originalConnName                     = "S2ToS1ReconS2Error";
@@ -659,7 +666,7 @@ MomentumConn "S2ToS1DeconError" = {
 #include "S1ToImageDeconError";
   @preLayerName                         = "S2";
   @postLayerName                        = "S1DeconError";
-  //@initWeightsFile = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscapeAWS/Checkpoints/Checkpoint3183200/S2ToS1DeconError_W.pvp";
+  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape/Checkpoints/Checkpoint3183200/S2ToS1DeconError_W.pvp";
   @normalizeMethod                      = "normalizeGroup";
   normalizeGroupName                    = "S2ToS1ReconS2Error";
 };
@@ -684,7 +691,7 @@ CloneConn "S2ToS1DeconS2" = {
 #include "S2ToS1ReconS2";
   @preLayerName                         = "S2";
   @postLayerName                        = "S1DeconS2";
-  @originalConnName                     = "S2ToS1DeconS2Error";
+  @originalConnName                     = "S2ToS1DeconError";
 };
 
 //CloneConn "S1DeconS2ToImageDeconS2" = {
@@ -695,10 +702,10 @@ CloneConn "S2ToS1DeconS2" = {
 //};
 
 TransposeConn "S1DeconS2ToImageDeconS2" = {
-#include "S1ToImageDeconError";
+#include "S1DeconErrorToS2DeconError";
   @preLayerName                         = "S1DeconS2";
   @postLayerName                        = "ImageDeconS2";
-  @originalConnName                     = "ImageDeconErrorToS1";
+  @originalConnName                     = "ImageDeconErrorToS1DeconError";
 };
 
 IdentConn "ImageDeconS2ToImageDecon" = {
@@ -740,7 +747,7 @@ MomentumConn "S3ToS2ReconS3Error" = {
   @postLayerName                        = "S2ReconS3Error";
   @nxp                                  = 10;
   @nyp                                  = 10;
-  //@initWeightsFile = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscapeAWS/Checkpoints/Checkpoint3183200/S3ToS2ReconS3Error_W.pvp";
+  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape/Checkpoints/Checkpoint3183200/S3ToS2ReconS3Error_W.pvp";
 };
 
 TransposeConn "S2ReconS3ErrorToS3" = {
@@ -776,10 +783,10 @@ CloneConn "S2ReconS3ToS1ReconS3" = {
 // S3 deconvolutional neural net "Decon" pathway
 
 MomentumConn "S3ToS2DeconError" = {
-#include "S2ToS2DeconError";
+#include "S2ToS1DeconError";
   @preLayerName                         = "S3";
   @postLayerName                        = "S2DeconError";
-  //@initWeightsFile = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscapeAWS/Checkpoints/Checkpoint3183200/S3ToS2DeconError_W.pvp";
+  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape/Checkpoints/Checkpoint3183200/S3ToS2DeconError_W.pvp";
   //@normalizeMethod                      = "normalizeGroup";
   @normalizeGroupName                    = "S3ToS2ReconS3Error";
 };
@@ -815,10 +822,10 @@ CloneConn "S3ToS2DeconS3" = {
 //};
 
 TransposeConn "S2DeconS3ToS1DeconS3" = {
-#include "S1DeconS2ToImageDeconError";
+#include "S2DeconErrorToS3DeconError";
   @preLayerName                         = "S2DeconS3";
   @postLayerName                        = "S1DeconS3";
-  @originalConnName                     = "S1DeconErrorToS2";
+  @originalConnName                     = "S1DeconErrorToS2DeconError";
 };
 
 //CloneConn "S1DeconS3ToImageDeconS3" = {
@@ -829,10 +836,10 @@ TransposeConn "S2DeconS3ToS1DeconS3" = {
 //};
 
 TransposeConn "S1DeconS3ToImageDeconS3" = {
-#include "S1DeconS2ToImageDeconError";
+#include "S2DeconErrorToS3DeconError";
   @preLayerName                         = "S1DeconS3";
   @postLayerName                        = "ImageDeconS3";
-  @originalConnName                     = "ImageDeconErrorToS1";
+  @originalConnName                     = "ImageDeconErrorToS1DeconError";
 };
 
 IdentConn "ImageDeconS3ToImageDecon" = {
