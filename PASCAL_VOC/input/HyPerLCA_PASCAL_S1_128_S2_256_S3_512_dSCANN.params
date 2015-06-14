@@ -860,3 +860,72 @@ IdentConn "S2ReconS3ErrorToS2" = {
     writeStep                           = -1;
 };
 
+
+// Ground Truth connections
+
+PoolingConn "GroundTruthPixelsToGroundTruthNoBackground" = {
+    preLayerName                        = "GroundTruthPixels";
+    postLayerName                       = "GroundTruthNoBackground";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    initializeFromCheckpointFlag        = false;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "maxpooling";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 1;
+    nyp                                 = 1;
+    nfp                                 = 20;
+    shrinkPatches                       = false;
+    needPostIndexLayer                  = false;
+};
+
+IdentConn "GroundTruthToGroundTruthReconS3Error" = {
+    preLayerName                        = "GroundTruth";
+    postLayerName                       = "GroundTruthReconS3Error";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+};
+
+MomentumConn "S3ToGroundTruthReconS3Error" = {
+#include "S3ToS2DeconError";
+  @preLayerName                        = "S3";
+  @postLayerName                       = "GroundTruthReconS3Error";
+  @nxp                                 = 9;
+  @nyp                                 = 9;
+  //@initWeightsFile                     = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_GT/VOC2007_landscape2AWS/Checkpoints/Checkpoint3183200/S3ToGroundTruth8To1ReconS3Error_W.pvp";
+    //weightInitType                      = "UniformRandomWeight";
+    //initWeightsFile                     = NULL;
+    //wMinInit                            = -0.001;
+    //wMaxInit                            = 0.001;
+};
+
+TransposeConn "GroundTruthReconS3ErrorToS3" = {
+#include "S2DeconErrorToS3DeconError";
+  @preLayerName                        = "GroundTruthReconS3Error";
+  @postLayerName                       = "S3";
+  @originalConnName                    = "S3ToGroundTruthReconS3Error";
+};
+
+CloneConn "S3ToGroundTruthReconS3" = {
+#include "S3ToS2DeconS3";
+  @preLayerName                        = "S3";
+  @postLayerName                       = "GroundTruthReconS3";
+  @originalConnName                    = "S3ToGroundTruthReconS3Error";
+};
+
+IdentConn "GroundTruthReconS3ToGroundTruthReconS3Error" = {
+    preLayerName                        = "GroundTruthReconS3";
+    postLayerName                       = "GroundTruthReconS3Error";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+};
