@@ -73,8 +73,8 @@ for i in clines:
         if k:
             conn_dict.append(k.group())
 
-print(layer_dict)
-print(conn_dict)
+#print(layer_dict)
+#print(conn_dict)
 
 # Create lists of names, types, etc. from the param file:
 colNx = 0
@@ -217,25 +217,41 @@ duplicated_conns = []
 for i in conn_values:
     if not i[6] in duplicated_conns and not i[6] == "":
         duplicated_conns.append(i[6])
-print(duplicated_conns)
+
 stars = []
 for i in range(0, len(duplicated_conns)):
     stars.append(str(i+1))
 
+def followChainOfOriginals(remaining):
+    if remaining == []:
+        return
+    newlist = []
+    for i in remaining:
+        if not conn_values[conn_names.index(i)][6] == "":
+            for c,j in enumerate(conn_values):
+                if j[6] == i:
+                    stars[duplicated_conns.index(j[6])] = str(duplicated_conns.index(conn_values[conn_names.index(i)][6])+1)
+            newlist.append(conn_values[conn_names.index(i)][6])
+    followChainOfOriginals(newlist)
+followChainOfOriginals(duplicated_conns)
+
+# If any of the originalConns themselves have originalConns, follow the chain back in number-labelling
+
+
 
 # Calculate layer dimensions, put them on the front of the string
-print(layer_names)
-print(layer_types)
-print(conn_names)
-print(conn_types)
-print(layer_vars)
+#print(layer_names)
+#print(layer_types)
+#print(conn_names)
+#print(conn_types)
+#print(layer_vars)
 for i in layer_values:
     i[2] = str(float(i[0])*colNx)
     i[3] = str(float(i[1])*colNy)
-for i in layer_values:
-    print(i)
-for i in conn_values:
-    print(i)
+#for i in layer_values:
+#    print(i)
+#for i in conn_values:
+#    print(i)
 ############################################################
 ######################## COLORING ##########################
 ############################################################
@@ -312,7 +328,7 @@ for r,g,b in zip(rcodes,gcodes,bcodes):
 ############################################################
 #################### MERMAID OUTPUT ########################
 ############################################################
-
+    
 # Objects and links
 f = open("param_graph", "w")
 f.write("graph BT;\n")
@@ -332,13 +348,23 @@ for pre,post,c in zip(pre_index,post_index,range(0, len(conn_names))):
             f.write("|" + stars[d] + "|")
             starflag = True
     if not conn_values[c][6] == "" and starflag == False:
-        f.write("|" + stars[duplicated_conns.index(conn_values[c][6])]  + "|")
+        label = stars[duplicated_conns.index(conn_values[c][6])]
+        f.write("|" + label  + "|")
     f.write(layer_names[post] + ";\n")
 
-# Line color
+# Special cloneLayer (layers with originalLayerName) line drawing
+# all comes sequentially after the normal Conns
+clone_arrows = 0
+for lay_v,lay_n in zip(layer_values,layer_names):
+    if lay_v[5] in layer_names:
+        f.write(lay_v[5] + "-->")
+        f.write(lay_n + ";\n")
+        clone_arrows += 1
 
+# Line color
 indb = conn_vars.index(line_boldby)
 indc = conn_vars.index(line_colorby)
+num_normal_links = 0 
 if line_boldby in conn_vars and line_colorby in conn_vars:
     for c,i in enumerate(conn_values):
         if i[indb] == "true":
@@ -348,6 +374,7 @@ if line_boldby in conn_vars and line_colorby in conn_vars:
         alreadywrote = False
         for d,j in enumerate(line_types):
             if i[indc] == j:
+                num_normal_links += 1
                 f.write("linkStyle " + str(c) + " fill:none,stroke:#" + line_colorcode[d] + ",stroke-width:" + s + "px")
                 alreadywrote = True
                 # New line stylings should be copied (1) into list of ifs below:
@@ -358,6 +385,7 @@ if line_boldby in conn_vars and line_colorby in conn_vars:
                 else:
                     f.write(";\n")
         if alreadywrote == False:
+            num_normal_links +=1
             f.write("linkStyle " + str(c) + " fill:none,stroke:#000000,stroke-width:" + s + "px")
             # New line stylings should be also be copied (2) into list of ifs below:
             if conn_types[c] == "Ident":
@@ -366,6 +394,11 @@ if line_boldby in conn_vars and line_colorby in conn_vars:
                     f.write(",stroke-dasharray: 10, 10;\n")
             else:
                 f.write(";\n")
+
+# Clone line color
+for i in range(clone_arrows):
+    f.write("linkStyle " + str(num_normal_links+i) + " fill:none,stroke:#00f;\n")
+
 # Object color
 for i in color_code:
     f.write("classDef color" + i + " fill:" + i +  ",stroke:#333,stroke-width:2px;\n")
