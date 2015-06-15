@@ -1,7 +1,6 @@
 This file contains a description of the input parameters used by
 PetaVision objects.
 
-
 HyPerCol parameters:
 
    nx - number of neurons in the x direction

@@ -1,3 +1,7 @@
+===============
+# The Params File
+===============
+
 The params file consists of several group definitions.  Objects of class
 HyPerConn, HyPerLayer, or their derived classes typically read parameters
 from the params file by querying the group whose name matches the object's
@@ -66,9 +70,9 @@ Querying the params file is done using the PVParams methods
     int          stringPresent(const char * groupName, const char * paramStringName)
     const char * stringValue(const char * groupName, const char * paramStringName)
 
-========
-
-Parameter Sweeps
+==================
+# Parameter Sweeps
+==================
 
 Params files can define more than one run using ParameterSweep blocks.  They have
 the format
