@@ -16,9 +16,9 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime = 93; //193 total testing, splitting into 100 training, 93 testing
+    stopTime = 11; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "//ec2-user/mountData/benchmark/validate/aws_white_rcorr_LCA/";
+    //outputPath = "/nh/compneuro/Data/Depth/geoint/validate/on_frames/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
@@ -38,6 +38,12 @@ HyPerCol "column" = {
     dtChangeMin = 0.0;
 };
 
+ParameterSweep "column":outputPath = {
+    "/nh/compneuro/Data/Depth/geoint/validate/bias_on_clip_128/";
+    "/nh/compneuro/Data/Depth/geoint/validate/bias_on_clip_149/";
+    "/nh/compneuro/Data/Depth/geoint/validate/bias_on_clip_168/";
+};
+
 //
 // layers
 //
@@ -48,14 +54,14 @@ Movie "LCA_V1" = {
     nyScale = .25;
     nf = 512;
     readPvpFile = true;
-    imageListPath = "~/mountData/benchmark/a12_V1_LCA.pvp";
+    imageListPath = "/nh/compneuro/Data/Depth/a12_V1_LCA.pvp";
     writeFrameToTimestamp = true;
     writeStep = -1;
     sparseLayer = true;
     writeSparseValues = true;
     displayPeriod = 1;
-    start_frame_index = 1111;
-    skip_frame_index = 11;
+    //start_frame_index = 1420;
+    skip_frame_index = 1;
     echoFramePathnameFlag = true;
     mirrorBCflag = true;
     jitterFlag = 0;
@@ -69,6 +75,12 @@ Movie "LCA_V1" = {
     randomMovie = 0;
     phase = 0;
     //useParamsImage = true;
+};
+
+ParameterSweep "LCA_V1":start_frame_index= {
+   1420; //Frame 128
+   1651; //Frame 149
+   1860; //Frame 168
 };
 
 ANNLayer "LeftRecon" = {
@@ -95,19 +107,18 @@ ANNLayer "LeftRecon" = {
     //
 };
 
-//Depth ground truth layers
-Movie "DepthImage" = {
+Movie "AveDepth" = {
     restart = 0;
-    nxScale = 1;
-    nyScale = 1;
-    readPvpFile = false; 
-    imageListPath = "/home/ec2-user/mountData/kitti/list/aws_disp_noc.txt";
+    nxScale = .25;
+    nyScale = .25;
+    nf = 128;
+    readPvpFile = true; 
+    imageListPath = "/nh/compneuro/Data/Depth/geoint/depthAve/Last/RCorrBuf_A.pvp";
     writeFrameToTimestamp = true;
-    nf = 1;
     writeStep = -1;
     sparseLayer = false;
-    displayPeriod = 1;
-    start_frame_index = 100;
+    displayPeriod = 9000000000; //Never change
+    start_frame_index = 1;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
     mirrorBCflag = false;
@@ -123,47 +134,6 @@ Movie "DepthImage" = {
     autoResizeFlag = 0;
     phase = 0;
     //useParamsImage = true;
-};
-
-ANNLayer "DepthDownsample" = {
-    restart = 0;
-    nxScale = .25;
-    nyScale = .25;
-    nf = 1;
-    writeStep = 1;
-    initialWriteTime = 1.0;
-    mirrorBCflag = false;
-    writeSparseActivity = 0;
-    InitVType = "ZeroV";
-    VThresh = -infinity;
-    VMax =  infinity;
-    VMin = -infinity;
-    VShift = 0;
-    VWidth = 0;
-    //
-    phase = 1;  
-};
-
-//This is the ground truth layer
-BinningLayer "DepthGT" = {
-    restart = 0;
-    nxScale = .25; 
-    nyScale = .25;
-    nf = 128; //3 pixel error allowed, we may need to change this 
-    writeStep = -1.0;
-    initialWriteTime = 1.0;
-    mirrorBCflag = false;
-    writeSparseActivity = false;
-    binMax = 1;
-    binMin = 0;
-    binSigma = 3;
-    InitVType = "ZeroV";
-    zeroNeg = false; //Set negative gt values as -1
-    zeroDCR = true; //Zero values from the buffer is set to 0
-    normalDist = false; //Max value will always be 1 as opposed to normal distribution
-    delay = 0;
-    originalLayerName = "DepthDownsample";
-    phase = 2;
 };
 
 ANNLayer "RCorrBuf" = {
@@ -255,40 +225,51 @@ WTALayer "RCorrRecon" = {
 //    phase = 5;
 //};
 
-PoolingConn "DepthImageToDepthDownsample" = {
-    preLayerName = "DepthImage";
-    postLayerName = "DepthDownsample";
-    channelCode = 0; //Inhib b, doing nothing to input
-    sharedWeights = true;
-    nxp = 1; 
-    nyp = 1; 
-    numAxonalArbors = 1;
-    initFromLastFlag = 0;  // 1;  // restart
-    writeStep = -1;
-    initialWriteTime = 0.0;
-    writeCompressedWeights = false;
-    
-    normalizeMethod                     = "none";
-    //strength                            = 1;
-    //rMinX                               = 1.5;
-    //rMinY                               = 1.5;
-    //normalize_cutoff                    = 0;
-    
-    shrinkPatches = false;
-    //writeCompressedWeights = 0.0;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = 0;
-    pvpatchAccumulateType = "maxpooling";
-     
-    delay = 0;
-     
-    convertRateToSpikeCount = false;
-    selfFlag = false;
+//PoolingConn "DepthImageToDepthDownsample" = {
+//    preLayerName = "DepthImage";
+//    postLayerName = "DepthDownsample";
+//    channelCode = 0; //Inhib b, doing nothing to input
+//    sharedWeights = true;
+//    nxp = 1; 
+//    nyp = 1; 
+//    numAxonalArbors = 1;
+//    initFromLastFlag = 0;  // 1;  // restart
+//    writeStep = -1;
+//    initialWriteTime = 0.0;
+//    writeCompressedWeights = false;
+//    
+//    normalizeMethod                     = "none";
+//    //strength                            = 1;
+//    //rMinX                               = 1.5;
+//    //rMinY                               = 1.5;
+//    //normalize_cutoff                    = 0;
+//    
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    writeCompressedCheckpoints = false;
+//    plasticityFlag = 0;
+//    pvpatchAccumulateType = "maxpooling";
+//     
+//    delay = 0;
+//     
+//    convertRateToSpikeCount = false;
+//    selfFlag = false;
+//
+//    updateGSynFromPostPerspective = false;
+//    useWindowPost = false;
+//
+//    keepKernelsSynchronized             = true;
+//};
 
-    updateGSynFromPostPerspective = false;
-    useWindowPost = false;
 
-    keepKernelsSynchronized             = true;
+//Average connection, making imprint onto rcorr estimate
+IdentConn "DepthGTToSLP_Error" = {
+   preLayerName                        = "AveDepth";
+   postLayerName                       = "RCorrBuf";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
 };
 
 //Reverse correlation connections
@@ -305,7 +286,7 @@ KernelConn "LCA_V1ToRCorrBuf" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_white_LCA/Last/LCA_V1ToDepthGT_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/Depth/geoint/train/Last/LCA_V1ToRCorrBuf_W.pvp";
     //weightInitType = "UniformWeight";
     //weightInit = 0;
     //
@@ -355,7 +336,7 @@ KernelConn "LCA_V1ToLeftRecon" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/dictLearn/aws_white_saved/V1ToLeftError_W.pvp";
+    initWeightsFile = "/nh/compneuro/Data/Depth/saved_white_LCA/LCA_V1ToLeftRecon_W.pvp";
 
     strength = 1; //.25/2  
     normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
