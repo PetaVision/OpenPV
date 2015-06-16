@@ -37,8 +37,8 @@ third_name_pattern = "\w+$"
 time_pattern = "\d+.\d+$"
 
 
-output_names = ['ObjectName']
-output_values = ['ObjectType']
+output_names = ['label']
+output_values = ['count']
 
 for line in master_list:
     # re.search takes a regex as the first arg, the string to search as the second.
