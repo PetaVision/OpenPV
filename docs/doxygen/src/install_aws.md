@@ -1,11 +1,11 @@
 # AWS Installation
-================================
+
 Welcome to the cloud. Here's everything you need to know about how to get your favorite run on Amazon's AWS services.
 
 [TOC]
 
 # Introduction
-=================================
+
 Amazon AWS is a suite of tools to provide a virtual computing environment for end users. Here are the services we'll be using.
 
 - EC2: Elastic Compute Cloud
@@ -28,7 +28,7 @@ There exists a PetaVision AMI called 'PetaVision Public AMI' that has everything
 - emacs
 
 # Overview
-==================================
+
 Here's a quick overview of how our instance is set up.
 - GPU spot instance
 - 10GB root EBS that contains the OS, PetaVision and all software.
@@ -47,44 +47,38 @@ We are currently using the Oregon region.
 
 
 # First time initialization
-===================================
 This section explains how to get a new user set up on the aws account to do runs.
 
 ## Activate your account 
------------------------------------
 To create an AWS account, go to [Amazon's AWS page](http://aws.amazon.com) and click on Products.
 
 If you are in Kenyon Lab, contact an account administrator to create and set up your account. You should get a user name and a temporary password starting up. Follow [these instructions](md_src_aws_pv_internal.html) for setting up a user in the PetaVision account.
 
 ## Create your ssh key pair
------------------------------------
 Each instance must have an ssh key for security. Here's how to generate your own.
 
 Open a terminal and enter the following commands
-~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-cd ~/.ssh #Create it if it doesn't exist
-ssh-keygen -t rsa
-~~~~~~~~~~~~~~~~~~~~~~~
+
+	cd ~/.ssh #Create it if it doesn't exist
+	ssh-keygen -t rsa
+
 Follow the instructions on the screen. Note the filename in which you saved the key, ex: username_aws.
-~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-ssh-add ~/.ssh/username_aws
-pbcopy < ~/.ssh/username_aws.pub #Copies contents of username_aws.pub to your clipboard for macs
-~~~~~~~~~~~~~~~~~~~~~~~
+	
+	ssh-add ~/.ssh/username_aws
+	pbcopy < ~/.ssh/username_aws.pub #Copies contents of username_aws.pub to your clipboard for macs
+
 Go to the EC2 management page, and find the option Key Pairs under Network and Security in the left tab.
 Click Import Key Pair and paste the public key contents in. Click import.
 
 Note that you may have to run ssh-add again if you get a public key error. To solve this, add this line to your `~/.bashrc` or `~/.profile`, replacing your private key name with username_aws
-~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-ssh-add ~/.ssh/username_aws
-~~~~~~~~~~~~~~~~~~~~~~~
+	
+	ssh-add ~/.ssh/username_aws
 
 
 # Starting an Instance
-==================================
 An AWS Instance allows the user to create a virtual environment to do runs. We do spot instances to save money, and already have the PetaVision capabilities to restart a run if it does die. For more information on spot instances, go to http://aws.amazon.com/ec2/purchasing-options/spot-instances/.
 
 ## Creating a Spot Instance
------------------------------------
 - Go to the EC2 management page. Click Instances under Instances in the left tab.
 - Click Launch Instance.  Click on Community AMIs in the left tab.
 - Using the search bar, find the AMI marked `PetaVision Public AMI`. Click Select.
@@ -110,38 +104,31 @@ The PetaVision Public AMI already includes all the code and tools you will need 
 
 
 # Working with a running instance
-====================================
 Now that you have an instance up, let's connect to it!
 
 ## SSH into your running instance
-------------------------------------
 To start working with your instance, you need to know the IP address of your instance:
 + Go to the EC2 management page. Click Instances under Instances in the left tab.
 + Find your instance in the list and note the Public IP address of the instance.
 + To connect use the following command:
-~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-ssh ec2-user@public_ip_address
-~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	ssh ec2-user@public_ip_address
 
 
 
 ## Copy data to your instance
------------------------------------
 To start running experiments, you'll probably want some data to work with.
 If you have a dataset on your local machine you can use the following command in a new terminal window:
-~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-scp sourceFile ec2-user@public_ip_address:\~/destinationFile
-~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	scp sourceFile ec2-user@public_ip_address:\~/destinationFile
 
 Datasets hosted online can also be grabbed using wget. For example, the following command will download the CIFAR dataset:
-~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-wget "http://www.cs.toronto.edu/~kriz/cifar-10-matlab.tar.gz"
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	wget "http://www.cs.toronto.edu/~kriz/cifar-10-matlab.tar.gz"
 
 
 
 ## Creating an EBS persistent volume
--------------------------------
 AWS Spot Instances can die at any time. We will need an EBS persistent volume to store any run output we have as well as any sandboxes being ran from.
 
 ### Create your volume
@@ -161,13 +148,11 @@ In order to use this volume in a running instance, we must mount it to a running
 
 A new EBS volume is completely blank. That means we need to format the volume to our instance filesystem. Note that this needs to be done only once per new volume.
 - Connect to your running instance.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-sudo mkfs -t ext4 /dev/sdf
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	sudo mkfs -t ext4 /dev/sdf
 
 
 ## Setting up PetaVision
----------------------------------
 Because the instance was booted from a PetaVision AMI, all of PetaVision should already exist in the home directory. There are several things needed to be done for PetaVision setup. 
 
 ### Accessing your mounted volume in a running instance
@@ -180,11 +165,9 @@ Because the instance was booted from a PetaVision AMI, all of PetaVision should 
 - cd to mountData.
 - Check out any sandboxes that you are planning on using. Ex:
 
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 	svn co http://svn.code.sf.net/p/petavision/code/sandbox/HyPerHLCA HyPerHCLA            (this is read only)
 	svn co https://sourceForgeUserName@svn.code.sf.net/p/petavision/code/trunk PetaVision
 	svn co http://svn.code.sf.net/p/petavision/code/sandbox/PVSystemTests PVSystemTests    (this is a standard sandbox useful for checking PetaVision)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 
 - cd to ~/workspace.
 - Edit CMakeLists.txt using your favorite command-line text editor. (eg. vim or emacs)
@@ -196,10 +179,8 @@ Note that the same directory is put twice into the command add_subdirectory.
 
 ### Building PetaVision
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-cd ~/workspace.
-ccmake . 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	cd ~/workspace.
+	ccmake . 
 
 Most of these variables should already be set up, but here are the important ones:
 - CMAKE_BUILD_TYPE: Release
@@ -214,7 +195,6 @@ Repeat until the g option appears and press g.
 cd to your sandbox and run `make -j 8`
 
 # S3
-====================================
 S3 is long term storage for amazon's cloud. S3 objects (files, images) can only be accessed through http, but is much cheaper than ebs volumes.
 
 ### Create your access key ############
@@ -234,23 +214,20 @@ S3 is long term storage for amazon's cloud. S3 objects (files, images) can only 
 ### S3 Setup ##################
 - SSH into your running instance.
 - Enter the following command:
-~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-aws configure
-~~~~~~~~~~~~~~~~~~~~~~~~
+	aws configure
 - Enter your access key and secret access key. The rest can be left blank.
 
 
 ## S3 Transfer
---------------------------------
 There are several ways to upload data to S3 to an existing bucket.
 
 ### EBS Volume to S3 (preferred) #######################
 - Getting your database on S3:
 - Download your database, most likely to mountData. Make sure your EBS volume is big enough to store all of the database.
 - cd to the outer directory of your database.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-aws s3 cp --recursive myDatabaseFolder s3://yourBin/myDatabaseFolder
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	aws s3 cp --recursive myDatabaseFolder s3://yourBin/myDatabaseFolder
+
 - Note that you must put myDatabaseFolder on both the destination and source to keep the directory structure on s3.
 - Optional: Make sure you have all of your database on s3. Run the same command as above except for sync instead of cp.
 - Once the data is on s3, you can delete the local data off the EBS volume.
@@ -264,15 +241,13 @@ aws s3 cp --recursive myDatabaseFolder s3://yourBin/myDatabaseFolder
 
 Once you have your data on S3, you can specify a list of urls to feed to PetaVision Movie layer.
 As an example:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   s3://myBin/myDatabaseFolder/img00.png
-   s3://myBin/myDatabaseFolder/img01.png
-   s3://myBin/myDatabaseFolder/img02.png
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	
+	s3://myBin/myDatabaseFolder/img00.png
+	s3://myBin/myDatabaseFolder/img01.png
+	s3://myBin/myDatabaseFolder/img02.png
 
 
 ## PetaVision Parameter Changes
--------------------------------
 Here are the changes you need to make to your parameter file.
 - In your movie layers, make sure your list of filenames is a list of s3 urls.
 - Change your output directory to somewhere in mountData.
@@ -280,7 +255,6 @@ Here are the changes you need to make to your parameter file.
 
 
 # MPI Clusters
-======================================
 This section explains how to set up a cluster of instances to do a PetaVision run across multiple instances. Most of the instructions are the same, with several difference when launching instances:
 
 ### Configure Instance Details screen #########
@@ -302,12 +276,11 @@ When selecting an existing security group, use MPI_security instead of the defau
 - Follow the instructions to mount your EBS drive to your root node. Note that only the root node does any file io, so the root node is the only node that you need to attach and mount your volume to.
 - Build your sandbox executable on the root node. Copy and move your sandbox executable somewhere *NOT* in your attached EBS volume (for example, in your home directory).
 - Copy your executable to all nodes to your cluster. To do this, run the following from your home directory:
-~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-sh cpCluster.sh path_to_executable
-~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	sh cpCluster.sh path_to_executable
 
 To run from your root node, use the following command:
-~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-mpirun -np num_processors -hostfile ~/nodefile --bind-to none path_to_executable petavision_parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	mpirun -np num_processors -hostfile ~/nodefile --bind-to none path_to_executable petavision_parameters
+
 The `--bind-to none` flag is nessessary to get full threading utilization on aws.
