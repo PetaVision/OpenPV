@@ -11,7 +11,7 @@
 #define CONFIG_FILE "src/config.txt"
 #endif // CONFIG_FILE
 
-int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
+int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
 int parseConfigParameter(InterColComm * icComm, char const * inputLine, char const * configParameter, char ** parameterPtr, unsigned int lineNumber);
 char * getImageFileName(InterColComm * icComm);
 int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr);
@@ -38,6 +38,9 @@ int main(int argc, char* argv[])
    char * resultTextFile = NULL;
    char * octaveCommand = NULL;
    char * octaveLogFile = NULL;
+   char * classNames = NULL;
+   char * evalCategoryIndices = NULL;
+   char * displayCategoryIndices = NULL;
    char * heatMapMontageDir = NULL;
    char * displayCommand = NULL;
    int layerNx, layerNy, layerNf;
@@ -48,7 +51,7 @@ int main(int argc, char* argv[])
    int octavepid = 0; // pid of the child octave process.
 
    // Parse config file for image layer, result layer, file of image files
-   status = parseConfigFile(icComm, &imageLayerName, &resultLayerName, &resultTextFile, &octaveCommand, &octaveLogFile, &heatMapMontageDir, &displayCommand);
+   status = parseConfigFile(icComm, &imageLayerName, &resultLayerName, &resultTextFile, &octaveCommand, &octaveLogFile, &classNames, &evalCategoryIndices, &displayCategoryIndices, &heatMapMontageDir, &displayCommand);
    if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
    BaseLayer * imageBaseLayer = hc->getLayerFromName(imageLayerName);
    if (imageBaseLayer==NULL)
@@ -202,12 +205,16 @@ int main(int argc, char* argv[])
          else if (octavepid==0) {
             /* child process */
             std::stringstream octavecommandstream("");
-            octavecommandstream << "octave --eval 'heatMapMontage(" <<
+            octavecommandstream << "octave --eval 'load CurrentModel/ConfidenceTables/confidenceTable.mat; heatMapMontage(" <<
                   "\"" << imagePvpFile << "\"" << ", " <<
                   "\"" << resultPvpFile << "\"" << ", " <<
                   "\"" << PV_DIR << "/mlab/util" << "\"" << ", " <<
                   imageFrameNumber << ", " <<
                   resultFrameNumber << ", " <<
+                  "confidenceTable, " <<
+                  "\"" << classNames << "\"" << ", " <<
+                  evalCategoryIndices << ", " <<
+                  displayCategoryIndices << ", " <<
                   "\"" << montagePath.str() << "\"" << ", " <<
                   "\"" << displayCommand << "\"" <<
                   ");'" <<
@@ -248,7 +255,7 @@ int main(int argc, char* argv[])
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
+int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
 {
    // Under MPI, all process must call this function in parallel, but only the root process does I/O
    int status = PV_SUCCESS;
@@ -265,12 +272,14 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
    *resultLayerNamePtr = NULL;
    *resultTextFilePtr = NULL;
    *octaveCommandPtr = NULL;
+   *classNamesPtr = NULL;
+   *evalCategoryIndicesPtr = NULL;
+   *displayCategoryIndicesPtr = NULL;
    *heatMapMontageDirPtr = NULL;
    *displayCommandPtr = NULL;
    struct fgetsresult { char contents[TEXTFILEBUFFERSIZE]; char * result; };
    struct fgetsresult line;
    unsigned int linenumber=0;
-   unsigned int configParametersRead = 0;
    while (true)
    {
       linenumber++;
@@ -298,43 +307,51 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
       {
          status = parseConfigParameter(icComm, line.contents, value, imageLayerNamePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
-         configParametersRead++;
       }
       if (!strcmp(line.contents,"resultLayer"))
       {
          status = parseConfigParameter(icComm, line.contents, value, resultLayerNamePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
-         configParametersRead++;
       }
       if (!strcmp(line.contents,"resultTextFile"))
       {
          status = parseConfigParameter(icComm, line.contents, value, resultTextFilePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
-         configParametersRead++;
       }
       if (!strcmp(line.contents,"octaveCommand"))
       {
          status = parseConfigParameter(icComm, line.contents, value, octaveCommandPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
-         configParametersRead++;
       }
       if (!strcmp(line.contents,"octaveLogFile"))
       {
          status = parseConfigParameter(icComm, line.contents, value, octaveLogFilePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
-         configParametersRead++;
       }
+      if (!strcmp(line.contents,"classNames"))
+      {   
+         status = parseConfigParameter(icComm, line.contents, value, classNamesPtr, linenumber);
+         if (status != PV_SUCCESS) { break; }
+      }   
+      if (!strcmp(line.contents,"evalCategoryIndices"))
+      {   
+         status = parseConfigParameter(icComm, line.contents, value, evalCategoryIndicesPtr, linenumber);
+         if (status != PV_SUCCESS) { break; }
+      }   
+      if (!strcmp(line.contents,"displayCategoryIndices"))
+      {   
+         status = parseConfigParameter(icComm, line.contents, value, displayCategoryIndicesPtr, linenumber);
+         if (status != PV_SUCCESS) { break; }
+      }   
       if (!strcmp(line.contents,"heatMapMontageDir"))
       {
          status = parseConfigParameter(icComm, line.contents, value, heatMapMontageDirPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
-         configParametersRead++;
       }
       if (!strcmp(line.contents,"displayCommand"))
       {
          status = parseConfigParameter(icComm, line.contents, value, displayCommandPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
-         configParametersRead++;
       }
    }
    if (*imageLayerNamePtr==NULL)
@@ -357,6 +374,27 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
       fprintf(stderr, "octaveCommand was not defined in %s.\n", CONFIG_FILE);
       status = PV_FAILURE;
    }
+   if (*classNamesPtr==NULL)
+   {
+      if (icComm->commRank()==0) {
+         fprintf(stderr, "classNames was not defined in %s; setting class names to feature indices.\n", CONFIG_FILE);
+      }
+      *classNamesPtr = strdup("{}");
+   }
+   if (*evalCategoryIndicesPtr==NULL)
+   {
+      if (icComm->commRank()==0) {
+         printf("evalCategoryIndices was not defined in %s; using all indices.\n", CONFIG_FILE);
+      }
+      *classNamesPtr = strdup("[]");
+   }
+   if (*displayCategoryIndicesPtr==NULL)
+   {
+      if (icComm->commRank()==0) {
+         printf("evalCategoryIndices was not defined in %s; using all indices.\n", CONFIG_FILE);
+      }
+      *classNamesPtr = strdup("[]");
+   }
    if (*heatMapMontageDirPtr==NULL)
    {
       fprintf(stderr, "heatMapMontageDir was not defined in %s.\n", CONFIG_FILE);
@@ -368,8 +406,6 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
          printf("displayCommand was not defined in %s; leaving blank\n", CONFIG_FILE);
       }
       *displayCommandPtr = strdup("");
-      configParametersRead++;
-      
    }
    if (icComm->commRank()==0) {
       fclose(parseConfigFileFP);

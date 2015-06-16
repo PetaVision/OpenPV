@@ -1,5 +1,5 @@
-function outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, montagePath, displayCommand)
-% outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, montagePath)
+function outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, confidenceTable, classNameFile, evalCategoryIndices, displayCategoryIndices, montagePath, displayCommand)
+% outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, confidenceTable, montagePath, displayCommand)
 % Takes frames from two input pvp files, imagePvpFile and resultPvpFile and creates a montage compositing
 % the image pvp file with each of the features of the result pvp file.
 %
@@ -10,8 +10,21 @@ function outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFra
 %    If nonempty, readpvpfile must be a recognized command after calling addpath(pv_dir);
 % imageFrameNumber: the index of the specific frame from imagePvpFile to use.  The beginning frame has index 1.
 % resultFrameNumber: the index of the specific frame from resultPvpFile to use.
+% confidenceTable: a matrix with nf+1 columns, where nf is the number of features in resultPvpFile.
+%    The last column should be an increasing vector where all values of the given frame of resultPvpFile
+%    lie between the first entry of the column and the last.
+%    confidenceTable(k,f) is the confidence value when a neuron in feature f has the value confidenceTable(k,nf+1).
+%    Generally speaking, each of the first nf columns of confidenceTable should therefore be increasing between 0 and 1
+%    (or between 0 and 100) but the program doesn't check for this.
+% classNameFile: a character string that indicates a file containing the names of the character classes.
+%    The file contains one class name per line.  The number of features in resultPvpFile should agree with
+%    the number of lines in the file.
+% evalCategoryIndices: a vector of the feature numbers to consider.  If empty, use all indices.
+% displayCategoryIndices: a vector of the feature numbers to display.  If empty, use all indices.
 % montagePath: The path to write the output image to.  The output image has the same dimensions as the frame of imagePvpFile.
 %    If resultPvpFile has different dimensions, it will be rescaled using upsamplefill.
+% displayCommand: If nonempty, run this command on montagePath after it has been written.  Uses the system command,
+%    so control does not return to octave until the command completes.
 %
 % outimage: an ny-by-nx-by-3 array giving the output image.  ny and nx are the same as the frame of imagePvpFile.
 %
@@ -44,11 +57,8 @@ if (resultHdr.filetype != 4)
    error("heatMapMontage:expectingnonsparse","heatMapMontage expects %s to be a nonsparse layer",resultPvpFile);
 end%if
 resultData = permute(resultPvp{1}.values,[2 1 3]);
-resultData = max(resultData,0);
 
-classes={'background'; 'aeroplane'; 'bicycle'; 'bird'; 'boat'; 'bottle'; 'bus'; 'car'; 'cat'; 'chair'; 'cow'; 'diningtable'; 'dog'; 'horse'; 'motorbike'; 'person'; 'pottedplant'; 'sheep'; 'sofa'; 'train'; 'tvmonitor'};
-categoryindices=2:21; % Which categories to display.  background=1, aeroplane=2, etc.
-numCategories=numel(categoryindices);
+numCategories=numel(displayCategoryIndices);
 
 numColumns = 1:numCategories;
 numRows = ceil(numCategories./numColumns);
@@ -66,56 +76,85 @@ while (numRows-1)*numColumns >= numCategories
 end%while
 assert(numRows*numColumns >= numCategories);
 
-if(numel(classes)!=resultHdr.nf)
+if isempty(classNameFile)
+   classes=cell(resultHdr.nf,1)
+   for k=1:resultHdr.nf
+      classes{k}=num2str(k);
+   end%for
+else
+   classnameFID = fopen(classNameFile,'r');
+   % TODO allow blank lines and comments
+   for k=1:resultHdr.nf
+       classes{k} = fgets(classnameFID);
+       if ~isequal(class(classes{k}),'char')
+          error("heatMapMontage:classnameeof","classNameFile \"%s\" has EOF before all %d features have been named.\n",classNameFile, resultHdr.nf);
+       end%if
+       while(~isempty(classes{k}) && classes{k}(end)==char(10)), classes{k}(end)=[]; end
+       fprintf(1,'class %d is \"%s\"\n', k, classes{k});
+   end%for
+   fclose(classnameFID);
+end%if
+
+if numel(classes)!=resultHdr.nf
    error("heatMapMontage:wrongnf","number of classes is %d but %s has %d features.",numel(classes),resultPvpFile,resultHdr.nf);
 end%if
 
-montagerows = floor(sqrt(numCategories));
-montagecols = ceil(numCategories/montagerows);
-assert(montagerows*montagecols>=numCategories);
-thresholdLevel = 1.00; % the confidence that will be mapped to minimum brightness
-saturationLevel = 1.50; % max(resultData(:)); % the confidence that will be mapped to maximum brightness
+if isempty(evalCategoryIndices)
+   evalCategoryIndices=1:resultHdr.nf;
+end%if
+
+if isempty(displayCategoryIndices)
+   displayCategoryIndices=1:resultHdr.nf;
+end%if
+
 upsampleNx = size(imageData,2)/size(resultData,2);
 upsampleNy = size(imageData,1)/size(resultData,1);
 assert(upsampleNx==round(upsampleNx));
 assert(upsampleNy==round(upsampleNy));
 
-%imagePngFilename = sprintf('tmp/image%04d.png', imageFrameNumber);
-%imwrite(imageData,imagePngFilename);
-
-zeroconfcolor = [0.5 0.5 0.5];
-maxconfcolor = [0 1 0];
-imageblendcoeff = 0.3;
-% heatmap image will be imageblendcoeff * imagedata plus (1-imageblendcoeff) * heatmap data, where
-% the heatmap is converted to color using zeroconfcolor and maxconfcolor
+thresholdConfidence = 0.5;
+thresholdConfColor = [0.5 0.5 0.5];
+maxConfColor = [0 1 0];
+imageBlendCoeff = 0.3;
+% heatmap image will be imageBlendCoeff * imagedata plus (1-imageBlendCoeff) * heatmap data, where
+% the heatmap is converted to color using thresholdConfColor and maxConfColor
 montageImage = zeros((size(imageData,1)+64+10)*numRows, (size(imageData,2)+10)*numColumns,3);
 % The +10 creates a border around each tile in the montage
 
-imageDataBlend = imageblendcoeff*imageData;
+confData = zeros(size(resultData));
+for k=1:resultHdr.nf
+    if any(evalCategoryIndices==k)
+       confData(:,:,k) = interp1(confidenceTable(:,end), confidenceTable(:,k), resultData(:,:,k));
+    end%if
+end%for
+maxConfidence = max(confData(:));
+thresholdConfData = max(confData-thresholdConfidence,0)/(1.0-thresholdConfidence);
+winningIndex = find(confData==maxConfidence);
+[~,~,winningFeature] = ind2sub(size(confData),winningIndex);
+for k=1:numel(winningFeature)
+   fprintf(1,'winning feature is %s, with confidence %.1f%%\n', classes{winningFeature(k)}, 100*maxConfidence);
+end%for
+
+imageDataBlend = imageBlendCoeff*imageData;
 for k=1:numCategories
-    category = categoryindices(k);
+    category = displayCategoryIndices(k);
     categorycolumn = mod(k-1,numColumns)+1;
     categoryrow = (k-categorycolumn)/numColumns+1;
     assert(categoryrow==round(categoryrow));
     thisclass = classes{category};
-    maxConfidence = max(max(resultData(:,:,category)));
-    isWinner = maxConfidence==max(resultData(:));
-    resultDataTrunc = max(resultData(:,:,category),thresholdLevel)-thresholdLevel;
-    if saturationLevel-thresholdLevel != 0
-        resultDataTrunc = min(resultDataTrunc/(saturationLevel-thresholdLevel),1);
-    end%if
-    assert(all(resultDataTrunc(:)>=0) && all(resultDataTrunc(:)<=1));
-    resultUpsampledY = upsamplefill(resultDataTrunc,upsampleNx-1,'COPY');
+    resultUpsampledY = upsamplefill(thresholdConfData(:,:,category),upsampleNx-1,'COPY');
     resultUpsampled = upsamplefill(resultUpsampledY',upsampleNy-1,'COPY')';
     %resultPngFilename = sprintf('tmp/result-frame%04d-category%02d.png',resultFrameNumber, category);
     tileImage = zeros([size(imageData),3]);
     for b=1:3
-       tileImage(:,:,b) = zeroconfcolor(b) + (maxconfcolor(b)-zeroconfcolor(b))*resultUpsampled;
-       tileImage(:,:,b) = imageblendcoeff * imageData + (1-imageblendcoeff) * tileImage(:,:,b);
+       tileImage(:,:,b) = thresholdConfColor(b) + (maxConfColor(b)-thresholdConfColor(b))*resultUpsampled;
+       tileImage(:,:,b) = imageBlendCoeff * imageData + (1-imageBlendCoeff) * tileImage(:,:,b);
     end%for
     if (size(tileImage,3)==1), tileImage=repmat(tileImage,[1 1 3]); end;
 
-    if isWinner
+    maxConfCategory = max(max(confData(:,:,category)));
+    if any(winningFeature==category)
+    %if maxConfCategory==maxConfidence
         captionColor = 'blue';
     else
         captionColor = 'gray';
@@ -128,7 +167,7 @@ for k=1:numCategories
     delete(file);
 
     valueFile = sprintf('tmp/value%s.png', classes{category});
-    makeValueCommand = sprintf('convert -background white -fill %s -size %dx32 -pointsize 24 -gravity center label:%f %s', captionColor, size(imageData,2), maxConfidence, valueFile);
+    makeValueCommand = sprintf('convert -background white -fill %s -size %dx32 -pointsize 24 -gravity center label:%.1f%% %s', captionColor, size(imageData,2), 100*maxConfCategory, valueFile);
     system(makeValueCommand);
     valueImage = readImageMagickFile(valueFile);
     delete(valueFile);
@@ -157,15 +196,6 @@ if exist('displayCommand','var') && ~isempty(displayCommand)
    fprintf(1,'displayCommand returned %d\n', displayStatus);
 end%if
 
-%for k=1:numCategories
-%    category = categoryindices(k);
-%    resultPngFilename = sprintf('tmp/result-frame%04d-category%02d.png',resultFrameNumber, category);
-%    delete(resultPngFilename);
-%    compositedFilename = sprintf('tmp/composited-frame%04d-category%02d.png',imageFrameNumber, category);
-%    delete(compositedFilename);
-%end%for
-%delete(imagePngFilename);
-%
 if ownstmpdir
    rmdir tmp;
 end%if
