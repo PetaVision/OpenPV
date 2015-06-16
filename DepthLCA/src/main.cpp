@@ -7,7 +7,6 @@
 #include "LocalKernelConn.hpp"
 #include "BatchConn.hpp"
 #include "SLPError.hpp"
-#include "MaskError.hpp"
 #include "BinaryThresh.hpp"
 #include "DisparityMovie.hpp"
 #include "DisparityLCALayer.hpp"
@@ -43,9 +42,6 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    }
    if ( !strcmp(keyword, "SLPError") ) {
       addedGroup = new SLPError(name, hc);
-   }
-   if ( !strcmp(keyword, "MaskError") ) {
-      addedGroup = new MaskError(name, hc);
    }
    if ( !strcmp(keyword, "BinaryThresh") ) {
       addedGroup = new BinaryThresh(name, hc);

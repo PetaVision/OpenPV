@@ -18,6 +18,7 @@ public:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_batchPeriod(enum ParamsIOFlag ioFlag);
    virtual int reduceKernels(const int arborID);
+   virtual int allocateDataStructures();
    void sumKernelActivations();
    int sumKernels(const int arborID);
    virtual int updateState(double time, double dt);
