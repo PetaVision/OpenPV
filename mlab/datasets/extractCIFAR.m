@@ -32,7 +32,6 @@ function extractImagesOctave(batch_name, cnt)
 
 load(batch_name)
 
-keyboard;
   if ~isempty(strfind(batch_name, 'data_batch_'))
     base_batch_name_start = strfind(batch_name, 'data_batch_');
   elseif ~isempty(strfind(batch_name, 'test_batch'))
@@ -63,7 +62,7 @@ keyboard;
   
 				% create randorder file for PV. Order within .mat file is random already
 				% appends new lines to the end of the file
-  randorder_pathname = [output_dir,'/','randorder.txt'];
+  randorder_pathname = [output_dir,'/',base_batch_name,'_randorder.txt'];
   fid = fopen(randorder_pathname, 'w');
   if fid <=0 
     error(["fid = ", num2str(fid), ": randorder_pathname = ", randorder_pathname]);

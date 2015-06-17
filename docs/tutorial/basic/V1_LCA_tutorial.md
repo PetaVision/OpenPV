@@ -80,16 +80,25 @@ Navigate to where you unzipped the cifar-10-matlab.tar.gz file and extract the i
     >
     > quit
 
+You will now see six new folders containing the different extracted CIFAR datasets.
+	
+	CIFAR_data_batch_1
+	CIFAR_data_batch_2
+	...
+	CIFAR_text_batch
+
+Our next step is to combine these datasets to allow us to train on all five training sets continuously. 
+
 ## 1.4. Combine the data_batches to make a master file list
     
-Each run of extractImagesOctave produced a unique text file listing all the images in random order called 'randorder.txt' in the directory where  If you wish to expand your training dataset to include all of the training images, you can concatenate them by copying them to a common directory with different names (to avoid clobbering the files). Say you made the output directory for you CIFAR images ~/mountData/dataset/CIFAR:
+Each run of extractImagesOctave produced a unique text file listing all the images in random order called 'data_batch_#_randorder.txt' in the directory where  If you wish to expand your training dataset to include all of the training images, you can concatenate them by copying them to a common directory with different names (to avoid clobbering the files). Say you made the output directory for you CIFAR images ~/mountData/dataset/CIFAR:
 
-    $ cd ~/mountData/dataset/CIFAR/   
-    $ cp data_batch_1/randorder.txt ./rand1.txt
-    $ cp data_batch_2/randorder.txt ./rand2.txt
-    $ cp data_batch_3/randorder.txt ./rand3.txt
-    $ cp data_batch_4/randorder.txt ./rand4.txt
-    $ cp data_batch_5/randorder.txt ./rand5.txt
+    $ cd ~/mountData/dataset/CIFAR/  # Match directory where you extracted your CIFAR images 
+    $ cp CIFAR_data_batch_1/*.txt .
+    $ cp CIFAR_data_batch_2/*.txt .
+    $ cp CIFAR_data_batch_3/*.txt .
+    $ cp CIFAR_data_batch_4/*.txt .
+    $ cp CIFAR_data_batch_5/*.txt .
     $ cat *.txt > mixed_cifar.txt
     
 Congratulations!  You now have a massive training dataset along with a test set that you will use in the next tutorial in creating a classifier.  For now we are only concerned about using the dataset for unsupervised learning.
