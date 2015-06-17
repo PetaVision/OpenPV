@@ -58,8 +58,8 @@ Either visit the [CIFAR website](http://www.cs.toronto.edu/~kriz/cifar.html) or 
 
 You can write your own script to extract and organize the CIFAR images, or you can use the one we're already prepared called 'extractImagesOctave.m'.  The script is located in the PetaVision trunk: PetaVision/mlab/HyPerLCA/extractImagesOctave.m. To use the script, you'll first need to modify extractImagesOctave.m by pointing to the correct local directories. Open the octave script in your favorite text editor and following the instructions.
 
-    $ cd ~/workspace/PetaVision/mlab/HyPerLCA
-    $ vim extractImagesOctave.m
+    $ cd ~/workspace/PetaVision/mlab/datasets
+    $ vim extractCIFAR.m
 
 Make sure you saved your changes to the script before continuing to the next step. 
 
@@ -70,13 +70,13 @@ Navigate to where you unzipped the cifar-10-matlab.tar.gz file and extract the i
     $ cd ~/dataset/cifar-10-batches-mat/
     $ octave
 
-    > addpath('path/to/PetaVision/mlab/HyPerLCA')
-    > extractImagesOctave('data_batch_1.mat',1)
-    > extractImagesOctave('data_batch_2.mat',2)
-    > extractImagesOctave('data_batch_3.mat',3)
-    > extractImagesOctave('data_batch_4.mat',4)
-    > extractImagesOctave('data_batch_5.mat',5)
-    > extractImagesOctave('test_batch.mat',0)
+    > addpath('path/to/PetaVision/mlab/datasets')
+    > extractCIFAR('data_batch_1.mat',1)
+    > extractCIFAR('data_batch_2.mat',2)
+    > extractCIFAR('data_batch_3.mat',3)
+    > extractCIFAR('data_batch_4.mat',4)
+    > extractCIFAR('data_batch_5.mat',5)
+    > extractCIFAR('test_batch.mat',0)
     >
     > quit
 

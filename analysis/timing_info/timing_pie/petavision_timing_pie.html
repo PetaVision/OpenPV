@@ -113,7 +113,7 @@
         tooltip.append('div')
           .attr('class', 'percent');
 
-        d3.csv('sample_timing_info.csv', function(error, dataset) {
+        d3.csv('timers.csv', function(error, dataset) {
           dataset.forEach(function(d) {
             d.count = +d.count;
             d.enabled = true;                                         // NEW

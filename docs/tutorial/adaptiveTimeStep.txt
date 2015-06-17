@@ -1,4 +1,12 @@
-Adaptive timescale (better adaptive time
+===================
+# Adaptive timescale
+===================
+
+This article is about the HyPerCol parameter dtAdaptFlag and the related parameters in HyPercol and ANNNormalizedErrorLayer.
+
+The motivation for an adaptive timestep comes from the desire to solve the differential equation of the ANNNormalizedErrorLayer as efficiently and accurately as possible. When we have a large error, we'll want to reduce our timestep; when we have a small error, we can afford to take a larger timestep.
+
+
 
 goal: 
 1) avoid / recover from instabilities
