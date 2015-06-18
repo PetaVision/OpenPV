@@ -96,7 +96,9 @@ public:
    /**
     * Uses presynaptic layer's activity to modify the postsynaptic GSyn or thread_gSyn
     */
-   virtual int deliver();
+   //Deliver is not virtual, do not overwrite
+   int deliver();
+
    virtual void deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
    virtual void deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, uint4 * rngPtr);
     

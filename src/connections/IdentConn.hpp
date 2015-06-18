@@ -22,7 +22,7 @@ public:
 
    virtual int communicateInitInfo();
    virtual int updateWeights(int axonID) {return PV_SUCCESS;}
-   virtual int deliver();
+   //virtual int deliver();
 
 protected:
    IdentConn();
