@@ -1,18 +1,31 @@
-This directory contains a demonstration of PetaVision using the PASCAL
-classification task.
+The PASCAL_Classification directory contains a demonstration of PetaVision
+using the PASCAL classification task.
 
 It takes a list of image files from stdin and generates heat maps showing
 the confidence of each category.
 
 There is some preparation that needs to be done before running.
 
-1. Extra installation requirements: The demo runs an octave script that uses the octave function upsamplefill.m, which is in the octave signal package, version 1.3.0 or later.
-If you don’t have Octave installed, or you do but it is missing upsamplefill, you can run the demo and generate output pvp files, but the output heat maps will not be generated.  
-Start octave and run “which upsamplefill”.  If the result is empty, you will either have to install the octave signal package, version 1.3.0 or later (which requires Octave version 3.8 or later); or copy upsamplefill.m from another machine.  The PetaVision public AMI has this package installed, so everything should be ready to go on AWS.
+1. Extra installation requirements: The demo runs an octave script that uses
+the octave function upsamplefill.m, which is in the octave signal package,
+version 1.3.0 or later.  If you don’t have Octave installed, or you do but it
+is missing upsamplefill, you can run the demo and generate output pvp files,
+but the output heat maps will not be generated.  
 
-2. Get the demo from the repository.  The demo is in https://svn.code.sf.net/p/petavision/code/demo/PASCAL_Classification.
+Start octave and run “which upsamplefill”.  If the result is empty, you will
+either have to install the octave signal package, version 1.3.0 or later
+(which requires Octave version 3.8 or later); or copy upsamplefill.m from
+another machine.  The PetaVision public AMI has this package installed, so
+everything should be ready to go on AWS.
+
+2. Get the demo from the repository.  The demo is in
+https://svn.code.sf.net/p/petavision/code/demo/PASCAL_Classification.
 If you checked out the entire repository at once, run “svn update".
-If you checked out, say, trunk and PVSystemTests separately, but not the entire repository, you can also check out demo/PASCAL_Classification separately.  In what follows, “PASCAL_Classification” will refer to the directory that corresponds to https://svn.code.sf.net/p/petavision/code/demo/PASCAL_Classification, regardless of how it was checked out.
+If you checked out, say, trunk and PVSystemTests separately, but not the entire
+repository, you can also check out demo/PASCAL_Classification separately.
+In what follows, "PASCAL_Classification" refers to the directory corresponding
+to <https://svn.code.sf.net/p/petavision/code/demo/PASCAL_Classification>,
+regardless of how it was checked out.
 
 3. Assuming that you build PetaVision using a CMakeLists.txt file in the directory that contains PetaVision (the workspace directory), add an add_subdirectory command with the relative path to PASCAL_Classification (probably either "add_subdirectory(PASCAL_Classification)" or "add_subdirectory(demo/PASCAL_Classification)”.
 
