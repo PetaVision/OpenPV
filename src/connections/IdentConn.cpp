@@ -252,6 +252,8 @@ int IdentConn::deliver() {
    }
 
    status = this->deliverPresynapticPerspective(&cube, arbor);
+   //IdentConns never deliver from gpu, so always set this flag to true
+   post->setUpdatedDeviceGSynFlag(true);
 
    assert(status == PV_SUCCESS);
    return PV_SUCCESS;
