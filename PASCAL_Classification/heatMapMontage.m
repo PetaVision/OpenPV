@@ -1,4 +1,20 @@
-function outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, confidenceTable, classNameFile, evalCategoryIndices, displayCategoryIndices, montagePath, displayCommand)
+function outimage = heatMapMontage(...
+    imagePvpFile,...
+    resultPvpFile,...
+    pv_dir,...
+    imageFrameNumber,...
+    resultFrameNumber,...
+    confidenceTable,...
+    classNameFile,...
+    evalCategoryIndices,...
+    displayCategoryIndices,...
+    highlightThreshold,...
+    heatMapThreshold,...
+    heatMapMaximum,...
+    montagePath,...
+    resultTextFile,...
+    resultTextCategoryIndices,...
+    displayCommand)
 % outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, confidenceTable, montagePath, displayCommand)
 % Takes frames from two input pvp files, imagePvpFile and resultPvpFile and creates a montage compositing
 % the image pvp file with each of the features of the result pvp file.
@@ -21,12 +37,24 @@ function outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFra
 %    the number of lines in the file.
 % evalCategoryIndices: a vector of the feature numbers to consider.  If empty, use all indices.
 % displayCategoryIndices: a vector of the feature numbers to display.  If empty, use all indices.
+% highlightThreshold: the minimum confidence at which the highest confidence label and value are highlighted in the montage.
+%    If empty, use 0.
+% heatMapThreshold: The maximum value of confidence for which the heat map is zero.
+%    If empty, use the same value as highlightThreshold.
+% heatMapMaximum: The confidence value corresponding to maximum value of the threshold.  If empty, use 1.0
+%    (on the assumption that confidences are between 0 and 1)
 % montagePath: The path to write the output image to.  The output image has the same dimensions as the frame of imagePvpFile.
 %    If resultPvpFile has different dimensions, it will be rescaled using upsamplefill.
+% resultTextFile: If nonempty, the file to write results into in text format.  It appends to the file if it already exists.
+%    The categories in resultTextCategoryIndices (see below) are printed for all tiles.  The format is
+%    Image <imageFrameNumber>, x=m, y=n, <category name>    confidence = <confidence as percent>%
+%    Confidences are multiplied by 100 and followed by a percent sign.
+% resultTextCategoryImages: If resultTextFile is nonempty, specifies the categories to be included in resultTextFile.
+%    If empty, uses all categories.
 % displayCommand: If nonempty, run this command on montagePath after it has been written.  Uses the system command,
 %    so control does not return to octave until the command completes.
 %
-% outimage: an ny-by-nx-by-3 array giving the output image.  ny and nx are the same as the frame of imagePvpFile.
+% outimage: a 3-dimensional array giving the output heat map montage as a color image.
 %
 
 if exist('pv_dir', 'var') && ~isempty(pv_dir)
@@ -112,7 +140,6 @@ upsampleNy = size(imageData,1)/size(resultData,1);
 assert(upsampleNx==round(upsampleNx));
 assert(upsampleNy==round(upsampleNy));
 
-thresholdConfidence = 0.5;
 thresholdConfColor = [0.5 0.5 0.5];
 maxConfColor = [0 1 0];
 imageBlendCoeff = 0.3;
@@ -128,7 +155,8 @@ for k=1:resultHdr.nf
     end%if
 end%for
 maxConfidence = max(confData(:));
-thresholdConfData = max(confData-thresholdConfidence,0)/(1.0-thresholdConfidence);
+scaledConfData = (confData-heatMapThreshold)/(heatMapMaximum-heatMapThreshold);
+thresholdConfData = max(min(scaledConfData,1.0),0.0);
 winningIndex = find(confData==maxConfidence);
 [~,~,winningFeature] = ind2sub(size(confData),winningIndex);
 for k=1:numel(winningFeature)
@@ -153,8 +181,7 @@ for k=1:numCategories
     if (size(tileImage,3)==1), tileImage=repmat(tileImage,[1 1 3]); end;
 
     maxConfCategory = max(max(confData(:,:,category)));
-    if any(winningFeature==category)
-    %if maxConfCategory==maxConfidence
+    if any(winningFeature==category) && maxConfCategory >= highlightThreshold;
         captionColor = 'blue';
     else
         captionColor = 'gray';
@@ -198,6 +225,19 @@ end%if
 
 if ownstmpdir
    rmdir tmp;
+end%if
+
+if exist('resultTextFile','var') && ~isempty(resultTextFile)
+   if ~exist('resultTextCategoryIndices','var') || isempty(resultTextCategoryIndices)
+      resultTextCategoryIndices=1:resultHdr.nf;
+   end%if
+   fid = fopen(resultTextFile, 'a');
+   if fid<0
+      error('heatMapMontage:badResultTextFile','resultTextFile "%s" could not be opened for appending', resultTextFile);
+   end%if
+   for k=1:numel(resultHdr.nf)
+   end%for
+   fclose(fid);
 end%if
 
 end%function

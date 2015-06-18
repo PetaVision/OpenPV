@@ -11,7 +11,7 @@
 #define CONFIG_FILE "src/config.txt"
 #endif // CONFIG_FILE
 
-int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
+int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
 int parseConfigParameter(InterColComm * icComm, char const * inputLine, char const * configParameter, char ** parameterPtr, unsigned int lineNumber);
 char * getImageFileName(InterColComm * icComm);
 int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr);
@@ -41,6 +41,9 @@ int main(int argc, char* argv[])
    char * classNames = NULL;
    char * evalCategoryIndices = NULL;
    char * displayCategoryIndices = NULL;
+   char * highlightThreshold = NULL;
+   char * heatMapThreshold = NULL;
+   char * heatMapMaximum = NULL;
    char * heatMapMontageDir = NULL;
    char * displayCommand = NULL;
    int layerNx, layerNy, layerNf;
@@ -51,7 +54,7 @@ int main(int argc, char* argv[])
    int octavepid = 0; // pid of the child octave process.
 
    // Parse config file for image layer, result layer, file of image files
-   status = parseConfigFile(icComm, &imageLayerName, &resultLayerName, &resultTextFile, &octaveCommand, &octaveLogFile, &classNames, &evalCategoryIndices, &displayCategoryIndices, &heatMapMontageDir, &displayCommand);
+   status = parseConfigFile(icComm, &imageLayerName, &resultLayerName, &resultTextFile, &octaveCommand, &octaveLogFile, &classNames, &evalCategoryIndices, &displayCategoryIndices, &highlightThreshold, &heatMapThreshold, &heatMapMaximum, &heatMapMontageDir, &displayCommand);
    if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
    BaseLayer * imageBaseLayer = hc->getLayerFromName(imageLayerName);
    if (imageBaseLayer==NULL)
@@ -216,6 +219,9 @@ int main(int argc, char* argv[])
                   "\"" << classNames << "\"" << ", " <<
                   evalCategoryIndices << ", " <<
                   displayCategoryIndices << ", " <<
+                  highlightThreshold << ", " <<
+                  heatMapThreshold << ", " <<
+                  heatMapMaximum << ", " <<
                   "\"" << montagePath.str() << "\"" << ", " <<
                   "\"" << displayCommand << "\"" <<
                   ");'" <<
@@ -256,7 +262,7 @@ int main(int argc, char* argv[])
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
+int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
 {
    // Under MPI, all process must call this function in parallel, but only the root process does I/O
    int status = PV_SUCCESS;
@@ -276,6 +282,9 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
    *classNamesPtr = NULL;
    *evalCategoryIndicesPtr = NULL;
    *displayCategoryIndicesPtr = NULL;
+   *highlightThresholdPtr = NULL;
+   *heatMapThresholdPtr = NULL;
+   *heatMapMaximumPtr = NULL;
    *heatMapMontageDirPtr = NULL;
    *displayCommandPtr = NULL;
    struct fgetsresult { char contents[TEXTFILEBUFFERSIZE]; char * result; };
@@ -344,6 +353,21 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
          status = parseConfigParameter(icComm, line.contents, value, displayCategoryIndicesPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }   
+      if (!strcmp(line.contents,"highlightThreshold"))
+      {   
+         status = parseConfigParameter(icComm, line.contents, value, highlightThresholdPtr, linenumber);
+         if (status != PV_SUCCESS) { break; }
+      }   
+      if (!strcmp(line.contents,"heatMapThreshold"))
+      {   
+         status = parseConfigParameter(icComm, line.contents, value, heatMapThresholdPtr, linenumber);
+         if (status != PV_SUCCESS) { break; }
+      }   
+      if (!strcmp(line.contents,"heatMapMaximum"))
+      {   
+         status = parseConfigParameter(icComm, line.contents, value, heatMapMaximumPtr, linenumber);
+         if (status != PV_SUCCESS) { break; }
+      }   
       if (!strcmp(line.contents,"heatMapMontageDir"))
       {
          status = parseConfigParameter(icComm, line.contents, value, heatMapMontageDirPtr, linenumber);
@@ -387,14 +411,35 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
       if (icComm->commRank()==0) {
          printf("evalCategoryIndices was not defined in %s; using all indices.\n", CONFIG_FILE);
       }
-      *classNamesPtr = strdup("[]");
+      *evalCategoryIndicesPtr = strdup("[]");
    }
    if (*displayCategoryIndicesPtr==NULL)
    {
       if (icComm->commRank()==0) {
          printf("evalCategoryIndices was not defined in %s; using all indices.\n", CONFIG_FILE);
       }
-      *classNamesPtr = strdup("[]");
+      *displayCategoryIndicesPtr = strdup("[]");
+   }
+   if (*highlightThresholdPtr==NULL)
+   {
+      if (icComm->commRank()==0) {
+         printf("highlightThreshold was not defined in %s; setting to zero\n", CONFIG_FILE);
+      }
+      *highlightThresholdPtr = strdup("0.0");
+   }
+   if (*heatMapThresholdPtr==NULL)
+   {
+      if (icComm->commRank()==0) {
+         printf("heatMapThreshold was not defined in %s; setting to same as highlightThreshold\n", CONFIG_FILE);
+      }
+      *heatMapThresholdPtr = strdup(*highlightThresholdPtr);
+   }
+   if (*heatMapMaximumPtr==NULL)
+   {
+      if (icComm->commRank()==0) {
+         printf("heatMapMaximum was not defined in %s; setting to 1.0\n", CONFIG_FILE);
+      }
+      *heatMapMaximumPtr = strdup("1.0");
    }
    if (*heatMapMontageDirPtr==NULL)
    {
