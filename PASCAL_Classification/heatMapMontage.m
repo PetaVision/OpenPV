@@ -208,6 +208,9 @@ if isempty(cmap)
    if isequal(class(img),'uint8')
       img = double(img)/255;
    end%if
+   if isequal(class(img),'uint16')
+      img = double(img)/65535;
+   end%if
    if size(img,3)==1
       img=repmat(img,[1 1 3]);
    end%if
