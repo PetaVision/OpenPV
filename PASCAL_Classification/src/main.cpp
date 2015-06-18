@@ -205,7 +205,8 @@ int main(int argc, char* argv[])
          else if (octavepid==0) {
             /* child process */
             std::stringstream octavecommandstream("");
-            octavecommandstream << "octave --eval 'load CurrentModel/ConfidenceTables/confidenceTable.mat; heatMapMontage(" <<
+            octavecommandstream << octaveCommand <<
+                  "--eval 'load CurrentModel/ConfidenceTables/confidenceTable.mat; heatMapMontage(" <<
                   "\"" << imagePvpFile << "\"" << ", " <<
                   "\"" << resultPvpFile << "\"" << ", " <<
                   "\"" << PV_DIR << "/mlab/util" << "\"" << ", " <<
