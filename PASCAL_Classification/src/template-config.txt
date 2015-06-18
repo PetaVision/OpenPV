@@ -1,6 +1,6 @@
 imageLayer:"Image"
-resultLayer:"ConfidenceAboveThreshold_4X3"
-resultTextFile:"ConfidenceAboveThreshold_4X3.txt"
+resultLayer:"GroundTruthReconS2_4X3"
+resultTextFile:"Confidences.txt"
 octaveCommand:"octave"
 octaveLogFile:"octave.log"
 classNames:"classNames.txt"
