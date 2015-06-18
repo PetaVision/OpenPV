@@ -1,6 +1,6 @@
 
 ///////////////////////////
-// created by garkenyon, 06/12/15
+// Create by garkenyon, 06/12/15
 //
 // strips out all but the DBN terms in the following...
 //
@@ -61,7 +61,7 @@ HyPerCol "column" = {
     checkpointWrite                     = true;
     checkpointWriteDir                  = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DBN/VOC2007_landscape/Checkpoints";
     checkpointWriteTriggerMode          = "step";
-    checkpointWriteStepInterval         = 40000;
+    checkpointWriteStepInterval         = 4800;
     deleteOlderCheckpoints              = false;
     suppressNonplasticCheckpoints       = false;
     writeTimescales                     = true;
@@ -77,8 +77,8 @@ Movie "Image" = {
     phase                               = 0;
     mirrorBCflag                        = true;
     initializeFromCheckpointFlag        = false;
-    writeStep                           = 4000;
-    initialWriteTime                    = 4000;
+    writeStep                           = 4800;
+    initialWriteTime                    = 4800;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
@@ -94,7 +94,7 @@ Movie "Image" = {
     jitterFlag                          = 0;
     padValue                            = 0;
     imageListPath                       = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
-    displayPeriod                       = 400;
+    displayPeriod                       = 1200;
     randomMovie                         = 0;
     readPvpFile                         = false;
     echoFramePathnameFlag               = true;
@@ -115,8 +115,8 @@ ANNLayer "ImageRecon" = {
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     InitVType                           = "ZeroV";
-    writeStep                           = 4000;
-    initialWriteTime                    = 4000;
+    writeStep                           = 4800;
+    initialWriteTime                    = 4800;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
@@ -147,8 +147,8 @@ ANNNormalizedErrorLayer "ImageReconError" = {
     initializeFromCheckpointFlag        = false;
     InitVType                           = "ZeroV";
     triggerFlag                         = false;
-    writeStep                           = 4000;
-    initialWriteTime                    = 4000;
+    writeStep                           = 4800;
+    initialWriteTime                    = 4800;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
@@ -173,8 +173,8 @@ ANNNormalizedErrorLayer "ImageReconError" = {
 //    triggerFlag                         = true;
 //    triggerLayerName                    = "Image";
 //    triggerOffset                       = 0;
-//    writeStep                           = 4000;
-//    initialWriteTime                    = 4000;
+//    writeStep                           = 4800;
+//    initialWriteTime                    = 4800;
 //    sparseLayer                         = false;
 //    updateGpu                           = false;
 //    dataType                            = NULL;
@@ -204,8 +204,8 @@ HyPerLCALayer "S1" = {
   minV                                = -1.0;
   maxV                                = .05; //0.05 above VThresh    
   triggerFlag                         = false;
-  writeStep                           = 400;
-  initialWriteTime                    = 400;
+  writeStep                           = 1200;
+  initialWriteTime                    = 1200;
   sparseLayer                         = true;
   writeSparseValues                   = true;
   updateGpu                           = true;
@@ -246,8 +246,8 @@ ANNErrorLayer "S1ReconS2Error" = {
     initializeFromCheckpointFlag        = false;
     InitVType                           = "ZeroV";
     triggerFlag                         = false;
-    writeStep                           = -4000;
-    initialWriteTime                    = -4000;
+    writeStep                           = -4800;
+    initialWriteTime                    = -4800;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
@@ -274,7 +274,7 @@ HyPerLCALayer "S2" = {
   @nxScale                             = 0.25;
   @nyScale                             = 0.25;
   @nf                                  = 256; 
-  //@timeConstantTau                     = 400; //800; 
+  @timeConstantTau                     = 800; 
   //@Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DBN/VOC2007_landscape/Checkpoints/Checkpoint3183200/S2_V.pvp";
   //@VThresh                             = 0.025; //
   @phase                               = 5;  
@@ -335,7 +335,7 @@ HyPerLCALayer "S3" = {
   @nxScale                             = 0.125;
   @nyScale                             = 0.125;
   @nf                                  = 512; 
-  //@timeConstantTau                     = 400; // 1200; 
+  @timeConstantTau                     = 1200; 
   //@Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DBN/VOC2007_landscape/Checkpoints/Checkpoint3183200/S3_V.pvp";
   //@VThresh                             = 0.025; //
   @phase                               = 7;  
@@ -383,66 +383,66 @@ ANNLayer "ImageReconS3" = {
 
 // Ground Truth
 
-Movie "GroundTruthPixels" = {
-#include "Image";
-  @nf                                  = 20;
-  @sparseLayer                         = true;
-  writeSparseValues                   = false;
-  @autoResizeFlag                      = false;
-  @normalizeLuminanceFlag              = false;
-  @imageListPath                       = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
-  @readPvpFile                         = true;
-};
-
-ANNLayer "GroundTruthNoBackground" = {
-#include "ImageRecon";
-  @nxScale                             = 0.125;
-  @nyScale                             = 0.125;
-  @nf                                  = 20;
-  @phase                               = 1;
-  @triggerFlag                         = true;
-   triggerLayerName                    = "GroundTruthPixels";
-   triggerOffset                       = 0;
-  @sparseLayer                         = true;
-  writeSparseValues                   = false;
-};
-
-BackgroundLayer "GroundTruth" = {
-  nxScale                             = 0.125;
-  nyScale                             = 0.125;
-  nf                                  = 21; //One more than input * rep
-  writeStep                           = 4000.0;
-  initialWriteTime                    = 4000.0;
-  mirrorBCflag                        = false;
-  valueBC                             = 0.0;
-  sparseLayer                         = true;
-  writeSparseValues                   = false;
-  //
-  InitVType                           = "ZeroV";
-  //repFeatureNum = 4; //Replicating each feature 4 times
-  // 
-  phase                               = 2; 
-  triggerFlag                         = false;
-  originalLayerName                   = "GroundTruthNoBackground";
-};
-
-ANNErrorLayer "GroundTruthReconS3Error" = {
-#include "S1ReconS2Error";
-  @nxScale                             = 0.125;
-  @nyScale                             = 0.125;
-  @nf                                  = 21;
-  @writeStep                           = 4000.0;
-  @initialWriteTime                    = 4000.0;
-  @phase                               = 3;
-};
-
-ANNLayer "GroundTruthReconS3" = {
-#include "ImageRecon";
-  @nxScale                             = 0.125;
-  @nyScale                             = 0.125;
-  @nf                                  = 21;
-  @phase                               = 8;
-};
+//Movie "GroundTruthPixels" = {
+//#include "Image";
+//  @nf                                  = 20;
+//  @sparseLayer                         = true;
+//  writeSparseValues                   = false;
+//  @autoResizeFlag                      = false;
+//  @normalizeLuminanceFlag              = false;
+//  @imageListPath                       = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
+//  @readPvpFile                         = true;
+//};
+//
+//ANNLayer "GroundTruthNoBackground" = {
+//#include "ImageRecon";
+//  @nxScale                             = 0.125;
+//  @nyScale                             = 0.125;
+//  @nf                                  = 20;
+//  @phase                               = 1;
+//  @triggerFlag                         = true;
+//   triggerLayerName                    = "GroundTruthPixels";
+//   triggerOffset                       = 0;
+//  @sparseLayer                         = true;
+//  writeSparseValues                   = false;
+//};
+//
+//BackgroundLayer "GroundTruth" = {
+//  nxScale                             = 0.125;
+//  nyScale                             = 0.125;
+//  nf                                  = 21; //One more than input * rep
+//  writeStep                           = 4800.0;
+//  initialWriteTime                    = 4800.0;
+//  mirrorBCflag                        = false;
+//  valueBC                             = 0.0;
+//  sparseLayer                         = true;
+//  writeSparseValues                   = false;
+//  //
+//  InitVType                           = "ZeroV";
+//  //repFeatureNum = 4; //Replicating each feature 4 times
+//  // 
+//  phase                               = 2; 
+//  triggerFlag                         = false;
+//  originalLayerName                   = "GroundTruthNoBackground";
+//};
+//
+//ANNErrorLayer "GroundTruthReconS3Error" = {
+//#include "S1ReconS2Error";
+//  @nxScale                             = 0.125;
+//  @nyScale                             = 0.125;
+//  @nf                                  = 21;
+//  @writeStep                           = 4800.0;
+//  @initialWriteTime                    = 4800.0;
+//  @phase                               = 3;
+//};
+//
+//ANNLayer "GroundTruthReconS3" = {
+//#include "ImageRecon";
+//  @nxScale                             = 0.125;
+//  @nyScale                             = 0.125;
+//  @nf                                  = 21;
+//  @phase                               = 8;
+//};
 
 
 
@@ -650,6 +650,8 @@ CloneConn "S1ReconS2ToImageReconS2" = {
   @preLayerName                         = "S1ReconS2";
   @postLayerName                        = "ImageReconS2";
   @originalConnName                     = "S1ToImageReconError";
+  @receiveGpu                          = true;
+  @updateGSynFromPostPerspective       = true;
 };
 
 //IdentConn "ImageReconS2ToImageRecon" = {
@@ -880,69 +882,69 @@ IdentConn "S2ReconS3ErrorToS2" = {
 
 // Ground Truth connections
 
-PoolingConn "GroundTruthPixelsToGroundTruthNoBackground" = {
-    preLayerName                        = "GroundTruthPixels";
-    postLayerName                       = "GroundTruthNoBackground";
-    channelCode                         = 0;
-    delay                               = [0.000000];
-    numAxonalArbors                     = 1;
-    convertRateToSpikeCount             = false;
-    receiveGpu                          = false;
-    sharedWeights                       = true;
-    initializeFromCheckpointFlag        = false;
-    updateGSynFromPostPerspective       = false;
-    pvpatchAccumulateType               = "maxpooling";
-    writeStep                           = -1;
-    writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
-    nxp                                 = 1;
-    nyp                                 = 1;
-    nfp                                 = 20;
-    shrinkPatches                       = false;
-    needPostIndexLayer                  = false;
-};
-
-IdentConn "GroundTruthToGroundTruthReconS3Error" = {
-    preLayerName                        = "GroundTruth";
-    postLayerName                       = "GroundTruthReconS3Error";
-    channelCode                         = 0;
-    delay                               = [0.000000];
-    initWeightsFile                     = NULL;
-    writeStep                           = -1;
-};
-
-MomentumConn "S3ToGroundTruthReconS3Error" = {
-#include "S3ToS2ReconS3Error";
-  @preLayerName                        = "S3";
-  @postLayerName                       = "GroundTruthReconS3Error";
-  @nxp                                 = 9;
-  @nyp                                 = 9;
-  //@initWeightsFile                     = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_GT/VOC2007_landscape2AWS/Checkpoints/Checkpoint3183200/S3ToGroundTruth8To1ReconS3Error_W.pvp";
-    //weightInitType                      = "UniformRandomWeight";
-    //initWeightsFile                     = NULL;
-    //wMinInit                            = -0.001;
-    //wMaxInit                            = 0.001;
-};
-
-TransposeConn "GroundTruthReconS3ErrorToS3" = {
-#include "S2ReconS3ErrorToS3";
-  @preLayerName                        = "GroundTruthReconS3Error";
-  @postLayerName                       = "S3";
-  @originalConnName                    = "S3ToGroundTruthReconS3Error";
-};
-
-CloneConn "S3ToGroundTruthReconS3" = {
-#include "S3ToS2ReconS3";
-  @preLayerName                        = "S3";
-  @postLayerName                       = "GroundTruthReconS3";
-  @originalConnName                    = "S3ToGroundTruthReconS3Error";
-};
-
-IdentConn "GroundTruthReconS3ToGroundTruthReconS3Error" = {
-    preLayerName                        = "GroundTruthReconS3";
-    postLayerName                       = "GroundTruthReconS3Error";
-    channelCode                         = 1;
-    delay                               = [0.000000];
-    initWeightsFile                     = NULL;
-    writeStep                           = -1;
-};
+//PoolingConn "GroundTruthPixelsToGroundTruthNoBackground" = {
+//    preLayerName                        = "GroundTruthPixels";
+//    postLayerName                       = "GroundTruthNoBackground";
+//    channelCode                         = 0;
+//    delay                               = [0.000000];
+//    numAxonalArbors                     = 1;
+//    convertRateToSpikeCount             = false;
+//    receiveGpu                          = false;
+//    sharedWeights                       = true;
+//    initializeFromCheckpointFlag        = false;
+//    updateGSynFromPostPerspective       = false;
+//    pvpatchAccumulateType               = "maxpooling";
+//    writeStep                           = -1;
+//    writeCompressedCheckpoints          = false;
+//    selfFlag                            = false;
+//    nxp                                 = 1;
+//    nyp                                 = 1;
+//    nfp                                 = 20;
+//    shrinkPatches                       = false;
+//    needPostIndexLayer                  = false;
+//};
+//
+//IdentConn "GroundTruthToGroundTruthReconS3Error" = {
+//    preLayerName                        = "GroundTruth";
+//    postLayerName                       = "GroundTruthReconS3Error";
+//    channelCode                         = 0;
+//    delay                               = [0.000000];
+//    initWeightsFile                     = NULL;
+//    writeStep                           = -1;
+//};
+//
+//MomentumConn "S3ToGroundTruthReconS3Error" = {
+//#include "S3ToS2ReconS3Error";
+//  @preLayerName                        = "S3";
+//  @postLayerName                       = "GroundTruthReconS3Error";
+//  @nxp                                 = 9;
+//  @nyp                                 = 9;
+//  //@initWeightsFile                     = "/home/ec2-user/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_GT/VOC2007_landscape2AWS/Checkpoints/Checkpoint3183200/S3ToGroundTruth8To1ReconS3Error_W.pvp";
+//    //weightInitType                      = "UniformRandomWeight";
+//    //initWeightsFile                     = NULL;
+//    //wMinInit                            = -0.001;
+//    //wMaxInit                            = 0.001;
+//};
+//
+//TransposeConn "GroundTruthReconS3ErrorToS3" = {
+//#include "S2ReconS3ErrorToS3";
+//  @preLayerName                        = "GroundTruthReconS3Error";
+//  @postLayerName                       = "S3";
+//  @originalConnName                    = "S3ToGroundTruthReconS3Error";
+//};
+//
+//CloneConn "S3ToGroundTruthReconS3" = {
+//#include "S3ToS2ReconS3";
+//  @preLayerName                        = "S3";
+//  @postLayerName                       = "GroundTruthReconS3";
+//  @originalConnName                    = "S3ToGroundTruthReconS3Error";
+//};
+//
+//IdentConn "GroundTruthReconS3ToGroundTruthReconS3Error" = {
+//    preLayerName                        = "GroundTruthReconS3";
+//    postLayerName                       = "GroundTruthReconS3Error";
+//    channelCode                         = 1;
+//    delay                               = [0.000000];
+//    initWeightsFile                     = NULL;
+//    writeStep                           = -1;
+//};
