@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
             /* child process */
             std::stringstream octavecommandstream("");
             octavecommandstream << octaveCommand <<
-                  "--eval 'load CurrentModel/ConfidenceTables/confidenceTable.mat; heatMapMontage(" <<
+                  " --eval 'load CurrentModel/ConfidenceTables/confidenceTable.mat; heatMapMontage(" <<
                   "\"" << imagePvpFile << "\"" << ", " <<
                   "\"" << resultPvpFile << "\"" << ", " <<
                   "\"" << PV_DIR << "/mlab/util" << "\"" << ", " <<
