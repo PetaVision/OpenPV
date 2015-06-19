@@ -151,6 +151,43 @@ octaveCommand (required): the name of the command used to run octave from the
 octaveLogFile (required): the name of the log file containing the octave
     commands and messages printed by octave, to either stdout or stderr
 
+classNames (optional): the name of the file containing the names of the
+    classes.  The file should have one name per line.  All class names
+    should appear in this file, even if they are omitted from the category
+    indices being evaluated and displayed.
+    If absent, the category number, starting with 1, is used as the category
+    name.
+
+evalCategoryIndices (optional): A list of category indices to be used
+    in determining the highest confidence category.  Syntax is matlab/octave:
+    e.g. "[4 5 6 7]", "[4,5,6,7]", or "4:7" all correspond to selecting
+    categories 4 through 7.  The indices are 1-based.
+    If absent, uses all categories.
+
+displayCategoryIndices (optional): A list of category indices to be displayed
+    in the heat map montage.  Syntax is similar to that of evalCategoryIndices.
+    If absent, uses all categories.
+
+highlightThresholdPtr (optional): the threshold above which confidence values
+    are considered significant.  If any category in evalCategoryIndices
+    has a confidence value above the threshold anywhere in the image, and the
+    highest such confidence is in a category in displayCategoryIndices,
+    then the label for that category is colored blue instead of gray.
+    Note that this is a numerical value, but it must still be in quotes in the
+    config file.
+    If absent, the threshold is set to zero.
+
+heatMapThreshold (optional): the threshold at which confidence levels are drawn
+    in the heat map montage.  If absent, the threshold is set to the same value
+    as highlightThresholdPtr.  The numerical value must be in quotes.
+
+heatMapMaximum (optional): the confidence value that corresponds to maximum
+    saturation of the heat map.  If absent, the maximum is set to 1.0.
+    The heat map is black if the confidence is at or below heatMapThreshold, and
+    bright green if it is at or above heatMapMaximum, and an intermediate green
+    for values in between.  The heat map is then blended with the original
+    image in grayscale to create the montage.
+
 heatMapMontageDir (required): the directory that will contain the heat maps.
     The files produced in this directory will be called
     frame1.png, frame2.png, etc.
