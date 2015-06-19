@@ -22,9 +22,8 @@
 %% -----ToDo-----
 %% Add functionality for non-shared-weight pvp files.
 %% Add functionality to read from Checkpoint pvp files (no write time synchronization needed).
-%% Convolve 2nd layer (V2,S2,etc.) weights with 1st layer (V1,S1) weights for visualization in image space.
-%% Figure out how to plot/save everything without user input (Octave asks "-- less -- (f)orward, (b)ack, (q)uit" after plotting). 
-
+%% Convolve 2nd layer (V2,S2,etc.) weights with 1st layer (V1,S1) weights for visualization in image space.  This is implemented for checkpointed weights files in PetaVision/mlab/util/printCheckpointedSecondLevelWeights.m
+more off;
 numImagesToWrite = 5;  % The number of inputs/recons to write
 
 paths = path;
@@ -173,7 +172,7 @@ for i = 1:size(reconpvps,2)
          for k = 1:reconheader.nf
             p_nf = p(:,:,k);
             p_nf = p_nf-minp;
-            p_nf = p_nf*255/maxp;
+            p_nf = p_nf*255/(maxp-minp);
             p_nf = permute(p_nf,[2 1 3]);
             p_nf = uint8(p_nf);
             if (reconheader.nf == 1)
