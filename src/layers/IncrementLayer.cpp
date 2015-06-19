@@ -34,15 +34,15 @@ int IncrementLayer::initialize(const char* name, HyPerCol * hc) {
    int status = ANNLayer::initialize(name, hc);
    nextUpdateTime = firstUpdateTime+displayPeriod;
 
-   // Why isn't this in allocateDataStructures()?
-   Vprev = (pvdata_t *) calloc(getNumNeurons(),sizeof(pvdata_t));
-   if( Vprev == NULL ) {
-      fprintf(stderr, "Unable to allocate Vprev buffer for IncrementLayer \"%s\"\n", name);
-      abort();
-   }
-   for( int k=0; k<getNumNeurons(); k++ ) {
-      assert(GSyn[0][k]==0 && GSyn[1][k]==0);
-   }
+   //Done in allocate, this here was a memory leak
+   //Vprev = (pvdata_t *) calloc(getNumNeurons(),sizeof(pvdata_t));
+   //if( Vprev == NULL ) {
+   //   fprintf(stderr, "Unable to allocate Vprev buffer for IncrementLayer \"%s\"\n", name);
+   //   abort();
+   //}
+   //for( int k=0; k<getNumNeurons(); k++ ) {
+   //   assert(GSyn[0][k]==0 && GSyn[1][k]==0);
+   //}
 
    return status;
 }

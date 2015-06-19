@@ -19,11 +19,14 @@ public:
 protected:
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void ioParam_originalLayerName(enum ParamsIOFlag ioFlag);
+   void ioParam_binMaxMin(enum ParamsIOFlag ioFlag);
    int allocateV();
    int initializeV();
    virtual int initializeActivity();
 private:
    int initialize_base();
+   float binMax;
+   float binMin;
 
 protected:
    char * originalLayerName;

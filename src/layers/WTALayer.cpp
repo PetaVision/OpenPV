@@ -23,6 +23,8 @@ int WTALayer::initialize_base() {
    numChannels = 0;
    originalLayerName = NULL;
    originalLayer = NULL;
+   binMax = 1;
+   binMin = 0;
    return PV_SUCCESS;
 }
 
@@ -85,6 +87,7 @@ int WTALayer::initializeActivity() {
 int WTALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
    ioParam_originalLayerName(ioFlag);
+   ioParam_binMaxMin(ioFlag);
    return status;
 }
 void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
@@ -102,6 +105,21 @@ void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "binMax", &binMax, binMax);
+   parent->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
+   if(ioFlag == PARAMS_IO_READ && binMax <= binMin){
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: binMax (%f) must be greater than binMin (%f).\n",
+            parent->parameters()->groupKeywordFromName(name), name, binMax, binMin);
+      }
+#ifdef PV_USE_MPI
+      MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
+      exit(EXIT_FAILURE);
+   }
+}
+
 int WTALayer::updateState(double timef, double dt) {
    pvdata_t * currA = getCLayer()->activity->data;
    pvdata_t * srcA = originalLayer->getCLayer()->activity->data;
@@ -111,6 +129,7 @@ int WTALayer::updateState(double timef, double dt) {
 
    //NF must be one
    assert(loc->nf == 1);
+   float stepSize = (float)(binMax - binMin)/(float)srcLoc->nf;
 
    //Loop over x and y of the src layer
    for(int yi = 0; yi < srcLoc->ny; yi++){
@@ -129,8 +148,7 @@ int WTALayer::updateState(double timef, double dt) {
             }
          }
          //Found max index, set output to value
-         float stepSize = (float)1/(float)srcLoc->nf;
-         float outVal = maxIndex * stepSize;
+         float outVal = (maxIndex * stepSize) + binMin;
          int kExtOut = kIndex(xi, yi, 0,
                   loc->nx+loc->halo.lt+loc->halo.rt,
                   loc->ny+loc->halo.up+loc->halo.dn,

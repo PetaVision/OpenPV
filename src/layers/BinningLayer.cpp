@@ -204,6 +204,10 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
          else{
             //A sigma of zero means only the centered bin value should get input
             int featureIdx = round((inVal-binMin)/stepSize);
+            if(featureIdx < 0 || featureIdx >= numBins){
+               std::cout << "Binning layer: calculated feature index not in bounds. Orig val: " << inVal << " stepSize: " << stepSize << "\n";
+               exit(-1);
+            }
             for(int iF = 0; iF < numBins; iF++){
                if(binSigma == 0){
                   int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);

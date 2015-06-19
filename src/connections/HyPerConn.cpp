@@ -3334,7 +3334,8 @@ int HyPerConn::defaultUpdateInd_dW(int arbor_ID, int kExt){
             }
          }
          if (maskVal != 0) {
-            if(sharedWeights){
+            //Note: this is a hack, as batching calls this function, but overwrites to allocate numKernelActivations with non-shared weights
+            if(numKernelActivations){
                //Offset in the case of a shrunken patch, where dwdata is applying when calling get_dwData
                numKernelActivations[arbor_ID][kernelIndex][weights->offset + lineoffsetw + k]++;
             }
