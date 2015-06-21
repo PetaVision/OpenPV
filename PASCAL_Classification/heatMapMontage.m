@@ -6,16 +6,15 @@ function outimage = heatMapMontage(...
     resultFrameNumber,...
     confidenceTable,...
     classNameFile,...
+    resultsTextFile,...
     evalCategoryIndices,...
     displayCategoryIndices,...
     highlightThreshold,...
     heatMapThreshold,...
     heatMapMaximum,...
     montagePath,...
-    resultTextFile,...
-    resultTextCategoryIndices,...
     displayCommand)
-% outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, confidenceTable, montagePath, displayCommand)
+% outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, confidenceTable, classNameFile, resultsTextFile, evalCategoryIndices, displayCategoryIndices, highlightThreshold, heatMapThreshold, heatMapMaximum, montagePath, displayCommand)
 % Takes frames from two input pvp files, imagePvpFile and resultPvpFile and creates a montage compositing
 % the image pvp file with each of the features of the result pvp file.
 %
@@ -35,6 +34,11 @@ function outimage = heatMapMontage(...
 % classNameFile: a character string that indicates a file containing the names of the character classes.
 %    The file contains one class name per line.  The number of features in resultPvpFile should agree with
 %    the number of lines in the file.
+% resultsTextFile: a character string that indicates a text file to write results to.
+%    If the file exists, it will be clobbered, unless starting from a checkpoint, in which case it is appended to.
+%    The text file contains all confidences above zero (strictly speaking, >= Octave's eps variable)
+%    over all categories.
+%    heatMapMontage calls the function defined in resultTextFile.m to produce the file.
 % evalCategoryIndices: a vector of the feature numbers to consider.  If empty, use all indices.
 % displayCategoryIndices: a vector of the feature numbers to display.  If empty, use all indices.
 % highlightThreshold: the minimum confidence at which the highest confidence label and value are highlighted in the montage.
@@ -45,12 +49,6 @@ function outimage = heatMapMontage(...
 %    (on the assumption that confidences are between 0 and 1)
 % montagePath: The path to write the output image to.  The output image has the same dimensions as the frame of imagePvpFile.
 %    If resultPvpFile has different dimensions, it will be rescaled using upsamplefill.
-% resultTextFile: If nonempty, the file to write results into in text format.  It appends to the file if it already exists.
-%    The categories in resultTextCategoryIndices (see below) are printed for all tiles.  The format is
-%    Image <imageFrameNumber>, x=m, y=n, <category name>    confidence = <confidence as percent>%
-%    Confidences are multiplied by 100 and followed by a percent sign.
-% resultTextCategoryImages: If resultTextFile is nonempty, specifies the categories to be included in resultTextFile.
-%    If empty, uses all categories.
 % displayCommand: If nonempty, run this command on montagePath after it has been written.  Uses the system command,
 %    so control does not return to octave until the command completes.
 %
@@ -154,6 +152,12 @@ for k=1:resultHdr.nf
        confData(:,:,k) = interp1(confidenceTable(:,end), confidenceTable(:,k), resultData(:,:,k));
     end%if
 end%for
+
+% Print confidences to resultsTextFile, if that file was defined
+if ~isempty(resultsTextFile)
+    printResultsToFile(confData, sprintf('Image %d', resultFrameNumber), resultsTextFile, classes, evalCategoryIndices, eps, 1.0, true);
+end%if
+
 maxConfidence = max(confData(:));
 scaledConfData = (confData-heatMapThreshold)/(heatMapMaximum-heatMapThreshold);
 thresholdConfData = max(min(scaledConfData,1.0),0.0);
@@ -225,19 +229,6 @@ end%if
 
 if ownstmpdir
    rmdir tmp;
-end%if
-
-if exist('resultTextFile','var') && ~isempty(resultTextFile)
-   if ~exist('resultTextCategoryIndices','var') || isempty(resultTextCategoryIndices)
-      resultTextCategoryIndices=1:resultHdr.nf;
-   end%if
-   fid = fopen(resultTextFile, 'a');
-   if fid<0
-      error('heatMapMontage:badResultTextFile','resultTextFile "%s" could not be opened for appending', resultTextFile);
-   end%if
-   for k=1:numel(resultHdr.nf)
-   end%for
-   fclose(fid);
 end%if
 
 end%function

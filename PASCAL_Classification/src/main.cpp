@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
    if (rank==0) {
       if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
 
-      // clobber octave logfile unless starting from a checkpoint
+      // clobber octave logfile and results text file unless starting from a checkpoint
       if (hc->getCheckpointReadDir()==NULL) {
          FILE * octavefp = fopen(octaveLogFile, "w"); // TODO: test for errors
          fclose(octavefp);
@@ -217,6 +217,7 @@ int main(int argc, char* argv[])
                   resultFrameNumber << ", " <<
                   "confidenceTable, " <<
                   "\"" << classNames << "\"" << ", " <<
+                  "\"" << resultTextFile << "\"" << ", " <<
                   evalCategoryIndices << ", " <<
                   displayCategoryIndices << ", " <<
                   highlightThreshold << ", " <<
@@ -233,17 +234,10 @@ int main(int argc, char* argv[])
             octavelogstream.close();
             int systemstatus = system(octavecommandstream.str().c_str()); // Analysis of the result of the current frame
             octavelogstream.open(octaveLogFile, std::fstream::out | std::fstream::app);
-            octavelogstream << "Octave command returned " << systemstatus << "\n";
+            octavelogstream << "Octave heatMapMontage command returned " << systemstatus << "\n";
             octavelogstream.close();
 
-            if (resultTextFile) {
-               int numGlobalResultLayer = resultLayer->getNumGlobalNeurons();
-               std::ofstream resultTextStream;
-               resultTextStream.open(resultTextFile, std::fstream::out | std::fstream::app);
-               resultTextStream.close();
-            }
-
-            exit(EXIT_SUCCESS);
+            exit(EXIT_SUCCESS); /* child process exits */
          }
          else {
             /* parent process */
@@ -388,6 +382,13 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
    {
       fprintf(stderr, "resultLayer was not defined in %s.\n", CONFIG_FILE);
       status = PV_FAILURE;
+   }
+   if (*resultTextFilePtr==NULL)
+   {
+      if (icComm->commRank()==0) {
+         fprintf(stderr, "resultTextFile was not defined in %s; a text file of results will not be produced.\n", CONFIG_FILE);
+      }
+      *resultTextFilePtr = strdup("");
    }
    if (*octaveCommandPtr==NULL)
    {
