@@ -514,7 +514,7 @@ char * getImageFileName(InterColComm * icComm)
 #ifdef PV_USE_MPI
    MPI_Bcast(buffer, TEXTFILEBUFFERSIZE/*count*/, MPI_CHAR, 0/*rootprocess*/, icComm->communicator());
 #endif // PV_USE_MPI
-   char * filename = strdup(buffer);
+   char * filename = expandLeadingTilde(buffer);
    if (filename==NULL)
    {
       fprintf(stderr, "Rank %d process unable to allocate space for line from listOfImageFiles file.\n", rank);
