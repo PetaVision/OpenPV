@@ -27,9 +27,15 @@
 # does not report the file until the file has finished uploading, so the
 # local side should wait for uploading to finish before creating this file.
 #
-until test -f inputImages/.uploadfinished || test -f inputImages/.uploadedfile
+rm -f inputImages/.uploadfinished inputImages/.uploadedfile
+until test -f inputImages/.uploadfinished
 do
-    sleep 1
+    until test -f inputImages/.uploadedfile || test -f inputImages/.uploadfinished
+    # test -f inputImages/.uploadfinished appears in both until loops
+    # because the file could (and probably will) arrive during the sleep statement.
+    do
+        sleep 1
+    done
     if test -f inputImages/.uploadedfile
     then
         cat inputImages/.uploadedfile
