@@ -96,7 +96,7 @@ to do that last because the file chooser dialog box can get in the way.
 
 In a third Terminal window, cd to the demo-localside directory, and run the
 command
-    bash download_to_aws.bash <ip_address>
+    bash download_from.bash <ip_address>
         # <ip_address> is the public ip address of the AWS instance.
 
 Finally, return to the window that was running the upload script, and
