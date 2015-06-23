@@ -464,13 +464,7 @@ public:
 
    virtual int * getMarginIndices();
    virtual int getNumMargin();
-#ifdef OBSOLETE // Marked obsolete Dec 15, 2014.  Moved to HyPerConn
-   float getConvertToRateDeltaTimeFactor(HyPerConn* conn);
-#endif // OBSOLETE
    float getMaxRate() {return maxRate;}
-
-//   int getFeedbackDelay(){return feedbackDelay;};
-//   int getFeedforwardDelay(){return feedforwardDelay;};
 
 protected:
 

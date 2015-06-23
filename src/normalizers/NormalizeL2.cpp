@@ -43,36 +43,6 @@ int NormalizeL2::normalizeWeights() {
 
    // All connections in the group must have the same values of sharedWeights, numArbors, and numDataPatches
    HyPerConn * conn0 = connectionList[0];
-#ifdef OBSOLETE // Marked obsolete Dec 15, 2014.  Moved to base class NormalizeMultiply.
-   for (int c=1; c<numConnections; c++) {
-      HyPerConn * conn = connectionList[c];
-      if (conn->usingSharedWeights()!=conn0->usingSharedWeights()) {
-         if (parent()->columnId() == 0) {
-            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same sharedWeights (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
-                  this->getName(), conn0->getName(), conn0->usingSharedWeights(), conn->getName(), conn->usingSharedWeights());
-         }
-         status = PV_FAILURE;
-      }
-      if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
-         if (parent()->columnId() == 0) {
-            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of arbors (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
-                  this->getName(), conn0->getName(), conn0->numberOfAxonalArborLists(), conn->getName(), conn->numberOfAxonalArborLists());
-         }
-         status = PV_FAILURE;
-      }
-      if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
-         if (parent()->columnId() == 0) {
-            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of data patches (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
-                  this->getName(), conn0->getName(), conn0->getNumDataPatches(), conn->getName(), conn->getNumDataPatches());
-         }
-         status = PV_FAILURE;
-      }
-      if (status==PV_FAILURE) {
-         MPI_Barrier(parent()->icCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-   }
-#endif // OBSOLETE
 
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {

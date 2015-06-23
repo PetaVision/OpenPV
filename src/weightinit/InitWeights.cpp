@@ -120,24 +120,6 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
          exit(EXIT_FAILURE);
       }
    }
-#ifdef OBSOLETE // Marked obsolete Dec 19, 2014.  Use weightInitType = "FileWeight" or initializeFromCheckpointFlag = true
-   int initFromLastFlag = inputParams->value(callingConn->getName(),
-         "initFromLastFlag", 0.0f, false) != 0;
-   if (initFromLastFlag) {
-      char nametmp[PV_PATH_MAX];
-      int chars_needed = snprintf(nametmp, PV_PATH_MAX, "%s/Last/%s_W.pvp",
-            callingConn->getParent()->getOutputPath(),
-            callingConn->getName());
-      if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr,
-               "InitWeights::initializeWeights error: filename \"%s/Last/%s_W.pvp\" is too long.\n",
-               callingConn->getParent()->getOutputPath(),
-               callingConn->getName());
-         abort();
-      }
-      readWeights(patches, dataStart, numPatches, nametmp);
-   } else
-#endif // OBSOLETE
    if (weightParams->getFilename() != NULL) {
       readWeights(patches, dataStart, numPatches, weightParams->getFilename(), timef);
    } else {
