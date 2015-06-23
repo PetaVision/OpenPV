@@ -24,7 +24,7 @@ cd ${0%/*}
 plabdir=$PWD
 cd $olddir
 parentdir="$(dirname "$plabdir")"
-python $plabdir/draw_param_extractor.py $pfile $parentdir
+python $plabdir/param_extractor.py $pfile $parentdir/src/layers $parentdir/src/connections
 mermaid param_graph
 rm param_graph
 filename=$(basename "$pfile")
