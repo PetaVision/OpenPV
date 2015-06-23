@@ -184,8 +184,15 @@ int main(int argc, char* argv[])
 
       if (rank==0) {
          int resultFrameNumber = params[INDEX_NBANDS];
+         char * basename = strrchr(imageFile, '/');
+         if (basename==NULL) { basename=imageFile; } else { basename++; }
+         basename = strdup(basename);
+         char * dot = strrchr(basename, '.');
+         if (dot) { *dot = '\0'; } // delete extension
          std::stringstream montagePath("");
-         montagePath << heatMapMontageDir << "/frame" << imageFrameNumber << ".png";
+         montagePath << heatMapMontageDir << "/" << basename << ".png";
+         free(basename);
+         std::cout << "output file is " << montagePath.str() << std::endl;
 
          if (octavepid>0)
          {

@@ -149,7 +149,7 @@ montageImage = zeros((size(imageData,1)+64+10)*numRows, (size(imageData,2)+10)*n
 confData = zeros(size(resultData));
 for k=1:resultHdr.nf
     if any(evalCategoryIndices==k)
-       confData(:,:,k) = interp1(confidenceTable(:,end), confidenceTable(:,k), resultData(:,:,k));
+       confData(:,:,k) = interp1(confidenceTable(:,end), confidenceTable(:,k), resultData(:,:,k), "extrap");
     end%if
 end%for
 
