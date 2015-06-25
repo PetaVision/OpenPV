@@ -128,8 +128,8 @@ octave.log A log file consisting of the octave commands called, and the output
 The config.txt file:
 The config.txt file consists of lines that specify runtime configuration
 settings.  The syntax is restrictive: the name of a setting, a colon, and the
-value of the setting as a string in quotes.  Currently, there is no facility
-to add comments.
+value of the setting as a string delimited by quotation marks (").  Characters
+after the closing quotation mark are ignored.
 
 The settings are as follows:
 

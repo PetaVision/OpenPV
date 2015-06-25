@@ -58,43 +58,8 @@ int main(int argc, char* argv[])
 
    // Parse config file for image layer, result layer, file of image files
    status = parseConfigFile(icComm, &imageLayerName, &resultLayerName, &resultTextFile, &octaveCommand, &octaveLogFile, &classNames, &evalCategoryIndices, &displayCategoryIndices, &highlightThreshold, &heatMapThreshold, &heatMapMaximum, &heatMapMontageDir, &displayCommand);
-
-
-      char const * imagePvpFile = "a0_Image.pvp";
-      char const * resultPvpFile = "a9_GTR.pvp";
-         int imageFrameNumber = 1;
-         int resultFrameNumber = 1;
-         char const * basename = "imagebasenamegoeshere";
-         std::stringstream montagePath("");
-         montagePath << heatMapMontageDir << "/" << basename << ".png";
-         std::cout << "output file is " << montagePath.str() << std::endl;
-            std::stringstream octavecommandstream("");
-            octavecommandstream << octaveCommand <<
-                  " --eval 'load CurrentModel/ConfidenceTables/confidenceTable.mat; heatMapMontage(" <<
-                  "\"" << imagePvpFile << "\"" << ", " <<
-                  "\"" << resultPvpFile << "\"" << ", " <<
-                  "\"" << PV_DIR << "/mlab/util" << "\"" << ", " <<
-                  imageFrameNumber << ", " <<
-                  resultFrameNumber << ", " <<
-                  "confidenceTable, " <<
-                  "\"" << classNames << "\"" << ", " <<
-                  "\"" << resultTextFile << "\"" << ", " <<
-                  evalCategoryIndices << ", " <<
-                  displayCategoryIndices << ", " <<
-                  highlightThreshold << ", " <<
-                  heatMapThreshold << ", " <<
-                  heatMapMaximum << ", " <<
-                  "\"" << montagePath.str() << "\"" << ", " <<
-                  "\"" << displayCommand << "\"" <<
-                  ");'" <<
-                  " >> " << octaveLogFile << " 2>&1";
-            std::cout << "****************" << std::endl;
-            std::cout << octavecommandstream.str() << std::endl;
-            std::cout << "****************" << std::endl;
-
-
-
    if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
+
    BaseLayer * imageBaseLayer = hc->getLayerFromName(imageLayerName);
    if (imageBaseLayer==NULL)
    {
@@ -635,7 +600,7 @@ int checkOctaveArgumentNumeric(char const * argString, char const * argName)
       fprintf(stderr, "%s contains characters that do not interpret as numeric.\n", argName);
       status = PV_FAILURE;
    }
-   return PV_SUCCESS;
+   return status;
 }
 
 int checkOctaveArgumentVector(char const * argString, char const * argName)
