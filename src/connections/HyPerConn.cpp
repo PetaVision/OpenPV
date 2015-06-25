@@ -1264,7 +1264,7 @@ void HyPerConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "sharedWeights"));
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (sharedWeights && plasticityFlag) {
-      parent->ioParamValue(ioFlag, name, "keepKernelsSynchronized", &keepKernelsSynchronized_flag, sharedWeights, true/*warnIfAbsent*/);
+      parent->ioParamValue(ioFlag, name, "keepKernelsSynchronized", &keepKernelsSynchronized_flag, true/*default*/, true/*warnIfAbsent*/);
    }
 }
 
