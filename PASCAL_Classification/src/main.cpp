@@ -13,6 +13,9 @@
 
 int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
 int parseConfigParameter(InterColComm * icComm, char const * inputLine, char const * configParameter, char ** parameterPtr, unsigned int lineNumber);
+int checkOctaveArgumentString(char const * argString, char const * argName);
+int checkOctaveArgumentNumeric(char const * argString, char const * argName);
+int checkOctaveArgumentVector(char const * argString, char const * argName);
 char * getImageFileName(InterColComm * icComm);
 int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr);
 
@@ -55,6 +58,42 @@ int main(int argc, char* argv[])
 
    // Parse config file for image layer, result layer, file of image files
    status = parseConfigFile(icComm, &imageLayerName, &resultLayerName, &resultTextFile, &octaveCommand, &octaveLogFile, &classNames, &evalCategoryIndices, &displayCategoryIndices, &highlightThreshold, &heatMapThreshold, &heatMapMaximum, &heatMapMontageDir, &displayCommand);
+
+
+      char const * imagePvpFile = "a0_Image.pvp";
+      char const * resultPvpFile = "a9_GTR.pvp";
+         int imageFrameNumber = 1;
+         int resultFrameNumber = 1;
+         char const * basename = "imagebasenamegoeshere";
+         std::stringstream montagePath("");
+         montagePath << heatMapMontageDir << "/" << basename << ".png";
+         std::cout << "output file is " << montagePath.str() << std::endl;
+            std::stringstream octavecommandstream("");
+            octavecommandstream << octaveCommand <<
+                  " --eval 'load CurrentModel/ConfidenceTables/confidenceTable.mat; heatMapMontage(" <<
+                  "\"" << imagePvpFile << "\"" << ", " <<
+                  "\"" << resultPvpFile << "\"" << ", " <<
+                  "\"" << PV_DIR << "/mlab/util" << "\"" << ", " <<
+                  imageFrameNumber << ", " <<
+                  resultFrameNumber << ", " <<
+                  "confidenceTable, " <<
+                  "\"" << classNames << "\"" << ", " <<
+                  "\"" << resultTextFile << "\"" << ", " <<
+                  evalCategoryIndices << ", " <<
+                  displayCategoryIndices << ", " <<
+                  highlightThreshold << ", " <<
+                  heatMapThreshold << ", " <<
+                  heatMapMaximum << ", " <<
+                  "\"" << montagePath.str() << "\"" << ", " <<
+                  "\"" << displayCommand << "\"" <<
+                  ");'" <<
+                  " >> " << octaveLogFile << " 2>&1";
+            std::cout << "****************" << std::endl;
+            std::cout << octavecommandstream.str() << std::endl;
+            std::cout << "****************" << std::endl;
+
+
+
    if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
    BaseLayer * imageBaseLayer = hc->getLayerFromName(imageLayerName);
    if (imageBaseLayer==NULL)
@@ -265,7 +304,7 @@ int main(int argc, char* argv[])
 
 int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
 {
-   // Under MPI, all process must call this function in parallel, but only the root process does I/O
+   // Under MPI, all processes must call this function in parallel, but only the root process does I/O
    int status = PV_SUCCESS;
    FILE * parseConfigFileFP = NULL;
    if (icComm->commRank()==0) {
@@ -380,89 +419,260 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
          if (status != PV_SUCCESS) { break; }
       }
    }
-   if (*imageLayerNamePtr==NULL)
+
+   if (status==PV_SUCCESS)
    {
-      fprintf(stderr, "imageLayer was not defined in %s.\n", CONFIG_FILE);
-      status = PV_FAILURE;
-   }
-   if (*resultLayerNamePtr==NULL)
-   {
-      fprintf(stderr, "resultLayer was not defined in %s.\n", CONFIG_FILE);
-      status = PV_FAILURE;
-   }
-   if (*resultTextFilePtr==NULL)
-   {
-      if (icComm->commRank()==0) {
-         fprintf(stderr, "resultTextFile was not defined in %s; a text file of results will not be produced.\n", CONFIG_FILE);
+      if (*imageLayerNamePtr==NULL)
+      {
+         fprintf(stderr, "imageLayer was not defined in %s.\n", CONFIG_FILE);
+         status = PV_FAILURE;
       }
-      *resultTextFilePtr = strdup("");
-   }
-   if (*octaveCommandPtr==NULL)
-   {
-      fprintf(stderr, "octaveCommand was not defined in %s.\n", CONFIG_FILE);
-      status = PV_FAILURE;
-   }
-   if (*octaveLogFilePtr==NULL)
-   {
-      fprintf(stderr, "octaveCommand was not defined in %s.\n", CONFIG_FILE);
-      status = PV_FAILURE;
-   }
-   if (*classNamesPtr==NULL)
-   {
-      if (icComm->commRank()==0) {
-         fprintf(stderr, "classNames was not defined in %s; setting class names to feature indices.\n", CONFIG_FILE);
+      else
+      {
+         status = checkOctaveArgumentString(*imageLayerNamePtr, "imageLayer");
       }
-      *classNamesPtr = strdup("{}");
-   }
-   if (*evalCategoryIndicesPtr==NULL)
+   }   
+
+   if (status==PV_SUCCESS)
    {
-      if (icComm->commRank()==0) {
-         printf("evalCategoryIndices was not defined in %s; using all indices.\n", CONFIG_FILE);
+      if (*resultLayerNamePtr==NULL)
+      {
+         fprintf(stderr, "resultLayer was not defined in %s.\n", CONFIG_FILE);
+         status = PV_FAILURE;
       }
-      *evalCategoryIndicesPtr = strdup("[]");
-   }
-   if (*displayCategoryIndicesPtr==NULL)
-   {
-      if (icComm->commRank()==0) {
-         printf("evalCategoryIndices was not defined in %s; using all indices.\n", CONFIG_FILE);
+      else
+      {
+         status = checkOctaveArgumentString(*resultLayerNamePtr, "resultLayer");
       }
-      *displayCategoryIndicesPtr = strdup("[]");
-   }
-   if (*highlightThresholdPtr==NULL)
+   }   
+
+   if (status==PV_SUCCESS)
    {
-      if (icComm->commRank()==0) {
-         printf("highlightThreshold was not defined in %s; setting to zero\n", CONFIG_FILE);
+      if (*resultTextFilePtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            fprintf(stderr, "resultTextFile was not defined in %s; a text file of results will not be produced.\n", CONFIG_FILE);
+         }
+         *resultTextFilePtr = strdup("");
       }
-      *highlightThresholdPtr = strdup("0.0");
-   }
-   if (*heatMapThresholdPtr==NULL)
-   {
-      if (icComm->commRank()==0) {
-         printf("heatMapThreshold was not defined in %s; setting to same as highlightThreshold\n", CONFIG_FILE);
+      else
+      {
+         status = checkOctaveArgumentString(*resultTextFilePtr, "resultTextFile");
       }
-      *heatMapThresholdPtr = strdup(*highlightThresholdPtr);
-   }
-   if (*heatMapMaximumPtr==NULL)
+   }   
+
+   if (status==PV_SUCCESS)
    {
-      if (icComm->commRank()==0) {
-         printf("heatMapMaximum was not defined in %s; setting to 1.0\n", CONFIG_FILE);
+      if (*octaveCommandPtr==NULL)
+      {
+         fprintf(stderr, "octaveCommand was not defined in %s.\n", CONFIG_FILE);
+         status = PV_FAILURE;
       }
-      *heatMapMaximumPtr = strdup("1.0");
-   }
-   if (*heatMapMontageDirPtr==NULL)
-   {
-      fprintf(stderr, "heatMapMontageDir was not defined in %s.\n", CONFIG_FILE);
-      status = PV_FAILURE;
-   }
-   if (*displayCommandPtr==NULL)
-   {
-      if (icComm->commRank()==0) {
-         printf("displayCommand was not defined in %s; leaving blank\n", CONFIG_FILE);
+      else
+      {
+         status = checkOctaveArgumentString(*octaveCommandPtr, "octaveCommand");
       }
-      *displayCommandPtr = strdup("");
+   }   
+
+   if (status==PV_SUCCESS)
+   {   
+      if (*octaveLogFilePtr==NULL)
+      {
+         fprintf(stderr, "octaveLogFile was not defined in %s.\n", CONFIG_FILE);
+         status = PV_FAILURE;
+      }
+      else
+      {
+         status = checkOctaveArgumentString(*octaveLogFilePtr, "octaveLogFile");
+      }
+   }   
+
+   if (status==PV_SUCCESS)
+   {
+      if (*classNamesPtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            fprintf(stderr, "classNames was not defined in %s; setting class names to feature indices.\n", CONFIG_FILE);
+         }
+         *classNamesPtr = strdup("{}");
+      }
+      else
+      {
+         status = checkOctaveArgumentString(*classNamesPtr, "classNames");
+      }
+   }   
+
+   if (status==PV_SUCCESS)
+   {
+      if (*evalCategoryIndicesPtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            printf("evalCategoryIndices was not defined in %s; using all indices.\n", CONFIG_FILE);
+         }
+         *evalCategoryIndicesPtr = strdup("[]");
+      }
+      else
+      {
+         status = checkOctaveArgumentVector(*evalCategoryIndicesPtr, "evalCategoryIndices");
+      }
+   }   
+
+   if (status==PV_SUCCESS)
+   {
+      if (*displayCategoryIndicesPtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            printf("evalCategoryIndices was not defined in %s; using all indices.\n", CONFIG_FILE);
+         }
+         *displayCategoryIndicesPtr = strdup("[]");
+      }
+      else
+      {
+         status = checkOctaveArgumentVector(*displayCategoryIndicesPtr, "displayCategoryIndices");
+      }
+   }   
+
+   if (status==PV_SUCCESS)
+   {
+      if (*highlightThresholdPtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            printf("highlightThreshold was not defined in %s; setting to zero\n", CONFIG_FILE);
+         }
+         *highlightThresholdPtr = strdup("0.0");
+      }
+      else
+      {
+         status = checkOctaveArgumentNumeric(*highlightThresholdPtr, "highlightThreshold");
+      }
+   }   
+
+   if (status==PV_SUCCESS)
+   {
+      if (*heatMapThresholdPtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            printf("heatMapThreshold was not defined in %s; setting to same as highlightThreshold\n", CONFIG_FILE);
+         }
+         *heatMapThresholdPtr = strdup(*heatMapThresholdPtr);
+      }
+      else
+      {
+         status = checkOctaveArgumentNumeric(*heatMapThresholdPtr, "heatMapThreshold");
+      }
+   }   
+
+   if (status==PV_SUCCESS)
+   {
+      if (*heatMapMaximumPtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            printf("heatMapMaximum was not defined in %s; setting to 1.0\n", CONFIG_FILE);
+         }
+         *heatMapMaximumPtr = strdup("1.0");
+      }
+      else
+      {
+         status = checkOctaveArgumentNumeric(*heatMapMaximumPtr, "heatMapMaximum");
+      }
+   }   
+
+   if (status==PV_SUCCESS)
+   {
+      if (*heatMapMontageDirPtr==NULL)
+      {
+         fprintf(stderr, "heatMapMontageDir was not defined in %s.\n", CONFIG_FILE);
+         status = PV_FAILURE;
+      }
+      else
+      {
+         status = checkOctaveArgumentString(*heatMapMontageDirPtr, "heatMapMontageDir");
+      }
+   }   
+
+   if (status==PV_SUCCESS)
+   {
+      if (*displayCommandPtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            printf("displayCommand was not defined in %s; leaving blank\n", CONFIG_FILE);
+         }
+         *displayCommandPtr = strdup("");
+      }
+      else
+      {
+         status = checkOctaveArgumentString(*displayCommandPtr, "displayCommand");
+      }
    }
+
    if (icComm->commRank()==0) {
       fclose(parseConfigFileFP);
+   }
+   return status;
+}
+
+int checkOctaveArgumentString(char const * argString, char const * argName)
+{
+   int status = PV_SUCCESS;
+   for (size_t c=0; c<strlen(argString); c++)
+   {
+      if (argString[c] == '"' or argString[c] == '\'')
+      {
+         fprintf(stderr, "%s cannot contain quotation marks (\") or apostrophes (')", argName);
+         status = PV_FAILURE;
+      }
+   }
+   return status;
+}
+
+int checkOctaveArgumentNumeric(char const * argString, char const * argName)
+{
+   char * endptr = NULL;
+   strtod(argString, &endptr);
+   int status = PV_SUCCESS;
+   if (*endptr!='\0')
+   {
+      fprintf(stderr, "%s contains characters that do not interpret as numeric.\n", argName);
+      status = PV_FAILURE;
+   }
+   return PV_SUCCESS;
+}
+
+int checkOctaveArgumentVector(char const * argString, char const * argName)
+{
+   // make sure that the string contains only characters in the set '0123456789[];:, -', and
+   // that any comma is preceded by more opening brackets than closing brackets.
+   // not perfect, or even very good, but I think it means that the only allowable strings
+   // either parse in octave to an array of integers (possibly a vector or a scalar),
+   // or causes an immediate error in octave.
+   int status = PV_SUCCESS;
+   char const * allowable = "0123456789[];:, -";
+   int nestingLevel = 0;
+   for (char const * s = argString; *s; s++)
+   {
+      bool allowed = false;
+      for (char const * a = allowable; *a; a++)
+      {
+         if (*s==*a)
+         {
+            allowed = true;
+            break;
+         }
+      }
+      if (!allowed)
+      {
+         fprintf(stderr, "Only allowable characters in %s are \"%s\"\n", argName, allowable);
+         status = PV_FAILURE;
+         break;
+      }
+      if (*s=='[') { nestingLevel++; }
+      if (*s==']') { nestingLevel--; }
+      if (*s==',' && nestingLevel <= 0)
+      {
+         fprintf(stderr, "%s cannot have a comma outside of brackets\n", argName);
+         status = PV_FAILURE;
+         break;
+      }
    }
    return status;
 }
