@@ -1,30 +1,9 @@
-
 #!/usr/bin/python
 
 import re
 import sys
 import math
 import os
-
-def official_lists(layer_dir = '/layers', conn_dir = '/connections'):
-    official_layers = []
-    official_conns = []
-    if os.path.isdir(layer_dir) and os.path.isdir(conn_dir):
-        lay = os.listdir(layer_dir)
-        con = os.listdir(conn_dir)
-        for i in lay:
-            match = re.search('(.+).cpp',i)
-            if match:
-                official_layers.append(match.group(1))
-        for i in con:
-            re.search('(.+).cpp',i)
-            if match:
-                official_conns.append(match.group(1))
-    if not os.path.isdir(layer_dir):
-        print('Warning: Directory "' + layer_dir + '" not found, attempting to infer Layers.')
-    if not os.path.isdir(conn_dir):
-        print('Warning: Directory "' + conn_dir + '" not found, attempting to infer Conns')
-    return official_layers, official_conns
 
 class Col(object):
     def __init__(self):
@@ -51,14 +30,14 @@ class Conn(Col):
         self.label = None
 
 class Param_Reader(object):    
-    comment_regex = re.compile('(.*)//') # matches everything before a comment, including ''
+    comment_regex = re.compile('(.*)//')
     col_regex = re.compile('\s*HyPerCol\s*"\w+"\s*=\s*{')
     regex_dict = {
-        'object_regex' : re.compile('(\w+)\s*"(\w+)"\s*=\s*{'), # grp 1 type, grp 2 name
+        'object_regex' : re.compile('(\w+)\s*"(\w+)"\s*=\s*{'),
         'end_regex' : re.compile('};'),
-        'param_regex' : re.compile('@?(\w+)\s*=\s*"?(-?[^"]+)"?;'), # grp 1 param, grp 2 val
-        'include_regex' : re.compile('#include\s+"(\w+)"'),}
-
+        'param_regex' : re.compile('@?(\w+)\s*=\s*"?(-?[^"]+)"?;'),
+        'include_regex' : re.compile('#include\s+"(\w+)"'),
+        }
     def assign_object(self,type,name):
         official_layers,official_conns = self.lists
         if type in official_layers:
@@ -125,6 +104,27 @@ class Param_Reader(object):
         self.read()
 
 class Param_Parser(Param_Reader):
+
+    def official_lists(self,layer_dir,conn_dir):
+        official_layers = []
+        official_conns = []
+        if os.path.isdir(layer_dir) and os.path.isdir(conn_dir):
+            lay = os.listdir(layer_dir)
+            con = os.listdir(conn_dir)
+            for i in lay:
+                match = re.search('(.+).cpp',i)
+                if match:
+                    official_layers.append(match.group(1))
+            for i in con:
+                re.search('(.+).cpp',i)
+                if match:
+                    official_conns.append(match.group(1))
+        if not os.path.isdir(layer_dir):
+            print 'Warning: Directory "' + layer_dir + '" not found, attempting to infer Layers.'
+        if not os.path.isdir(conn_dir):
+            print 'Warning: Directory "' + conn_dir + '" not found, attempting to infer Conns'
+        return official_layers, official_conns
+
     def calc_scale(self):
         cnx = float(self.column['nx'])
         cny = float(self.column['ny'])
@@ -136,13 +136,11 @@ class Param_Parser(Param_Reader):
     def relate_objects(self):
         for i in self.conn_dict.itervalues():
             if 'preLayerName' in i.params:
-                #i.pre = i['preLayerName']
                 if not i['preLayerName'] in self.layer_dict:
                     print 'Warning: ' + i['preLayerName'] + ' in ' + i.name + ' not found in Layers'
                     continue
                 i.pre = i['preLayerName']
             if 'postLayerName' in i.params:
-                #i.post = i['postLayerName']
                 if not i['postLayerName'] in self.layer_dict:
                     print 'Warning: ' + i['postLayerName'] + ' in ' + i.name + ' not found in Layers'
                     continue
@@ -175,7 +173,31 @@ class Param_Parser(Param_Reader):
                 c.pre = i['originalLayerName']
                 self.conn_dict[c.name] = c
 
-def mermaid_writeout(layer_dict,conn_dict,layers_in_order,conns_in_order):
+    def parse(self):
+        self.relate_objects()
+        self.assign_labels()
+        self.calc_scale()
+        self.make_original_layer_conns()
+        return [self.layer_dict,self.conn_dict,self.layers_in_order,self.conns_in_order]
+
+    def __init__(self, filename, **kwargs):
+        laydir = kwargs.get('layers','')
+        condir = kwargs.get('conns','')
+        self.filename = filename
+        self.lists = self.official_lists(laydir,condir)
+        self.layer_dict = {}
+        self.layers_in_order = []
+        self.conn_dict = {}
+        self.conns_in_order = []
+        self.column = Col()
+        self.current_object = None
+        self.read()
+
+def mermaid_writeout(parser_output):
+    layer_dict = parser_output[0]
+    conn_dict = parser_output[1]
+    layers_in_order = parser_output[2]
+    conns_in_order = parser_output[3]
     dash_type,dash_text = 'TransposeConn',',stroke-dasharray: 10, 10'
     dot_type,dot_text = 'IdentConn',',stroke-dasharray: 2, 2'
     blue_type,blue_code = 'LayerCopy',',stroke:#00f'
@@ -206,7 +228,6 @@ def mermaid_writeout(layer_dict,conn_dict,layers_in_order,conns_in_order):
                 layer_dict[j].color = strcolor
         
     calculate_scale_colorvalues()
-
     f = open('param_graph', 'w')
     f.write('graph BT;\n')
     for i in layers_in_order:
@@ -255,23 +276,3 @@ def mermaid_writeout(layer_dict,conn_dict,layers_in_order,conns_in_order):
         if i.pre and i.post:
             f.write('linkStyle ' + str(link_name_iter) + ' fill:none' + color + size + dasharray + ';\n')
             link_name_iter = link_name_iter+1
-
-
-
-
-#HAVE TO SET FLAG CHECKING TO BE MORE ROBUST
-param_name = sys.argv[1]
-if len(sys.argv) == 4:
-    off_lists = official_lists(sys.argv[2],sys.argv[3])
-else:
-    off_lists = official_lists()
-if len(sys.argv) < 5:
-    pd = Param_Parser(param_name, off_lists)
-    pd.relate_objects()
-    pd.assign_labels()
-    pd.calc_scale()
-    pd.make_original_layer_conns()
-    mermaid_writeout(pd.layer_dict,pd.conn_dict,pd.layers_in_order,pd.conns_in_order)
-if len(sys.argv) == 5 and sys.argv[4] == '-a':
-    # Do the operations for the analysis script
-    pass
