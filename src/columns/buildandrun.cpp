@@ -576,28 +576,6 @@ HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPe
       keywordMatched = true;
       addedLayer = (HyPerLayer *) new FilenameParsingGroundTruthLayer(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
-   if( !strcmp(classkeyword, "ANNDivInhLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new ANNDivInh(name, hc);
-   }
-   if( !strcmp(classkeyword, "ANNLabelLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new ANNLabelLayer(name, hc);
-   }
-   if( !strcmp(classkeyword, "ANNWeightedErrorLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new ANNWeightedErrorLayer(name, hc);
-   }
-   if( !strcmp(classkeyword, "AccumulateLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new AccumulateLayer(name, hc);
-   }
-   if( !strcmp(classkeyword, "CliqueLayer") ) {
-      keywordMatched = true;
-      addedLayer = (HyPerLayer *) new CliqueLayer(name, hc);
-   }
-#endif // OBSOLETE // Marked obsolete Dec 29, 2014.
    status = checknewobject((void *) addedLayer, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    if( !keywordMatched ) {
       fprintf(stderr, "Class keyword \"%s\" of group \"%s\" not recognized\n", classkeyword, name);
@@ -675,36 +653,6 @@ HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerC
       keywordMatched = true;
       addedConn = new PoolingConn(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused connections
-   if( !keywordMatched && !strcmp(classkeyword, "CliqueConn") ) {
-      keywordMatched = true;
-      addedConn = new CliqueConn(name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "InhibSTDPConn")) {
-      keywordMatched = true;
-      addedConn = (HyPerConn * ) new InhibSTDPConn(name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "LCALIFLateralKernelConn") ) {
-      keywordMatched = true;
-      addedConn = new LCALIFLateralKernelConn(name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "MapReduceKernelConn") ) {
-      keywordMatched = true;
-      addedConn = (HyPerConn * ) new MapReduceKernelConn(name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "OjaKernelConn") ) {
-      keywordMatched = true;
-      addedConn = new OjaKernelConn(name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "STDP3Conn")) {
-      keywordMatched = true;
-      addedConn = (HyPerConn * ) new STDP3Conn(name, hc);
-   }
-   if( !keywordMatched && !strcmp(classkeyword, "STDPConn")) {
-     keywordMatched = true;
-     addedConn = (HyPerConn * ) new STDPConn(name, hc);
-   }
-#endif // OBSOLETE
    status = checknewobject((void *) addedConn, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
 
    if( !keywordMatched ) {
@@ -798,28 +746,6 @@ BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, 
       keywordMatched = true;
       addedProbe = new KernelProbe(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes
-   if( !strcmp(classkeyword, "ConnStatsProbe") ) {
-      keywordMatched = true;
-      addedProbe = new ConnStatsProbe(name, hc);
-   }
-   if( !strcmp(classkeyword, "LCALIFLateralProbe") ) {
-      keywordMatched = true;
-      addedProbe = new LCALIFLateralProbe(name, hc);
-   }
-   if( !strcmp(classkeyword, "OjaConnProbe") ) {
-      keywordMatched = true;
-      addedProbe = new LCALIFLateralProbe(name, hc);
-   }
-   if( !strcmp(classkeyword, "OjaKernelSpikeRateProbe") ) {
-      keywordMatched = true;
-      addedProbe = new OjaKernelSpikeRateProbe(name, hc);
-   }
-   if( !strcmp(classkeyword, "PatchProbe") ) {
-      keywordMatched = true;
-      addedProbe = new PatchProbe(name, hc);
-   }
-#endif // OBSOLETE
    status = checknewobject((void *) addedProbe, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    assert(keywordMatched);
    assert( !(status == PV_SUCCESS && !addedProbe) );
@@ -866,14 +792,6 @@ LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name,
    if( !strcmp(classkeyword, "RequireAllZeroActivityProbe") ) {
       addedProbe = new RequireAllZeroActivityProbe(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes
-   if( !strcmp(classkeyword, "PointLCALIFProbe") ) {
-      addedProbe = (LayerProbe *) new PointLIFProbe(name, hc);
-   }
-   if( !strcmp(classkeyword, "SparsityTermProbe") ) {
-      addedProbe = (LayerProbe *) new SparsityTermProbe(name, hc);
-   }
-#endif // OBSOLETE
    status = checknewobject((void *) addedProbe, classkeyword, name, hc); // checknewobject tests addedObject against null, and either prints error message to stderr or success message to stdout.
    assert( !(status == PV_SUCCESS && !addedProbe) );
    if( status != PV_SUCCESS ) {
