@@ -79,26 +79,39 @@ Note that you may have to run ssh-add again if you get a public key error. To so
 An AWS Instance allows the user to create a virtual environment to do runs. We do spot instances to save money, and already have the PetaVision capabilities to restart a run if it does die. For more information on spot instances, go to http://aws.amazon.com/ec2/purchasing-options/spot-instances/.
 
 ## Creating a Spot Instance
+If you intend to create a MPI Cluster of Instances jump to the bottom section
+
 - Go to the EC2 management page. Click Instances under Instances in the left tab.
-- Click Launch Instance.  Click on Community AMIs in the left tab.
-- Using the search bar, find the AMI marked `PetaVision Public AMI`. Click Select.
-- Pick a GPU instance (g2.2xlarge). Click next.
-- (Note that there are additional steps involved if you are launching an mpi cluster of instances on this screen under the MPI Clusters section)
-- Check Request Spot Instances under Purchasing option
-- Type in an appropriate maximum price (approximately $0.15 - $0.20 above the current price is usually safe to insulate you from changes in price).
-- Under subnet, pick one of the 3 choices based on the current price (Table when selecting a spot instance) and price history (Spot Requests under Instances, Price History up top. Select instance type as g2.2xlarge).
-- Note the subnet.
-- Click next.
-- No additional storage is required. Make sure Delete on Termination is checked. Click next.
-- No tags are needed. Click next.
-- (Note that there are additional steps involved if you are launching an mpi cluster of instances on this screen under the MPI Clusters section)
-- Check Select an existing security group. Select the default security group. Click Review and Launch.
-- After reviewing, click launch.
-- Select Choose an existing key pair, and select your key pair that you created earlier.
-- Check the acknowledgement, and click Request Spot Instance.
+- Step 1: Choose an Amazon Machine Image (AMI)
+    - Click Launch Instance.  Click on Community AMIs in the left tab.
+    - Using the search bar, find the AMI labeled `PetaVision Public AMI`. Click Select.
+- Step 2: Choose an Instance Type
+    -  Pick a GPU instance (g2.2xlarge). Click next.
+- Step 3: Configure Instance Details
+    - If you are making only one instance, keep the number of instances at 1.  (Note that there are additional steps involved if you are launching an mpi cluster of instances on this screen under the MPI Clusters section)
+    - Check Request Spot Instances under Purchasing option
+    - Pricing for an hour of an AWS instance comes from the dynamic market price determined by how many available spot instances there are and the lowest bid that still gets an instance. For more information about spot instances, you can read more here:[EC2 Spot Instance Pricing Information](http://aws.amazon.com/ec2/purchasing-options/spot-instances/)
+    -  You will see three different regions (a, b, c). We recommend you pick the least expensive region in Subnet. Next, enter your Maximum Price you are willing to pay to keep your instance. We recommend approximately $0.15 - $0.20 above the current price to insulate you from typical fluctuations in price. Remember that even if your bid is higher than the current price you will only pay the current price not your maximum price. 
+    - NOTE: If you want to see how the price typically fluctuates, you'll need to leave your current configuration or open a new tab, navigate back to EC2 > Instances > Spot Requests > Pricing History. Select your instance type (eg. g2.2xlarge) and review the history.
+    - Note the subnet since any EBS volume you attach has to be in the same subnet region
+    - All of the remaining default values can be kept the same
+    - Click next.
+- Step 4: Add Storage
+    -  No additional storage is required. Make sure Delete on Termination is checked. Click next.
+- Step 5: Tag Instance
+    - Give your instance a name in the Value text box next to the Key name.
+    - Click next.
+    - (Note that there are additional steps involved if you are launching an mpi cluster of instances on this screen under the MPI Clusters section)
+- Step 6: Configure Security Group
+    - Check *Select an existing security group*.
+    - Select the default security group. Click Review and Launch.
+- Step 7: Review Spot Instance Request
+    - After reviewing, click launch.
+    - Select Choose an existing key pair, and select your key pair that you created earlier.
+    - Check the acknowledgement, and click Request Spot Instance.
 
 Spot instances will take a few minutes to fulfill. Looking under Instances in the left tab, you can see the status of your request.
-Once your instance is started, name the instance something relevant.
+If you did not name your instance on Step 5, name the instance something relevant once the instance is started.
 
 The PetaVision Public AMI already includes all the code and tools you will need to start a PetaVision run.
 
@@ -114,7 +127,7 @@ To start working with your instance, you need to know the IP address of your ins
 	
 	ssh ec2-user@public_ip_address
 
-
++ NOTE: ec2-user is NOT a placeholder for you user name. 
 
 ## Copy data to your instance
 To start running experiments, you'll probably want some data to work with.
@@ -155,6 +168,11 @@ A new EBS volume is completely blank. That means we need to format the volume to
 ## Setting up PetaVision
 Because the instance was booted from a PetaVision AMI, all of PetaVision should already exist in the home directory. There are several things needed to be done for PetaVision setup. 
 
+If you want to download a new copy of PetaVision because you are a developer:
+        svn co https://sourceForgeUserName@svn.code.sf.net/p/petavision/code/trunk PetaVision
+        svn co https://sourceForgeUserNamesvn.code.sf.net/p/petavision/code/PVSystemTests PVSystemTests    (this is a standard sandbox useful for checking PetaVision)
+
+
 ### Accessing your mounted volume in a running instance
 - Connect to your running instance
 - Run the file `~/startup.sh`
@@ -165,15 +183,13 @@ Because the instance was booted from a PetaVision AMI, all of PetaVision should 
 - cd to mountData.
 - Check out any sandboxes that you are planning on using. Ex:
 
-	svn co http://svn.code.sf.net/p/petavision/code/sandbox/HyPerHLCA HyPerHCLA            (this is read only)
-	svn co https://sourceForgeUserName@svn.code.sf.net/p/petavision/code/trunk PetaVision
-	svn co http://svn.code.sf.net/p/petavision/code/sandbox/PVSystemTests PVSystemTests    (this is a standard sandbox useful for checking PetaVision)
+        svn co http://svn.code.sf.net/p/petavision/code/sandbox/HyPerHLCA HyPerHLCA            (this is read only)
 
 - cd to ~/workspace.
 - Edit CMakeLists.txt using your favorite command-line text editor. (eg. vim or emacs)
 - At the end of the file, add the absolute path to your sandbox to the cmakelists. Ex:
 	
-	add_subdirectory(/home/ec2-user/mountData/HyPerHLCA /home/ec2-user/mountData/HyPerHLCA)
+        add_subdirectory(/home/ec2-user/mountData/HyPerHLCA /home/ec2-user/mountData/HyPerHLCA)
 
 Note that the same directory is put twice into the command add_subdirectory.
 
@@ -194,11 +210,15 @@ Press c to configure. Press e to exit the print statements.
 Repeat until the g option appears and press g. 
 cd to your sandbox and run `make -j 8`
 
-# S3
-S3 is long term storage for amazon's cloud. S3 objects (files, images) can only be accessed through http, but is much cheaper than ebs volumes.
+
+# Optional Configuration Details 
+You've reached the end of the main installation instructions. If you want to store you data on an S3 server or set up MPI-linked instances, follow the instructions below. 
+
+## S3
+S3 is long term storage for amazon's cloud. S3 objects (files, images) can only be accessed through http, but is much cheaper than ebs volumes. For the most part, you can skip this step to get started, but you can save a lot of money if you keep your datasets and results on S3
 
 ### Create your access key ############
-- Go to the IAM management page. On the left, click users.
+- Go to the Identity & Access Management page from the main AWS dashboard. On the left, click users.
 - Select your account and click user actions.
 - Select Manage Access Keys.
 - Click create access key. Click Download Credentials and open the file. You will need the access key and secret access key.
@@ -247,14 +267,14 @@ As an example:
 	s3://myBin/myDatabaseFolder/img02.png
 
 
-## PetaVision Parameter Changes
+### PetaVision Parameter Changes
 Here are the changes you need to make to your parameter file.
 - In your movie layers, make sure your list of filenames is a list of s3 urls.
 - Change your output directory to somewhere in mountData.
 - Future work will be done to get checkpoints on s3.
 
 
-# MPI Clusters
+## MPI Clusters
 This section explains how to set up a cluster of instances to do a PetaVision run across multiple instances. Most of the instructions are the same, with several difference when launching instances:
 
 ### Configure Instance Details screen #########
