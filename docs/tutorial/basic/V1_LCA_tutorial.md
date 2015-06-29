@@ -67,6 +67,7 @@ Navigate to where you unzipped the cifar-10-matlab.tar.gz file and extract the i
     >
     > quit
 
+
 You will now see six new folders containing the different extracted CIFAR datasets.
 	
 	CIFAR_data_batch_1
@@ -96,10 +97,12 @@ The following picture is a simplified graphical representation of the params fil
 
 ![V1-LCA](https://sourceforge.net/p/petavision/code/HEAD/tree/trunk/docs/tutorial/basic/V1_LCA_simple.png?format=raw)
 
+<!--
 If you are using the PetaVision Public AMI, you can make these drawings of any params file just by typing:
 
     $ draw [name of params file]
-    
+-->
+
 ## 2.1. Find your params file: V1_LCA.params    
     
 Go to where you downloaded PetaVision and navigate to: /PetaVision/docs/tutorial/basic/
@@ -180,7 +183,7 @@ CloneKernelConn   | "V1ToRecon"    | clone V1ToError and convolve with V1 to mak
 
 For more details on the HyPerConn parameters please read the documentation: [HyPerConn Parameters](http://petavision.sourceforge.net/doxygen/html/classPV_1_1HyPerConn.html#member-group)
 
-## 2.3. Customize the params file for a run on your system
+## 2.3. Customize the params file for a run on your system | Find the !
 
 The params file is tagged to let you know where you have to edit parameters before you run. The parameter will have a ! symbol at the beginning of the line if you need to edit it. If a parameter is tagged, there will be a small commented instruction following the tag. Before you move on to running the experiment, make sure you delete every !. When done, save the file and you will be ready to start your run.  The sections below identify  objects to make sure to review, however there are some extra ! comments you will want to look for (eg. writeStep is commented in all the layers since you may want to adjust depending on how frequently you plan to 
 
