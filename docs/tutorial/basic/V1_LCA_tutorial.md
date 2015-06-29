@@ -48,34 +48,21 @@ For more information about the CIFAR dataset: http://www.cs.toronto.edu/~kriz/ci
 
 Either visit the [CIFAR website](http://www.cs.toronto.edu/~kriz/cifar.html) or use the command line to get and unzip the database:
  
-    $ cd ~
+    $ cd ~/mountData
     $ mkdir dataset
     $ cd dataset
     $ wget "http://www.cs.toronto.edu/~kriz/cifar-10-matlab.tar.gz"
     $ tar -zxvf cifar-10-matlab.tar.gz
 
-## 1.2. Extract CIFAR dataset 
-
-You can write your own script to extract and organize the CIFAR images, or you can use the one we're already prepared called 'extractImagesOctave.m'.  The script is located in the PetaVision trunk: PetaVision/mlab/HyPerLCA/extractImagesOctave.m. To use the script, you'll first need to modify extractImagesOctave.m by pointing to the correct local directories. Open the octave script in your favorite text editor and following the instructions.
-
-    $ cd ~/workspace/PetaVision/mlab/datasets
-    $ vim extractCIFAR.m
-
-Make sure you saved your changes to the script before continuing to the next step. 
-
-## 1.3.  Extract images using octave script
-    
+## 1.2.  Extract images using octave script
+  
 Navigate to where you unzipped the cifar-10-matlab.tar.gz file and extract the images in octave:
 
     $ cd ~/dataset/cifar-10-batches-mat/
     $ octave
 
     > addpath('path/to/PetaVision/mlab/datasets')
-    > extractCIFAR('data_batch_1.mat',1)
-    > extractCIFAR('data_batch_2.mat',2)
-    > extractCIFAR('data_batch_3.mat',3)
-    > extractCIFAR('data_batch_4.mat',4)
-    > extractCIFAR('data_batch_5.mat',5)
+    > parfor i=1:5, extractCIFAR(['data_batch_', num2str(i), '.mat'], i), end
     > extractCIFAR('test_batch.mat',0)
     >
     > quit
@@ -89,16 +76,12 @@ You will now see six new folders containing the different extracted CIFAR datase
 
 Our next step is to combine these datasets to allow us to train on all five training sets continuously. 
 
-## 1.4. Combine the data_batches to make a master file list
+## 1.3. Combine the data_batches to make a master file list
     
 Each run of extractImagesOctave produced a unique text file listing all the images in random order called 'data_batch_#_randorder.txt' in the directory where  If you wish to expand your training dataset to include all of the training images, you can concatenate them by copying them to a common directory with different names (to avoid clobbering the files). Say you made the output directory for you CIFAR images ~/mountData/dataset/CIFAR:
 
     $ cd ~/mountData/dataset/CIFAR/  # Match directory where you extracted your CIFAR images 
-    $ cp CIFAR_data_batch_1/*.txt .
-    $ cp CIFAR_data_batch_2/*.txt .
-    $ cp CIFAR_data_batch_3/*.txt .
-    $ cp CIFAR_data_batch_4/*.txt .
-    $ cp CIFAR_data_batch_5/*.txt .
+    $ cp CIFAR_data_batch_*/*.txt .
     $ cat *.txt > mixed_cifar.txt
     
 Congratulations!  You now have a massive training dataset along with a test set that you will use in the next tutorial in creating a classifier.  For now we are only concerned about using the dataset for unsupervised learning.
