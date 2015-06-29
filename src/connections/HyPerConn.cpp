@@ -33,16 +33,6 @@
 #include "../weightinit/InitMaxPoolingWeights.hpp"
 #include "../weightinit/InitSpreadOverArborsWeights.hpp"
 #endif // OBSOLETE // Marked obsolete Feb 9, 2015.  HyPerConn should not need to know about subclasses of InitWeights
-#ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
-#include "../weightinit/Init3DGaussWeights.hpp"
-#include "../weightinit/InitByArborWeights.hpp"
-#include "../weightinit/InitMTWeights.hpp"
-#include "../weightinit/InitPoolWeights.hpp"
-#include "../weightinit/InitRuleWeights.hpp"
-#include "../weightinit/InitSubUnitWeights.hpp"
-#include "../weightinit/InitWindowed3DGaussWeights.hpp"
-#include "../normalizers/NormalizeScale.hpp"
-#endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init and normalizer methods
 #include "../normalizers/NormalizeBase.hpp"
 #ifdef OBSOLETE // Marked obsolete Feb 17, 2015.  HyPerConn should not need to know about subclasses of NormalizeBase
 #include "../normalizers/NormalizeSum.hpp"
@@ -631,33 +621,6 @@ InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr)
    else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
       weightInitializer = new InitWeights(this);
    }
-
-#ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss3DWeight"))) {
-      weightInitializer = new Init3DGaussWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "ArborWeight"))) {
-      weightInitializer = new InitByArborWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "DistributedWeight"))) {
-      weightInitializer = new InitDistributedWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "MTWeight"))) {
-      weightInitializer = new InitMTWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "PoolWeight"))) {
-      weightInitializer = new InitPoolWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "RuleWeight"))) {
-      weightInitializer = new InitRuleWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SubUnitWeight"))) {
-      weightInitializer = new InitSubUnitWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Windowed3DGaussWeights"))) {
-      weightInitializer = new InitWindowed3DGaussWeights(this);
-   }
-#endif // OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
    else {
       weightInitializer = NULL;
    }
