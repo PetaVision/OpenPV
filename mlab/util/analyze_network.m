@@ -353,40 +353,66 @@ for i = 1:size(weightspvps,2)
    weightsnumframes = weightsfiledata(1).bytes/weightsframesize;
    weightsdata = readpvpfile(weightspvps{i},100,weightsnumframes,weightsnumframes);
    numcolors = size(weightsdata{1}.values{1})(3);
-  % if !((numcolors == 1) || (numcolors == 3))
-  %    display(['Not writing ' weightspvps{i}(endPrefix+1:startSuffix-1) ' weights; numColors currently needs to be 1 or 3 for visualization.']);
-  %    continue;
-  % end
+   if !((numcolors == 1) || (numcolors == 3))
+      display(['Not writing ' weightspvps{i}(endPrefix+1:startSuffix-1) ' weights; nfp currently needs to be 1 or 3 for visualization.']);
+      continue;
+   end
    t = weightsdata{size(weightsdata,1)}.time;
    weightsnumpatches = size(weightsdata{size(weightsdata,1)}.values{1})(4)
-   subplot_x = ceil(sqrt(weightsnumpatches));
-   subplot_y = ceil(weightsnumpatches/subplot_x);
-   h_weightsbyindex = figure;
+   wmax=max(weightsdata{size(weightsdata,1)}.values{1}(:));
+   wmin=min(weightsdata{size(weightsdata,1)}.values{1}(:));
    clear weightspatch;
    for j = 1:weightsnumpatches  % Normalize and plot weights by weight index
       weightspatch{j} = weightsdata{size(weightsdata,1)}.values{1}(:,:,:,j);
-      weightspatch{j} = weightspatch{j}-min(weightspatch{j}(:));
-      weightspatch{j} = weightspatch{j}*255/max(weightspatch{j}(:));
+      weightspatch{j} = weightspatch{j}-wmin;
+      weightspatch{j} = weightspatch{j}*255/(wmax-wmin);
       weightspatch{j} = uint8(permute(weightspatch{j},[2 1 3]));
-      subplot(subplot_y,subplot_x,j);
-      imshow(weightspatch{j});
    end
+   numpatches_x = ceil(sqrt(weightsnumpatches));
+   numpatches_y = ceil(weightsnumpatches/numpatches_x);
+   nxp = size(weightsdata{size(weightsdata,1)}.values{1})(1);
+   nyp = size(weightsdata{size(weightsdata,1)}.values{1})(2);
+   bordersize = 2;
+   dicsize_x = numpatches_x * nxp + bordersize * (numpatches_x + 1);
+   dicsize_y = numpatches_y * nyp + bordersize * (numpatches_y + 1);
+   dictionary = uint8(zeros(dicsize_y,dicsize_x,numcolors));
+   count = 1;
+   for j = 1:numpatches_y
+      for k = 1:numpatches_x
+         if (count > weightsnumpatches)
+            break;
+         end
+         dictionary((j-1)*nyp + (j*bordersize) + 1 : j*(nyp+bordersize), ...
+         (k-1)*nxp + (k*bordersize) + 1 : k*(nxp+bordersize), :) = weightspatch{count};
+         count++;
+      end
+   end
+
+
    outFile = ['Analysis/' weightspvps{i}(endPrefix+1:startSuffix-1) '_WeightsByFeatureIndex_' sprintf('%.08d',t) '.png']
-   print(h_weightsbyindex,outFile);
+   imwrite(dictionary,outFile);
    if ((sparse_flag) && !(isempty(sparsemeanfeaturevals{i})))
       [dontcare sortedindex] = sort(sparsemeanfeaturevals{i});
       sortedindex = fliplr(sortedindex);
-      h_weightsbyactivity = figure;
-      for j = 1:weightsnumpatches  % Plot weights by activity (Top left = most active)
-         subplot(subplot_y,subplot_x,j);
-         imshow(weightspatch{sortedindex(j)});
+      dictionary = uint8(zeros(dicsize_y,dicsize_x,numcolors));
+      count = 1;
+      for j = 1:numpatches_y  % Plot weights by activity (Top left = most active)
+         for k = 1:numpatches_x
+            if (count > weightsnumpatches)
+               break;
+            end
+            dictionary((j-1)*nyp + (j*bordersize) + 1 : j*(nyp+bordersize), ...
+            (k-1)*nxp + (k*bordersize) + 1 : k*(nxp+bordersize), :) = weightspatch{sortedindex(count)};
+            count++;
+         end
       end
+      
       if (t == t_sparsemeanfeaturevals{i})
          outFile = ['Analysis/' weightspvps{i}(endPrefix+1:startSuffix-1) '_WeightsByActivity_' sprintf('%.08d',t) '.png']
-         print(h_weightsbyactivity,outFile);
+         imwrite(dictionary,outFile);
       else  % If last sparse pvp write time and last weights pvp write time are not the same, specifies both
          outFile = ['Analysis/' weightspvps{i}(endPrefix+1:startSuffix-1) '_Weights_' sprintf('%.08d',t) 'ByActivity@_' sprintf('%.08d',t_sparsemeanfeaturevals{i}) '.png']
-         print(h_weightsbyactivity,outFile);
+         imwrite(dictionary,outFile);
       end
    end
 end
