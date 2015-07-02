@@ -120,29 +120,29 @@ class Param_Parser(Param_Reader):
                 if match:
                     official_conns.append(match.group(1))
         if not os.path.isdir(layer_dir):
-            print 'Warning: Directory "' + layer_dir + '" not found, attempting to infer Layers.'
+            print('Warning: Directory "' + layer_dir + '" not found, attempting to infer Layers.')
         if not os.path.isdir(conn_dir):
-            print 'Warning: Directory "' + conn_dir + '" not found, attempting to infer Conns'
+            print('Warning: Directory "' + conn_dir + '" not found, attempting to infer Conns')
         return official_layers, official_conns
 
     def calc_scale(self):
         cnx = float(self.column['nx'])
         cny = float(self.column['ny'])
-        for i in self.layer_dict.itervalues():
+        for i in self.layer_dict.values():
             if 'nxScale' in i.params and 'nyScale' in i.params:
                 i.params['nx'] = float(i['nxScale'])*cnx
                 i.params['ny'] = float(i['nyScale'])*cny
 
     def relate_objects(self):
-        for i in self.conn_dict.itervalues():
+        for i in self.conn_dict.values():
             if 'preLayerName' in i.params:
                 if not i['preLayerName'] in self.layer_dict:
-                    print 'Warning: ' + i['preLayerName'] + ' in ' + i.name + ' not found in Layers'
+                    print('Warning: ' + i['preLayerName'] + ' in ' + i.name + ' not found in Layers')
                     continue
                 i.pre = i['preLayerName']
             if 'postLayerName' in i.params:
                 if not i['postLayerName'] in self.layer_dict:
-                    print 'Warning: ' + i['postLayerName'] + ' in ' + i.name + ' not found in Layers'
+                    print('Warning: ' + i['postLayerName'] + ' in ' + i.name + ' not found in Layers')
                     continue
                 i.post = i['postLayerName']
 
@@ -166,7 +166,7 @@ class Param_Parser(Param_Reader):
                 conn.label = self.original_conn_label(conn)
 
     def make_original_layer_conns(self):
-        for i in self.layer_dict.itervalues():
+        for i in self.layer_dict.values():
             if 'originalLayerName' in i.params:
                 c = Conn(i.name,'LayerCopy')
                 c.post = i.name
@@ -209,7 +209,7 @@ def mermaid_writeout(parser_output):
         mincolor = [0x99,0x99,0xdd]
         maxcolor = [0xee,0xee,0xff]
         scales = {}
-        for i in layer_dict.itervalues():
+        for i in layer_dict.values():
             if 'nx' in i.params and 'ny' in i.params:
                 s = i['nx']*i['ny']
                 if s in scales:
@@ -223,7 +223,7 @@ def mermaid_writeout(parser_output):
             myc_z = zip(maxcolor,mincolor,myc)
             myc = [myc + (max-min)/len(ordered_scales) for max,min,myc in myc_z]
             for j in scales[i]:
-                strcolor = [str(hex(c))[2:4] for c in myc]
+                strcolor = [str(hex(int(c)))[2:4] for c in myc]
                 strcolor = ''.join(strcolor)
                 layer_dict[j].color = strcolor
         
@@ -236,21 +236,21 @@ def mermaid_writeout(parser_output):
         else: 
             f.write(i + '[' + i + '];\n')
 
-    for i in conn_dict.itervalues():
+    for i in conn_dict.values():
         if i.pre and i.post:
             f.write(i.pre + "-->")
             if i.label:
                 f.write("|" + i.label + "|")
             f.write(i.post + ";\n")
 
-    for i in layer_dict.itervalues():
+    for i in layer_dict.values():
         n = i.name
         if not i.color:
             i.color = 'aaeeee'
         f.write('classDef color' + n +' fill:' + i.color + ';\n')
         f.write('class ' + n + ' color' + n + ";\n")
     link_name_iter = 0
-    for i in conn_dict.itervalues():
+    for i in conn_dict.values():
         color = ',stroke:#000000'
         size = ',stroke-width:2px'
         dasharray = ''
