@@ -203,7 +203,7 @@ for i = 1:size(errpvps,2)
    syncedtimes = 0;
    if (input_flag)
       if !(isempty(t_input{i}))
-         for j = 1:min([size(errdata,1) size(t_input{i},2])  % If PetaVision implementation is still running, errdata might contain more frames, even if synced with input, since errpvp is read after inputpvp. 
+         for j = 1:min([size(errdata,1) size(t_input{i},2)])  % If PetaVision implementation is still running, errdata might contain more frames, even if synced with input, since errpvp is read after inputpvp. 
             if (errdata{j}.time == t_input{i}(j))
                syncedtimes = 1;
             else
@@ -214,7 +214,7 @@ for i = 1:size(errpvps,2)
       end
    end
    if (syncedtimes)
-      for j = 1:min([size(errdata,1) size(t_input{i},2])
+      for j = 1:min([size(errdata,1) size(t_input{i},2)])
          t_err{i}(j) = errdata{j}.time;
          err{i}(j) = std(errdata{j}.values(:))/inputstd{i}(j);
       end
