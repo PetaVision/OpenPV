@@ -303,7 +303,7 @@ if(err_flag && sparse_flag)
    for i = 1:size(errpvps,2)
       syncedtimes1{i} = 0;
       if !((isempty(t_sparse{i}))||(isempty(t_err{i})))
-         for j = 1:size(t_err{i},2)  % If PetaVision implementation is still running, sparse data might contain more frames, even if synced with input, since sparse pvps are read after error pvps.
+         for j = 1:  min([size(t_sparse{i},2) size(t_err{i},2)])  % If PetaVision implementation is still running, sparse data might contain more frames, even if synced with input, since sparse pvps are read after error pvps.
             if (t_sparse{i}(j) == t_err{i}(j))
                syncedtimes1{i} = 1;
             else
