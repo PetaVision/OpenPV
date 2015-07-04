@@ -4,7 +4,7 @@ function decompose_superimage(filename, keyfile)
   depth = length(key.shuffle);
 
   for i = 1:length(superimage)
-    all_flat_acts = zeros(1,5194);
+    all_flat_acts = zeros(1,numel(superimage{1}.values)/depth);
     # Assign times                                                                                       
     time = superimage{i}.time;
     sparse1{i}.time = time;
@@ -26,7 +26,8 @@ function decompose_superimage(filename, keyfile)
     disp(["Completed cell " int2str(i) " out of " int2str(length(superimage))]);
     fflush(stdout);
   endfor
-  
+  sparse1 = zero_deflator(sparse1);
+  sparse1 = zero_deflator(sparse2);
   writepvpsparsevaluesfile("sparse1.pvp", sparse1, key.nx1, key.ny1, key.nf1)
   writepvpsparsevaluesfile("sparse2.pvp", sparse2, key.nx2, key.ny2, key.nf2)
 endfunction
