@@ -6,6 +6,36 @@ MaskTestLayer::MaskTestLayer(const char * name, HyPerCol * hc){
    ANNLayer::initialize(name, hc);
 }
 
+MaskTestLayer::~MaskTestLayer(){
+   if(maskMethod){
+      free(maskMethod);
+   }
+}
+int MaskTestLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_maskMethod(ioFlag);
+   return status;
+}
+
+void MaskTestLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "maskMethod", &maskMethod);
+   //Check valid methods
+   if(strcmp(maskMethod, "layer") == 0){
+   }
+   else if(strcmp(maskMethod, "maskFeatures") == 0){
+   }
+   else if(strcmp(maskMethod, "noMaskFeatures") == 0){
+   }
+   else{
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: \"%s\" is not a valid maskMethod. Options are \"layer\", \"maskFeatures\", or \"noMaskFeatures\".\n",
+                 parent->parameters()->groupKeywordFromName(name), name, maskMethod);
+      }
+      exit(-1);
+   }
+}
+
+
 int MaskTestLayer::updateState(double timef, double dt){
    //Grab layer size
    const PVLayerLoc* loc = getLayerLoc();
@@ -24,21 +54,54 @@ int MaskTestLayer::updateState(double timef, double dt){
    //We only care about restricted space
    
    for (int k = 0; k < getNumNeurons(); k++){
-   //std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
-      if(GSynInhB[k]){
-         if(GSynExt[k] != GSynInh[k]){
-             std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
-             isCorrect = false;
+      if(strcmp(maskMethod, "layer") == 0){
+      //std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+         if(GSynInhB[k]){
+            if(GSynExt[k] != GSynInh[k]){
+                std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+                isCorrect = false;
+            }
+         }
+         else{
+            if(GSynExt[k] != 0){
+                std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+                isCorrect = false;
+            }
          }
       }
-      else{
-         if(GSynExt[k] != 0){
-             std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
-             isCorrect = false;
+      else if(strcmp(maskMethod, "maskFeatures") == 0){
+         int featureIdx = featureIndex(k, nx, ny, nf);
+         //Param files specifies idxs 0 and 2 out of 3 total features
+         if(featureIdx == 0 || featureIdx == 2){
+            if(GSynExt[k] != 0){
+                std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+                isCorrect = false;
+            }
+         }
+         else{
+            if(GSynExt[k] != GSynInh[k]){
+                std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+                isCorrect = false;
+            }
+         }
+      }
+      else if(strcmp(maskMethod, "noMaskFeatures") == 0){
+         int featureIdx = featureIndex(k, nx, ny, nf);
+         //Param files specifies idxs 0 and 2 out of 3 total features
+         if(featureIdx == 0 || featureIdx == 2){
+            if(GSynExt[k] != GSynInh[k]){
+                std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+                isCorrect = false;
+            }
+         }
+         else{
+            if(GSynExt[k] != 0){
+                std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+                isCorrect = false;
+            }
          }
       }
    }
-   
 
    if(!isCorrect){
       exit(-1);
