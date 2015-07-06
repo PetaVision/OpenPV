@@ -74,7 +74,7 @@ class Param_Reader(object):
             parent = match.group(1)
             if parent in self.layer_dict:
                 self.current_object.params = self.layer_dict[parent].params.copy()
-            elif name in self.conn_dict:
+            elif parent in self.conn_dict:
                 self.current_object.params = self.conn_dict[parent].params.copy()
 
     def read(self):
