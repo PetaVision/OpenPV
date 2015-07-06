@@ -767,6 +767,7 @@ void HyPerCol::ioParamArray(enum ParamsIOFlag ioFlag, const char * group_name, c
     }
 }
 template void HyPerCol::ioParamArray<float>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, float ** value, int * arraysize);
+template void HyPerCol::ioParamArray<int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, int ** value, int * arraysize);
 
 void HyPerCol::ioParam_startTime(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "startTime", &startTime, startTime);

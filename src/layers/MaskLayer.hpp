@@ -21,11 +21,16 @@ public:
 protected:
    virtual int updateState(double time, double dt);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_maskMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_maskLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_featureIdxs(enum ParamsIOFlag ioFlag);
+   char* maskMethod;
+   char* maskLayerName;
+   int* features;
+   int numSpecifiedFeatures;
+   HyPerLayer* maskLayer;
 private:
    int initialize_base();
-   char* maskLayerName;
-   HyPerLayer* maskLayer;
 
 };
 

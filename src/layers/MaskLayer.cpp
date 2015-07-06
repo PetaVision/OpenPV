@@ -24,68 +24,128 @@ MaskLayer::~MaskLayer(){
    if(maskLayerName){
       free(maskLayerName);
    }
+   if(features){
+      free(features);
+   }
+   if(maskMethod){
+      free(maskMethod);
+   }
 }
 
 int MaskLayer::initialize_base(){
    maskLayerName = NULL;
    maskLayer = NULL;
+   maskMethod = NULL;
+   features = NULL;
+
    return PV_SUCCESS;
 }
 
 int MaskLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
+   ioParam_maskMethod(ioFlag);
    ioParam_maskLayerName(ioFlag);
+   ioParam_featureIdxs(ioFlag);
    return status;
 }
 
+void MaskLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "maskMethod", &maskMethod);
+   //Check valid methods
+   if(strcmp(maskMethod, "layer") == 0){
+   }
+   else if(strcmp(maskMethod, "maskFeatures") == 0){
+   }
+   else if(strcmp(maskMethod, "noMaskFeatures") == 0){
+   }
+   else{
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: \"%s\" is not a valid maskMethod. Options are \"layer\", \"maskFeatures\", or \"noMaskFeatures\".\n",
+                 parent->parameters()->groupKeywordFromName(name), name, maskMethod);
+      }
+      exit(-1);
+   }
+}
+
 void MaskLayer::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamStringRequired(ioFlag, name, "maskLayerName", &maskLayerName);
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "maskMethod"));
+   if(strcmp(maskMethod, "layer") == 0){
+      parent->ioParamStringRequired(ioFlag, name, "maskLayerName", &maskLayerName);
+   }
+}
+
+void MaskLayer::ioParam_featureIdxs(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "maskMethod"));
+   if(strcmp(maskMethod, "maskFeatures") == 0 || strcmp(maskMethod, "noMaskFeatures") == 0){
+      parent->ioParamArray(ioFlag, name, "featureIdxs", &features, &numSpecifiedFeatures);
+      if(numSpecifiedFeatures == 0){
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: MaskLayer must specify at least one feature for maskMethod \"%s\".\n",
+                    parent->parameters()->groupKeywordFromName(name), name, maskMethod);
+         }
+         exit(-1);
+      }
+   }
 }
 
 int MaskLayer::communicateInitInfo() {
    int status = ANNLayer::communicateInitInfo();
-   maskLayer = parent->getLayerFromName(maskLayerName);
-   if (maskLayer==NULL) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, maskLayerName);
-      }
+   if(strcmp(maskMethod, "layer") == 0){
+      maskLayer = parent->getLayerFromName(maskLayerName);
+      if (maskLayer==NULL) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
+                    parent->parameters()->groupKeywordFromName(name), name, maskLayerName);
+         }
 #ifdef PV_USE_MPI
-      MPI_Barrier(parent->icCommunicator()->communicator());
+         MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
-      exit(EXIT_FAILURE);
-   }
-
-   const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
-   const PVLayerLoc * loc = getLayerLoc();
-   assert(maskLoc != NULL && loc != NULL);
-   if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, maskLayerName);
-         fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
-                 maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
+         exit(EXIT_FAILURE);
       }
-#ifdef PV_USE_MPI
-      MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
-      exit(EXIT_FAILURE);
-   }
 
-   if(maskLoc->nf != 1 && maskLoc->nf != loc->nf){
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, maskLayerName);
-         fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
-                 maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
+      const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
+      const PVLayerLoc * loc = getLayerLoc();
+      assert(maskLoc != NULL && loc != NULL);
+      if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
+                    parent->parameters()->groupKeywordFromName(name), name, maskLayerName);
+            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+                    maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
+         }
+#ifdef PV_USE_MPI
+         MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
+         exit(EXIT_FAILURE);
       }
-#ifdef PV_USE_MPI
-      MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
-      exit(EXIT_FAILURE);
-   }
 
-   assert(maskLoc->nx==loc->nx && maskLoc->ny==loc->ny);
+      if(maskLoc->nf != 1 && maskLoc->nf != loc->nf){
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
+                    parent->parameters()->groupKeywordFromName(name), name, maskLayerName);
+            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+                    maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
+         }
+#ifdef PV_USE_MPI
+         MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
+         exit(EXIT_FAILURE);
+      }
+
+      assert(maskLoc->nx==loc->nx && maskLoc->ny==loc->ny);
+   }
+   else{
+      //Check for in bounds featureIdxs
+      assert(features);
+      const PVLayerLoc * loc = getLayerLoc();
+      for(int f = 0; f < numSpecifiedFeatures; f++){
+         if(features[f] < 0 || features[f] >= loc->nf){
+            std::cout << "Specified feature " << features[f] << "out of bounds\n"; 
+            exit(-1);
+         }
+         
+      }
+   }
 
    return status;
 }
@@ -94,8 +154,6 @@ int MaskLayer::updateState(double time, double dt)
 {
    ANNLayer::updateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
-   const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
-   pvdata_t * maskActivity = maskLayer->getActivity();
    pvdata_t * A = getActivity();
 
    int nx = loc->nx;
@@ -109,17 +167,45 @@ int MaskLayer::updateState(double time, double dt)
    for(int ni = 0; ni < num_neurons; ni++){
       int kThisRes = ni;
       int kThisExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-      int kMaskRes;
-      if(maskLoc->nf == 1){
-         kMaskRes = ni/nf;
+      int maskVal;
+      if(strcmp(maskMethod, "layer") == 0){
+         const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
+         pvdata_t * maskActivity = maskLayer->getActivity();
+         int kMaskRes;
+         if(maskLoc->nf == 1){
+            kMaskRes = ni/nf;
+         }
+         else{
+            kMaskRes = ni;
+         }
+         int kMaskExt = kIndexExtended(ni, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
+         maskVal = maskActivity[kMaskExt];
       }
-      else{
-         kMaskRes = ni;
+      else if(strcmp(maskMethod, "maskFeatures") == 0){
+         //Calculate feature index of ni
+         int featureNum = featureIndex(ni, nx, ny, nf);
+         maskVal = 1; //If nothing specified, copy everything
+         for(int specF = 0; specF < numSpecifiedFeatures; specF++){ 
+            if(featureNum == features[specF]){
+               maskVal = 0;
+               break;
+            }
+         }
       }
-      int kMaskExt = kIndexExtended(ni, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
+      else if(strcmp(maskMethod, "noMaskFeatures") == 0){
+         //Calculate feature index of ni
+         int featureNum = featureIndex(ni, nx, ny, nf);
+         maskVal = 0; //If nothing specified, copy nothing 
+         for(int specF = 0; specF < numSpecifiedFeatures; specF++){ 
+            if(featureNum == features[specF]){
+               maskVal = 1;
+               break;
+            }
+         }
+      }
 
       //Set value to 0, otherwise, updateState from ANNLayer should have taken care of it
-      if(maskActivity[kMaskExt] == 0){
+      if(maskVal == 0){
          A[kThisExt] = 0;
       }
    }
