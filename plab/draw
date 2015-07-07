@@ -1,4 +1,16 @@
 #!/bin/bash
+while getopts ":p" opt; do
+    case $opt in
+        p)
+            PHASE=true
+            ;;
+        u)
+            echo "test flag triggered"
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+
 if [ -z "$1" ]
 then
     echo "Please enter a params file to draw:"
@@ -24,7 +36,12 @@ cd ${0%/*}
 plabdir=$PWD
 cd $olddir
 parentdir="$(dirname "$plabdir")"
-python $plabdir/param_draw.py $pfile $parentdir/src/layers $parentdir/src/connections
+if [ "$PHASE" = true ] ; then
+    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile -p
+else
+    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile
+fi
+
 mermaid param_graph
 rm param_graph
 filename=$(basename "$pfile")

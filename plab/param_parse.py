@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import argparse
 import re
 import sys
 import math
@@ -193,7 +194,7 @@ class Param_Parser(Param_Reader):
         self.current_object = None
         self.read()
 
-def mermaid_writeout(parser_output):
+def mermaid_writeout(parser_output, colorby):
     layer_dict = parser_output[0]
     conn_dict = parser_output[1]
     layers_in_order = parser_output[2]
@@ -227,7 +228,35 @@ def mermaid_writeout(parser_output):
                 strcolor = ''.join(strcolor)
                 layer_dict[j].color = strcolor
         
-    calculate_scale_colorvalues()
+    def calculate_phase_colorvalues():
+        mincolor = [0x99,0x99,0xdd]
+        maxcolor = [0xee,0xee,0xff]
+        phases = {}
+        for i in layer_dict.values():
+            if 'phase' in i.params:
+                p = int(i['phase'])
+                if p in phases:
+                    phases[p].append(i.name)
+                else:
+                    phases[p] = []
+                    phases[p].append(i.name)
+        ordered_phases = sorted(phases)
+        myc = mincolor
+        for i in ordered_phases:
+            myc_z = zip(maxcolor,mincolor,myc)
+            myc = [myc + (max-min)/len(ordered_phases) for max,min,myc in myc_z]
+            for j in phases[i]:
+                strcolor = [str(hex(int(c)))[2:4] for c in myc]
+                strcolor = ''.join(strcolor)
+                layer_dict[j].color = strcolor
+
+    if colorby == 'phase':
+        calculate_phase_colorvalues()
+    elif colorby == 'scale':
+        calculate_scale_colorvalues()
+    else:
+        calculate_scale_colorvalues()
+
     f = open('param_graph', 'w')
     f.write('graph BT;\n')
     for i in layers_in_order:
