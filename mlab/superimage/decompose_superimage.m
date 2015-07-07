@@ -26,8 +26,6 @@ function decompose_superimage(filename, keyfile)
     disp(["Completed cell " int2str(i) " out of " int2str(length(superimage))]);
     fflush(stdout);
   endfor
-  sparse1 = zero_deflator(sparse1);
-  sparse2 = zero_deflator(sparse2);
   writepvpsparsevaluesfile("sparse1.pvp", sparse1, key.nx1, key.ny1, key.nf1)
   writepvpsparsevaluesfile("sparse2.pvp", sparse2, key.nx2, key.ny2, key.nf2)
 endfunction

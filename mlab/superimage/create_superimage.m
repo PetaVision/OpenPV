@@ -1,5 +1,5 @@
-function new_new_create_superimage(infile1, infile2)
-  depth = 10;
+function create_superimage(infile1, infile2)
+  depth = 1;
   startime1 = 1;
   startime2 = 1;
   weight1 = 1; 
