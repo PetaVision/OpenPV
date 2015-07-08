@@ -433,6 +433,7 @@ private:
    bool warmStart;             // whether to start from a checkpoint
    bool checkpointReadFlag;    // whether to load from a checkpoint directory
    bool checkpointWriteFlag;   // whether to write from a checkpoint directory
+   int checkpointSignal;      // whether the process should checkpoint in response to an external signal
    char * checkpointReadDir;   // name of the directory to read an initializing checkpoint from
    char * checkpointReadDirBase;   // name of the directory containing che checkpoint read from (used by deprecated params-based method for loading from checkpoint)
    long int cpReadDirIndex;  // checkpoint number within checkpointReadDir to read

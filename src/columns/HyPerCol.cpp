@@ -28,6 +28,7 @@
 #include <fts.h>
 #include <fstream>
 #include <time.h>
+#include <csignal>
 
 namespace PV {
 
@@ -415,6 +416,19 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
    }
 
    ioParams(PARAMS_IO_READ);
+
+   checkpointSignal = 0;
+
+   // Block SIGUSR1.  root process checks for SIGUSR1 during advanceTime() and broadcasts sends to all processes,
+   // which saves the result in the checkpointSignal member variable.
+   // When run() checks whether to call checkpointWrite, it looks at checkpointSignal, and writes a
+   // checkpoint if checkpointWriteFlag is true, regardless of whether the next scheduled checkpoint time has arrived.
+   //
+   // I put this initialization after ioParams so that behavior could be controlled by params files, if desired.
+   sigset_t blockusr1;
+   sigemptyset(&blockusr1);
+   sigaddset(&blockusr1, SIGUSR1);
+   sigprocmask(SIG_BLOCK, &blockusr1, NULL);
 
 #ifdef PV_USE_OPENCL
    ensureDirExists(srcPath);
@@ -1186,11 +1200,11 @@ void HyPerCol::writeParamArray(const char * param_name, const T * array, int arr
          fprintf(printParamsStream->fp, "    %-35s = [", param_name);
          fprintf(luaPrintParamsStream->fp, "    %-35s = {", param_name);
          for (int k=0; k<arraysize-1; k++) {
-            fprintf(printParamsStream->fp, "%f,", array[k]);
-            fprintf(luaPrintParamsStream->fp, "%f,", array[k]);
+            fprintf(printParamsStream->fp, "%f,", (float) array[k]);
+            fprintf(luaPrintParamsStream->fp, "%f,", (float) array[k]);
          }
-         fprintf(printParamsStream->fp, "%f];\n", array[arraysize-1]);
-         fprintf(luaPrintParamsStream->fp, "%f};\n", array[arraysize-1]);
+         fprintf(printParamsStream->fp, "%f];\n", (float) array[arraysize-1]);
+         fprintf(luaPrintParamsStream->fp, "%f};\n", (float) array[arraysize-1]);
       }
    }
 }
@@ -1565,7 +1579,12 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    long int step = 0;
    int status = PV_SUCCESS;
    while (simTime < stopTime - deltaTime/2.0 && status != PV_EXIT_NORMALLY) {
-      if( checkpointWriteFlag && advanceCPWriteTime() ) {
+      // Should we move the if statement below into advanceTime()?
+      // That way, the routine that polls for SIGUSR1 and sets checkpointSignal is the same
+      // as the routine that acts on checkpointSignal and clears it, which seems clearer.  --pete July 7, 2015
+      if( checkpointWriteFlag && (advanceCPWriteTime() || checkpointSignal) ) {
+         // the order should be advanceCPWriteTime() || checkpointSignal so that advanceCPWriteTime() is called even if checkpointSignal is true.
+         // that way advanceCPWriteTime's calculation of the next checkpoint time won't be thrown off.
          char cpDir[PV_PATH_MAX];
          int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, currentStep);
          if(chars_printed >= PV_PATH_MAX) {
@@ -1586,6 +1605,10 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
             if (icComm->commRank()==0) {
                printf("Skipping checkpoint at time %f, since this would clobber the checkpointRead checkpoint.\n", simulationTime());
             }
+         }
+         if (checkpointSignal) {
+            printf("Rank %d: checkpointing in response to SIGUSR1.\n", columnId());
+            checkpointSignal = 0;
          }
       }
       status = advanceTime(simTime);
@@ -1908,6 +1931,28 @@ int HyPerCol::advanceTime(double sim_time)
       connections[c]->outputState(simTime);
    }
 
+
+   if (columnId()==0) {
+      int sigstatus = PV_SUCCESS;
+      sigset_t pollusr1;
+
+      sigstatus = sigpending(&pollusr1); assert(sigstatus==0);
+      checkpointSignal = sigismember(&pollusr1, SIGUSR1); assert(checkpointSignal==0 || checkpointSignal==1);
+      if (checkpointSignal) {
+         sigstatus = sigemptyset(&pollusr1); assert(sigstatus==0);
+         sigstatus = sigaddset(&pollusr1, SIGUSR1); assert(sigstatus==0);
+         int result=0;
+         sigwait(&pollusr1, &result);
+         assert(result==SIGUSR1);
+      }
+   }
+   // Balancing MPI_Recv is after the for-loop over phases.  Is this better than MPI_Bcast?  Should it be MPI_Isend?
+   if (columnId()==0) {
+      for (int k=1; k<icComm->commSize(); k++) {
+         MPI_Send(&checkpointSignal, 1/*count*/, MPI_INT, k/*destination*/, 99/*tag*/, icComm->communicator());
+      }
+   }
+
    // Each layer's phase establishes a priority for updating
    for (int phase=0; phase<numPhases; phase++) {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -2086,6 +2131,11 @@ int HyPerCol::advanceTime(double sim_time)
          exit(EXIT_FAILURE);
       }
 
+   }
+
+   // Balancing MPI_Send is before the for-loop over phases.  Is this better than MPI_Bcast?
+   if (columnId()!=0) {
+      MPI_Recv(&checkpointSignal, 1/*count*/, MPI_INT, 0/*source*/, 99/*tag*/, icCommunicator()->communicator(), MPI_STATUS_IGNORE);
    }
 
    runTimer->stop();
