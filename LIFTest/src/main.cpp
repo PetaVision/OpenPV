@@ -21,18 +21,15 @@ int main(int argc, char * argv[]) {
 }
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
-   HyPerLayer * spikecount = hc->getLayerFromName("LIFGapTest Spike Counter");
+   HyPerLayer * spikecount = hc->getLayerFromName("LIFGapTestSpikeCounter");
    int status = spikecount != NULL ? PV_SUCCESS : PV_FAILURE;
    if (status != PV_SUCCESS) {
       if (hc->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "Error:  No layer named \"LIFGapTest Spike Counter\"");
+         fprintf(stderr, "Error:  No layer named \"LIFGapTestSpikeCounter\"");
       }
       status = PV_FAILURE;
    }
-   if (status == PV_SUCCESS) {
-
-   }
-   return 0;
+   return status;
 }
 
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
