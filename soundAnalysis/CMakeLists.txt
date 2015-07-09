@@ -96,10 +96,10 @@ target_link_libraries(${PV_PROJECT_NAME} pv)
 target_link_libraries(${PV_PROJECT_NAME} pvsound)
 target_link_libraries(${PV_PROJECT_NAME} sndfile)
 
-## target_link_libraries commands no longer needed because the libraries are included in libpv.so
-## Link executable to external libraries
-#target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
-#
+# Link executable to external libraries
+target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
+
+## target_link_libraries command no longer needed because the libraries are included in libpv.so
 #IF(CUDNN)
 #   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
 #ENDIF(CUDNN)
