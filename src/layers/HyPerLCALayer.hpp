@@ -25,7 +25,21 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
    virtual int allocateDataStructures();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
+   /**
+    * List of parameters needed from the HyPerLCALayer class
+    * @name HyPerConn Parameters
+    * @{
+    */
+
+   /**
+    * numChannels: obsolete parameter, as the layer infers the number of channels from connections connecting to it.
+    */
    virtual void ioParam_numChannels(enum ParamsIOFlag ioFlag); // numChannels as a HyPerLayer parameter is obsolete but generates warning.  After a suitable fade time, ioParam_numChannels can be removed
+
+   /**
+    * timeConstantTau: the time constant tau for the LCA dynamics, which models the equation dV/dt = 1/tau*(-V+s*A+GSyn)
+    */
    virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
 #ifdef OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
    virtual void ioParam_numWindowX(enum ParamsIOFlag ioFlag);
@@ -33,7 +47,13 @@ protected:
    virtual void ioParam_windowSymX(enum ParamsIOFlag ioFlag);
    virtual void ioParam_windowSymY(enum ParamsIOFlag ioFlag);
 #endif // OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
+   /**
+    * timeConstantTau: the self-interaction coefficient s for the LCA dynamics, which models the equation dV/dt = 1/tau*(-V+s*A+GSyn)
+    */
    virtual void ioParam_selfInteract(enum ParamsIOFlag ioFlag);
+
+   /** @} */
+
    virtual int doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, int num_channels, pvdata_t * gSynHead);
 
