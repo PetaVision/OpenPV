@@ -66,12 +66,14 @@ int HyPerLCALayer::initialize_base()
    numChannels = 1; // If a connection connects to this layer on inhibitory channel, HyPerLayer::requireChannel will add necessary channel
    timeConstantTau = 1.0;
    //Locality in conn
+#ifdef OBSOLETE // Marked obsolete Jul 9, 2015
    numWindowX = 1;
    numWindowY = 1;
    windowSymX = false;
    windowSymY = false;
-   selfInteract = true;
    sparseProbe = NULL;
+#endif // OBSOLETE // Marked obsolete Jul 9, 2015
+   selfInteract = true;
    return PV_SUCCESS;
 }
 
@@ -88,17 +90,28 @@ int HyPerLCALayer::allocateDataStructures(){
 
 int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
-   ioParam_numChannels(ioFlag);
+   ioParam_numChannels(ioFlag);  // Deprecated Jul 9, 2015.  All ioParam_numChannels does is issue a warning that numChannels is no longer used.  Delete after a suitable fade time.
    ioParam_timeConstantTau(ioFlag);
+#ifdef OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
    ioParam_numWindowX(ioFlag);
    ioParam_numWindowY(ioFlag);
    ioParam_windowSymX(ioFlag);
    ioParam_windowSymY(ioFlag);
+#endif // OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
+
    ioParam_selfInteract(ioFlag);
    return status;
 }
 
+// After a suitable fade time, HyPerLCALayer::ioParam_numChannels() can be removed
 void HyPerLCALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
+   if (parent->parameters()->present(name, "numChannels")) {
+      if ( parent->columnId()==0) {
+         fprintf(stderr, "HyPerLCALayer \"%s\" warning: the parameter numChannels is no longer used; connections that connect to the layer create channels as needed.\n", name);
+      }
+      parent->parameters()->value(name, "numChannels"); // mark the parameter as read
+   }
+#ifdef OBSOLETE // Marked obsolete Jul 9, 2015.  A layer learns how many channels it has during the communication stage.
    parent->ioParamValue(ioFlag, name, "numChannels", &numChannels, numChannels, true/*warnIfAbsent*/);
    if (numChannels != 1 && numChannels != 2){
       if (parent->columnId()==0) {
@@ -110,12 +123,14 @@ void HyPerLCALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
 #endif
       exit(EXIT_FAILURE);
    }
+#endif // OBSOLETE // Marked obsolete Jul 9, 2015.  A layer learns how many channels it has during the communication stage.
 }
 
 void HyPerLCALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true/*warnIfAbsent*/);
 }
 
+#ifdef OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
 void HyPerLCALayer::ioParam_numWindowX(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "numWindowX", &numWindowX, numWindowX);
    if(numWindowX != 1) {
@@ -137,6 +152,7 @@ void HyPerLCALayer::ioParam_windowSymX(enum ParamsIOFlag ioFlag) {
 void HyPerLCALayer::ioParam_windowSymY(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "numWindowY"));
 }
+#endif // OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
 
 void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
@@ -144,6 +160,15 @@ void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
      std::cout << "selfInteract = " << selfInteract << std::endl;
    }   
 }
+
+int HyPerLCALayer::requireChannel(int channelNeeded, int * numChannelsResult) {
+   int status = HyPerLayer::requireChannel(channelNeeded, numChannelsResult);
+   if (channelNeeded>=2 && parent->columnId()==0) {
+      fprintf(stderr, "HyPerLCALayer \"%s\" warning: connection on channel %d, but HyPerLCA only uses channels 0 and 1.\n", name, channelNeeded);
+   }
+   return status;
+}
+
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 int HyPerLCALayer::allocateUpdateKernel(){

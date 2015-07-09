@@ -480,7 +480,7 @@ int updateV_HyPerLCALayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       pvdata_t selfInteract, int nx, int ny, int nf, int lt, int rt, int dn, int up, int numChannels)
 {
    int status = PV_SUCCESS;
-   if (numChannels == 2){
+   if (numChannels >= 2){
       if( status == PV_SUCCESS ) status =
             applyGSyn_HyPerLCALayer2(numNeurons, V, GSynHead, activity, dt_tau, selfInteract, nx, ny, nf, lt, rt, dn, up);
    }
