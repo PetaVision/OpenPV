@@ -2226,8 +2226,8 @@ int HyPerCol::checkpointRead() {
    for (long int k=initialStep; k<currentStep; k++) {
       if (t >= nextProgressTime) {
          nextProgressTime += progressInterval;
-         t += deltaTimeBase;
       }
+      t += deltaTimeBase;
    }
 
    if (dtAdaptFlag == true) {
@@ -2267,17 +2267,22 @@ int HyPerCol::checkpointRead() {
    }
 
    if(checkpointWriteFlag) {
-      if( cpWriteStepInterval > 0) {
-         assert(cpWriteTimeInterval<0.0f);
-         nextCPWriteStep = currentStep; // checkpointWrite should be called before any timesteps,
-             // analogous to checkpointWrite being called immediately after initialization on a fresh run.
-      }
-      else if( cpWriteTimeInterval > 0.0f ) {
-         assert(cpWriteStepInterval<0);
-         nextCPWriteTime = simTime; // checkpointWrite should be called before any timesteps
-      }
-      else {
-         assert(false); // if checkpointWriteFlag is set, one of cpWrite{Step,Time}Interval should be positive
+      char nextCheckpointPath[PV_PATH_MAX];
+      int chars_needed;
+      PV_Stream * nextCheckpointFile = NULL;
+      switch(checkpointWriteTriggerMode) {
+      case CPWRITE_TRIGGER_STEP:
+         readScalarFromFile(checkpointReadDir, name, "nextCheckpointStep", &nextCPWriteStep, currentStep+cpWriteStepInterval);
+         break;
+      case CPWRITE_TRIGGER_TIME:
+         readScalarFromFile(checkpointReadDir, name, "nextCheckpointTime", &nextCPWriteTime, simTime+cpWriteTimeInterval);
+         break;
+      case CPWRITE_TRIGGER_CLOCK:
+         // Nothing to do in this case
+         break;
+      default:
+         // All cases of checkpointWriteTriggerMode are handled above
+         assert(0);
       }
    }
    return PV_SUCCESS;
@@ -2394,6 +2399,27 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    checkpointedParamsFile += "/";
    checkpointedParamsFile += "pv.params";
    this->outputParams(checkpointedParamsFile.c_str());
+
+   if (checkpointWriteFlag) {
+      char nextCheckpointPath[PV_PATH_MAX];
+      int chars_needed;
+      PV_Stream * nextCheckpointFile = NULL;
+      switch(checkpointWriteTriggerMode) {
+      case CPWRITE_TRIGGER_STEP:
+         writeScalarToFile(cpDir, "", "nextCheckpointStep", nextCPWriteStep);
+         break;
+      case CPWRITE_TRIGGER_TIME:
+         writeScalarToFile(cpDir, name, "nextCheckpointTime", nextCPWriteTime);
+         break;
+      case CPWRITE_TRIGGER_CLOCK:
+         // Nothing to do in this case
+         break;
+      default:
+         // All cases of checkpointWriteTriggerMode are handled above
+         assert(0);
+      }
+   }
+
 
    // Note: timeinfo should be done at the end of the checkpointing, so that its presence serves as a flag that the checkpoint has completed.
    if( columnId()==0 ) {
