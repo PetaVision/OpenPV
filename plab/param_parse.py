@@ -164,7 +164,10 @@ class Param_Parser(Param_Reader):
         for i in self.conns_in_order:
             conn = self.conn_dict[i]
             if 'originalConnName' in conn.params:
-                conn.label = self.original_conn_label(conn)
+                if conn['originalConnName'] in self.conn_dict:
+                    conn.label = self.original_conn_label(conn)
+                else:
+                    print('Warning: originalConn "' + conn['originalConnName'] + '" of ' + conn.name + ' not found.') 
 
     def make_original_layer_conns(self):
         for i in self.layer_dict.values():
