@@ -121,9 +121,7 @@ typedef struct PVLayer_ {
    int numNeurons; // # neurons in this HyPerLayer (i.e. in PVLayerCube)
    int numExtended;// # neurons in layer including extended border regions
 
-   //unsigned int   numActive;      // # neurons that fired
-   //unsigned int * activeIndices;  // indices of neurons that fired
-   PV_Stream    * activeFP;       // file of sparse activity
+   // PV_Stream    * activeFP;       // file of sparse activity
 
    // TODO - deprecate?
    PVLayerType layerType;  // the type/subtype of the layer (ie, Type_LIFSimple2)

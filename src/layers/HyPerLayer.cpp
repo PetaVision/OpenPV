@@ -157,6 +157,7 @@ int HyPerLayer::initialize_base() {
    this->triggerOffset = 0;
    this->nextUpdateTime = 0;
    this->initializeFromCheckpointFlag = false;
+   this->outputStateStream = NULL;
    
    this->lastUpdateTime = 0.0;
    this->phase = 0;
@@ -432,19 +433,13 @@ HyPerLayer::~HyPerLayer()
 int HyPerLayer::freeClayer() {
    pvcube_delete(clayer->activity);
 
-   if (clayer->activeFP != NULL) {
-      PV_fclose(clayer->activeFP);
-      clayer->activeFP = NULL;
-   }
-
-   //if (clayer->posFP != NULL) {
-   //   PV_fclose(clayer->posFP);
-   //   clayer->posFP = NULL;
+   //if (clayer->activeFP != NULL) {
+   //   PV_fclose(clayer->activeFP);
+   //   clayer->activeFP = NULL;
    //}
 
-   //free(clayer->activeIndices); clayer->activeIndices = NULL;
    free(clayer->prevActivity);  clayer->prevActivity = NULL;
-   //free(clayer->activeIndices); clayer->activeIndices = NULL;
+
    free(clayer->V);             clayer->V = NULL;
    free(clayer);                clayer = NULL;
 
@@ -1056,10 +1051,23 @@ int HyPerLayer::communicateInitInfo()
 }
 
 char const * HyPerLayer::getOutputStatePath() {
-   return clayer->activeFP->name;
+   return outputStateStream ? outputStateStream->name : NULL;
+}
+
+int HyPerLayer::flushOutputStateStream() {
+    int status = 0;
+    if (outputStateStream && outputStateStream->fp) {
+        status = fflush(outputStateStream->fp);
+    }
+    else {
+        status = EOF;
+        errno = EBADF;
+    }
+    return status;
 }
 
 int HyPerLayer::openOutputStateFile() {
+   if (writeStep<0) { ioAppend = false; return PV_SUCCESS; }
    char filename[PV_PATH_MAX];
    char posFilename[PV_PATH_MAX];
    switch( parent->includeLayerName() ) {
@@ -1122,7 +1130,7 @@ int HyPerLayer::openOutputStateFile() {
 #ifdef PV_USE_MPI
    MPI_Bcast(&ioAppend, 1, MPI_INT, 0/*root*/, icComm->communicator());
 #endif
-   clayer->activeFP = pvp_open_write_file(filename, icComm, ioAppend);
+   outputStateStream = pvp_open_write_file(filename, icComm, ioAppend);
    return PV_SUCCESS;
 }
 
@@ -2148,7 +2156,6 @@ int HyPerLayer::outputState(double timef, bool last)
       probes[i]->outputStateWrapper(timef, parent->getDeltaTime());
    }
 
-
    if (timef >= (writeTime-(parent->getDeltaTime()/2)) && writeStep >= 0) {
       writeTime += writeStep;
       if (sparseLayer) {
@@ -2221,9 +2228,8 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
    if (ioAppend) {
       long activityfilepos = 0L;
       parent->readScalarFromFile(cpDir, getName(), "filepos", &activityfilepos);
-      if (parent->columnId()==0) {
-         assert(clayer->activeFP);
-         if (PV_fseek(clayer->activeFP, activityfilepos, SEEK_SET) != 0) {
+      if (parent->columnId()==0 && outputStateStream) {
+         if (PV_fseek(outputStateStream, activityfilepos, SEEK_SET) != 0) {
             fprintf(stderr, "HyPerLayer::checkpointRead error: unable to recover initial file position in activity file for layer %s\n", name);
             abort();
          }
@@ -2388,8 +2394,8 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    parent->writeScalarToFile(cpDir, getName(), "nextWrite", writeTime);
 
    if (parent->columnId()==0) {
-      if (clayer->activeFP) {
-         long activityfilepos = getPV_StreamFilepos(clayer->activeFP);
+      if (outputStateStream) {
+         long activityfilepos = getPV_StreamFilepos(outputStateStream);
          parent->writeScalarToFile(cpDir, getName(), "filepos", activityfilepos);
       }
    }
@@ -2493,7 +2499,7 @@ int HyPerLayer::writeTimers(FILE* stream){
 int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 {
    DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
-   int status = PV::writeActivitySparse(clayer->activeFP, parent->icCommunicator(), timed, store, getLayerLoc(), includeValues);
+   int status = PV::writeActivitySparse(outputStateStream, parent->icCommunicator(), timed, store, getLayerLoc(), includeValues);
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivitySparseCalls);
@@ -2505,7 +2511,7 @@ int HyPerLayer::writeActivitySparse(double timed, bool includeValues)
 int HyPerLayer::writeActivity(double timed)
 {
    DataStore * store = parent->icCommunicator()->publisherStore(getLayerId());
-   int status = PV::writeActivity(clayer->activeFP, parent->icCommunicator(), timed, store, getLayerLoc());
+   int status = PV::writeActivity(outputStateStream, parent->icCommunicator(), timed, store, getLayerLoc());
 
    if (status == PV_SUCCESS) {
       status = incrementNBands(&writeActivityCalls);
@@ -2517,12 +2523,13 @@ int HyPerLayer::incrementNBands(int * numCalls) {
    // Only the root process needs to maintain INDEX_NBANDS, so only the root process modifies numCalls
    // This way, writeActivityCalls does not need to be coordinated across MPI
    int status;
-   if( parent->icCommunicator()->commRank() == 0 ) {
+   if( parent->columnId() == 0) {
+      assert(outputStateStream!=NULL);
       ++*numCalls;
-      long int fpos = getPV_StreamFilepos(clayer->activeFP);
-      PV_fseek(clayer->activeFP, sizeof(int)*INDEX_NBANDS, SEEK_SET);
-      int intswritten = PV_fwrite(numCalls, sizeof(int), 1, clayer->activeFP);
-      PV_fseek(clayer->activeFP, fpos, SEEK_SET);
+      long int fpos = getPV_StreamFilepos(outputStateStream);
+      PV_fseek(outputStateStream, sizeof(int)*INDEX_NBANDS, SEEK_SET);
+      int intswritten = PV_fwrite(numCalls, sizeof(int), 1, outputStateStream);
+      PV_fseek(outputStateStream, fpos, SEEK_SET);
       status = intswritten == 1 ? PV_SUCCESS : PV_FAILURE;
    }
    else {
