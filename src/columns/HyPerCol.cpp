@@ -2406,7 +2406,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       PV_Stream * nextCheckpointFile = NULL;
       switch(checkpointWriteTriggerMode) {
       case CPWRITE_TRIGGER_STEP:
-         writeScalarToFile(cpDir, "", "nextCheckpointStep", nextCPWriteStep);
+         writeScalarToFile(cpDir, name, "nextCheckpointStep", nextCPWriteStep);
          break;
       case CPWRITE_TRIGGER_TIME:
          writeScalarToFile(cpDir, name, "nextCheckpointTime", nextCPWriteTime);
