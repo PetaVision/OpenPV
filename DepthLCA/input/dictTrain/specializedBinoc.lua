@@ -21,7 +21,7 @@ local rightImageListPath = "/nh/compneuro/Data/KITTI/list/image_03.txt"
 local depthImageListPath = "/nh/compneuro/Data/KITTI/list/depth.txt"
 local displayPeriod = 200
 local writePeriod = 200 
-local startFrame = 1
+local startFrame = 350
 
 --Depth parameters
 local numDepthBins = 64
@@ -38,8 +38,8 @@ local useMomentum = true
 local learningMomentumTau = 100;
 
 --nil for new dict, a checkpoint directory for loading weights
-local V1DictDir = nil
---local V1DictDir = "/home/ec2-user/mountData/dictLearn/aws_white_saved/"
+--local V1DictDir = nil
+local V1DictDir = "/nh/compneuro/Data/Depth/LCA/dictLearn/spec_saved/"
 
 --Table constructor
 --This is where we construct the basic table for the parameter. The constructor is your
