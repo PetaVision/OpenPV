@@ -1,12 +1,12 @@
 #!/bin/bash
-while getopts ":p" opt; do
+while getopts ":pl" opt; do
     case $opt in
         p)
             PHASE=true
             ;;
-        u)
-            echo "test flag triggered"
-            ;;
+	l) 
+	    LEGEND=true
+	    ;;
     esac
 done
 shift $((OPTIND - 1))
@@ -37,13 +37,21 @@ plabdir=$PWD
 cd $olddir
 parentdir="$(dirname "$plabdir")"
 if [ "$PHASE" = true ] ; then
-    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile -p
+    if [ "$LEGEND" = true ] ; then
+	python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile -p --legend
+    else
+	python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile -p
+    fi
 else
-    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile
+    if [ "$LEGEND" = true ] ; then
+        python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile --legend
+    else
+	python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile
+    fi
 fi
 
 mermaid param_graph
-rm param_graph
+#rm param_graph
 filename=$(basename "$pfile")
 extension="${filename##*.}"
 filename="${filename%.*}"

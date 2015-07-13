@@ -197,7 +197,7 @@ class Param_Parser(Param_Reader):
         self.current_object = None
         self.read()
 
-def mermaid_writeout(parser_output, colorby):
+def mermaid_writeout(parser_output, colorby, legend):
     layer_dict = parser_output[0]
     conn_dict = parser_output[1]
     layers_in_order = parser_output[2]
@@ -262,6 +262,20 @@ def mermaid_writeout(parser_output, colorby):
 
     f = open('param_graph', 'w')
     f.write('graph BT;\n')
+
+    if legend:
+        f.write('leg[Legend:<br>'
+                'Layer Shade = ' + colorby + '<br>'
+                'Diamond     = HyperLCALayer<br>'   
+                'Green  = Excitatory Conn<br>'
+                'Red    = Inhibatory Conn<br>'
+                'Dashed = TransposeConn<br>'
+                'Dotted = IdentConn<br>'
+                'Thick  = Plastic Weights<br>'
+                'Blue   = LayerCopy<br>'
+                'Numbers represent groups<br>'
+                'of duplicated/transposed<br>'
+                'connections.];')
     for i in layers_in_order:
         if layer_dict[i].type == 'HyPerLCALayer':
             f.write(i + '{' + i + '};\n')
