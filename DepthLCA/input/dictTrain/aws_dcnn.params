@@ -49,20 +49,20 @@ HyPerCol "column" = {
     progressInterval                    = 1000;
     writeProgressToErr                  = true;
     verifyWrites                        = false;
-    outputPath                          = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape5";
-    printParamsFilename                 = "PASCAL_S1_128_S2_256_S3_512_DCNN_VOC2007_landscape5.params";
+    outputPath                          = "/home/ec2-user/mountData/dictLearn/binocDCNN/";
+    printParamsFilename                 = "aws_DCNN.params";
     randomSeed                          = 1234567890;
-    nx                                  = 256;
-    ny                                  = 192;
+    nx                                  = 608;
+    ny                                  = 176;
     filenamesContainLayerNames          = 1;
     filenamesContainConnectionNames     = 1;
-    initializeFromCheckpointDir         = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape5/Checkpoints/Checkpoint950000";
+    //initializeFromCheckpointDir         = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape5/Checkpoints/Checkpoint950000";
     defaultInitializeFromCheckpointFlag = false;
     checkpointWrite                     = true;
-    checkpointWriteDir                  = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape5/Checkpoints";
-    checkpointWriteTriggerMode          = "step";
-    checkpointWriteStepInterval         = 48000;
-    deleteOlderCheckpoints              = false;
+    checkpointWriteDir                  = "/home/ec2-user/mountData/dictLearn/binocDCNN/Checkpoints";
+    checkpointWriteTriggerMode          = "clock";
+    checkpointWriteClockInterval        = 7200;
+    deleteOlderCheckpoints              = true;
     suppressNonplasticCheckpoints       = false;
     writeTimescales                     = true;
     errorOnNotANumber                   = false;
@@ -70,9 +70,9 @@ HyPerCol "column" = {
 
 // Image layers
 
-Movie "Image" = {
-    nxScale                             = 1;
-    nyScale                             = 1;
+Movie "LeftImage" = {
+    nxScale                             = 2;
+    nyScale                             = 2;
     nf                                  = 3;
     phase                               = 0;
     mirrorBCflag                        = true;
@@ -93,23 +93,52 @@ Movie "Image" = {
     normalizeStdDev                     = true;
     jitterFlag                          = 0;
     padValue                            = 0;
-    imageListPath                       = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
+    imageListPath                       = "/home/ec2-user/mountData/kitti/list/image_02_aws.txt";
     displayPeriod                       = 1200;
     randomMovie                         = 0;
     readPvpFile                         = false;
     echoFramePathnameFlag               = true;
-    start_frame_index                   = 1;
+    start_frame_index                   = 0;
     skip_frame_index                    = 0;
     writeFrameToTimestamp               = true;
     flipOnTimescaleError                = true;
     resetToStartOnLoop                  = false;
 };
 
-ANNLayer "ImageDecon" = {
+Movie "RightImage" = {
+   #include "LeftImage";
+   @imageListPath = "/home/ec2-user/mountData/kitti/list/image_03_aws.txt";
+};
+
+ANNLayer "LeftDownsample" = {
+   nxScale                             = 1;
+   nyScale                             = 1;
+   nf                                  = 1;
+   phase                               = 1;
+   mirrorBCflag                        = true;
+   InitVType                           = "ZeroV";
+   triggerFlag                         = true;
+   triggerLayerName                    = "LeftImage";
+   triggerOffset                       = 0;
+   writeStep                           = -1;
+   sparseLayer                         = false;
+   updateGpu                           = false;
+   VThresh                             = -3.40282e+38;
+   AMin                                = -3.40282e+38;
+   AMax                                = 3.40282e+38;
+   AShift                              = 0;
+   VWidth                              = 0;
+};
+
+ANNLayer "RightDownsample" = {
+   #include "LeftDownsample";
+};
+
+ANNLayer "LeftImageDecon" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
-    phase                               = 11;
+    phase                               = 12;
     triggerFlag                         = false;
     mirrorBCflag                        = false;
     valueBC                             = 0;
@@ -128,6 +157,9 @@ ANNLayer "ImageDecon" = {
     clearGSynInterval                   = 0;
 };
 
+ANNLayer "RightImageDecon" = {
+   #include "LeftImageDecon";
+};
 
 //ANNLayer "ImageRecon" = {
 //#include "ImageDecon";
@@ -137,11 +169,11 @@ ANNLayer "ImageDecon" = {
 //  @phase                               = 11;
 //};
 
-ANNNormalizedErrorLayer "ImageDeconError" = {
+ANNNormalizedErrorLayer "LeftImageDeconError" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
-    phase                               = 1;
+    phase                               = 2;
     mirrorBCflag                        = false;
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
@@ -159,6 +191,10 @@ ANNNormalizedErrorLayer "ImageDeconError" = {
     VWidth                              = 0;
     clearGSynInterval                   = 0;
     errScale                            = 1;
+};
+
+ANNNormalizedErrorLayer "RightImageDeconError" = {
+   #include "LeftImageDeconError";
 };
 
 //ANNErrorLayer "ImageReconError" = {
@@ -194,7 +230,7 @@ ANNErrorLayer "S1DeconError" = {
   nxScale                             = 0.5;
   nyScale                             = 0.5;
   nf                                  = 128;
-  phase                               = 2;
+  phase                               = 3;
   mirrorBCflag                        = false;
   valueBC                             = 0;
   initializeFromCheckpointFlag        = false;
@@ -218,15 +254,17 @@ HyPerLCALayer "S1" = {
   nxScale                             = 0.5;
   nyScale                             = 0.5;
   nf                                  = 128;
-  phase                               = 3;
+  phase                               = 4;
   mirrorBCflag                        = false;
   valueBC                             = 0;
   initializeFromCheckpointFlag        = false;
-  InitVType                           = "InitVFromFile";
-  Vfilename                           = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S1_V.pvp";
-  //InitVType                           = "UniformRandomV";
-  //minV                                = -1.0;
-  //maxV                                = .05; //0.05 above VThresh    
+
+  //InitVType                           = "InitVFromFile";
+  //Vfilename                           = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S1_V.pvp";
+  InitVType                           = "UniformRandomV";
+  minV                                = -1.0;
+  maxV                                = .05; //0.05 above VThresh    
+
   triggerFlag                         = false;
   writeStep                           = 1200;
   initialWriteTime                    = 1200;
@@ -247,9 +285,13 @@ HyPerLCALayer "S1" = {
   selfInteract                        = true;
 };
 
-ANNLayer "ImageDeconS1" = {
-#include "ImageDecon";
-  @phase                               = 4; 
+ANNLayer "LeftImageDeconS1" = {
+#include "LeftImageDecon";
+  @phase                               = 5; 
+};
+
+ANNLayer "RightImageDeconS1" = {
+   #include "LeftImageDeconS1";
 };
 
 //ANNLayer "ImageReconS1" = {
@@ -270,9 +312,8 @@ ANNErrorLayer "S2DeconError" = {
   @nxScale                             = 0.25;
   @nyScale                             = 0.25;
   @nf                                  = 256;
-  @phase                               = 4;
+  @phase                               = 5;
 };
-
 
 HyPerLCALayer "S2" = {
 #include "S1";
@@ -280,9 +321,9 @@ HyPerLCALayer "S2" = {
   @nyScale                             = 0.25;
   @nf                                  = 256; 
   @timeConstantTau                     = 800; //400; 
-  @Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S2_V.pvp";
+  //@Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S2_V.pvp";
   @VThresh                             = 0.0125; //0.025; //
-  @phase                               = 5;  
+  @phase                               = 6;  
 };
 
 
@@ -297,18 +338,23 @@ HyPerLCALayer "S2" = {
 //};
 
 ANNLayer "S1DeconS2" = {
-#include "ImageDecon";
+#include "LeftImageDecon";
   @nxScale                             = 0.5;
   @nyScale                             = 0.5;
   @nf                                  = 128;
   @initialWriteTime                    = -1;
   @writeStep                           = -1;
-  @phase                               = 6;  
+  @phase                               = 7;  
 };
 
-ANNLayer "ImageDeconS2" = {
-#include "ImageDecon";
-  @phase                               = 7;  
+ANNLayer "LeftImageDeconS2" = {
+#include "LeftImageDecon";
+  @phase                               = 8;  
+};
+
+ANNLayer "RightImageDeconS2" = {
+#include "RightImageDecon";
+  @phase                               = 8;  
 };
 
 //ANNLayer "ImageReconS2" = {
@@ -333,7 +379,7 @@ ANNErrorLayer "S3DeconError" = {
   @nxScale                             = 0.125;
   @nyScale                             = 0.125;
   @nf                                  = 512;
-  @phase                               = 5;
+  @phase                               = 6;
 };
 
 
@@ -343,9 +389,9 @@ HyPerLCALayer "S3" = {
   @nyScale                             = 0.125;
   @nf                                  = 512; 
   @timeConstantTau                     = 1200; //400; 
-  @Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S3_V.pvp";
+  //@Vfilename = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S3_V.pvp";
   @VThresh                             = 0.05; //0.025; //
-  @phase                               = 7;  
+  @phase                               = 8;  
 };
 
 //ANNLayer "S2ReconS3" = {
@@ -361,7 +407,7 @@ ANNLayer "S2DeconS3" = {
   @nxScale                             = 0.25;
   @nyScale                             = 0.25;
   @nf                                  = 256;
-  @phase                               = 8;  
+  @phase                               = 9;  
 };
 
 //ANNLayer "S1ReconS3" = {
@@ -377,7 +423,7 @@ ANNLayer "S1DeconS3" = {
   @nxScale                             = 0.5;
   @nyScale                             = 0.5;
   @nf                                  = 128;
-  @phase                               = 9;  
+  @phase                               = 10;  
 };
 
 //ANNLayer "ImageReconS3" = {
@@ -385,9 +431,14 @@ ANNLayer "S1DeconS3" = {
 //  @phase                               = 10;  
 //};
 
-ANNLayer "ImageDeconS3" = {
-#include "ImageDeconS2";
-  @phase                               = 10;  
+ANNLayer "LeftImageDeconS3" = {
+#include "LeftImageDeconS2";
+  @phase                               = 11;  
+};
+
+ANNLayer "RightImageDeconS3" = {
+#include "RightImageDeconS2";
+  @phase                               = 11;  
 };
 
 
@@ -463,10 +514,54 @@ ANNLayer "ImageDeconS3" = {
 //
 
 //  Image connections
+KernelConn "LeftImageToLeftDownsample" = {
+   preLayerName                        = "LeftImage";
+   postLayerName                       = "LeftDownsample";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   numAxonalArbors                     = 1;
+   plasticityFlag                      = false;
+   convertRateToSpikeCount             = false;
+   receiveGpu                          = false;
+   weightInitType                      = "UniformWeight";
+   weightInit = 1;
+   connectOnlySameFeatures = true;
+   // initWeightsFile                     was set to (NULL);
+   //aspect                              = 1;
+   //sigma                               = .5;
+   //rMax                                = 3;
+   //rMin                                = 0;
+   strength                            = 1;
+   updateGSynFromPostPerspective       = false;
+   pvpatchAccumulateType               = "convolve";
+   writeStep                           = -1;
+   writeCompressedCheckpoints          = false;
+   selfFlag                            = false;
+   nxp                                 = 3;
+   nyp                                 = 3;
+   nfp                                 = 1;
+   shrinkPatches                       = false;
+   normalizeMethod                     = "normalizeSum";
+   normalizeArborsIndividually         = false;
+   normalizeOnInitialize               = true;
+   normalizeOnWeightUpdate             = true;
+   rMinX                               = 0;
+   rMinY                               = 0;
+   nonnegativeConstraintFlag           = false;
+   normalize_cutoff                    = 0;
+   normalizeFromPostPerspective        = true;
+   minSumTolerated                     = 0;
+};
 
-HyPerConn "ImageToImageDeconError" = {
-    preLayerName                        = "Image";
-    postLayerName                       = "ImageDeconError";
+KernelConn "RightImageToRightDownsample" = {
+   #include "LeftImageToLeftDownsample";
+   @preLayerName = "RightImage";
+   @postLayerName = "RightDownsample";
+};
+
+HyPerConn "LeftImageToLeftImageDeconError" = {
+    preLayerName                        = "LeftImage";
+    postLayerName                       = "LeftImageDeconError";
     channelCode                         = 0;
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
@@ -489,17 +584,29 @@ HyPerConn "ImageToImageDeconError" = {
     normalizeMethod                     = "none";
 };
 
+HyPerConn "RightImageToRightImageDeconError" = {
+   #include "LeftImageToLeftImageDeconError";
+   @preLayerName = "RightImage";
+   @postLayerName = "RightImageDeconError";
+};
+
 //HyPerConn "ImageToImageReconError" = {
 //#include "ImageToImageDeconError";
 //  @postLayerName                       = "ImageReconError";
 //};
 
-IdentConn "ImageDeconToImageDeconError" = {
-    preLayerName                        = "ImageDecon";
-    postLayerName                       = "ImageDeconError";
+IdentConn "LeftImageDeconToLeftImageDeconError" = {
+    preLayerName                        = "LeftImageDecon";
+    postLayerName                       = "LeftImageDeconError";
     channelCode                         = 1;
     delay                               = 0;
     writeStep                           = -1;
+};
+
+IdentConn "RightImageDeconToRightImageDeconError" = {
+   #include "LeftImageDeconToLeftImageDeconError";
+   @preLayerName = "RightImageDecon";
+   @postLayerName = "RightImageDeconError";
 };
 
 //IdentConn "ImageReconToImageReconError" = {
@@ -513,9 +620,9 @@ IdentConn "ImageDeconToImageDeconError" = {
 
 // S1 Connections
 
-MomentumConn "S1ToImageDeconError" = {
+MomentumConn "S1ToLeftImageDeconError" = {
     preLayerName                        = "S1";
-    postLayerName                       = "ImageDeconError";
+    postLayerName                       = "LeftImageDeconError";
     channelCode                         = -1;
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
@@ -523,17 +630,19 @@ MomentumConn "S1ToImageDeconError" = {
     convertRateToSpikeCount             = false;
     receiveGpu                          = false;
     sharedWeights                       = true;
-    weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S1ToImageDeconError_W.pvp";
+
+    //weightInitType                      = "FileWeight";
+    //initWeightsFile                     = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S1ToImageDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
-    //weightInitType                      = "UniformRandomWeight";
-    //wMinInit                            = -1.0;
-    //wMaxInit                            = 1.0;
-    //sparseFraction                      = .90;
+    weightInitType                      = "UniformRandomWeight";
+    wMinInit                            = -1.0;
+    wMaxInit                            = 1.0;
+    sparseFraction                      = .90;
+
     initializeFromCheckpointFlag        = false;
     triggerFlag                         = true;
-    triggerLayerName                    = "Image";
+    triggerLayerName                    = "LeftImage";
     triggerOffset                       = 1;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
@@ -563,8 +672,16 @@ MomentumConn "S1ToImageDeconError" = {
     momentumDecay                       = 0;
 };
 
-TransposeConn "ImageDeconErrorToS1DeconError" = {
-    preLayerName                        = "ImageDeconError";
+MomentumConn "S1ToRightImageDeconError" = {
+   #include "S1ToLeftImageDeconError";
+   @postLayerName = "RightImageDeconError";
+   @normalizeMethod = "normalizeGroup";
+   normalizeGroupName = "S1ToLeftImageDeconError";
+   //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S1ToImageDeconError_W.pvp";
+};
+
+TransposeConn "LeftImageDeconErrorToS1DeconError" = {
+    preLayerName                        = "LeftImageDeconError";
     postLayerName                       = "S1DeconError";
     channelCode                         = 0;
     delay                               = [0.000000];
@@ -576,9 +693,14 @@ TransposeConn "ImageDeconErrorToS1DeconError" = {
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     gpuGroupIdx                         = -1;
-    originalConnName                    = "S1ToImageDeconError";
+    originalConnName                    = "S1ToLeftImageDeconError";
 };
 
+TransposeConn "RightImageDeconErrorToS1DeconError" = {
+  #include "LeftImageDeconErrorToS1DeconError"; 
+  @preLayerName = "RightImageDeconError";
+  @originalConnName = "S1ToRightImageDeconError";
+};
 
 IdentConn "S1DeconErrorToS1" = {
     preLayerName                        = "S1DeconError";
@@ -588,9 +710,9 @@ IdentConn "S1DeconErrorToS1" = {
     writeStep                           = -1;
 };
 
-CloneConn "S1ToImageDeconS1" = {
+CloneConn "S1ToLeftImageDeconS1" = {
     preLayerName                        = "S1";
-    postLayerName                       = "ImageDeconS1";
+    postLayerName                       = "LeftImageDeconS1";
     channelCode                         = 0;
     delay                               = [0.000000];
     convertRateToSpikeCount             = false;
@@ -600,7 +722,13 @@ CloneConn "S1ToImageDeconS1" = {
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
-    originalConnName                    = "S1ToImageDeconError";
+    originalConnName                    = "S1ToLeftImageDeconError";
+};
+
+CloneConn "S1ToRightImageDeconS1" = {
+   #include "S1ToLeftImageDeconS1";
+   @postLayerName = "RightImageDeconS1";
+   @originalConnName = "S1ToRightImageDeconError";
 };
 
 //CloneConn "S1ToImageReconS1" = {
@@ -608,12 +736,18 @@ CloneConn "S1ToImageDeconS1" = {
 //    @postLayerName                       = "ImageReconS1";
 //};
 
-IdentConn "ImageDeconS1ToImageDecon" = {
-    preLayerName                        = "ImageDeconS1";
-    postLayerName                       = "ImageDecon";
+IdentConn "LeftImageDeconS1ToLeftImageDecon" = {
+    preLayerName                        = "LeftImageDeconS1";
+    postLayerName                       = "LeftImageDecon";
     channelCode                         = 0;
     delay                               = 0;
     writeStep                           = -1;
+};
+
+IdentConn "RightImageDeconS1ToRightImageDecon" = {
+   #include "LeftImageDeconS1ToLeftImageDecon";
+   @preLayerName = "RightImageDeconS1";
+   @postLayerName = "RightImageDecon";
 };
 
 //IdentConn "ImageReconS1ToImageRecon" = {
@@ -688,19 +822,19 @@ IdentConn "ImageDeconS1ToImageDecon" = {
 // S2 deconvolutional "Decon" pathway
 
 MomentumConn "S2ToS1DeconError" = {
-#include "S1ToImageDeconError";
+#include "S1ToLeftImageDeconError";
   @preLayerName                         = "S2";
   @postLayerName                        = "S1DeconError";
   @nxp                                  = 10;
   @nyp                                  = 10;
-  @initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S2ToS1DeconError_W.pvp";
+  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S2ToS1DeconError_W.pvp";
   //@normalizeMethod                      = "normalizeGroup";
   //normalizeGroupName                    = "S2ToS1ReconS2Error";
 };
 
 
 TransposeConn "S1DeconErrorToS2DeconError" = {
-#include "ImageDeconErrorToS1DeconError";
+#include "LeftImageDeconErrorToS1DeconError";
   @preLayerName                         = "S1DeconError";
   @postLayerName                        = "S2DeconError";
   @originalConnName                     = "S2ToS1DeconError";
@@ -715,20 +849,27 @@ IdentConn "S2DeconErrorToS2" = {
 };
 
 CloneConn "S2ToS1DeconS2" = {
-#include "S1ToImageDeconS1";
+#include "S1ToLeftImageDeconS1";
   @preLayerName                         = "S2";
   @postLayerName                        = "S1DeconS2";
   @originalConnName                     = "S2ToS1DeconError";
 };
 
-CloneConn "S1DeconS2ToImageDeconS2" = {
-#include "S1ToImageDeconS1";
+CloneConn "S1DeconS2ToLeftImageDeconS2" = {
+#include "S1ToLeftImageDeconS1";
   @preLayerName                         = "S1DeconS2";
-  @postLayerName                        = "ImageDeconS2";
-  @originalConnName                     = "S1ToImageDeconError";
+  @postLayerName                        = "LeftImageDeconS2";
+  @originalConnName                     = "S1ToLeftImageDeconError";
   @receiveGpu                          = true;
   @updateGSynFromPostPerspective       = true;
 };
+
+CloneConn "S1DeconS2ToRightImageDeconS2" = {
+   #include "S1DeconS2ToLeftImageDeconS2";
+   @postLayerName = "RightImageDeconS2";
+   @originalConnName = "S1ToRightImageDeconError";
+};
+
 
 //TransposeConn "S1DeconS2ToImageDeconS2" = {
 //#include "S1DeconErrorToS2DeconError";
@@ -737,12 +878,18 @@ CloneConn "S1DeconS2ToImageDeconS2" = {
 //  @originalConnName                     = "ImageDeconErrorToS1DeconError";
 //};
 
-IdentConn "ImageDeconS2ToImageDecon" = {
-    preLayerName                        = "ImageDeconS2";
-    postLayerName                       = "ImageDecon";
+IdentConn "LeftImageDeconS2ToLeftImageDecon" = {
+    preLayerName                        = "LeftImageDeconS2";
+    postLayerName                       = "LeftImageDecon";
     channelCode                         = 0;
     delay                               = 0;
     writeStep                           = -1;
+};
+
+IdentConn "RightImageDeconS2ToRightImageDecon" = {
+   #include "LeftImageDeconS2ToLeftImageDecon";
+   @preLayerName = "RightImageDeconS2";
+   @postLayerName = "RightImageDecon";
 };
 
 
@@ -830,7 +977,7 @@ MomentumConn "S3ToS2DeconError" = {
 #include "S2ToS1DeconError";
   @preLayerName                         = "S3";
   @postLayerName                        = "S2DeconError";
-  @initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S3ToS2DeconError_W.pvp";
+  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape4/Checkpoints/Checkpoint1488000/S3ToS2DeconError_W.pvp";
   //@normalizeMethod                      = "normalizeGroup";
   //@normalizeGroupName                    = "S3ToS2ReconS3Error";
 };
@@ -859,7 +1006,7 @@ CloneConn "S3ToS2DeconS3" = {
 };
 
 CloneConn "S2DeconS3ToS1DeconS3" = {
-#include "S1DeconS2ToImageDeconS2";
+#include "S1DeconS2ToLeftImageDeconS2";
   @preLayerName                         = "S2DeconS3";
   @postLayerName                        = "S1DeconS3";
   @originalConnName                     = "S2ToS1DeconError";
@@ -872,11 +1019,17 @@ CloneConn "S2DeconS3ToS1DeconS3" = {
 //  @originalConnName                     = "S1DeconErrorToS2DeconError";
 //};
 
-CloneConn "S1DeconS3ToImageDeconS3" = {
-#include "S1DeconS2ToImageDeconS2";
+CloneConn "S1DeconS3ToLeftImageDeconS3" = {
+#include "S1DeconS2ToLeftImageDeconS2";
   @preLayerName                         = "S1DeconS3";
-  @postLayerName                        = "ImageDeconS3";
-  @originalConnName                     = "S1ToImageDeconError";
+  @postLayerName                        = "LeftImageDeconS3";
+  @originalConnName                     = "S1ToLeftImageDeconError";
+};
+
+CloneConn "S1DeconS3ToRightImageDeconS3" = {
+   #include "S1DeconS3ToLeftImageDeconS3";
+   @postLayerName = "RightImageDeconS3";
+   @originalConnName = "S1ToRightImageDeconError";
 };
 
 //TransposeConn "S1DeconS3ToImageDeconS3" = {
@@ -886,12 +1039,17 @@ CloneConn "S1DeconS3ToImageDeconS3" = {
 //  @originalConnName                     = "ImageDeconErrorToS1DeconError";
 //};
 
-IdentConn "ImageDeconS3ToImageDecon" = {
-    preLayerName                        = "ImageDeconS3";
-    postLayerName                       = "ImageDecon";
+IdentConn "LeftImageDeconS3ToLeftImageDecon" = {
+    preLayerName                        = "LeftImageDeconS3";
+    postLayerName                       = "LeftImageDecon";
     channelCode                         = 0;
     delay                               = 0;
     writeStep                           = -1;
+};
+IdentConn "RightImageDeconS3ToRightImageDecon" = {
+   #include "LeftImageDeconS3ToLeftImageDecon";
+   @preLayerName                        = "RightImageDeconS3";
+   @postLayerName                       = "RightImageDecon";
 };
 
 
