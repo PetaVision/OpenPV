@@ -559,8 +559,8 @@ KernelConn "RightImageToRightDownsample" = {
    @postLayerName = "RightDownsample";
 };
 
-HyPerConn "LeftImageToLeftImageDeconError" = {
-    preLayerName                        = "LeftImage";
+HyPerConn "LeftDownsampleToLeftImageDeconError" = {
+    preLayerName                        = "LeftDownsample";
     postLayerName                       = "LeftImageDeconError";
     channelCode                         = 0;
     delay                               = [0.000000];
@@ -584,9 +584,9 @@ HyPerConn "LeftImageToLeftImageDeconError" = {
     normalizeMethod                     = "none";
 };
 
-HyPerConn "RightImageToRightImageDeconError" = {
-   #include "LeftImageToLeftImageDeconError";
-   @preLayerName = "RightImage";
+HyPerConn "RightDownsampleToRightImageDeconError" = {
+   #include "LeftDownsampleToLeftImageDeconError";
+   @preLayerName = "RightDownsample";
    @postLayerName = "RightImageDeconError";
 };
 
