@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
       PV_Stream * resultPvpStream = NULL;
 
       if (rank==0) {
-         fflush(imageLayer->clayer->activeFP->fp);
+         imageLayer->flushOutputStateStream();
          imagePvpStream = PV_fopen(imagePvpFile, "r", false/*verifyWrites*/);
       }
       status = pvp_read_header(imagePvpStream, hc->icCommunicator(), params, &numParams);
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
       int imageFrameNumber = params[INDEX_NBANDS];
 
       if (rank==0) {
-         fflush(resultLayer->clayer->activeFP->fp);
+         resultLayer->flushOutputStateStream();
          resultPvpStream = PV_fopen(resultPvpFile, "r", false/*verifyWrites*/);
       }
       status = pvp_read_header(resultPvpStream, hc->icCommunicator(), params, &numParams);
@@ -318,69 +318,69 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
       char * keyword = line.contents;
       char * value = &openquote[1];
 
-      if (!strcmp(line.contents,"imageLayer"))
+      if (!strcmp(keyword,"imageLayer"))
       {
-         status = parseConfigParameter(icComm, line.contents, value, imageLayerNamePtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, imageLayerNamePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }
-      if (!strcmp(line.contents,"resultLayer"))
+      if (!strcmp(keyword,"resultLayer"))
       {
-         status = parseConfigParameter(icComm, line.contents, value, resultLayerNamePtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, resultLayerNamePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }
-      if (!strcmp(line.contents,"resultTextFile"))
+      if (!strcmp(keyword,"resultTextFile"))
       {
-         status = parseConfigParameter(icComm, line.contents, value, resultTextFilePtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, resultTextFilePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }
-      if (!strcmp(line.contents,"octaveCommand"))
+      if (!strcmp(keyword,"octaveCommand"))
       {
-         status = parseConfigParameter(icComm, line.contents, value, octaveCommandPtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, octaveCommandPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }
-      if (!strcmp(line.contents,"octaveLogFile"))
+      if (!strcmp(keyword,"octaveLogFile"))
       {
-         status = parseConfigParameter(icComm, line.contents, value, octaveLogFilePtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, octaveLogFilePtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }
-      if (!strcmp(line.contents,"classNames"))
+      if (!strcmp(keyword,"classNames"))
       {   
-         status = parseConfigParameter(icComm, line.contents, value, classNamesPtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, classNamesPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }   
-      if (!strcmp(line.contents,"evalCategoryIndices"))
+      if (!strcmp(keyword,"evalCategoryIndices"))
       {   
-         status = parseConfigParameter(icComm, line.contents, value, evalCategoryIndicesPtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, evalCategoryIndicesPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }   
-      if (!strcmp(line.contents,"displayCategoryIndices"))
+      if (!strcmp(keyword,"displayCategoryIndices"))
       {   
-         status = parseConfigParameter(icComm, line.contents, value, displayCategoryIndicesPtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, displayCategoryIndicesPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }   
-      if (!strcmp(line.contents,"highlightThreshold"))
+      if (!strcmp(keyword,"highlightThreshold"))
       {   
-         status = parseConfigParameter(icComm, line.contents, value, highlightThresholdPtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, highlightThresholdPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }   
-      if (!strcmp(line.contents,"heatMapThreshold"))
+      if (!strcmp(keyword,"heatMapThreshold"))
       {   
-         status = parseConfigParameter(icComm, line.contents, value, heatMapThresholdPtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, heatMapThresholdPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }   
-      if (!strcmp(line.contents,"heatMapMaximum"))
+      if (!strcmp(keyword,"heatMapMaximum"))
       {   
-         status = parseConfigParameter(icComm, line.contents, value, heatMapMaximumPtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, heatMapMaximumPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }   
-      if (!strcmp(line.contents,"heatMapMontageDir"))
+      if (!strcmp(keyword,"heatMapMontageDir"))
       {
-         status = parseConfigParameter(icComm, line.contents, value, heatMapMontageDirPtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, heatMapMontageDirPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }
-      if (!strcmp(line.contents,"displayCommand"))
+      if (!strcmp(keyword,"displayCommand"))
       {
-         status = parseConfigParameter(icComm, line.contents, value, displayCommandPtr, linenumber);
+         status = parseConfigParameter(icComm, keyword, value, displayCommandPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }
    }
