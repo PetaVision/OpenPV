@@ -447,6 +447,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
       int charsneeded = snprintf(timeScaleFileName, timeScaleFileNameLen+1, "%s/HyPerCol_timescales.txt", outputPath);
       assert(charsneeded<=timeScaleFileNameLen);
       timeScaleStream.open(timeScaleFileName);
+      timeScaleStream.precision(17);
    }
 
    if(checkpointWriteFlag) {

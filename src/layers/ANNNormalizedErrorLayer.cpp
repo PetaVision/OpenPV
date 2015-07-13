@@ -51,6 +51,7 @@ int ANNNormalizedErrorLayer::initialize(const char * name, HyPerCol * hc)
       int charsneeded = snprintf(timeScaleFileName, timeScaleFileNameLen+1, "%s/%s_timescales.txt", outputPath, name);
       assert(charsneeded<=timeScaleFileNameLen);
       timeScaleStream.open(timeScaleFileName);
+      timeScaleStream.precision(17);
    }
    return status;
 }
