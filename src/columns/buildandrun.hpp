@@ -71,13 +71,6 @@
 #include "../layers/MLPOutputLayer.hpp"
 #include "../layers/LabelErrorLayer.hpp"
 #include "../layers/KmeansLayer.hpp"
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused layers.
-#include "../layers/ANNDivInh.hpp"
-#include "../layers/ANNLabelLayer.hpp"
-#include "../layers/ANNWeightedErrorLayer.hpp"
-#include "../layers/AccumulateLayer.hpp"
-#include "../layers/CliqueLayer.hpp"
-#endif // OBSOLETE
 #include "../layers/ConstantLayer.hpp"
 #include "../layers/FilenameParsingGroundTruthLayer.hpp"
 #include "../connections/BaseConnection.hpp"
@@ -95,15 +88,6 @@
 #include "../connections/LCALIFLateralConn.hpp"
 #include "../connections/OjaSTDPConn.hpp"
 #include "../connections/PoolingConn.hpp"
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused connections.
-#include "../connections/CliqueConn.hpp"
-#include "../connections/InhibSTDPConn.hpp"
-#include "../connections/LCALIFLateralKernelConn.hpp"
-#include "../connections/MapReduceKernelConn.hpp"
-#include "../connections/OjaKernelConn.hpp"
-#include "../connections/STDP3Conn.hpp"
-#include "../connections/STDPConn.hpp"
-#endif // OBSOLETE // Dec 29, 2014
 
 #include "../weightinit/InitWeights.hpp"
 #include "../weightinit/InitGauss2DWeights.hpp"
@@ -120,17 +104,6 @@
 #include "../weightinit/InitSpreadOverArborsWeights.hpp"
 #endif // OBSOLETE // Feb 6, 2015
 
-#ifdef OBSOLETE // Marked obsolete Dec. 29, 2014.  Removing several long-unused weight init methods
-#include "../weightinit/Init3DGaussWeights.hpp"
-#include "../weightinit/InitByArborWeights.hpp"
-#include "../weightinit/InitDistributedWeights.hpp"
-#include "../weightinit/InitMTWeights.hpp"
-#include "../weightinit/InitPoolWeights.hpp"
-#include "../weightinit/InitRuleWeights.hpp"
-#include "../weightinit/InitSubUnitWeights.hpp"
-#include "../weightinit/InitWindowed3DGaussWeights.hpp"
-#endif // OBSOLETE
-
 #ifdef OBSOLETE // Marked obsolete Feb 6, 2015.  buildandrun builds these objects by calling CoreParamGroupHandler, so the include statements are in that class.
 #include "../io/BaseConnectionProbe.hpp"
 #include "../io/KernelProbe.hpp"
@@ -144,15 +117,6 @@
 #include "../io/LogLatWTAProbe.hpp"
 #include "../io/RequireAllZeroActivityProbe.hpp"
 #include "../io/GenColProbe.hpp"
-#ifdef OBSOLETE // Marked obsolete Dec 29, 2014.  Removing several long-unused probes.
-#include "../io/ConnStatsProbe.hpp"
-#include "../io/LCALIFLateralProbe.hpp"
-#include "../io/OjaConnProbe.hpp"
-#include "../io/OjaKernelSpikeRateProbe.hpp"
-#include "../io/PatchProbe.hpp"
-#include "../io/PointLCALIFProbe.hpp"
-#include "../io/SparsityTermProbe.hpp"
-#endif // OBSOLETE // Dec 29, 2014
 #endif // OBSOLETE // Feb 6, 2015
 
 #include "../io/ParamGroupHandler.hpp"
@@ -186,20 +150,6 @@ HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList,
 ParamGroupHandler * getGroupHandlerFromList(char const * keyword, CoreParamGroupHandler * coreHandler, ParamGroupHandler ** groupHandlerList, int numGroupHandlers, ParamGroupType * foundGroupType);
 BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, ParamGroupHandler ** customHandlerList, int numGroupHandlers, char const * keyword, char const * groupname, HyPerCol * hc);
 
-#ifdef OBSOLETE // Marked obsolete Jan 5, 2015.  Functionality was moved to CoreParamGroupHandler
-HyPerCol * addHyPerColToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-HyPerLayer * addLayerToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-HyPerConn * addConnToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-ColProbe * addColProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-void insertColProbe(ColProbe * colProbe, HyPerCol * hc);
-BaseConnectionProbe * addBaseConnectionProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-const char * getStringValueFromParameterGroup(const char * groupName, PVParams * params, const char * parameterString, bool warnIfAbsent);
-HyPerLayer * getLayerFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbsent=true);
-BaseConnection * getConnFromParameterGroup(const char * groupName, HyPerCol * hc, const char * parameterStringName, bool warnIfAbesnt=true);
-LayerProbe * addLayerProbeToColumn(const char * classkeyword, const char * name, HyPerCol * hc);
-int getLayerFunctionProbeParameters(const char * name, const char * keyword, HyPerCol * hc, HyPerLayer ** targetLayer, char ** message, const char ** filename);
-int decodeChannel(int channel, ChannelType * channelType);
-#endif // OBSOLETE // Marked obsolete Jan 5, 2015.  Functionality was moved to CoreParamGroupHandler
 int checknewobject(void * object, const char * kw, const char * name, HyPerCol * hc);
 
 #endif /* BUILDANDRUN_HPP_ */
