@@ -84,16 +84,20 @@ if (resultHdr.filetype != 4)
 end%if
 resultData = permute(resultPvp{1}.values,[2 1 3]);
 
-numCategories=numel(displayCategoryIndices);
+if isempty(displayCategoryIndices)
+   displayCategoryIndices=1:resultHdr.nf;
+end%if
 
-numColumns = 1:numCategories;
-numRows = ceil(numCategories./numColumns);
-totalSizeY = (size(imageData,1)+64+10)*numRows;
-totalSizeX = (size(imageData,2)+64+10)*numColumns;
-aspectRatio = totalSizeX./totalSizeY;
-ldfgr = abs(log(aspectRatio) - log((1+sqrt(5))/2));
-numColumns = find(ldfgr==min(ldfgr),1);
-numRows = numRows(numColumns);
+numCategories=numel(displayCategoryIndices)
+
+numColumns = 1:numCategories
+numRows = ceil(numCategories./numColumns)
+totalSizeY = (size(imageData,1)+64+10)*numRows
+totalSizeX = (size(imageData,2)+64+10)*numColumns
+aspectRatio = totalSizeX./totalSizeY
+ldfgr = abs(log(aspectRatio) - log((1+sqrt(5))/2))
+numColumns = find(ldfgr==min(ldfgr),1)
+numRows = numRows(numColumns)
 while (numColumns-1)*numRows >= numCategories
     numColumns = numColumns-1;
 end%while
@@ -127,10 +131,6 @@ end%if
 
 if isempty(evalCategoryIndices)
    evalCategoryIndices=1:resultHdr.nf;
-end%if
-
-if isempty(displayCategoryIndices)
-   displayCategoryIndices=1:resultHdr.nf;
 end%if
 
 upsampleNx = size(imageData,2)/size(resultData,2);
