@@ -51,7 +51,7 @@ else
 fi
 
 mermaid param_graph
-#rm param_graph
+rm param_graph
 filename=$(basename "$pfile")
 extension="${filename##*.}"
 filename="${filename%.*}"
