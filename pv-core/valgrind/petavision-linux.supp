@@ -1,0 +1,59 @@
+# Valgrind suppression file for PetaVision compiled on the NMC Linux clusters.
+# There are memory leaks, etc., in Open MPI and GDAL.  Running a typical
+# PetaVision job under valgrind therefor finds hundreds of errors we can't do
+# anything about.  This suppression file prevents valgrind from  reporting on
+# them so we notice when there's an error in the PetaVision code itself.
+#
+# Example usage: to run the command
+#     Debug/BasicSystemTest -p input/BasicSystemTest.params
+# under valgrind, run the command
+#     valgrind --suppressions=/path/to/this/file Debug/BasicSystemTest -p input/BasicSystemTest.params
+
+{
+   <suppress_invalid_read___findenv>
+   Memcheck:Addr1
+   fun:__findenv
+}
+
+{
+   <suppress_leak_getenv>
+   Memcheck:Leak
+   ...
+   fun:getenv
+}
+
+{
+   <suppress_leak_GDALAllRegister>
+   Memcheck:Leak
+   ...
+   fun:GDALAllRegister
+}
+
+{
+   <suppress_leak_GDALOpenInternal>
+   Memcheck:Leak
+   ...
+   fun:_Z16GDALOpenInternalPKc10GDALAccessPKS0_
+}
+
+{
+   <suppress_uninitialized_bytes_MPI_Init>
+   Memcheck:Param
+   writev(vector[...])
+   ...
+   fun:PMPI_Init
+}
+
+{
+   <suppress_leak_MPI_Init>
+   Memcheck:Leak
+   ...
+   fun:PMPI_Init
+}
+
+{
+   <suppress_leak_yyparse>
+   Memcheck:Leak
+   ...
+   fun:yyparse
+}

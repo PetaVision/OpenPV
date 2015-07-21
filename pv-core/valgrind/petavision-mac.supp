@@ -1,0 +1,137 @@
+# Valgrind suppression file for PetaVision
+# Valgrind finds many memory leaks and other problems in Open MPI, GDAL, etc.
+# Running a typical PetaVision job under valgrind therefore finds hundreds of
+# errors we can't do anything about.  This suppression file prevents valgrind
+# from reporting on them so we notice when there's an error in the PetaVision
+# code itself.
+#
+# Example usage: to run the command
+#     Debug/BasicSystemTest -p input/BasicSystemTest.params
+# under valgrind, run the command
+#     valgrind --suppressions=/path/to/this/file Debug/BasicSystemTest -p input/BasicSystemTest.params
+#
+# This file was written for the Mac running Open MPI 1.8.1 installed from Homebrew.
+
+{
+   <suppression_conditional_uninitialized_opal_net_get_hostname>
+   Memcheck:Cond
+   ...
+   fun:opal_net_get_hostname
+}
+
+{
+   <suppression_syscall_param_uninitialized_orte_start_listening>
+   Memcheck:Param
+   socketcall.bind(my_addr.sin6_scope_id)
+   ...
+   fun:orte_oob_tcp_start_listening
+}
+
+{
+   <suppression_syscall_param_unitialized_MPI_Init>
+   Memcheck:Param
+   socketcall.bind(my_addr.sin6_scope_id)
+   ...
+   fun:MPI_Init
+}
+
+{
+   <suppression_conditional_uninitialized_MPI_Init>
+   Memcheck:Cond
+   ...
+   fun:MPI_Init
+}
+
+{
+   <suppression_leak_MPI_Init>
+   Memcheck:Leak
+   ...
+   fun:MPI_Init
+}
+
+{
+   <suppression_leak_ompi_finalize>
+   Memcheck:Leak
+   ...
+   fun:ompi_mpi_finalize
+}
+
+{
+   <suppression_leak_orte_progress_thread_engine>
+   Memcheck:Leak
+   ...
+   fun:orte_progress_thread_engine
+}
+
+{
+   <suppression_leak_gdalregister_wms>
+   Memcheck:Leak
+   fun:malloc
+   fun:_ZL22CPLCreateMutexInternali
+   fun:CPLCreateOrAcquireMutex
+   fun:_ZN14CPLMutexHolderC2EPPvdPKci
+   fun:_Z27GetGDALWMSMiniDriverManagerv
+   fun:GDALRegister_WMS
+   fun:GDALAllRegister
+}
+
+{
+   <suppression_leak_rasterband_rasterbandio>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:_ZN11GDALDataset8RasterIOE10GDALRWFlagiiiiPvii12GDALDataTypeiPiiii
+}
+
+{
+   <suppression_leak_yylex>
+   Memcheck:Leak
+   ...
+   fun:yylex
+}
+
+{
+   <suppression_leak_ctime>
+   Memcheck:Leak
+   ...
+   fun:ctime
+}
+
+{
+   <suppression_leak_dyld_start>
+   Memcheck:Leak
+   ...
+   fun:_dyld_start
+}
+
+{
+   <suppression_leak_sfvwrite>
+   Memcheck:Leak
+   ...
+   fun:__sfvwrite
+}
+
+{
+   <suppression_leak_vprintf>
+   Memcheck:Leak
+   ...
+   fun:__vfprintf
+}
+
+{
+   <suppression_leak_fopen_moreglue>
+   Memcheck:Leak
+   fun:malloc
+   fun:moreglue
+   fun:__sfp
+   fun:fopen
+}
+
+{
+   <suppression_leak_printf_malloc>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:vfprintf_l
+}
+

@@ -1,0 +1,6 @@
+function [spotlight_image] = spotlightKernel(background_struct, foreground_struct)
+
+  spotlight_image = ...
+      background_struct.background_image + ...
+      foreground_struct.foreground_mask;
+

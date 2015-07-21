@@ -1,0 +1,180 @@
+HyPerCol "column" = {
+   nx = 64;
+   ny = 64;
+};
+
+HyPerLayer "Example Retina" = {
+   nx = 64;
+   ny = 64;
+   nf = 1;
+   nBorder = 4;
+};
+
+
+HyPerLayer "Example Layer" = {
+   nx = 64;
+   ny = 64;
+   nf = 1;
+   nBorder = 4;
+};
+
+//
+// The following parameters for building a working V1 layer
+//
+
+//#define NOISE_AMP 0.5
+//#define V_REST -70.0
+//#define V_EXC 0.0
+//#define V_INH -75.
+//#define V_INHB -90.
+//#define VTH_REST (V_REST + 5.0)
+//#define TAU_VMEM 50.0
+//#define TAU_EXC 2.0
+//#define TAU_INH 5.0
+//#define TAU_INHB 10.0
+//#define TAU_VTH 20.0
+//#define DELTA_VTH 5.0
+//#define GLOBAL_GAIN 1.0
+//#define ASPECT_RATIO 4.0
+//#define R2_EDGE 3.0
+//#define SIGMA_EDGE 2.0 //1.5
+//#define R2_COCIRC 16.0 // 8.0
+//#define SIGMA_DIST_COCIRC 8.0 // 4.0
+//#define R2_FEEDBACK 6.0 // 8.0
+//#define SIGMA_DIST_FEEDBACK 3.0 // 4.0
+//#define EXCITE_DELAY 0
+//#define INHIB_DELAY 0
+
+HyPerLayer "Retina" = {
+   nx = 64;
+   ny = 64;
+   nf = 1;
+   
+   nBorder = 8;
+   
+// not sure if the following are correct
+
+   invert  = 0.0;
+   uncolor = 1.0;               // if true, pixels>0 become 1.0
+   IMax = 1.0;                  // intensity for on pixels
+   poisson = 0.0;               // spike as poisson?
+   poissonEdgeProb = 0.2;       // if so, prob
+   poissonBlankProb = 0.01;     // spike as poisson?
+
+// taken from
+// fileread_params RetinaParams = { 0.0, 1 * 1.0, 1 * 1, 0 * 1.0, 0.2, 1 * 0.01, 200.0,
+//                                  506.0, input_file };
+};
+
+HyPerConn "Retina to Example" = {
+   nxp = 4;
+   nyp = 4;
+   delay = 0;
+   
+   aspect = 1;    // circular (not line oriented)
+   sigma  = 2;
+   r2     = 12;
+   gaussWeightScale = 1;
+};
+
+V1 "V1 excite" = {
+   nx = 64;
+   ny = 64;
+   nf = 8;
+   no = 8;
+   nBorder = 8;
+
+   Vrest = -70.0;
+   Vexc  =   0.0;
+   Vinh  = -90.0; //-75.0;
+   VinhB = -90.0;
+
+   tau   = 100.0;
+   tauE  =   10.0; //2.0;
+   tauI  =   10.0; //5.0;
+   tauIB =  10.0;
+
+   VthRest  = -65.0;
+   tauVth   =  10.0;
+   deltaVth =  15.0;
+
+   noiseFreqE  = 0.25;
+   noiseFreqI  = 0.25;
+   noiseFreqIB = 0.25;
+
+// formula to make noise current/Vmem neutral (from GHK equation->make noise + Vrest == Vrest)
+//noiseAmpE  = ( 1.0/tauE) * ( ( tauI* (Vrest-Vinh) + tauIB * (Vrest-VinhB ) / (Vexc-Vrest) )
+   noiseAmpE  = 0.14;
+   noiseAmpI  = 0.5;
+   noiseAmpIB = 0.0;
+};
+
+V1 "V1 inhibit" = {
+   nx = 64;
+   ny = 64;
+   nf = 8;
+   no = 8;
+   nBorder = 8;
+
+   Vrest = -70.0;
+   Vexc  =   0.0;
+   Vinh  = -90.0; //-75.0;
+   VinhB = -90.0;
+
+   tau   = 50.0;
+   tauE  =  10.0; //2.0;
+   tauI  =  10.0; //5.0;
+   tauIB = 10.0;
+
+   VthRest  = -65.5;
+   tauVth   =  10.0;
+   deltaVth =   5.0;
+
+   noiseFreqE  = 0.25;
+   noiseFreqI  = 0.25;
+   noiseFreqIB = 0.25;
+
+   noiseAmpE  = 0.8;
+   noiseAmpI  = 0.5;
+   noiseAmpIB = 0.5;
+};
+
+HyPerConn "Retina to V1 excite" = {
+   nxp = 8;
+   nyp = 8;
+   delay = 0;
+
+   r2 = 12;                    // G_R2 neighborhood radius   (2*R2_EDGE+2*R2_EDGE)
+   sigma = 2;                  // G_SIGMA (not squared)
+   aspect = 4;                 // G_ASPECT (1/aspect ratio)
+//   gaussWeightScale = 10.0;    // GAUSS_WEIGHT_SCALE         (1.0 * GLOBAL_GAIN)
+   gaussWeightScale = 1.0;
+};
+
+HyPerConn "Retina to V1 inhibit" = {
+   nxp = 8;
+   nyp = 8;
+   delay = 0;
+
+   r2 = 12;
+   sigma = 2;
+   aspect = 4;
+//   gaussWeightScale = 10.0;
+   gaussWeightScale = 1.0;
+};
+
+HyPerConn "V1 inhibit to V1 excite" = {
+   nxp = 8;
+   nyp = 8;
+   delay = 0;
+
+   r2 = 12;
+   sigma = 2;
+   aspect = 4;
+//   gaussWeightScale = 12.0;
+   gaussWeightScale = 1.0;
+
+   offset = 1.0;
+   sigmaTheta2 = 506.25;
+   deltaThetaMax = 22.5;
+};
