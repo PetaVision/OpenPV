@@ -1,0 +1,139 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 256;
+    ny = 256;
+    dt = 1;
+    randomSeed = 1;
+    numSteps = 10;
+    progressStep = 2000;
+    outputPath = "output/genericprogramexample/";
+    filenamesContainLayerNames = false;
+    checkpointRead = false;
+    checkpointWrite = false;
+};
+
+Image "Image" = {
+    imagePath = "./input/genericprogramexample/image.png";
+
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = 0;
+    mirrorBCflag = 0;
+    spikingFlag = false;  // false (no quotes) is translated to 0
+    writeNonspikingActivity = true; // true (no quotes) is translated to 1
+    GPUAccelerate = true;
+
+    writeImages = 0;
+    offsetX = 0;
+    offsetY = 0;
+};
+
+Retina "Retina" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 6;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = false;
+    writeNonspikingActivity = 1;
+    GPUAccelerate = true;
+
+    poissonEdgeProb = 1;
+    poissonBlankProb = 0;
+    burstFreq = 1;
+    burstDuration = 40000;
+
+    beginStim = 1;
+    endStim = 40000;
+};
+
+ANNLayer "L1" = {
+    restart = 0;
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 8;
+    marginWidth = 0;
+    writeStep = 1.0;
+    mirrorBCflag = 1;
+    spikingFlag = 0;
+    writeNonspikingActivity = 1;
+    GPUAccelerate = true;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+    AMax = infinity;
+    AMin = -infinity;
+};
+
+KernelConn "Image to Retina" = {
+    preLayerName = "Image";
+    postLayerName = "Retina";
+    channelCode = 0;
+    
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    delay = 0;
+    normalize = 0;
+    initFromLastFlag = 0;
+    aspect = 1;
+    sigma = 1;
+    rMin = 0;
+    rMax = 1;
+    strength = 3.921569E-2;  // can use either E or e
+    writeStep = -1;
+    symmetrizeWeights = false;
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    writeCompressedWeights = false;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
+    shrinkPatches = false;
+    ignoreGPU = false;
+    weightInitType = "Gauss2DWeight";
+};
+
+KernelConn "Retina to L1" = {
+    preLayerName = "Retina";
+    postLayerName = "L1";
+    channelCode = 0;
+    
+    nxp = 7;
+    nyp = 7;
+    nfp = 8;
+    numAxonalArbors = 1;
+    delay = 0;
+    normalize = 1;
+    normalize_max = 0.0;
+    normalize_zero_offset = 0.0;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    initFromLastFlag = 0;
+    aspect = 7;
+    sigma = 7;
+    rMin = 0;
+    rMax = 7;
+    strength = 25.0;
+    deltaThetaMax = 6.2831853;
+    thetaMax = 1.0;
+    numFlanks = 1;
+    flankShift = 0;
+    rotate = 1;
+    bowtieFlag = false;
+    writeStep = -1;
+    plasticityFlag = false;
+    stochasticReleaseFlag = false;
+    writeCompressedWeights = false;
+    selfFlag = false;
+    combine_dW_with_W_flag = false;
+    shrinkPatches = false;
+    ignoreGPU = false;
+};

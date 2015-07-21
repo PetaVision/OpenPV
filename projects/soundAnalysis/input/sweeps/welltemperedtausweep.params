@@ -1,0 +1,670 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified mdubey December 23, 2014
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Competition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx                              = 1;//always 1x1
+    ny                              = 1;
+    dt                              = .0022675737; // downsampling = dt * sampleRate
+    randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    stopTime                        = 5000; // in seconds
+    progressInterval                = .0022675737; // dt
+    outputPath                      = "welltemperedtausweep";
+    filenamesContainLayerNames      = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead                  = false; // deprecated
+    checkpointWrite                 = true;
+    checkpointWriteDir              = "welltemperedtausweep/checkpoints";
+    checkpointWriteStepInterval     = 22100; //numdelays
+    deleteOlderCheckpoints          = false;
+    writeProgressToErr              = true;
+    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
+    printTimescales                 = false;
+    dtAdaptFlag = false; // set to determine expected errors
+
+
+    //initializeFromCheckpointDir     = "/Users/MLD/newvision/sandbox/soundAnalysis/output/checkpoints/Checkpoint1";
+
+};
+
+
+
+//
+// layers
+//
+
+SoundStream "Sound" = {  // layer not used
+    restart                = 0;
+    nxScale                = 1;
+    nyScale                = 1;
+    soundInputPath         = "input/welltempered.wav";
+    nf                     = 1; // mono vs. stereo
+    writeStep              = -1.0 ;
+    initialWriteTime       = 0;
+    writeSparseActivity    = false;
+    displayPeriod          = 1;  // unnecessary
+    soundBCFlag            = true;
+    soundOffset            = 0; //In seconds
+    phase = 0;
+};
+
+
+NewCochlearLayer "NewCochlear" = {
+
+    restart = 0;
+    nxScale = 128; //number of cochlear hair cells, useful as power of two (1024)
+    nyScale = 1;
+    nf = 1;
+    writeStep = .0022675737; //dt
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    //InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+    inputLayername = "Sound";
+    targetChannel = 0;
+
+    equalTemperedFlag = true;
+    freqMin = 20;
+    freqMax = 20000;
+
+    dampingRatio = .5; // not used
+
+    sampleRate = 44100; //not used
+    cochlearScale = 10000000; // used for reconstruction only
+
+    displayPeriod = .05; // not used
+
+    //soundstream params
+
+    soundInputPath         = "input/welltempered.wav";
+    soundBCFlag            = true;
+    soundOffset            = 0; //In seconds
+
+
+    valueV                          = 0.0;
+    Vrest                           = 0.0;
+
+    phase = 0;
+
+
+};
+
+ANNLayer "PositiveCochlear" = {
+
+    restart = 0;
+    nxScale = 128; //numfreqs
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -.05; // .0022675737;
+    initialWriteTime = 0;
+    mirrorBCflag = 1;
+    writeSparseActivity = false;
+    //
+    InitVType = "ZeroV";
+    //
+    VThresh = 0; // change to desired threshold
+    AMax = infinity;
+    AMin = 0;
+    VWidth = 0;
+    AShift = 0;
+    //
+    phase = 1;
+
+};
+
+ANNLayer "NegativeCochlear" = {
+
+    restart = 0;
+    nxScale = 128; // numfreqs
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -.05; // .0022675737;
+    initialWriteTime = 0;
+    mirrorBCflag = 1;
+    writeSparseActivity = false;
+    //
+    InitVType = "ZeroV";
+    //
+    VThresh = 0; // change to desired threshold
+    AMax = infinity;
+    AMin = 0;
+    VWidth = 0;
+    AShift = 0;
+    //
+    phase = 1;
+
+};
+
+
+ANNNormalizedErrorLayer "PositiveError" = {
+
+    restart = 0;
+    nxScale = 128; // same as Coclear nxScale
+    nyScale = 1;
+    nf = 45; //221
+    initialWriteTime = 0;
+    writeStep = .5; // .00022675737; //dt
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/ErrorON_V.pvp";
+
+    VThresh = 0;
+    VMax =  infinity;
+    VMin = 0;
+    VShift = 0;
+    valueBC = 0;
+
+    triggerFlag = false;
+    errScale = .5;
+
+    phase = 2;
+
+};
+
+ANNNormalizedErrorLayer "NegativeError" = {
+
+    restart = 0;
+    nxScale = 128; // same as Coclear nxScale
+    nyScale = 1;
+    nf = 45; // 221
+    initialWriteTime = 0;
+    writeStep = .5; // .00022675737; //dt
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/ErrorON_V.pvp";
+
+    VThresh = 0;
+    VMax =  infinity;
+    VMin = 0;
+    VShift = 0;
+    valueBC = 0;
+
+    triggerFlag = false;
+    errScale = .5;
+
+    phase = 2;
+
+};
+
+HyPerLCALayer "A1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 128; // numfreqs * numdelays * overcompleteness
+    numChannels = 1;
+    initialWriteTime = 0;
+    writeStep = .0022675737; //dt
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    writeSparseValues = false;
+
+    //initializeFromCheckpointFlag = true;
+    InitVType = "UniformRandomV";
+
+    minV = -1.0;
+    maxV = .02;
+
+
+    timeConstantTau = .02;
+    timeConstantTauMinimum = 0;
+    //slopeErrorStd = 0.01; // not used
+
+    VThresh = 0.015;
+    VWidth = 0; // 0.15;
+    AMax = infinity;
+    AMin = 0;
+    AShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    valueBC = 0;
+
+    updateGpu = false;
+
+    triggerFlag = false;
+
+    phase = 3;
+
+};
+
+
+
+
+StreamReconLayer "PositiveRecon" = {
+    restart = 0;
+    nxScale = 128;
+    nyScale = 1;
+    nf = 45;
+    initialWriteTime = 0;
+    writeStep = 5;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    writeSparseActivity = 0;
+
+    triggerLayerName = "NewCochlear";
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+    triggerFlag = false;
+    triggerOffset = 0;
+    phase = 4;
+};
+
+StreamReconLayer "NegativeRecon" = {
+    restart = 0;
+    nxScale = 128;
+    nyScale = 1;
+    nf = 45;
+    initialWriteTime = 0;
+    writeStep = 5;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    writeSparseActivity = 0;
+
+    triggerLayerName = "NewCochlear";
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+    triggerFlag = false;
+    triggerOffset = 0;
+    phase = 4;
+};
+
+
+ANNLayer "FullRecon" = {
+    restart = 0;
+    nxScale = 128; //numfreqs
+    nyScale = 1;
+    nf = 45; //numdelays
+    marginWidth = 0;
+    writeStep = .0022675737;
+    initialWriteTime = 0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity; // change to desired threshold
+    AMax = infinity;
+    AMin = -infinity;
+    VWidth = 0;
+    AShift = 0;
+    //
+    phase = 5;
+
+};
+
+
+///Connections////
+
+IdentConn "CochlearToPositive" = {
+
+    preLayerName = "NewCochlear";
+    postLayerName = "PositiveCochlear";
+
+    channelCode = 0;
+
+    //nxp             = 4; //numfreqs
+    //nyp             = 1;
+    //nfp             = 1;
+
+    // weightInitType = "OneToOneWeights";
+    // weightInit = 1;
+    // normaizeMethod = "none";
+
+
+};
+
+IdentConn "CochlearToNegative" = {
+
+    preLayerName = "NewCochlear";
+    postLayerName = "NegativeCochlear";
+
+    channelCode = 1;
+    //nxp             = 4; //numfreqs
+    //nyp             = 1;
+    //nfp             = 1;
+
+    //weightInitType = "OneToOneWeights";
+    //weightInit = -1;
+    //normaizeMethod = "none";
+
+
+};
+
+
+
+KernelConn "PositiveCochlearToPositiveError" = {
+
+    preLayerName = "PositiveCochlear";
+    postLayerName = "PositiveError";
+
+    channelCode = 0;
+    nxp         = 255; //(2 * numfreqs) - 1 for all to all connection
+    nyp         = 1;
+    nfp         = 45;
+
+
+    numAxonalArbors  = 45;
+
+    useWindowPost    = false;
+    writeStep        = -1;
+    initFromLastFlag = 0;
+
+    delay = [0.0, 0.0022675737, 0.0045351474, 0.0068027211, 0.0090702948, 0.0113378685, 0.0136054422, 0.0158730159, 0.0181405896, 0.0204081633, 0.022675737, 0.0249433107, 0.0272108844, 0.0294784581, 0.0317460318, 0.0340136055, 0.0362811792, 0.0385487529, 0.0408163266, 0.0430839003, 0.045351474, 0.0476190477, 0.0498866214, 0.0521541951, 0.0544217688, 0.0566893425, 0.0589569162, 0.0612244899, 0.0634920636, 0.0657596373, 0.068027211, 0.0702947847, 0.0725623584, 0.0748299321, 0.0770975058, 0.0793650795, 0.0816326532, 0.0839002269, 0.0861678006, 0.0884353743, 0.090702948, 0.0929705217, 0.0952380954, 0.0975056691, 0.0997732428];
+
+    weightInitType = "OneToOneWeightsWithDelays";
+    weightInit = 1.0;
+
+    normalizeMethod        = "none";
+    plasticityFlag         = false;
+    pvpatchAccumulateType  = "convolve";
+    writeCompressedCheckpoints = true;
+    selfFlag               = false;
+    shrinkPatches          = false;
+    updateGSynFromPostPerspective = false;
+    preActivityIsNotRate   = false;
+    shmget_flag            = true;
+
+};
+
+
+KernelConn "NegativeCochlearToNegativeError" = {
+
+    preLayerName = "NegativeCochlear";
+    postLayerName = "NegativeError";
+
+    channelCode = 0;
+    nxp         = 255; //(2 * numfreqs) - 1 for all to all connection
+    nyp         = 1;
+    nfp         = 45;
+
+    numAxonalArbors  = 45;
+
+    useWindowPost    = false;
+    writeStep        = -1;
+    initFromLastFlag = 0;
+
+    delay = [0.0, 0.0022675737, 0.0045351474, 0.0068027211, 0.0090702948, 0.0113378685, 0.0136054422, 0.0158730159, 0.0181405896, 0.0204081633, 0.022675737, 0.0249433107, 0.0272108844, 0.0294784581, 0.0317460318, 0.0340136055, 0.0362811792, 0.0385487529, 0.0408163266, 0.0430839003, 0.045351474, 0.0476190477, 0.0498866214, 0.0521541951, 0.0544217688, 0.0566893425, 0.0589569162, 0.0612244899, 0.0634920636, 0.0657596373, 0.068027211, 0.0702947847, 0.0725623584, 0.0748299321, 0.0770975058, 0.0793650795, 0.0816326532, 0.0839002269, 0.0861678006, 0.0884353743, 0.090702948, 0.0929705217, 0.0952380954, 0.0975056691, 0.0997732428];
+
+    weightInitType = "OneToOneWeightsWithDelays";
+    weightInit = 1.0;
+
+    normalizeMethod        = "none";
+    plasticityFlag         = false;
+    pvpatchAccumulateType  = "convolve";
+    writeCompressedCheckpoints = true;
+    selfFlag               = false;
+    shrinkPatches          = false;
+    updateGSynFromPostPerspective = false;
+    preActivityIsNotRate   = false;
+    shmget_flag            = true;
+};
+
+
+
+
+KernelConn "A1ToPositiveError" = {
+    preLayerName = "A1";
+    postLayerName = "PositiveError";
+    channelCode = 1;
+    nxp = 128; // numfreqs
+    nyp = 1;
+    nfp = 45;  // numdelays
+
+    //Set delay from 0 to 2205 * dt
+    delay       = 0;
+
+    numAxonalArbors  = 1; //
+
+    initFromLastFlag = 0;
+
+    weightInitType = "UniformRandomWeight";
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/V1ToErrorON_W.pvp";
+
+    wMinInit = -.02;
+    wMaxInit = .02;
+    sparseFraction = .9;
+
+    strength = 1;
+    normalizeMethod = "normalizeL2";
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true;
+    combine_dW_with_W_flag = false;
+    writeStep = -1; // -.00022675737;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    weightUpdatePeriod = .05; //.0022675737;
+    initialWeightUpdateTime = .0022675737;
+    initialWriteTime = 0.0;
+
+    dWMax = 0.00015; // 1.0; //0.05; //5.0;
+    selfFlag = false;
+    shmget_flag = false;
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+
+    updateGSynFromPostPerspective = false;
+};
+
+
+
+KernelConn "A1ToNegativeError" = {
+    preLayerName = "A1";
+    postLayerName = "NegativeError";
+    channelCode = 1;
+    nxp = 128; // numfreqs
+    nyp = 1;
+    nfp = 45;
+
+    //Set delay from 0 to 2205 * dt
+    delay       = 0;
+
+    numAxonalArbors  = 1; // numdelays
+
+
+    initFromLastFlag = 0;
+
+    weightInitType = "UniformRandomWeight";
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/V1ToErrorON_W.pvp";
+
+    wMinInit = -0.02;
+    wMaxInit = .02;
+    sparseFraction = .9;
+
+    strength = 1;
+    normalizeMethod = "normalizeL2";
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true;
+    combine_dW_with_W_flag = false;
+    writeStep = -1.0; // -.00022675737;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    weightUpdatePeriod = .05; //.0022675737;
+    initialWeightUpdateTime = .0022675737; //199.0;
+    initialWriteTime = 0.0;
+
+    dWMax = 0.00015; // 1.0; //0.05; //5.0;
+    selfFlag = false;
+    shmget_flag = false;
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+
+    updateGSynFromPostPerspective = false;
+};
+
+
+
+TransposeConn "PositiveErrorToA1" = {
+    preLayerName = "PositiveError";
+    postLayerName = "A1";
+    channelCode = 0;
+    originalConnName = "A1ToPositiveError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
+    receiveGpu = false;
+
+};
+
+TransposeConn "NegativeErrorToA1" = {
+    preLayerName = "NegativeError";
+    postLayerName = "A1";
+    channelCode = 0;
+    originalConnName = "A1ToNegativeError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
+    receiveGpu = false;
+};
+
+CloneKernelConn "A1ToPositiveRecon" = {
+    preLayerName = "A1";
+    postLayerName = "PositiveRecon";
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    originalConnName = "A1ToPositiveError";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+};
+
+CloneKernelConn "A1ToNegativeRecon" = {
+    preLayerName = "A1";
+    postLayerName = "NegativeRecon";
+    channelCode = 0;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    originalConnName = "A1ToNegativeError";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+};
+
+
+
+IdentConn "StreamPositiveToFullRecon" = {
+
+    preLayerName = "PositiveRecon";
+    postLayerName = "FullRecon";
+
+    channelCode = 0;
+
+    //nxp             = 4; //numfreqs
+    //nyp             = 1;
+    //nfp             = 1;
+
+    // weightInitType = "OneToOneWeights";
+    // weightInit = 1;
+    // normaizeMethod = "none";
+
+    initialWriteTime = 0.0;
+    writeStep = -1.0;
+
+
+};
+
+
+
+IdentConn "StreamNegativeToFullRecon" = {
+
+    preLayerName = "NegativeRecon";
+    postLayerName = "FullRecon";
+
+    channelCode = 1;
+    //nxp             = 4; //numfreqs
+    //nyp             = 1;
+    //nfp             = 1;
+
+    //weightInitType = "OneToOneWeights";
+    //weightInit = -1;
+    //normaizeMethod = "none";
+
+    initialWriteTime = 0.0;
+    writeStep = -1.0;
+
+};
+
+////Probes//////
+
+
+
+
+StatsProbe "A1StatsFile" = {
+    buffer = "A";
+    targetLayer = "A1";
+    probeOutputFile = "A1_Stats.txt";
+};
+
+
+ParameterSweep "A1":timeConstantTau = {
+
+    0.02; 0.04; 0.06; .08; .1;
+
+};
+
+ParameterSweep "column":checkpointWriteDir = {
+    "welltempered20ms/checkpoints";
+    "welltempered40ms/checkpoints";
+    "welltempered60ms/checkpoints";
+    "welltempered80ms/checkpoints";
+    "welltempered100ms/checkpoints";
+};

@@ -1,0 +1,271 @@
+// 
+// Parameter file for BIDS
+//
+
+HyPerCol "column" = {
+   nx 							   = 256; 			// pixel width of input image
+   ny 							   = 256; 			// pixel height of input image
+   dt 							   = 1.2;           // according GK
+   randomSeed 				       = 1020304050.0; // remove when running for real
+   numSteps 					   = 9740;			// amount of time steps performed during run-time
+   progressStep					   = 500;
+   //outputPath                      = "output/";
+
+   writeProgressToErr              = 1;
+   filenamesContainLayerNames 	   = 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
+   filenamesContainConnectionNames = 2;
+   
+   checkpointRead  				   = false; 		// init run
+   checkpointWrite 				   = false;  		// always
+   //checkpointWriteDir              = "output/checkpoints/";
+   //checkpointWriteStepInterval     = 200;
+   //deleteOlderCheckpoints          = 0;
+   suppressLastOutput              = 0;
+};
+
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+
+Movie "Source" = {
+//      imageListPath = "input/wave_prop_files.txt";
+//      imageListPath = "input/wave_prop_files2.txt";
+//      imageListPath = "input/wave_with_noise.txt";
+//      imageListPath = "input/weak_wave_file.txt";
+//      imageListPath = "input/norm_wave_file.txt";
+//      imageListPath = "input/strong_wave_file.txt";
+//      imageListPath = "input/blank_img_files.txt";
+//      imageListPath = "input/full_img_files.txt";
+//      imageListPath = "input/filenames.txt";
+      imageListPath = "input/input.txt";
+      readPvpFile = false;
+                           //
+   restart                = 0;
+   nxScale                = 1;
+   nyScale                = 1;
+   nf                     = 1;
+                          //
+   marginWidth            = 0; 	 // boundary
+   
+   mirrorBCflag           = 0;
+   useImageBCflag         = 1;   // Fill boundary with image instead of mirror or 0's
+                                 //
+   displayPeriod          = 1;  //Used to be 12, but I think the output from this layer already had a display period of something
+   jitterFlag             = 0;
+   offsetX                = 0;
+   offsetY                = 0;
+                          //
+   writeStep              = 0;
+   initialWriteTime       = 0;
+   phase                  = 0;
+   writeImages            = 0;
+   inverseFlag            = 0;
+   normalizeLuminanceFlag = 0;
+   start_frame_index      = 0;
+   skip_frame_index       = 0;
+   echoFramePathnameFlag  = 0;
+   randomMovie            = 0;
+};
+
+BIDSMovieCloneMap "BIDS_Movie" = { // child of HyPerLayer
+	originalMovie    = "Source";
+	nxScale          = 0.25;
+	nyScale          = 0.25;
+	jitter           = 3;
+	writeStep        = 1;
+
+    nf               = 1;
+    marginWidth      = 0;
+    initialWriteTime = 0;
+    phase            = 0;
+    mirrorBCflag     = 0;
+    InitVType        = "ConstantV";
+    valueV           = -70;
+    restart          = 0;
+};
+
+BIDSSensorLayer "BIDS_Sensor_Head" = { // child of Image layer
+	nxScale             = 0.25;
+	nyScale             = 0.25;
+	buffer_size         = 30;            //The amount of data in time steps that is saved to find frequencies
+	neutral_val         = 128;           //The neutral value of a pixel with no stimulus
+    jitterSource        = "BIDS_Movie";
+    frequency           = 150;           //In hz, the frequency of the signal
+    weight              = .5;            //Weight of sensor layer output
+    ts_per_period       = 16;            //How many time steps per frequency period
+    
+    writeStep           = 1;
+ 
+    nf                  = 1;
+    marginWidth         = 0;
+    initialWriteTime    = 0;
+    phase               = 0;
+    mirrorBCflag        = 0;
+    restart             = 0;
+    writeSparseActivity = true;
+};
+
+BIDSLayer "BIDS_Node" = { // child of LIF
+   nxScale             = 0.25;		// 64 x 64 nodes
+   nyScale             = 0.25;		// 
+   nf                  = 1;       	// one feature for now
+   marginWidth         = 27;     	// based on lateral radius and jitter
+   writeStep           = 1;
+   mirrorBCflag        = 1;     	// mirroring boundary conditions
+   method              = "arma"; // "original", "beginning", "arma"
+   InitVType           = "ConstantV";
+   valueV			   = -70.0;
+   Vrest               = -70.;    
+   restart             = 0.0;     	// from graylast
+   Vexc                = 0.0;     	// reversal potential 
+   Vinh                = -75.0;   	// chloride channel
+   VinhB               = -90.0;   	// potassium reversal
+   tau                 = 10.0;    	// intrinsic leak membrane time constant (max)
+   tauE                = 1.0;     	// how long glutamine stays bound
+   tauI                = 1.0;     	// how long GABA stays bound
+   tauIB               = 10.0;    	// inhibitory potassium channel 
+   VthRest             = -42.97;   	// firing threshold 
+   tauVth              = 10.0;    	// relative refractory period
+   deltaVth            = 5.0;     	// jump of threshold when firing
+   noiseAmpE           = 0.5;     	// means conductance is equal to lead conductance  
+   noiseAmpI           = 0.5;     	// twice as easy for the membrane capacitance to discharge
+   noiseAmpIB          = 0.0;     	// no noise here 
+   noiseFreqE          = 250.;    	// spontaneous transmitter release/channel openings
+   noiseFreqI          = 250.;    	// correlation to time step size !!!
+   noiseFreqIB         = 0.;    	// should be scaled by the time constant - look at LIF model
+
+   initialWriteTime    = 0;
+   phase               = 0;
+   writeSparseActivity = true;
+};
+
+BIDSCloneLayer "BIDS_Clone" ={ // child of HyPerLayer
+   originalLayerName	   ="BIDS_Node";
+   jitterSource            ="BIDS_Movie";
+   //jitter                  = 3;
+   nxScale          	   = 1;
+   nyScale          	   = 1;
+   writeStep        	   = 1;
+   marginWidth      	   = 4;     
+   InitVType        	   = "ConstantV";
+   valueV               = -70.0;
+   Vrest            	   = -55.0;   
+   VthRest          	   = -47.5;                 
+   mirrorBCflag     	   = 0; 
+   restart          	   = 0.0;    
+
+   nf                   = 1;
+   InverseFlag          = 0;
+   SigmoidFlag          = 1;
+   SigmoidAlpha         = .1;
+   writeSparseActivity  = true;
+   initialWriteTime     = 0;
+   phase                = 0;
+};
+
+// Connections Connections Connections Connections Connections Connections
+// Connections Connections Connections Connections Connections Connections
+// Connections Connections Connections Connections Connections Connections
+// Connections Connections Connections Connections Connections Connections
+// Connections Connections Connections Connections Connections Connections
+// Connections Connections Connections Connections Connections Connections
+
+IdentConn "Movie_to_Sensor" = {
+   preLayerName 			= "BIDS_Movie";
+   postLayerName 			= "BIDS_Sensor_Head";
+   channelCode              = 0; 			//excitatory channel
+   writeStep                = -1;
+   delay                    = 0;
+};
+
+IdentConn "Sensor_to_Nodes" = {
+   preLayerName 			= "BIDS_Sensor_Head";
+   postLayerName 			= "BIDS_Node";
+   channelCode              = 0; 			//excitatory channel
+   writeStep                = -1;
+   delay                    = 0;
+};
+
+BIDSConn "Lateral_Excitation" = {   			// This connects the image to the BIDS_receptor so that the sensor(s) on the receptor can detect active pixels
+   preLayerName 			  = "BIDS_Node";
+   postLayerName 			  = "BIDS_Node";
+   weightInitType 			  = "BIDSLateral"; 	// determines how PetaVision distributes and handles the weights for neurons/nodes 
+   jitterSource               = "BIDS_Movie";
+   //jitter                     = 3;
+   channelCode 				  = 0;               		// forward
+   normalizeMethod           = "none";
+   delay         			  = 0.0; 					// in time steps, additional to the one you always get
+   writeStep             	  = 100;  				// write out if you want to see excitatory lateral weights
+   numAxonalArbors			  = 1;
+   plasticityFlag			  = 0;
+   stochasticReleaseFlag	  = 0;
+   selfFlag				      = 0;
+   shrinkPatches			  = 0;
+   aspect					  = 1;
+   sigma					  = 32;
+   rMax					      = 32;
+   rMin					      = 0;
+   strength				      = 0.04;
+   falloffType				  = "Log";       //possible falloff rates right now are "Log", "Gaussian", "radSquared", and "Linear"
+   lateralRadius			  = 65; //pixels
+                                        //
+   preActivityIsNotRate       = 0;
+   writeCompressedCheckpoints = 0;
+   nxp                        = -1; //BIDS Conn figures out nxp & nyp based on jitter info
+   nyp                        = -1;
+   nfp 					      = 1;
+};
+
+//BIDSConn "Lateral_Inhibition" = {
+//   preLayerName 			= "BIDS_Node";
+//   postLayerName 			= "BIDS_Node";
+//   weightInitType 			= "BIDSLateral"; 	// determines how PetaVision distributes and handles the weights for neurons/nodes 
+//   jitterSource             = "BIDS_Movie";
+//   channelCode 				= 1;               		// forward
+//   normalize     			= 0;  
+//   delay         			= 10; 					// in time steps, additional to the one you always get
+//   writeStep             	= -1.0;  				// do not write these out
+//   numAxonalArbors			= 1;
+//   plasticityFlag			= 0;
+//   stochasticReleaseFlag	= 0;
+//   writeCompressedWeights	= 1;
+//   selfFlag				    = 0;
+//   shrinkPatches			= 0;
+//   nfp 					    = 1;
+//   aspect					= 1;
+//   sigma					= 32;
+//   rMax					    = 32;
+//   rMin					    = 0;
+//   wMinInit				    = 0;
+//   wMaxInit				    = 1;
+//   strength				    = 0.22; //0.025
+//   falloffType				= "Log";       //possible falloff rates right now are "Log", "Gaussian", "radSquared", and "Linear"
+//   lateralRadius			= 15;
+//
+//   preActivityIsNotRate = 0;
+//   writeCompressedCheckpoints = 0;
+//   nxp = -1;
+//   nyp = -1;
+//};
+
+//PROBES
+  
+//StatsProbe "MovieStats" = {
+//    targetLayer = "BIDS_Movie";
+//    probeOutputFile = "MovieStats.txt";
+//};
+//
+//StatsProbe "NodeStats" = {
+//    targetLayer = "BIDS_Node";
+//    probeOutputFile = "NodeStats.txt";
+//};
+//
+PointLIFProbe "BIDS_Node_Probe" = {
+   targetLayer     = "BIDS_Node";
+   probeOutputFile = "ptBIDSNode.txt";
+   xLoc            = 23;
+   yLoc            = 23;
+   fLoc            = 0;
+};

@@ -1,0 +1,297 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 512; //1226, one pixel cropped from both sides;  // KITTI synced value
+    ny = 512;  //370, two pixels cropped from the top;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0;
+    stopTime= 18000; //Loop through once
+    progressStep = 10;
+    outputPath = "~/mountData/SUResponse/single_ICA_cell_response/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false; //true;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/benchmark/stereo_train/Checkpoints";
+    //checkpointReadDirIndex = 315000;
+    checkpointWrite = true;
+    checkpointWriteDir = "~/mountData/SUResponse/single_ICA_cell_response/Checkpoints";
+    checkpointWriteStepInterval = 5000;
+    deleteOlderCheckpoints = true;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+    dtAdaptFlag = true;
+    dtScaleMax = 5.0;
+    dtScaleMin = 0.25;
+    dtChangeMax = 0.05;
+    dtChangeMin = 0.0;
+};
+
+//
+// layers
+//
+
+// left eye layers
+
+//
+
+DisparityMovie "LeftImage" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    readPvpFile = false;
+    imageListPath = "~/mountData/DepthLCA/input/SUResponse/single/aws_weightInput.txt";
+    writeFrameToTimestamp = true;
+    nf = 3;
+    writeStep = 1;//-1;
+    writeSparseActivity = false;
+    displayPeriod = 1; //200;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = false;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = true;
+    writeImages = false;
+    offsetAnchor = "cc"; //Offset anchor from bottom left
+    offsetX = -1; //-1 to match up with receptive field of 1 neuron
+    offsetY = -1;
+    randomMovie = 0;
+    phase = 0;
+
+    numDisparity = 40;
+    dPixelDisparity = -2;
+    padValue = .5;
+
+    moveMethod = "altLeft";
+
+    //useParamsImage = true;
+};
+
+ANNLayer "LeftError" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 3;
+    writeStep = -1;
+    initialWriteTime = 200.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
+    //
+    VThresh = -infinity; //Change this for efficiency
+    VMax =  infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    //
+    errScale = .5; //Normal is .2
+    //
+    phase = 3;  
+};
+
+////
+//// Right eye layers
+////
+//
+
+DisparityMovie "RightImage" = {
+    #include "LeftImage";
+    @imageListPath = "~/mountData/DepthLCA/input/SUResponse/single/aws_weightInput.txt";
+    @dPixelDisparity = 2;
+    @moveMethod = "altRight";
+};
+
+
+ANNLayer "RightError" = {
+    #include "LeftError";
+    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V_grow_1224x368y.pvp";
+};
+
+
+//
+// Right depth eye layers
+//
+
+// binoclular layers
+
+ANNLayer "V1" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 256; //2048 or 4096;
+    numChannels = 1;
+    numWindowX = 1;
+    numWindowY = 1;
+    writeStep = -1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    writeSparseValues   = 1;
+    //
+    InitVType = "ZeroV";
+    //minV = -1.0;
+    //maxV = .03; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2_V_grow_612x184y.pvp";
+    // 
+    //timeConstantTau = 200.0;
+    //slopeErrorStd = 0.01;
+    // 
+    dVThresh = 0;
+    VThresh = -infinity; //mean + 1 std of the positive input to error
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VWidth = 0.0; //Same as VThresh
+    //
+    phase = 4;
+};
+
+
+// connections
+
+// Left eye connections
+
+KernelConn "LeftImageToLeftError" = {
+    preLayerName = "LeftImage";
+    postLayerName = "LeftError";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    //////////////////////
+    //TODO What to do here????
+    //////////////////////
+    weightInit = .0294;  // 1/sqrt(34*34);
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+// Right eye connections
+
+KernelConn "RightImageToRightError" = {
+    #include "LeftImageToLeftError";
+    @preLayerName = "RightImage";
+    @postLayerName = "RightError";
+};
+
+// binocular connections
+//Left binocular connections
+
+KernelConn "V1ToLeftError" = {
+    preLayerName = "V1";
+    postLayerName = "LeftError";
+    channelCode = -1; //No feedback
+    nxp = 66;
+    nyp = 66;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    //
+    weightInitType = "FileWeight";
+    initWeightsFile = "~/mountData/saved_single/V1ToLeftError_W.pvp";
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+    //sparseFraction = .90;
+    //
+    strength = 1; //.25/2  
+    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
+    //normalizeMethod = "normalizeContrastZeroMean"; 
+    //SET PARAMS TO NEW NORMALIZATION METHOD
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    initialWriteTime = 0.0;
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+TransposeConn "LeftErrorToV1" = {
+    preLayerName = "LeftError";
+    postLayerName = "V1";
+    channelCode = 0;
+    originalConnName = "V1ToLeftError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
+    receiveGpu = true;
+};
+
+//Right binocular connections
+KernelConn "V1ToRightError" = {
+    #include "V1ToLeftError";
+    @postLayerName = "RightError";
+    @initWeightsFile = "~/mountData/saved_single/V1ToRightError_W.pvp";
+};
+
+TransposeConn "RightErrorToV1" = {
+    #include "LeftErrorToV1";
+    @preLayerName = "RightError";
+    @originalConnName = "V1ToRightError";
+};
+
+//Probe to watch neuron activity
+SUPointProbe "V1Probe" = {
+   message = "SUAct";
+   probeOutputFile = "ICA_V1.probe";
+   targetName = "V1";
+   disparityLayerName = "LeftImage";
+};

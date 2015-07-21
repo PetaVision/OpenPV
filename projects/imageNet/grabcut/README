@@ -1,0 +1,14 @@
+grabcut.cxx is a simple commandline interface to the GrabCut image segmentation algorithm that is part of OpenCV.
+
+To build grabcut.cxx:
+
+- install cmake and OpenCV.
+- run:
+        ccmake -G "Unix MakeFiles"
+        	(press c)
+        	(press e if no error messages)
+        	(press c)
+        	(press g)	
+        make
+
+You should then be able to execute ./grabcut from the commandline.  grabcut.py is a python script that automates generation of initialization mask images and calling the grabcut binary.

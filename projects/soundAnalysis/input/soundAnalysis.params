@@ -1,0 +1,724 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified bliu June 20, 2014
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+   nx                              = 1;//always 1x1
+   ny                              = 1;
+   dt                              = .00022675737; // downsampling = dt * sampleRate
+   randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   stopTime                        = .3;
+   progressInterval                = .00023; // dt
+   outputPath                      = "output";
+   filenamesContainLayerNames      = true;
+   filenamesContainConnectionNames = true;
+   checkpointRead                  = false;
+   checkpointWrite                 = true;
+   checkpointWriteDir              = "output/checkpoints";
+   checkpointWriteStepInterval     = 221; //numdelays
+   deleteOlderCheckpoints          = false;
+   writeProgressToErr              = true;
+   outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
+   printTimescales                 = false;
+   dtAdaptFlag = false; // set to determine expected errors
+};
+
+
+
+//
+// layers
+//
+
+SoundStream "Sound" = {
+    restart                = 0;
+    nxScale                = 1;
+    nyScale                = 1;
+    soundInputPath         = "input/A.wav";
+    nf                     = 1; // mono vs. stereo
+    writeStep              = .00023; //dt
+    initialWriteTime       = 0;
+    writeSparseActivity    = false;
+    displayPeriod          = 1;  //5000;  //  unnecesary [in time steps - I think] TODO: change to [ms]
+    soundBCFlag            = true;
+    soundOffset            = 0; //In seconds
+    phase = 0;
+};
+
+
+NewCochlearLayer "NewCochlear" = {
+    restart = 0;
+    nxScale = 4; //number of cochlear hair cells, useful as power of two (1024)
+    nyScale = 1;
+    nf = 1;
+    writeStep = .00022675737; //dt
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    //InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+    inputLayername = "Sound"; 
+    targetChannel = 0;
+
+    freqMin = 440;
+    freqMax = 20000;
+    equalTemperedFlag = true;
+
+    dampingRatio = .5;
+
+    sampleRate = 44100;
+
+    //displayPeriod = .000022675737; //downsample here
+    
+    //soundstream params
+    
+    soundInputPath         = "input/A.wav";
+    soundBCFlag            = true;
+    soundOffset            = 0; //In seconds
+    
+    
+    valueV                          = 0.0;
+    Vrest                           = 0.0;
+
+    phase = 1;
+
+
+};
+
+
+ANNNormalizedErrorLayer "CochlearError" = {
+    restart = 0;
+    nxScale = 4; // same as Coclear nxScale
+    nyScale = 1;
+    nf = 221; //number of delays, useful as power of 2
+    initialWriteTime = 0;
+    writeStep = .00023; //dt
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/ErrorON_V.pvp";
+
+    VThresh = 0.005;
+    VMax =  infinity;
+    VMin = 0;
+    VShift = 0;
+    valueBC = 0;
+    
+    triggerFlag = false;
+    errScale = .5;
+
+    phase = 2;
+};
+
+HyPerLCALayer "A1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 32; // number of desired features considering overcompleteness
+    numChannels = 1;
+    initialWriteTime = 0;
+    writeStep = .00023; //dt
+    mirrorBCflag = 0;
+    writeSparseActivity = true;
+    writeSparseValues = true;
+
+    InitVType = "UniformRandomV";
+
+    minV = -1.0;
+    maxV = .15;
+    timeConstantTau = .05;
+    timeConstantTauMinimum = 0;
+    slopeErrorStd = 0.01;
+    VThresh = 0.01;
+    VWidth = 0.01;
+    AMax = infinity;
+    AMin = 0;
+    AShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    valueBC = 0;
+    
+    triggerFlag = false;
+
+    phase = 3;
+};
+
+
+StreamReconLayer "StreamRecon" = {
+    restart = 0;
+    nxScale = 4; //numfrequencies
+    nySacle = 1;
+    nf = 221; //numdelays
+    numChannels = 1;
+    initialWriteTime = 0;
+    writeStep = .00023; //dt
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
+    triggerFlag = false;
+
+    phase = 4;
+    
+};
+
+
+inverseCochlearLayer "inverseCochlear" = {
+    restart = 0;
+    nxScale = 1; //1 x 1 x 1
+    nyScale = 1;
+    // nf automatically set to 2 (real part & imaginary part)
+    writeStep = .00022675737; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+    //These 2 layers are the same right now, but eventually the inputLayername will be different
+    inputLayername = "StreamRecon";
+    cochlearLayername = "NewCochlear";
+
+    sampleRate = 44100;
+    bufferLength = 1;
+    
+    phase = 5;
+};
+
+
+///Connections////
+
+
+KernelConn "CochlearToCochlearError" = {
+    preLayerName = "NewCochlear";
+    postLayerName = "CochlearError";
+    
+    channelCode = 0;
+    nxp         = 7; //(2 * numfreqs) - 1 for all to all connection
+    nyp         = 1;
+    nfp         = 221; //numdelays
+    //Set delay from 0 to 2205 * dt
+    delay       = [0, 0.00023, 0.00046, 0.00069, 0.00092, 0.00115, 0.00138, 0.00161, 0.00184, 0.00207, 0.0023, 0.00253, 0.00276, 0.00299, 0.00322, 0.00345, 0.00368, 0.00391, 0.00414, 0.00437, 0.0046, 0.00483, 0.00506, 0.00529, 0.00552, 0.00575, 0.00598, 0.00621, 0.00644, 0.00667, 0.0069, 0.00713, 0.00736, 0.00759, 0.00782, 0.00805, 0.00828, 0.00851, 0.00874, 0.00897, 0.0092, 0.00943, 0.00966, 0.00989, 0.01012, 0.01035, 0.01058, 0.01081, 0.01104, 0.01127, 0.0115, 0.01173, 0.01196, 0.01219, 0.01242, 0.01265, 0.01288, 0.01311, 0.01334, 0.01357, 0.0138, 0.01403, 0.01426, 0.01449, 0.01472, 0.01495, 0.01518, 0.01541, 0.01564, 0.01587, 0.0161, 0.01633, 0.01656, 0.01679, 0.01702, 0.01725, 0.01748, 0.01771, 0.01794, 0.01817, 0.0184, 0.01863, 0.01886, 0.01909, 0.01932, 0.01955, 0.01978, 0.02001, 0.02024, 0.02047, 0.0207, 0.02093, 0.02116, 0.02139, 0.02162, 0.02185, 0.02208, 0.02231, 0.02254, 0.02277, 0.023, 0.02323, 0.02346, 0.02369, 0.02392, 0.02415, 0.02438, 0.02461, 0.02484, 0.02507, 0.0253, 0.02553, 0.02576, 0.02599, 0.02622, 0.02645, 0.02668, 0.02691, 0.02714, 0.02737, 0.0276, 0.02783, 0.02806, 0.02829, 0.02852, 0.02875, 0.02898, 0.02921, 0.02944, 0.02967, 0.0299, 0.03013, 0.03036, 0.03059, 0.03082, 0.03105, 0.03128, 0.03151, 0.03174, 0.03197, 0.0322, 0.03243, 0.03266, 0.03289, 0.03312, 0.03335, 0.03358, 0.03381, 0.03404, 0.03427, 0.0345, 0.03473, 0.03496, 0.03519, 0.03542, 0.03565, 0.03588, 0.03611, 0.03634, 0.03657, 0.0368, 0.03703, 0.03726, 0.03749, 0.03772, 0.03795, 0.03818, 0.03841, 0.03864, 0.03887, 0.0391, 0.03933, 0.03956, 0.03979, 0.04002, 0.04025, 0.04048, 0.04071, 0.04094, 0.04117, 0.0414, 0.04163, 0.04186, 0.04209, 0.04232, 0.04255, 0.04278, 0.04301, 0.04324, 0.04347, 0.0437, 0.04393, 0.04416, 0.04439, 0.04462, 0.04485, 0.04508, 0.04531, 0.04554, 0.04577, 0.046, 0.04623, 0.04646, 0.04669, 0.04692, 0.04715, 0.04738, 0.04761, 0.04784, 0.04807, 0.0483, 0.04853, 0.04876, 0.04899, 0.04922, 0.04945, 0.04968, 0.04991, 0.05014, 0.05037, 0.0506];
+    
+    numAxonalArbors  = 221; // numdelays
+    useWindowPost    = false;
+    writeStep        = -1;
+    initFromLastFlag = 0;
+
+    weightInitType = "OneToOneWeightsWithDelays";
+    weightInit = 1.0;
+      
+    normalizeMethod        = "none";
+    plasticityFlag         = false;
+    pvpatchAccumulateType  = "convolve";
+    writeCompressedCheckpoints = true;
+    selfFlag               = false;
+    shrinkPatches          = false;
+    updateGSynFromPostPerspective = false;
+    preActivityIsNotRate   = false;
+    shmget_flag            = true;
+};
+
+
+KernelConn "A1ToCochlearError" = {
+    preLayerName = "A1";
+    postLayerName = "CochlearError";
+    channelCode = 1;
+    nxp = 4; // numfreqs
+    nyp = 1;
+    nfp = 221;  // numdelays
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "UniformRandomWeight";
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/V1ToErrorON_W.pvp";
+
+    strength = 1;
+    normalizeMethod = "normalizeL2";
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    writeStep = .00023;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    weightUpdatePeriod = .00023; //200.0;
+    initialWeightUpdateTime = 0; //199.0;
+    initialWriteTime = 0.0;
+    dWMax = 1; //5.0; 
+    selfFlag = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    
+    updateGSynFromPostPerspective = 0;
+};
+
+
+
+TransposeConn "CochlearErrorToA1" = {
+    preLayerName = "CochlearError";
+    postLayerName = "A1";
+    channelCode = 0;
+    originalConnName = "A1ToCochlearError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = 0;
+};
+
+CloneKernelConn "A1ToStreamRecon" = {
+    preLayerName = "A1";
+    postLayerName = "StreamRecon";
+    channelCode = 0;
+    initialWriteTime = 0.0;
+    writeStep = -.00023;
+    originalConnName = "A1ToCochlearError";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    updateGSynFromPostPerspective = 0;
+    writeCompressedCheckpoints = 0;
+};
+
+
+////Probes//////
+
+
+StatsProbe "A1StatsFile" = {
+    targetLayer = "A1";
+    probeOutputFile = "A1_Stats.txt";
+};
+
+
+SoundProbe "inverseCochlearProbe" = {
+   restart = 0;
+   targetLayer = "inverseCochlear";
+   soundOutputPath = "output/outic.wav";
+   soundInputType  = "input/A.wav";
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+disable = true;
+
+
+////layers//////
+
+
+SoundStream "Sound" = {
+    restart                = 0;
+    nxScale                = 1;
+    nyScale                = 1;
+    soundInputPath         = "input/A.wav";
+    nf                     = 1; // mono vs. stereo
+    writeStep              = .000022675737;
+    initialWriteTime       = 0;
+    writeSparseActivity    = false;
+    displayPeriod          = 1;  //5000;  // [in time steps - I think] TODO: change to [ms]
+    soundBCFlag            = true;
+    soundOffset            = 0; //In seconds
+    phase = 0;
+};
+
+
+CochlearLayer "Cochlear" = {
+    restart = 0;
+    nxScale = 128; //number of cochlear hair cells, useful as power of two (1024)
+    nyScale = 1;
+    nf = 1;
+    writeStep = .000022675737; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+    inputLayername = "Sound"; 
+    targetChannel = 0;
+
+    freqMin = 100;
+    freqMax = 4000;
+
+    dampingRatio = .5;
+
+    sampleRate = 44100;
+    cochlearScale = 1000000; 
+    displayPeriod = .000022675737; //downsample here
+    phase = 1;
+
+
+};
+
+
+
+ANNLayer "CochlearThreshold" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    marginWidth = 0;
+    writeStep = -1;
+    initialWriteTime = 0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //
+    VThresh = 0; // change to desired threshold
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0;
+    // 
+    phase = 2;
+
+};
+
+LIF "LIFLayer" = {
+    restart                         = 0;
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 1;
+    writeStep                       = -1.0;
+    mirrorBCflag                    = false;
+    valueBC                         = 0.0;
+    writeSparseActivity             = true;
+    phase                           = 0;
+    
+    InitVType                       = "ConstantV";
+    valueV                          = -70.0;
+    Vrest                           = -70.0;    // adjusted for gap of 0.025   
+    Vexc                            = 0.0;     // reversal potential 
+    Vinh                            = -75.0;   // chloride channel
+    VinhB                           = -90.0;   // potassium reversal
+    tau                             = 15.0;    // intrinsic leak membrane time constant 
+};
+
+
+ANNLayer "CochlearRecon" = {
+    restart = 0;
+    nxScale = 16; // numfreqs
+    nyScale = 1;
+    nf = 221;  // num delays
+    initialWriteTime = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    
+    InitVType = "ZeroV";    
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/ReconON_V.pvp";
+
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity;
+    VShift = 0;
+    valueBC = 0; 
+    
+    triggerFlag = true;
+    triggerLayerName = "Cochlear";
+
+    phase = 4;
+};
+
+
+StreamReconLayer "StreamRecon" = {
+    restart = 0;
+    nxScale = 2; //numfrequencies
+    nySacle = 1;
+    nf = 221; //numdelays
+    numChannels = 1;
+    initialWriteTime = 0;
+    writeStep = .00023; //dt
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    
+    InitVType = "ZeroV";
+    triggerFlag = false;
+
+    phase = 4;
+    
+};
+
+ANNLayer "SoundByte" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 221; // same as number of delays
+    marginWidth = 0;
+    writeStep = -1;
+    initialWriteTime = 0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    //
+    InitVType = "ZeroV";
+    //
+    VThresh = 0; // change to desired threshold
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0;
+    // 
+    phase = 4;
+
+};
+
+
+inverseCochlearLayer "inverseCochlear" = {
+    restart = 0;
+    nxScale = 1; //numfreqs
+    nyScale = 1;
+    // nf automatically set to 2 (real part & imaginary part)
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+    //These 2 layers are the same right now, but eventually the inputLayername will be different
+    inputLayername = "Cochlear";
+    cochlearLayername = "Cochlear";
+
+    sampleRate = 44100;
+    bufferLength = 1;
+    
+    phase = 5;
+};
+
+
+ANNLayer "ReverseCorrelation" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 221;  // num delays
+    initialWriteTime = 0;
+    writeStep = -1;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    
+    InitVType = "ZeroV";    
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/ReconON_V.pvp";
+
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity;
+    VShift = 0;
+    valueBC = 0; 
+    
+    triggerFlag = true;
+    triggerLayerName = "NewCochlear";
+
+    phase = 5;
+};
+
+
+///conns////
+
+CloneKernelConn "A1ToCochlearRecon" = {
+    preLayerName = "A1";
+    postLayerName = "CochlearRecon";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "A1ToCochlearError";
+    selfFlag = false;
+   pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    updateGSynFromPostPerspective = 0;
+    writeCompressedCheckpoints = 0;
+};
+
+
+KernelConn "SoundToSoundByte" = {
+
+    preLayerName = "Sound";
+    postLayerName = "SoundByte";
+    
+    channelCode = 0;
+    nxp         = 1;
+    nyp         = 1;
+    nfp         = 221; // number of delays
+    //Set delay from 0 to 2205 * .00023
+    delay       = [0, 0.00023, 0.00046, 0.00069, 0.00092, 0.00115, 0.00138, 0.00161, 0.00184, 0.00207, 0.0023, 0.00253, 0.00276, 0.00299, 0.00322, 0.00345, 0.00368, 0.00391, 0.00414, 0.00437, 0.0046, 0.00483, 0.00506, 0.00529, 0.00552, 0.00575, 0.00598, 0.00621, 0.00644, 0.00667, 0.0069, 0.00713, 0.00736, 0.00759, 0.00782, 0.00805, 0.00828, 0.00851, 0.00874, 0.00897, 0.0092, 0.00943, 0.00966, 0.00989, 0.01012, 0.01035, 0.01058, 0.01081, 0.01104, 0.01127, 0.0115, 0.01173, 0.01196, 0.01219, 0.01242, 0.01265, 0.01288, 0.01311, 0.01334, 0.01357, 0.0138, 0.01403, 0.01426, 0.01449, 0.01472, 0.01495, 0.01518, 0.01541, 0.01564, 0.01587, 0.0161, 0.01633, 0.01656, 0.01679, 0.01702, 0.01725, 0.01748, 0.01771, 0.01794, 0.01817, 0.0184, 0.01863, 0.01886, 0.01909, 0.01932, 0.01955, 0.01978, 0.02001, 0.02024, 0.02047, 0.0207, 0.02093, 0.02116, 0.02139, 0.02162, 0.02185, 0.02208, 0.02231, 0.02254, 0.02277, 0.023, 0.02323, 0.02346, 0.02369, 0.02392, 0.02415, 0.02438, 0.02461, 0.02484, 0.02507, 0.0253, 0.02553, 0.02576, 0.02599, 0.02622, 0.02645, 0.02668, 0.02691, 0.02714, 0.02737, 0.0276, 0.02783, 0.02806, 0.02829, 0.02852, 0.02875, 0.02898, 0.02921, 0.02944, 0.02967, 0.0299, 0.03013, 0.03036, 0.03059, 0.03082, 0.03105, 0.03128, 0.03151, 0.03174, 0.03197, 0.0322, 0.03243, 0.03266, 0.03289, 0.03312, 0.03335, 0.03358, 0.03381, 0.03404, 0.03427, 0.0345, 0.03473, 0.03496, 0.03519, 0.03542, 0.03565, 0.03588, 0.03611, 0.03634, 0.03657, 0.0368, 0.03703, 0.03726, 0.03749, 0.03772, 0.03795, 0.03818, 0.03841, 0.03864, 0.03887, 0.0391, 0.03933, 0.03956, 0.03979, 0.04002, 0.04025, 0.04048, 0.04071, 0.04094, 0.04117, 0.0414, 0.04163, 0.04186, 0.04209, 0.04232, 0.04255, 0.04278, 0.04301, 0.04324, 0.04347, 0.0437, 0.04393, 0.04416, 0.04439, 0.04462, 0.04485, 0.04508, 0.04531, 0.04554, 0.04577, 0.046, 0.04623, 0.04646, 0.04669, 0.04692, 0.04715, 0.04738, 0.04761, 0.04784, 0.04807, 0.0483, 0.04853, 0.04876, 0.04899, 0.04922, 0.04945, 0.04968, 0.04991, 0.05014, 0.05037, 0.0506];
+    
+    numAxonalArbors  = 221; // number of delays
+    useWindowPost    = false;
+    writeStep        = -1;
+    initFromLastFlag = 0;
+
+    weightInitType = "OneToOneWeightsWithDelays";
+    weightInit = 1.0;
+      
+    normalizeMethod        = "none";
+    plasticityFlag         = false;
+    pvpatchAccumulateType  = "convolve";
+    writeCompressedCheckpoints = true;
+    selfFlag               = false;
+    shrinkPatches          = false;
+    updateGSynFromPostPerspective = false;
+    preActivityIsNotRate   = false;
+    shmget_flag            = true;
+};
+
+KernelConn "A1ToSoundByte" = {
+    preLayerName = "A1";
+    postLayerName = "SoundByte";
+    channelCode = -1;  //set to -1
+    nxp = 1;
+    nyp = 1;
+    nfp = 221; //numdelays
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "UniformRandomWeight";
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/nh/compneuro/Data/vine/LCA/RETINAvsShuffled_10k/Checkpoints/Checkpoint22000/V1ToErrorON_W.pvp";
+
+    strength = 1;
+    normalizeMethod = "none"; //set to "none"
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    weightUpdatePeriod = .000023; //200.0;
+    initialWeightUpdateTime = .000023; //199.0;
+    initialWriteTime = 0.0;
+    dWMax = 1; //5.0; 
+    selfFlag = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    
+    updateGSynFromPostPerspective = 0;
+};
+
+
+
+CloneKernelConn "A1ToReverseCorrelation" = {
+    preLayerName = "A1";
+    postLayerName = "ReverseCorrelation";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "A1ToSoundByte";
+    selfFlag = false;
+   pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    updateGSynFromPostPerspective = 0;
+    writeCompressedCheckpoints = 0;
+};
+
+
+
+//probes////
+
+SoundProbe "soundProbe" = {
+   restart = 0;
+   targetLayer = "inverseCochlear";
+   soundOutputPath = "output/out.wav";
+   soundInputType  = "input/A.wav";
+};
+
+
+
+
+
+
+
+/// movielayer /////
+
+
+Movie "WeightRecon" = {
+    restart = 0;
+    nxScale = 1; //numfreqs
+    nyScale = 1;
+    imageListPath = "/Users/JEC/Desktop/newvision/sandbox/soundAnalysis/scripts/w2a/feature11.pvp";
+    nf = 1;      //numdelays
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = false;
+    readPvpFile = true;
+    phase = 4;
+};
+

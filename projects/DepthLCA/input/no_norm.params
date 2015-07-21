@@ -1,0 +1,325 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 1200; //1242;  // KITTI synced value
+    ny = 216;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0;
+    stopTime= 100000000;
+    progressStep = 1000;
+    outputPath = "/nh/compneuro/Data/Depth/LCA/no_norm/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false; //true;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/no_norm/Checkpoints";
+    //checkpointReadDirIndex = ;
+    checkpointWrite = true;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/no_norm/Checkpoints";
+    checkpointWriteStepInterval = 1000;
+    deleteOlderCheckpoints = false;
+    //suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+    dtAdaptFlag = true;
+    dtScaleMax = 5.0;
+    dtScaleMin = 2;
+    dtChangeMax = 0.05;
+    dtChangeMin = 0.0;
+};
+
+//
+// layers
+//
+
+// left eye layers
+
+Movie "Image" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = false;
+    imageListPath = "/nh/compneuro/Data/Depth/raw/image_02.txt";
+    writeFrameToTimestamp = true;
+    nf = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 200;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = false;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+ANNLayer "Buffer" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 999.0; //Change based on display period 
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    phase = 1;
+    triggerFlag = true;
+    triggerLayerName = "Image";
+};
+
+RescaleLayer "Rescale" = {
+    restart                         = false;
+    originalLayerName               = "Buffer";
+    nxScale                         = 1; 
+    nyScale                         = 1; 
+    nf                              = 1;
+    mirrorBCflag                    = true;
+    writeStep                       = 200;
+    initialWriteTime                = 200;
+    writeSparseActivity             = false;
+    rescaleMethod                   = "meanstd"; //Can be either meanstd or maxmin
+    targetMean                      = 0;
+    targetStd                       = 1;
+    valueBC = 0;
+    phase                           = 4;
+    triggerFlag = true;
+    triggerLayerName = "Image";
+};
+
+ANNNormalizedErrorLayer "Error" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = 200;
+    initialWriteTime = 200.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_no_norm/Error_V.pvp";
+    VThresh = 0.001; //Change this for efficiency
+    VMax =  infinity;
+    VMin = 0;
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    //
+    errScale = 1; //Normal is .2
+    //
+    phase = 5;  
+};
+
+// for visualization only, makes no output
+ANNLayer "Recon" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = 200.0;
+    initialWriteTime = 200.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    phase = 4;
+    triggerFlag = 1;
+    triggerLayerName = "Image";
+    //triggerOffset = 1;
+};
+
+// binoclular layers
+
+HyPerLCALayer "V1" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 32; //2048 or 4096;
+    numChannels = 1;
+    numWindowX = 1;
+    numWindowY = 1;
+    writeStep = 200.0;
+    initialWriteTime = 200.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 1;
+    writeSparseValues   = 1;
+    //
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .15; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_no_norm/V1_V.pvp";
+    // 
+    timeConstantTau = 800.0;
+    slopeErrorStd = 0.01;
+    // 
+    dVThresh = 0;
+    VThresh = 0.7; //mean + 1 std of the positive input to error
+    VMax = infinity;
+    VMin = 0;
+    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VWidth = 0.7; //Same as VThresh
+    //
+    phase = 6;
+};
+
+// connections
+
+IdentConn "ImageToBuffer" = {
+    preLayerName = "Image";
+    postLayerName = "Buffer";
+    channelCode = 0;
+    writeStep = -1;    
+    delay = 0;
+};
+
+KernelConn "RescaleToError" = {
+    preLayerName = "Rescale";
+    postLayerName = "Error";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    //////////////////////
+    //TODO What to do here????
+    //////////////////////
+    weightInit = 1;  // 1/sqrt(34*34);
+    normalizeMethod = "normalizeDecay";
+    weightTauDecay = 20; 
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+// binocular connections
+
+LocalKernelConn "V1ToError" = {
+    preLayerName = "V1";
+    postLayerName = "Error";
+    channelCode = 1;
+    nxp = 34;
+    nyp = 34;
+    nfp = 1;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    //
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_no_norm/V1ToError_W.pvp";
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -.25;
+    wMaxInit = .25;
+    sparseFraction = .90;
+    //
+    strength = 1; //.25/2  
+    normalizeMethod = "none";
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = 200;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    //weightUpdatePeriod = 200.0;
+    initialWeightUpdateTime = 200.0;
+    initialWriteTime = 0.0;
+    dWMax = 1; // 200.0 used for initial training
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+    triggerFlag = true;
+    triggerLayerName = "Image";
+    triggerOffset = 1;
+};
+
+TransposeConn "ErrorToV1" = {
+    preLayerName = "Error";
+    postLayerName = "V1";
+    channelCode = 0;
+    originalConnName = "V1ToError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
+};
+
+CloneKernelConn "V1ToRecon" = {
+    preLayerName = "V1";
+    postLayerName = "Recon";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1ToError";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+StatsProbe "ErrorStatsFile" = {
+    targetLayer = "Error";
+    probeOutputFile = "Error_Stats.txt";
+};
+
+StatsProbe "V1StatsFile" = {
+    targetLayer = "V1";
+    probeOutputFile = "V1_Stats.txt";
+};

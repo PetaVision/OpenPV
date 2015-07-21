@@ -1,0 +1,192 @@
+// PetaVision version something-point-something run at Tue Aug 19 17:08:28 2014
+// Compiled with MPI and run using 1 rows and 1 columns.
+// Compiled without OpenCL.
+// Compiled without OpenMP parallel code.
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 0.000226757;
+    dtAdaptFlag                         = false;
+    stopTime                            = 0.05;
+    progressInterval                    = 0.000226757;
+    writeProgressToErr                  = true;
+    outputPath                          = "rectifiedweights";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 1;
+    ny                                  = 1;
+    filenamesContainLayerNames          = 1;
+    filenamesContainConnectionNames     = 1;
+    initializeFromCheckpointDir         = "";
+    checkpointRead                      = false;
+    checkpointWrite                     = false;
+    suppressLastOutput                  = false;
+    errorOnNotANumber                   = false;
+};
+
+SoundStream "Sound" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    restart                             = false;
+    triggerFlag                         = false;
+    writeStep                           = 0.00023;
+    initialWriteTime                    = 0;
+    writeSparseActivity                 = false;
+    soundInputPath                      = "input/furElise.wav";
+    frameStart                          = 1;
+};
+
+NewCochlearLayer "NewCochlear" = {
+    freqMin                             = 50;
+    freqMax                             = 20000;
+    nxScale                             = 64;
+    nyScale                             = 1;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    restart                             = false;
+    InitVType                           = "ConstantV";
+    valueV                              = 0;
+    triggerFlag                         = false;
+    writeStep                           = 0.000226757;
+    initialWriteTime                    = 0;
+    writeSparseActivity                 = false;
+    targetChannel                       = 0;
+    sampleRate                          = 44100;
+    equalTemperedFlag                   = 1;
+    soundInputPath                      = "input/furElise.wav";
+    frameStart                          = 1;
+};
+
+Movie "WeightPositive" = {
+    nxScale                             = 64;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 2;
+    mirrorBCflag                        = true;
+    restart                             = false;
+    writeStep                           = 0.000226757;
+    initialWriteTime                    = 0;
+    writeSparseActivity                 = false;
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    useImageBCflag                      = false;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    imageListPath                       = "/Users/MLD/newvision/sandbox/soundAnalysis/analysis/w2a+/+feature6frame1.pvp";
+    displayPeriod                       = 0.000226757;
+    randomMovie                         = 0;
+    readPvpFile                         = true;
+    start_frame_index                   = 1;
+    skip_frame_index                    = 1;
+    writeFrameToTimestamp               = true;
+    flipOnTimescaleError                = true;
+};
+
+Movie "WeightNegative" = {
+    nxScale                             = 64;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 2;
+    mirrorBCflag                        = true;
+    restart                             = false;
+    writeStep                           = 0.000226757;
+    initialWriteTime                    = 0;
+    writeSparseActivity                 = false;
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    useImageBCflag                      = false;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    imageListPath                       = "/Users/MLD/newvision/sandbox/soundAnalysis/analysis/w2a-/-feature6frame1.pvp";
+    displayPeriod                       = 0.000226757;
+    randomMovie                         = 0;
+    readPvpFile                         = true;
+    start_frame_index                   = 1;
+    skip_frame_index                    = 1;
+    writeFrameToTimestamp               = true;
+    flipOnTimescaleError                = true;
+};
+
+ANNLayer "WeightRecon" = {
+    nxScale                             = 64;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 3;
+    mirrorBCflag                        = true;
+    restart                             = false;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = false;
+    writeStep                           = 0.000226757;
+    initialWriteTime                    = 0;
+    writeSparseActivity                 = false;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+};
+
+inverseCochlearLayer "inverseWeights" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    phase                               = 4;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    restart                             = false;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = false;
+    writeStep                           = 0.00023;
+    initialWriteTime                    = 0;
+    writeSparseActivity                 = false;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    inputLayername                      = "WeightRecon";
+    cochlearLayername                   = "NewCochlear";
+    sampleRate                          = 44100;
+    bufferLength                        = 1;
+};
+
+IdentConn "WeightPositiveToWeightRecon" = {
+    preLayerName                        = "WeightPositive";
+    postLayerName                       = "WeightRecon";
+    channelCode                         = 0;
+    // initWeightsFile                     was set to (NULL);
+    writeStep                           = 0.000226757;
+    initialWriteTime                    = 0;
+    delay                               = [0.000000];
+};
+
+IdentConn "WeightNegativeToWeightRecon" = {
+    preLayerName                        = "WeightNegative";
+    postLayerName                       = "WeightRecon";
+    channelCode                         = 1;
+    // initWeightsFile                     was set to (NULL);
+    writeStep                           = 0.000226757;
+    initialWriteTime                    = 0;
+    delay                               = [0.000000];
+};
+
+SoundProbe "WeightsProbe" = {
+    targetLayer                         = "inverseWeights";
+    // message                             was set to (NULL);
+    // probeOutputFile                     was set to (NULL);
+    triggerFlag                         = false;
+    buffer                              = "Activity";
+    nnzThreshold                        = 0;
+    soundOutputPath                     = "output/outweight.wav";
+    soundInputType                      = "input/furElise.wav";
+};

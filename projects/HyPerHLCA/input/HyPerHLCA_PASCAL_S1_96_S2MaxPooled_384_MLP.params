@@ -1,0 +1,1847 @@
+// // based on HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+// // also based on HyPerHLCA_PASCAL_S1_96_SLP.params
+//
+// created by garkenyon, 7/11/14
+//
+//
+// Uses a single (could be extended to multi)-layer perceptron-like (SLP/MLP)
+// architecture to classify tiles drawn from the 
+// PASCAL VOC2007 database.  
+// Images were sparse coded using a locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+// If a hidder layer is used, it's features should be adapted to minimize classification
+// error while the features themselves generate a sparse code of the 
+// input layer usng a basis that has not been optimized for sparse reconstruction but rather
+// for minimal classification error.
+///////////////////////////
+
+
+
+debugParsing = true;
+
+HyPerCol "column" = {
+  nx = 256; 
+  ny = 192; //256; // 
+  dt = 1.0;
+  dtAdaptFlag = true;
+  dtScaleMax = 10.0;
+  dtScaleMin = 0.25;
+  dtChangeMax = 0.1;
+  dtChangeMin = 0.0;
+  dtMinToleratedTimeScale = 1.0e-4;
+  randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+  startTime =  0; //2400000; //
+  stopTime =   1591000; // 52 landscape //7955 landscape images // 883 portrait images//  * displayPeriod
+  progressInterval = 1000;
+  outputPath = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2MaxPooled_384_MLP/VOC2007_landscape";
+  filenamesContainLayerNames = true;
+  filenamesContainConnectionNames = true;
+  defaultInitializeFromCheckpointFlag = false;
+  checkpointWrite = true;
+  //checkpointWriteTriggerMode = "step";
+  checkpointWriteDir = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2MaxPooled_384_MLP/VOC2007_landscape/Checkpoints";
+  checkpointWriteStepInterval = 20000;
+  deleteOlderCheckpoints = false; //true;
+    //suppressLastOutput = false;
+  initializeFromCheckpointDir = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2MaxPooled_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint122000";
+  checkpointWriteTriggerMode = "step";
+  writeProgressToErr = true;
+  outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+  suppressLastOutput = false;
+  printParamsFilename = "PASCAL_VOC_PASCAL_S1_96_S2MaxPooled_384_MLP_VOC2007_landscape.params";
+  writeTimescales = true;
+  verifyWrites = true;
+  errorOnNotANumber = false;
+};
+
+
+
+//
+// layers
+//
+
+
+Movie "Image" = {
+    nxScale = 1;
+    nyScale = 1;
+    imageListPath = "~/workspace/PASCAL_VOC/VOC2007/VOC2007_padded0_landscape_list.txt";
+    nf = 3;
+    initializeFromCheckpointFlag = false;
+    writeStep = 100;
+    initialWriteTime = 100;
+    sparseLayer = false;
+    displayPeriod = 100; //200;
+    start_frame_index = 0; //2346; 
+    skip_frame_index = 0;
+    echoFramePathnameFlag = true;
+    writeFrameToTimestamp = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = true;
+    normalizeStdDev = true;
+    flipOnTimescaleError = true;
+    writeImages = false;
+    offsetX = 0; 
+    offsetY = 0; 
+    offsetAnchor = "tl";
+    randomMovie = 0;
+    autoResizeFlag = false;
+    readPvpFile = false;
+    updateGpu = false;
+    phase = 0;
+};
+
+ANNErrorLayer "ImageReconS1Error" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    initializeFromCheckpointFlag = false; //true;
+    initialWriteTime = 10.0;
+    writeStep = 100;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    sparseLayer = false;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "Vfilename";
+    //InitVFromFile = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape9/Checkpoints/Checkpoint1591000/ImageReconS1Error_V.pvp";
+    //
+    VThresh = 0.0;
+    AMax =  infinity;
+    AMin = 0;
+    AShift = 0;
+    VWidth = 0;
+    errScale = 1.0;
+    //
+    triggerFlag = true;
+    triggerLayerName = "Image";
+    triggerOffset = 0;
+    updateGpu = false;
+    phase = 2;  
+};
+
+//HyPerLCALayer "S1" = {
+//    nxScale = 0.5;
+//    nyScale = 0.5;
+//    nf = 96; //48; 
+//    initializeFromCheckpointFlag = false; //true;
+//    numChannels = 1; // should be 1
+//    numWindowX = 1;
+//    numWindowY = 1;
+//    initialWriteTime = 200.0;
+//    writeStep = 200.0;
+//    mirrorBCflag = 0;
+//    valueBC = 0;
+//    sparseLayer = true;
+//    writeSparseValues = 1; 
+//    //InitVType = "UniformRandomV";
+//    //minV = -1.0;
+//    //maxV = .1; //0.05 above VThresh
+//    InitVType = "InitVFromFile";
+//    Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape9/Checkpoints/Checkpoint1591000/S1_V.pvp";
+//    // 
+//    timeConstantTau = 100; //200; //100.0;
+//    //timeConstantTauMinimum = 10.0;
+//    //slopeErrorStd = 0.01;
+//    // 
+//    VThresh = 0.025; //
+//    AMax = infinity;
+//    AMin = 0;
+//    AShift = 0.0; //0.0; //0 -> hard threshold, 1 -> soft threshold
+//    VWidth = 0.1; //0.05; //0.025; //0.025; //0.025; 
+//    selfInteract = true;   //
+//    triggerFlag = false;
+//    updateGpu = true;    
+//    phase = 2;
+//};
+
+
+Movie "S1" = {
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 96; //48; 
+    initializeFromCheckpointFlag = false;
+    readPvpFile = true;
+    imageListPath = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape9/a2_S1.pvp";
+    writeStep = -1; //10000;
+    //initialWriteTime = 10000;
+    sparseLayer = true;
+    writeSparseValues = false;
+    displayPeriod = 1;
+    start_frame_index = 0; //2346; 
+    skip_frame_index = 0;
+    echoFramePathnameFlag = true;
+    writeFrameToTimestamp = true;
+    mirrorBCflag = false; //true;
+    valueBC = 0.0;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false; //true;
+    writeImages = false;
+    offsetAnchor = "tl";
+    offsetX = 0; 
+    offsetY = 0; 
+    randomMovie = 0;
+    autoResizeFlag = false;
+    flipOnTimescaleError = true;
+    updateGpu = false;
+    phase = 0;
+};
+
+
+ANNLayer "ImageReconS1" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    initializeFromCheckpointFlag = false;
+    initialWriteTime = 100.0;
+    writeStep = 100.0;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    sparseLayer = false;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/ImageReconS1_V.pvp";
+    //
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    VWidth = 0.0; 
+    // 
+    triggerFlag = true;
+    triggerLayerName = "Image";
+    triggerOffset = 0;
+    updateGpu = false;
+    phase = 1; 
+};
+
+
+// Residual layer driving S2 LCA layer
+ANNErrorLayer "S1ReconS2Error" = {
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 96;
+    initializeFromCheckpointFlag = false;
+    initialWriteTime = 100.0;
+    writeStep = 100;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    sparseLayer = false;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/S1ReconS2Error_V.pvp";
+    //
+    VThresh = 0.0;
+    AMax =  infinity;
+    AMin = 0;
+    AShift = 0;
+    VWidth = 0;
+    errScale = 1.0;
+    //
+    triggerFlag = true;
+    triggerLayerName = "Image";
+    triggerOffset = 0;
+    updateGpu = false;
+    phase = 1;  
+};
+
+
+// use firm threshold with VWidth = 20Xs VThresh to help avoid local minima
+//HyPerLCALayer "S2" = {
+//    nxScale = 0.25;
+//    nyScale = 0.25;
+//    nf = 384; 
+//    numChannels = 1; // should be 1
+//    initializeFromCheckpointFlag = false;
+//    numWindowX = 1;
+//    numWindowY = 1;
+//    initialWriteTime = 200.0;
+//    writeStep = 200.0;
+//    mirrorBCflag = 0;
+//    valueBC = 0;
+//    sparseLayer = true;
+//    writeSparseValues = 1; 
+//    //InitVType = "UniformRandomV";
+//    //minV = -1.0;
+//    //maxV = .1; //0.05 above VThresh
+//    InitVType = "InitVFromFile";
+//    Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape9/Checkpoints/Checkpoint1591000/S2_V.pvp";
+//    // 
+//    timeConstantTau = 100; 
+//    //timeConstantTauMinimum = 10.0;
+//    //slopeErrorStd = 0.01;
+//    // 
+//    VThresh = 0.01; //0.005; // 0.025; //  
+//    AMax = infinity;
+//    AMin = 0;
+//    AShift = 0.0; //0.0; //0 -> hard threshold, 1 -> soft threshold
+//    VWidth = 0.5; //0.1; 
+//    selfInteract = true;   //
+//    triggerFlag = false;
+//    updateGpu = true;     
+//    phase = 4;
+//};
+
+
+
+Movie "S2" = {
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 384; 
+    initializeFromCheckpointFlag = false;
+    readPvpFile = true;
+    imageListPath = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape9/a5_S2.pvp";
+    writeStep = -1; //10000;
+    //initialWriteTime = 10000;
+    sparseLayer = true;
+    writeSparseValues = false;
+    displayPeriod = 1;
+    start_frame_index = 0; //2346; 
+    skip_frame_index = 0;
+    echoFramePathnameFlag = true;
+    writeFrameToTimestamp = true;
+    mirrorBCflag = false; //true;
+    valueBC = 0.0;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false; //true;
+    writeImages = false;
+    offsetAnchor = "tl";
+    offsetX = 0; 
+    offsetY = 0; 
+    randomMovie = 0;
+    autoResizeFlag = false;
+    flipOnTimescaleError = true;
+    updateGpu = false;
+    phase = 0;
+};
+
+
+ANNLayer "S1ReconS2" = {
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 96;
+    //initialWriteTime = 201.0;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1.0; 
+    mirrorBCflag = 0;
+    valueBC = 0;
+    sparseLayer = false;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/S1ReconS2_V.pvp";
+    //
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    VWidth = 0.0; 
+    // 
+    triggerFlag = true;
+    triggerLayerName = "Image";
+    triggerOffset = 0;
+    updateGpu = false;
+    phase = 1; 
+};
+
+
+
+ANNLayer "ImageReconS2" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    initializeFromCheckpointFlag = false;
+    initialWriteTime = 100.0;
+    writeStep = 100.0;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    sparseLayer = false;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/ImageReconS2_V.pvp";
+    //
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    VWidth = 0.0; 
+    // 
+    triggerFlag = true;
+    triggerLayerName = "Image";
+    triggerOffset = 0;
+    updateGpu = false;
+    phase = 2; 
+};
+
+
+ANNLayer "ImageReconS2Error" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    initializeFromCheckpointFlag = false; //true;
+    initialWriteTime = 100.0;
+    writeStep = 100;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    sparseLayer = false;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/ImageReconS1Error_V.pvp";
+    //
+    VThresh = -infinity;
+    AMax =  infinity;
+    AMin = -infinity;
+    AShift = 0;
+    VWidth = 0;
+    //errScale = 1.0;
+    //
+    triggerFlag = true;
+    triggerLayerName = "Image";
+    triggerOffset = 0;
+    updateGpu = false;
+    phase = 3;  
+};
+
+
+
+
+// 2nd order task-based dictionary layers -- sparse MLP
+
+//The ground truth layer: sparse coded image planes with bounding box annotations in PetaVision format
+// nf == number of object categories
+Movie "ClassID" = {
+  nxScale = 1;
+  nyScale = 1;
+    nf = 20;
+    initializeFromCheckpointFlag = false;
+    readPvpFile = true;
+    imageListPath = "/home/gkenyon/workspace/PASCAL_VOC/VOC2007/VOC2007_padded0_landscape_classID.pvp";
+    writeStep = -1; //10000;
+    //initialWriteTime = 10000;
+    sparseLayer = true;
+    writeSparseValues = false;
+    displayPeriod = 1;
+    start_frame_index = 0; //2346; 
+    skip_frame_index = 0;
+    echoFramePathnameFlag = true;
+    writeFrameToTimestamp = true;
+    mirrorBCflag = false; //true;
+    valueBC = 0.0;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false; //true;
+    writeImages = false;
+    offsetAnchor = "tl";
+    offsetX = 0; 
+    offsetY = 0; 
+    randomMovie = 0;
+    autoResizeFlag = false;
+    flipOnTimescaleError = true;
+    updateGpu = false;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+
+
+// GroundTruth uses max pooling to match desired resolution of output tiling
+// * each output tile aquires the classIDs of any of the original bounding boxes that it overlapps 
+// * use a tile size of 32x32
+ANNLayer "GroundTruth" = {
+  nxScale = 0.250; // 1/32 -> ground truth patch size of 36x36
+  nyScale = 0.250; // 
+    nf = 20;
+    initializeFromCheckpointFlag = false;
+    initialWriteTime = 10.0;
+    writeStep = 10.0;
+    mirrorBCflag = 0;
+    valueBC = 0.0;
+    sparseLayer = true;
+  writeSparseValues = false;
+    //
+    InitVType = "ZeroV";
+  //InitVType = "InitVFromFile";
+  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/GroundTruth_V.pvp";
+    //
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    VWidth = 0.0; 
+    // 
+    triggerLayerName = "ClassID";
+    triggerFlag = true;
+    triggerOffset = 0;
+    updateGpu = false;
+    phase = 1; 
+};
+
+
+
+// convolve to the Recon layer and then use an ident conn to update the error layer
+// convenient for comparing ground truth and reconstructed classID heatmaps
+ANNLayer "GroundTruthReconS2" = {
+  nxScale = 0.250;
+  nyScale = 0.250;
+    nf = 20;
+    initializeFromCheckpointFlag = false;
+    initialWriteTime = 100.0;
+    writeStep = 100.0;
+    mirrorBCflag = 0;
+    valueBC = 0.0;
+    sparseLayer = false;
+    //
+    InitVType = "ZeroV";
+  //InitVType = "InitVFromFile";
+  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/GroundTruthReconS2_V.pvp";
+    //
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    VWidth = 0.0; 
+    // 
+    triggerLayerName = "ClassID";
+    triggerFlag = true;
+    triggerOffset = 0;
+    updateGpu = false;
+    phase = 5; 
+};
+
+
+
+// difference betwee ground truth and S2 based reconstruction of ground truth
+// an ordinary error layer works the same
+// but a normalizedErrorLayer calculates/writes useful 1/Error info if dtAdaptFlag is set
+// switch to LabelErrorLayer, which truncates errors for correct postive classifications to negative values and correct negative classifications to negative values 
+//LabelErrorLayer "GroundTruthError" = {
+//ANNWeightedErrorLayer "GroundTruthError" = {
+ANNLayer "GroundTruthError" = {
+  nxScale = 0.250;
+  nyScale = 0.250;
+    nf = 20;
+    initializeFromCheckpointFlag = false;
+    initialWriteTime = 100.0;
+    writeStep = 100;
+    mirrorBCflag = 0;
+    valueBC = 0.0;
+    sparseLayer = false;
+    //
+    InitVType = "ZeroV";
+  //InitVType = "InitVFromFile";
+  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/GroundTruthError_V.pvp";
+    //
+  VThresh = -infinity;
+    AMax =  infinity;
+  AMin = -infinity;
+    AShift = 0;
+    VWidth = 0;
+  errScale = 1.0;
+  //errWeightsFileName = "/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape7/Sparse/Sparse_hist_unsorted_GroundTruth_00684000.txt";
+  //errWeightsFileName = "/home/gkenyon/workspace/PASCAL_VOC/Sparse_hist_unsorted_GroundTruth_00684000.txt";
+  //isBinary = true;
+    //
+    triggerLayerName = "ClassID";
+    triggerFlag = true;
+    triggerOffset = 0;
+    updateGpu = false;
+    phase = 6;  
+};
+
+ConstantLayer "Bias" = {
+    restart = 0;
+    nxScale = 0.250; 
+    nyScale = 0.250;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
+
+ANNLayer "S2MaxPooled" = {
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 384;
+    initializeFromCheckpointFlag = false;
+    initialWriteTime = 100.0;
+    writeStep = -1.0;
+    mirrorBCflag = 0;
+    valueBC = 0;
+    sparseLayer = false;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/ImageReconS2_V.pvp";
+    //
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    VWidth = 0.0; 
+    // 
+    triggerFlag = true;
+    triggerLayerName = "ClassID";
+    triggerOffset = 0;
+    updateGpu = false;
+    phase = 4; 
+};
+
+
+
+
+
+// need to backpropagate error to S2 space
+// then mask by S2 activity
+//
+// ground truth error back propagated from GroundTruthReconS2 to S2
+//ANNLayer "GroundTruthErrorS2" = {
+//  nxScale = 0.25;
+//  nyScale = 0.25;
+//    nf = 384;
+//    initializeFromCheckpointFlag = false;
+//    initialWriteTime = 10.0;
+//    writeStep = 10;
+//    mirrorBCflag = 0;
+//    valueBC = 0.0;
+//    sparseLayer = false;
+//    //
+//    InitVType = "ZeroV";
+//  //InitVType = "InitVFromFile";
+//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/GroundTruthS2ReconS1Error_V.pvp";
+//    //
+//    VThresh = -infinity;
+//    AMax =  infinity;
+//    AMin = -infinity;
+//    AShift = 0;
+//    VWidth = 0;
+//    errScale = 1.0;
+//    //
+//    triggerLayerName = "ClassID";
+//    triggerFlag = true;
+//    triggerOffset = 1;
+//    updateGpu = false;
+//    phase = 7;  
+//};
+
+
+// binary mask of active S2 elements
+//SigmoidLayer "S2Mask" = {
+//  nxScale = 0.25;
+//  nyScale = 0.25;
+//    nf = 384;
+//    initializeFromCheckpointFlag = false;
+//    initialWriteTime = 10.0;
+//    writeStep = 10;
+//    mirrorBCflag = 0;
+//    valueBC = 0.0;
+//    sparseLayer = false;
+//    //
+//    originalLayerName = "S2";
+//    //
+//    Vrest =   0.0;  // VTh = (VthRest - Vrest)/2 == S2::VThresh
+//    VthRest = 0.01;
+//    SigmoidFlag = false; // ignored if SigmoidAlpha == 0
+//    SigmoidAlpha = 0.0; // sets slope of sigmoid to infinity
+//    //
+//    triggerLayerName = "ClassID";
+//    triggerFlag = true;
+//    triggerOffset = 1;
+//    updateGpu = false;
+//    phase = 5;  
+//};
+
+
+
+// masked backpropagated ground truth
+//PtwiseProductLayer "GroundTruthErrorS2Mask" = {
+//  nxScale = 0.25;
+//  nyScale = 0.25;
+//    nf = 384;
+//    initializeFromCheckpointFlag = false;
+//    initialWriteTime = 10.0;
+//    writeStep = 10;
+//    mirrorBCflag = 0;
+//    valueBC = 0.0;
+//    sparseLayer = false;
+//    //
+//    InitVType = "ZeroV";
+//  //InitVType = "InitVFromFile";
+//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/GroundTruthS2ReconS1Error_V.pvp";
+//    //
+//    VThresh = -infinity;
+//    AMax =  infinity;
+//    AMin = -infinity;
+//    AShift = 0;
+//    VWidth = 0;
+//    errScale = 1.0;
+//    //
+//    triggerLayerName = "ClassID";
+//    triggerFlag = true;
+//    triggerOffset = 1;
+//    updateGpu = false;
+//    phase = 8;  
+//};
+
+
+// ground truth error back propagated from GroundTruthErrorS2Mask to S1
+// Again, the backpropagated error should be masked to isolate the sparse set of inputs contributing to the error
+//ANNLayer "GroundTruthErrorS1" = {
+//  nxScale = 0.5;
+//  nyScale = 0.5;
+//    nf = 96;
+//    initializeFromCheckpointFlag = false;
+//    initialWriteTime = 10.0;
+//    writeStep = 10;
+//    mirrorBCflag = 0;
+//    valueBC = 0.0;
+//    sparseLayer = false;
+//    //
+//    InitVType = "ZeroV";
+//  //InitVType = "InitVFromFile";
+//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/GroundTruthS2ReconS1Error_V.pvp";
+//    //
+//    VThresh = -infinity;
+//    AMax =  infinity;
+//    AMin = -infinity;
+//    AShift = 0;
+//    VWidth = 0;
+//    errScale = 1.0;
+//    //
+//    triggerLayerName = "ClassID";
+//    triggerFlag = true;
+//    triggerOffset = 1;
+//    updateGpu = false;
+//    phase = 9;  
+//};
+
+
+
+// binary mask of active S1 elements
+//SigmoidLayer "S1Mask" = {
+//  nxScale = 0.5;
+//  nyScale = 0.5;
+//    nf = 96;
+//    initializeFromCheckpointFlag = false;
+//    initialWriteTime = 10.0;
+//    writeStep = 10;
+//    mirrorBCflag = 0;
+//    valueBC = 0.0;
+//    sparseLayer = false;
+//    //
+//    originalLayerName = "S1";
+//    //
+//    Vrest =   0.0;  // VTh = (VthRest - Vrest)/2 == S2::VThresh
+//    VthRest = 0.05;
+//    SigmoidFlag = false; // ignored if SigmoidAlpha == 0
+//    SigmoidAlpha = 0.0; // sets slope of sigmoid to infinity
+//    //
+//    triggerLayerName = "ClassID";
+//    triggerFlag = true;
+//    triggerOffset = 1;
+//    updateGpu = false;
+//    phase = 3;  
+//};
+
+
+
+// masked backpropagated ground truth
+//PtwiseProductLayer "GroundTruthErrorS1Mask" = {
+//  nxScale = 0.5;
+//  nyScale = 0.5;
+//    nf = 96;
+//    initializeFromCheckpointFlag = false;
+//    initialWriteTime = 10.0;
+//    writeStep = 10;
+//    mirrorBCflag = 0;
+//    valueBC = 0.0;
+//    sparseLayer = false;
+//    //
+//    InitVType = "ZeroV";
+//  //InitVType = "InitVFromFile";
+//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint1591000/GroundTruthS2ReconS1Error_V.pvp";
+//    //
+//    VThresh = -infinity;
+//    AMax =  infinity;
+//    AMin = -infinity;
+//    AShift = 0;
+//    VWidth = 0;
+//    errScale = 1.0;
+//    //
+//    triggerLayerName = "ClassID";
+//    triggerFlag = true;
+//    triggerOffset = 1;
+//    updateGpu = false;
+//    phase = 10;  
+//};
+
+
+
+
+
+
+
+
+
+
+
+//
+//Connections
+//
+
+
+// 1st Level LCA (unsupervised)
+
+HyPerConn "ImageToImageReconS1Error" = {
+    preLayerName = "Image";
+    postLayerName = "ImageReconS1Error";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    nxpShrunken = 1; 
+    nypShrunken = 1; 
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    weightInit = 0.0555; // 1/sqrt(18*18); //1.0625;  // 1/sqrt(16*16);  // force unit L2 norm
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+};
+
+
+
+
+HyPerConn "S1ToImageReconS1Error" = {
+    preLayerName = "S1";
+    postLayerName = "ImageReconS1Error";
+    channelCode = 1;
+    nxp = 18;
+    nyp = 18;
+    nxpShrunken = 18;
+    nypShrunken = 18;
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    //
+    weightInitType = "FileWeight";
+    initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape9/Checkpoints/Checkpoint1591000/S1ToImageReconS1Error_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+    //sparseFraction = .90;
+    //
+    strength = 1.0;  
+    normalizeMethod = "normalizeL2";
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    rMinX = 0.0;
+    rMinY = 0.0;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false; //true;
+    //weightUpdatePeriod = 200.0;
+    //initialWeightUpdateTime = 200.0;
+    triggerLayerName = "Image";
+    triggerFlag = false; //true;
+    triggerOffset = 1;
+    //imprintTimeThresh = 20000.0;
+    //initialWriteTime = 0.0;
+    dWMax = 1.0; //5.0; // 10.0; //
+    //selfFlag = false;
+    //shmget_flag = false;
+    //
+    delay = 0;
+    //
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+//TransposeConn "ImageReconS1ErrorToS1" = {
+//    preLayerName = "ImageReconS1Error";
+//    postLayerName = "S1";
+//    channelCode = 0;
+//    originalConnName = "S1ToImageReconS1Error";
+//    selfFlag = false;
+//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    shmget_flag = false;
+//    delay = 0;
+//    pvpatchAccumulateType = "convolve";
+//    updateGSynFromPostPerspective = true; 
+//    receiveGpu = true;
+//};
+
+CloneConn "S1ToImageReconS1" = {
+    preLayerName = "S1";
+    postLayerName = "ImageReconS1";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "S1ToImageReconS1Error";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    writeCompressedCheckpoints = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+// copy S1 activity to the + channel of the S1 reconstruction error layer
+HyPerConn "S1ToS1ReconS2Error" = {
+    preLayerName = "S1";
+    postLayerName = "S1ReconS2Error";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    nxpShrunken = 1; 
+    nypShrunken = 1; 
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    weightInit = 1.0;
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+
+// conventional LCA connection for training S2 to S1 weights to minimize sparse reconstruction error
+// ** used for initialize S2ToS1 weights
+HyPerConn "S2ToS1ReconS2Error" = {
+    preLayerName = "S2";
+    postLayerName = "S1ReconS2Error";
+    channelCode = -1;
+    nxp = 10; // 36x36 patch size (in pixels)
+    nyp = 10;
+    nxpShrunken = 10;
+    nypShrunken = 10;
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    //
+    weightInitType = "FileWeight";
+    initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape9/Checkpoints/Checkpoint1591000/S2ToS1ReconS2Error_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+    //sparseFraction = .90;
+    //
+    // Normalize this connection to prevent weights from growing without bound
+    // Smaller "strength" should correspond to better generalization but possibly lower performance, 
+    // similar to "C" parameter in SVM
+    //normalizeMethod = "none";
+    normalizeMethod = "normalizeL2";
+    strength = 1.0;  
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false; 
+    symmetrizeWeights = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    rMinX = 0;
+    rMinY = 0; 
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    //keepKernelsSynchronized = true; 
+    //combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false; //true;
+    //weightUpdatePeriod = 200.0;
+    //initialWeightUpdateTime = 200.0;
+    triggerLayerName = "Image";
+    triggerFlag = false; //true;
+    triggerOffset = 1;
+    //imprintTimeThresh = 20000.0;
+    //initialWriteTime = 0.0;
+    dWMax = 1.0; //0.1; 
+    selfFlag = false;
+    //shmget_flag = false;
+    //
+    delay = 0;
+    //
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+
+// Clone of S2 to S1ReconS2Error 
+CloneConn "S2ToS1ReconS2" = {
+    preLayerName = "S2";
+    postLayerName = "S1ReconS2";
+    channelCode = 0;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    originalConnName = "S2ToS1ReconS2Error";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    writeCompressedCheckpoints = false;
+    updateGSynFromPostPerspective = false;  
+    receiveGpu = false; 
+};
+
+
+
+// copy reconstructed S1 activity to the - channel of the S1 recon error layer
+HyPerConn "S1ReconS2ToS1ReconS2Error" = {
+    preLayerName = "S1ReconS2";
+    postLayerName = "S1ReconS2Error";
+    channelCode = 1;
+    nxp = 1; 
+    nyp = 1; 
+    nxpShrunken = 1; 
+    nypShrunken = 1; 
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    weightInit = 1.0;
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+
+// connection to + channel of S2 LCA layer trained for minimizing sparse reconstruction error
+//TransposeConn "S1ReconS2ErrorToS2" = {
+//    preLayerName = "S1ReconS2Error";
+//    postLayerName = "S2";
+//    channelCode = 0; // -1; //
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    originalConnName = "S2ToS1ReconS2Error";
+//    selfFlag = false;
+//    pvpatchAccumulateType = "convolve";
+//    delay = 0;
+//    preActivityIsNotRate = false;
+//    writeCompressedCheckpoints = false;
+//    updateGSynFromPostPerspective = true;     
+//    receiveGpu = true;
+//};
+
+
+// for visualizing S2 reconstructions
+CloneConn "S1ReconS2ToImageReconS2" = {
+    preLayerName = "S1ReconS2";
+    postLayerName = "ImageReconS2";
+    channelCode = 0;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    originalConnName = "S1ToImageReconS1";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    writeCompressedCheckpoints = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+
+HyPerConn "ImageToImageReconS2Error" = {
+    preLayerName = "Image";
+    postLayerName = "ImageReconS2Error";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    nxpShrunken = 1; 
+    nypShrunken = 1; 
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    weightInit = 1.0;
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+
+HyPerConn "ImageReconS2ToImageReconS2Error" = {
+    preLayerName = "ImageReconS2";
+    postLayerName = "ImageReconS2Error";
+    channelCode = 1;
+    nxp = 1; 
+    nyp = 1; 
+    nxpShrunken = 1; 
+    nypShrunken = 1; 
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    weightInit = 1.0;
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+
+// 2nd Level Task-Based Sparse-Multi-Layer-Perceptron
+
+// the following 5 connections are for training S2 to ground truth weights to minimize classification error
+
+// downsample ClassID to GroundTruth using max pooling
+HyPerConn "ClassIDToGroundTruth" = {
+    preLayerName = "ClassID";
+    postLayerName = "GroundTruth";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    nxpShrunken = 1;
+    nypShrunken = 1;
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "UniformWeight";
+    connectOnlySameFeatures = true;
+    weightInit = 1.0;
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "maxpooling";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+
+// target for defining classification error for training final MLP stage
+HyPerConn "GroundTruthToGroundTruthError" = {
+    preLayerName = "GroundTruth";
+    postLayerName = "GroundTruthError";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    nxpShrunken = 1;
+    nypShrunken = 1;
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    weightInit = 1.0;
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    receiveGpu = false;
+    updateGSynFromPostPerspective = false;     
+};
+
+
+
+HyPerConn "S2ToS2MaxPooled" = {
+    preLayerName = "S2";
+    postLayerName = "S2MaxPooled";
+    channelCode = 0;
+    nxp = 11; 
+    nyp = 11; 
+    nxpShrunken = 11;
+    nypShrunken = 11;
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "UniformWeight";
+    connectOnlySameFeatures = true;
+    weightInit = 1.0;
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "maxpooling";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+
+// generates final predicted classification using learned weights (routed through a reconstruction layer for ease of visualization)
+HyPerConn "S2MaxPooledToGroundTruthError" = {
+    preLayerName = "S2MaxPooled";
+    postLayerName = "GroundTruthError";
+    channelCode = -1;
+    nxp = 1; // 11x11->76x76, pixels converge to each ground truth patch
+    nyp = 1;
+    nxpShrunken = 1;
+    nypShrunken = 1;
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    //
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2MaxPooled_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint120000/S2MaxPooledToGroundTruthError_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -0.01;
+    //wMaxInit = 0.01;
+    //sparseFraction = 0.0;
+    //
+    normalizeMethod = "none"; //"normalizeL2";
+    //normalizeMethod = "normalizeL2";
+    //strength = 10.0; //5.0;  
+    //minL2NormTolerated = 0;
+    //normalizeArborsIndividually = 0;
+    //normalize_cutoff = 0.0;
+    //normalizeFromPostPerspective = false;
+    //symmetrizeWeights = false;
+    //normalizeOnInitialize = true;
+    //normalizeOnWeightUpdate = true;
+    //rMinX = 0;
+    //rMinY = 0; 
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    //writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    //weightUpdatePeriod = 1.0;
+    //initialWeightUpdateTime = 200.0;
+    triggerLayerName = "ClassID";
+    triggerOffset = 0; //1;
+    triggerFlag = true;
+    //initialWriteTime = 0.0;
+    dWMax = 0.01; //
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+HyPerConn "BiasToGroundTruthError" = {
+    preLayerName = "Bias";
+    postLayerName = "GroundTruthError";
+    channelCode = -1;
+    nxp = 1; // 
+    nyp = 1;
+    nxpShrunken = 1;
+    nypShrunken = 1;
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    //
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/gkenyon/workspace/PASCAL_VOC/PASCAL_S1_96_S2MaxPooled_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint120000/BiasToGroundTruthError_W.pvp";
+    useListOfArborFiles = false;
+    combineWeightFiles = false;
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -0.01;
+    //wMaxInit = 0.01;
+    //sparseFraction = 0.0;
+    //
+    normalizeMethod = "none"; //"normalizeL2";
+    //normalizeMethod = "normalizeL2";
+    //strength = 10.0; //5.0;  
+    //minL2NormTolerated = 0;
+    //normalizeArborsIndividually = 0;
+    //normalize_cutoff = 0.0;
+    //normalizeFromPostPerspective = false;
+    //symmetrizeWeights = false;
+    //normalizeOnInitialize = true;
+    //normalizeOnWeightUpdate = true;
+    //rMinX = 0;
+    //rMinY = 0; 
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    //writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    //weightUpdatePeriod = 1.0;
+    //initialWeightUpdateTime = 200.0;
+    triggerLayerName = "ClassID";
+    triggerOffset = 0; //1;
+    triggerFlag = true;
+    //initialWriteTime = 0.0;
+    dWMax = 0.01; //
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+// visualization of predicted classification
+CloneConn "S2MaxPooledToGroundTruthReconS2" = {
+    preLayerName = "S2MaxPooled";
+    postLayerName = "GroundTruthReconS2";
+    channelCode = 0;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    originalConnName = "S2MaxPooledToGroundTruthError";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    writeCompressedCheckpoints = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false; 
+};
+
+
+CloneConn "BiasToGroundTruthReconS2" = {
+    preLayerName = "Bias";
+    postLayerName = "GroundTruthReconS2";
+    channelCode = 0;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    originalConnName = "BiasToGroundTruthError";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    writeCompressedCheckpoints = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false; 
+};
+
+
+// subtracts prediction from ground truth to compute classification error 
+HyPerConn "GroundTruthReconS2ToGroundTruthError" = {
+    preLayerName = "GroundTruthReconS2";
+    postLayerName = "GroundTruthError";
+    channelCode = 1;
+    nxp = 1; 
+    nyp = 1; 
+    nxpShrunken = 1; 
+    nypShrunken = 1; 
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    initializeFromCheckpointFlag = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    weightInit = 1.0;
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    updateGSynFromPostPerspective = false;     
+    receiveGpu = false;
+};
+
+
+
+// Make the connections between S1 and S2
+// The S1 to S2 connection is complicated:
+//  ** S2 plays the role of hidden layer in an MLP but is implemented as an LCA layer
+//  ** we train the S1 to S2 connection to minimize classification error
+//  ** the ground truth is backpropagated into S2 space and then to S1 space
+//  ** S2 activity generates a sparse representations of S1 activity using
+//  ** the weights optimized to minimize classification error
+//  ** First, train the S1 to S2 weights using conentional deep LCA
+
+// backpropagate ground truth error to S2 space
+//TransposeConn "GroundTruthErrorToGroundTruthErrorS2" = {
+//    preLayerName = "GroundTruthError";
+//    postLayerName = "GroundTruthErrorS2";
+//    channelCode = 0;
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    originalConnName = "S2ToGroundTruthError";
+//    selfFlag = false;
+//    pvpatchAccumulateType = "convolve";
+//    delay = 0;
+//    preActivityIsNotRate = false;
+//    writeCompressedCheckpoints = false;
+//    updateGSynFromPostPerspective = false;     
+//    receiveGpu = false;
+//};
+
+
+// send backpropagated error to + channel of mask (PtwiseProduct) layer
+//HyPerConn "GroundTruthErrorS2ToGroundTruthErrorS2Mask" = {
+//    preLayerName = "GroundTruthErrorS2";
+//    postLayerName = "GroundTruthErrorS2Mask";
+//    channelCode = 0;
+//    nxp = 1; 
+//    nyp = 1; 
+//    nxpShrunken = 1; 
+//    nypShrunken = 1; 
+//    sharedWeights = true;
+//    numAxonalArbors = 1;
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    
+//    weightInitType = "OneToOneWeights"; //"UniformWeight";
+//    weightInit = 1.0;
+//    normalizeMethod = "none";
+//    
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    plasticityFlag = 0;
+//    pvpatchAccumulateType = "convolve";
+//     
+//    delay = 0;
+//     
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
+//    updateGSynFromPostPerspective = false;     
+//    receiveGpu = false;
+//};
+
+
+
+// send masked activity to - channel of mask (PtwiseProduct) layer
+//HyPerConn "S2MaskToGroundTruthErrorS2Mask" = {
+//    preLayerName = "S2Mask";
+//    postLayerName = "GroundTruthErrorS2Mask";
+//    channelCode = 1;
+//    nxp = 1; 
+//    nyp = 1; 
+//    nxpShrunken = 1; 
+//    nypShrunken = 1; 
+//    sharedWeights = true;
+//    numAxonalArbors = 1;
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    
+//    weightInitType = "OneToOneWeights"; //"UniformWeight";
+//    weightInit = 1.0;
+//    normalizeMethod = "none";
+//    
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    plasticityFlag = 0;
+//    pvpatchAccumulateType = "convolve";
+//     
+//    delay = 0;
+//     
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
+//    updateGSynFromPostPerspective = false;     
+//    receiveGpu = false;
+//};
+
+
+
+
+
+
+// backpropagate ground truth error to S1 space
+// could use transpose of forward connection to update on GPU
+// or allow GPU update of clone of transpose
+//CloneConn "GroundTruthErrorS2MaskToGroundTruthErrorS1" = {
+//    preLayerName = "GroundTruthErrorS2Mask";
+//    postLayerName = "GroundTruthErrorS1";
+//    channelCode = 0;
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    originalConnName = "S2ToGroundTruthErrorS1Mask";
+//    selfFlag = false;
+//    pvpatchAccumulateType = "convolve";
+//    delay = 0;
+//    preActivityIsNotRate = false;
+//    writeCompressedCheckpoints = false;
+//    updateGSynFromPostPerspective = false;     
+//    receiveGpu = false;
+//};
+
+
+// send backpropagated error to + channel of mask (PtwiseProduct) layer
+//HyPerConn "GroundTruthErrorS1ToGroundTruthErrorS1Mask" = {
+//    preLayerName = "GroundTruthErrorS2Mask";
+//    postLayerName = "GroundTruthErrorS1Mask";
+//    channelCode = 0;
+//    nxp = 1; 
+//    nyp = 1; 
+//    nxpShrunken = 1; 
+//    nypShrunken = 1; 
+//    sharedWeights = true;
+//    numAxonalArbors = 1;
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    
+//    weightInitType = "OneToOneWeights"; //"UniformWeight";
+//    weightInit = 1.0;
+//    normalizeMethod = "none";
+//    
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    plasticityFlag = 0;
+//    pvpatchAccumulateType = "convolve";
+//     
+//    delay = 0;
+//     
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
+//    updateGSynFromPostPerspective = false;     
+//    receiveGpu = false;
+//};
+
+
+
+// send masked activity to - channel of mask (PtwiseProduct) layer
+//HyPerConn "S1MaskToGroundTruthErrorS1Mask" = {
+//    preLayerName = "S1Mask";
+//    postLayerName = "GroundTruthErrorS1Mask";
+//    channelCode = 1;
+//    nxp = 1; 
+//    nyp = 1; 
+//    nxpShrunken = 1; 
+//    nypShrunken = 1; 
+//    sharedWeights = true;
+//    numAxonalArbors = 1;
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    
+//    weightInitType = "OneToOneWeights"; //"UniformWeight";
+//    weightInit = 1.0;
+//    normalizeMethod = "none";
+//    
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    plasticityFlag = 0;
+//    pvpatchAccumulateType = "convolve";
+//     
+//    delay = 0;
+//     
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
+//    updateGSynFromPostPerspective = false;     
+//    receiveGpu = false;
+//};
+
+
+
+
+
+
+
+
+
+// connection for training S2 To GroundTruthS1
+//HyPerConn "S2ToGroundTruthErrorS1Mask" = {
+//    preLayerName = "S2";
+//    postLayerName = "GroundTruthReconErrorS1Mask";
+//    channelCode = -1;
+//    nxp = 10; // 36x36 patch size (in pixels)
+//    nyp = 10;
+//    nxpShrunken = 10;
+//    nypShrunken = 10;
+//    sharedWeights = true;
+//    numAxonalArbors = 1;
+//    initializeFromCheckpointFlag = false;
+//    //
+//    //weightInitType = "FileWeight";
+//    //initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint684000/S1ToGroundTruthS2ReconS1Error_W.pvp";
+//    //useListOfArborFiles = false;
+//    //combineWeightFiles = false;
+//    weightInitType = "UniformRandomWeight";
+//    wMinInit = -1.0;
+//    wMaxInit = 1.0;
+//    sparseFraction = .90;
+//    //
+//    // Normalize this connection to prevent weights from growing without bound
+//    // Smaller "strength" should correspond to better generalization but possibly lower performance, 
+//    // similar to "C" parameter in SVM
+//    //normalizeMethod = "none";
+//    normalizeMethod = "normalizeL2";
+//    strength = 1.0;  
+//    minL2NormTolerated = 0;
+//    normalizeArborsIndividually = 0;
+//    normalize_cutoff = 0.0;
+//    normalizeFromPostPerspective = false; // LCA "requires" normalization in S2 features
+//    symmetrizeWeights = false;
+//    normalizeOnInitialize = true;
+//    normalizeOnWeightUpdate = true;
+//    rMinX = 0;
+//    rMinY = 0; 
+//    //
+//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+//    //keepKernelsSynchronized = true; 
+//    //combine_dW_with_W_flag = false; 
+//    //
+//    writeStep = -1;
+//    writeCompressedWeights = false;
+//    writeCompressedCheckpoints = false;
+//    plasticityFlag = true;
+//    //weightUpdatePeriod = 200.0;
+//    //initialWeightUpdateTime = 200.0;
+//    triggerLayerName = "Image";
+//    triggerFlag = true;
+//    triggerOffset = 1;
+//    //imprintTimeThresh = 20000.0;
+//    //initialWriteTime = 0.0;
+//    dWMax = 0.01; 
+//    selfFlag = false;
+//    //shmget_flag = false;
+//    //
+//    delay = 0;
+//    //
+//    pvpatchAccumulateType = "convolve";
+//    shrinkPatches = false;
+//    updateGSynFromPostPerspective = false;     
+//    receiveGpu = false;
+//};
+
+
+// visualization layer
+//CloneConn "S2ToGroundTruthS1MaskReconS2" = {
+//    preLayerName = "S2";
+//    postLayerName = "GroundTruthS1MaskReconS2";
+//    channelCode = 0;
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    originalConnName = "S2ToGroundTruthErrorS1Mask";
+//    selfFlag = false;
+//    pvpatchAccumulateType = "convolve";
+//    delay = 0;
+//    preActivityIsNotRate = false;
+//    writeCompressedCheckpoints = false;
+//    updateGSynFromPostPerspective = false;  
+//    receiveGpu = true;
+//};
+
+
+
+
+// direct connection to + channel of ground truth in S1 space to error layer
+//HyPerConn "GroundTruthS1MaskReconS2ToGroundTruthErrorS1Mask" = {
+//    preLayerName = "GroundTruthS1MaskReconS2";
+//    postLayerName = "GroundTruthErrorS1Mask";
+//    channelCode = 1;
+//    nxp = 1; 
+//    nyp = 1; 
+//    nxpShrunken = 1; 
+//    nypShrunken = 1; 
+//    sharedWeights = true;
+//    numAxonalArbors = 1;
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    
+//    weightInitType = "OneToOneWeights"; //"UniformWeight";
+//    weightInit = 1.0;
+//    normalizeMethod = "none";
+//    
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    plasticityFlag = 0;
+//    pvpatchAccumulateType = "convolve";
+//     
+//    delay = 0;
+//     
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
+//    updateGSynFromPostPerspective = false;     
+//    receiveGpu = false;
+//};
+
+
+
+
+
+// uncomment to use backprop trained connection
+//TransposeConn "S1ReconS2ErrorToS2" = {
+//    preLayerName = "S1ReconS2Error";
+//    postLayerName = "S2";
+//    channelCode = -1; // 0; //
+//    initializeFromCheckpointFlag = false;
+//    writeStep = -1;
+//    originalConnName = "S2ToGroundTruthErrorS1Mask";
+//    selfFlag = false;
+//    pvpatchAccumulateType = "convolve";
+//    delay = 0;
+//    preActivityIsNotRate = false;
+//    writeCompressedCheckpoints = false;
+//    updateGSynFromPostPerspective = true;     
+//    receiveGpu = true;
+//};
+
+
+
+
+
+
+
+
+
+
+
+
+
+

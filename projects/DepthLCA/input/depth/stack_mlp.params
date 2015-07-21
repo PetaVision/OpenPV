@@ -1,0 +1,1288 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 1200; //1242;  // KITTI synced value
+    ny = 216;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0;
+    stopTime= 200000000;
+    progressStep = 1000;
+    outputPath = "/nh/compneuro/Data/Depth/LCA/stack_mlp/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false; //true;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
+    //checkpointReadDirIndex = ;
+    checkpointWrite = true;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/stack_mlp/Checkpoints";
+    checkpointWriteStepInterval = 5000;
+    deleteOlderCheckpoints = false;
+    //suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+    dtAdaptFlag = true;
+    dtScaleMax = 5.0;
+    dtScaleMin = 0.25;
+    dtChangeMax = 0.05;
+    dtChangeMin = 0.0;
+};
+
+//
+// layers
+//
+
+// left eye layers
+
+Movie "LeftImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = false;
+    imageListPath = "/nh/compneuro/Data/Depth/raw/image_02.txt";
+    writeFrameToTimestamp = true;
+    nf = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 200;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = false;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+ANNLayer "LeftBuffer" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 999.0; //Change based on display period 
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+
+    //movieLayerName = "LeftImage";
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    
+    phase = 1;
+
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+};
+
+RescaleLayer "LeftRescale" = {
+    restart                         = false;
+    originalLayerName               = "LeftBuffer";
+    nxScale                         = 1; 
+    nyScale                         = 1; 
+    nf                              = 1;
+    mirrorBCflag                    = true;
+    //
+    writeStep                       = 200;
+    initialWriteTime                = 200;
+    writeSparseActivity             = false;
+    //
+    rescaleMethod                   = "meanstd"; //Can be either meanstd or maxmin
+    targetMean                      = 0;
+    targetStd                       = 1;
+    //
+    valueBC = 0;
+    //
+    phase                           = 2;
+
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+};
+
+ANNNormalizedErrorLayer "LeftError" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = 200;
+    initialWriteTime = 200.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/LeftError_V.pvp";
+    //
+    VThresh = 0.001; //Change this for efficiency
+    VMax =  infinity;
+    VMin = 0;
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    //
+    errScale = .5; //Normal is .2
+    //
+    phase = 3;  
+};
+
+// for visualization only, makes no output
+ANNLayer "LeftReconS2" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = 200.0;
+    initialWriteTime = 200.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    //movieLayerName = "LeftImage";
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    // 
+    phase = 5;
+    //
+    triggerFlag = 1;
+    triggerLayerName = "LeftImage";
+    triggerOffset = 1;
+};
+
+ANNLayer "LeftReconS4" = {
+    #include "LeftReconS2";
+};
+
+ANNLayer "LeftReconS8" = {
+    #include "LeftReconS2";
+};
+
+ANNLayer "LeftReconAll" = {
+    #include "LeftReconS2";
+};
+
+//
+// Right eye layers
+//
+
+Movie "RightImage" = {
+    #include "LeftImage";
+    @imageListPath = "/nh/compneuro/Data/Depth/raw/image_03.txt";
+};
+
+ANNLayer "RightBuffer" = {
+    #include "LeftBuffer";
+    @triggerLayerName = "RightImage";
+};
+
+RescaleLayer "RightRescale" = {
+    #include "LeftRescale";
+    @originalLayerName = "RightBuffer";
+    @triggerLayerName = "RightImage";
+};
+
+ANNNormalizedErrorLayer "RightError" = {
+    #include "LeftError";
+    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/RightError_V.pvp";
+};
+
+// for visualization only, makes no output
+ANNLayer "RightReconS2" = {
+    #include "LeftReconAll";
+    @triggerLayerName = "RightImage";
+};
+
+ANNLayer "RightReconS4" = {
+    #include "LeftReconAll";
+    @triggerLayerName = "RightImage";
+};
+
+ANNLayer "RightReconS8" = {
+    #include "LeftReconAll";
+    @triggerLayerName = "RightImage";
+};
+
+ANNLayer "RightReconAll" = {
+    #include "LeftReconAll";
+    @triggerLayerName = "RightImage";
+};
+
+//
+// Right depth eye layers
+//
+
+// binoclular layers
+
+HyPerLCALayer "V1S2" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 32; //2048 or 4096;
+    numChannels = 1;
+    numWindowX = 1;
+    numWindowY = 1;
+    writeStep = 200.0;
+    initialWriteTime = 200.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 1;
+    writeSparseValues   = 1;
+    //
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .03; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/V1S2_V.pvp";
+    // 
+    timeConstantTau = 200.0;
+    slopeErrorStd = 0.01;
+    // 
+    dVThresh = 0;
+    VThresh = 0.01; //mean + 1 std of the positive input to error
+    VMax = infinity;
+    VMin = 0;
+    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VWidth = 0.01; //Same as VThresh
+    //
+    phase = 4;
+};
+
+HyPerLCALayer "V1S4" = {
+    #include "V1S2";
+    @nxScale = .25;
+    @nyScale = .25;
+    @nf = 64;
+    //@VThresh = .04;
+    //@VWidth  = .04;
+    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/V1S4_V.pvp";
+};
+
+HyPerLCALayer "V1S8" = {
+    #include "V1S2";
+    @nxScale = .125;
+    @nyScale = .125;
+    @nf = 128;
+    //@VThresh = .04;
+    //@VWidth  = .04;
+    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/V1S8_V.pvp";
+};
+
+//MLP Layers
+ConstantLayer "onesLayer" = {
+    restart = 0;
+    nxScale = .125; 
+    nyScale = .125;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
+//Rescale layers for the v layers
+RescaleLayer "V1S2Rescale" = {
+    restart                         = false;
+    originalLayerName               = "V1S2";
+    nxScale                         = .5; 
+    nyScale                         = .5; 
+    nf                              = 32;
+    mirrorBCflag                    = false;
+    //
+    writeStep                       = -1;
+    //initialWriteTime                = ;
+    writeSparseActivity             = false;
+    //
+    rescaleMethod                   = "meanstd"; //Can be either meanstd or maxmin
+    targetMean                      = 0;
+    targetStd                       = 1;
+    //
+    valueBC = 0;
+    //
+    phase                           = 7;
+
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+    triggerOffset = 1;
+};
+
+RescaleLayer "V1S4Rescale" = {
+   #include "V1S2Rescale";
+   @originalLayerName               = "V1S4";
+   @nxScale                         = .25; 
+   @nyScale                         = .25; 
+   @nf                              = 64;
+};
+
+RescaleLayer "V1S8Rescale" = {
+   #include "V1S2Rescale";
+   @originalLayerName               = "V1S8";
+   @nxScale                         = .125; 
+   @nyScale                         = .125; 
+   @nf                              = 128;
+};
+
+MLPForwardLayer "ForwardLayer1" = {
+    restart = 0;
+    nxScale = .125;
+    nyScale = .125;
+    nf = 400;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    dropoutChance = 0;
+    phase = 8;
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+    //Do this before next image flips
+    triggerOffset = 1;
+};
+
+MLPSigmoidLayer "HiddenLayer1" = {  // 2
+    nxScale           = .125;
+    nyScale           = .125;
+    nf                = 400;
+    originalLayerName = "ForwardLayer1";
+    InitVType         = "ZeroV";
+    valueV            = 0;
+    mirrorBCflag      = 0.0; 
+    restart           = 0.0;      // from graylast
+    linAlpha            = 0.1;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = false;
+    phase = 9;
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+    //Do this before next image flips
+    triggerOffset = 1;
+};
+
+MLPForwardLayer "ForwardLayer2" = {
+   #include "ForwardLayer1";
+   @nxScale = .125;
+   @nyScale = .125;
+   @nf      = 100;
+   @phase = 10;
+};
+
+MLPSigmoidLayer "HiddenLayer2" = {  // 2
+    #include "HiddenLayer1";
+    @nxScale           = .125;
+    @nyScale           = .125;
+    @nf                = 100;
+    @originalLayerName = "ForwardLayer2";
+    @phase = 11;
+};
+
+MLPForwardLayer "ForwardLayerFinal" = {
+   #include "ForwardLayer1";
+   @nxScale = .125;
+   @nyScale = .125;
+   @nf      = 16;
+   @phase = 12;
+};
+
+MLPOutputLayer "OutputLayer" = {  // 2
+    nxScale           = .125; //Doing 2 by 2 since this will test multiprocess as well
+    nyScale           = .125;
+    nf                = 16;
+    originalLayerName = "ForwardLayerFinal";
+    InitVType         = "ZeroV";
+    valueV            = 0;
+    mirrorBCflag      = 0.0; 
+    restart           = 0.0;      // from graylast
+    linAlpha          = 0.1;
+    spikingFlag       = 0.0;
+    writeStep         = 200;
+    initialWriteTime  = 200.0;
+    writeNonspikingActivity = false;
+    //Local target in training will be different than local target in testing: this will test that each x/y network gets the same answer
+    localTarget = true;
+    statProgressPeriod = 0;
+    gtLayername = "DepthGT";
+    phase = 13;
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+    //Do this before next image flips
+    //Ground truth is already flipped at this point
+    triggerOffset = 1;
+};
+
+//Depth ground truth layers
+
+Movie "DepthImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = false; 
+    imageListPath = "/nh/compneuro/Data/Depth/raw/depth_02.txt";
+    writeFrameToTimestamp = true;
+    nf = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 200;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = false;
+    mirrorBCflag = false;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+ANNLayer "DepthDownsample" = {
+    restart = 0;
+    nxScale = .125;
+    nyScale = .125;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 199.0;
+    mirrorBCflag = false;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax =  infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+    //
+    phase = 1;  
+    triggerFlag = true;
+    triggerLayerName = "DepthImage";
+    triggerOffset = 0;
+};
+
+//This is the ground truth layer
+BinningLayer "DepthGT" = {
+    restart = 0;
+    nxScale = .125; 
+    nyScale = .125;
+    nf = 16; 
+    writeStep = 200.0;
+    initialWriteTime = 200.0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    binMax = 1;
+    binMin = 0;
+    binSigma = 0;
+    zeroNeg = false; //Set negative gt values as -1
+    delay = 0;
+    originalLayerName = "DepthDownsample";
+    triggerFlag = true;
+    triggerLayerName = "DepthImage";
+    triggerOffset = 0;
+    phase = 2;
+};
+
+//MLP error layers
+MLPErrorLayer "ErrorFinal" = {
+    restart = 0;
+    nxScale = .125;
+    nyScale = .125;
+    nf = 16;
+    writeStep = -1; //Change based on display period
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    linAlpha            = 0.1;
+    ForwardLayername = "ForwardLayerFinal";
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    finalError = true;
+    phase = 14;
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+    //Do this before next image flips
+    triggerOffset = 1;
+};
+
+MLPErrorLayer "Error2" = {
+   #include "ErrorFinal";
+   @nxScale = .125;
+   @nyScale = .125;
+   @nf = 100;
+   @ForwardLayername = "ForwardLayer2";
+   @finalError = false;
+   @phase = 15;
+};
+
+MLPErrorLayer "Error1" = {
+   #include "ErrorFinal";
+   @nxScale = .125;
+   @nyScale = .125;
+   @nf = 400;
+   @ForwardLayername = "ForwardLayer1";
+   @finalError = false;
+   @phase = 16;
+};
+
+
+// connections
+
+// Left eye connections
+
+IdentConn "LeftImageToLeftBuffer" = {
+    preLayerName = "LeftImage";
+    postLayerName = "LeftBuffer";
+    channelCode = 0;
+    writeStep = -1;    
+    delay = 0;
+};
+
+KernelConn "LeftRescaleToLeftError" = {
+    preLayerName = "LeftRescale";
+    postLayerName = "LeftError";
+    channelCode = 0;
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    
+    weightInitType = "OneToOneWeights"; //"UniformWeight";
+    //////////////////////
+    //TODO What to do here????
+    //////////////////////
+    weightInit = .0294;  // 1/sqrt(34*34);
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;     
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+};
+
+// Right eye connections
+
+IdentConn "RightImageToRightBuffer" = {
+    #include "LeftImageToLeftBuffer";
+    @preLayerName = "RightImage";
+    @postLayerName = "RightBuffer";
+};
+
+KernelConn "RightRescaleToRightError" = {
+    #include "LeftRescaleToLeftError";
+    @preLayerName = "RightRescale";
+    @postLayerName = "RightError";
+};
+
+// binocular connections
+//Left binocular connections
+
+ImprintConn "V1S2ToLeftError" = {
+    preLayerName = "V1S2";
+    postLayerName = "LeftError";
+    channelCode = 1;
+    nxp = 34;
+    nyp = 34;
+    nfp = 1;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    //
+    weightInitType = "FileWeight";
+    initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/V1S2ToLeftError_W.pvp";
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+    //sparseFraction = .90;
+    //
+    strength = 1; //.25/2  
+    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
+    //normalizeMethod = "normalizeContrastZeroMean"; 
+    //SET PARAMS TO NEW NORMALIZATION METHOD
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = 200;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+    triggerOffset = 1;
+    initialWriteTime = 0.0;
+    dWMax = 5; // 200.0 used for initial training
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+    imprintTimeThresh = 100000; //Imprint if element has not been active in 1000 frames
+};
+
+ImprintConn "V1S4ToLeftError" = {
+    #include "V1S2ToLeftError";
+    @preLayerName = "V1S4";
+    @nxp = 68;
+    @nyp = 68;
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/V1S4ToLeftError_W.pvp";
+};
+
+ImprintConn "V1S8ToLeftError" = {
+    #include "V1S2ToLeftError";
+    @preLayerName = "V1S8";
+    @nxp = 136;
+    @nyp = 136;
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/V1S8ToLeftError_W.pvp";
+};
+
+TransposeConn "LeftErrorToV1S2" = {
+    preLayerName = "LeftError";
+    postLayerName = "V1S2";
+    channelCode = 0;
+    originalConnName = "V1S2ToLeftError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
+};
+
+TransposeConn "LeftErrorToV1S4" = {
+    #include "LeftErrorToV1S2";
+    @postLayerName = "V1S4";
+    @originalConnName = "V1S4ToLeftError";
+};
+
+TransposeConn "LeftErrorToV1S8" = {
+    #include "LeftErrorToV1S2";
+    @postLayerName = "V1S8";
+    @originalConnName = "V1S8ToLeftError";
+};
+
+CloneKernelConn "V1S2ToLeftReconS2" = {
+    preLayerName = "V1S2";
+    postLayerName = "LeftReconS2";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1S2ToLeftError";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "V1S4ToLeftReconS4" = {
+    #include "V1S2ToLeftReconS2";
+    @preLayerName = "V1S4";
+    @postLayerName = "LeftReconS4";
+    @originalConnName = "V1S4ToLeftError";
+};
+
+CloneKernelConn "V1S8ToLeftReconS8" = {
+    #include "V1S2ToLeftReconS2";
+    @preLayerName = "V1S8";
+    @postLayerName = "LeftReconS8";
+    @originalConnName = "V1S8ToLeftError";
+};
+
+CloneKernelConn "V1S2ToLeftReconAll" = {
+    preLayerName = "V1S2";
+    postLayerName = "LeftReconAll";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1S2ToLeftError";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "V1S4ToLeftReconAll" = {
+    #include "V1S2ToLeftReconAll";
+    @preLayerName = "V1S4";
+    @originalConnName = "V1S4ToLeftError";
+};
+
+CloneKernelConn "V1S8ToLeftReconAll" = {
+    #include "V1S2ToLeftReconAll";
+    @preLayerName = "V1S8";
+    @originalConnName = "V1S8ToLeftError";
+};
+
+//Right binocular connections
+ImprintConn "V1S2ToRightError" = {
+    #include "V1S2ToLeftError";
+    @postLayerName = "RightError";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/V1S2ToRightError_W.pvp";
+};
+
+ImprintConn "V1S4ToRightError" = {
+    #include "V1S4ToLeftError";
+    @postLayerName = "RightError";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/V1S4ToRightError_W.pvp";
+};
+
+ImprintConn "V1S8ToRightError" = {
+    #include "V1S8ToLeftError";
+    @postLayerName = "RightError";
+    @initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/V1S8ToRightError_W.pvp";
+};
+
+TransposeConn "RightErrorToV1S2" = {
+    #include "LeftErrorToV1S2";
+    @preLayerName = "RightError";
+    @originalConnName = "V1S2ToRightError";
+};
+
+TransposeConn "RightErrorToV1S4" = {
+    #include "LeftErrorToV1S4";
+    @preLayerName = "RightError";
+    @originalConnName = "V1S4ToRightError";
+};
+
+TransposeConn "RightErrorToV1S8" = {
+    #include "LeftErrorToV1S8";
+    @preLayerName = "RightError";
+    @originalConnName = "V1S8ToRightError";
+};
+
+CloneKernelConn "V1S2ToRightReconS2" = {
+    #include "V1S2ToLeftReconS2";
+    @postLayerName = "RightReconS2";
+    @originalConnName = "V1S2ToRightError";
+};
+
+CloneKernelConn "V1S4ToRightReconS4" = {
+    #include "V1S4ToLeftReconS4";
+    @postLayerName = "RightReconS4";
+    @originalConnName = "V1S4ToRightError";
+};
+
+CloneKernelConn "V1S8ToRightReconS8" = {
+    #include "V1S8ToLeftReconS8";
+    @postLayerName = "RightReconS8";
+    @originalConnName = "V1S8ToRightError";
+};
+
+CloneKernelConn "V1S2ToRightReconAll" = {
+    #include "V1S2ToLeftReconAll";
+    @postLayerName = "RightReconAll";
+    @originalConnName = "V1S2ToRightError";
+};
+
+CloneKernelConn "V1S4ToRightReconAll" = {
+    #include "V1S4ToLeftReconAll";
+    @postLayerName = "RightReconAll";
+    @originalConnName = "V1S4ToRightError";
+};
+
+CloneKernelConn "V1S8ToRightReconAll" = {
+    #include "V1S8ToLeftReconAll";
+    @postLayerName = "RightReconAll";
+    @originalConnName = "V1S8ToRightError";
+};
+
+//Depth connections
+KernelConn "DepthMovieToDepthDownsample" = {
+    preLayerName = "DepthImage";
+    postLayerName = "DepthDownsample";
+    channelCode = 0;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "Gauss2DWeight";
+    aspect = 1;
+    sigma = 10000;
+    rMax  = 8;
+    rMin = 0;
+    numOrientationsPre = 1;
+    numOrientationsPost = 1;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    pvpatchAccumulateType = "convolve";
+};
+
+//MLP connections
+KernelConn "W1V1S2" = {
+    preLayerName = "V1S2Rescale";
+    postLayerName = "Error1";
+    channelCode = 2; //Prev layer to next err is on inhib b
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 400;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/W1V1S2_W.pvp";
+    weightInitType = "UniformRandomWeight";
+    //with uniform random weights, min/max is +-sqrt(3/m), where m is # of connections per post node
+    wMinInit = -.0765; //sqrt(3/512)
+    wMaxInit = .0765;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 1;
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+    //Do this before next image flips
+    triggerOffset = 1;
+
+    dWMax = .0022; //sqrt(512)
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "W1V1S2Clone" = {
+    preLayerName = "V1S2Rescale";
+    postLayerName = "ForwardLayer1";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "W1V1S2";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "W1V1S4" = {
+   #include "W1V1S2";
+   @preLayerName = "V1S4Rescale";
+   @nxp = 1; 
+   @nyp = 1; 
+   @wMinInit = -.1082; //sqrt(3/256)
+   @wMaxInit = .1092;
+   @dWMax = .0016; //sqrt(256)
+   //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/W1V1S4_W.pvp";
+};
+
+CloneKernelConn "W1V1S4Clone" = {
+   #include "W1V1S2Clone";
+   @preLayerName = "V1S4Rescale";
+   @originalConnName = "W1V1S4";
+};
+
+KernelConn "W1V1S8" = {
+   #include "W1V1S2";
+   @preLayerName = "V1S8Rescale";
+   @nxp = 1; 
+   @nyp = 1; 
+   @wMinInit = -.153; //sqrt(3/128)
+   @wMaxInit = .153;
+   @dWMax = .0011; //sqrt(128)
+   //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/W1V1S8_W.pvp";
+};
+
+CloneKernelConn "W1V1S8Clone" = {
+   #include "W1V1S2Clone";
+   @preLayerName = "V1S8Rescale";
+   @originalConnName = "W1V1S8";
+};
+
+KernelConn "B1" = {
+    preLayerName = "onesLayer";
+    postLayerName = "Error1";
+    channelCode = 2; //Prev layer to next err is on inhib b
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 400;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    //weightInitType = "FileWeight";
+    //initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/B1_W.pvp";
+    weightInitType = "UniformRandomWeight";
+    //with uniform random weights, min/max is +-sqrt(3/m), where m is # of connections per post node
+    wMinInit = -.1; //sqrt(3/9408)
+    wMaxInit = .1;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 1;
+    triggerFlag = true;
+    //Do this before next image flips
+    triggerOffset = 1;
+
+    triggerLayerName = "LeftImage";
+    dWMax = .001; //sqrt(9408)/10000
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "B1Clone" = {
+    preLayerName = "onesLayer";
+    postLayerName = "ForwardLayer1";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "B1";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "W2" = {
+   #include "W1V1S2";
+   @nxp = 1;
+   @nyp = 1;
+   @nfp = 100;
+   @preLayerName = "HiddenLayer1";
+   @postLayerName = "Error2";
+   @wMinInit = -.0866; //sqrt(3/400)
+   @wMaxInit = .0866;
+   @dWMax = .002; //sqrt(400)
+   //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/W2_W.pvp";
+};
+
+CloneKernelConn "W2Clone" = {
+   #include "W1V1S2Clone";
+   @preLayerName = "HiddenLayer1";
+   @postLayerName = "ForwardLayer2";
+   @originalConnName = "W2";
+};
+
+TransposeConn "W2T" = {
+    preLayerName = "Error2";
+    postLayerName = "Error1";
+    channelCode = 0; //On excitatory channel
+    originalConnName = "W2";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
+};
+
+KernelConn "B2" = {
+   #include "B1";
+   @nxp = 1;
+   @nyp = 1;
+   @nfp = 100;
+   @preLayerName = "onesLayer";
+   @postLayerName = "Error2";
+   @wMinInit = -.0866; //sqrt(3/9800)
+   @wMaxInit = .0866;
+   @dWMax = .002; //sqrt(9800)/100000
+   //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/B2_W.pvp";
+};
+
+CloneKernelConn "B2Clone" = {
+   #include "B1Clone";
+   @preLayerName = "onesLayer";
+   @postLayerName = "ForwardLayer2";
+   @originalConnName = "B2";
+};
+
+KernelConn "W3" = {
+   #include "W1V1S2";
+   @nxp = 1;
+   @nyp = 1;
+   @nfp = 16;
+   @preLayerName = "HiddenLayer2";
+   @postLayerName = "ErrorFinal";
+   @wMinInit = -.1732; //sqrt(3/100)
+   @wMaxInit = .1732;
+   @dWMax = .001; //sqrt(100)
+   //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/W3_W.pvp";
+};
+
+CloneKernelConn "W3Clone" = {
+   #include "W1V1S2Clone";
+   @preLayerName = "HiddenLayer2";
+   @postLayerName = "ForwardLayerFinal";
+   @originalConnName = "W3";
+};
+
+TransposeConn "W3T" = {
+    #include "W2T";
+    @preLayerName = "ErrorFinal";
+    @postLayerName = "Error2";
+    @originalConnName = "W3";
+};
+
+KernelConn "B3" = {
+   #include "B1";
+   @nxp = 1;
+   @nyp = 1;
+   @nfp = 16;
+   @preLayerName = "onesLayer";
+   @postLayerName = "ErrorFinal";
+   @wMinInit = -.1732; //sqrt(3/100)
+   @wMaxInit = .1732;
+   @dWMax = .001; //sqrt(4900)/100000
+   //@initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_mlp/B3_W.pvp";
+};
+
+CloneKernelConn "B3Clone" = {
+   #include "B1Clone";
+   @preLayerName = "onesLayer";
+   @postLayerName = "ForwardLayerFinal";
+   @originalConnName = "B3";
+};
+
+IdentConn "DepthGTToErrorFinal" = {
+    preLayerName = "DepthGT";
+    postLayerName = "ErrorFinal";
+    channelCode = 0; //Excitatory Channel
+    writeStep = -1;    
+    delay = 0;
+};
+
+IdentConn "OutputLayerToErrorFinal" = {
+    preLayerName = "OutputLayer";
+    postLayerName = "ErrorFinal";
+    channelCode = 1; //Inhibitory Channel
+    writeStep = -1;    
+    delay = 0;
+};
+
+
+
+
+//
+//
+// Probes
+//
+//StatsProbe "LeftGanglionStatsFile" = {
+//    targetLayer = "LeftGanglion";
+//    probeOutputFile = "LeftGanglion_Stats.txt";
+//};
+//
+//StatsProbe "LeftRescaleStatsFile" = {
+//    targetLayer = "LeftRescale";
+//    probeOutputFile = "LeftRescale_Stats.txt";
+//};
+//
+//StatsProbe "LeftErrorStatsFile" = {
+//    targetLayer = "LeftError";
+//    probeOutputFile = "LeftError_Stats.txt";
+//};
+//
+//StatsProbe "LeftReconStatsFile" = {
+//    targetLayer = "LeftRecon";
+//    probeOutputFile = "LeftRecon_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthDownsampleStatsFile" = {
+//   targetLayer = "LeftDepthDownsample";
+//   probeOutputFile = "LeftDepthDownsample_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthBinStatsFile" = {
+//   targetLayer = "LeftDepthBin";
+//   probeOutputFile = "LeftDepthBin_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthRescaleStatsFile" = {
+//   targetLayer = "LeftDepthRescale";
+//   probeOutputFile = "LeftDepthRescale_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthBufferStatsFile" = {
+//   targetLayer = "LeftDepthBuffer";
+//   probeOutputFile = "LeftDepthBuffer_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthErrorStatsFile" = {
+//    targetLayer = "LeftDepthError";
+//    probeOutputFile = "LeftDepthError_Stats.txt";
+//};
+//
+//StatsProbe "LeftDepthReconStatsFile" = {
+//    targetLayer = "LeftDepthRecon";
+//    probeOutputFile = "LeftDepthRecon_Stats.txt";
+//};
+//
+//StatsProbe "RightGanglionStatsFile" = {
+//    targetLayer = "RightGanglion";
+//    probeOutputFile = "RightGanglion_Stats.txt";
+//};
+//
+//StatsProbe "RightRescaleStatsFile" = {
+//    targetLayer = "RightRescale";
+//    probeOutputFile = "RightRescale_Stats.txt";
+//};
+//
+//StatsProbe "RightErrorStatsFile" = {
+//    targetLayer = "RightError";
+//    probeOutputFile = "RightError_Stats.txt";
+//};
+//
+//StatsProbe "RightReconStatsFile" = {
+//    targetLayer = "RightRecon";
+//    probeOutputFile = "RightRecon_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthDownsampleStatsFile" = {
+//   targetLayer = "RightDepthDownsample";
+//   probeOutputFile = "RightDepthDownsample_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthBinStatsFile" = {
+//   targetLayer = "RightDepthBin";
+//   probeOutputFile = "RightDepthBin_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthRescaleStatsFile" = {
+//   targetLayer = "RightDepthRescale";
+//   probeOutputFile = "RightDepthRescale_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthBufferStatsFile" = {
+//   targetLayer = "RightDepthBuffer";
+//   probeOutputFile = "RightDepthBuffer_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthErrorStatsFile" = {
+//    targetLayer = "RightDepthError";
+//    probeOutputFile = "RightDepthError_Stats.txt";
+//};
+//
+//StatsProbe "RightDepthReconStatsFile" = {
+//    targetLayer = "RightDepthRecon";
+//    probeOutputFile = "RightDepthRecon_Stats.txt";
+//};
+//
+//StatsProbe "BinocularV1_S2StatsFile" = {
+//    targetLayer = "BinocularV1_S2";
+//    probeOutputFile = "BinocularV1_S2_Stats.txt";
+//};
+//
+//StatsProbe "BinocularV1_S4StatsFile" = {
+//    targetLayer = "BinocularV1_S4";
+//    probeOutputFile = "BinocularV1_S4_Stats.txt";
+//};
+//
+//StatsProbe "BinocularV1_S8StatsFile" = {
+//    targetLayer = "BinocularV1_S8";
+//    probeOutputFile = "BinocularV1_S8_Stats.txt";
+//};
+//
+//StatsProbe "PosDownsampleStatsFile" = {
+//    targetLayer = "PosDownsample";
+//    probeOutputFile = "PosDownsample_Stats.txt";
+//};
+//
+//StatsProbe "PosRescaleStatsFile" = {
+//    targetLayer = "PosRescale";
+//    probeOutputFile = "PosRescale_Stats.txt";
+//};
+//
+//StatsProbe "PosErrorStatsFile" = {
+//    targetLayer = "PosError";
+//    probeOutputFile = "PosError_Stats.txt";
+//};
+//
+//StatsProbe "PosReconStatsFile" = {
+//    targetLayer = "PosRecon";
+//    probeOutputFile = "PosRecon_Stats.txt";
+//};
+

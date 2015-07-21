@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+    <head>
+        <title>Image-Net Web Graph</title>
+        
+        <!-- OFFLINE CODE -->
+        
+        <!-- Flash embedding utility (needed to embed Cytoscape Web) -->
+        <!-- <script type="text/javascript" src="./js/min/AC_OETags.min.js"></script> -->
+        
+        <!-- Cytoscape Web JS API (needed to reference org.cytoscapeweb.Visualization) -->
+        <!-- <script type="text/javascript" src="./js/min/cytoscapeweb.min.js"></script> -->
+
+        <!-- JQUERY/AJAX -->
+        <!-- <script type="text/javascript" src="./js/min/jquery-1.7.2.min.js"></script> -->
+
+        <!-- ONLINE CODE -->
+
+        <!-- Flash embedding utility (needed to embed Cytoscape Web) -->
+        <script type="text/javascript" src="http://chianti.ucsd.edu/svn/cytoscapeweb/trunk/cytoscapeweb/html-template/js/AC_OETags.js"></script>
+        
+        <!-- Cytoscape Web JS API (needed to reference org.cytoscapeweb.Visualization) -->
+        <script type="text/javascript" src="http://chianti.ucsd.edu/svn/cytoscapeweb/trunk/cytoscapeweb/html-template/js/cytoscapeweb.js"></script>
+
+        <!-- JQUERY/AJAX -->
+        <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+        
+
+        <script type="text/javascript">
+            jQuery.ready=function() {
+                // id of Cytoscape Web container div
+                var div_id = "cytoscapeweb";
+                
+                // initialization options
+                var options = {
+                    // where you have the Cytoscape Web SWF
+                    swfPath: "./swf/CytoscapeWeb",
+                    // where you have the Flash installer SWF
+                    flashInstallerPath: "./swf/playerProductInstall",
+                };
+
+                // init
+                var vis = new org.cytoscapeweb.Visualization(div_id, options);
+
+                vis.ready(function() {
+                
+                    // add a listener for when nodes and edges are clicked
+                    vis.addListener("click", "nodes", function(event) {
+                        handle_click(event);
+                    });
+                    
+                    function handle_click(event) {
+                         clear();
+                         //var keys = Object.keys(event.target.data);
+                         //for(var i in keys){
+                         //   print(keys[i]+"\n");
+                         //}
+                         print("<b>node.words:</b> "+event.target.data.words+"\n");
+                         print("<b>node.WNID:</b> "+event.target.data.label+"\n");
+                    }
+                    
+                    function clear() {
+                        document.getElementById("note").innerHTML = "";
+                    }
+                
+                    function print(msg) {
+                        document.getElementById("note").innerHTML += "<p>" + msg + "</p>";
+                    }
+                });
+                
+
+                // load file and draw
+                $.ajax({
+                    type: "GET",
+                    url: "./graphs/downloadedGraph.xgmml",
+                    isLocal: true,
+                    dataType: "text",
+                    success: function(data) {
+                        vis.draw({ network: data , layout: 'Radial' });
+                    },
+                    error: function(errobj,errmsg,errthrw) {
+                        alert("Error loading file");
+                    }
+                });
+            };
+        </script>
+        
+        <style>
+            /* The Cytoscape Web container must have its dimensions set. */
+            html, body { height: 100%; width: 100%; padding: 0; margin: 0; }
+            #cytoscapeweb { width: 100%; height: 100%; }
+        </style>
+    </head>
+    
+    <body>
+        <table style="width:100%;height:100%">
+            <td>
+                <table style="width:100%;height:100%">
+                    <tr>
+                        <td height="100%">
+                            <div id="cytoscapeweb">
+                                Loading graph...
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div id="note">
+                                <p>Click on a node to see it's name.</p>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+       <!---     <td valign="top", width="10%">
+                <table width="10%">
+                    <tr>
+                        <p>Filter:</p>
+                    </tr>
+                    <tr>
+                        <input type="text" id="key" name="key" onKeyPress="return onEnter(this,event)">
+                    </tr>
+                </table>
+            </td>   -->
+        </table>
+    </body>
+    
+</html>

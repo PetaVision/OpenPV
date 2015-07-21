@@ -1,0 +1,290 @@
+//
+// LearningLCA16x16_V1ScaleFactor2_nfp8.params
+//
+// created by peteschultz: May 5, 2014
+//
+
+// An input->ganglion->residual<->V1 column that uses LCA to find
+// a sparse V1 representation of the input, and then uses
+// Hebbian learning to learn weights.
+//
+
+debugParsing = false; // debugParsing = true for more verbose output of parsing
+
+HyPerCol "column" = {
+   nx                               = 960;
+   ny                               = 540;
+   dt                               = 1.0;
+   dtAdaptFlag                      = 5.0;
+   dtScaleMax                       = 5.0;
+   dtScaleMin                       = 0.25;
+   dtChangeMax                      = 0.05;
+   dtChangeMin                      = 0.0;
+   randomSeed                       = 4127349408;
+   startTime                        = 0.0;
+   stopTime                         = 6755800.0;
+   progressInterval                 = 1000;
+   writeProgressToErr               = false;  
+   outputPath                       = "output/LearningLCA16x16_V1ScaleFactor2_nfp8";
+   filenamesContainLayerNames       = 2;  
+   filenamesContainConnectionNames  = 2;
+   checkpointWrite                  = true;
+   checkpointWriteDir               = "output/LearningLCA16x16_V1ScaleFactor2_nfp8/checkpoints/";
+   checkpointWriteStepInterval      = 10000;
+   deleteOlderCheckpoints           = true;
+};
+
+//
+// layers
+//
+
+Movie "input" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    imageListPath                    = "input/fileoffilenames.txt";
+    readPvpFile                      = false;
+    echoFramePathnameFlag            = true;
+    nf                               = 1;
+    phase                            = 0;
+    writeStep                        = -1;
+    writeSparseActivity              = false;
+    mirrorBCflag                     = true;
+    useImageBCflag                   = false;
+    inverseFlag                      = false;
+    normalizeLuminanceFlag           = false;
+    autoResizeFlag                   = true;
+    writeImages                      = false;
+    offsetX                          = 0;
+    offsetY                          = 0;
+    jitterFlag                       = false;
+    randomMovie                      = false;
+    displayPeriod                    = 200.0;
+    start_frame_index                = 0;
+    skip_frame_index                 = 0;
+};
+
+ANNLayer "ganglion" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 1;
+    writeStep                        = 200.0;
+    initialWriteTime                 = 200.0;
+    mirrorBCflag                     = true;
+    writeSparseActivity              = false;
+
+    InitVType                        = "ZeroV";
+
+    VThresh                          = -infinity;
+    AMax                             = infinity;
+    AMin                             = -infinity;
+    AShift                           = 0.0;
+    
+    triggerFlag                      = true;
+    triggerLayerName                 = "input";
+};
+
+ANNNormalizedErrorLayer "residual" = {
+    restart                          = false;
+    nxScale                          = 1;
+    nyScale                          = 1;
+    nf                               = 1;
+    phase                            = 2;
+    writeStep                        = 200.0;
+    initialWriteTime                 = 200.0;
+    mirrorBCflag                     = false;
+    valueBC                          = 0.0;
+    writeSparseActivity              = false;
+    
+    InitVType                        = "ZeroV";
+    
+    VThresh                          = 0.005;
+    AMax                             = infinity;
+    AMin                             = 0;
+    AShift                           = 0;
+
+    triggerFlag                      = false;
+};
+
+HyPerLCALayer "V1" = {
+    restart                          = 0;
+    nxScale                          = 0.5;
+    nyScale                          = 0.5;
+    nf                               = 8;
+    numChannels                      = 1;
+    numWindowX                       = 1;
+    numWindowY                       = 1;
+    writeStep                        = 200.0;
+    initialWriteTime                 = 200.0;
+    mirrorBCflag                     = false;
+    valueBC                          = 0;
+    writeSparseActivity              = true;
+    
+    InitVType                        = "UniformRandomV";
+    minV                             = -1.0;
+    maxV                             = .15;
+
+    timeConstantTau                  = 100.0;
+    timeConstantTauMinimum           = 10.0;
+    slopeErrorStd                    = 0.01;
+    
+    VThresh                          = 0.05; // Xinhua says lower threshold gets better learning
+    AMax                             = infinity;
+    AMin                             = 0;
+    AShift                           = 0.0;
+    
+    phase                            = 5;
+};
+
+//
+//Connections
+//
+
+KernelConn "input_to_ganglion_center" = {
+    preLayerName                     = "input";
+    postLayerName                    = "ganglion";
+    channelCode                      = 0;
+
+    nxp                              = 3;
+    nyp                              = 3;
+    nfp                              = 1;
+    numAxonalArbors                  = 1;
+    writeStep                        = -1;
+    initFromLastFlag                 = false;
+    
+    weightInitType                   = "Gauss2DWeight";
+    aspect                           = 1;
+    sigma                            = 0.5;
+    rMax                             = infinity;
+    rMin                             = 0;
+      
+    strength                         = 1.0;
+    normalizeMethod                  = "normalizeSum";
+    normalizeArborsIndividually      = false;
+    normalize_cutoff                 = 0;
+    symmetrizeWeights                = false;
+    preActivityIsNotRate             = false;
+    minSumTolerated                  = 0.0;
+    normalizeFromPostPerspective     = false;
+
+    writeCompressedCheckpoints       = false;
+    plasticityFlag                   = false;
+    selfFlag                         = false;
+    shmget_flag                      = true;
+
+    delay                            = 0;
+
+    pvpatchAccumulateType            = "Convolve";
+    shrinkPatches                    = false;
+    updateGSynFromPostPerspective    = false;
+};
+
+KernelConn "input_to_ganglion_surround" = {
+    preLayerName                     = "input";
+    postLayerName                    = "ganglion";
+    channelCode                      = 1;
+
+    nxp                              = 11;
+    nyp                              = 11;
+    nfp                              = 1;
+    numAxonalArbors                  = 1;
+    writeStep                        = -1;
+    initFromLastFlag                 = 0;
+    
+    weightInitType                   = "Gauss2DWeight";
+    aspect                           = 1;
+    sigma                            = 5.5;
+    rMax                             = infinity;
+    rMin                             = 0;
+      
+    strength                         = 1.0;
+    normalizeMethod                  = "normalizeSum";
+    normalizeArborsIndividually      = false;
+    normalize_cutoff                 = 0;
+    symmetrizeWeights                = 0;
+    preActivityIsNotRate             = false;
+    minSumTolerated                  = 0.0;
+    normalizeFromPostPerspective     = false;
+
+    writeCompressedCheckpoints       = false;
+    plasticityFlag                   = false;
+    selfFlag                         = false;
+    shmget_flag                      = true;
+
+    delay                            = 0;
+
+    pvpatchAccumulateType            = "Convolve";
+    shrinkPatches                    = false;
+    updateGSynFromPostPerspective    = false;
+};
+
+IdentConn "ganglion_to_residual" = {
+    preLayerName = "ganglion";
+    postLayerName = "residual";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+KernelConn "V1_to_residual" = {
+    preLayerName                     = "V1";
+    postLayerName                    = "residual";
+    channelCode                      = 1;
+    nxp                              = 18;
+    nyp                              = 18;
+    nxpShrunken                      = 16;
+    nypShrunken                      = 16;
+    nfp                              = 1;
+    numAxonalArbors                  = 1;
+    delay                            = 0;
+    initFromLastFlag                 = 0;
+    
+    weightInitType                   = "UniformRandomWeight";
+    wMinInit                         = -1.0;
+    wMaxInit                         = 1.0;
+    sparseFraction                   = .90;
+    //
+    strength                         = 1.0;
+    normalizeMethod                  = "normalizeL2";
+    minL2NormTolerated               = 0;
+    normalizeArborsIndividually      = 0;
+    normalize_cutoff                 = 0.0;
+    normalizeFromPostPerspective     = false;
+    symmetrizeWeights                = false;
+    //
+    preActivityIsNotRate             = false;
+    keepKernelsSynchronized          = true;
+    combine_dW_with_W_flag           = false;
+    //
+    writeStep                        = 10000.0;
+    initialWriteTime                 = 0.0;
+    writeCompressedWeights           = false;
+    writeCompressedCheckpoints       = false;
+    plasticityFlag                   = true;
+    triggerFlag                      = true;
+    triggerLayerName                 = "input";
+    triggerOffset                    = 1.0;
+    dWMax                            = 5.0;
+    selfFlag                         = false;
+    shmget_flag                      = false;
+    pvpatchAccumulateType            = "convolve";
+    updateGSynFromPostPerspective    = false;
+    shrinkPatches                    = false;
+};
+
+TransposeConn "residual_to_V1" = {
+    preLayerName                     = "residual";
+    postLayerName                    = "V1";
+    channelCode                      = 0;
+    delay                            = 0;
+    originalConnName                 = "V1_to_residual";
+    selfFlag                         = false;
+    preActivityIsNotRate             = false;
+    writeStep                        = -1;
+    writeCompressedCheckpoints       = false;
+    shmget_flag                      = false;
+    pvpatchAccumulateType            = "convolve";
+    updateGSynFromPostPerspective    = false;
+};

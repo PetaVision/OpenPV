@@ -1,0 +1,12 @@
+n0034 slots=12 max-slots=12
+n0035 slots=12 max-slots=12
+n0036 slots=12 max-slots=12
+n0037 slots=12 max-slots=12
+n0038 slots=12 max-slots=12
+n0039 slots=12 max-slots=12
+n0040 slots=12 max-slots=12
+n0041 slots=12 max-slots=12
+n0042 slots=12 max-slots=12
+n0043 slots=12 max-slots=12
+n0044 slots=12 max-slots=12
+n0045 slots=12 max-slots=12

@@ -1,0 +1,1 @@
+./input/genericprogramexample/image.png

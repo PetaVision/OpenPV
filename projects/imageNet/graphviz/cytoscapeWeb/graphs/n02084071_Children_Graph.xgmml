@@ -1,0 +1,2107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<graph label="n02084071_Children_Graph" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:cy="http://www.cytoscape.org" xmlns="http://www.cs.rpi.edu/XGMML"  directed="1">
+  <att name="documentVersion" value="1.1"/>
+  <att name="networkMetadata">
+    <rdf:RDF>
+      <rdf:Description rdf:about="http://www.cytoscape.org/">
+        <dc:type>Protein-Protein Interaction</dc:type>
+        <dc:description>N/A</dc:description>
+        <dc:identifier>N/A</dc:identifier>
+        <dc:date>2012-08-23 17:40:28</dc:date>
+        <dc:title>n02084071_Children_Graph</dc:title>
+        <dc:source>http://www.cytoscape.org/</dc:source>
+        <dc:format>Cytoscape-XGMML</dc:format>
+      </rdf:Description>
+    </rdf:RDF>
+  </att>
+  <att type="string" name="backgroundColor" value="#ffffff"/>
+  <att type="real" name="GRAPH_VIEW_ZOOM" value="0.2774205508956138"/>
+  <att type="real" name="GRAPH_VIEW_CENTER_X" value="1373.0553065622498"/>
+  <att type="real" name="GRAPH_VIEW_CENTER_Y" value="633.7573769250141"/>
+  <att type="string" name="__layoutAlgorithm" value="jgraph-circle" cy:hidden="true"/>
+  <node label="n02084732" id="-190">
+    <att type="string" name="canonicalName" value="n02084732"/>
+    <att type="string" name="label" value="n02084732"/>
+    <att type="string" name="words" value="pooch, doggie, doggy, barker, bow-wow"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1201.17578125" y="814.1876831054688" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="pooch, doggie, doggy, barker, bow-wow" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02100583" id="-189">
+    <att type="string" name="canonicalName" value="n02100583"/>
+    <att type="string" name="label" value="n02100583"/>
+    <att type="string" name="words" value="vizsla, Hungarian pointer"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="0.8592491149902344" y="505.2333984375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="vizsla, Hungarian pointer" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02100236" id="-188">
+    <att type="string" name="canonicalName" value="n02100236"/>
+    <att type="string" name="label" value="n02100236"/>
+    <att type="string" name="words" value="German short-haired pointer"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="0.8592491149902344" y="390.7666015625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="German short-haired pointer" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02099997" id="-187">
+    <att type="string" name="canonicalName" value="n02099997"/>
+    <att type="string" name="label" value="n02099997"/>
+    <att type="string" name="words" value="pointer, Spanish pointer"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="60.0" y="448.0" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="pointer, Spanish pointer" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02100735" id="-186">
+    <att type="string" name="canonicalName" value="n02100735"/>
+    <att type="string" name="label" value="n02100735"/>
+    <att type="string" name="words" value="English setter"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="382.52587890625" y="734.05908203125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="English setter" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02101006" id="-185">
+    <att type="string" name="canonicalName" value="n02101006"/>
+    <att type="string" name="label" value="n02101006"/>
+    <att type="string" name="words" value="Gordon setter"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.00001525878906" x="246.07170867919922" y="797.1212158203125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Gordon setter" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02100877" id="-184">
+    <att type="string" name="canonicalName" value="n02100877"/>
+    <att type="string" name="label" value="n02100877"/>
+    <att type="string" name="words" value="Irish setter, red setter"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="236.57192993164062" y="659.928466796875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Irish setter, red setter" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02100399" id="-183">
+    <att type="string" name="canonicalName" value="n02100399"/>
+    <att type="string" name="label" value="n02100399"/>
+    <att type="string" name="words" value="setter"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.00001525878906" x="286.4383773803711" y="725.4008178710938" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="setter" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02098806" id="-182">
+    <att type="string" name="canonicalName" value="n02098806"/>
+    <att type="string" name="label" value="n02098806"/>
+    <att type="string" name="words" value="bird dog"/>
+    <graphics type="ELLIPSE" h="30.00048828125" w="70.0" x="193.9302215576172" y="536.3021240234375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="bird dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02101670" id="-181">
+    <att type="string" name="canonicalName" value="n02101670"/>
+    <att type="string" name="label" value="n02101670"/>
+    <att type="string" name="words" value="field spaniel"/>
+    <graphics type="ELLIPSE" h="30.0001220703125" w="69.99996948242188" x="531.6591339111328" y="283.0150146484375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="field spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02102806" id="-180">
+    <att type="string" name="canonicalName" value="n02102806"/>
+    <att type="string" name="label" value="n02102806"/>
+    <att type="string" name="words" value="American water spaniel"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="637.504150390625" y="113.17900085449219" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="American water spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02102973" id="-179">
+    <att type="string" name="canonicalName" value="n02102973"/>
+    <att type="string" name="label" value="n02102973"/>
+    <att type="string" name="words" value="Irish water spaniel"/>
+    <graphics type="ELLIPSE" h="29.999996185302734" w="70.0" x="538.2805786132812" y="52.34097480773926" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Irish water spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02102605" id="-178">
+    <att type="string" name="canonicalName" value="n02102605"/>
+    <att type="string" name="label" value="n02102605"/>
+    <att type="string" name="words" value="water spaniel"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="557.4733276367188" y="132.37176513671875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="water spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02102177" id="-177">
+    <att type="string" name="canonicalName" value="n02102177"/>
+    <att type="string" name="label" value="n02102177"/>
+    <att type="string" name="words" value="Welsh springer spaniel"/>
+    <graphics type="ELLIPSE" h="30.00000762939453" w="70.0" x="385.2842102050781" y="122.2805290222168" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Welsh springer spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02102040" id="-176">
+    <att type="string" name="canonicalName" value="n02102040"/>
+    <att type="string" name="label" value="n02102040"/>
+    <att type="string" name="words" value="English springer, English springer spaniel"/>
+    <graphics type="ELLIPSE" h="29.999996185302734" w="69.99996948242188" x="448.5272979736328" y="54.44895362854004" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="English springer, English springer spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02101861" id="-175">
+    <att type="string" name="canonicalName" value="n02101861"/>
+    <att type="string" name="label" value="n02101861"/>
+    <att type="string" name="words" value="springer spaniel, springer"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="466.4902038574219" y="135.6549530029297" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="springer spaniel, springer" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02101556" id="-174">
+    <att type="string" name="canonicalName" value="n02101556"/>
+    <att type="string" name="label" value="n02101556"/>
+    <att type="string" name="words" value="clumber, clumber spaniel"/>
+    <graphics type="ELLIPSE" h="29.999984741210938" w="70.0" x="443.7305603027344" y="262.15027618408203" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="clumber, clumber spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02101388" id="-173">
+    <att type="string" name="canonicalName" value="n02101388"/>
+    <att type="string" name="label" value="n02101388"/>
+    <att type="string" name="words" value="Brittany spaniel"/>
+    <graphics type="ELLIPSE" h="30.000473022460938" w="70.0" x="594.6006469726562" y="248.9819107055664" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Brittany spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02102318" id="-172">
+    <att type="string" name="canonicalName" value="n02102318"/>
+    <att type="string" name="label" value="n02102318"/>
+    <att type="string" name="words" value="cocker spaniel, English cocker spaniel, cocker"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="415.0617980957031" y="205.08921813964844" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="cocker spaniel, English cocker spaniel, cocker" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02102480" id="-171">
+    <att type="string" name="canonicalName" value="n02102480"/>
+    <att type="string" name="label" value="n02102480"/>
+    <att type="string" name="words" value="Sussex spaniel"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="596.5186767578125" y="196.30918884277344" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Sussex spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02101108" id="-170">
+    <att type="string" name="canonicalName" value="n02101108"/>
+    <att type="string" name="label" value="n02101108"/>
+    <att type="string" name="words" value="spaniel"/>
+    <graphics type="ELLIPSE" h="30.0" w="69.99996948242188" x="514.4543609619141" y="202.53341674804688" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02103181" id="-169">
+    <att type="string" name="canonicalName" value="n02103181"/>
+    <att type="string" name="label" value="n02103181"/>
+    <att type="string" name="words" value="griffon, wire-haired pointing griffon"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.000244140625" x="211.6197509765625" y="395.5975341796875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="griffon, wire-haired pointing griffon" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02098906" id="-168">
+    <att type="string" name="canonicalName" value="n02098906"/>
+    <att type="string" name="label" value="n02098906"/>
+    <att type="string" name="words" value="water dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="215.11212158203125" y="597.301025390625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="water dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02099601" id="-167">
+    <att type="string" name="canonicalName" value="n02099601"/>
+    <att type="string" name="label" value="n02099601"/>
+    <att type="string" name="words" value="golden retriever"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="332.7852783203125" y="264.97210693359375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="golden retriever" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02099849" id="-166">
+    <att type="string" name="canonicalName" value="n02099849"/>
+    <att type="string" name="label" value="n02099849"/>
+    <att type="string" name="words" value="Chesapeake Bay retriever"/>
+    <graphics type="ELLIPSE" h="30.0" w="69.99998474121094" x="237.9274673461914" y="328.8141784667969" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Chesapeake Bay retriever" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02099429" id="-165">
+    <att type="string" name="canonicalName" value="n02099429"/>
+    <att type="string" name="label" value="n02099429"/>
+    <att type="string" name="words" value="curly-coated retriever"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="298.39215087890625" y="179.5961456298828" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="curly-coated retriever" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02099267" id="-164">
+    <att type="string" name="canonicalName" value="n02099267"/>
+    <att type="string" name="label" value="n02099267"/>
+    <att type="string" name="words" value="flat-coated retriever"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="171.78225708007812" y="264.80828857421875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="flat-coated retriever" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02099712" id="-163">
+    <att type="string" name="canonicalName" value="n02099712"/>
+    <att type="string" name="label" value="n02099712"/>
+    <att type="string" name="words" value="Labrador retriever"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="203.5001983642578" y="190.8978729248047" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Labrador retriever" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02099029" id="-162">
+    <att type="string" name="canonicalName" value="n02099029"/>
+    <att type="string" name="label" value="n02099029"/>
+    <att type="string" name="words" value="retriever"/>
+    <graphics type="ELLIPSE" h="30.000015258789062" w="70.0" x="252.30117797851562" y="247.7790756225586" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="retriever" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02098550" id="-161">
+    <att type="string" name="canonicalName" value="n02098550"/>
+    <att type="string" name="label" value="n02098550"/>
+    <att type="string" name="words" value="sporting dog, gun dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="417.28717041015625" y="492.91851806640625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="sporting dog, gun dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02089468" id="-160">
+    <att type="string" name="canonicalName" value="n02089468"/>
+    <att type="string" name="label" value="n02089468"/>
+    <att type="string" name="words" value="sausage dog, sausage hound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="817.708984375" y="783.841552734375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="sausage dog, sausage hound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02089232" id="-159">
+    <att type="string" name="canonicalName" value="n02089232"/>
+    <att type="string" name="label" value="n02089232"/>
+    <att type="string" name="words" value="dachshund, dachsie, badger dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="896.1878662109375" y="759.0552368164062" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="dachshund, dachsie, badger dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02096294" id="-158">
+    <att type="string" name="canonicalName" value="n02096294"/>
+    <att type="string" name="label" value="n02096294"/>
+    <att type="string" name="words" value="Australian terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1133.907958984375" y="930.1749267578125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Australian terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02095212" id="-157">
+    <att type="string" name="canonicalName" value="n02095212"/>
+    <att type="string" name="label" value="n02095212"/>
+    <att type="string" name="words" value="smooth-haired fox terrier"/>
+    <graphics type="ELLIPSE" h="30.00048828125" w="70.0" x="1094.3507080078125" y="1524.1239013671875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="smooth-haired fox terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02095314" id="-156">
+    <att type="string" name="canonicalName" value="n02095314"/>
+    <att type="string" name="label" value="n02095314"/>
+    <att type="string" name="words" value="wire-haired fox terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1194.5966796875" y="1505.9007568359375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="wire-haired fox terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02095050" id="-155">
+    <att type="string" name="canonicalName" value="n02095050"/>
+    <att type="string" name="label" value="n02095050"/>
+    <att type="string" name="words" value="fox terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1087.94482421875" y="1452.7757568359375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="fox terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02098105" id="-154">
+    <att type="string" name="canonicalName" value="n02098105"/>
+    <att type="string" name="label" value="n02098105"/>
+    <att type="string" name="words" value="soft-coated wheaten terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="796.2617797851562" y="863.381591796875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="soft-coated wheaten terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02095889" id="-153">
+    <att type="string" name="canonicalName" value="n02095889"/>
+    <att type="string" name="label" value="n02095889"/>
+    <att type="string" name="words" value="Sealyham terrier, Sealyham"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="732.9512939453125" y="1600.4549560546875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Sealyham terrier, Sealyham" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02095727" id="-152">
+    <att type="string" name="canonicalName" value="n02095727"/>
+    <att type="string" name="label" value="n02095727"/>
+    <att type="string" name="words" value="Welsh terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="721.7268676757812" y="1518.9239501953125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Welsh terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02095570" id="-151">
+    <att type="string" name="canonicalName" value="n02095570"/>
+    <att type="string" name="label" value="n02095570"/>
+    <att type="string" name="words" value="Lakeland terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="628.971435546875" y="1448.6173095703125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Lakeland terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02095412" id="-150">
+    <att type="string" name="canonicalName" value="n02095412"/>
+    <att type="string" name="label" value="n02095412"/>
+    <att type="string" name="words" value="wirehair, wirehaired terrier, wire-haired terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="710.50244140625" y="1437.3929443359375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="wirehair, wirehaired terrier, wire-haired terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02096437" id="-149">
+    <att type="string" name="canonicalName" value="n02096437"/>
+    <att type="string" name="label" value="n02096437"/>
+    <att type="string" name="words" value="Dandie Dinmont, Dandie Dinmont terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1175.1827392578125" y="975.8311767578125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Dandie Dinmont, Dandie Dinmont terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02096051" id="-148">
+    <att type="string" name="canonicalName" value="n02096051"/>
+    <att type="string" name="label" value="n02096051"/>
+    <att type="string" name="words" value="Airedale, Airedale terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="740.7125244140625" y="889.884033203125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Airedale, Airedale terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02098413" id="-147">
+    <att type="string" name="canonicalName" value="n02098413"/>
+    <att type="string" name="label" value="n02098413"/>
+    <att type="string" name="words" value="Lhasa, Lhasa apso"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1207.282958984375" y="1028.3447265625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Lhasa, Lhasa apso" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02094433" id="-146">
+    <att type="string" name="canonicalName" value="n02094433"/>
+    <att type="string" name="label" value="n02094433"/>
+    <att type="string" name="words" value="Yorkshire terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="691.0359497070312" y="926.220458984375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Yorkshire terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02098286" id="-145">
+    <att type="string" name="canonicalName" value="n02098286"/>
+    <att type="string" name="label" value="n02098286"/>
+    <att type="string" name="words" value="West Highland white terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1229.096923828125" y="1085.8968505859375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="West Highland white terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02097130" id="-144">
+    <att type="string" name="canonicalName" value="n02097130"/>
+    <att type="string" name="label" value="n02097130"/>
+    <att type="string" name="words" value="giant schnauzer"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="836.732666015625" y="1511.6441650390625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="giant schnauzer" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02097047" id="-143">
+    <att type="string" name="canonicalName" value="n02097047"/>
+    <att type="string" name="label" value="n02097047"/>
+    <att type="string" name="words" value="miniature schnauzer"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="987.8683471679688" y="1510.738525390625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="miniature schnauzer" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02097209" id="-142">
+    <att type="string" name="canonicalName" value="n02097209"/>
+    <att type="string" name="label" value="n02097209"/>
+    <att type="string" name="words" value="standard schnauzer"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="912.9890747070312" y="1626.086669921875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="standard schnauzer" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02096756" id="-141">
+    <att type="string" name="canonicalName" value="n02096756"/>
+    <att type="string" name="label" value="n02096756"/>
+    <att type="string" name="words" value="schnauzer"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="912.495849609375" y="1543.7880859375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="schnauzer" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02093256" id="-140">
+    <att type="string" name="canonicalName" value="n02093256"/>
+    <att type="string" name="label" value="n02093256"/>
+    <att type="string" name="words" value="Staffordshire bullterrier, Staffordshire bull terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="69.99990844726562" x="478.1556854248047" y="1301.8885498046875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Staffordshire bullterrier, Staffordshire bull terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02093428" id="-139">
+    <att type="string" name="canonicalName" value="n02093428"/>
+    <att type="string" name="label" value="n02093428"/>
+    <att type="string" name="words" value="American Staffordshire terrier, Staffordshire terrier, American pit bull terrier, pit bull terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.00009155273438" x="536.7099151611328" y="1402.3046875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="American Staffordshire terrier, Staffordshire terrier, American pit bull terrier, pit bull terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02093056" id="-138">
+    <att type="string" name="canonicalName" value="n02093056"/>
+    <att type="string" name="label" value="n02093056"/>
+    <att type="string" name="words" value="bullterrier, bull terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="609.2113647460938" y="1310.7054443359375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="bullterrier, bull terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02094114" id="-137">
+    <att type="string" name="canonicalName" value="n02094114"/>
+    <att type="string" name="label" value="n02094114"/>
+    <att type="string" name="words" value="Norfolk terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="648.9525146484375" y="971.1324462890625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Norfolk terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02096177" id="-136">
+    <att type="string" name="canonicalName" value="n02096177"/>
+    <att type="string" name="label" value="n02096177"/>
+    <att type="string" name="words" value="cairn, cairn terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1239.869140625" y="1146.494384765625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="cairn, cairn terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02093859" id="-135">
+    <att type="string" name="canonicalName" value="n02093859"/>
+    <att type="string" name="label" value="n02093859"/>
+    <att type="string" name="words" value="Kerry blue terrier"/>
+    <graphics type="ELLIPSE" h="30.00006103515625" w="70.0" x="615.919677734375" y="1023.0644226074219" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Kerry blue terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02097298" id="-134">
+    <att type="string" name="canonicalName" value="n02097298"/>
+    <att type="string" name="label" value="n02097298"/>
+    <att type="string" name="words" value="Scotch terrier, Scottish terrier, Scottie"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1239.2264404296875" y="1208.03857421875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Scotch terrier, Scottish terrier, Scottie" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02096585" id="-133">
+    <att type="string" name="canonicalName" value="n02096585"/>
+    <att type="string" name="label" value="n02096585"/>
+    <att type="string" name="words" value="Boston bull, Boston terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="593.08154296875" y="1080.2178955078125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Boston bull, Boston terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02093647" id="-132">
+    <att type="string" name="canonicalName" value="n02093647"/>
+    <att type="string" name="label" value="n02093647"/>
+    <att type="string" name="words" value="Bedlington terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1227.191162109375" y="1268.39794921875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Bedlington terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02093991" id="-131">
+    <att type="string" name="canonicalName" value="n02093991"/>
+    <att type="string" name="label" value="n02093991"/>
+    <att type="string" name="words" value="Irish terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="581.22900390625" y="1140.6134033203125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Irish terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02097658" id="-130">
+    <att type="string" name="canonicalName" value="n02097658"/>
+    <att type="string" name="label" value="n02097658"/>
+    <att type="string" name="words" value="silky terrier, Sydney silky"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1204.18017578125" y="1325.4820556640625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="silky terrier, Sydney silky" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02097967" id="-129">
+    <att type="string" name="canonicalName" value="n02097967"/>
+    <att type="string" name="label" value="n02097967"/>
+    <att type="string" name="words" value="Clydesdale terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1235.8682861328125" y="1427.951171875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Clydesdale terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02097786" id="-128">
+    <att type="string" name="canonicalName" value="n02097786"/>
+    <att type="string" name="label" value="n02097786"/>
+    <att type="string" name="words" value="Skye terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1170.9903564453125" y="1377.3138427734375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Skye terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02094258" id="-127">
+    <att type="string" name="canonicalName" value="n02094258"/>
+    <att type="string" name="label" value="n02094258"/>
+    <att type="string" name="words" value="Norwich terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="917.1460571289062" y="843.1776123046875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Norwich terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02097474" id="-126">
+    <att type="string" name="canonicalName" value="n02097474"/>
+    <att type="string" name="label" value="n02097474"/>
+    <att type="string" name="words" value="Tibetan terrier, chrysanthemum dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1084.88818359375" y="892.9572143554688" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Tibetan terrier, chrysanthemum dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02094931" id="-125">
+    <att type="string" name="canonicalName" value="n02094931"/>
+    <att type="string" name="label" value="n02094931"/>
+    <att type="string" name="words" value="toy Manchester, toy Manchester terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="357.24639892578125" y="1213.4906005859375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="toy Manchester, toy Manchester terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02094721" id="-124">
+    <att type="string" name="canonicalName" value="n02094721"/>
+    <att type="string" name="label" value="n02094721"/>
+    <att type="string" name="words" value="Manchester terrier, black-and-tan terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="69.9998779296875" x="472.58465576171875" y="1209.3521728515625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Manchester terrier, black-and-tan terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02094562" id="-123">
+    <att type="string" name="canonicalName" value="n02094562"/>
+    <att type="string" name="label" value="n02094562"/>
+    <att type="string" name="words" value="rat terrier, ratter"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="580.7725830078125" y="1202.1591796875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="rat terrier, ratter" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02093754" id="-122">
+    <att type="string" name="canonicalName" value="n02093754"/>
+    <att type="string" name="label" value="n02093754"/>
+    <att type="string" name="words" value="Border terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="855.7598266601562" y="847.6309204101562" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Border terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02092468" id="-121">
+    <att type="string" name="canonicalName" value="n02092468"/>
+    <att type="string" name="label" value="n02092468"/>
+    <att type="string" name="words" value="terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="910.2787475585938" y="1173.828125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02087314" id="-120">
+    <att type="string" name="canonicalName" value="n02087314"/>
+    <att type="string" name="label" value="n02087314"/>
+    <att type="string" name="words" value="courser"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="922.4420776367188" y="613.55322265625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="courser" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02090253" id="-119">
+    <att type="string" name="canonicalName" value="n02090253"/>
+    <att type="string" name="label" value="n02090253"/>
+    <att type="string" name="words" value="Plott hound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1216.212158203125" y="462.75897216796875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Plott hound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02090622" id="-118">
+    <att type="string" name="canonicalName" value="n02090622"/>
+    <att type="string" name="label" value="n02090622"/>
+    <att type="string" name="words" value="borzoi, Russian wolfhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1187.315185546875" y="82.20597839355469" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="borzoi, Russian wolfhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02090721" id="-117">
+    <att type="string" name="canonicalName" value="n02090721"/>
+    <att type="string" name="label" value="n02090721"/>
+    <att type="string" name="words" value="Irish wolfhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1078.4012451171875" y="41.165130615234375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Irish wolfhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02090475" id="-116">
+    <att type="string" name="canonicalName" value="n02090475"/>
+    <att type="string" name="label" value="n02090475"/>
+    <att type="string" name="words" value="wolfhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1112.3377685546875" y="116.14248657226562" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="wolfhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02092002" id="-115">
+    <att type="string" name="canonicalName" value="n02092002"/>
+    <att type="string" name="label" value="n02092002"/>
+    <att type="string" name="words" value="Scottish deerhound, deerhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="833.6297607421875" y="481.24981689453125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Scottish deerhound, deerhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02089078" id="-114">
+    <att type="string" name="canonicalName" value="n02089078"/>
+    <att type="string" name="label" value="n02089078"/>
+    <att type="string" name="words" value="black-and-tan coonhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="792.8646850585938" y="141.67526245117188" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="black-and-tan coonhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02088992" id="-113">
+    <att type="string" name="canonicalName" value="n02088992"/>
+    <att type="string" name="label" value="n02088992"/>
+    <att type="string" name="words" value="coondog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="748.4906005859375" y="193.41554260253906" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="coondog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02088839" id="-112">
+    <att type="string" name="canonicalName" value="n02088839"/>
+    <att type="string" name="label" value="n02088839"/>
+    <att type="string" name="words" value="coonhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="835.5315551757812" y="214.47866821289062" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="coonhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02089867" id="-111">
+    <att type="string" name="canonicalName" value="n02089867"/>
+    <att type="string" name="label" value="n02089867"/>
+    <att type="string" name="words" value="Walker hound, Walker foxhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.00006103515625" x="1024.9231872558594" y="83.0941390991211" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Walker hound, Walker foxhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02089725" id="-110">
+    <att type="string" name="canonicalName" value="n02089725"/>
+    <att type="string" name="label" value="n02089725"/>
+    <att type="string" name="words" value="American foxhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="882.5047607421875" y="133.68865966796875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="American foxhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02089973" id="-109">
+    <att type="string" name="canonicalName" value="n02089973"/>
+    <att type="string" name="label" value="n02089973"/>
+    <att type="string" name="words" value="English foxhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="915.2513427734375" y="0.12306880950927734" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="English foxhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02089555" id="-108">
+    <att type="string" name="canonicalName" value="n02089555"/>
+    <att type="string" name="label" value="n02089555"/>
+    <att type="string" name="words" value="foxhound"/>
+    <graphics type="ELLIPSE" h="30.000003814697266" w="70.0" x="942.8018188476562" y="77.67474937438965" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="foxhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02092339" id="-107">
+    <att type="string" name="canonicalName" value="n02092339"/>
+    <att type="string" name="label" value="n02092339"/>
+    <att type="string" name="words" value="Weimaraner"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1239.8470458984375" y="421.87298583984375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Weimaraner" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02091635" id="-106">
+    <att type="string" name="canonicalName" value="n02091635"/>
+    <att type="string" name="label" value="n02091635"/>
+    <att type="string" name="words" value="otterhound, otter hound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="801.3482055664062" y="442.4048156738281" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="otterhound, otter hound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02088466" id="-105">
+    <att type="string" name="canonicalName" value="n02088466"/>
+    <att type="string" name="label" value="n02088466"/>
+    <att type="string" name="words" value="bloodhound, sleuthhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1254.532470703125" y="376.98858642578125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="bloodhound, sleuthhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02091467" id="-104">
+    <att type="string" name="canonicalName" value="n02091467"/>
+    <att type="string" name="label" value="n02091467"/>
+    <att type="string" name="words" value="Norwegian elkhound, elkhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="780.3760986328125" y="396.14019775390625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Norwegian elkhound, elkhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02091831" id="-103">
+    <att type="string" name="canonicalName" value="n02091831"/>
+    <att type="string" name="label" value="n02091831"/>
+    <att type="string" name="words" value="Saluki, gazelle hound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1259.6358642578125" y="330.0393981933594" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Saluki, gazelle hound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02088094" id="-102">
+    <att type="string" name="canonicalName" value="n02088094"/>
+    <att type="string" name="label" value="n02088094"/>
+    <att type="string" name="words" value="Afghan hound, Afghan"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="764.0423583984375" y="345.68817138671875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Afghan hound, Afghan" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02092173" id="-101">
+    <att type="string" name="canonicalName" value="n02092173"/>
+    <att type="string" name="label" value="n02092173"/>
+    <att type="string" name="words" value="staghound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1254.937255859375" y="283.0479431152344" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="staghound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02091134" id="-100">
+    <att type="string" name="canonicalName" value="n02091134"/>
+    <att type="string" name="label" value="n02091134"/>
+    <att type="string" name="words" value="whippet"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1299.80908203125" y="213.46682739257812" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="whippet" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02091032" id="-99">
+    <att type="string" name="canonicalName" value="n02091032"/>
+    <att type="string" name="label" value="n02091032"/>
+    <att type="string" name="words" value="Italian greyhound"/>
+    <graphics type="ELLIPSE" h="29.99999237060547" w="70.0" x="1233.2728271484375" y="117.9706916809082" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Italian greyhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02090827" id="-98">
+    <att type="string" name="canonicalName" value="n02090827"/>
+    <att type="string" name="label" value="n02090827"/>
+    <att type="string" name="words" value="greyhound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1218.7928466796875" y="198.9868621826172" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="greyhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02088364" id="-97">
+    <att type="string" name="canonicalName" value="n02088364"/>
+    <att type="string" name="label" value="n02088364"/>
+    <att type="string" name="words" value="beagle"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="760.1870727539062" y="303.8946228027344" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="beagle" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02090129" id="-96">
+    <att type="string" name="canonicalName" value="n02090129"/>
+    <att type="string" name="label" value="n02090129"/>
+    <att type="string" name="words" value="harrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1103.4423828125" y="545.1184692382812" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="harrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02088238" id="-95">
+    <att type="string" name="canonicalName" value="n02088238"/>
+    <att type="string" name="label" value="n02088238"/>
+    <att type="string" name="words" value="basset, basset hound"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1013.6968994140625" y="553.56103515625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="basset, basset hound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02088632" id="-94">
+    <att type="string" name="canonicalName" value="n02088632"/>
+    <att type="string" name="label" value="n02088632"/>
+    <att type="string" name="words" value="bluetick"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1146.50830078125" y="525.73828125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="bluetick" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02090379" id="-93">
+    <att type="string" name="canonicalName" value="n02090379"/>
+    <att type="string" name="label" value="n02090379"/>
+    <att type="string" name="words" value="redbone"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="931.240478515625" y="545.8556518554688" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="redbone" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02088745" id="-92">
+    <att type="string" name="canonicalName" value="n02088745"/>
+    <att type="string" name="label" value="n02088745"/>
+    <att type="string" name="words" value="boarhound"/>
+    <graphics type="ELLIPSE" h="29.999969482421875" w="70.0" x="1184.64599609375" y="497.88514709472656" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="boarhound" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02091244" id="-91">
+    <att type="string" name="canonicalName" value="n02091244"/>
+    <att type="string" name="label" value="n02091244"/>
+    <att type="string" name="words" value="Ibizan hound, Ibizan Podenco"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="878.775634765625" y="518.4595336914062" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Ibizan hound, Ibizan Podenco" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02087551" id="-90">
+    <att type="string" name="canonicalName" value="n02087551"/>
+    <att type="string" name="label" value="n02087551"/>
+    <att type="string" name="words" value="hound, hound dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="69.99993896484375" x="1032.1067199707031" y="329.05902099609375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="hound, hound dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02087394" id="-89">
+    <att type="string" name="canonicalName" value="n02087394"/>
+    <att type="string" name="label" value="n02087394"/>
+    <att type="string" name="words" value="Rhodesian ridgeback"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="888.8189697265625" y="710.6155395507812" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Rhodesian ridgeback" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02087122" id="-88">
+    <att type="string" name="canonicalName" value="n02087122"/>
+    <att type="string" name="label" value="n02087122"/>
+    <att type="string" name="words" value="hunting dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="69.99993896484375" x="1047.5552062988281" y="711.2481689453125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="hunting dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02110532" id="-87">
+    <att type="string" name="canonicalName" value="n02110532"/>
+    <att type="string" name="label" value="n02110532"/>
+    <att type="string" name="words" value="liver-spotted dalmatian"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1324.196533203125" y="1121.047119140625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="liver-spotted dalmatian" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02110341" id="-86">
+    <att type="string" name="canonicalName" value="n02110341"/>
+    <att type="string" name="label" value="n02110341"/>
+    <att type="string" name="words" value="dalmatian, coach dog, carriage dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1364.7464599609375" y="1049.43017578125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="dalmatian, coach dog, carriage dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02085118" id="-85">
+    <att type="string" name="canonicalName" value="n02085118"/>
+    <att type="string" name="label" value="n02085118"/>
+    <att type="string" name="words" value="pariah dog, pye-dog, pie-dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1400.2822265625" y="1133.6708984375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="pariah dog, pye-dog, pie-dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02085019" id="-84">
+    <att type="string" name="canonicalName" value="n02085019"/>
+    <att type="string" name="label" value="n02085019"/>
+    <att type="string" name="words" value="feist, fice"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1514.76171875" y="1154.6717529296875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="feist, fice" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02084861" id="-83">
+    <att type="string" name="canonicalName" value="n02084861"/>
+    <att type="string" name="label" value="n02084861"/>
+    <att type="string" name="words" value="cur, mongrel, mutt"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1468.0223388671875" y="1086.931640625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="cur, mongrel, mutt" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02113186" id="-82">
+    <att type="string" name="canonicalName" value="n02113186"/>
+    <att type="string" name="label" value="n02113186"/>
+    <att type="string" name="words" value="Cardigan, Cardigan Welsh corgi"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1506.5849609375" y="368.39300537109375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Cardigan, Cardigan Welsh corgi" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02113023" id="-81">
+    <att type="string" name="canonicalName" value="n02113023"/>
+    <att type="string" name="label" value="n02113023"/>
+    <att type="string" name="words" value="Pembroke, Pembroke Welsh corgi"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1411.4705810546875" y="374.5636901855469" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Pembroke, Pembroke Welsh corgi" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02112826" id="-80">
+    <att type="string" name="canonicalName" value="n02112826"/>
+    <att type="string" name="label" value="n02112826"/>
+    <att type="string" name="words" value="corgi, Welsh corgi"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1477.7818603515625" y="434.7043151855469" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="corgi, Welsh corgi" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02113978" id="-79">
+    <att type="string" name="canonicalName" value="n02113978"/>
+    <att type="string" name="label" value="n02113978"/>
+    <att type="string" name="words" value="Mexican hairless"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1219.1998291015625" y="642.4445190429688" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Mexican hairless" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02085272" id="-78">
+    <att type="string" name="canonicalName" value="n02085272"/>
+    <att type="string" name="label" value="n02085272"/>
+    <att type="string" name="words" value="lapdog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1323.75634765625" y="501.28125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="lapdog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02111277" id="-77">
+    <att type="string" name="canonicalName" value="n02111277"/>
+    <att type="string" name="label" value="n02111277"/>
+    <att type="string" name="words" value="Newfoundland, Newfoundland dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1240.3580322265625" y="925.38720703125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Newfoundland, Newfoundland dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02113712" id="-76">
+    <att type="string" name="canonicalName" value="n02113712"/>
+    <att type="string" name="label" value="n02113712"/>
+    <att type="string" name="words" value="miniature poodle"/>
+    <graphics type="ELLIPSE" h="30.000030517578125" w="70.0" x="1764.6885986328125" y="510.29673767089844" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="miniature poodle" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02113892" id="-75">
+    <att type="string" name="canonicalName" value="n02113892"/>
+    <att type="string" name="label" value="n02113892"/>
+    <att type="string" name="words" value="large poodle"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1925.24853515625" y="543.5816040039062" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="large poodle" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02113624" id="-74">
+    <att type="string" name="canonicalName" value="n02113624"/>
+    <att type="string" name="label" value="n02113624"/>
+    <att type="string" name="words" value="toy poodle"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1841.0540771484375" y="616.2260131835938" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="toy poodle" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02113799" id="-73">
+    <att type="string" name="canonicalName" value="n02113799"/>
+    <att type="string" name="label" value="n02113799"/>
+    <att type="string" name="words" value="standard poodle"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1860.218505859375" y="453.37615966796875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="standard poodle" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02113335" id="-72">
+    <att type="string" name="canonicalName" value="n02113335"/>
+    <att type="string" name="label" value="n02113335"/>
+    <att type="string" name="words" value="poodle, poodle dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1843.5125732421875" y="533.9627685546875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="poodle, poodle dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02110806" id="-71">
+    <att type="string" name="canonicalName" value="n02110806"/>
+    <att type="string" name="label" value="n02110806"/>
+    <att type="string" name="words" value="basenji"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1280.6143798828125" y="541.8024291992188" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="basenji" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02111129" id="-70">
+    <att type="string" name="canonicalName" value="n02111129"/>
+    <att type="string" name="label" value="n02111129"/>
+    <att type="string" name="words" value="Leonberg"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1274.1474609375" y="973.9821166992188" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Leonberg" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02112706" id="-69">
+    <att type="string" name="canonicalName" value="n02112706"/>
+    <att type="string" name="label" value="n02112706"/>
+    <att type="string" name="words" value="Brabancon griffon"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1340.739013671875" y="413.3938293457031" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Brabancon griffon" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02112497" id="-68">
+    <att type="string" name="canonicalName" value="n02112497"/>
+    <att type="string" name="label" value="n02112497"/>
+    <att type="string" name="words" value="griffon, Brussels griffon, Belgian griffon"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1373.43017578125" y="469.09893798828125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="griffon, Brussels griffon, Belgian griffon" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02110958" id="-67">
+    <att type="string" name="canonicalName" value="n02110958"/>
+    <att type="string" name="label" value="n02110958"/>
+    <att type="string" name="words" value="pug, pug-dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1245.3861083984375" y="589.3646240234375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="pug, pug-dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02109047" id="-66">
+    <att type="string" name="canonicalName" value="n02109047"/>
+    <att type="string" name="label" value="n02109047"/>
+    <att type="string" name="words" value="Great Dane"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1829.3128662109375" y="924.73046875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Great Dane" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02109256" id="-65">
+    <att type="string" name="canonicalName" value="n02109256"/>
+    <att type="string" name="label" value="n02109256"/>
+    <att type="string" name="words" value="Seeing Eye dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1973.1558837890625" y="1221.346923828125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Seeing Eye dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02109150" id="-64">
+    <att type="string" name="canonicalName" value="n02109150"/>
+    <att type="string" name="label" value="n02109150"/>
+    <att type="string" name="words" value="guide dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1995.3841552734375" y="1142.1055908203125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="guide dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02105641" id="-63">
+    <att type="string" name="canonicalName" value="n02105641"/>
+    <att type="string" name="label" value="n02105641"/>
+    <att type="string" name="words" value="Old English sheepdog, bobtail"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2224.517822265625" y="1062.4498291015625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Old English sheepdog, bobtail" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02106382" id="-62">
+    <att type="string" name="canonicalName" value="n02106382"/>
+    <att type="string" name="label" value="n02106382"/>
+    <att type="string" name="words" value="Bouvier des Flandres, Bouviers des Flandres"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2245.978271484375" y="993.2245483398438" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Bouvier des Flandres, Bouviers des Flandres" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02106550" id="-61">
+    <att type="string" name="canonicalName" value="n02106550"/>
+    <att type="string" name="label" value="n02106550"/>
+    <att type="string" name="words" value="Rottweiler"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2242.540283203125" y="1121.8797607421875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Rottweiler" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02105505" id="-60">
+    <att type="string" name="canonicalName" value="n02105505"/>
+    <att type="string" name="label" value="n02105505"/>
+    <att type="string" name="words" value="komondor"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2316.5390625" y="975.9595336914062" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="komondor" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02106030" id="-59">
+    <att type="string" name="canonicalName" value="n02106030"/>
+    <att type="string" name="label" value="n02106030"/>
+    <att type="string" name="words" value="collie"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2258.458740234375" y="1171.519775390625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="collie" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02106166" id="-58">
+    <att type="string" name="canonicalName" value="n02106166"/>
+    <att type="string" name="label" value="n02106166"/>
+    <att type="string" name="words" value="Border collie"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2389.423095703125" y="984.0653076171875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Border collie" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02105162" id="-57">
+    <att type="string" name="canonicalName" value="n02105162"/>
+    <att type="string" name="label" value="n02105162"/>
+    <att type="string" name="words" value="malinois"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2547.571533203125" y="1142.5487060546875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="malinois" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02105056" id="-56">
+    <att type="string" name="canonicalName" value="n02105056"/>
+    <att type="string" name="label" value="n02105056"/>
+    <att type="string" name="words" value="groenendael"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2490.014892578125" y="1243.7109375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="groenendael" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02104882" id="-55">
+    <att type="string" name="canonicalName" value="n02104882"/>
+    <att type="string" name="label" value="n02104882"/>
+    <att type="string" name="words" value="Belgian sheepdog, Belgian shepherd"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2468.212158203125" y="1164.3514404296875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Belgian sheepdog, Belgian shepherd" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02105855" id="-54">
+    <att type="string" name="canonicalName" value="n02105855"/>
+    <att type="string" name="label" value="n02105855"/>
+    <att type="string" name="words" value="Shetland sheepdog, Shetland sheep dog, Shetland"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2329.3935546875" y="1200.8155517578125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Shetland sheepdog, Shetland sheep dog, Shetland" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02105412" id="-53">
+    <att type="string" name="canonicalName" value="n02105412"/>
+    <att type="string" name="label" value="n02105412"/>
+    <att type="string" name="words" value="kelpie"/>
+    <graphics type="ELLIPSE" h="29.99993896484375" w="70.0" x="2434.882568359375" y="1015.4070129394531" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="kelpie" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02105251" id="-52">
+    <att type="string" name="canonicalName" value="n02105251"/>
+    <att type="string" name="label" value="n02105251"/>
+    <att type="string" name="words" value="briard"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2405.266357421875" y="1200.0947265625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="briard" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02106662" id="-51">
+    <att type="string" name="canonicalName" value="n02106662"/>
+    <att type="string" name="label" value="n02106662"/>
+    <att type="string" name="words" value="German shepherd, German shepherd dog, German police dog, alsatian"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2475.95751953125" y="1081.174560546875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="German shepherd, German shepherd dog, German police dog, alsatian" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02104523" id="-50">
+    <att type="string" name="canonicalName" value="n02104523"/>
+    <att type="string" name="label" value="n02104523"/>
+    <att type="string" name="words" value="shepherd dog, sheepdog, sheep dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2350.029296875" y="1089.8428955078125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="shepherd dog, sheepdog, sheep dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02104365" id="-49">
+    <att type="string" name="canonicalName" value="n02104365"/>
+    <att type="string" name="label" value="n02104365"/>
+    <att type="string" name="words" value="schipperke"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2063.753662109375" y="1164.0303955078125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="schipperke" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02107142" id="-48">
+    <att type="string" name="canonicalName" value="n02107142"/>
+    <att type="string" name="label" value="n02107142"/>
+    <att type="string" name="words" value="Doberman, Doberman pinscher"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2074.30322265625" y="1320.6727294921875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Doberman, Doberman pinscher" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02110627" id="-47">
+    <att type="string" name="canonicalName" value="n02110627"/>
+    <att type="string" name="label" value="n02110627"/>
+    <att type="string" name="words" value="affenpinscher, monkey pinscher, monkey dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2221.29052734375" y="1285.493896484375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="affenpinscher, monkey pinscher, monkey dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02107312" id="-46">
+    <att type="string" name="canonicalName" value="n02107312"/>
+    <att type="string" name="label" value="n02107312"/>
+    <att type="string" name="words" value="miniature pinscher"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2174.540283203125" y="1414.824951171875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="miniature pinscher" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02106966" id="-45">
+    <att type="string" name="canonicalName" value="n02106966"/>
+    <att type="string" name="label" value="n02106966"/>
+    <att type="string" name="words" value="pinscher"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2155.38427734375" y="1334.785400390625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="pinscher" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02104029" id="-44">
+    <att type="string" name="canonicalName" value="n02104029"/>
+    <att type="string" name="label" value="n02104029"/>
+    <att type="string" name="words" value="kuvasz"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2159.77978515625" y="1141.0482177734375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="kuvasz" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02104280" id="-43">
+    <att type="string" name="canonicalName" value="n02104280"/>
+    <att type="string" name="label" value="n02104280"/>
+    <att type="string" name="words" value="housedog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0001220703125" x="2047.2523803710938" y="1236.5458984375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="housedog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02104184" id="-42">
+    <att type="string" name="canonicalName" value="n02104184"/>
+    <att type="string" name="label" value="n02104184"/>
+    <att type="string" name="words" value="attack dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2207.3232421875" y="1198.235595703125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="attack dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02103841" id="-41">
+    <att type="string" name="canonicalName" value="n02103841"/>
+    <att type="string" name="label" value="n02103841"/>
+    <att type="string" name="words" value="watchdog, guard dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2127.093505859375" y="1216.5789794921875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="watchdog, guard dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02106854" id="-40">
+    <att type="string" name="canonicalName" value="n02106854"/>
+    <att type="string" name="label" value="n02106854"/>
+    <att type="string" name="words" value="police dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1907.96240234375" y="750.9647827148438" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="police dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02109687" id="-39">
+    <att type="string" name="canonicalName" value="n02109687"/>
+    <att type="string" name="label" value="n02109687"/>
+    <att type="string" name="words" value="seizure-alert dog"/>
+    <graphics type="ELLIPSE" h="30.0001220703125" w="70.0" x="1956.7852783203125" y="718.6777954101562" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="seizure-alert dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02110185" id="-38">
+    <att type="string" name="canonicalName" value="n02110185"/>
+    <att type="string" name="label" value="n02110185"/>
+    <att type="string" name="words" value="Siberian husky"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2285.74658203125" y="689.939453125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Siberian husky" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02110063" id="-37">
+    <att type="string" name="canonicalName" value="n02110063"/>
+    <att type="string" name="label" value="n02110063"/>
+    <att type="string" name="words" value="malamute, malemute, Alaskan malamute"/>
+    <graphics type="ELLIPSE" h="30.00048828125" w="70.0" x="2185.220458984375" y="646.4883422851562" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="malamute, malemute, Alaskan malamute" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02109811" id="-36">
+    <att type="string" name="canonicalName" value="n02109811"/>
+    <att type="string" name="label" value="n02109811"/>
+    <att type="string" name="words" value="sled dog, sledge dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2182.17333984375" y="712.6172485351562" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="sled dog, sledge dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02108089" id="-35">
+    <att type="string" name="canonicalName" value="n02108089"/>
+    <att type="string" name="label" value="n02108089"/>
+    <att type="string" name="words" value="boxer"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1895.302978515625" y="1083.2708740234375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="boxer" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02108422" id="-34">
+    <att type="string" name="canonicalName" value="n02108422"/>
+    <att type="string" name="label" value="n02108422"/>
+    <att type="string" name="words" value="bull mastiff"/>
+    <graphics type="ELLIPSE" h="30.00006103515625" w="70.0" x="1859.7681884765625" y="1036.7583923339844" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="bull mastiff" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02109961" id="-33">
+    <att type="string" name="canonicalName" value="n02109961"/>
+    <att type="string" name="label" value="n02109961"/>
+    <att type="string" name="words" value="Eskimo dog, husky"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2000.4959716796875" y="683.0469970703125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Eskimo dog, husky" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02108000" id="-32">
+    <att type="string" name="canonicalName" value="n02108000"/>
+    <att type="string" name="label" value="n02108000"/>
+    <att type="string" name="words" value="EntleBucher"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2301.358154296875" y="909.3959350585938" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="EntleBucher" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02107683" id="-31">
+    <att type="string" name="canonicalName" value="n02107683"/>
+    <att type="string" name="label" value="n02107683"/>
+    <att type="string" name="words" value="Bernese mountain dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2259.589599609375" y="785.670166015625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Bernese mountain dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02107574" id="-30">
+    <att type="string" name="canonicalName" value="n02107574"/>
+    <att type="string" name="label" value="n02107574"/>
+    <att type="string" name="words" value="Greater Swiss Mountain dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2403.217529296875" y="864.7799072265625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Greater Swiss Mountain dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02107908" id="-29">
+    <att type="string" name="canonicalName" value="n02107908"/>
+    <att type="string" name="label" value="n02107908"/>
+    <att type="string" name="words" value="Appenzeller"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2367.64892578125" y="759.4196166992188" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Appenzeller" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02107420" id="-28">
+    <att type="string" name="canonicalName" value="n02107420"/>
+    <att type="string" name="label" value="n02107420"/>
+    <att type="string" name="words" value="Sennenhunde"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="2327.94287109375" y="831.5079345703125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Sennenhunde" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02109525" id="-27">
+    <att type="string" name="canonicalName" value="n02109525"/>
+    <att type="string" name="label" value="n02109525"/>
+    <att type="string" name="words" value="Saint Bernard, St Bernard"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1868.9918212890625" y="794.6388549804688" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Saint Bernard, St Bernard" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02108551" id="-26">
+    <att type="string" name="canonicalName" value="n02108551"/>
+    <att type="string" name="label" value="n02108551"/>
+    <att type="string" name="words" value="Tibetan mastiff"/>
+    <graphics type="ELLIPSE" h="30.0" w="69.999755859375" x="2087.3812255859375" y="627.6132202148438" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Tibetan mastiff" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02108254" id="-25">
+    <att type="string" name="canonicalName" value="n02108254"/>
+    <att type="string" name="label" value="n02108254"/>
+    <att type="string" name="words" value="mastiff"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.000244140625" x="2088.1378173828125" y="680.22802734375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="mastiff" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02109391" id="-24">
+    <att type="string" name="canonicalName" value="n02109391"/>
+    <att type="string" name="label" value="n02109391"/>
+    <att type="string" name="words" value="hearing dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1837.2752685546875" y="982.7195434570312" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="hearing dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02108915" id="-23">
+    <att type="string" name="canonicalName" value="n02108915"/>
+    <att type="string" name="label" value="n02108915"/>
+    <att type="string" name="words" value="French bulldog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1899.8194580078125" y="1190.127197265625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="French bulldog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02108672" id="-22">
+    <att type="string" name="canonicalName" value="n02108672"/>
+    <att type="string" name="label" value="n02108672"/>
+    <att type="string" name="words" value="bulldog, English bulldog"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1941.528076171875" y="1119.1787109375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="bulldog, English bulldog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02103406" id="-21">
+    <att type="string" name="canonicalName" value="n02103406"/>
+    <att type="string" name="label" value="n02103406"/>
+    <att type="string" name="words" value="working dog"/>
+    <graphics type="ELLIPSE" h="30.0" w="69.9998779296875" x="2056.8377075195312" y="923.0303955078125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="working dog" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02112018" id="-20">
+    <att type="string" name="canonicalName" value="n02112018"/>
+    <att type="string" name="label" value="n02112018"/>
+    <att type="string" name="words" value="Pomeranian"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1706.55908203125" y="1057.18115234375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Pomeranian" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02112350" id="-19">
+    <att type="string" name="canonicalName" value="n02112350"/>
+    <att type="string" name="label" value="n02112350"/>
+    <att type="string" name="words" value="keeshond"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1631.5753173828125" y="1203.0057373046875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="keeshond" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02112137" id="-18">
+    <att type="string" name="canonicalName" value="n02112137"/>
+    <att type="string" name="label" value="n02112137"/>
+    <att type="string" name="words" value="chow, chow chow"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1584.0740966796875" y="1102.45947265625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="chow, chow chow" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02111889" id="-17">
+    <att type="string" name="canonicalName" value="n02111889"/>
+    <att type="string" name="label" value="n02111889"/>
+    <att type="string" name="words" value="Samoyed, Samoyede"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1735.8790283203125" y="1164.4483642578125" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Samoyed, Samoyede" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02111626" id="-16">
+    <att type="string" name="canonicalName" value="n02111626"/>
+    <att type="string" name="label" value="n02111626"/>
+    <att type="string" name="words" value="spitz"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1662.688232421875" y="1126.8133544921875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="spitz" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02111500" id="-15">
+    <att type="string" name="canonicalName" value="n02111500"/>
+    <att type="string" name="label" value="n02111500"/>
+    <att type="string" name="words" value="Great Pyrenees"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1215.7716064453125" y="871.5475463867188" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Great Pyrenees" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02086753" id="-14">
+    <att type="string" name="canonicalName" value="n02086753"/>
+    <att type="string" name="label" value="n02086753"/>
+    <att type="string" name="words" value="King Charles spaniel"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1780.291259765625" y="324.5381774902344" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="King Charles spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02086910" id="-13">
+    <att type="string" name="canonicalName" value="n02086910"/>
+    <att type="string" name="label" value="n02086910"/>
+    <att type="string" name="words" value="papillon"/>
+    <graphics type="ELLIPSE" h="29.999984741210938" w="70.0" x="1639.586669921875" y="269.35645294189453" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="papillon" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02086646" id="-12">
+    <att type="string" name="canonicalName" value="n02086646"/>
+    <att type="string" name="label" value="n02086646"/>
+    <att type="string" name="words" value="Blenheim spaniel"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1781.9371337890625" y="113.36338806152344" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Blenheim spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02086478" id="-11">
+    <att type="string" name="canonicalName" value="n02086478"/>
+    <att type="string" name="label" value="n02086478"/>
+    <att type="string" name="words" value="English toy spaniel"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1751.8887939453125" y="189.98184204101562" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="English toy spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02086346" id="-10">
+    <att type="string" name="canonicalName" value="n02086346"/>
+    <att type="string" name="label" value="n02086346"/>
+    <att type="string" name="words" value="toy spaniel"/>
+    <graphics type="ELLIPSE" h="30.000015258789062" w="70.0" x="1721.840576171875" y="266.60030364990234" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="toy spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02086079" id="-9">
+    <att type="string" name="canonicalName" value="n02086079"/>
+    <att type="string" name="label" value="n02086079"/>
+    <att type="string" name="words" value="Pekinese, Pekingese, Peke"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1692.2598876953125" y="470.8323669433594" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Pekinese, Pekingese, Peke" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02085936" id="-8">
+    <att type="string" name="canonicalName" value="n02085936"/>
+    <att type="string" name="label" value="n02085936"/>
+    <att type="string" name="words" value="Maltese dog, Maltese terrier, Maltese"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.000244140625" x="1601.4002685546875" y="453.2605895996094" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Maltese dog, Maltese terrier, Maltese" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02087046" id="-7">
+    <att type="string" name="canonicalName" value="n02087046"/>
+    <att type="string" name="label" value="n02087046"/>
+    <att type="string" name="words" value="toy terrier"/>
+    <graphics type="ELLIPSE" h="30.0" w="69.9998779296875" x="1736.8085327148438" y="436.7759094238281" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="toy terrier" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02085782" id="-6">
+    <att type="string" name="canonicalName" value="n02085782"/>
+    <att type="string" name="label" value="n02085782"/>
+    <att type="string" name="words" value="Japanese spaniel"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1582.709228515625" y="393.69818115234375" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Japanese spaniel" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02086240" id="-5">
+    <att type="string" name="canonicalName" value="n02086240"/>
+    <att type="string" name="label" value="n02086240"/>
+    <att type="string" name="words" value="Shih-Tzu"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1759.386962890625" y="387.6199035644531" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Shih-Tzu" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02085620" id="-4">
+    <att type="string" name="canonicalName" value="n02085620"/>
+    <att type="string" name="label" value="n02085620"/>
+    <att type="string" name="words" value="Chihuahua"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1612.0345458984375" y="329.8310546875" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="Chihuahua" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02085374" id="-3">
+    <att type="string" name="canonicalName" value="n02085374"/>
+    <att type="string" name="label" value="n02085374"/>
+    <att type="string" name="words" value="toy dog, toy"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1677.463623046875" y="379.7542419433594" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="toy dog, toy" cy:borderLineType="solid"/>
+  </node>
+  <node label="n01322604" id="-2">
+    <att type="string" name="canonicalName" value="n01322604"/>
+    <att type="string" name="label" value="n01322604"/>
+    <att type="string" name="words" value="puppy"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1316.0577392578125" y="1015.7760009765625" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="puppy" cy:borderLineType="solid"/>
+  </node>
+  <node label="n02084071" id="-1">
+    <att type="string" name="canonicalName" value="n02084071"/>
+    <att type="string" name="label" value="n02084071"/>
+    <att type="string" name="words" value="dog, domestic dog, Canis familiaris"/>
+    <graphics type="ELLIPSE" h="30.0" w="70.0" x="1527.696044921875" y="761.6378784179688" fill="#cccccc" width="1" outline="#ffffff" cy:nodeTransparency="1.0" cy:nodeLabelFont="Default-0-12" cy:nodeLabel="dog, domestic dog, Canis familiaris" cy:borderLineType="solid"/>
+  </node>
+  <edge label="n02099997 (pp) n02100583" source="-187" target="-189">
+    <att type="string" name="canonicalName" value="n02099997 (pp) n02100583"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02099997 (pp) n02100236" source="-187" target="-188">
+    <att type="string" name="canonicalName" value="n02099997 (pp) n02100236"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02100399 (pp) n02100877" source="-183" target="-184">
+    <att type="string" name="canonicalName" value="n02100399 (pp) n02100877"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02100399 (pp) n02100735" source="-183" target="-186">
+    <att type="string" name="canonicalName" value="n02100399 (pp) n02100735"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02100399 (pp) n02101006" source="-183" target="-185">
+    <att type="string" name="canonicalName" value="n02100399 (pp) n02101006"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02102605 (pp) n02102806" source="-178" target="-180">
+    <att type="string" name="canonicalName" value="n02102605 (pp) n02102806"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02102605 (pp) n02102973" source="-178" target="-179">
+    <att type="string" name="canonicalName" value="n02102605 (pp) n02102973"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02101861 (pp) n02102040" source="-175" target="-176">
+    <att type="string" name="canonicalName" value="n02101861 (pp) n02102040"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02101861 (pp) n02102177" source="-175" target="-177">
+    <att type="string" name="canonicalName" value="n02101861 (pp) n02102177"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02101108 (pp) n02101670" source="-170" target="-181">
+    <att type="string" name="canonicalName" value="n02101108 (pp) n02101670"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02101108 (pp) n02102605" source="-170" target="-178">
+    <att type="string" name="canonicalName" value="n02101108 (pp) n02102605"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02101108 (pp) n02101861" source="-170" target="-175">
+    <att type="string" name="canonicalName" value="n02101108 (pp) n02101861"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02101108 (pp) n02101556" source="-170" target="-174">
+    <att type="string" name="canonicalName" value="n02101108 (pp) n02101556"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02101108 (pp) n02101388" source="-170" target="-173">
+    <att type="string" name="canonicalName" value="n02101108 (pp) n02101388"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02101108 (pp) n02102318" source="-170" target="-172">
+    <att type="string" name="canonicalName" value="n02101108 (pp) n02102318"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02101108 (pp) n02102480" source="-170" target="-171">
+    <att type="string" name="canonicalName" value="n02101108 (pp) n02102480"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02099029 (pp) n02099601" source="-162" target="-167">
+    <att type="string" name="canonicalName" value="n02099029 (pp) n02099601"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02099029 (pp) n02099849" source="-162" target="-166">
+    <att type="string" name="canonicalName" value="n02099029 (pp) n02099849"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02099029 (pp) n02099429" source="-162" target="-165">
+    <att type="string" name="canonicalName" value="n02099029 (pp) n02099429"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02099029 (pp) n02099267" source="-162" target="-164">
+    <att type="string" name="canonicalName" value="n02099029 (pp) n02099267"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02099029 (pp) n02099712" source="-162" target="-163">
+    <att type="string" name="canonicalName" value="n02099029 (pp) n02099712"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02098550 (pp) n02099997" source="-161" target="-187">
+    <att type="string" name="canonicalName" value="n02098550 (pp) n02099997"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02098550 (pp) n02100399" source="-161" target="-183">
+    <att type="string" name="canonicalName" value="n02098550 (pp) n02100399"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02098550 (pp) n02098806" source="-161" target="-182">
+    <att type="string" name="canonicalName" value="n02098550 (pp) n02098806"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02098550 (pp) n02101108" source="-161" target="-170">
+    <att type="string" name="canonicalName" value="n02098550 (pp) n02101108"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02098550 (pp) n02103181" source="-161" target="-169">
+    <att type="string" name="canonicalName" value="n02098550 (pp) n02103181"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02098550 (pp) n02098906" source="-161" target="-168">
+    <att type="string" name="canonicalName" value="n02098550 (pp) n02098906"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02098550 (pp) n02099029" source="-161" target="-162">
+    <att type="string" name="canonicalName" value="n02098550 (pp) n02099029"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02089232 (pp) n02089468" source="-159" target="-160">
+    <att type="string" name="canonicalName" value="n02089232 (pp) n02089468"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02095050 (pp) n02095212" source="-155" target="-157">
+    <att type="string" name="canonicalName" value="n02095050 (pp) n02095212"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02095050 (pp) n02095314" source="-155" target="-156">
+    <att type="string" name="canonicalName" value="n02095050 (pp) n02095314"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02095727 (pp) n02095889" source="-152" target="-153">
+    <att type="string" name="canonicalName" value="n02095727 (pp) n02095889"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02095412 (pp) n02095727" source="-150" target="-152">
+    <att type="string" name="canonicalName" value="n02095412 (pp) n02095727"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02095412 (pp) n02095570" source="-150" target="-151">
+    <att type="string" name="canonicalName" value="n02095412 (pp) n02095570"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02096756 (pp) n02097130" source="-141" target="-144">
+    <att type="string" name="canonicalName" value="n02096756 (pp) n02097130"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02096756 (pp) n02097047" source="-141" target="-143">
+    <att type="string" name="canonicalName" value="n02096756 (pp) n02097047"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02096756 (pp) n02097209" source="-141" target="-142">
+    <att type="string" name="canonicalName" value="n02096756 (pp) n02097209"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02093056 (pp) n02093256" source="-138" target="-140">
+    <att type="string" name="canonicalName" value="n02093056 (pp) n02093256"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02093056 (pp) n02093428" source="-138" target="-139">
+    <att type="string" name="canonicalName" value="n02093056 (pp) n02093428"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02097786 (pp) n02097967" source="-128" target="-129">
+    <att type="string" name="canonicalName" value="n02097786 (pp) n02097967"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02094721 (pp) n02094931" source="-124" target="-125">
+    <att type="string" name="canonicalName" value="n02094721 (pp) n02094931"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02094562 (pp) n02094721" source="-123" target="-124">
+    <att type="string" name="canonicalName" value="n02094562 (pp) n02094721"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02097786" source="-121" target="-128">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02097786"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02094258" source="-121" target="-127">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02094258"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02097474" source="-121" target="-126">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02097474"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02094562" source="-121" target="-123">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02094562"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02093754" source="-121" target="-122">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02093754"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02096294" source="-121" target="-158">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02096294"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02095050" source="-121" target="-155">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02095050"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02098105" source="-121" target="-154">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02098105"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02095412" source="-121" target="-150">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02095412"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02096437" source="-121" target="-149">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02096437"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02096051" source="-121" target="-148">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02096051"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02098413" source="-121" target="-147">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02098413"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02094433" source="-121" target="-146">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02094433"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02098286" source="-121" target="-145">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02098286"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02096756" source="-121" target="-141">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02096756"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02093056" source="-121" target="-138">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02093056"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02094114" source="-121" target="-137">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02094114"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02096177" source="-121" target="-136">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02096177"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02093859" source="-121" target="-135">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02093859"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02097298" source="-121" target="-134">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02097298"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02096585" source="-121" target="-133">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02096585"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02093647" source="-121" target="-132">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02093647"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02093991" source="-121" target="-131">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02093991"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02092468 (pp) n02097658" source="-121" target="-130">
+    <att type="string" name="canonicalName" value="n02092468 (pp) n02097658"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02090475 (pp) n02090622" source="-116" target="-118">
+    <att type="string" name="canonicalName" value="n02090475 (pp) n02090622"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02090475 (pp) n02090721" source="-116" target="-117">
+    <att type="string" name="canonicalName" value="n02090475 (pp) n02090721"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02088839 (pp) n02089078" source="-112" target="-114">
+    <att type="string" name="canonicalName" value="n02088839 (pp) n02089078"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02088839 (pp) n02088992" source="-112" target="-113">
+    <att type="string" name="canonicalName" value="n02088839 (pp) n02088992"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02089555 (pp) n02089867" source="-108" target="-111">
+    <att type="string" name="canonicalName" value="n02089555 (pp) n02089867"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02089555 (pp) n02089725" source="-108" target="-110">
+    <att type="string" name="canonicalName" value="n02089555 (pp) n02089725"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02089555 (pp) n02089973" source="-108" target="-109">
+    <att type="string" name="canonicalName" value="n02089555 (pp) n02089973"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02090827 (pp) n02091134" source="-98" target="-100">
+    <att type="string" name="canonicalName" value="n02090827 (pp) n02091134"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02090827 (pp) n02091032" source="-98" target="-99">
+    <att type="string" name="canonicalName" value="n02090827 (pp) n02091032"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02090129" source="-90" target="-96">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02090129"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02088238" source="-90" target="-95">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02088238"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02088632" source="-90" target="-94">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02088632"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02090379" source="-90" target="-93">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02090379"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02088745" source="-90" target="-92">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02088745"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02091244" source="-90" target="-91">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02091244"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02090253" source="-90" target="-119">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02090253"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02090475" source="-90" target="-116">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02090475"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02092002" source="-90" target="-115">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02092002"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02088839" source="-90" target="-112">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02088839"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02089555" source="-90" target="-108">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02089555"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02092339" source="-90" target="-107">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02092339"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02091635" source="-90" target="-106">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02091635"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02088466" source="-90" target="-105">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02088466"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02091467" source="-90" target="-104">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02091467"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02091831" source="-90" target="-103">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02091831"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02088094" source="-90" target="-102">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02088094"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02092173" source="-90" target="-101">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02092173"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02090827" source="-90" target="-98">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02090827"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087551 (pp) n02088364" source="-90" target="-97">
+    <att type="string" name="canonicalName" value="n02087551 (pp) n02088364"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087122 (pp) n02089232" source="-88" target="-159">
+    <att type="string" name="canonicalName" value="n02087122 (pp) n02089232"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087122 (pp) n02087551" source="-88" target="-90">
+    <att type="string" name="canonicalName" value="n02087122 (pp) n02087551"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087122 (pp) n02087394" source="-88" target="-89">
+    <att type="string" name="canonicalName" value="n02087122 (pp) n02087394"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087122 (pp) n02087314" source="-88" target="-120">
+    <att type="string" name="canonicalName" value="n02087122 (pp) n02087314"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087122 (pp) n02092468" source="-88" target="-121">
+    <att type="string" name="canonicalName" value="n02087122 (pp) n02092468"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02087122 (pp) n02098550" source="-88" target="-161">
+    <att type="string" name="canonicalName" value="n02087122 (pp) n02098550"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02110341 (pp) n02110532" source="-86" target="-87">
+    <att type="string" name="canonicalName" value="n02110341 (pp) n02110532"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084861 (pp) n02085118" source="-83" target="-85">
+    <att type="string" name="canonicalName" value="n02084861 (pp) n02085118"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084861 (pp) n02085019" source="-83" target="-84">
+    <att type="string" name="canonicalName" value="n02084861 (pp) n02085019"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02112826 (pp) n02113186" source="-80" target="-82">
+    <att type="string" name="canonicalName" value="n02112826 (pp) n02113186"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02112826 (pp) n02113023" source="-80" target="-81">
+    <att type="string" name="canonicalName" value="n02112826 (pp) n02113023"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02113335 (pp) n02113624" source="-72" target="-74">
+    <att type="string" name="canonicalName" value="n02113335 (pp) n02113624"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02113335 (pp) n02113712" source="-72" target="-76">
+    <att type="string" name="canonicalName" value="n02113335 (pp) n02113712"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02113335 (pp) n02113892" source="-72" target="-75">
+    <att type="string" name="canonicalName" value="n02113335 (pp) n02113892"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02113335 (pp) n02113799" source="-72" target="-73">
+    <att type="string" name="canonicalName" value="n02113335 (pp) n02113799"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02112497 (pp) n02112706" source="-68" target="-69">
+    <att type="string" name="canonicalName" value="n02112497 (pp) n02112706"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02109150 (pp) n02109256" source="-64" target="-65">
+    <att type="string" name="canonicalName" value="n02109150 (pp) n02109256"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104882 (pp) n02105056" source="-55" target="-56">
+    <att type="string" name="canonicalName" value="n02104882 (pp) n02105056"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104882 (pp) n02105162" source="-55" target="-57">
+    <att type="string" name="canonicalName" value="n02104882 (pp) n02105162"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104523 (pp) n02105641" source="-50" target="-63">
+    <att type="string" name="canonicalName" value="n02104523 (pp) n02105641"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104523 (pp) n02106382" source="-50" target="-62">
+    <att type="string" name="canonicalName" value="n02104523 (pp) n02106382"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104523 (pp) n02106550" source="-50" target="-61">
+    <att type="string" name="canonicalName" value="n02104523 (pp) n02106550"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104523 (pp) n02105505" source="-50" target="-60">
+    <att type="string" name="canonicalName" value="n02104523 (pp) n02105505"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104523 (pp) n02106030" source="-50" target="-59">
+    <att type="string" name="canonicalName" value="n02104523 (pp) n02106030"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104523 (pp) n02106166" source="-50" target="-58">
+    <att type="string" name="canonicalName" value="n02104523 (pp) n02106166"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104523 (pp) n02104882" source="-50" target="-55">
+    <att type="string" name="canonicalName" value="n02104523 (pp) n02104882"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104523 (pp) n02105855" source="-50" target="-54">
+    <att type="string" name="canonicalName" value="n02104523 (pp) n02105855"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104523 (pp) n02105412" source="-50" target="-53">
+    <att type="string" name="canonicalName" value="n02104523 (pp) n02105412"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104523 (pp) n02105251" source="-50" target="-52">
+    <att type="string" name="canonicalName" value="n02104523 (pp) n02105251"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02104523 (pp) n02106662" source="-50" target="-51">
+    <att type="string" name="canonicalName" value="n02104523 (pp) n02106662"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02106966 (pp) n02107142" source="-45" target="-48">
+    <att type="string" name="canonicalName" value="n02106966 (pp) n02107142"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02106966 (pp) n02110627" source="-45" target="-47">
+    <att type="string" name="canonicalName" value="n02106966 (pp) n02110627"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02106966 (pp) n02107312" source="-45" target="-46">
+    <att type="string" name="canonicalName" value="n02106966 (pp) n02107312"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103841 (pp) n02104365" source="-41" target="-49">
+    <att type="string" name="canonicalName" value="n02103841 (pp) n02104365"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103841 (pp) n02106966" source="-41" target="-45">
+    <att type="string" name="canonicalName" value="n02103841 (pp) n02106966"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103841 (pp) n02104029" source="-41" target="-44">
+    <att type="string" name="canonicalName" value="n02103841 (pp) n02104029"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103841 (pp) n02104280" source="-41" target="-43">
+    <att type="string" name="canonicalName" value="n02103841 (pp) n02104280"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103841 (pp) n02104184" source="-41" target="-42">
+    <att type="string" name="canonicalName" value="n02103841 (pp) n02104184"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02109811 (pp) n02110185" source="-36" target="-38">
+    <att type="string" name="canonicalName" value="n02109811 (pp) n02110185"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02109811 (pp) n02110063" source="-36" target="-37">
+    <att type="string" name="canonicalName" value="n02109811 (pp) n02110063"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02107420 (pp) n02108000" source="-28" target="-32">
+    <att type="string" name="canonicalName" value="n02107420 (pp) n02108000"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02107420 (pp) n02107683" source="-28" target="-31">
+    <att type="string" name="canonicalName" value="n02107420 (pp) n02107683"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02107420 (pp) n02107574" source="-28" target="-30">
+    <att type="string" name="canonicalName" value="n02107420 (pp) n02107574"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02107420 (pp) n02107908" source="-28" target="-29">
+    <att type="string" name="canonicalName" value="n02107420 (pp) n02107908"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02108254 (pp) n02108551" source="-25" target="-26">
+    <att type="string" name="canonicalName" value="n02108254 (pp) n02108551"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02108672 (pp) n02108915" source="-22" target="-23">
+    <att type="string" name="canonicalName" value="n02108672 (pp) n02108915"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02109150" source="-21" target="-64">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02109150"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02109047" source="-21" target="-66">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02109047"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02107420" source="-21" target="-28">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02107420"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02109525" source="-21" target="-27">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02109525"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02108254" source="-21" target="-25">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02108254"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02109391" source="-21" target="-24">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02109391"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02108672" source="-21" target="-22">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02108672"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02104523" source="-21" target="-50">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02104523"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02106854" source="-21" target="-40">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02106854"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02103841" source="-21" target="-41">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02103841"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02108422" source="-21" target="-34">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02108422"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02109687" source="-21" target="-39">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02109687"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02109811" source="-21" target="-36">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02109811"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02108089" source="-21" target="-35">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02108089"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02103406 (pp) n02109961" source="-21" target="-33">
+    <att type="string" name="canonicalName" value="n02103406 (pp) n02109961"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02111626 (pp) n02112137" source="-16" target="-18">
+    <att type="string" name="canonicalName" value="n02111626 (pp) n02112137"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02111626 (pp) n02112018" source="-16" target="-20">
+    <att type="string" name="canonicalName" value="n02111626 (pp) n02112018"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02111626 (pp) n02112350" source="-16" target="-19">
+    <att type="string" name="canonicalName" value="n02111626 (pp) n02112350"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02111626 (pp) n02111889" source="-16" target="-17">
+    <att type="string" name="canonicalName" value="n02111626 (pp) n02111889"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02086478 (pp) n02086646" source="-11" target="-12">
+    <att type="string" name="canonicalName" value="n02086478 (pp) n02086646"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02086346 (pp) n02086753" source="-10" target="-14">
+    <att type="string" name="canonicalName" value="n02086346 (pp) n02086753"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02086346 (pp) n02086478" source="-10" target="-11">
+    <att type="string" name="canonicalName" value="n02086346 (pp) n02086478"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02086346 (pp) n02086910" source="-10" target="-13">
+    <att type="string" name="canonicalName" value="n02086346 (pp) n02086910"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02085374 (pp) n02086346" source="-3" target="-10">
+    <att type="string" name="canonicalName" value="n02085374 (pp) n02086346"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02085374 (pp) n02086079" source="-3" target="-9">
+    <att type="string" name="canonicalName" value="n02085374 (pp) n02086079"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02085374 (pp) n02085936" source="-3" target="-8">
+    <att type="string" name="canonicalName" value="n02085374 (pp) n02085936"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02085374 (pp) n02087046" source="-3" target="-7">
+    <att type="string" name="canonicalName" value="n02085374 (pp) n02087046"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02085374 (pp) n02085782" source="-3" target="-6">
+    <att type="string" name="canonicalName" value="n02085374 (pp) n02085782"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02085374 (pp) n02086240" source="-3" target="-5">
+    <att type="string" name="canonicalName" value="n02085374 (pp) n02086240"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02085374 (pp) n02085620" source="-3" target="-4">
+    <att type="string" name="canonicalName" value="n02085374 (pp) n02085620"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02110341" source="-1" target="-86">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02110341"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02084732" source="-1" target="-190">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02084732"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02112826" source="-1" target="-80">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02112826"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02087122" source="-1" target="-88">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02087122"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02113978" source="-1" target="-79">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02113978"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02103406" source="-1" target="-21">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02103406"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02084861" source="-1" target="-83">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02084861"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02111626" source="-1" target="-16">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02111626"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02111500" source="-1" target="-15">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02111500"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02110958" source="-1" target="-67">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02110958"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02111277" source="-1" target="-77">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02111277"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02113335" source="-1" target="-72">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02113335"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02110806" source="-1" target="-71">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02110806"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02111129" source="-1" target="-70">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02111129"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02085272" source="-1" target="-78">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02085272"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02112497" source="-1" target="-68">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02112497"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n02085374" source="-1" target="-3">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n02085374"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+  <edge label="n02084071 (pp) n01322604" source="-1" target="-2">
+    <att type="string" name="canonicalName" value="n02084071 (pp) n01322604"/>
+    <att type="string" name="interaction" value="pp" cy:editable="false"/>
+    <graphics width="1" fill="#000000" cy:sourceArrow="0" cy:targetArrow="0" cy:sourceArrowColor="#000000" cy:targetArrowColor="#000000" cy:edgeLabelFont="SanSerif-0-10" cy:edgeLabel="" cy:edgeLineType="SOLID" cy:curved="STRAIGHT_LINES"/>
+  </edge>
+</graph>

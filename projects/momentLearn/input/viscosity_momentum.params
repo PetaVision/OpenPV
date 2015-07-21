@@ -1,0 +1,252 @@
+// PetaVision version something-point-something run at Mon Jan 19 16:14:38 2015
+// Compiled with MPI and run using 1 rows and 1 columns.
+// Compiled without OpenCL.
+// Compiled with CUDA.
+// Compiled with OpenMP parallel code and run using 64 threads.
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    dtAdaptFlag                         = true;
+    dtScaleMax                          = 10;
+    dtScaleMin                          = 0.25;
+    dtChangeMax                         = 0.1;
+    dtChangeMin                         = 0;
+    dtMinToleratedTimeScale             = 0.0001;
+    stopTime                            = 1000000;
+    progressInterval                    = 1000;
+    writeProgressToErr                  = true;
+    verifyWrites                        = false;
+    outputPath                          = "/nh/compneuro/Data/momentLearn/output/viscosity_momentum_out";
+    printParamsFilename                 = "viscosity_momentum.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 256;
+    ny                                  = 192;
+    filenamesContainLayerNames          = 1;
+    filenamesContainConnectionNames     = 1;
+    //initializeFromCheckpointDir         = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_LCA_dynamics_demo/VOC2007_landscape/Checkpoints/Checkpoint180000";
+    defaultInitializeFromCheckpointFlag = false;
+    checkpointRead                      = false;
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "/nh/compneuro/Data/momentLearn/output/viscosity_momentum_out/Checkpoints";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 1000;
+    deleteOlderCheckpoints              = false;
+    writeTimescales                     = true;
+    errorOnNotANumber                   = false;
+};
+
+Movie "Image" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    initializeFromCheckpointFlag        = false;
+    writeStep                           = -1;
+    initialWriteTime                    = 200;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    useImageBCflag                      = false;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    normalizeStdDev                     = false;
+    jitterFlag                          = 0;
+    padValue                            = 0;
+    imageListPath                       = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_padded0_landscape_list.txt";
+    displayPeriod                       = 200;
+    randomMovie                         = 0;
+    readPvpFile                         = false;
+    echoFramePathnameFlag               = true;
+    start_frame_index                   = 0;
+    skip_frame_index                    = 0;
+    writeFrameToTimestamp               = true;
+    flipOnTimescaleError                = true;
+    resetToStartOnLoop                  = false;
+};
+
+RescaleLayer "ImageRescale" = {
+    restart                         = false;
+    originalLayerName               = "Image";
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 3;
+    mirrorBCflag                    = true;
+    //
+    writeStep                       = 200;
+    initialWriteTime                = 200;
+    writeSparseActivity             = false;
+    //
+    rescaleMethod                   = "l2"; //Can be either meanstd or maxmin
+    patchSize                       = 972; //18*18*3
+    valueBC = 0;
+    phase                           = 1;
+    triggerFlag                         = true;
+    triggerLayerName = "Image";
+};
+
+ANNNormalizedErrorLayer "Error" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 2;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = false;
+    writeStep                           = 200;
+    initialWriteTime                    = 200;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    VThresh                             = 0;
+    AMin                                = 0;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    errScale                            = 1;
+};
+
+HyPerLCALayer "S1" = {
+    nxScale                             = 0.5;
+    nyScale                             = 0.5;
+    nf                                  = 96;
+    phase                               = 4;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape/Checkpoints/Checkpoint650000/S1_V.pvp";
+    triggerFlag                         = false;
+    writeStep                           = 200;
+    initialWriteTime                    = 200;
+    sparseLayer                         = true;
+    writeSparseValues                   = true;
+    updateGpu                           = true;
+    VThresh                             = 0.025;
+    AMin                                = 0;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0.5;
+    numChannels                         = 1;
+    timeConstantTau                     = 100;
+    numWindowX                          = 1;
+    numWindowY                          = 1;
+    selfInteract                        = true;
+};
+
+ANNLayer "Recon" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 3;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = true;
+    triggerLayerName = "Image";
+    writeStep                           = 200;
+    initialWriteTime                    = 200;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+};
+
+IdentConn "ImageRescaleToError" = {
+   preLayerName                        = "ImageRescale";
+   postLayerName                       = "Error";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+MomentumConn "S1ToError" = {
+    preLayerName                        = "S1";
+    postLayerName                       = "Error";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = .90;
+
+    useListOfArborFiles                 = false;
+    combineWeightFiles                  = false;
+    initializeFromCheckpointFlag        = false;
+
+    plasticityFlag = true;
+    triggerFlag = true;
+    triggerLayerName = "Image";
+    triggerOffset = 1;
+    dWMax = .03; // 200.0 used for initial training
+    momentumTau = 100;
+    momentumPeriod = 1;
+    momentumMethod = "viscosity";
+
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = 200;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 18;
+    nyp                                 = 18;
+    nfp                                 = 3;
+    shrinkPatches                       = false;
+    updateGSynFromPostPerspective       = false;
+    normalizeMethod                     = "normalizeL2";
+    strength                            = 1;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = 0;
+    normalizeFromPostPerspective        = false;
+    minL2NormTolerated                  = 0;
+};
+
+TransposeConn "ErrorToS1" = {
+    preLayerName                        = "Error";
+    postLayerName                       = "S1";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = true;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    updateGSynFromPostPerspective       = true;
+    originalConnName                    = "S1ToError";
+};
+
+CloneConn "S1ToRecon" = {
+    preLayerName                        = "S1";
+    postLayerName                       = "Recon";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    updateGSynFromPostPerspective       = false;
+    originalConnName                    = "S1ToError";
+};

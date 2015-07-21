@@ -1,0 +1,11 @@
+#######
+##To install required libraries:
+##
+##   *Assuming cpan is installed (which cpan) and cpanminus is installed (install by typing 'cpan App::cpanminus')
+##   **   See [http://www.cpan.org/modules/INSTALL.html] if not
+##
+##  1) cpanm List::MoreUtils
+##  2) cpanm XML::XPath
+##  3) cpanm XML::Simple
+##  4) cpanm Data::Dumper
+#######

@@ -1,0 +1,442 @@
+// // HyPerHLCA_retina.params
+// 09-20-2013
+// Modified version of HyPerHLCA_vine_color_deep.params
+// -Wesley Chavez
+//
+//
+//
+// Added Ganglion ON/OFF, Error ON/OFF, Recon ON/OFF layers, and excluded a few layers.  Added delayed arbors 
+// from Image ON/OFF to Error ON/OFF.
+//
+// 10/10/13
+// Took out Recon layers/conns, changed weightUpdatePeriod,dWMax,initialWeightUpdateTime in V1ToErrorON/OFF.
+/////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 240;  // vine value
+    ny = 240;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    numSteps = 192882;
+    progressStep = 100;
+    outputPath = "/nh/compneuro/Data/vine/retina/output_spikerun1";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = true;
+    checkpointReadDir = "/nh/compneuro/Data/vine/retina/output_spikerun1";
+    checkpointReadDirIndex = 173610;
+    checkpointWrite =true;
+    checkpointWriteDir = "/nh/compneuro/Data/vine/retina/output_spikerun1";
+    checkpointWriteStepInterval = 10000;
+    deleteOlderCheckpoints = false;
+    //suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+};
+
+//
+// layers
+//
+
+Movie "ImageON" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imageListPath = "/nh/compneuro/Data/vine/list/spikes/filenames_catfishmodeltoddlertrampolineSpikesON.txt";
+    nf = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = true;
+    readPvpFile = false;
+    phase = 0;
+};
+
+
+Movie "ImageOFF" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imageListPath = "/nh/compneuro/Data/vine/list/spikes/filenames_catfishmodeltoddlertrampolineSpikesOFF.txt";
+    nf = 1;
+    writeStep = -1;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = 0;
+    autoResizeFlag = true;
+    readPvpFile = false;
+    phase = 0;
+};
+
+
+ANNErrorLayer "ErrorON" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 16;
+    initialWriteTime = 998.0;
+    writeStep = 1000;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = 0.005;
+    VMax =  infinity;
+    VMin = 0;
+    VShift = 0;
+    valueBC = 0;
+    phase = 2;  
+};
+
+
+ANNErrorLayer "ErrorOFF" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 16;
+    initialWriteTime = 998.0;
+    writeStep = 1000;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = 0.005;
+    VMax =  infinity;
+    VMin = 0;
+    VShift = 0;
+    valueBC = 0;
+    phase = 2;  
+};
+
+
+HyPerLCALayer "V1" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 512;
+    numChannels = 1;
+    initialWriteTime = 998.0;
+    writeStep = 1000.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 1;
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .15;
+    timeConstantTau = 200.0;
+    timeConstantTauMinimum = 10.0;
+    slopeErrorStd = 0.01;
+    VThresh = 0.05;
+    VMax = infinity;
+    VMin = 0;
+    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    valueBC = 0;
+    numWindowX = 1;
+    numWindowY = 1;
+    phase = 3;
+};
+
+
+ANNLayer "ReconON" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 16;
+    initialWriteTime = 998.0;
+    writeStep = 1000.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";    
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity;
+    VShift = 0;
+    valueBC = 0;   
+    phase = 4;
+};
+
+
+ANNLayer "ReconOFF" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 16;
+    initialWriteTime = 998.0;
+    writeStep = 1000.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity;
+    VShift = 0;
+    valueBC = 0;
+    phase = 4;
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////// CONNECTIONS
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+KernelConn "delayArborON" = {
+    preLayerName = "ImageON";
+    postLayerName = "ErrorON";
+    
+    channelCode = 0;
+    nxp         = 1;
+    nyp         = 1;
+    nfp         = 16;
+    
+    //Set delay from 0 to 15
+    delay       = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    
+    numAxonalArbors  = 16;
+    useWindowPost    = false;
+    writeStep        = -1;
+    initFromLastFlag = 0;
+
+    weightInitType = "OneToOneWeightsWithDelays";
+    weightInit = 1.0;
+      
+    normalizeMethod        = "none";
+    plasticityFlag         = false;
+    pvpatchAccumulateType  = "convolve";
+    writeCompressedCheckpoints = true;
+    selfFlag               = false;
+    shrinkPatches          = false;
+    updateGSynFromPostPerspective = false;
+    preActivityIsNotRate   = false;
+    shmget_flag            = true;
+};
+
+
+KernelConn "delayArborOFF" = {
+    preLayerName = "ImageOFF";
+    postLayerName = "ErrorOFF";
+    
+    channelCode = 0;
+    nxp         = 1;
+    nyp         = 1;
+    nfp         = 16;
+    
+    //Set delay from 0 to 15
+    delay       = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    
+    numAxonalArbors  = 16;
+    useWindowPost    = false;
+    writeStep        = -1;
+    initFromLastFlag = 0;
+
+    weightInitType = "OneToOneWeightsWithDelays";
+    weightInit = 1.0;
+      
+    normalizeMethod        = "none";
+    plasticityFlag         = false;
+    pvpatchAccumulateType  = "convolve";
+    writeCompressedCheckpoints = true;
+    selfFlag               = false;
+    shrinkPatches          = false;
+    updateGSynFromPostPerspective = false;
+    preActivityIsNotRate   = false;
+    shmget_flag            = true;
+};
+
+
+KernelConn "V1ToErrorON" = {
+    preLayerName = "V1";
+    postLayerName = "ErrorON";
+    channelCode = 1;
+    nxp = 12;
+    nyp = 12;
+    nfp = 16;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = .90;
+    strength = .707;
+    normalizeMethod = "normalizeL2";
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    writeStep = 10000;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    weightUpdatePeriod = 1; //200.0;
+    initialWeightUpdateTime = 1; //199.0;
+    initialWriteTime = 0.0;
+    dWMax = .1; //5.0; 
+    selfFlag = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    
+    updateGSynFromPostPerspective = 0;
+};
+
+
+KernelConn "V1ToErrorOFF" = {
+    preLayerName = "V1";
+    postLayerName = "ErrorOFF";
+    channelCode = 1;
+    nxp = 12;
+    nyp = 12;
+    nfp = 16;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1.0;
+    wMaxInit = 1.0;
+    sparseFraction = .90;
+    strength = .707;
+    normalizeMethod = "normalizeL2";
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true;
+    combine_dW_with_W_flag = false;
+    writeStep = 10000;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    weightUpdatePeriod = 1; //200.0;
+    initialWeightUpdateTime = 1; //199.0;
+    initialWriteTime = 0.0;
+    dWMax = .1; //5.0;
+    selfFlag = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    shrinkPatches = false;
+    
+    updateGSynFromPostPerspective = 0;
+};
+
+
+TransposeConn "ErrorONToV1" = {
+    preLayerName = "ErrorON";
+    postLayerName = "V1";
+    channelCode = 0;
+    originalConnName = "V1ToErrorON";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = 0;
+};
+
+
+TransposeConn "ErrorOFFToV1" = {
+    preLayerName = "ErrorOFF";
+    postLayerName = "V1";
+    channelCode = 0;
+    originalConnName = "V1ToErrorOFF";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = 0;
+};
+
+
+CloneKernelConn "V1ToReconON" = {
+    preLayerName = "V1";
+    postLayerName = "ReconON";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1ToErrorON";
+    selfFlag = false;
+   pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    updateGSynFromPostPerspective = 0;
+    writeCompressedCheckpoints = 0;
+};
+
+
+CloneKernelConn "V1ToReconOFF" = {
+    preLayerName = "V1";
+    postLayerName = "ReconOFF";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1ToErrorOFF";
+    selfFlag = false;
+    pvpatchAccumulateType = "convolve";
+    delay = 0;
+    preActivityIsNotRate = false;
+    updateGSynFromPostPerspective = 0;
+    writeCompressedCheckpoints = 0;
+};
+
+
+
+// Probes
+
+
+StatsProbe "ErrorONStatsFile" = {
+    targetLayer = "ErrorON";
+    probeOutputFile = "Error_StatsON.txt";
+};
+
+StatsProbe "ErrorOFFStatsFile" = {
+    targetLayer = "ErrorOFF";
+    probeOutputFile = "Error_StatsOFF.txt";
+};
+
+StatsProbe "V1StatsFile" = {
+    targetLayer = "V1";
+    probeOutputFile = "V1_Stats.txt";
+};
+
+StatsProbe "ReconONStatsFile" = {
+    targetLayer = "ReconON";
+    probeOutputFile = "Recon_StatsON.txt";
+};
+
+StatsProbe "ReconOFFStatsFile" = {
+    targetLayer = "ReconOFF";
+    probeOutputFile = "Recon_StatsOFF.txt";
+};

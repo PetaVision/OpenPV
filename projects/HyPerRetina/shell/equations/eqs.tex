@@ -1,0 +1,105 @@
+\documentclass{article}
+\usepackage{amssymb,amsmath}
+\def\nterm#1#2{n_{#1}^{\displaystyle{\tau_{#2}}}}
+\def\fterm#1#2{f_{#1}^{\displaystyle{\tau_{#2}}}}
+
+\begin{document}
+
+%\centerline{\sc \large Spiking + Oja STDP = image comprehension and compression}
+%\vspace{.5pc}
+\centerline{\sc \large Equations governing our 2 months at the Darpa Innovation House}
+\vspace{.5pc}
+\centerline{\sc Spiking Retina  ---STDP--->  Leaky Integrate-and-Fire Neuron with Lateral Inhibition}
+\begin{minipage}[t]{0.5\textwidth}
+\centerline{\it Gar Kenyon}
+\centerline{\it Gerd Kunde}
+\centerline{\it Pete Schultz}
+\end{minipage}
+\begin{minipage}[t]{0.5\textwidth}
+\centerline{\it Keni Patel}
+\centerline{\it Dylan Paiton}
+\centerline{\it Sheng Lundquist}
+\end{minipage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{1pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{\bf Average spike count over interval $\tau$:}
+\begin{equation}\label{avgSpikes}
+\nterm{i}{}(t+\Delta t) = e^{\frac{-\Delta t}{\displaystyle{\tau}}} \left[A_{i}(t) + \nterm{i}{}(t)\right]
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{\bf Average firing rate over interval $\tau$:}
+\begin{equation}\label{avgRate}
+\fterm{i}{}(t) = \frac{\nterm{i}{}(t)}{\tau}
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{\bf Feed-forward weight adaptation (STDP):}
+\begin{equation}\nonumber
+Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left(\frac{\Delta t}{\tau_{oja}}\right)^{2} \left\{Oja*LTP - LTD - decay\right\} \right}
+\end{equation}
+i.e.\\
+\begin{equation}\begin{split}
+Q_{ij}(t+\Delta t) &= Q_{ij}(t) + \beta \left(\frac{\Delta t}{\tau_{oja}}\right)^{2} \left\{\right.\\[2mm]
+                        &\nterm{Y_j}{oja}(t) \left[\nterm{X_i}{oja}(t) - \frac{f_{pre}}{f_{o}} \frac{Q_{ij}(t)}{W_{scale}} \nterm{Y_j}{oja}(t)\right] \cdot \lambda_{P} A_{Y}(t) \nterm{X_{i}}{P}(t) -\\[2mm]
+                        &\lambda_{D}_{j} A_{X}_{i}(t) \nterm{Y_{j}}{D}(t) -\\[2mm]
+                        &\alpha_{dec} Q_{ij}(t)\left\}\right.\\
+\end{split}\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{\bf Adaptive LTD for feed-forward weights}
+\begin{align}\label{LTD}
+        \lambda_{D}_{j}(t+\Delta t) &= \lambda_{D}_{j}(t) +
+            \frac{\Delta t}{\displaystyle{\tau}_{_{thr}}}
+            \left[\fterm{j}{o}(t) - f_o\right]
+            \frac{\lambda_{Dscale}}{f_o}\\[3mm]
+\intertext{where}
+        \lambda_{D}_{j} &> 0\nonumber\\[3mm]
+        \lambda_{D}_{j}(0) &= \lambda_{Dinit}\nonumber
+\end{align}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{\bf Lateral inhibition:}
+\begin{equation}\label{lateralInhib}
+w_{jk}(t+\Delta t) = w_{jk}(t) + \frac{\Delta t}{\displaystyle{\tau}_{_{inh}}} \left[\fterm{j}{int}(t)\fterm{k}{int}(t) - f_{o}^{2} \right] \frac{1}{f_{o}^{2}}
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{2pc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{\bf Current scales for $\tau$ values}
+\begin{align}
+\displaystyle{\tau}_{oja} &\approx 50-200 ms\nonumber\\[2mm]
+\displaystyle{\tau}_{P} &\approx 0-10 ms\nonumber\\[2mm]
+\displaystyle{\tau}_{D} &\approx 20-40 ms\nonumber\\[2mm]
+\displaystyle{\tau}_{int} &\approx \displaystyle{\tau}_{oja}\nonumber\\[2mm]
+\displaystyle{\tau}_{o} &= 300\nonumber\\[2mm]
+\displaystyle{\tau}_{thr} &\gg \displaystyle{\tau}_{o}\nonumber\\[2mm]
+\displaystyle{\tau}_{inh} &\gg \displaystyle{\tau}_{int}\nonumber\\[2mm]
+\end{align}
+
+{\bf Current values for constants:}
+\begin{align}
+\lambda_{P} &\approx 1\nonumber\\[2mm]
+\lambda_{Dscale} &\approx \lambda_{P}\nonumber\\[2mm]
+\lambda_{Dinit} &\approx 1\nonumber\\[2mm]
+\beta &= 2\nonumber\\[2mm]
+\alpha_{dec} &= 0\nonumber
+\end{align}
+\end{document}

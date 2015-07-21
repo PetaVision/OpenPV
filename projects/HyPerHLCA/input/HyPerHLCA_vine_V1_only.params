@@ -1,0 +1,525 @@
+///////////////////////////
+// // HyPerHLCA_vine_V1_only.params
+//
+// created by peteschultz: Sept 27 2012, modified garkenyon: 1/20/13
+// modified dylanpaiton: Dec 8 2013
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 480;  // vine value
+    ny = 480;
+    //
+    randomSeed       = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime        = 0;
+    stopTime         = 7840;
+    dt               = 1;
+    progressInterval = 250;
+    //
+    outputPath                      = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only";
+    filenamesContainLayerNames      = true;
+    filenamesContainConnectionNames = true;
+    //
+    checkpointRead                  = false;
+    //checkpointReadDir               = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/Checkpoints";
+    //checkpointReadDirIndex          = 20574000;
+    //
+    checkpointWrite                 = true;
+    checkpointWriteDir              = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/Checkpoints";
+    checkpointWriteStepInterval     = 50000;
+    deleteOlderCheckpoints          = false;
+    //
+    //suppressLastOutput            = false;
+    writeProgressToErr              = true;
+    outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
+};
+
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+//// layers layers layers layers layers layers layers layers
+//// layers layers layers layers layers layers layers layers
+//// layers layers layers layers layers layers layers layers
+//// layers layers layers layers layers layers layers layers
+//// layers layers layers layers layers layers layers layers
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+
+Movie "Image" = {
+    restart                = 0;
+    nxScale                = 1;
+    nyScale                = 1;
+    imageListPath          = "/nh/compneuro/Data/vine/list/how2catchSquirrel.txt";
+    nf                     = 3;
+    writeStep              = 40;
+    initialWriteTime       = 39;
+    writeSparseActivity    = false;
+    displayPeriod          = 40;
+    start_frame_index      = 1;
+    skip_frame_index       = 1;
+    echoFramePathnameFlag  = true;
+    mirrorBCflag           = true;
+    jitterFlag             = 0;
+    useImageBCflag         = false;
+    inverseFlag            = false;
+    normalizeLuminanceFlag = false;
+    writeImages            = false;
+    offsetX                = 0;
+    offsetY                = 0;
+    randomMovie            = 0;
+    autoResizeFlag         = false;
+    readPvpFile            = false;
+    phase                  = 0;
+    //useParamsImage       = true;
+};
+
+
+ANNTriggerUpdateOnNewImageLayer "Bipolar" = {
+    restart             = 0;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 3;
+    writeStep           = -1; //2000.0;
+    //initialWriteTime    = 1998.0;
+    mirrorBCflag        = 1;
+    writeSparseActivity = 0;
+    //
+    movieLayerName = "Image";
+    InitVType      = "ZeroV";
+    //
+    VThresh = -infinity;
+    VMax    = infinity;
+    VMin    = -infinity;
+    VShift  = 0;
+    VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
+    //    
+    phase = 2;
+};
+
+
+ANNTriggerUpdateOnNewImageLayer "Ganglion" = {
+    restart             = 0;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 3;
+    writeStep           = -1; //2000.0;
+    //initialWriteTime    = 1998.0;
+    mirrorBCflag        = 1;
+    writeSparseActivity = 0;
+    //
+    movieLayerName = "Image";
+    InitVType      = "ZeroV";
+    //
+    VThresh = -infinity;
+    VMax    = infinity;
+    VMin    = -infinity;
+    VShift  = 0;
+    VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
+    // 
+    phase = 3;
+};
+
+
+ANNErrorLayer "Error" = {
+    restart             = 0;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 3;
+    //
+    writeStep           = 40;
+    initialWriteTime    = 39;
+    mirrorBCflag        = 0;
+    valueBC             = 0;
+    writeSparseActivity = 0;
+    //
+    InitVType           = "ZeroV";
+    //InitVType           = "InitVFromFile";
+    //Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_28/output_2013_01_28_12x12x128_lambda_05X2_noTopDown/Checkpoints/Checkpoint20574000/Error_V.pvp";
+    //
+    VThresh  = 0.005;
+    VMax     =  infinity;
+    VMin     = 0;
+    VShift   = 0;
+    VWidth   = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
+    errScale = 1;       // relative importance of all error layers that are connected to respective V1 layer
+    //
+    phase = 4;  
+};
+
+
+HyPerLCALayer "V1" = {
+    restart             = 0;
+    nxScale             = 0.25;
+    nyScale             = 0.25;
+    nf                  = 128;
+    numChannels         = 1; // Only excitatory channel
+    numWindowX          = 1;
+    numWindowY          = 1;
+    writeStep           = -1; //200.0;
+    //initialWriteTime    = 199.0;
+    mirrorBCflag        = 0;
+    valueBC             = 0;
+    writeSparseActivity = 1;
+    writeSparseValues   = false;
+    //
+    //InitVType           = "UniformRandomV";
+    //minV                = -1.0;
+    //maxV                = .15; //0.05 above VThresh
+    InitVType           = "InitVFromFile"; // When initializing weights from file, it helps to also init V values to prevent startup artifacts
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/InitializationCheckpoints/Checkpoint100000/V1_V.pvp";
+    // 
+    timeConstantTau        = 1000.0;
+    timeConstantTauMinimum = 10.0;
+    slopeErrorStd          = 0.01;
+    // 
+    VThresh = 0.1; //  // 0.05 works for animalDB
+    VMax    = infinity;
+    VMin    = 0.0;
+    VShift  = 0.0;     // 0 -> hard threshold, 1 -> soft threshold
+    VWidth  = 0;       // specify extra linear regime in transfer function (add additional piecewise linear portion)
+    //
+    phase = 5;
+};
+
+
+CloneVLayer "V1_Clone" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf      = 128;
+    //
+    originalLayerName = "V1";
+    writeStep         = 1;
+    initialWriteTime  = 0;
+    mirrorBCflag      = 0;
+    valueBC           = 0;
+    //
+    writeSparseActivity = false;
+    phase = 5;
+};
+
+
+ANNTriggerUpdateOnNewImageLayer "Recon" = {
+    restart             = 0;
+    nxScale             = 1;
+    nyScale             = 1;
+    nf                  = 3;
+    writeStep           = 40;
+    initialWriteTime    = 41;    //Need to write out just as the image flips
+    mirrorBCflag        = 0;
+    valueBC             = 0;
+    writeSparseActivity = 0;
+    movieLayerName      = "Image";
+    //
+    //InitVType           = "ZeroV";
+    InitVType           = "InitVFromFile";
+    Vfilename           = "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_V1_only/InitializationCheckpoints/Checkpoint100000/Recon_V.pvp";
+    //
+    VThresh             = -infinity;
+    VMax                = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin                = -infinity; 
+    VShift              = 0;
+    VWidth              = 0;            // specify extra linear regime in transfer function (add additional piecewise linear portion)
+    // 
+    phase               = 6; 
+};
+
+
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+//// connections connections connections connections connections
+//// connections connections connections connections connections
+//// connections connections connections connections connections
+//// connections connections connections connections connections
+//// connections connections connections connections connections
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+
+
+KernelConn "ImageToBipolarCenter" = {
+    preLayerName     = "Image";
+    postLayerName    = "Bipolar";
+    channelCode      = 0;
+    nxp              = 3; 
+    nyp              = 3; 
+    nfp              = 3;
+    numAxonalArbors  = 1;
+    initFromLastFlag = 0; 
+    writeStep        = -1;
+    //
+    weightInitType      = "Gauss2DWeight";
+    aspect              = 1;
+    sigma               = 0.5;
+    rMax                = 3;
+    rMin                = 0;
+    numOrientationsPre  = 1;
+    numOrientationsPost = 1;
+    //   
+    strength                      = 1.0;  
+    normalizeMethod               = "normalizeSum";
+    minSumTolerated               = 0;
+    normalizeArborsIndividually   = 0;
+    normalize_cutoff              = 0.0;
+    normalizeFromPostPerspective  = true;
+    symmetrizeWeights             = false;
+    updateGSynFromPostPerspective = false;
+    // 
+    shrinkPatches              = false;
+    //writeCompressedWeights     = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag             = false;
+    pvpatchAccumulateType      = "convolve";
+    // 
+    delay = 0;
+    // 
+    preActivityIsNotRate = false;
+    selfFlag             = false;
+    shmget_flag          = false;
+};
+
+
+KernelConn "BipolarToGanglionCenter" = {
+    preLayerName    = "Bipolar";
+    postLayerName   = "Ganglion";
+    channelCode     = 0;
+    nxp             = 1; 
+    nyp             = 1; 
+    nfp             = 3;
+    numAxonalArbors = 1;
+    //
+    initFromLastFlag = 0;
+    writeStep        = -1;
+    // 
+    weightInitType      = "Gauss2DWeight";
+    aspect              = 1;
+    sigma               = 1;
+    rMax                = 3;
+    rMin                = 0;
+    numOrientationsPre  = 1;
+    numOrientationsPost = 1;
+    //   
+    strength                     = 1.0;  
+    normalizeMethod              = "normalizeSum";
+    minSumTolerated              = 0;
+    normalizeArborsIndividually  = 0;
+    normalize_cutoff             = 0.0;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights            = false;
+    // 
+    shrinkPatches                 = false;
+    //writeCompressedWeights        = false;
+    writeCompressedCheckpoints    = false;
+    plasticityFlag                = false;
+    pvpatchAccumulateType         = "convolve";
+    updateGSynFromPostPerspective = false;
+    // 
+    delay = 0;
+    // 
+    preActivityIsNotRate = false;
+    selfFlag             = false;
+    shmget_flag          = false;
+};
+
+
+KernelConn "BipolarToGanglionSurround" = {
+    preLayerName     = "Bipolar";
+    postLayerName    = "Ganglion";
+    channelCode      = 1;
+    nxp              = 11; 
+    nyp              = 11; 
+    nfp              = 3;
+    numAxonalArbors  = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep        = -1;
+    // 
+    weightInitType      = "Gauss2DWeight";
+    aspect              = 1;
+    sigma               = 5.5;
+    rMax                = 7.5;
+    rMin                = 0.5;
+    numOrientationsPre  = 1;
+    numOrientationsPost = 1;
+    //          
+    strength                     = 1.0;  
+    normalizeMethod              = "normalizeSum";
+    minSumTolerated              = 0;
+    normalizeArborsIndividually  = false;
+    normalize_cutoff             = false;
+    normalizeFromPostPerspective = true;
+    symmetrizeWeights            = false;
+    // 
+    shrinkPatches                 = false;
+    //writeCompressedWeights        = 0.0;
+    writeCompressedCheckpoints    = false;
+    plasticityFlag                = false;
+    pvpatchAccumulateType         = "convolve";
+    updateGSynFromPostPerspective = false;     
+    // 
+    delay = 0;
+    // 
+    preActivityIsNotRate = false;
+    selfFlag             = false;
+    shmget_flag          = false;
+};
+
+
+IdentConn "GanglionToError" = {
+    preLayerName  = "Ganglion";
+    postLayerName = "Error";
+    channelCode   = 0;
+    delay         = 0;
+    writeStep     = -1;
+};
+
+KernelConn "V1ToError" = {
+    preLayerName     = "V1";
+    postLayerName    = "Error";
+    channelCode      = 1;
+    nxp              = 12;
+    nyp              = 12;
+    numAxonalArbors  = 1;
+    initFromLastFlag = 0;
+    //
+    weightInitType      = "FileWeight";
+    initWeightsFile     = "/nh/compneuro/Data/vine/LCA/2013_01_24_2013_02_01/output_2013_01_24_2013_02_01_12x12x128_lambda_05X2_noTopDown/w4_V1ToError.pvp";
+    combineWeightFiles  = false;
+    useListOfArborFiles = false;
+    //
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit       = -1.0;
+    //wMaxInit       = 1.0;
+    //sparseFraction = .90;
+    //
+    strength                     = 1.0;  
+    normalizeMethod              = "normalizeL2";
+    minL2NormTolerated           = 0;
+    normalizeArborsIndividually  = 0;
+    normalize_cutoff             = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights            = false;
+    //
+    //
+    writeStep                  = -1; //100000;
+    //initialWriteTime           = 0;
+    //writeCompressedWeights     = false;
+    writeCompressedCheckpoints = false;
+    //
+    plasticityFlag = false; 
+    //
+    //weightUpdatePeriod      = 200.0;
+    //initialWeightUpdateTime = 199.0;
+    //dWMax                   = 5.0;
+    //combine_dW_with_W_flag  = false; 
+    //keepKernelsSynchronized = true; 
+    preActivityIsNotRate    = false;  // should help make response more indepenent of time step size dt
+    selfFlag                = false;
+    shmget_flag             = false;
+    //
+    delay = 0;
+    //
+    pvpatchAccumulateType         = "convolve";
+    updateGSynFromPostPerspective = false;     
+    shrinkPatches                 = false;
+};
+
+
+TransposeConn "ErrorToV1" = {
+    preLayerName                  = "Error";
+    postLayerName                 = "V1";
+    channelCode                   = 0;
+    originalConnName              = "V1ToError";
+    selfFlag                      = false;
+    preActivityIsNotRate          = false;  // should help make response more indepenent of time step size dt
+    writeStep                     = -1;
+    writeCompressedCheckpoints    = false;
+    shmget_flag                   = false;
+    delay                         = 0;
+    pvpatchAccumulateType         = "convolve";
+    updateGSynFromPostPerspective = false;
+};
+
+
+CloneKernelConn "V1ToRecon" = {
+    preLayerName                  = "V1";
+    postLayerName                 = "Recon";
+    channelCode                   = 0;
+    writeStep                     = -1;
+    writeCompressedCheckpoints    = false;
+    originalConnName              = "V1ToError";
+    selfFlag                      = false;
+    pvpatchAccumulateType         = "convolve";
+    delay                         = 0;
+    preActivityIsNotRate          = false;
+    updateGSynFromPostPerspective = false;
+};
+
+
+// // Parameter sweep
+// ParameterSweep "V1":VThresh = {
+//     0.05; 0.1; 0.15; 0.2;
+// };
+// 
+// ParameterSweep "column":outputPath = {
+//     "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X1_noTopDown/";
+//     "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2_noTopDown/";
+//     "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X3_noTopDown/";
+//     "/nh/compneuro/Data/vine/LCA/2013_01_24/output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X4_noTopDown/";
+// };
+
+// Probes
+
+//StatsProbe "RetinaStats" = {
+//    targetLayer = "Retina";
+//};
+//
+//StatsProbe "GanglionStats" = {
+//    targetLayer = "Ganglion";
+//};
+//
+//StatsProbe "ReconStats" = {
+//    targetLayer = "Recon";
+//};
+//
+//StatsProbe "ErrorStats" = {
+//    targetLayer = "Error";
+//};
+//
+//StatsProbe "V1Stats" = {
+//    targetLayer = "V1";
+//};
+//
+//
+//StatsProbe "RetinaStatsFile" = {
+//    targetLayer = "Retina";
+//    probeOutputFile = "Retina_Stats.txt";
+//};
+//
+//StatsProbe "GanglionStatsFile" = {
+//    targetLayer = "Ganglion";
+//    probeOutputFile = "Ganglion_Stats.txt";
+//};
+//
+//StatsProbe "ErrorStatsFile" = {
+//    targetLayer = "Error";
+//    probeOutputFile = "Error_Stats.txt";
+//};
+//
+//StatsProbe "V1StatsFile" = {
+//    targetLayer = "V1";
+//    probeOutputFile = "V1_Stats.txt";
+//};
+//
+//StatsProbe "ReconStatsFile" = {
+//    targetLayer = "Recon";
+//    probeOutputFile = "Recon_Stats.txt";
+//};
+

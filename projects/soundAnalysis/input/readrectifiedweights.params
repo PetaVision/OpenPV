@@ -1,0 +1,260 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified mdubey Aug 5, 2014
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+   nx                              = 1;//always 1x1
+   ny                              = 1;
+   dt                              = .00022675737; // downsampling = dt * sampleRate
+   randomSeed                      = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   stopTime                        = .05;
+   progressInterval                = .00022675737; // dt
+   outputPath                      = "rectifiedweights";
+   filenamesContainLayerNames      = true;
+   filenamesContainConnectionNames = true;
+   checkpointRead                  = false;
+   checkpointWrite                 = false; // should be false
+   checkpointWriteDir              = "rectifiedweights/checkpoints";
+   checkpointWriteStepInterval     = 221; //numdelays
+   deleteOlderCheckpoints          = false;
+   writeProgressToErr              = true;
+   outputNamesOfLayersAndConns     = "LayerAndConnNames.txt";
+   printTimescales                 = false;
+   dtAdaptFlag                     = false; // set to determine expected errors
+
+};
+
+
+
+
+//
+// layers
+//
+
+SoundStream "Sound" = {
+    restart                = 0;
+    nxScale                = 1;
+    nyScale                = 1;
+    soundInputPath         = "input/furElise.wav";
+    nf                     = 1; // mono vs. stereo
+    writeStep              = .00023; //dt
+    initialWriteTime       = 0;
+    writeSparseActivity    = false;
+    displayPeriod          = 1;  //5000;  //  unnecesary [in time steps - I think] TODO: change to [ms]
+    soundBCFlag            = true;
+    soundOffset            = 0; //In seconds
+    phase = 0;
+};
+
+
+
+NewCochlearLayer "NewCochlear" = {
+    restart = 0;
+    nxScale = 64; //number of cochlear hair cells, useful as power of two (1024)
+    nyScale = 1;
+    nf = 1;
+    writeStep = .00022675737; //dt
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    //InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+    inputLayername = "Sound"; 
+    targetChannel = 0;
+    
+    equalTemperedFlag = true;
+    freqMin = 50;
+    freqMax = 20000;
+
+    dampingRatio = .5;
+
+    sampleRate = 44100;
+    cochlearScale = 10000000; // should be 10,000,000
+
+    //displayPeriod = .000022675737; //downsample here
+    
+    //soundstream params
+    
+    soundInputPath         = "input/furElise.wav";
+    soundBCFlag            = true;
+    soundOffset            = 0; //In seconds
+    
+    
+    valueV                          = 0.0;
+    Vrest                           = 0.0;
+
+    phase = 1;
+
+
+};
+
+
+Movie "WeightPositive" = {
+    restart = 0;
+    nxScale = 64; //numfreqs
+    nyScale = 1;
+    imageListPath = "~/newvision/sandbox/soundAnalysis/analysis/w2a+/+feature6frame1.pvp";
+    nf = 1;
+    writeStep = .00022675737;
+    writeSparseActivity = false;
+    displayPeriod = .00022675737;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = false;
+    autoResizeFlag = false;
+    readPvpFile = true;
+    phase = 2;
+};
+
+Movie "WeightNegative" = {
+    restart = 0;
+    nxScale = 64; // numfreqs
+    nyScale = 1;
+    imageListPath = "~/newvision/sandbox/soundAnalysis/analysis/w2a-/-feature6frame1.pvp";
+    nf = 1;
+    writeStep = .00022675737;
+    writeSparseActivity = false;
+    displayPeriod = .00022675737;
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    randomMovie = false;
+    autoResizeFlag = false;
+    readPvpFile = true;
+    phase = 2;
+};
+
+ANNLayer "WeightRecon" = {
+    restart = 0;
+    nxScale = 64; //numfreqs
+    nyScale = 1;
+    nf = 1; //numdelays
+    marginWidth = 0;
+    writeStep = .00022675737;
+    initialWriteTime = 0;
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity; // change to desired threshold
+    AMax = infinity;
+    AMin = -infinity;
+    VWidth = 0;
+    AShift = 0;
+    // 
+    phase = 3;
+
+};
+
+inverseCochlearLayer "inverseWeights" = {
+    restart = 0;
+    nxScale = 1; // 1 x 1
+    nyScale = 1;
+    // nf automatically set to 2 (real part & imaginary part)
+    writeStep = .00023; // dt
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    VMax = infinity;
+    VMin = -infinity;
+    VShift = 0;
+    VWidth = 0;
+
+
+
+    inputLayername = "WeightRecon";
+    cochlearLayername = "NewCochlear";
+
+    sampleRate = 44100;
+    bufferLength = 1;
+    
+    phase = 4;
+};
+
+
+/////connections////
+
+
+IdentConn "WeightPositiveToWeightRecon" = {
+
+    preLayerName = "WeightPositive";
+    postLayerName = "WeightRecon";
+    
+    channelCode = 0;
+
+    //nxp             = 1; //numfreqs
+    //nyp             = 1;
+    //nfp             = 1;
+
+   // weightInitType = "OneToOneWeights";
+   // weightInit = 1;
+   // normaizeMethod = "none";
+
+
+};
+
+IdentConn "WeightNegativeToWeightRecon" = {
+
+    preLayerName = "WeightNegative";
+    postLayerName = "WeightRecon";
+    
+    channelCode = 1;
+    //nxp             = 1; //numfreqs
+    //nyp             = 1;
+    //nfp             = 1;
+
+    //weightInitType = "OneToOneWeights";
+    //weightInit = -1;
+    //normaizeMethod = "none";
+
+
+};
+
+/////probes///////
+
+
+SoundProbe "WeightsProbe" = {
+   restart = 0;
+   targetLayer = "inverseWeights";
+   soundOutputPath = "output/outweight.wav";
+   soundInputType  = "input/furElise.wav";
+};
+
+

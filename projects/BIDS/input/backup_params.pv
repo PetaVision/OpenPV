@@ -1,0 +1,313 @@
+// 
+// Parameter file for BIDS
+//
+
+HyPerCol "column" = {
+	nx 							= 32; 			// pixel width of input image
+	ny 							= 32; 			// pixel height of input image
+	dt 							= 1.;           // according GK
+	randomSeed 					= 1020304050.0; // remove when running for real
+	//checkpointRead  			= true;  		// normal run
+	checkpointRead  			= false; 		// init run
+	checkpointWrite 			= false;  		// always
+	numSteps 					= 250;			// amount of time steps performed during run-time
+	progressStep				= 2000;
+	filenamesContainLayerNames 	= 2; 			// stores pvp files as: 1 = layer number/2 = layer number and layer name/3 = layer name
+};
+
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+// Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers Layers
+
+//Image "Image" = {
+//	imagePath 				= "./input/stimulus2.png";
+//	restart 				= 0;
+//	nxScale 				= 1;
+//	nyScale 				= 1;
+//	nf 						= 1;
+//	marginWidth 			= 0;
+//	writeStep 				= 1;
+//	mirrorBCflag 			= 0;
+//	spikingFlag 			= 0;
+//	writeNonspikingActivity = true; 					// true (no quotes) is translated to 1 
+//	writeImages 			= 0;
+//	offsetX					= 0;
+//	offsetY					= 0;
+//  };
+
+BIDSSourceLayer "Source" = {
+   restart = 0;
+   nxScale = 0.00390625;
+   nyScale = 0.00390625;
+   nf = 1;
+   //no = 8;
+   marginWidth = 1;
+   writeStep = 1.0;
+   mirrorBCflag = 1;
+   spikingFlag = 0;
+   writeNonspikingActivity = 1;
+   Vrest = 0.0;
+   VThresh = -infinity;  // infinity (no quotes) is translated to FLT_MAX
+   VMax = infinity;
+   VMin = -infinity;
+};
+      
+BIDSLayer "BIDS_receptor" = {				// The sensor of the BIDS node; It senses when a binary pixel is a 1 and tells the BIDS node via the BIDS_ADC
+	nxScale          		= 0.125;			// sensor is one pixel wide
+	nyScale          		= 0.125;			// sensor is one pixel wide
+	nf               		= 1;       		// one feature for now
+	numNodes 				= 16;
+	spikingFlag      		= 1;       		// no longer an ANN layer 
+	marginWidth      		= 2.0;     		// for MPI running
+	valueV					= -70.0;
+	writeStep        		= 1.0;
+	mirrorBCflag     		= 1.0;     		// mirroring boundary conditions
+    InitVType        		= "ConstantV";
+	Vrest            		= -55.;    		// adjusted as per discussion with Garrett
+	restart          		= 0.0;     		// from graylast
+	Vexc             		= 0.0;     		// reversal potential 
+	Vinh             		= -75.0;   		// chloride channel
+	VinhB            		= -90.0;   		// potassium reversal
+	tau              		= 10.0;    		// intrinsic leak membrane time constant (max)
+	tauE             		= 2.0;     		// how long glutamine stays bound
+	tauI             		= 5.0;     		// how long GABA stays bound
+	tauIB            		= 10.0;    		// inhibitory potassium channel 
+	VthRest          		= 100000.0;   	// firing threshold disabled                           <======== disabled
+	tauVth           		= 10.0;    		// relative refractory period
+	deltaVth         		= 0.0;     		// jump of threshold when firing                       <======== disabled
+	noiseAmpE        		= 0.0;     		// 1 means conductance is equal to lead conductance    <======== no noise  
+	noiseAmpI        		= 0.0;     		// "twice as easy for the membrane capacitance to discharge"
+	noiseAmpIB       		= 0.0.;     	// no noise here 
+	noiseFreqE       		= 0.;    		// spontaneous transmitter release/channel openings
+	noiseFreqI       		= 0.;    		// correlation to time step size !!!
+	noiseFreqIB      		= 0.;    		// should be scaled by the time constant - look at LIF model
+};
+
+SigmoidLayer "BIDS_ADC" ={   					// Uses the sigmoid layer to convert the receptor's simple analog signal to a digital signal readable by the BIDS_node
+	nxScale          		= 1.;
+	nyScale          		= 1.;
+	nf						= 1;
+	marginWidth      		= 2.0;     			// for MPI running
+    originalLayerName		= "BIDS_receptor";
+    InitVType        		= "ConstantV";
+	valueV					= -70.0;
+	Vrest            		= -55.0;   
+	VthRest          		= -47.5;   			// was -40. before moving the threshold in the middle                  
+    mirrorBCflag     		= 1.0; 
+	restart          		= 0.0;     			// from graylast
+	writeStep 		 		= 1.0;
+	spikingFlag		 		= 0;
+	writeNonspikingActivity = 1;
+	InverseFlag 			= 0;
+	SigmoidFlag				= 1;
+	SigmoidAlpha			= 0.1;
+};
+
+BIDSLayer "BIDS_node" = {        		// The BIDS_node receives a signal from the BIDS_receptor via the BIDS_ADC, then computes 
+									// and outputs what it saw in the image (and will eventually communicate with other BIDS nodes						
+	nxScale          = 0.125;			// node width is 1 pixel
+	nyScale          = 0.125;			// node height is 1 pixel
+	nf               = 1;       	// one feature for now
+	spikingFlag      = 1;       	// the whole idea 
+	marginWidth      = 4.0;     	// for MPI running
+	writeStep        = 1.0;
+	mirrorBCflag     = 1.0;     	// mirroring boundary conditions
+    InitVType        = "ConstantV";
+	valueV			 = -70.0;
+	Vrest            = -70.;    
+	restart          = 0.0;     	// from graylast
+	Vexc             = 0.0;     	// reversal potential 
+	Vinh             = -75.0;   	// chloride channel
+	VinhB            = -90.0;   	// potassium reversal
+	tau              = 10.0;    	// intrinsic leak membrane time constant (max)
+	tauE             = 1.0;     	// how long glutamine stays bound
+	tauI             = 5.0;     	// how long GABA stays bound
+	tauIB            = 10.0;    	// inhibitory potassium channel 
+	VthRest          = -55.0;   	// firing threshold 15 mV above rest
+	tauVth           = 10.0;    	// 10.0 relative refractory period
+	deltaVth         = 5.0;     	// jump of threshold when firing
+	noiseAmpE        = 0.5;     	// 0.5 1 means conductance is equal to lead conductance  gjk
+	noiseAmpI        = 0.5;     	// 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+	noiseAmpIB       = 0.0;     	// no noise here 
+	noiseFreqE       = 250.;    	// spontaneous transmitter release/channel openings
+	noiseFreqI       = 250.;    	// correlation to time step size !!!
+	noiseFreqIB      =   0.;    	// should be scaled by the time constant - look at LIF model
+};
+
+Retina "RetinaON" = {      					// No use for the Retina layer as of yet
+   nxScale 					= 1;
+   nyScale 					= 1;
+   marginWidth 				= 2; 			//CER 2;
+   beginStim 				= 0;
+   endStim   				= 9000000;
+   burstFreq 				= 4000; 				//25; // 0.001; //20;   // Hz
+   burstDuration 			= 10; 			//7.5; //1000000; // ms
+   spikingFlag 				= 1;     		// spike as poisso
+   noiseOnFreq  			= 100;  		// (Hz) when this is defined poissonEdge overridden
+   noiseOffFreq 			= 25;//50; 		// (Hz) when this is defined poissonBlank overridden
+   mirrorBCflag 			= 1.0;
+   writeStep 				= 1.0;
+   nf 						= 1.0;
+   restart          		= 0.0;     		// from graylast
+};
+
+//   Connections Connections Connections Connections Connections Connections Connections
+//   Connections Connections Connections Connections Connections Connections Connections
+//   Connections Connections Connections Connections Connections Connections Connections
+//   Connections Connections Connections Connections Connections Connections Connections
+//   Connections Connections Connections Connections Connections Connections Connections
+
+//HyPerConn "Image to BIDS_receptor" = {   			// This connects the image to the BIDS_receptor so that the sensor(s) on the receptor can detect active pixels
+//    preLayerName 			= "Image";
+//    postLayerName 			= "BIDS_receptor";
+//    weightInitType 			= "Gauss2DWeight"; 	// determines how PetaVision distributes and handles the weights for neurons/nodes
+//    //numNodes 				= 65536;				// determines how many neurons/nodes will be randomly distributed in the matrix to look at the image (this param is used by "DistributedWeights") 
+//    channelCode 			= 0;               		// forward
+//	nxp           			= 1;
+//	nyp           			= 1;
+//	normalize     			= 0;  
+//	delay         			= 0.0; 					// in time steps, additional to the one you always get
+//	writeStep             	= -1.0;  				// do not write these out
+//	numAxonalArbors			= 1;
+//	plasticityFlag			= 0;
+//	stochasticReleaseFlag	= 0;
+//	writeCompressedWeights	= 1;
+//	selfFlag				= 0;
+//	shrinkPatches			= 0;
+//	nfp 					= 1;
+//	wMinInit				= 0;
+//	wMaxInit				= 1;
+//};
+
+HyPerConn "Source to BIDS_node" = {   			// This connects the image to the BIDS_receptor so that the sensor(s) on the receptor can detect active pixels
+    preLayerName 			= "Source";
+    postLayerName 			= "BIDS_node";
+    weightInitType 			= "Gauss2DWeight"; 	// determines how PetaVision distributes and handles the weights for neurons/nodes
+    //numNodes 				= 65536;				// determines how many neurons/nodes will be randomly distributed in the matrix to look at the image (this param is used by "DistributedWeights") 
+    channelCode 			= 0;               		// forward
+	nxp           			= 4;
+	nyp           			= 4;
+	normalize     			= 0;  
+	delay         			= 0.0; 					// in time steps, additional to the one you always get
+	writeStep             	= -1.0;  				// do not write these out
+	numAxonalArbors			= 1;
+	plasticityFlag			= 0;
+	stochasticReleaseFlag	= 0;
+	writeCompressedWeights	= 1;
+	selfFlag				= 0;
+	shrinkPatches			= 0;
+	nfp 					= 1;
+	wMinInit				= 0;
+	wMaxInit				= 1;
+};
+
+KernelConn "BIDS_ADC to BIDS_node" = {        	// Connects the BIDS_ADC to the BIDS_node in order for the node to view the image that the BIDS_receptor viewed
+    preLayerName 			= "BIDS_ADC";
+    postLayerName 			= "BIDS_node";
+    weightInitType 			= "Gauss2DWeight";
+    channelCode 			= 0;              	// forward
+	nxp           			= 1;
+	nyp           			= 1;
+	normalize     			= 1.0; 
+	strength      			= 1.0; 				// 0.088; // 0.12 ConeGanglion staerke
+	stochasticReleaseFlag 	= 0.0;
+	aspect        			= 1.0;
+	delay         			= 0.0; 				// in time steps, additional to the one you always get
+	sigma         			= 0.8; 				// only for Gauss/cocirc
+	rMax          			= 256.; 			// maximum distance of connection
+	rMin					= 0;
+	normalize_max 			= 0.0;          	// all flags zero means it normalize total integrated output
+	normalize_zero_offset 	= 0.0;  
+	normalize_cutoff      	= 0.0;  
+	writeStep             	= -1.0;  			// do not write these out
+	symmetrizeWeights		= 0;
+	numAxonalArbors			= 1;
+	plasticityFlag			= 0;
+	writeCompressedWeights	= 1;
+	selfFlag				= 0;
+	shrinkPatches			= 0;
+	nfp						= 1;
+	
+};
+
+//KernelConn "Image to RetinaON" = { 				// Connects the image to the retina so that the retina may view it; no use as of yet
+//   preLayerName 			= "Image";
+//   postLayerName 			= "RetinaON";
+//   weightInitType 			= "Gauss2DWeight";
+//   channelCode 				= 0; 
+//   nxp 						= 1;
+//  nyp 						= 1;
+//   normalize 				= 1.0;
+//  aspect 					= 1.0;
+//   sigma 					= 1.0;
+//   rMax 					= 4; 
+//   rMin 					= 0;
+//   strength 				= 1;				// ImageRetinaON staerke 
+//   writeStep 				= -1.0;
+//   symmetrizeWeights 		= 0.0;
+//  normalize_cutoff 		= 0.0;
+//   normalize_zero_offset 	= 0.0;
+//   normalize_max 			= 0.0;
+//   nfp 						= 1.0;
+//   delay 					= 0.0;
+//   numAxonalArbors 			= 1;
+//   plasticityFlag 			= 0;
+//   stochasticReleaseFlag 	= 0;
+//   writeCompressedWeights 	= 1;
+//   selfFlag 				= 0;
+//   shrinkPatches 			= 0;
+//   
+//};
+
+// Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
+// Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes Probes
+
+//StatsProbe "BIDS_nodeProbe" = {
+//	targetLayer = "BIDS_node";
+//};
+
+//StatsProbe "BIDS_receptorProbe" = {
+//	targetLayer = "BIDS_receptor";
+//};
+
+//StatsProbe "RetinaONProbe" = {
+//	targetLayer = "RetinaON";
+//};
+
+PointProbe "Image_Probe" = {
+	xLoc = 128;
+	yLoc = 128;
+	fLoc = 0;
+	targetLayer = "Image";
+	probeOutputFile = "ImagePointProbe";
+};
+
+PointLIFProbe "BIDS_node_Probe" = {
+	xLoc = 128;
+	yLoc = 128;
+	fLoc = 0;
+	targetLayer = "BIDS_node";
+	probeOutputFile = "BIDS_node_PointProbe";
+};
+
+PointLIFProbe "BIDS_receptor_Probe" = {
+	xLoc = 128;
+	yLoc = 128;
+	fLoc = 0;
+	targetLayer = "BIDS_receptor";
+	probeOutputFile = "BIDS_receptor_PointProbe";
+};
+
+PointProbe "BIDS_ADC_Probe" = {
+	xLoc = 128;
+	yLoc = 128;
+	fLoc = 0;
+	targetLayer = "BIDS_ADC";
+	probeOutputFile = "BIDS_ADC_PointProbe";
+};
+ 

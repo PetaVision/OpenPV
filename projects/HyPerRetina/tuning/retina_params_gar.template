@@ -1,0 +1,2231 @@
+// 
+// Parameter file for DARPA Heli data or graywhitesblackpots
+//
+// Complete model with cone, horizontal, SF, WF, PolyAxonal Amacrine, and Ganglion cells
+//
+// Formatted & modified by DMP/GTK
+
+
+HyPerCol "column" = {
+   nx                           = 128; // 256; // 1920;//
+   ny                           = 128; // 256; // 1080;//
+   dt                           = 1.;           
+   //randomSeed                   = 1020304050.0; // comment out this line to "randomize" initial random state
+   checkpointRead               = false;        // init run
+   checkpointWrite              = false;         // 
+   //checkpointWriteDir           = "OUTPATH/checkpoint";
+   //checkpointWriteStepInterval  = 100;
+   filenamesContainLayerNames   = 2;
+
+   numSteps                     = NUMSTEPS;
+   
+   progressStep                 = 1;
+   writeProgressToErr           = 1;
+   //deleteOlderCheckpoints       = 0.0;
+
+   outputPath                   = "OUTPATH"; //output path
+   printParamsFilename          = "OUTPATH/PARAMSFILE";
+   suppressLastOutput           = true;
+};
+
+//---------------- Image Layer ---------------------//
+
+disable = true;
+Movie "Movie" = {
+    imageListPath           = "INMOVPATH";
+    restart                 = 0;
+    nxScale                 = 1;
+    nyScale                 = 1;
+    nf                      = 1;
+    marginWidth             = 0;
+    mirrorBCflag            = 1;
+    writeImages             = 0;
+    displayPeriod           = 100; //33;//
+    jitterFlag              = 0;
+    stepSize                = 0;
+    persistenceProb         = 1;
+    recurrenceProb          = 1;
+    writePosition           = 1;
+    biasChangeTime          = 15;
+    jitterType              = 0;
+    randomMovie             = 0;
+    offsetX                 = 64;
+    offsetY                 = 64;
+    start_frame_index       = 0.0;
+    skip_frame_index        = 0.0;
+    echoFramePathnameFlag   = true;
+    useImageBCflag          = false;
+    inverseFlag             = false;
+    normalizeLuminanceFlag  = false; //true;
+    spikingFlag             = false;
+    writeStep               = -1;
+    writeNonspikingActivity = false;
+};
+     
+disable = true;
+ANNLayer "ImageBuffer" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf      = 1;
+    marginWidth  = 0;
+    mirrorBCflag = 1;
+    InitVType = "ConstantV";
+    valueV    = -55;
+    VThresh   = -55;
+    VMax      = -15;
+    VMin      = -55;
+    spikingFlag  = 0;
+    writeStep    = -1.0;
+    writeNonspikingActivity = false;
+};
+
+disable = true;
+ANNLayer "ConstantVrest" = {          //Offset cone input to -55mV for black spot (no input)
+    restart                 = 0;
+    nxScale                 = 1;
+    nyScale                 = 1;
+    nf                      = 1;
+    marginWidth             = 0;
+    mirrorBCflag            = 1;
+    InitVType               = "ConstantV";
+    valueV                  = -55;
+    VThresh                 = -55.;
+    VMax                    = -55.;
+    VMin                    = -55.;
+    spikingFlag             = 0;
+    writeStep               = -1.0;
+    writeNonspikingActivity = false;
+};
+
+
+
+//-----------------  Cone Layer --------------------//
+
+
+disable = true;
+LIFGap "Cone" = {       // 1 //
+    nxScale          = 1.;
+    nyScale          = 1.;
+    nf               = 1;       // one feature for now
+    marginWidth      = 4.0;     // for MPI running
+    mirrorBCflag     = 1.0;     // mirroring boundary conditions
+    InitVType        = "ConstantV";
+    method           = "beginning"; // Chooses a method for integrating equations for membrane potential
+    valueV           = -55.;
+    Vrest            = -55.;    // Cone adjusted as per discussion with Garrett // Cone
+    restart          = 0.0;     // from graylast
+    Vexc             = 0.0;     // reversal potential 
+    Vinh             = -75.0;   // chloride channel
+    VinhB            = -90.0;   // potassium reversal
+    tau              = 10.0;    // intrinsic leak membrane time constant (max)
+    tauE             = 2.0;     // how long glutamine stays bound
+    tauI             = 5.0;     // how long GABA stays bound
+    tauIB            = 10.0;    // inhibitory potassium channel 
+    VthRest          = 100000.0;// firing threshold disabled                           <=============== disabled
+    tauVth           = 10.0;    // relative refractory period
+    deltaVth         = 0.0;     // jump of threshold when firing                          <=============== disabled
+    noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI        = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB       = 0.0.;    // no noise here 
+    noiseFreqE       =   0.;    // spontaneous transmitter release/channel openings
+    noiseFreqI       =   0.;    // correlation to time step size !!!
+    noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+    spikingFlag      = 0;       // specified sparse output
+    writeStep        = -1.0;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+SigmoidLayer "ConeSigmoidON" = {  // 2
+    nxScale           = 1.;
+    nyScale           = 1.;
+    nf                = 1;
+    marginWidth       = 4.0;      // for MPI running
+    originalLayerName = "Cone";
+    InitVType         = "ConstantV";
+    valueV            = -55.0;
+    Vrest             = -55.0;    // 
+    VthRest           = -36.0;    // was -40. before moving the threshold in the middle                  
+    mirrorBCflag      = 1.0; 
+    InverseFlag       = 0.0;
+    restart           = 0.0;      // from graylast
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.10;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+
+disable = true;
+SigmoidLayer "ConeSigmoidOFF" = {   // 3
+    nxScale           = 1.;
+    nyScale           = 1.;
+    nf                = 1;
+    marginWidth       = 4.0;        // for MPI running
+    originalLayerName = "Cone";
+    InitVType         = "ConstantV";
+    valueV            = -62.2;      // Vadj      = VgrayCone - (VthrestON+VrestON)/2
+    Vrest             = -62.2;      // Vrest     = VrestON + 2*Vadj
+    VthRest           = -43.2;      // Vthrest   = VthrestON + 2*Vadj
+    mirrorBCflag      = 1.0;        //   
+    InverseFlag       = 1.0;        //  
+    restart           = 0.0;        // from graylast
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.1;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+
+//---------------- Horizontal Cell Layer --------------------//
+
+disable = true;
+LIFGap "Horizontal" = {         //6
+    nxScale          = 0.25;    // 5/18 discussion with Garrett
+    nyScale          = 0.25;    // there are fewer horizontal 
+    nf               = 1;       // one feature for now
+    marginWidth      = 1.0;     // for MPI running
+    mirrorBCflag     = 1.0;     // mirroring boundary conditions
+    InitVType        = "ConstantV";
+    method           = "beginning"; // Chooses a method for integrating equations for membrane potential
+    valueV           = -55.0;
+    Vrest            = -55.0;    // adjusted for gap of 0.025// Horizontal	
+    restart          = 0.0;     // from graylast
+    Vexc             = 0.0;     // reversal potential 
+    Vinh             = -75.0;   // chloride channel
+    VinhB            = -90.0;   // potassium reversal
+    tau              = 10.0;    // intrinsic leak membrane time constant (max)
+    tauE             = 1.0;     // how long glutamine stays bound
+    tauI             = 5.0;     // how long GABA stays bound
+    tauIB            = 10.0;    // inhibitory potassium channel 
+    VthRest          = 100000.0;// firing threshold disabled                           <=============== disabled
+    tauVth           = 10.0;    // relative refractory period
+    deltaVth         = 5.0;     // jump of threshold when firing
+    noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI        = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB       = 0.0;     // no noise here 
+    noiseFreqE       =  0.;     // spontaneous transmitter release/channel openings
+    noiseFreqI       =  0.;     // correlation to time step size !!!
+    noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model
+    spikingFlag      = 0;       //  
+    writeStep        = -1;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+GapLayer "HorizontalGap" = {                // 7
+    originalLayerName ="Horizontal";
+    nxScale           = 0.25;         // 5/18 discussion with Garrett
+    nyScale           = 0.25;         // there are fewer horizontal 
+    nf                = 1;
+    marginWidth       = 1.0;         // for MPI running
+    mirrorBCflag      = 1.0;         // 
+    restart           = 0.0;         // from graylast
+    InitVType         = "ConstantV";
+    ampSpikelet       = 150.0;
+    valueV            = -55.0;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+SigmoidLayer "HorizontalSigmoidON" = {        // 8
+    originalLayerName ="Horizontal";
+    nxScale           = 0.25;         // 5/18 discussion with Garrett
+    nyScale           = 0.25;         // three are fewer horizontal 
+    marginWidth       = 1.0;         // for MPI running
+    InitVType         = "ConstantV";
+    valueV            = -55.0;
+    Vrest             = -58.233;     //
+    VthRest           = -34.233;     //                        <=============== disabled
+    mirrorBCflag      = 1.0;         // 
+    restart           = 0.0;         // from graylast
+    nf                = 1;
+    InverseFlag       = 0.0;
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.1;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+
+disable = true;
+SigmoidLayer "HorizontalSigmoidOFF" = {        // 8
+    originalLayerName ="Horizontal";
+    nxScale           = 0.25;         // 5/18 discussion with Garrett
+    nyScale           = 0.25;         // three are fewer horizontal 
+    marginWidth       = 1.0;         // for MPI running
+    InitVType         = "ConstantV";
+    valueV            = -55.0;
+    Vrest             = -68.233; //-58.233;     //
+    VthRest           = -44.233; //-34.233;     //                        <=============== disabled
+    mirrorBCflag      = 1.0;         // 
+    restart           = 0.0;         // from graylast
+    nf                = 1;
+    InverseFlag       = 1.0;
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.1;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+
+
+//-------------- Bipolar Layer ------------------------//
+
+disable = true;
+LIF "BipolarON" = {	            // 4
+    nxScale          = 1.;
+    nyScale          = 1.;
+    nf               = 1;       // one feature for now
+    marginWidth      = 4.0;     // for MPI running
+    mirrorBCflag     = 1.0;     // mirroring boundary conditions
+    InitVType        = "ConstantV";
+    method           = "beginning"; // Chooses a method for integrating equations for membrane potential
+    valueV           = -70.;
+    Vrest            = -70.;    // BipolarON
+    restart          = 0.0;     // from graylast
+    Vexc             = 0.0;     // reversal potential 
+    Vinh             = -75.0;   // chloride channel
+    VinhB            = -90.0;   // potassium reversal
+    tau              = 10.0;    // intrinsic leak membrane time constant (max)
+    tauE             = 1.0;     // how long glutamine stays bound
+    tauI             = 10.0;     // how long GABA stays bound
+    tauIB            = 10.0;    // inhibitory potassium channel 
+    VthRest          = 100000.0;// firing threshold disabled                           <=============== disabled
+    tauVth           = 10.0;    // relative refractory period
+    deltaVth         = 5.0;     // jump of threshold when firing
+    noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI        = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB       = 0.0;     // no noise here 
+    noiseFreqE       = 0.;      // spontaneous transmitter release/channel openings
+    noiseFreqI       = 0.;      // correlation to time step size !!!
+    noiseFreqIB      = 0.;      // should be scaled by the time constant - look at LIF model
+    spikingFlag      = 0;       //  
+    writeStep        = -1;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+SigmoidLayer "BipolarSigmoidON" = {     //5
+    originalLayerName = "BipolarON";
+    nxScale           = 1.;
+    nyScale           = 1.;
+    marginWidth       = 4.0;           // for MPI running
+    InitVType         = "ConstantV";
+    valueV            = -70.0;
+    Vrest             = -66.0;         // BipolarSigmoidON
+    VthRest           = -48; //-42.0;  
+    mirrorBCflag      = 1.0;           // Margin boundaries are mirrored
+    restart           = 0.0;           // from graylast
+    nf                = 1;
+    InverseFlag       = 0.0;
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.1;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+LIF "BipolarOFF" = {	           // 18
+    nxScale          = 1.;
+    nyScale          = 1.;
+    nf               = 1;       // one feature for now
+    marginWidth      = 4.0;     // for MPI running
+    mirrorBCflag     = 1.0;     // mirroring boundary conditions
+    InitVType        = "ConstantV";
+    method           = "beginning"; // Chooses a method for integrating equations for membrane potential
+    valueV           = -70.;
+    Vrest            = -70.;    // BipolarOFF
+    restart          = 0.0;     // from graylast
+    Vexc             = 0.0;     // reversal potential 
+    Vinh             = -75.0;   // chloride channel
+    VinhB            = -90.0;   // potassium reversal
+    tau              = 10.0;    // intrinsic leak membrane time constant (max)
+    tauE             = 1.0;     // how long glutamine stays bound
+    tauI             = 10.0;     // how long GABA stays bound
+    tauIB            = 10.0;    // inhibitory potassium channel 
+    VthRest          = 100000.0;// firing threshold disabled                           <=============== disabled
+    tauVth           = 10.0;    // relative refractory period
+    deltaVth         = 5.0;     // jump of threshold when firing
+    noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI        = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB       = 0.0;     // no noise here 
+    noiseFreqE       = 0.;      // spontaneous transmitter release/channel openings
+    noiseFreqI       = 0.;      // correlation to time step size !!!
+    noiseFreqIB      = 0.;      // should be scaled by the time constant - look at LIF model
+    spikingFlag      = 0;       // 
+    writeStep        = -1.0;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+SigmoidLayer "BipolarSigmoidOFF" = {    //19
+    originalLayerName = "BipolarOFF";
+    nxScale           = 1.;
+    nyScale           = 1.;
+    nf                = 1;
+    marginWidth       = 4.0;           // for MPI running
+    InitVType         = "ConstantV";
+    valueV            = -70.0;
+    Vrest             = -66.0;         // BipolarSigmoidOFF
+    VthRest           = -48.0; //-42.0; 
+    mirrorBCflag      = 1.0;           //
+    restart           = 0.0;           // from graylast
+    InverseFlag       = 0.0;
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.1;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+
+
+//-------------- Small Field Amacrine Layer (actually Bistratified ON/OFF Amacrine)
+
+disable = true;
+LIFGap "SFAmacrine" = {             //29
+    nxScale          = 0.5;    
+    nyScale          = 0.5;    // three are fewer horizontal 
+    nf               = 1;       // one feature for now
+    marginWidth      = 2.0;     // for MPI running
+    mirrorBCflag     = 1.0;     // mirroring boundary conditions
+    InitVType        = "ConstantV";
+    method           = "beginning"; // Chooses a method for integrating equations for membrane potential
+    valueV           = -70.0;
+    Vrest            = -70.0;   // adjusted for gap of 0.025 // SFAmacrine
+    restart          = 0.0;     // from graylast
+    Vexc             = 0.0;     // reversal potential 
+    Vinh             = -75.0;   // chloride channel
+    VinhB            = -90.0;   // potassium reversal
+    tau              = 20.0;    // intrinsic leak membrane time constant (max) *******
+    tauE             = 1.0;     // how long glutamine stays bound
+    tauI             = 5.0;     // how long GABA stays bound
+    tauIB            = 10.0;    // inhibitory potassium channel 
+    VthRest          = 100000.0;// firing threshold disabled                           <=============== disabled
+    tauVth           = 10.0;    // relative refractory period
+    deltaVth         = 5.0;     // jump of threshold when firing
+    noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI        = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB       = 0.0;     // no noise here 
+    noiseFreqE       = 0.;      // spontaneous transmitter release/channel openings
+    noiseFreqI       = 0.;      // correlation to time step size !!!
+    noiseFreqIB      = 0.;      // should be scaled by the time constant - look at LIF model
+    spikingFlag      = 0;       // no longer an ANN layer 
+    writeStep        = -1.0;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+GapLayer "SFAmacrineGap" = {          // 10
+    originalLayerName = "SFAmacrine";
+    nxScale           = 0.5;            // 5/18 discussion with Garrett
+    nyScale           = 0.5;            // three are fewer horizontal 
+    nf                = 1;
+    marginWidth       = 2.0;            // for MPI running
+    mirrorBCflag      = 1.0;            // 
+    restart           = 0.0;            // from graylast
+    InitVType         = "ConstantV";
+    valueV            = -70.0;
+    ampSpikelet      = 150.0;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+SigmoidLayer "SFAmacrineSigmoid" = {         // 30
+    originalLayerName = "SFAmacrine";
+    nxScale           = 0.5;        // 5/18 discussion with Garrett
+    nyScale           = 0.5;        // there are fewer horizontal 
+    nf                = 1;
+    marginWidth       = 2.0;        // for MPI running
+    InitVType         = "ConstantV";
+    valueV            = -52.0;
+    Vrest             = -52.0;      // SFAmacrineSigmoid
+    VthRest           = -48.0;      //                            <=============== disabled
+    mirrorBCflag      = 1.0;        // 
+    restart           = 0.0;        // from graylast
+    InverseFlag       = 0.0;
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.1;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+
+
+//-------------- Wide Field Amacrine Layer --------------//
+
+disable = true;
+LIF "WFAmacrineON" = {            //9
+    nxScale          = 0.5;        // 5/18 discussion with Garrett
+    nyScale          = 0.5;        // three are fewer horizontal 
+    nf               = 1;          // one feature for now
+    marginWidth      = 1.0;        // for MPI running
+    mirrorBCflag     = 1.0;        // mirroring boundary conditions
+    InitVType        = "ConstantV";
+    method           = "beginning"; // Chooses a method for integrating equations for membrane potential
+    valueV           = -70.0;
+    Vrest            = -70.0;      // adjusted for gap of 0.025 // WFAmacrineON 
+    restart          = 0.0;        // from graylast
+    Vexc             = 0.0;        // reversal potential 
+    Vinh             = -75.0;      // chloride channel
+    VinhB            = -90.0;      // potassium reversal
+    tau              = 20.0;       // intrinsic leak membrane time constant (max)
+    tauE             = 1.0;        // how long glutamine stays bound
+    tauI             = 5.0;        // how long GABA stays bound
+    tauIB            = 10.0;       // inhibitory potassium channel 
+    VthRest          = 100000.0;   // firing threshold disabled                           <=============== disabled
+    tauVth           = 10.0;       // relative refractory period
+    deltaVth         = 5.0;        // jump of threshold when firing
+    noiseAmpE        = 0.5;        // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI        = 0.5;        // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB       = 0.0;        // no noise here 
+    noiseFreqE       =  0.;        // spontaneous transmitter release/channel openings
+    noiseFreqI       =  0.;        // correlation to time step size !!!
+    noiseFreqIB      =   0.;       // should be scaled by the time constant - look at LIF model
+    spikingFlag      = 0;          // specifies binary output 
+    writeStep        = -1.0;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+SigmoidLayer "WFAmacrineSigmoidON" = {  // 11
+    originalLayerName = "WFAmacrineON";
+    nxScale           = 0.5;            // 5/18 discussion with Garrett
+    nyScale           = 0.5;            // three are fewer horizontal 
+    nf                = 1;
+    marginWidth       = 1.0;            // for MPI running
+    InitVType         = "ConstantV";
+    valueV            = -63.0;
+    Vrest             = -63.0;          // WFAmacrineSigmoidON
+    VthRest           = -33.0;          //                            <=============== disabled
+    mirrorBCflag      = 1.0;            // 
+    restart           = 0.0;            // from graylast
+    InverseFlag       = 0.0;
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.1;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+LIF "WFAmacrineOFF" = {      //20
+    nxScale          = 0.5;     // 5/18 discussion with Garrett
+    nyScale          = 0.5;     // three are fewer horizontal 
+    nf               = 1;       // one feature for now
+    marginWidth      = 1.0;     // for MPI running
+    mirrorBCflag     = 1.0;     // mirroring boundary conditions
+    InitVType        = "ConstantV";
+    method           = "beginning"; // Chooses a method for integrating equations for membrane potential
+    valueV           = -70.0;
+    Vrest            = -70.0;   // adjusted for gap of 0.025 // WFAmacrineOFF
+    restart          = 0.0;     // from graylast
+    Vexc             = 0.0;     // reversal potential 
+    Vinh             = -75.0;   // chloride channel
+    VinhB            = -90.0;   // potassium reversal
+    tau              = 20.0;    // intrinsic leak membrane time constant (max)
+    tauE             = 1.0;     // how long glutamine stays bound
+    tauI             = 5.0;     // how long GABA stays bound
+    tauIB            = 10.0;    // inhibitory potassium channel 
+    VthRest          = 100000.0;// firing threshold disabled                           <=============== disabled
+    tauVth           = 10.0;    // relative refractory period
+    deltaVth         = 5.0;     // jump of threshold when firing
+    noiseAmpE        = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI        = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB       = 0.0;     // no noise here 
+    noiseFreqE       =  0.;     // spontaneous transmitter release/channel openings
+    noiseFreqI       =  0.;     // correlation to time step size !!!
+    noiseFreqIB      =   0.;    // should be scaled by the time constant - look at LIF model 
+    spikingFlag      = 0;       // no longer an ANN layer 
+    writeStep        = -1.0;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+SigmoidLayer "WFAmacrineSigmoidOFF" = {   // 22
+    originalLayerName = "WFAmacrineOFF";
+    nxScale           = 0.5;              // 5/18 discussion with Garrett
+    nyScale           = 0.5;              // three are fewer horizontal 
+    nf                = 1;
+    marginWidth       = 1.0;              // for MPI running
+    InitVType         = "ConstantV";
+    valueV            = -63.0;
+    Vrest             = -63.0;            // WFAmacrineSigmoidOFF
+    VthRest           = -33.0;            //                            <=============== disabled
+    mirrorBCflag      = 1.0;              // 
+    restart           = 0.0;              // from graylast
+    InverseFlag       = 0.0;
+    SigmoidFlag       = 1;
+    SigmoidAlpha      = 0.1;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+
+
+
+//--------------  Poly Axonal Amacrine Layer  -------------------//
+
+disable = true;
+LIFGap "PAAmacrineON" = {        // 14
+    nxScale           = 0.25;
+    nyScale           = 0.25;
+    nf                = 1;       // one feature for now
+    marginWidth       = 4.0;     // for MPI running
+    mirrorBCflag      = 1.0;     // mirroring boundary conditions
+    InitVType         = "ConstantV";
+    method            = "beginning"; // Chooses a method for integrating equations for membrane potential
+    valueV            = -70.;
+    Vrest             = -70.;    // same as Ganglion after gray // PAAmacrineON
+    restart           = 0.0;     // from graylast
+    Vexc              = 0.0;     // reversal potential 
+    Vinh              = -75.0;   // chloride channel
+    VinhB             = -90.0;   // potassium reversal
+    tau               = 5.0; //10.0;    // intrinsic leak membrane time constant (max)
+    tauE              = 1.0;     // how long glutamine stays bound
+    tauI              = 1.25; //2.5;//5.0;     // how long GABA stays bound
+    tauIB             = 10.0;    // inhibitory potassium channel 
+    VthRest           = -55.;    // has to be high enough to not fire before the ganglion
+    tauVth            = 10.0;    // relative refractory period
+    deltaVth          = 5.0;     // jump of threshold when firing
+    noiseAmpE         = 0.5;     // 0.5 1 means conductance is equal to lead conductance  
+    noiseAmpI         = 0.5;     // 0.5 "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB        = 0.0;     // no noise here 
+    noiseFreqE        = 0.;      // spontaneous transmitter release/channel openings
+    noiseFreqI        = 0.;      // correlation to time step size !!!
+    noiseFreqIB       = 0.;      // should be scaled by the time constant - look at LIF model
+    spikingFlag       = 1;       // the whole idea 
+    writeStep         = 1.0;
+};
+
+disable = true;
+GapLayer "PAAmacrineGapON" = {           // 15
+    originalLayerName = "PAAmacrineON";
+    nxScale           = 0.25;
+    nyScale           = 0.25;
+    nf                = 1;
+    marginWidth       = 4.0;         // for MPI running
+    mirrorBCflag      = 1.0;         // 
+    restart           = 0.0;         // from graylast
+    InitVType         = "ConstantV";
+    valueV            = -70.;
+    ampSpikelet       = 100;
+    writeStep         = -1;
+    spikingFlag       = 0.0;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+LIFGap "PAAmacrineOFF" = {      // 25
+    nxScale          = 0.25;
+    nyScale          = 0.25;
+    nf               = 1;       // one feature for now
+    marginWidth      = 4.0;     // for MPI running
+    mirrorBCflag     = 1.0;     // mirroring boundary conditions
+    method            = "beginning"; // Chooses a method for integrating equations for membrane potential
+    InitVType        = "ConstantV";
+    valueV           = -70.;
+    Vrest            = -70.;    // same as Ganglion after gray // PAAmacrineOFF
+    restart          = 0.0;     // from graylast
+    Vexc             = 0.0;     // reversal potential 
+    Vinh             = -75.0;   // chloride channel
+    VinhB            = -90.0;   // potassium reversal
+    tau              = 10.0;    // intrinsic leak membrane time constant (max)
+    tauE             = 1.0;     // how long glutamine stays bound
+    tauI             = 1.25; //2.5;//5.0;     // how long GABA stays bound
+    tauIB            = 10.0;    // inhibitory potassium channel 
+    VthRest          = -55;     // has to be high enough to not fire the ganglion first
+    tauVth           = 10.0;    // relative refractory period
+    deltaVth         = 5.0;     // jump of threshold when firing
+    noiseAmpE        = 0.5;     // 0.5 1 means conductance is equal to lead conductance  
+    noiseAmpI        = 0.5;     // 0.5 "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB       = 0.0;     // no noise here 
+    noiseFreqE       = 0.;      // spontaneous transmitter release/channel openings
+    noiseFreqI       = 0.;      // correlation to time step size !!!
+    noiseFreqIB      = 0.;      // should be scaled by the time constant - look at LIF model
+    spikingFlag      = 1;       // the whole idea 
+    writeStep        = 1.0;
+};
+
+disable = true;
+GapLayer "PAAmacrineGapOFF" = {           // 26
+    originalLayerName  = "PAAmacrineOFF";
+    nxScale            = 0.25;
+    nyScale            = 0.25;
+    nf                 = 1;
+    marginWidth        = 4.0;        // for MPI running
+    mirrorBCflag       = 1.0;        //
+    restart            = 0.0;        // from graylast
+    InitVType          = "ConstantV";
+    valueV             = -70.;
+    ampSpikelet        = 100;
+    spikingFlag        =  0.0;
+    writeStep          = -1;
+    writeNonspikingActivity = true;
+};
+
+
+
+//-------------  Ganglion Layer -----------------------//
+
+disable = true;
+LIFGap "GanglionON" = {         // 12
+    nxScale          = 0.5;
+    nyScale          = 0.5;
+    nf               = 1;       // one feature for now
+    marginWidth      = 2.0;     // for MPI running
+    mirrorBCflag     = 1.0;     // mirroring boundary conditions
+    InitVType        = "ConstantV";
+    method           = "beginning"; // Chooses a method for integrating equations for membrane potential
+    valueV           = -70.;
+    Vrest            = -70.;    // GanglionON
+    restart          = 0.0;     // from graylast
+    Vexc             = 0.0;     // reversal potential 
+    Vinh             = -75.0;   // chloride channel
+    VinhB            = -90.0;   // potassium reversal
+    tau              = 10.0;    // intrinsic leak membrane time constant (max)
+    tauE             = 1.0; //2.5;     // how long glutamine stays bound
+    tauI             = 3.0; //1.25; //2.5;//5.0;     // how long GABA stays bound
+    tauIB            = 10.0;    // inhibitory potassium channel 
+    VthRest          = -55.0;   // firing threshold 15 mV above rest
+//    VthRest          = 100;     // Large threshold turns off spiking
+    tauVth           = 10.0;    // 10.0 relative refractory period
+    deltaVth         = 5.0;     // jump of threshold when firing
+    noiseAmpE        = 0.0;     // 0.5 1 means conductance is equal to lead conductance  gjk
+    noiseAmpI        = 0.0;     // 0,5 "twice as easy for the membrane capacitance to discharge" gjk
+    noiseAmpIB       = 0.0;     // no noise here 
+    noiseFreqE       = 250.;    // spontaneous transmitter release/channel openings
+    noiseFreqI       = 250.;    // correlation to time step size !!!
+    noiseFreqIB      = 0.;      // should be scaled by the time constant - look at LIF model
+    spikingFlag      = 1;       // the whole idea 
+    writeStep        = 1.0;
+};
+
+disable = true;
+GapLayer "GanglionGapON" = {          // 13
+    originalLayerName = "GanglionON";
+    nxScale           = 0.5;
+    nyScale           = 0.5;
+    nf                = 1;
+    marginWidth       = 2.0;        // for MPI running
+    mirrorBCflag      = 1.0;        // 
+    restart           = 0.0;        // from graylast
+    InitVType         = "ConstantV";
+    valueV            = -70.;
+    ampSpikelet       = 100;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+disable = true;
+LIFGap "GanglionOFF" = {        // 23
+    nxScale          = 0.5;
+    nyScale          = 0.5;
+    nf               = 1;       // one feature for now
+    marginWidth      = 2.0;     // for MPI running
+    mirrorBCflag     = 1.0;     // mirroring boundary conditions
+    InitVType        = "ConstantV";
+    method           = "beginning"; // Chooses a method for integrating equations for membrane potential
+    valueV           = -70.;
+    Vrest            = -70.;    // GanglionOFF
+    restart          = 0.0;     // from graylast
+    Vexc             = 0.0;     // reversal potential 
+    Vinh             = -75.0;   // chloride channel
+    VinhB            = -90.0;   // potassium reversal
+    tau              = 10.0;    // intrinsic leak membrane time constant (max)
+    tauE             = 1.0; //2.5;     // how long glutamine stays bound
+    tauI             = 3.0; //1.25; //2.5;//5.0;     // how long GABA stays bound
+    tauIB            = 10.0;    // inhibitory potassium channel 
+    VthRest          = -55.0;   // firing threshold 15 mV above rest
+//    VthRest          = 100.0;   // Large threshold turns off spiking
+    tauVth           = 10.0;    // relative refractory period
+    deltaVth         = 5.0;     // jump of threshold when firing
+    noiseAmpE        = 0.0;     // 0.5 1 means conductance is equal to lead conductance  
+    noiseAmpI        = 0.0;     // 0,5 "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB       = 0.0;     // no noise here 
+    noiseFreqE       = 250.;    // spontaneous transmitter release/channel openings
+    noiseFreqI       = 250.;    // correlation to time step size !!!
+    noiseFreqIB      = 0.;      // should be scaled by the time constant - look at LIF model
+    spikingFlag      = 1;       // the whole idea 
+    writeStep        = 1.0;
+};
+
+disable = true;
+GapLayer "GanglionGapOFF" = {         // 24
+    originalLayerName = "GanglionOFF";
+    nxScale           = 0.5;
+    nyScale           = 0.5;
+    nf                = 1;
+    marginWidth       = 2.0;        // for MPI running
+    mirrorBCflag      = 1.0;        // 
+    restart           = 0.0;        // from graylast
+    InitVType         = "ConstantV";
+    valueV            = -70.;
+    ampSpikelet       = 100;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = true;
+};
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//   Connections Connections Connections Connections  Connections Connections Connections
+//////////////////////////////////////////////////////////////////////////////////////////
+
+disable = true;
+
+KernelConn "ImageToImageBuffer" = {   
+    preLayerName           = "Movie";
+    postLayerName          = "ImageBuffer";
+    channelCode            = 0;    // forward
+    nxp                    = 1;
+    nyp                    = 1;
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;  // in time steps, additional to the one you always get
+
+    weightInitType         = "UniformWeight";
+    weightInit              = ImageImageBuffer; //40.0; // This is scaling the image to 0-40
+    normalize              = 0;    // 
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0.0;
+    preActivityIsNotRate   = 0;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0; // do not write these out
+};
+
+disable = true;
+KernelConn "ConstantVrestToImageBuffer" = {   
+    preLayerName           = "ConstantVrest";
+    postLayerName          = "ImageBuffer";
+    channelCode            = 0;    // move it down to -55
+    nxp                    = 1;
+    nyp                    = 1;
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;  // in time steps, additional to the one you always get
+
+    weightInitType         = "UniformWeight";
+    weightInit              = ConstantVrestImageBuffer;      //1.0;//  This will give a G_E of 0.25 to sit
+    normalize              = 0;    // 
+    symmetrizeWeights      = 0.0;
+    stochasticReleaseFlag  = 0.0;
+    selfFlag               = 0.0;
+    preActivityIsNotRate   = 0;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0; // do not write these out
+};
+
+disable = true;
+GapConn "ImageBufferToCone" = {          // 0
+    preLayerName           = "ImageBuffer";
+    postLayerName          = "Cone";
+    nxp                    = 1;
+    nyp                    = 1;
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;       // in time steps, additional to the one you always get
+
+    weightInitType         = "UniformWeight";
+    weightInit             = ImageBufferCone; // ImageCone adjusted to give symmetric ON/OFF response staerke
+    normalize              = 1;    
+    strength               = 1;     // 
+    normalize_max          = 0;      // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0;      //
+    normalize_cutoff       = 0;      //
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0.0;
+    preActivityIsNotRate   = 0;  // gap junction connection, so already scaled correctly
+    normalizeTotalToPost   = 1; // not used for UniformWeight init method
+    plasticityFlag         = 0.0;
+
+    writeStep              = -1.0;      // do not write these out
+    writeCompressedWeights = 1;
+};
+
+
+//--------- Cone ---------------------//
+
+disable = true;
+KernelConn "ConeSigmoidONToBipolarON" = {        // 1
+    preLayerName           = "ConeSigmoidON";
+    postLayerName          = "BipolarON";
+    channelCode            = 0;      // forward
+    nxp                    = 3;
+    nyp                    = 3;
+    nfp                    = 1.0;    // should fit the feature number of post synaptic layer
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0;
+    delay                  = 0.0;    // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;      //  
+    strength               = ConeSigmoidBipolar; 
+    normalize_max          = 0;      // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0;      //
+    normalize_cutoff       = 0;      //
+    aspect                 = 1.0;
+    sigma                  = 0.5;    // 
+    rMax                   = 256.;   // maximum distance of connection
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0;
+    selfFlag               = 0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 1;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0;
+    	
+    writeStep              = -1;     // do not write these out
+    writeCompressedWeights = 1;    
+};
+
+disable = true;
+KernelConn "ConeSigmoidOFFToBipolarOFF" = {        // 1
+    preLayerName           = "ConeSigmoidOFF";
+    postLayerName          = "BipolarOFF";
+    channelCode            = 0;       // forward
+    nxp                    = 3;
+    nyp                    = 3;
+    nfp                    = 1.0;     // should fit the feature number of post synaptic layer
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;     // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;     // 
+    normalize_max          = 0.0;     // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;     //
+    normalize_cutoff       = 0.0;     //
+    strength               = ConeSigmoidBipolar; 
+    aspect                 = 1.0;
+    sigma                  = 0.5;     // 
+    rMax                   = 256.;    // maximum distance of connection    	
+    rMin                   = 0.0;
+    selfFlag               = 0.0;
+    symmetrizeWeights      = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 1;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeStep              = -1.0;    // do not write these out
+    writeCompressedWeights = 1;
+};
+
+
+disable = true;
+KernelConn "ConeSigmoidONToHorizontal" = {      // 2
+    preLayerName           = "ConeSigmoidON";
+    postLayerName          = "Horizontal";
+    channelCode            = 0;                   // forward
+    nxp                    = 3;                   // odd times 1 because of scale factor
+    nyp                    = 3;                   //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;                 // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1.0;                 //  
+    strength               = ConeSigmoidHorizontal;
+    normalize_max          = 0.0;                 // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;                 //
+    normalize_cutoff       = 0.0;                 //
+    aspect                 = 1.0;                 //
+    sigma                  = 2.0;                 // 
+    rMax                   = 256.;                // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    stochasticReleaseFlag  = 0;
+    selfFlag               = 0.0;
+    preActivityIsNotRate   = 1;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeStep              = -1;                  // do not write these out
+    writeCompressedWeights = 1;
+};
+
+
+//--------- Horizontal ---------------------//
+
+
+disable = true;
+GapConn "HorizontalGapToHorizontal" = {        // 3  gap junction, watch the strength
+    preLayerName           = "HorizontalGap";
+    postLayerName          = "Horizontal";
+    nxp                    = 3;           // not to itself !!
+    nyp                    = 3;
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           // 
+    strength               = HorizontalGapHorizontal; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection
+    rMin                   = 0.1;         // take out the self connection
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    normalizeTotalToPost   = 1;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    plasticityFlag         = 0.0;
+
+    writeStep              = -1.0;        // do not write these out
+    writeCompressedWeights = 1;
+};
+
+disable = true;
+KernelConn "HorizontalSigmoidToConeON" = {        // 4
+    preLayerName           = "HorizontalSigmoidON";
+    postLayerName          = "Cone";
+    channelCode            = 1;               // inhibitory   feedback
+    nxp                    = 12;               // odd times 2 because of scale factor
+    nyp                    = 12;               // 
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;             // in time steps, additional to the one you always get
+    	
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1.0;             //  
+    strength               = HorizontalSigmoidConeON; 
+    normalize_max          = 0.0;             // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;             //
+    normalize_cutoff       = 0.0;             //
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    aspect                 = 1.0;
+    sigma                  = 0.75;             // 
+    rMax                   = 256.;            // maximum distance of connection
+    rMin                   = 0.0;
+    normalizeTotalToPost   = 1;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 1;
+    plasticityFlag         = 0.0;
+
+    writeStep              = -1.0;            // do not write these out
+    writeCompressedWeights = 1;
+};
+
+
+disable = true;
+KernelConn "HorizontalSigmoidToBipolarOFF" = {        // 4
+    preLayerName           = "HorizontalSigmoidOFF";
+    postLayerName          = "BipolarOFF";
+    channelCode            = 1;               // inhibitory   feedback
+    nxp                    = 12;               // odd times 2 because of scale factor
+    nyp                    = 12;               // 
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;             // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1.0;             //  
+    strength               = HorizontalSigmoidBipolarOFF; 
+    normalize_max          = 0.0;             // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;             //
+    normalize_cutoff       = 0.0;             //
+    aspect                 = 1.0;
+    sigma                  = 0.75;             // 
+    rMin                   = 0.0;
+    rMax                   = 256.;            // maximum distance of connection
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 1;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;    	
+
+    writeStep              = -1.0;            // do not write these out
+    writeCompressedWeights = 1;
+};
+
+
+
+
+
+//--------- Bipolar Connections  ---------------------//
+
+disable = true;
+KernelConn "BipolarSigmoidONToSFAmacrine" = {        // 2
+    preLayerName           = "BipolarSigmoidON";
+    postLayerName          = "SFAmacrine";
+    channelCode            = 0;           // forward
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = BipolarSigmoidSFAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+disable = true;
+KernelConn "BipolarSigmoidOFFToSFAmacrine" = {        // 2
+    preLayerName           = "BipolarSigmoidOFF";
+    postLayerName          = "SFAmacrine";
+    channelCode            = 0;           // forward
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = BipolarSigmoidSFAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+KernelConn "BipolarSigmoidONToWFAmacrineON" = {  // 2
+    preLayerName           = "BipolarSigmoidON";
+    postLayerName          = "WFAmacrineON";
+    channelCode            = 0;           // forward
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = BipolarSigmoidWFAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+disable = true;
+KernelConn "BipolarSigmoidOFFToWFAmacrineOFF" = {        // 2
+    preLayerName           = "BipolarSigmoidOFF";
+    postLayerName          = "WFAmacrineOFF";
+    channelCode            = 0;           // forward
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = BipolarSigmoidWFAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+disable = true;
+KernelConn "BipolarSigmoidONToPAAmacrineON" = {  // 2
+    preLayerName           = "BipolarSigmoidON";
+    postLayerName          = "PAAmacrineON";
+    channelCode            = 0;           // forward
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = BipolarSigmoidPAAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 2.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+disable = true;
+KernelConn "BipolarSigmoidOFFToPAAmacrineOFF" = {  // 2
+    preLayerName           = "BipolarSigmoidOFF";
+    postLayerName          = "PAAmacrineOFF";
+    channelCode            = 0;           // forward
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = BipolarSigmoidPAAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 2.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+disable = true;
+KernelConn "BipolarSigmoidONToGanglionON" = {        // 5  sigmoid, need linear output ?
+    preLayerName           = "BipolarSigmoidON";
+    postLayerName          = "GanglionON";
+    channelCode            = 0;           // forward
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = BipolarSigmoidGanglion; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+disable = true;
+KernelConn "BipolarSigmoidOFFToGanglionOFF" = {        // 5  sigmoid, need linear output ?
+    preLayerName           = "BipolarSigmoidOFF";
+    postLayerName          = "GanglionOFF";
+    channelCode            = 0;           // forward
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = BipolarSigmoidGanglion; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+
+
+//--------- SFAmacrine Connections ---------------------//
+
+
+disable = true;
+GapConn "SFAmacrineGapToSFAmacrine" = {        // 3  gap junction, watch the strength
+    preLayerName           = "SFAmacrineGap";
+    postLayerName          = "SFAmacrine";
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = SFAmacrineGapSFAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.1;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+KernelConn "SFAmacrineSigmoidToPAAmacrineON" = {        // 4
+    preLayerName           = "SFAmacrineSigmoid";
+    postLayerName          = "PAAmacrineON";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = SFAmacrineSigmoidPAAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+disable = true;
+KernelConn "SFAmacrineSigmoidToPAAmacrineOFF" = {   // 4
+    preLayerName           = "SFAmacrineSigmoid";
+    postLayerName          = "PAAmacrineOFF";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = SFAmacrineSigmoidPAAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+
+
+//--------- WFAmacrine Connections ---------------------//
+
+
+disable = true;
+KernelConn "WFAmacrineSigmoidONToBipolarON" = {        // 4
+    preLayerName           = "WFAmacrineSigmoidON";
+    postLayerName          = "BipolarON";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 6;           // odd times 1 because of scale factor
+    nyp                    = 6;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = WFAmacrineSigmoidBipolarON; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 0.75;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+disable = true;
+KernelConn "WFAmacrineSigmoidOFFToBipolarOFF" = {        // 4
+    preLayerName           = "WFAmacrineSigmoidOFF";
+    postLayerName          = "BipolarOFF";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 6;           // odd times 1 because of scale factor
+    nyp                    = 6;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = WFAmacrineSigmoidBipolarOFF; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 0.75;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+KernelConn "WFAmacrineSigmoidONToSFAmacrine" = {  // 4
+    preLayerName           = "WFAmacrineSigmoidON";
+    postLayerName          = "SFAmacrine";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = WFAmacrineONSFAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 0.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+disable = true;
+KernelConn "WFAmacrineSigmoidOFFToSFAmacrine" = {        // 4
+    preLayerName           = "WFAmacrineSigmoidOFF";
+    postLayerName          = "SFAmacrine";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = WFAmacrineOFFSFAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 0.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+KernelConn "WFAmacrineSigmoidONToGanglionON" = { // 4
+    preLayerName           = "WFAmacrineSigmoidON";
+    postLayerName          = "GanglionON";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = WFAmacrineSigmoidGanglionON; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 0.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+disable = true;
+KernelConn "WFAmacrineSigmoidOFFToGanglionOFF" = { // 4
+    preLayerName           = "WFAmacrineSigmoidOFF";
+    postLayerName          = "GanglionOFF";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = WFAmacrineSigmoidGanglionOFF; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 0.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = STOCHASTICRELFLAG;
+    preActivityIsNotRate   = PREACTNOTRATE;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+
+
+
+//--------- PAAmacrine Connections ---------------------//
+
+disable = true;
+KernelConn "PAAmacrineONToWFAmacrineON" = {     // 4
+    preLayerName           = "PAAmacrineON";
+    postLayerName          = "WFAmacrineON";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 18;           // odd times 1 because of scale factor
+    nyp                    = 18;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = PADelay;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = PAAmacrineWFAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 4.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+KernelConn "PAAmacrineOFFToWFAmacrineOFF" = {   // 4
+    preLayerName           = "PAAmacrineOFF";
+    postLayerName          = "WFAmacrineOFF";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 18;           // odd times 1 because of scale factor
+    nyp                    = 18;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = PADelay;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = PAAmacrineWFAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 4.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+GapConn "PAAmacrineGapONToPAAmacrineON" = {        // 9  gap junction, watch the strength
+    preLayerName            = "PAAmacrineGapON";
+    postLayerName           = "PAAmacrineON";
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = PAAmacrineGapPAAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.1;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+GapConn "PAAmacrineGapOFFToPAAmacrineOFF" = {        // 9  gap junction, watch the strength
+    preLayerName           = "PAAmacrineGapOFF";
+    postLayerName          = "PAAmacrineOFF";
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = PAAmacrineGapPAAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.1;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+KernelConn "PAAmacrineONToPAAmacrineON" = {        // 10
+    preLayerName           = "PAAmacrineON";
+    postLayerName          = "PAAmacrineON";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 9;           // odd times 1 because of scale factor
+    nyp                    = 9;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = PADelay;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = PAAmacrinePAAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 2.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+KernelConn "PAAmacrineOFFToPAAmacrineOFF" = {   // 10 self shut down
+    preLayerName           = "PAAmacrineOFF";
+    postLayerName          = "PAAmacrineOFF";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 9;           // odd times 1 because of scale factor
+    nyp                    = 9;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = PADelay;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = PAAmacrinePAAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 2.0;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+GapConn "PAAmacrineGapONToGanglionON" = {        // 8   gap junction
+    preLayerName           = "PAAmacrineGapON";
+    postLayerName          = "GanglionON";
+    nxp                    = 6;           // odd times 1 because of scale factor
+    nyp                    = 6;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = PAAmacrineGapGanglion; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.1;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+GapConn "PAAmacrineGapOFFToGanglionOFF" = {          // 8   gap junction
+    preLayerName           = "PAAmacrineGapOFF";
+    postLayerName          = "GanglionOFF";
+    nxp                    = 6;           // odd times 1 because of scale factor
+    nyp                    = 6;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = PAAmacrineGapGanglion; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.1;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+KernelConn "PAAmacrineONToGanglionON" = {        // 10 NOT CONNECTED
+    preLayerName           = "PAAmacrineON";
+    postLayerName          = "GanglionON";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 18;           // odd times 1 because of scale factor
+    nyp                    = 18;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = PADelay;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = PAAmacrineGanglion; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 4.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+KernelConn "PAAmacrineOFFToGanglionOFF" = {     // 10 NOT CONNECTED
+    preLayerName           = "PAAmacrineOFF";
+    postLayerName          = "GanglionOFF";
+    channelCode            = 1;                   // inhibitory   feedback
+    nxp                    = 18;           // odd times 1 because of scale factor
+    nyp                    = 18;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = PADelay;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = PAAmacrineGanglion; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 4.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.0;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+
+
+
+//--------- Ganglion ---------------------//
+
+disable = true;
+GapConn "GanglionGapONToPAAmacrineON" = {        // 7  gap junction
+    preLayerName            = "GanglionGapON";
+    postLayerName           = "PAAmacrineON";
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = GanglionGapPAAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.1;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+disable = true;
+GapConn "GanglionGapOFFToPAAmacrineOFF" = {       // 7  gap junction
+    preLayerName           = "GanglionGapOFF";
+    postLayerName          = "PAAmacrineOFF";
+    nxp                    = 3;           // odd times 1 because of scale factor
+    nyp                    = 3;           //
+    nfp                    = 1;
+    numAxonalArbors        = 1;
+    shrinkPatches          = 0.0;
+    delay                  = 0.0;         // in time steps, additional to the one you always get
+
+    weightInitType         = "Gauss2DWeight";
+    normalize              = 1;           //  
+    strength               = GanglionGapPAAmacrine; 
+    normalize_max          = 0.0;         // all flags zero means it normalize total integrated output
+    normalize_zero_offset  = 0.0;         //
+    normalize_cutoff       = 0.0;         //
+    aspect                 = 1.0;
+    sigma                  = 1.5;         // 
+    rMax                   = 256.;        // maximum distance of connection was 1.4
+    rMin                   = 0.1;
+    symmetrizeWeights      = 0.0;
+    selfFlag               = 0.0;
+    stochasticReleaseFlag  = 0;
+    preActivityIsNotRate   = 0;
+    normalizeTotalToPost   = 1;
+    plasticityFlag         = 0.0;
+
+    writeCompressedWeights = 1;
+    writeStep              = -1.0;        // do not write these out
+};
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//   Probes Probes Probes Probes Probes Probes Probes Probes  Probes Probes Probes Probes 
+//////////////////////////////////////////////////////////////////////////////////////////
+
+disable = false;
+
+PointProbe "ImageBuffer Probe" = {
+   targetLayer = "ImageBuffer";
+//   msg = "Cone       ";
+   probeOutputFile = "ptImageBuffer.txt";
+   xLoc = 64; // 128; //
+   yLoc = 64; // 128; //
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "Cone Probe" = {
+   targetLayer = "Cone";
+//   msg = "Cone       ";
+   probeOutputFile = "ptCone.txt";
+   xLoc = 64; // 128; //
+   yLoc = 64; // 128; //
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "Horizontal Probe" = {
+   targetLayer = "Horizontal";
+//   msg = "Horizontal       ";
+   probeOutputFile = "ptHorizontal.txt";
+   xLoc = 16; // 32; //
+   yLoc = 16; // 32; //
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "BipolarON Probe" = {
+   targetLayer = "BipolarON";
+//   msg = "BipolarON       ";
+   probeOutputFile = "ptBipolarON.txt";
+   xLoc = 64; // 128; //
+   yLoc = 64; // 128; //
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "BipolarOFF Probe" = {
+   targetLayer = "BipolarOFF";
+//   msg = "BipolarOFF       ";
+   probeOutputFile = "ptBipolarOFF.txt";
+   xLoc = 64; // 128; //
+   yLoc = 64; // 128; //
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "WFAmacrineON Probe" = {
+   targetLayer = "WFAmacrineON";
+//   msg = "WFAmacrineON       ";
+   probeOutputFile = "ptWFAmacrineON.txt";
+   xLoc = 32; // 64; //
+   yLoc = 32; // 64; //
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "WFAmacrineOFF Probe" = {
+   targetLayer = "WFAmacrineOFF";
+//   msg = "WFAmacrineOFF       ";
+   probeOutputFile = "ptWFAmacrineOFF.txt";
+   xLoc = 32; // 64; //
+   yLoc = 32; // 64; //
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "SFAmacrine Probe" = {
+   targetLayer = "SFAmacrine";
+//   msg = "SFAmacrine       ";
+   probeOutputFile = "ptSFAmacrine.txt";
+   xLoc = 32; // 64; //
+   yLoc = 32; // 64; //
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "PAAmacrineON Probe" = {
+   targetLayer = "PAAmacrineON";
+//   msg = "PAAmacrineON       ";
+   probeOutputFile = "ptPAAmacrineON.txt";
+   xLoc = 16; // 32; //
+   yLoc = 16; // 32; //
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "PAAmacrineOFF Probe" = {
+   targetLayer = "PAAmacrineOFF";
+//   msg = "PAAmacrineOFF       ";
+   probeOutputFile = "ptPAAmacrineOFF.txt";
+   xLoc = 16; // 32; //
+   yLoc = 16; // 32; //
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "GanglionON Probe" = {
+   targetLayer = "GanglionON";
+//   msg = "GanglionON       ";
+   probeOutputFile = "ptGanglionON.txt";
+   xLoc = 32; // 64; //
+   yLoc = 32; // 64; //
+   fLoc = 0;
+};
+
+disable = false;
+
+PointLIFProbe "GanglionOFF Probe" = {
+   targetLayer = "GanglionOFF";
+//   msg = "GanglionOFF       ";
+   probeOutputFile = "ptGanglionOFF.txt";
+   xLoc = 32; // 64; //
+   yLoc = 32; // 64; //
+   fLoc = 0;
+};

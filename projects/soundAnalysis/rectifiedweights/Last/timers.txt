@@ -1,0 +1,39 @@
+                          column: total time in column    run    : processor cycle time == 100.584000
+                    Communicator: total time in   comm    exchng : processor cycle time == 0.016000
+                           Sound: total time in  layer    update : processor cycle time == 0.000000
+                           Sound: total time in  layer    recvsyn: processor cycle time == 0.000000
+                           Sound: total time in  layer    publish: processor cycle time == 0.058000
+                           Sound: total time in  layer  timescale: processor cycle time == 0.000000
+                           Sound: total time in  layer    io     : processor cycle time == 1.839000
+                     NewCochlear: total time in  layer    update : processor cycle time == 38.396999
+                     NewCochlear: total time in  layer    recvsyn: processor cycle time == 0.000000
+                     NewCochlear: total time in  layer    publish: processor cycle time == 0.158000
+                     NewCochlear: total time in  layer  timescale: processor cycle time == 0.000000
+                     NewCochlear: total time in  layer    io     : processor cycle time == 1.494000
+                  WeightPositive: total time in  layer    update : processor cycle time == 0.000000
+                  WeightPositive: total time in  layer    recvsyn: processor cycle time == 0.000000
+                  WeightPositive: total time in  layer    publish: processor cycle time == 0.327000
+                  WeightPositive: total time in  layer  timescale: processor cycle time == 0.000000
+                  WeightPositive: total time in  layer    io     : processor cycle time == 1.559000
+                  WeightNegative: total time in  layer    update : processor cycle time == 0.000000
+                  WeightNegative: total time in  layer    recvsyn: processor cycle time == 0.000000
+                  WeightNegative: total time in  layer    publish: processor cycle time == 0.141000
+                  WeightNegative: total time in  layer  timescale: processor cycle time == 0.000000
+                  WeightNegative: total time in  layer    io     : processor cycle time == 1.325000
+                     WeightRecon: total time in  layer    update : processor cycle time == 0.436000
+                     WeightRecon: total time in  layer    recvsyn: processor cycle time == 3.008000
+                     WeightRecon: total time in  layer    publish: processor cycle time == 0.158000
+                     WeightRecon: total time in  layer  timescale: processor cycle time == 0.000000
+                     WeightRecon: total time in  layer    io     : processor cycle time == 1.439000
+                  inverseWeights: total time in  layer    update : processor cycle time == 10.922000
+                  inverseWeights: total time in  layer    recvsyn: processor cycle time == 0.000000
+                  inverseWeights: total time in  layer    publish: processor cycle time == 0.085000
+                  inverseWeights: total time in  layer  timescale: processor cycle time == 0.000000
+                  inverseWeights: total time in  layer    io     : processor cycle time == 4.116000
+StatsProbe WeightsProbe I/O  timer processor cycle time == 0.000000
+StatsProbe WeightsProbe MPI  timer processor cycle time == 0.000000
+StatsProbe WeightsProbe Comp timer processor cycle time == 0.000000
+     WeightPositiveToWeightRecon: total time in   conn    io     : processor cycle time == 7.870000
+     WeightPositiveToWeightRecon: total time in   conn    update : processor cycle time == 0.000000
+     WeightNegativeToWeightRecon: total time in   conn    io     : processor cycle time == 7.160000
+     WeightNegativeToWeightRecon: total time in   conn    update : processor cycle time == 0.000000
