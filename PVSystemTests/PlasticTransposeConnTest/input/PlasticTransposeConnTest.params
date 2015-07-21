@@ -1,0 +1,268 @@
+//
+// PlasticTransposeConnTest.params
+//
+// created by peteschultz: Nov 24, 2014
+//
+
+// A systems test to verify that TransposeConn works with plasticity on.
+// A connection on the no-update channel goes between two layers all of whose activities are one.
+// Since plasticity is on and pre*post is one, the weights change.
+// A transpose conn goes in the other direction, also on the no-update channel.
+// Then a clone of the original conn and a transpose of the transpose go from the presynaptic layer
+// to a comparison layer.  The clone and the transpose-of-transpose are on opposite channels,
+// so the values of the comparison layer should be zero everywhere.
+// Since there are no floating-point calculations involved in taking the transpose, round-off is
+// not an issue.
+// A TestAllZerosProbe checks the comparison layer to assure that it is zero throughout.
+//
+// The test uses a parameter sweep to do six variants:
+// each of one-to-one, one-to-many, or many-to-one, each with shared weights on or off.
+
+debugParsing = true;
+
+HyPerCol "column" = {
+   nx = 8;   //size of the whole networks
+   ny = 8;
+   dt = 1.0;  //time step in ms.
+   dtAdaptFlag = false;  // If true, layers can provide HyPerCol info on acceptable timesteps and dt can be adjusted accordingly 
+   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 10.0; //Program will output its progress at each progressStep
+   writeProgressToErr = false;  
+   verifyWrites = false;
+   // outputPath is set in parameter sweep
+   printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
+   filenamesContainLayerNames = false;  
+   filenamesContainConnectionNames = false;
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   suppressLastOutput = false; //If true, save the last output as checkpoint.
+};
+
+//
+// layers
+//
+
+Image "pre" = {
+    // nxScale is set in parameter sweep
+    // nyScale is set in parameter sweep
+    // imagePath is set in parameter sweep
+    nf = 3;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetAnchor = "tl";
+    offsetX = 0;
+    offsetY = 0;
+    jitterFlag = false;
+};
+
+Image "post" = {
+    // nxScale is set in parameter sweep
+    // nyScale is set in parameter sweep
+    // imagePath is set in parameter sweep
+    nf = 3;
+    phase = 0;
+    writeStep = -1;
+    sparseLayer = false;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetAnchor = "tl";
+    offsetX = 0;  
+    offsetY = 0;
+    jitterFlag = false; 
+};
+
+ANNLayer "comparison" = {
+    // nxScale is set in parameter sweep
+    // nyScale is set in parameter sweep
+    nf = 3;
+    phase = 1;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    InitVType = "ZeroV";
+    triggerFlag = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    sparseLayer = false;
+
+    VThresh = -infinity;
+    AMin = -infinity;
+    AMax = infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+};
+
+HyPerConn "original map" = {
+    preLayerName = "pre";
+    postLayerName = "post";
+    channelCode = -1; // This connection does not modify post.
+
+    // nxp is set in parameter sweep
+    // nyp is set in parameter sweep
+    nfp = 3; 
+    numAxonalArbors = 1;
+    // sharedWeights set in ParameterSweep
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    
+    weightInitType = "UniformRandomWeight";
+    wMinInit = 0.0;
+    wMaxInit = 1.0;
+    sparseFraction = 0.0;
+      
+    strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalize_cutoff = 0;
+    preActivityIsNotRate = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+    rMinX = 0.0;
+    rMinY = 0.0;
+    nonnegativeConstraintFlag = false;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = true;
+    triggerFlag = false;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 0.0;
+    writeCompressedWeights = false;
+    combine_dW_with_W_flag = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    dWMax = 0.1;
+    keepKernelsSynchronized = true;
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve";
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
+};
+
+TransposeConn "transpose" = {
+    preLayerName = "post";
+    postLayerName = "pre";
+    channelCode = -1;
+    delay = 0;
+    originalConnName = "original map";
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+    preActivityIsNotRate = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    writeCompressedCheckpoints = false;
+    writeCompressedWeights = false;
+};
+
+TransposeConn "transpose of transpose" = {
+    preLayerName = "pre";
+    postLayerName = "comparison";
+    channelCode = 0;
+    delay = 0;
+    originalConnName = "transpose";
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+    preActivityIsNotRate = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    writeCompressedCheckpoints = false;
+    writeCompressedWeights = false;
+};
+
+CloneConn "clone of original" = {
+    preLayerName = "pre";
+    postLayerName = "comparison";
+    channelCode = 1;
+    delay = 0;
+    originalConnName = "original map";
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+    preActivityIsNotRate = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+};
+
+TestAllZerosProbe "probe" = {
+    targetLayer = "comparison";
+    triggerFlag = false;
+    nnzThreshold = 5.0e-5;
+};
+
+ParameterSweep "column":outputPath = {
+    "output/sharedWeightsOff_OneToOne";
+    "output/sharedWeightsOn_OneToOne";
+    "output/sharedWeightsOff_ManyToOne";
+    "output/sharedWeightsOn_ManyToOne";
+    "output/sharedWeightsOff_OneToMany";
+    "output/sharedWeightsOn_OneToMany";
+};
+
+ParameterSweep "pre":nxScale = {
+    1; 1; 2; 2; 1; 1;
+};
+
+ParameterSweep "pre":nyScale = {
+    1; 1; 2; 2; 1; 1;
+};
+
+ParameterSweep "pre":imagePath = {
+    "input/8x8image.png";
+    "input/8x8image.png";
+    "input/16x16image.png";
+    "input/16x16image.png";
+    "input/8x8image.png";
+    "input/8x8image.png";
+};
+
+ParameterSweep "post":nxScale = {
+    1; 1; 1; 1; 2; 2;
+};
+
+ParameterSweep "post":nyScale = {
+    1; 1; 1; 1; 2; 2;
+};
+
+ParameterSweep "post":imagePath = {
+    "input/8x8image.png";
+    "input/8x8image.png";
+    "input/8x8image.png";
+    "input/8x8image.png";
+    "input/16x16image.png";
+    "input/16x16image.png";
+};
+
+ParameterSweep "comparison":nxScale = {
+    1; 1; 1; 1; 2; 2;
+};
+
+ParameterSweep "comparison":nyScale = {
+    1; 1; 1; 1; 2; 2;
+};
+
+ParameterSweep "original map":nxp = {
+    7; 7; 7; 7; 14; 14;
+};
+
+ParameterSweep "original map":nyp = {
+    7; 7; 7; 7; 14; 14;
+};
+
+ParameterSweep "original map":sharedWeights = {
+    false; true; false; true; false; true;
+};

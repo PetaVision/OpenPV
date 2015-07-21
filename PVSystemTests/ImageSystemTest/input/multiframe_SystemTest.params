@@ -1,0 +1,147 @@
+//
+// BasicSystemTest.params
+//
+// created by peteschultz: Nov 10, 2011
+//
+
+//  A params file for a simple simulation: two layers, one connection.
+//  It serves as the basic template for systems tests, and tests the
+//  basic functionality
+//
+
+debugParsing = false;    // Debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx = 10;   //size of the whole networks
+   ny = 10;
+   dt = 1.0;  //time step in ms.	     
+   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
+   numSteps = 10; //One for each frame  
+   progressStep = 1; //Program will output its progress at each progressStep
+   writeProgressToErr = false;  
+   outputPath = "output/";
+   filenamesContainLayerNames = false;  
+   filenamesContainConnectionNames = false;
+   checkpointRead = false;  
+   checkpointWrite = false;
+   suppressLastOutput = false; //Save the last output as checkpoint.
+};
+
+Image "input0" = {
+    restart = 0;  // make only a certain layer restart
+    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
+    nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
+    	      	  // cannot be larger than the input image size.
+    imagePath = "input/multiframe.pvp";
+    nf = 1; //number of features.
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = -1;  //-1 means doesn't write for log
+    sparseLayer = false; //only write weights which are not 0
+    mirrorBCflag = false;    //board condition flag
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    frameNumber = 0;
+};
+
+Image "input1" = {
+    restart = 0;  // make only a certain layer restart
+    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
+    nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
+    	      	  // cannot be larger than the input image size.
+    imagePath = "input/multiframe.pvp";
+    nf = 1; //number of features.
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = -1;  //-1 means doesn't write for log
+    sparseLayer = false; //only write weights which are not 0
+    mirrorBCflag = false;    //board condition flag
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    frameNumber = 1;
+};
+
+Image "input2" = {
+    restart = 0;  // make only a certain layer restart
+    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
+    nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
+    	      	  // cannot be larger than the input image size.
+    imagePath = "input/multiframe.pvp";
+    nf = 1; //number of features.
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = -1;  //-1 means doesn't write for log
+    sparseLayer = false; //only write weights which are not 0
+    mirrorBCflag = false;    //board condition flag
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    frameNumber = 2;
+};
+
+Movie "movie" = {
+    restart = 0;  // make only a certain layer restart
+    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
+    nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
+    	      	  // cannot be larger than the input image size.
+    imageListPath = "input/multiframe.pvp";
+    nf = 1; //number of features.
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = -1;  //-1 means doesn't write for log
+    sparseLayer = false; //only write weights which are not 0
+    displayPeriod = 1;
+    mirrorBCflag = false;    //board condition flag
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    start_frame_index = 1;
+    skip_frame_index = 1;
+    // echoFramePathnameFlag = false; //Not used if using pvp file
+    readPvpFile = true;
+    randomMovie = false;
+};
+
+ImageTestProbe "frameTestProbe0" = {
+   targetLayer = "input0";
+   message = "frameTestProbe0"; //Not used, for overwriting
+};
+
+ImageTestProbe "frameTestProbe1" = {
+   targetLayer = "input1";
+   message = "frameTestProbe1"; //Not used, for overwriting
+};
+
+ImageTestProbe "frameTestProbe2" = {
+   targetLayer = "input2";
+   message = "frameTestProbe2"; //Not used, for overwriting
+};
+
+MovieTestProbe "frameTestProbe3" = {
+   targetLayer = "movie";
+   message = "frameTestProbe3"; //Not used, for overwriting
+};
+

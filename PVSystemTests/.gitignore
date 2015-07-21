@@ -1,0 +1,11 @@
+CMakeFiles
+*/CMakeFiles
+*/Debug
+*/Release
+*/*.cmake
+*.cmake
+Makefile
+*/Makefile
+*/*.log
+*/output/
+Testing

@@ -1,0 +1,128 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 32; //1242;  // KITTI synced value
+    ny = 32;  //218;
+    dt = 1.0;
+    dtAdaptFlag = false;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0.0;
+    stopTime = 100.0;       // Depends on number of VINE video frames
+    progressInterval = 1.0;
+    outputPath = "output/norepTest/";
+    printParamsFilename = "pv.params";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    initializeFromCheckpointDir = "";
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+    verifyWrites = false;
+    errorOnNotANumber = false;
+};
+
+// this is a input layer
+Image "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/input.pvp";
+    nf = 4;
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = -1;  //-1 means doesn't write for log
+    sparseLayer = false; //only write weights which are not 0
+    mirrorBCflag = false;    //border condition flag
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetAnchor = "tl";
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    frameNumber = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    padValue = 0;
+};
+
+BackgroundLayer "background" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 5; //One more than input
+    writeStep = -1.0;
+    // initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    //
+    phase = 1; 
+    triggerFlag = false;
+    originalLayerName = "input";
+};
+
+// this is a input layer
+Image "actual" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    imagePath = "input/gt.pvp";
+    nf = 5;
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = -1;  //-1 means doesn't write for log
+    sparseLayer = false; //only write weights which are not 0
+    mirrorBCflag = false;    //border condition flag
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetAnchor = "tl";
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    frameNumber = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    padValue = 0;
+};
+
+ComparisonLayer "compare" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 5;
+    writeStep = -1.0;
+    // initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0.0;
+    VWidth = 0.0;
+    clearGSynInterval = 0.0;
+    // 
+    phase = 2; 
+    triggerFlag = false;
+};
+
+IdentConn "backgroundToCompare" = {
+    preLayerName = "background";
+    postLayerName = "compare";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+IdentConn "actualToCompare" = {
+    preLayerName = "actual";
+    postLayerName = "compare";
+    channelCode = 1;
+    delay = 0;
+    writeStep = -1;
+};

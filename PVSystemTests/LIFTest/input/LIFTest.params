@@ -1,0 +1,395 @@
+//
+// LIFTest.params
+//
+// created by peteschultz: Aug 3, 2012
+//
+
+//  A params file for testing LIF, GapLayer, LIFGapLayer, GapConn
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+
+   nx                               = 64;   
+   ny                               = 64;
+   dt                               = 0.25;
+   dtAdaptFlag                      = false;
+   randomSeed                       = 1829107657; // if not set here,  clock time is used to generate seed
+   startTime                        = 0.0;
+   stopTime                         = 2000.0;
+   progressInterval                 = 100.0;
+   writeProgressToErr               = false;
+   verifyWrites                     = false;
+   errorOnNotANumber                = false;
+   outputPath                       = "output";
+   printParamsFilename              = "pv.params";
+   filenamesContainLayerNames       = false;
+   filenamesContainConnectionNames  = false;
+   initializeFromCheckpointDir      = "";
+   checkpointWrite                  = true;
+   checkpointWriteDir               = "Checkpoints";
+   checkpointWriteTriggerMode       = "time";
+   checkpointWriteTimeInterval      = 100.0;
+   deleteOlderCheckpoints           = false;
+   // suppressLastOutput               = false;
+   suppressNonplasticCheckpoints    = false;
+};
+
+//
+// layers
+//
+
+Image "Input" = {
+    nxScale                         = 1;
+    nyScale                         = 1;
+    imagePath                       = "input/inputimage.pvp";
+    frameNumber                     = 0;
+    nf                              = 1;
+    writeStep                       = -1;
+    sparseLayer                     = false;
+    phase                           = 0;
+    useImageBCflag                  = false;
+    mirrorBCflag                    = false;
+    valueBC                         = 0.0;
+    inverseFlag                     = false;
+    normalizeLuminanceFlag          = false;
+    autoResizeFlag                  = false;
+    writeImages                     = false;
+    jitterFlag                      = false;
+    offsetAnchor                    = "tl";
+    offsetX                         = 96;
+    offsetY                         = 96;
+    padValue                        = 0.0;
+};
+
+ANNLayer "ScaledInput" = {
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 1;
+    mirrorBCflag                    = false;
+    valueBC                         = 0.0;
+    writeStep                       = -1;
+    sparseLayer                     = false;
+    phase                           = 0;
+    triggerFlag                     = false;
+
+    InitVType                       = "ZeroV";
+
+    AMax                            = infinity;
+    AShift                          = 0;
+    AMin                            = -infinity;
+    VThresh                         = -infinity;
+    VWidth                          = 0.0;
+    clearGSynInterval               = 0.0;
+};
+
+Retina "Retina" = {
+    nxScale                         = 1.;
+    nyScale                         = 1.;
+    nf                              = 1;
+    mirrorBCflag                    = false;
+    valueBC                         = 0.0;
+    writeStep                       = -1;
+    sparseLayer                     = true;
+    writeSparseValues               = false;
+    phase                           = 0;
+    triggerFlag                     = false;
+    spikingFlag                     = true;
+    foregroundRate                  = 200.0;
+    backgroundRate                  = 0.0;
+    refractoryPeriod                = 0.0;
+    absRefractoryPeriod             = 0.0;
+    beginStim                       = 0.0;
+    endStim                         = 1.0e8;
+    burstFreq                       = 1;
+    burstDuration                   = 1000;
+};
+
+ANNLayer "RetinaSpikeCounter" = {
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 1;
+    mirrorBCflag                    = false;
+    valueBC                         = 0.0;
+    
+    InitVType                       = "ConstantV";
+    valueV                          = 0;
+
+    writeStep                       = -1.0;
+    sparseLayer                     = false;
+    phase                           = 0;
+    triggerFlag                     = false;
+
+    AMax                            = infinity;
+    AShift                          = 0.0;
+    AMin                            = -infinity;
+    VThresh                         = -infinity;
+    VWidth                          = 0.0;
+    clearGSynInterval               = infinity;
+};
+
+LIFGap "LIFTest" = {
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 1;
+    writeStep                       = -1.0;
+    mirrorBCflag                    = false;
+    valueBC                         = 0.0;
+    sparseLayer                     = true;
+    writeSparseValues               = false;
+    phase                           = 0;
+    triggerFlag                     = false;
+    
+    InitVType                       = "ConstantV";
+    valueV                          = -70.0;
+    Vrest                           = -70.0;    // adjusted for gap of 0.025   
+    Vexc                            = 0.0;     // reversal potential 
+    Vinh                            = -75.0;   // chloride channel
+    VinhB                           = -90.0;   // potassium reversal
+    tau                             = 15.0;    // intrinsic leak membrane time constant (max)
+    tauE                            = 1.0;     // how long glutamine stays bound
+    tauI                            = 5.0;     // how long GABA stays bound
+    tauIB                           = 10.0;    // inhibitory potassium channel 
+    VthRest                         = -55.0;   // firing threshold
+    tauVth                          = 10.0;    // relative refractory period
+    deltaVth                        = 5.0;     // jump of threshold when firing
+    deltaGIB                        = 1.0;     // jump of conductance on IB channel when firing
+    noiseAmpE                       = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI                       = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB                      = 0.0;     // no noise here 
+    noiseFreqE                      =  0.;     // spontaneous transmitter release/channel openings
+    noiseFreqI                      =  0.;     // correlation to time step size !!!
+    noiseFreqIB                     =   0.;    // should be scaled by the time constant - look at LIF model
+    
+    method                          = "a";
+};
+
+ANNLayer "LIFTestSpikeCounter" = {
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 1;
+    mirrorBCflag                    = false;
+    valueBC                         = 0.0;
+    sparseLayer                     = false;
+    
+    InitVType                       = "ConstantV";
+    valueV                          = 0;
+
+    writeStep                       = -1.0;
+    phase                           = 0;
+    triggerFlag                     = false;
+
+    AMax                            = infinity;
+    AShift                          = 0;
+    AMin                            = -infinity;
+    VThresh                         = -infinity;
+    VWidth                          = 0.0;
+    clearGSynInterval               = infinity;
+};
+
+GapLayer "GapTest" = {
+    originalLayerName               = "LIFTest";
+    nxScale                         = 1; // Should this be 0.5 or 1?
+    nyScale                         = 1; // Should this be 0.5 or 1?
+    nf                              = 1;
+    mirrorBCflag                    = true;
+    phase                           = 0;
+    triggerFlag                     = false;
+
+    writeStep                       = -1;
+    sparseLayer                     = false;
+
+    ampSpikelet                     = 50;
+};
+
+LIFGap "LIFGapTest" = {
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 1;
+    writeStep                       = -1; // Value 0 means write every timestep, no matter what dt is
+    mirrorBCflag                    = false;
+    valueBC                         = 0.0;
+    sparseLayer                     = true;
+    writeSparseValues               = false;
+    phase                           = 0;
+    triggerFlag                     = false;
+    
+    InitVType                       = "ConstantV";
+    valueV                          = -70.0;
+    Vrest                           = -70.0;    // adjusted for gap of 0.025   
+    Vexc                            = 0.0;     // reversal potential 
+    Vinh                            = -75.0;   // chloride channel
+    VinhB                           = -90.0;   // potassium reversal
+    tau                             = 15.0;    // intrinsic leak membrane time constant (max)
+    tauE                            = 1.0;     // how long glutamine stays bound
+    tauI                            = 5.0;     // how long GABA stays bound
+    tauIB                           = 10.0;    // inhibitory potassium channel 
+    VthRest                         = -65.0;   // firing threshold
+    tauVth                          = 10.0;    // relative refractory period
+    deltaVth                        = 5.0;     // jump of threshold when firing
+    deltaGIB                        = 1.0;     // jump of conductance on IB channel when firing
+    noiseAmpE                       = 0.5;     // 1 means conductance is equal to lead conductance               <======== no noise  
+    noiseAmpI                       = 0.5;     // "twice as easy for the membrane capacitance to discharge"
+    noiseAmpIB                      = 0.0;     // no noise here 
+    noiseFreqE                      =  0.;     // spontaneous transmitter release/channel openings
+    noiseFreqI                      =  0.;     // correlation to time step size !!!
+    noiseFreqIB                     =   0.;    // should be scaled by the time constant - look at LIF model
+    
+    method                          = "a";
+};
+
+ANNLayer "LIFGapTestSpikeCounter" = {
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 1;
+    mirrorBCflag                    = false;
+    valueBC                         = 0.0;
+    
+    InitVType                       = "ConstantV";
+    valueV                          = 0;
+
+    writeStep                       = -1;
+    sparseLayer                     = false;
+    phase                           = 0;
+    triggerFlag                     = false;
+
+    AMax                            = infinity;
+    AShift                          = 0;
+    AMin                            = -infinity;
+    VThresh                         = -infinity;
+    VWidth                          = 0.0;
+    clearGSynInterval               = infinity;
+};
+
+HyPerConn "InputToScaledInput" = {
+    preLayerName                    = "Input";
+    postLayerName                   = "ScaledInput";
+    channelCode                     = 0;
+    sharedWeights                   = true;
+    nxp                             = 1;
+    nyp                             = 1;
+    nfp                             = 1;
+    numAxonalArbors                 = 1;
+    delay                           = 0;
+
+    writeStep                       = -1;
+    
+    weightInitType                  = "OneToOneWeights";
+    weightInit                      = 2.0;
+      
+    normalizeMethod                 = "none";
+    plasticityFlag                  = false;
+    pvpatchAccumulateType           = "convolve";
+    // writeCompressedWeights       = true;
+    writeCompressedCheckpoints      = true;
+    selfFlag                        = false;
+    shrinkPatches                   = false;
+    convertRateToSpikeCount         = false;
+    updateGSynFromPostPerspective   = false;
+};
+
+IdentConn "ScaledInputToRetina" = {
+    channelCode                     = 0;
+    delay                           = 0;    
+    writeStep                       = -1;
+};
+
+IdentConn "RetinaToRetinaSpikeCounter" = {
+    channelCode                     = 0;
+    delay                           = 0;    
+    writeStep                       = -1;
+};
+
+HyPerConn "RetinaToLIFTest" = {
+    channelCode                     = 0;
+    sharedWeights                   = true;
+    nxp                             = 1;
+    nyp                             = 1;
+    nfp                             = 1;
+    numAxonalArbors                 = 1;
+    delay                           = 0;
+
+    writeStep                       = -1;
+    
+    weightInitType                  = "OneToOneWeights";
+    weightInit                      = 1.0;
+      
+    normalizeMethod                 = "none";
+    plasticityFlag                  = false;
+    pvpatchAccumulateType           = "convolve";
+    // writeCompressedWeights       = true;
+    writeCompressedCheckpoints      = true;
+    selfFlag                        = false;
+    shrinkPatches                   = false;
+    convertRateToSpikeCount         = false;
+    updateGSynFromPostPerspective   = false;
+};
+
+IdentConn "LIFTestToLIFTestSpikeCounter" = {
+    channelCode                     = 0;
+    delay                           = 0;    
+    writeStep                       = -1;
+};
+
+GapConn "GapTestToLIFGapTest" = {
+    preLayerName                    = "GapTest";
+    postLayerName                   = "LIFGapTest";
+    // channelCode                  = 3;
+    sharedWeights                   = true;
+    nxp                             = 3;
+    nyp                             = 3;
+    nfp                             = 1;
+    numAxonalArbors                 = 1;
+    delay                           = 0;
+    
+    weightInitType                  = "Gauss2DWeight";
+    strength                        = 2.0;
+    rMin                            = 0.0; // 0.1; // take out the self connection
+    aspect                          = 1.0;
+    // rotate                       = 1.0; // relevant for Gauss or cocircular, by 1/2 half the diff. between orient 
+    sigma                           = 3.0;
+    rMax                            = 256.; // maximum distance of connection
+    normalizeMethod                 = "normalizeSum"; // 
+    normalize_cutoff                = false;  //
+    normalizeFromPostPerspective    = true;
+    normalizeArborsIndividually     = false;
+    normalizeOnInitialize           = true;
+    normalizeOnWeightUpdate         = true;
+    minSumTolerated                 = 0.0;
+    rMinX                           = 0; // Only count |x|>=rMinX when normalizing
+    rMinY                           = 0; // Only count |y|>=rMinY when normalizing
+    nonnegativeConstraintFlag       = false;
+    
+    plasticityFlag                  = false;
+    pvpatchAccumulateType           = "convolve";
+    selfFlag                        = false;
+    shrinkPatches                   = false;
+    convertRateToSpikeCount         = false;
+    updateGSynFromPostPerspective   = false;
+    
+    // writeCompressedWeights       = false;
+    writeCompressedCheckpoints      = false;
+    writeStep                       = -1;
+    // initialWriteTime             = 0;
+};
+
+IdentConn "LIFGapTestToLIFGapTestSpikeCounter" = {
+    channelCode                     = 0;
+    delay                           = 0;
+    
+    writeStep                       = -1;
+};
+
+LIFTestProbe "LIFGapTestSpikeCountProbe" = {
+    targetLayer                     = "LIFGapTestSpikeCounter";
+    probeOutputFile                 = "SpikeRates.txt";
+    message                         = "Spike Rates File               ";
+    triggerFlag                     = false;
+    
+    buffer                          = "Activity";
+    nnzThreshold                    = 0.0;
+    
+    endingTime                      = 2000.0;
+    tolerance                       = 3.0;
+};

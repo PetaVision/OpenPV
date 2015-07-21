@@ -1,0 +1,88 @@
+debugParsing = false;
+
+HyPerCol "test_constant_input column" = {
+    nx = 16;
+    ny = 16;
+    startTime = 0.0;
+    stopTime = 5.0;
+    dt = 1.0;
+    dtAdaptFlag = false;
+    progressInterval = 1.0;
+    writeProgressToErr = false;
+    errorOnNotANumber = false;
+    outputPath = "output";
+    printParamsFilename = "pv.params";
+    filenamesContainLayerNames = 2;
+    filenamesContainConnectionNames = 2;
+    initializeFromCheckpointDir = "";
+    checkpointWrite = true;
+    checkpointWriteDir = "checkpoints";
+    checkpointWriteTriggerMethod = "step";
+    checkpointWriteStepInterval = 1;
+    deleteOlderCheckpoints = false;
+    // suppressLastOutput = false;
+};
+
+TestImage "test_constant_input image" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    phase = 0;
+    mirrorBCflag = true;
+    triggerFlag = false;
+    writeStep = -1;
+    sparseLayer = false;
+    
+    constantVal = 1.0;
+};
+
+Retina "test_constant_input retina" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    phase = 0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    triggerFlag = false;
+    writeStep = -1;
+    sparseLayer = false;
+    
+    spikingFlag = false;
+    foregroundRate = 1000; // Hertz; times are measured in milliseconds
+    backgroundRate = 0;
+    beginStim = 0;
+    endStim = infinity;
+};
+
+HyPerConn "test_constant_input connection" = {
+    preLayerName = "test_constant_input image";
+    postLayerName = "test_constant_input retina";
+    channelCode = 0;
+    sharedWeights = true;
+    nxp = 3;
+    nyp = 3;
+    numAxonalArbors = 1;
+    delay = [0.0];
+    plasticityFlag = false;
+    pvpatchAccumulateType = "convolve";
+    
+    weightInitType = "UniformWeight";
+    weightInit = 1.0;
+    connectOnlySameFeatures = false;
+    preActivityIsNotRate = false;
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
+
+    normalizeMethod = "none";
+    strength = 1;
+    rMinX = 0.0;
+    rMinY = 0.0;
+    normalize_cutoff = 0.0;
+    symmetrizeWeights = false;
+    normalizeFromPostPerspective = false;
+    normalizeArborsIndividually = false;
+    minSumTolerated = 0.0;
+
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+};
