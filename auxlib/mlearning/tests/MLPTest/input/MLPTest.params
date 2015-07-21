@@ -1,0 +1,260 @@
+//
+// MLPTest.params
+//
+// created by slundquist: Mar 21, 2014
+//
+
+//A params file to test PV implementation of a multilayer perceptron
+//This test is solving the xor problem
+//http://www.mind.ilstu.edu/curriculum/artificial_neural_net/xor_problem_and_solution.php?modGUI=239&compGUI=1286&itemGUI=2253
+
+debugParsing = false;    // Debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx = 2;   //2 inputs
+   ny = 2;
+   dt = 1.0;  //time step in ms.	     
+   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
+   stopTime = 100; //100 training steps  
+   progressInterval = 10.0; //Program will output its progress at each progressStep
+   writeProgressToErr = false;  
+   verifyWrites = false;
+   outputPath = "output/";
+   filenamesContainLayerNames = true;  
+   filenamesContainConnectionNames = true;
+   checkpointRead = false;  
+   checkpointWrite = false;
+   suppressLastOutput = false; //Save the last output as checkpoint.
+};
+
+//
+// layers
+//
+
+ConstantLayer "onesLayer" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
+//The input layer of data
+//Note that the layer name matches train.txt
+InputLayer "train" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 2;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ZeroV";
+    //define a linear relation between its input and output, with some hard cut-off.
+    VThresh = -infinity;   
+    inFilename = "input/test/input.txt";
+    phase = 0;
+};
+
+MLPForwardLayer "ForwardLayer1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 2;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    phase = 1;
+};
+
+MLPSigmoidLayer "HiddenLayer1" = {  // 2
+    nxScale           = 1.;
+    nyScale           = 1.;
+    nf                = 2;
+    originalLayerName = "ForwardLayer1";
+    InitVType         = "ZeroV";
+    valueV            = 0;
+    mirrorBCflag      = 0.0; 
+    restart           = 0.0;      // from graylast
+    linAlpha            = 0;
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = false;
+    phase = 2;
+};
+
+MLPForwardLayer "ForwardLayer2" = {
+   #include "ForwardLayer1";
+   @nxScale = 1;
+   @nyScale = 1;
+   @nf = 1;
+   @phase = 3;
+};
+
+MLPOutputLayer "FinalLayer" = {  // 2
+    nxScale           = 1; //Doing 2 by 2 since this will test multiprocess as well
+    nyScale           = 1;
+    nf                = 1;
+    originalLayerName = "ForwardLayer2";
+    InitVType         = "ZeroV";
+    valueV            = 0;
+    mirrorBCflag      = 0.0; 
+    linAlpha            = 0;
+    restart           = 0.0;      // from graylast
+    spikingFlag       = 0.0;
+    writeStep         = -1;
+    writeNonspikingActivity = false;
+    localTarget = true; //Reducing across all output layers
+    phase = 4;
+};
+
+GTLayer "gt" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ZeroV";
+    VThresh = -infinity;   
+    inFilename = "input/test/gt.txt";
+    phase = 3;
+};
+
+ComparisonLayer "comparison" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 999.0; //Change based on display period 
+    mirrorBCflag = 1;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    phase = 5;
+};
+
+//Connections
+KernelConn "W1" = {
+    preLayerName = "train";
+    postLayerName = "ForwardLayer1";
+    channelCode = 0; //On channel 0
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 2;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = 1000;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "output/Last/W1_W.pvp";
+
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+    dWMax = .05; // 200.0 used for initial training 
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "B1" = {
+    preLayerName = "onesLayer";
+    postLayerName = "ForwardLayer1";
+    channelCode = 0; //Prev layer to next err is on inhib b
+    nxp = 1; 
+    nyp = 1; 
+    nfp = 2;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "output/Last/B1_W.pvp";
+
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.225; //sqrt(3/2);
+    //wMaxInit = 1.225;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+    dWMax = .1; // 200.0 used for initial training 
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "W2" = {
+   #include "W1";
+   @nxp = 1;
+   @nyp = 1;
+   @nfp = 1;
+   @preLayerName = "HiddenLayer1";
+   @postLayerName = "ForwardLayer2";
+   @initWeightsFile = "output/Last/W2_W.pvp";
+};
+
+KernelConn "B2" = {
+   #include "B1";
+   @postLayerName = "ForwardLayer2";
+   @nfp = 1;
+   @initWeightsFile = "output/Last/B2_W.pvp";
+};
+
+//GT on inh, estimated on excitatory
+IdentConn "GTToComparison" = {
+    preLayerName = "gt";
+    postLayerName = "comparison";
+    channelCode = 0;
+    writeStep = -1;    
+    delay = 0;
+};
+
+IdentConn "FinalLayerToComparison" = {
+    preLayerName = "FinalLayer";
+    postLayerName = "comparison";
+    channelCode = 1; 
+    writeStep = -1;    
+    delay = 0;
+};
+
