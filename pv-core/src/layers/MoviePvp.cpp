@@ -223,12 +223,6 @@ void MoviePvp::ioParam_pvpFrameIdx(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void MoviePvp::ioParam_pvpBatchIdx(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      parent->parameters()->handleUnnecessaryParameter(name, "pvpBatchIdx");
-   }
-}
-
 void MoviePvp::ioParam_flipOnTimescaleError(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "flipOnTimescaleError", &flipOnTimescaleError, flipOnTimescaleError);
 }

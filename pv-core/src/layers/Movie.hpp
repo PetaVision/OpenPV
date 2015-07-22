@@ -43,6 +43,7 @@ protected:
    Movie();
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
    /**
     * List of parameters needed from the Movie class
     * @name Movie Parameters
@@ -50,43 +51,10 @@ protected:
     */
 
    /**
-    * @brief imagePath: Movie does not use the Image parameter imagePath.  Instead, it uses imageListPath to define the list of images.
-    */
-   //virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
-
-   ///**
-   // * @brief frameNumber: Movie does not use the Image parameter frameNumber.  Instead, it uses start_frame_index to load the first frame.
-   // */
-   //virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief imageListPath: The file containing the list of images.
-    * @details Relative paths are with respect to the working directory.
-    * imageListPath can point to either a text file containing a list of image files or URLs, or a .pvp file.
-    * If a .pvp file, each frame of the file consititutes an image.
-    */
-   //virtual void ioParam_imageListPath(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief displayPeriod: the amount of time each image is displayed before switching to the next image.
     * The units of displayPeriod are the same as the units of the HyPerCol's dt parameter.
     */
    virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
-
-   ///**
-   // * @brief randomMovie: if true, image pixels are randomly set to one or zero, instead of being loaded from the imageListPath
-   // */
-   //virtual void ioParam_randomMovie(enum ParamsIOFlag ioFlag);
-
-   ///**
-   // * @brief randomMovieProb: if randomMovie is true, the probability that that a pixel is set to one.
-   // */
-   //virtual void ioParam_randomMovieProb(enum ParamsIOFlag ioFlag);
-
-   ///**
-   // * @brief readPvpFile: if true, the file in imageListPath is treated as a pvp file.
-   // */
-   //virtual void ioParam_readPvpFile(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief echoFramePathnameFlag: if true, print the filename to the screen when a new image file is loaded.
@@ -95,9 +63,8 @@ protected:
 
    /**
     * @brief start_frame_index: Initialize the layer with the given frame.
-    * @details start_frame_index=1 means the first line of the imageListPath if a text file,
-    * or the initial frame if imageListPath is a .pvp file.  A start_frame_index of zero (or less)
-    * gets changed internally to start_frame_index=1.
+    * @details start_frame_index=0 means the first line of the imageListPath if a text file,
+    * or the initial frame if imageListPath is a .pvp file.
     */
    virtual void ioParam_start_frame_index(enum ParamsIOFlag ioFlag);
 

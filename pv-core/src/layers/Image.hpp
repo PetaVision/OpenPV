@@ -22,13 +22,6 @@ protected:
     * @{
     */
 
-   /**
-    * @brief imagePath: The absolute or relative path to the image input
-    * @details
-    */
-   //virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
-
-
    //TODO this functionality should be in both pvp and image. Set here for now, as pvp does not support imageBC
    /**
     * @brief autoResizeFlag: If set to true, the image will be resized to the layer
