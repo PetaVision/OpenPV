@@ -18,6 +18,7 @@ public:
    HyPerLCALayer(const char * name, HyPerCol * hc);
    virtual ~HyPerLCALayer();
    virtual double getDeltaUpdateTime();
+   virtual int requireChannel(int channelNeeded, int * numChannelsResult) ;
 
 protected:
    HyPerLCALayer();

@@ -28,6 +28,7 @@
 #include <fts.h>
 #include <fstream>
 #include <time.h>
+#include <csignal>
 
 namespace PV {
 

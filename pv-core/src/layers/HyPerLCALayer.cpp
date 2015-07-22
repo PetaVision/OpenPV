@@ -68,12 +68,12 @@ int HyPerLCALayer::initialize_base()
    numChannels = 1; // If a connection connects to this layer on inhibitory channel, HyPerLayer::requireChannel will add necessary channel
    timeConstantTau = 1.0;
    //Locality in conn
-   numWindowX = 1;
-   numWindowY = 1;
-   windowSymX = false;
-   windowSymY = false;
+   //numWindowX = 1;
+   //numWindowY = 1;
+   //windowSymX = false;
+   //windowSymY = false;
    selfInteract = true;
-   sparseProbe = NULL;
+   //sparseProbe = NULL;
    return PV_SUCCESS;
 }
 
