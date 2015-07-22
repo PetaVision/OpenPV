@@ -1018,6 +1018,33 @@ int setActivity_KmeansLayer(int nbatch, int numNeurons, int num_channels, MEM_GL
     return PV_SUCCESS;
 }
 
+KERNEL
+int setActivity_MLPSigmoidLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, float linear_alpha, bool* dropout_buf, int nx, int ny, int nf, int lt, int rt, int dn, int up, float dt) {
+   int kbatch;
+   
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif
+   for( kbatch=0; kbatch<numNeurons*nbatch; kbatch++ )
+#else
+      k = getIndex();
+#endif // PV_USE_OPENCL
+   {
+      int b = kbatch / numNeurons;
+      int k = kbatch % numNeurons;
+      pvdata_t * VBatch = V + b * nx * ny * nf;
+      pvdata_t * ABatch = A + b * (nx + lt + rt) * (ny + up + dn) * nf;
+      bool* dropoutBatch = dropout_buf + b * nx * ny * nf;
+
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      pvdata_t activity = 1.7159 * tanh(((float)2/3) * VBatch[k]) + linear_alpha * VBatch[k];
+      //Set explicitly to 0 if that neuron was dropped out
+      ABatch[kex] = dropoutBatch[k] ? 0 : activity;
+   }
+   return PV_SUCCESS;
+}
+
 //Not used, deprecated 6/17
 //KERNEL
 //int calcGSyn_Mean_StdDev(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * GSynHead,
@@ -1037,25 +1064,6 @@ int setActivity_KmeansLayer(int nbatch, int numNeurons, int num_channels, MEM_GL
 //   {
 //      *GSyn_Mean += GSynError[k];
 //      *GSyn_StdDev += GSynError[k] * GSynError[k];
-//   }
-//   return PV_SUCCESS;
-//}
-//KERNEL
-//int setActivity_MLPSigmoidLayer(int numNeurons, MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, float linear_alpha, bool* dropout_buf, int nx, int ny, int nf, int lt, int rt, int dn, int up, float dt) {
-//   int k;
-//#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
-//   #ifdef PV_USE_OPENMP_THREADS
-//   #pragma omp parallel for
-//   #endif
-//   for( k=0; k<numNeurons; k++ )
-//#else
-//      k = getIndex();
-//#endif // PV_USE_OPENCL
-//   {
-//      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-//      pvdata_t activity = 1.7159 * tanh(((float)2/3) * V[k]) + linear_alpha * V[k];
-//      //Set explicitly to 0 if that neuron was dropped out
-//      A[kex] = dropout_buf[k] ? 0 : activity;
 //   }
 //   return PV_SUCCESS;
 //}

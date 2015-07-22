@@ -3231,7 +3231,7 @@ int HyPerConn::calc_dW() {
       if (status==PV_BREAK) { break; }
       assert(status == PV_SUCCESS);
    }
-   return PV_SUCCESS;
+   return status;
 }
 
 int HyPerConn::update_dW(int arbor_ID) {
