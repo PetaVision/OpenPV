@@ -17,6 +17,7 @@
 //
 CL_KERNEL
 void ANNSquaredLayer_update_state(
+    const int nbatch,
     const int numNeurons,
     const int nx,
     const int ny,
@@ -31,7 +32,7 @@ void ANNSquaredLayer_update_state(
     CL_MEM_GLOBAL float * activity)
 {
 
-   updateV_ANNSquaredLayer(numNeurons, V, GSynHead);
-   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
+   updateV_ANNSquaredLayer(nbatch, numNeurons, V, GSynHead);
+   setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
 
 }

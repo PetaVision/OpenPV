@@ -24,6 +24,11 @@ protected:
 
 public:
 
+   long reserveMem(size_t size);
+   void incrementConvKernels();
+   size_t getMemory(){return deviceMem;}
+   size_t getNumConvKernels(){return numConvKernels;}
+
    static int getNumDevices();
 
    /**
@@ -114,6 +119,8 @@ protected:
    int num_devices;                  // number of computing devices
    struct cudaDeviceProp device_props;
    cudaStream_t stream;
+   long deviceMem;
+   size_t numConvKernels;
 
    void* handle;
 };

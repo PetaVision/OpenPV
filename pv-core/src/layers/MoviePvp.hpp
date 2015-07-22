@@ -1,22 +1,22 @@
 /*
- * Movie.hpp
+ * MoviePvp.hpp
  *
  *  Created on: Sep 25, 2009
  *      Author: travel
  */
 
-#ifndef MOVIE_HPP_
-#define MOVIE_HPP_
+#ifndef MOVIEPVP_HPP_
+#define MOVIEPVP_HPP_
 
-#include "Image.hpp"
+#include "ImagePvp.hpp"
 #include <sstream>
 
 namespace PV {
 
-class Movie: public PV::Image {
+class MoviePvp: public PV::ImagePvp {
 public:
-   Movie(const char * name, HyPerCol * hc);
-   virtual ~Movie();
+   MoviePvp(const char * name, HyPerCol * hc);
+   virtual ~MoviePvp();
 
    virtual int allocateDataStructures();
 
@@ -33,25 +33,32 @@ public:
    virtual int updateState(double time, double dt);
    virtual bool updateImage(double time, double dt);
    // bool        getNewImageFlag();
-   //const char * getCurrentImage();
-   int  randomFrame();
-   //int getFrameNumber(){return frameNumber;}
-   const char* getFilename(int batchIdx){return framePath[batchIdx];}
+   const char * getCurrentImage();
    const char* getBatchMethod(){return batchMethod;}
+ 
+   //Overwriting ImagePvp's getPvpFrameIdx
+   //virtual long getPvpFrameIdx() { return frameNumber; }
+
+
+   //int  randomFrame();
 
 protected:
-   Movie();
+   MoviePvp();
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_pvpFrameIdx(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_pvpBatchIdx(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_batchMethod(enum ParamsIOFlag ioFlag);
+   virtual int retrieveData(double timef, double dt);
    /**
     * List of parameters needed from the Movie class
     * @name Movie Parameters
     * @{
     */
 
-   /**
-    * @brief imagePath: Movie does not use the Image parameter imagePath.  Instead, it uses imageListPath to define the list of images.
-    */
+   ///**
+   // * @brief imagePath: Movie does not use the Image parameter imagePath.  Instead, it uses imageListPath to define the list of images.
+   // */
    //virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
 
    ///**
@@ -59,12 +66,12 @@ protected:
    // */
    //virtual void ioParam_frameNumber(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief imageListPath: The file containing the list of images.
-    * @details Relative paths are with respect to the working directory.
-    * imageListPath can point to either a text file containing a list of image files or URLs, or a .pvp file.
-    * If a .pvp file, each frame of the file consititutes an image.
-    */
+   ///**
+   // * @brief imageListPath: The file containing the list of images.
+   // * @details Relative paths are with respect to the working directory.
+   // * imageListPath can point to either a text file containing a list of image files or URLs, or a .pvp file.
+   // * If a .pvp file, each frame of the file consititutes an image.
+   // */
    //virtual void ioParam_imageListPath(enum ParamsIOFlag ioFlag);
 
    /**
@@ -88,10 +95,10 @@ protected:
    // */
    //virtual void ioParam_readPvpFile(enum ParamsIOFlag ioFlag);
 
-   /**
-    * @brief echoFramePathnameFlag: if true, print the filename to the screen when a new image file is loaded.
-    */
-   virtual void ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag);
+   ///**
+   // * @brief echoFramePathnameFlag: if true, print the filename to the screen when a new image file is loaded.
+   // */
+   //virtual void ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief start_frame_index: Initialize the layer with the given frame.
@@ -129,41 +136,30 @@ protected:
     * If true, it resets to the location given by start_frame_index.
     */
    virtual void ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief batchMethod: Specifies how to split the file for batches.
-    * byImage: Each batch skips nbatch, and starts staggered from the same part of the file 
-    * byMovie: Each batch skips 1, and starts at numFrames/numBatch part of the file 
-    * bySpecified: User specified start_frame_index and skip_frame_index, one for each batch
-    */
-   virtual void ioParam_batchMethod(enum ParamsIOFlag ioFlag);
-
    /** @} */
 
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readFrameNumStateFromCheckpoint(const char * cpDir);
 
-   virtual int retrieveData(double timef, double dt);
    //bool readPvpFile;
-   const char * getNextFileName(int n_skip, int batchIdx);
-   int updateFrameNum(int n_skip);
+   //const char * getNextFileName(int n_skip);
+   int updateFrameNum(int n_skip, int batchIdx);
    PV_Stream * timestampFile;
 
 
 private:
    int initialize_base();
-   //int copyReducedImagePortion();
-   int updateFrameNum();
-   int getNumFrames();
-   const char * advanceFileName(int batchIdx);
+   int copyReducedImagePortion();
+   int updateFrameNum(int batchIdx);
+   //const char * advanceFileName();
 
    bool resetToStartOnLoop;
 
    double displayPeriod;   // length of time a frame is displayed
    //double nextDisplayTime; // time of next frame; now handled by HyPerLayer nextUpdateTime
 
-   int randomMovie;       // these are used for performing a reverse correlation analysis
-   float randomMovieProb;
+   //int randomMovie;       // these are used for performing a reverse correlation analysis
+   //float randomMovieProb;
 
    bool echoFramePathnameFlag; // if true, echo the frame pathname to stdout
    // bool newImageFlag; // true when a new image was presented this timestep;
@@ -178,19 +174,13 @@ private:
    char inputfile[PV_PATH_MAX];  // current input file name
    char * movieOutputPath;  // path to output file directory for movie frames
 
-   int numFrames; //Number of frames
-   char ** framePath;
-   char * batchMethod;
-
-   PV_Stream * filenamestream;
+   int* frameNumbers;
 
    bool writeFrameToTimestamp;
 
    bool flipOnTimescaleError;
-   long * batchPos;
    bool initFlag;
-   //int numTotalFrames;
-   //long* frameNumber;
+   char* batchMethod;
 };
 
 }

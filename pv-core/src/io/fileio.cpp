@@ -1037,15 +1037,20 @@ int pvp_write_header(PV_Stream * pvstream, Communicator * comm, double time, con
    // assert(globalSize < 0xffffffff); // should have checked this before calling pvp_write_header().
 
    int numRecords;
+   int paramNBands;
+
    switch(filetype) {
    case PVP_WGT_FILE_TYPE:
       numRecords = numbands * nxBlocks * nyBlocks; // Each process writes a record for each arbor
+      paramNBands = numbands;
       break;
    case PVP_KERNEL_FILE_TYPE:
       numRecords = numbands; // Each arbor writes its own record; all processes have the same weights
+      paramNBands = numbands;
       break;
    default:
       numRecords = nxBlocks * nyBlocks; // For activity files, each process writes its own record
+      paramNBands = numbands * loc->nbatch;
       break;
    }
 
@@ -1066,7 +1071,7 @@ int pvp_write_header(PV_Stream * pvstream, Communicator * comm, double time, con
    params[INDEX_KX0]         = loc->kx0;
    params[INDEX_KY0]         = loc->ky0;
    params[INDEX_NB]          = 0; // loc->nb;
-   params[INDEX_NBANDS]      = numbands;
+   params[INDEX_NBANDS]      = paramNBands;
 
    timeToParams(time, &params[INDEX_TIME]);
 
@@ -1098,7 +1103,7 @@ int * pvp_set_file_params(Communicator * comm, double timed, const PVLayerLoc * 
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
    params[INDEX_NB]          = 0; // loc->nb;
-   params[INDEX_NBANDS]      = numbands;
+   params[INDEX_NBANDS]      = numbands * loc->nbatchGlobal;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
 }
@@ -1122,8 +1127,8 @@ int * pvp_set_activity_params(Communicator * comm, double timed, const PVLayerLo
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NBANDS]      = numbands;
-   params[INDEX_NB]          = 0; // loc->nb;
+   params[INDEX_NBANDS]      = numbands * loc->nbatchGlobal;
+   params[INDEX_NB]          = 0;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
 }
@@ -1177,7 +1182,7 @@ int * pvp_set_nonspiking_act_params(Communicator * comm, double timed, const PVL
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
    params[INDEX_NB]          = 0; // loc->nb;
-   params[INDEX_NBANDS]      = numbands;
+   params[INDEX_NBANDS]      = numbands * loc->nbatchGlobal;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
 }
@@ -1228,7 +1233,7 @@ int * pvp_set_nonspiking_sparse_act_params(Communicator * comm, double timed, co
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NBANDS]      = numbands;
+   params[INDEX_NBANDS]      = numbands * loc->nbatchGlobal;
    params[INDEX_NB]          = 0; // loc->nb;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
@@ -1300,7 +1305,6 @@ int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, d
 int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, DataStore * store, const PVLayerLoc* loc)
 {
    int status = PV_SUCCESS;
-   pvadata_t * data = (pvadata_t*) store->buffer(LOCAL);
 
    // write header, but only at the beginning
 #ifdef PV_USE_MPI
@@ -1308,28 +1312,32 @@ int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, DataS
 #else // PV_USE_MPI
    int rank = 0;
 #endif // PV_USE_MPI
-   if( rank == 0 ) {
-      long fpos = getPV_StreamFilepos(pvstream);
-      if (fpos == 0L) {
-         int * params = pvp_set_nonspiking_act_params(comm, timed, loc, PV_FLOAT_TYPE, 1/*numbands*/);
-         assert(params && params[1]==NUM_BIN_PARAMS);
-         int numParams = params[1];
-         status = pvp_write_header(pvstream, comm, params, numParams);
-         free(params);
-      }
-      // HyPerLayer::writeActivity calls HyPerLayer::incrementNBands, which maintains the value of numbands in the header.
 
-      // write time
-      //
-      if ( PV_fwrite(&timed, sizeof(double), 1, pvstream) != 1 ) {
-         fprintf(stderr,"fwrite of timestamp in PV::writeActivity failed in file \"%s\" at time %f\n", pvstream->name, timed);
-         abort();
-         return -1;
-      }
-   }
+   for(int b = 0; b < loc->nbatch; b++){
+      pvadata_t * data = (pvadata_t*) store->buffer(b);
+      if( rank == 0 ) {
+         long fpos = getPV_StreamFilepos(pvstream);
+         if (fpos == 0L) {
+            int * params = pvp_set_nonspiking_act_params(comm, timed, loc, PV_FLOAT_TYPE, 1/*numbands*/);
+            assert(params && params[1]==NUM_BIN_PARAMS);
+            int numParams = params[1];
+            status = pvp_write_header(pvstream, comm, params, numParams);
+            free(params);
+         }
+         // HyPerLayer::writeActivity calls HyPerLayer::incrementNBands, which maintains the value of numbands in the header.
 
-   if (gatherActivity(pvstream, comm, 0/*root process*/, data, loc, true/*extended*/)!=PV_SUCCESS) {
-      status = PV_FAILURE;
+         // write time
+         //
+         if ( PV_fwrite(&timed, sizeof(double), 1, pvstream) != 1 ) {
+            fprintf(stderr,"fwrite of timestamp in PV::writeActivity failed in file \"%s\" at time %f\n", pvstream->name, timed);
+            abort();
+            return -1;
+         }
+      }
+
+      if (gatherActivity(pvstream, comm, 0/*root process*/, data, loc, true/*extended*/)!=PV_SUCCESS) {
+         status = PV_FAILURE;
+      }
    }
    return status;
 }
@@ -1342,96 +1350,44 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
 
    const int icRoot = 0;
    const int icRank = comm->commRank();
-   int localActive = *(store->numActiveBuffer(LOCAL));
-   unsigned int * indices = store->activeIndicesBuffer(LOCAL);
-   pvadata_t * valueData = (pvadata_t*) store->buffer(LOCAL);
 
-   indexvaluepair * indexvaluepairs = NULL;
-   unsigned int * globalResIndices = NULL;
-   int localResActive = 0;
+   for(int b = 0; b < loc->nbatch; b++){
+
+      int localActive = *(store->numActiveBuffer(b));
+      unsigned int * indices = store->activeIndicesBuffer(b);
+      pvadata_t * valueData = (pvadata_t*) store->buffer(b);
+
+      indexvaluepair * indexvaluepairs = NULL;
+      unsigned int * globalResIndices = NULL;
+      int localResActive = 0;
 
 #ifdef PV_USE_MPI
-   const int tag = includeValues?PVP_ACT_SPARSEVALUES_FILE_TYPE:PVP_ACT_FILE_TYPE;
-   const MPI_Comm mpi_comm = comm->communicator();
+      const int tag = includeValues?PVP_ACT_SPARSEVALUES_FILE_TYPE:PVP_ACT_FILE_TYPE;
+      const MPI_Comm mpi_comm = comm->communicator();
 #endif // PV_USE_MPI
 
 
-   if (icRank != icRoot) {
+      if (icRank != icRoot) {
 
 #ifdef PV_USE_MPI
-      const int dest = icRoot;
+         const int dest = icRoot;
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: writeActivitySparseNonspiking: sent localActive value of %d to %d\n",
-              comm->commRank, localActive, dest);
+         fprintf(stderr, "[%2d]: writeActivitySparseNonspiking: sent localActive value of %d to %d\n",
+                 comm->commRank, localActive, dest);
 #endif // DEBUG_OUTPUT
-      void * data = NULL;
-      size_t datasize = 0UL;
-      MPI_Datatype mpi_type = NULL;
-      if (includeValues) {
-         indexvaluepairs = (indexvaluepair *) malloc(localActive*sizeof(indexvaluepair));
-         if (indexvaluepairs==NULL) {
-            fprintf(stderr, "writeActivitySparseNonspiking error: Rank %d process unable to allocate memory for indexvaluepairs: %s\n",
-                    icRank, strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-         int pairsIdx = 0;
-         for (int j=0; j<localActive; j++) {
-            int localExtK = indices[j];
-            int globalResK = localExtToGlobalRes(localExtK, loc);
-            if(globalResK == -1){
-               continue;
-            }
-            indexvaluepairs[pairsIdx].index = globalResK;
-            indexvaluepairs[pairsIdx].value = valueData[localExtK];
-            pairsIdx++;
-         }
-         data = (void *) indexvaluepairs;
-         datasize = sizeof(indexvaluepair);
-         localResActive = pairsIdx;
-      }
-      else {
-         //Change local ext indices to global res index
-         globalResIndices = (unsigned int *) malloc(localActive*sizeof(unsigned int));
-         int indiciesIdx = 0;
-         for (int j=0; j<localActive; j++) {
-            int localExtK = indices[j];
-            int globalResK = localExtToGlobalRes(localExtK, loc);
-            if(globalResK == -1){
-               continue;
-            }
-            globalResIndices[indiciesIdx] = globalResK;
-            indiciesIdx++;
-         }
-         data = (void *) globalResIndices;
-         datasize = sizeof(unsigned int);
-         localResActive = indiciesIdx;
-      }
-      MPI_Ssend(&localResActive, 1, MPI_INT, dest, tag, mpi_comm);
-
-      MPI_Ssend(data, localResActive*datasize, MPI_CHAR, dest, tag,mpi_comm);
-
-#ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: writeActivitySparse: sent to %d, localActive==%d\n",
-              comm->commRank(), dest, localResActive);
-      fflush(stderr);
-#endif // DEBUG_OUTPUT
-#endif // PV_USE_MPI
-
-      // leaving not root-process section
-      //
-   }
-   else {
-      void * data = NULL;
-      // we are io root process
-      //
-      if (localActive > 0) {
+         void * data = NULL;
+         size_t datasize = 0UL;
+         MPI_Datatype mpi_type = NULL;
          if (includeValues) {
             indexvaluepairs = (indexvaluepair *) malloc(localActive*sizeof(indexvaluepair));
-            assert(indexvaluepairs); /* lazy; fix with a proper error message */
-
+            if (indexvaluepairs==NULL) {
+               fprintf(stderr, "writeActivitySparseNonspiking error: Rank %d process unable to allocate memory for indexvaluepairs: %s\n",
+                       icRank, strerror(errno));
+               exit(EXIT_FAILURE);
+            }
             int pairsIdx = 0;
-            for (int k=0; k<localActive; k++) {
-               int localExtK = indices[k];
+            for (int j=0; j<localActive; j++) {
+               int localExtK = indices[j];
                int globalResK = localExtToGlobalRes(localExtK, loc);
                if(globalResK == -1){
                   continue;
@@ -1440,9 +1396,11 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
                indexvaluepairs[pairsIdx].value = valueData[localExtK];
                pairsIdx++;
             }
+            data = (void *) indexvaluepairs;
+            datasize = sizeof(indexvaluepair);
             localResActive = pairsIdx;
          }
-         else{
+         else {
             //Change local ext indices to global res index
             globalResIndices = (unsigned int *) malloc(localActive*sizeof(unsigned int));
             int indiciesIdx = 0;
@@ -1455,145 +1413,199 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
                globalResIndices[indiciesIdx] = globalResK;
                indiciesIdx++;
             }
+            data = (void *) globalResIndices;
+            datasize = sizeof(unsigned int);
             localResActive = indiciesIdx;
          }
-      }
+         MPI_Ssend(&localResActive, 1, MPI_INT, dest, tag, mpi_comm);
 
-      //Need to calculate totalResActive of root process
-      unsigned int totalActive = localResActive;
+         MPI_Ssend(data, localResActive*datasize, MPI_CHAR, dest, tag,mpi_comm);
 
-#ifdef PV_USE_MPI
-      // get the number active from each process
-      //
-      unsigned int * numActive = NULL;
-      const int icSize = comm->commSize();
-
-      if (icSize > 1) {
-         // otherwise numActive is not used
-         numActive = (unsigned int *) malloc(icSize*sizeof(unsigned int));
-         if (numActive == NULL) {
-            fprintf(stderr, "writeActivitySparseNonspiking error: Root process unable to allocate memory for numActive array: %s\n",
-                    strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-      }
-
-      for (int p = 1; p < icSize; p++) {
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: writeActivitySparseNonspiking: receiving numActive value from %d\n",
-                 comm->commRank(), p);
-#endif // DEBUG_OUTPUT
-         MPI_Status mpi_status;
-         MPI_Recv(&numActive[p], 1, MPI_INT, p, tag, mpi_comm, &mpi_status);
-         totalActive += numActive[p];
-      }
-#endif // PV_USE_MPI
-
-      bool extended   = false;
-      bool contiguous = true;
-
-      const int datatype = includeValues?PV_SPARSEVALUES_TYPE:PV_INT_TYPE;
-      const int filetype = includeValues?PVP_ACT_SPARSEVALUES_FILE_TYPE:PVP_ACT_FILE_TYPE;
-
-      // write activity header
-      //
-      long fpos = getPV_StreamFilepos(pvstream);
-      if (fpos == 0L) {
-         int numParams = NUM_BIN_PARAMS;
-         status = pvp_write_header(pvstream, comm, timed, loc, filetype,
-                                   datatype, 1, extended, contiguous,
-                                   numParams, (size_t) totalActive);
-         if (status != 0) {
-            fprintf(stderr, "[%2d]: writeActivitySparse error: failed in pvp_write_header, numParams==%d, localActive==%d\n",
-                    comm->commRank(), numParams, localActive);
-            return status;
-         }
-      }
-
-      // write time, total active count, and local activity
-      //
-      status = (PV_fwrite(&timed, sizeof(double), 1, pvstream) != 1 );
-      if (status != 0) {
-         fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&timed), time==%f\n",
-                 comm->commRank(), timed);
-         return status;
-      }
-      status = ( PV_fwrite(&totalActive, sizeof(unsigned int), 1, pvstream) != 1 );
-      if (status != 0) {
-         fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&totalActive), totalActive==%d\n",
-                 comm->commRank(), totalActive);
-         return status;
-      }
-      
-      //Write to seperate file this current file position
-      //long filepos = pvstream->filepos;
-      //status = (PV_fwrite(&filepos, sizeof(long), 1, posstream) != 1);
-      //fflush(posstream->fp);
-      
-      //if (status != 0) {
-      //   fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&filepos), filepos==%ld\n",
-      //           comm->commRank(), filepos);
-      //   return status;
-      //}
-
-      if (localResActive > 0) {
-         if (includeValues) {
-            status = (PV_fwrite(indexvaluepairs, sizeof(indexvaluepair), localResActive, pvstream) != (size_t) localResActive);
-         }
-         else {
-            status = (PV_fwrite(globalResIndices, sizeof(unsigned int), localResActive, pvstream) != (size_t) localResActive);
-         }
-         if (status != 0) {
-            fprintf(stderr, "[%2d]: writeActivitySparse: failed in PV_fwrite(indices), localActive==%d\n",
-                  comm->commRank(), localResActive);
-            return status;
-         }
-      }
-
-      // recv and write non-local activity
-      //
-#ifdef PV_USE_MPI
-      for (int p = 1; p < icSize; p++) {
-         void * data = NULL;
-         size_t datasize = 0UL;
-         if (includeValues) {
-            datasize = sizeof(indexvaluepair);
-            free(indexvaluepairs);
-            indexvaluepairs = (indexvaluepair *) malloc(numActive[p]*datasize);
-            assert(indexvaluepairs); /* lazy; fix with proper error message */
-            data = (void *) indexvaluepairs;
-         }
-         else {
-            datasize = sizeof(unsigned int);
-            free(globalResIndices);
-            globalResIndices = (unsigned int *) malloc(numActive[p]*datasize);
-            assert(globalResIndices);
-            data = (void *) globalResIndices;
-         }
-#ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: writeActivitySparse: receiving from %d, numActive==%d\n",
-                 comm->commRank(), p, numActive[p]);
+         fprintf(stderr, "[%2d]: writeActivitySparse: sent to %d, localActive==%d\n",
+                 comm->commRank(), dest, localResActive);
          fflush(stderr);
 #endif // DEBUG_OUTPUT
-         
-         MPI_Status mpi_status;
-         MPI_Recv(data, numActive[p]*datasize, MPI_CHAR, p, tag, mpi_comm, &mpi_status);
-
-         status = (PV_fwrite(data, datasize, numActive[p], pvstream) != numActive[p] );
-         if (status != 0) {
-            fprintf(stderr, "[%2d]: writeActivitySparse: failed in PV_fwrite(indices), numActive[p]==%d, p=%d\n",
-                    comm->commRank(), numActive[p], p);
-            return status;
-         }
-      }
-      free(numActive);
 #endif // PV_USE_MPI
 
-      // leaving root-process section
-      //
+         // leaving not root-process section
+         //
+      }
+      else {
+         void * data = NULL;
+         // we are io root process
+         //
+         if (localActive > 0) {
+            if (includeValues) {
+               indexvaluepairs = (indexvaluepair *) malloc(localActive*sizeof(indexvaluepair));
+               assert(indexvaluepairs); /* lazy; fix with a proper error message */
+
+               int pairsIdx = 0;
+               for (int k=0; k<localActive; k++) {
+                  int localExtK = indices[k];
+                  int globalResK = localExtToGlobalRes(localExtK, loc);
+                  if(globalResK == -1){
+                     continue;
+                  }
+                  indexvaluepairs[pairsIdx].index = globalResK;
+                  indexvaluepairs[pairsIdx].value = valueData[localExtK];
+                  pairsIdx++;
+               }
+               localResActive = pairsIdx;
+            }
+            else{
+               //Change local ext indices to global res index
+               globalResIndices = (unsigned int *) malloc(localActive*sizeof(unsigned int));
+               int indiciesIdx = 0;
+               for (int j=0; j<localActive; j++) {
+                  int localExtK = indices[j];
+                  int globalResK = localExtToGlobalRes(localExtK, loc);
+                  if(globalResK == -1){
+                     continue;
+                  }
+                  globalResIndices[indiciesIdx] = globalResK;
+                  indiciesIdx++;
+               }
+               localResActive = indiciesIdx;
+            }
+         }
+
+         //Need to calculate totalResActive of root process
+         unsigned int totalActive = localResActive;
+
+#ifdef PV_USE_MPI
+         // get the number active from each process
+         //
+         unsigned int * numActive = NULL;
+         const int icSize = comm->commSize();
+
+         if (icSize > 1) {
+            // otherwise numActive is not used
+            numActive = (unsigned int *) malloc(icSize*sizeof(unsigned int));
+            if (numActive == NULL) {
+               fprintf(stderr, "writeActivitySparseNonspiking error: Root process unable to allocate memory for numActive array: %s\n",
+                       strerror(errno));
+               exit(EXIT_FAILURE);
+            }
+         }
+
+         for (int p = 1; p < icSize; p++) {
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: writeActivitySparseNonspiking: receiving numActive value from %d\n",
+                    comm->commRank(), p);
+#endif // DEBUG_OUTPUT
+            MPI_Status mpi_status;
+            MPI_Recv(&numActive[p], 1, MPI_INT, p, tag, mpi_comm, &mpi_status);
+            totalActive += numActive[p];
+         }
+#endif // PV_USE_MPI
+
+         bool extended   = false;
+         bool contiguous = true;
+
+         const int datatype = includeValues?PV_SPARSEVALUES_TYPE:PV_INT_TYPE;
+         const int filetype = includeValues?PVP_ACT_SPARSEVALUES_FILE_TYPE:PVP_ACT_FILE_TYPE;
+
+         // write activity header
+         //
+         long fpos = getPV_StreamFilepos(pvstream);
+         if (fpos == 0L) {
+            int numParams = NUM_BIN_PARAMS;
+            status = pvp_write_header(pvstream, comm, timed, loc, filetype,
+                                      datatype, 1, extended, contiguous,
+                                      numParams, (size_t) totalActive);
+            if (status != 0) {
+               fprintf(stderr, "[%2d]: writeActivitySparse error: failed in pvp_write_header, numParams==%d, localActive==%d\n",
+                       comm->commRank(), numParams, localActive);
+               return status;
+            }
+         }
+
+         // write time, total active count, and local activity
+         //
+         status = (PV_fwrite(&timed, sizeof(double), 1, pvstream) != 1 );
+         if (status != 0) {
+            fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&timed), time==%f\n",
+                    comm->commRank(), timed);
+            return status;
+         }
+         status = ( PV_fwrite(&totalActive, sizeof(unsigned int), 1, pvstream) != 1 );
+         if (status != 0) {
+            fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&totalActive), totalActive==%d\n",
+                    comm->commRank(), totalActive);
+            return status;
+         }
+         
+         //Write to seperate file this current file position
+         //long filepos = pvstream->filepos;
+         //status = (PV_fwrite(&filepos, sizeof(long), 1, posstream) != 1);
+         //fflush(posstream->fp);
+         
+         //if (status != 0) {
+         //   fprintf(stderr, "[%2d]: writeActivitySparse: failed in fwrite(&filepos), filepos==%ld\n",
+         //           comm->commRank(), filepos);
+         //   return status;
+         //}
+
+         if (localResActive > 0) {
+            if (includeValues) {
+               status = (PV_fwrite(indexvaluepairs, sizeof(indexvaluepair), localResActive, pvstream) != (size_t) localResActive);
+            }
+            else {
+               status = (PV_fwrite(globalResIndices, sizeof(unsigned int), localResActive, pvstream) != (size_t) localResActive);
+            }
+            if (status != 0) {
+               fprintf(stderr, "[%2d]: writeActivitySparse: failed in PV_fwrite(indices), localActive==%d\n",
+                     comm->commRank(), localResActive);
+               return status;
+            }
+         }
+
+         // recv and write non-local activity
+         //
+#ifdef PV_USE_MPI
+         for (int p = 1; p < icSize; p++) {
+            void * data = NULL;
+            size_t datasize = 0UL;
+            if (includeValues) {
+               datasize = sizeof(indexvaluepair);
+               free(indexvaluepairs);
+               indexvaluepairs = (indexvaluepair *) malloc(numActive[p]*datasize);
+               assert(indexvaluepairs); /* lazy; fix with proper error message */
+               data = (void *) indexvaluepairs;
+            }
+            else {
+               datasize = sizeof(unsigned int);
+               free(globalResIndices);
+               globalResIndices = (unsigned int *) malloc(numActive[p]*datasize);
+               assert(globalResIndices);
+               data = (void *) globalResIndices;
+            }
+#ifdef DEBUG_OUTPUT
+            fprintf(stderr, "[%2d]: writeActivitySparse: receiving from %d, numActive==%d\n",
+                    comm->commRank(), p, numActive[p]);
+            fflush(stderr);
+#endif // DEBUG_OUTPUT
+            
+            MPI_Status mpi_status;
+            MPI_Recv(data, numActive[p]*datasize, MPI_CHAR, p, tag, mpi_comm, &mpi_status);
+
+            status = (PV_fwrite(data, datasize, numActive[p], pvstream) != numActive[p] );
+            if (status != 0) {
+               fprintf(stderr, "[%2d]: writeActivitySparse: failed in PV_fwrite(indices), numActive[p]==%d, p=%d\n",
+                       comm->commRank(), numActive[p], p);
+               return status;
+            }
+         }
+         free(numActive);
+#endif // PV_USE_MPI
+
+         // leaving root-process section
+         //
+      }
+      free(indexvaluepairs);
+      free(globalResIndices);
    }
-   free(indexvaluepairs);
-   free(globalResIndices);
    return status;
 }
 
@@ -2192,7 +2204,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
    return status;
 }
 
-int writeRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc, bool verifyWrites) {
+int writeRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc, bool isExtended, bool verifyWrites) {
    int status = PV_SUCCESS;
    int rootproc = 0;
    int rank = comm->commRank();
@@ -2205,14 +2217,24 @@ int writeRandState(const char * filename, Communicator * comm, uint4 * randState
          abort();
       }
    }
-   status = gatherActivity(pvstream, comm, rootproc, randState, loc, false/*extended*/);
+
+   for(int b = 0; b < loc->nbatch; b++){
+      uint4 * randStateBatch;
+      if(isExtended){
+         randStateBatch = randState + b * (loc->nx + loc->halo.rt + loc->halo.lt) * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
+      }
+      else{
+         randStateBatch = randState + b * loc->nx * loc->ny * loc->nf;
+      }
+      status = gatherActivity(pvstream, comm, rootproc, randStateBatch, loc, isExtended/*extended*/);
+   }
    if (rank==rootproc) {
       PV_fclose(pvstream); pvstream = NULL;
    }
    return status;
 }
 
-int readRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc) {
+int readRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc, bool isExtended) {
    int status = PV_SUCCESS;
    int rootproc = 0;
    int rank = comm->commRank();
@@ -2225,7 +2247,16 @@ int readRandState(const char * filename, Communicator * comm, uint4 * randState,
          abort();
       }
    }
-   status = scatterActivity(pvstream, comm, rootproc, randState, loc, false/*extended*/);
+   for(int b = 0; b < loc->nbatch; b++){
+      uint4 * randStateBatch;
+      if(isExtended){
+         randStateBatch = randState + b * (loc->nx + loc->halo.rt + loc->halo.lt) * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
+      }
+      else{
+         randStateBatch = randState + b * loc->nx * loc->ny * loc->nf;
+      }
+      status = scatterActivity(pvstream, comm, rootproc, randStateBatch, loc, isExtended/*extended*/);
+   }
    if (rank==rootproc) {
       PV_fclose(pvstream); pvstream = NULL;
    }

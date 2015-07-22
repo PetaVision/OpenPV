@@ -28,7 +28,6 @@
 #include <fts.h>
 #include <fstream>
 #include <time.h>
-#include <csignal>
 
 namespace PV {
 
@@ -133,6 +132,15 @@ HyPerCol::~HyPerCol()
       close(origStdOut);
       close(origStdErr);
    }
+   if(timeScale){
+      free(timeScale);
+   }
+   if(timeScaleTrue){
+      free(timeScaleTrue);
+   }
+   if(deltaTimeAdapt){
+      free(deltaTimeAdapt);
+   }
 }
 
 
@@ -172,8 +180,9 @@ int HyPerCol::initialize_base() {
    deltaTime = DELTA_T;
    dtAdaptFlag = false;
    deltaTimeBase = DELTA_T;
-   timeScale = 1.0;
-   timeScaleTrue = 1.0;
+   timeScale = NULL;
+   timeScaleTrue = NULL;
+   deltaTimeAdapt = NULL;
    timeScaleMax = 1.0;
    timeScaleMin = 1.0;
    changeTimeScaleMax = 0.0;
@@ -210,6 +219,7 @@ int HyPerCol::initialize_base() {
    image_file = NULL;
    nxGlobal = 0;
    nyGlobal = 0;
+   nbatch = 1;
    ownsParams = true;
    ownsInterColComm = true;
    params = NULL;
@@ -233,6 +243,7 @@ int HyPerCol::initialize_base() {
    numThreads = 1;
    recvLayerBuffer.clear();
    verifyWrites = true; // Default for reading back and verifying when calling PV_fwrite
+   this->threadBatch = -1;
 
    return PV_SUCCESS;
 }
@@ -588,6 +599,51 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PVParams * i
 #endif
    }
 
+   //Allocate timescales for batches
+   timeScale = (double*) malloc(sizeof(double) * nbatch);
+   if(timeScale ==NULL) {
+      fprintf(stderr, "%s error: unable to allocate memory for timeScale buffer.\n", argv[0]);
+      exit(EXIT_FAILURE);
+   }
+   timeScaleTrue = (double*) malloc(sizeof(double) * nbatch);
+   if(timeScaleTrue ==NULL) {
+      fprintf(stderr, "%s error: unable to allocate memory for timeScaleTrue buffer.\n", argv[0]);
+      exit(EXIT_FAILURE);
+   }
+   deltaTimeAdapt = (double*) malloc(sizeof(double) * nbatch);
+   if(deltaTimeAdapt == NULL) {
+      fprintf(stderr, "%s error: unable to allocate memory for deltaTimeAdapt buffer.\n", argv[0]);
+      exit(EXIT_FAILURE);
+   }
+   //Initialize timeScales to 1
+   for(int b = 0; b < nbatch; b++){
+      timeScale[b] = 1;
+      timeScaleTrue[b] = 1;
+      deltaTimeAdapt[b] = 1;
+   }
+
+   //Here, we decide if we thread over batches (ideal) or over neurons, depending on the number of threads and number of batches
+   //User can also overwrite this behavior with a specific flag
+   if(threadBatch == -1){
+      if(getNBatch() >= getNumThreads()){
+         threadBatch = 1;
+         if (columnId()==0) {
+            printf("%s \"%s\" defaulting to threading over batches.\n",
+                  parameters()->groupKeywordFromName(name), name);
+         }
+      }
+      else{
+         threadBatch = 0;
+         if (columnId()==0) {
+            printf("%s \"%s\" defaulting to threading over neurons.\n",
+                  parameters()->groupKeywordFromName(name), name);
+         }
+      }
+   }
+   //At this point, threadBatch must be either true or false
+   assert(threadBatch == 0 || threadBatch == 1);
+
+
 //   runDelegate = NULL;
 
    return PV_SUCCESS;
@@ -633,6 +689,8 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_randomSeed(ioFlag);
    ioParam_nx(ioFlag);
    ioParam_ny(ioFlag);
+   ioParam_nBatch(ioFlag);
+   ioParam_threadBatch(ioFlag);
    ioParam_filenamesContainLayerNames(ioFlag);
    ioParam_filenamesContainConnectionNames(ioFlag);
    ioParam_initializeFromCheckpointDir(ioFlag);
@@ -941,6 +999,19 @@ void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
    ioParamValueRequired(ioFlag, name, "ny", &nyGlobal);
 }
 
+void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "nbatch", &nbatch, nbatch);
+}
+
+void HyPerCol::ioParam_threadBatch(enum ParamsIOFlag ioFlag) {
+   ioParamValue(ioFlag, name, "threadBatch", &threadBatch, threadBatch);
+   if(threadBatch < -1 || threadBatch > 1){
+      std::cout << "threadBatch value (" << threadBatch << ") not recognized, must be -1 (auto, set by default), 0 (thread over neurons), or 1 (thread over batches)\n";
+      exit(-1);
+   }
+}
+
+
 void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "filenamesContainLayerNames", &filenamesContainLayerNames, 0);
    if(filenamesContainLayerNames < 0 || filenamesContainLayerNames > 2) {
@@ -1211,6 +1282,7 @@ void HyPerCol::writeParamArray(const char * param_name, const T * array, int arr
 }
 // Declare the instantiations of writeParam that occur in other .cpp files; otherwise you'll get linker errors.
 template void HyPerCol::writeParamArray<float>(const char * param_name, const float * array, int arraysize);
+template void HyPerCol::writeParamArray<int>(const char * param_name, const int * array, int arraysize);
 
 
 int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
@@ -1794,89 +1866,91 @@ int HyPerCol::initPublishers() {
    return PV_SUCCESS;
 }
 
-double HyPerCol::adaptTimeScale(){
-   // query all layers to determine minimum timeScale > 0
-   // by default, HyPerLayer::getTimeScale returns -1
-   // initialize timeScaleMin to first returned timeScale > 0
-   // Movie returns timeScale = 1 when expecting to load a new frame
-   // on next time step based on current value of deltaTime
-   double oldTimeScale = timeScale;
-   double oldTimeScaleTrue = timeScaleTrue;
-   //double timeScaleMin = -1.0;
-   //const double timeScaleMax = 5.0;             // maxiumum value of timeScale
-   //const double changeTimeScaleMax = 0.05;      // maximum change in timeScale from previous time step
-   //const double changeTimeScaleTrueMax = 0.05;  // if change in timeScaleTrue exceeds changeTimeScaleMax, timeScale does not increase;
-   // forces timeScale to remain constant if Error is changing too rapidly
-   // if change in timeScaleTrue is negative, revert to minimum timeScale
-   // TODO?? add ability to revert all dynamical variables to previous values if Error increases?
+double * HyPerCol::adaptTimeScale(){
+   for(int b = 0; b < nbatch; b++){
+      // query all layers to determine minimum timeScale > 0
+      // by default, HyPerLayer::getTimeScale returns -1
+      // initialize timeScaleMin to first returned timeScale > 0
+      // Movie returns timeScale = 1 when expecting to load a new frame
+      // on next time step based on current value of deltaTime
+      double oldTimeScale = timeScale[b];
+      double oldTimeScaleTrue = timeScaleTrue[b];
+      //double timeScaleMin = -1.0;
+      //const double timeScaleMax = 5.0;             // maxiumum value of timeScale
+      //const double changeTimeScaleMax = 0.05;      // maximum change in timeScale from previous time step
+      //const double changeTimeScaleTrueMax = 0.05;  // if change in timeScaleTrue exceeds changeTimeScaleMax, timeScale does not increase;
+      // forces timeScale to remain constant if Error is changing too rapidly
+      // if change in timeScaleTrue is negative, revert to minimum timeScale
+      // TODO?? add ability to revert all dynamical variables to previous values if Error increases?
 
-   // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
-   double minTimeScaleTmp = -1;
-   for(int l = 0; l < numLayers; l++) {
-      //Grab timescale
-      double timeScaleTmp = layers[l]->calcTimeScale();
-      if (timeScaleTmp > 0.0){
-         //Error if smaller than tolerated
-         if (timeScaleTmp < dtMinToleratedTimeScale) {
-            if (columnId()==0) {
-               fprintf(stderr, "Error: Layer \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
+      // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
+      double minTimeScaleTmp = -1;
+      for(int l = 0; l < numLayers; l++) {
+         //Grab timescale
+         double timeScaleTmp = layers[l]->calcTimeScale(b);
+         if (timeScaleTmp > 0.0){
+            //Error if smaller than tolerated
+            if (timeScaleTmp < dtMinToleratedTimeScale) {
+               if (columnId()==0) {
+                  fprintf(stderr, "Error: Layer \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
+               }
+               MPI_Barrier(icComm->communicator());
+               exit(EXIT_FAILURE);
             }
-            MPI_Barrier(icComm->communicator());
-            exit(EXIT_FAILURE);
+            //Grabbing lowest timeScaleTmp
+            if (minTimeScaleTmp > 0.0){
+               minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
+            }
+            //Initial set
+            else{
+               minTimeScaleTmp = timeScaleTmp;
+            }
          }
-         //Grabbing lowest timeScaleTmp
+      }
+      //Set timeScaleTrue to new minTimeScale
+      timeScaleTrue[b] = minTimeScaleTmp;
+
+      // force the minTimeScaleTmp to be <= timeScaleMax
+      minTimeScaleTmp = minTimeScaleTmp < timeScaleMax ? minTimeScaleTmp : timeScaleMax;
+
+      // set the timeScale to minTimeScaleTmp iff minTimeScaleTmp > 0, otherwise default to timeScaleMin
+      timeScale[b] = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : timeScaleMin;
+
+      // only let the timeScale change by a maximum percentage of oldTimescale of changeTimeScaleMax on any given time step
+      double changeTimeScale = (timeScale[b] - oldTimeScale)/oldTimeScale;
+      timeScale[b] = changeTimeScale < changeTimeScaleMax ? timeScale[b] : oldTimeScale * (1 + changeTimeScaleMax);
+
+      //Positive if timescale increased, error decreased
+      //Negative if timescale decreased, error increased
+      double changeTimeScaleTrue = timeScaleTrue[b] - oldTimeScaleTrue;
+      // keep the timeScale constant if the error is decreasing too rapidly
+      if (changeTimeScaleTrue > changeTimeScaleMax){
+         timeScale[b] = oldTimeScale;
+      }
+
+      // if error is increasing,
+      if (changeTimeScaleTrue < changeTimeScaleMin){
+         //retreat back to the MIN(timeScaleMin, minTimeScaleTmp)
          if (minTimeScaleTmp > 0.0){
-            minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
+            double setTimeScale = oldTimeScale < timeScaleMin ? oldTimeScale : timeScaleMin;
+            timeScale[b] = setTimeScale < minTimeScaleTmp ? setTimeScale : minTimeScaleTmp;
+            //timeScale =  minTimeScaleTmp < timeScaleMin ? minTimeScaleTmp : setTimeScale;
          }
-         //Initial set
          else{
-            minTimeScaleTmp = timeScaleTmp;
+            timeScale[b] = timeScaleMin;
          }
       }
-   }
-   //Set timeScaleTrue to new minTimeScale
-   timeScaleTrue = minTimeScaleTmp;
 
-   // force the minTimeScaleTmp to be <= timeScaleMax
-   minTimeScaleTmp = minTimeScaleTmp < timeScaleMax ? minTimeScaleTmp : timeScaleMax;
-
-   // set the timeScale to minTimeScaleTmp iff minTimeScaleTmp > 0, otherwise default to timeScaleMin
-   timeScale = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : timeScaleMin;
-
-   // only let the timeScale change by a maximum percentage of oldTimescale of changeTimeScaleMax on any given time step
-   double changeTimeScale = (timeScale - oldTimeScale)/oldTimeScale;
-   timeScale = changeTimeScale < changeTimeScaleMax ? timeScale : oldTimeScale * (1 + changeTimeScaleMax);
-
-   //Positive if timescale increased, error decreased
-   //Negative if timescale decreased, error increased
-   double changeTimeScaleTrue = timeScaleTrue - oldTimeScaleTrue;
-   // keep the timeScale constant if the error is decreasing too rapidly
-   if (changeTimeScaleTrue > changeTimeScaleMax){
-      timeScale = oldTimeScale;
-   }
-
-   // if error is increasing,
-   if (changeTimeScaleTrue < changeTimeScaleMin){
-      //retreat back to the MIN(timeScaleMin, minTimeScaleTmp)
-      if (minTimeScaleTmp > 0.0){
-         double setTimeScale = oldTimeScale < timeScaleMin ? oldTimeScale : timeScaleMin;
-         timeScale = setTimeScale < minTimeScaleTmp ? setTimeScale : minTimeScaleTmp;
-         //timeScale =  minTimeScaleTmp < timeScaleMin ? minTimeScaleTmp : setTimeScale;
+      if(timeScale[b] > 0 && timeScaleTrue[b] > 0 && timeScale[b] > timeScaleTrue[b]){
+         std::cout << "timeScale is bigger than timeScaleTrue\n";
+         std::cout << "minTimeScaleTmp: " << minTimeScaleTmp << "\n";
+         std::cout << "oldTimeScaleTrue " << oldTimeScaleTrue << "\n";
+         exit(EXIT_FAILURE);
       }
-      else{
-         timeScale = timeScaleMin;
-      }
-   }
 
-   if(timeScale > 0 && timeScaleTrue > 0 && timeScale > timeScaleTrue){
-      std::cout << "timeScale is bigger than timeScaleTrue\n";
-      std::cout << "minTimeScaleTmp: " << minTimeScaleTmp << "\n";
-      std::cout << "oldTimeScaleTrue " << oldTimeScaleTrue << "\n";
-      exit(EXIT_FAILURE);
+      // deltaTimeAdapt is only used internally to set scale of each update step
+      deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
    }
-
-   // deltaTimeAdapt is only used internally to set scale of each update step
-   double deltaTimeAdapt = timeScale * deltaTimeBase;
    return deltaTimeAdapt;
 }
 
@@ -1895,11 +1969,16 @@ int HyPerCol::advanceTime(double sim_time)
    runTimer->start();
 
    deltaTime = deltaTimeBase;
-   double deltaTimeAdapt = deltaTime;
+   //double deltaTimeAdapt = deltaTime;
    if (dtAdaptFlag){ // adapt deltaTime
-     deltaTimeAdapt = adaptTimeScale();
+     //deltaTimeAdapt = adaptTimeScale();
+     //deltaTimeAdapt is now a member variable
+     adaptTimeScale();
      if(writeTimescales && columnId() == 0) {
-         timeScaleStream << "sim_time = " << sim_time << ", " << "timeScale = " << timeScale << ", " << "timeScaleTrue = " << timeScaleTrue << std::endl;
+         timeScaleStream << "sim_time = " << sim_time << "\n";
+         for(int b = 0; b < nbatch; b++){
+            timeScaleStream << "\tbatch = " << b << ", timeScale = " << timeScale[b] << ", " << "timeScaleTrue = " << timeScaleTrue[b] << std::endl;
+         }
          timeScaleStream.flush();
      }
    } // dtAdaptFlag
@@ -1921,7 +2000,7 @@ int HyPerCol::advanceTime(double sim_time)
    // update the connections (weights)
    //
    for (int c = 0; c < numConnections; c++) {
-      status = connections[c]->updateStateWrapper(simTime, deltaTimeBase);
+      status = connections[c]->updateState(simTime, deltaTimeBase);
       if (!exitAfterUpdate) {
          exitAfterUpdate = status == PV_EXIT_NORMALLY;
       }
@@ -1987,7 +2066,7 @@ int HyPerCol::advanceTime(double sim_time)
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
          if(layers[l]->getUpdateGpu()){
 #endif
-            status = layers[l]->updateStateWrapper(simTime, deltaTimeAdapt);
+            status = layers[l]->updateStateWrapper(simTime, deltaTimeBase);
             if (!exitAfterUpdate) {
                exitAfterUpdate = status == PV_EXIT_NORMALLY;
             }
@@ -2013,7 +2092,7 @@ int HyPerCol::advanceTime(double sim_time)
          }
          //Update for non gpu recv and non gpu update
          else{
-            status = layer->updateStateWrapper(simTime, deltaTimeAdapt);
+            status = layer->updateStateWrapper(simTime, deltaTimeBase);
             if (!exitAfterUpdate) {
                exitAfterUpdate = status == PV_EXIT_NORMALLY;
             }
@@ -2024,7 +2103,7 @@ int HyPerCol::advanceTime(double sim_time)
       //Update for non gpu recv and gpu update
       for(std::vector<HyPerLayer*>::iterator it = updateLayerBufferGpu.begin(); it < updateLayerBufferGpu.end(); it++){
          HyPerLayer * layer = *it;
-         status = layer->updateStateWrapper(simTime, deltaTimeAdapt);
+         status = layer->updateStateWrapper(simTime, deltaTimeBase);
          if (!exitAfterUpdate) {
             exitAfterUpdate = status == PV_EXIT_NORMALLY;
          }
@@ -2045,7 +2124,7 @@ int HyPerCol::advanceTime(double sim_time)
       //Update for gpu recv and non gpu update
       for(std::vector<HyPerLayer*>::iterator it = updateLayerBuffer.begin(); it < updateLayerBuffer.end(); it++){
          HyPerLayer * layer = *it;
-         status = layer->updateStateWrapper(simTime, deltaTimeAdapt);
+         status = layer->updateStateWrapper(simTime, deltaTimeBase);
          if (!exitAfterUpdate) {
             exitAfterUpdate = status == PV_EXIT_NORMALLY;
          }
@@ -2236,10 +2315,15 @@ int HyPerCol::checkpointRead() {
          double timeScale; // timeScale factor for increasing/decreasing dt
          double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScale() before applications of constraints
       };
-      // read timeScale info
-      struct timescale_struct timescale;
-      size_t timescale_size = sizeof(struct timescale_struct);
+      struct timescale_struct timescale[nbatch];
+      //Default values
+      for(int b = 0; b < nbatch; b++){
+         timescale[b].timeScale = 1;
+         timescale[b].timeScaleTrue = 1;
+      }
+      size_t timescale_size = sizeof(struct timescale_struct) * nbatch;
       assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
+      // read timeScale info
       if( icCommunicator()->commRank()==0 ) {
          char timescalepath[PV_PATH_MAX];
          int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", checkpointReadDir);
@@ -2250,21 +2334,25 @@ int HyPerCol::checkpointRead() {
          PV_Stream * timescalefile = PV_fopen(timescalepath,"r",false/*verifyWrites*/);
          if (timescalefile == NULL) {
             fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
-            fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", timescale.timeScale, timescale.timeScaleTrue);
+            fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", 1, 1);
          }
          else {
-            long int startpos = getPV_StreamFilepos(timescalefile);
-            PV_fread(&timescale,1,timescale_size,timescalefile);
-            long int endpos = getPV_StreamFilepos(timescalefile);
-            assert(endpos-startpos==(int)timescale_size);
+            for(int b = 0; b < nbatch; b++){
+               long int startpos = getPV_StreamFilepos(timescalefile);
+               PV_fread(&timescale[b],1,timescale_size,timescalefile);
+               long int endpos = getPV_StreamFilepos(timescalefile);
+               assert(endpos-startpos==(int)sizeof(struct timescale_struct));
+            }
             PV_fclose(timescalefile);
          }
       }
    #ifdef PV_USE_MPI
       MPI_Bcast(&timescale,(int) timescale_size,MPI_CHAR,0,icCommunicator()->communicator());
    #endif // PV_USE_MPI
-      timeScale = timescale.timeScale;
-      timeScaleTrue = timescale.timeScaleTrue;
+      for(int b = 0; b < nbatch; b++){
+         timeScale[b] = timescale[b].timeScale;
+         timeScaleTrue[b] = timescale[b].timeScaleTrue;
+      }
    }
 
    if(checkpointWriteFlag) {
@@ -2378,21 +2466,26 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       assert(chars_needed < PV_PATH_MAX);
       PV_Stream * timescalefile = PV_fopen(timescalepath,"w", getVerifyWrites());
       assert(timescalefile);
-      if (PV_fwrite(&timeScale,1,sizeof(double),timescalefile) != sizeof(double)) {
-         fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScale to %s\n", timescalefile->name);
-         exit(EXIT_FAILURE);
-      }
-      if (PV_fwrite(&timeScaleTrue,1,sizeof(double),timescalefile) != sizeof(double)) {
-         fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleTrue to %s\n", timescalefile->name);
-         exit(EXIT_FAILURE);
+      for(int b = 0; b < nbatch; b++){
+         if (PV_fwrite(&timeScale[b],1,sizeof(double),timescalefile) != sizeof(double)) {
+            fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScale to %s\n", timescalefile->name);
+            exit(EXIT_FAILURE);
+         }
+         if (PV_fwrite(&timeScaleTrue[b],1,sizeof(double),timescalefile) != sizeof(double)) {
+            fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleTrue to %s\n", timescalefile->name);
+            exit(EXIT_FAILURE);
+         }
       }
       PV_fclose(timescalefile);
       chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.txt", cpDir);
       assert(chars_needed < PV_PATH_MAX);
       timescalefile = PV_fopen(timescalepath,"w", getVerifyWrites());
       assert(timescalefile);
-      fprintf(timescalefile->fp,"time = %g\n", timeScale);
-      fprintf(timescalefile->fp,"timeScaleTrue = %g\n", timeScaleTrue);
+      for(int b = 0; b < nbatch; b++){
+         fprintf(timescalefile->fp,"batch = %d\n", b);
+         fprintf(timescalefile->fp,"time = %g\n", timeScale[b]);
+         fprintf(timescalefile->fp,"timeScaleTrue = %g\n", timeScaleTrue[b]);
+      }
       PV_fclose(timescalefile);
    }
 
@@ -3029,22 +3122,33 @@ unsigned int HyPerCol::getRandomSeed() {
 
 template <typename T>
 int HyPerCol::writeScalarToFile(const char * cp_dir, const char * group_name, const char * val_name, T val) {
+   writeArrayToFile(cp_dir, group_name, val_name, &val, 1);
+}
+
+// Declare the instantiations of writeScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
+template int HyPerCol::writeScalarToFile<int>(char const * cpDir, const char * group_name, char const * val_name, int val);
+template int HyPerCol::writeScalarToFile<long>(char const * cpDir, const char * group_name, char const * val_name, long val);
+template int HyPerCol::writeScalarToFile<float>(char const * cpDir, const char * group_name, char const * val_name, float val);
+template int HyPerCol::writeScalarToFile<double>(char const * cpDir, const char * group_name, char const * val_name, double val);
+
+template <typename T>
+int HyPerCol::writeArrayToFile(const char * cp_dir, const char * group_name, const char * val_name, T* val, size_t count) {
    int status = PV_SUCCESS;
    if (columnId()==0)  {
       char filename[PV_PATH_MAX];
       int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, group_name, val_name);
       if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "writeScalarToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
+         fprintf(stderr, "writeArrayToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
          exit(EXIT_FAILURE);
       }
       PV_Stream * pvstream = PV_fopen(filename, "w", getVerifyWrites());
       if (pvstream==NULL) {
-         fprintf(stderr, "writeScalarToFile error: unable to open path %s for writing.\n", filename);
+         fprintf(stderr, "writeArrayToFile error: unable to open path %s for writing.\n", filename);
          exit(EXIT_FAILURE);
       }
-      int num_written = PV_fwrite(&val, sizeof(val), 1, pvstream);
-      if (num_written != 1) {
-         fprintf(stderr, "writeScalarToFile error while writing to %s.\n", filename);
+      int num_written = PV_fwrite(val, sizeof(T), count, pvstream);
+      if (num_written != count) {
+         fprintf(stderr, "writeArrayToFile error while writing to %s.\n", filename);
          exit(EXIT_FAILURE);
       }
       PV_fclose(pvstream);
@@ -3053,60 +3157,75 @@ int HyPerCol::writeScalarToFile(const char * cp_dir, const char * group_name, co
       std::ofstream fs;
       fs.open(filename);
       if (!fs) {
-         fprintf(stderr, "writeScalarToFile error: unable to open path %s for writing.\n", filename);
+         fprintf(stderr, "writeArrayToFile error: unable to open path %s for writing.\n", filename);
          exit(EXIT_FAILURE);
       }
-      fs << val;
-      fs << std::endl; // Can write as fs << val << std::endl, but eclipse flags that as an error 'Invalid overload of std::endl'
+      for(int i = 0; i < count; i++){
+         fs << val[i];
+         fs << std::endl; // Can write as fs << val << std::endl, but eclipse flags that as an error 'Invalid overload of std::endl'
+      }
       fs.close();
    }
    return status;
 }
-// Declare the instantiations of writeScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
-template int HyPerCol::writeScalarToFile<int>(char const * cpDir, const char * group_name, char const * val_name, int val);
-template int HyPerCol::writeScalarToFile<long>(char const * cpDir, const char * group_name, char const * val_name, long val);
-template int HyPerCol::writeScalarToFile<float>(char const * cpDir, const char * group_name, char const * val_name, float val);
-template int HyPerCol::writeScalarToFile<double>(char const * cpDir, const char * group_name, char const * val_name, double val);
+// Declare the instantiations of writeArrayToFile that occur in other .cpp files; otherwise you'll get linker errors.
+template int HyPerCol::writeArrayToFile<int>(char const * cpDir, const char * group_name, char const * val_name, int* val, size_t count);
+template int HyPerCol::writeArrayToFile<long>(char const * cpDir, const char * group_name, char const * val_name, long* val, size_t count);
+template int HyPerCol::writeArrayToFile<float>(char const * cpDir, const char * group_name, char const * val_name, float* val, size_t count);
+template int HyPerCol::writeArrayToFile<double>(char const * cpDir, const char * group_name, char const * val_name, double* val, size_t count);
 
 template <typename T>
 int HyPerCol::readScalarFromFile(const char * cp_dir, const char * group_name, const char * val_name, T * val, T default_value) {
+   readArrayFromFile(cp_dir, group_name, val_name, val, 1, default_value);
+}
+
+// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
+template int HyPerCol::readScalarFromFile<int>(char const * cpDir, const char * group_name, char const * val_name, int * val, int default_value);
+template int HyPerCol::readScalarFromFile<long>(char const * cpDir, const char * group_name, char const * val_name, long * val, long default_value);
+template int HyPerCol::readScalarFromFile<float>(char const * cpDir, const char * group_name, char const * val_name, float * val, float default_value);
+template int HyPerCol::readScalarFromFile<double>(char const * cpDir, const char * group_name, char const * val_name, double * val, double default_value);
+
+template <typename T>
+int HyPerCol::readArrayFromFile(const char * cp_dir, const char * group_name, const char * val_name, T * val, size_t count, T default_value) {
    int status = PV_SUCCESS;
    if( columnId() == 0 ) {
       char filename[PV_PATH_MAX];
       int chars_needed;
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, group_name, val_name); // Could use pathInCheckpoint if not for the .bin
       if(chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "HyPerLayer::readScalarFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
+         fprintf(stderr, "HyPerLayer::readArrayFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
          exit(EXIT_FAILURE);
       }
       PV_Stream * pvstream = PV_fopen(filename, "r", getVerifyWrites());
-      *val = default_value;
+      for(int i = 0; i < count; i++){
+         val[i] = default_value;
+      }
       if (pvstream==NULL) {
-         std::cerr << "readScalarFromFile warning: unable to open path \"" << filename << "\" for reading.  Value used will be " << *val;
+         std::cerr << "readArrayFromFile warning: unable to open path \"" << filename << "\" for reading.  Value used will be " << *val;
          std::cerr << std::endl;
          // fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to open path %s for reading.  value used will be %f\n", filename, default_value);
       }
       else {
-         int num_read = PV_fread(val, sizeof(T), 1, pvstream);
-         if (num_read != 1) {
-            std::cerr << "readScalarFromFile warning: unable to read from \"" << filename << "\".  Value used will be " << *val;
+         int num_read = PV_fread(val, sizeof(T), count, pvstream);
+         if (num_read != count) {
+            std::cerr << "readArrayFromFile warning: unable to read from \"" << filename << "\".  Value used will be " << *val;
             std::cerr << std::endl;
-            // fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to read from %s.  value used will be %f\n", filename, default_value);
+            // fprintf(stderr, "HyPerLayer::readArrayFloat warning: unable to read from %s.  value used will be %f\n", filename, default_value);
          }
          PV_fclose(pvstream);
       }
    }
 #ifdef PV_USE_MPI
-   MPI_Bcast(val, sizeof(T), MPI_CHAR, 0, icCommunicator()->communicator());
+   MPI_Bcast(val, sizeof(T)*count, MPI_CHAR, 0, icCommunicator()->communicator());
 #endif // PV_USE_MPI
 
    return status;
 }
-// Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
-template int HyPerCol::readScalarFromFile<int>(char const * cpDir, const char * group_name, char const * val_name, int * val, int default_value);
-template int HyPerCol::readScalarFromFile<long>(char const * cpDir, const char * group_name, char const * val_name, long * val, long default_value);
-template int HyPerCol::readScalarFromFile<float>(char const * cpDir, const char * group_name, char const * val_name, float * val, float default_value);
-template int HyPerCol::readScalarFromFile<double>(char const * cpDir, const char * group_name, char const * val_name, double * val, double default_value);
+// Declare the instantiations of readArrayToFile that occur in other .cpp files; otherwise you'll get linker errors.
+template int HyPerCol::readArrayFromFile<int>(char const * cpDir, const char * group_name, char const * val_name, int * val, size_t count, int default_value);
+template int HyPerCol::readArrayFromFile<long>(char const * cpDir, const char * group_name, char const * val_name, long * val, size_t count, long default_value);
+template int HyPerCol::readArrayFromFile<float>(char const * cpDir, const char * group_name, char const * val_name, float * val, size_t count, float default_value);
+template int HyPerCol::readArrayFromFile<double>(char const * cpDir, const char * group_name, char const * val_name, double * val, size_t count, double default_value);
 
 } // PV namespace
 

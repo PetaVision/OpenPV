@@ -131,29 +131,33 @@ int WTALayer::updateState(double timef, double dt) {
    assert(loc->nf == 1);
    float stepSize = (float)(binMax - binMin)/(float)srcLoc->nf;
 
-   //Loop over x and y of the src layer
-   for(int yi = 0; yi < srcLoc->ny; yi++){
-      for(int xi = 0; xi < srcLoc->nx; xi++){
-         //Find maximum output value in nf direction
-         float maxInput = -99999999;
-         float maxIndex = -99999999;
-         for(int fi = 0; fi < srcLoc->nf; fi++){
-            int kExt = kIndex(xi, yi, fi,
-                  srcLoc->nx+srcLoc->halo.lt+srcLoc->halo.rt,
-                  srcLoc->ny+srcLoc->halo.up+srcLoc->halo.dn,
-                  srcLoc->nf);
-            if(srcA[kExt] > maxInput || fi == 0){
-               maxInput = srcA[kExt];
-               maxIndex = fi;
+   for(int b = 0; b < srcLoc->nbatch; b++){
+      pvdata_t * currABatch = currA + b * getNumExtended();
+      pvdata_t * srcABatch = srcA + b * originalLayer->getNumExtended();
+      //Loop over x and y of the src layer
+      for(int yi = 0; yi < srcLoc->ny; yi++){
+         for(int xi = 0; xi < srcLoc->nx; xi++){
+            //Find maximum output value in nf direction
+            float maxInput = -99999999;
+            float maxIndex = -99999999;
+            for(int fi = 0; fi < srcLoc->nf; fi++){
+               int kExt = kIndex(xi, yi, fi,
+                     srcLoc->nx+srcLoc->halo.lt+srcLoc->halo.rt,
+                     srcLoc->ny+srcLoc->halo.up+srcLoc->halo.dn,
+                     srcLoc->nf);
+               if(srcABatch[kExt] > maxInput || fi == 0){
+                  maxInput = srcABatch[kExt];
+                  maxIndex = fi;
+               }
             }
+            //Found max index, set output to value
+            float outVal = (maxIndex * stepSize) + binMin;
+            int kExtOut = kIndex(xi, yi, 0,
+                     loc->nx+loc->halo.lt+loc->halo.rt,
+                     loc->ny+loc->halo.up+loc->halo.dn,
+                     loc->nf);
+            currABatch[kExtOut] = outVal;
          }
-         //Found max index, set output to value
-         float outVal = (maxIndex * stepSize) + binMin;
-         int kExtOut = kIndex(xi, yi, 0,
-                  loc->nx+loc->halo.lt+loc->halo.rt,
-                  loc->ny+loc->halo.up+loc->halo.dn,
-                  loc->nf);
-         currA[kExtOut] = outVal;
       }
    }
    return PV_SUCCESS;

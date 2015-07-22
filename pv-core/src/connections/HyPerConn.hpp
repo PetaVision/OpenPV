@@ -56,6 +56,7 @@ class HyPerConn : public BaseConnection {
 
 public:
    friend class CloneConn;
+   friend class PlasticCloneConn;
    friend class TransposeConn;
    friend class privateTransposeConn;
    friend class TransposePoolingConn;
@@ -75,11 +76,10 @@ public:
    virtual int insertProbe(BaseConnectionProbe* p);
    int outputProbeParams();
    virtual int outputState(double time, bool last = false);
-   virtual int updateStateWrapper(double time, double dt); // Generally shouldn't be overridden; override updateState instead.  Made virtual only so that BaseConnection didn't need to define the member variables and functions used by HyPerConn::updateStateWrapper.
-   virtual int updateState(double time, double dt);
+   int updateState(double time, double dt); 
    virtual int finalizeUpdate(double timed, double dt);
-   virtual int defaultUpdateInd_dW(int arbor_ID, int kExt);
    virtual bool needUpdate(double time, double dt);
+   virtual int updateInd_dW(int arbor_ID, int batch_ID, int kExt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
    virtual int writeWeights(double timed, bool last = false);
    virtual int writeWeights(const char* filename);
@@ -96,9 +96,7 @@ public:
    /**
     * Uses presynaptic layer's activity to modify the postsynaptic GSyn or thread_gSyn
     */
-   //Deliver is not virtual, do not overwrite
-   int deliver();
-
+   virtual int deliver();
    virtual void deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
    virtual void deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, uint4 * rngPtr);
     
@@ -233,12 +231,25 @@ public:
       return dwDataStart[arborId];
    }
 
+   inline long* get_activations(int arborId){
+      return numKernelActivations[arborId];
+   }
+
    inline pvwdata_t* get_dwDataHead(int arborId, int dataIndex) {
       return &dwDataStart[arborId][patchStartIndex(dataIndex)];
    }
 
+   inline long* get_activationsHead(int arborId, int dataIndex){
+      return &numKernelActivations[arborId][patchStartIndex(dataIndex)];
+   }
+
    inline pvwdata_t* get_dwData(int arborId, int patchIndex) {
       return &dwDataStart[arborId][patchStartIndex(patchToDataLUT(patchIndex))
+            + wPatches[arborId][patchIndex]->offset];
+   }
+
+   inline long* get_activations(int arborId, int patchIndex){
+      return &numKernelActivations[arborId][patchStartIndex(patchToDataLUT(patchIndex))
             + wPatches[arborId][patchIndex]->offset];
    }
 
@@ -299,14 +310,7 @@ public:
 
    virtual void addClone(PlasticCloneConn* conn);
 
-   virtual void reduceNumKernelActivations();
-
-   virtual long getNumKernelActivations(int arbor_ID, int kernelIndex, int patchindex){
-      assert(arbor_ID < numberOfAxonalArborLists());
-      assert(kernelIndex < getNumDataPatches());
-      assert(patchindex < nxp*nyp*nfp);
-      return numKernelActivations[arbor_ID][kernelIndex][patchindex];
-   }
+   //virtual int reduceActivations(int arborID);
 
    virtual long * getPostToPreActivity(){
       return postToPreActivity;
@@ -363,6 +367,8 @@ protected:
    char* maskLayerName;
    int maskFeatureIdx;
    HyPerLayer* mask;
+   bool* batchSkip;
+
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
    int sxp, syp, sfp; // stride in x,y,features
@@ -429,7 +435,7 @@ protected:
    double lastUpdateTime;
 
    bool symmetrizeWeightsFlag;
-   long *** numKernelActivations;
+   long ** numKernelActivations;
    bool keepKernelsSynchronized_flag;
 
    // unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
@@ -483,6 +489,10 @@ protected:
 
    inline pvwdata_t** get_dwDataStart() {
       return dwDataStart;
+   }
+
+   inline long** get_activations(){
+      return numKernelActivations;
    }
 
    inline void set_dwDataStart(pvwdata_t** datastart) {
@@ -839,7 +849,7 @@ protected:
          int nyPatch, int nfPatch, int arborId);
    int createWeights(PVPatch*** patches, int arborId);
    virtual pvwdata_t * allocWeights(int nPatches, int nxPatch, int nyPatch, int nfPatch);
-   virtual int allocatePreToPostBuffer();
+   virtual int allocatePostToPreBuffer();
    virtual int allocatePostConn();
 
    int clearWeights(pvwdata_t** dataStart, int numPatches, int nx, int ny, int nf);
@@ -849,19 +859,19 @@ protected:
    virtual int readWeightsFromCheckpoint(const char * cpDir, double * timeptr);
    int checkpointFilename(char * cpFilename, int size, const char * cpDir);
    virtual int setInitialValues(); // returns PV_SUCCESS if successful, or PV_POSTPONE if it needs to wait on other objects (e.g. TransposeConn has to wait for original conn)
-   virtual int clear_dW();
-   virtual int calc_dW(int arborId = 0);
+
+   virtual int calc_dW();
+   virtual int initialize_dW(int arborId);
+   virtual int clear_dW(int arborId);
+   virtual int clear_numActivations(int arborId);
    virtual int update_dW(int arborId);
-   virtual int defaultUpdate_dW(int arborId);
    virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
    virtual int updateWeights(int arborId = 0);
    virtual int normalize_dW(int arbor_ID);
    virtual bool skipPre(pvdata_t preact){return preact == 0.0f;};
-#ifdef PV_USE_MPI
+   virtual int reduce_dW(int arborId);
    virtual int reduceKernels(int arborID);
-// #else
-//    virtual int reduceKernels(int arborID){return PV_SUCCESS;};
-#endif // PV_USE_MPI
+   virtual int reduceActivations(int arborID);
 
    void connOutOfMemory(const char* funcname);
 
@@ -954,19 +964,6 @@ public:
    virtual int getNumXLocal(){return numXLocal;}
    virtual int getNumYLocal(){return numYLocal;}
    virtual int getNumFLocal(){return numFLocal;}
-   
-   //virtual bool getUpdatedDeviceWFlag(){
-   //   //Always update if numarbors > 1
-   //   if(numAxonalArborLists > 1){
-   //      return true;
-   //   }
-   //   else{
-   //      return updatedDeviceWeights;
-   //   }
-   //}
-   //void setUpdatedDeviceWFlag(bool in){
-   //   updatedDeviceWeights = in;
-   //}
    
 protected:
    virtual int allocatePostDeviceWeights();

@@ -34,15 +34,15 @@ int IncrementLayer::initialize(const char* name, HyPerCol * hc) {
    int status = ANNLayer::initialize(name, hc);
    nextUpdateTime = firstUpdateTime+displayPeriod;
 
-   //Done in allocate, this here was a memory leak
-   //Vprev = (pvdata_t *) calloc(getNumNeurons(),sizeof(pvdata_t));
-   //if( Vprev == NULL ) {
-   //   fprintf(stderr, "Unable to allocate Vprev buffer for IncrementLayer \"%s\"\n", name);
-   //   abort();
-   //}
-   //for( int k=0; k<getNumNeurons(); k++ ) {
-   //   assert(GSyn[0][k]==0 && GSyn[1][k]==0);
-   //}
+   // Why isn't this in allocateDataStructures()?
+   Vprev = (pvdata_t *) calloc(getNumNeuronsAllBatches(),sizeof(pvdata_t));
+   if( Vprev == NULL ) {
+      fprintf(stderr, "Unable to allocate Vprev buffer for IncrementLayer \"%s\"\n", name);
+      abort();
+   }
+   for( int k=0; k<getNumNeurons(); k++ ) {
+      assert(GSyn[0][k]==0 && GSyn[1][k]==0);
+   }
 
    return status;
 }
@@ -115,6 +115,7 @@ int IncrementLayer::doUpdateState(double timef, double dt, bool * inited, double
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
    //   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
    //   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
 

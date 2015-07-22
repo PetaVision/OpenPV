@@ -18,7 +18,6 @@ public:
    HyPerLCALayer(const char * name, HyPerCol * hc);
    virtual ~HyPerLCALayer();
    virtual double getDeltaUpdateTime();
-   virtual int requireChannel(int channelNeeded, int * numChannelsResult);
 
 protected:
    HyPerLCALayer();
@@ -81,6 +80,9 @@ private:
    bool windowSymX;
    bool windowSymY;
 #endif // OBSOLETE // Marked Jul 9, 2015
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer* d_dtAdapt;
+#endif
 };
 
 } /* namespace PV */

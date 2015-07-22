@@ -8,10 +8,7 @@
 // Shared input and output routines
 
 #include "io.h"
-#ifdef OBSOLETE // Marked obsolete Jul 16, 2015.  Only probe that was using functions defined in tiff.c was marked obsolete long
-ago.
 #include "tiff.h"
-#endif // OBSOLETE // Marked obsolete Jul 16, 2015.  Only probe that was using functions defined in tiff.c was marked obsolete long
 
 #include <assert.h>
 #include <float.h>  // FLT_MAX/MIN
@@ -287,7 +284,7 @@ char * expandLeadingTilde(char const * path) {
    return newpath;
 }
 
-#ifdef OBSOLETE // Marked obsolete Jul 16, 2015.  Only probe that was using readFile was marked obsolete long
+
 /**
  * @filename
  * @buf
@@ -325,7 +322,7 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
       fclose(fp);
 
       if (result != nItems) {
-         fprintf(stderr, "[ ]: Warning: readFile %s, expected %d, got %d.\n",
+         pv_log(stderr, "[ ]: Warning: readFile %s, expected %d, got %d.\n",
                 filename, nItems, result);
          status = 1;
       }
@@ -338,7 +335,6 @@ int readFile(const char * filename, float * buf, int * nx, int * ny)
 
    return status;
 }
-#endif // OBSOLETE // Marked obsolete Jul 16, 2015.  Only probe that was using readFile was marked obsolete long
 
 /**
  * @fd

@@ -45,18 +45,20 @@ int LeakyIntegrator::updateState(double timed, double dt) {
    pvdata_t * V = getV();
    pvdata_t * gSyn = GSyn[0];
    pvdata_t decayfactor = (pvdata_t) exp(-dt/integrationTime);
-   for (int k=0; k<getNumNeurons(); k++) {
+   for (int k=0; k<getNumNeuronsAllBatches(); k++) {
       V[k] *= decayfactor;
       V[k] += gSyn[k];
    }
    int nx = getLayerLoc()->nx;
    int ny = getLayerLoc()->ny;
    int nf = getLayerLoc()->nf;
+   int nbatch = getLayerLoc()->nbatch;
+
    PVHalo const * halo = &getLayerLoc()->halo;
    pvdata_t * A = getActivity();
-   int status = setActivity_HyPerLayer(getNumNeurons(), A, V, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(getNumNeurons(), V, AMin, VThresh, AShift, VWidth, A, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(getNumNeurons(), V, AMax, A, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+   int status = setActivity_HyPerLayer(nbatch, getNumNeurons(), A, V, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(nbatch, getNumNeurons(), V, AMin, VThresh, AShift, VWidth, A, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, getNumNeurons(), V, AMax, A, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
    return status;
 }
 

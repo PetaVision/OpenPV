@@ -7,7 +7,8 @@ namespace PVCuda{
 //Kernel code
 __global__
 void HyPerLayer_recv_pre(
-   recv_pre_params params
+   recv_pre_params params,
+   int batchIdx
 ){
    unsigned int kPreExt;
    float a;
@@ -20,18 +21,27 @@ void HyPerLayer_recv_pre(
    //Put this on cpu
    int fullPatchSize = params.nfp * params.nxp * params.nyp;
 
-   if(tIndex >= fullPatchSize * params.numActive){
-      return;
+   if(params.isSparse){
+      if(tIndex >= fullPatchSize * params.numActive[batchIdx]){
+         return;
+      }
+   }
+   else{
+      if(tIndex >= fullPatchSize * params.numPreExt){
+         return;
+      }
    }
 
    unsigned int neuronIndex = tIndex / fullPatchSize;
+
+   int preBatchOffset = batchIdx * params.numPreExt;
    if(params.isSparse){
-      kPreExt = params.activeIndices[neuronIndex];
+      kPreExt = params.activeIndices[neuronIndex + preBatchOffset];
    }
    else{
       kPreExt = neuronIndex;
    }
-   a = params.preData[kPreExt] * params.dt_factor;
+   a = params.preData[kPreExt + preBatchOffset] * params.dt_factor;
    int kernelIndex;
    if(params.sharedWeights == 1){
       kernelIndex = params.patch2datalookuptable[kPreExt];
@@ -53,7 +63,8 @@ void HyPerLayer_recv_pre(
       return;
    }
 
-   float* gSynStart = params.postGSyn + params.gSynPatchStart[kPreExt];
+   int postBatchOffset = batchIdx * params.numPostRes;
+   float* gSynStart = params.postGSyn + postBatchOffset + params.gSynPatchStart[kPreExt];
 
    //Calculate what y row patchIndex is in
    int ky = kyPos(patchIndex, patch.nx, patch.ny, params.nfp);
@@ -79,6 +90,9 @@ CudaRecvPre::~CudaRecvPre(){
 }
 
 void CudaRecvPre::setArgs(
+      int nbatch,
+      int numPreExt,
+      int numPostRes,
       int nxp,
       int nyp,
       int nfp,
@@ -97,8 +111,13 @@ void CudaRecvPre::setArgs(
       /* int* */     CudaBuffer* patch2datalookuptable,
 
       bool isSparse,
+      /*unsigned long*/ CudaBuffer* numActive,
       /*unsigned int*/ CudaBuffer* activeIndices
    ){
+   params.nbatch = nbatch;
+   params.numPreExt = numPreExt;
+   params.numPostRes = numPostRes;
+
    params.nxp = nxp;
    params.nyp = nyp;
    params.nfp = nfp;
@@ -118,10 +137,12 @@ void CudaRecvPre::setArgs(
 
    params.isSparse = isSparse;
    if(activeIndices){
+      params.numActive = (long*)numActive->getPointer();
       params.activeIndices = (unsigned int*)activeIndices->getPointer();
    }
    else{
       params.activeIndices = NULL;
+      params.numActive = NULL;
    }
 
    setArgsFlag();
@@ -136,9 +157,12 @@ int CudaRecvPre::do_run(){
       exit(-1);
    }
 
-   HyPerLayer_recv_pre<<<grid_size, block_size, sharedSize>>>(
-      params
-   );
+   for(int b = 0; b < params.nbatch; b++){
+      HyPerLayer_recv_pre<<<grid_size, block_size, sharedSize>>>(
+         params,
+         b
+      );
+   }
 
    handleCallError("Cuda recv pre run");
 

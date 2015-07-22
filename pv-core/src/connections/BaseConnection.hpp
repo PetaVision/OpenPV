@@ -141,7 +141,7 @@ public:
     * A pure virtual function for updating the state of the connection.
     * timed is simulation time, and dt is the time increment between steps.
     */
-   virtual int updateStateWrapper(double timed, double dt) = 0;
+   virtual int updateState(double timed, double dt) = 0;
 
    /**
     * A virtual function for performing any necessary updates after the normalizers are called.

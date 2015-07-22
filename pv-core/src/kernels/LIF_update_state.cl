@@ -48,6 +48,7 @@ float LIF_Vmem_derivative(
 //
 CL_KERNEL
 void LIF_update_state_original(
+    const int nbatch,
     const int numNeurons,
     const float time, 
     const float dt,
@@ -81,12 +82,12 @@ void LIF_update_state_original(
 
 #ifndef PV_USE_OPENCL
 
-for (k = 0; k < nx*ny*nf; k++) {
+for (k = 0; k < nx*ny*nf*nbatch; k++) {
 #else
    k = get_global_id(0);
 #endif
 
-   int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+   int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
    //
    // kernel (nonheader part) begins here
@@ -109,9 +110,9 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_G_I  = G_I[k];
    float l_G_IB = G_IB[k];
 
-   CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
-   CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
-   CL_MEM_GLOBAL float * GSynInhB = &GSynHead[CHANNEL_INHB*numNeurons];
+   CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
+   CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
+   CL_MEM_GLOBAL float * GSynInhB = &GSynHead[CHANNEL_INHB*nbatch*numNeurons];
    float l_GSynExc  = GSynExc[k];
    float l_GSynInh  = GSynInh[k];
    float l_GSynInhB = GSynInhB[k];
@@ -218,6 +219,7 @@ for (k = 0; k < nx*ny*nf; k++) {
 
 CL_KERNEL
 void LIF_update_state_beginning(
+    const int nbatch,
     const int numNeurons,
     const float time,
     const float dt,
@@ -254,12 +256,12 @@ void LIF_update_state_beginning(
 
 #ifndef PV_USE_OPENCL
 
-for (k = 0; k < nx*ny*nf; k++) {
+for (k = 0; k < nx*ny*nf*nbatch; k++) {
 #else
    k = get_global_id(0);
 #endif
 
-   int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+   int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
    //
    // kernel (nonheader part) begins here
@@ -284,9 +286,9 @@ for (k = 0; k < nx*ny*nf; k++) {
    float l_G_I  = G_I[k];
    float l_G_IB = G_IB[k];
 
-   CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
-   CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
-   CL_MEM_GLOBAL float * GSynInhB = &GSynHead[CHANNEL_INHB*numNeurons];
+   CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
+   CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
+   CL_MEM_GLOBAL float * GSynInhB = &GSynHead[CHANNEL_INHB*nbatch*numNeurons];
    float l_GSynExc  = GSynExc[k];
    float l_GSynInh  = GSynInh[k];
    float l_GSynInhB = GSynInhB[k];
@@ -394,6 +396,7 @@ for (k = 0; k < nx*ny*nf; k++) {
 
 CL_KERNEL
 void LIF_update_state_arma(
+    const int nbatch,
     const int numNeurons,
     const float time,
     const float dt,
@@ -427,13 +430,13 @@ void LIF_update_state_arma(
 
 #ifndef PV_USE_OPENCL
 
-   for (k = 0; k < nx*ny*nf; k++) {
+   for (k = 0; k < nx*ny*nf*nbatch; k++) {
 #else
    k = get_global_id(0);
    { // compound statement so indentation is consistent with the for loop when not using PV_USE_OPENCL
 #endif
 
-      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
       //
       // kernel (nonheader part) begins here
@@ -458,9 +461,9 @@ void LIF_update_state_arma(
       float l_G_I  = G_I[k];
       float l_G_IB = G_IB[k];
 
-      CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
-      CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
-      CL_MEM_GLOBAL float * GSynInhB = &GSynHead[CHANNEL_INHB*numNeurons];
+      CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
+      CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
+      CL_MEM_GLOBAL float * GSynInhB = &GSynHead[CHANNEL_INHB*nbatch*numNeurons];
       float l_GSynExc  = GSynExc[k];
       float l_GSynInh  = GSynInh[k];
       float l_GSynInhB = GSynInhB[k];

@@ -243,7 +243,7 @@ protected:
    virtual int initClayer();
 
    virtual int allocateClayerBuffers();
-   int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int nf);
+   int setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int nf, int numBatches);
    virtual int allocateBuffers();
    virtual int allocateGSyn();
 
@@ -253,7 +253,6 @@ protected:
    int allocateCube();
    virtual int allocateV();
    virtual int allocateActivity();
-   //virtual int allocateActiveIndices();
    virtual int allocatePrevActivity();
    virtual int setInitialValues();
    virtual int initializeV();
@@ -273,8 +272,8 @@ protected:
    void calcNumExtended();
 public:
    pvdata_t * getActivity()          {return clayer->activity->data;} // TODO: access to clayer->activity->data should not be public
-   virtual double calcTimeScale()          {return -1.0;};
-   virtual double getTimeScale()      {return -1.0;};
+   virtual double calcTimeScale(int batchIdx)          {return -1.0;};
+   virtual double getTimeScale(int batchIdx)      {return -1.0;};
    virtual bool activityIsSpiking() = 0; // Pure virtual method so that subclasses are forced to implement it.
    PVDataType getDataType()          {return dataType;}
 protected:
@@ -309,18 +308,6 @@ public:
    bool getInitialValuesSetFlag() {return initialValuesSetFlag;}
 
    int ioParams(enum ParamsIOFlag ioFlag);
-
-   static int copyToBuffer(pvdata_t * buf, const pvdata_t * data,
-                           const PVLayerLoc * loc, bool extended, float scale);
-   static int copyToBuffer(unsigned char * buf, const pvdata_t * data,
-                           const PVLayerLoc * loc, bool extended, float scale);
-
-   template <typename T>
-   static int copyFromBuffer(const T * buf, T * data,
-                             const PVLayerLoc * loc, bool extended, T scale);
-
-   static int copyFromBuffer(const unsigned char * buf, pvdata_t * data,
-                             const PVLayerLoc * loc, bool extended, float scale);
 
    // TODO - make protected
    PVLayer  * clayer;
@@ -393,9 +380,6 @@ public:
    int getNumProbes() { return numProbes; }
    LayerProbe * getProbe(int n) { return (n>=0 && n<numProbes) ? probes[n] : NULL; }
 
-   /** returns the number of neurons in layer (for borderId=0) or a border region **/
-   virtual int numberOfNeurons(int borderId);
-
    // TODO: should the mirroring functions be static?  Why are they virtual?
    virtual int mirrorToNorthWest(PVLayerCube * dest, PVLayerCube * src);
    virtual int mirrorToNorth    (PVLayerCube * dest, PVLayerCube* src);
@@ -414,6 +398,10 @@ public:
 
    int getNumNeurons()               {return clayer->numNeurons;}
    int getNumExtended()              {return clayer->numExtended;}
+   int getNumNeuronsAllBatches()     {return clayer->numNeuronsAllBatches;}
+   int getNumExtendedAllBatches()    {return clayer->numExtendedAllBatches;}
+
+
    int getNumGlobalNeurons()         {const PVLayerLoc * loc = getLayerLoc(); return loc->nxGlobal*loc->nyGlobal*loc->nf;}
    int getNumGlobalExtended()        {const PVLayerLoc * loc = getLayerLoc(); return (loc->nxGlobal+loc->halo.lt+loc->halo.rt)*(loc->nyGlobal+loc->halo.dn+loc->halo.up)*loc->nf;}
    int getNumDelayLevels()           {return numDelayLevels;}
@@ -459,12 +447,6 @@ public:
    double getLastUpdateTime() { return lastUpdateTime; }
    double getNextUpdateTime() { return nextUpdateTime; }
 
-   virtual int gatherToInteriorBuffer(unsigned char * buf);
-
-   virtual int label(int k);
-
-   virtual int * getMarginIndices();
-   virtual int getNumMargin();
    float getMaxRate() {return maxRate;}
 
 protected:
@@ -503,8 +485,6 @@ protected:
 
    int phase;                   // All layers with phase 0 get updated before any with phase 1, etc.
    int numDelayLevels;          // The number of timesteps in the datastore ring buffer to store older timesteps for connections with delays
-
-   int * labels;                // label for the feature a neuron is tuned to
 
    bool mirrorBCflag;           // true when mirror BC are to be applied
    pvdata_t valueBC; // If mirrorBCflag is false, the value of A to fill extended cells with
@@ -615,6 +595,15 @@ public:
       return d_ActiveIndices;
    }
 
+#ifdef PV_USE_OPENCL
+   CLBuffer * getDeviceNumActive(){
+#endif
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer * getDeviceNumActive(){
+#endif
+      return d_numActive;
+   }
+
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
    PVCuda::CudaBuffer * getCudnnDatastore(){
       return cudnn_Datastore;
@@ -690,10 +679,6 @@ protected:
 
    virtual int allocateUpdateKernel();
    virtual int allocateDeviceBuffers();
-   //virtual int allocateReceivePostKernel();
-
-//   CLKernel * krUpdate;        // CL kernel for update state call
-
    // OpenCL buffers and their corresponding flags
    //
    
@@ -713,6 +698,7 @@ protected:
    CLBuffer * d_GSyn;         
    CLBuffer * d_Activity;
    CLBuffer * d_Datastore;
+   CLBuffer * d_numActive;
    CLBuffer * d_ActiveIndices;
    CLKernel * krUpdate;
 #endif
@@ -722,6 +708,7 @@ protected:
    PVCuda::CudaBuffer * d_GSyn;      
    PVCuda::CudaBuffer * d_Activity;
    PVCuda::CudaBuffer * d_Datastore;
+   PVCuda::CudaBuffer * d_numActive;
    PVCuda::CudaBuffer * d_ActiveIndices;
    PVCuda::CudaKernel * krUpdate;
 #ifdef PV_USE_CUDNN
@@ -743,17 +730,51 @@ protected:
 #ifdef PV_USE_CUDA
    PVCuda::CudaTimer * gpu_recvsyn_timer;
    PVCuda::CudaTimer * gpu_update_timer;
-#ifdef PV_USE_CUDNN
-   //PVCuda::CudaTimer * permute_weights_timer;
-   //PVCuda::CudaTimer * permute_preData_timer;
-   //PVCuda::CudaTimer * permute_postGSyn_timer;
-#endif
 #endif
 
 #ifdef PV_USE_OPENCL
    CLTimer * gpu_recvsyn_timer;
    CLTimer * gpu_update_timer;
 #endif
+
+//Removed fields
+
+//#ifdef PV_USE_CUDNN
+   //PVCuda::CudaTimer * permute_weights_timer;
+   //PVCuda::CudaTimer * permute_preData_timer;
+   //PVCuda::CudaTimer * permute_postGSyn_timer;
+//#endif
+   //virtual int allocateActiveIndices();
+   //static int copyToBuffer(pvdata_t * buf, const pvdata_t * data,
+   //                        const PVLayerLoc * loc, bool extended, float scale);
+   //static int copyToBuffer(unsigned char * buf, const pvdata_t * data,
+   //                        const PVLayerLoc * loc, bool extended, float scale);
+
+   //template <typename T>
+   //static int copyFromBuffer(const T * buf, T * data,
+   //                          const PVLayerLoc * loc, bool extended, T scale);
+
+   //static int copyFromBuffer(const unsigned char * buf, pvdata_t * data,
+   //                          const PVLayerLoc * loc, bool extended, float scale);
+   ///** returns the number of neurons in layer (for borderId=0) or a border region **/
+   //virtual int numberOfNeurons(int borderId);
+   //virtual int gatherToInteriorBuffer(unsigned char * buf);
+
+   //Labels deprecated 6/16/15
+   //virtual int label(int k);
+   //virtual int * getMarginIndices();
+   //virtual int getNumMargin();
+//#ifdef OBSOLETE // Marked obsolete Dec 15, 2014.  Moved to HyPerConn
+//   float getConvertToRateDeltaTimeFactor(HyPerConn* conn);
+//#endif // OBSOLETE
+
+//   int getFeedbackDelay(){return feedbackDelay;};
+//   int getFeedforwardDelay(){return feedforwardDelay;};
+   //Labels deprecated 6/16/15
+   //int * labels;                // label for the feature a neuron is tuned to
+   //virtual int allocateReceivePostKernel();
+
+//   CLKernel * krUpdate;        // CL kernel for update state call
 };
 
 } // namespace PV

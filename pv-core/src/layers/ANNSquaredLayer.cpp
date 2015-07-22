@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 void ANNSquaredLayer_update_state(
+    const int nbatch,
     const int numNeurons,
     const int nx,
     const int ny,
@@ -62,56 +63,18 @@ int ANNSquaredLayer::initialize(const char * name, HyPerCol * hc) {
    return status;
 }
 
-
-//#ifdef PV_USE_OPENCL
-///**
-// * Initialize OpenCL buffers.  This must be called after PVLayer data have
-// * been allocated.
-// */
-//int ANNSquaredLayer::initializeThreadBuffers(const char * kernel_name)
-//{
-//   int status = HyPerLayer::initializeThreadBuffers(kernel_name);
-//
-//   //right now there are no ANN layer specific buffers...
-//   return status;
-//}
-//
-//int ANNSquaredLayer::initializeThreadKernels(const char * kernel_name)
-//{
-//   //at the moment there's no reason to do anything differently
-//   //for ANNSquaredLayer, but I still defined the method in case
-//   //that changes in the future.
-//   return ANNLayer::initializeThreadKernels(kernel_name);
-//}
-//int ANNSquaredLayer::updateStateOpenCL(double time, double dt)
-//{
-//   //at the moment there's no reason to do anything differently
-//   //for ANNSquaredLayer, but I still defined the method in case
-//   //that changes in the future.
-//   return ANNLayer::updateStateOpenCL(time, dt);
-//}
-//#endif
-
-
 int ANNSquaredLayer::updateState(double time, double dt)
 {
-   //update_timer->start();
-//#ifdef PV_USE_OPENCL
-//   if((gpuAccelerateFlag)&&(true)) {
-//      updateStateOpenCL(time, dt);
-//      //HyPerLayer::updateState(time, dt);
-//   }
-//   else {
-//#endif
       const int nx = clayer->loc.nx;
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
+      const int nbatch = clayer->loc.nbatch;
 
       pvdata_t * GSynHead   = GSyn[0];
       pvdata_t * V = getV();
       pvdata_t * activity = clayer->activity->data;
 
-      ANNSquaredLayer_update_state(getNumNeurons(), nx, ny, nf, clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up, V, GSynHead, activity);
+      ANNSquaredLayer_update_state(nbatch, getNumNeurons(), nx, ny, nf, clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up, V, GSynHead, activity);
 //#ifdef PV_USE_OPENCL
 //   }
 //#endif

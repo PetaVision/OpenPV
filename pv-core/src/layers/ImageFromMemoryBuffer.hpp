@@ -14,11 +14,11 @@
 #ifndef IMAGEFROMMEMORYBUFFER_HPP_
 #define IMAGEFROMMEMORYBUFFER_HPP_
 
-#include "Image.hpp"
+#include "BaseInput.hpp"
 
 namespace PV {
 
-class ImageFromMemoryBuffer : public Image {
+class ImageFromMemoryBuffer : public BaseInput{
 
 public:
    ImageFromMemoryBuffer(char const * name, HyPerCol * hc);
@@ -88,7 +88,7 @@ protected:
    /**
     * Called by HyPerLayer::setActivity() during setInitialValues stage; calls copyBuffer()
     */
-   virtual int initializeActivity();
+   virtual int initializeActivity(double time, double dt);
    
    /**
     * Copies the contents of the image buffer to the activity buffer.
@@ -104,6 +104,8 @@ protected:
     * 
     */
    int moveBufferToData(int rank);
+
+   int retrieveData(double timef, double dt);
       
 private:
    int initialize_base();

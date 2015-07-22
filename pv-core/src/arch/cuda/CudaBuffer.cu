@@ -37,7 +37,7 @@ void CudaPermuteWeightsPVToCudnn(float* dest, float* src, int numArbors, int out
 
 namespace PVCuda {
 
-CudaBuffer::CudaBuffer(size_t inSize, cudaStream_t stream)
+CudaBuffer::CudaBuffer(size_t inSize, CudaDevice * inDevice, cudaStream_t stream)
 {
    handleError(cudaMalloc(&d_ptr, inSize), "CudaBuffer constructor");
    if(!d_ptr){
@@ -46,6 +46,7 @@ CudaBuffer::CudaBuffer(size_t inSize, cudaStream_t stream)
    }
    this->size = inSize;
    this->stream = stream;
+   this->device = inDevice;
 }
 
 CudaBuffer::CudaBuffer(){
@@ -90,7 +91,7 @@ int CudaBuffer::copyFromDevice(void * h_ptr, size_t in_size)
    return 0;
 }
 
-void CudaBuffer::permuteWeightsPVToCudnn(void * d_inPtr, CudaDevice* device, int numArbors, int numKernels, int nxp, int nyp, int nfp){
+void CudaBuffer::permuteWeightsPVToCudnn(void * d_inPtr, int numArbors, int numKernels, int nxp, int nyp, int nfp){
    //outFeatures is number of kernels
    int outFeatures = numKernels;
 

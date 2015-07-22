@@ -135,7 +135,7 @@ void RescaleLayer::ioParam_patchSize(enum ParamsIOFlag ioFlag){
 
 int RescaleLayer::setActivity() {
    pvdata_t * activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtended);
+   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
    return 0;
 }
 
@@ -143,20 +143,22 @@ int RescaleLayer::setActivity() {
 int RescaleLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
 
-   //Check if an update is needed
-   //Done in cloneVLayer
-   //if(checkIfUpdateNeeded()){
-       int numNeurons = originalLayer->getNumNeurons();
-       pvdata_t * A = clayer->activity->data;
-       const pvdata_t * originalA = originalLayer->getCLayer()->activity->data;
-       const PVLayerLoc * loc = getLayerLoc();
-       const PVLayerLoc * locOriginal = originalLayer->getLayerLoc();
-       //Make sure all sizes match
-       //assert(locOriginal->nb == loc->nb);
-       assert(locOriginal->nx == loc->nx);
-       assert(locOriginal->ny == loc->ny);
-       assert(locOriginal->nf == loc->nf);
+    int numNeurons = originalLayer->getNumNeurons();
+    pvdata_t * A = clayer->activity->data;
+    const pvdata_t * originalA = originalLayer->getCLayer()->activity->data;
+    const PVLayerLoc * loc = getLayerLoc();
+    const PVLayerLoc * locOriginal = originalLayer->getLayerLoc();
+    int nbatch = loc->nbatch; 
+    //Make sure all sizes match
+    //assert(locOriginal->nb == loc->nb);
+    assert(locOriginal->nx == loc->nx);
+    assert(locOriginal->ny == loc->ny);
+    assert(locOriginal->nf == loc->nf);
 
+    for(int b = 0; b < nbatch; b++){
+       const pvdata_t* originalABatch = originalA + b * originalLayer->getNumExtended();
+       pvdata_t* ABatch = A + b * getNumExtended();
+       
        if (strcmp(rescaleMethod, "maxmin") == 0){
           float maxA = -1000000000;
           float minA = 1000000000;
@@ -164,11 +166,11 @@ int RescaleLayer::updateState(double timef, double dt) {
           for (int k = 0; k < numNeurons; k++){
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                                                locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-             if (originalA[kextOriginal] > maxA){
-                maxA = originalA[kextOriginal];
+             if (originalABatch[kextOriginal] > maxA){
+                maxA = originalABatch[kextOriginal];
              }
-             if (originalA[kextOriginal] < minA){
-                minA = originalA[kextOriginal];
+             if (originalABatch[kextOriginal] < minA){
+                minA = originalABatch[kextOriginal];
              }
           }
 
@@ -186,7 +188,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                 int kExt = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
                 int kExtOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                       locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-                A[kExt] = ((originalA[kExtOriginal] - minA)/rangeA) * (targetMax - targetMin) + targetMin;
+                ABatch[kExt] = ((originalABatch[kExtOriginal] - minA)/rangeA) * (targetMax - targetMin) + targetMin;
              }
           }
           else {
@@ -195,7 +197,7 @@ int RescaleLayer::updateState(double timef, double dt) {
 #endif // PV_USE_OPENMP_THREADS
              for(int k=0; k<numNeurons; k++) {
                 int kExt = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-                A[kExt] = (pvadata_t) 0;
+                ABatch[kExt] = (pvadata_t) 0;
              }
           }
        }
@@ -209,7 +211,7 @@ int RescaleLayer::updateState(double timef, double dt) {
           for (int k = 0; k < numNeurons; k++){
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                                                locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-             sum += originalA[kextOriginal];
+             sum += originalABatch[kextOriginal];
           }
 
 #ifdef PV_USE_MPI
@@ -225,7 +227,7 @@ int RescaleLayer::updateState(double timef, double dt) {
           for (int k = 0; k < numNeurons; k++){
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                    locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-             sumsq += (originalA[kextOriginal] - mean) * (originalA[kextOriginal] - mean);
+             sumsq += (originalABatch[kextOriginal] - mean) * (originalABatch[kextOriginal] - mean);
           }
 
 #ifdef PV_USE_MPI
@@ -242,7 +244,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                 int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
                 int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                       locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-                A[kext] = ((originalA[kextOriginal] - mean) * (targetStd/std) + targetMean);
+                ABatch[kext] = ((originalABatch[kextOriginal] - mean) * (targetStd/std) + targetMean);
              }
           }
           else {
@@ -253,7 +255,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                 int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
                 int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                       locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-                A[kext] = originalA[kextOriginal];
+                ABatch[kext] = originalABatch[kextOriginal];
              }
           }
        }
@@ -267,7 +269,7 @@ int RescaleLayer::updateState(double timef, double dt) {
           for (int k = 0; k < numNeurons; k++){
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                                                locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-             sum += originalA[kextOriginal];
+             sum += originalABatch[kextOriginal];
           }
 
 #ifdef PV_USE_MPI
@@ -283,7 +285,7 @@ int RescaleLayer::updateState(double timef, double dt) {
           for (int k = 0; k < numNeurons; k++){
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                    locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-             sumsq += (originalA[kextOriginal] - mean) * (originalA[kextOriginal] - mean);
+             sumsq += (originalABatch[kextOriginal] - mean) * (originalABatch[kextOriginal] - mean);
           }
 
 #ifdef PV_USE_MPI
@@ -300,7 +302,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                 int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
                 int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                       locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-                A[kext] = ((originalA[kextOriginal] - mean) * (1/(std * sqrt((float)patchSize))));
+                ABatch[kext] = ((originalABatch[kextOriginal] - mean) * (1/(std * sqrt((float)patchSize))));
              }
           }
           else {
@@ -312,7 +314,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                 int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
                 int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                       locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-                A[kext] = originalA[kextOriginal];
+                ABatch[kext] = originalABatch[kextOriginal];
              }
           }
        }
@@ -323,7 +325,7 @@ int RescaleLayer::updateState(double timef, double dt) {
           PVHalo const * halo = &loc->halo;
           PVHalo const * haloOrig = &locOriginal->halo;
           //Loop through all nx and ny
-	  // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
+     // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -333,7 +335,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                 float sumsq = 0;
                 for(int iF = 0; iF < nf; iF++){
                    int kext = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-                   sumsq += (originalA[kext]) * (originalA[kext]);
+                   sumsq += (originalABatch[kext]) * (originalABatch[kext]);
                 }
                 float divisor = sqrt(sumsq);
                 // Difference in the if-part and else-part is only in the value assigned to A[kext], but this way the std != 0
@@ -343,14 +345,14 @@ int RescaleLayer::updateState(double timef, double dt) {
                    for(int iF = 0; iF < nf; iF++){
                       int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                       int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
-                      A[kext] = (originalA[kextOrig]/divisor);
+                      ABatch[kext] = (originalABatch[kextOrig]/divisor);
                    }
                 }
                 else {
                    for(int iF = 0; iF < nf; iF++){
                       int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                       int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
-                      A[kext] = originalA[kextOrig];
+                      ABatch[kext] = originalABatch[kextOrig];
                    }
                 }
              }
@@ -363,7 +365,7 @@ int RescaleLayer::updateState(double timef, double dt) {
           PVHalo const * halo = &loc->halo;
           PVHalo const * haloOrig = &locOriginal->halo;
           //Loop through all nx and ny
-	  // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
+     // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -374,12 +376,12 @@ int RescaleLayer::updateState(double timef, double dt) {
                 float sumsq = 0;
                 for(int iF = 0; iF < nf; iF++){
                    int kext = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-                   sum += originalA[kext];
+                   sum += originalABatch[kext];
                 }
                 float mean = sum/nf;
                 for(int iF = 0; iF < nf; iF++){
                    int kext = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-                   sumsq += (originalA[kext] - mean) * (originalA[kext] - mean);
+                   sumsq += (originalABatch[kext] - mean) * (originalABatch[kext] - mean);
                 }
                 float std = sqrt(sumsq/nf);
                 // Difference in the if-part and else-part is only in the value assigned to A[kext], but this way the std != 0
@@ -389,14 +391,14 @@ int RescaleLayer::updateState(double timef, double dt) {
                    for(int iF = 0; iF < nf; iF++){
                       int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                       int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
-                      A[kext] = ((originalA[kextOrig] - mean) * (targetStd/std) + targetMean);
+                      ABatch[kext] = ((originalABatch[kextOrig] - mean) * (targetStd/std) + targetMean);
                    }
                 }
                 else {
                    for(int iF = 0; iF < nf; iF++){
                       int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                       int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
-                      A[kext] = originalA[kextOrig];
+                      ABatch[kext] = originalABatch[kextOrig];
                    }
                 }
              }
@@ -409,7 +411,7 @@ int RescaleLayer::updateState(double timef, double dt) {
           PVHalo const * halo = &loc->halo;
           PVHalo const * haloOrig = &locOriginal->halo;
           //Loop through all nx and ny
-	  // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
+     // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -420,14 +422,14 @@ int RescaleLayer::updateState(double timef, double dt) {
                 float sum = 0;
                 for(int iF = 0; iF < nf; iF++){
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-                   sum += originalA[kextOrig];
+                   sum += originalABatch[kextOrig];
                 }
                 float mean = sum/nf;
                 //Find sum expx in feature space, accounting for mean
                 float sumexpx = 0;
                 for(int iF = 0; iF < nf; iF++){
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-                   sumexpx += exp(originalA[kextOrig] - mean);
+                   sumexpx += exp(originalABatch[kextOrig] - mean);
                 }
                 //Error checking for sumexpx = 0
                 assert(sumexpx != 0);
@@ -435,8 +437,8 @@ int RescaleLayer::updateState(double timef, double dt) {
                 for(int iF = 0; iF < nf; iF++){
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                    int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
-                   A[kext] = exp(originalA[kextOrig] - mean)/sumexpx;
-                   assert(A[kext] >= 0 && A[kext] <= 1);
+                   ABatch[kext] = exp(originalABatch[kextOrig] - mean)/sumexpx;
+                   assert(ABatch[kext] >= 0 && ABatch[kext] <= 1);
                 }
              }
           }
@@ -446,7 +448,7 @@ int RescaleLayer::updateState(double timef, double dt) {
           int ny = loc->ny;
           int nf = loc->nf;
           //Loop through all nx and ny
-	  // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
+     // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
@@ -454,7 +456,7 @@ int RescaleLayer::updateState(double timef, double dt) {
              int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                    locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
-             A[kext] = (float)1/(1+exp(originalA[kextOriginal]));
+             ABatch[kext] = (float)1/(1+exp(originalABatch[kextOriginal]));
           }
        }
        else if(strcmp(rescaleMethod, "zerotonegative") == 0){
@@ -467,18 +469,17 @@ int RescaleLayer::updateState(double timef, double dt) {
              int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                                                haloOrig->lt, haloOrig->rt, haloOrig->dn, haloOrig->up);
              int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
-             if(originalA[kextOriginal] == 0){;
+             if(originalABatch[kextOriginal] == 0){;
                 A[kext] = -1;
              }
              else {
-                A[kext] = originalA[kextOriginal];
+                ABatch[kext] = originalABatch[kextOriginal];
              }
           }
        }
        //Update lastUpdateTime
        lastUpdateTime = parent->simulationTime();
-
-   //}
+   }
    return status;
 }
 

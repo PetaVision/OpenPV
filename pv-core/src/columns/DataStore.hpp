@@ -61,11 +61,11 @@ public:
       return (activeIndices + bufferId*numLevels*numItems + curLevel*numItems);
    }
 
-   unsigned int* numActiveBuffer(int bufferId, int level){
+   long * numActiveBuffer(int bufferId, int level){
       return (numActive + bufferId*numLevels + levelIndex(level));
    }
 
-   unsigned int* numActiveBuffer(int bufferId){
+   long * numActiveBuffer(int bufferId){
       return (numActive + bufferId*numLevels + curLevel);
    }
 
@@ -81,7 +81,7 @@ private:
    char*  recvBuffers;
 
    unsigned int*   activeIndices;
-   unsigned int*   numActive;
+   long *   numActive;
    bool  isSparse_flag;
    double * lastUpdateTimes; // A ring buffer for the getLastUpdateTime() function.
 

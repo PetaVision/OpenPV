@@ -55,10 +55,10 @@ private:
    pvdata_t * recvBuffer(int bufferId, int delay)
          {return (pvdata_t *) store->buffer(bufferId, delay);}
 
-   unsigned int * recvNumActiveBuffer(int bufferId){
+   long * recvNumActiveBuffer(int bufferId){
       return store->numActiveBuffer(bufferId);
    }
-   unsigned int * recvNumActiveBuffer(int bufferId, int delay){
+   long * recvNumActiveBuffer(int bufferId, int delay){
       return store->numActiveBuffer(bufferId, delay);
    }
 
@@ -82,7 +82,7 @@ private:
    Communicator * comm;
 
    int            numRequests;
-   MPI_Request    requests[NUM_NEIGHBORHOOD-1];
+   MPI_Request *    requests;
    MPI_Datatype * neighborDatatypes;
 };
 

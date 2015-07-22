@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 void ANNLayer_update_state(
+    const int nbatch, 
     const int numNeurons,
     const int nx,
     const int ny,
@@ -136,88 +137,6 @@ void ANNLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag) {
    }
 }
 
-//#ifdef PV_USE_OPENCL
-///**
-// * Initialize OpenCL buffers.  This must be called after PVLayer data have
-// * been allocated.
-// */
-//int ANNLayer::allocateThreadBuffers(const char * kernel_name)
-//{
-//   int status = HyPerLayer::allocateThreadBuffers(kernel_name);
-//
-//   //right now there are no ANN layer specific buffers...
-//   return status;
-//}
-//
-//int ANNLayer::initializeThreadKernels(const char * kernel_name)
-//{
-//   char kernelPath[256];
-//   char kernelFlags[256];
-//
-//   int status = CL_SUCCESS;
-//   CLDevice * device = parent->getCLDevice();
-//
-//   const char * pvRelPath = "../PetaVision";
-//   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getSrcPath(), pvRelPath, kernel_name);
-//   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getSrcPath(), pvRelPath);
-//
-//   // create kernels
-//   //
-//   krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
-////kernel name should already be set correctly!
-////   if (spikingFlag) {
-////      krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
-////   }
-////   else {
-////      krUpdate = device->createKernel(kernelPath, "Retina_nonspiking_update_state", kernelFlags);
-////   }
-//
-//   int argid = 0;
-//
-//   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
-//
-//
-//   status |= krUpdate->setKernelArg(argid++, clV);
-//   status |= krUpdate->setKernelArg(argid++, VThresh);
-//   status |= krUpdate->setKernelArg(argid++, AMax);
-//   status |= krUpdate->setKernelArg(argid++, AMin);
-//   status |= krUpdate->setKernelArg(argid++, AShift);
-//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
-////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
-////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
-//   status |= krUpdate->setKernelArg(argid++, clActivity);
-//
-//   return status;
-//}
-//int ANNLayer::updateStateOpenCL(double time, double dt)
-//{
-//   int status = CL_SUCCESS;
-//
-//   // wait for memory to be copied to device
-//   if (numWait > 0) {
-//       status |= clWaitForEvents(numWait, evList);
-//   }
-//   for (int i = 0; i < numWait; i++) {
-//      clReleaseEvent(evList[i]);
-//   }
-//   numWait = 0;
-//
-//   status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
-//   krUpdate->finish();
-//
-//   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
-//   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
-//   numWait += 2; //3;
-//
-//
-//   return status;
-//}
-//#endif
-
 int ANNLayer::checkVThreshParams(PVParams * params) {
    if (VWidth<0) {
       VThresh += VWidth;
@@ -251,7 +170,7 @@ int ANNLayer::resetGSynBuffers(double timef, double dt) {
    if (GSyn == NULL) return PV_SUCCESS;
    bool clearNow = clearGSynInterval <= 0 || timef >= nextGSynClearTime;
    if (clearNow) {
-      resetGSynBuffers_HyPerLayer(this->getNumNeurons(), getNumChannels(), GSyn[0]);
+      resetGSynBuffers_HyPerLayer(parent->getNBatch(), this->getNumNeurons(), getNumChannels(), GSyn[0]);
    }
    if (clearNow > 0) {
       nextGSynClearTime += clearGSynInterval;   
@@ -275,30 +194,12 @@ int ANNLayer::resetGSynBuffers(double timef, double dt) {
 int ANNLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
       pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
-   //update_timer->start();
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag) {
-//      updateStateOpenCL(time, dt);
-//      //HyPerLayer::updateState(time, dt);
-//   }
-//   else {
-//#endif
-      int nx = loc->nx;
-      int ny = loc->ny;
-      int nf = loc->nf;
-      int num_neurons = nx*ny*nf;
-      ANNLayer_update_state(num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh, AMax, AMin, AShift, VWidth, num_channels, gSynHead, A);
-
-      //Done in UpdateState
-      
-      //if (this->writeSparseActivity){
-      //   updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
-      //}
-//#ifdef PV_USE_OPENCL
-//   }
-//#endif
-
-   //update_timer->stop();
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
+   ANNLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh, AMax, AMin, AShift, VWidth, num_channels, gSynHead, A);
    return PV_SUCCESS;
 }
 
@@ -309,10 +210,11 @@ int ANNLayer::setActivity() {
    int nf = loc->nf;
    PVHalo const * halo = &loc->halo;
    int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
    int status;
-   status = setActivity_HyPerLayer(num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), AMin, VThresh, AShift, VWidth, getCLayer()->activity->data, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(num_neurons, getV(), AMax, getCLayer()->activity->data, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+   status = setActivity_HyPerLayer(nbatch, num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(nbatch, num_neurons, getV(), AMin, VThresh, AShift, VWidth, getCLayer()->activity->data, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, num_neurons, getV(), AMax, getCLayer()->activity->data, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
    return status;
 }
 

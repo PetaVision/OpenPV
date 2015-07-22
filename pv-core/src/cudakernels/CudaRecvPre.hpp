@@ -25,6 +25,10 @@ typedef struct PVPatch_ {
 
 //Parameter structur
    struct recv_pre_params{
+      int nbatch;
+      int numPreExt;
+      int numPostRes;
+      
       int nxp;
       int nyp;
       int nfp;
@@ -43,8 +47,8 @@ typedef struct PVPatch_ {
       int* patch2datalookuptable;
 
       bool isSparse;
+      long * numActive;
       unsigned int * activeIndices;
-      long numActive;
    };
 
 
@@ -55,6 +59,9 @@ public:
    virtual ~CudaRecvPre();
 
    void setArgs(
+      int nbatch,
+      int numPreExt,
+      int numPostRes,
       int nxp,
       int nyp,
       int nfp,
@@ -73,11 +80,11 @@ public:
       /* int* */     CudaBuffer* patch2datalookuptable,
 
       bool isSparse,
+      /* unsigned long * */ CudaBuffer* numActive, 
       /* unsigned int* */ CudaBuffer* activeIndices
    );
 
    void set_dt_factor(float new_dt_factor) { params.dt_factor = new_dt_factor; }
-   void set_numActive(long new_numActive) { params.numActive = new_numActive; }
 
 protected:
    //This is the function that should be overwritten in child classes
@@ -85,6 +92,7 @@ protected:
 
 private:
    recv_pre_params params;
+   long * numActive;
 };
 
 }

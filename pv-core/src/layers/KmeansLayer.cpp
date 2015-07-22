@@ -48,8 +48,9 @@ namespace PV
         int ny = loc->ny;
         int nf = loc->nf;
         int num_neurons = nx*ny*nf;
+        int nbatch = loc->nbatch;
 
-        setActivity_KmeansLayer(num_neurons, num_channels, gSynHead, A, nx, ny,  nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, trainingFlag);
+        setActivity_KmeansLayer(nbatch, num_neurons, num_channels, gSynHead, A, nx, ny,  nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, trainingFlag);
         
         return PV_SUCCESS;
     }
@@ -62,9 +63,10 @@ namespace PV
         int nf = loc->nf;
         PVHalo const * halo = &loc->halo;
         int num_neurons = nx*ny*nf;
+        int nbatch = loc->nbatch;
         int status;
         
-        status = setActivity_HyPerLayer(num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+        status = setActivity_HyPerLayer(nbatch, num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
         
         return status;
     }

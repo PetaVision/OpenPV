@@ -19,6 +19,7 @@ extern "C" {
 #endif
 
 void HyPerLCALayer_update_state(
+    const int nbatch,
     const int numNeurons,
     const int nx,
     const int ny,
@@ -36,7 +37,8 @@ void HyPerLCALayer_update_state(
     const float AShift,
     const float VWidth,
     const bool selfInteract,
-    const float dt,
+    double * dtAdapt,
+    const float tau,
     float * GSynHead,
     float * activity);
 
@@ -66,14 +68,12 @@ int HyPerLCALayer::initialize_base()
    numChannels = 1; // If a connection connects to this layer on inhibitory channel, HyPerLayer::requireChannel will add necessary channel
    timeConstantTau = 1.0;
    //Locality in conn
-#ifdef OBSOLETE // Marked obsolete Jul 9, 2015
    numWindowX = 1;
    numWindowY = 1;
    windowSymX = false;
    windowSymY = false;
-   sparseProbe = NULL;
-#endif // OBSOLETE // Marked obsolete Jul 9, 2015
    selfInteract = true;
+   sparseProbe = NULL;
    return PV_SUCCESS;
 }
 
@@ -197,6 +197,7 @@ int HyPerLCALayer::allocateUpdateKernel(){
    const int ny = loc->ny;
    const int nf = loc->nf;
    const int num_neurons = nx*ny*nf;
+   const int nbatch = loc->nbatch;
    const int lt = loc->halo.lt;
    const int rt = loc->halo.rt;
    const int dn = loc->halo.dn;
@@ -215,13 +216,22 @@ int HyPerLCALayer::allocateUpdateKernel(){
    PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
+#ifdef PV_USE_CUDA
+   const size_t size = parent->getNBatch() * sizeof(double);
+   d_dtAdapt = device->createBuffer(size);
+#endif 
+   
+
    //Set arguments to kernel
    updateKernel->setArgs(
+      nbatch,
       num_neurons,
       nx, ny, nf, lt, rt, dn, up,
       numChannels, 
       d_V,
-      Vth, AMax, AMin, AShift, VWidth, selfInteract, dt_tau,
+      Vth, AMax, AMin, AShift, VWidth, selfInteract, 
+      d_dtAdapt,
+      dt_tau,
       d_GSyn, d_activity);
 
    //Update d_V for V initialization
@@ -236,10 +246,15 @@ int HyPerLCALayer::allocateUpdateKernel(){
 
 #ifdef PV_USE_CUDA
 int HyPerLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead){
+   if(triggerLayer != NULL){
+      fprintf(stderr, "HyPerLayer::Trigger reset of V does not work on GPUs\n");
+      abort();
+   }
+   //Copy over d_dtAdapt
+   d_dtAdapt->copyToDevice(parent->getTimeScale());
    //Change dt to match what is passed in
    PVCuda::CudaUpdateHyPerLCALayer* updateKernel = dynamic_cast<PVCuda::CudaUpdateHyPerLCALayer*>(krUpdate);
    assert(updateKernel);
-   updateKernel->setDtTau(dt/timeConstantTau);
    runUpdateKernel();
    return PV_SUCCESS;
 }
@@ -265,17 +280,20 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
+      int nbatch = loc->nbatch;
       //Only update when the probe updates
 
       if (triggerLayer != NULL && triggerLayer->needUpdate(time, parent->getDeltaTime())){
-         for (int i = 0; i<num_neurons; i++){
+         for (int i = 0; i<num_neurons*nbatch; i++){
             V[i]=0.0;
          }
       }
+      
+      double * deltaTimeAdapt = parent->getTimeScale();
 
-      HyPerLCALayer_update_state(num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
+      HyPerLCALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
             V, VThresh, AMax, AMin, AShift, VWidth, 
-            selfInteract, dt/timeConstantTau, gSynHead, A);
+            selfInteract, deltaTimeAdapt, timeConstantTau, gSynHead, A);
       //if (this->writeSparseActivity){
       //   updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       //}

@@ -22,7 +22,7 @@ static void copyToLocBuffer(int buf[], PVLayerLoc * loc)
    buf[0] = loc->nx;
    buf[1] = loc->ny;
    buf[2] = loc->nf;
-   buf[3] = loc->nb_no_longer_used;
+   buf[3] = loc->nbatch;
    buf[4] = loc->nxGlobal;
    buf[5] = loc->nyGlobal;
    buf[6] = loc->kx0;
@@ -38,7 +38,7 @@ static void copyFromLocBuffer(int buf[], PVLayerLoc * loc)
    loc->nx       = buf[0];
    loc->ny       = buf[1];
    loc->nf       = buf[2];
-   loc->nb_no_longer_used = buf[3];
+   loc->nbatch = buf[3];
    loc->nxGlobal = buf[4];
    loc->nyGlobal = buf[5];
    loc->kx0      = buf[6];
@@ -58,35 +58,35 @@ int getFileType(const char * filename)
    return 0;
 }
 
-/**
- * Calculates location information given processor distribution and the
- * size of the image.
- *
- * @filename the name of the image file (in)
- * @ic the inter-column communicator (in)
- * @loc location information (inout) (loc->nx and loc->ny are out)
- */
-int getImageInfo(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes)
-{
-   int fileType;
-   if (comm->commRank()==0) {
-      fileType = getFileType(filename);
-   }
-   MPI_Bcast(&fileType, 1, MPI_INT, 0, comm->communicator());
-   if (fileType == PVP_FILE_TYPE) {
-      return getImageInfoPVP(filename, comm, loc, colorbandtypes);
-   }
-   return getImageInfoGDAL(filename, comm, loc, colorbandtypes);
-}
+///**
+// * Calculates location information given processor distribution and the
+// * size of the image.
+// *
+// * @filename the name of the image file (in)
+// * @ic the inter-column communicator (in)
+// * @loc location information (inout) (loc->nx and loc->ny are out)
+// */
+//int getImageInfo(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes)
+//{
+//   int fileType;
+//   if (comm->commRank()==0) {
+//      fileType = getFileType(filename);
+//   }
+//   MPI_Bcast(&fileType, 1, MPI_INT, 0, comm->communicator());
+//   if (fileType == PVP_FILE_TYPE) {
+//      return getImageInfoPVP(filename, comm, loc, colorbandtypes);
+//   }
+//   return getImageInfoGDAL(filename, comm, loc, colorbandtypes);
+//}
 
-int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes)
+int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc * loc)
 {
    // const int locSize = sizeof(PVLayerLoc) / sizeof(int);
    // int locBuf[locSize];
    int status = 0;
 
    // LayerLoc should contain 12 ints
-   assert(sizeof(PVLayerLoc) / sizeof(int) == 12);
+   //assert(sizeof(PVLayerLoc) / sizeof(int) == 12);
 
    const int icCol = comm->commColumn();
    const int icRow = comm->commRow();
@@ -119,7 +119,7 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    loc->nyGlobal = params[INDEX_NY_GLOBAL];
    loc->kx0      = params[INDEX_KX0];
    loc->ky0      = params[INDEX_KY0];
-   // loc->nb       = params[INDEX_NB];
+   //loc->nb       = params[INDEX_NB];
    loc->nf       = params[INDEX_NF];
 
    loc->kx0 = loc->nx * icCol;
@@ -158,7 +158,7 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 #ifdef PV_USE_GDAL
    const int locSize = sizeof(PVLayerLoc) / sizeof(int) + 1; // The extra 1 is for the status of the OpenGDAL call
    // LayerLoc should contain 12 ints, so locSize should be 13.
-   assert(locSize == 13);
+   //assert(locSize == 13);
 
    int locBuf[locSize];
 
@@ -211,7 +211,8 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
 
          //loc->nxGlobal = nxProcs * nx;
          //loc->nyGlobal = nyProcs * ny;
-         loc->nb_no_longer_used = 0;
+         //Image loc does not have a batch index
+         loc->nbatch = 0;
          loc->nxGlobal = xImageSize;
          loc->nyGlobal = yImageSize;
          loc->kx0 = 0;

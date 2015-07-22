@@ -135,11 +135,12 @@ Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int
    cube.loc = loc;
    cube.numItems = numItems;
 
+   const int numBuffers = loc.nbatch;
+
    // not really inplace but ok as is only used to deliver
    // to provide cube information for data from store
-   cube.size = numItems * dataSize + sizeof(PVLayerCube);
+   cube.size = numBuffers * numItems * dataSize + sizeof(PVLayerCube);
 
-   const int numBuffers = 1;
 //#ifdef PV_USE_OPENCL
 //   store = new DataStore(hc, numBuffers, dataSize, numLevels, copydstoreflag);
 //#else
@@ -156,6 +157,8 @@ Publisher::Publisher(int pubId, HyPerCol * hc, int numItems, PVLayerLoc loc, int
       this->connection[i] = NULL;
    }
    numRequests = 0;
+   requests = (MPI_Request *) calloc((NUM_NEIGHBORHOOD-1) * loc.nbatch, sizeof(MPI_Request));
+   assert(requests);
 }
 
 Publisher::~Publisher()
@@ -163,6 +166,7 @@ Publisher::~Publisher()
    delete store;
    Communicator::freeDatatypes(neighborDatatypes); neighborDatatypes = NULL;
    free(connection);
+   free(requests);
 }
 
 int Publisher::updateActiveIndices() {
@@ -170,23 +174,19 @@ int Publisher::updateActiveIndices() {
 }
 
 int Publisher::calcActiveIndices() {
-   //Active indicies stored as local ext values
-   int numActive = 0;
-   pvdata_t * activity = (pvdata_t*) store->buffer(LOCAL);;
-   unsigned int * activeIndices = store->activeIndicesBuffer(LOCAL);
+   for(int b = 0; b < store->numberOfBuffers(); b++){
+      //Active indicies stored as local ext values
+      int numActive = 0;
+      pvdata_t * activity = (pvdata_t*) store->buffer(b);;
+      unsigned int * activeIndices = store->activeIndicesBuffer(b);
 
-   for (int kex = 0; kex < store->getNumItems(); kex++) {
-      if (activity[kex] != 0.0) {
-         activeIndices[numActive++] = kex;
+      for (int kex = 0; kex < store->getNumItems(); kex++) {
+         if (activity[kex] != 0.0) {
+            activeIndices[numActive++] = kex;
+         }
       }
+      *(store->numActiveBuffer(b)) = numActive;
    }
-   //for (int k = 0; k < getNumNeurons(); k++) {
-   //   const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.halo.lt, loc.halo.rt, loc.halo.dn, loc.halo.up);
-   //   if (activity[kex] != 0.0) {
-   //      clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
-   //   }
-   //}
-   *(store->numActiveBuffer(LOCAL)) = numActive;
 
    return PV_SUCCESS;
 }
@@ -203,10 +203,10 @@ int Publisher::publish(HyPerLayer* pub,
    //
 
    size_t dataSize = cube->numItems * sizeof(pvdata_t);
-   assert(dataSize == store->size());
+   assert(dataSize == (store->size() * store->numberOfBuffers()));
 
    pvdata_t * sendBuf = cube->data;
-   pvdata_t * recvBuf = recvBuffer(LOCAL);  // only LOCAL buffer, neighbors copy into LOCAL extended buffer
+   pvdata_t * recvBuf = recvBuffer(0); //Grab all of the buffer, allocated continuously  
 
    bool isSparse = store->isSparse();
 
@@ -240,33 +240,38 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
    int icRank = comm->commRank();
    MPI_Comm mpiComm = comm->communicator();
 
-   // don't send interior
-   assert(numRequests == 0);
-   for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
-      if (neighbors[n] == icRank) continue;  // don't send interior to self
-      pvdata_t * recvBuf = recvBuffer(LOCAL, delay) + comm->recvOffset(n, loc);
-      // sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
-      pvdata_t * sendBuf = recvBuffer(LOCAL, delay) + comm->sendOffset(n, loc);
+   //Loop through batches
+   for(int b = 0; b < loc->nbatch; b++){
+      // don't send interior
+      assert(numRequests == b * (comm->numberOfNeighbors()-1));
+      for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
+         if (neighbors[n] == icRank) continue;  // don't send interior to self
+         pvdata_t * recvBuf = recvBuffer(b, delay) + comm->recvOffset(n, loc);
+         // sendBuf = cube->data + Communicator::sendOffset(n, &cube->loc);
+         pvdata_t * sendBuf = recvBuffer(b, delay) + comm->sendOffset(n, loc);
 
 
 #ifdef DEBUG_OUTPUT
-      size_t recvOff = comm->recvOffset(n, &cube.loc);
-      size_t sendOff = comm->sendOffset(n, &cube.loc);
-      if( cube.loc.nb > 0 ) {
-         fprintf(stderr, "[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d, send[0]==%f\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems, sendBuf[0]);
-      }
-      else {
-         fprintf(stderr, "[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems);
-      }
-      fflush(stdout);
+         size_t recvOff = comm->recvOffset(n, &cube.loc);
+         size_t sendOff = comm->sendOffset(n, &cube.loc);
+         if( cube.loc.nb > 0 ) {
+            fprintf(stderr, "[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d, send[0]==%f\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems, sendBuf[0]);
+         }
+         else {
+            fprintf(stderr, "[%2d]: recv,send to %d, n=%d, delay=%d, recvOffset==%ld, sendOffset==%ld, numitems=%d\n", comm->commRank(), neighbors[n], n, delay, recvOff, sendOff, cube.numItems);
+         }
+         fflush(stdout);
 #endif //DEBUG_OUTPUT
-      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], comm->getReverseTag(n), mpiComm,
-                &requests[numRequests++]);
-      int status = MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], comm->getTag(n), mpiComm);
-      assert(status==0);
 
+         MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], comm->getReverseTag(n), mpiComm,
+                   &requests[numRequests++]);
+         int status = MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], comm->getTag(n), mpiComm);
+         assert(status==0);
+
+      }
+      assert(numRequests == (b+1) * (comm->numberOfNeighbors()-1));
    }
-   assert(numRequests == comm->numberOfNeighbors() - 1);
+
 #endif // PV_USE_MPI
 
    return status;
@@ -291,15 +296,16 @@ int Publisher::wait()
    return 0;
 }
 
-int Publisher::readData(int delay) {
-   if (delay > 0) {
-      cube.data = recvBuffer(LOCAL, delay);
-   }
-   else {
-      cube.data = recvBuffer(LOCAL);
-   }
-   return 0;
-}
+//Not used?
+//int Publisher::readData(int delay) {
+//   if (delay > 0) {
+//      cube.data = recvBuffer(LOCAL, delay);
+//   }
+//   else {
+//      cube.data = recvBuffer(LOCAL);
+//   }
+//   return 0;
+//}
 
 int Publisher::subscribe(BaseConnection* conn)
 {

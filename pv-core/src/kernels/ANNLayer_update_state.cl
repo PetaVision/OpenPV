@@ -11,7 +11,6 @@
 #  define CL_MEM_GLOBAL   __global
 #  define CL_MEM_CONST    __constant
 #  define CL_MEM_LOCAL    __local
-//#  include "conversions.hcl"
 #endif
 
 
@@ -24,6 +23,7 @@
 //
 CL_KERNEL
 void ANNLayer_update_state(
+    const int nbatch,
     const int numNeurons,
     const int nx,
     const int ny,
@@ -41,11 +41,7 @@ void ANNLayer_update_state(
     const float VWidth,
     int num_channels,
     CL_MEM_GLOBAL float * GSynHead,
-//    CL_MEM_GLOBAL float * GSynExc,
-//    CL_MEM_GLOBAL float * GSynInh,
     CL_MEM_GLOBAL float * activity)
 {
-   updateV_ANNLayer(numNeurons, V, num_channels, GSynHead, activity, AMax, AMin, Vth, AShift, VWidth, nx, ny, nf, lt, rt, dn, up);
-//   setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, nb);
-   // resetGSynBuffers_HyPerLayer(numNeurons, 2, GSynHead); // Called by HyPerCol
+   updateV_ANNLayer(nbatch, numNeurons, V, num_channels, GSynHead, activity, AMax, AMin, Vth, AShift, VWidth, nx, ny, nf, lt, rt, dn, up);
 }
