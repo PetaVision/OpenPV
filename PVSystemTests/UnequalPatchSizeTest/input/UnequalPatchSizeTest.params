@@ -38,7 +38,7 @@ Image "input" = {
     nxScale = 1;
     nyScale = 1;
     	      	
-    imagePath = "input/ones.png";
+    inputPath = "input/ones.png";
     nf = 1;
     phase = 0;
     writeStep = -1;
@@ -77,12 +77,12 @@ ANNLayer "output" = {
     clearGSynInterval = 0.0;
 };
 
-Image "correct" = {
+ImagePvp "correct" = {
     // nxScale set in parameter sweep
     // nyScale set in parameter sweep
     	      	
     // imagePath set in parameter sweep
-    frameNumber = 0;
+    pvpFrameIdx = 0;
     nf = 1;
     phase = 0;
     writeStep = -1;
@@ -187,7 +187,7 @@ ParameterSweep "correct":nyScale = {
     1; 1; 0.5; 0.5; 2.0; 2.0;
 };
 
-ParameterSweep "correct":imagePath = {
+ParameterSweep "correct":inputPath = {
     "input/correct_nxp_larger_one_to_one.pvp";
     "input/correct_nyp_larger_one_to_one.pvp";
     "input/correct_nxp_larger_two_to_one.pvp";

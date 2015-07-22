@@ -20,6 +20,7 @@ HyPerCol "column" = {
     writeProgressToErr = true;
     verifyWrites = false;
     errorOnNotANumber = false;
+    nbatch = 2;
 };
 
 // this is a input layer

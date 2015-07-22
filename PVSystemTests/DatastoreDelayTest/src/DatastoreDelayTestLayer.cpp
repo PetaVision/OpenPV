@@ -32,57 +32,60 @@ int DatastoreDelayTestLayer::updateState(double timed, double dt) {
 int DatastoreDelayTestLayer::updateState(double timef, double dt, int num_neurons, pvdata_t * V, pvdata_t * A, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    // updateV();
    updateV_DatastoreDelayTestLayer(getLayerLoc(), &inited, getV(), parent->icCommunicator()->publisherStore(getLayerId())->numberOfLevels());
-   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, lt, rt, dn, up);
+   setActivity_HyPerLayer(parent->getNBatch(), num_neurons, A, V, nx, ny, nf, lt, rt, dn, up);
    // resetGSynBuffers(); // Since V doesn't use the GSyn buffers, no need to maintain them.
 
    return PV_SUCCESS;
 }
 
 int DatastoreDelayTestLayer::updateV_DatastoreDelayTestLayer(const PVLayerLoc * loc, bool * inited, pvdata_t * V, int period) {
-   if( *inited ) {
-      // Rotate values by one row.
-      // Move everything down one row; clobbering row 0 in the process
-      for( int y=loc->ny-1; y>0; y-- ) {
+   for(int b = 0; b < loc->nbatch; b++){
+      pvdata_t * VBatch = V + b * loc->nx * loc->ny * loc->nf;
+      if( *inited ) {
+         // Rotate values by one row.
+         // Move everything down one row; clobbering row 0 in the process
+         for( int y=loc->ny-1; y>0; y-- ) {
+            for( int x=0; x < loc->nx; x++ ) {
+               for( int f=0; f < loc->nf; f++ ) {
+                  pvdata_t * V1 = &VBatch[kIndex(x,y,f,loc->nx,loc->ny,loc->nf)];
+                  (*V1)--;
+                  if( *V1 == 0 ) *V1 = period;
+               }
+            }
+         }
+         // Finally, copy period-th row to zero-th row
          for( int x=0; x < loc->nx; x++ ) {
             for( int f=0; f < loc->nf; f++ ) {
-               pvdata_t * V1 = &V[kIndex(x,y,f,loc->nx,loc->ny,loc->nf)];
-               (*V1)--;
-               if( *V1 == 0 ) *V1 = period;
+               VBatch[kIndex(x,0,f,loc->nx,loc->ny,loc->nf)] = VBatch[kIndex(x,period,f,loc->nx,loc->ny,loc->nf)];
             }
          }
-      }
-      // Finally, copy period-th row to zero-th row
-      for( int x=0; x < loc->nx; x++ ) {
-         for( int f=0; f < loc->nf; f++ ) {
-            V[kIndex(x,0,f,loc->nx,loc->ny,loc->nf)] = V[kIndex(x,period,f,loc->nx,loc->ny,loc->nf)];
-         }
-      }
 
-   }
-   else {
-      if( loc->ny < period ) {
+      }
+      else {
+         if( loc->ny < period ) {
 #ifdef PV_USE_MPI
-         int rank;
-         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+            int rank;
+            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #else
-         int rank = 0;
+            int rank = 0;
 #endif // PV_USE_MPI
 
-         if( rank == 0 ) {
-            fflush(stdout);
-            fprintf(stderr, "DatastoreDelayTestLayer: number of rows (%d) must be >= period (%d).  Exiting.\n", loc->ny, period);
+            if( rank == 0 ) {
+               fflush(stdout);
+               fprintf(stderr, "DatastoreDelayTestLayer: number of rows (%d) must be >= period (%d).  Exiting.\n", loc->ny, period);
+            }
+            abort();
          }
-         abort();
-      }
-      int base = loc->ky0;
-      for( int x=0; x < loc->nx; x++ ) {
-         for( int f=0; f < loc->nf; f++ ) {
-            for( int row=0; row < loc->ny; row++ ) {
-               V[kIndex(x,row,f,loc->nx,loc->ny,loc->nf)] = (base+row) % period + 1;
+         int base = loc->ky0;
+         for( int x=0; x < loc->nx; x++ ) {
+            for( int f=0; f < loc->nf; f++ ) {
+               for( int row=0; row < loc->ny; row++ ) {
+                  VBatch[kIndex(x,row,f,loc->nx,loc->ny,loc->nf)] = (base+row) % period + 1;
+               }
             }
          }
+         *inited = true;
       }
-      *inited = true;
    }
    return PV_SUCCESS;
 }

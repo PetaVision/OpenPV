@@ -25,7 +25,7 @@ Image "origPre" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
-    imagePath = "input/origImg.png";
+    inputPath = "input/origImg.png";
     nf = 1; //number of features.
     phase = 0; //phase defines an order in which layers should be executed.
     writeStep = 1;  //-1 means doesn't write for log
@@ -49,7 +49,7 @@ Image "clonePre" = {
     nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
     nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
     	      	  // cannot be larger than the input image size.
-    imagePath = "input/cloneImg.png";
+    inputPath = "input/cloneImg.png";
     nf = 1; //number of features.
     phase = 0; //phase defines an order in which layers should be executed.
     writeStep = 1;  //-1 means doesn't write for log

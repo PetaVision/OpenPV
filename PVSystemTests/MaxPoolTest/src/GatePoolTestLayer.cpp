@@ -16,25 +16,31 @@ int GatePoolTestLayer::updateState(double timef, double dt){
    int kx0 = loc->kx0;
    int ky0 = loc->ky0;
 
-   pvdata_t * GSynExt = getChannel(CHANNEL_EXC); //gated
-   pvdata_t * GSynInh = getChannel(CHANNEL_INH); //gt
 
    bool isCorrect = true;
-   //Grab the activity layer of current layer
-   //We only care about restricted space
-   int numActive = 0;
-   for (int k = 0; k < getNumNeurons(); k++){
-      if(GSynExt[k]){
-         numActive++;
-         if(GSynExt[k] != GSynInh[k]){
-             std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
-             isCorrect = false;
+   for(int b = 0; b < loc->nbatch; b++){
+      pvdata_t * GSynExt = getChannel(CHANNEL_EXC) + b * getNumNeurons(); //gated
+      pvdata_t * GSynInh = getChannel(CHANNEL_INH) + b * getNumNeurons(); //gt
+
+      //Grab the activity layer of current layer
+      //We only care about restricted space
+      int numActive = 0;
+      for (int k = 0; k < getNumNeurons(); k++){
+         if(GSynExt[k]){
+            numActive++;
+            if(GSynExt[k] != GSynInh[k]){
+                std::cout << "Connection " << name << " Mismatch at batch " << b << " neuron " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+                isCorrect = false;
+            }
          }
       }
+      
+      //Make sure all activity isn't 0
+      if(numActive == 0){
+         std::cout << "Num active is 0 at timestep " << timef << " for batch " << b << "\n";
+      }
+      assert(numActive != 0);
    }
-   
-   //Make sure all activity isn't 0
-   assert(numActive != 0);
 
    if(!isCorrect){
       exit(-1);

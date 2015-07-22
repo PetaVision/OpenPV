@@ -17,13 +17,14 @@ HyPerCol "column" = {
     // deleteOlderCheckpoints = false;
     suppressLastOutput = true;
     writeProgressToErr = true;
+    nbatch = 2;
 };
 
 // this is a input layer
 ImageOffsetTestLayer "crop" = {
     nxScale = .5;
     nyScale = .5;
-    imagePath = "input/input.png";
+    inputPath = "input/input.png";
     nf = 3;
     phase = 0;
     writeStep = -1;

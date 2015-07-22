@@ -48,7 +48,7 @@ HyPerCol "column" = {
 Image "input" = {
     nxScale = 1;
     nyScale = 1;
-    imagePath = "input/FD404DD0-7F94-4F59-84F2-E694FBB3D9E2-5807-00000415624C9C17_1.0-0003.png";
+    inputPath = "input/FD404DD0-7F94-4F59-84F2-E694FBB3D9E2-5807-00000415624C9C17_1.0-0003.png";
     nf = 1;
     phase = 0;
     writeStep = -1;
@@ -223,7 +223,7 @@ CloneConn "V1_to_reconstruction" = {
 
 // Compare reconstruction to what it should be
 
-Movie "correct" = {
+MoviePvp "correct" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -234,7 +234,7 @@ Movie "correct" = {
     initialWriteTime = 1.0;
     sparseLayer = false;
 
-    imageListPath = "input/correct.pvp";
+    inputPath = "input/correct.pvp";
     offsetX = 0;
     offsetY = 0;
     writeImages = false;
@@ -245,8 +245,6 @@ Movie "correct" = {
     jitterFlag = false;
 
     displayPeriod = 1;
-    randomMovie = false;
-    readPvpFile = true;
     start_frame_index = 0;
     skip_frame_index = 1;
     writeFrameToTimestamp = true;

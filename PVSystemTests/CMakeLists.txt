@@ -128,6 +128,8 @@ add_subdirectory(AdjustAxonalArborsTest)
 add_subdirectory(ArborSystemTest)
 add_subdirectory(BackgroundLayerTest)
 add_subdirectory(BasicSystemTest)
+add_subdirectory(BatchCheckpointSystemTest)
+add_subdirectory(BatchWeightUpdateTest)
 add_subdirectory(BinningLayerTest)
 add_subdirectory(CheckpointSystemTest)
 add_subdirectory(CloneHyPerConnTest)
@@ -232,6 +234,18 @@ set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision t
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
+set(testBaseName BatchCheckpointSystemTest) #The base name of the test
+set(testParams ) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+
+set(testBaseName BatchWeightUpdateTest) #The base name of the test
+set(testParams ) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+
 set(testBaseName BinningLayerTest) #The base name of the test
 set(testParams BinningLayerTest) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
@@ -300,7 +314,8 @@ AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName GPUSystemTest) #The base name of the test
 set(testParams preTest postTest postTestNoTranspose postTestOneToMany
-   postTest_linked postTestGpuGroup HyPerLCAGpuTest) #Names of the parameter files in the input directory, leaving out .params
+   postTest_linked postTestGpuGroup HyPerLCAGpuTest
+   postRecvBatch preRecvBatch) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
@@ -318,7 +333,7 @@ set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ImageSystemTest) #The base name of the test
-set(testParams multiframe_SystemTest) #Names of the parameter files in the input directory, leaving out .params
+set(testParams ImageFileIO ImagePvpFileIO ImagePvpFileIOSparse MovieFileIO MoviePvpFileIO) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
@@ -384,7 +399,7 @@ set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName MaskLayerTest) #The base name of the test
-set(testParams maskTest maskTestFeatures maskTestNoFeatures) #Names of the parameter files in the input directory, leaving out .params
+set(testParams maskTest) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})

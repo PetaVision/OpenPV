@@ -201,7 +201,7 @@ CloneConn "clone of original" = {
 TestAllZerosProbe "probe" = {
     targetLayer = "comparison";
     triggerFlag = false;
-    nnzThreshold = 5.0e-5;
+    nnzThreshold = 5.0e-4;
 };
 
 ParameterSweep "column":outputPath = {
@@ -221,7 +221,7 @@ ParameterSweep "pre":nyScale = {
     1; 1; 2; 2; 1; 1;
 };
 
-ParameterSweep "pre":imagePath = {
+ParameterSweep "pre":inputPath= {
     "input/8x8image.png";
     "input/8x8image.png";
     "input/16x16image.png";
@@ -238,7 +238,7 @@ ParameterSweep "post":nyScale = {
     1; 1; 1; 1; 2; 2;
 };
 
-ParameterSweep "post":imagePath = {
+ParameterSweep "post":inputPath= {
     "input/8x8image.png";
     "input/8x8image.png";
     "input/8x8image.png";

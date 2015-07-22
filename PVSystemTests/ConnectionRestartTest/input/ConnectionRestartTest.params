@@ -35,13 +35,13 @@ HyPerCol "column" = {
    suppressLastOutput = false; 
 };
 
-Image "input" = {
+ImagePvp "input" = {
     initializeFromCheckpointFlag = false;
     nxScale = 1;  
     nyScale = 1;  
     	      	  
-    imagePath = "input/input.pvp";
-    frameNumber = 0;
+    inputPath = "input/input.pvp";
+    pvpFrameIdx = 0;
     nf = 1; 
     phase = 0; 
     writeStep = -1;  

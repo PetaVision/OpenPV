@@ -8,8 +8,11 @@
 
 
 #include <columns/buildandrun.hpp>
-#include "ImageTestProbe.hpp"
-#include "MovieTestProbe.hpp"
+#include "ImageTestLayer.hpp"
+#include "ImagePvpTestLayer.hpp"
+#include "MovieTestLayer.hpp"
+#include "MoviePvpTestLayer.hpp"
+//#include "BatchImageTestLayer.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -32,11 +35,17 @@ int main(int argc, char * argv[]) {
 #ifdef MAIN_USES_CUSTOMGROUPS
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
-   if (strcmp(keyword, "ImageTestProbe") == 0){
-      addedGroup = new ImageTestProbe(name, hc);
+   if (strcmp(keyword, "ImageTestLayer") == 0){
+      addedGroup = new ImageTestLayer(name, hc);
    }
-   if (strcmp(keyword, "MovieTestProbe") == 0){
-      addedGroup = new MovieTestProbe(name, hc);
+   if (strcmp(keyword, "ImagePvpTestLayer") == 0){
+      addedGroup = new ImagePvpTestLayer(name, hc);
+   }
+   if (strcmp(keyword, "MovieTestLayer") == 0){
+      addedGroup = new MovieTestLayer(name, hc);
+   }
+   if (strcmp(keyword, "MoviePvpTestLayer") == 0){
+      addedGroup = new MoviePvpTestLayer(name, hc);
    }
    return addedGroup;
 }

@@ -39,7 +39,7 @@ Image "input" = {
     nxScale = 1;
     nyScale = 1;
     	      	
-    imagePath = "input/testimage.png";
+    inputPath = "input/testimage.png";
     nf = 1;
     phase = 0;
     writeStep = -1;
