@@ -1028,7 +1028,7 @@ int setActivity_MLPSigmoidLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t 
    #endif
    for( kbatch=0; kbatch<numNeurons*nbatch; kbatch++ )
 #else
-      k = getIndex();
+      kbatch = getIndex();
 #endif // PV_USE_OPENCL
    {
       int b = kbatch / numNeurons;

@@ -212,7 +212,7 @@ int HyPerLCALayer::allocateUpdateKernel(){
    const float VWidth = this->VWidth;
    const bool selfInteract = this->selfInteract;
    //This value is being updated every timestep, so we need to update it on the gpu
-   const float dt_tau = -1; //dt/timeConstantTau;
+   const float tau = timeConstantTau; //dt/timeConstantTau;
    PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
@@ -231,7 +231,7 @@ int HyPerLCALayer::allocateUpdateKernel(){
       d_V,
       Vth, AMax, AMin, AShift, VWidth, selfInteract, 
       d_dtAdapt,
-      dt_tau,
+      tau,
       d_GSyn, d_activity);
 
    //Update d_V for V initialization

@@ -18,6 +18,7 @@ HyPerCol "column" = {
     checkpointWriteStepInterval = 1;
     suppressLastOutput = false;
     writeProgressToErr = true;
+    nbatch = 2;
 };
 
 ConstantLayer "input" = {

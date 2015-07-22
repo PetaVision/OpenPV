@@ -31,7 +31,7 @@ void GPUSystemTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 int GPUSystemTestProbe::outputState(double timed){
    int status = StatsProbe::outputState(timed);
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-   int numExtNeurons = getTargetLayer()->getNumExtended();
+   int numExtNeurons = getTargetLayer()->getNumExtendedAllBatches();
    const pvdata_t * A = getTargetLayer()->getLayerData();
    std::cout.precision(15);
    float sumsq = 0;

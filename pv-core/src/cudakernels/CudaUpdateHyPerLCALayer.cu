@@ -35,7 +35,7 @@ void HyPerLCALayer_update_state(
     float * activity)
 {
 
-   if((blockIdx.x * blockDim.x) + threadIdx.x < numNeurons){
+   if((blockIdx.x * blockDim.x) + threadIdx.x < numNeurons*nbatch){
       updateV_HyPerLCALayer(nbatch, numNeurons, V, GSynHead, activity,
             AMax, AMin, Vth, AShift, VWidth, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, numChannels);
    }
