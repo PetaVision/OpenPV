@@ -3,4 +3,3 @@ Makefile
 cmake_install.cmake
 lib
 src/include/cMakeHeader.h
-src/io/parser-generated/
