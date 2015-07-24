@@ -179,13 +179,15 @@ int Publisher::calcActiveIndices() {
       int numActive = 0;
       pvdata_t * activity = (pvdata_t*) store->buffer(b);;
       unsigned int * activeIndices = store->activeIndicesBuffer(b);
+      long * numActiveBuf = store->numActiveBuffer(b);
 
       for (int kex = 0; kex < store->getNumItems(); kex++) {
          if (activity[kex] != 0.0) {
-            activeIndices[numActive++] = kex;
+            activeIndices[numActive] = kex;
+            numActive++;
          }
       }
-      *(store->numActiveBuffer(b)) = numActive;
+      *numActiveBuf = numActive;
    }
 
    return PV_SUCCESS;
