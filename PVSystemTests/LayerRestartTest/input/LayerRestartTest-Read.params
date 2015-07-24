@@ -67,9 +67,9 @@ ANNLayer "Copy" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 

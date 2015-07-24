@@ -38,7 +38,7 @@ ConstantLayer "input" = {
     VThresh = -infinity;
     AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
     AMin = -infinity; 
-    VShift = 0;
+    AShift = 0;
     // 
     phase = 1; 
     triggerFlag = false;
@@ -78,9 +78,9 @@ ANNLayer "outputRecvPre" = {
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
     // 
     phase = 2; 
     triggerFlag = false;
@@ -98,9 +98,9 @@ ANNLayer "outputRecvPost" = {
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
     // 
     phase = 2; 
     triggerFlag = false;
@@ -118,9 +118,9 @@ ANNLayer "outputTest" = {
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
     // 
     phase = 3; 
     triggerFlag = false;

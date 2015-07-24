@@ -25,7 +25,7 @@ HyPerCol "column" = {
    randomSeed = 1337540566;
    startTime = 0.0;
    numSteps = 5;
-   progressStep = 10;
+   progressInterval = 10;
    writeProgressToErr = false;
    outputPath = "output";
    filenamesContainLayerNames = 2;
@@ -48,7 +48,7 @@ Retina "input" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    
    spikingFlag = true;
    foregroundRate = 1000;
@@ -70,7 +70,7 @@ ANNLayer "normalizeL3 output" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;

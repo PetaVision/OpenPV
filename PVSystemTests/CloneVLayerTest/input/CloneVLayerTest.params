@@ -75,9 +75,9 @@ ANNLayer "Output" = {
 
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 
@@ -112,9 +112,9 @@ ANNLayer "CheckClone" = {
 
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 
@@ -154,9 +154,9 @@ ANNLayer "DuplicateSigmoid" = {
     InitVType = "ZeroV";
 
     VThresh = 1.0;   
-    VMin = 0.0;
-    VMax = 1.0;
-    VShift = 1.0;
+    AMin = 0.0;
+    AMax = 1.0;
+    AShift = 1.0;
     VWidth = 0.0;
 };
 
@@ -176,9 +176,9 @@ ANNLayer "CheckSigmoid" = {
 
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 

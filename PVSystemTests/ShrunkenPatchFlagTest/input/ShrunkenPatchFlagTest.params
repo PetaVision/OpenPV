@@ -69,9 +69,9 @@ ANNLayer "noShrunkenFlag" = {
     InitVType                        = "ZeroV";
 
     VThresh                          = -infinity;
-    VMax                             = infinity;
-    VMin                             = -infinity;
-    VShift                           = 0.0;
+    AMax                             = infinity;
+    AMin                             = -infinity;
+    AShift                           = 0.0;
     VWidth                           = 0.0;
 };
 
@@ -89,9 +89,9 @@ ANNLayer "ShrunkenFlag" = {
     InitVType                        = "ZeroV";
 
     VThresh                          = -infinity;
-    VMax                             = infinity;
-    VMin                             = -infinity;
-    VShift                           = 0.0;
+    AMax                             = infinity;
+    AMin                             = -infinity;
+    AShift                           = 0.0;
     VWidth                           = 0.0;
 };
 
@@ -109,9 +109,9 @@ ANNLayer "comparison" = {
     InitVType                        = "ZeroV";
 
     VThresh                          = -infinity;
-    VMax                             = infinity;
-    VMin                             = -infinity;
-    VShift                           = 0.0;
+    AMax                             = infinity;
+    AMin                             = -infinity;
+    AShift                           = 0.0;
     VWidth                           = 0.0;
     
     movieLayerName                   = "input";

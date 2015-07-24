@@ -46,10 +46,10 @@ DatastoreDelayTestLayer "input" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "output" = {
@@ -65,10 +65,10 @@ ANNLayer "output" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "outputArbor" = {
@@ -84,10 +84,10 @@ ANNLayer "outputArbor" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 // Connections
 

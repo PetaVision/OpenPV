@@ -74,9 +74,9 @@ ANNLayer "output" = {
 
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 //this is a layer for connection
