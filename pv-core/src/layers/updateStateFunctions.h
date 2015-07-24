@@ -184,6 +184,11 @@ int setActivity_HyPerLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny,
       int nf, int lt, int rt, int dn, int up);
 KERNEL
+int setActivity_PtwiseLinearTransferLayer(int numNeurons,
+      CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny,
+      int nf, int lt, int rt, int dn, int up, int numVertices,
+      pvdata_t * verticesA, pvdata_t * verticesV, int slopeNegInf, int slopePosInf);
+KERNEL
 int setActivity_AccumulateLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny,
       int nf, int lt, int rt, int dn, int up);
@@ -925,6 +930,43 @@ int setActivity_HyPerLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GL
    {
       int kex = kIndexExtended(k,nx,ny,nf,lt, rt, dn, up);
       A[kex] = V[k];
+   }
+   return PV_SUCCESS;
+}
+
+KERNEL
+int setActivity_PtwiseLinearTransferLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * A, CL_MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up, int numVertices, pvdata_t * verticesA, pvdata_t * verticesV, int slopeNegInf, int slopePosInf) {
+   int k;
+   int last = numVertices-1;
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif
+   for( k=0; k<numNeurons; k++ )
+#else
+      k = getIndex();
+#endif // PV_USE_OPENCL
+   {
+      int kex = kIndexExtended(k,nx,ny,nf,lt,rt,dn,up);
+      int v;
+      pvdata_t potential = V[k];
+      pvdata_t activity = 0.0f;
+      activity = potential < verticesV[0] ? verticesA[0] + slopeNegInf*(potential-verticesV[0]): activity;
+      for (v=0; v<last; v++)
+      {
+         if (potential==verticesV[v])
+         {
+            activity = verticesA[v];
+         }
+         else if (potential>verticesV[v] && potential<verticesV[v+1])
+         {
+            assert(v+1<numVertices);
+            pvdata_t slope = (verticesA[v+1]-verticesA[v])/(verticesV[v+1]-verticesV[v]);
+            activity = verticesA[v] + slope*(potential-verticesV[v]);
+         }
+      }
+      activity = potential > verticesV[last] ? verticesA[last] + slopePosInf*(potential-verticesV[last]): activity;
+      A[kex] = activity;
    }
    return PV_SUCCESS;
 }

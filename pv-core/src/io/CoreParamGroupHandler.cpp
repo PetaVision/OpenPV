@@ -55,6 +55,7 @@
 #include "../layers/PoolingANNLayer.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/PoolingIndexLayer.hpp"
+#include "../layers/PtwiseLinearTransferLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
 #include "../layers/RescaleLayer.hpp"
 #include "../layers/RunningAverageLayer.hpp"
@@ -183,6 +184,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"PoolingANNLayer", LayerGroupType},
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"PoolingIndexLayer", LayerGroupType},
+         {"PtwiseLinearTransferLayer", LayerGroupType},
          {"PtwiseProductLayer", LayerGroupType},
          {"RescaleLayer", LayerGroupType},
          {"RunningAverageLayer", LayerGroupType},
@@ -439,7 +441,7 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "PoolingIndexLayer") ) {
       addedLayer = new PoolingIndexLayer(name, hc);
    }
-   else if( !strcmp(keyword, "PtwiseProductLayer") ) {
+   else if( !strcmp(keyword, "PtwiseLinearTransferLayer") ) {
       addedLayer = new PtwiseProductLayer(name, hc);
    }
    else if( !strcmp(keyword, "RescaleLayer") ) {
