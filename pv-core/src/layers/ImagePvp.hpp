@@ -14,28 +14,19 @@ class ImagePvp : public BaseInput{
 
 protected:
    /** 
-    * List of parameters needed from the Image class
-    * @name Image Parameters
+    * List of parameters needed from the ImagePvp class
+    * @name ImagePvp Parameters
     * @{
     */
 
-
-
    /**
-    * @brief imagePath: The absolute or relative path to the image input
-    * @details
-    */
-   //virtual void ioParam_pvpPath(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief frameNumber: If imagePath is a pvp file, frameNumber specifies which frame to use as the image 
+    * @brief pvpFrameIdx: If imagePath is a pvp file, frameNumber specifies which frame to use as the image 
     */
    virtual void ioParam_pvpFrameIdx(enum ParamsIOFlag ioFlag);
-
    /**
-    * @brief frameNumber: If imagePath is a pvp file, frameNumber specifies which frame to use as the image 
+    * @}
     */
-   //virtual void ioParam_pvpBatchIdx(enum ParamsIOFlag ioFlag);
+
 
    virtual int retrieveData(double timef, double dt);
    virtual int scatterImageFilePVP(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber);

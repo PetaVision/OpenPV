@@ -860,18 +860,35 @@ protected:
    int checkpointFilename(char * cpFilename, int size, const char * cpDir);
    virtual int setInitialValues(); // returns PV_SUCCESS if successful, or PV_POSTPONE if it needs to wait on other objects (e.g. TransposeConn has to wait for original conn)
 
+   /**
+    * calc_dW is a function that calls initialze_dW, update_dW, reduce_dW, and normalize_dW
+    */
    virtual int calc_dW();
+
+   /**
+    * Initializes dW. Default behaviour is to clear dW.
+    */
    virtual int initialize_dW(int arborId);
    virtual int clear_dW(int arborId);
    virtual int clear_numActivations(int arborId);
+   /**
+    * Updates the dW buffer
+    */
    virtual int update_dW(int arborId);
    virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
    virtual int updateWeights(int arborId = 0);
-   virtual int normalize_dW(int arbor_ID);
    virtual bool skipPre(pvdata_t preact){return preact == 0.0f;};
+   /**
+    * Reduces all dW and activations across MPI
+    */
    virtual int reduce_dW(int arborId);
    virtual int reduceKernels(int arborID);
    virtual int reduceActivations(int arborID);
+
+   /**
+    * Normalizes all dW by dividing dW by activations
+    */
+   virtual int normalize_dW(int arbor_ID);
 
    void connOutOfMemory(const char* funcname);
 

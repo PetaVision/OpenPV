@@ -1,4 +1,6 @@
-
+/**
+ * Base Input class for reading images, movies, pvp files, as well as creating patterns and loading from memory buffer.
+ */
 #ifndef BASEINPUT_HPP_
 #define BASEINPUT_HPP_
 
@@ -14,6 +16,15 @@ namespace PV {
 class BaseInput: public HyPerLayer{
 protected:
    
+   /** 
+    * List of parameters needed from the BaseInput class
+    * @name BaseInput Parameters
+    * @{
+    */
+
+   /**
+    * @brief inputPath: The file the input is reading. The type of file depends on which subclass is being used.
+    */
    virtual void ioParam_inputPath(enum ParamsIOFlag ioFlag);
 
    /**
@@ -136,6 +147,10 @@ protected:
     */
    virtual void ioParam_useImageBCflag(enum ParamsIOFlag ioFlag);
 
+   /**
+    * @}
+    */
+
 protected:
    BaseInput();
    int initialize(const char * name, HyPerCol * hc);
@@ -156,9 +171,19 @@ protected:
    virtual bool constrainBiases();
    virtual bool constrainOffsets();
 
-   //Virtual function
+   /**
+    * This virtual function gets called from getFrame. Each subclass needs to overwrite this
+    * function to define how to fill the activity buffer of the input class.
+    */
    virtual int retrieveData(double timef, double dt) = 0;
+   /**
+    * This is the interface for loading a new "frame" (which can be either pvp, image, etc)
+    * into the activity buffer. This function calls retrieveData.
+    */
    virtual int getFrame(double timef, double dt);
+   /**
+    * This function achieves post processing of the activity buffer after a frame is loaded.
+    */
    virtual int postProcess(double timef, double dt);
 
    /**
