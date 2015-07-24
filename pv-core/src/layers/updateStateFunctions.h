@@ -960,7 +960,6 @@ int setActivity_PtwiseLinearTransferLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t
          }
          else if (potential>verticesV[v] && potential<verticesV[v+1])
          {
-            assert(v+1<numVertices);
             pvdata_t slope = (verticesA[v+1]-verticesA[v])/(verticesV[v+1]-verticesV[v]);
             activity = verticesA[v] + slope*(potential-verticesV[v]);
          }
