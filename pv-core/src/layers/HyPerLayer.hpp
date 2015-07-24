@@ -354,6 +354,7 @@ public:
 
    virtual int updateBorder(double time, double dt);
 
+   virtual int updateAllActiveIndices();
    virtual int updateActiveIndices();
    int resetBuffer(pvdata_t * buf, int numItems);
 

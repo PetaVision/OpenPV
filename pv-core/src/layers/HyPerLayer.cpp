@@ -705,18 +705,12 @@ int HyPerLayer::initializeV() {
    if (initVObject != NULL) {
       status = initVObject->calcV(this);
       setActivity();
-      //Moved to publish
-      //if (status == PV_SUCCESS) status = updateActiveIndices();
    }
    return status;
 }
 
 int HyPerLayer::initializeActivity() {
    int status = setActivity();
-   //Moved to publish
-   //if (status == PV_SUCCESS) {
-   //   status = updateActiveIndices();
-   //}
    return status;
 }
 
@@ -1607,8 +1601,6 @@ int HyPerLayer::updateState(double timef, double dt) {
    }
 #endif
 
-   //Moved to publish
-   //if(status == PV_SUCCESS) status = updateActiveIndices();
    return status;
 }
 
@@ -1697,7 +1689,10 @@ int HyPerLayer::updateBorder(double time, double dt)
    return status;
 }
 
-//This function must be called after exchange borders and a wait
+//Updates active indices for all levels (delays) here
+int HyPerLayer::updateAllActiveIndices() {
+   return parent->icCommunicator()->updateAllActiveIndices(this->getLayerId());
+}
 int HyPerLayer::updateActiveIndices() {
    return parent->icCommunicator()->updateActiveIndices(this->getLayerId());
 }
@@ -1965,7 +1960,6 @@ int HyPerLayer::readActivityFromCheckpoint(const char * cpDir, double * timeptr)
    int status = readBufferFile(filename, parent->icCommunicator(), timeptr, &clayer->activity->data, 1, /*extended*/true, getLayerLoc());
    assert(status==PV_SUCCESS);
    free(filename);
-   //status = updateActiveIndices();
    assert(status==PV_SUCCESS);
    return status;
 }
@@ -2027,7 +2021,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
    status |= icComm->wait(this->getLayerId());
    assert(status == PV_SUCCESS);
    //Update sparse indices here
-   status = updateActiveIndices();
+   status = updateAllActiveIndices();
 
    return PV_SUCCESS;
 }

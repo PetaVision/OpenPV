@@ -105,6 +105,11 @@ int InterColComm::exchangeBorders(int pubId, const PVLayerLoc * loc, int delay/*
    return status;
 }
 
+int InterColComm::updateAllActiveIndices(int pubId){
+   int status = publishers[pubId]->updateAllActiveIndices();
+   return status;
+}
+
 int InterColComm::updateActiveIndices(int pubId){
    int status = publishers[pubId]->updateActiveIndices();
    return status;
@@ -169,8 +174,35 @@ Publisher::~Publisher()
    free(requests);
 }
 
+
+int Publisher::updateAllActiveIndices() {
+   if(store->isSparse()) return calcAllActiveIndices(); else return PV_SUCCESS;
+}
+
 int Publisher::updateActiveIndices() {
    if(store->isSparse()) return calcActiveIndices(); else return PV_SUCCESS;
+}
+
+int Publisher::calcAllActiveIndices() {
+   for(int l = 0; l < store->numberOfLevels(); l++){
+      for(int b = 0; b < store->numberOfBuffers(); b++){
+         //Active indicies stored as local ext values
+         int numActive = 0;
+         pvdata_t * activity = (pvdata_t*) store->buffer(b, l);;
+         unsigned int * activeIndices = store->activeIndicesBuffer(b, l);
+         long * numActiveBuf = store->numActiveBuffer(b, l);
+
+         for (int kex = 0; kex < store->getNumItems(); kex++) {
+            if (activity[kex] != 0.0) {
+               activeIndices[numActive] = kex;
+               numActive++;
+            }
+         }
+         *numActiveBuf = numActive;
+      }
+   }
+
+   return PV_SUCCESS;
 }
 
 int Publisher::calcActiveIndices() {

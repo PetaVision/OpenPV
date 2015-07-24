@@ -46,6 +46,7 @@ public:
 
    DataStore * dataStore()   {return store;}
 
+   int updateAllActiveIndices();
    int updateActiveIndices();
 
 private:
@@ -69,6 +70,7 @@ private:
       return store->activeIndicesBuffer(bufferId, delay);
    }
 
+   int calcAllActiveIndices();
    int calcActiveIndices();
 
    int pubId;
@@ -97,6 +99,7 @@ public:
    int publish(HyPerLayer * pub, PVLayerCube * cube);
    int subscribe(BaseConnection * conn);
    int exchangeBorders(int pubId, const PVLayerLoc * loc, int delay=0);
+   int updateAllActiveIndices(int pubId);
    int updateActiveIndices(int pubId);
    int wait(int pubId);
 
