@@ -51,7 +51,10 @@ PtwiseLinearTransferLayer::PtwiseLinearTransferLayer(const char * name, HyPerCol
 //#endif
 }  // end PtwiseLinearTransferLayer::PtwiseLinearTransferLayer(const char *, HyPerCol *)
 
-PtwiseLinearTransferLayer::~PtwiseLinearTransferLayer() {}
+PtwiseLinearTransferLayer::~PtwiseLinearTransferLayer() {
+   free(verticesV); verticesV = NULL;
+   free(verticesA); verticesA = NULL;
+}
 
 int PtwiseLinearTransferLayer::initialize_base() {
    numVertices = 0;
@@ -64,7 +67,7 @@ int PtwiseLinearTransferLayer::initialize(const char * name, HyPerCol * hc) {
    int status = HyPerLayer::initialize(name, hc);
    assert(status == PV_SUCCESS);
 
-   status |= checkVertices(parent->parameters());
+   status |= checkVertices();
 //#ifdef PV_USE_OPENCL
 //   numEvents=NUM_ANN_EVENTS;
 //#endif
@@ -141,6 +144,14 @@ void PtwiseLinearTransferLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
    }
    assert(numVertices==0 || numVertices==numVerticesA);
    numVertices = numVerticesA;
+}
+
+void PtwiseLinearTransferLayer::ioParam_slopeNegInf(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "slopeNegInf", &slopeNegInf, slopeNegInf/*default*/, true/*warnIfAbsent*/);
+}
+
+void PtwiseLinearTransferLayer::ioParam_slopePosInf(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "slopePosInf", &slopePosInf, slopePosInf/*default*/, true/*warnIfAbsent*/);
 }
 
 void PtwiseLinearTransferLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag) {
@@ -232,7 +243,7 @@ void PtwiseLinearTransferLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFl
 //}
 //#endif
 
-int PtwiseLinearTransferLayer::checkVertices(PVParams * params) {
+int PtwiseLinearTransferLayer::checkVertices() {
    assert(numVertices>0);
    int status = PV_SUCCESS;
    for (int v=1; v<numVertices; v++) {
@@ -244,17 +255,7 @@ int PtwiseLinearTransferLayer::checkVertices(PVParams * params) {
                   this->getName(), v, v+1, verticesV[v-1], verticesV[v]);
          }
       }
-      // TODO: Should A necessarily be nondecreasing?
-      if (verticesA[v] < verticesA[v-1]) {
-         status = PV_FAILURE;
-         if (this->getParent()->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: vertices %d and %d: A-coordinates decrease from %f to %f.\n",
-                  this->getParent()->parameters()->groupKeywordFromName(this->getName()),
-                  this->getName(), v, v+1, verticesA[v-1], verticesA[v]);
-         }
-      }
    }
-
    return status;
 }
 

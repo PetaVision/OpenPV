@@ -43,11 +43,5 @@ void PtwiseLinearTransferLayer_update_state(
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity)
 {
-   if (num_channels==1) {
-      applyGSyn_HyPerLayer1Channel(numNeurons, V, GSynHead);
-   }
-   else {
-      applyGSyn_HyPerLayer(numNeurons, V, GSynHead);
-   }
-   setActivity_PtwiseLinearTransferLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesA, verticesV, slopeNegInf, slopePosInf);
+   updateV_PtwiseLinearTransferLayer(numNeurons, V, num_channels, GSynHead, activity, numVertices, verticesV, verticesA, slopeNegInf, slopePosInf, nx, ny, nf, lt, rt, dn, up);
 }

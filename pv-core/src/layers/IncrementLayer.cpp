@@ -70,15 +70,15 @@ void IncrementLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) VThresh = max_pvvdata_t;
 }
 
-void IncrementLayer::ioParam_VMin(enum ParamsIOFlag ioFlag) {
+void IncrementLayer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) AMin = -max_pvadata_t;
 }
 
-void IncrementLayer::ioParam_VMax(enum ParamsIOFlag ioFlag) {
+void IncrementLayer::ioParam_AMax(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) AMax = -max_pvadata_t;
 }
 
-void IncrementLayer::ioParam_VShift(enum ParamsIOFlag ioFlag) {
+void IncrementLayer::ioParam_AShift(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) AShift = (pvdata_t) 0;
 
 }

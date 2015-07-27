@@ -60,6 +60,12 @@ KERNEL
 int applyGSyn_LabelErrorLayer(int numNeurons,
       CL_MEM_GLOBAL pvdata_t * V, CL_MEM_GLOBAL pvdata_t * GSynHead, int nx, int ny, int nf, int lt, int rt, int dn, int up, int isBinary);
 KERNEL
+int updateV_PtwiseLinearTransferLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
+      int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL pvdata_t * activity,
+      int numVertices, float * verticesV, float * verticesA, float slopeNegInf, float slopePosInf,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up);
+
+KERNEL
 int updateV_ANNLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL float * activity,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx,
@@ -435,6 +441,25 @@ int applyGSyn_ANNWhitenedLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
       V[k] = (GSynInput[k] - GSynAveInput[k]) / (sqrt(GSynAveSquaredInput[k] - GSynAveInput[k]*GSynAveInput[k]) + FLT_MIN);
    }
    return PV_SUCCESS;
+}
+
+KERNEL
+int updateV_PtwiseLinearTransferLayer(int numNeurons, CL_MEM_GLOBAL pvdata_t * V,
+        int num_channels, CL_MEM_GLOBAL pvdata_t * GSynHead, CL_MEM_GLOBAL pvdata_t * activity,
+        int numVertices, float * verticesV, float * verticesA, float slopeNegInf, float slopePosInf,
+        int nx, int ny, int nf, int lt, int rt, int dn, int up)
+{
+   int status = PV_SUCCESS;
+   if (num_channels==1) {
+      status = applyGSyn_HyPerLayer1Channel(numNeurons, V, GSynHead);
+   }
+   else {
+      status = applyGSyn_HyPerLayer(numNeurons, V, GSynHead);
+   }
+   if (status==PV_SUCCESS) {
+      status = setActivity_PtwiseLinearTransferLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesA, verticesV, slopeNegInf, slopePosInf);
+   }
+   return status;
 }
 
 KERNEL

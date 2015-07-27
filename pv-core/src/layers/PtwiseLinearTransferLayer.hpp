@@ -9,6 +9,7 @@
 #define PTWISELINEARTRANSFERLAYER_HPP_
 
 #include "HyPerLayer.hpp"
+#include "../include/pv_datatypes.h"
 
 namespace PV {
 
@@ -57,6 +58,8 @@ protected:
    
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    
+   // To allow doxygen to document the layer's parameters, put all ioParam_<parametername> functions between
+   // this comment block and the comment "/** @} */" below.
    /** 
     * List of parameters used by the PtwiseLinearTransferLayer class
     * @name PtwiseLinearTransferLayer Parameters
@@ -95,8 +98,9 @@ protected:
     * If clearGSynInterval is infinite, the layer acts as an accumulator.
     */
    virtual void ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag);
+   /** @} */
 
-   virtual int checkVertices(PVParams * params);
+   virtual int checkVertices();
 
    virtual int resetGSynBuffers(double timef, double dt);
 

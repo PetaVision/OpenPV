@@ -101,7 +101,6 @@
 #include "StatsProbe.hpp"
 // #include "TextStreamProbe.hpp" // Marked obsolete Mar 6, 2015
 #include "KernelProbe.hpp"
-#include "L2ConnProbe.hpp"
 #include "../weightinit/InitWeights.hpp"
 #include "../weightinit/InitGauss2DWeights.hpp"
 #include "../weightinit/InitCocircWeights.hpp"
@@ -240,7 +239,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 
          // // Connection probes
          {"KernelProbe", ProbeGroupType},
-         {"L2ConnProbe", ProbeGroupType},
 
          // Weight initializers
          {"Gauss2DWeight", WeightInitializerGroupType},
@@ -446,6 +444,9 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "PtwiseLinearTransferLayer") ) {
       addedLayer = new PtwiseProductLayer(name, hc);
    }
+   else if (!strcmp(keyword, "PtwiseProductLayer") ) {
+      addedLayer = new PtwiseProductLayer(name, hc);
+   }
    else if( !strcmp(keyword, "RescaleLayer") ) {
       addedLayer = new RescaleLayer(name, hc);
    }
@@ -633,9 +634,6 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
    // Connection probe keywords
    else if( !strcmp(keyword, "KernelProbe") ) {
       addedProbe = new KernelProbe(name, hc);
-   }
-   else if( !strcmp(keyword, "L2ConnProbe") ) {
-      addedProbe = new L2ConnProbe(name, hc);
    }
 
    if (addedProbe==NULL && getGroupType(keyword)==ProbeGroupType) {
