@@ -74,7 +74,7 @@ double ANNNormalizedErrorLayer::calcTimeScale(int batchIdx){
       pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
       pvdata_t * gSynInh = getChannel(CHANNEL_INH);
       pvdata_t * gSynExcBatch = gSynExc + batchIdx * num_neurons;
-      pvdata_t * gSynInhBatch = gSynExc + batchIdx * num_neurons;
+      pvdata_t * gSynInhBatch = gSynInh + batchIdx * num_neurons;
 
       pvdata_t * maskActivityBatch = NULL;
       if(useMask){
