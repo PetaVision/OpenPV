@@ -346,7 +346,7 @@ int gatherImageFilePVP(const char * filename,
       params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
       params[INDEX_KX0]         = 0;
       params[INDEX_KY0]         = 0;
-      params[INDEX_NB]          = 0; // loc->nb;
+      params[INDEX_NBATCH]          = loc->nbatch; // loc->nb;
       params[INDEX_NBANDS]      = 1;
 
       int numWrite = PV::PV_fwrite(params, sizeof(int), numParams, pvstream);
