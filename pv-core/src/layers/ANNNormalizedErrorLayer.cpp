@@ -103,7 +103,7 @@ double ANNNormalizedErrorLayer::calcTimeScale(int batchIdx){
                continue; 
             }
          }
-         errorMag += (gSynExcBatch[ni] - gSynInh[ni]) * (gSynExcBatch[ni] - gSynInh[ni]);
+         errorMag += (gSynExcBatch[ni] - gSynInhBatch[ni]) * (gSynExcBatch[ni] - gSynInhBatch[ni]);
          inputMag += gSynExcBatch[ni] * gSynExcBatch[ni]; 
       }
       if (isnan(errorMag)) {
