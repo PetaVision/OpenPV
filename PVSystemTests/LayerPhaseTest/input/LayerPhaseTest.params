@@ -72,33 +72,49 @@ HyPerCol "column" = {
    verifyWrites = true;
    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
    errorOnNotANumber = false;
+   nbatch = 2;
 };
 
 //
 // layers
 //
 
-Retina "Retina" = {
+ConstantLayer "Retina" = {
     restart = 0;
-    nxScale = 1;
+    nxScale = 1; 
     nyScale = 1;
     nf = 1;
-    writeStep = -1.0;
-    mirrorBCflag = 1;
-    triggerFlag = false;
-    spikingFlag = 0;
-    sparseLayer = 0;
-
-    foregroundRate = 1000;
-    backgroundRate = 1000;
-    burstFreq = 1;
-    burstDuration = 1000;
-
-    beginStim = 0;
-    endStim = 1000;
-    
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
     phase = 0;
 };
+
+//Retina "Retina" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 1;
+//    writeStep = -1.0;
+//    mirrorBCflag = 1;
+//    triggerFlag = false;
+//    spikingFlag = 0;
+//    sparseLayer = 0;
+//
+//    foregroundRate = 1000;
+//    backgroundRate = 1000;
+//    burstFreq = 1;
+//    burstDuration = 1000;
+//
+//    beginStim = 0;
+//    endStim = 1000;
+//    
+//    phase = 0;
+//};
 
 ANNLayer "Reconstruction" = {
     restart = 0;
