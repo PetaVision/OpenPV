@@ -68,11 +68,13 @@ int MPITestProbe::outputState(double timed) {
 	fprintf(outputstream->fp, "%s min_global_xpos==%f ave_global_xpos==%f max_global_xpos==%f \n",
 			getMessage(), min_global_xpos, ave_global_xpos, max_global_xpos);
 	fflush(outputstream->fp);
-	if (timed > 3.0f) {
-		assert((fMin/min_global_xpos > (1 - tol)) && (fMin/min_global_xpos < (1 + tol)));
-		assert((fMax/max_global_xpos > (1 - tol)) && (fMax/max_global_xpos < (1 + tol)));
-		assert((avg/ave_global_xpos > (1 - tol)) && (avg/ave_global_xpos < (1 + tol)));
-	}
+   for(int b = 0; b < parent->getNBatch(); b++){
+      if (timed > 3.0f) {
+         assert((fMin[b]/min_global_xpos > (1 - tol)) && (fMin[b]/min_global_xpos < (1 + tol)));
+         assert((fMax[b]/max_global_xpos > (1 - tol)) && (fMax[b]/max_global_xpos < (1 + tol)));
+         assert((avg[b]/ave_global_xpos > (1 - tol)) && (avg[b]/ave_global_xpos < (1 + tol)));
+      }
+   }
 
 	return status;
 }

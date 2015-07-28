@@ -163,7 +163,7 @@ add_subdirectory(MaxPoolTest)
 add_subdirectory(MovieSystemTest)
 add_subdirectory(MomentumTest)
 #add_subdirectory(MLPTest) # Moved to auxlib/mlearning
-add_subdirectory(MPITest2)
+add_subdirectory(MPITest)
 add_subdirectory(NormalizeSubclassSystemTest)
 add_subdirectory(NormalizeSystemTest)
 add_subdirectory(ParameterSweepTest)
@@ -416,7 +416,7 @@ set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision t
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
-set(testBaseName MPITest2) #The base name of the test
+set(testBaseName MPITest) #The base name of the test
 set(testParams MPI_test) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
