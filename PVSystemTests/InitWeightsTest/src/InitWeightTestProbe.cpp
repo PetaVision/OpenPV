@@ -40,10 +40,12 @@ int InitWeightTestProbe::outputState(double timed)
       return 0;
    }
 #endif // PV_USE_MPI
-   if(timed>2.0f){
-      assert((fMin>-0.001)&&(fMin<0.001));
-      assert((fMax>-0.001)&&(fMax<0.001));
-      assert((avg>-0.001)&&(avg<0.001));
+   for(int b = 0; b < parent->getNBatch(); b++){
+      if(timed>2.0f){
+         assert((fMin[b]>-0.001)&&(fMin[b]<0.001));
+         assert((fMax[b]>-0.001)&&(fMax[b]<0.001));
+         assert((avg[b]>-0.001)&&(avg[b]<0.001));
+      }
    }
 
    return status;
