@@ -7,4 +7,3 @@ input/image5.png
 input/image6.png
 input/image7.png
 input/image8.png
-input/image9.png

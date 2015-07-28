@@ -470,7 +470,7 @@ int RescaleLayer::updateState(double timef, double dt) {
                                                haloOrig->lt, haloOrig->rt, haloOrig->dn, haloOrig->up);
              int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
              if(originalABatch[kextOriginal] == 0){;
-                A[kext] = -1;
+                ABatch[kext] = -1;
              }
              else {
                 ABatch[kext] = originalABatch[kextOriginal];
