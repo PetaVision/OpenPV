@@ -40,31 +40,55 @@
 	 </center>
    
     </header>
-      <section>
+<section>
 
-        <h1>
-<a id="what-is-openpv" class="anchor" href="#what-is-openpv" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is OpenPV?</h1>
+<h1 id="kenyon-lab">Kenyon Lab</h1>
 
-<p>OpenPV is an open source, object oriented neural simulation toolbox optimized for high-performance multi-core, multi-node computer architectures. OpenPV is intended for computational neuroscientists who seek to apply neuromorphic models to hard signal processing problems; both to improve on the performance of existing algorithms and/or to gain insight into the computational mechanisms underlying biological neural processing.</p>
+        <h2 id="garett-t-kenyon">Garrett T. Kenyon, Ph.D</h2>
+        <img src="./assets/images/garrettKenyon_profile.jpg" alt="Garrett T. Kenyon" height="200"><br>
+        <a href="https://docs.google.com/document/d/1o4px0eBHTPzfjP1FP5XFmLLbCVPZT2Q6TQt5emjY-Xo/">Link to Curriculum Vitae</a>
 
-<h2>
-<a id="core-openpv-features" class="anchor" href="#core-openpv-features" aria-hidden="true"><span class="octicon octicon-link"></span></a>Core OpenPV Features:</h2>
+        <p>Please enjoy Dr. Kenyon's recent talk at <a href="http://digitalops.sandia.gov/Mediasite/Play/71633f02e8134396931cea379d13f8dc1d"> Sandia's NICE 2015 Conference.</a></p>
 
-<ul>
-<li>Open-sourced and developer-friendly</li>
-<li>C/C++ for fast execution and OOP</li>
-<li>Optimized for parallelization (OpenMP, MPI, cuDNN)</li>
-<li>Based on local connectivity</li>
-<li>Experiments defined through a text file</li>
-</ul>
+        <p> View other media and presentations on our <a href="http://www.petavision.sourceforge.net/media.html">media page</a></p>
+        <hr>
 
-<h2>
-<a id="how-has-openpv-been-used" class="anchor" href="#how-has-openpv-been-used" aria-hidden="true"><span class="octicon octicon-link"></span></a>How has OpenPV been used?</h2>
+        <h2 id="featured-research">Featured PetaVision Research</h2>
+	    Much of our research focuses on the use of sparse solvers to tackle hard problems in neuromorphic computing, such as depth reconstruction and image/action classification. The following examples are a brief showcase of some of the ongoing research in the PetaVision group.
+	<h3 id="depth">Depth-inference from two cameras <small><a href="#sheng_lundquist"> Sheng Lunquist</a></small></h3>
+	<strong>Emergence of Depth Tuned Hidden Units Through Sparse Encoding of Binocular Images</strong>,  
+	<p>"Sparse  coding  models  applied  to  monocular  images  exhibit  both  linear  and nonlinear  characteristics,  corresponding  to  the  classical  and  non­classical receptive  field  properties  recorded  from  simple  cells  in  the  primary  visual cortex. However, little work has been done to determine if sparse coding in the context  of  stereopsis  exhibits  a  similar  combination  of  linear  and  nonlinear properties.  While  a  number  of  previous  models  have  been  used  to  learn disparity­selective  units,  the  relationship  between  disparity  and  depth  is fundamentally nonlinear, since disparity  can be produced by periodicity in the stimulus and does not uniquely determine depth.  Here, we show that nonlinear depth­selective hidden  units  emerge  naturally  from  a  encoding  model  trained entirely via unsupervised exposure to stereo video optimized for sparse encoding of stereo image frames. Unlike disparity­selectivity, which is a robust property of  many  linear  encoding  models,  we  show  that  a  sparse  coding  model  is necessary for the emergence of depth­selectivity, which largely disappears whe latent variables are replaced with feedforward convolution." 
+	<br>
+	<figure><a href="./assets/images/featured/Depth_Preprocessing.png" rel="prettyPhoto"><img src="assets/images/featured/Depth_Preprocessing.png"  width="600" alt="" /></a><figcaption>The original, whitened, and reconstructed image streams from the KITTI database that are used to develop disparity elements.</figcaption></figure>
+	<figure><a href="./assets/images/featured/Depth_Block_Diagrams.png" rel="prettyPhoto"><img src="assets/images/featured/Depth_Block_Diagrams.png" width="600" alt="Nice building" /></a><figcaption>Cartoon block diagram describing the neural network used to train disparity selective elements from two camera views. The algorithm used in the leaky integrator layer is similar to the Locally Competitive Algorithm described by Rozel.</figcaption></figure>
+	<figure><a href="./assets/images/featured/Depth_Inference.png" rel="prettyPhoto" style="left: -20px"><img src="assets/images/featured/Depth_Inference.png" width="600" style="left: -50px" alt="Reconstruction of depth using DSCANN compared with groundtruth and reconstruction from ReLU" /></a><figcaption>Comparison of of the depth groundtruth and depth reconstructions using our Sparse Convolutional Artificial Neural Network (SCANN) and a Rectified Linear Unit (ReLU).</figcaption></figure> 
+	<figure><a href="./assets/images/featured/Depth_clip.gif" rel="prettyPhoto" style="left: -20px"><img src="assets/images/featured/Depth_clip.gif" width="600" style="left: -50px" alt="Reconstruction of depth using DSCANN compared with groundtruth and reconstruction from ReLU" /></a><figcaption>The top image is the original video stream. The bottom is the depth map generated from just the original video stream using the disparity cues.  The black regions in the lower image correspond to the depth mask from the last frame in each clip.</figcaption></figure> 
 
-<p>Petavision has been used on a range of vision and learning tasks including depth inference, action classification, and learning from multiple intelligence streams including weather and commodity prices. PetaVision has been used to perform image classification, sound analysis, and image-rescaling and is flexible enough to grow with your imagination.</p>
-      
-<h2>
-<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span class="octicon octicon-link"></span></a>Getting Started</h2>
+        <h3 id="multi">Multi-Intelligence Learning <small> <a href="#max_theiler"> Max Theiler</a></small></h3>
+	<p>In multi-INT analysis, as in most problems in machine learning, the needle of relevant data is buried in a haystack of noise. What makes it particularly difficult is that it calls for the reconciliation of data streams of wildly differing format, scope, consistency and granularity. The premise of mult-INT is that useful predictive higher-order correlations exist between these streams, but how can any automated system make sense of inputs as diverse as (for instance) twitter activity, video footage, and economic data?</p>
+
+<p>Sparse coding presents an elegant mechanism for synthesis. By representing data streams as linear combinations of learned features, the varying scales and dimensions of diverse input streams can be collapsed into single-dimensional vectors of controllable size. So long as the dictionaries of features are well-tuned, the loss of precision in representing data this way is negligible. If different activation coefficients of features from different data streams rise and fall together, it implies a high-order relationship between those streams regardless of differences in their original format.</p>
+
+<p>My work is to explore the possibility of adapting PetaVision to this purpose.  The first challenge is training well-tuned dictionaries of features on non-visual data sets (currently, infrared satellite weather data and agricultural commodity prices). The second is to use sparse coding to find statistically significant relationships between these data sets and train a super-dictionary that encodes them, able to consolidate data from profoundly different streams. I aim to use example datasets to create a PetaVision proof-of-concept for a neural network along these lines.</p>
+	</p>
+<center>	<ul class="images">
+	    <li><a href="./assets/images/featured/MULTI_original_image.gif" title="IR-weather data centered about the Gulf of Mexico" rel="prettyPhoto"><img src="assets/images/featured/MULTI_original_image.gif" width="300" alt="IR-weather data centered about the Gulf of Mexico" /></a></li>
+	    <li><a href="./assets/images/featured/MULTI_reconstruction_image.gif" title="Sparse reconstruction of IR-weather data" rel="prettyPhoto"><img src="assets/images/featured/MULTI_reconstruction_image.gif"  width="300" alt="Sparse reconstruction of IR-weather data" /></a></li>
+<br><br>    <li><a href="./assets/images/featured/MULTI_feature1.gif" title="Example feature 1" rel="prettyPhoto"><img src="assets/images/featured/MULTI_feature1.gif"  width="90" alt="Example feature 1" /></a></li>
+	    <li><a href="./assets/images/featured/MULTI_feature2.gif" title="Example feature 2" rel="prettyPhoto"><img src="assets/images/featured/MULTI_feature2.gif"  width="90" alt="Example feature 2" /></a></li>
+	    <li><a href="./assets/images/featured/MULTI_feature3.gif" title="Example feature 3" rel="prettyPhoto"><img src="assets/images/featured/MULTI_feature3.gif"  width="90" alt="Example feature 3" /></a></li>
+	    <li><a href="./assets/images/featured/MULTI_feature4.gif" title="Example feature 4" rel="prettyPhoto"><img src="assets/images/featured/MULTI_feature4.gif"  width="90" alt="Example feature 4" /></a></li>
+</center>	</ul>
+
+	<h3 id="action">Action Classification <small><a href="#wesley_chavez">Wesley Chavez</a></small></h3>
+        <p>Many sparse coding algorithms are restricted in the time domain, and don't make use of temporal dynamics in video, which can provide extra clues about the objects and actions being performed.  We show that unsupervised learning with a modified, linked-dictionary LCA (locally competitive algorithm) in PetaVision can learn features with spatial, as well as temporal structure.  Instead of one image/frame as the LCA's input, a sequence of consecutive video frames is presented, and each neuron in the sparse/hidden layer is then forced to approximate all frames at once, updating its linked (spatiotemporal) weights via Hebbian learning to encode not only spatial redundancies, but temporal redundancies of the input as well.  Here is a .gif of spatiotemporal features learned (unsupervised) with a sliding window of four consecutive video frames as LCA's input in PetaVision:</p>
+	<a href="assets/images/featured/Weights_64.gif" title="Spatiotemporal weights learned with unsupervised learning on natural video"><img src="assets/images/featured/Weights_64.gif" width="600" alt="Spatiotemporal weights learned with unsupervised learning on natural video"></a> 
+	<p>We perform classification of objects in the DARPA NeoVision2 Tower dataset by using a linear single-layer perceptron (SLP) within PetaVision to learn the hyperplanes that separate the learned spatiotemporal features that correspond to the five different classes.   (cyan = "person", green = "bicyclist", magenta = "bus", red = "car", blue = "truck"):</p>
+	<video width="600" controls>
+	  <source src="assets/images/featured/Group16Classification.mp4" type="video/mp4">
+	  Your browers does not support the video tag. Follow this link <a href="assets/images/featured/Group16Classification.mp4">here</a> to watch the video
+	</video>	
+	<hr>	
 
 
 </section>
