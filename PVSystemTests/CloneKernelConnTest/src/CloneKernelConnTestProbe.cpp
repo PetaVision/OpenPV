@@ -36,10 +36,13 @@ int CloneKernelConnTestProbe::outputState(double timed)
       return 0;
    }
 #endif // PV_USE_MPI
-   if(timed>2.0f){
-      assert(fabs(fMin) < 1e-6);
-      assert(fabs(fMax) < 1e-6);
-      assert(fabs(avg) < 1e-6);
+
+   for(int b = 0; b < getParent()->getNBatch(); b++){
+      if(timed>2.0f){
+         assert(fabs(fMin[b]) < 1e-6);
+         assert(fabs(fMax[b]) < 1e-6);
+         assert(fabs(avg[b]) < 1e-6);
+      }
    }
 
    return status;
