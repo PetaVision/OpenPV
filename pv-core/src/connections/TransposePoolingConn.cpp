@@ -574,7 +574,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
             gSynPatchHead = gSynPatchHeadBatch;
          }
 #else // PV_USE_OPENMP_THREADS
-         gSynPatchHead = post->getChannel(getChannel());
+         gSynPatchHead = gSynPatchHeadBatch;
 #endif // PV_USE_OPENMP_THREADS
 
          const int kxPreExt = kxPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);

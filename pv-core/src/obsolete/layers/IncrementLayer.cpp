@@ -6,6 +6,7 @@
  */
 
 #include "IncrementLayer.hpp"
+#include "updateStateFunctions.h"
 
 namespace PV {
 
@@ -35,14 +36,15 @@ int IncrementLayer::initialize(const char* name, HyPerCol * hc) {
    nextUpdateTime = firstUpdateTime+displayPeriod;
 
    // Why isn't this in allocateDataStructures()?
-   Vprev = (pvdata_t *) calloc(getNumNeuronsAllBatches(),sizeof(pvdata_t));
-   if( Vprev == NULL ) {
-      fprintf(stderr, "Unable to allocate Vprev buffer for IncrementLayer \"%s\"\n", name);
-      abort();
-   }
-   for( int k=0; k<getNumNeurons(); k++ ) {
-      assert(GSyn[0][k]==0 && GSyn[1][k]==0);
-   }
+   // It is!  See the call to allocateBuffer()
+   // Vprev = (pvdata_t *) calloc(getNumNeuronsAllBatches(),sizeof(pvdata_t));
+   // if( Vprev == NULL ) {
+   //    fprintf(stderr, "Unable to allocate Vprev buffer for IncrementLayer \"%s\"\n", name);
+   //    abort();
+   // }
+   // for( int k=0; k<getNumNeurons(); k++ ) {
+   //    assert(GSyn[0][k]==0 && GSyn[1][k]==0);
+   // }
 
    return status;
 }
@@ -87,6 +89,20 @@ void IncrementLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) VWidth = (pvdata_t) 0;
 }
 
+int IncrementLayer::setVertices() {
+   slopeNegInf = 1.0f;
+   slopePosInf = 0.0f;
+   numVertices = 1;
+   verticesV = (pvpotentialdata_t *) calloc((size_t) numVertices, sizeof(*verticesV));
+   verticesA = (pvadata_t *) calloc((size_t) numVertices, sizeof(*verticesA));
+   if (verticesV==NULL || verticesA==NULL) {
+      fprintf(stderr, "%s \"%s\" error: unable to allocate memory for vertices:%s\n",
+            parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+   return PV_SUCCESS;
+}
+
 int IncrementLayer::allocateDataStructures() {
    int status = ANNLayer::allocateDataStructures();
 
@@ -116,8 +132,6 @@ int IncrementLayer::doUpdateState(double timef, double dt, bool * inited, double
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
    int nbatch = loc->nbatch;
-   //   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
-   //   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
 
    if( *inited ) {
       if( timef >= *next_update_time ) {
@@ -130,12 +144,11 @@ int IncrementLayer::doUpdateState(double timef, double dt, bool * inited, double
       }
       status = applyGSyn_HyPerLayer(num_neurons, V, gSynHead);
       if( status == PV_SUCCESS ) status = setActivity_IncrementLayer(num_neurons, A, V, Vprev, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // setActivity();
-      //if( status == PV_SUCCESS ) status = resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
    }
    else {
       if( timef >= first_update_time ) {
-         status = updateV_ANNLayer(num_neurons, V, num_channels, gSynHead, A, max_pvadata_t, -max_pvadata_t, -max_pvvdata_t, 0.0f, 0.0f, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // updateV();
-         resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead); // resetGSynBuffers();
+         status = updateV_PtwiseLinearTransferLayer(num_neurons, V, num_channels, gSynHead, A, numVertices, verticesV, verticesA, slopes, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // updateV();
+         resetGSynBuffers_HyPerLayer(num_neurons, num_channels, gSynHead);
          *inited = true;
       }
    }

@@ -35,14 +35,14 @@ void ANNErrorLayer_update_state(
     const int up,
 
     CL_MEM_GLOBAL float * V,
-    const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity,
     const float errScale
     )
 {
-   updateV_ANNErrorLayer(nbatch, numNeurons, V, GSynHead, activity, AMax, AMin, Vth, AShift, nx, ny, nf, lt, rt, dn, up, errScale);
+   updateV_ANNErrorLayer(nbatch, numNeurons, V, GSynHead, activity, numVertices, verticesV, verticesA, slopes, nx, ny, nf, lt, rt, dn, up, errScale);
 }

@@ -23,10 +23,10 @@ void LabelErrorLayer_update_state(
     const int up,
 
     float * V,
-    const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
     float * GSynHead,
     float * activity,
     float errScale,
@@ -87,16 +87,14 @@ void LabelErrorLayer::ioParam_isBinary(enum ParamsIOFlag ioFlag) {
 int LabelErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
       pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
-   update_timer->start();
-      int nx = loc->nx;
-      int ny = loc->ny;
-      int nf = loc->nf;
-      int num_neurons = nx*ny*nf;
-      int nbatch = loc->nbatch;
-    	LabelErrorLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh,
-    			  AMax, AMin, AShift, gSynHead, A, errScale, isBinary);
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
+   LabelErrorLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V,
+         numVertices, verticesV, verticesA, slopes, gSynHead, A, errScale, isBinary);
 
-   update_timer->stop();
    return PV_SUCCESS;
 }
 

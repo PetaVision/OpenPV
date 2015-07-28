@@ -23,13 +23,13 @@ void ANNErrorLayer_update_state(
     const int up,
 
     float * V,
-    const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
     float * GSynHead,
     float * activity,
-    float errScale);
+    const float errScale);
 
 
 #ifdef __cplusplus
@@ -45,8 +45,12 @@ ANNErrorLayer::ANNErrorLayer()
 
 ANNErrorLayer::ANNErrorLayer(const char * name, HyPerCol * hc)
 {
-   initialize_base();
-   initialize(name, hc);
+   int status = initialize_base();
+   if (status == PV_SUCCESS) { status = initialize(name, hc); }
+   if (status != PV_SUCCESS) {
+      fprintf(stderr, "Creating ANNErrorLayer \"%s\" failed.\n", name);
+      exit(EXIT_FAILURE);
+   }
 }
 
 ANNErrorLayer::~ANNErrorLayer()
@@ -75,10 +79,56 @@ void ANNErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "errScale", &errScale, errScale, true/*warnIfAbsent*/);
 }
 
+int ANNErrorLayer::setVertices() {
+   slopeNegInf = 1.0;
+   slopePosInf = 1.0;
+   if (VThresh >=0) {
+      numVertices = 4;
+      verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
+      verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
+      if (verticesV==NULL || verticesA==NULL) {
+         fprintf(stderr, "%s \"%s\": unable to allocate memory for vertices: %s\n",
+               parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      verticesV[0] = -VThresh; verticesA[0] = -VThresh;
+      verticesV[1] = -VThresh; verticesA[1] = 0.0;
+      verticesV[2] = VThresh; verticesA[1] = 0.0;
+      verticesV[3] = VThresh; verticesA[2] = VThresh;
+   }
+   else {
+      numVertices = 1;
+      verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
+      verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
+      if (verticesV==NULL || verticesA==NULL) {
+         fprintf(stderr, "%s \"%s\": unable to allocate memory for vertices: %s\n",
+               parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      verticesV[0] = 0.0f; verticesA[0] = 0.0f;
+   }
+   return PV_SUCCESS;
+}
+
+int ANNErrorLayer::checkVertices() {
+   int status = PV_SUCCESS;
+   if (VThresh < 0 && VThresh > -max_pvvdata_t) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: VThresh cannot be negative (value is %f).\n",
+                  this->getParent()->parameters()->groupKeywordFromName(this->getName()),
+                  this->getName(), VThresh);
+      }
+      status = PV_FAILURE;
+   }
+   else {
+      assert(PtwiseLinearTransferLayer::checkVertices()==PV_SUCCESS);
+   }
+   return status;
+}
+
 int ANNErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
       pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
-   update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {
 //      updateStateOpenCL(time, dt);
@@ -86,18 +136,16 @@ int ANNErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
 //   }
 //   else {
 //#endif
-      int nx = loc->nx;
-      int ny = loc->ny;
-      int nf = loc->nf;
-      int num_neurons = nx*ny*nf;
-      int nbatch = loc->nbatch;
-         ANNErrorLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh,
-               AMax, AMin, AShift, gSynHead, A, errScale);
+   int nx = loc->nx;
+   int ny = loc->ny;
+   int nf = loc->nf;
+   int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
+   ANNErrorLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up,
+         V, numVertices, verticesV, verticesA, slopes, gSynHead, A, errScale);
 //#ifdef PV_USE_OPENCL
 //   }
 //#endif
-
-   update_timer->stop();
    return PV_SUCCESS;
 }
 

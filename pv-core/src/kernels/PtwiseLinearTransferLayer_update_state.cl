@@ -38,11 +38,10 @@ void PtwiseLinearTransferLayer_update_state(
     int numVertices,
     float * verticesV,
     float * verticesA,
-    float slopeNegInf,
-    float slopePosInf,
+    float * slopes,
     int num_channels,
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity)
 {
-   updateV_PtwiseLinearTransferLayer(nbatch, numNeurons, V, num_channels, GSynHead, activity, numVertices, verticesV, verticesA, slopeNegInf, slopePosInf, nx, ny, nf, lt, rt, dn, up);
+   updateV_PtwiseLinearTransferLayer(nbatch, numNeurons, V, num_channels, GSynHead, activity, numVertices, verticesV, verticesA, slopes, nx, ny, nf, lt, rt, dn, up);
 }

@@ -62,39 +62,44 @@ int applyGSyn_LabelErrorLayer(int nbatch, int numNeurons,
 KERNEL
 int updateV_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
-      int numVertices, float * verticesV, float * verticesA, float slopeNegInf, float slopePosInf,
+      int numVertices, float * verticesV, float * verticesA, float * slopes,
       int nx, int ny, int nf, int lt, int rt, int dn, int up);
 
+#ifdef OBSOLETE // Marked obsolete July 27, 2015.  Use updateV_PtwiseLinearTransferLayer() instead.
 KERNEL
 int updateV_ANNLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx,
       int ny, int nf, int lt, int rt, int dn, int up);
-
+#endif // OBSOLETE // Marked obsolete July 27, 2015.  Use updateV_PtwiseLinearTransferLayer() instead.
+#ifdef OBSOLETE // Marked obsolete July 27, 2015.  AccumulateLayer has been moved to obsolete folder.
 KERNEL
 int updateV_AccumulateLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx,
       int ny, int nf, int lt, int rt, int dn, int up);
+#endif // OBSOLETE // Marked obsolete July 27, 2015.  AccumulateLayer has been moved to obsolete folder.
 KERNEL
 int updateV_ANNErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
-      MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
-      pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx,
-      int ny, int nf, int lt, int rt, int dn, int up, float errScale);
+      MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
+      int numVertices, float * verticesV, float * verticesA, float * slopes,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up, float errScale);
 KERNEL
 int updateV_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+      MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
+      int numVertices, float * verticesV, float * verticesA, float * slopes,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up, float errScale, int isBinary);
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  ANNLabelLayer has been moved to obsolete folder.
+KERNEL
+int updateV_ANNLabelLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx,
-      int ny, int nf, int lt, int rt, int dn, int up, float errScale, int isBinary);
-//KERNEL
-//int updateV_ANNLabelLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
-//      MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
-//      pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx,
-//      int ny, int nf, int lt, int rt, int dn, int up);
+      int ny, int nf, int lt, int rt, int dn, int up);
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  ANNLabelLayer has been moved to obsolete folder.
 KERNEL
 int applyGSyn_HyPerLCALayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
-      MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract, 
+      MEM_GLOBAL pvdata_t * activity, pvdata_t dt_tau, pvdata_t selfInteract, 
       int nx, int ny, int nf, int lt, int rt, int dn, int up);
 KERNEL
 int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
@@ -104,31 +109,30 @@ int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
 KERNEL
 int applyGSyn_ISTALayer(int nbatch, int numNeurons,
 			    MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
-			    MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract,
+			    MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau,
 			    int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t VThresh);
 KERNEL
 int applyGSyn_ISTALayer2(int nbatch, int numNeurons,
 			     MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
-			     MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract,
+			     MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau,
 			     int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t VThresh);
 KERNEL
 int applyGSyn_ANNWhitenedLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead);
 
 KERNEL
-int updateV_HyPerLCALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+int updateV_HyPerLCALayer(int nbatch, int numNeurons, int numChannels, MEM_GLOBAL pvdata_t * V,
       MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
-      pvdata_t AMax,
-      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
-      double* dtAdapt, pvdata_t tau, 
-      pvdata_t selfInteract, int nx, int ny, int nf, int lt, int rt, int dn, int up, int numChannels);
+      int numVertices, pvpotentialdata_t * verticesV, pvadata_t * verticesA, float * slopes,
+      double * dtAdapt, float tau, pvdata_t selfInteract,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up);
 
 KERNEL
 int updateV_ANNWhitenedLayer(int nbatch, int numNeurons,
-      MEM_GLOBAL pvdata_t * V,
+      MEM_GLOBAL pvpotentialdata_t * V,
       MEM_GLOBAL pvdata_t * GSynHead,
-      MEM_GLOBAL pvdata_t * activity,
-      pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
+      MEM_GLOBAL pvadata_t * activity,
+      int numVertices, pvpotentialdata_t * verticesV, pvadata_t * verticesA, float * slopes,
       int nx, int ny, int nf, int lt, int rt, int dn, int up);
 KERNEL
 int updateV_ANNDivInh(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
@@ -136,10 +140,12 @@ int updateV_ANNDivInh(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
 KERNEL
 int updateV_ANNSquaredLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead);
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
 KERNEL
 int updateV_GenerativeLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * dV, MEM_GLOBAL float * activity, pvdata_t AMax,
       pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, pvdata_t relaxation, int nx, int ny, int nf, int lt, int rt, int dn, int up);
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
 KERNEL
 int updateV_PoolingANNLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
@@ -155,15 +161,16 @@ KERNEL
 int updateV_GapLayer();
 KERNEL
 int updateV_SigmoidLayer();
-
-//KERNEL
-//int update_dV_GenerativeLayer(int nbatch, int numNeurons,
-//      MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
-//      MEM_GLOBAL pvdata_t * sparsitytermderivative,
-//      MEM_GLOBAL pvdata_t * dAold, pvdata_t AMax, pvdata_t AMin,
-//      pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff,
-//      pvdata_t sparsityTermCoeff, pvdata_t persistence);
-
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
+KERNEL
+int update_dV_GenerativeLayer(int nbatch, int numNeurons,
+      MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
+      MEM_GLOBAL pvdata_t * sparsitytermderivative,
+      MEM_GLOBAL pvdata_t * dAold, pvdata_t AMax, pvdata_t AMin,
+      pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff,
+      pvdata_t sparsityTermCoeff, pvdata_t persistence);
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  Use setActivity_PtwiseLinearTransferLayer instead of applyVThresh_ANNLayer and applyVMax_ANNLayer
 KERNEL
 int applyVMax_ANNLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       pvdata_t AMax, MEM_GLOBAL pvdata_t * activity, int nx, int ny,
@@ -173,54 +180,61 @@ int applyVThresh_ANNLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t VThresh,
       pvdata_t AShift, pvdata_t VWidth, MEM_GLOBAL pvdata_t * activity, int nx, int ny,
       int nf, int lt, int rt, int dn, int up);
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  Use setActivity_PtwiseLinearTransferLayer instead of applyVThresh_ANNLayer and applyVMax_ANNLayer
 KERNEL
 int applyVThresh_ANNErrorLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t VThresh,
       pvdata_t AShift, MEM_GLOBAL pvdata_t * activity, int nx, int ny,
       int nf, int lt, int rt, int dn, int up);
-//KERNEL
-//int applyV_ANNLabelLayer(int nbatch, int numNeurons,
-//                                       MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t AMax, pvdata_t VThresh,
-//                                       MEM_GLOBAL pvdata_t * activity, int nx, int ny,
-//                                       int nf, int lt, int rt, int dn, int up);
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  ANNLabelLayer has been moved to obsolete folder.
+KERNEL
+int applyV_ANNLabelLayer(int nbatch, int numNeurons,
+                                       MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t AMax, pvdata_t VThresh,
+                                       MEM_GLOBAL pvdata_t * activity, int nx, int ny,
+                                       int nf, int lt, int rt, int dn, int up);
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  ANNLabelLayer has been moved to obsolete folder.
 KERNEL
 int squareV_ANNSquaredLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V);
-//KERNEL
-//int updateSparsityTermDeriv_GenerativeLayer(int nbatch, int numNeurons,
-//      MEM_GLOBAL pvdata_t * V,
-//      MEM_GLOBAL pvdata_t * sparsitytermderivative);
-//KERNEL
-//int updateSparsityTermDeriv_LogLatWTAGenLayer(int nbatch, int numNeurons,
-//      int num_features, MEM_GLOBAL pvdata_t * V,
-//      MEM_GLOBAL pvdata_t * sparsitytermderivative);
-//KERNEL
-//pvdata_t lateralCompetitionPenalty(MEM_GLOBAL pvdata_t * V,
-//      int num_features);
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
+KERNEL
+int updateSparsityTermDeriv_GenerativeLayer(int nbatch, int numNeurons,
+      MEM_GLOBAL pvdata_t * V,
+      MEM_GLOBAL pvdata_t * sparsitytermderivative);
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
+KERNEL
+int updateSparsityTermDeriv_LogLatWTAGenLayer(int nbatch, int numNeurons,
+      int num_features, MEM_GLOBAL pvdata_t * V,
+      MEM_GLOBAL pvdata_t * sparsitytermderivative);
+KERNEL
+pvdata_t lateralCompetitionPenalty(MEM_GLOBAL pvdata_t * V,
+      int num_features);
 
 KERNEL
 int setActivity_HyPerLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny,
       int nf, int lt, int rt, int dn, int up);
-KERNEL
 
+KERNEL
 int setActivity_PtwiseLinearTransferLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny,
       int nf, int lt, int rt, int dn, int up, int numVertices,
-      pvdata_t * verticesA, pvdata_t * verticesV, int slopeNegInf, int slopePosInf);
+      pvdata_t * verticesV, pvdata_t * verticesA, float * slopes);
 
 KERNEL
 int setActivity_AccumulateLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny,
       int nf, int lt, int rt, int dn, int up);
-//KERNEL
-//int setActivity_GenerativeLayer(int nbatch, int numNeurons,
-//      MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny,
-//      int nf, int lt, int rt, int dn, int up, pvdata_t activity_threshold);
-//KERNEL
-//int setActivity_IncrementLayer(int nbatch, int numNeurons,
-//      MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V,
-//      MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int lt, int rt, int dn, int up);
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
+KERNEL
+int setActivity_GenerativeLayer(int nbatch, int numNeurons,
+      MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny,
+      int nf, int lt, int rt, int dn, int up, pvdata_t activity_threshold);
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
+KERNEL
+int setActivity_IncrementLayer(int nbatch, int numNeurons,
+      MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V,
+      MEM_GLOBAL pvdata_t * Vprev, int nx, int ny, int nf, int lt, int rt, int dn, int up);
 KERNEL
 int setActivity_GapLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny,
@@ -452,7 +466,7 @@ int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
 KERNEL
 int applyGSyn_ISTALayer(int nbatch, int numNeurons,
 			    MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
-			    MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract,
+			    MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau,
 			int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t VThresh) {
   int kbatch;
   MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input                                              
@@ -485,7 +499,7 @@ int applyGSyn_ISTALayer(int nbatch, int numNeurons,
 KERNEL
 int applyGSyn_ISTALayer2(int nbatch, int numNeurons,
 			     MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
-			     MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract,
+			     MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau,
 			 int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t VThresh) {
   int kbatch;
   MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input                                              
@@ -547,7 +561,7 @@ int applyGSyn_ANNWhitenedLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t *
 KERNEL
 int updateV_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
         int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
-        int numVertices, float * verticesV, float * verticesA, float slopeNegInf, float slopePosInf,
+        int numVertices, float * verticesV, float * verticesA, float * slopes,
         int nx, int ny, int nf, int lt, int rt, int dn, int up)
 {
    int status = PV_SUCCESS;
@@ -558,11 +572,12 @@ int updateV_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvd
       status = applyGSyn_HyPerLayer(nbatch, numNeurons, V, GSynHead);
    }
    if (status==PV_SUCCESS) {
-      status = setActivity_PtwiseLinearTransferLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesA, verticesV, slopeNegInf, slopePosInf);
+      status = setActivity_PtwiseLinearTransferLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesV, verticesA, slopes);
    }
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete July 27, 2015.  Use updateV_PtwiseLinearTransferLayer() instead.
 KERNEL
 int updateV_ANNLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
         int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
@@ -581,8 +596,9 @@ int updateV_ANNLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
    if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
    return status;
 }
+#endif // OBSOLETE // Marked obsolete July 27, 2015.  Use updateV_PtwiseLinearTransferLayer() instead.
 
-
+#ifdef OBSOLETE // Marked obsolete July 27, 2015.  AccumulateLayer has been moved to obsolete folder.
 KERNEL
 int updateV_AccumulateLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
         int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
@@ -601,14 +617,14 @@ int updateV_AccumulateLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
    if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
    return status;
 }
+#endif // OBSOLETE // Marked obsolete July 27, 2015.  AccumulateLayer has been moved to obsolete folder.
 
 KERNEL
-int updateV_HyPerLCALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+int updateV_HyPerLCALayer(int nbatch, int numNeurons, int numChannels, MEM_GLOBAL pvdata_t * V,
       MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
-      pvdata_t AMax,
-      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
-      MEM_GLOBAL double* dtAdapt, pvdata_t tau, 
-      pvdata_t selfInteract, int nx, int ny, int nf, int lt, int rt, int dn, int up, int numChannels)
+      int numVertices, pvpotentialdata_t * verticesV, pvadata_t * verticesA, float * slopes,
+      double * dtAdapt, float tau, pvdata_t selfInteract,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up)
 {
    int status = PV_SUCCESS;
    if (numChannels == 2){
@@ -620,43 +636,36 @@ int updateV_HyPerLCALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
             applyGSyn_HyPerLCALayer(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up);
    }
 
-
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
-   if( status == PV_SUCCESS ) status =
-         applyVThresh_ANNLayer(nbatch, numNeurons, V, AMin, VThresh, AShift, VWidth, activity, nx, ny, nf, lt, rt, dn, up);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
+   if (status==PV_SUCCESS) {
+      status = setActivity_PtwiseLinearTransferLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesV, verticesA, slopes);
+   }
    return status;
 }
 
 KERNEL
 int updateV_ISTALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
 			  MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
-			  pvdata_t AMax,
-			  pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
+			  pvdata_t VThresh, 
 			  MEM_GLOBAL double* dtAdapt, pvdata_t tau,
-			  pvdata_t selfInteract, int nx, int ny, int nf, int lt, int rt, int dn, int up, int numChannels)
+			  int nx, int ny, int nf, int lt, int rt, int dn, int up, int numChannels)
 {
   int status = PV_SUCCESS;
   if (numChannels == 2){
     if( status == PV_SUCCESS ) status =
-				 applyGSyn_ISTALayer2(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, VThresh);
+				 applyGSyn_ISTALayer2(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau, nx, ny, nf, lt, rt, dn, up, VThresh);
   }
   else if (numChannels == 1){
     if( status == PV_SUCCESS ) status =
-				 applyGSyn_ISTALayer(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, VThresh);
+				 applyGSyn_ISTALayer(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau, nx, ny, nf, lt, rt, dn, up, VThresh);
   }
   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
-  if( status == PV_SUCCESS ) status =
-			       applyVThresh_ANNLayer(nbatch, numNeurons, V, AMin, 0, AShift, VWidth, activity, nx, ny, nf, lt, rt, dn, up);
-  //if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
   return status;
 }
 
-
-KERNEL
 int updateV_ANNErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
-      MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity, pvdata_t AMax,
-      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx, int ny, int nf, int lt, int rt, int dn, int up, float errScale)
+      MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
+      int numVertices, float * verticesV, float * verticesA, float * slopes,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up, float errScale)
 {
    int status;
    status = applyGSyn_HyPerLayer(nbatch, numNeurons, V, GSynHead);
@@ -667,16 +676,17 @@ int updateV_ANNErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
        V[i] *= errScale;
    }
    if(status == PV_SUCCESS) status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
-   if( status == PV_SUCCESS ) status =
-         applyVThresh_ANNErrorLayer(nbatch, numNeurons, V, AMin, VThresh, AShift, activity, nx, ny, nf, lt, rt, dn, up);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
+   if( status == PV_SUCCESS ) {
+      status = setActivity_PtwiseLinearTransferLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesV, verticesA, slopes);
+   }
    return status;
 }
 
 KERNEL
 int updateV_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
-      MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity, pvdata_t AMax,
-      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx, int ny, int nf, int lt, int rt, int dn, int up, float errScale, int isBinary)
+      MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
+      int numVertices, float * verticesV, float * verticesA, float * slopes,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up, float errScale, int isBinary)
 {
    int status;
    status = applyGSyn_LabelErrorLayer(nbatch, numNeurons, V, GSynHead, nx, ny, nf, lt, rt, dn, up, isBinary);
@@ -686,24 +696,42 @@ int updateV_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
    for(int i = 0; i < numNeurons*nbatch; i++){
        V[i] *= errScale;
    }
-   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
-   if( status == PV_SUCCESS ) status =
-         applyVThresh_ANNErrorLayer(nbatch, numNeurons, V, AMin, VThresh, AShift, activity, nx, ny, nf, lt, rt, dn, up);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
+   if (status==PV_SUCCESS) {
+      status = setActivity_PtwiseLinearTransferLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesV, verticesA, slopes);
+   }
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  ANNLabelLayer has been moved to obsolete folder.
 KERNEL
-int updateV_ANNWhitenedLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+int updateV_ANNLabelLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity, pvdata_t AMax,
-      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx, int ny, int nf, int lt, int rt, int dn, int up)
+      pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, int nx, int ny, int nf, int lt, int rt, int dn, int up)
+{
+   int status;
+   status = applyGSyn_HyPerLayer(numNeurons, V, GSynHead);
+   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
+   if( status == PV_SUCCESS ) status =
+                                  applyV_ANNLabelLayer(numNeurons, V, AMin, AMax, VThresh, activity, nx, ny, nf, lt, rt, dn, up);
+
+   return status;
+}
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  ANNLabelLayer has been moved to obsolete folder.
+
+KERNEL
+int updateV_ANNWhitenedLayer(int nbatch, int numNeurons,
+      MEM_GLOBAL pvpotentialdata_t * V,
+      MEM_GLOBAL pvdata_t * GSynHead,
+      MEM_GLOBAL pvadata_t * activity,
+      int numVertices, pvpotentialdata_t * verticesV, pvadata_t * verticesA, float * slopes,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up)
 {
    int status;
    status = applyGSyn_ANNWhitenedLayer(nbatch, numNeurons, V, GSynHead);
    if(status == PV_SUCCESS) status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
-   if( status == PV_SUCCESS ) status =
-         applyVThresh_ANNLayer(nbatch, numNeurons, V, AMin, VThresh, AShift, VWidth, activity, nx, ny, nf, lt, rt, dn, up);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
+   if (status==PV_SUCCESS) {
+      status = setActivity_PtwiseLinearTransferLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesV, verticesA, slopes);
+   }
    return status;
 }
 
@@ -733,13 +761,12 @@ int updateV_ANNSquaredLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead) {
    int status;
    status = applyGSyn_HyPerLayer1Channel(nbatch, numNeurons, V, GSynHead);
-//   status = updateV_ANNLayer(numNeurons, V, GSynHead, activity, AMax, AMin, VThresh,
-//         0.0f, nx, ny, nf, lt, rt, dn, up);
    if (status == PV_SUCCESS)
       status = squareV_ANNSquaredLayer(nbatch, numNeurons, V);
    return status;
 }
 
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
 KERNEL
 int updateV_GenerativeLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * dV, MEM_GLOBAL float * activity, pvdata_t AMax,
@@ -760,6 +787,7 @@ int updateV_GenerativeLayer(int nbatch, int numNeurons,
    applyVThresh_ANNLayer(nbatch, numNeurons, V, AMin, VThresh, AShift, VWidth, V, nx, ny, nf, lt, rt, dn, up);
    return PV_SUCCESS;
 }
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
 
 KERNEL
 int updateV_PoolingANNLayer(int nbatch, int numNeurons,
@@ -815,8 +843,32 @@ int updateV_SigmoidLayer() {
    return PV_SUCCESS; // sourcelayer is responsible for updating V.
 }
 
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
 KERNEL
-int applyVMax_ANNLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+int update_dV_GenerativeLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * sparsitytermderivative, MEM_GLOBAL  pvdata_t * dV, pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t relaxation, pvdata_t auxChannelCoeff, pvdata_t sparsityTermCoeff, pvdata_t persistence) {
+   int k;
+   MEM_GLOBAL pvdata_t * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
+   MEM_GLOBAL pvdata_t * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
+   MEM_GLOBAL pvdata_t * GSynAux = &GSynHead[CHANNEL_INHB*numNeurons];
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif
+   for( k=0; k<numNeurons; k++ )
+#else
+      k = getIndex();
+#endif // PV_USE_OPENCL
+   {
+      pvdata_t dAnew = GSynExc[k] - GSynInh[k] + auxChannelCoeff*GSynAux[k] - sparsityTermCoeff*sparsitytermderivative[k];
+      dV[k] = persistence*dV[k] + (1-persistence)*dAnew;
+   }
+   return PV_SUCCESS;
+}
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
+
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  Use setActivity_PtwiseLinearTransferLayer instead of applyVThresh_ANNLayer and applyVMax_ANNLayer
+KERNEL
+int applyVMax_ANNLayer(int numNeurons, MEM_GLOBAL pvdata_t * V,
       pvdata_t AMax, MEM_GLOBAL pvdata_t * activity, int nx, int ny,
       int nf, int lt, int rt, int dn, int up) {
    if (AMax < max_pvadata_t) {
@@ -872,6 +924,7 @@ int applyVThresh_ANNLayer(int nbatch, int numNeurons,
    }
    return PV_SUCCESS;
 }
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  Use setActivity_PtwiseLinearTransferLayer instead of applyVThresh_ANNLayer and applyVMax_ANNLayer
 
 KERNEL
 int applyVThresh_ANNErrorLayer(int nbatch, int numNeurons,
@@ -903,6 +956,39 @@ int applyVThresh_ANNErrorLayer(int nbatch, int numNeurons,
    return PV_SUCCESS;
 }
 
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  ANNLabelLayer has been moved to obsolete folder.
+KERNEL
+int applyV_ANNLabelLayer(int nbatch, int numNeurons,
+                                       MEM_GLOBAL pvdata_t * V, pvdata_t AMin, pvdata_t AMax, pvdata_t VThresh,MEM_GLOBAL pvdata_t * activity, int nx, int ny,
+                                             int nf, int lt, int rt, int dn, int up) {
+    if (VThresh > -max_pvvdata_t) {
+        int k = 0;
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif
+        for (k = 0; k < numNeurons; k++)
+#else
+        k = getIndex();
+#endif // PV_USE_OPENCL
+        {
+            int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+            int featureindex = featureIndex(k, nx, ny, nf) % nf;
+            float factor;
+            if (nf == 2)
+                factor = 1.0;
+            else
+                factor = 255.0;
+            
+            if (fabs(fabs(V[k]) * factor - featureindex) < 0.00001)
+                activity[kex] = AMax;
+            else
+                activity[kex] = AMin;
+        }
+    }
+    return PV_SUCCESS;
+}
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  ANNLabelLayer has been moved to obsolete folder.
 
 KERNEL
 int squareV_ANNSquaredLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V) {
@@ -921,9 +1007,80 @@ int squareV_ANNSquaredLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V)
    return PV_SUCCESS;
 }
 
+#ifdef OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
+KERNEL
+int updateSparsityTermDeriv_GenerativeLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * sparsitytermderivative) {
+   int k;
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif
+   for( k=0; k<numNeurons; k++ )
+#else
+      k = getIndex();
+#endif // PV_USE_OPENCL
+   {
+      pvdata_t vk = V[k];
+      sparsitytermderivative[k] = 2*vk/(1+vk*vk);
+   }
+   return PV_SUCCESS;
+}
+#endif // OBSOLETE // Marked obsolete July 28, 2015.  GenerativeLayer was moved to inactivesandboxes/SymmetryBreakingGenerative
+
+KERNEL
+int updateSparsityTermDeriv_LogLatWTAGenLayer(int nbatch, int numNeurons, int num_features, MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * sparsitytermderivative) {
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   int k;
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif
+   for (k=0; k<numNeurons/num_features; k++) {
+      int feature_start = k*num_features;
+      pvdata_t sum_across_features = 0.0f;
+      int f;
+      for (f=0; f<num_features; f++) {
+         sum_across_features += V[feature_start+f];
+      }
+      pvdata_t lat_wta_expr = lateralCompetitionPenalty(&V[feature_start], num_features);
+      for (f=0; f<num_features; f++) {
+         sparsitytermderivative[k*num_features+f] = 2*(sum_across_features-V[k*num_features+f])/(1+lat_wta_expr);
+      }
+   }
+   for (k=0; k<numNeurons; k++) {
+
+   }
+#else // PV_USE_OPENCL
+   int k = getIndex();
+   {
+      int feature_start = k - (k % num_features);
+      pvdata_t sum_across_features = 0.0f;
+      for( int f=0; f<num_features; f++ ) sum_across_features += V[feature_start+f];
+      pvdata_t lat_wta_expr = lateralCompetitionPenalty(&V[feature_start], num_features);
+      // Each block of num_features neurons will have the same sum_across_features and latWTAexpr.
+      // Can we eliminate redundant calculations?
+      sparsitytermderivative[k] = 2*(sum_across_features-V[k])/(1+lat_wta_expr);
+   }
+#endif // PV_USE_OPENCL
+
+   return PV_SUCCESS;
+}
+
+KERNEL
+pvdata_t lateralCompetitionPenalty(MEM_GLOBAL pvdata_t * V, int num_features) {
+   pvdata_t z=0;
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif
+   for( int p=0; p<num_features; p++ ) {
+      for( int q=0; q<num_features; q++ ) {
+         if( p!= q ) z += V[p]*V[q];
+      }
+   }
+   return z;
+}
+
 KERNEL
 int setActivity_HyPerLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
-//static inline int setActivity_HyPerLayer(int numNeurons, pvdata_t * A, pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
    int kbatch;
    #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
@@ -945,7 +1102,7 @@ int setActivity_HyPerLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A, 
 }
 
 KERNEL
-int setActivity_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up, int numVertices, pvdata_t * verticesA, pvdata_t * verticesV, int slopeNegInf, int slopePosInf) {
+int setActivity_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up, int numVertices, pvdata_t * verticesV, pvdata_t * verticesA, float * slopes) {
    int kbatch;
    int last = numVertices-1;
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
@@ -965,20 +1122,24 @@ int setActivity_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL
       int v;
       pvdata_t potential = VBatch[k];
       pvdata_t activity = 0.0f;
-      activity = potential < verticesV[0] ? verticesA[0] + slopeNegInf*(potential-verticesV[0]): activity;
-      for (v=0; v<last; v++)
-      {
-         if (potential==verticesV[v])
-         {
-            activity = verticesA[v];
-         }
-         else if (potential>verticesV[v] && potential<verticesV[v+1])
-         {
-            pvdata_t slope = (verticesA[v+1]-verticesA[v])/(verticesV[v+1]-verticesV[v]);
-            activity = verticesA[v] + slope*(potential-verticesV[v]);
+      
+      if (potential < verticesV[0]) {
+         activity = verticesA[0] + slopes[0]*(potential-verticesV[0]);
+      }
+      else if (potential >= verticesV[last]) {
+         activity = verticesA[last] + slopes[numVertices]*(potential-verticesV[last]);
+      }
+      else {
+         for (v=0; v<last; v++) {
+            if (potential<verticesV[v]) { break; } // makes the jumps continuous from the right.  TODO: allow user control over value at jump
+            if (potential==verticesV[v]) {
+               activity = verticesA[v];
+            }
+            else if (potential>verticesV[v] && potential<verticesV[v+1]) {
+               activity = verticesA[v] + slopes[v+1]*(potential-verticesV[v]);
+            }
          }
       }
-      activity = potential > verticesV[last] ? verticesA[last] + slopePosInf*(potential-verticesV[last]): activity;
       ABatch[kex] = activity;
    }
    return PV_SUCCESS;

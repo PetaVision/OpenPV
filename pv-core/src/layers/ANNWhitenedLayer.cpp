@@ -23,11 +23,10 @@ void ANNWhitenedLayer_update_state(
     const int up,
 
     float * V,
-    const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
-    const float VWidth,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
     float * GSynHead,
     float * activity);
 
@@ -81,7 +80,7 @@ int ANNWhitenedLayer::doUpdateState(double time, double dt, const PVLayerLoc * l
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
       int nbatch = loc->nbatch;
-      ANNWhitenedLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh, AMax, AMin, AShift, VWidth, gSynHead, A);
+      ANNWhitenedLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopes, gSynHead, A);
 //#ifdef PV_USE_OPENCL
 //   }
 //#endif

@@ -29,13 +29,11 @@ void HyPerLCALayer_update_state(
     const int dn,
     const int up,
     const int numChannels,
-
     float * V,
-    const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
-    const float VWidth,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
     const bool selfInteract,
     double * dtAdapt,
     const float tau,
@@ -292,7 +290,7 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       double * deltaTimeAdapt = parent->getTimeScale();
 
       HyPerLCALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
-            V, VThresh, AMax, AMin, AShift, VWidth, 
+            V, numVertices, verticesV, verticesA, slopes,
             selfInteract, deltaTimeAdapt, timeConstantTau, gSynHead, A);
       //if (this->writeSparseActivity){
       //   updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???

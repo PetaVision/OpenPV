@@ -189,9 +189,9 @@ int ANNLayer::setVertices() {
             // All vertices have A>=AMax.
             // If slopeNegInf is positive, transfer function should increase from -infinity to AMax, and then stays constant.
             // If slopeNegInf is negative or zero, 
-               numVertices = 1;
-               vectorA.resize(numVertices);
-               vectorV.resize(numVertices);
+            numVertices = 1;
+            vectorA.resize(numVertices);
+            vectorV.resize(numVertices);
             if (slopeNegInf > 0) {
                pvadata_t intervalA = vectorA[0]-AMax;
                pvpotentialdata_t intervalV = (pvpotentialdata_t) (intervalA / slopeNegInf);
@@ -212,21 +212,17 @@ int ANNLayer::setVertices() {
       }
       slopePosInf = 0.0f;
    }
-   assert(!isnan(slopeNegInf) && !isnan(slopePosInf));
+   assert(!isnan(slopeNegInf) && !isnan(slopePosInf) && numVertices > 0);
+   assert(vectorA.size()==numVertices && vectorV.size()==numVertices);
    verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
-   verticesA = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
+   verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
    if (verticesV==NULL || verticesA==NULL) {
       fprintf(stderr, "%s \"%s\" error: unable to allocate memory for vertices:%s\n",
             parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+      exit(EXIT_FAILURE);
    }
-   for (int v=0; v<numVertices; v++) {
-      verticesV[v] = vectorV[v];
-      verticesA[v] = vectorA[v];
-      if (parent->columnId()==0) {
-         printf("Layer \"%s\": vertex %d, V=%f, A=%f\n", name, v+1, vectorV[v], vectorA[v]);
-      }
-   }
-   // TODO: find a nonstupid way to get the information into the member variable arrays.
+   memcpy(verticesV, &vectorV[0], numVertices * sizeof(*verticesV));
+   memcpy(verticesA, &vectorA[0], numVertices * sizeof(*verticesA));
    
    return PV_SUCCESS;
 }
@@ -274,9 +270,7 @@ int ANNLayer::setActivity() {
    int num_neurons = nx*ny*nf;
    int nbatch = loc->nbatch;
    int status;
-   status = setActivity_HyPerLayer(nbatch, num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(nbatch, num_neurons, getV(), AMin, VThresh, AShift, VWidth, getCLayer()->activity->data, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, num_neurons, getV(), AMax, getCLayer()->activity->data, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+   status = setActivity_PtwiseLinearTransferLayer(nbatch, num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, numVertices, verticesV, verticesA, slopes);
    return status;
 }
 

@@ -36,6 +36,7 @@ protected:
    virtual void ioParam_AMax(enum ParamsIOFlag ioFlag);
    virtual void ioParam_AShift(enum ParamsIOFlag ioFlag);
    virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
+   virtual int setVertices();
    /* static */ int doUpdateState(double timef, double dt, bool * inited, double * next_update_time,
          double first_update_time, double display_period, const PVLayerLoc * loc, pvdata_t * A,
          pvdata_t * V, pvdata_t * Vprev, int num_channels, pvdata_t * gSynHead);
