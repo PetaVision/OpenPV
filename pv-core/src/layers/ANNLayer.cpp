@@ -7,6 +7,7 @@
 
 #include "ANNLayer.hpp"
 #include "../layers/updateStateFunctions.h"
+#include <limits>
 
 namespace PV {
 
