@@ -65,7 +65,7 @@ Movie "Image" = {
 
 
 
-ANNErrorLayer "Error" = {
+ANNLayer "Output" = {
     nxScale = 1;
     nyScale = 1;
     nf = 16;
@@ -99,7 +99,7 @@ ANNErrorLayer "Error" = {
 
 HyPerConn "delayArbor" = {
     preLayerName = "Image";
-    postLayerName = "Error";
+    postLayerName = "Output";
     
     channelCode = 0;
     nxp         = 1;
@@ -128,10 +128,10 @@ HyPerConn "delayArbor" = {
     preActivityIsNotRate   = false;
 };
 
-DelayTestProbe "Error Stats File" = {
-    targetLayer = "Error";
-    probeOutputFile = "Error_Stats.txt";
-    message = "Error Stats File              ";
+DelayTestProbe "Output Stats File" = {
+    targetLayer = "Output";
+    probeOutputFile = "Output_Stats.txt";
+    message = "Output Stats File             ";
     triggerFlag = false;
     buffer = "Activity";
     nnzThreshold = 0.0;
