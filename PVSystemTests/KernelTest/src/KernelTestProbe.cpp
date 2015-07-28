@@ -40,10 +40,12 @@ int KernelTestProbe::outputState(double timed)
       return 0;
    }
 #endif // PV_USE_MPI
-   if(timed>2.0f){
-      assert((fMin>0.99)&&(fMin<1.010));
-      assert((fMax>0.99)&&(fMax<1.010));
-      assert((avg>0.99)&&(avg<1.010));
+   for(int b = 0; b < parent->getNBatch(); b++){
+      if(timed>2.0f){
+         assert((fMin[b]>0.99)&&(fMin[b]<1.010));
+         assert((fMax[b]>0.99)&&(fMax[b]<1.010));
+         assert((avg[b]>0.99)&&(avg[b]<1.010));
+      }
    }
 
    return status;
