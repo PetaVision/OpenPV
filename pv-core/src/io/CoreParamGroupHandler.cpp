@@ -442,7 +442,7 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
       addedLayer = new PoolingIndexLayer(name, hc);
    }
    else if( !strcmp(keyword, "PtwiseLinearTransferLayer") ) {
-      addedLayer = new PtwiseProductLayer(name, hc);
+      addedLayer = new PtwiseLinearTransferLayer(name, hc);
    }
    else if (!strcmp(keyword, "PtwiseProductLayer") ) {
       addedLayer = new PtwiseProductLayer(name, hc);

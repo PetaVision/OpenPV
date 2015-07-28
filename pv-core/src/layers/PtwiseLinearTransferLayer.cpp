@@ -60,6 +60,8 @@ int PtwiseLinearTransferLayer::initialize_base() {
    numVertices = 0;
    verticesV = NULL;
    verticesA = NULL;
+   slopeNegInf = 1.0f;
+   slopePosInf = 1.0f;
    return PV_SUCCESS;
 }
 
