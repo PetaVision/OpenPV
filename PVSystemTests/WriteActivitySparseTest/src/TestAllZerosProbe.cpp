@@ -29,9 +29,11 @@ int TestAllZerosProbe::outputState(double timed) {
       return 0;
    }
 #endif // PV_USE_MPI
-   if (nnz != 0) {
-      fprintf(stderr, "!!Time %f: layer \"%s\" is not all zeroes.\n", timed, getTargetLayer()->getName());
-      exit(EXIT_FAILURE);
+   for(int b = 0; b < parent->getNBatch(); b++){
+      if (nnz[b] != 0) {
+         fprintf(stderr, "!!Time %f batch %d: layer \"%s\" is not all zeroes.\n", timed, b, getTargetLayer()->getName());
+         exit(EXIT_FAILURE);
+      }
    }
    return status;
 }

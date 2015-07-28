@@ -30,6 +30,7 @@ HyPerCol "column" = {
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false; //If true, save the last output as checkpoint.
+   nbatch = 2;
 };
 
 MoviePvp "Input" = {
@@ -57,9 +58,9 @@ MoviePvp "Input" = {
     inputPath                           = "input/inputmovie.pvp";
     displayPeriod                       = 1;
     randomMovie                         = 0;
-    readPvpFile                         = true;
-    start_frame_index                   = 0;
-    skip_frame_index                    = 1;
+    batchMethod = "byImage";
+    //start_frame_index                   = 0;
+    //skip_frame_index                    = 1;
     writeFrameToTimestamp               = false;
     flipOnTimescaleError                = true;
     resetToStartOnLoop                  = false;

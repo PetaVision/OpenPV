@@ -142,23 +142,24 @@ int PointProbe::outputState(double timef)
    const int nbatch = loc->nbatch;
    const int xLocLocal = xLoc - kx0;
    const int yLocLocal = yLoc - ky0;
-   const int nbatchLocal = nbatch - kb0;
+   const int nbatchLocal = batchLoc - kb0;
    
    float vval = 0;
    float aval = 0;
    //if in bounds
    if( xLocLocal >= 0 && xLocLocal < nx &&
-       yLocLocal >= 0 && yLocLocal < ny){
-      const pvdata_t * V = getTargetLayer()->getV() + nbatchLocal * getTargetLayer()->getNumNeurons();
-      const pvdata_t * activity = getTargetLayer()->getLayerData() + nbatchLocal * getTargetLayer()->getNumExtended();
+       yLocLocal >= 0 && yLocLocal < ny &&
+       nbatchLocal >= 0 && nbatchLocal < nbatch){
+      const pvdata_t * V = getTargetLayer()->getV();
+      const pvdata_t * activity = getTargetLayer()->getLayerData();
       //Send V and A to root
       const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
       const int kex = kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       if(V){
-         vval = V[k];
+         vval = V[k + nbatchLocal*getTargetLayer()->getNumNeurons()];
       }
       if(activity){
-         aval = activity[kex];
+         aval = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
       }
 #ifdef PV_USE_MPI
       //If not in root process, send to root process
@@ -201,8 +202,6 @@ int PointProbe::outputState(double timef)
 int PointProbe::point_writeState(double timef, float outVVal, float outAVal) {
    if(parent->columnId()==0){
       assert(outputstream && outputstream->fp);
-      const pvdata_t * V = getTargetLayer()->getV();
-      const pvdata_t * activity = getTargetLayer()->getLayerData();
 
       fprintf(outputstream->fp, "%s t=%.1f", msg, timef);
       fprintf(outputstream->fp, " V=%6.5f", outVVal);

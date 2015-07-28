@@ -148,33 +148,55 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int rootproc = 0;
    if( rank == rootproc ) {
       int index = hc->getFinalStep()-hc->getInitialStep();
-      const char * cpdir1 = "outputTime/Last";
-      const char * cpdir2 = "outputDim/Last";
-      if(cpdir1 == NULL || cpdir2 == NULL) {
+      const char * file1 = "outputTime/Last/plasticConn_W.pvp";
+      const char * file2 = "outputDim/Last/plasticConn_W.pvp";
+      if(file1 == NULL || file2 == NULL) {
          fprintf(stderr, "%s: unable to allocate memory for names of checkpoint directories", argv[0]);
          exit(EXIT_FAILURE);
       }
-      char * shellcommand;
-      char c;
-      const char * fmtstr = "diff -q %s/plasticConn_W.pvp %s/plasticConn_W.pvp";
-      int len = snprintf(&c, 1, fmtstr, cpdir1, cpdir2);
-      shellcommand = (char *) malloc(len+1);
-      if( shellcommand == NULL) {
-         fprintf(stderr, "%s: unable to allocate memory for shell diff command.\n", argv[0]);
-         status = PV_FAILURE;
+
+      FILE * fp1 = fopen(file1, "r");
+      FILE * fp2 = fopen(file2, "r");
+#define NUM_WGT_PARAMS (NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS)
+      //Seek past the header
+      fseek(fp1, NUM_WGT_PARAMS * sizeof(int), SEEK_SET);
+      fseek(fp2, NUM_WGT_PARAMS * sizeof(int), SEEK_SET);
+      char ch1, ch2;
+      int flag = 0;
+      while(((ch1 = fgetc(fp1)) != EOF) && ((ch2 = fgetc(fp2)) != EOF)){
+         //Character comparison
+         if(ch1 == ch2){
+            flag = 1;
+            continue;
+         }
+         //If characters do not match up
+         else{
+            std::cout << "File " << file1 << " and " << file2 << " are different\n";
+            exit(-1);
+         }
       }
-      assert( snprintf(shellcommand, len+1, fmtstr, cpdir1, cpdir2) == len );
-      status = system(shellcommand);
-      if( status != 0 ) {
-         fprintf(stderr, "system(\"%s\") returned %d\n", shellcommand, status);
-         // Because system() seems to return the result of the shell command multiplied by 256,
-         // and Unix only sees the 8 least-significant bits of the value returned by a C/C++ program,
-         // simply returning the result of the system call doesn't work.
-         // I haven't found the mult-by-256 behavior in the documentation, so I'm not sure what's
-         // going on.
-         status = PV_FAILURE;
-      }
-      free(shellcommand); shellcommand = NULL;
+      
+      //char * shellcommand;
+      //char c;
+      //const char * fmtstr = "diff -q %s/plasticConn_W.pvp %s/plasticConn_W.pvp";
+      //int len = snprintf(&c, 1, fmtstr, cpdir1, cpdir2);
+      //shellcommand = (char *) malloc(len+1);
+      //if( shellcommand == NULL) {
+      //   fprintf(stderr, "%s: unable to allocate memory for shell diff command.\n", argv[0]);
+      //   status = PV_FAILURE;
+      //}
+      //assert( snprintf(shellcommand, len+1, fmtstr, cpdir1, cpdir2) == len );
+      //status = system(shellcommand);
+      //if( status != 0 ) {
+      //   fprintf(stderr, "system(\"%s\") returned %d\n", shellcommand, status);
+      //   // Because system() seems to return the result of the shell command multiplied by 256,
+      //   // and Unix only sees the 8 least-significant bits of the value returned by a C/C++ program,
+      //   // simply returning the result of the system call doesn't work.
+      //   // I haven't found the mult-by-256 behavior in the documentation, so I'm not sure what's
+      //   // going on.
+      //   status = PV_FAILURE;
+      //}
+      //free(shellcommand); shellcommand = NULL;
    }
 #ifdef PV_USE_MPI
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
