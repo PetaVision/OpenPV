@@ -52,9 +52,9 @@ ImportParamsLayer "orig" = {
 
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 
@@ -83,9 +83,9 @@ ANNLayer "output" = {
 
     //define a linear relation between its input and output, with some hard cut-off.
     VThresh = -infinity;   
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 

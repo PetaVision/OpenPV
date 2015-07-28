@@ -1,5 +1,5 @@
 /*
- * ANNLayer.cpp
+ * ANNLayer.hpp
  *
  *  Created on: Dec 21, 2010
  *      Author: pschultz
@@ -8,19 +8,15 @@
 #ifndef ANNLAYER_HPP_
 #define ANNLAYER_HPP_
 
-#include "HyPerLayer.hpp"
+#include "PtwiseLinearTransferLayer.hpp"
+#include <limits>
 
 #define NUM_ANN_EVENTS   3
 #define EV_ANN_ACTIVITY  2
 
-// Old member variables deprecated on Mar 20, 2014
-#define VMin AMin
-#define VMax AMax
-#define VShift AShift
-
 namespace PV {
 
-class ANNLayer : public HyPerLayer {
+class ANNLayer : public PtwiseLinearTransferLayer {
 public:
    ANNLayer(const char* name, HyPerCol * hc);
    virtual ~ANNLayer();
@@ -56,35 +52,49 @@ protected:
    /**
     * @brief AMin: When membrane potential V is below the threshold VThresh, activity takes the value AMin.
     */
-   virtual void ioParam_VMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_AMin(enum ParamsIOFlag ioFlag);
    
    /**
     * @brief AMax: The maximum value of the output activity.
     */
-   virtual void ioParam_VMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_AMax(enum ParamsIOFlag ioFlag);
    
    /**
     * @brief AShift: When membrane potential V is above the threshold VThresh, activity is V-AShift
     * (but see VWidth for making a gradual transition at VThresh)
     */
-   virtual void ioParam_VShift(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_AShift(enum ParamsIOFlag ioFlag);
    
    /**
     * @brief VWidth: When the membrane potential is between VThresh and VThresh+VWidth, the activity changes linearly
     * between A=AMin when V=VThresh and A=VThresh+VWidth-AShift when V=VThresh+VWidth.
     */
    virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
-   /** @} */
-   
-   /**
-    * @brief clearGSynInterval: the time interval after which GSyn is reset to zero.
-    * @details Until this interval elapses, GSyn continues to accumulate from timestep to timestep.
-    * If clearGSynInterval is zero or negative, GSyn clears every timestep.
-    * If clearGSynInterval is infinite, the layer acts as an accumulator.
-    */
-   virtual void ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag);
 
-   virtual int checkVThreshParams(PVParams * params);
+   /**
+    * @brief verticesV: ANNLayer does not read the verticesV parameter array, but sets it based on the value of VThresh, AMin, AMax, AShift, VWidth
+    */
+   virtual void ioParam_verticesV(enum ParamsIOFlag ioFlag) {}
+
+   /**
+    * @brief verticesV: ANNLayer does not read the verticesA parameter array, but sets it based on the value of VThresh, AMin, AMax, AShift, VWidth
+    */
+   virtual void ioParam_verticesA(enum ParamsIOFlag ioFlag) {}
+
+   /**
+    * @brief verticesV: ANNLayer does not read the slopeNegInf parameter, but sets it based on the value of VThresh, AMin, AMax, AShift, VWidth
+    */
+   virtual void ioParam_slopeNegInf(enum ParamsIOFlag ioFlag) {}
+
+   /**
+    * @brief verticesV: ANNLayer does not read the slopePosInf parameter, but sets it based on the value of VThresh, AMin, AMax, AShift, VWidth
+    */
+   virtual void ioParam_slopePosInf(enum ParamsIOFlag ioFlag) {}
+   /** @} */
+
+   virtual int setVertices();
+   
+   virtual int checkVertices();
 
    virtual int resetGSynBuffers(double timef, double dt);
 
@@ -98,8 +108,6 @@ protected:
                      // AShift == 0, hard threshold condition
                      // AShift == VThresh, soft threshold condition
    pvdata_t VWidth;  // The thresholding occurs linearly over the region [VThresh,VThresh+VWidth].  VWidth=0,AShift=0 is standard hard-thresholding
-   double clearGSynInterval; // The interval between successive clears of GSyn
-   double nextGSynClearTime; // The next time that the GSyn will be cleared.
 //#ifdef PV_USE_OPENCL
 //   virtual int getNumCLEvents() {return numEvents;}
 //   virtual const char * getKernelName() { return "ANNLayer_update_state"; }

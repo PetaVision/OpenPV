@@ -46,9 +46,9 @@ ShrunkenPatchTestLayer "L0" = {
     valueV = 1.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 
@@ -66,9 +66,9 @@ ANNLayer "Lx2_with_unshrunken" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 
@@ -86,9 +86,9 @@ ANNLayer "Lx4_with_unshrunken" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 
@@ -106,9 +106,9 @@ ANNLayer "Lx2_with_shrunken" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 
@@ -126,9 +126,9 @@ ANNLayer "Lx4_with_shrunken" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "Lx4_with_shrunken_tall" = {
@@ -145,9 +145,9 @@ ANNLayer "Lx4_with_shrunken_tall" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "Lx4_with_shrunken_wide" = {
@@ -164,9 +164,9 @@ ANNLayer "Lx4_with_shrunken_wide" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 

@@ -124,10 +124,10 @@ ConstantLayer "Pre16x16Singleband" = {
     
     InitVType = "ConstantV";
     valueV = .5;
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ConstantLayer "Pre16x16Multiband" = {
@@ -144,10 +144,10 @@ ConstantLayer "Pre16x16Multiband" = {
     
     InitVType = "ConstantV";
     valueV = .5;
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "Post8x8Singleband" = {
@@ -163,10 +163,10 @@ ANNLayer "Post8x8Singleband" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "Post8x8Multiband" = {
@@ -182,10 +182,10 @@ ANNLayer "Post8x8Multiband" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "Post16x16Singleband" = {
@@ -201,10 +201,10 @@ ANNLayer "Post16x16Singleband" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "Post16x16Multiband" = {
@@ -220,10 +220,10 @@ ANNLayer "Post16x16Multiband" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "Post32x32Singleband" = {
@@ -239,10 +239,10 @@ ANNLayer "Post32x32Singleband" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 ANNLayer "Post32x32Multiband" = {
@@ -258,10 +258,10 @@ ANNLayer "Post32x32Multiband" = {
     sparseLayer = false;
     
     InitVType = "ZeroV";
-    VMax = infinity;
+    AMax = infinity;
     VThresh = -infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 //IdentConn "16x16ImagesToPre16x16Singleband" = {

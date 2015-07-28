@@ -67,9 +67,9 @@ ANNLayer "L0" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 
@@ -88,9 +88,9 @@ ANNLayer "Lx1" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 
@@ -109,9 +109,9 @@ ANNLayer "Lx2" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 
@@ -131,9 +131,9 @@ ANNLayer "Lx4" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 
@@ -153,9 +153,9 @@ ANNLayer "Lx1_2" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 
@@ -175,9 +175,9 @@ ANNLayer "Lx1_4" = {
     InitVType = "ZeroV";
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
     VWidth = 0.0;
 };
 

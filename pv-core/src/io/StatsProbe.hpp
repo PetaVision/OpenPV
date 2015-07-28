@@ -27,17 +27,22 @@ protected:
    virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);
    void requireType(PVBufType requiredType);
    PVBufType type;
-   double sum, sum2;
-   int nnz;
+   double* sum;
+   double* sum2;
+   int* nnz;
+   float* fMin;
+   float* fMax;
+   float* avg;
+   float* sigma;
+
    pvdata_t nnzThreshold;
-   float fMin, fMax;
-   float avg, sigma;
    Timer * iotimer;   // A timer for the i/o part of outputState
    Timer * mpitimer;  // A timer for the MPI part of outputState
    Timer * comptimer; // A timer for the basic computation of outputState
 
 private:
    int initStatsProbe_base();
+   void resetStats();
 };
 
 }

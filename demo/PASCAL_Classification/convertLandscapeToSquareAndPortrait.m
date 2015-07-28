@@ -1,4 +1,7 @@
-function convertLandscapeToSquareAndPortrait(landscapefile,squarefile,portraitfile)
+function convertLandscapeToSquareAndPortrait(landscapefile,squarefile,portraitfile, pv_dir)
+if isempty(which('readpvpfile'))
+   addpath(pv_dir);
+end%if
 if isempty(which('readpvpfile'))
    addpath('/home/ec2-user/mountData/workspace/trunk/mlab/util/');
 end%if

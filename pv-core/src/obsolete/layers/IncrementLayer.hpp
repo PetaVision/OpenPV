@@ -32,9 +32,9 @@ protected:
    virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_firstUpdateTime(enum ParamsIOFlag ioFlag);
    virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_VMin(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_VMax(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_VShift(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_AMin(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_AMax(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_AShift(enum ParamsIOFlag ioFlag);
    virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
    /* static */ int doUpdateState(double timef, double dt, bool * inited, double * next_update_time,
          double first_update_time, double display_period, const PVLayerLoc * loc, pvdata_t * A,

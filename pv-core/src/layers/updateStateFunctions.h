@@ -60,10 +60,17 @@ KERNEL
 int applyGSyn_LabelErrorLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead, int nx, int ny, int nf, int lt, int rt, int dn, int up, int isBinary);
 KERNEL
+int updateV_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+      int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
+      int numVertices, float * verticesV, float * verticesA, float slopeNegInf, float slopePosInf,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up);
+
+KERNEL
 int updateV_ANNLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
       pvdata_t AMax, pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth, int nx,
       int ny, int nf, int lt, int rt, int dn, int up);
+
 KERNEL
 int updateV_AccumulateLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
@@ -185,6 +192,13 @@ KERNEL
 int setActivity_HyPerLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny,
       int nf, int lt, int rt, int dn, int up);
+KERNEL
+
+int setActivity_PtwiseLinearTransferLayer(int nbatch, int numNeurons,
+      MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny,
+      int nf, int lt, int rt, int dn, int up, int numVertices,
+      pvdata_t * verticesA, pvdata_t * verticesV, int slopeNegInf, int slopePosInf);
+
 KERNEL
 int setActivity_AccumulateLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny,
@@ -446,6 +460,25 @@ int applyGSyn_ANNWhitenedLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t *
       V[k] = (GSynInput[k] - GSynAveInput[k]) / (sqrt(GSynAveSquaredInput[k] - GSynAveInput[k]*GSynAveInput[k]) + FLT_MIN);
    }
    return PV_SUCCESS;
+}
+
+KERNEL
+int updateV_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+        int num_channels, MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
+        int numVertices, float * verticesV, float * verticesA, float slopeNegInf, float slopePosInf,
+        int nx, int ny, int nf, int lt, int rt, int dn, int up)
+{
+   int status = PV_SUCCESS;
+   if (num_channels==1) {
+      status = applyGSyn_HyPerLayer1Channel(nbatch, numNeurons, V, GSynHead);
+   }
+   else {
+      status = applyGSyn_HyPerLayer(nbatch, numNeurons, V, GSynHead);
+   }
+   if (status==PV_SUCCESS) {
+      status = setActivity_PtwiseLinearTransferLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up, numVertices, verticesA, verticesV, slopeNegInf, slopePosInf);
+   }
+   return status;
 }
 
 KERNEL
@@ -800,6 +833,46 @@ int setActivity_HyPerLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A, 
       MEM_GLOBAL pvdata_t * VBatch = V + b*numNeurons;
       int kex = kIndexExtended(k,nx,ny,nf,lt, rt, dn, up);
       ABatch[kex] = VBatch[k];
+   }
+   return PV_SUCCESS;
+}
+
+KERNEL
+int setActivity_PtwiseLinearTransferLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A, MEM_GLOBAL pvdata_t * V, int nx, int ny, int nf, int lt, int rt, int dn, int up, int numVertices, pvdata_t * verticesA, pvdata_t * verticesV, int slopeNegInf, int slopePosInf) {
+   int kbatch;
+   int last = numVertices-1;
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif
+   for( kbatch=0; kbatch<numNeurons*nbatch; kbatch++ )
+#else
+      kbatch = getIndex();
+#endif // PV_USE_OPENCL
+   {
+      int b = kbatch / numNeurons;
+      int k = kbatch % numNeurons;
+      pvdata_t * VBatch = V + b * numNeurons;
+      pvdata_t * ABatch = A + b * (nx + lt + rt) * (ny + up + dn) * nf;
+      int kex = kIndexExtended(k,nx,ny,nf,lt,rt,dn,up);
+      int v;
+      pvdata_t potential = VBatch[k];
+      pvdata_t activity = 0.0f;
+      activity = potential < verticesV[0] ? verticesA[0] + slopeNegInf*(potential-verticesV[0]): activity;
+      for (v=0; v<last; v++)
+      {
+         if (potential==verticesV[v])
+         {
+            activity = verticesA[v];
+         }
+         else if (potential>verticesV[v] && potential<verticesV[v+1])
+         {
+            pvdata_t slope = (verticesA[v+1]-verticesA[v])/(verticesV[v+1]-verticesV[v]);
+            activity = verticesA[v] + slope*(potential-verticesV[v]);
+         }
+      }
+      activity = potential > verticesV[last] ? verticesA[last] + slopePosInf*(potential-verticesV[last]): activity;
+      ABatch[kex] = activity;
    }
    return PV_SUCCESS;
 }

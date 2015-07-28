@@ -34,9 +34,9 @@ ConstantLayer "input" = {
     maxV = 1;
 
     VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
     // 
     phase = 1; 
 };
@@ -53,9 +53,9 @@ ANNLayer "outputRecvPre" = {
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
     // 
     phase = 2; 
 };
@@ -72,9 +72,9 @@ ANNLayer "outputRecvPost" = {
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
     // 
     phase = 2; 
 };
@@ -91,9 +91,9 @@ ANNLayer "outputTest" = {
     //
     InitVType = "ZeroV";
     VThresh = -infinity;
-    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    VMin = -infinity; 
-    VShift = 0;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
     // 
     phase = 3; 
 };

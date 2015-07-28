@@ -18,7 +18,7 @@ class PointLIFProbe: public PointProbe {
 public:
    PointLIFProbe(const char * probeName, HyPerCol * hc);
 
-   virtual int writeState(double timed, HyPerLayer * l, int k, int kex);
+   virtual int writeState(double timed, HyPerLayer * l, int b, int k, int kex);
 
 protected:
    PointLIFProbe();

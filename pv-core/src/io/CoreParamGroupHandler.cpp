@@ -61,6 +61,7 @@
 #include "../layers/PoolingANNLayer.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/PoolingIndexLayer.hpp"
+#include "../layers/PtwiseLinearTransferLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
 #include "../layers/RescaleLayer.hpp"
 #include "../layers/RunningAverageLayer.hpp"
@@ -108,7 +109,9 @@
 #include "PointLIFProbe.hpp"
 #include "PointProbe.hpp"
 #include "RequireAllZeroActivityProbe.hpp"
+#ifdef OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
 #include "SparsityLayerProbe.hpp"
+#endif // OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
 #include "StatsProbe.hpp"
 // #include "TextStreamProbe.hpp" // Marked obsolete Mar 6, 2015
 #include "KernelProbe.hpp"
@@ -201,6 +204,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"PoolingANNLayer", LayerGroupType},
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"PoolingIndexLayer", LayerGroupType},
+         {"PtwiseLinearTransferLayer", LayerGroupType},
          {"PtwiseProductLayer", LayerGroupType},
          {"RescaleLayer", LayerGroupType},
          {"RunningAverageLayer", LayerGroupType},
@@ -252,7 +256,9 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"PointLIFProbe", ProbeGroupType},
          {"PointProbe", ProbeGroupType},
          {"RequireAllZeroActivityProbe", ProbeGroupType},
+#ifdef OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
          {"SparsityLayerProbe", ProbeGroupType},
+#endif // OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
          {"StatsProbe", ProbeGroupType},
 //         {"TextStreamProbe", ProbeGroupType}, // Marked obsolete Mar 6, 2015
 
@@ -470,7 +476,10 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "PoolingIndexLayer") ) {
       addedLayer = new PoolingIndexLayer(name, hc);
    }
-   else if( !strcmp(keyword, "PtwiseProductLayer") ) {
+   else if( !strcmp(keyword, "PtwiseLinearTransferLayer") ) {
+      addedLayer = new PtwiseLinearTransferLayer(name, hc);
+   }
+   else if (!strcmp(keyword, "PtwiseProductLayer") ) {
       addedLayer = new PtwiseProductLayer(name, hc);
    }
    else if( !strcmp(keyword, "RescaleLayer") ) {
@@ -648,9 +657,11 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
    else if( !strcmp(keyword, "RequireAllZeroActivityProbe") ) {
       addedProbe = new RequireAllZeroActivityProbe(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
    else if( !strcmp(keyword, "SparsityLayerProbe") ) {
       addedProbe = new SparsityLayerProbe(name, hc);
    }
+#endif // OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
    else if( !strcmp(keyword, "StatsProbe") ) {
       addedProbe = new StatsProbe(name, hc);
    }

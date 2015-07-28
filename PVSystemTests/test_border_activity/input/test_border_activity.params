@@ -75,10 +75,10 @@ ANNLayer "test_border_activity layer" = {
    restart = false;
    InitVType = "ZeroV";
    
-   VMax = infinity;
-   VMin = -infinity;
+   AMax = infinity;
+   AMin = -infinity;
    VThresh = -infinity;
-   VShift = 0.0;
+   AShift = 0.0;
    VWidth = 0.0;
    clearGSynInterval = 0.0;
 };

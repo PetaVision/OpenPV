@@ -9,7 +9,6 @@
 #define HYPERLCALAYER_HPP_
 
 #include "ANNLayer.hpp"
-#include "../io/SparsityLayerProbe.hpp"
 
 namespace PV {
 

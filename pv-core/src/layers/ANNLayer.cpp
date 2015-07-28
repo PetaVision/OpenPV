@@ -8,35 +8,6 @@
 #include "ANNLayer.hpp"
 #include "../layers/updateStateFunctions.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void ANNLayer_update_state(
-    const int nbatch, 
-    const int numNeurons,
-    const int nx,
-    const int ny,
-    const int nf,
-    const int lt,
-    const int rt,
-    const int dn,
-    const int up,
-
-    float * V,
-    const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
-    const float VWidth,
-    int num_channels,
-    float * GSynHead,
-    float * activity);
-
-#ifdef __cplusplus
-}
-#endif
-
 namespace PV {
 
 ANNLayer::ANNLayer() {
@@ -59,10 +30,8 @@ int ANNLayer::initialize_base() {
 }
 
 int ANNLayer::initialize(const char * name, HyPerCol * hc) {
-   int status = HyPerLayer::initialize(name, hc);
-   assert(status == PV_SUCCESS);
+   int status = PtwiseLinearTransferLayer::initialize(name, hc);
 
-   status |= checkVThreshParams(parent->parameters());
 //#ifdef PV_USE_OPENCL
 //   numEvents=NUM_ANN_EVENTS;
 //#endif
@@ -72,15 +41,15 @@ int ANNLayer::initialize(const char * name, HyPerCol * hc) {
 int ANNLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
    ioParam_VThresh(ioFlag);
-   ioParam_VMin(ioFlag);
-   ioParam_VMax(ioFlag);
-   ioParam_VShift(ioFlag);
+   ioParam_AMin(ioFlag);
+   ioParam_AMax(ioFlag);
+   ioParam_AShift(ioFlag);
    ioParam_VWidth(ioFlag);
-   ioParam_clearGSynInterval(ioFlag);
+   
+   // Set verticesV, verticesA, slopeNegInf, slopeNegPos based on VThresh, AMin, AMax, AShift, VWidth
+   if (ioFlag == PARAMS_IO_READ && setVertices()!=PV_SUCCESS) { status = PV_FAILURE; }
 
-   if (ioFlag == PARAMS_IO_READ) {
-      status = checkVThreshParams(parent->parameters());
-   }
+   ioParam_clearGSynInterval(ioFlag);
    return status;
 }
 
@@ -88,39 +57,43 @@ void ANNLayer::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "VThresh", &VThresh, -max_pvvdata_t);
 }
 
-// Parameter VMin was deprecated in favor of AMin on Mar 20, 2014
-void ANNLayer::ioParam_VMin(enum ParamsIOFlag ioFlag) {
+// Parameter VMin was made obsolete in favor of AMin on July 24, 2015
+void ANNLayer::ioParam_AMin(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VMin")) {
-      AMin = parent->parameters()->value(name, "VMin");
       if (parent->columnId()==0) {
-         fprintf(stderr, "Warning: %s \"%s\" parameter \"VMin\" is deprecated.  Use AMin instead.\n",
+         fprintf(stderr, "Error: %s \"%s\" parameter \"VMin\" is obsolete.  Use AMin instead.\n",
                parent->parameters()->groupKeywordFromName(name), name);
       }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
       return;
    }
    parent->ioParamValue(ioFlag, name, "AMin", &AMin, VThresh);
 }
 
-// Parameter VMax was deprecated in favor of AMax on Mar 20, 2014
-void ANNLayer::ioParam_VMax(enum ParamsIOFlag ioFlag) {
+// Parameter VMax was made obsolete in favor of AShift on July 24, 2015
+void ANNLayer::ioParam_AMax(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VMax")) {
-      AMax = parent->parameters()->value(name, "VMax");
       if (parent->columnId()==0) {
-         fprintf(stderr, "Warning: %s \"%s\" parameter \"VMax\" is deprecated.  Use AMax instead.\n",
+         fprintf(stderr, "Error: %s \"%s\" parameter \"VMax\" is obsolete.  Use AMax instead.\n",
                parent->parameters()->groupKeywordFromName(name), name);
       }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
       return;
    }
    parent->ioParamValue(ioFlag, name, "AMax", &AMax, max_pvvdata_t);
 }
 
-void ANNLayer::ioParam_VShift(enum ParamsIOFlag ioFlag) {
+// Parameter VShift was made obsolete in favor of AShift on July 24, 2015
+void ANNLayer::ioParam_AShift(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "VShift")) {
-      AShift = parent->parameters()->value(name, "VShift");
       if (parent->columnId()==0) {
-         fprintf(stderr, "Warning: %s \"%s\" parameter \"VShift\" is deprecated.  Use AShift instead.\n",
+         fprintf(stderr, "Error: %s \"%s\" parameter \"VShift\" is obsolete.  Use AShift instead.\n",
                parent->parameters()->groupKeywordFromName(name), name);
       }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
       return;
    }
    parent->ioParamValue(ioFlag, name, "AShift", &AShift, (pvdata_t) 0);
@@ -130,14 +103,7 @@ void ANNLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, (pvdata_t) 0);
 }
 
-void ANNLayer::ioParam_clearGSynInterval(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "clearGSynInterval", &clearGSynInterval, 0.0);
-   if (ioFlag==PARAMS_IO_READ) {
-      nextGSynClearTime = parent->getStartTime();
-   }
-}
-
-int ANNLayer::checkVThreshParams(PVParams * params) {
+int ANNLayer::setVertices() {
    if (VWidth<0) {
       VThresh += VWidth;
       VWidth = -VWidth;
@@ -162,7 +128,121 @@ int ANNLayer::checkVThreshParams(PVParams * params) {
          }
       }
    }
+   
+   // Initialize slopes to NaN so that we can tell whether they've been initialized.
+   slopeNegInf = std::numeric_limits<double>::quiet_NaN();
+   slopePosInf = std::numeric_limits<double>::quiet_NaN();
+   std::vector<pvpotentialdata_t> vectorV;
+   std::vector<pvadata_t> vectorA;
+   
+   slopePosInf = 1.0f;
+   if (VThresh <= -0.999*max_pvadata_t) {
+      numVertices = 1;
+      vectorV.push_back((pvpotentialdata_t) 0);
+      vectorA.push_back(-AShift);
+      slopeNegInf = 1.0f;
+   }
+   else {
+      assert(VWidth >= (pvpotentialdata_t) 0);
+      if (VWidth == (pvpotentialdata_t) 0 && (pvadata_t) VThresh - AShift == AMin) {  // Should there be a tolerance instead of strict ==?
+         numVertices = 1;
+         vectorV.push_back(VThresh);
+         vectorA.push_back(AMin);
+      }
+      else {
+         numVertices = 2;
+         vectorV.push_back(VThresh);
+         vectorV.push_back(VThresh+VWidth);
+         vectorA.push_back(AMin);
+         vectorA.push_back(VThresh+VWidth-AShift);
+      }
+      slopeNegInf = 0.0f;
+   }
+   if (AMax < 0.999*max_pvadata_t) {
+      assert(slopePosInf == 1.0f);
+      if (vectorA[numVertices-1] < AMax) {
+         pvadata_t interval = AMax - vectorA[numVertices-1];
+         vectorV.push_back(vectorV[numVertices-1]+(pvpotentialdata_t) interval);
+         vectorA.push_back(AMax);
+         numVertices++;
+      }
+      else {
+         // find the last vertex where A < AMax.
+         bool found = false;
+         int v;
+         for (v=numVertices-1; v>=0; v--) {
+            if (vectorA[v] < AMax) { found = true; break; }
+         }
+         if (found) {
+            assert(v+1 < numVertices && vectorA[v] < AMax && vectorA[v+1] >= AMax);
+            pvadata_t interval = AMax - vectorA[v];
+            numVertices = v+1;
+            vectorA.resize(numVertices);
+            vectorV.resize(numVertices);
+            vectorV.push_back(vectorV[v]+(pvpotentialdata_t) interval);
+            vectorA.push_back(AMax);
+            // In principle, there could be a case where a vertex n has A[n]>AMax but A[n-1] and A[n+1] are both < AMax.
+            // But with the current ANNLayer parameters, that won't happen.
+         }
+         else {
+            // All vertices have A>=AMax.
+            // If slopeNegInf is positive, transfer function should increase from -infinity to AMax, and then stays constant.
+            // If slopeNegInf is negative or zero, 
+               numVertices = 1;
+               vectorA.resize(numVertices);
+               vectorV.resize(numVertices);
+            if (slopeNegInf > 0) {
+               pvadata_t intervalA = vectorA[0]-AMax;
+               pvpotentialdata_t intervalV = (pvpotentialdata_t) (intervalA / slopeNegInf);
+               vectorV[0] = vectorV[0] - intervalV;
+               vectorA[0] = AMax;
+            } 
+            else {
+               // Everything everywhere is above AMax, so make the transfer function a constant A=AMax.
+               vectorA.resize(1);
+               vectorV.resize(1);
+               vectorV[0] = (pvpotentialdata_t) 0;
+               vectorA[0] = AMax;
+               numVertices = 1;
+               slopeNegInf = 0;
+            }
+         }
+         
+      }
+      slopePosInf = 0.0f;
+   }
+   assert(!isnan(slopeNegInf) && !isnan(slopePosInf));
+   verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
+   verticesA = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
+   if (verticesV==NULL || verticesA==NULL) {
+      fprintf(stderr, "%s \"%s\" error: unable to allocate memory for vertices:%s\n",
+            parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+   }
+   for (int v=0; v<numVertices; v++) {
+      verticesV[v] = vectorV[v];
+      verticesA[v] = vectorA[v];
+      if (parent->columnId()==0) {
+         printf("Layer \"%s\": vertex %d, V=%f, A=%f\n", name, v+1, vectorV[v], vectorA[v]);
+      }
+   }
+   // TODO: find a nonstupid way to get the information into the member variable arrays.
+   
    return PV_SUCCESS;
+}
+
+int ANNLayer::checkVertices() {
+   int status = PtwiseLinearTransferLayer::checkVertices(); // checks that the V-coordinates are nondecreasing.
+   // TODO: Warn if A is nondecreasing?
+   for (int v=1; v < numVertices; v++) { 
+      if (verticesA[v] < verticesA[v-1]) {
+         if (this->getParent()->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" warning: vertices %d and %d: A-coordinates decrease from %f to %f.\n",
+                  this->getParent()->parameters()->groupKeywordFromName(this->getName()),
+                  this->getName(), v, v+1, verticesA[v-1], verticesA[v]);
+         }
+      }
+   }
+   return status;
 }
 
 int ANNLayer::resetGSynBuffers(double timef, double dt) {
@@ -178,29 +258,10 @@ int ANNLayer::resetGSynBuffers(double timef, double dt) {
    return status;
 }
 
-//! new ANNLayer update state, to add support for GPU kernel.
-//
-/*!
- * REMARKS:
- *      - The kernel does the following:
-//   HyPerLayer::updateV();
- *      - V = GSynExc - GSynInh
-//   applyVMax(); (see below)
-//   applyVThresh(); (see below)
- *      - Activity = V
- *
- *
- */
 int ANNLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
       pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
-   int nx = loc->nx;
-   int ny = loc->ny;
-   int nf = loc->nf;
-   int num_neurons = nx*ny*nf;
-   int nbatch = loc->nbatch;
-   ANNLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh, AMax, AMin, AShift, VWidth, num_channels, gSynHead, A);
-   return PV_SUCCESS;
+   return PtwiseLinearTransferLayer::doUpdateState(time, dt, loc, A, V, num_channels, gSynHead);
 }
 
 int ANNLayer::setActivity() {
@@ -236,25 +297,3 @@ int ANNLayer::checkpointWrite(char const * cpDir) {
 
 
 }  // end namespace PV
-
-///////////////////////////////////////////////////////
-//
-// implementation of ANNLayer kernels
-//
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef PV_USE_OPENCL
-#  include "../kernels/ANNLayer_update_state.cl"
-#else
-#  undef PV_USE_OPENCL
-#  include "../kernels/ANNLayer_update_state.cl"
-#  define PV_USE_OPENCL
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-

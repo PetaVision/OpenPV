@@ -46,9 +46,9 @@ PlasticConnTestLayer "Pre" = {
     valueV = 1.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 
 
@@ -68,9 +68,9 @@ PlasticConnTestLayer "Post" = {
     valueV = 1.0;
 
     VThresh = -infinity;
-    VMax = infinity;
-    VMin = -infinity;
-    VShift = 0.0;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
 };
 //  connections: 
 

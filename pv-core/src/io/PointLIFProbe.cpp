@@ -64,21 +64,21 @@ void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
  *     frame.
  *     - sparseOutput was introduced to deal with ConditionalProbes.
  */
-int PointLIFProbe::writeState(double timed, HyPerLayer * l, int k, int kex)
+int PointLIFProbe::writeState(double timed, HyPerLayer * l, int b, int k, int kex)
 {
    assert(outputstream && outputstream->fp);
    LIF * LIF_layer = dynamic_cast<LIF *>(l);
    assert(LIF_layer != NULL);
 
-   const pvdata_t * V = l->getV();
-   const pvdata_t * activity = l->getLayerData();
+   const pvdata_t * V = l->getV() + b * l->getNumNeurons();
+   const pvdata_t * activity = l->getLayerData() + b * l->getNumExtended();
 
    if (timed >= writeTime) {
       writeTime += writeStep;
       fprintf(outputstream->fp, "%s t=%.1f k=%d", msg, timed, k);
-      pvconductance_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC);
-      pvconductance_t * G_I  = LIF_layer->getConductance(CHANNEL_INH);
-      pvconductance_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB);
+      pvconductance_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC) + b * l->getNumNeurons();
+      pvconductance_t * G_I  = LIF_layer->getConductance(CHANNEL_INH) + b * l->getNumNeurons();
+      pvconductance_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB) + b * l->getNumNeurons();
       pvdata_t * Vth  = LIF_layer->getVth();
 
       fprintf(outputstream->fp, " G_E=" CONDUCTANCE_PRINT_FORMAT, G_E[k]);

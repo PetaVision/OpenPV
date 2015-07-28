@@ -39,9 +39,11 @@ int ArborTestForOnesProbe::outputState(double timed)
    }
 #endif // PV_USE_MPI
    if(timed>1.0f){
-      assert((fMin>0.99)&&(fMin<1.01));
-      assert((fMax>0.99)&&(fMax<1.01));
-      assert((avg>0.99)&&(avg<1.01));
+      for(int b = 0; b < getParent()->getNBatch(); b++){
+         assert((fMin[b]>0.99)&&(fMin[b]<1.01));
+         assert((fMax[b]>0.99)&&(fMax[b]<1.01));
+         assert((avg[b]>0.99)&&(avg[b]<1.01));
+      }
    }
 
    return status;
