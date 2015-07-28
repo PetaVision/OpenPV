@@ -29,6 +29,7 @@ HyPerCol "column" = {
    // checkpointWriteDir = "Checkpoints";
    // checkpointWriteStepInterval = 1;
    suppressLastOutput = false;
+   nbatch = 2;
 };
 
 //
@@ -44,8 +45,9 @@ Movie "Image" = {
     writeStep = -1;
     sparseLayer = false;
     displayPeriod = 1;
-    start_frame_index = 0;
-    skip_frame_index = 1;
+    batchMethod = "bySpecified";
+    start_frame_index = [0, 0];
+    skip_frame_index = [1, 1];
     echoFramePathnameFlag = true;
     mirrorBCflag = true;
     jitterFlag = 0;

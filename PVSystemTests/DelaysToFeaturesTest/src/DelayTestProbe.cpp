@@ -46,12 +46,13 @@ int DelayTestProbe::outputState(double timed)
    int ny = loc->ny;
    int nf = loc->nf;
 
-   if (timed==0) {
-      assert((avg == (timed)/nf)&&(avg == double(nnz)/((nx*rows)*(ny*cols)*nf)));
-   }
-
-   else {
-      assert((avg == (timed-1)/nf)&&(avg == double(nnz)/((nx*rows)*(ny*cols)*nf)));
+   for(int b = 0; b < loc->nbatch; b++){
+      if (timed==0) {
+         assert((avg[b] == (timed)/nf)&&(avg[b] == double(nnz[b])/((nx*rows)*(ny*cols)*nf)));
+      }
+      else {
+         assert((avg[b] == (timed-1)/nf)&&(avg[b] == double(nnz[b])/((nx*rows)*(ny*cols)*nf)));
+      }
    }
    return status;
 }
