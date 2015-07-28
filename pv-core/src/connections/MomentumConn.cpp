@@ -31,8 +31,8 @@ int MomentumConn::initialize_base() {
    momentumTau = .25;
    momentumMethod = NULL;
    momentumDecay = 0;
-   batchPeriod = 1;
-   batchIdx = 0;
+   timeBatchPeriod = 1;
+   timeBatchIdx = -1;
    return PV_SUCCESS;
 }
 
@@ -111,172 +111,254 @@ void MomentumConn::ioParam_momentumDecay(enum ParamsIOFlag ioFlag){
 void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if(plasticityFlag){
-      parent->ioParamValue(ioFlag, name, "batchPeriod", &batchPeriod, batchPeriod);
+      parent->ioParamValue(ioFlag, name, "batchPeriod", &timeBatchPeriod, timeBatchPeriod);
    }
 }
 
 
-//Reduce kerenls should never be getting called except for checkpoint write, which is being overwritten.
-int MomentumConn::reduceKernels(const int arborID){
-   fprintf(stderr, "Error:  BatchConn calling reduceKernels\n");
-   exit(1);
-}
+////Reduce kerenls should never be getting called except for checkpoint write, which is being overwritten.
+//int MomentumConn::reduceKernels(const int arborID){
+//   fprintf(stderr, "Error:  BatchConn calling reduceKernels\n");
+//   exit(1);
+//}
+//
+////No normalize reduction here, just summing up
+//int MomentumConn::sumKernels(const int arborID) {
+//   assert(sharedWeights && plasticityFlag);
+//   Communicator * comm = parent->icCommunicator();
+//   const MPI_Comm mpi_comm = comm->communicator();
+//   int ierr;
+//   const int nxProcs = comm->numCommColumns();
+//   const int nyProcs = comm->numCommRows();
+//   const int nProcs = nxProcs * nyProcs;
+//   if (nProcs == 1){
+//      //normalize_dW(arborID);
+//      return PV_BREAK;
+//   }
+//   const int numPatches = getNumDataPatches();
+//   const size_t patchSize = nxp*nyp*nfp;
+//   const size_t localSize = numPatches * patchSize;
+//   const size_t arborSize = localSize * this->numberOfAxonalArborLists();
+//
+//#ifdef PV_USE_MPI
+//   ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
+//#endif
+//   return PV_BREAK;
+//}
+//
+////Copied from HyPerConn
+////Removed clearing of numKernelActivations, as it's done in updateState
+//int MomentumConn::defaultUpdate_dW(int arbor_ID) {
+//   int nExt = preSynapticLayer()->getNumExtended();
+//   const PVLayerLoc * loc = preSynapticLayer()->getLayerLoc();
+//
+//   //Calculate x and y cell size
+//   int xCellSize = zUnitCellSize(pre->getXScale(), post->getXScale());
+//   int yCellSize = zUnitCellSize(pre->getYScale(), post->getYScale());
+//   int nxExt = loc->nx + loc->halo.lt + loc->halo.rt;
+//   int nyExt = loc->ny + loc->halo.up + loc->halo.dn;
+//   int nf = loc->nf;
+//   int numKernels = getNumDataPatches();
+//
+//   if(sharedWeights){
+//      //Shared weights done in parallel, parallel in numkernels
+//#ifdef PV_USE_OPENMP_THREADS
+//#pragma omp parallel for
+//#endif
+//      for(int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++){
+//         //Calculate xCellIdx, yCellIdx, and fCellIdx from kernelIndex
+//         int kxCellIdx = kxPos(kernelIdx, xCellSize, yCellSize, nf);
+//         int kyCellIdx = kyPos(kernelIdx, xCellSize, yCellSize, nf);
+//         int kfIdx = featureIndex(kernelIdx, xCellSize, yCellSize, nf);
+//         //Loop over all cells in pre ext
+//         int kyIdx = kyCellIdx;
+//         int yCellIdx = 0;
+//         while(kyIdx < nyExt){
+//            int kxIdx = kxCellIdx;
+//            int xCellIdx = 0;
+//            while(kxIdx < nxExt){
+//               //Calculate kExt from ky, kx, and kf
+//               int kExt = kIndex(kxIdx, kyIdx, kfIdx, nxExt, nyExt, nf);
+//               defaultUpdateInd_dW(arbor_ID, kExt);
+//               xCellIdx++;
+//               kxIdx = kxCellIdx + xCellIdx * xCellSize;
+//            }
+//            yCellIdx++;
+//            kyIdx = kyCellIdx + yCellIdx * yCellSize;
+//         }
+//      }
+//   }
+//   else{
+//      //No clobbering for non-shared weights
+//#ifdef PV_USE_OPENMP_THREADS
+//#pragma omp parallel for
+//#endif
+//      for(int kExt=0; kExt<nExt;kExt++) {
+//         defaultUpdateInd_dW(arbor_ID, kExt);
+//      }
+//   }
+//
+//   return PV_SUCCESS;
+//}
 
-//No normalize reduction here, just summing up
-int MomentumConn::sumKernels(const int arborID) {
-   assert(sharedWeights && plasticityFlag);
-   Communicator * comm = parent->icCommunicator();
-   const MPI_Comm mpi_comm = comm->communicator();
-   int ierr;
-   const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
-   const int nProcs = nxProcs * nyProcs;
-   if (nProcs == 1){
-      //normalize_dW(arborID);
-      return PV_BREAK;
-   }
-   const int numPatches = getNumDataPatches();
-   const size_t patchSize = nxp*nyp*nfp;
-   const size_t localSize = numPatches * patchSize;
-   const size_t arborSize = localSize * this->numberOfAxonalArborLists();
-
-#ifdef PV_USE_MPI
-   ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
-#endif
-   return PV_BREAK;
-}
-
-//Copied from HyPerConn
-//Removed clearing of numKernelActivations, as it's done in updateState
-int MomentumConn::defaultUpdate_dW(int arbor_ID) {
-   int nExt = preSynapticLayer()->getNumExtended();
-   const PVLayerLoc * loc = preSynapticLayer()->getLayerLoc();
-
-   //Calculate x and y cell size
-   int xCellSize = zUnitCellSize(pre->getXScale(), post->getXScale());
-   int yCellSize = zUnitCellSize(pre->getYScale(), post->getYScale());
-   int nxExt = loc->nx + loc->halo.lt + loc->halo.rt;
-   int nyExt = loc->ny + loc->halo.up + loc->halo.dn;
-   int nf = loc->nf;
-   int numKernels = getNumDataPatches();
-
-   if(sharedWeights){
-      //Shared weights done in parallel, parallel in numkernels
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-      for(int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++){
-         //Calculate xCellIdx, yCellIdx, and fCellIdx from kernelIndex
-         int kxCellIdx = kxPos(kernelIdx, xCellSize, yCellSize, nf);
-         int kyCellIdx = kyPos(kernelIdx, xCellSize, yCellSize, nf);
-         int kfIdx = featureIndex(kernelIdx, xCellSize, yCellSize, nf);
-         //Loop over all cells in pre ext
-         int kyIdx = kyCellIdx;
-         int yCellIdx = 0;
-         while(kyIdx < nyExt){
-            int kxIdx = kxCellIdx;
-            int xCellIdx = 0;
-            while(kxIdx < nxExt){
-               //Calculate kExt from ky, kx, and kf
-               int kExt = kIndex(kxIdx, kyIdx, kfIdx, nxExt, nyExt, nf);
-               defaultUpdateInd_dW(arbor_ID, kExt);
-               xCellIdx++;
-               kxIdx = kxCellIdx + xCellIdx * xCellSize;
-            }
-            yCellIdx++;
-            kyIdx = kyCellIdx + yCellIdx * yCellSize;
-         }
-      }
+int MomentumConn::calc_dW() {
+   assert(plasticityFlag);
+   int status;
+   if(timeBatchIdx >= timeBatchPeriod){
+      timeBatchIdx = 0;
    }
    else{
-      //No clobbering for non-shared weights
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-      for(int kExt=0; kExt<nExt;kExt++) {
-         defaultUpdateInd_dW(arbor_ID, kExt);
+      timeBatchIdx++;
+   }
+
+   //Clear at time 0, update at time timeBatchPeriod - 1
+   bool need_update_w = false;
+   bool need_clear_dw = false;
+   if(timeBatchIdx == 0){
+      need_clear_dw = true;
+   }
+   if(timeBatchIdx == timeBatchPeriod - 1){
+      need_update_w = true;
+   }
+
+   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
+      //Clear every batch period
+      if(need_clear_dw){
+         status = initialize_dW(arborId);
+         if (status==PV_BREAK) { break; }
+         assert(status == PV_SUCCESS);
       }
    }
 
-   return PV_SUCCESS;
-}
-
-
-
-//Copied from HyPerConn, only change is a memcpy from dwweights to prev_dwweights
-int MomentumConn::updateState(double time, double dt){
-   int status = PV_SUCCESS;
-   if( !plasticityFlag ) {
-      return status;
-   }
-   update_timer->start();
-
-   //if (!combine_dW_with_W_flag) { clear_dW(); }
    for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
-      status = calc_dW(arborId);        // Calculate changes in weights
+      //Sum up parts every timestep
+      status = update_dW(arborId);
       if (status==PV_BREAK) { break; }
       assert(status == PV_SUCCESS);
    }
 
-   if(batchIdx >= batchPeriod - 1){
-      for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
-         sumKernels(arborID); // combine partial changes in each column
-         normalize_dW(arborID);
-         assert(status == PV_SUCCESS);
-      }
-
-      //Apply momentum
-      for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
-         status = applyMomentum(arborID);
-         if (status == PV_BREAK) {
-            break;
-         }
-         assert(status == PV_SUCCESS);
-      }
-      
-      //Update prev_dwData buffer
-      assert(prev_dwDataStart);
-      //After reduce, copy over to prev_dwData
-      std::memcpy(*prev_dwDataStart, *get_dwDataStart(),
-            sizeof(pvwdata_t) *
-            numberOfAxonalArborLists() * 
-            nxp * nyp * nfp *
-            getNumDataPatches());
-
-      //Update weights with momentum
-      for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++){
-         status = updateWeights(arborId);  // Apply changes in weights
+   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
+      //Reduce only when we need to update
+      if(need_update_w){
+         status = reduce_dW(arborId);
          if (status==PV_BREAK) { break; }
-         assert(status==PV_SUCCESS);
+         assert(status == PV_SUCCESS);
       }
-
-      //Clear dw after weights are updated
-      clear_dW();
-      //Reset numKernelActivations
-      for(int arbor_ID = 0; arbor_ID < numberOfAxonalArborLists(); arbor_ID++){
-         int numKernelIndices = getNumDataPatches();
-         int patchSize = nxp * nyp * nfp;
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-         for(int ki = 0; ki < numKernelIndices; ki++){
-            for(int pi = 0; pi < patchSize; pi++){
-               numKernelActivations[arbor_ID][ki][pi] = 0;
-            }
-         }
-      }
-      //Reset batchIdx
-      batchIdx = 0;
-   }
-   else{
-      batchIdx ++;
    }
 
-   // normalizeWeights(); // normalizeWeights call moved to HyPerCol::advanceTime loop, to allow for normalization of a group of connections
-
-   update_timer->stop();
-   return status;
+   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
+      //Normalize only when reduced
+      if(need_update_w){
+         status = normalize_dW(arborId);
+         if (status==PV_BREAK) { break; }
+         assert(status == PV_SUCCESS);
+      }
+   }
+   return PV_SUCCESS;
 }
+
+int MomentumConn::updateWeights(int arborId){
+   if(timeBatchIdx != timeBatchPeriod - 1){
+      return PV_SUCCESS;
+   }
+   //Add momentum right before updateWeights
+   for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+      applyMomentum(arborId);
+   }
+
+   //Saved to prevweights
+   assert(prev_dwDataStart);
+   std::memcpy(*prev_dwDataStart, *get_dwDataStart(),
+         sizeof(pvwdata_t) *
+         numberOfAxonalArborLists() * 
+         nxp * nyp * nfp *
+         getNumDataPatches());
+
+
+   // add dw to w
+   for(int kArbor = 0; kArbor < this->numberOfAxonalArborLists(); kArbor++){
+      pvwdata_t * w_data_start = get_wDataStart(kArbor);
+      for( long int k=0; k<patchStartIndex(getNumDataPatches()); k++ ) {
+         w_data_start[k] += get_dwDataStart(kArbor)[k];
+      }
+   }
+   return PV_BREAK;
+}
+
+////Copied from HyPerConn, only change is a memcpy from dwweights to prev_dwweights
+//int MomentumConn::updateState(double time, double dt){
+//   int status = PV_SUCCESS;
+//   if( !plasticityFlag ) {
+//      return status;
+//   }
+//   update_timer->start();
+//
+//   //if (!combine_dW_with_W_flag) { clear_dW(); }
+//   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
+//      status = calc_dW(arborId);        // Calculate changes in weights
+//      if (status==PV_BREAK) { break; }
+//      assert(status == PV_SUCCESS);
+//   }
+//
+//   if(batchIdx >= batchPeriod - 1){
+//      for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
+//         sumKernels(arborID); // combine partial changes in each column
+//         normalize_dW(arborID);
+//         assert(status == PV_SUCCESS);
+//      }
+//
+//      //Apply momentum
+//      for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
+//         status = applyMomentum(arborID);
+//         if (status == PV_BREAK) {
+//            break;
+//         }
+//         assert(status == PV_SUCCESS);
+//      }
+//      
+//      //Update prev_dwData buffer
+//      assert(prev_dwDataStart);
+//      //After reduce, copy over to prev_dwData
+//      std::memcpy(*prev_dwDataStart, *get_dwDataStart(),
+//            sizeof(pvwdata_t) *
+//            numberOfAxonalArborLists() * 
+//            nxp * nyp * nfp *
+//            getNumDataPatches());
+//
+//      //Update weights with momentum
+//      for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++){
+//         status = updateWeights(arborId);  // Apply changes in weights
+//         if (status==PV_BREAK) { break; }
+//         assert(status==PV_SUCCESS);
+//      }
+//
+//      //Clear dw after weights are updated
+//      clear_dW();
+//      //Reset numKernelActivations
+//      for(int arbor_ID = 0; arbor_ID < numberOfAxonalArborLists(); arbor_ID++){
+//         int numKernelIndices = getNumDataPatches();
+//         int patchSize = nxp * nyp * nfp;
+//#ifdef PV_USE_OPENMP_THREADS
+//#pragma omp parallel for
+//#endif
+//         for(int ki = 0; ki < numKernelIndices; ki++){
+//            for(int pi = 0; pi < patchSize; pi++){
+//               numKernelActivations[arbor_ID][ki][pi] = 0;
+//            }
+//         }
+//      }
+//      //Reset batchIdx
+//      batchIdx = 0;
+//   }
+//   else{
+//      batchIdx ++;
+//   }
+//
+//   // normalizeWeights(); // normalizeWeights call moved to HyPerCol::advanceTime loop, to allow for normalization of a group of connections
+//
+//   update_timer->stop();
+//   return status;
+//}
 
 int MomentumConn::applyMomentum(int arbor_ID){
    int nExt = preSynapticLayer()->getNumExtended();
@@ -318,8 +400,7 @@ int MomentumConn::applyMomentum(int arbor_ID){
    return PV_SUCCESS;
 }
 
-
-
+//TODO checkpointing not working with batching, must write checkpoint exactly at period
 int MomentumConn::checkpointWrite(const char * cpDir) {
    HyPerConn::checkpointWrite(cpDir);
    if (!plasticityFlag) return PV_SUCCESS;

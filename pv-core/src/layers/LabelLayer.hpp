@@ -51,6 +51,7 @@ public:
 
 private:
    int initialize_base();
+   int updateLabels();
 
 };
 

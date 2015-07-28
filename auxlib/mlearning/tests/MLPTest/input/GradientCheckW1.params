@@ -157,6 +157,7 @@ MaskLayer "Error1" = {
     InitVType = "ZeroV";
     VThresh = -infinity;
     phase = 4;
+    maskMethod = "layer";
     maskLayerName = "HiddenLayer1";
 };
 

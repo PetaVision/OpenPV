@@ -7,6 +7,7 @@
 
 #include <columns/buildandrun.hpp>
 #include "GPUSystemTestProbe.hpp"
+#include "identicalBatchProbe.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -43,6 +44,9 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
    if (strcmp(keyword, "GPUSystemTestProbe") == 0){
       addedGroup = new GPUSystemTestProbe(name, hc);
+   }
+   else if (strcmp(keyword, "identicalBatchProbe") == 0){
+      addedGroup = new identicalBatchProbe(name, hc);
    }
    return addedGroup;
 }

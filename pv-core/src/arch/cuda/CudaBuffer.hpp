@@ -28,7 +28,7 @@ public:
     * @param inSize The size of the buffer to create on the device
     * @param stream The cuda stream any transfer commands should go on
     */
-   CudaBuffer(size_t inSize, cudaStream_t stream);
+   CudaBuffer(size_t inSize, CudaDevice * inDevice, cudaStream_t stream);
    CudaBuffer();
    virtual ~CudaBuffer();
    
@@ -62,12 +62,13 @@ public:
     */
    size_t getSize(){return size;}
 
-   void permuteWeightsPVToCudnn(void *d_inPtr, CudaDevice* device, int numArbors, int numKernels, int nxp, int nyp, int nfp);
+   void permuteWeightsPVToCudnn(void *d_inPtr, int numArbors, int numKernels, int nxp, int nyp, int nfp);
 
 protected:
    void * d_ptr;                       // pointer to buffer on host
    size_t size;
    cudaStream_t stream;
+   CudaDevice * device;
 };
 
 } // namespace PV

@@ -123,6 +123,33 @@ int GradientCheckConn::allocateDataStructures() {
    return status;
 }
 
+
+int GradientCheckConn::calc_dW() {
+   assert(plasticityFlag);
+   int status;
+   //for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
+   //   status = initialize_dW(arborId);
+   //   if (status==PV_BREAK) { break; }
+   //   assert(status == PV_SUCCESS);
+   //}
+   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
+      status = update_dW(arborId);
+      if (status==PV_BREAK) { break; }
+      assert(status == PV_SUCCESS);
+   }
+   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
+      status = reduce_dW(arborId);
+      if (status==PV_BREAK) { break; }
+      assert(status == PV_SUCCESS);
+   }
+   for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
+      status = normalize_dW(arborId);
+      if (status==PV_BREAK) { break; }
+      assert(status == PV_SUCCESS);
+   }
+   return PV_SUCCESS;
+}
+
 //Connections update first
 int GradientCheckConn::updateState(double time, double dt){
    int status = PV_SUCCESS;
@@ -135,7 +162,7 @@ int GradientCheckConn::updateState(double time, double dt){
    int patchIdx = weightIdx % numPatch;
 
    if(firstRun){
-      clear_dW();
+      initialize_dW(0);
       firstRun = false;
       return PV_SUCCESS;
    }
@@ -144,19 +171,19 @@ int GradientCheckConn::updateState(double time, double dt){
    if(secondRun){
       //First run does regular updateState to calculate dw buffer
       for(int arborId=0;arborId<numberOfAxonalArborLists();arborId++) {
-         status = calc_dW(arborId);        // Calculate changes in weights
+         status = calc_dW();        // Calculate changes in weights
          if (status==PV_BREAK) { break; }
          assert(status == PV_SUCCESS);
       }
-      for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
-         if(sharedWeights){
-            status = reduceKernels(arborID); // combine partial changes in each column
-            if (status == PV_BREAK) {
-               break;
-            }
-            assert(status == PV_SUCCESS);
-         }
-      }
+      //for (int arborID = 0; arborID < numberOfAxonalArborLists(); arborID++) {
+      //   if(sharedWeights){
+      //      status = reduceKernels(arborID); // combine partial changes in each column
+      //      if (status == PV_BREAK) {
+      //         break;
+      //      }
+      //      assert(status == PV_SUCCESS);
+      //   }
+      //}
       //No update weights
       origCost = getCost();
       secondRun = false;

@@ -46,6 +46,7 @@ public:
 
    DataStore * dataStore()   {return store;}
 
+   int updateAllActiveIndices();
    int updateActiveIndices();
 
 private:
@@ -55,10 +56,10 @@ private:
    pvdata_t * recvBuffer(int bufferId, int delay)
          {return (pvdata_t *) store->buffer(bufferId, delay);}
 
-   unsigned int * recvNumActiveBuffer(int bufferId){
+   long * recvNumActiveBuffer(int bufferId){
       return store->numActiveBuffer(bufferId);
    }
-   unsigned int * recvNumActiveBuffer(int bufferId, int delay){
+   long * recvNumActiveBuffer(int bufferId, int delay){
       return store->numActiveBuffer(bufferId, delay);
    }
 
@@ -69,6 +70,7 @@ private:
       return store->activeIndicesBuffer(bufferId, delay);
    }
 
+   int calcAllActiveIndices();
    int calcActiveIndices();
 
    int pubId;
@@ -82,7 +84,7 @@ private:
    Communicator * comm;
 
    int            numRequests;
-   MPI_Request    requests[NUM_NEIGHBORHOOD-1];
+   MPI_Request *    requests;
    MPI_Datatype * neighborDatatypes;
 };
 
@@ -97,6 +99,7 @@ public:
    int publish(HyPerLayer * pub, PVLayerCube * cube);
    int subscribe(BaseConnection * conn);
    int exchangeBorders(int pubId, const PVLayerLoc * loc, int delay=0);
+   int updateAllActiveIndices(int pubId);
    int updateActiveIndices(int pubId);
    int wait(int pubId);
 

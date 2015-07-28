@@ -28,33 +28,49 @@ HyPerCol "column" = {
    checkpointWrite = false;
    suppressLastOutput = false;
    errorOnNotANumber = false;
+   nbatch = 2;
 };
 
 //
 // layers
 //
 
-Retina "Retina" = {
+ConstantLayer "Retina" = {
     restart = 0;
-    nxScale = 1;
+    nxScale = 1; 
     nyScale = 1;
     nf = 1;
-    phase = 0;
-    triggerFlag = false;
-    writeStep = 1.0;
+    writeStep = -1;
     initialWriteTime = 0.0;
-    sparseLayer = false;
-    mirrorBCflag = true;
-    spikingFlag = false;
-
-    foregroundRate = 1000;
-    backgroundRate = 1000;
-    burstFreq = 1;
-    burstDuration = 1000;
-
-    beginStim = 0;
-    endStim = 1000;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
 };
+
+//Retina "Retina" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 1;
+//    phase = 0;
+//    triggerFlag = false;
+//    writeStep = 1.0;
+//    initialWriteTime = 0.0;
+//    sparseLayer = false;
+//    mirrorBCflag = true;
+//    spikingFlag = false;
+//
+//    foregroundRate = 1000;
+//    backgroundRate = 1000;
+//    burstFreq = 1;
+//    burstDuration = 1000;
+//
+//    beginStim = 0;
+//    endStim = 1000;
+//};
 
 ANNLayer "L0" = {
     restart = 0;

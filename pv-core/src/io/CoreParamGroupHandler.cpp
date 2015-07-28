@@ -18,7 +18,9 @@
 #include "../layers/BinningLayer.hpp"
 #include "../layers/CloneVLayer.hpp"
 #include "../layers/ConstantLayer.hpp"
+#ifdef OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
 #include "../layers/CreateMovies.hpp"
+#endif // OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
 #include "../layers/FilenameParsingGroundTruthLayer.hpp"
 #include "../layers/GapLayer.hpp"
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
@@ -26,8 +28,11 @@
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/HyPerLCALayer.hpp"
 #include "../layers/Image.hpp"
+#include "../layers/ImagePvp.hpp"
 #include "../layers/ImageFromMemoryBuffer.hpp"
+#ifdef OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
 #include "../layers/IncrementLayer.hpp"
+#endif // OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
 #include "../layers/KmeansLayer.hpp"
 #include "../layers/LCALIFLayer.hpp"
 #include "../layers/LIF.hpp"
@@ -50,6 +55,7 @@
 #include "../layers/MatchingPursuitResidual.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
 #include "../layers/Movie.hpp"
+#include "../layers/MoviePvp.hpp"
 #include "../layers/Patterns.hpp"
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/PoolingANNLayer.hpp"
@@ -63,7 +69,7 @@
 #include "../layers/ShuffleLayer.hpp"
 #include "../layers/SigmoidLayer.hpp"
 // #include "../layers/TextStream.hpp" // Marked obsolete Mar 6, 2015
-#include "../layers/TrainingLayer.hpp"
+//#include "../layers/TrainingLayer.hpp" //Obsolete June 17th 2015
 #include "../layers/WTALayer.hpp"
 #ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
 #include "../layers/NewCochlear.h"
@@ -78,17 +84,23 @@
 #include "../connections/IdentConn.hpp"
 #include "../connections/ImprintConn.hpp"
 #include "../connections/KernelConn.hpp"
+#ifdef OBSOLETE // Marked obsolete June 29, 2015. Moved to obsolete/connections
 #include "../connections/LCALIFLateralConn.hpp"
+#endif // OBSOLETE 
 #include "../connections/MomentumConn.hpp"
+#ifdef OBSOLETE // Marked obsolete June 29, 2015. Moved to obsolete/connections
 #include "../connections/OjaSTDPConn.hpp"
+#endif
 #include "../connections/PlasticCloneConn.hpp"
-#include "../connections/BiLinearConn.hpp"
+
 #include "../connections/PoolingConn.hpp"
 #include "../connections/TransposeConn.hpp"
 #include "../connections/TransposePoolingConn.hpp"
+
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../connections/BiLinearConn.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
+
 #include "L2NormProbe.hpp"
 #include "LayerFunctionProbe.hpp"
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
@@ -97,7 +109,9 @@
 #include "PointLIFProbe.hpp"
 #include "PointProbe.hpp"
 #include "RequireAllZeroActivityProbe.hpp"
+#ifdef OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
 #include "SparsityLayerProbe.hpp"
+#endif // OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
 #include "StatsProbe.hpp"
 // #include "TextStreamProbe.hpp" // Marked obsolete Mar 6, 2015
 #include "KernelProbe.hpp"
@@ -146,7 +160,9 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"BinningLayer", LayerGroupType},
          {"CloneVLayer", LayerGroupType},
          {"ConstantLayer", LayerGroupType},
+#ifdef OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
          {"CreateMovies", LayerGroupType},
+#endif // Marked obsolete June 17, 2015.  Moved to obsolete/layers
          {"FilenameParsingGroundTruthLayer", LayerGroupType},
          {"GapLayer", LayerGroupType},
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
@@ -154,8 +170,11 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"HyPerLCALayer", LayerGroupType},
          {"Image", LayerGroupType},
+         {"ImagePvp", LayerGroupType},
          {"ImageFromMemoryBuffer", LayerGroupType},
+#ifdef OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
          {"IncrementLayer", LayerGroupType},
+#endif // OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
          {"KmeansLayer", LayerGroupType},
          {"LCALIFLayer", LayerGroupType},
          {"LIF", LayerGroupType},
@@ -179,6 +198,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 #endif // OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
          {"MaxPooling", LayerGroupType},
          {"Movie", LayerGroupType},
+         {"MoviePvp", LayerGroupType},
          {"Patterns", LayerGroupType},
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"PoolingANNLayer", LayerGroupType},
@@ -192,7 +212,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"ShuffleLayer", LayerGroupType},
          {"SigmoidLayer", LayerGroupType},
 //         {"TextStream", LayerGroupType}, // Marked obsolete Mar 6, 2015
-         {"TrainingLayer", LayerGroupType},
+//         {"TrainingLayer", LayerGroupType}, //Marked obsolete June 17, 2015
          {"WTALayer", LayerGroupType},
 #ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
          {"NewCochlearLayer", LayerGroupType},
@@ -209,11 +229,14 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"IdentConn", ConnectionGroupType},
          {"ImprintConn", ConnectionGroupType},
          {"KernelConn", ConnectionGroupType},
+#ifdef OBSOLETE // Marked obsolete June 29, 2015. Moved to obsolete/connections
          {"LCALIFLateralConn", ConnectionGroupType},
+#endif
          {"MomentumConn", ConnectionGroupType},
+#ifdef OBSOLETE // Marked obsolete June 29, 2015. Moved to obsolete/connections
          {"OjaSTDPConn", ConnectionGroupType},
+#endif
          {"PlasticCloneConn", ConnectionGroupType},
-         {"BiLinearConn", ConnectionGroupType},
          {"PoolingConn", ConnectionGroupType},
          {"TransposeConn", ConnectionGroupType},
          {"TransposePoolingConn", ConnectionGroupType},
@@ -233,7 +256,9 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"PointLIFProbe", ProbeGroupType},
          {"PointProbe", ProbeGroupType},
          {"RequireAllZeroActivityProbe", ProbeGroupType},
+#ifdef OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
          {"SparsityLayerProbe", ProbeGroupType},
+#endif // OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
          {"StatsProbe", ProbeGroupType},
 //         {"TextStreamProbe", ProbeGroupType}, // Marked obsolete Mar 6, 2015
 
@@ -340,9 +365,11 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "ConstantLayer") ) {
       addedLayer = new ConstantLayer(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
    else if( !strcmp(keyword, "CreateMovies") ) {
       addedLayer = new CreateMovies(name, hc);
    }
+#endif // Marked obsolete June 17, 2015.  Moved to obsolete/layers
    else if( !strcmp(keyword, "FilenameParsingGroundTruthLayer") ) {
       addedLayer = new FilenameParsingGroundTruthLayer(name, hc);
    }
@@ -360,12 +387,17 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "Image") ) {
       addedLayer = new Image(name, hc);
    }
+   else if( !strcmp(keyword, "ImagePvp") ) {
+      addedLayer = new ImagePvp(name, hc);
+   }
    else if( !strcmp(keyword, "ImageFromMemoryBuffer") ) {
       addedLayer = new ImageFromMemoryBuffer(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
    else if( !strcmp(keyword, "IncrementLayer") ) {
       addedLayer = new IncrementLayer(name, hc);
    }
+#endif // OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
    else if( !strcmp(keyword, "KmeansLayer") ) {
       addedLayer = new KmeansLayer(name, hc);
    }
@@ -430,6 +462,9 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "Movie") ) {
       addedLayer = new Movie(name, hc);
    }
+   else if( !strcmp(keyword, "MoviePvp") ) {
+      addedLayer = new MoviePvp(name, hc);
+   }
    else if( !strcmp(keyword, "Patterns") ) {
       addedLayer = new Patterns(name, hc);
    }
@@ -467,9 +502,11 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
       addedLayer = new TextStream(name, hc);
    }
 #endif // OBSOLETE
+#ifdef OBSOLETE // Marked obsolete June 17, 2015
    else if( !strcmp(keyword, "TrainingLayer") ) {
       addedLayer = new TrainingLayer(name, hc);
    }
+#endif // OBSOLETE
    else if( !strcmp(keyword, "WTALayer") ) {
       addedLayer = new WTALayer(name, hc);
    }
@@ -528,20 +565,21 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
       // Deprecated as of June 5, 2014.  Use HyPerConn with sharedWeight = true
       addedConnection = new KernelConn(name, hc, weightInitializer, weightNormalizer);
    }
+#ifdef OBSOLETE // Marked obsolete June 29, 2015. Moved to obsolete/connections
    else if( !strcmp(keyword, "LCALIFLateralConn") ) {
       addedConnection = new LCALIFLateralConn(name, hc, weightInitializer, weightNormalizer);
    }
+#endif
    else if( !strcmp(keyword, "MomentumConn") ) {
       addedConnection = new MomentumConn(name, hc, weightInitializer, weightNormalizer);
    }
+#ifdef OBSOLETE // Marked obsolete June 29, 2015. Moved to obsolete/connections
    else if( !strcmp(keyword, "OjaSTDPConn") ) {
       addedConnection = new OjaSTDPConn(name, hc, weightInitializer, weightNormalizer);
    }
+#endif
    else if( !strcmp(keyword, "PlasticCloneConn") ) {
       addedConnection = new PlasticCloneConn(name, hc);
-   }
-   else if( !strcmp(keyword, "BiLinearConn") ) {
-      addedConnection = new BiLinearConn(name, hc, weightInitializer, weightNormalizer);
    }
    else if( !strcmp(keyword, "PoolingConn") ) {
       addedConnection = new PoolingConn(name, hc);
@@ -619,9 +657,11 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
    else if( !strcmp(keyword, "RequireAllZeroActivityProbe") ) {
       addedProbe = new RequireAllZeroActivityProbe(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
    else if( !strcmp(keyword, "SparsityLayerProbe") ) {
       addedProbe = new SparsityLayerProbe(name, hc);
    }
+#endif // OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
    else if( !strcmp(keyword, "StatsProbe") ) {
       addedProbe = new StatsProbe(name, hc);
    }

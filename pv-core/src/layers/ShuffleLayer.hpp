@@ -18,7 +18,8 @@ class ShuffleLayer: public CloneVLayer {
 public:
    ShuffleLayer(const char * name, HyPerCol * hc);
    virtual ~ShuffleLayer();
-   int communicateInitInfo();
+   virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
    virtual int updateState(double timef, double dt);
    virtual int setActivity();
 protected:
@@ -39,9 +40,11 @@ private:
    int initialize_base();
    char * shuffleMethod;
    char * freqFilename;
-   long * featureFreqCount;
-   long * currFeatureFreqCount;
-   long maxCount;
+
+   long ** featureFreqCount;
+   long ** currFeatureFreqCount;
+
+   long * maxCount;
    long freqCollectTime;
    bool readFreqFromFile;
 };

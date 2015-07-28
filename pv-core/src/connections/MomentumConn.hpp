@@ -19,10 +19,8 @@ public:
    virtual ~MomentumConn();
    virtual int allocateDataStructures();
 
-   virtual int updateState(double time, double dt);
    virtual int applyMomentum(int arbor_ID);
    virtual int checkpointRead(const char * cpDir, double* timef);
-   virtual int reduceKernels(const int arborID);
    virtual int checkpointWrite(const char * cpDir);
 protected:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
@@ -30,11 +28,13 @@ protected:
    virtual void ioParam_momentumMethod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_momentumDecay(enum ParamsIOFlag ioFlag);
    virtual void ioParam_batchPeriod(enum ParamsIOFlag ioFlag);
+
    inline pvwdata_t* get_prev_dwDataHead(int arborId, int dataIndex) {
       return &prev_dwDataStart[arborId][dataIndex * nxp * nyp * nfp];
    }
-   virtual int defaultUpdate_dW(int arbor_ID);
-   virtual int sumKernels(const int arborID);
+
+   virtual int calc_dW();
+   virtual int updateWeights(int arborId);
 
 
 private:
@@ -43,8 +43,8 @@ private:
    float momentumTau;
    float momentumDecay;
    char* momentumMethod;
-   int batchIdx;
-   int batchPeriod;
+   int timeBatchIdx;
+   int timeBatchPeriod;
 
 
 }; // end class 

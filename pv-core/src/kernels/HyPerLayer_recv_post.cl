@@ -95,6 +95,8 @@ int pvpatch_accumulate_from_post(int nk, CL_MEM_LOCAL float * v, CL_MEM_LOCAL fl
 
 CL_KERNEL
 void HyPerLayer_recv_post(
+      const int batchIdx,
+      const int nbatch,
       const int nxRes, //num post neurons
       const int nyRes,
       const int nf,
@@ -103,6 +105,14 @@ void HyPerLayer_recv_post(
       const int nbrt, //Border of orig
       const int nbdn, //Border of orig
       const int nbup, //Border of orig
+
+      const int preNx,
+      const int preNy,
+      const int preNf,
+      const int preNblt,
+      const int preNbrt,
+      const int preNbup,
+      const int preNbdn,
 
       const int nxp,
       const int nyp,
@@ -180,12 +190,14 @@ void HyPerLayer_recv_post(
       
       //All processes in workgroup needs that local index
       barrier(CLK_LOCAL_MEM_FENCE);
+
+      int preDataBatchOffset = batchIdx * (preNx + preNblt + preNbrt) * (preNy + preNbup + preNbdn) * preNf;
       
       for(int ky = 0; ky < nyp; ky++){
          event_t event1, event2;
          //Copy global to local, do this with all threads
          //Pre buffer
-         async_work_group_copy(preBuffer, &(preData[localStartSourceExt + ky * sy]), numXfBuffer, event1);
+         async_work_group_copy(preBuffer, &(preData[preDataBatchOffset + localStartSourceExt + ky * sy]), numXfBuffer, event1);
 
          //Weights
          async_work_group_copy(weightsBuffer, &weights[wIdx+ky * syp], nxp*nfp, event2);
@@ -194,7 +206,7 @@ void HyPerLayer_recv_post(
          wait_group_events(1, event2);
          
          CL_MEM_LOCAL float * activityY = &(preBuffer[xOffset * nfp]);
-         //CL_MEM_GLOBAL float * activityY = &(preData[startSourceExt + ky * sy]);
+         //CL_MEM_GLOBAL float * activityY = &(preData[preDataBatchOffset + startSourceExt + ky * sy]);
          //CL_MEM_GLOBAL float * weightY = &(weights[wIdx + ky*syp]);
          //Summing into post buffer indexed by localIndex
          //pvpatch_accumulate_from_post(numPerStride, postAddr, activityY, weightY, dt_factor, (void*)0);
@@ -202,7 +214,8 @@ void HyPerLayer_recv_post(
          barrier(CLK_LOCAL_MEM_FENCE);
       }
 
+      int postBatchOffset = batchIdx * nxRes * nyREs * nf;
       //Sum into global memory
-      postGsyn[kTargetRes] += postBuffer[localIndex];
+      postGsyn[kTargetRes + postBatchOffset] += postBuffer[localIndex];
 #endif
 }

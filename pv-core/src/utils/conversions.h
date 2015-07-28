@@ -89,7 +89,21 @@ static inline int kxPos(int k, int nx, int ny, int nf)
 //#pragma FTT elemental, vectorize
 static inline int kyPos(int k, int nx, int ny, int nf)
 {
-   return k / (nx*nf);
+   return k / (nx*nf) % ny;
+}
+
+//! RETURNS B INDEX FROM LINEAR INDEX
+/*!
+ * Return the position ky for the given k index
+ * @k the k index (can be either global or local depending on if nx,ny are global or local)
+ * @nx the number of neurons in the x direction
+ * @ny the number of neurons in the y direction
+ * @nf the number of neurons in the feature direction
+ */
+//#pragma FTT elemental, vectorize
+static inline int batchIndex(int k, int nb, int nx, int ny, int nf)
+{
+   return k / (nx*nf*ny);
 }
 
 /**
@@ -189,6 +203,12 @@ static inline int kIndex(int kx, int ky, int kf, int nx, int ny, int nf)
    return kf + (kx + ky * nx) * nf;
 }
 
+//! RETURNS LINEAR INDEX FROM Batch, X,Y, AND FEATURE INDEXES
+static inline int kIndexBatch(int kb, int kx, int ky, int kf, int nb, int nx, int ny, int nf)
+{
+   return (kb * nx * ny * nf) + (ky * nx * nf) + (kx * nf) + kf;
+}
+
 //! Returns stride in feature dimension for linear indexing
 /**
  * @loc
@@ -249,6 +269,27 @@ static inline size_t strideY(const PVLayerLoc * loc)
 static inline size_t strideYExtended(const PVLayerLoc * loc)
 {
    return loc->nf*(loc->nx + loc->halo.lt + loc->halo.rt);
+}
+
+//! Returns stride in y dimension for linear indexing
+/*!
+ * @loc
+ *
+ * REMARKS:
+ *      - in the linear index space feature index varies first, followed by
+ *      X direction index, followed by Y direction index.
+ *      - remember that:
+ *      k = ky * (nf*nx) + kx * nf + kf
+ */
+static inline size_t strideB(const PVLayerLoc * loc)
+{
+   return loc->nf*loc->nx*loc->ny;
+}
+
+// Version for data structures in extended space (e.g., activity)
+static inline size_t strideBExtended(const PVLayerLoc * loc)
+{
+   return loc->nf*(loc->nx + loc->halo.lt + loc->halo.rt)*(loc->ny + loc->halo.up + loc->halo.dn);
 }
 
 /**
@@ -333,6 +374,36 @@ static inline int kIndexExtended(int k, int nx, int ny, int nf, int lt, int rt, 
    const int ky_ex = up + kyPos(k, nx, ny, nf);
    const int kf = featureIndex(k, nx, ny, nf);
    return kIndex(kx_ex, ky_ex, kf, nx + lt + rt, ny + dn + up, nf);
+}
+
+//! RETURNS LINEAR INDEX IN THE EXTENDED SPACE FROM INDICES IN RESTRICTED SPACE
+/*!
+ * @k the k index in restricted space
+ * @nx the size in x of restricted space
+ * @ny the size in y of restricted space
+ * @nf the size in f of restricted space
+ * @nb the size of batch
+ * @lt the width of the left margin
+ * @rt the width of the right margin
+ * @dn the width of the bottom margin
+ * @up the width of, you guessed it, the top margin
+ *
+ * REMARKS:
+ *   - the linear indexing of neurons is done by varying first along these directions:
+ *   feature direction, X direction, Y direction.
+ *   - for given indices kf,kx,ky, the linear index k restricted is given by:
+ *     k = ky*(nf*nx) + kx*nf + kf
+ *   - kx is the X direction index in restricted space
+ *   - ky is the Y direction index in restricted space
+ *   .
+ */
+static inline int kIndexExtendedBatch(int k, int nb, int nx, int ny, int nf, int lt, int rt, int dn, int up)
+{
+   const int kx_ex = lt + kxPos(k, nx, ny, nf);
+   const int ky_ex = up + kyPos(k, nx, ny, nf);
+   const int kf = featureIndex(k, nx, ny, nf);
+   const int kb = batchIndex(k, nb, nx, ny, nf);
+   return kIndexBatch(kb, kx_ex, ky_ex, kf, nb, nx + lt + rt, ny + dn + up, nf);
 }
 
 /*!

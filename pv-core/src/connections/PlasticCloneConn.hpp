@@ -16,6 +16,7 @@ class PlasticCloneConn : public CloneConn{
 
 public:
    PlasticCloneConn(const char * name, HyPerCol * hc);
+   virtual ~PlasticCloneConn();
 
    virtual int communicateInitInfo();
 
@@ -25,6 +26,8 @@ protected:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    virtual int cloneParameters();
+   virtual int constructWeights();
+   int deleteWeights();
 
 private:
    int initialize_base();

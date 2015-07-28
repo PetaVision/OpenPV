@@ -29,11 +29,14 @@ ANNNormalizedErrorLayer::~ANNNormalizedErrorLayer()
    if(maskLayerName){
       free(maskLayerName);
    }
+   if(timeScale){
+      free(timeScale);
+   }
 }
 
 int ANNNormalizedErrorLayer::initialize_base()
 {
-   timeScale = 1;
+   timeScale = NULL;
    useMask = false;
    maskLayerName = NULL;
    maskLayer = NULL;
@@ -56,25 +59,30 @@ int ANNNormalizedErrorLayer::initialize(const char * name, HyPerCol * hc)
    return status;
 }
 
-double ANNNormalizedErrorLayer::getTimeScale(){
-   return timeScale;
+double ANNNormalizedErrorLayer::getTimeScale(int batchIdx){
+   assert(batchIdx >= 0 && batchIdx < parent->getNBatch());
+   return timeScale[batchIdx];
 }
 
-double ANNNormalizedErrorLayer::calcTimeScale(){
+double ANNNormalizedErrorLayer::calcTimeScale(int batchIdx){
+   assert(batchIdx >= 0 && batchIdx < parent->getNBatch());
    if (parent->getDtAdaptFlag()){
       timescale_timer->start();
       InterColComm * icComm = parent->icCommunicator();
       //int num_procs = icComm->numCommColumns() * icComm->numCommRows();
       int num_neurons = getNumNeurons();
-      double errorMag = 0;
-      double inputMag = 0;
       pvdata_t * gSynExc = getChannel(CHANNEL_EXC);
       pvdata_t * gSynInh = getChannel(CHANNEL_INH);
+      pvdata_t * gSynExcBatch = gSynExc + batchIdx * num_neurons;
+      pvdata_t * gSynInhBatch = gSynInh + batchIdx * num_neurons;
 
-      pvdata_t * maskActivity = NULL;
+      pvdata_t * maskActivityBatch = NULL;
       if(useMask){
-         maskActivity = maskLayer->getActivity();
+         maskActivityBatch = maskLayer->getActivity() + batchIdx * num_neurons;
       }
+
+      double errorMag = 0;
+      double inputMag = 0;
 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : errorMag, inputMag)
@@ -91,12 +99,12 @@ double ANNNormalizedErrorLayer::calcTimeScale(){
             }
             int kMaskExt = kIndexExtended(ni, maskLoc->nx, maskLoc->ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
             //If value is masked out, do not add to errorMag/inputMag
-            if(maskActivity[kMaskExt] == 0){
+            if(maskActivityBatch[kMaskExt] == 0){
                continue; 
             }
          }
-         errorMag += (gSynExc[ni] - gSynInh[ni]) * (gSynExc[ni] - gSynInh[ni]);
-         inputMag += gSynExc[ni] * gSynExc[ni]; 
+         errorMag += (gSynExcBatch[ni] - gSynInhBatch[ni]) * (gSynExcBatch[ni] - gSynInhBatch[ni]);
+         inputMag += gSynExcBatch[ni] * gSynExcBatch[ni]; 
       }
       if (isnan(errorMag)) {
          fprintf(stderr, "Layer \"%s\": errorMag on process %d is not a number.\n", getName(), getParent()->columnId());
@@ -113,16 +121,15 @@ double ANNNormalizedErrorLayer::calcTimeScale(){
 #endif // PV_USE_MPI
       //errorMag /= num_neurons * num_procs;
       //inputMag /= num_neurons * num_procs;
-      timeScale = errorMag > 0 ? sqrt(inputMag / errorMag) : parent->getTimeScaleMin();
+      timeScale[batchIdx] = errorMag > 0 ? sqrt(inputMag / errorMag) : parent->getTimeScaleMin();
       //fprintf(stdout, "timeScale: %f\n", timeScale);
       timescale_timer->stop();
       if (parent->getWriteTimescales() && parent->icCommunicator()->commRank()==0){
-         timeScaleStream << "sim_time = " << parent->simulationTime() << ", " << "timeScale = " << timeScale << std::endl;
-      }
-      return timeScale;
+         timeScaleStream << "sim_time = " << parent->simulationTime() << ", " << "timeScale = " << timeScale[batchIdx] << std::endl; }
+      return timeScale[batchIdx];
    }
    else{
-      return HyPerLayer::calcTimeScale();
+      return HyPerLayer::calcTimeScale(batchIdx);
    }
 }
 
@@ -140,28 +147,44 @@ int ANNNormalizedErrorLayer::updateState(double time, double dt){
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
+
+   for(int b = 0; b < nbatch; b++){
+      pvdata_t * maskActivityBatch = maskActivity + b * num_neurons;
+      pvdata_t * ABatch = A + b * getNumExtended();
 
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for(int ni = 0; ni < num_neurons; ni++){
-      int kThisRes = ni;
-      int kThisExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-      int kMaskRes;
-      if(maskLoc->nf == 1){
-         kMaskRes = ni/nf;
-      }
-      else{
-         kMaskRes = ni;
-      }
-      int kMaskExt = kIndexExtended(ni, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
-
-      //Set value to 0, otherwise, updateState from ANNLayer should have taken care of it
-      if(maskActivity[kMaskExt] == 0){
-         A[kThisExt] = 0;
+      for(int ni = 0; ni < num_neurons; ni++){
+         int kThisRes = ni;
+         int kThisExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+         int kMaskRes;
+         if(maskLoc->nf == 1){
+            kMaskRes = ni/nf;
+         }
+         else{
+            kMaskRes = ni;
+         }
+         int kMaskExt = kIndexExtended(ni, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
+         //Set value to 0, otherwise, updateState from ANNLayer should have taken care of it
+         if(maskActivityBatch[kMaskExt] == 0){
+            ABatch[kThisExt] = 0;
+         }
       }
    }
    return PV_SUCCESS;
+}
+
+int ANNNormalizedErrorLayer::allocateDataStructures() {
+   int status = ANNErrorLayer::allocateDataStructures();
+   timeScale = (double*) malloc(sizeof(double) * parent->getNBatch());
+   assert(timeScale);
+   //Initialize timeScales to 1
+   for(int b = 0; b < parent->getNBatch(); b++){
+      timeScale[b] = 1;
+   }
+   return status;
 }
 
 //TODO take this out, this is a hack to get masking working with NormalizedErrorLayer

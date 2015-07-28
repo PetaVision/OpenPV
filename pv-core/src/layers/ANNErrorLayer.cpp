@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 void ANNErrorLayer_update_state(
+    const int nbatch, 
     const int numNeurons,
     const int nx,
     const int ny,
@@ -89,7 +90,8 @@ int ANNErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-         ANNErrorLayer_update_state(num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh,
+      int nbatch = loc->nbatch;
+         ANNErrorLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh,
                AMax, AMin, AShift, gSynHead, A, errScale);
 //#ifdef PV_USE_OPENCL
 //   }

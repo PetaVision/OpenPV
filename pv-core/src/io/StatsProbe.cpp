@@ -39,35 +39,35 @@ StatsProbe::~StatsProbe()
    delete iotimer;
    delete mpitimer;
    delete comptimer;
+   free(sum);
+   free(sum2);
+   free(nnz);
+   free(fMin);
+   free(fMax);
+   free(avg);
+   free(sigma);
 }
 
 int StatsProbe::initStatsProbe_base() {
-   fMin = FLT_MAX;
-   fMax = -FLT_MAX;
-   sum = 0.0f;
-   sum2 = 0.0f;
-   nnz = 0;
-   nnzThreshold = (pvdata_t) 0;
-   avg = 0.0f;
-   sigma = 0.0f;
+   fMin  = NULL;
+   fMax  = NULL;
+   sum   = NULL;
+   sum2  = NULL;
+   nnz   = NULL;
+   avg   = NULL;
+   sigma = NULL;
+
    type = BufV;
    iotimer = NULL;
    mpitimer = NULL;
    comptimer = NULL;
+   nnzThreshold = (pvdata_t) 0;
    return PV_SUCCESS;
 }
 
 int StatsProbe::initStatsProbe(const char * probeName, HyPerCol * hc) {
    int status = LayerProbe::initialize(probeName, hc);
-   if( status == PV_SUCCESS ) {
-      fMin = FLT_MAX;
-      fMax = -FLT_MAX;
-      sum = 0.0f;
-      sum2 = 0.0f;
-      avg = 0.0f;
-      sigma = 0.0f;
-      nnz = 0;
-   }
+
    assert(status == PV_SUCCESS);
    size_t timermessagelen = strlen("StatsProbe ") + strlen(getName()) + strlen(" Comp timer ");
    char timermessage[timermessagelen+1];
@@ -81,7 +81,31 @@ int StatsProbe::initStatsProbe(const char * probeName, HyPerCol * hc) {
    charsneeded = snprintf(timermessage, timermessagelen+1, "StatsProbe %s Comp timer ", getName());
    assert(charsneeded<=timermessagelen);
    comptimer = new Timer(timermessage);
+
+   int nbatch = hc->getNBatch();
+
+   fMin = (float*) malloc(sizeof(float) * nbatch);
+   fMax = (float*) malloc(sizeof(float) * nbatch);
+   sum  = (double*) malloc(sizeof(double) * nbatch);
+   sum2 = (double*) malloc(sizeof(double) * nbatch);
+   avg  = (float*) malloc(sizeof(float) * nbatch);
+   sigma = (float*) malloc(sizeof(float) * nbatch);
+   nnz  = (int*) malloc(sizeof(int) * nbatch);
+   resetStats();
+
    return status;
+}
+
+void StatsProbe::resetStats(){
+   for(int b = 0; b < getParent()->getNBatch(); b++){
+      fMin[b] = FLT_MAX;
+      fMax[b] = -FLT_MAX;
+      sum[b] = 0.0f;
+      sum2[b] = 0.0f;
+      avg[b] = 0.0f;
+      sigma[b] = 0.0f;
+      nnz[b] = 0;
+   }
 }
 
 int StatsProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -181,53 +205,54 @@ int StatsProbe::outputState(double timed)
 
    int nk;
    const pvdata_t * buf;
-   fMin = FLT_MAX,
-   fMax = -FLT_MAX;
-   sum = 0.0f;
-   sum2 = 0.0f;
-   avg = 0.0f;
-   sigma = 0.0f;
-   nnz = 0;
+   resetStats();
 
    nk = getTargetLayer()->getNumNeurons();
+
+   int nbatch = getTargetLayer()->getParent()->getNBatch();
+
    switch (type) {
    case BufV:
-      buf = getTargetLayer()->getV();
-      if( buf == NULL ) {
-#ifdef PV_USE_MPI
-         if( rank != rcvProc ) return 0;
-#endif // PV_USE_MPI
-         fprintf(outputstream->fp, "%sV buffer is NULL\n", getMessage());
-         return 0;
-      }
       comptimer->start();
-      for( int k=0; k<nk; k++ ) {
-         pvdata_t a = buf[k];
-         sum += a;
-         sum2 += a*a;
-         if (fabs((double) a)>(double) nnzThreshold){
-            nnz++;
-         } // Optimize for different datatypes of a?
-         if (a < fMin) fMin = a;
-         if (a > fMax) fMax = a;
+      for(int b = 0; b < nbatch; b++){
+         buf = getTargetLayer()->getV() + b * getTargetLayer()->getNumNeurons();
+         if( buf == NULL ) {
+#ifdef PV_USE_MPI
+            if( rank != rcvProc ) return 0;
+#endif // PV_USE_MPI
+            fprintf(outputstream->fp, "%sV buffer is NULL\n", getMessage());
+            return 0;
+         }
+         for( int k=0; k<nk; k++ ) {
+            pvdata_t a = buf[k];
+            sum[b] += a;
+            sum2[b] += a*a;
+            if (fabs((double) a)>(double) nnzThreshold){
+               nnz[b]++;
+            } // Optimize for different datatypes of a?
+            if (a < fMin[b]) fMin[b] = a;
+            if (a > fMax[b]) fMax[b] = a;
+         }
       }
       comptimer->stop();
       break;
    case BufActivity:
       comptimer->start();
-      buf = getTargetLayer()->getLayerData();
-      assert(buf != NULL);
-      for( int k=0; k<nk; k++ ) {
-         const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // TODO: faster to use strides and a double-loop than compute kIndexExtended for every neuron?
-         pvdata_t a = buf[kex];
-         sum += a;
-         sum2 += a*a;
-         if (fabs((double) a)>(double) nnzThreshold) {
-            nnz++; // Optimize for different datatypes of a?
+      for(int b = 0; b < nbatch; b++){
+         buf = getTargetLayer()->getLayerData() + b * getTargetLayer()->getNumExtended();
+         assert(buf != NULL);
+         for( int k=0; k<nk; k++ ) {
+            const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
+            int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // TODO: faster to use strides and a double-loop than compute kIndexExtended for every neuron?
+            pvdata_t a = buf[kex];
+            sum[b] += a;
+            sum2[b] += a*a;
+            if (fabs((double) a)>(double) nnzThreshold) {
+               nnz[b]++; // Optimize for different datatypes of a?
+            }
+            if( a < fMin[b] ) fMin[b] = a;
+            if( a > fMax[b] ) fMax[b] = a;
          }
-         if( a < fMin ) fMin = a;
-         if( a > fMax ) fMax = a;
       }
       comptimer->stop();
       break;
@@ -239,41 +264,54 @@ int StatsProbe::outputState(double timed)
 #ifdef PV_USE_MPI
    mpitimer->start();
    int ierr;
-   double reducedsum, reducedsum2;
-   int reducednnz;
-   float reducedmin, reducedmax;
-   int totalNeurons;
-   ierr = MPI_Reduce(&sum, &reducedsum, 1, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
-   ierr = MPI_Reduce(&sum2, &reducedsum2, 1, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
-   ierr = MPI_Reduce(&nnz, &reducednnz, 1, MPI_INT, MPI_SUM, rcvProc, comm);
-   ierr = MPI_Reduce(&fMin, &reducedmin, 1, MPI_FLOAT, MPI_MIN, rcvProc, comm);
-   ierr = MPI_Reduce(&fMax, &reducedmax, 1, MPI_FLOAT, MPI_MAX, rcvProc, comm);
-   ierr = MPI_Reduce(&nk, &totalNeurons, 1, MPI_INT, MPI_SUM, rcvProc, comm);
-   if( rank != rcvProc ) {
+   //double reducedsum, reducedsum2;
+   //int reducednnz;
+   //float reducedmin, reducedmax;
+   //int totalNeurons;
+
+   //In place reduction to prevent allocating a temp recv buffer
+   if(rank == rcvProc){
+      ierr = MPI_Reduce(MPI_IN_PLACE, sum,  nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
+      ierr = MPI_Reduce(MPI_IN_PLACE, sum2, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
+      ierr = MPI_Reduce(MPI_IN_PLACE, nnz,  nbatch, MPI_INT, MPI_SUM, rcvProc, comm);
+      ierr = MPI_Reduce(MPI_IN_PLACE, fMin,  nbatch, MPI_FLOAT, MPI_MIN, rcvProc, comm);
+      ierr = MPI_Reduce(MPI_IN_PLACE, fMax,  nbatch, MPI_FLOAT, MPI_MAX, rcvProc, comm);
+      ierr = MPI_Reduce(MPI_IN_PLACE, &nk,   1, MPI_INT, MPI_SUM, rcvProc, comm);
+   }
+   else{
+      ierr = MPI_Reduce(sum, sum, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
+      ierr = MPI_Reduce(sum2, sum2, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
+      ierr = MPI_Reduce(nnz, nnz, nbatch, MPI_INT, MPI_SUM, rcvProc, comm);
+      ierr = MPI_Reduce(fMin, fMin, nbatch, MPI_FLOAT, MPI_MIN, rcvProc, comm);
+      ierr = MPI_Reduce(fMax, fMax, nbatch, MPI_FLOAT, MPI_MAX, rcvProc, comm);
+      ierr = MPI_Reduce(&nk, &nk, 1, MPI_INT, MPI_SUM, rcvProc, comm);
       return 0;
    }
-   sum = reducedsum;
-   sum2 = reducedsum2;
-   nnz = reducednnz;
-   fMin = reducedmin;
-   fMax = reducedmax;
-   nk = totalNeurons;
+   //sum = reducedsum;
+   //sum2 = reducedsum2;
+   //nnz = reducednnz;
+   //fMin = reducedmin;
+   //fMax = reducedmax;
+   //nk = totalNeurons;
+
+   double divisor = nk;
+
    mpitimer->stop();
 #endif // PV_USE_MPI
    iotimer->start();
-   avg = sum/nk;
-   sigma = sqrt(sum2/nk - avg*avg);
-   if ( type == BufActivity  && getTargetLayer()->getSparseFlag() ) {
-      float freq = 1000.0 * avg;
-      fprintf(outputstream->fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f nnz==%i\n", getMessage(), timed,
-              nk, (float)sum, fMin, freq, fMax, (float)sigma, nnz);
-   }
-   else {
-      fprintf(outputstream->fp, "%st==%6.1f N==%d Total==%f Min==%f Avg==%f Max==%f sigma==%f nnz==%i\n", getMessage(), timed,
-              nk, (float)sum, fMin, (float) avg, fMax, (float) sigma, nnz);
+   for(int b = 0; b < nbatch; b++){
+      avg[b] = sum[b]/divisor;
+      sigma[b] = sqrt(sum2[b]/divisor - avg[b]*avg[b]);
+      if ( type == BufActivity  && getTargetLayer()->getSparseFlag() ) {
+         float freq = 1000.0 * avg[b];
+         fprintf(outputstream->fp, "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f nnz==%d\n", getMessage(), (double)timed, (int)b, (int)divisor, (double)sum[b], (double)fMin[b], (double)freq, (double)fMax[b], (double)sigma[b], (int)nnz[b]);
+      }
+      else {
+         fprintf(outputstream->fp, "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f Max==%f sigma==%f nnz==%d\n", getMessage(), (double)timed, (int)b, (int)divisor, (double)sum[b], (double)fMin[b], (double) avg[b], (double)fMax[b], (double) sigma[b], (int)nnz[b]);
+      }
+      fflush(outputstream->fp);
    }
 
-   fflush(outputstream->fp);
    iotimer->stop();
 
    return PV_SUCCESS;

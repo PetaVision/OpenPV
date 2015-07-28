@@ -71,11 +71,11 @@ int GenColProbe::addConnTerm(ConnFunctionProbe * p, BaseConnection * c, pvdata_t
    return PV_SUCCESS;
 }
 
-pvdata_t GenColProbe::evaluate(double timef) {
+pvdata_t GenColProbe::evaluate(double timef, int batchIdx) {
    pvdata_t sum = 0;
    for( int n=0; n<numLayerTerms; n++) {
       gencolprobelayerterm thisterm = layerTerms[n];
-      sum += thisterm.coeff*( (thisterm.function)->getFunction()->evaluate(timef, thisterm.layer) );
+      sum += thisterm.coeff*( (thisterm.function)->getFunction()->evaluate(timef, thisterm.layer, batchIdx) );
    }
    for( int n=0; n<numConnTerms; n++) {
       gencolprobeconnterm thisterm = connTerms[n];
@@ -85,11 +85,13 @@ pvdata_t GenColProbe::evaluate(double timef) {
 }  // end GenColProbe::evaluate(float)
 
 int GenColProbe::outputState(double time, HyPerCol * hc) {
-   pvdata_t colprobeval = evaluate(time);
+   for(int b = 0; b < hc->getNBatch(); b++){
+      pvdata_t colprobeval = evaluate(time, b);
 #ifdef PV_USE_MPI
-   if( hc->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
+      if( hc->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
 #endif // PV_USE_MPI
-   fprintf(stream->fp, "time = %f, %s = %f\n", time, hc->getName(), colprobeval);
+      fprintf(stream->fp, "time = %f, b = %d, %s = %f\n", time, b, hc->getName(), colprobeval);
+   }
    fflush(stream->fp);
    return PV_SUCCESS;
 }  // end GenColProbe::outputState(float, HyPerCol *)

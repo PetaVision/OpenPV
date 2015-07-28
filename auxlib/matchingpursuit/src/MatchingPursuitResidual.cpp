@@ -39,18 +39,18 @@ bool MatchingPursuitResidual::needUpdate(double time, double dt) {
 int MatchingPursuitResidual::updateState(double timed, double dt) {
    pvdata_t * V = getV();
    if (inputInV) {
-      for (int k=0; k<getNumNeurons(); k++) {
+      for (int k=0; k<getNumNeuronsAllBatches(); k++) {
          V[k] -= GSyn[1][k];
       }
    }
    else {
-      for (int k=0; k<getNumNeurons(); k++) {
+      for (int k=0; k<getNumNeuronsAllBatches(); k++) {
          V[k] = GSyn[0][k];
       }
       inputInV = true;
    }
    PVLayerLoc const * loc = getLayerLoc();
-   setActivity_HyPerLayer(getNumNeurons(), getActivity(), V, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+   setActivity_HyPerLayer(loc->nbatch, getNumNeurons(), getActivity(), V, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
    return PV_SUCCESS;
 }
 

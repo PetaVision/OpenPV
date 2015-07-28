@@ -27,8 +27,10 @@ int TestNotAlwaysAllZerosProbe::outputState(double timed) {
       fprintf(stderr, "!!Time %f: TestNotAlwaysAllZerosProbe::outputState failed for layer \"%s\"\n", timed, getTargetLayer()->getName());
       exit(EXIT_FAILURE);
    }
-   if (nnz != 0) {
-      nonzeroValueOccurred = true;
+   for(int b = 0; b < parent->getNBatch(); b++){
+      if (nnz[b] != 0) {
+         nonzeroValueOccurred = true;
+      }
    }
    return status;
 }

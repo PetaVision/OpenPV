@@ -17,6 +17,7 @@ namespace PVCuda{
 
    //Parameter structur
    struct HyPerLCAParams{
+      int nbatch;
       int numNeurons;
       int nx;
       int ny;
@@ -34,7 +35,8 @@ namespace PVCuda{
       float AShift;
       float VWidth;
       bool selfInteract;
-      float dt_tau;
+      double * dtAdapt;
+      float tau;
       float * GSynHead;
       float * activity;
    };
@@ -46,6 +48,7 @@ public:
    virtual ~CudaUpdateHyPerLCALayer();
 
    void setArgs(
+      const int nbatch,
       const int numNeurons,
       const int nx,
       const int ny,
@@ -64,13 +67,12 @@ public:
       const float AShift,
       const float VWidth,
       const bool selfInteract,
-      const float dt_tau,
+      /* double* */ CudaBuffer* dtAdapt,
+      const float tau,
 
       /* float* */ CudaBuffer* GSynHead,
       /* float* */ CudaBuffer* activity
    );
-
-   void setDtTau(float dt_tau){params.dt_tau = dt_tau;}
 
 protected:
    //This is the function that should be overwritten in child classes

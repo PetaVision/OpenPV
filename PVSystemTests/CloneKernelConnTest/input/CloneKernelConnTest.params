@@ -32,6 +32,7 @@ HyPerCol "column" = {
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false;
+   nbatch = 2;
 };
 
 //
@@ -39,7 +40,7 @@ HyPerCol "column" = {
 //
 
 Movie "Input" = {
-    imageListPath = "./input/images.txt";
+    inputPath = "./input/images.txt";
 
     nxScale = 1;
     nyScale = 1;

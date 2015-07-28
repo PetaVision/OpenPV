@@ -20,6 +20,7 @@ namespace PVCuda{
 
 //Parameter structur
    struct recv_post_params{
+      int nbatch;
       int nxRes; //num post neurons
       int nyRes;
       int nf;
@@ -93,6 +94,7 @@ public:
    virtual ~CudaRecvPost();
 
    void setArgs(
+      const int nbatch,
       const int nxRes, //num post neurons
       const int nyRes,
       const int nf,

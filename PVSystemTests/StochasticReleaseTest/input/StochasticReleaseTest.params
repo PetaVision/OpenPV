@@ -41,7 +41,7 @@ HyPerCol "column" = {
 // Layers
 //
 
-Image "Input" = {
+ImagePvp "Input" = {
     restart = 0;
     nxScale = 1; 
     nyScale = 1;
@@ -52,8 +52,8 @@ Image "Input" = {
     mirrorBCflag = true;
     sparseLayer = false;
 
-    imagePath = "input/input.pvp";
-    frameNumber = 0;
+    inputPath = "input/input.pvp";
+    pvpFrameIdx= 0;
     offsetX = 0;
     offsetY = 0;
     offsetAnchor = "tl";

@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 void PtwiseLinearTransferLayer_update_state(
+    const int nbatch,
     const int numNeurons,
     const int nx,
     const int ny,
@@ -266,7 +267,7 @@ int PtwiseLinearTransferLayer::resetGSynBuffers(double timef, double dt) {
    if (GSyn == NULL) return PV_SUCCESS;
    bool clearNow = clearGSynInterval <= 0 || timef >= nextGSynClearTime;
    if (clearNow) {
-      resetGSynBuffers_HyPerLayer(this->getNumNeurons(), getNumChannels(), GSyn[0]);
+      resetGSynBuffers_HyPerLayer(parent->getNBatch(), this->getNumNeurons(), getNumChannels(), GSyn[0]);
    }
    if (clearNow > 0) {
       nextGSynClearTime += clearGSynInterval;   
@@ -302,7 +303,8 @@ int PtwiseLinearTransferLayer::doUpdateState(double time, double dt, const PVLay
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-      PtwiseLinearTransferLayer_update_state(num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopeNegInf, slopePosInf, num_channels, gSynHead, A);
+      int nbatch = loc->nbatch;
+      PtwiseLinearTransferLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopeNegInf, slopePosInf, num_channels, gSynHead, A);
 
 //#ifdef PV_USE_OPENCL
 //   }
@@ -317,10 +319,11 @@ int PtwiseLinearTransferLayer::setActivity() {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
+   int nbatch = loc->nbatch;
    PVHalo const * halo = &loc->halo;
    int num_neurons = nx*ny*nf;
    int status;
-   status = setActivity_PtwiseLinearTransferLayer(num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, numVertices, verticesA, verticesV, slopeNegInf, slopePosInf);
+   status = setActivity_PtwiseLinearTransferLayer(nbatch, num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, numVertices, verticesA, verticesV, slopeNegInf, slopePosInf);
    return status;
 }
 

@@ -8,7 +8,7 @@
 #ifndef PATTERNS_HPP_
 #define PATTERNS_HPP_
 
-#include "Image.hpp"
+#include "BaseInput.hpp"
 #include <vector>
 namespace PV {
 
@@ -47,7 +47,7 @@ typedef struct _Drop{
    char padding[DROPPADDINGSIZE];
 } Drop;
 
-class Patterns : public PV::Image {
+class Patterns : public PV::BaseInput {
 public:
    Patterns(const char * name, HyPerCol * hc);
    virtual ~Patterns();
@@ -73,7 +73,7 @@ protected:
    Patterns();
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
+   //virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag);
    virtual void ioParam_patternType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_orientation(enum ParamsIOFlag ioFlag);
    int setOrientation(OrientationMode ormode);
@@ -120,6 +120,8 @@ protected:
 
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readPatternStateFromCheckpoint(const char * cpDir);
+
+   virtual int retrieveData(double timef, double dt);
 
    PatternType type;
    char * typeString;

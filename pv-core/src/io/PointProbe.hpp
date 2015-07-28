@@ -27,6 +27,7 @@ protected:
    int xLoc;
    int yLoc;
    int fLoc;
+   int batchLoc;
    char * msg;
 
    // bool sparseOutput;
@@ -37,6 +38,7 @@ protected:
    virtual void ioParam_xLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_fLoc(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_batchLoc(enum ParamsIOFlag ioFlag);
    virtual int initOutputStream(const char * filename);
    virtual int point_writeState(double timef, float outVVal, float outAVal);
 

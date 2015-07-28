@@ -21,12 +21,11 @@ HyPerCol "column" = {
     writeProgressToErr = true;
 };
 
-Movie "pre" = {
+MoviePvp "pre" = {
     restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
-    imageListPath                    = "input/input.pvp";
-    readPvpFile                      = true;
+    inputPath                        = "input/input.pvp";
     echoFramePathnameFlag            = true;
     nf                               = 1;
     phase                            = 0;

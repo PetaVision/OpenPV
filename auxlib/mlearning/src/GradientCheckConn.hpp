@@ -29,6 +29,7 @@ protected:
    virtual void ioParam_gtLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_estLayerName(enum ParamsIOFlag ioFlag);
    virtual void ioParam_costFunction(enum ParamsIOFlag ioFlag);
+   int calc_dW() ;
    //virtual int clear_dW();
 
 private:

@@ -34,7 +34,7 @@ protected:
    virtual void ioParam_coeff(enum ParamsIOFlag ioFlag);
    virtual void initFunction();
    void setFunction(LayerFunction * f) {function = f;}
-   virtual int writeState(double timef, HyPerLayer * l, pvdata_t value);
+   virtual int writeState(double timef, HyPerLayer * l, int batchIdx, pvdata_t value);
 
 private:
    int initLayerFunctionProbe_base();

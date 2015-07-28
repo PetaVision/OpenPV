@@ -26,7 +26,7 @@ int ImageFromMemoryBuffer::initialize_base() {
 }
 
 int ImageFromMemoryBuffer::initialize(char const * name, HyPerCol * hc) {
-   return Image::initialize(name, hc);
+   return BaseInput::initialize(name, hc);
 }
 
 template <typename pixeltype>
@@ -159,12 +159,22 @@ pvadata_t ImageFromMemoryBuffer::pixelTypeConvert(pixeltype q, pixeltype zeroval
    return ((pvadata_t) (q-zeroval))/((pvadata_t) (oneval-zeroval));
 }
 
-int ImageFromMemoryBuffer::initializeActivity() {
-   return copyBuffer();
+int ImageFromMemoryBuffer::initializeActivity(double time, double dt) {
+   return getFrame(time, dt);
 }
 
 int ImageFromMemoryBuffer::updateState(double time, double dt) {
-   return copyBuffer();
+   return getFrame(time, dt);
+}
+
+//Image readImage reads the same thing to every batch
+//This call is here since this is the entry point called from allocate
+//Movie overwrites this function to define how it wants to load into batches
+int ImageFromMemoryBuffer::retrieveData(double timef, double dt)
+{
+   int status = PV_SUCCESS;
+   status = copyBuffer();
+   return status;
 }
 
 int ImageFromMemoryBuffer::copyBuffer() {
@@ -193,10 +203,11 @@ int ImageFromMemoryBuffer::copyBuffer() {
 }
 
 int ImageFromMemoryBuffer::moveBufferToData(int rank) {
-   if (autoResizeFlag) {
-      fprintf(stderr, "autoResizeFlag not implemented for ImageFromMemoryBuffer yet :-(\n");
-      exit(EXIT_FAILURE);
-   }
+   //AutoResizeFlag is in Image, as currently autoResizeFlag only works on reading images with gdal
+   //if (autoResizeFlag) {
+   //   fprintf(stderr, "autoResizeFlag not implemented for ImageFromMemoryBuffer yet :-(\n");
+   //   exit(EXIT_FAILURE);
+   //}
    assert(parent->columnId()==0);
    assert(buffer != NULL);
    

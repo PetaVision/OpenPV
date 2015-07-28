@@ -29,8 +29,21 @@ ShuffleLayer::ShuffleLayer(const char * name, HyPerCol * hc) {
 ShuffleLayer::~ShuffleLayer(){
    free(shuffleMethod);
    free(freqFilename);
-   free(featureFreqCount);
-   free(currFeatureFreqCount);
+
+   if(currFeatureFreqCount){
+      free(currFeatureFreqCount[0]);
+      free(currFeatureFreqCount);
+      currFeatureFreqCount = NULL;
+   }
+   if(featureFreqCount){
+      free(featureFreqCount[0]);
+      free(featureFreqCount);
+      featureFreqCount = NULL;
+   }
+   if(maxCount){
+      free(maxCount);
+   }
+
    shuffleMethod        = NULL;
    freqFilename         = NULL;
    featureFreqCount     = NULL;
@@ -42,7 +55,8 @@ int ShuffleLayer::initialize_base() {
    freqFilename         = NULL;
    featureFreqCount     = NULL;
    currFeatureFreqCount = NULL;
-   maxCount             = -99999999;
+   //maxCount             = -99999999;
+   maxCount             = NULL;
    freqCollectTime      = 1000;
    readFreqFromFile     = 0;
    return PV_SUCCESS;
@@ -55,17 +69,38 @@ int ShuffleLayer::initialize(const char * name, HyPerCol * hc) {
    return status_init;
 }
 
-int ShuffleLayer::communicateInitInfo() {
-   int status = CloneVLayer::communicateInitInfo();
+int ShuffleLayer::allocateDataStructures(){
+   int status = CloneVLayer::allocateDataStructures();
    int nf = getLayerLoc()->nf;
    //Calloc to initialize all zeros
-   featureFreqCount = (long*) calloc(nf, sizeof(long));
+   featureFreqCount = (long**) calloc(getLayerLoc()->nbatch, sizeof(long*));
+   long * tmp = (long*) calloc(getLayerLoc()->nbatch * nf, sizeof(long));
+   assert(tmp);
+   assert(featureFreqCount);
+   for(int b = 0; b < getLayerLoc()->nbatch; b++){
+      featureFreqCount[b] = &tmp[b*nf];
+   }
    if (readFreqFromFile){
       readFreq();
    }
    else{
-      currFeatureFreqCount = (long*) calloc(nf, sizeof(long));
+      currFeatureFreqCount = (long**) calloc(getLayerLoc()->nbatch, sizeof(long*));
+      tmp = (long*) calloc(getLayerLoc()->nbatch * nf, sizeof(long));
+      assert(tmp);
+      assert(currFeatureFreqCount);
+      for(int b = 0; b < getLayerLoc()->nbatch; b++){
+         currFeatureFreqCount[b] = &tmp[b*nf];
+      }
    }
+   maxCount = (long*) malloc(getLayerLoc()->nbatch * sizeof(long));
+   for(int b = 0; b < getLayerLoc()->nbatch; b++){
+      maxCount[b] = -99999999;
+   }
+
+}
+
+int ShuffleLayer::communicateInitInfo() {
+   int status = CloneVLayer::communicateInitInfo();
    return status;
 }
 
@@ -112,33 +147,36 @@ void ShuffleLayer::ioParam_freqCollectTime(enum ParamsIOFlag ioFlag) {
 
 int ShuffleLayer::setActivity() {
    pvdata_t * activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtended);
+   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
    return 0;
 }
 
 void ShuffleLayer::readFreq(){ // TODO: Add MPI Bcast so that only root proc does this
    int nf = getLayerLoc()->nf;
+   int nbatch = getLayerLoc()->nbatch;
    string line;
    ifstream freqFile(freqFilename);
    if (freqFile.is_open()){
-      for (int kf = 0; kf < nf; kf++){
-         getline (freqFile,line);
-         if (freqFile.fail()){
-            fprintf(stderr, "Shuffle Layer: Unable to read from frequency file %s\n",freqFilename);
-            exit(PV_FAILURE);
+      for (int b = 0; b < nbatch; b++){
+         for (int kf = 0; kf < nf; kf++){
+            getline (freqFile,line);
+            if (freqFile.fail()){
+               fprintf(stderr, "Shuffle Layer: Unable to read from frequency file %s\n",freqFilename);
+               exit(PV_FAILURE);
+            }
+            featureFreqCount[b][kf] = atol(line.c_str());
+            if(featureFreqCount[b][kf] > maxCount[b]){
+               maxCount[b] = featureFreqCount[b][kf];
+            }
+            if (freqFile.eof()){
+               fprintf(stderr, "Shuffle Layer: Invalid frequency file %s: EOF before %d nf, %d batches.\n ",freqFilename, nf, nbatch);
+               exit(PV_FAILURE);
+            }
          }
-         featureFreqCount[kf] = atol(line.c_str());
-         if(featureFreqCount[kf] > maxCount){
-            maxCount = featureFreqCount[kf];
+         if (getline(freqFile, line)){
+               fprintf(stderr, "Shuffle Layer: Invalid frequency file: %s contains > %d nf, %d batches.\n ",freqFilename, nf, nbatch);
+               exit(PV_FAILURE);
          }
-         if (freqFile.eof()){
-            fprintf(stderr, "Shuffle Layer: Invalid frequency file %s: EOF before %d nf.\n ",freqFilename, nf);
-            exit(PV_FAILURE);
-         }
-      }
-      if (getline(freqFile, line)){
-            fprintf(stderr, "Shuffle Layer: Invalid frequency file: %s contains > %d nf.\n ",freqFilename, nf);
-            exit(PV_FAILURE);
       }
       freqFile.close();
    }
@@ -147,6 +185,7 @@ void ShuffleLayer::readFreq(){ // TODO: Add MPI Bcast so that only root proc doe
       exit(PV_FAILURE);
    }
 }
+
 void ShuffleLayer::collectFreq(const pvdata_t * sourceData){
    PVHalo const * haloOrig = &originalLayer->getLayerLoc()->halo;
    int nx = getLayerLoc()->nx;
@@ -154,31 +193,35 @@ void ShuffleLayer::collectFreq(const pvdata_t * sourceData){
    int nxExt = nx + haloOrig->lt + haloOrig->rt;
    int nyExt = ny + haloOrig->dn + haloOrig->up;
    int nf    = getLayerLoc()->nf;
-   //Reset currFeatureFreqCount
-   for(int kf = 0; kf < nf; kf++){
-      currFeatureFreqCount[kf] = 0;
-   }
-   for (int ky = 0; ky < ny; ky++){
-      for (int kx = 0; kx < nx; kx++){
-         for (int kf = 0; kf < nf; kf++){
-            int extIdx = kIndex(kx+haloOrig->lt, ky+haloOrig->up, kf, nxExt, nyExt, nf);
-            float inData = sourceData[extIdx];
-            if(inData > 0){   //Really use 0? Or should there be a threshold parameter
-               currFeatureFreqCount[kf]++;
+   int nbatch = getLayerLoc()->nbatch;
+   for(int b = 0; b < nbatch; b++){
+      const pvdata_t * sourceDataBatch = sourceData + b * nxExt * nyExt * nf;
+      //Reset currFeatureFreqCount
+      for(int kf = 0; kf < nf; kf++){
+         currFeatureFreqCount[b][kf] = 0;
+      }
+      for (int ky = 0; ky < ny; ky++){
+         for (int kx = 0; kx < nx; kx++){
+            for (int kf = 0; kf < nf; kf++){
+               int extIdx = kIndex(kx+haloOrig->lt, ky+haloOrig->up, kf, nxExt, nyExt, nf);
+               float inData = sourceDataBatch[extIdx];
+               if(inData > 0){   //Really use 0? Or should there be a threshold parameter
+                  currFeatureFreqCount[b][kf]++;
+               }
             }
          }
       }
-   }
 
 #ifdef PV_USE_MPI
-   //Collect over mpi
-   MPI_Allreduce(MPI_IN_PLACE, currFeatureFreqCount, nf, MPI_LONG, MPI_SUM, parent->icCommunicator()->communicator());
+      //Collect over mpi
+      MPI_Allreduce(MPI_IN_PLACE, currFeatureFreqCount[b], nf, MPI_LONG, MPI_SUM, parent->icCommunicator()->communicator());
 #endif // PV_USE_MPI
-   
-   for (int kf = 0; kf < nf; kf++){
-      featureFreqCount[kf] += currFeatureFreqCount[kf];
-      if(featureFreqCount[kf] > maxCount){
-         maxCount = featureFreqCount[kf];
+      
+      for (int kf = 0; kf < nf; kf++){
+         featureFreqCount[b][kf] += currFeatureFreqCount[b][kf];
+         if(featureFreqCount[b][kf] > maxCount[b]){
+            maxCount[b] = featureFreqCount[b][kf];
+         }
       }
    }
 }
@@ -191,49 +234,54 @@ void ShuffleLayer::rejectionShuffle(const pvdata_t * sourceData, pvdata_t * acti
    int ny = loc->ny;
    int nf    = loc->nf;
    int numextended = getNumExtended();
+   int nbatch = loc->nbatch;
    int rndIdx, rndIdxOrig;
    if(!readFreqFromFile && parent->simulationTime() <= freqCollectTime){
       //Collect maxVActivity and featureFreq
       collectFreq(sourceData);
    }
    else{
-      for (int i = 0; i < numextended; i++) { //Zero activity array for shuffling activity
+      for (int i = 0; i < numextended*nbatch; i++) { //Zero activity array for shuffling activity
          activity[i] = 0;
       }
       //NOTE: The following code assumes that the active features are sparse. 
       //      If the number of active features in sourceData is greater than 1/2 of nf, while will loop infinitely 
-      for (int ky = 0; ky < ny; ky++){
-         for (int kx = 0; kx < nx; kx++){
-            int extIdx = kIndex(kx+halo->lt, ky+halo->up, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
-            int extIdxOrig = kIndex(kx+haloOrig->lt, ky+haloOrig->up, 0, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-            // Assumes stride in features is 1 when computing indices for features other than kf=0
-            for (int kf = 0; kf < nf; kf++){
-               float inData = sourceData[extIdxOrig+kf];
-               //If no activity, reject and continue
-               if(inData <= 0){
-                  continue;
-               }
-               bool rejectFlag = true;
-               while(rejectFlag){
-                  //Grab random feature index
-                  int rdf = rand() % nf;
-                  rndIdx = extIdx + rdf;
-                  rndIdxOrig = extIdxOrig + rdf;
-                  //Reject if random feature is active, or has been swapped
-                  if(sourceData[rndIdxOrig] || activity[rndIdx]){
+      for(int b = 0; b < nbatch; b++){
+         pvdata_t * activityBatch = activity + b * numextended;
+         const pvdata_t * sourceDataBatch = sourceData + b * numextended;
+         for (int ky = 0; ky < ny; ky++){
+            for (int kx = 0; kx < nx; kx++){
+               int extIdx = kIndex(kx+halo->lt, ky+halo->up, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
+               int extIdxOrig = kIndex(kx+haloOrig->lt, ky+haloOrig->up, 0, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+               // Assumes stride in features is 1 when computing indices for features other than kf=0
+               for (int kf = 0; kf < nf; kf++){
+                  float inData = sourceDataBatch[extIdxOrig+kf];
+                  //If no activity, reject and continue
+                  if(inData <= 0){
                      continue;
                   }
-                  //Grab random index from 0 to 1
-                  float prd = (float)rand() / (float)RAND_MAX;
-                  //Compare frequency
-                  if(prd <= (float)featureFreqCount[rdf]/(float)maxCount){ 
-                     //accepted
-                     rejectFlag = false;
+                  bool rejectFlag = true;
+                  while(rejectFlag){
+                     //Grab random feature index
+                     int rdf = rand() % nf;
+                     rndIdx = extIdx + rdf;
+                     rndIdxOrig = extIdxOrig + rdf;
+                     //Reject if random feature is active, or has been swapped
+                     if(sourceDataBatch[rndIdxOrig] || activityBatch[rndIdx]){
+                        continue;
+                     }
+                     //Grab random index from 0 to 1
+                     float prd = (float)rand() / (float)RAND_MAX;
+                     //Compare frequency
+                     if(prd <= (float)featureFreqCount[b][rdf]/(float)maxCount[b]){ 
+                        //accepted
+                        rejectFlag = false;
+                     }
                   }
+                  //rdf is now the random index to shuffle with
+                  activity[rndIdx] = sourceData[extIdxOrig+kf];
+                  activity[extIdx+kf] = sourceData[rndIdxOrig]; // << This doesn't do anything
                }
-               //rdf is now the random index to shuffle with
-               activity[rndIdx] = sourceData[extIdxOrig+kf];
-               activity[extIdx+kf] = sourceData[rndIdxOrig]; // << This doesn't do anything
             }
          }
       }
@@ -247,29 +295,33 @@ void ShuffleLayer::randomShuffle(const pvdata_t * sourceData, pvdata_t * activit
    int nx = loc->nx;
    int ny = loc->ny;
    int nf    = loc->nf;
+   int nbatch = loc->nbatch;
    int numextended = getNumExtended();
    int rndIdx, rndIdxOrig;
-   for (int i = 0; i < numextended; i++) { //Zero activity array for shuffling activity
+   for (int i = 0; i < numextended * nbatch; i++) { //Zero activity array for shuffling activity
       activity[i] = 0;
    }
    //NOTE: The following code assumes that the active features are sparse. 
    //      If the number of active features in sourceData is greater than 1/2 of nf, do..while will loop infinitely 
-   
-   for (int ky = 0; ky < ny; ky++){
-      for (int kx = 0; kx < nx; kx++){
-         int extIdx = kIndex(kx+halo->lt, ky+halo->rt, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
-         int extIdxOrig = kIndex(kx+haloOrig->lt, ky+haloOrig->up, 0, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-         // Assumes stride in features is 1 when computing indices for features other than kf=0
-         for (int kf = 0; kf < nf; kf++){
-            float inData = sourceData[extIdxOrig+kf];
-            if (inData != 0) { //Features with 0 activity are not changed
-               do {
-                  int rd = rand() % nf; //TODO: Improve PRNG
-                  rndIdx = extIdx + rd;
-                  rndIdxOrig = extIdxOrig + rd;
-               } while(sourceData[rndIdxOrig] || activity[rndIdx]); 
-               activity[rndIdx] = sourceData[extIdxOrig+kf];
-               activity[extIdx+kf] = sourceData[rndIdxOrig];
+   for(int b = 0; b < nbatch; b++){
+      const pvdata_t * sourceDataBatch = sourceData + b * numextended;
+      pvdata_t * activityBatch = activity + b * numextended;
+      for (int ky = 0; ky < ny; ky++){
+         for (int kx = 0; kx < nx; kx++){
+            int extIdx = kIndex(kx+halo->lt, ky+halo->rt, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
+            int extIdxOrig = kIndex(kx+haloOrig->lt, ky+haloOrig->up, 0, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+            // Assumes stride in features is 1 when computing indices for features other than kf=0
+            for (int kf = 0; kf < nf; kf++){
+               float inData = sourceDataBatch[extIdxOrig+kf];
+               if (inData != 0) { //Features with 0 activity are not changed
+                  do {
+                     int rd = rand() % nf; //TODO: Improve PRNG
+                     rndIdx = extIdx + rd;
+                     rndIdxOrig = extIdxOrig + rd;
+                  } while(sourceDataBatch[rndIdxOrig] || activityBatch[rndIdx]); 
+                  activityBatch[rndIdx] = sourceDataBatch[extIdxOrig+kf];
+                  activityBatch[extIdx+kf] = sourceDataBatch[rndIdxOrig];
+               }
             }
          }
       }
@@ -296,7 +348,6 @@ int ShuffleLayer::updateState(double timef, double dt) {
    }
    else if(strcmp(shuffleMethod, "rejection") == 0){
       rejectionShuffle(sourceData, A);
-
    }
 
    return status;

@@ -1,0 +1,7 @@
+input/data/MovieFileIO_frames/0.png
+input/data/MovieFileIO_frames/1.png
+input/data/MovieFileIO_frames/2.png
+input/data/MovieFileIO_frames/3.png
+input/data/MovieFileIO_frames/4.png
+input/data/MovieFileIO_frames/5.png
+input/data/MovieFileIO_frames/6.png

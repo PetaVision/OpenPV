@@ -17,7 +17,7 @@ public:
 	PlasticTestConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
 	virtual ~PlasticTestConn();
 protected:
-	virtual int update_dW(int axonId);
+	//virtual int update_dW(int axonId);
 	virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
 };
 

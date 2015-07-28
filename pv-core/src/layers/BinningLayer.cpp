@@ -190,73 +190,82 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
    PVHalo const * halo = &origLoc->halo;
    float binRange = binMax - binMin;
    float stepSize = float(binRange)/numBins;
-   for (int iY = 0; iY < (ny+halo->dn+halo->up); iY++){
-      for (int iX = 0; iX < (nx+halo->lt+halo->rt); iX++){
-         int origIdx = kIndex(iX, iY, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, origLoc->nf);
-         float inVal = origData[origIdx];
+   int nbatch = currLoc->nbatch;
 
-         if(zeroDCR && inVal == 0){
-            for(int iF = 0; iF < numBins; iF++){
-               int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);
-               currA[currIdx] = 0;
-            }
-         }
-         else{
-            //A sigma of zero means only the centered bin value should get input
-            int featureIdx = round((inVal-binMin)/stepSize);
-            if(featureIdx < 0 || featureIdx >= numBins){
-               std::cout << "Binning layer: calculated feature index not in bounds. Orig val: " << inVal << " stepSize: " << stepSize << "\n";
-               exit(-1);
-            }
-            for(int iF = 0; iF < numBins; iF++){
-               if(binSigma == 0){
+
+   
+   for(int b = 0; b < nbatch; b++){
+      const pvdata_t * origDataBatch = origData + b * (origLoc->nx + origLoc->halo.lt + origLoc->halo.rt) * (origLoc->ny + origLoc->halo.up + origLoc->halo.dn) * origLoc->nf;
+      pvdata_t * currABatch = currA + b * (currLoc->nx + currLoc->halo.lt + currLoc->halo.rt) * (currLoc->ny + currLoc->halo.up + currLoc->halo.dn) * currLoc->nf;
+
+      // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+      for (int iY = 0; iY < (ny+halo->dn+halo->up); iY++){
+         for (int iX = 0; iX < (nx+halo->lt+halo->rt); iX++){
+            int origIdx = kIndex(iX, iY, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, origLoc->nf);
+            float inVal = origDataBatch[origIdx];
+
+            if(zeroDCR && inVal == 0){
+               for(int iF = 0; iF < numBins; iF++){
                   int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);
-                  if(iF == featureIdx){
-                     currA[currIdx] = 1;
-                  }
-                  //Resetting value
-                  else{
-                     if(zeroNeg){
-                        currA[currIdx] = 0;
-                     }
-                     else{
-                        currA[currIdx] = -1;
-                     }
-                  }
+                  currABatch[currIdx] = 0;
                }
-               else{
-                  //Calculate center value for featureIdx (the bin that the value belongs to without a sigma) is binning
-                  float mean;
-                  if(normalDist){
-                     mean = featureIdx * stepSize + (stepSize/2);
+            }
+            else{
+               //A sigma of zero means only the centered bin value should get input
+               int featureIdx = round((inVal-binMin)/stepSize);
+               for(int iF = 0; iF < numBins; iF++){
+                  if(binSigma == 0){
+                     int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);
+                     if(iF == featureIdx){
+                        currABatch[currIdx] = 1;
+                     }
+                     //Resetting value
+                     else{
+                        if(zeroNeg){
+                           currABatch[currIdx] = 0;
+                        }
+                        else{
+                           currABatch[currIdx] = -1;
+                        }
+                     }
                   }
                   else{
-                     mean = featureIdx;
-                  }
-                  //Possible bins
-                  int intSigma = ceil(binSigma);
-                  int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);
-                  if(iF >= featureIdx-intSigma && iF <= featureIdx+intSigma){
-                     //Get center of that aBin for the x pos of the normal dist
-                     float xVal;
+                     //Calculate center value for featureIdx (the bin that the value belongs to without a sigma) is binning
+                     float mean;
                      if(normalDist){
-                        xVal = iF * stepSize + (stepSize/2);
+                        mean = featureIdx * stepSize + (stepSize/2);
                      }
                      else{
-                        xVal = iF;
+                        mean = featureIdx;
                      }
-                     //Calculate normal dist
-                     float outVal = calcNormDist(xVal, mean, binSigma);
-                     //Put into activity buffer
-                     currA[currIdx] = outVal;
-                  }
-                  //Resetting value
-                  else{
-                     if(zeroNeg){
-                        currA[currIdx] = 0;
+                     //Possible bins
+                     int intSigma = ceil(binSigma);
+                     int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);
+                     if(iF >= featureIdx-intSigma && iF <= featureIdx+intSigma){
+                        //Get center of that aBin for the x pos of the normal dist
+                        float xVal;
+                        if(normalDist){
+                           xVal = iF * stepSize + (stepSize/2);
+                        }
+                        else{
+                           xVal = iF;
+                        }
+                        //Calculate normal dist
+                        float outVal = calcNormDist(xVal, mean, binSigma);
+                        //Put into activity buffer
+                        currABatch[currIdx] = outVal;
                      }
+                     //Resetting value
                      else{
-                        currA[currIdx] = -1;
+                        if(zeroNeg){
+                           currABatch[currIdx] = 0;
+                        }
+                        else{
+                           currABatch[currIdx] = -1;
+                        }
                      }
                   }
                }

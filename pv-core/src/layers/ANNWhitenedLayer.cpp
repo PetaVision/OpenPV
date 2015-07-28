@@ -12,6 +12,7 @@ extern "C" {
 #endif
 
 void ANNWhitenedLayer_update_state(
+    const int nbatch,
     const int numNeurons,
     const int nx,
     const int ny,
@@ -79,7 +80,8 @@ int ANNWhitenedLayer::doUpdateState(double time, double dt, const PVLayerLoc * l
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-      ANNWhitenedLayer_update_state(num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh, AMax, AMin, AShift, VWidth, gSynHead, A);
+      int nbatch = loc->nbatch;
+      ANNWhitenedLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, VThresh, AMax, AMin, AShift, VWidth, gSynHead, A);
 //#ifdef PV_USE_OPENCL
 //   }
 //#endif

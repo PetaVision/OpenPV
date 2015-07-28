@@ -52,22 +52,10 @@ int PtwiseProductLayer::doUpdateState(double timef, double dt, const PVLayerLoc 
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
-//   pvdata_t * gSynExc = getChannelStart(gSynHead, CHANNEL_EXC, num_neurons);
-//   pvdata_t * gSynInh = getChannelStart(gSynHead, CHANNEL_INH, num_neurons);
-   updateV_PtwiseProductLayer(num_neurons, V, gSynHead);
-   setActivity_HyPerLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up); // setActivity();
-   //resetGSynBuffers_HyPerLayer(num_neurons, getNumChannels(), gSynHead); // resetGSynBuffers();
+   int nbatch = loc->nbatch;
+   updateV_PtwiseProductLayer(nbatch, num_neurons, V, gSynHead);
+   setActivity_HyPerLayer(nbatch, num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
    return PV_SUCCESS;
 }
-
-//int PtwiseProductLayer::updateV() {
-//    pvdata_t * V = getV();
-//    pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
-//    pvdata_t * GSynInh = getChannel(CHANNEL_INH);
-//    for( int k=0; k<getNumNeurons(); k++ ) {
-//        V[k] = GSynExc[k] * GSynInh[k];
-//    }
-//    return PV_SUCCESS;
-//}  // end PtwiseProductLayer::updateV()
 
 }  // end namespace PV

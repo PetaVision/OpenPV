@@ -51,11 +51,13 @@ int LayerPhaseTestProbe::outputState(double timed)
       return 0;
    }
 #endif // PV_USE_MPI
-   if (timed>=equilibriumTime) {
-      double tol = 1e-6;
-      assert(fabs(fMin-equilibriumValue) < tol);
-      assert(fabs(fMax-equilibriumValue) < tol);
-      assert(fabs(avg-equilibriumValue) < tol);
+   for(int b = 0; b < parent->getNBatch(); b++){
+      if (timed>=equilibriumTime) {
+         double tol = 1e-6;
+         assert(fabs(fMin[b]-equilibriumValue) < tol);
+         assert(fabs(fMax[b]-equilibriumValue) < tol);
+         assert(fabs(avg[b]-equilibriumValue) < tol);
+      }
    }
 
    return status;

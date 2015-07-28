@@ -92,6 +92,8 @@ public:
    char * getOutputPath()                 {return outputPath;}
    int getNxGlobal()                      {return nxGlobal;}
    int getNyGlobal()                      {return nyGlobal;}
+   int getNBatch()                        {return nbatch;}
+   int getThreadBatch()                   {return threadBatch;}
 
 #ifdef PV_USE_OPENCL
    CLDevice * getDevice()               {return clDevice;}
@@ -111,11 +113,13 @@ public:
    double getDeltaTime()                  {return deltaTime;}
    bool  getDtAdaptFlag()                 {return dtAdaptFlag;}
    double getDeltaTimeBase()              {return deltaTimeBase;}
-   double getTimeScale()                  {return timeScale;}
+   double* getTimeScale()                 {return timeScale;}
+   double getTimeScale(int batch)         {assert(batch >= 0 && batch < nbatch); return timeScale[batch];}
    double getTimeScaleMax()               {return timeScaleMax;}
    double getTimeScaleMin()               {return timeScaleMin;}
    double getChangeTimeScaleMax()         {return changeTimeScaleMax;}
    double getChangeTimeScaleMin()         {return changeTimeScaleMin;}
+
    double simulationTime()                {return simTime;}
    double getStartTime()                  {return startTime;}
    double getStopTime()                   {return stopTime;}
@@ -173,6 +177,11 @@ public:
    int writeScalarToFile(const char * cp_dir, const char * group_name, const char * val_name, T val);
    template <typename T>
    int readScalarFromFile(const char * cp_dir, const char * group_name, const char * val_name, T * val, T default_value=(T) 0);
+
+   template <typename T>
+   int writeArrayToFile(const char * cp_dir, const char * group_name, const char * val_name, T *  val, size_t count);
+   template <typename T>
+   int readArrayFromFile(const char * cp_dir, const char * group_name, const char * val_name, T * val, size_t count, T default_value=(T) 0);
 
    int ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char * group_name);
    int ioParamsFinishGroup(enum ParamsIOFlag ioFlag);
@@ -299,6 +308,13 @@ private:
    virtual void ioParam_ny(enum ParamsIOFlag ioFlag);
 
    /**
+    * @brief ny: Specifies the batch size of the column
+    */
+   virtual void ioParam_nBatch(enum ParamsIOFlag ioFlag);
+
+   virtual void ioParam_threadBatch(enum ParamsIOFlag ioFlag);
+
+   /**
     * @brief filenamesContainLayerNames: Specifies if layer names gets printed out to output connection pvp files
     * @details Options are 0, 1, or 2.
     * - 0: connections have form a5.pvp
@@ -415,7 +431,7 @@ private:
 
    int outputParams(char const * path);
 
-   virtual double adaptTimeScale();
+   virtual double* adaptTimeScale();
 
    long int currentStep;
    long int initialStep;
@@ -464,8 +480,9 @@ private:
    double deltaTime;        // time step interval
    bool   dtAdaptFlag;      // turns adaptive time step on/off
    double deltaTimeBase;    // base time step interval if dtAdaptFlag == true, timeScale is applied to this value
-   double timeScale;        // scale factor for deltaTimeBase, deltaTime = timeScale*deltaTimeBase
-   double timeScaleTrue;    // true timeScale returned by min(HyPerLayer::getTimeScale) before MIN/MAX/CHANGE constraints applied
+   double * timeScale;        // scale factor for deltaTimeBase, deltaTime = timeScale*deltaTimeBase
+   double * timeScaleTrue;    // true timeScale returned by min(HyPerLayer::getTimeScale) before MIN/MAX/CHANGE constraints applied
+   double * deltaTimeAdapt;    // Actual deltaTimeAdapt buffer passed to updateState
    double timeScaleMax;     // maximum value of timeScale (prevents deltaTime from growing too large)
    double timeScaleMin;     // minimum value of timeScale (not really a minimum, actually sets starting/iniital value of deltaTime)
    double changeTimeScaleMax;     // maximum change in value of timeScale (prevents deltaTime from growing too quickly)
@@ -506,6 +523,8 @@ private:
    char * image_file;
    int nxGlobal;
    int nyGlobal;
+   int nbatch;
+   int threadBatch;
 
    bool           ownsParams; // True if params was created from params file by initialize, false if params was passed in the constructor
    bool           ownsInterColComm; // True if icComm was created by initialize, false if passed in the constructor

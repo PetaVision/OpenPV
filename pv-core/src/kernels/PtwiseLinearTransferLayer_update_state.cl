@@ -24,6 +24,7 @@
 //
 CL_KERNEL
 void PtwiseLinearTransferLayer_update_state(
+    const int nbatch,
     const int numNeurons,
     const int nx,
     const int ny,
@@ -43,5 +44,5 @@ void PtwiseLinearTransferLayer_update_state(
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity)
 {
-   updateV_PtwiseLinearTransferLayer(numNeurons, V, num_channels, GSynHead, activity, numVertices, verticesV, verticesA, slopeNegInf, slopePosInf, nx, ny, nf, lt, rt, dn, up);
+   updateV_PtwiseLinearTransferLayer(nbatch, numNeurons, V, num_channels, GSynHead, activity, numVertices, verticesV, verticesA, slopeNegInf, slopePosInf, nx, ny, nf, lt, rt, dn, up);
 }
