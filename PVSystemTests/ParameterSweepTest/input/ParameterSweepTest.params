@@ -27,6 +27,7 @@ HyPerCol "column" = {
    checkpointWrite = false;
    initializeFromCheckpointDir = "";
    suppressLastOutput = false;
+   nbatch = 2;
 };
 
 //
