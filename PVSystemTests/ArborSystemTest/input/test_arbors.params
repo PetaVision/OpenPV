@@ -30,7 +30,7 @@ HyPerCol "column" = {
    // checkpointWriteStepInterval = 1;
    suppressLastOutput = false;
    errorOnNotANumber = false;
-   //nbatch = 2;
+   nbatch = 2;
 };
 
 //

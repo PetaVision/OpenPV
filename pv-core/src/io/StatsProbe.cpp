@@ -279,11 +279,11 @@ int StatsProbe::outputState(double timed)
       ierr = MPI_Reduce(MPI_IN_PLACE, &nk,   1, MPI_INT, MPI_SUM, rcvProc, comm);
    }
    else{
-      ierr = MPI_Reduce(&sum, &sum, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
-      ierr = MPI_Reduce(&sum2, &sum2, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
-      ierr = MPI_Reduce(&nnz, &nnz, nbatch, MPI_INT, MPI_SUM, rcvProc, comm);
-      ierr = MPI_Reduce(&fMin, &fMin, nbatch, MPI_FLOAT, MPI_MIN, rcvProc, comm);
-      ierr = MPI_Reduce(&fMax, &fMax, nbatch, MPI_FLOAT, MPI_MAX, rcvProc, comm);
+      ierr = MPI_Reduce(sum, sum, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
+      ierr = MPI_Reduce(sum2, sum2, nbatch, MPI_DOUBLE, MPI_SUM, rcvProc, comm);
+      ierr = MPI_Reduce(nnz, nnz, nbatch, MPI_INT, MPI_SUM, rcvProc, comm);
+      ierr = MPI_Reduce(fMin, fMin, nbatch, MPI_FLOAT, MPI_MIN, rcvProc, comm);
+      ierr = MPI_Reduce(fMax, fMax, nbatch, MPI_FLOAT, MPI_MAX, rcvProc, comm);
       ierr = MPI_Reduce(&nk, &nk, 1, MPI_INT, MPI_SUM, rcvProc, comm);
       return 0;
    }
@@ -294,7 +294,7 @@ int StatsProbe::outputState(double timed)
    //fMax = reducedmax;
    //nk = totalNeurons;
 
-   double divisor = nk * nbatch;
+   double divisor = nk;
 
    mpitimer->stop();
 #endif // PV_USE_MPI
@@ -304,16 +304,14 @@ int StatsProbe::outputState(double timed)
       sigma[b] = sqrt(sum2[b]/divisor - avg[b]*avg[b]);
       if ( type == BufActivity  && getTargetLayer()->getSparseFlag() ) {
          float freq = 1000.0 * avg[b];
-         fprintf(outputstream->fp, "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f nnz==%i\n", getMessage(), timed, b,
-                 divisor, (float)sum[b], fMin[b], freq, fMax[b], (float)sigma[b], nnz[b]);
+         fprintf(outputstream->fp, "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f nnz==%d\n", getMessage(), (double)timed, (int)b, (int)divisor, (double)sum[b], (double)fMin[b], (double)freq, (double)fMax[b], (double)sigma[b], (int)nnz[b]);
       }
       else {
-         fprintf(outputstream->fp, "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f Max==%f sigma==%f nnz==%i\n", getMessage(), timed,
-                 b, divisor, (float)sum[b], fMin[b], (float) avg[b], fMax[b], (float) sigma[b], nnz[b]);
+         fprintf(outputstream->fp, "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f Max==%f sigma==%f nnz==%d\n", getMessage(), (double)timed, (int)b, (int)divisor, (double)sum[b], (double)fMin[b], (double) avg[b], (double)fMax[b], (double) sigma[b], (int)nnz[b]);
       }
+      fflush(outputstream->fp);
    }
 
-   fflush(outputstream->fp);
    iotimer->stop();
 
    return PV_SUCCESS;
