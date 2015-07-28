@@ -39,9 +39,9 @@ int DatastoreDelayTestLayer::updateState(double timef, double dt, int num_neuron
 }
 
 int DatastoreDelayTestLayer::updateV_DatastoreDelayTestLayer(const PVLayerLoc * loc, bool * inited, pvdata_t * V, int period) {
-   for(int b = 0; b < loc->nbatch; b++){
-      pvdata_t * VBatch = V + b * loc->nx * loc->ny * loc->nf;
-      if( *inited ) {
+   if( *inited ) {
+      for(int b = 0; b < loc->nbatch; b++){
+         pvdata_t * VBatch = V + b * loc->nx * loc->ny * loc->nf;
          // Rotate values by one row.
          // Move everything down one row; clobbering row 0 in the process
          for( int y=loc->ny-1; y>0; y-- ) {
@@ -61,7 +61,10 @@ int DatastoreDelayTestLayer::updateV_DatastoreDelayTestLayer(const PVLayerLoc * 
          }
 
       }
-      else {
+   }
+   else {
+      for(int b = 0; b < loc->nbatch; b++){
+         pvdata_t * VBatch = V + b * loc->nx * loc->ny * loc->nf;
          if( loc->ny < period ) {
 #ifdef PV_USE_MPI
             int rank;

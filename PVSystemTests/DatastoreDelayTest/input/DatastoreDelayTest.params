@@ -19,14 +19,15 @@ HyPerCol "column" = {
    progressStep = 20;
    writeProgressToErr = false;
    outputPath = "output/";
-   filenamesContainLayerNames = false;
-   filenamesContainConnectionNames = false;
+   filenamesContainLayerNames = true;
+   filenamesContainConnectionNames = true;
    checkpointRead = false;
    checkpointWrite = true;
    checkpointWriteDir = "checkpoints/";
    checkpointWriteStepInterval = 1;
    checkpointWriteTimeInterval = -1;
    deleteOlderCheckpoints = false;
+   nbatch = 2;
 };
 
 //
@@ -164,8 +165,8 @@ DatastoreDelayTestProbe "probe" = {
     message = "probe           ";
 };
 
-DatastoreDelayTestProbe "probeArbor" = {
-    targetLayer = "outputArbor";
-    probeOutputFile = "probeArbor.txt";
-    message = "probeArbor      ";
-};
+//DatastoreDelayTestProbe "probeArbor" = {
+//    targetLayer = "outputArbor";
+//    probeOutputFile = "probeArbor.txt";
+//    message = "probeArbor      ";
+//};

@@ -51,7 +51,7 @@ int DatastoreDelayTestProbe::outputState(double timed) {
    pvdata_t correctValue = numDelayLevels*(numDelayLevels+1)/2;
    if( timed >= numDelayLevels+2 ) {
       pvdata_t * V = l->getV();
-      for( int k=0; k<l->getNumNeurons(); k++ ) {
+      for( int k=0; k<l->getNumNeuronsAllBatches(); k++ ) {
          if( V[k] != correctValue ) {
             fprintf(outputstream->fp, "Layer \"%s\": timef = %f, neuron %d: value is %f instead of %d\n", l->getName(), timed, k, V[k], (int) correctValue);
             status = PV_FAILURE;
