@@ -38,10 +38,12 @@ void AllConstantValueProbe::ioParam_correctValue(enum ParamsIOFlag ioFlag) {
 int AllConstantValueProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
    if (this->parent->columnId()==0) {
-      if (timed>0 && (fMin<correctValue-nnzThreshold || fMax > correctValue+nnzThreshold)) {
-         fprintf(this->outputstream->fp, "     Values outside of tolerance nnzThreshold=%f\n", nnzThreshold);
-         fprintf(stderr, "t=%f: fMin=%f, fMax=%f; values more than nnzThreshold=%g away from correct value %f\n", timed, fMin, fMax, nnzThreshold, correctValue);
-         exit(EXIT_FAILURE);
+      for(int b = 0; b < this->parent->getNBatch(); b++){
+         if (timed>0 && (fMin[b]<correctValue-nnzThreshold || fMax[b] > correctValue+nnzThreshold)) {
+            fprintf(this->outputstream->fp, "     Values outside of tolerance nnzThreshold=%f\n", nnzThreshold);
+            fprintf(stderr, "t=%f: fMin=%f, fMax=%f; values more than nnzThreshold=%g away from correct value %f\n", timed, fMin[b], fMax[b], nnzThreshold, correctValue);
+            exit(EXIT_FAILURE);
+         }
       }
    }
    return status;

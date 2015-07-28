@@ -45,8 +45,11 @@ int GPUSystemTestProbe::outputState(double timed){
       //For max difference roundoff errors
       assert(fabs(A[i]) < 5e-4);
    }
-   //For max std of 5e-5
-   assert(sigma <= 5e-5);
+   for(int b = 0; b < loc->nbatch; b++){
+      //For max std of 5e-5
+      assert(sigma[b] <= 5e-5);
+   }
+
    return status;
 }
 

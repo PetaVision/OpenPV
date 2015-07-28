@@ -51,6 +51,7 @@ HyPerCol "column" = {
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false; //If true, save the last output as checkpoint.
+   nbatch = 2;
 };
 
 //
