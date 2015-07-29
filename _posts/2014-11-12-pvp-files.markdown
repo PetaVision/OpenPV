@@ -1,0 +1,136 @@
+---
+layout: post
+title:  "PVP files"
+date:   2014-11-12 23:01:55
+author: Dylan Paiton
+categories: jekyll update
+---
+
+
+On Wed Nov 12 2014 at 12:19:35 PM Sheng Lundquist wrote:
+
+Hi Dylan and Gerd,
+
+The python wrapper around matlab is done, although i'm not entirely sure where it is. Miha had it working with a few bugs here and there.
+To be fair Dylan, the way we would give you this list of datatypes and filetypes would be exactly that: read Pete's readpvpfile.m. That matlab file is well commented enough where you should get a sense of how each type of file is laid out. Here's a quick list from quickly scanning over that file:
+
+{% highlight text %}
+DataType:
+1. PV_BYTE_TYPE (Not used yet, I think Pete's working on this)
+2. PV_INT_TYPE (For file type 2)
+3. PV_FLOAT_TYPE (For dense weight/activity)
+4. PV_SPARSEVALUES_TYPE (Alternating between int and float for sparse values files)
+
+Filetype:
+1. PVP_FILE_TYPE (I'm sure this is outdated, maybe pete can give some insight)
+2. PVP_ACT_FILE_TYPE: Sparse binary activity file
+3. PVP_WGT_FILE_TYPE: Weight file type, only for HyPerConns that are not KernelConns
+4. PVP_NONSPIKING_ACT_FILE_TYPE: Dense matrixes, Implemented in Python already
+5. PVP_KERNEL_FILE_TYPE: Weight file for KernelConns
+6. PVP_ACT_SPARSEVALUES_FILE_TYPE: Sparse activity file with values
+{% endhighlight %}
+
+
+File structures:
+syntax is dataField [(numberElements, Type), (numElement, Type), (numElement, Type), ...]
+Note that header may or may not have extra fields, but readPvpHeader should handle it.
+recordSize is in the header
+
+{% highlight text %}
+PVP_ACT_FILE_TYPE
+Header[(1, 80 bytes)]
+time[(1, float64)]
+numActive[(1, uint32)]
+data[(numActive, uint32)]
+time[(1, float64)]
+numActive[(1, uint32)]
+data[(numData uint32)]
+...
+
+PVP_WGT_FILE_TYPE (Extra header is nxp, nyp, nfp, wMin, wMax, numPatches)
+[For every frame]
+Header[(1, 80 bytes)]
+Extra Header[(3, int32), (2, float32), (1, uint32)]
+[For every arbor]
+[For every proc]
+[For every patch per proc]
+shrunkenPatchNxNyOffset[(2, uint16), (1, uint32)]
+data(nxp * nyp * nfp, dataType)
+[end for every patch]
+[end for every proc]
+[end for every arbor]
+[end for every frame]
+
+
+PVP_NONSPIKING_ACT_FILE_TYPE
+Header[(1, 80 bytes)]
+time[(1, float64)]
+data[(recordSize, dataType)]
+time[(1, float64)]
+data[(recordSize, dataType)]
+...
+
+PVP_KERNEL_FILE_TYPE
+[For every frame]
+Header[(1, 80 bytes)]
+Extra Header[(3, int32), (2, float32), (1, uint32)]
+[For every arbor]
+[For every proc]
+[For every patch]
+shrunkenPatchNxNyOffset[(2, uint16), (1, uint32)]
+data[(nxp * nyp * nfp, dataType)]
+[end for every patch]
+[end for every proc]
+[end for every arbor]
+[end for every frame]
+
+PVP_ACT_SPARSEVALUES_FILE_TYPE
+Header[(1, 80 bytes)]
+time[(1, float64)]
+numActive[(1, uint32)]
+[for numActive]
+data[(1, uint32), (1, float32)]
+[end for numActive]
+time[(1, float64)]
+numActive[(1, uint32)]
+[for numActive]
+data[(1, uint32), (1, float32)]
+[end for numActive]
+...
+{% endhighlight %}
+
+Hope that clarified any questions. Pete, please double check this to make sure i'm not missing anything, specifically, if any of these filetypes still use numProcs.
+
+Sheng
+
+
+Pete Schultz
+11/12/14
+
+Thanks for typing this up, Sheng.  A few things:
+
+> 1. PV_BYTE_TYPE (Not used yet, I think Pete's working on this)
+
+PV_BYTE_TYPE is currently used in weight pvp files if you set the writeCompressedCheckpoints flag to true: weights are compressed to 8-bit precision when writing to the file, but are still float-precision internally.  What I'm working is on having weights in PetaVision use byte precision internally.
+
+> 1. PVP_FILE_TYPE (I'm sure this is outdated, maybe pete can give some insight)
+This used to do what filetype 4 (pvp_nonspiking_act_file) does now, except without a timestamp in every frame.  I'm pretty sure that it's no longer being used.
+
+> Hope that clarified any questions. Pete, please double check this to make sure i'm not missing anything, specifically, if any of these filetypes still use numProcs.
+
+Activity files (both sparse and nonsparse) no longer use numProcs.  Weight files still do, although we've wanted to get rid of the numProcs dependence for a while now.
+
+Pete
+
+
+
+Dylan Paiton
+11/12/14
+
+I just finished looking over what Sheng sent to Gerd and I in more detail. I decided that it would be a good idea to re-send it to the entire office, for records sake. Sheng's reply is exactly what I was looking for. My apologies for not deciphering the matlab script myself. Thank you, Sheng for clarifying everything. Unless anyone objects, I'd like to put this information (maybe after some formatting) up on the PV website.
+
+Thanks again Sheng - you continue to be a life saver. 
+
+-Dylan
+
+
