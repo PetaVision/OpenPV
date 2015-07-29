@@ -659,7 +659,7 @@ int MoviePvp::updateFrameNum(int batchIdx) {
          fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, inputPath );
       }
       if(resetToStartOnLoop){
-         frameNumbers[batchIdx] = startFrameIndex[batchIdx]-1;
+         frameNumbers[batchIdx] = startFrameIndex[batchIdx];
          return PV_BREAK;
       }
       else{
