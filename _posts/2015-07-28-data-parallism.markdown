@@ -18,39 +18,38 @@ Hi all,
 
    Image and ImagePvp with batches simply copies the image across all batches. Movie/MoviePvp now has a new parameter *batchMethod* that can be one of 3 values: *"byImage"*, *"byMovie"*, and *"bySpecified"* (default). *"bySpecified"* allows you to specify a start frame and skip frame per batch. As an example, if we were to have a parameter file with 4 batches, your start frame and skip frame can be as such:
 
-   ```````````````````````````````````````````````````````
-   Movie "myMovie"{
-   ...
-   inputPath = "myFile.txt";
-   start_frame_index = [0, 1, 2, 3];
-   skip_frame_index = [4, 4, 4, 4];
-   ...
-   }
-```````````````````````````````````````````````````````
+{% highlight text %}
+Movie "myMovie"{
+...
+inputPath = "myFile.txt";
+start_frame_index = [0, 1, 2, 3];
+skip_frame_index = [4, 4, 4, 4];
+...
+}
+{% endhighlight %}
 
-myFile.txt:
-```````````````````````````````````````````````````````
+{% highlight text %}
 0.png
 1.png
 2.png
 3.png
 ...
-```````````````````````````````````````````````````````
+{% endhighlight %}
 
 Here, batch index 0 will read frames 0, 4, 8 ..., batch index 1 will read 1, 5, 9... etc.
 
 *"byMovie"* and *"byImage"* explicitly sets the *start_frame_index* and *skip_frame_index*. Namely, assuming with a batch size of 4 and the input file having 40 frames:
 "byImage":
-```````````````````````````````````````````````````````
+{% highlight text %}
 start_frame_index = [0, 1, 2, 3];
 skip_frame_index = [4, 4, 4, 4];
-```````````````````````````````````````````````````````
+{% endhighlight %}
 
 "byMovie":
-```````````````````````````````````````````````````````
+{% highlight text %}
 start_frame_index = [0, 10, 20, 30]
 skip_frame_index = [1, 1, 1, 1];
-```````````````````````````````````````````````````````
+{% endhighlight %}
 
 
 These 2 *batchMethods* also do take a *start_frame_index* (it has to be only one value), which sets an offset into the generated start_frame_index. Examples of how to use the new Image and Movie can be found in the new ImageSystemTest.
@@ -58,7 +57,7 @@ These 2 *batchMethods* also do take a *start_frame_index* (it has to be only one
 ## PVP files:
 PVP files are completely backwards compatible. Here, we write out each batch as an individual frame. As an example, with 4 batches, the layout of the PVP file will go:
 
-```````````````````````````````````````````````````````
+{% highlight text %}
 [header]
 time = 0
 [data for batch 0]
@@ -71,7 +70,7 @@ time = 0
 time = 1
 [data for batch 0]
 etc...
-```````````````````````````````````````````````````````
+{% endhighlight %}
 
 Note that consecutive frames can now have the same timestamp. This will most likely throw errors in your current analysis scripts. The header of PVP files now contains a *nbatch* field (the obsolete *nb* header field) that is written out for use in analysis scripts, as PetaVision itself never reads this parameter. I've added a simple error and sparsity analysis file to *OpenPV/pv-core/mlab/batchLCA* as an example.
 
