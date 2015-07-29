@@ -354,6 +354,7 @@ int BaseInput::getFrame(double timef, double dt){
    assert(status == PV_SUCCESS);
    status = postProcess(timef, dt); //Post processing on activity buffer
    assert(status == PV_SUCCESS);
+   return status;
 }
 
 int BaseInput::copyFromInteriorBuffer(float * buf, int batchIdx, float fac)
