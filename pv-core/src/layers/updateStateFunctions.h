@@ -102,6 +102,16 @@ int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract,
       int nx, int ny, int nf, int lt, int rt, int dn, int up);
 KERNEL
+int applyGSyn_ISTALayer(int nbatch, int numNeurons,
+			    MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
+			    MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract,
+			    int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t VThresh);
+KERNEL
+int applyGSyn_ISTALayer2(int nbatch, int numNeurons,
+			     MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
+			     MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract,
+			     int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t VThresh);
+KERNEL
 int applyGSyn_ANNWhitenedLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead);
 
@@ -440,6 +450,78 @@ int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
 }
 
 KERNEL
+int applyGSyn_ISTALayer(int nbatch, int numNeurons,
+			    MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
+			    MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract,
+			int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t VThresh) {
+  int kbatch;
+  MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input                                              
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(guided)
+   #endif
+  for (kbatch = 0; kbatch < numNeurons*nbatch; kbatch++)
+#else
+    kbatch = getIndex();
+#endif // PV_USE_OPENCL                                                                                                                 
+  {
+    int b = kbatch / numNeurons;
+    int k = kbatch % numNeurons;
+    float exp_tau = exp(-dtAdapt[b]/tau);
+    MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
+    MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
+    //Activity extended                                                                                                               
+    MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
+    int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+    //V[k] = V[k] + dt_tau * (GSynError[k] - V[k] + activity[kex]);                                                                   
+    //      if (selfInteract){
+    VBatch[k] = exp_tau * VBatch[k] + (1 - exp_tau) * (GSynErrorBatch[k] - (VThresh * (activityBatch[kex] > 0)));
+  }
+  //else {                                                                                                                             
+  //      V[k] = exp_tau * V[k] + (1 - exp_tau) * GSynError[k];}                                                                       
+  return PV_SUCCESS;
+}
+
+KERNEL
+int applyGSyn_ISTALayer2(int nbatch, int numNeurons,
+			     MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
+			     MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract,
+			 int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t Vhresh) {
+  int kbatch;
+  MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input                                              
+  MEM_GLOBAL pvdata_t * GSynError2 = &GSynHead[1 * nbatch * numNeurons]; // weighted input                                             
+
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(guided)
+   #endif
+  for (kbatch = 0; kbatch < numNeurons*nbatch; kbatch++)
+#else
+    kbatch = getIndex();
+#endif // PV_USE_OPENCL                                                                                                                 
+  {
+    int b = kbatch / numNeurons;
+    int k = kbatch % numNeurons;
+
+    float exp_tau = exp(-dtAdapt[b]/tau);
+    MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
+    MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
+    MEM_GLOBAL pvdata_t* GSynError2Batch = GSynError2 + b*numNeurons;
+    //Activity extended                                                                                                               
+    MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
+
+    int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+    //V[k] = V[k] + dt_tau * (GSynError[k] - GSynError2[k] - V[k] + activity[kex]);                                                   
+    //if (selfInteract){                                                                                                              
+    VBatch[k] = exp_tau * VBatch[k] + (1 - exp_tau) * (GSynErrorBatch[k] - GSynError2Batch[k] - (VThresh * (activityBatch[kex] > 0)));
+  }
+  //else {                                                                                                                             
+  //      V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k]- GSynError2[k]);}                                                      
+  //}                                                                                                                                  
+  return PV_SUCCESS;
+}
+
+KERNEL
 int applyGSyn_ANNWhitenedLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       MEM_GLOBAL pvdata_t * GSynHead)
 {
@@ -545,6 +627,31 @@ int updateV_HyPerLCALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
    if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
    return status;
 }
+
+KERNEL
+int updateV_HyPerLCALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+			  MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
+			  pvdata_t AMax,
+			  pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
+			  MEM_GLOBAL double* dtAdapt, pvdata_t tau,
+			  pvdata_t selfInteract, int nx, int ny, int nf, int lt, int rt, int dn, int up, int numChannels)
+{
+  int status = PV_SUCCESS;
+  if (numChannels == 2){
+    if( status == PV_SUCCESS ) status =
+				 applyGSyn_HyPerLCALayer2(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, VThresh);
+  }
+  else if (numChannels == 1){
+    if( status == PV_SUCCESS ) status =
+				 applyGSyn_HyPerLCALayer(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, VThresh);
+  }
+  if(status == PV_SUCCESS) status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
+  if( status == PV_SUCCESS ) status =
+			       applyVThresh_ANNLayer(nbatch, numNeurons, V, AMin, 0, AShift, VWidth, activity, nx, ny, nf, lt, rt, dn, up);
+  //if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(nbatch, numNeurons, V, AMax, activity, nx, ny, nf, lt, rt, dn, up);
+  return status;
+}
+
 
 KERNEL
 int updateV_ANNErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
