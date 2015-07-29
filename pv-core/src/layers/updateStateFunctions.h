@@ -486,7 +486,7 @@ KERNEL
 int applyGSyn_ISTALayer2(int nbatch, int numNeurons,
 			     MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
 			     MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract,
-			 int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t Vhresh) {
+			 int nx, int ny, int nf, int lt, int rt, int dn, int up, pvdata_t VThresh) {
   int kbatch;
   MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input                                              
   MEM_GLOBAL pvdata_t * GSynError2 = &GSynHead[1 * nbatch * numNeurons]; // weighted input                                             
@@ -629,7 +629,7 @@ int updateV_HyPerLCALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
 }
 
 KERNEL
-int updateV_HyPerLCALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+int updateV_ISTALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
 			  MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
 			  pvdata_t AMax,
 			  pvdata_t AMin, pvdata_t VThresh, pvdata_t AShift, pvdata_t VWidth,
@@ -639,11 +639,11 @@ int updateV_HyPerLCALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
   int status = PV_SUCCESS;
   if (numChannels == 2){
     if( status == PV_SUCCESS ) status =
-				 applyGSyn_HyPerLCALayer2(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, VThresh);
+				 applyGSyn_ISTALayer2(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, VThresh);
   }
   else if (numChannels == 1){
     if( status == PV_SUCCESS ) status =
-				 applyGSyn_HyPerLCALayer(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, VThresh);
+				 applyGSyn_ISTALayer(nbatch, numNeurons, V, GSynHead, activity, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, VThresh);
   }
   if(status == PV_SUCCESS) status = setActivity_HyPerLayer(nbatch, numNeurons, activity, V, nx, ny, nf, lt, rt, dn, up);
   if( status == PV_SUCCESS ) status =
