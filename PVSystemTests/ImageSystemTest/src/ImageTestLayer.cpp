@@ -37,8 +37,7 @@ int ImageTestLayer::updateStateWrapper(double time, double dt)
 }
 
 int ImageTestLayer::updateState(double time, double dt){
-   std::cout << "In update state at time " << time << "\n"; 
-   Image::updateState(time, dt);
+   return Image::updateState(time, dt);
 }
 }
 

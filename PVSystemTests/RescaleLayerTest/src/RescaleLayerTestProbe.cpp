@@ -116,11 +116,11 @@ int RescaleLayerTestProbe::outputState(double timed)
          }
 
          if (fabs(avg[b]-targetMean)>tolerance) {
-            fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has mean %f instead of target mean %f\n", getName(), targetRescaleLayer->getName(), avg, targetMean);
+            fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has mean %f instead of target mean %f\n", getName(), targetRescaleLayer->getName(), (double)avg[b], targetMean);
             status = PV_FAILURE;
          }
          if (sigma[b]>tolerance && fabs(sigma[b]-targetStd)>tolerance) {
-            fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has std.dev. %f instead of target std.dev. %f\n", getName(), targetRescaleLayer->getName(), sigma, targetStd);
+            fprintf(stderr, "RescaleLayerTestProbe \"%s\": RescaleLayer \"%s\" has std.dev. %f instead of target std.dev. %f\n", getName(), targetRescaleLayer->getName(), (double)sigma[b], targetStd);
             status = PV_FAILURE;
          }
 
