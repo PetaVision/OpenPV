@@ -2335,7 +2335,7 @@ int HyPerCol::checkpointRead() {
          PV_Stream * timescalefile = PV_fopen(timescalepath,"r",false/*verifyWrites*/);
          if (timescalefile == NULL) {
             fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
-            fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", 1, 1);
+            fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", 1.0, 1.0);
          }
          else {
             for(int b = 0; b < nbatch; b++){

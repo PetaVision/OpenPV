@@ -96,7 +96,7 @@ int ShuffleLayer::allocateDataStructures(){
    for(int b = 0; b < getLayerLoc()->nbatch; b++){
       maxCount[b] = -99999999;
    }
-
+   return status;
 }
 
 int ShuffleLayer::communicateInitInfo() {

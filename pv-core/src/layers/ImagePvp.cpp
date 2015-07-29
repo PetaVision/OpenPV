@@ -63,6 +63,7 @@ int ImagePvp::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    //ioParam_pvpPath(ioFlag);
    ioParam_pvpFrameIdx(ioFlag);
    //ioParam_pvpBatchIdx(ioFlag);
+   return status;
 }
 
 //void ImagePvp::ioParam_inputPath(enum ParamsIOFlag ioFlag) {

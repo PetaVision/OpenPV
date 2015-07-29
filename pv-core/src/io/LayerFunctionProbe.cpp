@@ -112,6 +112,7 @@ int LayerFunctionProbe::outputState(double timef) {
          return PV_FAILURE;
       }
    }
+   return PV_SUCCESS;
 }  // end LayerFunctionProbe::outputState(float, HyPerLayer *)
 
 int LayerFunctionProbe::writeState(double timef, HyPerLayer * l, int batchIdx, pvdata_t value) {
