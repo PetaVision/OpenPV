@@ -373,6 +373,9 @@ void CudaRecvPost::setArgs(
    size_t workspaceMem = device->getMemory()/device->getNumConvKernels();
 
    int strideX, strideY;
+   int actualXBorder, actualYBorder;
+   assert(params.preNblt == params.preNbrt);
+   assert(params.preNbup == params.preNbdn);
    //One to many case
    if(preToPostScaleX < 1){
       float fmanyScale = (float)1/params.preToPostScaleX;
@@ -384,6 +387,19 @@ void CudaRecvPost::setArgs(
       params.manyScaleY = fmanyScale;
       strideX = 1;
       strideY = 1;
+
+      //Patch sizes must be odd multiple of many
+      if(nxp/params.manyScaleX% 2 == 0 || nyp/params.manyScaleY % 2 == 0){
+         printf("cuDNN: Running on a one to many connection with CUDNN must have patch size (%d, %d) be an odd muliple of many (%d, %d)\n", nxp, nyp, params.manyScaleX, params.manyScaleY);
+         exit(-1);
+      }
+
+      
+      //There's the case where the border of pre is made bigger through other connections. Need to calculate difference
+      //between current recv border and actual recv border
+      //This is calculating what the border would be if this was a one to one connection
+      actualXBorder = params.nxp/2;
+      actualYBorder = params.nyp/2;
    }
    //Many to one or one to one case
    else{
@@ -393,7 +409,18 @@ void CudaRecvPost::setArgs(
       assert(ceilf(preToPostScaleY) == preToPostScaleY);
       strideX = preToPostScaleX;
       strideY = preToPostScaleY;
+
+      //There's the case where the border of pre is made bigger through other connections. Need to calculate difference
+      //between current recv border and actual recv border
+      actualXBorder = (params.nxp-params.preToPostScaleX)/2;
+      actualYBorder = (params.nyp-params.preToPostScaleY)/2;
    }
+
+   int diffX = actualXBorder - params.preNblt;
+   int diffY = actualYBorder - params.preNbup;
+
+
+   //assert(diffX <= 0 && diffY <= 0);
 
    //Set up pre descriptor
    cudnnTensorDescriptor_t inputDescriptor;
@@ -430,18 +457,6 @@ void CudaRecvPost::setArgs(
    cudnnHandleError(status, "Set filter tensor descriptor");
    params.v_filterDescriptor = (void*)filterDescriptor;
 
-   //There's the case where the border of pre is made bigger through other connections. Need to calculate difference
-   //between current recv border and actual recv border
-   int actualXBorder = (params.nxp-params.preToPostScaleX)/2;
-   int actualYBorder = (params.nyp-params.preToPostScaleY)/2;
-
-   assert(params.preNblt == params.preNbrt);
-   assert(params.preNbup == params.preNbdn);
-
-   int diffX = actualXBorder - params.preNblt;
-   int diffY = actualYBorder - params.preNbup;
-
-   assert(diffX <= 0 && diffY <= 0);
 
    //Set convolution descriptor
    cudnnConvolutionDescriptor_t convDescriptor;
