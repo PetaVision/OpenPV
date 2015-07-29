@@ -28,6 +28,8 @@ skip_frame_index = [4, 4, 4, 4];
 }
 {% endhighlight %}
 
+myFile.txt
+
 {% highlight text %}
 0.png
 1.png
@@ -39,13 +41,14 @@ skip_frame_index = [4, 4, 4, 4];
 Here, batch index 0 will read frames 0, 4, 8 ..., batch index 1 will read 1, 5, 9... etc.
 
 *"byMovie"* and *"byImage"* explicitly sets the *start_frame_index* and *skip_frame_index*. Namely, assuming with a batch size of 4 and the input file having 40 frames:
-"byImage":
+
+*byImage*:
 {% highlight text %}
 start_frame_index = [0, 1, 2, 3];
 skip_frame_index = [4, 4, 4, 4];
 {% endhighlight %}
 
-"byMovie":
+*byMovie*:
 {% highlight text %}
 start_frame_index = [0, 10, 20, 30]
 skip_frame_index = [1, 1, 1, 1];
