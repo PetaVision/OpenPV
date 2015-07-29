@@ -3123,7 +3123,7 @@ unsigned int HyPerCol::getRandomSeed() {
 
 template <typename T>
 int HyPerCol::writeScalarToFile(const char * cp_dir, const char * group_name, const char * val_name, T val) {
-   writeArrayToFile(cp_dir, group_name, val_name, &val, 1);
+   return writeArrayToFile(cp_dir, group_name, val_name, &val, 1);
 }
 
 // Declare the instantiations of writeScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
@@ -3177,7 +3177,7 @@ template int HyPerCol::writeArrayToFile<double>(char const * cpDir, const char *
 
 template <typename T>
 int HyPerCol::readScalarFromFile(const char * cp_dir, const char * group_name, const char * val_name, T * val, T default_value) {
-   readArrayFromFile(cp_dir, group_name, val_name, val, 1, default_value);
+   return readArrayFromFile(cp_dir, group_name, val_name, val, 1, default_value);
 }
 
 // Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
