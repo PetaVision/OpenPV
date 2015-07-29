@@ -473,7 +473,7 @@ int BaseInput::postProcess(double timef, double dt){
          }
       }
    }
-
+   return PV_SUCCESS;
 }
 
 int BaseInput::exchange()
