@@ -2,3 +2,7 @@ CMakeCache.txt
 CMakeFiles
 Makefile
 *.cmake
+.sass-cache/
+Gemfile
+Gemfile.lock
+_site/
