@@ -3585,9 +3585,6 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 
    int nbatch = parent->getNBatch();
 
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided) if (parent->getThreadBatch())
-#endif
    for(int b = 0; b < nbatch; b++){
       pvdata_t * activityBatch = activity->data + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt) * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
       pvdata_t * gSynPatchHeadBatch = post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
@@ -3620,7 +3617,7 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 #endif // PV_USE_OPENMP_THREADS
 
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided) if (!parent->getThreadBatch())
+#pragma omp parallel for schedule(static)
 #endif
       for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
          int kPreExt;
@@ -3725,7 +3722,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
    int sf = 1;
 
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided) collapse(2)
+#pragma omp parallel for schedule(static) collapse(2)
 #endif
    for(int b = 0; b < nbatch; b++){
       for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++){

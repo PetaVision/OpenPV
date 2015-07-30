@@ -256,7 +256,7 @@ int applyGSyn_HyPerLayer1Channel(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t
    MEM_GLOBAL pvdata_t * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for( kbatch=0; kbatch<numNeurons*nbatch; kbatch++ )
 #else
@@ -279,7 +279,7 @@ int applyGSyn_HyPerLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V, ME
    MEM_GLOBAL pvdata_t * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for( kbatch=0; kbatch<numNeurons * nbatch; kbatch++ )
 #else
@@ -306,7 +306,7 @@ int applyGSyn_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * 
    if(isBinary > 0){
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
       for( kbatch=0; kbatch<numNeurons*nbatch; kbatch++ )
 #else
@@ -330,7 +330,7 @@ int applyGSyn_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * 
    else{
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
       for( kbatch=0; kbatch<numNeurons*nbatch; kbatch++ )
 #else
@@ -386,7 +386,7 @@ int applyGSyn_HyPerLCALayer(int nbatch, int numNeurons,
    MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for (kbatch = 0; kbatch < numNeurons*nbatch; kbatch++)
 #else
@@ -421,7 +421,7 @@ int applyGSyn_HyPerLCALayer2(int nbatch, int numNeurons,
 
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for (kbatch = 0; kbatch < numNeurons*nbatch; kbatch++)
 #else
@@ -458,7 +458,7 @@ int applyGSyn_ISTALayer(int nbatch, int numNeurons,
   MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input                                              
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(static)
    #endif
   for (kbatch = 0; kbatch < numNeurons*nbatch; kbatch++)
 #else
@@ -493,7 +493,7 @@ int applyGSyn_ISTALayer2(int nbatch, int numNeurons,
 
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(static)
    #endif
   for (kbatch = 0; kbatch < numNeurons*nbatch; kbatch++)
 #else
@@ -531,7 +531,7 @@ int applyGSyn_ANNWhitenedLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t *
    MEM_GLOBAL pvdata_t * GSynAveSquaredInput = &GSynHead[2*nbatch*numNeurons]; // un-whitened input
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for( k=0; k<numNeurons * nbatch; k++ )
 #else
@@ -661,7 +661,7 @@ int updateV_ANNErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
    int status;
    status = applyGSyn_HyPerLayer(nbatch, numNeurons, V, GSynHead);
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for(int i = 0; i < numNeurons*nbatch; i++){
        V[i] *= errScale;
@@ -681,7 +681,7 @@ int updateV_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
    int status;
    status = applyGSyn_LabelErrorLayer(nbatch, numNeurons, V, GSynHead, nx, ny, nf, lt, rt, dn, up, isBinary);
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for(int i = 0; i < numNeurons*nbatch; i++){
        V[i] *= errScale;
@@ -716,7 +716,7 @@ int updateV_ANNDivInh(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V, MEM_G
 
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for( k=0; k<numNeurons*nbatch; k++ )
 #else
@@ -747,7 +747,7 @@ int updateV_GenerativeLayer(int nbatch, int numNeurons,
    int k;
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for (k = 0; k < numNeurons*nbatch; k++)
 #else
@@ -770,7 +770,7 @@ int updateV_PoolingANNLayer(int nbatch, int numNeurons,
    MEM_GLOBAL pvdata_t * GSynInh = &GSynHead[CHANNEL_INH * nbatch * numNeurons];
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for (k = 0; k < numNeurons * nbatch; k++)
 #else
@@ -790,7 +790,7 @@ int updateV_PtwiseProductLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t *
    MEM_GLOBAL pvdata_t * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for( k=0; k<numNeurons*nbatch; k++ )
 #else
@@ -823,7 +823,7 @@ int applyVMax_ANNLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       int kbatch = 0;
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
       #ifdef PV_USE_OPENMP_THREADS
-      #pragma omp parallel for schedule(guided)
+      #pragma omp parallel for schedule(static)
       #endif
       for (kbatch = 0; kbatch < numNeurons * nbatch; kbatch++)
 #else
@@ -850,7 +850,7 @@ int applyVThresh_ANNLayer(int nbatch, int numNeurons,
       int kbatch = 0;
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
       for (kbatch = 0; kbatch < numNeurons * nbatch; kbatch++)
 #else
@@ -882,7 +882,7 @@ int applyVThresh_ANNErrorLayer(int nbatch, int numNeurons,
       int kbatch = 0;
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
       #ifdef PV_USE_OPENMP_THREADS
-      #pragma omp parallel for schedule(guided)
+      #pragma omp parallel for schedule(static)
       #endif
          for (kbatch = 0; kbatch < numNeurons * nbatch; kbatch++)
 #else
@@ -909,7 +909,7 @@ int squareV_ANNSquaredLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V)
    int k;
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for( k=0; k<numNeurons*nbatch; k++ )
 #else
@@ -927,7 +927,7 @@ int setActivity_HyPerLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A, 
    int kbatch;
    #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for( kbatch=0; kbatch<numNeurons*nbatch; kbatch++ )
    #else
@@ -990,7 +990,7 @@ int setActivity_AccumulateLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t 
    int kbatch;
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
       #ifdef PV_USE_OPENMP_THREADS
-      #pragma omp parallel for schedule(guided)
+      #pragma omp parallel for schedule(static)
       #endif
    for( kbatch=0; kbatch<numNeurons*nbatch; kbatch++ )
 #else
@@ -1012,7 +1012,7 @@ int setActivity_GapLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A, ME
    int kbatch;
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
       #ifdef PV_USE_OPENMP_THREADS
-      #pragma omp parallel for schedule(guided)
+      #pragma omp parallel for schedule(static)
       #endif
       for( kbatch=0; kbatch<numNeurons*nbatch; kbatch++ )
 #else
@@ -1045,7 +1045,7 @@ int setActivity_SigmoidLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * A
    int kbatch;
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
    for( kbatch=0; kbatch<numNeurons; kbatch++ )
 #else
@@ -1084,7 +1084,7 @@ int resetGSynBuffers_HyPerLayer(int nbatch, int numNeurons, int num_channels, ME
       int k;
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
       for( k=0; k<numNeurons*nbatch; k++ )
 #else
@@ -1105,7 +1105,7 @@ int resetGSynBuffers_PoolingIndexLayer(int nbatch, int numNeurons, int num_chann
       int k;
 #if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
    #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for schedule(guided)
+   #pragma omp parallel for schedule(static)
    #endif
       for( k=0; k<numNeurons*nbatch; k++ )
 #else
@@ -1153,7 +1153,7 @@ int setActivity_KmeansLayer(int nbatch, int numNeurons, int num_channels, MEM_GL
                    }
                
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(static)
 #endif
                    for(int k=0; k<nf; k++ )
                    {
@@ -1179,7 +1179,7 @@ int setActivity_KmeansLayer(int nbatch, int numNeurons, int num_channels, MEM_GL
                    mean /= nf;
                    
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(static)
 #endif
                    for(int  k=0; k<nf; k++ )
                    {
