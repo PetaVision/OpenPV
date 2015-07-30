@@ -7,18 +7,16 @@ function extractImagesOctave(batch_name, cnt)
 %                                                                                          
 %
 % 1) Download CIFAR dataset from http://www.cs.toronto.edu/~kriz/cifar.html
-%	Make sure to download the Matlab version
-%	Unzip the .tar file
-%
-% 2) Modify this file so that:
-%	mkdir('path/to/where/you/want/your/images')
-%	output_dir('match/the/first/path/to/where/you/want/your/images/')   Make sure to end with a '/'
+%	Download the Matlab version    
+%          $ wget "http://www.cs.toronto.edu/~kriz/cifar-10-matlab.tar.gz"
+%       Unzip the tar file
+%          $ tar -zxvf cifar-10-matlab.tar.gz
 %
 % 3) Extract the CIFAR dataset:
 %	Navigate to the location of your unzipped cifar.mat files
 %	Open octave 
 %
-%	> addpath('~/path/to/PetaVision/mlab/HyPerLCA')
+%	> addpath('~/path/to/master/pv-core/mlab/HyPerLCA')
 %	> extractImagesOctave(batch_name, cnt)
 %
 %	 batch_name:	mat file given as string, e.g 'data_batch_1.mat'
@@ -26,7 +24,7 @@ function extractImagesOctave(batch_name, cnt)
 %		        accounts for having individual .mat files
 %		        cnt = 3 will result in numbers 3xxxx
 %
-%	*NOTE: you can also navigate to ~/path/to/PetaVision/mlab/HyPerLCA
+%	*NOTE: you can also navigate to ~/master/pv-core/mlab/HyPerLCA
 %	       and avoid needing to use addpath('')
 %
 % 	You'll need to do this for each batch.mat file or you can make a 
@@ -34,10 +32,9 @@ function extractImagesOctave(batch_name, cnt)
 %
 % 4) Go forth and prosper	
 
- 
+ pwd = pwd(); 
 
  load(batch_name)
-  mkdir('/Users/bbroompeltz/Documents/workspace/dataset/CIFAR');
   if ~isempty(strfind(batch_name, 'data_batch_'))
     base_batch_name_start = strfind(batch_name, 'data_batch_');
   elseif ~isempty(strfind(batch_name, 'test_batch'))
@@ -47,7 +44,7 @@ function extractImagesOctave(batch_name, cnt)
   endif
   base_batch_name_end = strfind(batch_name, '.mat')-1;
   base_batch_name = batch_name(base_batch_name_start:base_batch_name_end);
-  output_dir = ['/Users/bbroompeltz/Documents/workspace/dataset/CIFAR/',base_batch_name];
+  output_dir = [base_batch_name];
   mkdir(output_dir);
 				% get dimension of data extracted from .mat file
 				% xl = number of images, yl = size of image
@@ -67,12 +64,14 @@ function extractImagesOctave(batch_name, cnt)
   
 				% create randorder file for PV. Order within .mat file is random already
 				% appends new lines to the end of the file
-  randorder_pathname = [output_dir,'/','randorder.txt'];
+  randorder_pathname = [output_dir,'/',base_batch_name,'_randorder.txt'];
   fid = fopen(randorder_pathname, 'w');
   if fid <=0 
     error(["fid = ", num2str(fid), ": randorder_pathname = ", randorder_pathname]);
   endif
-  
+
+ progress = sprintf('Finished %s',base_batch_name)
+ disp(progress) 
 				% loop through all elements in .mat file
   for i=1 : xl
 				% get image in 3 1D vectors
@@ -91,11 +90,11 @@ function extractImagesOctave(batch_name, cnt)
     num = sprintf("%05d",i+cnt*10000);
     CIFAR_name = strcat(output_dir,"/", int2str(labels(i)),'/CIFAR_',num,'.png');
 				% save filename and path to randorder file
-    fprintf(fid,"%s\n",CIFAR_name);
+    fprintf(fid,"%s/%s\n",pwd,CIFAR_name);
 				% convert to uint8 and write image
     im1 = uint8(im);
     imwrite(im1, CIFAR_name);
   endfor
   fclose(fid);		
-
+copyfile(randorder_pathname,pwd);
 endfunction
