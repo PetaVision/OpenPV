@@ -22,7 +22,7 @@ protected:
    L2NormProbe();
    int initL2NormProbe(const char * probeName, HyPerCol * hc);
    virtual void initFunction();
-   virtual int writeState(double timed, HyPerLayer * l, pvdata_t value);
+   virtual int writeState(double timed, HyPerLayer * l, int batchIdx, pvdata_t value);
 
 private:
    int initL2NormProbe_base() {return PV_SUCCESS;}

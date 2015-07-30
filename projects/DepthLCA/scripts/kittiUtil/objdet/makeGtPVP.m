@@ -1,10 +1,11 @@
-labelDir = '/nh/compneuro/Data/KITTI/objdet/training/label_2';
-outDir = '/nh/compneuro/Data/KITTI/objdet/training/';
+labelDir = '~/mountData/kitti/objdet/training/label_2';
+outDir = '~/mountData/kitti/objdet/training/';
+imgUrl = 's3://kitti/objdet/training/image_2'
 
 numData = 7480; %Zero indexed
 
-imageSizeX = 1242;
-imageSizeY = 375;
+maxImageSizeX = 1242;
+maxImageSizeY = 376;
 
 function colorVec = getColorVec(bbType)
    if(strcmp(bbType, 'Car'))
@@ -110,15 +111,34 @@ end
 
 
 addpath('devkit/matlab/');
+addpath('~/workspace/PetaVision/mlab/util/');
+
 
 
 gtData = {};
 dncData = {};
 
+
+%for imgIdx = 0:numData
+%   disp(['Current max img size (', num2str(maxImageSizeX), ',', num2str(maxImageSizeY), ')']);
+%   disp([num2str(imgIdx), ' out of ', num2str(numData)])
+%   cmdStr = sprintf('aws s3 cp %s/%06d.png %s/tmp.png', imgUrl, imgIdx, outDir);
+%   system(cmdStr);
+%   im = imread([outDir, '/tmp.png']);
+%   [imageSizeX, imageSizeY, drop] = size(im);
+%   if(imageSizeX > maxImageSizeX)
+%      maxImageSizeX = imageSizeX;
+%   end
+%   if(imageSizeY > maxImageSizeY)
+%      maxImageSizeY = imageSizeY;
+%   end
+%end
+
+disp('Calc indexes');
 for imgIdx = 0:numData
    disp([num2str(imgIdx), ' out of ', num2str(numData)])
    bbObjs = readLabels(labelDir, imgIdx);
-   [outIdxs, dncIdxs] = buildIdxList(bbObjs, imageSizeX, imageSizeY);
+   [outIdxs, dncIdxs] = buildIdxList(bbObjs, maxImageSizeX, maxImageSizeY);
    gtData{imgIdx+1}.time = imgIdx;
    gtData{imgIdx+1}.values = outIdxs;
    dncData{imgIdx+1}.time = imgIdx;
@@ -126,8 +146,8 @@ for imgIdx = 0:numData
 end
 
 %Write to file
-writepvpsparseactivityfile([outDir, '/kittiGT.pvp'], gtData, imageSizeX, imageSizeY, 8);
-writepvpsparseactivityfile([outDir, '/dncData.pvp'], dncData, imageSizeX, imageSizeY, 1);
+writepvpsparseactivityfile([outDir, '/kittiGT.pvp'], gtData, maxImageSizeX, maxImageSizeY, 8);
+writepvpsparseactivityfile([outDir, '/dncData.pvp'], dncData, maxImageSizeX, maxImageSizeY, 1);
 
 
 

@@ -115,7 +115,7 @@ void cudnnHandleError(cudnnStatus_t status, const char* errStr){
 
 //Kernel code
 __global__
-void HyPerLayer_recv_post(recv_post_params params){
+void HyPerLayer_recv_post(recv_post_params params, int batch){
    ////Shared memory buffers are declared
    extern __shared__ char sharedMem[];
    __shared__ float* preBuffer;
@@ -190,13 +190,15 @@ void HyPerLayer_recv_post(recv_post_params params){
    //Wait for shared memory loads
    __syncthreads();
 
+   int preBatchOffset = batch * (params.preNx + params.preNblt + params.preNbrt) * (params.preNy + params.preNbup + params.preNbdn) * params.preNf; 
+
    for(int ky = 0; ky < params.nyp; ky++){
       //Copy global to local, do this with all threads
       if(params.preDataLocal){
          //Pre buffer
          if(localIndex < numCopyThreads){
             for(int i = localIndex; i < numXfBuffer; i+= numCopyThreads){
-               preBuffer[i] = params.preData[localStartSourceExt + ky * params.sy + i];
+               preBuffer[i] = params.preData[preBatchOffset + localStartSourceExt + ky * params.sy + i];
             }
          }
       }
@@ -215,7 +217,7 @@ void HyPerLayer_recv_post(recv_post_params params){
          activityY = &(preBuffer[xOffset * params.nfp]);
       }
       else{
-         activityY = &(params.preData[startSourceExt + ky * params.sy]);
+         activityY = &(params.preData[preBatchOffset + startSourceExt + ky * params.sy]);
       }
 
       float* weightY = weightsBuffer;
@@ -229,14 +231,13 @@ void HyPerLayer_recv_post(recv_post_params params){
       __syncthreads();
    }
    ////Sum into global memory
-   params.postGsyn[kTargetRes] += postBuffer[localIndex];
-   //if(isnan(params.postGsyn[kTargetRes])){
-   //   printf("breakHere\n");
-   //}
+   int postBatchOffset = batch * params.nxRes * params.nyRes * params.nf; 
+   params.postGsyn[postBatchOffset + kTargetRes] += postBuffer[localIndex];
 }
 
 
 CudaRecvPost::CudaRecvPost(CudaDevice* inDevice):CudaKernel(inDevice){
+   //inDevice->incrementConvKernels();
 }
 
 CudaRecvPost::~CudaRecvPost(){
@@ -271,6 +272,7 @@ CudaRecvPost::~CudaRecvPost(){
 }
 
 void CudaRecvPost::setArgs(
+      const int nbatch,
       const int nxRes, //num post neurons
       const int nyRes,
       const int nf,
@@ -316,6 +318,7 @@ void CudaRecvPost::setArgs(
 
       const bool preDataLocal
    ){
+   params.nbatch = nbatch;
    params.nxRes = nxRes;
    params.nyRes = nyRes;
    params.nf = nf;
@@ -364,13 +367,15 @@ void CudaRecvPost::setArgs(
    params.preDataLocal = preDataLocal;
 
 #ifdef PV_USE_CUDNN
-   ////Can only do many pre to one post
-   //if(preToPostScaleX < 1 || preToPostScaleY < 1){
-   //   printf("One to Many case not implemented with CUDNN\n");
-   //   exit(-1);
-   //}
+   //CUDNN code
+   //Calculate how much space is left on the gpu for the workspace memory
+   //Do not add to device's count since there might be more than one kernel that needs workspace memory
+   size_t workspaceMem = device->getMemory()/device->getNumConvKernels();
 
    int strideX, strideY;
+   int actualXBorder, actualYBorder;
+   assert(params.preNblt == params.preNbrt);
+   assert(params.preNbup == params.preNbdn);
    //One to many case
    if(preToPostScaleX < 1){
       float fmanyScale = (float)1/params.preToPostScaleX;
@@ -382,6 +387,19 @@ void CudaRecvPost::setArgs(
       params.manyScaleY = fmanyScale;
       strideX = 1;
       strideY = 1;
+
+      //Patch sizes must be odd multiple of many
+      if(nxp/params.manyScaleX% 2 == 0 || nyp/params.manyScaleY % 2 == 0){
+         printf("cuDNN: Running on a one to many connection with CUDNN must have patch size (%d, %d) be an odd muliple of many (%d, %d)\n", nxp, nyp, params.manyScaleX, params.manyScaleY);
+         exit(-1);
+      }
+
+      
+      //There's the case where the border of pre is made bigger through other connections. Need to calculate difference
+      //between current recv border and actual recv border
+      //This is calculating what the border would be if this was a one to one connection
+      actualXBorder = params.nxp/2;
+      actualYBorder = params.nyp/2;
    }
    //Many to one or one to one case
    else{
@@ -391,7 +409,18 @@ void CudaRecvPost::setArgs(
       assert(ceilf(preToPostScaleY) == preToPostScaleY);
       strideX = preToPostScaleX;
       strideY = preToPostScaleY;
+
+      //There's the case where the border of pre is made bigger through other connections. Need to calculate difference
+      //between current recv border and actual recv border
+      actualXBorder = (params.nxp-params.preToPostScaleX)/2;
+      actualYBorder = (params.nyp-params.preToPostScaleY)/2;
    }
+
+   int diffX = actualXBorder - params.preNblt;
+   int diffY = actualYBorder - params.preNbup;
+
+
+   //assert(diffX <= 0 && diffY <= 0);
 
    //Set up pre descriptor
    cudnnTensorDescriptor_t inputDescriptor;
@@ -399,7 +428,7 @@ void CudaRecvPost::setArgs(
    cudnnHandleError(status, "Create input tensor descriptor");
 
    status = cudnnSetTensor4dDescriptor(inputDescriptor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
-      1, //Number of images
+      nbatch, //Number of images
       params.preNf, //Number of feature maps per image
       params.preNy + params.preNbup + params.preNbdn, //Height of each feature map
       params.preNx + params.preNblt + params.preNbrt); //Width of each feature map
@@ -428,18 +457,6 @@ void CudaRecvPost::setArgs(
    cudnnHandleError(status, "Set filter tensor descriptor");
    params.v_filterDescriptor = (void*)filterDescriptor;
 
-   //There's the case where the border of pre is made bigger through other connections. Need to calculate difference
-   //between current recv border and actual recv border
-   int actualXBorder = (params.nxp-params.preToPostScaleX)/2;
-   int actualYBorder = (params.nyp-params.preToPostScaleY)/2;
-
-   assert(params.preNblt == params.preNbrt);
-   assert(params.preNbup == params.preNbdn);
-
-   int diffX = actualXBorder - params.preNblt;
-   int diffY = actualYBorder - params.preNbup;
-
-   assert(diffX <= 0 && diffY <= 0);
 
    //Set convolution descriptor
    cudnnConvolutionDescriptor_t convDescriptor;
@@ -467,11 +484,11 @@ void CudaRecvPost::setArgs(
    cudnnHandleError(status, "Get output tensor descriptor");
 
    //Make sure dimensions match up with PV layer
-   if(out_n != 1 || out_h != nyRes/params.manyScaleY || out_w != nxRes/params.manyScaleX || out_c != nf*params.manyScaleX*params.manyScaleY){
+   if(out_n != nbatch || out_h != nyRes/params.manyScaleY || out_w != nxRes/params.manyScaleX || out_c != nf*params.manyScaleX*params.manyScaleY){
       printf("CUDNN:: Dimensions don't match: \n");
       printf("Dimensions of output tensor (n, y, x, f): %d, %d, %d, %d\n", out_n, out_h, out_w, out_c);
-      printf("Scaled dimensions of output PV layer (n, y, x, f): 1, %d, %d, %d\n", nyRes/params.manyScaleY, nxRes/params.manyScaleX, nf*params.manyScaleX*params.manyScaleY);
-      printf("Actual dimensions of output PV layer (n, y, x, f): 1, %d, %d, %d\n", nyRes, nxRes, nf);
+      printf("Scaled dimensions of output PV layer (n, y, x, f): %d, %d, %d, %d\n", nbatch, nyRes/params.manyScaleY, nxRes/params.manyScaleX, nf*params.manyScaleX*params.manyScaleY);
+      printf("Actual dimensions of output PV layer (n, y, x, f): %d, %d, %d, %d\n", nbatch, nyRes, nxRes, nf);
       exit(-1);
    }
 
@@ -480,7 +497,7 @@ void CudaRecvPost::setArgs(
    status = cudnnCreateTensorDescriptor(&outputDescriptor);
    cudnnHandleError(status, "Create output tensor descriptor");
    status = cudnnSetTensor4dDescriptor(outputDescriptor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
-      1, //Number of images
+      nbatch, //Number of images
       nf*params.manyScaleX*params.manyScaleY, //Number of feature maps per image
       nyRes/params.manyScaleY, //ny restricted
       nxRes/params.manyScaleX); //nx restricted
@@ -498,9 +515,9 @@ void CudaRecvPost::setArgs(
       convDescriptor,
       outputDescriptor,
       //TODO: use this flag, but we need to calculate how much free space is left on the GPU and pass it in as next argument
-      //CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT
-      CUDNN_CONVOLUTION_FWD_NO_WORKSPACE,
-      0,
+      CUDNN_CONVOLUTION_FWD_SPECIFY_WORKSPACE_LIMIT,
+      //CUDNN_CONVOLUTION_FWD_NO_WORKSPACE,
+      workspaceMem,
       convAlgo
    );
    cudnnHandleError(status, "Get convolution forward algorithm");
@@ -534,9 +551,10 @@ void CudaRecvPost::permuteDatastorePVToCudnn(){
    int ny = params.preNy + params.preNbup + params.preNbdn;
    int nx = params.preNx + params.preNblt + params.preNbrt;
    int nf = params.preNf;
+   int nbatch = params.nbatch;
 
    //Calculate grid and work size
-   int numNeurons = ny * nx * nf;
+   int numNeurons = nbatch * ny * nx * nf;
    int blockSize = device->get_max_threads();
    //Ceil to get all weights
    int gridSize = ceil((float)numNeurons/blockSize);
@@ -546,10 +564,8 @@ void CudaRecvPost::permuteDatastorePVToCudnn(){
 
    //Call function
    //Datastore will never get reshaped, so manyScale will always be 1
-   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_preData, params.preData, 1, ny, nx, nf, 1, 1);
+   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_preData, params.preData, nbatch, ny, nx, nf, 1, 1);
    handleCallError("Permute PV to CUDNN");
-
-   device->syncDevice();
 }
 
 void CudaRecvPost::permuteGSynPVToCudnn(int channel){
@@ -557,16 +573,17 @@ void CudaRecvPost::permuteGSynPVToCudnn(int channel){
    int ny = params.nyRes;
    int nx = params.nxRes;
    int nf = params.nf;
+   int nbatch = params.nbatch;
 
    //Calculate grid and work size
-   int numNeurons = ny * nx * nf;
+   int numNeurons = nbatch * ny * nx * nf;
    float* gSynPatchHead = &(params.postGsyn[numNeurons * channel]);
 
    int blockSize = device->get_max_threads();
    //Ceil to get all weights
    int gridSize = ceil((float)numNeurons/blockSize);
    //Call function
-   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_gSyn, gSynPatchHead, 1, ny, nx, nf, params.manyScaleX, params.manyScaleY);
+   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_gSyn, gSynPatchHead, nbatch, ny, nx, nf, params.manyScaleX, params.manyScaleY);
    handleCallError("Permute GSyn PV to CUDNN");
 }
 
@@ -575,9 +592,10 @@ void CudaRecvPost::permuteGSynCudnnToPV(int channel){
    int ny = params.nyRes;
    int nx = params.nxRes;
    int nf = params.nf;
+   int nbatch = params.nbatch;
 
    //Calculate grid and work size
-   int numNeurons = ny * nx * nf;
+   int numNeurons = nbatch * ny * nx * nf;
    float* gSynPatchHead = &(params.postGsyn[numNeurons * channel]);
 
    int blockSize = device->get_max_threads();
@@ -585,7 +603,7 @@ void CudaRecvPost::permuteGSynCudnnToPV(int channel){
    int gridSize = ceil((float)numNeurons/blockSize);
    //Call function
    //printf("Calling gsyn Cudnn To PV with (%d, %d, %d)\n", ny, nx, nf);
-   CudaPermuteCudnnToPV<<<gridSize, blockSize, 0, device->getStream()>>>(gSynPatchHead, params.cudnn_gSyn, 1, ny, nx, nf, params.manyScaleX, params.manyScaleY);
+   CudaPermuteCudnnToPV<<<gridSize, blockSize, 0, device->getStream()>>>(gSynPatchHead, params.cudnn_gSyn, nbatch, ny, nx, nf, params.manyScaleX, params.manyScaleY);
    handleCallError("Permute GSyn CUDNN to PV");
 }
 
@@ -686,8 +704,12 @@ int CudaRecvPost::do_run(){
       }
    }
 
-   HyPerLayer_recv_post<<<grid_size, block_size, sharedSize, device->getStream()>>>(params);
-   handleCallError("Recv from post");
+   //TODO make this function handle multiple batches
+   //For now, since we mostly use CUDNN, queue many recvs based on batch
+   for(int b = 0; b < params.nbatch; b++){
+      HyPerLayer_recv_post<<<grid_size, block_size, sharedSize, device->getStream()>>>(params, b);
+      handleCallError("Recv from post");
+   }
 #endif
 
    return 0;

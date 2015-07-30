@@ -18,6 +18,7 @@
 #define REQUIREALLZEROACTIVITYPROBE_HPP_
 
 #include "StatsProbe.hpp"
+#include "../columns/HyPerCol.hpp"
 
 namespace PV {
 

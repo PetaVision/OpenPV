@@ -6,13 +6,15 @@
  */
 
 #include "PtwiseLinearTransferLayer.hpp"
-#include "../layers/updateStateFunctions.h"
+#include "updateStateFunctions.h"
+#include <limits>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void PtwiseLinearTransferLayer_update_state(
+    const int nbatch,
     const int numNeurons,
     const int nx,
     const int ny,
@@ -26,8 +28,7 @@ void PtwiseLinearTransferLayer_update_state(
     int numVertices,
     float * verticesV,
     float * verticesA,
-    float slopeNegInf,
-    float slopePosInf,
+    float * slopes,
     int num_channels,
     float * GSynHead,
     float * activity);
@@ -60,6 +61,7 @@ int PtwiseLinearTransferLayer::initialize_base() {
    numVertices = 0;
    verticesV = NULL;
    verticesA = NULL;
+   slopes = NULL;
    slopeNegInf = 1.0f;
    slopePosInf = 1.0f;
    return PV_SUCCESS;
@@ -70,6 +72,7 @@ int PtwiseLinearTransferLayer::initialize(const char * name, HyPerCol * hc) {
    assert(status == PV_SUCCESS);
 
    status |= checkVertices();
+   status |= setSlopes();
 //#ifdef PV_USE_OPENCL
 //   numEvents=NUM_ANN_EVENTS;
 //#endif
@@ -261,12 +264,40 @@ int PtwiseLinearTransferLayer::checkVertices() {
    return status;
 }
 
+int PtwiseLinearTransferLayer::setSlopes() {
+   assert(numVertices>0);
+   assert(verticesA!=NULL);
+   assert(verticesV!=NULL);
+   slopes = (float *) malloc((size_t)(numVertices+1)*sizeof(*slopes));
+   if (slopes == NULL) {
+      fprintf(stderr, "%s \"%s\" error: unable to allocate memory for transfer function slopes: %s\n",
+            parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+      exit(EXIT_FAILURE);
+      
+   }
+   slopes[0] = slopeNegInf;
+   slopes[numVertices] = slopePosInf;
+   for (int k=1; k<numVertices; k++) {
+      float V1 = verticesV[k-1];
+      float V2 = verticesV[k];
+      if (V1!=V2) {
+         slopes[k] = (verticesA[k]-verticesA[k-1])/(V2-V1);
+      }
+      else {
+         slopes[k] = verticesA[k]>verticesA[k-1] ? std::numeric_limits<float>::infinity() :
+                     verticesA[k]<verticesA[k-1] ? -std::numeric_limits<float>::infinity() :
+                     std::numeric_limits<float>::quiet_NaN();
+      }
+   }
+   return PV_SUCCESS;
+}
+
 int PtwiseLinearTransferLayer::resetGSynBuffers(double timef, double dt) {
    int status = PV_SUCCESS;
    if (GSyn == NULL) return PV_SUCCESS;
    bool clearNow = clearGSynInterval <= 0 || timef >= nextGSynClearTime;
    if (clearNow) {
-      resetGSynBuffers_HyPerLayer(this->getNumNeurons(), getNumChannels(), GSyn[0]);
+      resetGSynBuffers_HyPerLayer(parent->getNBatch(), this->getNumNeurons(), getNumChannels(), GSyn[0]);
    }
    if (clearNow > 0) {
       nextGSynClearTime += clearGSynInterval;   
@@ -274,27 +305,21 @@ int PtwiseLinearTransferLayer::resetGSynBuffers(double timef, double dt) {
    return status;
 }
 
-//! new PtwiseLinearTransferLayer update state, to add support for GPU kernel.
+//! PtwiseLinearTransferLayer update state function, to add support for GPU kernel.
 //
 /*!
  * REMARKS:
- *      - The kernel does the following:
-//   HyPerLayer::updateV();
- *      - V = GSynExc - GSynInh
-//   applyVMax(); (see below)
-//   applyVThresh(); (see below)
- *      - Activity = V
- *
- *
+ *      - The kernel calls PtwiseLinearTransferLayer_update_state in
+ *        updateStateFunctions.h, which calls
+ *        applyGSyn_HyPerLayer (sets V = GSynExc - GSynInh)
+ *        setActivity_PtwiseLinearTransferLayer (computes A from V)
  */
 int PtwiseLinearTransferLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
       pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
-   //update_timer->start();
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag) {
 //      updateStateOpenCL(time, dt);
-//      //HyPerLayer::updateState(time, dt);
 //   }
 //   else {
 //#endif
@@ -302,13 +327,14 @@ int PtwiseLinearTransferLayer::doUpdateState(double time, double dt, const PVLay
       int ny = loc->ny;
       int nf = loc->nf;
       int num_neurons = nx*ny*nf;
-      PtwiseLinearTransferLayer_update_state(num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopeNegInf, slopePosInf, num_channels, gSynHead, A);
+      int nbatch = loc->nbatch;
+      PtwiseLinearTransferLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopes, num_channels, gSynHead, A);
+      PtwiseLinearTransferLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopes, num_channels, gSynHead, A);
 
 //#ifdef PV_USE_OPENCL
 //   }
 //#endif
 
-   //update_timer->stop();
    return PV_SUCCESS;
 }
 
@@ -317,11 +343,10 @@ int PtwiseLinearTransferLayer::setActivity() {
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
+   int nbatch = loc->nbatch;
    PVHalo const * halo = &loc->halo;
    int num_neurons = nx*ny*nf;
-   int status;
-   status = setActivity_PtwiseLinearTransferLayer(num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, numVertices, verticesA, verticesV, slopeNegInf, slopePosInf);
-   return status;
+   return setActivity_PtwiseLinearTransferLayer(nbatch, num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, numVertices, verticesV, verticesA, slopes);
 }
 
 int PtwiseLinearTransferLayer::checkpointRead(char const * cpDir, double * timeptr) {

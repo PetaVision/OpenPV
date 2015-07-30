@@ -118,6 +118,7 @@ int spike(float timed, float dt,
 //
 CL_KERNEL
 void Retina_spiking_update_state (
+    const int nbatch,
     const int numNeurons,
     const double timed,
     const double dt,
@@ -136,47 +137,54 @@ void Retina_spiking_update_state (
     CL_MEM_GLOBAL float * activity,
     CL_MEM_GLOBAL float * prevTime)
 {
-   int k;
-   float burst_status = calcBurstStatus(timed, params);
+
+   CL_MEM_GLOBAL float * phiExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
+   CL_MEM_GLOBAL float * phiInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
+   for(int b = 0; b < nbatch; b++){
+      CL_MEM_GLOBAL uint4* rndBatch = rnd + b * nx*ny*nf;
+      CL_MEM_GLOBAL float* phiExcBatch = phiExc + b*nx*ny*nf;
+      CL_MEM_GLOBAL float* phiInhBatch = phiInh + b*nx*ny*nf;
+      CL_MEM_GLOBAL float* prevTimeBatch = prevTime + b * (nx+lt+rt)*(ny+up+dn)*nf;
+      CL_MEM_GLOBAL float* activityBatch = activity + b * (nx+lt+rt)*(ny+up+dn)*nf;
+
+      
+      int k;
+      float burst_status = calcBurstStatus(timed, params);
+   #ifndef PV_USE_OPENCL
+   for (k = 0; k < nx*ny*nf; k++) {
+   #else
+      k = get_global_id(0);
+   #endif
+
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+
+      //
+      // kernel (nonheader part) begins here
+      //
+      
+      // load local variables from global memory
+      //
+      uint4 l_rnd = rndBatch[k]; 
+      float l_phiExc = phiExcBatch[k];
+      float l_phiInh = phiInhBatch[k];
+      float l_prev   = prevTimeBatch[kex];
+      float l_activ;
+
+      l_activ = (float) spike(timed, dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, burst_status, params);
+      l_prev  = (l_activ > 0.0f) ? timed : l_prev;
+
+      //l_phiExc = 0.0f;
+      //l_phiInh = 0.0f;
+
+      // store local variables back to global memory
+      //
+      rndBatch[k] = l_rnd;
+      prevTimeBatch[kex] = l_prev;
+      activityBatch[kex] = l_activ;
 #ifndef PV_USE_OPENCL
-for (k = 0; k < nx*ny*nf; k++) {
-#else
-   k = get_global_id(0);
+      }
 #endif
-
-   int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-
-   //
-   // kernel (nonheader part) begins here
-   //
-   
-   // load local variables from global memory
-   //
-   uint4 l_rnd = rnd[k]; 
-   CL_MEM_GLOBAL float * phiExc = &GSynHead[CHANNEL_EXC*numNeurons];
-   CL_MEM_GLOBAL float * phiInh = &GSynHead[CHANNEL_INH*numNeurons];
-   float l_phiExc = phiExc[k];
-   float l_phiInh = phiInh[k];
-   float l_prev   = prevTime[kex];
-   float l_activ;
-
-   l_activ = (float) spike(timed, dt, l_prev, (l_phiExc - l_phiInh), &l_rnd, burst_status, params);
-   l_prev  = (l_activ > 0.0f) ? timed : l_prev;
-
-   //l_phiExc = 0.0f;
-   //l_phiInh = 0.0f;
-
-   // store local variables back to global memory
-   //
-   rnd[k] = l_rnd;
-   //phiExc[k] = l_phiExc;
-   //phiInh[k] = l_phiInh;
-   prevTime[kex] = l_prev;
-   activity[kex] = l_activ;
-
-#ifndef PV_USE_OPENCL
    }
-#endif
 
 }
 
@@ -187,6 +195,7 @@ for (k = 0; k < nx*ny*nf; k++) {
 //
 CL_KERNEL
 void Retina_nonspiking_update_state (
+    const int nbatch,
     const int numNeurons,
     const double timed,
     const double dt,
@@ -205,40 +214,46 @@ void Retina_nonspiking_update_state (
 {
    int k;
    float burstStatus = calcBurstStatus(timed, params);
-#ifndef PV_USE_OPENCL
-for (k = 0; k < nx*ny*nf; k++) {
-#else
-   k = get_global_id(0);
-#endif
 
-   int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+   CL_MEM_GLOBAL float * phiExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
+   CL_MEM_GLOBAL float * phiInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
 
-   //
-   // kernel (nonheader part) begins here
-   //
-   
-   // load local variables from global memory
-   //
-   CL_MEM_GLOBAL float * phiExc = &GSynHead[CHANNEL_EXC*numNeurons];
-   CL_MEM_GLOBAL float * phiInh = &GSynHead[CHANNEL_INH*numNeurons];
-   float l_phiExc = phiExc[k];
-   float l_phiInh = phiInh[k];
-   float l_activ;
+   for(int b = 0; b < nbatch; b++){
+      CL_MEM_GLOBAL float* phiExcBatch = phiExc + b*nx*ny*nf;
+      CL_MEM_GLOBAL float* phiInhBatch = phiInh + b*nx*ny*nf;
+      CL_MEM_GLOBAL float* activityBatch = activity + b * (nx+lt+rt)*(ny+up+dn)*nf;
 
-   // adding base prob should not change default behavior
-   l_activ = burstStatus * params->probStim*(l_phiExc - l_phiInh) + params->probBase;
+   #ifndef PV_USE_OPENCL
+   for (k = 0; k < nx*ny*nf; k++) {
+   #else
+      k = get_global_id(0);
+   #endif
 
-   //l_phiExc = 0.0f;
-   //l_phiInh = 0.0f;
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
 
-   // store local variables back to global memory
-   //
-   //phiExc[k] = l_phiExc;
-   //phiInh[k] = l_phiInh;
-   activity[kex] = l_activ;
+      //
+      // kernel (nonheader part) begins here
+      //
+      
+      // load local variables from global memory
+      //
+      float l_phiExc = phiExcBatch[k];
+      float l_phiInh = phiInhBatch[k];
+      float l_activ;
 
-#ifndef PV_USE_OPENCL
+      // adding base prob should not change default behavior
+      l_activ = burstStatus * params->probStim*(l_phiExc - l_phiInh) + params->probBase;
+
+      //l_phiExc = 0.0f;
+      //l_phiInh = 0.0f;
+
+      // store local variables back to global memory
+      //
+      activityBatch[kex] = l_activ;
+
+   #ifndef PV_USE_OPENCL
+      }
+   #endif
    }
-#endif
 
 }

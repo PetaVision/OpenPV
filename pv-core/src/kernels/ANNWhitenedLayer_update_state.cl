@@ -24,6 +24,7 @@
 //
 CL_KERNEL
 void ANNWhitenedLayer_update_state(
+    const int nbatch,
     const int numNeurons,
     const int nx,
     const int ny,
@@ -34,13 +35,12 @@ void ANNWhitenedLayer_update_state(
     const int up,
 
     CL_MEM_GLOBAL float * V,
-    const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
-    const float VWidth,
+    int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity)
 {
-   updateV_ANNWhitenedLayer(numNeurons, V, GSynHead, activity, AMax, AMin, Vth, AShift, VWidth, nx, ny, nf, lt, rt, dn, up);
+   updateV_ANNWhitenedLayer(nbatch, numNeurons, V, GSynHead, activity, numVertices, verticesV, verticesA, slopes, nx, ny, nf, lt, rt, dn, up);
 }

@@ -53,6 +53,7 @@ for(i = 1:numFrames)
 
    outFilename = [scoreDir num2str(targetTime) '_EstVsImage.png']
    im = imread('tmpImg.png');
+
    [nx, ny, nf] = size(estData);
    im = imresize(im, [nx, ny]);
    subplot(2, 1, 1);

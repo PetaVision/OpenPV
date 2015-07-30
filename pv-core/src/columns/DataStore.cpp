@@ -56,7 +56,7 @@ DataStore::DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSiz
          fprintf(stderr, "DataStore unable to allocate activeIndices buffer for %d items, %d buffers and %d levels: %s\n", numItems, numBuffers, numLevels, strerror(errno));
          exit(EXIT_FAILURE);
       }
-      this->numActive = (unsigned int*) calloc(numBuffers * numLevels, sizeof(unsigned int));
+      this->numActive = (long *) calloc(numBuffers * numLevels, sizeof(long));
       if (this->numActive==NULL) {
          fprintf(stderr, "DataStore unable to allocate numActive buffer for %d buffers and %d levels: %s\n", numBuffers, numLevels, strerror(errno));
          exit(EXIT_FAILURE);

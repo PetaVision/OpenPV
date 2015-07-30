@@ -104,88 +104,6 @@ void ANNLayer::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, (pvdata_t) 0);
 }
 
-//#ifdef PV_USE_OPENCL
-///**
-// * Initialize OpenCL buffers.  This must be called after PVLayer data have
-// * been allocated.
-// */
-//int ANNLayer::allocateThreadBuffers(const char * kernel_name)
-//{
-//   int status = HyPerLayer::allocateThreadBuffers(kernel_name);
-//
-//   //right now there are no ANN layer specific buffers...
-//   return status;
-//}
-//
-//int ANNLayer::initializeThreadKernels(const char * kernel_name)
-//{
-//   char kernelPath[256];
-//   char kernelFlags[256];
-//
-//   int status = CL_SUCCESS;
-//   CLDevice * device = parent->getCLDevice();
-//
-//   const char * pvRelPath = "../PetaVision";
-//   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getSrcPath(), pvRelPath, kernel_name);
-//   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getSrcPath(), pvRelPath);
-//
-//   // create kernels
-//   //
-//   krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
-////kernel name should already be set correctly!
-////   if (spikingFlag) {
-////      krUpdate = device->createKernel(kernelPath, kernel_name, kernelFlags);
-////   }
-////   else {
-////      krUpdate = device->createKernel(kernelPath, "Retina_nonspiking_update_state", kernelFlags);
-////   }
-//
-//   int argid = 0;
-//
-//   status |= krUpdate->setKernelArg(argid++, getNumNeurons());
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nx);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.ny);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nf);
-//   status |= krUpdate->setKernelArg(argid++, clayer->loc.nb);
-//
-//
-//   status |= krUpdate->setKernelArg(argid++, clV);
-//   status |= krUpdate->setKernelArg(argid++, VThresh);
-//   status |= krUpdate->setKernelArg(argid++, AMax);
-//   status |= krUpdate->setKernelArg(argid++, AMin);
-//   status |= krUpdate->setKernelArg(argid++, AShift);
-//   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer());
-////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_EXC));
-////   status |= krUpdate->setKernelArg(argid++, getChannelCLBuffer(CHANNEL_INH));
-//   status |= krUpdate->setKernelArg(argid++, clActivity);
-//
-//   return status;
-//}
-//int ANNLayer::updateStateOpenCL(double time, double dt)
-//{
-//   int status = CL_SUCCESS;
-//
-//   // wait for memory to be copied to device
-//   if (numWait > 0) {
-//       status |= clWaitForEvents(numWait, evList);
-//   }
-//   for (int i = 0; i < numWait; i++) {
-//      clReleaseEvent(evList[i]);
-//   }
-//   numWait = 0;
-//
-//   status |= krUpdate->run(getNumNeurons(), nxl*nyl, 0, NULL, &evUpdate);
-//   krUpdate->finish();
-//
-//   status |= getChannelCLBuffer()->copyFromDevice(1, &evUpdate, &evList[getEVGSyn()]);
-//   status |= clActivity->copyFromDevice(1, &evUpdate, &evList[getEVActivity()]);
-//   numWait += 2; //3;
-//
-//
-//   return status;
-//}
-//#endif
-
 int ANNLayer::setVertices() {
    if (VWidth<0) {
       VThresh += VWidth;
@@ -271,9 +189,9 @@ int ANNLayer::setVertices() {
             // All vertices have A>=AMax.
             // If slopeNegInf is positive, transfer function should increase from -infinity to AMax, and then stays constant.
             // If slopeNegInf is negative or zero, 
-               numVertices = 1;
-               vectorA.resize(numVertices);
-               vectorV.resize(numVertices);
+            numVertices = 1;
+            vectorA.resize(numVertices);
+            vectorV.resize(numVertices);
             if (slopeNegInf > 0) {
                pvadata_t intervalA = vectorA[0]-AMax;
                pvpotentialdata_t intervalV = (pvpotentialdata_t) (intervalA / slopeNegInf);
@@ -294,21 +212,17 @@ int ANNLayer::setVertices() {
       }
       slopePosInf = 0.0f;
    }
-   assert(!isnan(slopeNegInf) && !isnan(slopePosInf));
+   assert(!isnan(slopeNegInf) && !isnan(slopePosInf) && numVertices > 0);
+   assert(vectorA.size()==numVertices && vectorV.size()==numVertices);
    verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
-   verticesA = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
+   verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
    if (verticesV==NULL || verticesA==NULL) {
       fprintf(stderr, "%s \"%s\" error: unable to allocate memory for vertices:%s\n",
             parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+      exit(EXIT_FAILURE);
    }
-   for (int v=0; v<numVertices; v++) {
-      verticesV[v] = vectorV[v];
-      verticesA[v] = vectorA[v];
-      if (parent->columnId()==0) {
-         printf("Layer \"%s\": vertex %d, V=%f, A=%f\n", name, v+1, vectorV[v], vectorA[v]);
-      }
-   }
-   // TODO: find a nonstupid way to get the information into the member variable arrays.
+   memcpy(verticesV, &vectorV[0], numVertices * sizeof(*verticesV));
+   memcpy(verticesA, &vectorA[0], numVertices * sizeof(*verticesA));
    
    return PV_SUCCESS;
 }
@@ -333,7 +247,7 @@ int ANNLayer::resetGSynBuffers(double timef, double dt) {
    if (GSyn == NULL) return PV_SUCCESS;
    bool clearNow = clearGSynInterval <= 0 || timef >= nextGSynClearTime;
    if (clearNow) {
-      resetGSynBuffers_HyPerLayer(this->getNumNeurons(), getNumChannels(), GSyn[0]);
+      resetGSynBuffers_HyPerLayer(parent->getNBatch(), this->getNumNeurons(), getNumChannels(), GSyn[0]);
    }
    if (clearNow > 0) {
       nextGSynClearTime += clearGSynInterval;   
@@ -354,10 +268,9 @@ int ANNLayer::setActivity() {
    int nf = loc->nf;
    PVHalo const * halo = &loc->halo;
    int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
    int status;
-   status = setActivity_HyPerLayer(num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-   if( status == PV_SUCCESS ) status = applyVThresh_ANNLayer(num_neurons, getV(), AMin, VThresh, AShift, VWidth, getCLayer()->activity->data, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-   if( status == PV_SUCCESS ) status = applyVMax_ANNLayer(num_neurons, getV(), AMax, getCLayer()->activity->data, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+   status = setActivity_PtwiseLinearTransferLayer(nbatch, num_neurons, getCLayer()->activity->data, getV(), nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, numVertices, verticesV, verticesA, slopes);
    return status;
 }
 

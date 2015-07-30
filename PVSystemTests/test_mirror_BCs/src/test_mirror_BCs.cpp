@@ -31,6 +31,7 @@ int main(int argc, char * argv[])
 
    sLoc.nxGlobal = sLoc.nyGlobal = nS; // shouldn't be used
    sLoc.kx0 = sLoc.ky0 = 0; // shouldn't be used
+   sLoc.nbatch = 1;
    sLoc.nx = sLoc.ny = nS;
    sLoc.nf = nf;
    sLoc.halo.lt = halo->lt;

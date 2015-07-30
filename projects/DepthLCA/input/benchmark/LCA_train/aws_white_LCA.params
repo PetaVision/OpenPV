@@ -1,4 +1,5 @@
-// // HyPerHLCA.params
+// /
+/ HyPerHLCA.params
 //
 // created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
 //
@@ -16,8 +17,8 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime = 39000;
-    progressStep = 1000;
+    stopTime = 386000; 
+    progressStep = 200;
     outputPath = "/home/ec2-user/mountData/benchmark/LCATrain/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
@@ -26,7 +27,7 @@ HyPerCol "column" = {
     //checkpointReadDirIndex = ;
     checkpointWrite = true;
     checkpointWriteDir = "/home/ec2-user/mountData/benchmark/LCATrain/Checkpoints";
-    checkpointWriteStepInterval = 50000;
+    checkpointWriteStepInterval = 2000;
     deleteOlderCheckpoints = true;
     //suppressLastOutput = false;
     writeProgressToErr = true;
@@ -35,7 +36,7 @@ HyPerCol "column" = {
     dtScaleMax = 5.0;
     dtScaleMin = 0.25;
     dtChangeMax = 0.05;
-    dtChangeMin = 0.0;
+    dtChangeMin = -0.01;
 };
 
 //
@@ -49,7 +50,7 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/home/ec2-user/mountData/kitti/list/image_2_benchmark_aws_cluster_single.txt";
+    imageListPath = "/home/ec2-user/mountData/kitti/list/image_2_benchmark_aws_cluster.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
@@ -196,7 +197,7 @@ ANNLayer "LeftRecon" = {
 
 Movie "RightImage" = {
     #include "LeftImage";
-    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_3_benchmark_aws_cluster_single.txt";
+    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_3_benchmark_aws_cluster.txt";
 };
 
 ANNLayer "RightBipolar" = {
@@ -255,7 +256,7 @@ HyPerLCALayer "V1" = {
     VMax = infinity;
     VMin = 0;
     VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
-    VWidth = 0.0; //Same as VThresh
+    VWidth = 0.05; //Same as VThresh
     updateGpu = true;
     //
     phase = 5;

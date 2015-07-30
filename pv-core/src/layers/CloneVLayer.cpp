@@ -149,7 +149,8 @@ int CloneVLayer::doUpdateState(double timed, double dt, const PVLayerLoc * loc, 
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
-   int status = setActivity_HyPerLayer(num_neurons, A, V, nx, ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+   int nbatch = loc->nbatch;
+   int status = setActivity_HyPerLayer(nbatch, num_neurons, A, V, nx, ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
    //update_timer->stop();
    return status;
 }
@@ -158,12 +159,5 @@ CloneVLayer::~CloneVLayer() {
    free(originalLayerName);
    clayer->V = NULL;
 }
-
-//CloneVLayer should be able to trigger off of other stuff
-//double CloneVLayer::getDeltaUpdateTime(){
-//   //Defer to original layer
-//   return originalLayer->getDeltaUpdateTime();
-//}
-
 
 } /* namespace PV */

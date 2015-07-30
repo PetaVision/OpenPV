@@ -27,6 +27,7 @@ HyPerCol "column" = {
    checkpointWrite = false;
    initializeFromCheckpointDir = "";
    suppressLastOutput = false;
+   nbatch = 2;
 };
 
 //
@@ -37,7 +38,7 @@ Image "Input" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imagePath = "input/sampleimage.png";
+    inputPath = "input/sampleimage.png";
     nf = 1;
     phase = 0;
     writeStep = -1;

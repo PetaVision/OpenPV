@@ -225,7 +225,6 @@ void IdentConn::handleDefaultSelfFlag() {
 }
 
 //This deliver only differs from HyPerConn's deliver through if statements checking for recv GPU and recv from post. Since these flags are hard coded in IdentConn, calling HyPerConn's deliver should be okay. This is to make deliver a non-virtual method, as HyPerConn's methods sets flags for GPU updates of GSyn, a source of errors when a subclass overwrites deliver.
-
 //int IdentConn::deliver() {
 //   int status = PV_SUCCESS;
 //
@@ -249,7 +248,7 @@ void IdentConn::handleDefaultSelfFlag() {
 //
 //   cube.isSparse = store->isSparse();
 //   if(cube.isSparse){
-//      cube.numActive = *(store->numActiveBuffer(LOCAL, delay));
+//      cube.numActive = store->numActiveBuffer(LOCAL, delay);
 //      cube.activeIndices = store->activeIndicesBuffer(LOCAL, delay);
 //   }
 //
@@ -285,36 +284,41 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
    fflush(stdout);
 #endif // DEBUG_OUTPUT
 
-   pvdata_t * gSynPatchHead = post->getChannel(getChannel());
-   if (activity->isSparse) {
-      int numLoop = activity->numActive;
+   for(int b = 0; b < parent->getNBatch(); b++){
+      pvdata_t * activityBatch = activity->data + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt) * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
+      pvdata_t * gSynPatchHeadBatch = post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
+
+      if (activity->isSparse) {
+         unsigned int * activeIndicesBatch = activity->activeIndices + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt) * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
+         int numLoop = activity->numActive[b];
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
-         int kPre = activity->activeIndices[loopIndex];
+         for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
+            int kPre = activeIndicesBatch[loopIndex];
 
-         float a = activity->data[kPre] * dt_factor;
-         if (a == 0.0f) continue;
-         PVPatch * weights = getWeights(kPre, arborID);
-         if (weights->nx>0 && weights->ny>0) {
-            int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo into account, but for feature index, shouldn't matter.
-            pvgsyndata_t * postPatchStart = gSynPatchHead + getGSynPatchStart(kPre, arborID) + f;
-            *postPatchStart += a;
+            float a = activityBatch[kPre] * dt_factor;
+            if (a == 0.0f) continue;
+            PVPatch * weights = getWeights(kPre, arborID);
+            if (weights->nx>0 && weights->ny>0) {
+               int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo into account, but for feature index, shouldn't matter.
+               pvgsyndata_t * postPatchStart = gSynPatchHeadBatch + getGSynPatchStart(kPre, arborID) + f;
+               *postPatchStart += a;
+            }
          }
       }
-   }
-   else {
-      PVLayerLoc const * loc = &activity->loc;
-      int numRestricted = loc->nx * loc->ny * loc->nf;
+      else {
+         PVLayerLoc const * loc = &activity->loc;
+         int numRestricted = loc->nx * loc->ny * loc->nf;
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for (int kRestricted = 0; kRestricted < numRestricted; kRestricted++) {
-         int kExtended = kIndexExtended(kRestricted, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-         float a = activity->data[kExtended] * dt_factor;
-         if (a == 0.0f) continue;
-         gSynPatchHead[kRestricted] += a;
+         for (int kRestricted = 0; kRestricted < numRestricted; kRestricted++) {
+            int kExtended = kIndexExtended(kRestricted, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+            float a = activityBatch[kExtended] * dt_factor;
+            if (a == 0.0f) continue;
+            gSynPatchHeadBatch[kRestricted] += a;
+         }
       }
    }
    return PV_SUCCESS;

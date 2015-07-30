@@ -36,6 +36,7 @@ extern "C" {
 extern "C" {
 #endif
 void LCALIF_update_state(
+   const int nbatch,
    const int numNeurons,
    const double timed,
    const double dt,
@@ -160,7 +161,7 @@ LCALIFLayer::~LCALIFLayer()
 int LCALIFLayer::allocateDataStructures() {
    int status = LIFGap::allocateDataStructures();
 
-   int numNeurons = getNumNeurons();
+   int numNeurons = getNumNeuronsAllBatches();
    for (int k=0; k<numNeurons; k++) {
       integratedSpikeCount[k] = targetRateHz/1000; // Initialize integrated spikes to non-zero value
       Vadpt[k]                = lParams.VthRest;   // Initialize integrated spikes to non-zero value
@@ -172,7 +173,7 @@ int LCALIFLayer::allocateDataStructures() {
 }
 
 int LCALIFLayer::allocateBuffers() {
-   const size_t numNeurons = getNumNeurons();
+   const size_t numNeurons = getNumNeuronsAllBatches();
    //Allocate data to keep track of trace
    int status = PV_SUCCESS;
    if (status==PV_SUCCESS) status = allocateBuffer(&integratedSpikeCount, numNeurons, "integratedSpikeCount");
@@ -192,10 +193,10 @@ int LCALIFLayer::allocateBuffers() {
 int LCALIFLayer::updateState(double timed, double dt)
 {
    //Calculate_state kernel
-   for (int k=0; k<getNumNeurons(); k++) {
+   for (int k=0; k<getNumNeuronsAllBatches(); k++) {
       G_Norm[k] = GSyn[CHANNEL_NORM][k]; // Copy GSyn buffer on normalizing channel for checkpointing, since LCALIF_update_state will blank the GSyn's
    }
-   LCALIF_update_state(getNumNeurons(), timed, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
+   LCALIF_update_state(clayer->loc.nbatch, getNumNeurons(), timed, dt, clayer->loc.nx, clayer->loc.ny, clayer->loc.nf,
          clayer->loc.halo.lt, clayer->loc.halo.rt, clayer->loc.halo.dn, clayer->loc.halo.up, Vscale, Vadpt, tauTHR, targetRateHz, integratedSpikeCount, &lParams,
          randState->getRNG(0), clayer->V, Vth, G_E, G_I, G_IB, GSyn[0], clayer->activity->data, getGapStrength(), Vattained, Vmeminf, (int) normalizeInputFlag,
          GSynExcEffective, GSynInhEffective, excitatoryNoise, inhibitoryNoise, inhibNoiseB);

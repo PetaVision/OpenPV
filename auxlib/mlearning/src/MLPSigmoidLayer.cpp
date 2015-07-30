@@ -127,11 +127,11 @@ int MLPSigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc
    int num_neurons = nx*ny*nf;
    updateV_SigmoidLayer(); // Does nothing as sourceLayer is responsible for updating V.
    if(symSigmoid){
-      setActivity_MLPSigmoidLayer(num_neurons, A, V, linear_alpha, dropout_buf, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, dt);
+      setActivity_MLPSigmoidLayer(loc->nbatch, num_neurons, A, V, linear_alpha, dropout_buf, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, dt);
    }
    else{
       //TODO implement dropout here
-      setActivity_SigmoidLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, Vth, V0, sigmoid_alpha, sigmoid_flag, inverse_flag, dt);
+      setActivity_SigmoidLayer(loc->nbatch, num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, Vth, V0, sigmoid_alpha, sigmoid_flag, inverse_flag, dt);
    }
    // resetGSynBuffers(); // Since sourceLayer updates V, this->GSyn is not used
    return PV_SUCCESS;

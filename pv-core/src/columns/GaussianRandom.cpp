@@ -9,20 +9,22 @@
 
 namespace PV {
 
-GaussianRandom::GaussianRandom(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex) {
-   initialize_base();
-   initialize(hc, numBlocks, blockLength, numGlobalBlocks, globalBlockLength, startIndex);
-}
+//GaussianRandom::GaussianRandom(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex) {
+//   initialize_base();
+//   initialize(hc, numBlocks, blockLength, numGlobalBlocks, globalBlockLength, startIndex);
+//}
+
 GaussianRandom::GaussianRandom(HyPerCol * hc, int count) {
    initialize_base();
-   initialize(hc, 1U, (unsigned int) count, 1U, (unsigned int) count, 0U);
+   initializeFromCount(hc, (unsigned int) count);
 }
+
 GaussianRandom::GaussianRandom(HyPerCol * hc, const PVLayerLoc * locptr, bool isExtended) {
    initialize_base();
-   unsigned int numBlocks, blockLength, numGlobalBlocks, nxGlobal, globalBlockLength, startIndex;
-   defineBlocksFromPVLayerLoc(locptr, isExtended, &numBlocks, &blockLength, &numGlobalBlocks, &globalBlockLength, &startIndex);
+   //unsigned int numBlocks, blockLength, numGlobalBlocks, nxGlobal, globalBlockLength, startIndex;
+   //defineBlocksFromPVLayerLoc(locptr, isExtended, &numBlocks, &blockLength, &numGlobalBlocks, &globalBlockLength, &startIndex);
 
-   initialize(hc, numBlocks, blockLength, numGlobalBlocks, globalBlockLength, startIndex);
+   //initialize(hc, numBlocks, blockLength, numGlobalBlocks, globalBlockLength, startIndex);
 }
 
 GaussianRandom::GaussianRandom() {
@@ -34,20 +36,34 @@ int GaussianRandom::initialize_base() {
    return PV_SUCCESS;
 }
 
-int GaussianRandom::initialize(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex) {
-   int status = Random::initialize(hc, numBlocks, blockLength, numGlobalBlocks, globalBlockLength, startIndex);
-   if (status == PV_SUCCESS) {
-      heldValues = (struct box_muller_data *) malloc(rngArraySize*sizeof(uint4));
-      if (heldValues==NULL) {
-         fprintf(stderr, "GaussianRandom::initialize error: rank %d process unable to allocate memory for %zu Box-Muller held values.\n", hc->columnId(), rngArraySize);
-         status = PV_FAILURE;
-      }
+int GaussianRandom::initializeGaussian(){
+   int status = PV_SUCCESS;
+   heldValues = (struct box_muller_data *) malloc(rngArraySize*sizeof(uint4));
+   if (heldValues==NULL) {
+      fprintf(stderr, "GaussianRandom::initialize error: rank %d process unable to allocate memory for %zu Box-Muller held values.\n", parentHyPerCol->columnId(), rngArraySize);
+      status = PV_FAILURE;
    }
    if (status == PV_SUCCESS) {
       for (size_t k=0; k<rngArraySize; k++) {
          heldValues[k].hasHeldValue = false;
          // heldValues[k].heldValue undefined if hasHeldValue false
       }
+   }
+   return status;
+}
+
+int GaussianRandom::initializeFromCount(HyPerCol * hc, unsigned int count) {
+   int status = Random::initializeFromCount(hc, count);
+   if (status == PV_SUCCESS) {
+      status = initializeGaussian();
+   }
+   return status;
+}
+
+int GaussianRandom::initializeFromLoc(HyPerCol* hc, const PVLayerLoc* locptr, bool isExtended) {
+   int status = Random::initializeFromLoc(hc, locptr, isExtended);
+   if(status == PV_SUCCESS){
+      status = initializeGaussian();
    }
    return status;
 }

@@ -41,6 +41,7 @@ float LCALIF_VmemInf(const float Vrest, const float V_E, const float V_I, const 
 //
 CL_KERNEL
 void LCALIF_update_state(
+    const int nbatch,
     const int numNeurons,
     const double timed,
     const double dt,
@@ -97,13 +98,12 @@ void LCALIF_update_state(
    const float dt_sec = .001 * dt;
 
 #ifndef PV_USE_OPENCL
-
-for (int k = 0; k < nx*ny*nf; k++) {
+for (int k = 0; k < nx*ny*nf*nbatch; k++) {
 #else   
    k = get_global_id(0);
 #endif
 
-   int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+   int kex = kIndexExtendedBatch(k, nbatch, nx, ny, nf, lt, rt, dn, up);
 
    //
    // kernel (nonheader part) begins here
@@ -130,11 +130,11 @@ for (int k = 0; k < nx*ny*nf; k++) {
    pvgsyndata_t l_gapStrength = gapStrength[k];
 
 #define CHANNEL_NORM (CHANNEL_GAP+1)
-   CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*numNeurons];
-   CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*numNeurons];
-   CL_MEM_GLOBAL float * GSynInhB = &GSynHead[CHANNEL_INHB*numNeurons];
-   CL_MEM_GLOBAL float * GSynGap = &GSynHead[CHANNEL_GAP*numNeurons];
-   CL_MEM_GLOBAL float * GSynNorm = &GSynHead[CHANNEL_NORM*numNeurons];
+   CL_MEM_GLOBAL float * GSynExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
+   CL_MEM_GLOBAL float * GSynInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
+   CL_MEM_GLOBAL float * GSynInhB = &GSynHead[CHANNEL_INHB*nbatch*numNeurons];
+   CL_MEM_GLOBAL float * GSynGap = &GSynHead[CHANNEL_GAP*nbatch*numNeurons];
+   CL_MEM_GLOBAL float * GSynNorm = &GSynHead[CHANNEL_NORM*nbatch*numNeurons];
    float l_GSynExc  = GSynExc[k];
    float l_GSynInh  = GSynInh[k];
    float l_GSynInhB = GSynInhB[k];

@@ -101,6 +101,7 @@ protected:
    /** @} */
 
    virtual int checkVertices();
+   int setSlopes();
 
    virtual int resetGSynBuffers(double timef, double dt);
 
@@ -132,6 +133,7 @@ protected:
    int numVertices;
    pvpotentialdata_t * verticesV;
    pvadata_t * verticesA;
+   float * slopes; // slopes[0]=slopeNegInf; slopes[numVertices]=slopePosInf; slopes[k]=slope from vertex k-1 to vertex k
    float slopeNegInf;
    float slopePosInf;
 

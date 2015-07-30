@@ -11,6 +11,7 @@ namespace PVCuda{
 //The actual wrapper kernel code thats calling updatestatefunctions
 __global__
 void HyPerLCALayer_update_state(
+    const int nbatch,
     const int numNeurons,
     const int nx,
     const int ny,
@@ -28,14 +29,15 @@ void HyPerLCALayer_update_state(
     const float AShift,
     const float VWidth,
     const bool selfInteract,
-    const float dt_tau,
+    double * dtAdapt,
+    const float tau,
     float * GSynHead,
     float * activity)
 {
 
-   if((blockIdx.x * blockDim.x) + threadIdx.x < numNeurons){
-      updateV_HyPerLCALayer(numNeurons, V, GSynHead, activity,
-            AMax, AMin, Vth, AShift, VWidth, dt_tau, selfInteract, nx, ny, nf, lt, rt, dn, up, numChannels);
+   if((blockIdx.x * blockDim.x) + threadIdx.x < numNeurons*nbatch){
+      updateV_HyPerLCALayer(nbatch, numNeurons, V, GSynHead, activity,
+            AMax, AMin, Vth, AShift, VWidth, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, numChannels);
    }
 }
 
@@ -47,6 +49,7 @@ CudaUpdateHyPerLCALayer::~CudaUpdateHyPerLCALayer(){
 }
 
 void CudaUpdateHyPerLCALayer::setArgs(
+      const int nbatch,
       const int numNeurons,
       const int nx,
       const int ny,
@@ -65,11 +68,13 @@ void CudaUpdateHyPerLCALayer::setArgs(
       const float AShift,
       const float VWidth,
       const bool selfInteract,
-      const float dt_tau,
+      /* double* */ CudaBuffer* dtAdapt,
+      const float tau,
 
       /* float* */ CudaBuffer* GSynHead,
       /* float* */ CudaBuffer* activity
    ){
+   params.nbatch = nbatch;
    params.numNeurons = numNeurons;
    params.nx = nx;
    params.ny = ny;
@@ -88,12 +93,11 @@ void CudaUpdateHyPerLCALayer::setArgs(
    params.AShift = AShift;
    params.VWidth = VWidth;
    params.selfInteract = selfInteract;
-   params.dt_tau = dt_tau;
+   params.dtAdapt = (double*) dtAdapt->getPointer();
+   params.tau = tau;
 
    params.GSynHead = (float*) GSynHead->getPointer();
    params.activity = (float*) activity->getPointer();
-
-
 
    setArgsFlag();
 }
@@ -101,9 +105,10 @@ void CudaUpdateHyPerLCALayer::setArgs(
 int CudaUpdateHyPerLCALayer::do_run(){
    int currBlockSize = device->get_max_threads();
    //Ceil to get all weights
-   int currGridSize = ceil((float)params.numNeurons/currBlockSize);
+   int currGridSize = ceil(((float)params.numNeurons * params.nbatch)/currBlockSize);
    //Call function
    HyPerLCALayer_update_state<<<currGridSize, currBlockSize, 0, device->getStream()>>>(
+   params.nbatch,
    params.numNeurons,
    params.nx,
    params.ny,
@@ -120,7 +125,8 @@ int CudaUpdateHyPerLCALayer::do_run(){
    params.AShift,
    params.VWidth,
    params.selfInteract,
-   params.dt_tau,
+   params.dtAdapt,
+   params.tau,
    params.GSynHead,
    params.activity);
    handleCallError("HyPerLCALayer Update run");

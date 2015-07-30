@@ -65,7 +65,7 @@ int MLPForwardLayer::initialize_base()
 int MLPForwardLayer::initialize(const char * name, PV::HyPerCol * hc)
 {
    int status = ANNLayer::initialize(name, hc);
-   int numNeurons = getNumExtended();
+   int numNeurons = getNumExtendedAllBatches();
    //bias = (float*)calloc(numNeurons, sizeof(float));
    dropout = (bool*)calloc(numNeurons, sizeof(bool));
    //assert(initBiasType);
@@ -129,7 +129,7 @@ int MLPForwardLayer::updateState(double time, double dt)
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for(int ni = 0; ni < num_neurons; ni++){
+   for(int ni = 0; ni < num_neurons*loc->nbatch; ni++){
       //int next = kIndexExtended(ni, nx, ny, nf, loc->nb);
       double p = randState->uniformRandom();
       if(p <= dropoutChance){

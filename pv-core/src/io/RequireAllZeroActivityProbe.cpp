@@ -35,11 +35,13 @@ void RequireAllZeroActivityProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 
 int RequireAllZeroActivityProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
-   if (nnz!=0) {
-      if (!nonzeroFound) {
-         nonzeroTime = timed;
+   for(int b = 0; b < getParent()->getNBatch(); b++){
+      if (nnz[b]!=0) {
+         if (!nonzeroFound) {
+            nonzeroTime = timed;
+         }
+         nonzeroFound = true;
       }
-      nonzeroFound = true;
    }
    return status;
 }

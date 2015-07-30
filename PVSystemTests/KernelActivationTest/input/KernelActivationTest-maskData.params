@@ -21,7 +21,7 @@ HyPerCol "column" = {
 };
 
 Movie "8x8Images" = {
-    imageListPath = "./input/image08x08sequence_mask.txt";
+    inputPath = "./input/image08x08sequence_mask.txt";
     start_frame_index = 0;
     skip_frame_index = 0;
     echoFramePathnameFlag = false;
@@ -51,7 +51,7 @@ Movie "8x8Images" = {
 };
 
 Movie "16x16Images" = {
-    imageListPath = "./input/image16x16sequence_mask.txt";
+    inputPath = "./input/image16x16sequence_mask.txt";
     start_frame_index = 0;
     skip_frame_index = 0;
     echoFramePathnameFlag = false;
@@ -81,7 +81,7 @@ Movie "16x16Images" = {
 };
 
 Movie "32x32Images" = {
-    imageListPath = "./input/image32x32sequence_mask.txt";
+    inputPath = "./input/image32x32sequence_mask.txt";
     start_frame_index = 0;
     skip_frame_index = 0;
     echoFramePathnameFlag = false;

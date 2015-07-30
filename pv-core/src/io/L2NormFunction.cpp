@@ -12,9 +12,9 @@ namespace PV {
 L2NormFunction::L2NormFunction(const char * name) : LayerFunction(name) {
 }  // end L2NormFunction::L2NormFunction
 
-pvdata_t L2NormFunction::evaluateLocal(float time, HyPerLayer * l) {
+pvdata_t L2NormFunction::evaluateLocal(float time, HyPerLayer * l, int batchIdx) {
     double l2norm = 0;
-    pvdata_t * activityBuffer = l->getCLayer()->activity->data;
+    pvdata_t * activityBuffer = l->getCLayer()->activity->data + batchIdx * l->getNumExtended();
     int numNeurons = l->getNumNeurons();
     const int nx = l->getLayerLoc()->nx;
     const int ny = l->getLayerLoc()->ny;

@@ -403,7 +403,7 @@ int TransposePoolingConn::allocateDataStructures() {
       needPost = false;
       postConn = originalConn;
       //TODO this buffer is only needed if this transpose conn is receiving from post
-      originalConn->postConn->allocatePreToPostBuffer();
+      originalConn->postConn->allocatePostToPreBuffer();
       postToPreActivity = originalConn->postConn->getPostToPreActivity();
       tempNeedPost = true;
    }
@@ -494,29 +494,6 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
    assert(arborID >= 0);
    const int numExtended = activity->numItems;
 
-#ifdef PV_USE_OPENMP_THREADS
-   //Clear all thread gsyn buffer
-   if(thread_gSyn){
-      int numNeurons = post->getNumNeurons();
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-      for(int i = 0; i < parent->getNumThreads() * numNeurons; i++){
-         int ti = i/numNeurons;
-         int ni = i % numNeurons;
-         thread_gSyn[ti][ni] = 0;
-      }
-   }
-#endif // PV_USE_OPENMP_THREADS
-
-   int numLoop;
-   if(activity->isSparse){
-      numLoop = activity->numActive;
-   }
-   else{
-      numLoop = numExtended;
-   }
-
    //Grab postIdxLayer's data
    int* postIdxData = NULL;
    if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
@@ -532,116 +509,157 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
    }
 
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(static) if (parent->getThreadBatch())
 #endif
-   for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
-      int kPreExt;
+   for(int b = 0; b < parent->getNBatch(); b++){
+      pvdata_t * activityBatch = activity->data + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt) * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
+      pvdata_t * gSynPatchHeadBatch = post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
+      int * postIdxDataBatch = NULL;
+      if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+         postIdxDataBatch = postIdxData + b * originalConn->getPostIndexLayer()->getNumExtended();
+      }
+
+      unsigned int * activeIndicesBatch = NULL;
       if(activity->isSparse){
-         kPreExt = activity->activeIndices[loopIndex];
+         activeIndicesBatch = activity->activeIndices + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt) * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
+      }
+
+      int numLoop;
+      if(activity->isSparse){
+         numLoop = activity->numActive[b];
       }
       else{
-         kPreExt = loopIndex;
+         numLoop = numExtended;
       }
 
-      float a = activity->data[kPreExt];
-      if (a == 0.0f) continue;
-
-      //If we're using thread_gSyn, set this here
-      pvdata_t * gSynPatchHead;
 #ifdef PV_USE_OPENMP_THREADS
+      //Clear all thread gsyn buffer
       if(thread_gSyn){
-         int ti = omp_get_thread_num();
-         gSynPatchHead = thread_gSyn[ti];
+         int numNeurons = post->getNumNeurons();
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+         for(int i = 0; i < parent->getNumThreads() * numNeurons; i++){
+            int ti = i/numNeurons;
+            int ni = i % numNeurons;
+            thread_gSyn[ti][ni] = 0;
+         }
       }
-      else{
-         gSynPatchHead = post->getChannel(getChannel());
-      }
-#else // PV_USE_OPENMP_THREADS
-      gSynPatchHead = post->getChannel(getChannel());
 #endif // PV_USE_OPENMP_THREADS
 
-      const int kxPreExt = kxPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
-      const int kyPreExt = kyPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
-      const int kfPre = featureIndex(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
-
-      if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
-         const int kxPreGlobalExt = kxPreExt + preLoc->kx0;
-         const int kyPreGlobalExt = kyPreExt + preLoc->ky0;
-         if(kxPreGlobalExt < preLoc->halo.lt || kxPreGlobalExt >= preLoc->nxGlobal + preLoc->halo.lt ||
-            kyPreGlobalExt < preLoc->halo.up || kyPreGlobalExt >= preLoc->nyGlobal + preLoc->halo.up){
-            continue;
-         }
-
-         //Convert stored global extended index into local extended index
-         int postGlobalExtIdx = postIdxData[kPreExt];
-
-         // If all inputs are zero and input layer is sparse, postGlobalExtIdx will still be -1.
-         if(postGlobalExtIdx == -1) { continue; }
-
-         //Make sure the index is in bounds
-         assert(postGlobalExtIdx >= 0 && postGlobalExtIdx <
-               (postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt) * 
-               (postLoc->nyGlobal + postLoc->halo.up + postLoc->halo.dn) * 
-               postLoc->nf);
-
-         const int kxPostGlobalExt = kxPos(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
-         const int kyPostGlobalExt = kyPos(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
-         const int kfPost = featureIndex(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
-
-         const int kxPostLocalRes = kxPostGlobalExt - postLoc->kx0 - postLoc->halo.lt;
-         const int kyPostLocalRes = kyPostGlobalExt - postLoc->ky0 - postLoc->halo.up;
-         if(kxPostLocalRes < 0 || kxPostLocalRes >= postLoc->nx|| 
-            kyPostLocalRes < 0 || kyPostLocalRes >= postLoc->ny){
-            continue;
-         }
-
-         const int kPostLocalRes = kIndex(kxPostLocalRes, kyPostLocalRes, kfPost, postLoc->nx, postLoc->ny, postLoc->nf);
-         gSynPatchHead[kPostLocalRes] = a;
-      }
-      else{
-         PVPatch * weights = getWeights(kPreExt, arborID);
-         const int nk = weights->nx * fPatchSize();
-         const int ny = weights->ny;
-         pvgsyndata_t * postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arborID);
-         const int sy  = getPostNonextStrides()->sy;       // stride in layer
-
-         int offset = kfPre;
-         int sf = fPatchSize();
-
-         pvwdata_t w = 1.0;
-         if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-           float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
-           float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-           w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
-         }
-         void* auxPtr = NULL;
-         for (int y = 0; y < ny; y++) {
-            (accumulateFunctionPointer)(0, nk, postPatchStart + y*sy + offset, a, &w, auxPtr, sf);
-         }
-      }
-   }
 
 #ifdef PV_USE_OPENMP_THREADS
-   //Set back into gSyn
-   if(thread_gSyn){
-      pvdata_t * gSynPatchHead = post->getChannel(getChannel());
-      int numNeurons = post->getNumNeurons();
-      //Looping over neurons first to be thread safe
-#pragma omp parallel for
-      for(int ni = 0; ni < numNeurons; ni++){
-         for(int ti = 0; ti < parent->getNumThreads(); ti++){
-            if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
-               if(gSynPatchHead[ni] < fabs(thread_gSyn[ti][ni])){
-                  gSynPatchHead[ni] = thread_gSyn[ti][ni];
-               }
+#pragma omp parallel for schedule(static) if (!parent->getThreadBatch())
+#endif
+      for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
+         int kPreExt;
+         if(activity->isSparse){
+            kPreExt = activeIndicesBatch[loopIndex];
+         }
+         else{
+            kPreExt = loopIndex;
+         }
+
+         float a = activityBatch[kPreExt];
+         if (a == 0.0f) continue;
+
+         //If we're using thread_gSyn, set this here
+         pvdata_t * gSynPatchHead;
+#ifdef PV_USE_OPENMP_THREADS
+         if(thread_gSyn){
+            int ti = omp_get_thread_num();
+            gSynPatchHead = thread_gSyn[ti];
+         }
+         else{
+            gSynPatchHead = gSynPatchHeadBatch;
+         }
+#else // PV_USE_OPENMP_THREADS
+         gSynPatchHead = gSynPatchHeadBatch;
+#endif // PV_USE_OPENMP_THREADS
+
+         const int kxPreExt = kxPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
+         const int kyPreExt = kyPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
+         const int kfPre = featureIndex(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
+
+         if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+            const int kxPreGlobalExt = kxPreExt + preLoc->kx0;
+            const int kyPreGlobalExt = kyPreExt + preLoc->ky0;
+            if(kxPreGlobalExt < preLoc->halo.lt || kxPreGlobalExt >= preLoc->nxGlobal + preLoc->halo.lt ||
+               kyPreGlobalExt < preLoc->halo.up || kyPreGlobalExt >= preLoc->nyGlobal + preLoc->halo.up){
+               continue;
             }
-            else{
-               gSynPatchHead[ni] += thread_gSyn[ti][ni];
+
+            //Convert stored global extended index into local extended index
+            int postGlobalExtIdx = postIdxDataBatch[kPreExt];
+
+            // If all inputs are zero and input layer is sparse, postGlobalExtIdx will still be -1.
+            if(postGlobalExtIdx == -1) { continue; }
+
+            //Make sure the index is in bounds
+            assert(postGlobalExtIdx >= 0 && postGlobalExtIdx <
+                  (postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt) * 
+                  (postLoc->nyGlobal + postLoc->halo.up + postLoc->halo.dn) * 
+                  postLoc->nf);
+
+            const int kxPostGlobalExt = kxPos(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
+            const int kyPostGlobalExt = kyPos(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
+            const int kfPost = featureIndex(postGlobalExtIdx, postLoc->nxGlobal + postLoc->halo.lt + postLoc->halo.rt, postLoc->nyGlobal + postLoc->halo.dn + postLoc->halo.up, postLoc->nf);
+
+            const int kxPostLocalRes = kxPostGlobalExt - postLoc->kx0 - postLoc->halo.lt;
+            const int kyPostLocalRes = kyPostGlobalExt - postLoc->ky0 - postLoc->halo.up;
+            if(kxPostLocalRes < 0 || kxPostLocalRes >= postLoc->nx|| 
+               kyPostLocalRes < 0 || kyPostLocalRes >= postLoc->ny){
+               continue;
+            }
+
+            const int kPostLocalRes = kIndex(kxPostLocalRes, kyPostLocalRes, kfPost, postLoc->nx, postLoc->ny, postLoc->nf);
+            gSynPatchHeadBatch[kPostLocalRes] = a;
+         }
+         else{
+            PVPatch * weights = getWeights(kPreExt, arborID);
+            const int nk = weights->nx * fPatchSize();
+            const int ny = weights->ny;
+            pvgsyndata_t * postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arborID);
+            const int sy  = getPostNonextStrides()->sy;       // stride in layer
+
+            int offset = kfPre;
+            int sf = fPatchSize();
+
+            pvwdata_t w = 1.0;
+            if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+              float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
+              float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
+              w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+            }
+            void* auxPtr = NULL;
+            for (int y = 0; y < ny; y++) {
+               (accumulateFunctionPointer)(0, nk, postPatchStart + y*sy + offset, a, &w, auxPtr, sf);
             }
          }
       }
-   }
+
+#ifdef PV_USE_OPENMP_THREADS
+      //Set back into gSyn
+      if(thread_gSyn){
+         pvdata_t * gSynPatchHead = gSynPatchHeadBatch;
+         int numNeurons = post->getNumNeurons();
+         //Looping over neurons first to be thread safe
+#pragma omp parallel for
+         for(int ni = 0; ni < numNeurons; ni++){
+            for(int ti = 0; ti < parent->getNumThreads(); ti++){
+               if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+                  if(gSynPatchHead[ni] < fabs(thread_gSyn[ti][ni])){
+                     gSynPatchHead[ni] = thread_gSyn[ti][ni];
+                  }
+               }
+               else{
+                  gSynPatchHead[ni] += thread_gSyn[ti][ni];
+               }
+            }
+         }
+      }
 #endif
+   }
    return PV_SUCCESS;
 }
 

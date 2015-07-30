@@ -97,29 +97,32 @@ bool FilenameParsingGroundTruthLayer::needUpdate(double time, double dt){
 int FilenameParsingGroundTruthLayer::updateState(double time, double dt)
 {
    update_timer->start();
-      pvdata_t * A = getCLayer()->activity->data;
-      const PVLayerLoc * loc = getLayerLoc();
-      int num_neurons = getNumNeurons();
-      if (num_neurons != numClasses)
-      {
-         std::cout << "The number of neurons in " << getName() << " is not equal to the number of classes specified in " << parent->getOutputPath() << "/classes.txt\n";
-         exit(EXIT_FAILURE);
-      }   
-      const char * currentFilename = movieLayer->getFilename();
+   pvdata_t * A = getCLayer()->activity->data;
+   const PVLayerLoc * loc = getLayerLoc();
+   int num_neurons = getNumNeurons();
+   if (num_neurons != numClasses)
+   {
+      std::cout << "The number of neurons in " << getName() << " is not equal to the number of classes specified in " << parent->getOutputPath() << "/classes.txt\n";
+      exit(EXIT_FAILURE);
+   }   
+
+   for(int b = 0; b < loc->nbatch; b++){
+      const char * currentFilename = movieLayer->getFilename(b);
       std::string fil = strdup(currentFilename);
-      
+      pvdata_t * ABatch = A + b * getNumExtended();
       for(int i = 0; i < num_neurons; i++){
          int nExt = kIndexExtended(i, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          int fi = featureIndex(nExt, loc->nx+loc->halo.rt+loc->halo.lt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
          int match = fil.find(classes[i]);
          if(0 <= match){
-            A[nExt] = gtClassTrueValue;
+            ABatch[nExt] = gtClassTrueValue;
          }
          else{
-            A[nExt] = gtClassFalseValue;
+            ABatch[nExt] = gtClassFalseValue;
          }
       }
-      update_timer->stop();
+   }
+   update_timer->stop();
    return PV_SUCCESS;
 }
 

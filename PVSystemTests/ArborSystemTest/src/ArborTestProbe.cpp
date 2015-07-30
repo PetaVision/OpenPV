@@ -61,20 +61,22 @@ int ArborTestProbe::outputState(double timed)
       return 0;
    }
 #endif // PV_USE_MPI
-	if(timed==1.0f){
-		assert((avg>0.2499)&&(avg<0.2501));
-	}
-	else if(timed==2.0f){
-		assert((avg>0.4999)&&(avg<0.5001));
-	}
-	else if(timed==3.0f){
-		assert((avg>0.7499)&&(avg<0.7501));
-	}
-	else if(timed>3.0f){
-		assert((fMin>0.9999)&&(fMin<1.001));
-		assert((fMax>0.9999)&&(fMax<1.001));
-		assert((avg>0.9999)&&(avg<1.001));
-	}
+   for(int b = 0; b < getParent()->getNBatch(); b++){
+      if(timed==1.0f){
+         assert((avg[b]>0.2499)&&(avg[b]<0.2501));
+      }
+      else if(timed==2.0f){
+         assert((avg[b]>0.4999)&&(avg[b]<0.5001));
+      }
+      else if(timed==3.0f){
+         assert((avg[b]>0.7499)&&(avg[b]<0.7501));
+      }
+      else if(timed>3.0f){
+         assert((fMin[b]>0.9999)&&(fMin[b]<1.001));
+         assert((fMax[b]>0.9999)&&(fMax[b]<1.001));
+         assert((avg[b]>0.9999)&&(avg[b]<1.001));
+      }
+   }
 
 	return status;
 }

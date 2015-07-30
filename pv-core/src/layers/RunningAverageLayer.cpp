@@ -76,7 +76,7 @@ void RunningAverageLayer::ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag){
 
 int RunningAverageLayer::setActivity() {
    pvdata_t * activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtended);
+   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
    return 0;
 
 }
@@ -93,13 +93,28 @@ int RunningAverageLayer::updateState(double timef, double dt) {
        const pvdata_t * originalA = originalLayer->getCLayer()->activity->data;
        const PVLayerLoc * loc = getLayerLoc();
        const PVLayerLoc * locOriginal = originalLayer->getLayerLoc();
+       int nbatch = loc->nbatch;
        //Make sure all sizes match
        //assert(locOriginal->nb == loc->nb);
        assert(locOriginal->nx == loc->nx);
        assert(locOriginal->ny == loc->ny);
        assert(locOriginal->nf == loc->nf);
 
-       if (numUpdateTimes < numImagesToAverage*deltaT){
+       for(int b = 0; b < nbatch; b++){
+          const pvdata_t * originalABatch = originalA + b * originalLayer->getNumExtended();
+          pvdata_t * ABatch = A + b * getNumExtended();
+          if (numUpdateTimes < numImagesToAverage*deltaT){
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif // PV_USE_OPENMP_THREADS
+                for(int k=0; k<numNeurons; k++) {
+                   int kExt = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+                   int kExtOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                         locOriginal->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+                   ABatch[kExt] = ((numUpdateTimes/deltaT-1) * ABatch[kExt] + originalABatch[kExtOriginal]) * deltaT / numUpdateTimes;
+                }
+          }
+          else{
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
@@ -107,21 +122,10 @@ int RunningAverageLayer::updateState(double timef, double dt) {
                 int kExt = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
                 int kExtOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                       locOriginal->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-                A[kExt] = ((numUpdateTimes/deltaT-1) * A[kExt] + originalA[kExtOriginal]) * deltaT / numUpdateTimes;
+                ABatch[kExt] = ((numImagesToAverage-1) * ABatch[kExt] + originalABatch[kExtOriginal]) / numImagesToAverage;
              }
+          }
        }
-       else{
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif // PV_USE_OPENMP_THREADS
-             for(int k=0; k<numNeurons; k++) {
-                int kExt = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-                int kExtOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
-                      locOriginal->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-                A[kExt] = ((numImagesToAverage-1) * A[kExt] + originalA[kExtOriginal]) / numImagesToAverage;
-             }
-       }
-
 
        //Update lastUpdateTime
        lastUpdateTime = parent->simulationTime();

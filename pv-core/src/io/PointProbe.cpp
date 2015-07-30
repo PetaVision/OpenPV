@@ -35,6 +35,7 @@ int PointProbe::initPointProbe_base() {
    xLoc = 0;
    yLoc = 0;
    fLoc = 0;
+   batchLoc = 0;
    msg = NULL;
    return PV_SUCCESS;
 }
@@ -49,6 +50,7 @@ int PointProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_xLoc(ioFlag);
    ioParam_yLoc(ioFlag);
    ioParam_fLoc(ioFlag);
+   ioParam_batchLoc(ioFlag);
    return status;
 }
 
@@ -62,6 +64,10 @@ void PointProbe::ioParam_yLoc(enum ParamsIOFlag ioFlag) {
 
 void PointProbe::ioParam_fLoc(enum ParamsIOFlag ioFlag) {
    getParent()->ioParamValueRequired(ioFlag, getName(), "fLoc", &fLoc);
+}
+
+void PointProbe::ioParam_batchLoc(enum ParamsIOFlag ioFlag) {
+   getParent()->ioParamValueRequired(ioFlag, getName(), "batchLoc", &batchLoc);
 }
 
 int PointProbe::initOutputStream(const char * filename) {
@@ -96,11 +102,15 @@ int PointProbe::communicateInitInfo() {
       status = PV_FAILURE;
    }
    if( (yLoc < 0 || yLoc > loc->nyGlobal) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in the y-direction.\n", getTargetLayer()->getName(), xLoc, loc->nyGlobal);
+      fprintf(stderr, "PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in the y-direction.\n", getTargetLayer()->getName(), yLoc, loc->nyGlobal);
       status = PV_FAILURE;
    }
    if( (fLoc < 0 || fLoc > loc->nf) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n", getTargetLayer()->getName(), xLoc, loc->nf);
+      fprintf(stderr, "PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n", getTargetLayer()->getName(), fLoc, loc->nf);
+      status = PV_FAILURE;
+   }
+   if( (batchLoc < 0 || batchLoc > loc->nbatch) && isRoot ) {
+      fprintf(stderr, "PointProbe on layer %s: batchLoc coordinate %d is out of bounds (layer has %d batches.\n", getTargetLayer()->getName(), batchLoc, loc->nbatch);
       status = PV_FAILURE;
    }
    if( status != PV_SUCCESS ) abort();
@@ -125,27 +135,31 @@ int PointProbe::outputState(double timef)
    //Calculate local cords from global
    const int kx0 = loc->kx0;
    const int ky0 = loc->ky0;
+   const int kb0 = loc->kb0;
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int nf = loc->nf;
+   const int nbatch = loc->nbatch;
    const int xLocLocal = xLoc - kx0;
    const int yLocLocal = yLoc - ky0;
+   const int nbatchLocal = batchLoc - kb0;
    
    float vval = 0;
    float aval = 0;
    //if in bounds
    if( xLocLocal >= 0 && xLocLocal < nx &&
-       yLocLocal >= 0 && yLocLocal < ny){
+       yLocLocal >= 0 && yLocLocal < ny &&
+       nbatchLocal >= 0 && nbatchLocal < nbatch){
       const pvdata_t * V = getTargetLayer()->getV();
       const pvdata_t * activity = getTargetLayer()->getLayerData();
       //Send V and A to root
       const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
       const int kex = kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       if(V){
-         vval = V[k];
+         vval = V[k + nbatchLocal*getTargetLayer()->getNumNeurons()];
       }
       if(activity){
-         aval = activity[kex];
+         aval = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
       }
 #ifdef PV_USE_MPI
       //If not in root process, send to root process
@@ -159,6 +173,7 @@ int PointProbe::outputState(double timef)
    //Root process
    if(parent->columnId()==0){
       //Calculate which rank target neuron is
+      //TODO we need to calculate rank from batch as well
       int xRank = xLoc/nx;
       int yRank = yLoc/ny;
 
@@ -187,8 +202,6 @@ int PointProbe::outputState(double timef)
 int PointProbe::point_writeState(double timef, float outVVal, float outAVal) {
    if(parent->columnId()==0){
       assert(outputstream && outputstream->fp);
-      const pvdata_t * V = getTargetLayer()->getV();
-      const pvdata_t * activity = getTargetLayer()->getLayerData();
 
       fprintf(outputstream->fp, "%s t=%.1f", msg, timef);
       fprintf(outputstream->fp, " V=%6.5f", outVVal);

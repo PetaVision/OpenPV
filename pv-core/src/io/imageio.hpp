@@ -22,7 +22,7 @@
 
 int getFileType(const char * filename);
 int getImageInfo(    const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes);
-int getImageInfoPVP( const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes);
+int getImageInfoPVP( const char * filename, PV::Communicator * comm, PVLayerLoc * loc);
 int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes);
 
 int gatherImageFile(    const char * filename,

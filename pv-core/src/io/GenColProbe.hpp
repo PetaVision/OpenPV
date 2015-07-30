@@ -43,7 +43,7 @@ public:
 protected:
    GenColProbe();
    int initializeGenColProbe(const char * probename, HyPerCol * hc);
-   virtual pvdata_t evaluate(double timef);
+   virtual pvdata_t evaluate(double timef, int batchIdx);
 
    int numLayerTerms;
    gencolprobelayerterm * layerTerms;

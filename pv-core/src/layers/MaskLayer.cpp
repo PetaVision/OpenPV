@@ -154,59 +154,64 @@ int MaskLayer::updateState(double time, double dt)
 {
    ANNLayer::updateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
+   const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
+   pvdata_t * maskActivity = maskLayer->getActivity();
    pvdata_t * A = getActivity();
 
    int nx = loc->nx;
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
 
+   for(int b = 0; b < nbatch; b++){
+      pvdata_t * maskActivityBatch = maskActivity + b * getNumExtended();
+      pvdata_t * ABatch = A + b * getNumExtended();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for(int ni = 0; ni < num_neurons; ni++){
-      int kThisRes = ni;
-      int kThisExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-      int maskVal;
-      if(strcmp(maskMethod, "layer") == 0){
-         const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
-         pvdata_t * maskActivity = maskLayer->getActivity();
-         int kMaskRes;
-         if(maskLoc->nf == 1){
-            kMaskRes = ni/nf;
+      for(int ni = 0; ni < num_neurons; ni++){
+         int kThisRes = ni;
+         int kThisExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+         int maskVal;
+         if(strcmp(maskMethod, "layer") == 0){
+            int kMaskRes;
+            if(maskLoc->nf == 1){
+               kMaskRes = ni/nf;
+            }
+            else{
+               kMaskRes = ni;
+            }
+            int kMaskExt = kIndexExtended(ni, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
+            maskVal = maskActivityBatch[kMaskExt];
          }
-         else{
-            kMaskRes = ni;
-         }
-         int kMaskExt = kIndexExtended(ni, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
-         maskVal = maskActivity[kMaskExt];
-      }
-      else if(strcmp(maskMethod, "maskFeatures") == 0){
-         //Calculate feature index of ni
-         int featureNum = featureIndex(ni, nx, ny, nf);
-         maskVal = 1; //If nothing specified, copy everything
-         for(int specF = 0; specF < numSpecifiedFeatures; specF++){ 
-            if(featureNum == features[specF]){
-               maskVal = 0;
-               break;
+         else if(strcmp(maskMethod, "maskFeatures") == 0){
+            //Calculate feature index of ni
+            int featureNum = featureIndex(ni, nx, ny, nf);
+            maskVal = 1; //If nothing specified, copy everything
+            for(int specF = 0; specF < numSpecifiedFeatures; specF++){ 
+               if(featureNum == features[specF]){
+                  maskVal = 0;
+                  break;
+               }
             }
          }
-      }
-      else if(strcmp(maskMethod, "noMaskFeatures") == 0){
-         //Calculate feature index of ni
-         int featureNum = featureIndex(ni, nx, ny, nf);
-         maskVal = 0; //If nothing specified, copy nothing 
-         for(int specF = 0; specF < numSpecifiedFeatures; specF++){ 
-            if(featureNum == features[specF]){
-               maskVal = 1;
-               break;
+         else if(strcmp(maskMethod, "noMaskFeatures") == 0){
+            //Calculate feature index of ni
+            int featureNum = featureIndex(ni, nx, ny, nf);
+            maskVal = 0; //If nothing specified, copy nothing 
+            for(int specF = 0; specF < numSpecifiedFeatures; specF++){ 
+               if(featureNum == features[specF]){
+                  maskVal = 1;
+                  break;
+               }
             }
          }
-      }
 
-      //Set value to 0, otherwise, updateState from ANNLayer should have taken care of it
-      if(maskVal == 0){
-         A[kThisExt] = 0;
+         //Set value to 0, otherwise, updateState from ANNLayer should have taken care of it
+         if(maskVal == 0){
+            ABatch[kThisExt] = 0;
+         }
       }
    }
    return PV_SUCCESS;

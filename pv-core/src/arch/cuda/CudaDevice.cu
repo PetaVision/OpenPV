@@ -19,6 +19,8 @@ CudaDevice::CudaDevice(int device)
    this->device_id = device;
    this->handle = NULL;
    initialize(device_id);
+   //Set amount of device memory to global memory
+   this->deviceMem = device_props.totalGlobalMem;
 }
 
 CudaDevice::~CudaDevice()
@@ -32,6 +34,16 @@ CudaDevice::~CudaDevice()
    }
 #endif
 }
+
+void CudaDevice::incrementConvKernels(){
+   numConvKernels++;
+}
+
+long CudaDevice::reserveMem(size_t size){
+   deviceMem -= size;
+   return deviceMem;
+}
+
 
 int CudaDevice::getNumDevices(){
    int returnVal;
@@ -104,7 +116,12 @@ int CudaDevice::query_device_info()
 }
 
 CudaBuffer* CudaDevice::createBuffer(size_t size){
-   return(new CudaBuffer(size, stream));
+   long memLeft = reserveMem(size);
+   if(memLeft < 0){
+      printf("CudaDevice createBuffer: out of memory\n");
+      exit(-1);
+   }
+   return(new CudaBuffer(size, this, stream));
 }
 
 void CudaDevice::query_device(int id)

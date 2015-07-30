@@ -98,7 +98,7 @@ int SigmoidLayer::allocateDataStructures() {
 
 int SigmoidLayer::setActivity() {
    pvdata_t * activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtended);
+   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
    return 0;
 }
 
@@ -113,8 +113,9 @@ int SigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc, p
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
    updateV_SigmoidLayer(); // Does nothing as sourceLayer is responsible for updating V.
-   setActivity_SigmoidLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, Vth, V0, sigmoid_alpha, sigmoid_flag, inverse_flag, dt);
+   setActivity_SigmoidLayer(nbatch, num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, Vth, V0, sigmoid_alpha, sigmoid_flag, inverse_flag, dt);
    // resetGSynBuffers(); // Since sourceLayer updates V, this->GSyn is not used
    return PV_SUCCESS;
 }

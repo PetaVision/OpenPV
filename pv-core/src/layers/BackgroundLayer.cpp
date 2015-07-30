@@ -105,13 +105,13 @@ int BackgroundLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
 
 int BackgroundLayer::setActivity() {
    pvdata_t * activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtended);
+   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
    return 0;
 }
 
 int BackgroundLayer::updateState(double timef, double dt) {
    int status = PV_SUCCESS;
-   int numNeurons = originalLayer->getNumNeurons();
+   //int numNeurons = originalLayer->getNumNeurons();
    pvdata_t * A = clayer->activity->data;
    const pvdata_t * originalA = originalLayer->getCLayer()->activity->data;
    const PVLayerLoc * loc = getLayerLoc();
@@ -126,39 +126,46 @@ int BackgroundLayer::updateState(double timef, double dt) {
    int ny = loc->ny;
    int origNf = locOriginal->nf;
    int thisNf = loc->nf;
+   int nbatch = loc->nbatch;
 
    PVHalo const * halo = &loc->halo;
    PVHalo const * haloOrig = &locOriginal->halo;
-   //Loop through all nx and ny
-   // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
+
+   for(int b = 0; b < nbatch; b++){
+      pvdata_t * ABatch = A + b * getNumExtended();
+      const pvdata_t * originalABatch = originalA + b * originalLayer->getNumExtended();
+
+      //Loop through all nx and ny
+      // each y value specifies a different target so ok to thread here (sum, sumsq are defined inside loop)
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for(int iY = 0; iY < ny; iY++){ 
-      for(int iX = 0; iX < nx; iX++){ 
-         //outVal stores the NOR of the other values
-         int outVal = 1;
-         //Shift all features down by one
-         for(int iF = 0; iF < origNf; iF++){
-            int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, origNf);
-            float origActivity = originalA[kextOrig];
-            //outVal is the final out value for the background
-            if(origActivity != 0){
-               outVal = 0;
+      for(int iY = 0; iY < ny; iY++){ 
+         for(int iX = 0; iX < nx; iX++){ 
+            //outVal stores the NOR of the other values
+            int outVal = 1;
+            //Shift all features down by one
+            for(int iF = 0; iF < origNf; iF++){
+               int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, origNf);
+               float origActivity = originalABatch[kextOrig];
+               //outVal is the final out value for the background
+               if(origActivity != 0){
+                  outVal = 0;
+               }
+               //Loop over replicated features
+               for(int repIdx = 0; repIdx < repFeatureNum; repIdx++){
+                  //Index iF one down, multiply by replicate feature number, add repIdx offset
+                  int newFeatureIdx = ((iF+1)*repFeatureNum) + repIdx;
+                  assert(newFeatureIdx < thisNf);
+                  int kext = kIndex(iX, iY, newFeatureIdx, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, thisNf);
+                  ABatch[kext] = origActivity;
+               }
             }
-            //Loop over replicated features
+            //Set background indices to outVal
             for(int repIdx = 0; repIdx < repFeatureNum; repIdx++){
-               //Index iF one down, multiply by replicate feature number, add repIdx offset
-               int newFeatureIdx = ((iF+1)*repFeatureNum) + repIdx;
-               assert(newFeatureIdx < thisNf);
-               int kext = kIndex(iX, iY, newFeatureIdx, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, thisNf);
-               A[kext] = origActivity;
+               int kextBackground = kIndex(iX, iY, repIdx, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, thisNf);
+               ABatch[kextBackground] = outVal;
             }
-         }
-         //Set background indices to outVal
-         for(int repIdx = 0; repIdx < repFeatureNum; repIdx++){
-            int kextBackground = kIndex(iX, iY, repIdx, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, thisNf);
-            A[kextBackground] = outVal;
          }
       }
    }

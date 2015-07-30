@@ -12,7 +12,7 @@ TriggerTestConn::TriggerTestConn(const char * name, HyPerCol * hc, InitWeights *
    HyPerConn::initialize(name, hc, weightInitializer, weightNormalizer);
 }
 
-int TriggerTestConn::updateStateWrapper(double time, double dt){
+int TriggerTestConn::updateState(double time, double dt){
    //4 different layers
    //No trigger, always update
    if(strcmp(name, "inputToNoTrigger") == 0 || strcmp(name, "inputToNoPeriod") == 0){
@@ -45,6 +45,6 @@ int TriggerTestConn::updateStateWrapper(double time, double dt){
          assert(needUpdate(time, dt) == false);
       }
    }
-   return HyPerConn::updateStateWrapper(time, dt);
+   return HyPerConn::updateState(time, dt);
 }
 }

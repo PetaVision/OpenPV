@@ -84,8 +84,10 @@ void ImprintConn::ioParam_imprintTimeThresh(enum ParamsIOFlag ioFlag) {
 //   }
 //}
 
-int ImprintConn::imprintFeature(int arbor_ID, int kExt){
-   const pvdata_t * postactbuf = postSynapticLayer()->getLayerData(); 
+int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt){
+   const pvdata_t * postactbufAll = postSynapticLayer()->getLayerData(); 
+   const pvdata_t * postactbuf = postactbufAll + batch_ID * postSynapticLayer()->getNumExtended();
+
    const PVLayerLoc * postLoc = post->getLayerLoc();
 
    PVPatch * weights = getWeights(kExt,arbor_ID);
@@ -98,7 +100,8 @@ int ImprintConn::imprintFeature(int arbor_ID, int kExt){
    int sym = 0;
    const pvdata_t * maskactRef = NULL;
    if(useMask){
-      const pvdata_t * maskactbuf = mask->getLayerData();
+      const pvdata_t * maskactbufAll = mask->getLayerData();
+      const pvdata_t * maskactbuf = maskactbufAll + batch_ID * mask->getNumExtended();
       maskactRef = &maskactbuf[offset];
       sym = (mask->getLayerLoc()->nf * (mask->getLayerLoc()->nx + mask->getLayerLoc()->halo.lt + mask->getLayerLoc()->halo.rt));
    }
@@ -109,6 +112,7 @@ int ImprintConn::imprintFeature(int arbor_ID, int kExt){
 
 
    pvwdata_t * dwdata = get_dwData(arbor_ID, kExt);
+   long * activations = get_activations(arbor_ID, kExt);
    int lineoffsetw = 0;
    int lineoffseta = 0;
    int lineoffsetm = 0;
@@ -130,7 +134,7 @@ int ImprintConn::imprintFeature(int arbor_ID, int kExt){
          if (maskVal != 0){
             assert(sharedWeights);
             //Offset in the case of a shrunken patch, where dwdata is applying when calling get_dwData
-            numKernelActivations[arbor_ID][kernelIndex][weights->offset + lineoffsetw + k]++;
+            activations[lineoffsetw + k]++;
             //Set actual values to dwData. The imprinted buffer will tell updateWeights to update this kernel by setting to dwWeight
             dwdata[lineoffsetw + k] += aPost;
          }
@@ -140,6 +144,13 @@ int ImprintConn::imprintFeature(int arbor_ID, int kExt){
       lineoffsetm += sym;
    }
    return PV_SUCCESS;
+}
+int ImprintConn::initialize_dW(int arborId){
+   HyPerConn::initialize_dW(arborId);
+   for(int ki = 0; ki < numberOfAxonalArborLists() * getNumDataPatches(); ki++){
+      imprinted[ki] = false;
+   }
+   return PV_BREAK;
 }
 
 int ImprintConn::update_dW(int arbor_ID){
@@ -151,20 +162,7 @@ int ImprintConn::update_dW(int arbor_ID){
    const pvdata_t * preactbuf = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
    int arborStart = arbor_ID * numKernelIndices;
    int patchSize = nxp * nyp * nfp;
-
-   //Reset numKernelActivations
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for
-#endif
-   for(int ki = 0; ki < numKernelIndices; ki++){
-      for(int pi = 0; pi < patchSize; pi++){
-         numKernelActivations[arbor_ID][ki][pi] = 0;
-      }
-   }
-
-   for(int ki = 0; ki < numKernelIndices; ki++){
-      imprinted[arborStart + ki] = false;
-   }
+   int nbatch = loc->nbatch;
 
    //Calculate x and y cell size
    int xCellSize = zUnitCellSize(pre->getXScale(), post->getXScale());
@@ -174,61 +172,63 @@ int ImprintConn::update_dW(int arbor_ID){
    int nf = loc->nf;
    int numKernels = getNumDataPatches();
 
-   //Shared weights done in parallel, parallel in numkernels
+   for(int b = 0; b < nbatch; b++){
+      //Shared weights done in parallel, parallel in numkernels
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-   for(int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++){
-      //Calculate xCellIdx, yCellIdx, and fCellIdx from kernelIndex
-      int kxCellIdx = kxPos(kernelIdx, xCellSize, yCellSize, nf);
-      int kyCellIdx = kyPos(kernelIdx, xCellSize, yCellSize, nf);
-      int kfIdx = featureIndex(kernelIdx, xCellSize, yCellSize, nf);
+      for(int kernelIdx = 0; kernelIdx < numKernels; kernelIdx++){
+         //Calculate xCellIdx, yCellIdx, and fCellIdx from kernelIndex
+         int kxCellIdx = kxPos(kernelIdx, xCellSize, yCellSize, nf);
+         int kyCellIdx = kyPos(kernelIdx, xCellSize, yCellSize, nf);
+         int kfIdx = featureIndex(kernelIdx, xCellSize, yCellSize, nf);
 
-      if (parent->simulationTime() - lastActiveTime[arborStart + kernelIdx] > imprintTimeThresh){
-         imprinted[arborStart + kernelIdx] = true;
-         lastActiveTime[arborStart + kernelIdx] = parent->simulationTime();
-         std::cout << "Imprinted feature: Arbor " << arbor_ID << " kernel " << kernelIdx << "\n";
-      }
+         if (parent->simulationTime() - lastActiveTime[arborStart + kernelIdx] > imprintTimeThresh){
+            imprinted[arborStart + kernelIdx] = true;
+            lastActiveTime[arborStart + kernelIdx] = parent->simulationTime();
+            std::cout << "Imprinted feature: Arbor " << arbor_ID << " kernel " << kernelIdx << "\n";
+         }
 
-      //Loop over all cells in pre ext
-      int kyIdx = kyCellIdx;
-      int yCellIdx = 0;
-      while(kyIdx < nyExt){
-         int kxIdx = kxCellIdx;
-         int xCellIdx = 0;
-         while(kxIdx < nxExt){
-            //Calculate kExt from ky, kx, and kf
-            int kExt = kIndex(kxIdx, kyIdx, kfIdx, nxExt, nyExt, nf);
-            if(imprinted[arborStart + kernelIdx]){
-               imprintFeature(arbor_ID, kExt);
-            }
-            else{
-               int status = defaultUpdateInd_dW(arbor_ID, kExt);
-               //Status will be PV_CONTINUE if preact is 0 (not active)
-               if(status == PV_SUCCESS){
-                  lastActiveTime[arborStart + kernelIdx] = parent->simulationTime();
+         //Loop over all cells in pre ext
+         int kyIdx = kyCellIdx;
+         int yCellIdx = 0;
+         while(kyIdx < nyExt){
+            int kxIdx = kxCellIdx;
+            int xCellIdx = 0;
+            while(kxIdx < nxExt){
+               //Calculate kExt from ky, kx, and kf
+               int kExt = kIndex(kxIdx, kyIdx, kfIdx, nxExt, nyExt, nf);
+               if(imprinted[arborStart + kernelIdx]){
+                  imprintFeature(arbor_ID, b, kExt);
                }
+               else{
+                  int status = updateInd_dW(arbor_ID, b, kExt);
+                  //Status will be PV_CONTINUE if preact is 0 (not active)
+                  if(status == PV_SUCCESS){
+                     lastActiveTime[arborStart + kernelIdx] = parent->simulationTime();
+                  }
+               }
+               xCellIdx++;
+               kxIdx = kxCellIdx + xCellIdx * xCellSize;
             }
-            xCellIdx++;
-            kxIdx = kxCellIdx + xCellIdx * xCellSize;
-         }
-         yCellIdx++;
-         kyIdx = kyCellIdx + yCellIdx * yCellSize;
-      }
-   }
-
-   //If update from clones, update dw here as well
-   //Updates on all PlasticClones
-   for(int clonei = 0; clonei < clones.size(); clonei++){
-      assert(clones[clonei]->preSynapticLayer()->getNumExtended() == nExt);
-      for(int kExt=0; kExt<nExt;kExt++) {
-         int kernelIndex = clones[clonei]->patchIndexToDataIndex(kExt);
-         if(!imprinted[arborStart + kernelIndex]){
-            clones[clonei]->defaultUpdateInd_dW(arbor_ID, kExt);
+            yCellIdx++;
+            kyIdx = kyCellIdx + yCellIdx * yCellSize;
          }
       }
-   }
 
+      //If update from clones, update dw here as well
+      //Updates on all PlasticClones
+      for(int clonei = 0; clonei < clones.size(); clonei++){
+         assert(clones[clonei]->preSynapticLayer()->getNumExtended() == nExt);
+         for(int kExt=0; kExt<nExt;kExt++) {
+            int kernelIndex = clones[clonei]->patchIndexToDataIndex(kExt);
+            if(!imprinted[arborStart + kernelIndex]){
+               clones[clonei]->updateInd_dW(arbor_ID, b, kExt);
+            }
+         }
+      }
+
+   }
    //Do mpi to update lastActiveTime
 #ifdef PV_USE_MPI
    int ierr = MPI_Allreduce(MPI_IN_PLACE, lastActiveTime, numKernelIndices * numberOfAxonalArborLists(), MPI_DOUBLE, MPI_MAX, parent->icCommunicator()->communicator());

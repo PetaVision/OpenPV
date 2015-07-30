@@ -23,11 +23,11 @@ HyPerCol "column" = {
 };
 
 // this is a input layer
-Image "input" = {
+ImagePvp "input" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imagePath = "input/input.pvp";
+    inputPath = "input/input.pvp";
     nf = 4;
     phase = 0; //phase defines an order in which layers should be executed.
     writeStep = -1;  //-1 means doesn't write for log
@@ -42,7 +42,7 @@ Image "input" = {
     offsetAnchor = "tl";
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
-    frameNumber = 0;
+    pvpFrameIdx = 0;
     jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
     padValue = 0;
 };
@@ -67,11 +67,11 @@ BackgroundLayer "background" = {
 };
 
 // this is a input layer
-Image "actual" = {
+ImagePvp "actual" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    imagePath = "input/gt_rep4.pvp";
+    inputPath = "input/gt_rep4.pvp";
     nf = 20;
     phase = 0; //phase defines an order in which layers should be executed.
     writeStep = -1;  //-1 means doesn't write for log
@@ -86,7 +86,7 @@ Image "actual" = {
     offsetAnchor = "tl";
     offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
     offsetY = 0;
-    frameNumber = 0;
+    pvpFrameIdx = 0;
     jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
     padValue = 0;
 };

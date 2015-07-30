@@ -16,10 +16,11 @@ class ANNNormalizedErrorLayer: public PV::ANNErrorLayer {
 public:
    ANNNormalizedErrorLayer(const char * name, HyPerCol * hc);
    virtual ~ANNNormalizedErrorLayer();
-   virtual double calcTimeScale();
-   virtual double getTimeScale();
+   virtual double calcTimeScale(int batchIdx);
+   virtual double getTimeScale(int batchIdx);
    virtual int updateState(double time, double dt);
    virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
 protected:
    ANNNormalizedErrorLayer();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
@@ -28,7 +29,7 @@ protected:
    int initialize(const char * name, HyPerCol * hc);
 private:
    int initialize_base();
-   double timeScale;
+   double* timeScale;
    float inputMag;
    std::ofstream timeScaleStream;
 

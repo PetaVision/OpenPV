@@ -104,6 +104,10 @@ endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
 
 add_subdirectory(${PV_DIR})
 add_subdirectory(PVSystemTests)
+add_subdirectory(auxlib/mlearning)
+add_subdirectory(auxlib/mlearning/tests)
+add_subdirectory(auxlib/matchingpursuit)
+add_subdirectory(auxlib/matchingpursuit/tests)
 # # Insert additional add_subdirectory commands to add other projects.
 #add_subdirectory(BIDS)
 #add_subdirectory(DepthLCA)

@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 void LIFGap_update_state_original(
+    const int nbatch,
     const int numNeurons,
     const float time,
     const float dt,
@@ -51,6 +52,7 @@ void LIFGap_update_state_original(
 );
 
 void LIFGap_update_state_beginning(
+    const int nbatch,
     const int numNeurons,
     const float time,
     const float dt,
@@ -78,6 +80,7 @@ void LIFGap_update_state_beginning(
 );
 
 void LIFGap_update_state_arma(
+    const int nbatch,
     const int numNeurons,
     const float time,
     const float dt,
@@ -217,7 +220,7 @@ int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, const
 int LIFGap::allocateConductances(int num_channels) {
    // this->sumGap = 0.0f;
    int status = LIF::allocateConductances(num_channels-1); // CHANNEL_GAP doesn't have a conductance per se.
-   gapStrength = (pvgsyndata_t *) calloc((size_t) getNumNeurons(), sizeof(*gapStrength));
+   gapStrength = (pvgsyndata_t *) calloc((size_t) getNumNeuronsAllBatches(), sizeof(*gapStrength));
    if(gapStrength == NULL) {
       fprintf(stderr, "%s layer \"%s\": rank %d process unable to allocate memory for gapStrength: %s\n",
               parent->parameters()->groupKeywordFromName(getName()), getName(), parent->columnId(), strerror(errno));
@@ -240,7 +243,7 @@ int LIFGap::calcGapStrength() {
    }
    if (!needsNewCalc) { return PV_SUCCESS; }
 
-   for (int k=0; k<getNumNeurons(); k++) {
+   for (int k=0; k<getNumNeuronsAllBatches(); k++) {
       gapStrength[k] = (pvgsyndata_t) 0;
    }
    for (int c=0; c<parent->numberOfConnections(); c++) {
@@ -253,7 +256,7 @@ int LIFGap::calcGapStrength() {
       const int sy = conn->getPostNonextStrides()->sy;
       const int syw = conn->yPatchStride();
       for (int arbor=0; arbor<conn->numberOfAxonalArborLists(); arbor++) {
-         for (int k=0; k<pre->getNumExtended(); k++) {
+         for (int k=0; k<pre->getNumExtendedAllBatches(); k++) {
             conn->deliverOnePreNeuronActivity(k, arbor, (pvadata_t) 1.0, gapStrength, NULL);
          }
       }
@@ -334,21 +337,22 @@ int LIFGap::updateState(double time, double dt)
    const int ny = clayer->loc.ny;
    const int nf = clayer->loc.nf;
    const PVHalo * halo = &clayer->loc.halo;
+   const int nbatch = clayer->loc.nbatch;
 
    pvdata_t * GSynHead   = GSyn[0];
    pvdata_t * activity = clayer->activity->data;
 
    switch (method) {
    case 'a':
-      LIFGap_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
+      LIFGap_update_state_arma(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
             G_I, G_IB, GSynHead, activity, gapStrength);
    break;
    case 'b':
-      LIFGap_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
+      LIFGap_update_state_beginning(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
             G_I, G_IB, GSynHead, activity, gapStrength);
    break;
    case 'o':
-      LIFGap_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
+      LIFGap_update_state_original(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth, G_E,
             G_I, G_IB, GSynHead, activity, gapStrength);
       break;
    default:

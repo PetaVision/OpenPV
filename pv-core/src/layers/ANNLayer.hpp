@@ -9,6 +9,7 @@
 #define ANNLAYER_HPP_
 
 #include "PtwiseLinearTransferLayer.hpp"
+#include <limits>
 
 #define NUM_ANN_EVENTS   3
 #define EV_ANN_ACTIVITY  2

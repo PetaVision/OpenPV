@@ -1,8 +1,8 @@
 debugParsing = false;    // Debug the reading of this parameter file.
 
 HyPerCol "column" = {
-   nx = 1200; //1226, one pixel cropped from both sides;  // KITTI synced value
-   ny = 360;  //370, two pixels cropped from the top;
+   nx = 1024; //1226, one pixel cropped from both sides;  // KITTI synced value
+   ny = 256;  //370, two pixels cropped from the top;
    dt = 1.0;  //time step in ms.	     
    randomSeed = 2394853940;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
@@ -41,7 +41,7 @@ Movie "LeftImage" = {
     initialWriteTime = 1;
     writeSparseActivity = false;
     displayPeriod = 1;
-    start_frame_index = 1;
+    start_frame_index = 3800;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -50,7 +50,7 @@ Movie "LeftImage" = {
     inverseFlag = false;
     normalizeLuminanceFlag = true;
     writeImages = false;
-    offsetAnchor = "br"; //Offset anchor from bottom left
+    offsetAnchor = "bc"; //Offset anchor from bottom left
     offsetX = 0;
     offsetY = 0;
     autoResizeFlag = 0;
@@ -172,7 +172,7 @@ Movie "DepthImage" = {
     writeStep = -1;
     sparseLayer = false;
     displayPeriod = 1;
-    start_frame_index = 1;
+    start_frame_index = 3800;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
     mirrorBCflag = false;
@@ -181,7 +181,7 @@ Movie "DepthImage" = {
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     writeImages = false;
-    offsetAnchor = "br"; //Offset anchor from bottom left
+    offsetAnchor = "bc"; //Offset anchor from bottom left
     offsetX = 0; //1 px offset from the left
     offsetY = 0; //offset 0 from bottom
     randomMovie = 0;
@@ -261,7 +261,22 @@ ANNLayer "FinalLayer" = {
    @phase = 5;
    @VThresh = -infinity;
    @VMin = -infinity;
-   @writeStep = 1; //Change based on display period
+   @writeStep = -1; //Change based on display period
+};
+
+//For visualization
+WTALayer "FinalOut" = {
+    restart = 0;
+    nxScale = .25; 
+    nyScale = .25;
+    nf = 1; 
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    delay = 0;
+    originalLayerName = "FinalLayer";
+    phase = 6;
 };
 
 MaskLayer "FinalError" = {
@@ -273,7 +288,7 @@ MaskLayer "FinalError" = {
    InitVType = "ZeroV";
    VThresh = -infinity;
    phase = 6;
-   maskLayerName = "DepthGT";
+   maskLayerName = "DepthDownsample";
    sparseLayer = true;
 };
 
@@ -458,22 +473,30 @@ PoolingConn "DepthImageToDepthDownsample" = {
 
 //Network connections
 KernelConn "W1LeftPlasticity" = {
-    preLayerName = "LeftRescale";
-    postLayerName = "Error1";
+    preLayerName = "Error1";
+    postLayerName = "LeftRescale";
     channelCode = -1; //Does not update on this channel
-    nxp = 33; 
-    nyp = 33; 
+    nxp = 66;
+    nyp = 66; 
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
-    writeStep = -1;
+    writeStep = 100;
     
-    weightInitType = "UniformRandomWeight";
-    wMinInit = -1.0;
-    wMaxInit = 1.0;
-    sparseFraction = .90;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/ec2-user/mountData/dictLearn/depth_alex_saved/W1LeftPlasticity_W.pvp";
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1;
+    //wMaxInit = 1;
+    //sparseFraction = .90;
         
     strength = 1.0;  
-    normalizeMethod = "none";
+    normalizeMethod = "normalizeL2";
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+
     sharedWeights = true;
     
     shrinkPatches = false;
@@ -483,9 +506,9 @@ KernelConn "W1LeftPlasticity" = {
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 1.0;
 
-    dWMax = .01; // 200.0 used for initial training
-    momentumTau = 100;
-    momentumMethod = "viscosity";
+    dWMax = .001; // 200.0 used for initial training
+    //momentumTau = 100;
+    //momentumMethod = "viscosity";
 
     delay = 0;
      
@@ -494,10 +517,9 @@ KernelConn "W1LeftPlasticity" = {
 
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
-
 };
 
-CloneKernelConn "W1Left" = {
+TransposeConn "W1Left" = {
     preLayerName = "LeftRescale";
     postLayerName = "HiddenLayer1";
     channelCode = 0; //On exc channel
@@ -514,10 +536,13 @@ CloneKernelConn "W1Left" = {
 };
 KernelConn "W1RightPlasticity" = {
    #include "W1LeftPlasticity";
-   @preLayerName = "RightRescale";
+   @postLayerName = "RightRescale";
+   @initWeightsFile = "/home/ec2-user/mountData/dictLearn/depth_alex_saved/W1RightPlasticity_W.pvp";
+   @normalizeMethod = "normalizeGroup";
+   normalizeGroupName = "W1LeftPlasticity";
 };
 
-CloneKernelConn "W1Right" = {
+TransposeConn "W1Right" = {
    #include "W1Left";
    @preLayerName = "RightRescale";
    @originalConnName = "W1RightPlasticity";
@@ -576,15 +601,31 @@ KernelConn "W2Plasticity" = {
    @nyp = 33;
    @preLayerName = "HiddenLayer1";
    @postLayerName = "FinalError";
+   @dWMax = .0001; // 200.0 used for initial training
+   @normalizeMethod = "none";
+   @writeStep = -1;
+
+   //@wMinInit = -0.001;
+   //@wMaxInit = 0.001;
+   @initWeightsFile = "/home/ec2-user/mountData/dictLearn/depth_alex_saved/W2Plasticity_W.pvp";
+
    useMask = true;
-   maskLayerName = "DepthGT";
+   maskLayerName = "DepthDownsample";
 };
 
 CloneKernelConn "W2" = {
-   #include "W1Left";
-   @preLayerName = "HiddenLayer1";
-   @postLayerName = "FinalLayer";
-   @originalConnName = "W2Plasticity";
+    preLayerName = "HiddenLayer1";
+    postLayerName = "FinalLayer";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "W2Plasticity";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = true;
+    receiveGpu = true;
+    pvpatchAccumulateType = "convolve";
 };
 
 //KernelConn "B2Plasticity" = {
@@ -611,37 +652,37 @@ TransposeConn "W2T" = {
     delay = 0;
     pvpatchAccumulateType = "convolve";
     updateGSynFromPostPerspective = false;
-    receiveGpu = false;
+    receiveGpu = true;
 };
 
-//These 2 transpose do not do anything, here for analysis purposes
-TransposeConn "W1TLeft" = {
-    preLayerName = "Error1";
-    postLayerName = "LeftRescale";
-    channelCode = -1;
-    originalConnName = "W1LeftPlasticity";
-    selfFlag = false;
-    preActivityIsNotRate = false;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    delay = 0;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;
-};
-
-TransposeConn "W1TRight" = {
-    preLayerName = "Error1";
-    postLayerName = "RightRescale";
-    channelCode = -1;
-    originalConnName = "W1RightPlasticity";
-    selfFlag = false;
-    preActivityIsNotRate = false;
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    delay = 0;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = false;
-};
+////These 2 transpose do not do anything, here for analysis purposes
+//TransposeConn "W1TLeft" = {
+//    preLayerName = "Error1";
+//    postLayerName = "LeftRescale";
+//    channelCode = -1;
+//    originalConnName = "W1LeftPlasticity";
+//    selfFlag = false;
+//    preActivityIsNotRate = false;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    delay = 0;
+//    pvpatchAccumulateType = "convolve";
+//    updateGSynFromPostPerspective = false;
+//};
+//
+//TransposeConn "W1TRight" = {
+//    preLayerName = "Error1";
+//    postLayerName = "RightRescale";
+//    channelCode = -1;
+//    originalConnName = "W1RightPlasticity";
+//    selfFlag = false;
+//    preActivityIsNotRate = false;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    delay = 0;
+//    pvpatchAccumulateType = "convolve";
+//    updateGSynFromPostPerspective = false;
+//};
 
 IdentConn "gtToFinalError" = {
     preLayerName = "DepthGT";

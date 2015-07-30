@@ -31,7 +31,7 @@ void GPUSystemTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 int GPUSystemTestProbe::outputState(double timed){
    int status = StatsProbe::outputState(timed);
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-   int numExtNeurons = getTargetLayer()->getNumExtended();
+   int numExtNeurons = getTargetLayer()->getNumExtendedAllBatches();
    const pvdata_t * A = getTargetLayer()->getLayerData();
    std::cout.precision(15);
    float sumsq = 0;
@@ -45,8 +45,11 @@ int GPUSystemTestProbe::outputState(double timed){
       //For max difference roundoff errors
       assert(fabs(A[i]) < 5e-4);
    }
-   //For max std of 5e-5
-   assert(sigma <= 5e-5);
+   for(int b = 0; b < loc->nbatch; b++){
+      //For max std of 5e-5
+      assert(sigma[b] <= 5e-5);
+   }
+
    return status;
 }
 

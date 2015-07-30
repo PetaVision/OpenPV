@@ -16,7 +16,7 @@ namespace PV {
 
 class GaussianRandom: public PV::Random {
 public:
-   GaussianRandom(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex);
+   //GaussianRandom(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex);
    GaussianRandom(HyPerCol * hc, int count);
    GaussianRandom(HyPerCol * hc, const PVLayerLoc * locptr, bool isExtended);
    virtual ~GaussianRandom();
@@ -28,7 +28,10 @@ public:
 
 protected:
    GaussianRandom();
-   int initialize(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex);
+   //int initialize(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex);
+   int initializeFromCount(HyPerCol * hc, unsigned int count);
+   int initializeFromLoc(HyPerCol* hc, const PVLayerLoc* locptr, bool isExtended);
+   int initializeGaussian();
 
 private:
    int initialize_base();

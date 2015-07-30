@@ -75,14 +75,15 @@ int GapLayer::updateState(double timef, double dt, const PVLayerLoc * loc, pvdat
    int ny = loc->ny;
    int nf = loc->nf;
    int num_neurons = nx*ny*nf;
+   int nbatch = loc->nbatch;
    updateV_GapLayer();
-   setActivity_GapLayer(num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, originalLayer->getLayerLoc()->halo.lt, originalLayer->getLayerLoc()->halo.rt, originalLayer->getLayerLoc()->halo.dn, originalLayer->getLayerLoc()->halo.up, checkActive, ampSpikelet);
+   setActivity_GapLayer(nbatch, num_neurons, A, V, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, originalLayer->getLayerLoc()->halo.lt, originalLayer->getLayerLoc()->halo.rt, originalLayer->getLayerLoc()->halo.dn, originalLayer->getLayerLoc()->halo.up, checkActive, ampSpikelet);
    return PV_SUCCESS;
 }
 
 int GapLayer::setActivity() {
    const PVLayerLoc * loc = getLayerLoc();
-   return setActivity_GapLayer(getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, originalLayer->getLayerLoc()->halo.lt, originalLayer->getLayerLoc()->halo.rt, originalLayer->getLayerLoc()->halo.dn, originalLayer->getLayerLoc()->halo.up, getCLayer()->activity->data,ampSpikelet);
+   return setActivity_GapLayer(loc->nbatch, getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, originalLayer->getLayerLoc()->halo.lt, originalLayer->getLayerLoc()->halo.rt, originalLayer->getLayerLoc()->halo.dn, originalLayer->getLayerLoc()->halo.up, getCLayer()->activity->data,ampSpikelet);
 }
 
 } // end namespace PV

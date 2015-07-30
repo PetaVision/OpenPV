@@ -53,10 +53,12 @@ int ParameterSweepTestProbe::outputState(double timed) {
       return 0;
    }
 #endif // PV_USE_MPI
-   if (timed >= 3.0 ) {
-      assert(fabs(expectedSum - sum)<1e-6);
-      assert(fabs(expectedMin - fMin)<1e-6);
-      assert(fabs(expectedMax - fMax)<1e-6);
+   for(int b = 0; b < parent->getNBatch(); b++){
+      if (timed >= 3.0 ) {
+         assert(fabs(expectedSum - sum[b])<1e-6);
+         assert(fabs(expectedMin - fMin[b])<1e-6);
+         assert(fabs(expectedMax - fMax[b])<1e-6);
+      }
    }
    return status;
 }

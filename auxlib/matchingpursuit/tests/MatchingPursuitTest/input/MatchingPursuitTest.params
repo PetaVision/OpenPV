@@ -41,7 +41,7 @@ Image "Input" = {
     valueBC                             = 0.0;
     // GPUAccelerate;
     
-    imagePath                       = "input/testimage.png";
+    inputPath                       = "input/testimage.png";
     // frameNumber;
     offsetX                             = 0;
     offsetY                             = 0;

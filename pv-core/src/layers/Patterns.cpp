@@ -53,7 +53,7 @@ int Patterns::initialize_base() {
 }
 
 int Patterns::initialize(const char * name, HyPerCol * hc) {
-   Image::initialize(name, hc);
+   BaseInput::initialize(name, hc);
    assert(getLayerLoc()->nf == 1);
    // this->type is set in Patterns::ioParams, called by HyPerLayer::initialize
    PVParams * params = hc->parameters();
@@ -105,15 +105,15 @@ int Patterns::initialize(const char * name, HyPerCol * hc) {
    return PV_SUCCESS;
 }
 
-void Patterns::ioParam_imagePath(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_READ) {
-      filename = NULL;
-      parent->parameters()->handleUnnecessaryStringParameter(name, "imageList", NULL);
-   }
-}
+//void Patterns::ioParam_imagePath(enum ParamsIOFlag ioFlag) {
+//   if (ioFlag == PARAMS_IO_READ) {
+//      filename = NULL;
+//      parent->parameters()->handleUnnecessaryStringParameter(name, "imageList", NULL);
+//   }
+//}
 
 int Patterns::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = Image::ioParamsFillGroup(ioFlag);
+   int status = BaseInput::ioParamsFillGroup(ioFlag);
    ioParam_patternType(ioFlag);
    ioParam_orientation(ioFlag);
    ioParam_pMove(ioFlag);
@@ -488,7 +488,7 @@ void Patterns::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
 }
 
 int Patterns::communicateInitInfo() {
-   int status = Image::communicateInitInfo();
+   int status = BaseInput::communicateInitInfo();
 
    patternRandState = new Random(parent, 1);
 #ifndef NDEBUG
@@ -525,7 +525,7 @@ int Patterns::communicateInitInfo() {
 }
 
 int Patterns::allocateDataStructures() {
-   int status = Image::allocateDataStructures();
+   int status = BaseInput::allocateDataStructures();
    drawPattern(maxVal);
    return status;
 }
@@ -934,8 +934,18 @@ int Patterns::updateState(double timef, double dt) {
    //if (needNewPattern) {
 
    //   nextDisplayTime += displayPeriod;
-   status = updatePattern(timef);
+   status = getFrame(timef, dt);
    //}
+   return status;
+}
+
+//Image readImage reads the same thing to every batch
+//This call is here since this is the entry point called from allocate
+//Movie overwrites this function to define how it wants to load into batches
+int Patterns::retrieveData(double timef, double dt)
+{
+   int status = PV_SUCCESS;
+   status = updatePattern(timef);
    return status;
 }
 
@@ -967,7 +977,7 @@ int Patterns::updatePattern(double timef) {
    }
 
    if (newPattern) {
-      lastUpdateTime = timef;
+      //lastUpdateTime = timef;
 
       drawPattern(maxVal);
       if (writeImages) {
@@ -995,7 +1005,7 @@ int Patterns::updatePattern(double timef) {
          else if (type == DROP){
             snprintf(basicfilename, PV_PATH_MAX, "%s/Drop%.3d.%s", patternsOutputPath, (int)timef, writeImagesExtension);
          }
-         write(basicfilename);
+         writeImage(basicfilename, 0); //TODO incorporate batch idx here
       }
    }
 
@@ -1048,7 +1058,7 @@ float Patterns::calcPosition(float pos, int step)
 }
 
 int Patterns::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
-   int status = Image::readStateFromCheckpoint(cpDir, timeptr);
+   int status = BaseInput::readStateFromCheckpoint(cpDir, timeptr);
    status = readPatternStateFromCheckpoint(cpDir);
    return status;
 }
@@ -1141,7 +1151,7 @@ int Patterns::readPatternStateFromCheckpoint(const char * cpDir) {
       }
    }
 #endif // PV_USE_MPI
-   free(filename);
+   //free(filename);
    return status;
 }
 

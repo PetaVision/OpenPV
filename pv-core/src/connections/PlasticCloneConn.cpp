@@ -58,6 +58,25 @@ int PlasticCloneConn::communicateInitInfo() {
    return status;
 }
 
+int PlasticCloneConn::constructWeights() {
+   int status = CloneConn::constructWeights();
+   if(status == PV_SUCCESS){
+      //Additionally point activations to orig conn
+      numKernelActivations = this->originalConn->get_activations();
+   }
+   return status;
+}
+
+int PlasticCloneConn::deleteWeights() {
+   wPatches = NULL;
+   wDataStart = NULL;
+   gSynPatchStart = NULL;
+   aPostOffset = NULL;
+   dwDataStart = NULL;
+   numKernelActivations = NULL;
+   return 0;
+}
+
 int PlasticCloneConn::cloneParameters() {
    // called by CloneConn::communicateInitInfo, before it calls HyPerConn::communicateInitInfo
    CloneConn::cloneParameters();
@@ -72,6 +91,10 @@ int PlasticCloneConn::cloneParameters() {
    weightUpdatePeriod = originalConn->getWeightUpdatePeriod();
 
    return PV_SUCCESS;
+}
+
+PlasticCloneConn::~PlasticCloneConn() {
+  deleteWeights();
 }
 
 } // end namespace PV

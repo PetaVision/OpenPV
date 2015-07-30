@@ -29,6 +29,7 @@ HyPerCol "column" = {
    initializeFromCheckpointDir = "";
    checkpointWrite = false;
    suppressLastOutput = false;
+   nbatch = 2;
 };
 
 //
@@ -38,8 +39,7 @@ HyPerCol "column" = {
 Movie "inputmovie" = {
    nxScale = 1.0;
    nyScale = 1.0;
-   imageListPath = "input/filenames.txt";
-   readPvpFile = false;
+   inputPath = "input/filenames.txt";
    nf = 1;
    phase = 0;
    writeStep = -1;
@@ -59,8 +59,9 @@ Movie "inputmovie" = {
    displayPeriod = 1.0;
    randomMovie = false;
    echoFramePathnameFlag = true;
-   start_frame_index = 0;
-   skip_frame_index = 0;
+   batchMethod = "byImage";
+   //start_frame_index = 0;
+   //skip_frame_index = 0;
    writeFrameToTimestamp = true;
    flipOnTimescaleError = true;
    resetToStartOnLoop = false;

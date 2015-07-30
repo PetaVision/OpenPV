@@ -55,7 +55,7 @@ hdr.nxGlobal = headerwords(13);
 hdr.nyGlobal = headerwords(14);
 hdr.kx0 = headerwords(15);
 hdr.ky0 = headerwords(16);
-hdr.nb = headerwords(17);
+hdr.nbatch = headerwords(17);
 hdr.nbands = headerwords(18);
 hdr.time = fread(fid,1,'float64');
 

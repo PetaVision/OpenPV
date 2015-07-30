@@ -22,10 +22,9 @@ typedef struct PVHalo_ {
  * PVLayerLoc describes the local location of a layer within the global space
  */
 typedef struct PVLayerLoc_ {
-   int nx, ny, nf;         // local number of grid pts in each dimension
-   int nb_no_longer_used;  // size of border (replaced by halo)
-   int nxGlobal, nyGlobal; // total number of grid pts in the global space
-   int kx0, ky0;           // origin of the local layer in global index space
+   int nbatch, nx, ny, nf; // local number of grid pts in each dimension
+   int nbatchGlobal, nxGlobal, nyGlobal; // total number of grid pts in the global space
+   int kb0, kx0, ky0;      // origin of the local layer in global index space
    PVHalo halo;            // padding for memory (must include nb)
 } PVLayerLoc;
 

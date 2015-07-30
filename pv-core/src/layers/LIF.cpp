@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 void LIF_update_state_arma(
+    const int nbatch,
     const int numNeurons,
     const float time,
     const float dt,
@@ -48,6 +49,7 @@ void LIF_update_state_arma(
     float * activity);
 
 void LIF_update_state_beginning(
+    const int nbatch,
     const int numNeurons,
     const float time,
     const float dt,
@@ -72,6 +74,7 @@ void LIF_update_state_beginning(
     float * activity);
 
 void LIF_update_state_original(
+    const int nbatch,
     const int numNeurons,
     const float time,
     const float dt,
@@ -410,7 +413,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
 
 int LIF::setActivity() {
    pvdata_t * activity = clayer->activity->data;
-   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtended);
+   memset(activity, 0, sizeof(pvdata_t) * clayer->numExtendedAllBatches);
    return 0;
 }
 
@@ -430,7 +433,7 @@ int LIF::allocateDataStructures() {
       exit(EXIT_FAILURE);
    }
 
-   int numNeurons = getNumNeurons();
+   int numNeurons = getNumNeuronsAllBatches();
    assert(Vth); // Allocated when HyPerLayer::allocateDataStructures() called allocateBuffers().
    for (size_t k = 0; k < numNeurons; k++){
       Vth[k] = lParams.VthRest; // lParams.VthRest is set in setLIFParams
@@ -441,7 +444,7 @@ int LIF::allocateDataStructures() {
 int LIF::allocateBuffers() {
    int status = allocateConductances(numChannels);
    assert(status==PV_SUCCESS);
-   Vth = (pvdata_t *) calloc((size_t) getNumNeurons(), sizeof(pvdata_t));
+   Vth = (pvdata_t *) calloc((size_t) getNumNeuronsAllBatches(), sizeof(pvdata_t));
    if(Vth == NULL) {
       fprintf(stderr, "LIF layer \"%s\" rank %d process unable to allocate memory for Vth: %s\n",
               name, parent->columnId(), strerror(errno));
@@ -452,8 +455,8 @@ int LIF::allocateBuffers() {
 
 int LIF::allocateConductances(int num_channels) {
    assert(num_channels>=3); // Need exc, inh, and inhb at a minimum.
-   const int numNeurons = getNumNeurons();
-   G_E = (pvdata_t *) calloc((size_t) (getNumNeurons()*numChannels), sizeof(pvdata_t));
+   const int numNeurons = getNumNeuronsAllBatches();
+   G_E = (pvdata_t *) calloc((size_t) (getNumNeuronsAllBatches()*numChannels), sizeof(pvdata_t));
    if(G_E == NULL) {
       fprintf(stderr, "LIF layer \"%s\" rank %d process unable to allocate memory for %d conductances: %s\n",
               name, parent->columnId(), num_channels, strerror(errno));
@@ -510,7 +513,7 @@ int LIF::readG_IBFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int LIF::readRandStateFromCheckpoint(const char * cpDir, double * timeptr) {
    char * filename = parent->pathInCheckpoint(cpDir, getName(), "_rand_state.bin");
-   int status = readRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc()); // TODO Make a method in Random class
+   int status = readRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc(), false /*extended*/); // TODO Make a method in Random class
    assert(status==PV_SUCCESS);
    free(filename);
    return status;
@@ -544,7 +547,7 @@ int LIF::checkpointWrite(const char * cpDir) {
 
    chars_needed = snprintf(filename, filenamesize, "%s/%s_rand_state.bin", cpDir, name);
    assert(chars_needed < filenamesize);
-   writeRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc(), parent->getVerifyWrites()); // TODO Make a method in Random class
+   writeRandState(filename, parent->icCommunicator(), randState->getRNG(0), getLayerLoc(), false /*extended*/, parent->getVerifyWrites()); // TODO Make a method in Random class
 
    free(filename);
    return PV_SUCCESS;
@@ -623,21 +626,22 @@ int LIF::updateState(double time, double dt)
       const int ny = clayer->loc.ny;
       const int nf = clayer->loc.nf;
       const PVHalo * halo = &clayer->loc.halo;
+      const int nbatch = clayer->loc.nbatch;
 
       pvdata_t * GSynHead   = GSyn[0];
       pvdata_t * activity = clayer->activity->data;
 
       switch (method) {
       case 'a':
-         LIF_update_state_arma(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
+         LIF_update_state_arma(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       case 'b':
-         LIF_update_state_beginning(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
+         LIF_update_state_beginning(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       case 'o':
-         LIF_update_state_original(getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
+         LIF_update_state_original(nbatch, getNumNeurons(), time, dt, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up, &lParams, randState->getRNG(0), clayer->V, Vth,
                G_E, G_I, G_IB, GSynHead, activity);
          break;
       default:

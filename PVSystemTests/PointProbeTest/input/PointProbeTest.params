@@ -22,13 +22,12 @@ HyPerCol "column" = {
     errorOnNotANumber = false;
 };
 
-Movie "Input" = {
+MoviePvp "Input" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
     nf = 3;
-    readPvpFile = true;
-    imageListPath = "input/Input.pvp";
+    inputPath = "input/Input.pvp";
     writeFrameToTimestamp = true;
     writeStep = -1;
     sparseLayer = false;
@@ -56,6 +55,7 @@ TestPointProbe "UpLeft" = {
    xLoc = 1;
    yLoc = 1;
    fLoc = 0;
+   batchLoc = 0;
 };
 
 TestPointProbe "UpRight" = {
@@ -63,6 +63,7 @@ TestPointProbe "UpRight" = {
    xLoc = 6;
    yLoc = 1;
    fLoc = 1;
+   batchLoc = 0;
 };
 
 TestPointProbe "DownLeft" = {
@@ -70,6 +71,7 @@ TestPointProbe "DownLeft" = {
    xLoc = 1;
    yLoc = 6;
    fLoc = 2;
+   batchLoc = 0;
 };
 
 TestPointProbe "DownRight" = {
@@ -77,6 +79,7 @@ TestPointProbe "DownRight" = {
    xLoc = 6;
    yLoc = 6;
    fLoc = 0;
+   batchLoc = 0;
 };
 
 
