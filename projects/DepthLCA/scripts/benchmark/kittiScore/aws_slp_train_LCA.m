@@ -7,9 +7,9 @@ addpath('~/workspace/PetaVision/mlab/util')
 % error threshold
 tau = 3;
 
-outdir = '/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/';
+outdir = '/home/ec2-user/mountData/benchmark/train/aws_slp_white_LCA/';
 timestamp = [outdir '/timestamps/DepthImage.txt'];
-outPvpFile = [outdir 'a7_SLP_Recon.pvp'];
+outPvpFile = [outdir 'a6_SLP_Recon.pvp'];
 gtPvpFile = [outdir 'a3_DepthDownsample.pvp'];
 scoreDir = [outdir 'scores/']
 imageDir = 's3://kitti/stereo_flow/multiview/training/image_2/'

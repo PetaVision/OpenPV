@@ -509,7 +509,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
    }
 
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided) if (parent->getThreadBatch())
+#pragma omp parallel for schedule(static) if (parent->getThreadBatch())
 #endif
    for(int b = 0; b < parent->getNBatch(); b++){
       pvdata_t * activityBatch = activity->data + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt) * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
@@ -549,7 +549,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
 
 
 #ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(guided) if (!parent->getThreadBatch())
+#pragma omp parallel for schedule(static) if (!parent->getThreadBatch())
 #endif
       for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
          int kPreExt;

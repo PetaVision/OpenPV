@@ -145,26 +145,24 @@ int BatchConn::defaultUpdate_dW(int arbor_ID) {
 }
 
 int BatchConn::normalize_dW(int arbor_ID){
-   if (sharedWeights) {
-      for( int loop_arbor; loop_arbor < numberOfAxonalArborLists(); loop_arbor++){
-         // Divide by numKernelActivations in this timestep
-         int numKernelIndices = getNumDataPatches();
+   for( int loop_arbor; loop_arbor < numberOfAxonalArborLists(); loop_arbor++){
+      // Divide by numKernelActivations in this timestep
+      int numKernelIndices = getNumDataPatches();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-         for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
-            //Calculate pre feature index from patch index
-            int numpatchitems = nxp*nyp*nfp;
-            pvwdata_t * dwpatchdata = get_dwDataHead(loop_arbor,kernelindex);
-            for( int n=0; n<numpatchitems; n++ ) {
-               long divisor = numKernelActivations[loop_arbor][kernelindex][n];
-               //Divisor should not overflow
-               if(divisor != 0){
-                  dwpatchdata[n] /= divisor;
-               }
-               else{
-                  dwpatchdata[n] = 0;
-               }
+      for( int kernelindex=0; kernelindex<numKernelIndices; kernelindex++ ) {
+         //Calculate pre feature index from patch index
+         int numpatchitems = nxp*nyp*nfp;
+         pvwdata_t * dwpatchdata = get_dwDataHead(loop_arbor,kernelindex);
+         for( int n=0; n<numpatchitems; n++ ) {
+            long divisor = numKernelActivations[loop_arbor][kernelindex][n];
+            //Divisor should not overflow
+            if(divisor != 0){
+               dwpatchdata[n] /= divisor;
+            }
+            else{
+               dwpatchdata[n] = 0;
             }
          }
       }

@@ -1,0 +1,225 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 1200; //1226, one pixel cropped from both sides;  // KITTI synced value
+    ny = 360;  //370, two pixels cropped from the top;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0;
+    stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
+    progressStep = 1;
+    outputPath = "/home/ec2-user/mountData/geoint/occdom/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false; //true;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
+    //checkpointReadDirIndex = ;
+    checkpointWrite = false;
+    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_white_LCA/Checkpoints";
+    checkpointWriteStepInterval = 50;
+    deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+    dtAdaptFlag = false;
+    dtScaleMax = 5.0;
+    dtScaleMin = 0.25;
+    dtChangeMax = 0.05;
+    dtChangeMin = 0.0;
+};
+
+//
+// layers
+//
+
+Movie "LCA_V1" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 512;
+    readPvpFile = true;
+    imageListPath = "/home/ec2-user/mountData/benchmark/a12_V1_LCA.pvp";
+    writeFrameToTimestamp = true;
+    writeStep = -1;
+    sparseLayer = true;
+    writeSparseValues = true;
+    displayPeriod = 1;
+    start_frame_index = 22;
+    skip_frame_index = 11;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+MaskLayer "V1OccDom" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 512;
+    writeStep = -1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 1;
+    writeSparseValues   = 1;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    // 
+    phase = 1; 
+    triggerFlag = false;
+    maskMethod = "noMaskFeatures";
+    featureIdxs = [0, 87, 194, 197, 202, 253, 290, 297, 350, 469, 481];
+};
+
+ANNLayer "LeftRecon" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 1;
+    writeStep = 1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    //movieLayerName = "LeftImage";
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    // 
+    phase = 1;
+    //
+};
+
+ANNLayer "RightRecon" = {
+   #include "LeftRecon";
+};
+
+ANNLayer "LeftReconOccDom" = {
+   #include "LeftRecon";
+   @phase = 2;
+};
+
+ANNLayer "RightReconOccDom" = {
+   #include "RightRecon";
+   @phase = 2;
+};
+
+KernelConn "LCA_V1ToLeftRecon" = {
+    preLayerName = "LCA_V1";
+    postLayerName = "LeftRecon";
+    channelCode = 0;
+    nxp = 66;
+    nyp = 66;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/ec2-user/mountData/dictLearn/white_LCA_dictLearn/V1ToLeftError_W.pvp";
+
+    strength = 1; //.25/2  
+    normalizeMethod = "none"; //Switch to normalizecontrastzeromean
+    //normalizeMethod = "normalizeContrastZeroMean"; 
+    //SET PARAMS TO NEW NORMALIZATION METHOD
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    //triggerFlag = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
+    initialWriteTime = 0.0;
+    //dWMax = 5; // 200.0 used for initial training
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "LCA_V1ToRightRecon" = {
+   #include "LCA_V1ToLeftRecon";
+   @postLayerName = "RightRecon";
+   @initWeightsFile = "/home/ec2-user/mountData/dictLearn/white_LCA_dictLearn/V1ToRightError_W.pvp";
+};
+
+CloneKernelConn "V1OccDomToLeftReconOccDom" = {
+    preLayerName = "V1OccDom";
+    postLayerName = "LeftReconOccDom";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "LCA_V1ToLeftRecon";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneKernelConn "V1OccDomToRightReconOccDom" = {
+    preLayerName = "V1OccDom";
+    postLayerName = "RightReconOccDom";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "LCA_V1ToRightRecon";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+IdentConn "V1ToV1_OccDom" = {
+   preLayerName                        = "LCA_V1";
+   postLayerName                       = "V1OccDom";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+

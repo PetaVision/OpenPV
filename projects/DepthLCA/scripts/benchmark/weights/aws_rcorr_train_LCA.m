@@ -4,7 +4,7 @@ close all;
 %setenv("GNUTERM","X11")
 
 workspace_path = "/home/ec2-user/workspace";
-output_dir = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_LCA_saved/"; 
+output_dir = "/home/ec2-user/mountData/benchmark/train/aws_rcorr_white_LCA/"; 
 %
 
 addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
@@ -50,8 +50,8 @@ end
 plot_flag = true;
 
 last_checkpoint_ndx = 90;
-checkpoint_path = output_dir; %% 
-%checkpoint_path = [output_dir, filesep, "Last"]; %% 
+%checkpoint_path = output_dir; %% 
+checkpoint_path = [output_dir, filesep, "Last"]; %% 
 max_history = 196000;
 numarbors = 1;
 
