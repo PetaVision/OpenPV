@@ -7,6 +7,7 @@
     <link rel="icon" href="./favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/github-light.css">
+    <link href='http://fonts.googleapis.com/css?family=Sigmar+One' rel='stylesheet' type='text/css'>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -18,11 +19,11 @@
     <div class="wrapper">
       <header>
       <center>
-        <h1>OpenPV</h1>
-        <img src="images/petavisionLogo.png">
+       <a href="https://petavision.github.io/OpenPV/"><h1 style="font-family: 'Sigmar One'; font-size:300%;">Open PV</h1></a>
+       <a href="https://petavision.github.io/OpenPV/"><img src="images/petavisionLogo.png"></a>
 	<h3>Open-Source Accelerated Neuromorphic Computing</h3>
 
-        <p class="view"><a href="https://github.com/PetaVision/OpenPV">View the Project on GitHub <small>PetaVision/OpenPV</small></a></p>
+        <p class="view"><a href="https://github.com/PetaVision/OpenPV">View the Project on GitHub<br><small>PetaVision/OpenPV</small></a></p>
         <ul>
           <li><a href="https://github.com/PetaVision/OpenPV/zipball/master">Download <strong>ZIP File</strong></a></li>
           <li><a href="https://github.com/PetaVision/OpenPV/tarball/master">Download <strong>TAR Ball</strong></a></li>
@@ -32,7 +33,7 @@
 	  <p><a href="http://petavision.github.io/OpenPV/petavision.html">PetaVision Lab</a></p>
 	  <p><a href="https://github.com/PetaVision/OpenPV/wiki">OpenPV Wiki</a></p>
 	  <p><a href="http://petavision.github.io/OpenPV/doxygen/index.html" title="Doxygen Generated Documentation">Documentation</a></p>
-          <p><a href="https://github.com/PetaVision/OpenPV/media.html">Media</a></p>
+          <p><a href="https://petavision.github.io/OpenPV/media.html">Media</a></p>
 	  <p><a href="https://github.com/PetaVision/OpenPV/wiki/FAQ">FAQ</a></p>
 	  <p><a href="https://github.com/PetaVision/OpenPV/issues">Report an Issue</a></p>
 	  <p><a href="<a href="http://www.google.com/recaptcha/mailhide/d?k=013fby0uCGfh_c9QfI3RZAAQ==&amp;c=K4o1WWq-BLpOhBI1hIJQs229_9Svhe-W1fEFBmLnwN8I5Hx0Ibebju26Wg628o7m" onclick="window.open('http://www.google.com/recaptcha/mailhide/d?k\075013fby0uCGfh_c9QfI3RZAAQ\75\75\46c\75K4o1WWq-BLpOhBI1hIJQs229_9Svhe-W1fEFBmLnwN8I5Hx0Ibebju26Wg628o7m', '', 'toolbar=0,scrollbars=0,location=0,statusbar=0,menubar=0,resizable=0,width=500,height=300'); return false;" title="Reveal this e-mail address">Questions?</a></p>
@@ -59,11 +60,11 @@
 	<strong>Emergence of Depth Tuned Hidden Units Through Sparse Encoding of Binocular Images</strong>,  
 	<p>"Sparse  coding  models  applied  to  monocular  images  exhibit  both  linear  and nonlinear  characteristics,  corresponding  to  the  classical  and  non­classical receptive  field  properties  recorded  from  simple  cells  in  the  primary  visual cortex. However, little work has been done to determine if sparse coding in the context  of  stereopsis  exhibits  a  similar  combination  of  linear  and  nonlinear properties.  While  a  number  of  previous  models  have  been  used  to  learn disparity­selective  units,  the  relationship  between  disparity  and  depth  is fundamentally nonlinear, since disparity  can be produced by periodicity in the stimulus and does not uniquely determine depth.  Here, we show that nonlinear depth­selective hidden  units  emerge  naturally  from  a  encoding  model  trained entirely via unsupervised exposure to stereo video optimized for sparse encoding of stereo image frames. Unlike disparity­selectivity, which is a robust property of  many  linear  encoding  models,  we  show  that  a  sparse  coding  model  is necessary for the emergence of depth­selectivity, which largely disappears whe latent variables are replaced with feedforward convolution." 
 	<br>
-	<figure><a href="./assets/images/featured/Depth_Preprocessing.png" rel="prettyPhoto"><img src="assets/images/featured/Depth_Preprocessing.png"  width="600" alt="" /></a><figcaption>The original, whitened, and reconstructed image streams from the KITTI database that are used to develop disparity elements.</figcaption></figure>
+<!--	<figure><a href="./assets/images/featured/Depth_Preprocessing.png" rel="prettyPhoto"><img src="assets/images/featured/Depth_Preprocessing.png"  width="600" alt="" /></a><figcaption>The original, whitened, and reconstructed image streams from the KITTI database that are used to develop disparity elements.</figcaption></figure>
 	<figure><a href="./assets/images/featured/Depth_Block_Diagrams.png" rel="prettyPhoto"><img src="assets/images/featured/Depth_Block_Diagrams.png" width="600" alt="Nice building" /></a><figcaption>Cartoon block diagram describing the neural network used to train disparity selective elements from two camera views. The algorithm used in the leaky integrator layer is similar to the Locally Competitive Algorithm described by Rozel.</figcaption></figure>
 	<figure><a href="./assets/images/featured/Depth_Inference.png" rel="prettyPhoto" style="left: -20px"><img src="assets/images/featured/Depth_Inference.png" width="600" style="left: -50px" alt="Reconstruction of depth using DSCANN compared with groundtruth and reconstruction from ReLU" /></a><figcaption>Comparison of of the depth groundtruth and depth reconstructions using our Sparse Convolutional Artificial Neural Network (SCANN) and a Rectified Linear Unit (ReLU).</figcaption></figure> 
 	<figure><a href="./assets/images/featured/Depth_clip.gif" rel="prettyPhoto" style="left: -20px"><img src="assets/images/featured/Depth_clip.gif" width="600" style="left: -50px" alt="Reconstruction of depth using DSCANN compared with groundtruth and reconstruction from ReLU" /></a><figcaption>The top image is the original video stream. The bottom is the depth map generated from just the original video stream using the disparity cues.  The black regions in the lower image correspond to the depth mask from the last frame in each clip.</figcaption></figure> 
-
+-->
         <h3 id="multi">Multi-Intelligence Learning <small> <a href="#max_theiler"> Max Theiler</a></small></h3>
 	<p>In multi-INT analysis, as in most problems in machine learning, the needle of relevant data is buried in a haystack of noise. What makes it particularly difficult is that it calls for the reconciliation of data streams of wildly differing format, scope, consistency and granularity. The premise of mult-INT is that useful predictive higher-order correlations exist between these streams, but how can any automated system make sense of inputs as diverse as (for instance) twitter activity, video footage, and economic data?</p>
 
@@ -71,7 +72,7 @@
 
 <p>My work is to explore the possibility of adapting PetaVision to this purpose.  The first challenge is training well-tuned dictionaries of features on non-visual data sets (currently, infrared satellite weather data and agricultural commodity prices). The second is to use sparse coding to find statistically significant relationships between these data sets and train a super-dictionary that encodes them, able to consolidate data from profoundly different streams. I aim to use example datasets to create a PetaVision proof-of-concept for a neural network along these lines.</p>
 	</p>
-<center>	<ul class="images">
+<!--<center>	<ul class="images">
 	    <li><a href="./assets/images/featured/MULTI_original_image.gif" title="IR-weather data centered about the Gulf of Mexico" rel="prettyPhoto"><img src="assets/images/featured/MULTI_original_image.gif" width="300" alt="IR-weather data centered about the Gulf of Mexico" /></a></li>
 	    <li><a href="./assets/images/featured/MULTI_reconstruction_image.gif" title="Sparse reconstruction of IR-weather data" rel="prettyPhoto"><img src="assets/images/featured/MULTI_reconstruction_image.gif"  width="300" alt="Sparse reconstruction of IR-weather data" /></a></li>
 <br><br>    <li><a href="./assets/images/featured/MULTI_feature1.gif" title="Example feature 1" rel="prettyPhoto"><img src="assets/images/featured/MULTI_feature1.gif"  width="90" alt="Example feature 1" /></a></li>
@@ -79,16 +80,16 @@
 	    <li><a href="./assets/images/featured/MULTI_feature3.gif" title="Example feature 3" rel="prettyPhoto"><img src="assets/images/featured/MULTI_feature3.gif"  width="90" alt="Example feature 3" /></a></li>
 	    <li><a href="./assets/images/featured/MULTI_feature4.gif" title="Example feature 4" rel="prettyPhoto"><img src="assets/images/featured/MULTI_feature4.gif"  width="90" alt="Example feature 4" /></a></li>
 </center>	</ul>
-
+-->
 	<h3 id="action">Action Classification <small><a href="#wesley_chavez">Wesley Chavez</a></small></h3>
         <p>Many sparse coding algorithms are restricted in the time domain, and don't make use of temporal dynamics in video, which can provide extra clues about the objects and actions being performed.  We show that unsupervised learning with a modified, linked-dictionary LCA (locally competitive algorithm) in PetaVision can learn features with spatial, as well as temporal structure.  Instead of one image/frame as the LCA's input, a sequence of consecutive video frames is presented, and each neuron in the sparse/hidden layer is then forced to approximate all frames at once, updating its linked (spatiotemporal) weights via Hebbian learning to encode not only spatial redundancies, but temporal redundancies of the input as well.  Here is a .gif of spatiotemporal features learned (unsupervised) with a sliding window of four consecutive video frames as LCA's input in PetaVision:</p>
-	<a href="assets/images/featured/Weights_64.gif" title="Spatiotemporal weights learned with unsupervised learning on natural video"><img src="assets/images/featured/Weights_64.gif" width="600" alt="Spatiotemporal weights learned with unsupervised learning on natural video"></a> 
-	<p>We perform classification of objects in the DARPA NeoVision2 Tower dataset by using a linear single-layer perceptron (SLP) within PetaVision to learn the hyperplanes that separate the learned spatiotemporal features that correspond to the five different classes.   (cyan = "person", green = "bicyclist", magenta = "bus", red = "car", blue = "truck"):</p>
-	<video width="600" controls>
+<!--	<a href="assets/images/featured/Weights_64.gif" title="Spatiotemporal weights learned with unsupervised learning on natural video"><img src="assets/images/featured/Weights_64.gif" width="600" alt="Spatiotemporal weights learned with unsupervised learning on natural video"></a> 
+-->	<p>We perform classification of objects in the DARPA NeoVision2 Tower dataset by using a linear single-layer perceptron (SLP) within PetaVision to learn the hyperplanes that separate the learned spatiotemporal features that correspond to the five different classes.   (cyan = "person", green = "bicyclist", magenta = "bus", red = "car", blue = "truck"):</p>
+<!--	<video width="600" controls>
 	  <source src="assets/images/featured/Group16Classification.mp4" type="video/mp4">
 	  Your browers does not support the video tag. Follow this link <a href="assets/images/featured/Group16Classification.mp4">here</a> to watch the video
 	</video>	
-	<hr>	
+-->	<hr>	
 
 
 </section>
