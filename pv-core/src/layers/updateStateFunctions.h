@@ -489,7 +489,12 @@ int applyGSyn_ISTALayer(int nbatch, int numNeurons,
     int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
     //V[k] = V[k] + dt_tau * (GSynError[k] - V[k] + activity[kex]);                                                                   
     //      if (selfInteract){
-    VBatch[k] = exp_tau * VBatch[k] + (1 - exp_tau) * (GSynErrorBatch[k] - (VThresh * (activityBatch[kex] > 0)));
+    float sign;
+    if (activityBatch[kex] == 0)
+      sign = 0;
+    else
+      sign = activityBatch[kex]/fabsf(activityBatch[kex]);
+    VBatch[k] = (dtAdapt[b]/tau) * (GSynErrorBatch[k] - (VThresh * sign)));
   }
   //else {                                                                                                                             
   //      V[k] = exp_tau * V[k] + (1 - exp_tau) * GSynError[k];}                                                                       
@@ -527,7 +532,13 @@ int applyGSyn_ISTALayer2(int nbatch, int numNeurons,
     int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
     //V[k] = V[k] + dt_tau * (GSynError[k] - GSynError2[k] - V[k] + activity[kex]);                                                   
     //if (selfInteract){                                                                                                              
-    VBatch[k] = exp_tau * VBatch[k] + (1 - exp_tau) * (GSynErrorBatch[k] - GSynError2Batch[k] - (VThresh * (activityBatch[kex] > 0)));
+    //VBatch[k] = exp_tau * VBatch[k] + (1 - exp_tau) * (GSynErrorBatch[k] - GSynError2Batch[k] - (VThresh * (activityBatch[kex] > 0)));
+    float sign;
+    if (activityBatch[kex] == 0)
+      sign = 0;
+    else
+      sign = activityBatch[kex]/fabsf(activityBatch[kex]);
+    VBatch[k] = (dtAdapt[b]/tau) * ( (GSynErrorBatch[k] - GSynError2Batch[k]) - (VThresh * sign) );
   }
   //else {                                                                                                                             
   //      V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k]- GSynError2[k]);}                                                      
