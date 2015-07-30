@@ -217,7 +217,7 @@ endif  %% plot_StatsProbe_vs_time
 %Prints weights from checkpoints
 
 
-plot_flag = 1;
+plot_flag = 0;
 analyze_Sparse_flag = true;
 if analyze_Sparse_flag
     Sparse_list = ...
@@ -315,6 +315,7 @@ if plot_xCorr
    %temp = calcCorr(data{1}, hdr);
 end%if
 
+plot_flag = 0;
 %%keyboard;
 plot_weights = true;
 if plot_weights
@@ -478,7 +479,7 @@ if plot_weights
 	min_patch = min(patch_tmp2(:));
 	max_patch = max(patch_tmp2(:));
 	patch_tmp2 = (patch_tmp2 - min_patch) * 255 / (max_patch - min_patch + ((max_patch - min_patch)==0));
-	patch_tmp2 = uint8(permute(patch_tmp2, [2,1,3])); %% uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
+	patch_tmp2 = permute(patch_tmp2, [2,1,3]); %% uint8(flipdim(permute(patch_tmp2, [2,1,3]),1));
 	if plot_flag && i_checkpoint == max_checkpoint
 	  imagesc(patch_tmp2); 
 	  if num_weights_colors == 1
@@ -506,6 +507,13 @@ if plot_weights
       if plot_flag && i_checkpoint == max_checkpoint
 	  saveas(weights_fig, [weights_dir, filesep, weights_name, ".png"], "png");
       endif
+      %Normalize, keeping 0 still 0
+
+      %maxVal = max(weight_patch_array(:));
+      %minVal = min(weight_patch_array(:));
+      %normVal = max(abs(maxVal), abs(minVal));
+      %weight_patch_array = ((weight_patch_array/normVal) + 1)*128;
+
       imwrite(uint8(weight_patch_array), [weights_movie_dir, filesep, weights_name, ".png"], "png");
       %% make histogram of all weights
       if plot_flag && i_checkpoint == max_checkpoint

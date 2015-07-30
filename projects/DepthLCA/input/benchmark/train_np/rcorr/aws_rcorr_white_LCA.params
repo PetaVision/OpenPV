@@ -158,7 +158,7 @@ BinningLayer "DepthGT" = {
     binMin = 0;
     binSigma = 3;
     InitVType = "ZeroV";
-    zeroNeg = false; //Set negative gt values as -1
+    zeroNeg = true; //Set negative gt values as -1
     zeroDCR = true; //Zero values from the buffer is set to 0
     normalDist = false; //Max value will always be 1 as opposed to normal distribution
     delay = 0;
@@ -276,12 +276,12 @@ BatchConn "LCA_V1ToDepthGT" = {
     weightInit = 0;
     //
     strength = 1; //.25/2  
-    normalizeMethod = "normalizeL2";
-    minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = false;
-    symmetrizeWeights = false;
+    normalizeMethod = "none";
+    //minL2NormTolerated = 0;
+    //normalizeArborsIndividually = 0;
+    //normalize_cutoff = 0.0;
+    //normalizeFromPostPerspective = false;
+    //symmetrizeWeights = false;
     //
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
     keepKernelsSynchronized = true; 

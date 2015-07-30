@@ -1,0 +1,359 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 1200; //1226, one pixel cropped from both sides;  // KITTI synced value
+    ny = 360;  //370, two pixels cropped from the top;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0;
+    stopTime = 11; //193 total testing, splitting into 100 training, 93 testing
+    progressStep = 1;
+    //outputPath = "/home/ec2-user/mountData/geoint/validate/slp_all/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false; //true;
+    //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
+    //checkpointReadDirIndex = ;
+    checkpointWrite = false;
+    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/benchmark/train/single_rcorr_LCA/Checkpoints";
+    checkpointWriteStepInterval = 10;
+    deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+    dtAdaptFlag = false;
+    dtScaleMax = 5.0;
+    dtScaleMin = 0.25;
+    dtChangeMax = 0.05;
+    dtChangeMin = 0.0;
+};
+
+ParameterSweep "column":outputPath = {
+    "/home/ec2-user/mountData/geoint/validate/slp_on_clip_128/";
+    "/home/ec2-user/mountData/geoint/validate/slp_on_clip_149/";
+    "/home/ec2-user/mountData/geoint/validate/slp_on_clip_168/";
+};
+
+//
+// layers
+//
+
+Movie "LCA_V1" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 512;
+    readPvpFile = true;
+    imageListPath = "/home/ec2-user/mountData/benchmark/a12_V1_LCA.pvp";
+    writeFrameToTimestamp = true;
+    writeStep = -1;
+    sparseLayer = true;
+    writeSparseValues = true;
+    displayPeriod = 1;
+    //start_frame_index = 11;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+ParameterSweep "LCA_V1":start_frame_index= {
+   1420; //Frame 128
+   1651; //Frame 149
+   1860; //Frame 168
+};
+
+ANNLayer "LeftRecon" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 1;
+    writeStep = 1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    //movieLayerName = "LeftImage";
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    // 
+    phase = 1;
+    //
+};
+
+ConstantLayer "Ones" = {
+   restart = 0; 
+   nxScale = .25; 
+   nyScale = .25; 
+   nf = 1; 
+   writeStep = -1;
+   initialWriteTime = 0.0; 
+   mirrorBCflag = 0; 
+   writeSparseActivity = false;
+   InitVType = "ConstantV";
+   valueV    = .0035216; 
+   VThresh = -infinity;   
+   phase = 0; 
+};
+
+ANNLayer "SLPBuffer" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 128;
+    writeStep = 1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    phase = 5; //Same as other recons
+};
+
+ANNLayer "BiasBuffer" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 128;
+    writeStep = 1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    phase = 5; //Same as other recons
+};
+
+ANNLayer "TotalBuffer" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 128;
+    writeStep = 1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    VMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    VMin = -infinity; 
+    VShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    phase = 6; //Same as other recons
+};
+
+WTALayer "SLPRecon" = {
+    restart = 0;
+    nxScale = .25; 
+    nyScale = .25;
+    nf = 1; 
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    delay = 0;
+    originalLayerName = "SLPBuffer";
+    phase = 7;
+};
+
+WTALayer "BiasRecon" = {
+    restart = 0;
+    nxScale = .25; 
+    nyScale = .25;
+    nf = 1; 
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    delay = 0;
+    originalLayerName = "BiasBuffer";
+    phase = 7;
+};
+
+WTALayer "TotalRecon" = {
+    restart = 0;
+    nxScale = .25; 
+    nyScale = .25;
+    nf = 1; 
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    delay = 0;
+    originalLayerName = "TotalBuffer";
+    phase = 7;
+};
+
+//SLP Connections
+HyPerConn "Bias" = {
+   preLayerName                        = "Ones";
+   postLayerName                       = "BiasBuffer";
+   channelCode                         = 0;
+   delay                               = 0.000000;
+   numAxonalArbors                     = 1;
+   plasticityFlag                      = false;
+   convertRateToSpikeCount             = false;
+   receiveGpu                          = false;
+   sharedWeights                       = false;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/home/ec2-user/mountData/geoint/slp_train/Last/BiasPlasticity_W.pvp";
+   
+   //weightInitType                      = "UniformRandomWeight";
+   ////// initWeightsFile                     was set to (NULL);
+
+   //wMinInit                            = -0.001;
+   //wMaxInit                            = 0.001;
+
+   triggerFlag                         = false;
+   weightUpdatePeriod                  = 1;
+   initialWeightUpdateTime             = 0;
+   updateGSynFromPostPerspective       = false;
+   pvpatchAccumulateType               = "convolve";
+   writeStep                           = -1;
+   writeCompressedCheckpoints          = false;
+   selfFlag                            = false;
+   combine_dW_with_W_flag              = false;
+   nxp                                 = 1;
+   nyp                                 = 1;
+   shrinkPatches                       = false;
+   normalizeMethod                     = "none";
+};
+
+//SLP Connections
+HyPerConn "Weights" = {
+   preLayerName                        = "LCA_V1";
+   postLayerName                       = "SLPBuffer";
+   channelCode                         = 0;
+   delay                               = 0.000000;
+   numAxonalArbors                     = 1;
+   plasticityFlag                      = false;
+   convertRateToSpikeCount             = false;
+   receiveGpu                          = false;
+   sharedWeights                       = true;
+
+   weightInitType = "FileWeight";
+   initWeightsFile = "/home/ec2-user/mountData/geoint/slp_train/Last/WeightsPlasticity_W.pvp";
+   
+   //weightInitType                      = "UniformRandomWeight";
+   ////// initWeightsFile                     was set to (NULL);
+
+   //wMinInit                            = -0.001;
+   //wMaxInit                            = 0.001;
+
+   triggerFlag                         = false;
+   weightUpdatePeriod                  = 1;
+   initialWeightUpdateTime             = 0;
+   updateGSynFromPostPerspective       = false;
+   pvpatchAccumulateType               = "convolve";
+   writeStep                           = -1;
+   writeCompressedCheckpoints          = false;
+   selfFlag                            = false;
+   combine_dW_with_W_flag              = false;
+   nxp                                 = 33;
+   nyp                                 = 33;
+   shrinkPatches                       = false;
+   normalizeMethod                     = "none";
+};
+
+IdentConn "BiasBufferToTotalBuffer" = {
+   preLayerName                        = "BiasBuffer";
+   postLayerName                       = "TotalBuffer";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+IdentConn "SLPBufferToTotalBuffer" = {
+   preLayerName                        = "SLPBuffer";
+   postLayerName                       = "TotalBuffer";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+KernelConn "LCA_V1ToLeftRecon" = {
+    preLayerName = "LCA_V1";
+    postLayerName = "LeftRecon";
+    channelCode = 0;
+    nxp = 66;
+    nyp = 66;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/ec2-user/mountData/saved_occDom/V1ToLeftError_W.pvp";
+
+    strength = 1; //.25/2  
+    normalizeMethod = "none"; //Switch to normalizecontrastzeromean
+    //normalizeMethod = "normalizeContrastZeroMean"; 
+    //SET PARAMS TO NEW NORMALIZATION METHOD
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    //triggerFlag = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
+    initialWriteTime = 0.0;
+    //dWMax = 5; // 200.0 used for initial training
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};

@@ -18,14 +18,14 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime= 100000000;
     progressStep = 5000;
-    outputPath = "/home/ec2-user/mountData2/dictLearn/aws_white_nf_2048";
+    outputPath = "/home/ec2-user/mountData/dictLearn/aws_white_nf_2048";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
-    //checkpointReadDir = "/home/ec2-user/mountData2/single_stack_ndepth/Checkpoints";
+    //checkpointReadDir = "/home/ec2-user/mountData/single_stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = true;
-    checkpointWriteDir = "/home/ec2-user/mountData2/dictLearn/aws_white_nf_2048/Checkpoints";
+    checkpointWriteDir = "/home/ec2-user/mountData/dictLearn/aws_white_nf_2048/Checkpoints";
     checkpointWriteStepInterval = 50000;
     deleteOlderCheckpoints = true;
     //suppressLastOutput = false;
@@ -49,14 +49,14 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    imageListPath = "/home/ec2-user/mountData2/kitti/list/image_02_aws.txt";
+    imageListPath = "/home/ec2-user/mountData/kitti/list/image_02_aws.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = 200;
     initialWriteTime = 200;
     writeSparseActivity = false;
     displayPeriod = 200;
-    start_frame_index = 1;
+    start_frame_index = 14500;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -195,7 +195,7 @@ ANNLayer "LeftRecon" = {
 
 Movie "RightImage" = {
     #include "LeftImage";
-    @imageListPath = "/home/ec2-user/mountData2/kitti/list/image_03_aws.txt";
+    @imageListPath = "/home/ec2-user/mountData/kitti/list/image_03_aws.txt";
 };
 
 ANNLayer "RightBipolar" = {
@@ -250,11 +250,11 @@ HyPerLCALayer "V1" = {
     slopeErrorStd = 0.01;
     // 
     dVThresh = 0;
-    VThresh = 0.006;
+    VThresh = 0.003;
     VMax = infinity;
     VMin = 0;
-    VShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
-    VWidth = 0.05; //Same as VThresh
+    VShift = 0.003;  // 0 -> hard threshold, 1 -> soft threshold
+    VWidth = 0.00; //Same as VThresh
     updateGpu = true;
     //
     phase = 5;
@@ -426,7 +426,7 @@ MomentumConn "V1ToLeftError" = {
     sharedWeights = true;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData2/dictLearn/saved_aws_2048/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/dictLearn/saved_aws_2048/V1ToLeftError_W.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
@@ -456,8 +456,8 @@ MomentumConn "V1ToLeftError" = {
     triggerOffset = 1;
     initialWriteTime = 0.0;
 
-    dWMax = .05; // 200.0 used for initial training
-    momentumTau = 100;
+    dWMax = .2; // 200.0 used for initial training
+    momentumTau = 200;
     momentumMethod = "viscosity";
 
     selfFlag = false;
@@ -506,7 +506,7 @@ MomentumConn "V1ToRightError" = {
     @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
     normalizeGroupName = "V1ToLeftError";
-    @initWeightsFile = "/home/ec2-user/mountData2/dictLearn/saved_aws_2048/V1ToRightError_W.pvp";
+    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/saved_aws_2048/V1ToRightError_W.pvp";
 };
 
 TransposeConn "RightErrorToV1" = {

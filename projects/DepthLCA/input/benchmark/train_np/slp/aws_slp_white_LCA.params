@@ -305,13 +305,13 @@ HyPerConn "LCA_V1ToSLP_Recon_Buffer" = {
    sharedWeights                       = true;
 
    //weightInitType = "FileWeight";
-   //initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_slp_LCA/Last/LCA_V1ToSLP_Error_W.pvp";
+   //initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_slp_white_LCA/Last/LCA_V1ToSLP_Recon_Buffer_W.pvp";
    
    weightInitType                      = "UniformRandomWeight";
    //// initWeightsFile                     was set to (NULL);
 
-   wMinInit                            = -0.01;
-   wMaxInit                            = 0.01;
+   wMinInit                            = -0.001;
+   wMaxInit                            = 0.001;
 
    triggerFlag                         = false;
    weightUpdatePeriod                  = 1;
@@ -326,7 +326,7 @@ HyPerConn "LCA_V1ToSLP_Recon_Buffer" = {
    nyp                                 = 33;
    shrinkPatches                       = false;
    normalizeMethod                     = "none";
-   dWMax                               = 0.01;
+   dWMax                               = 0.0001;
    useMask                             = true;
    maskLayerName = "DepthDownsample";
 };
@@ -350,12 +350,15 @@ IdentConn "SLP_Recon_BufferToSLP_Error" = {
 };
 
 
-//Running 2 times
+////Running 5 times through
 //ParameterSweep "column":outputPath = {
 //    "/home/ec2-user/mountData/benchmark/train/aws_slp_white_LCA/";
 //    "/home/ec2-user/mountData/benchmark/train/aws_slp_white_LCA/";
+//    "/home/ec2-user/mountData/benchmark/train/aws_slp_white_LCA/";
+//    "/home/ec2-user/mountData/benchmark/train/aws_slp_white_LCA/";
+//    "/home/ec2-user/mountData/benchmark/train/aws_slp_white_LCA/";
 //};
-//
+
 //ParameterSweep "LCA_V1ToSLP_Recon_Buffer":weightInitType = {
 //    "UniformRandomWeight";
 //    "FileWeight";
