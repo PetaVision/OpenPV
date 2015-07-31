@@ -431,6 +431,9 @@ private:
 
    int outputParams(char const * path);
 
+   template <typename T>
+   void valueIntoString(T value, std::stringstream * vstr);
+
    virtual double* adaptTimeScale();
 
    long int currentStep;

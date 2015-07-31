@@ -32,6 +32,10 @@
 
 namespace PV {
 
+template <> void HyPerCol::valueIntoString(float value, std::stringstream * vstr);
+template <> void HyPerCol::valueIntoString(double value, std::stringstream * vstr);
+template <> void HyPerCol::valueIntoString(bool value, std::stringstream * vstr);
+
 HyPerCol::HyPerCol(const char * name, int argc, char * argv[], PVParams * params) {
    initialize_base();
    initialize(name, argc, argv, params);
@@ -1225,21 +1229,15 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "errorOnNotANumber", &errorOnNotANumber, errorOnNotANumber);
 }
 
-
 template <typename T>
 void HyPerCol::writeParam(const char * param_name, T value) {
    if (columnId()==0) {
       assert(printParamsStream && printParamsStream->fp);
       assert(luaPrintParamsStream && luaPrintParamsStream->fp);
       std::stringstream vstr("");
-      if (typeid(value)==typeid(false)) {
-         vstr << (value ? "true" : "false");
-      }
-      else {
-         vstr << value;
-      }
-      fprintf(printParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str()); // Check: does vstr.str().c_str() work?
-      fprintf(luaPrintParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str()); // Check: does vstr.str().c_str() work?
+      valueIntoString(value, &vstr);
+      fprintf(printParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str());
+      fprintf(luaPrintParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str());
    }
 }
 // Declare the instantiations of writeParam that occur in other .cpp files; otherwise you'll get linker errors.
@@ -1247,6 +1245,28 @@ template void HyPerCol::writeParam<float>(const char * param_name, float value);
 template void HyPerCol::writeParam<int>(const char * param_name, int value);
 template void HyPerCol::writeParam<unsigned int>(const char * param_name, unsigned int value);
 template void HyPerCol::writeParam<bool>(const char * param_name, bool value);
+
+template <> void HyPerCol::valueIntoString(float value, std::stringstream * vstr) {
+   float infinitylite = FLT_MAX;
+   if (value>=infinitylite) { *vstr << "infinity"; }
+   else if (value <= -infinitylite) { *vstr << "-infinity"; }
+   else { *vstr << value; }
+}
+
+template <> void HyPerCol::valueIntoString(double value, std::stringstream * vstr) {
+   double infinitylite = (double) FLT_MAX;
+   if (value>=infinitylite) { *vstr << "infinity"; }
+   else if (value <= -infinitylite) { *vstr << "-infinity"; }
+   else { *vstr << value; }
+}
+
+template <> void HyPerCol::valueIntoString(bool value, std::stringstream * vstr) {
+   *vstr << (value ? "true" : "false");
+}
+
+template <typename T> void HyPerCol::valueIntoString(T value, std::stringstream * vstr) {
+   *vstr << value;
+}
 
 void HyPerCol::writeParamString(const char * param_name, const char * svalue) {
    if (columnId()==0) {
