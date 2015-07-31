@@ -1,7 +1,6 @@
 ---
 layout: post
 title:  "Use subdirectories.txt for add_subdirectory commands"
-date:   2015-7-29 20:21:10
 author: Pete Schultz
 categories: jekyll update
 ---
