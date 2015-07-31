@@ -49,5 +49,5 @@ void ISTALayer_update_state(
     CL_MEM_GLOBAL float * activity)
 {
    updateV_ISTALayer(nbatch, numNeurons, V, GSynHead, activity,
-		   AMax, AMin, Vth, AShift, VWidth, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, numChannels);
+		   Vth, dtAdapt, tau, nx, ny, nf, lt, rt, dn, up, numChannels);
 }
