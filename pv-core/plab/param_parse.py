@@ -41,7 +41,6 @@ class Param_Reader(object):
         }
     def assign_object(self,type,name):
         official_layers,official_conns = self.lists
-        print type
         if type in official_layers:
             self.layer_dict[name] = Layer(name,type)
             self.current_object = self.layer_dict[name]
@@ -117,7 +116,6 @@ class Param_Parser(Param_Reader):
     def official_lists(self,layer_dir,conn_dir):
         official_layers = []
         official_conns = []
-        print layer_dir
         if os.path.isdir(layer_dir) and os.path.isdir(conn_dir):
             lay = os.listdir(layer_dir)
             con = os.listdir(conn_dir)
