@@ -163,6 +163,8 @@ endif(CUDA_RELEASE)
 include_directories(${PV_DIR}/src)
 link_directories(${PV_DIR}/lib)
 
+include_directories(${GDAL_INCLUDE_DIR})
+
 if(PV_USE_CUDA)
    if(PV_BUILD_SHARED)
       cuda_add_library(${PV_AUXLIB_NAME} SHARED ${PVauxlibSrc} ${PVauxlibSrcCu})
