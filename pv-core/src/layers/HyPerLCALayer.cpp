@@ -214,7 +214,6 @@ int HyPerLCALayer::allocateUpdateKernel(){
    PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
-#ifdef PV_USE_CUDA
    size_t size = parent->getNBatch() * sizeof(double);
    d_dtAdapt = device->createBuffer(size);
 
@@ -222,7 +221,10 @@ int HyPerLCALayer::allocateUpdateKernel(){
    d_verticesV = device->createBuffer(size);
    d_verticesA = device->createBuffer(size);
    d_slopes = device->createBuffer(size+sizeof(*slopes));
-#endif 
+
+   d_verticesV->copyToDevice(verticesV);
+   d_verticesA->copyToDevice(verticesA);
+   d_slopes->copyToDevice(slopes);
    
 
    //Set arguments to kernel

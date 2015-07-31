@@ -106,9 +106,9 @@ void CudaUpdateHyPerLCALayer::setArgs(
    params.V = (float*) V->getPointer();
 
    params.numVertices = numVertices;
-   params.verticesV = (float*) verticesV;
-   params.verticesA = (float*) verticesA;
-   params.slopes = (float*) slopes;
+   params.verticesV = (float*) verticesV->getPointer();
+   params.verticesA = (float*) verticesA->getPointer();
+   params.slopes = (float*) slopes->getPointer();
    params.selfInteract = selfInteract;
    params.dtAdapt = (double*) dtAdapt->getPointer();
    params.tau = tau;

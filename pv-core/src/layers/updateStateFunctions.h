@@ -673,6 +673,7 @@ int updateV_ISTALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
   return status;
 }
 
+KERNEL
 int updateV_ANNErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
       MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL pvdata_t * activity,
       int numVertices, float * verticesV, float * verticesA, float * slopes,
