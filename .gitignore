@@ -6,3 +6,4 @@ Makefile
 Gemfile
 Gemfile.lock
 _site/
+subdirectories.txt

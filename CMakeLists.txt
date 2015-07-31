@@ -102,16 +102,20 @@ if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
     find_package(MPI REQUIRED)
 endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
 
+set(PV_SUBDIR_LIST subdirectories.txt)
+file(READ "${PV_SUBDIR_LIST}" contents)
+string(REGEX REPLACE "\n" ";" contents "${contents}")
+
 add_subdirectory(${PV_DIR})
-add_subdirectory(PVSystemTests)
-add_subdirectory(auxlib/mlearning)
-add_subdirectory(auxlib/mlearning/tests)
-add_subdirectory(auxlib/matchingpursuit)
-add_subdirectory(auxlib/matchingpursuit/tests)
-# # Insert additional add_subdirectory commands to add other projects.
-#add_subdirectory(BIDS)
-#add_subdirectory(DepthLCA)
-#add_subdirectory(HyPerHLCA)
-#add_subdirectory(MaskLCA)
-#add_subdirectory(textAnalysis)
-#add_subdirectory(soundAnalysis)
+
+foreach(LIN ${contents})
+   message("Adding subdirectory \"${LIN}\"")
+   add_subdirectory(${LIN})
+endforeach(LIN ${contents})
+
+# Create a text file called subdirectories.txt in the same directory as
+# this CMakeLists.txt file.  That file should contain a list of
+# the projects to include.
+# subdirectories.txt is in the .gitignore file so that it won't be
+# (and shouldn't be) committed to the repository.
+# The sample-subdirectories.txt file illustrates the format.
