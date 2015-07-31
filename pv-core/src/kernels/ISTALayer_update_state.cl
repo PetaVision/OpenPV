@@ -38,11 +38,6 @@ void ISTALayer_update_state(
 
     CL_MEM_GLOBAL float * V,
     const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
-    const float VWidth,
-    const bool selfInteract,
     CL_MEM_GLOBAL double* dtAdapt,
     const float tau,
     CL_MEM_GLOBAL float * GSynHead,

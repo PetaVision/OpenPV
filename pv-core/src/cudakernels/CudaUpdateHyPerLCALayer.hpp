@@ -29,11 +29,10 @@ namespace PVCuda{
       int numChannels;
 
       float * V;
-      float Vth;
-      float AMax;
-      float AMin;
-      float AShift;
-      float VWidth;
+      int numVertices;
+      float * verticesV;
+      float * verticesA;
+      float * slopes;
       bool selfInteract;
       double * dtAdapt;
       float tau;
@@ -61,11 +60,10 @@ public:
 
       /* float* */ CudaBuffer* V,
 
-      const float Vth,
-      const float AMax,
-      const float AMin,
-      const float AShift,
-      const float VWidth,
+      const int numVertices,
+      /* float* */ CudaBuffer* verticesV,
+      /* float* */ CudaBuffer* verticesA,
+      /* float* */ CudaBuffer* slopes,
       const bool selfInteract,
       /* double* */ CudaBuffer* dtAdapt,
       const float tau,

@@ -215,8 +215,13 @@ int HyPerLCALayer::allocateUpdateKernel(){
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
 #ifdef PV_USE_CUDA
-   const size_t size = parent->getNBatch() * sizeof(double);
+   size_t size = parent->getNBatch() * sizeof(double);
    d_dtAdapt = device->createBuffer(size);
+
+   size = (size_t) numVertices * sizeof(*verticesV);
+   d_verticesV = device->createBuffer(size);
+   d_verticesA = device->createBuffer(size);
+   d_slopes = device->createBuffer(size+sizeof(*slopes));
 #endif 
    
 
@@ -227,10 +232,15 @@ int HyPerLCALayer::allocateUpdateKernel(){
       nx, ny, nf, lt, rt, dn, up,
       numChannels, 
       d_V,
-      Vth, AMax, AMin, AShift, VWidth, selfInteract, 
+      numVertices,
+      d_verticesV,
+      d_verticesA,
+      d_slopes,
+      selfInteract, 
       d_dtAdapt,
       tau,
-      d_GSyn, d_activity);
+      d_GSyn,
+      d_activity);
 
    //Update d_V for V initialization
 

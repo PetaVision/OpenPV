@@ -24,11 +24,6 @@ void ISTALayer_update_state(
 
     float * V,
     const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
-    const float VWidth,
-    const bool selfInteract,
     double * dtAdapt,
     const float tau,
     float * GSynHead,
@@ -37,7 +32,7 @@ void ISTALayer_update_state(
 
    if((blockIdx.x * blockDim.x) + threadIdx.x < numNeurons*nbatch){
       updateV_ISTALayer(nbatch, numNeurons, V, GSynHead, activity,
-            AMax, AMin, Vth, AShift, VWidth, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, numChannels);
+            Vth, dtAdapt, tau, nx, ny, nf, lt, rt, dn, up, numChannels);
    }
 }
 
@@ -88,11 +83,6 @@ void CudaUpdateISTALayer::setArgs(
    params.V = (float*) V->getPointer();
 
    params.Vth = Vth;
-   params.AMax = AMax;
-   params.AMin = AMin;
-   params.AShift = AShift;
-   params.VWidth = VWidth;
-   params.selfInteract = selfInteract;
    params.dtAdapt = (double*) dtAdapt->getPointer();
    params.tau = tau;
 
@@ -120,11 +110,6 @@ int CudaUpdateISTALayer::do_run(){
    params.numChannels,
    params.V,
    params.Vth,
-   params.AMax,
-   params.AMin,
-   params.AShift,
-   params.VWidth,
-   params.selfInteract,
    params.dtAdapt,
    params.tau,
    params.GSynHead,

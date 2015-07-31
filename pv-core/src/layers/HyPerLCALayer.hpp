@@ -82,6 +82,9 @@ private:
 #endif // OBSOLETE // Marked Jul 9, 2015
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_dtAdapt;
+   PVCuda::CudaBuffer* d_verticesV;
+   PVCuda::CudaBuffer* d_verticesA;
+   PVCuda::CudaBuffer* d_slopes;
 #endif
 };
 

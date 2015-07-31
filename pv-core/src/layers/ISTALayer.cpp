@@ -32,11 +32,6 @@ void ISTALayer_update_state(
 
     float * V,
     const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
-    const float VWidth,
-    const bool selfInteract,
     double * dtAdapt,
     const float tau,
     float * GSynHead,
@@ -292,8 +287,7 @@ int ISTALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvd
       double * deltaTimeAdapt = parent->getTimeScale();
 
       ISTALayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, numChannels,
-            V, VThresh, AMax, AMin, AShift, VWidth, 
-            selfInteract, deltaTimeAdapt, timeConstantTau, gSynHead, A);
+            V, VThresh, deltaTimeAdapt, timeConstantTau, gSynHead, A);
       //if (this->writeSparseActivity){
       //   updateActiveIndices();  // added by GTK to allow for sparse output, can this be made an inline function???
       //}

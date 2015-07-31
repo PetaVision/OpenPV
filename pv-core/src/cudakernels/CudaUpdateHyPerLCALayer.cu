@@ -23,11 +23,10 @@ void HyPerLCALayer_update_state(
     const int numChannels,
 
     float * V,
-    const float Vth,
-    const float AMax,
-    const float AMin,
-    const float AShift,
-    const float VWidth,
+    const int numVertices,
+    float * verticesV,
+    float * verticesA,
+    float * slopes,
     const bool selfInteract,
     double * dtAdapt,
     const float tau,
@@ -36,8 +35,28 @@ void HyPerLCALayer_update_state(
 {
 
    if((blockIdx.x * blockDim.x) + threadIdx.x < numNeurons*nbatch){
-      updateV_HyPerLCALayer(nbatch, numNeurons, V, GSynHead, activity,
-            AMax, AMin, Vth, AShift, VWidth, dtAdapt, tau, selfInteract, nx, ny, nf, lt, rt, dn, up, numChannels);
+      updateV_HyPerLCALayer(
+            nbatch,
+            numNeurons,
+            numChannels,
+            V,
+            GSynHead,
+            activity,
+            numVertices,
+            verticesV,
+            verticesA,
+            slopes,
+            dtAdapt,
+            tau,
+            selfInteract,
+            nx,
+            ny,
+            nf,
+            lt,
+            rt,
+            dn,
+            up
+      );
    }
 }
 
@@ -62,11 +81,10 @@ void CudaUpdateHyPerLCALayer::setArgs(
 
       /* float* */ CudaBuffer* V,
 
-      const float Vth,
-      const float AMax,
-      const float AMin,
-      const float AShift,
-      const float VWidth,
+      const int numVertices,
+      /* float* */ CudaBuffer* verticesV,
+      /* float* */ CudaBuffer* verticesA,
+      /* float* */ CudaBuffer* slopes,
       const bool selfInteract,
       /* double* */ CudaBuffer* dtAdapt,
       const float tau,
@@ -87,11 +105,10 @@ void CudaUpdateHyPerLCALayer::setArgs(
 
    params.V = (float*) V->getPointer();
 
-   params.Vth = Vth;
-   params.AMax = AMax;
-   params.AMin = AMin;
-   params.AShift = AShift;
-   params.VWidth = VWidth;
+   params.numVertices = numVertices;
+   params.verticesV = (float*) verticesV;
+   params.verticesA = (float*) verticesA;
+   params.slopes = (float*) slopes;
    params.selfInteract = selfInteract;
    params.dtAdapt = (double*) dtAdapt->getPointer();
    params.tau = tau;
@@ -119,11 +136,10 @@ int CudaUpdateHyPerLCALayer::do_run(){
    params.up,
    params.numChannels,
    params.V,
-   params.Vth,
-   params.AMax,
-   params.AMin,
-   params.AShift,
-   params.VWidth,
+   params.numVertices,
+   params.verticesV,
+   params.verticesA,
+   params.slopes,
    params.selfInteract,
    params.dtAdapt,
    params.tau,
