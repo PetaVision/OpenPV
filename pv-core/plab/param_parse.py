@@ -41,25 +41,33 @@ class Param_Reader(object):
         }
     def assign_object(self,type,name):
         official_layers,official_conns = self.lists
+        print type
         if type in official_layers:
             self.layer_dict[name] = Layer(name,type)
             self.current_object = self.layer_dict[name]
             self.layers_in_order.append(name)
+            return
         elif type in official_conns:
             self.conn_dict[name] = Conn(name,type)
             self.current_object = self.conn_dict[name]
             self.conns_in_order.append(name)
-        if not official_layers:
+            return
+        if not official_layers or not type in official_layers:
             if re.search('Layer',type) or re.search('Movie',type):
                 self.layer_dict[name] = Layer(name,type)
                 self.current_object = self.layer_dict[name]
                 self.layers_in_order.append(name)
-        if not official_conns:
+                if official_layers:
+                    print('Warning: Layer type ' + type + ' not named in layers directory')
+                return
+        if not official_conns or not type in official_conns:
             if re.search('Conn',type):
                 self.conn_dict[name] = Conn(name,type)
                 self.current_object = self.conn_dict[name]
                 self.conns_in_order.append(name)
-
+                if official_conns:
+                    print('Warning: Conn type ' + type + ' not named in conns directory')
+                return
     def interpret(self, pattern, match):
         if pattern is 'object_regex':
             name = match.group(2)
@@ -109,6 +117,7 @@ class Param_Parser(Param_Reader):
     def official_lists(self,layer_dir,conn_dir):
         official_layers = []
         official_conns = []
+        print layer_dir
         if os.path.isdir(layer_dir) and os.path.isdir(conn_dir):
             lay = os.listdir(layer_dir)
             con = os.listdir(conn_dir)
@@ -117,7 +126,7 @@ class Param_Parser(Param_Reader):
                 if match:
                     official_layers.append(match.group(1))
             for i in con:
-                re.search('(.+).cpp',i)
+                match = re.search('(.+).cpp',i)
                 if match:
                     official_conns.append(match.group(1))
         if not os.path.isdir(layer_dir):
@@ -138,12 +147,12 @@ class Param_Parser(Param_Reader):
         for i in self.conn_dict.values():
             if 'preLayerName' in i.params:
                 if not i['preLayerName'] in self.layer_dict:
-                    print('Warning: ' + i['preLayerName'] + ' in ' + i.name + ' not found in Layers')
+                    print('Warning: ' + i['preLayerName'] + ' in ' + i.name + ' not found in param layers')
                     continue
                 i.pre = i['preLayerName']
             if 'postLayerName' in i.params:
                 if not i['postLayerName'] in self.layer_dict:
-                    print('Warning: ' + i['postLayerName'] + ' in ' + i.name + ' not found in Layers')
+                    print('Warning: ' + i['postLayerName'] + ' in ' + i.name + ' not found in param layers')
                     continue
                 i.post = i['postLayerName']
 
