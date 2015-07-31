@@ -102,20 +102,26 @@ if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
     find_package(MPI REQUIRED)
 endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
 
-set(PV_SUBDIR_LIST subdirectories.txt)
-file(READ "${PV_SUBDIR_LIST}" contents)
-string(REGEX REPLACE "\n" ";" contents "${contents}")
-
 add_subdirectory(${PV_DIR})
 
-foreach(LIN ${contents})
-   message("Adding subdirectory \"${LIN}\"")
-   add_subdirectory(${LIN})
-endforeach(LIN ${contents})
-
-# Create a text file called subdirectories.txt in the same directory as
-# this CMakeLists.txt file.  That file should contain a list of
-# the projects to include.
-# subdirectories.txt is in the .gitignore file so that it won't be
-# (and shouldn't be) committed to the repository.
-# The sample-subdirectories.txt file illustrates the format.
+if (EXISTS subdirectories.txt)
+    set(PV_SUBDIR_LIST subdirectories.txt)
+    file(READ "${PV_SUBDIR_LIST}" contents)
+    string(REGEX REPLACE "\n" ";" contents "${contents}")
+    
+    foreach(LIN ${contents})
+        message("Adding subdirectory \"${LIN}\"")
+        add_subdirectory(${LIN})
+    endforeach(LIN ${contents})
+    
+    # Create a text file called subdirectories.txt in the same directory as
+    # this CMakeLists.txt file.  That file should contain a list of
+    # the projects to include.
+    # subdirectories.txt is in the .gitignore file so that it won't be
+    # (and shouldn't be) committed to the repository.
+    # The sample-subdirectories.txt file illustrates the format.
+    # Note that every time you modify subdirectories.txt you will need to
+    # rerun cmake.
+else (EXISTS subdirectories.txt)
+   message("Only building the core PV library.  Create a subdirectories.txt file to build additional projects linking to it.")
+endif (EXISTS subdirectories.txt)
