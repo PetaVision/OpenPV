@@ -93,8 +93,8 @@ int ANNErrorLayer::setVertices() {
       }
       verticesV[0] = -VThresh; verticesA[0] = -VThresh;
       verticesV[1] = -VThresh; verticesA[1] = 0.0;
-      verticesV[2] = VThresh; verticesA[1] = 0.0;
-      verticesV[3] = VThresh; verticesA[2] = VThresh;
+      verticesV[2] = VThresh; verticesA[2] = 0.0;
+      verticesV[3] = VThresh; verticesA[3] = VThresh;
    }
    else {
       numVertices = 1;
