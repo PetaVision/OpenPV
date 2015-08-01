@@ -924,8 +924,10 @@ void HyPerConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag){
       parent->ioParamValue(ioFlag, name, "triggerFlag", &triggerFlag, triggerFlag);
    }
    else {
-      triggerFlag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", triggerFlag);
+      if (ioFlag == PARAMS_IO_READ) {
+         triggerFlag = false;
+         parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", triggerFlag);
+      }
    }
 }
 
