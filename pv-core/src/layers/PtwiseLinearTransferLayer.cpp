@@ -329,7 +329,6 @@ int PtwiseLinearTransferLayer::doUpdateState(double time, double dt, const PVLay
       int num_neurons = nx*ny*nf;
       int nbatch = loc->nbatch;
       PtwiseLinearTransferLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopes, num_channels, gSynHead, A);
-      PtwiseLinearTransferLayer_update_state(nbatch, num_neurons, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, V, numVertices, verticesV, verticesA, slopes, num_channels, gSynHead, A);
 
 //#ifdef PV_USE_OPENCL
 //   }
