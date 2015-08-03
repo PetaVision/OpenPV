@@ -337,8 +337,7 @@ if __name__ == '__main__':
     parser.add_argument('paramfile')
     parser.add_argument('-l', help = 'path to directory with layers')
     parser.add_argument('-c', help = 'path to directory with conns')
-    parser.add_argument('-p','--phase', help='layers colored by phase (default is scale)', acti\
-                            on='store_true')
+    parser.add_argument('-p','--phase', help='layers colored by phase (default is scale)', action='store_true')
     parser.add_argument('--legend', help='display simple legend on image', action='store_true')
     args = parser.parse_args()
 
