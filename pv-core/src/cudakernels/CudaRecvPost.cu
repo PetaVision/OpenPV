@@ -389,7 +389,7 @@ void CudaRecvPost::setArgs(
       strideY = 1;
 
       //Patch sizes must be odd multiple of many
-      if(nxp/params.manyScaleX% 2 == 0 || nyp/params.manyScaleY % 2 == 0){
+      if(nxp % 2 == 0 || nyp % 2 == 0){
          printf("cuDNN: Running on a one to many connection with CUDNN must have patch size (%d, %d) be an odd muliple of many (%d, %d)\n", nxp, nyp, params.manyScaleX, params.manyScaleY);
          exit(-1);
       }
