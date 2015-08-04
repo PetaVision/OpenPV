@@ -1,0 +1,79 @@
+Daniel Ryan
+High Energy Physics, Tufts University, Boston, MA
+3.26.2002
+
+The following is a list of general changes made to the FastICA package 
+for Matlab 5.x, Version 2.1, January 15 2001, Copyright (c) Hugo Gävert, 
+Jarmo Hurri, Jaakko Särelä, and Aapo Hyvärinen, for compatibility with
+GNU Octave, version 2.0.16 (i686-pc-linux-gnu) Copyright (C) 1996, 1997, 
+1998, 1999, 2000 John W. Eaton.
+
+1. GUI CAPABILITIES  
+Octave has (as of this date) no GUI capabilities.  Therefore Octave is
+only able to successfully execute "fastica.m", the command-line version 
+of FastICA.  All changes to the FastICA package were made to fastica.m and 
+the functions called by it--see Contents.m.
+
+2. BUILT IN FUNCTIONS  
+The following two functions had to be explicitely changed in the code.
+
+--'cov(X,1)' was changed to cov(X)*(N-1)/N, where N is the number of rows in 
+  matrix X. Note that cov(X,1) will calculate the covariance matrix for the 
+  first row in matrix X, whereas the Matlab cov(X,1) normalizes the covariance
+  matrix by N (instead of N-1 as in cov(X)).
+
+--'mod(X,Y)' does not exist in Octave and was explicitely written in as 
+  X-Y.*floor(X/Y).
+
+--'drawnow' does not exist in Octave and was remedied by placing the 'clg'
+  command before excecuting 'plot' in a subplot structure.
+
+--switch/case/otherwise structure was replaced with the if/ifelse/else 
+  structure when the argument for switch was a string.  It appears that 
+  Octave is unable to compare two strings of different length.  Instances of
+  the switch structure with a numeric argument/comparison were left unchanged.
+
+3. SINGLE FUNCTION FILES AND SCRIPTS
+Octave will recognize two different types of function files--single function
+files and script files.  If a file begins with "Funtion..." then Octave 
+assumes that only one function is defined in this file, and will complain if 
+it finds anycode after "endfunction".  In order for multiple functions to be 
+defined, a file must begin with anything else, for example "1;" in which case 
+Octave will treat the file as a script.  Therefore the following single func-
+tions files were created by extracting and the function and naming the file 
+after the function name:
+
+getSamples.m -- called in fpica.m
+selcol.m -- called in pcamat.m
+
+Also, the script file:
+
+icaplotfunctions.m
+
+is called at the end of icaplot.m and contains a bunch of functions originally 
+defined at the the end of icaplot.m.
+
+4. VARIABLE ARGUMENTS
+Functions with variable arguments also have to be treated slightly differently 
+in Octave.  In Matlab, the built-in function varargin{i} will point to the ith 
+argument variable.  The closest equivalent in Octave is va_arg(); which gets 
+the first argument variable and sets the pointer to the next argument variable. 
+Concequences of this are reflected in the changed code.
+
+5. PLOT MODES
+The function icaplot is capable of plotting in different kinds of modes.  The 
+so called 'classic' mode is simply an implementation of 'plot'.  The function 
+fpica.m has been changed (added to) so that it takes an argument 'plottype' 
+which corresponds to this plot mode.  The plot mode default is now set to 
+'histogram' (in fpica.m), and the number of bins is hardwired to 100 (in 
+icaplot.m).
+
+
+Finally, it should be noted that the FastICA package for Octave has not been 
+thoroughly tested for bugs.  Concequently, the results between the Octave and 
+Matlab version of this package are NOT garaunteed.  If you find any "Matlab-to-
+Octave-conversion" bugs (doubtless there are at least a few still in there), 
+feel free to let me know at dryan@fnal.gov. 
+
+** Some corrections to the code were made by Aapo Hyvärinen Oct 2005
+** which I markes as %%Aapo removed:
