@@ -2342,7 +2342,7 @@ int HyPerCol::checkpointRead() {
          timescale[b].timeScale = 1;
          timescale[b].timeScaleTrue = 1;
       }
-      size_t timescale_size = sizeof(struct timescale_struct) * nbatch;
+      size_t timescale_size = sizeof(struct timescale_struct);
       assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
       // read timeScale info
       if( icCommunicator()->commRank()==0 ) {
@@ -2368,7 +2368,7 @@ int HyPerCol::checkpointRead() {
          }
       }
    #ifdef PV_USE_MPI
-      MPI_Bcast(&timescale,(int) timescale_size,MPI_CHAR,0,icCommunicator()->communicator());
+      MPI_Bcast(&timescale,(int) timescale_size*nbatch,MPI_CHAR,0,icCommunicator()->communicator());
    #endif // PV_USE_MPI
       for(int b = 0; b < nbatch; b++){
          timeScale[b] = timescale[b].timeScale;
