@@ -82,7 +82,7 @@ void ANNErrorLayer::ioParam_errScale(enum ParamsIOFlag ioFlag) {
 int ANNErrorLayer::setVertices() {
    slopeNegInf = 1.0;
    slopePosInf = 1.0;
-   if (VThresh >=0) {
+   if (VThresh > 0) {
       numVertices = 4;
       verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
       verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
@@ -97,6 +97,7 @@ int ANNErrorLayer::setVertices() {
       verticesV[3] = VThresh; verticesA[3] = VThresh;
    }
    else {
+      // checkVertices will complain if VThresh is negative but not "negative infinity"
       numVertices = 1;
       verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
       verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
@@ -112,7 +113,7 @@ int ANNErrorLayer::setVertices() {
 
 int ANNErrorLayer::checkVertices() {
    int status = PV_SUCCESS;
-   if (VThresh < 0 && VThresh > -max_pvvdata_t) {
+   if (VThresh < 0 && VThresh > -0.999*max_pvvdata_t) { // 0.999 is to allow for imprecision from params files using 3.40282e+38 instead of infinity
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: VThresh cannot be negative (value is %f).\n",
                   this->getParent()->parameters()->groupKeywordFromName(this->getName()),
