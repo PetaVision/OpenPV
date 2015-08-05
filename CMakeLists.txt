@@ -8,33 +8,9 @@ project(PetaVision)
 cmake_minimum_required(VERSION 2.8)
 
 
-# Set variable for current working directory (workspace directory)
-set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pv-core CACHE PATH "The base petavision directory")
-
-
-########
-# March 31, 2015: renamed several cache variables to agree with C/C++ preprocessor directives
-# so that they could be put into cMakeHeader.h easily instead of passing -D arguments to the compile command.
-# Accordingly, test if old variable name exists, and if so, use its value as the new variable.
-# then delete the old variable from the cache.  After a while, no one
-# should have the old variables in the cache and this section can be deleted.
-if (DEFINED OPEN_MP_THREADS)
-   set(PV_USE_OPENMP_THREADS ${OPEN_MP_THREADS} CACHE BOOL "Defines whether PetaVision uses OpenMP threads")
-   unset(OPEN_MP_THREADS CACHE)
-endif (DEFINED OPEN_MP_THREADS)
-if (DEFINED OPEN_CL_GPU)
-   set(PV_USE_OPENCL ${OPEN_CL_GPU} CACHE BOOL "Defines whether PetaVision uses OpenCL GPU")
-   unset(OPEN_CL_GPU CACHE)
-endif (DEFINED OPEN_CL_GPU)
-if (DEFINED CUDA_GPU)
-   set(PV_USE_CUDA ${CUDA_GPU} CACHE BOOL "Defines whether PetaVision uses CUDA GPU")
-   unset(CUDA_GPU CACHE)
-endif (DEFINED CUDA_GPU)
-if (DEFINED CUDNN)
-   set(PV_USE_CUDNN ${CUDNN} CACHE BOOL "Defines whether PetaVision uses CUDA's cuDNN library")
-   unset(CUDNN CACHE)
-endif (DEFINED CUDNN)
-########
+# Set variable for PetaVision directory (the directory that contains
+# the core library's source directory)
+set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pv-core CACHE PATH "The core PetaVision directory")
 
 
 #Set CMAKE_MODULE_PATH
@@ -102,16 +78,33 @@ if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
     find_package(MPI REQUIRED)
 endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
 
+# Adds the core PetaVision directory
 add_subdirectory(${PV_DIR})
 
+# Adds other projects that link to PetaVision.  Their CMakeLists.txt
+# file should use the cache variable PV_DIR to point to PetaVision.
+# Create a text file called subdirectories.txt in the same directory
+# as this CMakeLists.txt file.
+# 
+# Comments are marked with the number sign '#'; it and everything
+# following it are ignored.  Leading and trailing whitespace is then
+# stripped  If the resulting line is nonempty, its contents are interpreted
+# as a directory and and passed to the CMake add_subdirectory command.
 if (EXISTS subdirectories.txt)
     set(PV_SUBDIR_LIST subdirectories.txt)
     file(READ "${PV_SUBDIR_LIST}" contents)
     string(REGEX REPLACE "\n" ";" contents "${contents}")
     
     foreach(LIN ${contents})
-        message("Adding subdirectory \"${LIN}\"")
-        add_subdirectory(${LIN} ${LIN})
+        string(FIND "${LIN}" "#" NUMBERSIGNLOC)
+        if (NOT (${NUMBERSIGNLOC} LESS 0) )
+            string(SUBSTRING "${LIN}" 0 ${NUMBERSIGNLOC} LIN)
+        endif (NOT (${NUMBERSIGNLOC} LESS 0) )
+        string(STRIP "${LIN}" LIN)
+        if (NOT ("${LIN}" STREQUAL "") )
+            message("Adding subdirectory \"${LIN}\"")
+            add_subdirectory(${LIN} ${LIN})
+        endif (NOT ("${LIN}" STREQUAL "") )
     endforeach(LIN ${contents})
     
     # Create a text file called subdirectories.txt in the same directory as
