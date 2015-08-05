@@ -167,7 +167,7 @@ if (Subversion_FOUND)
       set(PV_SVN_VERSION "unknown svn repository version")
    endif (${PV_SVN_RESULT} EQUAL 0)
 else (Subversion_FOUND)
-   set(PV_SVN_VISION "unknown svn repository version")
+   set(PV_SVN_VERSION "unknown svn repository version")
 endif (Subversion_FOUND)
 
 # Header file to pass CMake settings to source code
