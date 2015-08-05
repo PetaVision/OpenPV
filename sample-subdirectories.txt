@@ -1,4 +1,4 @@
 PVSystemTests
 auxlib/mlearning
 auxlib/mlearning/tests
-HyPerHLCA
+projects/HyPerHLCA
