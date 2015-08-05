@@ -27,7 +27,6 @@
 #include "../layers/GenerativeLayer.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/HyPerLCALayer.hpp"
-#include "../layers/ISTALayer.hpp"
 #include "../layers/Image.hpp"
 #include "../layers/ImagePvp.hpp"
 #include "../layers/ImageFromMemoryBuffer.hpp"
@@ -170,7 +169,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"GenerativeLayer", LayerGroupType},
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"HyPerLCALayer", LayerGroupType},
-	 {"ISTALayer", LayerGroupType},
          {"Image", LayerGroupType},
          {"ImagePvp", LayerGroupType},
          {"ImageFromMemoryBuffer", LayerGroupType},
@@ -385,9 +383,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "HyPerLCALayer") ) {
       addedLayer = new HyPerLCALayer(name, hc);
-   }
-   else if ( !strcmp(keyword, "ISTALayer") ) {
-     addedLayer = new ISTALayer(name, hc);
    }
    else if( !strcmp(keyword, "Image") ) {
       addedLayer = new Image(name, hc);
