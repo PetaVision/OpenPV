@@ -128,6 +128,11 @@ int updateV_HyPerLCALayer(int nbatch, int numNeurons, int numChannels, MEM_GLOBA
       int nx, int ny, int nf, int lt, int rt, int dn, int up);
 
 KERNEL
+int updateV_ISTALayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * V,
+      MEM_GLOBAL pvdata_t * GSynHead, MEM_GLOBAL float * activity,
+      pvdata_t VThresh,MEM_GLOBAL double* dtAdapt, pvdata_t tau,
+      int nx, int ny, int nf, int lt, int rt, int dn, int up, int numChannels);
+KERNEL
 int updateV_ANNWhitenedLayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvpotentialdata_t * V,
       MEM_GLOBAL pvdata_t * GSynHead,

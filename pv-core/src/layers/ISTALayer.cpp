@@ -10,7 +10,7 @@
 
 #ifdef PV_USE_CUDA
 
-#include "../cudakernels/CudaUpdateISTALayer.hpp"
+#include "../cudakernels/CudaUpdateHyPerLCALayer.hpp"
 
 #endif
 
@@ -211,11 +211,6 @@ int ISTALayer::allocateUpdateKernel(){
    PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
-#ifdef PV_USE_CUDA
-   const size_t size = parent->getNBatch() * sizeof(double);
-   d_dtAdapt = device->createBuffer(size);
-#endif 
-   
 
    //Set arguments to kernel
    updateKernel->setArgs(
@@ -237,7 +232,6 @@ int ISTALayer::allocateUpdateKernel(){
    return PV_SUCCESS;
 }
 #endif
-
 
 #ifdef PV_USE_CUDA
 int ISTALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead){
