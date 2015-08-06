@@ -5,8 +5,8 @@
  *      Author: Sheng Lundquist
  */
 
-#ifndef CUDAUPDATEHYPERLCALAYER_HPP_
-#define CUDAUPDATEHYPERLCALAYER_HPP_
+#ifndef CUDAUPDATESTATEFUNCTION_HPP_
+#define CUDAUPDATESTATEFUNCTION_HPP_
 
 #include "../arch/cuda/CudaKernel.hpp"
 #include "../arch/cuda/CudaBuffer.hpp"
@@ -39,7 +39,7 @@ namespace PVCuda{
       float * GSynHead;
       float * activity;
    };
-  //======= ADDED BY MAX, PROBABLY BROKEN =======
+
   struct ISTAParams{
     int nbatch;
     int numNeurons;
@@ -64,7 +64,7 @@ namespace PVCuda{
     float * GSynHead;
     float * activity;
   };
-  //============================================
+
 
 class CudaUpdateHyPerLCALayer : public CudaKernel {
 public:
@@ -106,7 +106,7 @@ private:
    HyPerLCAParams params;
 };
 
-//======= ADDED BY MAX, PROBABLY BROKEN =======
+
 class CudaUpdateISTALayer : public CudaKernel {
 public:
   CudaUpdateISTALayer(CudaDevice* inDevice);
@@ -147,7 +147,7 @@ protected:
 private:
   ISTAParams params;
 };
-//===========================================
+
 
 } /* namespace PVCuda */
 

@@ -10,7 +10,7 @@
 
 #ifdef PV_USE_CUDA
 
-#include "../cudakernels/CudaUpdateHyPerLCALayer.hpp"
+#include "../cudakernels/CudaUpdateStateFunctions.hpp"
 
 #endif
 

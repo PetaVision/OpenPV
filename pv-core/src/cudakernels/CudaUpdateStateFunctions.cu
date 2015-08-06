@@ -1,4 +1,4 @@
-#include "CudaUpdateHyPerLCALayer.hpp"
+#include "CudaUpdateStateFunctions.hpp"
 #include "../arch/cuda/cuda_util.hpp"
 #include "conversions.hcu"
 
@@ -57,7 +57,6 @@ void HyPerLCALayer_update_state(
 			    up);
    }
 }
-  // =================== ADDED BY MAX, PROBABLY BROKEN ==========================
 __global__
 void ISTALayer_update_state(
 			    const int nbatch,
@@ -96,7 +95,6 @@ void ISTALayer_update_state(
 			numChannels);
     }
   }
-  // ============================================================================
 
 CudaUpdateHyPerLCALayer::CudaUpdateHyPerLCALayer(CudaDevice* inDevice):CudaKernel(inDevice){
 }
@@ -104,14 +102,11 @@ CudaUpdateHyPerLCALayer::CudaUpdateHyPerLCALayer(CudaDevice* inDevice):CudaKerne
 CudaUpdateHyPerLCALayer::~CudaUpdateHyPerLCALayer(){
 }
 
-  //======= ADDED BY MAX, PROBABLY BROKEN =======
 CudaUpdateISTALayer::CudaUpdateISTALayer(CudaDevice* inDevice):CudaKernel(inDevice){
 }
 
 CudaUpdateISTALayer::~CudaUpdateISTALayer(){
 }
-  // ===========================================
-
 
 void CudaUpdateHyPerLCALayer::setArgs(
 				      const int nbatch,
@@ -196,7 +191,6 @@ int CudaUpdateHyPerLCALayer::do_run(){
    return 0;
 }
 
-// =========================================== 
 void CudaUpdateISTALayer::setArgs(
 				  const int nbatch,
 				  const int numNeurons,
@@ -271,5 +265,5 @@ int CudaUpdateISTALayer::do_run(){
     handleCallError("ISTALayer Update run");
     return 0;
 }
-  // =========================================== 
+
 }
