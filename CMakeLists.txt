@@ -111,7 +111,7 @@ if (EXISTS subdirectories.txt)
     
     foreach(LIN ${contents})
         message("Adding subdirectory \"${LIN}\"")
-        add_subdirectory(${LIN})
+        add_subdirectory(${LIN} ${LIN})
     endforeach(LIN ${contents})
     
     # Create a text file called subdirectories.txt in the same directory as
