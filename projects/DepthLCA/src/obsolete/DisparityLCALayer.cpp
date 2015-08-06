@@ -78,7 +78,7 @@ int DisparityLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * 
    int num_local_neurons = nx*ny*nf;
 
    //Initialize with the neuron we're looking at on, with everything else off
-   std::string filename = std::string(disparityLayer->getFilename());
+   std::string filename = std::string(disparityLayer->getFilename(0));
    //Parse filename to grab layer name and neuron index
    size_t und_pos = filename.find_last_of("_");
    size_t ext_pos = filename.find_last_of(".");

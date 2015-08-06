@@ -22,29 +22,29 @@ BatchConn::BatchConn(const char * name, HyPerCol * hc) {
 int BatchConn::allocateDataStructures() {
    int status = HyPerConn::allocateDataStructures();
 
-   //For non-shared weights, the buffer numKernelActivations is not allocated. Allocate here
-   if(!numKernelActivations){
-      const int numPatches = getNumDataPatches();
-      const size_t patchSize = nxp*nyp*nfp;
-      const size_t localSize = numPatches * patchSize;
-      numKernelActivations = (long ***) malloc(this->numberOfAxonalArborLists() * sizeof(long**));
+   ////For non-shared weights, the buffer numKernelActivations is not allocated. Allocate here
+   //if(!numKernelActivations){
+   //   const int numPatches = getNumDataPatches();
+   //   const size_t patchSize = nxp*nyp*nfp;
+   //   const size_t localSize = numPatches * patchSize;
+   //   numKernelActivations = (long ***) malloc(this->numberOfAxonalArborLists() * sizeof(long**));
 
-      for(int arbor_ID = 0; arbor_ID < this->numberOfAxonalArborLists(); arbor_ID++){
-         long * tempData = (long*) malloc(numPatches * sizeof(long) * patchSize);
-         long ** singleArbor = (long **) malloc(numPatches * sizeof(long*));
-         if(singleArbor == NULL || tempData == NULL) {
-            fprintf(stderr, "Connection \"%s\" unable to allocate memory for numKernelActivations in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
-            exit(PV_FAILURE);
-         }
-         for (int ki = 0; ki < numPatches; ki++) {
-            singleArbor[ki] = &(tempData[ki*patchSize]);
-            for (int pi = 0; pi < patchSize; pi++){
-               singleArbor[ki][pi] = 0;
-            }
-         }
-         numKernelActivations[arbor_ID] = singleArbor;
-      }
-   }
+   //   for(int arbor_ID = 0; arbor_ID < this->numberOfAxonalArborLists(); arbor_ID++){
+   //      long * tempData = (long*) malloc(numPatches * sizeof(long) * patchSize);
+   //      long ** singleArbor = (long **) malloc(numPatches * sizeof(long*));
+   //      if(singleArbor == NULL || tempData == NULL) {
+   //         fprintf(stderr, "Connection \"%s\" unable to allocate memory for numKernelActivations in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
+   //         exit(PV_FAILURE);
+   //      }
+   //      for (int ki = 0; ki < numPatches; ki++) {
+   //         singleArbor[ki] = &(tempData[ki*patchSize]);
+   //         for (int pi = 0; pi < patchSize; pi++){
+   //            singleArbor[ki][pi] = 0;
+   //         }
+   //      }
+   //      numKernelActivations[arbor_ID] = singleArbor;
+   //   }
+   //}
    return status;
 }
 

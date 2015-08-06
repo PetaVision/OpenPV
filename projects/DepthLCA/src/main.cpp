@@ -5,12 +5,12 @@
 
 #include "columns/buildandrun.hpp"
 #include "LocalKernelConn.hpp"
-#include "BatchConn.hpp"
+//#include "BatchConn.hpp"
 #include "SLPError.hpp"
 #include "BinaryThresh.hpp"
-#include "DisparityMovie.hpp"
-#include "DisparityLCALayer.hpp"
-#include "SUPointProbe.hpp"
+//#include "DisparityMovie.hpp"
+//#include "DisparityLCALayer.hpp"
+//#include "SUPointProbe.hpp"
 
 #define MAIN_USES_CUSTOMGROUPS
 
@@ -37,24 +37,24 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    if ( !strcmp(keyword, "LocalKernelConn") ) {
       addedGroup = new LocalKernelConn(name, hc);
    }
-   if ( !strcmp(keyword, "BatchConn") ) {
-      addedGroup = new BatchConn(name, hc);
-   }
+   //if ( !strcmp(keyword, "BatchConn") ) {
+   //   addedGroup = new BatchConn(name, hc);
+   //}
    if ( !strcmp(keyword, "SLPError") ) {
       addedGroup = new SLPError(name, hc);
    }
    if ( !strcmp(keyword, "BinaryThresh") ) {
       addedGroup = new BinaryThresh(name, hc);
    }
-   if ( !strcmp(keyword, "DisparityMovie") ) {
-      addedGroup = new DisparityMovie(name, hc);
-   }
-   if ( !strcmp(keyword, "DisparityLCALayer") ) {
-      addedGroup = new DisparityLCALayer(name, hc);
-   }
-   if ( !strcmp(keyword, "SUPointProbe") ) {
-      addedGroup = new SUPointProbe(name, hc);
-   }
+   //if ( !strcmp(keyword, "DisparityMovie") ) {
+   //   addedGroup = new DisparityMovie(name, hc);
+   //}
+   //if ( !strcmp(keyword, "DisparityLCALayer") ) {
+   //   addedGroup = new DisparityLCALayer(name, hc);
+   //}
+   //if ( !strcmp(keyword, "SUPointProbe") ) {
+   //   addedGroup = new SUPointProbe(name, hc);
+   //}
    return addedGroup;
 }
 #endif
