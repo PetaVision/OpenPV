@@ -146,29 +146,75 @@ foreach(LIN ${contents})
    endif(PV_USE_CUDA)
 endforeach(LIN ${contents})
 
+find_package(Git)
+if (GIT_FOUND)
+   unset(PV_GIT_REVISION)
+   # Get current commit
+   execute_process(COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+                   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                   RESULT_VARIABLE PV_CURRENT_COMMIT_RESULT
+                   OUTPUT_VARIABLE PV_CURRENT_COMMIT
+                   ERROR_VARIABLE PV_CURRENT_COMMIT_ERROR
+                   OUTPUT_STRIP_TRAILING_WHITESPACE)
+   if (${PV_CURRENT_COMMIT_RESULT} EQUAL 0)
+      # Get commit hash and date commit was authored
+      execute_process(COMMAND "${GIT_EXECUTABLE}" log -n 1 "--format=%H (%ad)" "${PV_CURRENT_COMMIT}"
+                      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                      RESULT_VARIABLE PV_GIT_REVISION_RESULT
+                      OUTPUT_VARIABLE PV_GIT_REVISION
+                      ERROR_VARIABLE PV_GIT_REVISION_ERROR
+                      OUTPUT_STRIP_TRAILING_WHITESPACE)
+      set(PV_GIT_REVISION "git repository version ${PV_GIT_REVISION}")
+      # See if there are any local changes
+      execute_process(COMMAND "${GIT_EXECUTABLE}" status -s
+                      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                      RESULT_VARIABLE PV_GIT_STATUS_RESULT
+                      OUTPUT_VARIABLE PV_GIT_STATUS_OUTPUT
+                      ERROR_VARIABLE VP_GIT_STATUS_ERROR
+                      OUTPUT_STRIP_TRAILING_WHITESPACE)
+      string(LENGTH "${PV_GIT_STATUS_OUTPUT}" PV_STATUS_LENGTH)
+      if(NOT ("${PV_STATUS_LENGTH}" EQUAL 0))
+         set(PV_GIT_REVISION "${PV_GIT_REVISION} with local modifications")
+      endif(NOT ("${PV_STATUS_LENGTH}" EQUAL 0))
+   else (${PV_CURRENT_COMMIT_RESULT} EQUAL 0)
+      unset(PV_GIT_REVISION)
+   endif (${PV_CURRENT_COMMIT_RESULT} EQUAL 0)
+endif (GIT_FOUND)
+
 find_package(Subversion)
 if (Subversion_FOUND)
+   unset(PV_SVN_REVISION)
    set(SVNVERSION_COMMAND "${Subversion_SVN_EXECUTABLE}version")
    # !! lack of space between ${Subversion_SVN_EXECUTABLE} and version is deliberate:
    # !! Subversion_SVN_EXECUTABLE returns svn, and we want to call svnversion.
    execute_process(COMMAND "${SVNVERSION_COMMAND}" "${CMAKE_CURRENT_SOURCE_DIR}"
-                   OUTPUT_VARIABLE PV_SVN_VERSION
+                   OUTPUT_VARIABLE PV_SVN_REVISION
                    ERROR_VARIABLE PV_SVN_ERROR
                    RESULT_VARIABLE PV_SVN_RESULT
                    OUTPUT_STRIP_TRAILING_WHITESPACE)
    if (${PV_SVN_RESULT} EQUAL 0)
-      if ("${PV_SVN_VERSION}" STREQUAL "Unversioned directory")
-         set(PV_SVN_VERSION "unknown svn repository version")
-      else ("${PV_SVN_VERSION}" STREQUAL "Unversioned directory")
-         string(REGEX REPLACE "M$" " with local modifications" PV_SVN_VERSION "${PV_SVN_VERSION}")
-         set(PV_SVN_VERSION "svn repository version ${PV_SVN_VERSION}")
-      endif ("${PV_SVN_VERSION}" STREQUAL "Unversioned directory")
+      if ("${PV_SVN_REVISION}" STREQUAL "Unversioned directory")
+         unset(PV_SVN_REVISION)
+      else ("${PV_SVN_REVISION}" STREQUAL "Unversioned directory")
+         string(REGEX REPLACE "M$" " with local modifications" PV_SVN_REVISION "${PV_SVN_REVISION}")
+         set(PV_SVN_REVISION "svn repository version ${PV_SVN_REVISION}")
+      endif ("${PV_SVN_REVISION}" STREQUAL "Unversioned directory")
    else (${PV_SVN_RESULT} EQUAL 0)
-      set(PV_SVN_VERSION "unknown svn repository version")
+      unset(PV_SVN_REVISION)
    endif (${PV_SVN_RESULT} EQUAL 0)
 else (Subversion_FOUND)
-   set(PV_SVN_VERSION "unknown svn repository version")
+   unset(PV_SVN_REVISION)
 endif (Subversion_FOUND)
+
+if (DEFINED PV_GIT_REVISION)
+   set(PV_REVISION "${PV_GIT_REVISION}")
+endif (DEFINED PV_GIT_REVISION)
+if (DEFINED PV_SVN_REVISION)
+   set(PV_REVISION "${PV_SVN_REVISION}")
+endif (DEFINED PV_SVN_REVISION)
+if (DEFINED PV_SVN_REVISION AND DEFINED PV_GIT_REVISION) # This probably shouldn't happen
+   set(PV_REVISION "${PV_GIT_REVISION}/${PV_SVN_REVISION")
+endif (DEFINED PV_SVN_REVISION AND DEFINED PV_GIT_REVISION)
 
 # Header file to pass CMake settings to source code
 configure_file (

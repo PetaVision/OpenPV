@@ -2640,7 +2640,8 @@ int HyPerCol::outputParams(char const * path) {
 
 
       //Params file output
-      fprintf(printParamsStream->fp, "// PetaVision, " PV_SVN_VERSION ", run at %s", ctime(&t)); // newline is included in output of ctime
+      fprintf(printParamsStream->fp, "// PetaVision, " PV_REVISION "\n");
+      fprintf(printParamsStream->fp, "// Run time %s", ctime(&t)); // newline is included in output of ctime
 #ifdef PV_USE_MPI
       fprintf(printParamsStream->fp, "// Compiled with MPI and run using %d rows and %d columns.\n", icComm->numCommRows(), icComm->numCommColumns());
 #else // PV_USE_MPI
@@ -2666,7 +2667,8 @@ int HyPerCol::outputParams(char const * path) {
       }
 
       //lua file output
-      fprintf(luaPrintParamsStream->fp, "// PetaVision, " PV_SVN_VERSION ", run at %s", ctime(&t)); // newline is included in output of ctime
+      fprintf(luaPrintParamsStream->fp, "// PetaVision, " PV_REVISION "\n");
+      fprintf(luaPrintParamsStream->fp, "// Run time %s", ctime(&t)); // newline is included in output of ctime
 #ifdef PV_USE_MPI
       fprintf(luaPrintParamsStream->fp, "-- Compiled with MPI and run using %d rows and %d columns.\n", icComm->numCommRows(), icComm->numCommColumns());
 #else // PV_USE_MPI
