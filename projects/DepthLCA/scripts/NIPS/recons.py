@@ -1,5 +1,5 @@
 import os, sys
-lib_path = os.path.abspath("/home/slundquist/workspace/PetaVision/plab/")
+lib_path = os.path.abspath("/home/ec2-user/workspace/pv-core/plab/")
 sys.path.append(lib_path)
 from plotRecon import plotRecon
 from plotReconError import plotReconError
@@ -7,19 +7,17 @@ from plotReconError import plotReconError
 #For plotting
 #import matplotlib.pyplot as plt
 
-outputDir = "/nh/compneuro/Data/Depth/LCA/benchmark/validate/recons_run/"
+outputDir = "/home/ec2-user/mountData/benchmark/validate/aws_icapatch_LCA/"
 skipFrames = 1 #Only print every 20th frame
 startFrames = 0
 doPlotRecon = True
 doPlotErr = False
 errShowPlots = False
 layers = [
-   "a0_LeftImage",
-   "a2_LeftGanglion",
-   "a3_RightImage",
-   "a5_RightGanglion",
-   "a7_LeftRecon",
-   "a8_RightRecon",
+   "a1_LeftRecon",
+   "a2_RightRecon",
+   "a4_DepthDownsample",
+   "a7_RCorrRecon",
    ]
 
 #Layers for constructing recon error
