@@ -10,4 +10,6 @@ make
 cd PVSystemTests
 ctest
 
-More complete documentation is at <http://petavision.github.io/OpenPV>
+We are currently in the process of migrating from SourceForge to GitHub.  Our webpage on SourceForge is <http://petavision.sourceforge.net>.  Our webpage on GitHub is <http://petavision.github.io/OpenPV>.
+
+Currently (Aug 7, 2015), the SourceForge website is more complete but it will not be further updated; the GitHub website will be completed soon.
