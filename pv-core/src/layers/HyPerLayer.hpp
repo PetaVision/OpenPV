@@ -193,21 +193,44 @@ protected:
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerFlag: Specifies if this layer is being triggered
-    * @details Defaults to false
+    * @brief triggerFlag: (Deprecated) Specifies if this layer is being triggered
+    * @details Defaults to false.
+    * This flag is deprecated.  To turn triggering off,
+    * set triggerLayer to NULL or the empty string.  It is an error to set this
+    * flag to false and triggerLayer to a nonempty string.
     */
    virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerLayerName: If trigger flag is set, specifies the layer this current layer is triggering off of.
+    * @brief triggerLayerName: Specifies the name of the layer that this layer triggers off of.
+    * If set to NULL or the empty string, the layer does not trigger but updates its state on every timestep.
     */
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerOffset: If trigger flag is set, triggers <triggerOffset> timesteps before target trigger
+    * @brief triggerOffset: If triggerLayer is set, triggers <triggerOffset> timesteps before target trigger
     * @details Defaults to 0
     */
    virtual void ioParam_triggerOffset(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerBehavior: If triggerLayerName is set, this parameter specifies how the trigger
+    * is handled.
+    * @details The possible values of triggerBehavior are:
+    * - "updateOnlyOnTrigger": updateState is called (computing activity buffer from GSyn)
+    * only on triggering timesteps.  On other timesteps the layer's state remains unchanged.
+    * - "resetStateOnTrigger": On timesteps where the trigger occurs, the membrane potential
+    * is copied from the layer specified in triggerResetLayerName and setActivity is called.
+    * On nontriggering timesteps, updateState is called.
+    * For backward compatibility, this parameter defaults to updateOnlyOnTrigger.
+    */
+   virtual void ioParam_triggerBehavior(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerResetLayerName: If triggerLayerName is set, this parameter specifies the layer to use for updating
+    * the state when the trigger happens.  If set to NULL or the empty string, use triggerLayerName.
+    */
+   virtual void ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief writeStep: Specifies how often to output a pvp file for this layer
@@ -270,6 +293,19 @@ protected:
    int writeDataStoreToFile(const char * filename, InterColComm * comm, double dtime);
    //virtual int calcActiveIndices();
    void calcNumExtended();
+   
+   /**
+    * Called by updateStateWrapper when updating the state in the usual way
+    * (as opposed to being triggered when triggerBehavior is resetStateOnTrigger).
+    * It calls either updateState or updateStateGPU.  It also starts and stops the update timer.
+    */
+   virtual int callUpdateState(double timed, double dt);
+   
+   /**
+    * Called instead of updateState when triggerBehavior is "resetStateOnTrigger" and a triggering event occurs.
+    * Copies the membrane potential V from triggerResetLayer and then calls setActivity to update A.
+    */
+   virtual int resetStateOnTrigger();
 public:
    pvdata_t * getActivity()          {return clayer->activity->data;} // TODO: access to clayer->activity->data should not be public
    virtual double calcTimeScale(int batchIdx)          {return -1.0;};
@@ -516,11 +552,15 @@ protected:
    HyPerLayer ** synchronizedMarginWidthLayers;
    int numSynchronizedMarginWidthLayers;
 
-   //A flag that determines if the layer is a trigger layer and needs to follow another layer's lastUpdateTime.
-   bool triggerFlag;
-   char* triggerLayerName;
-   double triggerOffset;
+   //Trigger-related parameters
+   //  Although triggerFlag was deprecated as a params file parameter, it remains as a member variable to allow quick testing of whether we're triggering.  It is set during ioParam_triggerLayerName.
+   bool triggerFlag; // Whether the layer has different behavior in response to another layer's update.
+   char* triggerLayerName; // The layer that triggers different behavior.  To turn triggering off, set this parameter to NULL or ""
+   char * triggerBehavior; // Specifies how to respond to a trigger.  Current values are "updateOnlyOnTrigger" or "resetStateOnTrigger"
+   char * triggerResetLayerName; // If triggerBehavior is "resetStateOnTrigger", specifies the layer to use in resetting values.
+   double triggerOffset; // Adjust the timestep when the trigger is receieved by this amount; must be >=0.  A positive value means the trigger occurs before the triggerLayerName layer updates.
    HyPerLayer* triggerLayer;
+   HyPerLayer * triggerResetLayer;
 
    char* dataTypeString;
    PVDataType dataType;

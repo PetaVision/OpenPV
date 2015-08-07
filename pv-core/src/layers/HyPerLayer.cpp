@@ -153,6 +153,8 @@ int HyPerLayer::initialize_base() {
    this->triggerFlag = false; //Default to update every timestamp
    this->triggerLayer = NULL;
    this->triggerLayerName = NULL;
+   this->triggerBehavior = NULL;
+   this->triggerResetLayerName = NULL;
    this->initVObject = NULL;
    this->triggerOffset = 0;
    this->nextUpdateTime = 0;
@@ -419,10 +421,10 @@ HyPerLayer::~HyPerLayer()
    free(probes);
 
    free(synchronizedMarginWidthLayers);
-   if(triggerLayerName){
-      free(triggerLayerName);
-      triggerLayerName = NULL;
-   }
+   
+   free(triggerLayerName); triggerLayerName = NULL;
+   free(triggerBehavior); triggerBehavior = NULL;
+   free(triggerResetLayerName); triggerLayerName = NULL;
 
    if(thread_gSyn){
       for(int i = 0; i < parent->getNumThreads(); i++){
@@ -735,9 +737,11 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_valueBC(ioFlag);
    ioParam_initializeFromCheckpointFlag(ioFlag);
    ioParam_InitVType(ioFlag);
-   ioParam_triggerFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
+   ioParam_triggerFlag(ioFlag);
    ioParam_triggerOffset(ioFlag);
+   ioParam_triggerBehavior(ioFlag);
+   ioParam_triggerResetLayerName(ioFlag);
    ioParam_writeStep(ioFlag);
    ioParam_initialWriteTime(ioFlag);
    ioParam_sparseLayer(ioFlag);
@@ -848,24 +852,80 @@ void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "triggerFlag", &triggerFlag, triggerFlag);
+void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, true/*warnIfAbsent*/);
+   triggerFlag = (triggerLayerName!=NULL && triggerLayerName[0]!='\0');
 }
 
-void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
-   if (triggerFlag) {
-      parent->ioParamStringRequired(ioFlag, name, "triggerLayerName", &triggerLayerName);
+// triggerFlag was deprecated Aug 7, 2015.
+// Setting triggerLayerName to a nonempty string has the effect of triggerFlag=true, and
+// setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
+// While triggerFlag is being deprecated, it is an error for triggerFlag to be false
+// and triggerLayerName to be a nonempty string.
+void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Layer \"%s\" Warning: triggerFlag has been deprecated.\n", name);
+      }
+      bool flagFromParams = false;
+      parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
+      if (flagFromParams != triggerFlag) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Layer \"%s\" Error: triggerLayerName=", name);
+            if (triggerLayerName) { fprintf(stderr, "\"%s\"", triggerLayerName); }
+            else { fprintf(stderr, "NULL"); }
+            fprintf(stderr, " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
+                  triggerFlag ? "true" : "false", flagFromParams ? "true" : "false");
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      else {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "   If triggerLayerName is a nonempty string, triggering will be on;\n");
+            fprintf(stderr, "   if triggerLayerName is empty or null, triggering will be off.\n");
+         }
+      }
    }
 }
 
 void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (triggerFlag) {
       parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if(triggerOffset < 0){
          fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset);
          exit(EXIT_FAILURE);
+      }
+   }
+}
+void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   if (triggerFlag) {
+      parent->ioParamString(ioFlag, name, "triggerBehavior", &triggerBehavior, "updateOnlyOnTrigger", true/*warnIfAbsent*/);
+   }
+   if (triggerBehavior==NULL || !strcmp(triggerBehavior, "")) {
+      free(triggerBehavior);
+      triggerBehavior = strdup("updateOnlyOnTrigger");
+   }
+   if (strcmp(triggerBehavior, "updateOnlyOnTrigger")!=0 &&
+       strcmp(triggerBehavior, "resetStateOnTrigger")!=0) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: triggerBehavior=\"%s\" is unrecognized.\n",
+               parent->parameters()->groupKeywordFromName(name), name, triggerBehavior);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+}
+
+void HyPerLayer::ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   if (triggerFlag) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerBehavior"));
+      if (!strcmp(triggerBehavior, "resetStateOnTrigger")) {
+         parent->ioParamStringRequired(ioFlag, name, "triggerResetLayerName", &triggerResetLayerName);
       }
    }
 }
@@ -1544,31 +1604,37 @@ double HyPerLayer::getDeltaUpdateTime(){
 int HyPerLayer::updateStateWrapper(double timef, double dt){
    int status = PV_SUCCESS;
    if(needUpdate(timef, parent->getDeltaTime())){
-#ifdef PV_USE_OPENCL
-      //If this current layer's gsyn is on the gpu, only move it back when doing update state or output state
-      this->clFinishGSyn();
-#endif
-      update_timer->start();
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-      if(updateGpu){
-         gpu_update_timer->start();
-         status = updateStateGpu(timef, dt);
-         gpu_update_timer->stop();
-      }
-      else{
-#endif
-         status = updateState(timef, dt);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-      }
-      //Activity updated, set flag to true
-      updatedDeviceActivity = true;
-      updatedDeviceDatastore = true;
-#endif
-      lastUpdateTime=parent->simulationTime();
-      update_timer->stop();
+      status = callUpdateState(timef, dt);
    }
    //Because of the triggerOffset, we need to check if we need to update nextUpdateTime every time
    updateNextUpdateTime();
+   return status;
+}
+
+int HyPerLayer::callUpdateState(double timed, double dt) {
+   int status = PV_SUCCESS;
+#ifdef PV_USE_OPENCL
+   //If this current layer's gsyn is on the gpu, only move it back when doing update state or output state
+   this->clFinishGSyn();
+#endif
+   update_timer->start();
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   if(updateGpu){
+      gpu_update_timer->start();
+      status = updateStateGpu(timed, dt);
+      gpu_update_timer->stop();
+   }
+   else{
+#endif
+      status = updateState(timed, dt);
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   }
+   //Activity updated, set flag to true
+   updatedDeviceActivity = true;
+   updatedDeviceDatastore = true;
+#endif
+   lastUpdateTime=parent->simulationTime();
+   update_timer->stop();
    return status;
 }
 
@@ -1604,6 +1670,17 @@ int HyPerLayer::updateState(double timef, double dt) {
    return status;
 }
 
+int HyPerLayer::resetStateOnTrigger() {
+   pvpotentialdata_t const * resetV = triggerResetLayer->getV();
+   pvpotentialdata_t * V = getV();
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif // PV_USE_OPENMP_THREADS
+   for (int k=0; k<getNumNeurons(); k++) {
+      V[k] = resetV[k];
+   }
+   return PV_SUCCESS;
+}
 
 int HyPerLayer::resetGSynBuffers(double timef, double dt) {
    int status = PV_SUCCESS;
