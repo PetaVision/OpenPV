@@ -14,30 +14,6 @@ if (NOT CMAKE_BUILD_TYPE)        #To use a different CMAKE_BUILD_TYPE, use the o
    set(CMAKE_BUILD_TYPE Release) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
 endif (NOT CMAKE_BUILD_TYPE)
 
-########
-# March 31, 2015: renamed several cache variables to agree with C/C++ preprocessor directives
-# so that they could be put into cMakeHeader.h easily instead of passing -D arguments to the compile command.
-# Accordingly, test if old variable name exists, and if so, use its value as the new variable.
-# then delete the old variable from the cache.  After a while, no one
-# should have the old variables in the cache and this section can be deleted.
-if (DEFINED OPEN_MP_THREADS)
-   set(PV_USE_OPENMP_THREADS ${OPEN_MP_THREADS} CACHE BOOL "Defines whether PetaVision uses OpenMP threads")
-   unset(OPEN_MP_THREADS CACHE)
-endif (DEFINED OPEN_MP_THREADS)
-if (DEFINED OPEN_CL_GPU)
-   set(PV_USE_OPENCL ${OPEN_CL_GPU} CACHE BOOL "Defines whether PetaVision uses OpenCL GPU")
-   unset(OPEN_CL_GPU CACHE)
-endif (DEFINED OPEN_CL_GPU)
-if (DEFINED CUDA_GPU)
-   set(PV_USE_CUDA ${CUDA_GPU} CACHE BOOL "Defines whether PetaVision uses CUDA GPU")
-   unset(CUDA_GPU CACHE)
-endif (DEFINED CUDA_GPU)
-if (DEFINED CUDNN)
-   set(PV_USE_CUDNN ${CUDNN} CACHE BOOL "Defines whether PetaVision uses CUDA's cuDNN library")
-   unset(CUDNN CACHE)
-endif (DEFINED CUDNN)
-########
-
 
 # Variables to set on the command line
 set(PV_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "The base PetaVision directory")
@@ -75,11 +51,6 @@ if(PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
    ENDIF(APPLE)
    set(PV_USE_OPENCL_FLAGS_ADDED)
 endif (PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
-
-# March 31, 2015: no longer needed as PV_DIR is being written to cMakeHeader.h
-#if(OPEN_CL_GPU)
-#   add_definitions(-DPV_DIR="${CMAKE_CURRENT_SOURCE_DIR}") # needed by HyPerCol.cpp
-#endif (OPEN_CL_GPU)
 
 
 set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")

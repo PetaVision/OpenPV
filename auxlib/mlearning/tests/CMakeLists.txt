@@ -65,30 +65,6 @@ endmacro(AddPVTest)
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
-########
-# March 31, 2015: renamed several cache variables to agree with C/C++ preprocessor directives
-# so that they could be put into cMakeHeader.h easily instead of passing -D arguments to the compile command.
-# Accordingly, test if old variable name exists, and if so, use its value as the new variable.
-# then delete the old variable from the cache.  After a while, no one
-# should have the old variables in the cache and this section can be deleted.
-if (DEFINED OPEN_MP_THREADS)
-   set(PV_USE_OPENMP_THREADS ${OPEN_MP_THREADS} CACHE BOOL "Defines whether PetaVision uses OpenMP threads")
-   unset(OPEN_MP_THREADS CACHE)
-endif (DEFINED OPEN_MP_THREADS)
-if (DEFINED OPEN_CL_GPU)
-   set(PV_USE_OPENCL ${OPEN_CL_GPU} CACHE BOOL "Defines whether PetaVision uses OpenCL GPU")
-   unset(OPEN_CL_GPU CACHE)
-endif (DEFINED OPEN_CL_GPU)
-if (DEFINED CUDA_GPU)
-   set(PV_USE_CUDA ${CUDA_GPU} CACHE BOOL "Defines whether PetaVision uses CUDA GPU")
-   unset(CUDA_GPU CACHE)
-endif (DEFINED CUDA_GPU)
-if (DEFINED CUDNN)
-   set(PV_USE_CUDNN ${CUDNN} CACHE BOOL "Defines whether PetaVision uses CUDA's cuDNN library")
-   unset(CUDNN CACHE)
-endif (DEFINED CUDNN)
-########
-
 
 # Set variable for current working directory (workspace directory)
 set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision CACHE PATH "The base petavision directory")
