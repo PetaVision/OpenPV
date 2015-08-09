@@ -154,6 +154,7 @@ int HyPerLayer::initialize_base() {
    this->triggerLayer = NULL;
    this->triggerLayerName = NULL;
    this->triggerBehavior = NULL;
+   this->triggerBehaviorType = NO_TRIGGER;
    this->triggerResetLayerName = NULL;
    this->initVObject = NULL;
    this->triggerOffset = 0;
@@ -904,20 +905,27 @@ void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (triggerFlag) {
       parent->ioParamString(ioFlag, name, "triggerBehavior", &triggerBehavior, "updateOnlyOnTrigger", true/*warnIfAbsent*/);
-   }
-   if (triggerBehavior==NULL || !strcmp(triggerBehavior, "")) {
-      free(triggerBehavior);
-      triggerBehavior = strdup("updateOnlyOnTrigger");
-   }
-   if (strcmp(triggerBehavior, "updateOnlyOnTrigger")!=0 &&
-       strcmp(triggerBehavior, "resetStateOnTrigger")!=0) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: triggerBehavior=\"%s\" is unrecognized.\n",
-               parent->parameters()->groupKeywordFromName(name), name, triggerBehavior);
+      if (triggerBehavior==NULL || !strcmp(triggerBehavior, "")) {
+         free(triggerBehavior);
+         triggerBehavior = strdup("updateOnlyOnTrigger");
+         triggerBehaviorType = UPDATEONLY_TRIGGER;
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
+      else if (!strcmp(triggerBehavior, "updateOnlyOnTrigger")) {
+         triggerBehaviorType = UPDATEONLY_TRIGGER;
+      }
+      else if (!strcmp(triggerBehavior, "resetStateOnTrigger")) {
+         triggerBehaviorType = RESETSTATE_TRIGGER;
+      }
+      else {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: triggerBehavior=\"%s\" is unrecognized.\n",
+                  parent->parameters()->groupKeywordFromName(name), name, triggerBehavior);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
    }
+   else { triggerBehaviorType = NO_TRIGGER; }
 }
 
 void HyPerLayer::ioParam_triggerResetLayerName(enum ParamsIOFlag ioFlag) {
@@ -1090,13 +1098,29 @@ int HyPerLayer::communicateInitInfo()
       triggerLayer = parent->getLayerFromName(triggerLayerName);
       if (triggerLayer==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
+            fprintf(stderr, "%s \"%s\" error: triggerLayerName \"%s\" is not a layer in the HyPerCol.\n",
                   parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
          }
 #ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
          exit(EXIT_FAILURE);
+      }
+      if (triggerBehaviorType==RESETSTATE_TRIGGER) {
+         if (triggerResetLayerName==NULL || triggerResetLayerName[0]=='\0') {
+            triggerResetLayer = triggerLayer;
+         }
+         else {
+            triggerResetLayer = parent->getLayerFromName(triggerResetLayerName);
+            if (triggerResetLayer==NULL) {
+               if (parent->columnId()==0) {
+                  fprintf(stderr, "%s \"%s\" error: triggerResetLayerName \"%s\" is not a layer in the HyPerCol.\n",
+                        parent->parameters()->groupKeywordFromName(name), name, triggerResetLayerName);
+               }
+               MPI_Barrier(parent->icCommunicator()->communicator());
+               exit(EXIT_FAILURE);
+            }
+         }
       }
    }
 
@@ -1552,13 +1576,13 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * border)
    return 0;
 }
 
+bool HyPerLayer::layerTriggered(double timed, double dt) {
+   //We want to check whether time==nextUpdateTime-triggerOffset,
+   // but to account for roundoff errors, we check if it's within half the delta time
+   return triggerFlag && fabs(timed - (nextUpdateTime - triggerOffset)) < (dt/2);
+}
 
 bool HyPerLayer::needUpdate(double time, double dt){
-   //Always update on first timestep
-   //if (time <= parent->getStartTime()){
-   //    return true;
-   //}
-
    //This function needs to return true if the layer was updated this timestep as well
    if(fabs(parent->simulationTime() - lastUpdateTime) < (dt/2)){
       return true;
@@ -1568,10 +1592,13 @@ bool HyPerLayer::needUpdate(double time, double dt){
    if(nextUpdateTime == -1){
       return false;
    }
-   //Check based on nextUpdateTime and triggerOffset
-   //Needs to be a equality check, so to account for roundoff errors, we check if it's within half the delta time
-   if(fabs(time - (nextUpdateTime - triggerOffset)) < (dt/2)){
-      return true;
+   
+   //Check based on trigger behavior and whether there was a trigger.
+   switch(triggerBehaviorType) {
+   case NO_TRIGGER: return true; break;
+   case UPDATEONLY_TRIGGER: return layerTriggered(time, dt); break;
+   case RESETSTATE_TRIGGER: return !layerTriggered(time, dt); break;
+   default: assert(0); break;
    }
    return false;
 }
@@ -1601,10 +1628,17 @@ double HyPerLayer::getDeltaUpdateTime(){
    }
 }
 
+bool HyPerLayer::needReset(double timed, double dt) {
+   return triggerBehaviorType==RESETSTATE_TRIGGER && !layerTriggered(timed, dt);
+}
+
 int HyPerLayer::updateStateWrapper(double timef, double dt){
    int status = PV_SUCCESS;
    if(needUpdate(timef, parent->getDeltaTime())){
       status = callUpdateState(timef, dt);
+   }
+   else if (needReset(timef, parent->getDeltaTime())) {
+      status = resetStateOnTrigger();
    }
    //Because of the triggerOffset, we need to check if we need to update nextUpdateTime every time
    updateNextUpdateTime();
@@ -1908,7 +1942,7 @@ int HyPerLayer::publish(InterColComm* comm, double time)
 {
    publish_timer->start();
 
-   if ( useMirrorBCs()&& getLastUpdateTime() >= getParent()->simulationTime()) { //needUpdate(parent->simulationTime(), parent->getDeltaTime()) ) { //
+   if ( useMirrorBCs()&& getLastUpdateTime() >= getParent()->simulationTime()) {
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
          mirrorInteriorToBorder(borderId, clayer->activity, clayer->activity);
       }

@@ -119,6 +119,8 @@ class InitV;
 class PVParams;
 class BaseConnection;
 
+typedef enum TriggerBehaviorTypeEnum { NO_TRIGGER, UPDATEONLY_TRIGGER, RESETSTATE_TRIGGER } TriggerBehaviorType;
+
 class HyPerLayer : public BaseLayer{
 
 
@@ -207,6 +209,8 @@ protected:
     */
    virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
 
+   // TODO: triggerOffset is measured in units of simulation time, not timesteps.  How does adaptTimeStep affect
+   // the triggering time?
    /**
     * @brief triggerOffset: If triggerLayer is set, triggers <triggerOffset> timesteps before target trigger
     * @details Defaults to 0
@@ -295,11 +299,21 @@ protected:
    void calcNumExtended();
    
    /**
+    * Returns true if triggering is on and layer's triggering criteria was met.
+    */
+   virtual bool layerTriggered(double time, double dt);
+   
+   /**
     * Called by updateStateWrapper when updating the state in the usual way
     * (as opposed to being triggered when triggerBehavior is resetStateOnTrigger).
     * It calls either updateState or updateStateGPU.  It also starts and stops the update timer.
     */
    virtual int callUpdateState(double timed, double dt);
+   
+   /**
+    * Returns true if the trigger behavior is resetStateOnTrigger and the layer was triggered.
+    */
+   virtual bool needReset(double timed, double dt);
    
    /**
     * Called instead of updateState when triggerBehavior is "resetStateOnTrigger" and a triggering event occurs.
@@ -361,9 +375,11 @@ public:
    virtual int updateStateGpu (double time, double dt);
 #endif
    /**
-    * A virtual function to determine if updateState method needs to be called
-    * Default behaviour is dependent on the flag triggerFlag. If true, will call attached trigger layer's needUpdate
-    * If triggerFlag is false, this function will return true
+    * A virtual function to determine if callUpdateState method needs to be called
+    * Default behavior is dependent on the triggering method.
+    * If there is no triggering, always returns true.
+    * If there is triggering and the trigger behavior is updateOnlyOnTrigger, returns true only when there is a triggering event.
+    * If there is triggering and the trigger behavior is resetStateOnTrigger, returns true only when there is not a trigger event.
     * @param time The current timestep of the run
     * @param dt The current non-adaptive dt of the run
     * @return Returns if the update needs to happen
@@ -557,6 +573,7 @@ protected:
    bool triggerFlag; // Whether the layer has different behavior in response to another layer's update.
    char* triggerLayerName; // The layer that triggers different behavior.  To turn triggering off, set this parameter to NULL or ""
    char * triggerBehavior; // Specifies how to respond to a trigger.  Current values are "updateOnlyOnTrigger" or "resetStateOnTrigger"
+   TriggerBehaviorType triggerBehaviorType;
    char * triggerResetLayerName; // If triggerBehavior is "resetStateOnTrigger", specifies the layer to use in resetting values.
    double triggerOffset; // Adjust the timestep when the trigger is receieved by this amount; must be >=0.  A positive value means the trigger occurs before the triggerLayerName layer updates.
    HyPerLayer* triggerLayer;

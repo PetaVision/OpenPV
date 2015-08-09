@@ -3087,6 +3087,7 @@ int HyPerCol::outputState(double time)
 
 
 HyPerLayer * HyPerCol::getLayerFromName(const char * layerName) {
+   if (layerName==NULL) { return NULL; }
    int n = numberOfLayers();
    for( int i=0; i<n; i++ ) {
       HyPerLayer * curLayer = getLayer(i);
