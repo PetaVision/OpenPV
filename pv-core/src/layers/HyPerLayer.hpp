@@ -301,7 +301,7 @@ protected:
    /**
     * Returns true if triggering is on and layer's triggering criteria was met.
     */
-   virtual bool layerTriggered(double time, double dt);
+   virtual bool updateTimeArrived(double time, double dt);
    
    /**
     * Called by updateStateWrapper when updating the state in the usual way

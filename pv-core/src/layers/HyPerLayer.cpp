@@ -855,7 +855,17 @@ void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 
 void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, true/*warnIfAbsent*/);
-   triggerFlag = (triggerLayerName!=NULL && triggerLayerName[0]!='\0');
+   if (ioFlag==PARAMS_IO_READ) {
+      if (triggerLayerName && !strcmp(name, triggerLayerName)) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: triggerLayerName cannot be the same as the name of the layer itself.\n",
+                  parent->parameters()->groupKeywordFromName(name), name);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      triggerFlag = (triggerLayerName!=NULL && triggerLayerName[0]!='\0');
+   }
 }
 
 // triggerFlag was deprecated Aug 7, 2015.
@@ -1576,10 +1586,10 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * border)
    return 0;
 }
 
-bool HyPerLayer::layerTriggered(double timed, double dt) {
+bool HyPerLayer::updateTimeArrived(double timed, double dt) {
    //We want to check whether time==nextUpdateTime-triggerOffset,
    // but to account for roundoff errors, we check if it's within half the delta time
-   return triggerFlag && fabs(timed - (nextUpdateTime - triggerOffset)) < (dt/2);
+   return fabs(timed - (nextUpdateTime - triggerOffset)) < (dt/2);
 }
 
 bool HyPerLayer::needUpdate(double time, double dt){
@@ -1595,9 +1605,9 @@ bool HyPerLayer::needUpdate(double time, double dt){
    
    //Check based on trigger behavior and whether there was a trigger.
    switch(triggerBehaviorType) {
-   case NO_TRIGGER: return true; break;
-   case UPDATEONLY_TRIGGER: return layerTriggered(time, dt); break;
-   case RESETSTATE_TRIGGER: return !layerTriggered(time, dt); break;
+   case NO_TRIGGER: return updateTimeArrived(time, dt); break;
+   case UPDATEONLY_TRIGGER: return updateTimeArrived(time, dt); break;
+   case RESETSTATE_TRIGGER: return !updateTimeArrived(time, dt); break;
    default: assert(0); break;
    }
    return false;
@@ -1629,7 +1639,7 @@ double HyPerLayer::getDeltaUpdateTime(){
 }
 
 bool HyPerLayer::needReset(double timed, double dt) {
-   return triggerBehaviorType==RESETSTATE_TRIGGER && !layerTriggered(timed, dt);
+   return triggerBehaviorType==RESETSTATE_TRIGGER && !updateTimeArrived(timed, dt);
 }
 
 int HyPerLayer::updateStateWrapper(double timef, double dt){
