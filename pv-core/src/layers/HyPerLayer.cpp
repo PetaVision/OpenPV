@@ -854,7 +854,7 @@ void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, true/*warnIfAbsent*/);
+   parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
    if (ioFlag==PARAMS_IO_READ) {
       if (triggerLayerName && !strcmp(name, triggerLayerName)) {
          if (parent->columnId()==0) {
@@ -925,6 +925,9 @@ void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
       }
       else if (!strcmp(triggerBehavior, "resetStateOnTrigger")) {
          triggerBehaviorType = RESETSTATE_TRIGGER;
+      }
+      else if (!strcmp(triggerBehavior, "ignore")) {
+         triggerBehaviorType = NO_TRIGGER;
       }
       else {
          if (parent->columnId()==0) {
@@ -1735,13 +1738,36 @@ int HyPerLayer::updateState(double timef, double dt) {
 }
 
 int HyPerLayer::resetStateOnTrigger() {
-   pvpotentialdata_t const * resetV = triggerResetLayer->getV();
+   assert(triggerResetLayer != NULL);
    pvpotentialdata_t * V = getV();
-   #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for
-   #endif // PV_USE_OPENMP_THREADS
-   for (int k=0; k<getNumNeurons(); k++) {
-      V[k] = resetV[k];
+   if (V==NULL) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a membrane potential.\n",
+               parent->parameters()->groupKeywordFromName(name), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   pvpotentialdata_t const * resetV = triggerResetLayer->getV();
+   if (resetV!=NULL) {
+      pvadata_t const * resetA = triggerResetLayer->getActivity();
+      PVLayerLoc const * loc = triggerResetLayer->getLayerLoc();
+      PVHalo const * halo = &loc->halo;
+      #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+      #endif // PV_USE_OPENMP_THREADS
+      for (int k=0; k<getNumNeurons(); k++) {
+         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
+         V[k] = resetA[kex];
+      }
+   }
+   else {
+      #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+      #endif // PV_USE_OPENMP_THREADS
+      for (int k=0; k<getNumNeurons(); k++) {
+         V[k] = resetV[k];
+      }
    }
    return setActivity();
 }
