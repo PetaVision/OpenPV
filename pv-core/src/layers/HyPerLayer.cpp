@@ -1593,24 +1593,26 @@ bool HyPerLayer::updateTimeArrived(double timed, double dt) {
 }
 
 bool HyPerLayer::needUpdate(double time, double dt){
+   bool updateNeeded = false;
    //This function needs to return true if the layer was updated this timestep as well
    if(fabs(parent->simulationTime() - lastUpdateTime) < (dt/2)){
       return true;
    }
    //Never update flag
    //If nextUpdateTime is -1, the layer won't update
-   if(nextUpdateTime == -1){
-      return false;
+   else if(nextUpdateTime == -1){
+      updateNeeded = false;
    }
-   
+   else {
    //Check based on trigger behavior and whether there was a trigger.
    switch(triggerBehaviorType) {
-   case NO_TRIGGER: return updateTimeArrived(time, dt); break;
-   case UPDATEONLY_TRIGGER: return updateTimeArrived(time, dt); break;
-   case RESETSTATE_TRIGGER: return !updateTimeArrived(time, dt); break;
-   default: assert(0); break;
+      case NO_TRIGGER: updateNeeded = updateTimeArrived(time, dt); break;
+      case UPDATEONLY_TRIGGER: updateNeeded = updateTimeArrived(time, dt); break;
+      case RESETSTATE_TRIGGER: updateNeeded = !updateTimeArrived(time, dt); break;
+      default: assert(0); break;
+      }
    }
-   return false;
+   return updateNeeded;
 }
 
 int HyPerLayer::updateNextUpdateTime(){
@@ -1639,16 +1641,19 @@ double HyPerLayer::getDeltaUpdateTime(){
 }
 
 bool HyPerLayer::needReset(double timed, double dt) {
-   return triggerBehaviorType==RESETSTATE_TRIGGER && !updateTimeArrived(timed, dt);
+   bool resetNeeded = triggerBehaviorType==RESETSTATE_TRIGGER && updateTimeArrived(timed, dt);
+   return resetNeeded;
 }
 
 int HyPerLayer::updateStateWrapper(double timef, double dt){
    int status = PV_SUCCESS;
    if(needUpdate(timef, parent->getDeltaTime())){
       status = callUpdateState(timef, dt);
+      lastUpdateTime = parent->simulationTime();
    }
    else if (needReset(timef, parent->getDeltaTime())) {
       status = resetStateOnTrigger();
+      lastUpdateTime = parent->simulationTime(); // lastUpdateTime is now really lastChangeTime.  Do we need to separate into lastUpdateTime and lastResetTime?      
    }
    //Because of the triggerOffset, we need to check if we need to update nextUpdateTime every time
    updateNextUpdateTime();
@@ -1677,7 +1682,6 @@ int HyPerLayer::callUpdateState(double timed, double dt) {
    updatedDeviceActivity = true;
    updatedDeviceDatastore = true;
 #endif
-   lastUpdateTime=parent->simulationTime();
    update_timer->stop();
    return status;
 }
@@ -1723,7 +1727,7 @@ int HyPerLayer::resetStateOnTrigger() {
    for (int k=0; k<getNumNeurons(); k++) {
       V[k] = resetV[k];
    }
-   return PV_SUCCESS;
+   return setActivity();
 }
 
 int HyPerLayer::resetGSynBuffers(double timef, double dt) {
@@ -1952,7 +1956,11 @@ int HyPerLayer::publish(InterColComm* comm, double time)
 {
    publish_timer->start();
 
-   if ( useMirrorBCs()&& getLastUpdateTime() >= getParent()->simulationTime()) {
+   bool mirroring = useMirrorBCs();
+   mirroring = mirroring ?
+         (getLastUpdateTime() >= getParent()->simulationTime() || needReset(time, parent->getDeltaTime())) :
+         false;
+   if ( mirroring) {
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
          mirrorInteriorToBorder(borderId, clayer->activity, clayer->activity);
       }

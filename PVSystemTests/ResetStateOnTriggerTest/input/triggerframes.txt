@@ -1,0 +1,4 @@
+input/triggerframe1.png
+input/triggerframe2.png
+input/triggerframe3.png
+input/triggerframe4.png

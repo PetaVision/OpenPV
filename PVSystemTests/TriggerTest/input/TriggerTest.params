@@ -17,6 +17,7 @@ HyPerCol "column" = {
    progressInterval                 = 1;
    writeProgressToErr               = false;
    outputPath                       = "output/";
+   printParamsFilename              = "pv.params";
    filenamesContainLayerNames       = 2;
    filenamesContainConnectionNames  = 2;
    checkpointWrite                  = false;
@@ -24,6 +25,7 @@ HyPerCol "column" = {
    // checkpointWriteStepInterval      = 10000;
    // deleteOlderCheckpoints           = true;
    suppressLastOutput               = false;
+   initializeFromCheckpointDir      = "";
 };
 
 //
@@ -32,7 +34,6 @@ HyPerCol "column" = {
 
 //Test for trigger layers
 Movie "input" = {
-    restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
     inputPath = "input/dot.txt";
@@ -50,15 +51,16 @@ Movie "input" = {
     writeImages                      = false;
     offsetX                          = 0;
     offsetY                          = 0;
+    offsetAnchor                     = "tl";
     jitterFlag                       = false;
     randomMovie                      = false;
     displayPeriod                    = 5;
     start_frame_index                = 0;
     skip_frame_index                 = 0;
+    batchMethod                      = "bySpecified";
 };
 
 TriggerTestLayer "notrigger" = {
-    restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
     nf                               = 1;
@@ -70,11 +72,10 @@ TriggerTestLayer "notrigger" = {
 
     InitVType                        = "ZeroV";
 
-    triggerFlag                      = false;
+    triggerLayerName                 = "";
 };
 
 TriggerTestLayer "trigger0" = {
-    restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
     nf                               = 1;
@@ -86,13 +87,12 @@ TriggerTestLayer "trigger0" = {
 
     InitVType                        = "ZeroV";
 
-    triggerFlag                      = true;
     triggerLayerName                   = "input";
     triggerOffset                    = 0;
+    triggerBehavior                  = "updateOnlyOnTrigger";
 };
 
 TriggerTestLayer "trigger1" = {
-    restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
     nf                               = 1;
@@ -104,13 +104,12 @@ TriggerTestLayer "trigger1" = {
 
     InitVType                        = "ZeroV";
 
-    triggerFlag                      = true;
-    triggerLayerName                   = "input";
+    triggerLayerName                 = "input";
     triggerOffset                    = 1;
+    triggerBehavior                  = "updateOnlyOnTrigger";
 };
 
 TriggerTestLayer "trigger2" = {
-    restart                          = false;
     nxScale                          = 1;
     nyScale                          = 1;
     nf                               = 1;
@@ -122,9 +121,9 @@ TriggerTestLayer "trigger2" = {
 
     InitVType                        = "ZeroV";
 
-    triggerFlag                      = true;
-    triggerLayerName                   = "input";
+    triggerLayerName                 = "input";
     triggerOffset                    = 2;
+    triggerBehavior                  = "updateOnlyOnTrigger";
 };
 
 
@@ -387,7 +386,7 @@ TriggerTestConn "inputToPeriod2" = {
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
     dWMax = 1.0;
-    selfFlag = false;  // conntect to itself
+    selfFlag = false;  // connect to itself
 
     delay = 0;
 
