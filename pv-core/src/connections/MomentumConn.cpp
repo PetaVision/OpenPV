@@ -66,8 +66,8 @@ int MomentumConn::allocateDataStructures(){
 
 int MomentumConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
-   ioParam_momentumTau(ioFlag);
    ioParam_momentumMethod(ioFlag);
+   ioParam_momentumTau(ioFlag);
    ioParam_momentumDecay(ioFlag);
    ioParam_batchPeriod(ioFlag);
    return status;
@@ -75,7 +75,18 @@ int MomentumConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
 void MomentumConn::ioParam_momentumTau(enum ParamsIOFlag ioFlag){
    if(plasticityFlag){
-      parent->ioParamValue(ioFlag, name, "momentumTau", &momentumTau, momentumTau);
+      float defaultVal = 0;
+      if(strcmp(momentumMethod, "simple") == 0){
+         defaultVal = .25;
+      }
+      else if(strcmp(momentumMethod, "viscosity") == 0){
+         defaultVal = 100;
+      }
+      else if(strcmp(momentumMethod, "alex") == 0){
+         defaultVal = .9;
+      }
+      
+      parent->ioParamValue(ioFlag, name, "momentumTau", &momentumTau, defaultVal);
    }
 }
 
