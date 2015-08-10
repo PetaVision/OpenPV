@@ -141,6 +141,24 @@ class Param_Parser(Param_Reader):
                 i.params['nx'] = float(i['nxScale'])*cnx
                 i.params['ny'] = float(i['nyScale'])*cny
 
+    def infer_pre_from_name(self,conn_name):
+        found = False
+        for i in self.layer_dict.values():
+            pre_regex = ('^' + i.name)
+            if re.search(pre_regex,conn_name):
+                print(i.name + ' inferred as preLayer of ' + conn_name)
+                return i.name
+        print('Could not infer prelayer of ' + conn_name)
+
+    def infer_post_from_name(self,conn_name):
+        found = False
+        for i in self.layer_dict.values():
+            post_regex = (i.name + '$')
+            if re.search(post_regex,conn_name):
+                print(i.name + ' inferred as postLayer of ' + conn_name)
+                return i.name
+        print('Could not infer postlayer of ' + conn_name)
+            
     def relate_objects(self):
         for i in self.conn_dict.values():
             if 'preLayerName' in i.params:
@@ -148,12 +166,18 @@ class Param_Parser(Param_Reader):
                     print('Warning: ' + i['preLayerName'] + ' in ' + i.name + ' not found in param layers')
                     continue
                 i.pre = i['preLayerName']
+            else:
+                print('Warning: ' + i.name + ' does not specify a preLayer')
+                i.pre = self.infer_pre_from_name(i.name)
+
             if 'postLayerName' in i.params:
                 if not i['postLayerName'] in self.layer_dict:
                     print('Warning: ' + i['postLayerName'] + ' in ' + i.name + ' not found in param layers')
                     continue
                 i.post = i['postLayerName']
-
+            else:
+                print('Warning: ' + i.name + ' does not specify a postLayer')
+                i.post = self.infer_post_from_name(i.name)
 
     def original_conn_label(self,conn):
         parent = self.conn_dict[conn.params['originalConnName']]
