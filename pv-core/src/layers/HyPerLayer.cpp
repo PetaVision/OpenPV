@@ -1117,10 +1117,13 @@ int HyPerLayer::communicateInitInfo()
          exit(EXIT_FAILURE);
       }
       if (triggerBehaviorType==RESETSTATE_TRIGGER) {
+         char const * resetLayerName = NULL; // Will point to name of actual resetLayer, whether triggerResetLayerName is blank (in which case resetLayerName==triggerLayerName) or not
          if (triggerResetLayerName==NULL || triggerResetLayerName[0]=='\0') {
+            resetLayerName = triggerLayerName;
             triggerResetLayer = triggerLayer;
          }
          else {
+            resetLayerName = triggerResetLayerName;
             triggerResetLayer = parent->getLayerFromName(triggerResetLayerName);
             if (triggerResetLayer==NULL) {
                if (parent->columnId()==0) {
@@ -1129,6 +1132,19 @@ int HyPerLayer::communicateInitInfo()
                }
                MPI_Barrier(parent->icCommunicator()->communicator());
                exit(EXIT_FAILURE);
+            }
+         }
+         // Check that triggerResetLayer and this layer have the same (restricted) dimensions.
+         // Do we need to postpone until triggerResetLayer has finished its communicateInitInfo?
+         PVLayerLoc const * triggerLoc = triggerResetLayer->getLayerLoc();
+         PVLayerLoc const * localLoc = this->getLayerLoc();
+         if (triggerLoc->nxGlobal != localLoc->nxGlobal || triggerLoc->nyGlobal != localLoc->nyGlobal || triggerLoc->nf != localLoc->nf) {
+            if (parent->columnId()==0) {
+               fprintf(stderr, "%s \"%s\" error: triggerResetLayer \"%s\" has incompatible dimensions.\n",
+                     parent->parameters()->groupKeywordFromName(name), name, resetLayerName);
+               fprintf(stderr, "    \"%s\" is %d-by-%d-by-%d and \"%s\" is %d-by-%d-by-%d.\n",
+                     name, localLoc->nxGlobal, localLoc->nyGlobal, localLoc->nf,
+                     resetLayerName, triggerLoc->nxGlobal, triggerLoc->nyGlobal, triggerLoc->nf);
             }
          }
       }
@@ -1302,7 +1318,7 @@ int HyPerLayer::allocateDataStructures()
    // activity buffer activity->data, and the data store.
    int status = PV_SUCCESS;
 
-   //Doing this check here, since trigger layers are being set up in communicate init info
+   //Doing this check here, since trigger layers are being set up in communicateInitInfo
    //If the magnitude of the trigger offset is bigger than the delta update time, then error
    if(triggerFlag){
       double deltaUpdateTime = getDeltaUpdateTime();
