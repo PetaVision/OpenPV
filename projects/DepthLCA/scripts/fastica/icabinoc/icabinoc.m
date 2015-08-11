@@ -63,7 +63,7 @@ if(clobber)
       inNumElements = numElements;
    end
 
-   [icasig, A, W] = fastica(patches', 'approach', 'symm', 'g', 'tanh', 'lastEig', numElements);
+   [icasig, A, W] = fastica(patches', 'approach', 'symm', 'g', 'tanh', 'lastEig', inNumElements);
    save('icabinoc.mat', 'A');
 else
    load('icabinoc.mat');
