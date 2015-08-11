@@ -1,9 +1,8 @@
-// PetaVision, git repository version 89f6289b91e261dc47caae16a2da00259db29f3c (Sun Aug 9 00:56:20 2015 -0600) with local modifications
-// Run time Sun Aug  9 15:09:13 2015
-// Compiled with MPI and run using 1 rows and 1 columns.
-// Compiled without OpenCL.
-// Compiled without CUDA.
-// Compiled without OpenMP parallel code.
+//
+// ResetStateOnTriggerTest.params
+//
+// created by peteschultz: Aug 9, 2015
+//
 
 HyPerCol "column" = {
     startTime                           = 0;

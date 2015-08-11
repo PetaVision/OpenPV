@@ -299,11 +299,6 @@ protected:
    void calcNumExtended();
    
    /**
-    * Returns true if triggering is on and layer's triggering criteria was met.
-    */
-   virtual bool updateTimeArrived(double time, double dt);
-   
-   /**
     * Called by updateStateWrapper when updating the state in the usual way
     * (as opposed to being triggered when triggerBehavior is resetStateOnTrigger).
     * It calls either updateState or updateStateGPU.  It also starts and stops the update timer.
@@ -394,9 +389,18 @@ public:
     */
    virtual void setNextUpdateTime(double in){nextUpdateTime = in;}
    /**
-    * A function to compute the change in update time
+    * A function to return the interval between times when updateState is needed.
     */
    virtual double getDeltaUpdateTime();
+   /**
+    * A function to return the interval between triggering times.  A negative value means that the layer never triggers
+    * (either there is no triggerLayer or the triggerLayer never updates).
+    */
+   virtual double getDeltaTriggerTime();
+   /**
+    * A function to update the time that the next trigger is expected to occur.
+    */
+   virtual int updateNextTriggerTime();
    virtual int publish(InterColComm * comm, double time);
    virtual int resetGSynBuffers(double timef, double dt);
    // ************************************************************************************//
@@ -585,6 +589,7 @@ protected:
 
    double lastUpdateTime; // The most recent time that the layer's activity is updated, used as a cue for publisher to exchange borders
    double nextUpdateTime; // The timestep to update next
+   double nextTriggerTime; // The timestep when triggerLayer is next expected to trigger.
 
    pvdata_t ** thread_gSyn; //Accumulate buffer for each thread, only used if numThreads > 1
    std::vector<BaseConnection *> recvConns;
