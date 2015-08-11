@@ -1,10 +1,10 @@
 clear all; close all; dbstop error;
 
 %addpath('devkit/matlab/')
-addpath('~/workspace/PetaVision/mlab/util')
+addpath('~/workspaceGit/OpenPV/pv-core/mlab/util')
 
 %outdir =  '/nh/compneuro/Data/Depth/LCA/benchmark/validate/plots/';
-outdir =  'outplots/'
+outdir =  '/nh/compneuro/Data/Depth/NIPS/outplots/'
 LCAdir =  '/nh/compneuro/Data/Depth/LCA/benchmark/validate/aws_white_rcorr_LCA/';
 RELUdir = '/nh/compneuro/Data/Depth/LCA/benchmark/validate/aws_white_rcorr_RELU/';
 
