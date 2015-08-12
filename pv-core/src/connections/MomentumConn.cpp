@@ -24,6 +24,10 @@ MomentumConn::~MomentumConn() {
    if(momentumMethod){
       free(momentumMethod);
    }
+   if(prev_dwDataStart) {
+      free(prev_dwDataStart[0]);
+      free(prev_dwDataStart);
+   }
 }
 
 int MomentumConn::initialize_base() {

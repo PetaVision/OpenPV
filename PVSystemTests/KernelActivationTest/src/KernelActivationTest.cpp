@@ -52,8 +52,9 @@ int main(int argc, char * argv[]) {
          cl_args[2] = strdup("input/KernelActivationTest-maskData.params");
          status = runKernelActivationTest(num_cl_args, cl_args);
       }
-      free(cl_args[1]); cl_args[1] = NULL;
-      free(cl_args[2]); cl_args[2] = NULL;
+      for (int arg=1; arg<num_cl_args; arg++) {
+         free(cl_args[arg]); cl_args[arg] = NULL;
+      }
       free(cl_args); cl_args = NULL;
    }
    else {

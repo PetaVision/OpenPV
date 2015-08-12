@@ -381,6 +381,8 @@ HyPerLayer::~HyPerLayer()
    //delete permute_postGSyn_timer; permute_postGSyn_timer= NULL;
 #endif
 
+   if (outputStateStream) { pvp_close_file(outputStateStream, parent->icCommunicator()); }
+
    delete initVObject; initVObject = NULL;
    freeClayer();
    free(name); name = NULL;
