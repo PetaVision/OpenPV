@@ -1,0 +1,53 @@
+The Total_Energy_Demo demonstrates using GenColProbe and subclasses of
+LayerFunctionProbe to compute the total energy of a simple soft-threshold LCA
+model.
+
+input/Total_Energy_Demo.png shows the connectivity defined by the params file
+input/Total_Energy_Demo.params.  V1 is a HyPerLCA layer with a soft threshold of
+VThresh = 0.025.  Therefore the LCA dynamics minimize the energy
+
+1/2 * || x-Wy ||_2^2 + 0.025 * || y ||_1.
+
+x is the input layer, y is the V1 layer and W is the matrix of connection weights.
+Hence R = x-Wy is the residual.
+
+||.||_2 represents the L2 norm and ||.||_1 represents the L1 norm.
+
+The LayerFunctionProbe class in pv-core is an abstract class derived from
+LayerProbe, that computes a statistic for its targeLayer.  The statistics we
+are interested in are 1/2 * || R ||_2^2 and ||y||_1.
+
+The L2NormProbe class in pv-core is a derived class of LayerFunctionProbe that
+computes 1/2 * || R ||_2^2 (it is therefore misnamed, since it's computing half
+the square instead of the norm itself).
+
+To compute ||y||_1 we need a new class.  Accordingly, we create a class
+L1NormProbe that computes the L1-norm instead the L2-norm-based quantity.
+LayerFunctionProbes require a LayerFunction object so we also have define
+a class L1NormFunction used by L1NormProbe.
+
+The GenColProbe class in pv-core allows LayerFunctionProbe objects
+to register themselves with it, and computes the sum of the probes' stats,
+weighted by coefficients defined in the params for the LayerFunctionProbe.
+
+Thus, the following probe groups in input/Total_Energy_Demo.params
+compute the total energy at each timestep, and writes the energy
+to total_energy.txt in the output path directory:
+
+GenColProbe "Total_Energy_Probe" = {
+    probeOutputFile                     = "total_energy.txt";
+};
+
+L2NormProbe "Reconstruction_Error_Probe" = {
+    targetLayer                         = "residual";
+    probeOutputFile                     = "recon_error_l2norm.txt";
+    parentGenColProbe                   = "Total_Energy_Probe";
+    coeff                               = 1.0;
+};
+
+L1NormProbe "Sparsity_Penalty_Probe" = {
+    targetLayer                         = "V1";
+    probeOutputFile                     = "sparsity_penalty.txt";
+    parentGenColProbe                   = "Total_Energy_Probe";
+    coeff                               = 0.025;
+};

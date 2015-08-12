@@ -1,8 +1,9 @@
 addpath('../FastICA_25/')
+addpath('~/workspaceGit/OpenPV/pv-core/mlab/util');
 
-outputdir = 'output/'
+outputdir = 'outputRect/'
 savepath = [outputdir, 'icabinoc.mat'];
-clobber = false;
+clobber = true;
 
 leftlistpath = '/nh/compneuro/Data/KITTI/list/image_02.txt';
 rightlistpath = '/nh/compneuro/Data/KITTI/list/image_03.txt';
@@ -14,6 +15,8 @@ patchSize = 66;
 numExamples = 10; %Num examples per image
 numImages = 5000;
 numElements = 512;
+
+rectified = true;
 
 if(clobber)
    patches = zeros(numExamples*numImages, patchSize*patchSize*2);
@@ -53,6 +56,12 @@ if(clobber)
    end
 
    fclose(leftfid)
+   if(rectified)
+      assert(mod(numElements, 2) == 0);
+      inNumElements = numElements/2;
+   else
+      inNumElements = numElements;
+   end
 
    [icasig, A, W] = fastica(patches', 'approach', 'symm', 'g', 'tanh', 'lastEig', numElements);
    save('icabinoc.mat', 'A');
@@ -68,6 +77,20 @@ ARight = A(:, patchSize*patchSize+1:end);
 
 leftIcaPatches = reshape(ALeft, [numIC, patchSize, patchSize]);
 rightIcaPatches = reshape(ARight, [numIC, patchSize, patchSize]);
+
+%If rectified, double and invert
+if(rectified)
+   assert(numIC == numElements/2);
+   tmpLeft = zeros(numElements, patchSize, patchSize);
+   tmpRight = zeros(numElements, patchSize, patchSize);
+   tmpLeft(1:numIC, :, :) = leftIcaPatches;
+   tmpRight(1:numIC, :, :) = rightIcaPatches;
+   tmpLeft(numIC+1:end, :, :) = -1 * leftIcaPatches;
+   tmpRight(numIC+1:end, :, :) = -1 * rightIcaPatches;
+   leftIcaPatches = tmpLeft;
+   rightIcaPatches = tmpRight;
+   numIC = numElements;
+end
 
 %Make tablou to see ICA patches
 numCols = floor(sqrt(numIC));

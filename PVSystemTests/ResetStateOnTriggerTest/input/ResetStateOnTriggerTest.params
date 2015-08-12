@@ -1,9 +1,10 @@
-// PetaVision, git repository version 89f6289b91e261dc47caae16a2da00259db29f3c (Sun Aug 9 00:56:20 2015 -0600) with local modifications
-// Run time Sun Aug  9 15:09:13 2015
-// Compiled with MPI and run using 1 rows and 1 columns.
-// Compiled without OpenCL.
-// Compiled without CUDA.
-// Compiled without OpenMP parallel code.
+//
+// ResetStateOnTriggerTest.params
+//
+// created by peteschultz: Aug 9, 2015
+//
+
+debugParsing = false;
 
 HyPerCol "column" = {
     startTime                           = 0;
@@ -59,7 +60,7 @@ Movie "TriggerSource" = {
     resetToStartOnLoop                  = false;
 };
 
-Movie "ResettingLayerMovie" = {
+MoviePvp "ResettingLayerMovie" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -71,7 +72,7 @@ Movie "ResettingLayerMovie" = {
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
-    inputPath                           = "input/resetframes.txt";
+    inputPath                           = "input/resettinglayer.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
@@ -88,27 +89,6 @@ Movie "ResettingLayerMovie" = {
     writeFrameToTimestamp               = true;
     flipOnTimescaleError                = true;
     resetToStartOnLoop                  = false;
-};
-
-ANNLayer "ResettingLayer" = {
-    nxScale                             = 1;
-    nyScale                             = 1;
-    nf                                  = 3;
-    phase                               = 1;
-    mirrorBCflag                        = true;
-    InitVType                           = "ZeroV";
-    triggerLayerName                    = NULL;
-    writeStep                           = 1;
-    initialWriteTime                    = 0;
-    sparseLayer                         = false;
-    updateGpu                           = false;
-    dataType                            = NULL;
-    VThresh                             = -infinity;
-    AMin                                = -infinity;
-    AMax                                = infinity;
-    AShift                              = 0;
-    VWidth                              = 0;
-    clearGSynInterval                   = 0;
 };
 
 ConstantLayer "Input" = {
@@ -144,7 +124,7 @@ LeakyIntegrator "Output" = {
     triggerLayerName                    = "TriggerSource";
     triggerOffset                       = 0;
     triggerBehavior                     = "resetStateOnTrigger";
-    triggerResetLayerName               = "ResettingLayer";
+    triggerResetLayerName               = "ResettingLayerMovie";
     writeStep                           = 1;
     initialWriteTime                    = 0;
     sparseLayer                         = false;
@@ -159,7 +139,7 @@ LeakyIntegrator "Output" = {
     integrationTime                     = infinity;
 };
 
-Movie "CorrectValues" = {
+MoviePvp "CorrectValues" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -167,11 +147,12 @@ Movie "CorrectValues" = {
     mirrorBCflag                        = false;
     valueBC                             = 0;
     triggerLayerName                    = NULL;
-    writeStep                           = -1;
+    writeStep                           = 1;
+    initialWriteTime                    = 0;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
-    inputPath                           = "input/correctframes.txt";
+    inputPath                           = "input/correctvalues.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
@@ -194,7 +175,7 @@ ANNLayer "Comparison" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
-    phase                               = 1;
+    phase                               = 2;
     mirrorBCflag                        = true;
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
@@ -209,37 +190,6 @@ ANNLayer "Comparison" = {
     AShift                              = 0;
     VWidth                              = 0;
     clearGSynInterval                   = 0;
-};
-
-HyPerConn "ResettingLayerMovieToResettingLayer" = {
-    preLayerName                        = "ResettingLayerMovie";
-    postLayerName                       = "ResettingLayer";
-    channelCode                         = 0;
-    delay                               = [0.000000];
-    numAxonalArbors                     = 1;
-    plasticityFlag                      = false;
-    convertRateToSpikeCount             = false;
-    receiveGpu                          = false;
-    sharedWeights                       = true;
-    weightInitType                      = "UniformWeight";
-    initWeightsFile                     = NULL;
-    weightInit                          = 255;
-    connectOnlySameFeatures             = true;
-    updateGSynFromPostPerspective       = true;
-    pvpatchAccumulateType               = "convolve";
-    writeStep                           = -1;
-    writeCompressedCheckpoints          = false;
-    selfFlag                            = false;
-    nxp                                 = 1;
-    nyp                                 = 1;
-    nfp                                 = 3;
-    shrinkPatches                       = false;
-    normalizeMethod                     = "none";
-    gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
 };
 
 IdentConn "InputToOutput" = {
@@ -275,7 +225,7 @@ IdentConn "OutputToComparison" = {
 IdentConn "CorrectValuesToComparison" = {
     preLayerName                        = "CorrectValues";
     postLayerName                       = "Comparison";
-    channelCode                         = 0;
+    channelCode                         = 1;
     delay                               = [0.000000];
     receiveGpu                          = false;
     initWeightsFile                     = NULL;
@@ -285,4 +235,12 @@ IdentConn "CorrectValuesToComparison" = {
     numXLocal                           = 0;
     numYLocal                           = 0;
     numFLocal                           = 0;
+};
+
+RequireAllZeroActivityProbe "ComparisonProbe" = {
+    targetLayer                         = "Comparison";
+    message                             = NULL;
+    probeOutputFile                     = NULL;
+    triggerFlag                         = false;
+    nnzThreshold                        = 0;
 };

@@ -300,6 +300,12 @@ MoviePvp::~MoviePvp()
        PV_fclose(timestampFile);
    }
    free(movieOutputPath);
+   free(paramsStartFrameIndex);
+   free(startFrameIndex);
+   free(paramsSkipFrameIndex);
+   free(skipFrameIndex);
+   free(frameNumbers);
+   free(batchMethod);
 }
 
 int MoviePvp::allocateDataStructures() {
