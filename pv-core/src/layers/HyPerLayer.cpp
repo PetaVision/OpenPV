@@ -1677,6 +1677,7 @@ int HyPerLayer::updateStateWrapper(double timef, double dt){
    if(needUpdate(timef, parent->getDeltaTime())){
       if (needReset(timef, dt)) {
          status = resetStateOnTrigger();
+         updateNextTriggerTime();
       }
       status = callUpdateState(timef, dt);
       lastUpdateTime = parent->simulationTime();
@@ -2007,7 +2008,7 @@ int HyPerLayer::publish(InterColComm* comm, double time)
 
    bool mirroring = useMirrorBCs();
    mirroring = mirroring ?
-         (getLastUpdateTime() >= getParent()->simulationTime() || needReset(time, parent->getDeltaTime())) :
+         (getLastUpdateTime() >= getParent()->simulationTime()) :
          false;
    if ( mirroring) {
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
