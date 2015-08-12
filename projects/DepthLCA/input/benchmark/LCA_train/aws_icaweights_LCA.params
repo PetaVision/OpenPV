@@ -248,7 +248,7 @@ HyPerLCALayer "V1" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2_V.pvp";
     // 
-    timeConstantTau = 200.0;
+    timeConstantTau = 500.0;
     slopeErrorStd = 0.01;
     // 
     dVThresh = 0;
