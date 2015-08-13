@@ -14,6 +14,7 @@
 #include "../connections/BaseConnection.hpp"
 #include "../io/PVParams.hpp"
 #include "../include/pv_types.h"
+#include "PV_Init.hpp"
 #include "../utils/Timer.hpp"
 #include "../io/ColProbe.hpp"
 #include <time.h>
@@ -44,12 +45,13 @@ class ColProbe;
 class BaseProbe;
 class PVParams;
 class NormalizeBase;
+class PV_Init;
 
 class HyPerCol {
 
 public:
 
-   HyPerCol(const char * name, int argc, char * argv[], PV::PVParams * params=NULL);
+   HyPerCol(const char * name, int argc, char * argv[], PV_Init* initObj);
    // HyPerCol(const char* name, int argc, char* argv[], const char * path); // Not defined in .cpp file
    virtual ~HyPerCol();
 
@@ -64,6 +66,7 @@ public:
    int exitRunLoop(bool exitOnFinish);
 
    int loadState();
+   int globalRank();
    int columnId();
 
 //   int deliver(PVConnection* conn, PVRect preRegion, int count, float* buf);
@@ -93,7 +96,8 @@ public:
    int getNxGlobal()                      {return nxGlobal;}
    int getNyGlobal()                      {return nyGlobal;}
    int getNBatch()                        {return nbatch;}
-   int getThreadBatch()                   {return threadBatch;}
+   int getNBatchGlobal()                  {return nbatchGlobal;}
+   //int getThreadBatch()                   {return threadBatch;}
 
 #ifdef PV_USE_OPENCL
    CLDevice * getDevice()               {return clDevice;}
@@ -141,7 +145,6 @@ public:
 
    const char * inputFile()               {return image_file;}
 
-   int numberOfColumns();
 
    int numberOfLayers()                   {return numLayers;}
    int numberOfConnections()              {return numConnections;}
@@ -151,10 +154,14 @@ public:
    /** returns the number of border regions, either an actual image border or a neighbor **/
    int numberOfBorderRegions()            {return MAX_NEIGHBORS;}
 
-   int commColumn(int colId);
-   int commRow(int colId);
-   int numCommColumns()                   {return icComm->numCommColumns();}
-   int numCommRows()                      {return icComm->numCommRows();}
+   int numberOfColumns();
+   int numberOfGlobalColumns();
+   int commColumn();
+   int commRow();
+   int commBatch();
+   int numCommColumns();
+   int numCommRows();
+   int numCommBatches();
 
    // a random seed based on column id
    unsigned int getSeed() { return random_seed; }
@@ -210,7 +217,7 @@ private:
    int getAutoGPUDevice();
 
    int initialize_base();
-   int initialize(const char * name, int argc, char ** argv, PVParams * inparams);
+   int initialize(const char * name, int argc, char ** argv, PV_Init* initObj);
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
@@ -311,8 +318,6 @@ private:
     * @brief ny: Specifies the batch size of the column
     */
    virtual void ioParam_nBatch(enum ParamsIOFlag ioFlag);
-
-   virtual void ioParam_threadBatch(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief filenamesContainLayerNames: Specifies if layer names gets printed out to output connection pvp files
@@ -431,9 +436,6 @@ private:
 
    int outputParams(char const * path);
 
-   template <typename T>
-   void valueIntoString(T value, std::stringstream * vstr);
-
    virtual double* adaptTimeScale();
 
    long int currentStep;
@@ -527,7 +529,8 @@ private:
    int nxGlobal;
    int nyGlobal;
    int nbatch;
-   int threadBatch;
+   int nbatchGlobal;
+   //int threadBatch;
 
    bool           ownsParams; // True if params was created from params file by initialize, false if params was passed in the constructor
    bool           ownsInterColComm; // True if icComm was created by initialize, false if passed in the constructor

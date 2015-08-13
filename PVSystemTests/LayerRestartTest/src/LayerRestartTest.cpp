@@ -42,15 +42,18 @@ int main(int argc, char * argv[]) {
       fprintf(stderr, "%s runs a number of params files in sequence.  Do not include a '-p' option when running this program.\n", argv[0]);
       exit(EXIT_FAILURE);
    }
-#ifdef PV_USE_MPI
-   int mpi_initialized_on_entry;
-   MPI_Initialized(&mpi_initialized_on_entry);
-   if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
-   int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#else // PV_USE_MPI
-   int rank = 0;
-#endif // PV_USE_MPI
+   PV_Init * initObj = new PV_Init(&argc, &argv);
+   int rank = initObj->getWorldRank();
+
+//#ifdef PV_USE_MPI
+//   int mpi_initialized_on_entry;
+//   MPI_Initialized(&mpi_initialized_on_entry);
+//   if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
+//   int rank;
+//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//#else // PV_USE_MPI
+//   int rank = 0;
+//#endif // PV_USE_MPI
 
    int num_cl_args;
    char ** cl_args;
@@ -66,21 +69,21 @@ int main(int argc, char * argv[]) {
    if (rank==0) {
       printf("*** %s: running params file %s\n", cl_args[0], cl_args[2]);
    }
-   status = buildandrun(num_cl_args, cl_args);
+   status = rebuildandrun(num_cl_args, cl_args, initObj);
    if( status == PV_SUCCESS ) {
       free(cl_args[2]);
       cl_args[2] = strdup("input/LayerRestartTest-Check.params");
       if (rank==0) {
          printf("*** %s: running params file %s\n", cl_args[0], cl_args[2]);
       }
-      status = buildandrun(num_cl_args, cl_args, NULL, &checkComparisonNonzero);
+      status = rebuildandrun(num_cl_args, cl_args, initObj, NULL, &checkComparisonNonzero);
       if( status == PV_SUCCESS ) {
          free(cl_args[2]);
          cl_args[2] = strdup("input/LayerRestartTest-Read.params");
          if (rank==0) {
             printf("*** %s: running params file %s\n", cl_args[0], cl_args[2]);
          }
-         status = buildandrun(num_cl_args, cl_args, NULL, &checkComparisonZero);
+         status = rebuildandrun(num_cl_args, cl_args, initObj, NULL, &checkComparisonZero);
       }
    }
    free(cl_args[1]); cl_args[1] = NULL;
@@ -109,8 +112,9 @@ int main(int argc, char * argv[]) {
       MPI_Send(&status, 1, MPI_INT, 0, 59, MPI_COMM_WORLD);
    }
 
-   if( !mpi_initialized_on_entry ) MPI_Finalize();
+   //if( !mpi_initialized_on_entry ) MPI_Finalize();
 #endif // PV_USE_MPI
+   delete initObj;
    return status;
 }
 

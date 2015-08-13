@@ -43,17 +43,22 @@ public:
    static MPI_Datatype * newDatatypes(const PVLayerLoc * loc);
    static int freeDatatypes(MPI_Datatype * mpi_datatypes);
 
-   Communicator(int * argc, char *** argv);
+   Communicator(int argc, char ** argv, int nbatch);
    virtual ~Communicator();
 
-   int commInit(int * argc, char *** argv);
-   int commFinalize();
+   //int commInit(int * argc, char *** argv);
+   //int commFinalize();
 
    char * name()                { return commName; }
 
-   int commRank()               { return icRank; }
-   int commSize()               { return icSize; }
-   MPI_Comm communicator()      { return icComm; }
+   //Previous names of MPI getter functions now default to local ranks and sizes
+   int commRank()                     { return localRank; }
+   int globalCommRank()               { return globalRank; }
+   int commSize()                     { return localSize; }
+   int globalCommSize()               { return globalSize; }
+
+   MPI_Comm communicator()       { return localIcComm; }
+   MPI_Comm globalCommunicator()      { return globalIcComm; }
 
    int numberOfNeighbors(); // includes interior (self) as a neighbor
    int numberOfBorders()        {return numBorders;}
@@ -62,23 +67,26 @@ public:
    int neighborIndex(int commId, int index);
    int reverseDirection(int commId, int direction);
 
-   int commRow()          {return commRow(icRank);}
-   int commColumn()       {return commColumn(icRank);}
+   int commRow()          {return commRow(globalRank);}
+   int commColumn()       {return commColumn(globalRank);}
+   int commBatch()        {return commBatch(globalRank);}
    int numCommRows()      {return numRows;}
    int numCommColumns()   {return numCols;}
+   int numCommBatches()   {return batchWidth;}
 
    int exchange(pvdata_t * data,
                 const MPI_Datatype neighborDatatypes [],
                 const PVLayerLoc * loc);
 
    int getTag(int neighbor) { return tags[neighbor]; }
-   int getReverseTag(int neighbor) { return tags[reverseDirection(icRank, neighbor)]; }
+   int getReverseTag(int neighbor) { return tags[reverseDirection(localRank, neighbor)]; }
    double fprintTime(FILE * fp) {return exchange_timer->fprint_time(fp);}
 
 protected:
 
    int commRow(int commId);
    int commColumn(int commId);
+   int commBatch(int commId);
    int commIdFromRowColumn(int commRow, int commColumn);
 
    int numNeighbors;  // # of remote neighbors plus local
@@ -92,19 +100,24 @@ protected:
 
 private:
 
+   int gcd(int a, int b);
+
 #ifdef PV_USE_MPI
    int mpi_initialized_on_entry;
 #endif // PV_USE_MPI
-   int icRank;
-   int icSize;
-   int worldRank;
-   int worldSize;
+   int localRank;
+   int localSize;
+   int globalRank;
+   int globalSize;
+   int batchRank;
    int numRows;
    int numCols;
+   int batchWidth;
 
    char commName[COMMNAME_MAXLENGTH];
 
-   MPI_Comm    icComm;
+   MPI_Comm    localIcComm;
+   MPI_Comm    globalIcComm;
    MPI_Request requests[NUM_NEIGHBORHOOD-1];
 
    Timer * exchange_timer;

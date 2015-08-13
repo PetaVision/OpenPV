@@ -9,8 +9,10 @@
 #define PVPARAMS_HPP_
 
 #include "../include/pv_common.h"
-#include "../columns/HyPerCol.hpp"
-#include "../columns/InterColComm.hpp"
+//#include "../columns/HyPerCol.hpp"
+//#include "../columns/InterColComm.hpp"
+#include "fileio.hpp"
+#include "io.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -213,9 +215,9 @@ private:
 
 class PVParams {
 public:
-   PVParams(size_t initialSize, InterColComm * icComm); // TODO Should be const InterColComm * comm
-   PVParams(const char * filename, size_t initialSize, InterColComm * icComm);
-   PVParams(const char * buffer, long int bufferLength, size_t initialSize, InterColComm * icComm);
+   PVParams(size_t initialSize);
+   PVParams(const char * filename, size_t initialSize);
+   PVParams(const char * buffer, long int bufferLength, size_t initialSize);
    virtual ~PVParams();
 
    int parseBufferInRootProcess(char * buffer, long int bufferLength);
@@ -262,7 +264,7 @@ public:
    void action_sweep_values_filename(const char * stringval);
 
    int numberOfGroups() {return numGroups;}
-   InterColComm * getInterColComm() {return icComm;}
+   //InterColComm * getInterColComm() {return icComm;}
    int numberOfSweeps() {return numParamSweeps;}
    int getSweepSize() {return sweepSize;}
 
@@ -277,8 +279,10 @@ private:
    ParameterStringStack * stringStack;
    bool debugParsing;
    bool disable;
-   InterColComm * icComm;
-   int getRank() {return icComm->commRank();}
+   //InterColComm * icComm;
+   //int getRank() {return icComm->commRank();}
+   int worldRank;
+   int worldSize;
 
    ParameterArray * currentParamArray;
 
@@ -293,7 +297,7 @@ private:
    char * currSweepGroupName;
    char * currSweepParamName;
 
-   int initialize(size_t initialSize, InterColComm * icComm);
+   int initialize(size_t initialSize);
    int parseFile(const char * filename);
    int parseBuffer(const char * buffer, long int bufferLength);
    int setSweepSize();
@@ -304,6 +308,7 @@ private:
    int clearHasBeenReadFlags();
    static char * stripQuotationMarks(const char *s);
    static char * stripOverwriteTag(const char *s);
+   
 };
 
 }

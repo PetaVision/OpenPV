@@ -653,6 +653,12 @@ static inline int rankFromRowAndColumn(int row, int column, int numRows, int num
    return (row >=0 && row < numRows && column >=0 && column < numColumns) ? row*numColumns + column : -1;
 }
 
+static inline int globalToLocalRank(int rank, int batchWidth, int numRows, int numColumns) {
+   //This line will not do anything if the parameter rank is a localRank
+   int localRank = rank % (numRows * numColumns);
+   return localRank;
+}
+
 static inline int rowFromRank(int rank, int numRows, int numColumns) {
    int row = rank / numColumns;
    if( row < 0 || row >= numRows ) row = -1;
@@ -662,6 +668,12 @@ static inline int rowFromRank(int rank, int numRows, int numColumns) {
 static inline int columnFromRank(int rank, int numRows, int numColumns) {
    int col = rank % numColumns;
    if( col < 0 || col >= numColumns) col = -1;
+   return col;
+}
+
+static inline int batchFromRank(int rank, int batchWidth, int numRows, int numColumns) {
+   int col = rank/(numRows * numColumns);
+   if( col < 0 || col >= batchWidth) col = -1;
    return col;
 }
 

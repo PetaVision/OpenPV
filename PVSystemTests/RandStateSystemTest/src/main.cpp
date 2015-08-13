@@ -17,10 +17,12 @@ int main(int argc, char * argv[]) {
    const char * paramfile2 = "input/RandStateSystemTest2.params";
 
    int rank=0;
-#ifdef PV_USE_MPI
-   MPI_Init(&argc, &argv);
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif // PV_USE_MPI
+   PV_Init* initObj = new PV_Init(&argc, &argv);
+   rank = initObj->getWorldRank();
+//#ifdef PV_USE_MPI
+//   MPI_Init(&argc, &argv);
+//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//#endif // PV_USE_MPI
 
    if (pv_getopt(argc, argv, "-p", NULL)==0) {
       if (rank==0) {
@@ -44,7 +46,7 @@ int main(int argc, char * argv[]) {
    cl_argv[paramfile_argnum] = strdup(paramfile1);
    cl_argv[paramfile_argnum+1] = NULL;
 
-   int status1 = buildandrun(cl_argc, cl_argv, NULL, NULL, NULL);
+   int status1 = rebuildandrun(cl_argc, cl_argv, initObj, NULL, NULL, NULL);
    if (status1 != PV_SUCCESS) {
       fprintf(stderr, "%s failed on param file %s with return code %d.\n", cl_argv[0], cl_argv[2], status1);
       return EXIT_FAILURE;
@@ -52,14 +54,13 @@ int main(int argc, char * argv[]) {
 
    free(cl_argv[paramfile_argnum]);
    cl_argv[paramfile_argnum] = strdup(paramfile2);
-   int status2 = buildandrun(cl_argc, cl_argv, NULL, &customexit, NULL);
+   int status2 = rebuildandrun(cl_argc, cl_argv, initObj, NULL, &customexit, NULL);
    if (status2 != PV_SUCCESS) {
       fprintf(stderr, "%s failed on param file %s.\n", cl_argv[0], cl_argv[paramfile_argnum]);
    }
    int status = status1==PV_SUCCESS && status2==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 
 #ifdef PV_USE_MPI
-   MPI_Finalize();
    if (status == EXIT_SUCCESS) {
       printf("Test complete.  %s passed on process rank %d.\n", cl_argv[0], rank);
    }
@@ -81,6 +82,8 @@ int main(int argc, char * argv[]) {
    free(cl_argv[paramfile_argnum-1]);
    free(cl_argv[paramfile_argnum]);
    free(cl_argv);
+
+   delete initObj;
 
    return status;
 }

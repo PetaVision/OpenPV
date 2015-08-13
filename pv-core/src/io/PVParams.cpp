@@ -7,7 +7,6 @@
 
 #include "PVParams.hpp"
 #include "../include/pv_common.h"
-#include "io.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -826,10 +825,10 @@ const char * ParameterSweep::getStringValue(int n) {
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(const char * filename, size_t initialSize, InterColComm * icComm)
+PVParams::PVParams(const char * filename, size_t initialSize)
 {
 
-   initialize(initialSize, icComm);
+   initialize(initialSize);
    parseFile(filename);
 }
 
@@ -837,9 +836,9 @@ PVParams::PVParams(const char * filename, size_t initialSize, InterColComm * icC
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(size_t initialSize, InterColComm * icComm)
+PVParams::PVParams(size_t initialSize)
 {
-   initialize(initialSize, icComm);
+   initialize(initialSize);
 }
 
 /*
@@ -848,9 +847,9 @@ PVParams::PVParams(size_t initialSize, InterColComm * icComm)
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(const char * buffer, long int bufferLength, size_t initialSize, InterColComm * icComm)
+PVParams::PVParams(const char * buffer, long int bufferLength, size_t initialSize)
 {
-   initialize(initialSize, icComm);
+   initialize(initialSize);
    parseBuffer(buffer, bufferLength);
 }
 
@@ -874,11 +873,19 @@ PVParams::~PVParams()
 /*
  * @initialSize
  */
-int PVParams::initialize(size_t initialSize, InterColComm * icComm) {
+int PVParams::initialize(size_t initialSize) {
    this->numGroups = 0;
    groupArraySize = initialSize;
-   this->icComm = icComm;
-
+   //this->icComm = icComm;
+   //Get world rank and size
+#ifdef PV_USE_MPI
+   MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+   MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+#else // PV_USE_MPI
+   worldRank = 0;
+   worldSize = 1;
+#endif // PV_USE_MPI
+   
    groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
    stack = new ParameterStack(MAX_PARAMS);
    arrayStack = new ParameterArrayStack(PARAMETERARRAYSTACK_INITIALCOUNT);
@@ -914,7 +921,7 @@ int PVParams::parseFile(const char * filename) {
    int rootproc = 0;
    char * paramBuffer = NULL;
    size_t bufferlen;
-   if( icComm->commRank() == rootproc ) {
+   if( worldRank == rootproc ) {
       if( filename == NULL ) {
          fprintf(stderr, "PVParams::parseFile: filename was null.\n");
          exit(ENOENT);
@@ -950,10 +957,10 @@ int PVParams::parseFile(const char * filename) {
       }
       PV_fclose(paramstream);
 #ifdef PV_USE_MPI
-      int sz = icComm->commSize();
+      int sz = worldSize;
       for( int i=0; i<sz; i++ ) {
          if( i==rootproc ) continue;
-         MPI_Send(paramBuffer, (int) bufferlen, MPI_CHAR, i, 31, icComm->communicator());
+         MPI_Send(paramBuffer, (int) bufferlen, MPI_CHAR, i, 31, MPI_COMM_WORLD);
       }
 #endif // PV_USE_MPI
    }
@@ -961,16 +968,16 @@ int PVParams::parseFile(const char * filename) {
 #ifdef PV_USE_MPI
       MPI_Status mpi_status;
       int count;
-      MPI_Probe(rootproc, 31, icComm->communicator(), &mpi_status);
+      MPI_Probe(rootproc, 31, MPI_COMM_WORLD, &mpi_status);
       // int status =
       MPI_Get_count(&mpi_status, MPI_CHAR, &count); //mpi_status._count;
       bufferlen = (size_t) count;
       paramBuffer = (char *) malloc(bufferlen);
       if( paramBuffer == NULL ) {
-         fprintf(stderr, "PVParams::parseFile: Rank %d process unable to allocate memory for params buffer\n", icComm->commRank());
+         fprintf(stderr, "PVParams::parseFile: Rank %d process unable to allocate memory for params buffer\n", worldRank);
          abort();
       }
-      MPI_Recv(paramBuffer, (int) bufferlen, MPI_CHAR, rootproc, 31, icComm->communicator(), MPI_STATUS_IGNORE);
+      MPI_Recv(paramBuffer, (int) bufferlen, MPI_CHAR, rootproc, 31, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 #endif // PV_USE_MPI
    }
 
@@ -986,7 +993,7 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
    //This is where it calls the scanner and parser
    parseStatus = pv_parseParameters(this, buffer, bufferLength);
    if( parseStatus != 0 ) {
-      fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", getRank(), parseStatus);
+      fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", worldRank, parseStatus);
    }
 
    setSweepSize(); // Need to set sweepSize here, because if the outputPath sweep needs to be created we need to know the size.
@@ -1076,21 +1083,21 @@ int PVParams::parseBufferInRootProcess(char * buffer, long int bufferLength) {
    // Under MPI, if this process is called, it should be called by all processes.
 #ifdef PV_USE_MPI
    int status = PV_SUCCESS;
-   if (icComm->commRank()==0) {
-      MPI_Bcast(&bufferLength, 1, MPI_LONG, 0, icComm->communicator());
-      MPI_Bcast(buffer, bufferLength, MPI_CHAR, 0, icComm->communicator());
+   if (worldRank==0) {
+      MPI_Bcast(&bufferLength, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+      MPI_Bcast(buffer, bufferLength, MPI_CHAR, 0, MPI_COMM_WORLD);
       status = parseBuffer(buffer, bufferLength);
    }
    else {
       long int bufLen;
       char * buf = NULL;
-      MPI_Bcast(&bufLen, 1, MPI_LONG, 0, icComm->communicator());
+      MPI_Bcast(&bufLen, 1, MPI_LONG, 0, MPI_COMM_WORLD);
       buf = (char *) malloc((size_t) bufLen);
       if (buf==NULL) {
-         fprintf(stderr, "Process %d: error allocating %ld bytes for PVParams buffer.\n", icComm->commRank(), bufLen);
+         fprintf(stderr, "Process %d: error allocating %ld bytes for PVParams buffer.\n", worldRank, bufLen);
          exit(EXIT_FAILURE);
       }
-      MPI_Bcast(buf, bufLen, MPI_CHAR, 0, icComm->communicator());
+      MPI_Bcast(buf, bufLen, MPI_CHAR, 0, MPI_COMM_WORLD);
       status = parseBuffer(buf, bufLen);
       free(buf);
    }
@@ -1158,7 +1165,7 @@ int PVParams::present(const char * groupName, const char * paramName)
 {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      if( getRank() == 0 ) {
+      if( worldRank == 0 ) {
          fprintf(stderr, "PVParams::present: ERROR, couldn't find a group for %s\n",
                  groupName);
       }
@@ -1176,7 +1183,7 @@ double PVParams::value(const char * groupName, const char * paramName)
 {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      if( getRank() == 0 ) {
+      if( worldRank == 0 ) {
          fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
                  groupName);
       }
@@ -1197,7 +1204,7 @@ double PVParams::value(const char * groupName, const char * paramName, double in
       return value(groupName, paramName);
    }
    else {
-      if( warnIfAbsent && getRank() == 0 ) {
+      if( warnIfAbsent && worldRank == 0 ) {
           printf("Using default value %f for parameter \"%s\" in group \"%s\"\n", initialValue, paramName, groupName);
       }
       return initialValue;
@@ -1207,7 +1214,7 @@ double PVParams::value(const char * groupName, const char * paramName, double in
 bool PVParams::arrayPresent(const char * groupName, const char * paramName) {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      if( getRank() == 0 ) {
+      if( worldRank == 0 ) {
          fprintf(stderr, "PVParams::present: ERROR, couldn't find a group for %s\n",
                  groupName);
       }
@@ -1227,7 +1234,7 @@ bool PVParams::arrayPresent(const char * groupName, const char * paramName) {
 const float * PVParams::arrayValues(const char * groupName, const char * paramName, int * size, bool warnIfAbsent) {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      if( getRank() == 0 ) {
+      if( worldRank == 0 ) {
          fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
                groupName);
       }
@@ -1236,7 +1243,7 @@ const float * PVParams::arrayValues(const char * groupName, const char * paramNa
    const float * retval = g->arrayValues(paramName, size);
    if (retval == NULL) {
       assert(*size==0);
-      if (getRank()==0) {
+      if (worldRank==0) {
          fprintf(stderr, "Using empty array for parameter \"%s\" in group \"%s\"\n", paramName, groupName);
       }
    }
@@ -1251,7 +1258,7 @@ const float * PVParams::arrayValues(const char * groupName, const char * paramNa
 const double * PVParams::arrayValuesDbl(const char * groupName, const char * paramName, int * size, bool warnIfAbsent) {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      if( getRank() == 0 ) {
+      if( worldRank == 0 ) {
          fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
                groupName);
       }
@@ -1260,7 +1267,7 @@ const double * PVParams::arrayValuesDbl(const char * groupName, const char * par
    const double * retval = g->arrayValuesDbl(paramName, size);
    if (retval == NULL) {
       assert(*size==0);
-      if (getRank()==0) {
+      if (worldRank==0) {
          fprintf(stderr, "Using empty array for parameter \"%s\" in group \"%s\"\n", paramName, groupName);
       }
    }
@@ -1274,7 +1281,7 @@ const double * PVParams::arrayValuesDbl(const char * groupName, const char * par
 int PVParams::stringPresent(const char * groupName, const char * paramStringName) {
    ParameterGroup * g = group(groupName);
    if (g == NULL) {
-      if( getRank() == 0 ) {
+      if( worldRank == 0 ) {
          fprintf(stderr, "PVParams::value: ERROR, couldn't find a group for %s\n",
                  groupName);
       }
@@ -1294,7 +1301,7 @@ const char * PVParams::stringValue(const char * groupName, const char * paramStr
       return g->stringValue(paramStringName);
    }
    else {
-      if( warnIfAbsent && getRank() == 0 ) {
+      if( warnIfAbsent && worldRank == 0 ) {
          printf("No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
       }
       return NULL;
@@ -1344,7 +1351,7 @@ void PVParams::addGroup(char * keyword, char * name)
    // Verify that the new group's name is not an existing group's name
    for( int k=0; k<numGroups; k++ ) {
       if( !strcmp(name, groups[k]->name())) {
-         fprintf(stderr, "Rank %d process: group name \"%s\" duplicated\n", getRank(), name);
+         fprintf(stderr, "Rank %d process: group name \"%s\" duplicated\n", worldRank, name);
          exit(EXIT_FAILURE);
       }
    }
@@ -1360,7 +1367,7 @@ void PVParams::addGroup(char * keyword, char * name)
       groups = newGroups;
    }
 
-   groups[numGroups] = new ParameterGroup(name, stack, arrayStack, stringStack, getRank());
+   groups[numGroups] = new ParameterGroup(name, stack, arrayStack, stringStack, worldRank);
    groups[numGroups]->setGroupKeyword(keyword);
 
    // the parameter group takes over control of the PVParams's stack and stringStack; make new ones.
@@ -1427,7 +1434,7 @@ int PVParams::clearHasBeenReadFlags() {
 
 void PVParams::handleUnnecessaryParameter(const char * group_name, const char * param_name) {
    if (present(group_name, param_name)) {
-      if (getRank()==0) {
+      if (worldRank==0) {
          const char * class_name = groupKeywordFromName(group_name);
          fprintf(stderr, "Group \"%s\" warning: class \"%s\" does not use parameter %s.\n",
                group_name, class_name, param_name);
@@ -1440,7 +1447,7 @@ template <typename T>
 void PVParams::handleUnnecessaryParameter(const char * group_name, const char * param_name, T correct_value) {
    int status = PV_SUCCESS;
    if (present(group_name, param_name)) {
-      if (getRank()==0) {
+      if (worldRank==0) {
          const char * class_name = groupKeywordFromName(group_name);
          fprintf(stderr, "Group \"%s\" warning: class \"%s\" does not read parameter %s but determines it from other param(s).\n",
                group_name, class_name, param_name);
@@ -1448,14 +1455,14 @@ void PVParams::handleUnnecessaryParameter(const char * group_name, const char * 
       T params_value = (T) value(group_name, param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
       if (params_value != correct_value) {
          status = PV_FAILURE;
-         if (getRank()==0) {
+         if (worldRank==0) {
             std::cerr << "   Value " << params_value << " is inconsistent with correct value " << correct_value;
             std::cerr << std::endl; // This line is separate from above line to avoid an Eclipse bug that flags a nonexistent invalid overload
          }
       }
    }
 #ifdef PV_USE_MPI
-   MPI_Barrier(icComm->communicator());
+   MPI_Barrier(MPI_COMM_WORLD);
 #endif
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 }
@@ -1469,7 +1476,7 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
    int status = PV_SUCCESS;
    const char * class_name = groupKeywordFromName(group_name);
    if (stringPresent(group_name, param_name)) {
-      if (getRank()==0) {
+      if (worldRank==0) {
          fprintf(stderr, "Group \"%s\" warning: class \"%s\" does not read string parameter %s but determines it from other param(s).\n",
                group_name, class_name, param_name);
       }
@@ -1480,12 +1487,12 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
          char * params_value_i = strdup(params_value); // need mutable strings for case-insensitive comparison
          if (correct_value_i == NULL) {
             fprintf(stderr, "%s \"%s\" error: Rank %d process unable to copy correct string value: %s.\n",
-                  groupKeywordFromName(group_name), group_name, getRank(), strerror(errno));
+                  groupKeywordFromName(group_name), group_name, worldRank, strerror(errno));
             exit(EXIT_FAILURE);
          }
          if (params_value_i == NULL) {
             fprintf(stderr, "%s \"%s\" error: Rank %d process unable to copy parameter string value: %s.\n",
-                  groupKeywordFromName(group_name), group_name, getRank(), strerror(errno));
+                  groupKeywordFromName(group_name), group_name, worldRank, strerror(errno));
             exit(EXIT_FAILURE);
          }
          if (case_insensitive_flag) {
@@ -1498,7 +1505,7 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
          }
          if (strcmp(params_value_i, correct_value_i) != 0) {
             status = PV_FAILURE;
-            if (getRank()==0) {
+            if (worldRank==0) {
                fprintf(stderr, "   Value \"%s\" is inconsistent with correct value \"%s\".  Exiting.\n",
                      params_value, correct_value);
             }
@@ -1508,7 +1515,7 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
       }
    }
 #ifdef PV_USE_MPI
-   MPI_Barrier(icComm->communicator());
+   MPI_Barrier(MPI_COMM_WORLD);
 #endif
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 }
@@ -1529,7 +1536,7 @@ void PVParams::action_pvparams_directive(char * id, double val)
 {
    if( !strcmp(id,"debugParsing") ) {
       debugParsing = (val != 0);
-      if( getRank() == 0 ) {
+      if( worldRank == 0 ) {
          printf("debugParsing turned ");
          if(debugParsing) {
             printf("on.\n");
@@ -1541,7 +1548,7 @@ void PVParams::action_pvparams_directive(char * id, double val)
    }
    else if ( !strcmp(id, "disable") ) {
       disable = (val != 0);
-      if (getRank() == 0 ) {
+      if (worldRank == 0 ) {
          printf("Parsing params file ");
          if (disable) {
             printf("disabled.\n");
@@ -1552,7 +1559,7 @@ void PVParams::action_pvparams_directive(char * id, double val)
       }
    }
    else {
-      if (getRank() == 0) {
+      if (worldRank == 0) {
          fprintf(stderr,"Unrecognized directive %s = %f, skipping.\n", id, val);
       }
    }
@@ -1565,7 +1572,7 @@ void PVParams::action_pvparams_directive(char * id, double val)
 void PVParams::action_parameter_group()
 {
    if (disable) return;
-   if(debugParsing && getRank()==0 ) {
+   if(debugParsing && worldRank==0 ) {
       printf("action_parameter_group: %s \"%s\" parsed successfully.\n", currGroupKeyword, currGroupName);
       fflush(stdout);
    }
@@ -1579,7 +1586,7 @@ void PVParams::action_parameter_group_name(char * keyword, char * name)
    int len = strlen(++name);
    name[len-1] = '\0';
 
-   if(debugParsing && getRank()==0 ) {
+   if(debugParsing && worldRank==0 ) {
       printf("action_parameter_group_name: %s \"%s\" parsed successfully.\n", keyword, name);
       fflush(stdout);
    }
@@ -1594,7 +1601,7 @@ void PVParams::action_parameter_group_name(char * keyword, char * name)
 void PVParams::action_parameter_def(char * id, double val)
 {
    if (disable) return;
-   if(debugParsing && getRank() == 0) {
+   if(debugParsing && worldRank == 0) {
       fflush(stdout);
       printf("action_parameter_def: %s = %lf\n", id, val);
       fflush(stdout);
@@ -1606,7 +1613,7 @@ void PVParams::action_parameter_def(char * id, double val)
 
 void PVParams::action_parameter_def_overwrite(char * id, double val){
    if (disable) return;
-   if (debugParsing && getRank() == 0) {
+   if (debugParsing && worldRank == 0) {
       fflush(stdout);
       printf("action_parameter_def_overwrite: %s = %lf\n", id, val);
       fflush(stdout);
@@ -1643,7 +1650,7 @@ void PVParams::action_parameter_def_overwrite(char * id, double val){
 void PVParams::action_parameter_array(char * id)
 {
    if (disable) return;
-   if (debugParsing && getRank() == 0) {
+   if (debugParsing && worldRank == 0) {
       fflush(stdout);
       printf("action_parameter_array: %s\n", id);
       fflush(stdout);
@@ -1657,7 +1664,7 @@ void PVParams::action_parameter_array(char * id)
 
 void PVParams::action_parameter_array_overwrite(char * id){
    if (disable) return;
-   if (debugParsing && getRank() == 0) {
+   if (debugParsing && worldRank == 0) {
       fflush(stdout);
       printf("action_parameter_array_overwrite: %s\n", id);
       fflush(stdout);
@@ -1700,7 +1707,7 @@ void PVParams::action_parameter_array_overwrite(char * id){
 void PVParams::action_parameter_array_value(double val)
 {
    if (disable) return;
-   if(debugParsing && getRank() == 0) {
+   if(debugParsing && worldRank == 0) {
       fflush(stdout);
       printf("action_parameter_array_value %lf\n", val);
    }
@@ -1711,7 +1718,7 @@ void PVParams::action_parameter_array_value(double val)
 
 void PVParams::action_parameter_string_def(const char * id, const char * stringval) {
    if (disable) return;
-   if( debugParsing && getRank() == 0 ) {
+   if( debugParsing && worldRank == 0 ) {
       fflush(stdout);
       printf("action_parameter_string_def: %s = %s\n", id, stringval);
       fflush(stdout);
@@ -1726,7 +1733,7 @@ void PVParams::action_parameter_string_def(const char * id, const char * stringv
 
 void PVParams::action_parameter_string_def_overwrite(const char * id, const char * stringval){
    if (disable) return;
-   if( debugParsing && getRank() == 0 ) {
+   if( debugParsing && worldRank == 0 ) {
       fflush(stdout);
       printf("action_parameter_string_def_overwrite: %s = %s\n", id, stringval);
       fflush(stdout);
@@ -1757,7 +1764,7 @@ void PVParams::action_parameter_string_def_overwrite(const char * id, const char
 
 void PVParams::action_parameter_filename_def(const char * id, const char * stringval) {
    if (disable) return;
-   if( debugParsing && getRank() == 0 ) {
+   if( debugParsing && worldRank == 0 ) {
       fflush(stdout);
       printf("action_parameter_filename_def: %s = %s\n", id, stringval);
       fflush(stdout);
@@ -1781,7 +1788,7 @@ void PVParams::action_parameter_filename_def(const char * id, const char * strin
 
 void PVParams::action_parameter_filename_def_overwrite(const char * id, const char * stringval){
    if (disable) return;
-   if( debugParsing && getRank() == 0 ) {
+   if( debugParsing && worldRank == 0 ) {
       fflush(stdout);
       printf("action_parameter_filename_def_overwrite: %s = %s\n", id, stringval);
       fflush(stdout);
@@ -1818,7 +1825,7 @@ void PVParams::action_parameter_filename_def_overwrite(const char * id, const ch
 
 void PVParams::action_include_directive(const char * stringval) {
    if (disable) return;
-   if( debugParsing && getRank() == 0 ) {
+   if( debugParsing && worldRank == 0 ) {
       fflush(stdout);
       printf("action_include_directive: including %s\n", stringval);
       fflush(stdout);
@@ -1878,14 +1885,14 @@ void PVParams::action_parameter_sweep_open(const char * id, const char * groupna
       currSweepGroupName = stripQuotationMarks(groupname);
       assert(currSweepGroupName);
       currSweepParamName = strdup(paramname);
-      if (debugParsing && getRank() == 0) {
+      if (debugParsing && worldRank == 0) {
          fflush(stdout);
          printf("action_parameter_sweep_open: %s for group %s, parameter \"%s\" starting\n", id, groupname, paramname);
          fflush(stdout);
       }
    }
    else {
-      if (getRank() == 0) {
+      if (worldRank == 0) {
          fprintf(stderr, "action_parameter_sweep: unrecognized id %s, skipping.\n", id);
       }
    }
@@ -1895,7 +1902,7 @@ void PVParams::action_parameter_sweep_close()
 {
    if (disable) return;
    addActiveParamSweep(currSweepGroupName, currSweepParamName);
-   if(debugParsing && getRank()==0 ) {
+   if(debugParsing && worldRank==0 ) {
       printf("action_parameter_group: ParameterSweep for %s \"%s\" parsed successfully.\n", currSweepGroupName, currSweepParamName);
       fflush(stdout);
    }
@@ -1907,7 +1914,7 @@ void PVParams::action_parameter_sweep_close()
 void PVParams::action_sweep_values_number(double val)
 {
    if (disable) return;
-   if (debugParsing && getRank() == 0) {
+   if (debugParsing && worldRank == 0) {
       fflush(stdout);
       printf("action_sweep_values_number: %f\n", val);
       fflush(stdout);
@@ -1918,7 +1925,7 @@ void PVParams::action_sweep_values_number(double val)
 void PVParams::action_sweep_values_string(const char * stringval)
 {
    if (disable) return;
-   if (debugParsing && getRank() == 0) {
+   if (debugParsing && worldRank == 0) {
       fflush(stdout);
       printf("action_sweep_values_string: %s\n", stringval);
       fflush(stdout);
@@ -1932,7 +1939,7 @@ void PVParams::action_sweep_values_string(const char * stringval)
 void PVParams::action_sweep_values_filename(const char * stringval)
 {
    if (disable) return;
-   if (debugParsing && getRank() == 0) {
+   if (debugParsing && worldRank == 0) {
       fflush(stdout);
       printf("action_sweep_values_filename: %s\n", stringval);
       fflush(stdout);
@@ -1958,7 +1965,7 @@ int PVParams::checkDuplicates(const char * paramName, double val) {
             fprintf(stderr, "Warning: parameter name \"%s\" duplicates a previous parameter name and value (%s = %f)\n", paramName, parm->name(), val);
          }
          else {
-            fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous parameter name with inconsistent values (%f versus %f)\n", getRank(), paramName, oldval, val);
+            fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous parameter name with inconsistent values (%f versus %f)\n", worldRank, paramName, oldval, val);
             status = PV_FAILURE;
          }
          break;
@@ -1966,24 +1973,24 @@ int PVParams::checkDuplicates(const char * paramName, double val) {
    }
    for( int k=0; k<arrayStack->size(); k++ ) {
       if( !strcmp(paramName, arrayStack->peek(k)->name() ) ) {
-         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous array parameter name\n", getRank(), paramName);
+         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous array parameter name\n", worldRank, paramName);
          status = PV_FAILURE;
          break;
       }
    }
    for( int k=0; k<stringStack->size(); k++ ) {
       if( !strcmp(paramName, stringStack->peek(k)->getName() ) ) {
-         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous string parameter name\n", getRank(), paramName);
+         fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous string parameter name\n", worldRank, paramName);
          status = PV_FAILURE;
          break;
       }
    }
    if( status != PV_SUCCESS ) {
       if( numberOfGroups() == 0 ) {
-         fprintf(stderr, "Rank %d process: this is the first parameter group being parsed\n", getRank());
+         fprintf(stderr, "Rank %d process: this is the first parameter group being parsed\n", worldRank);
       }
       else {
-         fprintf(stderr, "Rank %d process: last parameter group successfully added was \"%s\"\n", getRank(), groups[numberOfGroups()-1]->name());
+         fprintf(stderr, "Rank %d process: last parameter group successfully added was \"%s\"\n", worldRank, groups[numberOfGroups()-1]->name());
       }
    }
    return status;

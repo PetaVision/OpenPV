@@ -16,20 +16,21 @@
 int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]);
 int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]);
 
-int generate(int argc, char * argv[], int rank);
-int testrun(int argc, char * argv[], int rank);
-int testcheckpoint(int argc, char * argv[], int rank);
-int testioparams(int argc, char * argv[], int rank);
+int generate(int argc, char * argv[], PV_Init* initObj, int rank);
+int testrun(int argc, char * argv[], PV_Init* initObj, int rank);
+int testcheckpoint(int argc, char * argv[], PV_Init* initObj, int rank);
+int testioparams(int argc, char * argv[], PV_Init* initObj, int rank);
 
 void * customgroup(const char * name, const char * groupname, HyPerCol * hc);
 // customgroups is for adding objects not supported by build().
 
 int main(int argc, char * argv[]) {
-   int rank = 0;
-#ifdef PV_USE_MPI
-   MPI_Init(&argc, &argv);
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif // PV_USE_MPI
+   PV_Init* initObj = new PV_Init(&argc, &argv);
+//#ifdef PV_USE_MPI
+//   MPI_Init(&argc, &argv);
+//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//#endif // PV_USE_MPI
+   int rank = initObj->getWorldRank();
 
    int pv_argc = 0;
    bool generateFlag = false; // Flag for whether to generate correct output for future tests; don't check the RequireAllZeroActivity probe
@@ -93,7 +94,7 @@ int main(int argc, char * argv[]) {
 
    int status = PV_SUCCESS;
    if (status==PV_SUCCESS && generateFlag) {
-      if (generate(pv_argc, pv_argv,rank)!=PV_SUCCESS) {
+      if (generate(pv_argc, pv_argv, initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
             fprintf(stderr, "%s: generate failed.\n", pv_argv[0]);
@@ -101,7 +102,7 @@ int main(int argc, char * argv[]) {
       }
    }
    if (status==PV_SUCCESS && testrunFlag) {
-      if (testrun(pv_argc, pv_argv,rank)!=PV_SUCCESS) {
+      if (testrun(pv_argc, pv_argv, initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
             fprintf(stderr, "%s: testrun failed.\n", pv_argv[0]);
@@ -109,7 +110,7 @@ int main(int argc, char * argv[]) {
       }
    }
    if (status==PV_SUCCESS && testcheckpointFlag) {
-      if (testcheckpoint(pv_argc, pv_argv,rank)!=PV_SUCCESS) {
+      if (testcheckpoint(pv_argc, pv_argv, initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
             fprintf(stderr, "%s: testcheckpoint failed.\n", pv_argv[0]);
@@ -117,7 +118,7 @@ int main(int argc, char * argv[]) {
       }
    }
    if (status==PV_SUCCESS && testioparamsFlag) {
-      if (testioparams(pv_argc, pv_argv,rank)!=PV_SUCCESS) {
+      if (testioparams(pv_argc, pv_argv, initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
             fprintf(stderr, "%s: testioparams failed.\n", pv_argv[0]);
@@ -126,14 +127,15 @@ int main(int argc, char * argv[]) {
    }
    free(pv_argv); pv_argv = NULL;
 
-#ifdef PV_USE_MPI
-   MPI_Finalize();
-#endif // PV_USE_MPI
+//#ifdef PV_USE_MPI
+//   MPI_Finalize();
+//#endif // PV_USE_MPI
+   delete initObj;
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int generate(int argc, char * argv[], int rank) {
+int generate(int argc, char * argv[], PV_Init* initObj, int rank) {
    // Remove -r and -c
    char ** pv_argv = (char **) calloc((size_t) (argc+1), sizeof(char *));
    assert(pv_argv);
@@ -192,7 +194,7 @@ int generate(int argc, char * argv[], int rank) {
       }
       PV_fclose(emptyinfile);
    }
-   int status = buildandrun(pv_argc, pv_argv, NULL, &copyCorrectOutput, NULL);
+   int status = rebuildandrun(pv_argc, pv_argv, initObj, NULL, &copyCorrectOutput, NULL);
    return status;
 }
 
@@ -231,7 +233,7 @@ int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
    return status;
 }
 
-int testrun(int argc, char * argv[], int rank) {
+int testrun(int argc, char * argv[], PV_Init * initObj, int rank) {
    // Ignore -r and -c switches
    char ** pv_argv = (char **) calloc((size_t) (argc+1), sizeof(char *));
    assert(pv_argv);
@@ -255,12 +257,12 @@ int testrun(int argc, char * argv[], int rank) {
       }
       printf("\n");
    }
-   int status = buildandrun(pv_argc, pv_argv, NULL, &assertAllZeroes, NULL);
+   int status = rebuildandrun(pv_argc, pv_argv, initObj, NULL, &assertAllZeroes, NULL);
    free(pv_argv); pv_argv = NULL;
    return status;
 }
 
-int testcheckpoint(int argc, char * argv[], int rank) {
+int testcheckpoint(int argc, char * argv[], PV_Init * initObj, int rank) {
    // Make sure there's either a -r or a -c switch
    bool hasrestart = false;
    for (int arg=0; arg<argc; arg++) {
@@ -283,11 +285,11 @@ int testcheckpoint(int argc, char * argv[], int rank) {
       }
       printf("\n");
    }
-   int status = buildandrun(argc, argv, NULL, &assertAllZeroes, NULL);
+   int status = rebuildandrun(argc, argv, initObj, NULL, &assertAllZeroes, NULL);
    return status;
 }
 
-int testioparams(int argc, char * argv[], int rank) {
+int testioparams(int argc, char * argv[], PV_Init* initObj, int rank) {
    // Ignore -r and -c switches
    char ** pv_argv = (char **) calloc((size_t) (argc+1), sizeof(char *));
    assert(pv_argv);
@@ -304,7 +306,8 @@ int testioparams(int argc, char * argv[], int rank) {
          pv_argc++;
       }
    }
-   HyPerCol * hc = build(pv_argc, pv_argv);
+   initObj->initialize(pv_argc, pv_argv);
+   HyPerCol * hc = build(pv_argc, pv_argv, initObj);
    if (hc == NULL) {
       fprintf(stderr, "testioparams error: unable to build HyPerCol.\n");
       exit(EXIT_FAILURE);
@@ -355,7 +358,7 @@ int testioparams(int argc, char * argv[], int rank) {
       }
       printf("\n");
    }
-   status = buildandrun(pv_argc, pv_argv, NULL, &assertAllZeroes, NULL);
+   status = rebuildandrun(pv_argc, pv_argv, initObj, NULL, &assertAllZeroes, NULL);
    if (usingdefaultparamsfile) {
       free(pv_argv[arg-1]); pv_argv[arg-1] = NULL;
    }

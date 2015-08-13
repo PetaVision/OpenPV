@@ -42,9 +42,12 @@ int main(int argc, char* argv[])
 {
    int status = 0;
 
+   PV_Init* initObj = new PV_Init(&argc, &argv);
+   initObj->initialize(argc, argv);
+
    // create the managing hypercolumn
    //
-   HyPerCol* hc = new HyPerCol("test_constant_input column", argc, argv);
+   HyPerCol* hc = new HyPerCol("test_constant_input column", argc, argv, initObj);
 
    // create the image
    //
@@ -114,6 +117,7 @@ int main(int argc, char* argv[])
    }
 
    delete hc;
+   delete initObj;
 
    return status;
 }
@@ -188,8 +192,8 @@ int checkLoc(HyPerCol * hc, const PVLayerLoc * loc)
    if (loc->nxGlobal != loc->nx * cols) {status = PV_FAILURE;}
    if (loc->nyGlobal != loc->ny * rows) {status = PV_FAILURE;}
 
-   if (loc->kx0 != loc->nx * hc->commColumn(rank)) {status = PV_FAILURE;}
-   if (loc->ky0 != loc->ny * hc->commRow(rank))    {status = PV_FAILURE;}
+   if (loc->kx0 != loc->nx * hc->commColumn()) {status = PV_FAILURE;}
+   if (loc->ky0 != loc->ny * hc->commRow())    {status = PV_FAILURE;}
 
    return status;
 }

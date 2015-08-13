@@ -9,17 +9,20 @@
 #include "Example.hpp"
 #include <layers/HyPerLayer.hpp>
 #include <io/io.h>
+#include <columns/PV_Init.hpp>
 
 
 //const int numFeatures = 1;
 
 int main(int argc, char * argv[])
 {
+   PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv);
+   initObj->initialize(argc, argv);
    //char * cl_args[4];
    PVLayerLoc sLoc, bLoc;
    PVLayerCube * sCube, * bCube;
 
-   PV::HyPerCol * hc = new PV::HyPerCol("test_mirror_BCs column", argc, argv);
+   PV::HyPerCol * hc = new PV::HyPerCol("test_mirror_BCs column", argc, argv, initObj);
    PV::Example * l = new PV::Example("test_mirror_BCs layer", hc);
 
    //FILE * fd = stdout;
@@ -31,7 +34,6 @@ int main(int argc, char * argv[])
 
    sLoc.nxGlobal = sLoc.nyGlobal = nS; // shouldn't be used
    sLoc.kx0 = sLoc.ky0 = 0; // shouldn't be used
-   sLoc.nbatch = 1;
    sLoc.nx = sLoc.ny = nS;
    sLoc.nf = nf;
    sLoc.halo.lt = halo->lt;
@@ -251,6 +253,7 @@ int main(int argc, char * argv[])
    sCube = bCube = NULL;
 
    delete hc;
+   delete initObj;
    //free(cl_args[0]);
    //free(cl_args[1]);
    //free(cl_args[2]);

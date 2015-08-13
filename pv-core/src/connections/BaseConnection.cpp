@@ -89,7 +89,7 @@ int BaseConnection::setName(const char * name) {
 }
 
 int BaseConnection::setPreAndPostLayerNames() {
-   return getPreAndPostLayerNames(this->getName(), this->getParent()->parameters(), &preLayerName, &postLayerName);
+   return getPreAndPostLayerNames(this->getName(), &preLayerName, &postLayerName);
 }
 
 void BaseConnection::setPreLayerName(const char * pre_name) {
@@ -221,26 +221,26 @@ int BaseConnection::inferPreAndPostFromConnName(const char * name, int rank, cha
    return status;
 }
 
-int BaseConnection::getPreAndPostLayerNames(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr) {
+int BaseConnection::getPreAndPostLayerNames(const char * name, char ** preLayerNamePtr, char ** postLayerNamePtr) {
    // Retrieves preLayerName and postLayerName from parameter group whose name is given in the functions first argument.
    // This routine uses strdup to fill *{pre,post}LayerNamePtr, so the routine calling this one is responsible for freeing them.
    int status = PV_SUCCESS;
    *preLayerNamePtr = NULL;
    *postLayerNamePtr = NULL;
    if (preLayerName == NULL && postLayerName == NULL) {
-      if (params->getInterColComm()->commRank()==0) {
+      if (parent->icCommunicator()->commRank()==0) {
          printf("Connection \"%s\": preLayerName and postLayerName will be inferred in the communicateInitInfo stage.\n", name);
       }
    }
    else if (preLayerName==NULL && postLayerName!=NULL) {
       status = PV_FAILURE;
-      if (params->getInterColComm()->commRank()==0) {
+      if (parent->icCommunicator()->commRank()==0) {
          fprintf(stderr, "Connection \"%s\" error: if postLayerName is specified, preLayerName must be specified as well.\n", name);
       }
    }
    else if (preLayerName!=NULL && postLayerName==NULL) {
       status = PV_FAILURE;
-      if (params->getInterColComm()->commRank()==0) {
+      if (parent->icCommunicator()->commRank()==0) {
          fprintf(stderr, "Connection \"%s\" error: if preLayerName is specified, postLayerName must be specified as well.\n", name);
       }
    }
@@ -248,7 +248,7 @@ int BaseConnection::getPreAndPostLayerNames(const char * name, PVParams * params
       assert(preLayerName!=NULL && postLayerName!=NULL);
    }
 #ifdef PV_USE_MPI
-   MPI_Barrier(params->getInterColComm()->communicator());
+   MPI_Barrier(parent->icCommunicator()->communicator());
 #endif
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);

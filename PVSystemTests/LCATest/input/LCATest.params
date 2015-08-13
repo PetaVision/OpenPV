@@ -114,6 +114,7 @@ HyPerLCALayer "V1" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0.025;
+    numChannels                         = 1;
     timeConstantTau                     = 100;
     timeConstantTauMinimum              = 10;
     numWindowX                          = 1;
