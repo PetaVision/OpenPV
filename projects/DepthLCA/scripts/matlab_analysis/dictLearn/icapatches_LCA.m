@@ -4,12 +4,12 @@ close all;
 %setenv("GNUTERM","X11")
 
 workspace_path = "/home/ec2-user/workspace";
-output_dir = "/home/ec2-user/mountData/benchmark/icaweights_LCA/"; 
+output_dir = "/home/ec2-user/mountData/dictLearn/aws_icapatch/"; 
 %output_dir = "/nh/compneuro/Data/Depth/LCA/arbortest/"; 
 
 addpath([workspace_path, filesep, "/pv-core/mlab/util"]);
 addpath([workspace_path, filesep, "/pv-core/mlab/HyPerLCA"]);
-last_checkpoint_ndx = 10000;
+last_checkpoint_ndx = 250000;
 checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, '%i')]; %% 
 max_history = 100000000;
 numarbors = 1;
@@ -316,6 +316,7 @@ if plot_xCorr
 end%if
 
 %%keyboard;
+plot_flag = false;
 plot_weights = true;
 if plot_weights
 

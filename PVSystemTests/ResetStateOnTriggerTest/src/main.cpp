@@ -6,41 +6,33 @@
 
 #include <columns/buildandrun.hpp>
 
-#define MAIN_USES_CUSTOMGROUPS
-
-#ifdef MAIN_USES_CUSTOMGROUPS
-#include <io/ParamGroupHandler.hpp>
-// CustomGroupHandler is for adding objects not supported by CoreParamGroupHandler().
-class CustomGroupHandler: public ParamGroupHandler {
-public:
-   CustomGroupHandler() {}
-
-   virtual ~CustomGroupHandler() {}
-
-   virtual ParamGroupType getGroupType(char const * keyword) {
-      ParamGroupType result = UnrecognizedGroupType;
-      //
-      // This routine should compare keyword to the list of keywords handled by CustomGroupHandler and return one of
-      // LayerGroupType, ConnectionGroupType, ProbeGroupType, ColProbeGroupType, WeightInitializerGroupType, or WeightNormalizerGroupType
-      // according to the keyword, or UnrecognizedGroupType if this ParamGroupHandler object does not know the keyword.
-      //
-      return result;
-   }
-   // A CustomGroupHandler group should override createLayer, createConnection, etc., as appropriate, if there are custom objects
-   // corresponding to that group type.
-
-}; /* class CustomGroupHandler */
-#endif // MAIN_USES_CUSTOMGROUPS
+int checkForNonzero(HyPerCol * hc, int argc, char ** argv);
 
 int main(int argc, char * argv[]) {
 
    int status;
-#ifdef MAIN_USES_CUSTOMGROUPS
-   ParamGroupHandler * customGroupHandler = new CustomGroupHandler();
-   status = buildandrun(argc, argv, NULL, NULL, &customGroupHandler, 1/*numGroupHandlers*/);
-   delete customGroupHandler;
-#else
-   status = buildandrun(argc, argv);
-#endif // MAIN_USES_CUSTOMGROUPS
+   status = buildandrun(argc, argv, NULL, checkForNonzero, NULL, 0);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+int checkForNonzero(HyPerCol * hc, int argc, char ** argv) {
+   // A customexit hook to verify that the comparison layer is zero
+   // because of a nonzero on GsynExc cancelling the same value on
+   // GSynInh, and not because some error caused Comparison to
+   // return zero even if Output and CorrectValues were different.
+   // A RequireAllZeroActivityProbe checks whether the activity is
+   // zero everywhere, so this function doesn't have to.
+
+   BaseLayer * basecomparisonlayer = hc->getLayerFromName("Comparison");
+   HyPerLayer * comparisonlayer = dynamic_cast<HyPerLayer *>(basecomparisonlayer);
+   assert(comparisonlayer!=NULL);
+   assert(comparisonlayer->getNumChannels()==2);
+
+   pvdata_t * exc = comparisonlayer->getChannel(CHANNEL_EXC);
+   pvdata_t * inh = comparisonlayer->getChannel(CHANNEL_INH);
+   int N = comparisonlayer->getNumNeurons();
+   for (int n=0; n<N; n++) {
+      assert(exc[n]!=0 && exc[n]==inh[n]);
+   }
+   return PV_SUCCESS;
 }

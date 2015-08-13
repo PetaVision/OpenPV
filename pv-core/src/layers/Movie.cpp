@@ -43,6 +43,7 @@ Movie::~Movie()
             free(framePath[b]);
          }
       }
+      free(framePath);
    }
    if(startFrameIndex){
       free(startFrameIndex);
@@ -55,6 +56,12 @@ Movie::~Movie()
    }
    if(paramsSkipFrameIndex){
       free(paramsSkipFrameIndex);
+   }
+   if(batchMethod){
+      free(batchMethod);
+   }
+   if(batchPos){
+      free(batchPos);
    }
 }
 
@@ -179,10 +186,12 @@ int Movie::initialize(const char * name, HyPerCol * hc) { int status = Image::in
 
    //If not pvp file, open fileOfFileNames 
    //assert(!params->presentAndNotBeenRead(name, "readPvpFile")); // readPvpFile should have been set in ioParams
-   filenamestream = PV_fopen(inputPath, "r", false/*verifyWrites*/);
-   if( filenamestream == NULL ) {
-      fprintf(stderr, "Movie::initialize error opening \"%s\": %s\n", inputPath, strerror(errno));
-      abort();
+   if (hc->columnId()==0) {
+      filenamestream = PV_fopen(inputPath, "r", false/*verifyWrites*/);
+      if( filenamestream == NULL ) {
+         fprintf(stderr, "Movie::initialize error opening \"%s\": %s\n", inputPath, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
    }
 
    //if (!randomMovie) {

@@ -7,7 +7,7 @@ from plotReconError import plotReconError
 #For plotting
 #import matplotlib.pyplot as plt
 
-outputDir = "/home/ec2-user/mountData/benchmark/icaweights_LCA/"
+outputDir = "/home/ec2-user/mountData/dictLearn/aws_icapatch/"
 skipFrames = 1 #Only print every 20th frame
 startFrames = 0
 doPlotRecon = True

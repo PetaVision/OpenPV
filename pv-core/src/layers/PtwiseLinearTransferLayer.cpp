@@ -55,6 +55,7 @@ PtwiseLinearTransferLayer::PtwiseLinearTransferLayer(const char * name, HyPerCol
 PtwiseLinearTransferLayer::~PtwiseLinearTransferLayer() {
    free(verticesV); verticesV = NULL;
    free(verticesA); verticesA = NULL;
+   free(slopes); slopes = NULL;
 }
 
 int PtwiseLinearTransferLayer::initialize_base() {

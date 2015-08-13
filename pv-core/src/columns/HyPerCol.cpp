@@ -136,6 +136,7 @@ HyPerCol::~HyPerCol()
       //Close origStdOut file descriptors
       close(origStdOut);
       close(origStdErr);
+      free(log_file);
    }
    if(timeScale){
       free(timeScale);

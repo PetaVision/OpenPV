@@ -282,7 +282,8 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    status = openOutputStateFile();
 
    lastUpdateTime = parent->simulationTime();
-   nextUpdateTime = parent->getDeltaTime();
+   nextUpdateTime = lastUpdateTime + parent->getDeltaTime();
+   // nextTriggerTime will be initialized in communicateInitInfo(), as it depends on triggerLayer
 
 //#ifdef PV_USE_OPENCL
 //   initUseGPUFlag();
@@ -379,6 +380,8 @@ HyPerLayer::~HyPerLayer()
    //delete permute_preData_timer; permute_preData_timer= NULL;
    //delete permute_postGSyn_timer; permute_postGSyn_timer= NULL;
 #endif
+
+   if (outputStateStream) { pvp_close_file(outputStateStream, parent->icCommunicator()); }
 
    delete initVObject; initVObject = NULL;
    freeClayer();
@@ -854,7 +857,7 @@ void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, true/*warnIfAbsent*/);
+   parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
    if (ioFlag==PARAMS_IO_READ) {
       if (triggerLayerName && !strcmp(name, triggerLayerName)) {
          if (parent->columnId()==0) {
@@ -925,6 +928,9 @@ void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
       }
       else if (!strcmp(triggerBehavior, "resetStateOnTrigger")) {
          triggerBehaviorType = RESETSTATE_TRIGGER;
+      }
+      else if (!strcmp(triggerBehavior, "ignore")) {
+         triggerBehaviorType = NO_TRIGGER;
       }
       else {
          if (parent->columnId()==0) {
@@ -1116,6 +1122,7 @@ int HyPerLayer::communicateInitInfo()
 #endif
          exit(EXIT_FAILURE);
       }
+      nextTriggerTime = triggerLayer->getNextUpdateTime();
       if (triggerBehaviorType==RESETSTATE_TRIGGER) {
          char const * resetLayerName = NULL; // Will point to name of actual resetLayer, whether triggerResetLayerName is blank (in which case resetLayerName==triggerLayerName) or not
          if (triggerResetLayerName==NULL || triggerResetLayerName[0]=='\0') {
@@ -1327,7 +1334,6 @@ int HyPerLayer::allocateDataStructures()
          exit(EXIT_FAILURE);
       }
    }
-   //updateNextUpdateTime();
 
    allocateClayerBuffers();
 
@@ -1602,31 +1608,20 @@ int HyPerLayer::mirrorInteriorToBorder(PVLayerCube * cube, PVLayerCube * border)
    return 0;
 }
 
-bool HyPerLayer::updateTimeArrived(double timed, double dt) {
-   //We want to check whether time==nextUpdateTime-triggerOffset,
-   // but to account for roundoff errors, we check if it's within half the delta time
-   return fabs(timed - (nextUpdateTime - triggerOffset)) < (dt/2);
-}
-
 bool HyPerLayer::needUpdate(double time, double dt){
    bool updateNeeded = false;
-   //This function needs to return true if the layer was updated this timestep as well
-   if(fabs(parent->simulationTime() - lastUpdateTime) < (dt/2)){
-      return true;
-   }
-   //Never update flag
-   //If nextUpdateTime is -1, the layer won't update
-   else if(nextUpdateTime == -1){
+   // Check if the layer ever updates.
+   if (getDeltaUpdateTime() < 0) {
       updateNeeded = false;
    }
+   //Return true if the layer was updated this timestep as well
+   else if(fabs(parent->simulationTime() - lastUpdateTime) < (dt/2)){
+      updateNeeded = true;
+   }
    else {
-   //Check based on trigger behavior and whether there was a trigger.
-   switch(triggerBehaviorType) {
-      case NO_TRIGGER: updateNeeded = updateTimeArrived(time, dt); break;
-      case UPDATEONLY_TRIGGER: updateNeeded = updateTimeArrived(time, dt); break;
-      case RESETSTATE_TRIGGER: updateNeeded = !updateTimeArrived(time, dt); break;
-      default: assert(0); break;
-      }
+      //We want to check whether time==nextUpdateTime-triggerOffset,
+      // but to account for roundoff errors, we check if it's within half the delta time
+      updateNeeded = fabs(time - (nextUpdateTime - triggerOffset)) < (dt/2);
    }
    return updateNeeded;
 }
@@ -1634,42 +1629,60 @@ bool HyPerLayer::needUpdate(double time, double dt){
 int HyPerLayer::updateNextUpdateTime(){
    double deltaUpdateTime = getDeltaUpdateTime();
    assert(deltaUpdateTime != 0);
-   if(deltaUpdateTime != -1){
+   if(deltaUpdateTime > 0){
       while(parent->simulationTime() >= nextUpdateTime){
          nextUpdateTime += deltaUpdateTime;
       }
-   }
-   else{
-      //Never update
-      nextUpdateTime = -1;
    }
    return PV_SUCCESS;
 }
 
 double HyPerLayer::getDeltaUpdateTime(){
-   if(triggerFlag){
-      assert(triggerLayer);
-      return triggerLayer->getDeltaUpdateTime();
+   if(triggerLayer != NULL && triggerBehaviorType == UPDATEONLY_TRIGGER){
+      return getDeltaTriggerTime();
    }
    else{
       return parent->getDeltaTime();
    }
 }
 
+int HyPerLayer::updateNextTriggerTime() {
+   if (triggerLayer==NULL) { return PV_SUCCESS; }
+   double deltaTriggerTime = getDeltaTriggerTime();
+   if (deltaTriggerTime > 0) {
+      while(parent->simulationTime() >= nextTriggerTime) {
+         nextTriggerTime += deltaTriggerTime;
+      }
+   }
+   return PV_SUCCESS;
+}
+
+double HyPerLayer::getDeltaTriggerTime(){
+   if(triggerLayer != NULL){
+      return triggerLayer->getDeltaUpdateTime();
+   }
+   else{
+      return -1;
+   }
+}
+
 bool HyPerLayer::needReset(double timed, double dt) {
-   bool resetNeeded = triggerBehaviorType==RESETSTATE_TRIGGER && updateTimeArrived(timed, dt);
+   bool resetNeeded = false;
+   if (triggerLayer != NULL && triggerBehaviorType == RESETSTATE_TRIGGER) {
+      resetNeeded = fabs(timed - (nextTriggerTime - triggerOffset)) < (dt/2);
+   }
    return resetNeeded;
 }
 
 int HyPerLayer::updateStateWrapper(double timef, double dt){
    int status = PV_SUCCESS;
    if(needUpdate(timef, parent->getDeltaTime())){
+      if (needReset(timef, dt)) {
+         status = resetStateOnTrigger();
+         updateNextTriggerTime();
+      }
       status = callUpdateState(timef, dt);
       lastUpdateTime = parent->simulationTime();
-   }
-   else if (needReset(timef, parent->getDeltaTime())) {
-      status = resetStateOnTrigger();
-      lastUpdateTime = parent->simulationTime(); // lastUpdateTime is now really lastChangeTime.  Do we need to separate into lastUpdateTime and lastResetTime?      
    }
    //Because of the triggerOffset, we need to check if we need to update nextUpdateTime every time
    updateNextUpdateTime();
@@ -1735,13 +1748,36 @@ int HyPerLayer::updateState(double timef, double dt) {
 }
 
 int HyPerLayer::resetStateOnTrigger() {
-   pvpotentialdata_t const * resetV = triggerResetLayer->getV();
+   assert(triggerResetLayer != NULL);
    pvpotentialdata_t * V = getV();
-   #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for
-   #endif // PV_USE_OPENMP_THREADS
-   for (int k=0; k<getNumNeurons(); k++) {
-      V[k] = resetV[k];
+   if (V==NULL) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a membrane potential.\n",
+               parent->parameters()->groupKeywordFromName(name), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+   pvpotentialdata_t const * resetV = triggerResetLayer->getV();
+   if (resetV!=NULL) {
+      #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+      #endif // PV_USE_OPENMP_THREADS
+      for (int k=0; k<getNumNeurons(); k++) {
+         V[k] = resetV[k];
+      }
+   }
+   else {
+      pvadata_t const * resetA = triggerResetLayer->getActivity();
+      PVLayerLoc const * loc = triggerResetLayer->getLayerLoc();
+      PVHalo const * halo = &loc->halo;
+      #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+      #endif // PV_USE_OPENMP_THREADS
+      for (int k=0; k<getNumNeurons(); k++) {
+         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
+         V[k] = resetA[kex];
+      }
    }
    return setActivity();
 }
@@ -1974,7 +2010,7 @@ int HyPerLayer::publish(InterColComm* comm, double time)
 
    bool mirroring = useMirrorBCs();
    mirroring = mirroring ?
-         (getLastUpdateTime() >= getParent()->simulationTime() || needReset(time, parent->getDeltaTime())) :
+         (getLastUpdateTime() >= getParent()->simulationTime()) :
          false;
    if ( mirroring) {
       for (int borderId = 1; borderId < NUM_NEIGHBORHOOD; borderId++){
