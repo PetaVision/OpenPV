@@ -91,6 +91,9 @@ int ColumnEnergyProbe::getValues(double timevalue, std::vector<double> * values)
 }
 
 double ColumnEnergyProbe::getValue(double timevalue, int index) {
+   if (index<0 || index>=vectorSize) {
+      std::numeric_limits<double>::signaling_NaN();
+   }
    double sum = 0;
    for (int n=0; n<numTerms; n++) {
       energyTerm * p = &terms[n];

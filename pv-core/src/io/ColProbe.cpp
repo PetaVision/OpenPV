@@ -72,6 +72,10 @@ void ColProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
 }
 
 int ColProbe::initialize_stream(const char * filename) {
+   if(stream!=NULL) {
+      fprintf(stderr, "%s \"%s error: initialize_stream called but stream is already initialized.\n");
+      exit(EXIT_FAILURE);
+   }
    int status = PV_SUCCESS;
    if (parentCol->columnId()==0)
    {
