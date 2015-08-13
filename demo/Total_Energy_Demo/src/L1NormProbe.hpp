@@ -8,21 +8,21 @@
 #ifndef L1NORMPROBE_HPP_
 #define L1NORMPROBE_HPP_
 
-#include <io/LayerFunctionProbe.hpp>
-#include "L1NormFunction.hpp"
+#include <io/LayerProbe.hpp>
 
 namespace PV {
-class L1NormProbe : public LayerFunctionProbe {
+class L1NormProbe : public LayerProbe {
 public:
    L1NormProbe(const char * probeName, HyPerCol * hc);
    virtual ~L1NormProbe();
-   pvdata_t evaluate();
+   virtual int getValues(double timevalue, std::vector<double> * values);
+   virtual double getValue(double timevalue, int index);
 
 protected:
    L1NormProbe();
    int initL1NormProbe(const char * probeName, HyPerCol * hc);
-   virtual void initFunction();
-   virtual int writeState(double timed, HyPerLayer * l, int batchIdx, pvdata_t value);
+   virtual double getValueInternal(double timevalue, int index);
+   virtual int outputState(double timevalue);
 
 private:
    int initL1NormProbe_base() {return PV_SUCCESS;}

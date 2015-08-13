@@ -1,31 +1,37 @@
 /*
  * L2NormProbe.hpp
  *
- *  Created on: Nov 19, 2010
+ *  Created on: Aug 11, 2015
  *      Author: pschultz
  */
 
 #ifndef L2NORMPROBE_HPP_
 #define L2NORMPROBE_HPP_
 
-#include "LayerFunctionProbe.hpp"
-#include "L2NormFunction.hpp"
+#include "LayerProbe.hpp"
 
 namespace PV {
-class L2NormProbe : public LayerFunctionProbe {
+class L2NormProbe : public LayerProbe {
 public:
    L2NormProbe(const char * probeName, HyPerCol * hc);
    virtual ~L2NormProbe();
-   pvdata_t evaluate();
+   virtual int getValues(double timevalue, std::vector<double> * values);
+   virtual double getValue(double timevalue, int index);
 
 protected:
    L2NormProbe();
    int initL2NormProbe(const char * probeName, HyPerCol * hc);
-   virtual void initFunction();
-   virtual int writeState(double timed, HyPerLayer * l, int batchIdx, pvdata_t value);
+   virtual double getValueInternal(double timevalue, int index);
+   virtual int outputState(double timevalue);
+   
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_exponent(enum ParamsIOFlag ioFlag);
 
 private:
    int initL2NormProbe_base() {return PV_SUCCESS;}
+
+// Member variables
+   double exponent;
 }; // end class L2NormProbe
 
 }  // end namespace PV

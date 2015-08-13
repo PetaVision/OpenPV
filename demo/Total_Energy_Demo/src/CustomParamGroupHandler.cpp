@@ -7,6 +7,7 @@
 
 #include "CustomParamGroupHandler.hpp"
 #include "L1NormProbe.hpp"
+#include <columns/HyPerCol.hpp>
 
 namespace PV {
 
@@ -17,13 +18,6 @@ CustomParamGroupHandler::~CustomParamGroupHandler() {
 }
 
 ParamGroupType CustomParamGroupHandler::getGroupType(char const * keyword) {
-   struct keyword_grouptype_entry  {char const * kw; ParamGroupType type;};
-   struct keyword_grouptype_entry keywordtable[] = {
-         // Probes
-         // // Layer probes
-         {"L1NormProbe", ProbeGroupType},
-         {NULL, UnrecognizedGroupType}
-   };
    ParamGroupType result;
    if (keyword==NULL) { result = UnrecognizedGroupType; }
    else if (!strcmp("L1NormProbe", keyword)) {

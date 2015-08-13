@@ -20,7 +20,8 @@ public:
 
     int ioParams(enum ParamsIOFlag ioFlag);
     virtual int outputState(double time, HyPerCol * hc) {return PV_SUCCESS;}
-    const char * getColProbeName() { return colProbeName; }
+    char const * getColProbeName() { return colProbeName; }
+    char const * keyword();
 
 protected:
     HyPerCol * parentCol;
@@ -30,8 +31,9 @@ protected:
     ColProbe();
     int initialize(const char * probeName, HyPerCol * hc);
     int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-    void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
     int initialize_stream(const char * filename);
+    virtual int outputHeader() { return PV_SUCCESS; }
     int setColProbeName(const char * name);
 
 private:

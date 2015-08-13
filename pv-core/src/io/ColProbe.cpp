@@ -46,6 +46,10 @@ int ColProbe::initialize(const char * probeName, HyPerCol * hc) {
    return status;
 }
 
+char const * ColProbe::keyword() {
+   return parentCol->parameters()->groupKeywordFromName(colProbeName);
+}
+
 int ColProbe::ioParams(enum ParamsIOFlag ioFlag) {
    parentCol->ioParamsStartGroup(ioFlag, colProbeName);
    ioParamsFillGroup(ioFlag);
@@ -68,6 +72,7 @@ void ColProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
 }
 
 int ColProbe::initialize_stream(const char * filename) {
+   int status = PV_SUCCESS;
    if (parentCol->columnId()==0)
    {
       if( filename != NULL ) {
@@ -82,11 +87,12 @@ int ColProbe::initialize_stream(const char * filename) {
       else {
          stream = PV_stdout();
       }
+      status = outputHeader();
    }
    else {
       stream = NULL;
    }
-   return PV_SUCCESS;
+   return status;
 }
 
 int ColProbe::setColProbeName(const char * name) {

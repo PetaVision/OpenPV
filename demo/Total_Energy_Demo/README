@@ -2,7 +2,7 @@ The Total_Energy_Demo demonstrates using GenColProbe and subclasses of
 LayerFunctionProbe to compute the total energy of a simple soft-threshold LCA
 model.
 
-input/Total_Energy_Demo.png shows the connectivity defined by the params file
+Total_Energy_Demo.png shows the connectivity defined by the params file
 input/Total_Energy_Demo.params.  V1 is a HyPerLCA layer with a soft threshold of
 VThresh = 0.025.  Therefore the LCA dynamics minimize the energy
 
