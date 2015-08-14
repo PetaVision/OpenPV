@@ -291,7 +291,7 @@ def mermaid_writeout(parser_output, colorby, legend):
     else:
         calculate_scale_colorvalues()
 
-    f = open('param_graph', 'w')
+    f = open('mermaid_input', 'w')
     f.write('graph BT;\n')
 
     if legend:
