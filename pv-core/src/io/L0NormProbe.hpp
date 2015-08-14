@@ -8,7 +8,7 @@
 #ifndef L0NORMPROBE_HPP_
 #define L0NORMPROBE_HPP_
 
-#include <io/AbstractNormProbe.hpp>
+#include "AbstractNormProbe.hpp"
 
 namespace PV {
 class L0NormProbe : public AbstractNormProbe {

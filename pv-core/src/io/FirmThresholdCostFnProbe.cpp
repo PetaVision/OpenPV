@@ -6,7 +6,7 @@
  */
 
 #include "FirmThresholdCostFnProbe.hpp"
-#include <columns/HyPerCol.hpp>
+#include "../columns/HyPerCol.hpp"
 
 namespace PV {
 

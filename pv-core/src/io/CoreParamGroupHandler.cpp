@@ -104,6 +104,9 @@
 
 #include "ColProbe.hpp"
 #include "ColumnEnergyProbe.hpp"
+#include "FirmThresholdCostFnProbe.hpp"
+#include "L0NormProbe.hpp"
+#include "L1NormProbe.hpp"
 #include "L2NormProbe.hpp"
 #ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
 #include "LayerFunctionProbe.hpp"
@@ -256,6 +259,9 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          // Probes
          // // Layer probes
          {"LayerProbe", ProbeGroupType},
+         {"FirmThresholdCostFnProbe", ProbeGroupType},
+         {"L0NormProbe", ProbeGroupType},
+         {"L1NormProbe", ProbeGroupType},
          {"L2NormProbe", ProbeGroupType},
 #ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
          {"LayerFunctionProbe", ProbeGroupType},
@@ -653,6 +659,15 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
    else if( !strcmp(keyword, "LayerProbe") ) {
       fprintf(stderr, "LayerProbe \"%s\": Abstract class LayerProbe cannot be instantiated.\n", name);
       addedProbe = NULL;
+   }
+   else if( !strcmp(keyword, "FirmThresholdCostFnProbe") ) {
+      addedProbe = new FirmThresholdCostFnProbe(name, hc);
+   }
+   else if( !strcmp(keyword, "L0NormProbe") ) {
+      addedProbe = new L0NormProbe(name, hc);
+   }
+   else if( !strcmp(keyword, "L1NormProbe") ) {
+      addedProbe = new L1NormProbe(name, hc);
    }
    else if( !strcmp(keyword, "L2NormProbe") ) {
       addedProbe = new L2NormProbe(name, hc);

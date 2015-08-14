@@ -8,7 +8,7 @@
 #ifndef FIRMTHRESHOLDCOSTFNPROBE_HPP_
 #define FIRMTHRESHOLDCOSTFNPROBE_HPP_
 
-#include <io/AbstractNormProbe.hpp>
+#include "AbstractNormProbe.hpp"
 
 namespace PV {
 class FirmThresholdCostFnProbe : public AbstractNormProbe {
