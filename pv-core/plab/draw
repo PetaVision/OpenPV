@@ -7,6 +7,9 @@ while getopts ":pl" opt; do
 	l) 
 	    LEGEND=true
 	    ;;
+	f)
+	    FILEWRITE=true
+	    ;;
     esac
 done
 shift $((OPTIND - 1))
@@ -51,7 +54,9 @@ else
 fi
 
 mermaid param_graph
-rm param_graph
+if [ "$FILEWRITE" = false ] ; then
+    rm param_graph
+fi
 filename=$(basename "$pfile")
 extension="${filename##*.}"
 filename="${filename%.*}"
