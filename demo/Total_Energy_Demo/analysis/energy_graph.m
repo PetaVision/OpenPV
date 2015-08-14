@@ -9,7 +9,7 @@ while ischar(fgetlresult)
 end%while
 fclose(fidrecon); clear fidrecon;
 
-fidsparsity = fopen('../output/sparsity_penalty.txt');
+fidsparsity = fopen('../output/cost_function.txt');
 assert(fidsparsity>0);
 sparsitypenalty = zeros(0,2);
 fgetlresult = fgetl(fidsparsity);
