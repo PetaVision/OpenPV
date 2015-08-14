@@ -15,8 +15,6 @@ class L0NormProbe : public AbstractNormProbe {
 public:
    L0NormProbe(const char * probeName, HyPerCol * hc);
    virtual ~L0NormProbe();
-   virtual int getValues(double timevalue, std::vector<double> * values);
-   virtual double getValue(double timevalue, int index);
 
 protected:
    L0NormProbe();

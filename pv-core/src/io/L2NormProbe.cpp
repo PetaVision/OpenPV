@@ -91,19 +91,19 @@ int L2NormProbe::outputState(double timevalue) {
       int nk = getTargetLayer()->getNumGlobalNeurons();
       if (exponent==1.0) {
          for (int b=0; b<nBatch; b++) {
-            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d, L2-norm          = %f\n",
+            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d L2-norm          = %f\n",
                   getMessage(), timevalue, b, nk, values.at(b));
          }
       }
       else if (exponent==2.0) {
          for (int b=0; b<nBatch; b++) {
-            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d, L2-norm squared  = %f\n",
+            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d L2-norm squared  = %f\n",
                   getMessage(), timevalue, b, nk, values.at(b));
          }
       }
       else {
          for (int b=0; b<nBatch; b++) {
-            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d, L2-norm^%f = %f\n",
+            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d L2-norm^%f = %f\n",
                   getMessage(), timevalue, b, nk, exponent, values.at(b));
          }
       }

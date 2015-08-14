@@ -57,7 +57,7 @@ int AbstractNormProbe::outputState(double timevalue) {
       int nBatch = getParent()->getNBatch();
       int nk = getTargetLayer()->getNumGlobalNeurons();
       for (int b=0; b<nBatch; b++) {
-         fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d, norm             = %f\n",
+         fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d norm             = %f\n",
                getMessage(), timevalue, b, nk, values[b]);
       }
       fflush(outputstream->fp);

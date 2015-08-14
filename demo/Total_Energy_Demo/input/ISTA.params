@@ -1,5 +1,5 @@
 //
-// Total_Energy_Demo.params
+// ISTA.params
 //
 // created by peteschultz: Aug 11, 2015
 //
@@ -25,7 +25,7 @@ HyPerCol "column" = {
     progressInterval                    = 1000;
     writeProgressToErr                  = false;
     verifyWrites                        = true;
-    outputPath                          = "output/";
+    outputPath                          = "output-ISTA/";
     printParamsFilename                 = "pv.params";
     randomSeed                          = 1234567890;
     nx                                  = 32;
@@ -83,7 +83,7 @@ ANNNormalizedErrorLayer "residual" = {
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
     writeStep                           = 200;
-    initialWriteTime                    = 199;
+    initialWriteTime                    = 200;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
@@ -93,7 +93,7 @@ ANNNormalizedErrorLayer "residual" = {
     useMask                             = false;
 };
 
-HyPerLCALayer "V1" = {
+ISTALayer "V1" = {
     nxScale                             = 0.5;
     nyScale                             = 0.5;
     nf                                  = 48;
@@ -105,19 +105,14 @@ HyPerLCALayer "V1" = {
     maxV                                = 0.1;
     triggerLayerName                    = NULL;
     writeStep                           = 200;
-    initialWriteTime                    = 199;
+    initialWriteTime                    = 200;
     sparseLayer                         = true;
     writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
     VThresh                             = 0.025;
-    AMin                                = 0;
-    AMax                                = infinity;
-    AShift                              = 0.025;
-    VWidth                              = 0;
     clearGSynInterval                   = 0;
-    timeConstantTau                     = 100;
-    selfInteract                        = true;
+    timeConstantTau                     = 10000;
 };
 
 ANNLayer "reconstruction" = {
@@ -132,7 +127,7 @@ ANNLayer "reconstruction" = {
     triggerOffset                       = 1;
     triggerBehavior                     = "updateOnlyOnTrigger";
     writeStep                           = 200;
-    initialWriteTime                    = 199;
+    initialWriteTime                    = 200;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
@@ -232,7 +227,8 @@ CloneConn "V1_to_reconstruction" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    writeStep                           = -1;
+    writeStep                           = 0;
+    initialWriteTime                    = 200;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     gpuGroupIdx                         = 0;
@@ -257,10 +253,10 @@ L2NormProbe "Reconstruction_Error_Probe" = {
     exponent                            = 2.0;
 };
 
-L1NormProbe "Sparsity_Penalty_Probe" = {
+L1NormProbe "Cost_Function_Probe" = {
     targetLayer                         = "V1";
     message                             = NULL;
-    probeOutputFile                     = "sparsity_penalty.txt";
+    probeOutputFile                     = "cost_function.txt";
     triggerFlag                         = false;
     energyProbe                         = "Total_Energy_Probe";
     coefficient                         = 0.025;

@@ -72,9 +72,9 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    #endif // PV_USE_OPENMP_THREADS
    for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {      
       int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      pvadata_t a = aBuffer[kex];
-      if (a>=VThresh || a<=-VThresh) { sum += amax; }
-      else { a = fabsf(a); sum += a*(VThresh - a2*a); }
+      pvadata_t a = fabsf(aBuffer[kex]);
+      if (a>=VThresh) { sum += amax; }
+      else { sum += a*(VThresh - a2*a); }
    }
    return sum;
 }
