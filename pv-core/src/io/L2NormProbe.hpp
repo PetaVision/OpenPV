@@ -8,10 +8,10 @@
 #ifndef L2NORMPROBE_HPP_
 #define L2NORMPROBE_HPP_
 
-#include "LayerProbe.hpp"
+#include "AbstractNormProbe.hpp"
 
 namespace PV {
-class L2NormProbe : public LayerProbe {
+class L2NormProbe : public AbstractNormProbe {
 public:
    L2NormProbe(const char * probeName, HyPerCol * hc);
    virtual ~L2NormProbe();

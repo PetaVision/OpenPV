@@ -10,12 +10,11 @@
 
 namespace PV {
 
-L1NormProbe::L1NormProbe() : LayerProbe() {
+L1NormProbe::L1NormProbe() : AbstractNormProbe() {
    initL1NormProbe_base();
 }
 
-L1NormProbe::L1NormProbe(const char * probeName, HyPerCol * hc)
-   : LayerProbe()
+L1NormProbe::L1NormProbe(const char * probeName, HyPerCol * hc) : AbstractNormProbe()
 {
    initL1NormProbe_base();
    initL1NormProbe(probeName, hc);
@@ -48,41 +47,18 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
    return sum;
 }
 
-int L1NormProbe::getValues(double timevalue, std::vector<double> * values) {
-   if (values==NULL) { return PV_FAILURE; }
-   int nBatch = getParent()->getNBatch();
-   values->resize(nBatch); // Should we test if values->size()==nBatch before resizing?
-   for (int b=0; b<nBatch; b++) {
-      values->at(b) = getValueInternal(timevalue, b);
-   }
-   MPI_Allreduce(MPI_IN_PLACE, &values[0], nBatch, MPI_DOUBLE, MPI_SUM, getParent()->icCommunicator()->communicator());
-   return PV_SUCCESS;
-}
-   
-double L1NormProbe::getValue(double timevalue, int index) {
-   if (index>=0 && index < getParent()->getNBatch()) {
-      double sum = getValueInternal(timevalue, index);
-      MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_DOUBLE, MPI_SUM, getParent()->icCommunicator()->communicator());
-      return sum;
-   }
-   else {
-      return std::numeric_limits<double>::signaling_NaN();
-   }
-}
-
 int L1NormProbe::outputState(double timevalue) {
-   int nBatch = getParent()->getNBatch();
-
-   double l1norm = 0.0;
-   
-   int nk = getTargetLayer()->getNumGlobalNeurons();
    std::vector<double> values;
    getValues(timevalue, &values);
-   for (int b=0; b<nBatch; b++) {
-      fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d L1-norm          = %f\n",
-            getMessage(), timevalue, b, nk, values.at(b));
+   if (outputstream!=NULL) {
+      int nBatch = getParent()->getNBatch();   
+      int nk = getTargetLayer()->getNumGlobalNeurons();
+      for (int b=0; b<nBatch; b++) {
+         fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d L1-norm          = %f\n",
+               getMessage(), timevalue, b, nk, values.at(b));
+      }
+      fflush(outputstream->fp);
    }
-   fflush(outputstream->fp);
    return PV_SUCCESS;
 }
 

@@ -67,15 +67,16 @@ public:
     
    /**
     * Derived classes of ColProbe should override this method to return a vector of length
-    * getVectorSize().
+    * getVectorSize().  The base class leaves the input vector untouched and returns PV_SUCCESS;
     */
-   virtual int getValues(double timevalue, std::vector<double> * values);
+   virtual int getValues(double timevalue, std::vector<double> * values) { return PV_SUCCESS; }
    
    /**
     * Derived classes of ColProbe should override getValue() to
     * return a value for one index in the range 0, 1, ..., getVectorSize()-1.
+    * The base class always returns zero.
     */
-   virtual double getValue(double timevalue, int index);
+   virtual double getValue(double timevalue, int index) { return 0; }
    
    /**
     * Derived classes of ColProbe should override getVectorSize()
@@ -142,8 +143,9 @@ private:
    int setColProbeName(const char * name);
     
    /**
-    * Sets member variables to safe values.  It is called by both the
-    * public and protected constructors, and should not otherwise be called.
+    * Initializes member variables to safe values (e.g. pointers are set to NULL).
+    * It is called by both the public and protected constructors, and should not
+    * otherwise be called.
     */
    int initialize_base();
 }; // end class ColProbe

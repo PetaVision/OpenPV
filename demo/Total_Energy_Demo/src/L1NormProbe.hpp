@@ -8,15 +8,13 @@
 #ifndef L1NORMPROBE_HPP_
 #define L1NORMPROBE_HPP_
 
-#include <io/LayerProbe.hpp>
+#include <io/AbstractNormProbe.hpp>
 
 namespace PV {
-class L1NormProbe : public LayerProbe {
+class L1NormProbe : public AbstractNormProbe {
 public:
    L1NormProbe(const char * probeName, HyPerCol * hc);
    virtual ~L1NormProbe();
-   virtual int getValues(double timevalue, std::vector<double> * values);
-   virtual double getValue(double timevalue, int index);
 
 protected:
    L1NormProbe();

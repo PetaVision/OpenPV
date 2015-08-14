@@ -10,12 +10,11 @@
 
 namespace PV {
 
-L2NormProbe::L2NormProbe() : LayerProbe() {
+L2NormProbe::L2NormProbe() : AbstractNormProbe() {
    initL2NormProbe_base();
 }
 
-L2NormProbe::L2NormProbe(const char * probeName, HyPerCol * hc)
-   : LayerProbe()
+L2NormProbe::L2NormProbe(const char * probeName, HyPerCol * hc) : AbstractNormProbe()
 {
    initL2NormProbe_base();
    initL2NormProbe(probeName, hc);
@@ -66,60 +65,50 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
 }
 
 int L2NormProbe::getValues(double timevalue, std::vector<double> * values) {
-   if (values==NULL) { return PV_FAILURE; }
-   int nBatch = getParent()->getNBatch();
-   values->resize(nBatch); // Should we test if values->size()==nBatch before resizing?
-   for (int b=0; b<nBatch; b++) {
-      double v = getValueInternal(timevalue, b);
-      if (exponent != 2.0) { v = pow(v, exponent/2.0); }
-      v *= coefficient;
-      values->at(b) = v;
+   int status = AbstractNormProbe::getValues(timevalue, values);
+   if (status != PV_SUCCESS) { return status; }
+   if (exponent != 2.0) {
+      int nBatch = getParent()->getNBatch();
+      for (int b=0; b<nBatch; b++) {
+         double * vptr = &(*values)[b];
+         *vptr = pow(*vptr, exponent/2.0);
+      }
    }
-   MPI_Allreduce(MPI_IN_PLACE, &values[0], nBatch, MPI_DOUBLE, MPI_SUM, getParent()->icCommunicator()->communicator());
    return PV_SUCCESS;
 }
    
 double L2NormProbe::getValue(double timevalue, int index) {
-   if (index>=0 && index < getParent()->getNBatch()) {
-      double l2normsq = getValueInternal(timevalue, index);
-      MPI_Allreduce(MPI_IN_PLACE, &l2normsq, 1, MPI_DOUBLE, MPI_SUM, getParent()->icCommunicator()->communicator());
-      double v = l2normsq;
-      if (exponent != 2.0) { v = pow(v, exponent/2.0); }
-      v *= coefficient;
-      return v;
-   }
-   else {
-      return std::numeric_limits<double>::signaling_NaN();
-   }
+   double v = AbstractNormProbe::getValue(timevalue, index);
+   if (exponent != 2.0) { v = pow(v, exponent/2.0); }
+   return v;
 }
 
 int L2NormProbe::outputState(double timevalue) {
-   int nBatch = getParent()->getNBatch();
-
-   double l1norm = 0.0;
-   
-   int nk = getTargetLayer()->getNumGlobalNeurons();
    std::vector<double> values;
    getValues(timevalue, &values);
-   if (exponent==1.0) {
-      for (int b=0; b<nBatch; b++) {
-         fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d, L2-norm          = %f\n",
-               getMessage(), timevalue, b, nk, values.at(b));
+   if (outputstream!=NULL) {
+      int nBatch = getParent()->getNBatch();
+      int nk = getTargetLayer()->getNumGlobalNeurons();
+      if (exponent==1.0) {
+         for (int b=0; b<nBatch; b++) {
+            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d, L2-norm          = %f\n",
+                  getMessage(), timevalue, b, nk, values.at(b));
+         }
       }
-   }
-   else if (exponent==2.0) {
-      for (int b=0; b<nBatch; b++) {
-         fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d, L2-norm squared  = %f\n",
-               getMessage(), timevalue, b, nk, values.at(b));
+      else if (exponent==2.0) {
+         for (int b=0; b<nBatch; b++) {
+            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d, L2-norm squared  = %f\n",
+                  getMessage(), timevalue, b, nk, values.at(b));
+         }
       }
-   }
-   else {
-      for (int b=0; b<nBatch; b++) {
-         fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d, L2-norm^%f = %f\n",
-               getMessage(), timevalue, b, nk, exponent, values.at(b));
+      else {
+         for (int b=0; b<nBatch; b++) {
+            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d, L2-norm^%f = %f\n",
+                  getMessage(), timevalue, b, nk, exponent, values.at(b));
+         }
       }
+      fflush(outputstream->fp);
    }
-   fflush(outputstream->fp);
    return PV_SUCCESS;
 }
 
