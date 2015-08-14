@@ -7,11 +7,9 @@ while getopts ":plf" opt; do
             ;;
 	l) 
 	    LEGEND=true
-	    echo "legend = true!"
 	    ;;
 	f)
 	    FILEWRITE=true
-	    echo "Filewrite = true!"
 	    ;;
     esac
 done
