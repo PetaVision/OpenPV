@@ -7,6 +7,7 @@
 
 #include "ColumnEnergyProbe.hpp"
 #include "BaseProbe.hpp"
+#include <limits>
 
 namespace PV {
 
