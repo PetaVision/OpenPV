@@ -742,8 +742,8 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_initializeFromCheckpointFlag(ioFlag);
    // ioParam_numAxonalArbors(ioFlag); // read by parent class BaseConnection
    // ioParam_plasticityFlag(ioFlag); // read by parent class BaseConnection
-   ioParam_triggerFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
+   ioParam_triggerFlag(ioFlag);
    ioParam_triggerOffset(ioFlag);
    ioParam_weightUpdatePeriod(ioFlag);
    ioParam_initialWeightUpdateTime(ioFlag);
@@ -918,25 +918,57 @@ void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
 //   parent->ioParamValue(ioFlag, name, "plasticityFlag", &plasticityFlag, true/*default value*/);
 //}
 
-void HyPerConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag){
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   if(plasticityFlag){
-      parent->ioParamValue(ioFlag, name, "triggerFlag", &triggerFlag, triggerFlag);
-   }
-   else {
-      if (ioFlag == PARAMS_IO_READ) {
-         triggerFlag = false;
-         parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", triggerFlag);
-      }
-   }
-}
 
 void HyPerConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
-      assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
-      if (triggerFlag) {
-         parent->ioParamStringRequired(ioFlag, name, "triggerLayerName", &triggerLayerName);
+      parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
+      if (ioFlag==PARAMS_IO_READ) {
+         if (triggerLayerName && !strcmp(name, triggerLayerName)) {
+            if (parent->columnId()==0) {
+               fprintf(stderr, "%s \"%s\" error: triggerLayerName cannot be the same as the name of the layer itself.\n",
+                     parent->parameters()->groupKeywordFromName(name), name);
+            }
+            MPI_Barrier(parent->icCommunicator()->communicator());
+            exit(EXIT_FAILURE);
+         }
+         triggerFlag = (triggerLayerName!=NULL && triggerLayerName[0]!='\0');
+      }
+   }
+}
+
+// triggerFlag was deprecated Aug 17, 2015.
+// Setting triggerLayerName to a nonempty string has the effect of triggerFlag=true, and
+// setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
+// While triggerFlag is being deprecated, it is an error for triggerFlag to be false
+// and triggerLayerName to be a nonempty string.
+void HyPerConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
+   if (plasticityFlag) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+      if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Connection \"%s\" warning: triggerFlag has been deprecated.\n", name);
+         }
+         bool flagFromParams = false;
+         parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
+         if (flagFromParams != triggerFlag) {
+            if (parent->columnId()==0) {
+               fprintf(stderr, "Connection \"%s\" Error: triggerLayerName=", name);
+               if (triggerLayerName) { fprintf(stderr, "\"%s\"", triggerLayerName); }
+               else { fprintf(stderr, "NULL"); }
+               fprintf(stderr, " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
+                     triggerFlag ? "true" : "false", flagFromParams ? "true" : "false");
+            }
+            MPI_Barrier(parent->icCommunicator()->communicator());
+            exit(EXIT_FAILURE);
+         }
+         else {
+            if (parent->columnId()==0) {
+               fprintf(stderr, "   If triggerLayerName is a nonempty string, triggering will be on;\n");
+               fprintf(stderr, "   if triggerLayerName is empty or null, triggering will be off.\n");
+            }
+         }
       }
    }
 }
@@ -944,7 +976,7 @@ void HyPerConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
    if (plasticityFlag) {
-      assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
       if (triggerFlag) {
          parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
          if(triggerOffset < 0){
@@ -957,17 +989,17 @@ void HyPerConn::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
-   if (plasticityFlag && !triggerFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   if (plasticityFlag && !triggerLayerName) {
       parent->ioParamValue(ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod, parent->getDeltaTime());
    }
 }
 
 void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    initialWeightUpdateTime = parent->getStartTime();
-   if (plasticityFlag && !triggerFlag) {
+   if (plasticityFlag && !triggerLayerName) {
       parent->ioParamValue(ioFlag, name, "initialWeightUpdateTime", &initialWeightUpdateTime, initialWeightUpdateTime, true/*warnIfAbsent*/);
    }
    if (ioFlag==PARAMS_IO_READ) {
@@ -1469,7 +1501,7 @@ int HyPerConn::communicateInitInfo() {
    //}
 
    //Trigger stuff
-   if(triggerFlag){
+   if(triggerLayerName){
       triggerLayer = parent->getLayerFromName(triggerLayerName);
       if (triggerLayer==NULL) {
          if (parent->columnId()==0) {
@@ -3006,8 +3038,7 @@ bool HyPerConn::needUpdate(double time, double dt){
    if( !plasticityFlag ) {
       return false;
    }
-   if(triggerFlag){
-      assert(triggerLayer);
+   if(triggerLayer){
       double nextUpdateTime = triggerLayer->getNextUpdateTime();
       //never update flag
       if(nextUpdateTime == -1){
@@ -3478,7 +3509,7 @@ int HyPerConn::updateWeights(int arborId)
 
 double HyPerConn::computeNewWeightUpdateTime(double time, double currentUpdateTime) {
    //Only called if plasticity flag is set
-   if (!triggerFlag) {
+   if (!triggerLayer) {
       while(time >= weightUpdateTime){
          weightUpdateTime += weightUpdatePeriod;
       }
