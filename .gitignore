@@ -7,3 +7,5 @@ Gemfile
 Gemfile.lock
 _site/
 subdirectories.txt
+
+.DS_Store
