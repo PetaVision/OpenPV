@@ -499,7 +499,7 @@ int applyGSyn_ISTALayer(int nbatch, int numNeurons,
       sign = 0;
     else
       sign = activityBatch[kex]/fabsf(activityBatch[kex]);
-    VBatch[k] = (dtAdapt[b]/tau) * (GSynErrorBatch[k] - (VThresh * sign));
+    VBatch[k] += (dtAdapt[b]/tau) * (GSynErrorBatch[k] - (VThresh * sign));
   }
   //else {                                                                                                                             
   //      V[k] = exp_tau * V[k] + (1 - exp_tau) * GSynError[k];}                                                                       
@@ -543,7 +543,7 @@ int applyGSyn_ISTALayer2(int nbatch, int numNeurons,
       sign = 0;
     else
       sign = activityBatch[kex]/fabsf(activityBatch[kex]);
-    VBatch[k] = (dtAdapt[b]/tau) * ( (GSynErrorBatch[k] - GSynError2Batch[k]) - (VThresh * sign) );
+    VBatch[k] += (dtAdapt[b]/tau) * ( (GSynErrorBatch[k] - GSynError2Batch[k]) - (VThresh * sign) );
   }
   //else {                                                                                                                             
   //      V[k] = exp_tau * V[k] + (1 - exp_tau) * (GSynError[k]- GSynError2[k]);}                                                      

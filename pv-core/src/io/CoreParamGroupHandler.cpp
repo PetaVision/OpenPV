@@ -102,8 +102,15 @@
 #include "../connections/BiLinearConn.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 
+#include "ColProbe.hpp"
+#include "ColumnEnergyProbe.hpp"
+#include "FirmThresholdCostFnProbe.hpp"
+#include "L0NormProbe.hpp"
+#include "L1NormProbe.hpp"
 #include "L2NormProbe.hpp"
+#ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
 #include "LayerFunctionProbe.hpp"
+#endif // OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "LogLatWTAProbe.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
@@ -122,7 +129,6 @@
 #include "../weightinit/InitSmartWeights.hpp"
 #include "../weightinit/InitUniformRandomWeights.hpp"
 #include "../weightinit/InitGaussianRandomWeights.hpp"
-// #include "../weightinit/InitGaborWeights.hpp" // Marked obsolete Feb 13, 2015.  GaborWeights moved to InitWeightsTest.
 #include "../weightinit/InitOneToOneWeights.hpp"
 #include "../weightinit/InitOneToOneWeightsWithDelays.hpp"
 #include "../weightinit/InitIdentWeights.hpp"
@@ -245,13 +251,21 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 
          // ColProbes
          {"ColProbe", ColProbeGroupType},
+         {"ColumnEnergyProbe", ColProbeGroupType},
+#ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  GenColProbe is being replaced by ColumnEnergyProbe
          {"GenColProbe", ColProbeGroupType},
+#endif // OBSOLETE // Marked obsolete Aug 12, 2015.  GenColProbe is being replaced by ColumnEnergyProbe
 
          // Probes
          // // Layer probes
          {"LayerProbe", ProbeGroupType},
+         {"FirmThresholdCostFnProbe", ProbeGroupType},
+         {"L0NormProbe", ProbeGroupType},
+         {"L1NormProbe", ProbeGroupType},
          {"L2NormProbe", ProbeGroupType},
+#ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
          {"LayerFunctionProbe", ProbeGroupType},
+#endif // OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"LogLatWTAProbe", ProbeGroupType},
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
@@ -274,7 +288,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"SmartWeight", WeightInitializerGroupType},
          {"UniformRandomWeight", WeightInitializerGroupType},
          {"GaussianRandomWeight", WeightInitializerGroupType},
-         // {"GaborWeight", WeightInitializerGroupType}, // Moved to obsolete Feb 13, 2015.
          {"IdentWeight", WeightInitializerGroupType},
          {"OneToOneWeights", WeightInitializerGroupType},
          {"OneToOneWeightsWithDelays", WeightInitializerGroupType},
@@ -616,9 +629,14 @@ ColProbe * CoreParamGroupHandler::createColProbe(char const * keyword, char cons
    else if( !strcmp(keyword, "ColProbe") ) {
       addedColProbe = new ColProbe(name, hc);
    }
+   else if (!strcmp(keyword, "ColumnEnergyProbe")) {
+      addedColProbe = new ColumnEnergyProbe(name, hc);
+   }
+#ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  GenColProbe is being replaced by ColumnEnergyProbe
    else if( !strcmp(keyword, "GenColProbe") ) {
       addedColProbe = new GenColProbe(name, hc);
    }
+#endif // OBSOLETE // Marked obsolete Aug 12, 2015.  GenColProbe is being replaced by ColumnEnergyProbe
 
    if (addedColProbe==NULL && getGroupType(keyword)==ColProbeGroupType) {
       if (hc->columnId()==0) {
@@ -642,12 +660,23 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
       fprintf(stderr, "LayerProbe \"%s\": Abstract class LayerProbe cannot be instantiated.\n", name);
       addedProbe = NULL;
    }
+   else if( !strcmp(keyword, "FirmThresholdCostFnProbe") ) {
+      addedProbe = new FirmThresholdCostFnProbe(name, hc);
+   }
+   else if( !strcmp(keyword, "L0NormProbe") ) {
+      addedProbe = new L0NormProbe(name, hc);
+   }
+   else if( !strcmp(keyword, "L1NormProbe") ) {
+      addedProbe = new L1NormProbe(name, hc);
+   }
    else if( !strcmp(keyword, "L2NormProbe") ) {
       addedProbe = new L2NormProbe(name, hc);
    }
+#ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
    else if( !strcmp(keyword, "LayerFunctionProbe") ) {
       addedProbe = new LayerFunctionProbe(name, hc);
    }
+#endif // OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
 #ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "LogLatWTAProbe") ) {
       addedProbe = new LogLatWTAProbe(name, hc);
@@ -716,10 +745,6 @@ InitWeights * CoreParamGroupHandler::createWeightInitializer(char const * keywor
    else if (!strcmp(keyword, "GaussianRandomWeight")) {
       weightInitializer = new InitGaussianRandomWeights(name, hc);
    }
-   // GaborWeight marked obsolete Feb 13, 2015.  Only InitWeightsTest was using GaborWeights, so it was moved there as a test of using InitWeights objects defined outside of trunk.
-   // else if (!strcmp(keyword, "GaborWeight")) {
-   //    weightInitializer = new InitGaborWeights(name, hc);
-   // }
    else if (!strcmp(keyword, "IdentWeight")) {
       weightInitializer = new InitIdentWeights(name, hc);
    }
