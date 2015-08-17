@@ -64,8 +64,8 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    int const up = halo->up;
    double sum = 0.0;
    pvpotentialdata_t threshpluswidth = VThresh+VWidth;
-   double a2 = 0.5f*VThresh/VWidth;
-   double amax=0.5f*VWidth*VThresh;
+   double amax=0.5f*VWidth;
+   double a2 = 0.5/threshpluswidth;
    pvadata_t const * aBuffer = getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
    #ifdef PV_USE_OPENMP_THREADS
    #pragma omp parallel for
@@ -74,7 +74,7 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
       int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
       pvadata_t a = fabsf(aBuffer[kex]);
       if (a>=VThresh) { sum += amax; }
-      else { sum += a*(VThresh - a2*a); }
+      else { sum += a*(1 - a2*a); }
    }
    return sum;
 }
