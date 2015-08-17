@@ -261,7 +261,7 @@ FirmThresholdCostFnProbe "Cost_Function_Probe" = {
     probeOutputFile                     = "cost_function.txt";
     triggerFlag                         = false;
     energyProbe                         = "Total_Energy_Probe";
-    VThresh                             = 0.025;
-    VWidth                              = 0.100;
+    // VThresh                             = 0.025;
+    // VWidth                              = 0.100;
     coefficient                         = 0.025;
 };

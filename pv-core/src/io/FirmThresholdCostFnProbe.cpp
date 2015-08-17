@@ -52,6 +52,20 @@ void FirmThresholdCostFnProbe::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
 int FirmThresholdCostFnProbe::communicateInitInfo() {
    LayerProbe::communicateInitInfo();
    ANNLayer * targetANNLayer = dynamic_cast<ANNLayer *>(getTargetLayer());
+   if (targetANNLayer!=NULL) {
+      if (!getParent()->parameters()->present(getName(), "VThresh")) {
+         VThresh=targetANNLayer->getVThresh();
+      }
+      if (!getParent()->parameters()->present(getName(), "VWidth")) {
+         VWidth=targetANNLayer->getVWidth();
+      }
+   }
+   else {
+      // Reread VThresh and VWidth commands, this time warning if they are not absent.
+      parent->ioParamValue(PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh/*default*/, true/*warnIfAbsent*/);
+      parent->ioParamValue(PARAMS_IO_READ, name, "VThresh", &VThresh, VThresh/*default*/, true/*warnIfAbsent*/);
+   }
+   return PV_SUCCESS;
 }
 
 double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
