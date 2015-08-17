@@ -110,10 +110,11 @@ HyPerLCALayer "V1" = {
     writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
-    VThresh                             = 0.025;
+    VThresh                             = 0.25; // This VThresh is much larger than we usually use, to make the graphs produced
+by analysis/energy_graph.m comprehensible.
     AMin                                = 0;
     AMax                                = infinity;
-    AShift                              = 0.025;
+    AShift                              = 0.25;
     VWidth                              = 0;
     clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
@@ -259,5 +260,5 @@ L1NormProbe "Cost_Function_Probe" = {
     probeOutputFile                     = "cost_function.txt";
     triggerFlag                         = false;
     energyProbe                         = "Total_Energy_Probe";
-    coefficient                         = 0.025;
+    coefficient                         = 0.25;
 };
