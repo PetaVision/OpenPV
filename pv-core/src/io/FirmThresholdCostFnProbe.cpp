@@ -7,6 +7,7 @@
 
 #include "FirmThresholdCostFnProbe.hpp"
 #include "../columns/HyPerCol.hpp"
+#include "../layers/ANNLayer.hpp" // To get VThresh and VWidth from targetLayer if it's an ANNLayer
 
 namespace PV {
 
@@ -41,14 +42,16 @@ int FirmThresholdCostFnProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void FirmThresholdCostFnProbe::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
-   getParent()->ioParamValue(ioFlag, name, "VThresh", &VThresh, VThresh/*default*/, true/*warnIfAbsent*/);
-   // TODO: Consider this possibility: don't warn if absent, but check during communicate if targetLayer is an ANNLayer,
-   // and use its VWidth and VThresh.
+   getParent()->ioParamValue(ioFlag, name, "VThresh", &VThresh, VThresh/*default*/, false/*warnIfAbsent*/);
 }
 
 void FirmThresholdCostFnProbe::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth/*default*/, true/*warnIfAbsent*/);
-   // TODO: sanity checking on values of VThresh and VWidth.
+   parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth/*default*/, false/*warnIfAbsent*/);
+}
+
+int FirmThresholdCostFnProbe::communicateInitInfo() {
+   LayerProbe::communicateInitInfo();
+   ANNLayer * targetANNLayer = dynamic_cast<ANNLayer *>(getTargetLayer());
 }
 
 double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
