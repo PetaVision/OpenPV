@@ -21,7 +21,7 @@ HyPerCol "column" = {
     dtChangeMax                         = 0.05;
     dtChangeMin                         = 0;
     dtMinToleratedTimeScale             = 0.0001;
-    stopTime                            = 1000;
+    stopTime                            = 2000;
     progressInterval                    = 1000;
     writeProgressToErr                  = false;
     verifyWrites                        = true;
@@ -64,7 +64,7 @@ Movie "input" = {
     useImageBCflag                      = false;
     padValue                            = 0;
     autoResizeFlag                      = false;
-    displayPeriod                       = 200;
+    displayPeriod                       = 2000;
     echoFramePathnameFlag               = true;
     batchMethod                         = "bySpecified";
     start_frame_index                   = [0.000000];
@@ -110,8 +110,7 @@ ISTALayer "V1" = {
     writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
-    VThresh                             = 0.25; // This VThresh is much larger than we usually use, to make the graphs produced
-by analysis/energy_graph.m comprehensible.
+    VThresh                             = 0.25; // This VThresh is much larger than we usually use, to make the graphs produced by analysis/energy_graph.m comprehensible.
     clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
 };
