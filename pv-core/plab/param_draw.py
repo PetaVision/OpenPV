@@ -197,15 +197,37 @@ class Param_Parser(Param_Reader):
             if 'originalConnName' in conn.params:
                 if conn['originalConnName'] in self.conn_dict:
                     conn.label = self.original_conn_label(conn)
+                    if conn.type == 'TransposePoolingConn':
+                        pool_type = conn['pvpatchAccumulateType']
+                        if pool_type == 'maxpooling':
+                            conn.label = ('MAX_' + conn.label + '^T')
+                        if pool_type == 'sumpooling':
+                            conn.label = ('SUM_' + conn.label + '^T')
                 else:
                     print('Warning: originalConn "' + conn['originalConnName'] + '" of ' + conn.name + ' not found.') 
+            
+        for i in self.conn_dict.values():
+            if i.type == 'PoolingConn':
+                pool_type = i['pvpatchAccumulateType']
+                if pool_type == 'maxpooling':
+                    i.label = ('MAX_' + i.label)
+                elif pool_type == 'sumpooling':
+                    i.label = ('SUM_' + i.label)
 
     def make_original_layer_conns(self):
         for i in self.layer_dict.values():
             if 'originalLayerName' in i.params:
-                c = Conn(i.name,'LayerCopy')
+                c = Conn(i.name,'OriginalLayerCopy')
                 c.post = i.name
                 c.pre = i['originalLayerName']
+                self.conn_dict[c.name] = c
+
+    def make_pooling_layer_conns(self):
+        for i in self.conn_dict.values():
+            if 'postIndexLayerName' in i.params:
+                c = Conn((i['postIndexLayerName'] + '_conn'), 'IndexLayerCopy')
+                c.post =  i.post
+                c.pre = i['postIndexLayerName']
                 self.conn_dict[c.name] = c
 
     def parse(self):
@@ -213,6 +235,7 @@ class Param_Parser(Param_Reader):
         self.assign_labels()
         self.calc_scale()
         self.make_original_layer_conns()
+        self.make_pooling_layer_conns()
         return [self.layer_dict,self.conn_dict,self.layers_in_order,self.conns_in_order]
 
     def __init__(self, filename, **kwargs):
@@ -233,9 +256,9 @@ def mermaid_writeout(parser_output, colorby, legend):
     conn_dict = parser_output[1]
     layers_in_order = parser_output[2]
     conns_in_order = parser_output[3]
-    dash_type,dash_text = 'TransposeConn',',stroke-dasharray: 10, 10'
+    dash_type,dash_text = ['TransposeConn','TransposePoolingConn'],',stroke-dasharray: 10, 10'
     dot_type,dot_text = 'IdentConn',',stroke-dasharray: 2, 2'
-    blue_type,blue_code = 'LayerCopy',',stroke:#00f'
+    blue_type,blue_code = ['IndexLayerCopy','OriginalLayerCopy'],',stroke:#00f'
     thick_param,thick_val,thick = 'plasticityFlag','true',',stroke-width:4px'
     green_param,green_val,green_code = 'channelCode','0',',stroke:#0f0'
     red_param,red_val,red_code = 'channelCode','1',',stroke:#f00'
@@ -336,11 +359,11 @@ def mermaid_writeout(parser_output, colorby, legend):
             if i[thick_param] == thick_val:
                 size = thick
 
-        if i.type == dash_type:
+        if i.type in dash_type:
             dasharray = dash_text
         elif i.type == dot_type:
             dasharray = dot_text
-        if i.type == blue_type:
+        if i.type in blue_type:
             color = blue_code
 
         if green_param in i.params:
