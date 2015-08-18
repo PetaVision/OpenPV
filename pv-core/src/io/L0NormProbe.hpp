@@ -11,6 +11,11 @@
 #include "AbstractNormProbe.hpp"
 
 namespace PV {
+
+/**
+ * A layer probe for returning the number of elements in its target layer's activity buffer
+ * above a certain threshold (often referred to as the L0-norm).
+ */
 class L0NormProbe : public AbstractNormProbe {
 public:
    L0NormProbe(const char * probeName, HyPerCol * hc);
@@ -23,7 +28,19 @@ protected:
    virtual int outputState(double timevalue);
    
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   /** 
+    * List of parameters for the L0NormProbe class
+    * @name L0NormProbe Parameters
+    * @{
+    */
+
+   /**
+    * @brief nnzThreshold: The threshold for computing the L0-norm.
+    * getValue(t, index) returns the number of targetLayer neurons whose
+    * absolute value is greater than nnzThreshold.
+    */
    virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);   
+   /** @} */
 
 private:
    int initL0NormProbe_base() {return PV_SUCCESS;}

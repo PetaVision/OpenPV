@@ -11,6 +11,9 @@
 #include "AbstractNormProbe.hpp"
 
 namespace PV {
+/**
+ * A layer probe for returning the L1-norm of its target layer's activity buffer
+ */
 class L1NormProbe : public AbstractNormProbe {
 public:
    L1NormProbe(const char * probeName, HyPerCol * hc);
@@ -19,6 +22,11 @@ public:
 protected:
    L1NormProbe();
    int initL1NormProbe(const char * probeName, HyPerCol * hc);
+   
+   /**
+    * For each MPI process, getValueInternal returns the sum of the absolute
+    * values of the activities in the restricted space of that MPI process.
+    */
    virtual double getValueInternal(double timevalue, int index);
    virtual int outputState(double timevalue);
 
