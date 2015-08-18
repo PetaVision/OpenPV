@@ -18,7 +18,7 @@ int main(int argc, char * argv[])
    int err = 0;
    PVLayerLoc loc;
 
-   PV::Communicator * comm = new PV::Communicator(argc, argv, 1);
+   PV::Communicator * comm = new PV::Communicator(argc, argv);
 
    int nxProc = comm->numCommColumns();
    int nyProc = comm->numCommRows();

@@ -83,12 +83,12 @@ HyPerCol::~HyPerCol()
    free(layers);
 
    //if (ownsParams) delete params;
-   delete icComm;
+   //delete icComm;
 
    //if (ownsInterColComm) {
    //}
    //else {
-      icComm->clearPublishers();
+   //   icComm->clearPublishers();
    //}
 
    delete runTimer;
@@ -269,7 +269,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    //free(param_file);
    //param_file = NULL;
 
-   //this->icComm = initObj->getComm();
+   this->icComm = initObj->getComm();
    this->params = initObj->getParams();
    if(!this->params){
       std::cout << "Parameter file (-p) must be specified to the HyPerCol\n";
@@ -277,11 +277,11 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    }
 
    //Grab nbatch here, but don't set yet, as it's being read again in ioParamsFillGroup
-   int numBatches = 0;
-   ioParamValue(PARAMS_IO_READ, name, "nbatch", &numBatches, 1);
+   //int numBatches = 0;
+   //ioParamValue(PARAMS_IO_READ, name, "nbatch", &numBatches, 1);
    
-   //Allocate communicator
-   icComm = new InterColComm(argc, argv, numBatches);
+   ////Allocate communicator
+   //icComm = new InterColComm(argc, argv, numBatches);
 
    int rank = icComm->globalCommRank();
 
@@ -293,9 +293,10 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    bool reqrtn = false; // Default to not require pressing return to continue
    int numRows = 1;
    int numColumns = 1;
+   int batchWidth = 1;
    bool paramusage[argc]; // array to indicate whether parse_options recognized the argument.
    parse_options(argc, argv, paramusage, &reqrtn, &outputPath, &param_file, &log_file,
-                 &gpu_devices, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads, &numRows, &numColumns);
+                 &gpu_devices, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads, &numRows, &numColumns, &batchWidth);
 
    //Set up log file if it exists
    if(log_file){
@@ -417,7 +418,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
 
 
    warmStart = (restart!=0);
-   if(working_dir && globalRank()==0) {
+   if(working_dir && columnId()==0) {
       int status = chdir(working_dir);
       if(status) {
          fprintf(stderr, "Unable to switch directory to \"%s\"\n", working_dir);
@@ -467,7 +468,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    currentStep = initialStep;
    finalStep = (long int) nearbyint(stopTime/deltaTimeBase);
    nextProgressTime = startTime + progressInterval;
-   if (globalRank()==0 && dtAdaptFlag && writeTimescales){
+   if (columnId()==0 && dtAdaptFlag && writeTimescales){
       size_t timeScaleFileNameLen = strlen(outputPath) + strlen("/HyPerCol_timescales.txt");
       char timeScaleFileName[timeScaleFileNameLen+1];
       int charsneeded = snprintf(timeScaleFileName, timeScaleFileNameLen+1, "%s/HyPerCol_timescales.txt", outputPath);
@@ -518,7 +519,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
          fprintf(stderr, "%s error: unable to allocate memory for path to checkpoint read directory.\n", argv[0]);
          exit(EXIT_FAILURE);
       }
-      if (globalRank()==0) {
+      if (columnId()==0) {
          struct stat statbuf;
          // Look for directory "Last" in outputPath directory
          std::string cpDirString = outputPath;
@@ -595,7 +596,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    }
    if (checkpointReadDir) {
       checkpointReadFlag = true;
-      printf("Global rank %d process setting checkpointReadDir to %s.\n", globalRank(), checkpointReadDir);
+      printf("Rank %d process setting checkpointReadDir to %s.\n", columnId(), checkpointReadDir);
    }
 
    // run only on GPU for now
@@ -673,7 +674,7 @@ int HyPerCol::ioParams(enum ParamsIOFlag ioFlag) {
 }
 
 int HyPerCol::ioParamsStartGroup(enum ParamsIOFlag ioFlag, const char * group_name) {
-   if (ioFlag == PARAMS_IO_WRITE && globalRank()==0) {
+   if (ioFlag == PARAMS_IO_WRITE && columnId()==0) {
       assert(printParamsStream);
       assert(luaPrintParamsStream);
       const char * keyword = params->groupKeywordFromName(group_name);
@@ -726,7 +727,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 int HyPerCol::ioParamsFinishGroup(enum ParamsIOFlag ioFlag) {
-   if (ioFlag == PARAMS_IO_WRITE && globalRank()==0) {
+   if (ioFlag == PARAMS_IO_WRITE && columnId()==0) {
       assert(printParamsStream);
       assert(luaPrintParamsStream);
       fprintf(printParamsStream->fp, "};\n");
@@ -780,7 +781,7 @@ void HyPerCol::ioParamString(enum ParamsIOFlag ioFlag, const char * group_name, 
    case PARAMS_IO_READ:
       param_string = params->stringValue(group_name, param_name, warnIfAbsent);
       if (param_string==NULL && defaultValue !=NULL) {
-         if (globalRank()==0 && warnIfAbsent==true) {
+         if (columnId()==0 && warnIfAbsent==true) {
             fprintf(stderr, "Using default value \"%s\" for string parameter \"%s\" in group \"%s\"\n", defaultValue, param_name, group_name);
          }
          param_string = defaultValue;
@@ -1015,6 +1016,11 @@ void HyPerCol::ioParam_ny(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "nbatch", &nbatchGlobal, nbatchGlobal);
+   //Make sure numCommBatches is a multiple of nbatch specified in the params file
+   if(nbatchGlobal % icComm->numCommBatches() != 0){
+      std::cout << "Batch width (" << icComm->numCommBatches() << ") must be a multiple of the total number of batches (" << nbatchGlobal << ")\n";
+      exit(-1);
+   }
    nbatch = nbatchGlobal/icComm->numCommBatches();
 }
 
@@ -1242,7 +1248,7 @@ void HyPerCol::ioParam_errorOnNotANumber(enum ParamsIOFlag ioFlag) {
 
 template <typename T>
 void HyPerCol::writeParam(const char * param_name, T value) {
-   if (globalRank()==0) {
+   if (columnId()==0) {
       assert(printParamsStream && printParamsStream->fp);
       assert(luaPrintParamsStream && luaPrintParamsStream->fp);
       std::stringstream vstr("");
@@ -1263,7 +1269,7 @@ template void HyPerCol::writeParam<unsigned int>(const char * param_name, unsign
 template void HyPerCol::writeParam<bool>(const char * param_name, bool value);
 
 void HyPerCol::writeParamString(const char * param_name, const char * svalue) {
-   if (globalRank()==0) {
+   if (columnId()==0) {
       assert(printParamsStream!=NULL && printParamsStream->fp!=NULL);
       assert(luaPrintParamsStream && luaPrintParamsStream->fp);
       if (svalue!=NULL) {
@@ -1279,7 +1285,7 @@ void HyPerCol::writeParamString(const char * param_name, const char * svalue) {
 
 template <typename T>
 void HyPerCol::writeParamArray(const char * param_name, const T * array, int arraysize) {
-   if (globalRank()==0) {
+   if (columnId()==0) {
       assert(printParamsStream!=NULL && printParamsStream->fp!=NULL && arraysize>=0);
       assert(luaPrintParamsStream!=NULL && luaPrintParamsStream->fp!=NULL);
       assert(arraysize>=0);
@@ -1308,7 +1314,7 @@ int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
    // result to the rest of the processes.
    assert(pathstat);
 
-   int rank = globalRank();
+   int rank = columnId();
    int status;
    int errorcode;
    if( rank == 0 ) {
@@ -1316,11 +1322,11 @@ int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
       if( status ) errorcode = errno;
    }
 #ifdef PV_USE_MPI
-   MPI_Bcast(&status, 1, MPI_INT, 0, icCommunicator()->globalCommunicator());
+   MPI_Bcast(&status, 1, MPI_INT, 0, icCommunicator()->communicator());
    if( status ) {
-      MPI_Bcast(&errorcode, 1, MPI_INT, 0, icCommunicator()->globalCommunicator());
+      MPI_Bcast(&errorcode, 1, MPI_INT, 0, icCommunicator()->communicator());
    }
-   MPI_Bcast(pathstat, sizeof(struct stat), MPI_CHAR, 0, icCommunicator()->globalCommunicator());
+   MPI_Bcast(pathstat, sizeof(struct stat), MPI_CHAR, 0, icCommunicator()->communicator());
 #endif // PV_USE_MPI
    return status ? errorcode : 0;
 }
@@ -1362,7 +1368,7 @@ static inline int _mkdir(const char *dir) {
 int HyPerCol::ensureDirExists(const char * dirname) {
    // see if path exists, and try to create it if it doesn't.
    // Since only rank 0 process should be reading and writing, only rank 0 does the mkdir call
-   int rank = globalRank();
+   int rank = columnId();
    struct stat pathstat;
    int resultcode = checkDirExists(dirname, &pathstat);
    int numAttempts = 5;
@@ -2003,7 +2009,7 @@ int HyPerCol::advanceTime(double sim_time)
 {
    if (simTime >= nextProgressTime) {
       nextProgressTime += progressInterval;
-      if (globalRank() == 0) {
+      if (columnId() == 0) {
          FILE * progressStream = writeProgressToErr ? stderr : stdout;
          time_t current_time;
          time(&current_time);
@@ -2019,7 +2025,7 @@ int HyPerCol::advanceTime(double sim_time)
      //deltaTimeAdapt = adaptTimeScale();
      //deltaTimeAdapt is now a member variable
      adaptTimeScale();
-     if(writeTimescales && globalRank() == 0) {
+     if(writeTimescales && columnId() == 0) {
          timeScaleStream << "sim_time = " << sim_time << "\n";
          for(int b = 0; b < nbatch; b++){
             timeScaleStream << "\tbatch = " << b << ", timeScale = " << timeScale[b] << ", " << "timeScaleTrue = " << timeScaleTrue[b] << std::endl;
@@ -2057,7 +2063,7 @@ int HyPerCol::advanceTime(double sim_time)
    }
 
 
-   if (globalRank()==0) {
+   if (columnId()==0) {
       int sigstatus = PV_SUCCESS;
       sigset_t pollusr1;
 
@@ -2072,7 +2078,7 @@ int HyPerCol::advanceTime(double sim_time)
       }
    }
    // Balancing MPI_Recv is after the for-loop over phases.  Is this better than MPI_Bcast?  Should it be MPI_Isend?
-   if (globalRank()==0) {
+   if (columnId()==0) {
       for (int k=1; k<numberOfGlobalColumns(); k++) {
          MPI_Send(&checkpointSignal, 1/*count*/, MPI_INT, k/*destination*/, 99/*tag*/, icComm->globalCommunicator());
       }
@@ -2259,7 +2265,7 @@ int HyPerCol::advanceTime(double sim_time)
    }
 
    // Balancing MPI_Send is before the for-loop over phases.  Is this better than MPI_Bcast?
-   if (globalRank()!=0) {
+   if (columnId()!=0) {
       MPI_Recv(&checkpointSignal, 1/*count*/, MPI_INT, 0/*source*/, 99/*tag*/, icCommunicator()->globalCommunicator(), MPI_STATUS_IGNORE);
    }
 
@@ -2323,7 +2329,7 @@ int HyPerCol::checkpointRead() {
    struct timestamp_struct timestamp;
    size_t timestamp_size = sizeof(struct timestamp_struct);
    assert(sizeof(struct timestamp_struct) == sizeof(long int) + sizeof(double));
-   if( globalRank()==0 ) {
+   if( columnId()==0 ) {
       char timestamppath[PV_PATH_MAX];
       int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", checkpointReadDir);
       if (chars_needed >= PV_PATH_MAX) {
@@ -2369,7 +2375,7 @@ int HyPerCol::checkpointRead() {
       size_t timescale_size = sizeof(struct timescale_struct) * nbatchGlobal;
       assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
       // read timeScale info
-      if(globalRank()==0 ) {
+      if(columnId()==0 ) {
          char timescalepath[PV_PATH_MAX];
          int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", checkpointReadDir);
          if (chars_needed >= PV_PATH_MAX) {
@@ -2425,7 +2431,7 @@ int HyPerCol::checkpointRead() {
 }
 
 int HyPerCol::writeTimers(FILE* stream){
-   int rank=globalRank();
+   int rank=columnId();
    if (rank==0) {
       runTimer->fprint_time(stream);
       checkpointTimer->fprint_time(stream);
@@ -2448,7 +2454,7 @@ int HyPerCol::writeTimers(FILE* stream){
 
 int HyPerCol::checkpointWrite(const char * cpDir) {
    checkpointTimer->start();
-   if (globalRank()==0) {
+   if (columnId()==0) {
       printf("Checkpointing to directory \"%s\" at simTime = %f\n", cpDir, simTime);
       struct stat timeinfostat;
       char timeinfofilename[PV_PATH_MAX];
@@ -2477,7 +2483,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
    }
    
    // Timers
-   if (globalRank()==0) {
+   if (columnId()==0) {
       std::string timerpathstring = cpDir;
       timerpathstring += "/";
       timerpathstring += "timers.txt";

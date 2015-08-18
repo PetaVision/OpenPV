@@ -706,7 +706,7 @@ ParameterSweep::ParameterSweep() {
    paramName = NULL;
    numValues = 0;
    currentBufferSize = 0;
-   type = PARAMSWEEP_UNDEF;
+   type = SWEEP_UNDEF;
    valuesNumber = NULL;
    valuesString = NULL;
 }
@@ -739,6 +739,8 @@ int ParameterSweep::setGroupAndParameter(const char * groupname, const char * pa
    else {
       groupName = strdup(groupname);
       paramName = strdup(parametername);
+      //Check for duplicates
+
    }
    return status;
 }
@@ -746,9 +748,9 @@ int ParameterSweep::setGroupAndParameter(const char * groupname, const char * pa
 int ParameterSweep::pushNumericValue(double val) {
    int status = PV_SUCCESS;
    if (numValues==0) {
-      type = PARAMSWEEP_NUMBER;
+      type = SWEEP_NUMBER;
    }
-   assert(type==PARAMSWEEP_NUMBER);
+   assert(type==SWEEP_NUMBER);
    assert(valuesString == NULL);
 
    assert(numValues <= currentBufferSize);
@@ -774,9 +776,9 @@ int ParameterSweep::pushNumericValue(double val) {
 int ParameterSweep::pushStringValue(const char * sval) {
    int status = PV_SUCCESS;
    if (numValues==0) {
-      type = PARAMSWEEP_STRING;
+      type = SWEEP_STRING;
    }
-   assert(type==PARAMSWEEP_STRING);
+   assert(type==SWEEP_STRING);
    assert(valuesNumber == NULL);
 
    assert(numValues <= currentBufferSize);
@@ -802,7 +804,7 @@ int ParameterSweep::pushStringValue(const char * sval) {
 int ParameterSweep::getNumericValue(int n, double * val) {
    int status = PV_SUCCESS;
    assert(valuesNumber != NULL);
-   if ( type != PARAMSWEEP_NUMBER || n<0 || n >= numValues ) {
+   if ( type != SWEEP_NUMBER || n<0 || n >= numValues ) {
       status = PV_FAILURE;
    }
    else {
@@ -814,7 +816,7 @@ int ParameterSweep::getNumericValue(int n, double * val) {
 const char * ParameterSweep::getStringValue(int n) {
    char * str = NULL;
    assert(valuesString != NULL);
-   if ( type == PARAMSWEEP_STRING && n>=0 && n < numValues ) {
+   if ( type == SWEEP_STRING && n>=0 && n < numValues ) {
       str = valuesString[n];
    }
    return str;
@@ -825,9 +827,9 @@ const char * ParameterSweep::getStringValue(int n) {
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(const char * filename, size_t initialSize)
+PVParams::PVParams(const char * filename, size_t initialSize, InterColComm* inIcComm)
 {
-
+   this->icComm = inIcComm;
    initialize(initialSize);
    parseFile(filename);
 }
@@ -836,8 +838,9 @@ PVParams::PVParams(const char * filename, size_t initialSize)
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(size_t initialSize)
+PVParams::PVParams(size_t initialSize, InterColComm* inIcComm)
 {
+   this->icComm = inIcComm;
    initialize(initialSize);
 }
 
@@ -847,8 +850,9 @@ PVParams::PVParams(size_t initialSize)
  * @initialSize
  * @icComm
  */
-PVParams::PVParams(const char * buffer, long int bufferLength, size_t initialSize)
+PVParams::PVParams(const char * buffer, long int bufferLength, size_t initialSize, InterColComm* inIcComm)
 {
+   this->icComm = inIcComm;
    initialize(initialSize);
    parseBuffer(buffer, bufferLength);
 }
@@ -864,10 +868,15 @@ PVParams::~PVParams()
    delete arrayStack;
    delete stringStack;
    delete this->activeParamSweep;
+   delete this->activeBatchSweep;
    for (int i=0; i<numParamSweeps; i++) {
       delete paramSweeps[i];
    }
+   for (int i=0; i<numBatchSweeps; i++) {
+      delete batchSweeps[i];
+   }
    free(paramSweeps); paramSweeps = NULL;
+   free(batchSweeps); batchSweeps = NULL;
 }
 
 /*
@@ -879,8 +888,8 @@ int PVParams::initialize(size_t initialSize) {
    //this->icComm = icComm;
    //Get world rank and size
 #ifdef PV_USE_MPI
-   MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
-   MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+   MPI_Comm_rank(icComm->globalCommunicator(), &worldRank);
+   MPI_Comm_size(icComm->globalCommunicator(), &worldSize);
 #else // PV_USE_MPI
    worldRank = 0;
    worldSize = 1;
@@ -894,8 +903,11 @@ int PVParams::initialize(size_t initialSize) {
    currentParamArray = new ParameterArray(PARAMETERARRAYSTACK_INITIALCOUNT);
 
    numParamSweeps = 0;
+   numBatchSweeps = 0;
    paramSweeps = NULL;
+   batchSweeps = NULL;
    newActiveParamSweep();
+   newActiveBatchSweep();
 #ifdef DEBUG_PARSING
    debugParsing = true;
 #else
@@ -903,7 +915,7 @@ int PVParams::initialize(size_t initialSize) {
 #endif//DEBUG_PARSING
    disable = false;
 
-   return ( groups && stack && stringStack && activeParamSweep /* && fnstack */ ) ? PV_SUCCESS : PV_FAILURE;
+   return ( groups && stack && stringStack && activeParamSweep && activeBatchSweep /* && fnstack */ ) ? PV_SUCCESS : PV_FAILURE;
 }
 
 int PVParams::newActiveParamSweep() {
@@ -911,6 +923,17 @@ int PVParams::newActiveParamSweep() {
    activeParamSweep = new ParameterSweep();
    if (activeParamSweep == NULL) {
       fprintf(stderr, "PVParams::newActiveParamSweep: unable to create activeParamSweep");
+      status = PV_FAILURE;
+      abort();
+   }
+   return status;
+}
+
+int PVParams::newActiveBatchSweep() {
+   int status = PV_SUCCESS;
+   activeBatchSweep = new ParameterSweep();
+   if (activeBatchSweep == NULL) {
+      fprintf(stderr, "PVParams::newActiveBatchSweep: unable to create activeBatchSweep");
       status = PV_FAILURE;
       abort();
    }
@@ -960,7 +983,7 @@ int PVParams::parseFile(const char * filename) {
       int sz = worldSize;
       for( int i=0; i<sz; i++ ) {
          if( i==rootproc ) continue;
-         MPI_Send(paramBuffer, (int) bufferlen, MPI_CHAR, i, 31, MPI_COMM_WORLD);
+         MPI_Send(paramBuffer, (int) bufferlen, MPI_CHAR, i, 31, icComm->globalCommunicator());
       }
 #endif // PV_USE_MPI
    }
@@ -968,7 +991,7 @@ int PVParams::parseFile(const char * filename) {
 #ifdef PV_USE_MPI
       MPI_Status mpi_status;
       int count;
-      MPI_Probe(rootproc, 31, MPI_COMM_WORLD, &mpi_status);
+      MPI_Probe(rootproc, 31, icComm->globalCommunicator(), &mpi_status);
       // int status =
       MPI_Get_count(&mpi_status, MPI_CHAR, &count); //mpi_status._count;
       bufferlen = (size_t) count;
@@ -977,13 +1000,49 @@ int PVParams::parseFile(const char * filename) {
          fprintf(stderr, "PVParams::parseFile: Rank %d process unable to allocate memory for params buffer\n", worldRank);
          abort();
       }
-      MPI_Recv(paramBuffer, (int) bufferlen, MPI_CHAR, rootproc, 31, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Recv(paramBuffer, (int) bufferlen, MPI_CHAR, rootproc, 31, icComm->globalCommunicator(), MPI_STATUS_IGNORE);
 #endif // PV_USE_MPI
    }
 
    int status = parseBuffer(paramBuffer, bufferlen);
    free(paramBuffer);
    return status;
+}
+
+bool PVParams::hasOutputPath(){
+   bool out = false;
+   const char * group_name;
+   for (int k=0; k<numberOfParameterSweeps(); k++) {
+      ParameterSweep * sweep = paramSweeps[k];
+      group_name = sweep->getGroupName();
+      const char * param_name = sweep->getParamName();
+      ParameterGroup * gp = group(group_name);
+      if (gp == NULL) {
+         fprintf(stderr, "PVParams::parseBuffer error: ParameterSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
+         exit(EXIT_FAILURE);
+      }
+      if ( !strcmp(gp->getGroupKeyword(),"HyPerCol") && !strcmp(param_name, "outputPath") ) {
+         out = true;
+         break;
+      }
+   }
+   if(!out){
+      for (int k=0; k<numberOfBatchSweeps(); k++) {
+         ParameterSweep * sweep = batchSweeps[k];
+         group_name = sweep->getGroupName();
+         const char * param_name = sweep->getParamName();
+         ParameterGroup * gp = group(group_name);
+         if (gp == NULL) {
+            fprintf(stderr, "PVParams::parseBuffer error: BatchSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
+            exit(EXIT_FAILURE);
+         }
+         if ( !strcmp(gp->getGroupKeyword(),"HyPerCol") && !strcmp(param_name, "outputPath") ) {
+            out = true;
+            break;
+         }
+      }
+   }
+   return out;
 }
 
 int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
@@ -995,28 +1054,21 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
    if( parseStatus != 0 ) {
       fprintf(stderr, "Rank %d process: pv_parseParameters failed with return value %d\n", worldRank, parseStatus);
    }
+   fflush(stdout);
 
-   setSweepSize(); // Need to set sweepSize here, because if the outputPath sweep needs to be created we need to know the size.
+   setParameterSweepSize(); // Need to set sweepSize here, because if the outputPath sweep needs to be created we need to know the size.
+   setBatchSweepSize(); // Need to set sweepSize here, because if the outputPath sweep needs to be created we need to know the size.
 
-   // If there is at least one ParameterSweep and none of them set outputPath, create a parameterSweep that does set outputPath.
-   if (numberOfSweeps() > 0) {
-      bool hasOutputPath = false;
-      const char * group_name;
-      for (int k=0; k<numberOfSweeps(); k++) {
-         ParameterSweep * sweep = paramSweeps[k];
-         group_name = sweep->getGroupName();
-         const char * param_name = sweep->getParamName();
-         ParameterGroup * gp = group(group_name);
-         if (gp == NULL) {
-            fprintf(stderr, "PVParams::parseBuffer error: ParameterSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
-            exit(EXIT_FAILURE);
-         }
-         if ( !strcmp(gp->getGroupKeyword(),"HyPerCol") && !strcmp(param_name, "outputPath") ) {
-            hasOutputPath = true;
-            break;
-         }
-      }
-      if (!hasOutputPath) {
+   // If there is at least one ParameterSweep  and none of them set outputPath, create a parameterSweep that does set outputPath.
+
+
+   //If both parameterSweep and batchSweep is set, must autoset output path, as there is no way to specify both paramSweep and batchSweep
+   if(numberOfParameterSweeps() > 0 && numberOfBatchSweeps() > 0){
+      fprintf(stderr, "PVParams::simultaneous batchSweep and parameterSweep not supported yet.\n");
+      abort();
+   }
+   else if (numberOfParameterSweeps() > 0) {
+      if (!hasOutputPath()) {
          const char * hypercolgroupname = NULL;
          for (int g=0; g<numGroups; g++) {
             if (groups[g]->getGroupKeyword(),"HyPerCol") {
@@ -1029,40 +1081,95 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
             abort();
          }
          char dummy;
-         int lenserialno = snprintf(&dummy, 0, "%d", sweepSize-1);
-         int len = snprintf(&dummy, 0, "output%0*d/", lenserialno, sweepSize-1)+1;
+         int lenserialno = snprintf(&dummy, 0, "%d", parameterSweepSize-1);
+         int len = snprintf(&dummy, 0, "output_paramsweep_%0*d/", lenserialno, parameterSweepSize-1)+1;
          char * outputPathStr = (char *) calloc(len, sizeof(char));
          if (outputPathStr == NULL) abort();
-         for (int i=0; i<sweepSize; i++) {
-            int chars_needed = snprintf(outputPathStr, len, "output%0*d/", lenserialno, i);
+         for (int i=0; i<parameterSweepSize; i++) {
+            int chars_needed = snprintf(outputPathStr, len, "output_paramsweep_%0*d/", lenserialno, i);
             assert(chars_needed < len);
             activeParamSweep->pushStringValue(outputPathStr);
          }
          free(outputPathStr); outputPathStr = NULL;
-         assert(group_name!=NULL);
          addActiveParamSweep(hypercolgroupname, "outputPath");
+      }
+   }
+   else if(numberOfBatchSweeps() > 0){
+      if (!hasOutputPath()) {
+         const char * hypercolgroupname = NULL;
+         for (int g=0; g<numGroups; g++) {
+            if (groups[g]->getGroupKeyword(),"HyPerCol") {
+               hypercolgroupname = groups[g]->name();
+               break;
+            }
+         }
+         if (hypercolgroupname == NULL) {
+            fprintf(stderr, "PVParams::parseBuffer error: no HyPerCol group\n");
+            abort();
+         }
+         char dummy;
+         int lenserialno = snprintf(&dummy, 0, "%d", batchSweepSize-1);
+         int len = snprintf(&dummy, 0, "output_batchsweep_%0*d/", lenserialno, batchSweepSize-1)+1;
+         char * outputPathStr = (char *) calloc(len, sizeof(char));
+         if (outputPathStr == NULL) abort();
+         for (int i=0; i<batchSweepSize; i++) {
+            int chars_needed = snprintf(outputPathStr, len, "output_batchsweep_%0*d/", lenserialno, i);
+            assert(chars_needed < len);
+            activeBatchSweep->pushStringValue(outputPathStr);
+         }
+         free(outputPathStr); outputPathStr = NULL;
+         addActiveBatchSweep(hypercolgroupname, "outputPath");
       }
    }
 
    // Each ParameterSweep needs to have its group/parameter pair added to the database, if it's not already present.
-   for (int k=0; k<numberOfSweeps(); k++) {
+   for (int k=0; k<numberOfParameterSweeps(); k++) {
       ParameterSweep * sweep = paramSweeps[k];
       const char * group_name = sweep->getGroupName();
       const char * param_name = sweep->getParamName();
-      ParameterSweepType type = sweep->getType();
+      SweepType type = sweep->getType();
       ParameterGroup * g = group(group_name);
       if (g==NULL) {
          fprintf(stderr, "ParameterSweep error: there is no group \"%s\"\n", group_name);
          abort();
       }
       switch (type) {
-      case PARAMSWEEP_NUMBER:
+      case SWEEP_NUMBER:
          if (!g->present(param_name) ) {
             Parameter * p = new Parameter(param_name, 0.0);
             g->pushNumerical(p);
          }
          break;
-      case PARAMSWEEP_STRING:
+      case SWEEP_STRING:
+         if (!g->stringPresent(param_name)) {
+            ParameterString * p = new ParameterString(param_name, "");
+            g->pushString(p);
+         }
+         break;
+      default:
+         assert(0);
+         break;
+      }
+   }
+
+   for (int k=0; k<numberOfBatchSweeps(); k++) {
+      ParameterSweep * sweep = batchSweeps[k];
+      const char * group_name = sweep->getGroupName();
+      const char * param_name = sweep->getParamName();
+      SweepType type = sweep->getType();
+      ParameterGroup * g = group(group_name);
+      if (g==NULL) {
+         fprintf(stderr, "BatchSweep error: there is no group \"%s\"\n", group_name);
+         abort();
+      }
+      switch (type) {
+      case SWEEP_NUMBER:
+         if (!g->present(param_name) ) {
+            Parameter * p = new Parameter(param_name, 0.0);
+            g->pushNumerical(p);
+         }
+         break;
+      case SWEEP_STRING:
          if (!g->stringPresent(param_name)) {
             ParameterString * p = new ParameterString(param_name, "");
             g->pushString(p);
@@ -1084,20 +1191,20 @@ int PVParams::parseBufferInRootProcess(char * buffer, long int bufferLength) {
 #ifdef PV_USE_MPI
    int status = PV_SUCCESS;
    if (worldRank==0) {
-      MPI_Bcast(&bufferLength, 1, MPI_LONG, 0, MPI_COMM_WORLD);
-      MPI_Bcast(buffer, bufferLength, MPI_CHAR, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&bufferLength, 1, MPI_LONG, 0, icComm->globalCommunicator());
+      MPI_Bcast(buffer, bufferLength, MPI_CHAR, 0, icComm->globalCommunicator());
       status = parseBuffer(buffer, bufferLength);
    }
    else {
       long int bufLen;
       char * buf = NULL;
-      MPI_Bcast(&bufLen, 1, MPI_LONG, 0, MPI_COMM_WORLD);
+      MPI_Bcast(&bufLen, 1, MPI_LONG, 0, icComm->globalCommunicator());
       buf = (char *) malloc((size_t) bufLen);
       if (buf==NULL) {
          fprintf(stderr, "Process %d: error allocating %ld bytes for PVParams buffer.\n", worldRank, bufLen);
          exit(EXIT_FAILURE);
       }
-      MPI_Bcast(buf, bufLen, MPI_CHAR, 0, MPI_COMM_WORLD);
+      MPI_Bcast(buf, bufLen, MPI_CHAR, 0, icComm->globalCommunicator());
       status = parseBuffer(buf, bufLen);
       free(buf);
    }
@@ -1107,32 +1214,89 @@ int PVParams::parseBufferInRootProcess(char * buffer, long int bufferLength) {
    return status;
 }
 
-int PVParams::setSweepSize() {
-   sweepSize = -1;
-   for (int k=0; k<this->numberOfSweeps(); k++) {
-      if (sweepSize<0) {
-         sweepSize = this->paramSweeps[k]->getNumValues();
+int PVParams::setBatchSweepSize() {
+   //std::cout << "Exiting test\n";
+   batchSweepSize = -1;
+   for (int k=0; k<numBatchSweeps; k++) {
+      if (batchSweepSize<0) {
+         batchSweepSize = this->batchSweeps[k]->getNumValues();
       }
       else {
-         if (sweepSize != this->paramSweeps[k]->getNumValues()) {
-            fprintf(stderr, "PVParams::setSweepSize error: all ParameterSweeps in the parameters file must have the same number of entries.\n");
+         if (batchSweepSize != this->batchSweeps[k]->getNumValues()) {
+            fprintf(stderr, "PVParams::setBatchSweepSize error: all BatchSweeps in the parameters file must have the same number of entries.\n");
             abort();
          }
       }
    }
-   if (sweepSize < 0) sweepSize = 0;
-   return sweepSize;
+   if (batchSweepSize < 0) batchSweepSize = 0;
+   int batchWidth = icComm->numCommBatches();
+   if(batchSweepSize){
+      if(batchWidth != batchSweepSize){
+         fprintf(stderr, "PVParams::setBatchSweepSize error: batchSweepSize %d must be the same as the MPI batch width %d.\n", batchSweepSize, batchWidth);
+         exit(-1);
+      }
+   }
+   return batchSweepSize;
 }
 
-int PVParams::setSweepValues(int n) {
+int PVParams::setParameterSweepSize() {
+   parameterSweepSize = -1;
+   for (int k=0; k<this->numberOfParameterSweeps(); k++) {
+      if (parameterSweepSize<0) {
+         parameterSweepSize = this->paramSweeps[k]->getNumValues();
+      }
+      else {
+         if (parameterSweepSize != this->paramSweeps[k]->getNumValues()) {
+            fprintf(stderr, "PVParams::setParameterSweepSize error: all ParameterSweeps in the parameters file must have the same number of entries.\n");
+            abort();
+         }
+      }
+   }
+   if (parameterSweepSize < 0) parameterSweepSize = 0;
+   return parameterSweepSize;
+}
+
+int PVParams::setBatchSweepValues(){
    int status = PV_SUCCESS;
-   if (n<0 || n>=sweepSize) {
+   //Set batch sweeps
+   //Use communicator to determine which values to use
+   int batchRank = icComm->commBatch();
+   for (int k=0; k<numBatchSweeps; k++) {
+      ParameterSweep * batchSweep = batchSweeps[k];
+      SweepType type = batchSweep->getType();
+      const char * group_name = batchSweep->getGroupName();
+      const char * param_name = batchSweep->getParamName();
+      ParameterGroup * gp = group(group_name);
+      assert(gp!=NULL);
+      const char * s;
+      double v = 0.0f;
+      switch (type) {
+      case SWEEP_NUMBER:
+         batchSweep->getNumericValue(batchRank, &v);
+         gp->setValue(param_name, v);
+         break;
+      case SWEEP_STRING:
+         s = batchSweep->getStringValue(batchRank);
+         gp->setStringValue(param_name, s);
+         break;
+      default:
+         assert(0);
+         break;
+      }
+   }
+   return status;
+}
+
+int PVParams::setParameterSweepValues(int n) {
+   int status = PV_SUCCESS;
+   //Set parameter sweeps
+   if (n<0 || n>=parameterSweepSize) {
       status = PV_FAILURE;
       return status;
    }
-   for (int k=0; k<this->numberOfSweeps(); k++) {
+   for (int k=0; k<this->numberOfParameterSweeps(); k++) {
       ParameterSweep * paramSweep = paramSweeps[k];
-      ParameterSweepType type = paramSweep->getType();
+      SweepType type = paramSweep->getType();
       const char * group_name = paramSweep->getGroupName();
       const char * param_name = paramSweep->getParamName();
       ParameterGroup * gp = group(group_name);
@@ -1141,11 +1305,11 @@ int PVParams::setSweepValues(int n) {
       const char * s;
       double v = 0.0f;
       switch (type) {
-      case PARAMSWEEP_NUMBER:
+      case SWEEP_NUMBER:
          paramSweep->getNumericValue(n, &v);
          gp->setValue(param_name, v);
          break;
-      case PARAMSWEEP_STRING:
+      case SWEEP_STRING:
          s = paramSweep->getStringValue(n);
          gp->setStringValue(param_name, s);
          break;
@@ -1379,6 +1543,20 @@ void PVParams::addGroup(char * keyword, char * name)
 }
 
 void PVParams::addActiveParamSweep(const char * group_name, const char * param_name) {
+   //Search for group_name and param_name in both ParameterSweep and BatchSweep list of objects
+   for(int p = 0; p < numParamSweeps; p++){
+      if(strcmp(paramSweeps[p]->getGroupName(), group_name) == 0 && strcmp(paramSweeps[p]->getParamName(), param_name) == 0){
+         fprintf(stderr, "PVParams::addActiveParamSweep: Parameter sweep %s, %s already exists\n", group_name, param_name);
+         abort();
+      }
+   }
+   for(int b = 0; b < numBatchSweeps; b++){
+      if(strcmp(batchSweeps[b]->getGroupName(), group_name) == 0 && strcmp(batchSweeps[b]->getParamName(), param_name) == 0){
+         fprintf(stderr, "PVParams::addActiveParamSweep: Parameter sweep %s, %s already exists as a batch sweep, cannot do both for same parameter.\n", group_name, param_name);
+         abort();
+      }
+   }
+
    activeParamSweep->setGroupAndParameter(group_name, param_name);
    ParameterSweep ** newParamSweeps = (ParameterSweep **) calloc(numParamSweeps+1, sizeof(ParameterSweep *));
    if (newParamSweeps == NULL) {
@@ -1393,6 +1571,37 @@ void PVParams::addActiveParamSweep(const char * group_name, const char * param_n
    paramSweeps[numParamSweeps] = activeParamSweep;
    numParamSweeps++;
    newActiveParamSweep();
+}
+
+void PVParams::addActiveBatchSweep(const char * group_name, const char * param_name) {
+   //Search for group_name and param_name in both ParameterSweep and BatchSweep list of objects
+   for(int b = 0; b < numBatchSweeps; b++){
+      if(strcmp(batchSweeps[b]->getGroupName(), group_name) == 0 && strcmp(batchSweeps[b]->getParamName(), param_name) == 0){
+         fprintf(stderr, "PVParams::addActiveBatchSweep: Batch sweep %s, %s already exists\n", group_name, param_name);
+         abort();
+      }
+   }
+   for(int p = 0; p < numParamSweeps; p++){
+      if(strcmp(paramSweeps[p]->getGroupName(), group_name) == 0 && strcmp(paramSweeps[p]->getParamName(), param_name) == 0){
+         fprintf(stderr, "PVParams::addActiveParamSweep: Batch sweep %s, %s already exists as a parameter sweep, cannot do both for same parameter.\n", group_name, param_name);
+         abort();
+      }
+   }
+
+   activeBatchSweep->setGroupAndParameter(group_name, param_name);
+   ParameterSweep ** newBatchSweeps = (ParameterSweep **) calloc(numBatchSweeps+1, sizeof(ParameterSweep *));
+   if (newBatchSweeps == NULL) {
+      fprintf(stderr, "PVParams::action_parameter_sweep: unable to allocate memory for larger batchSweeps\n");
+      abort();
+   }
+   for (int k=0; k<numBatchSweeps; k++) {
+      newBatchSweeps[k] = batchSweeps[k];
+   }
+   free(batchSweeps);
+   batchSweeps = newBatchSweeps;
+   batchSweeps[numBatchSweeps] = activeBatchSweep;
+   numBatchSweeps++;
+   newActiveBatchSweep();
 }
 
 int PVParams::warnUnread() {
@@ -1462,7 +1671,7 @@ void PVParams::handleUnnecessaryParameter(const char * group_name, const char * 
       }
    }
 #ifdef PV_USE_MPI
-   MPI_Barrier(MPI_COMM_WORLD);
+   MPI_Barrier(icComm->globalCommunicator());
 #endif
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 }
@@ -1515,7 +1724,7 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
       }
    }
 #ifdef PV_USE_MPI
-   MPI_Barrier(MPI_COMM_WORLD);
+   MPI_Barrier(icComm->globalCommunicator());
 #endif
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 }
@@ -1877,24 +2086,17 @@ void PVParams::action_include_directive(const char * stringval) {
    stringStack = includeGroup->copyStringStack();
 }
 
-void PVParams::action_parameter_sweep_open(const char * id, const char * groupname, const char * paramname)
+void PVParams::action_sweep_open(const char * groupname, const char * paramname)
 {
    if (disable) return;
-   if (!strcmp(id, "ParameterSweep")) {
-      // strip quotation marks from groupname
-      currSweepGroupName = stripQuotationMarks(groupname);
-      assert(currSweepGroupName);
-      currSweepParamName = strdup(paramname);
-      if (debugParsing && worldRank == 0) {
-         fflush(stdout);
-         printf("action_parameter_sweep_open: %s for group %s, parameter \"%s\" starting\n", id, groupname, paramname);
-         fflush(stdout);
-      }
-   }
-   else {
-      if (worldRank == 0) {
-         fprintf(stderr, "action_parameter_sweep: unrecognized id %s, skipping.\n", id);
-      }
+   // strip quotation marks from groupname
+   currSweepGroupName = stripQuotationMarks(groupname);
+   assert(currSweepGroupName);
+   currSweepParamName = strdup(paramname);
+   if (debugParsing && worldRank == 0) {
+      fflush(stdout);
+      printf("action_batch_sweep_open: Sweep for group %s, parameter \"%s\" starting\n", groupname, paramname);
+      fflush(stdout);
    }
 }
 
@@ -1911,18 +2113,42 @@ void PVParams::action_parameter_sweep_close()
    free(currSweepParamName);
 }
 
-void PVParams::action_sweep_values_number(double val)
+void PVParams::action_batch_sweep_close()
+{
+   if (disable) return;
+   addActiveBatchSweep(currSweepGroupName, currSweepParamName);
+   if(debugParsing && worldRank==0 ) {
+      printf("action_parameter_group: BatchSweep for %s \"%s\" parsed successfully.\n", currSweepGroupName, currSweepParamName);
+      fflush(stdout);
+   }
+   // build a parameter group
+   free(currSweepGroupName);
+   free(currSweepParamName);
+}
+
+void PVParams::action_parameter_sweep_values_number(double val)
 {
    if (disable) return;
    if (debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_sweep_values_number: %f\n", val);
+      printf("action_parameter_sweep_values_number: %f\n", val);
       fflush(stdout);
    }
    activeParamSweep->pushNumericValue(val);
 }
 
-void PVParams::action_sweep_values_string(const char * stringval)
+void PVParams::action_batch_sweep_values_number(double val)
+{
+   if (disable) return;
+   if (debugParsing && worldRank == 0) {
+      fflush(stdout);
+      printf("action_batch_sweep_values_number: %f\n", val);
+      fflush(stdout);
+   }
+   activeBatchSweep->pushNumericValue(val);
+}
+
+void PVParams::action_parameter_sweep_values_string(const char * stringval)
 {
    if (disable) return;
    if (debugParsing && worldRank == 0) {
@@ -1936,7 +2162,21 @@ void PVParams::action_sweep_values_string(const char * stringval)
    free(string);
 }
 
-void PVParams::action_sweep_values_filename(const char * stringval)
+void PVParams::action_batch_sweep_values_string(const char * stringval)
+{
+   if (disable) return;
+   if (debugParsing && worldRank == 0) {
+      fflush(stdout);
+      printf("action_batch_values_string: %s\n", stringval);
+      fflush(stdout);
+   }
+   char * string = stripQuotationMarks(stringval);
+   assert(!stringval || string); // stringval can be null, but if stringval is not null, string should also be non-null
+   activeBatchSweep->pushStringValue(string);
+   free(string);
+}
+
+void PVParams::action_parameter_sweep_values_filename(const char * stringval)
 {
    if (disable) return;
    if (debugParsing && worldRank == 0) {
@@ -1952,6 +2192,25 @@ void PVParams::action_sweep_values_filename(const char * stringval)
       filename = newfilename;
    }
    activeParamSweep->pushStringValue(filename);
+   free(filename);
+}
+
+void PVParams::action_batch_sweep_values_filename(const char * stringval)
+{
+   if (disable) return;
+   if (debugParsing && worldRank == 0) {
+      fflush(stdout);
+      printf("action_batch_sweep_values_filename: %s\n", stringval);
+      fflush(stdout);
+   }
+   char * filename = stripQuotationMarks(stringval);
+   assert(filename);
+   if (filename && filename[0]=='~') {
+      char * newfilename = expandLeadingTilde(filename);
+      free(filename);
+      filename = newfilename;
+   }
+   activeBatchSweep->pushStringValue(filename);
    free(filename);
 }
 

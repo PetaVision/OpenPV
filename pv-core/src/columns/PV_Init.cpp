@@ -29,9 +29,9 @@ int PV_Init::initialize(int argc, char* argv[]){
    if(params){
       delete params;
    }
-   //if(icComm){
-   //   delete icComm;
-   //}
+   if(icComm){
+      delete icComm;
+   }
    //Parse param file
    char * param_file = NULL;
    pv_getopt_str(argc, argv, "-p", &param_file, NULL);
@@ -41,26 +41,26 @@ int PV_Init::initialize(int argc, char* argv[]){
       exit(-1);
    }
 
+   icComm = new InterColComm(argc, argv);
    //Read parameters and send to everyone
-   params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE));
+   params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
    //Get nbatch dimension from params
    //nbatch = (int) params->value(group_name, param_name, defaultValue, warnIfAbsent);
    //Set up communicators
-   //icComm = new InterColComm(argc, argv);
    return 0;
 }
 
-int PV_Init::initialize(PVParams* inparams){
+int PV_Init::initialize(PVParams* inparams, InterColComm* incomm){
    assert(inparams);
    //assert(incomm);
    if(params){
       delete params;
    }
-   //if(icComm){
-   //   delete icComm;
-   //}
+   if(icComm){
+      delete icComm;
+   }
    params = inparams;
-   //icComm = incomm;
+   icComm = incomm;
    return 0;
 }
 

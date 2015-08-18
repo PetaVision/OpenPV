@@ -43,7 +43,7 @@ public:
    static MPI_Datatype * newDatatypes(const PVLayerLoc * loc);
    static int freeDatatypes(MPI_Datatype * mpi_datatypes);
 
-   Communicator(int argc, char ** argv, int nbatch);
+   Communicator(int argc, char ** argv);
    virtual ~Communicator();
 
    //int commInit(int * argc, char *** argv);
@@ -67,8 +67,8 @@ public:
    int neighborIndex(int commId, int index);
    int reverseDirection(int commId, int direction);
 
-   int commRow()          {return commRow(globalRank);}
-   int commColumn()       {return commColumn(globalRank);}
+   int commRow()          {return commRow(localRank);}
+   int commColumn()       {return commColumn(localRank);}
    int commBatch()        {return commBatch(globalRank);}
    int numCommRows()      {return numRows;}
    int numCommColumns()   {return numCols;}

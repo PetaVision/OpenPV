@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 
    // create the Communicator object for MPI
    //
-   Communicator * comm = new Communicator(argc, argv, 1);
+   Communicator * comm = new Communicator(argc, argv);
    int numRows = comm->numCommRows();
    int numCols = comm->numCommColumns();
    PVLayerLoc loc;

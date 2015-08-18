@@ -30,10 +30,10 @@ int dumpWeights(HyPerConn * conn, FILE * stream);
 int main(int argc, char * argv[]) {
    PV_Init* initObj = new PV_Init(&argc, &argv);
 
-   PVParams * params = new PVParams("input/TransposeConnTest.params", 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE));
-   //InterColComm * icComm = new InterColComm(argc, argv);
+   InterColComm * icComm = new InterColComm(argc, argv);
+   PVParams * params = new PVParams("input/TransposeConnTest.params", 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
 
-   initObj->initialize(params);
+   initObj->initialize(params, icComm);
 
    // Don't call buildandrun because it will delete hc before returning. (I could use the customexit hook)
    HyPerCol * hc = build(argc, argv, initObj);

@@ -22,7 +22,7 @@ int Communicator::gcd ( int a, int b ){
    return b;
 }
 
-Communicator::Communicator(int argc, char** argv, int nbatch)
+Communicator::Communicator(int argc, char** argv)
 {
    float r;
 
@@ -44,29 +44,30 @@ Communicator::Communicator(int argc, char** argv, int nbatch)
    bool inferingDim = !rowsDefined || !colsDefined || !batchDefined;
 
    if(!batchDefined){
-      //Case where both rows and cols are defined, we can find out what the batch width is
-      if(rowsDefined && colsDefined){
-         batchWidth = globalSize/(numRows * numCols);
-      }
-      else if(rowsDefined && !colsDefined){
-         batchWidth = gcd(globalSize/numRows, nbatch);
-      }
-      else if(!rowsDefined && colsDefined){
-         batchWidth = gcd(globalSize/numCols, nbatch);
-      }
-      else{
-         //Find gcd between np and nbatch, and set that as the batchWidth
-         batchWidth = gcd(globalSize, nbatch);
-      }
+      ////Case where both rows and cols are defined, we can find out what the batch width is
+      //if(rowsDefined && colsDefined){
+      //   batchWidth = globalSize/(numRows * numCols);
+      //}
+      //else if(rowsDefined && !colsDefined){
+      //   batchWidth = gcd(globalSize/numRows, nbatch);
+      //}
+      //else if(!rowsDefined && colsDefined){
+      //   batchWidth = gcd(globalSize/numCols, nbatch);
+      //}
+      //else{
+      //   //Find gcd between np and nbatch, and set that as the batchWidth
+      //   batchWidth = gcd(globalSize, nbatch);
+      //}
+      batchWidth = 1;
    }
-   if(batchWidth > nbatch){
-      std::cout << "Error: batchWidth of " << batchWidth << " must be bigger than nbatch of " << nbatch << "\n";
-      exit(-1);
-   }
-   if(nbatch % batchWidth != 0){
-      std::cout << "Error: batchWidth of " << batchWidth << " must be a multiple of nbatch of " << nbatch << "\n";
-      exit(-1);
-   }
+   //if(batchWidth > nbatch){
+   //   std::cout << "Error: batchWidth of " << batchWidth << " must be bigger than nbatch of " << nbatch << "\n";
+   //   exit(-1);
+   //}
+   //if(nbatch % batchWidth != 0){
+   //   std::cout << "Error: batchWidth of " << batchWidth << " must be a multiple of nbatch of " << nbatch << "\n";
+   //   exit(-1);
+   //}
 
    int procsLeft = globalSize/batchWidth;
    if( rowsDefined && !colsDefined ) {

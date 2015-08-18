@@ -35,17 +35,18 @@ public:
    /**
     * Sets the previously allocated PVParams and InterColComm objects
     */
-   int initialize(PVParams* inparams);
+   int initialize(PVParams* inparams, InterColComm* incomm);
 
    PVParams * getParams(){return params;}
-   //InterColComm * getComm(){return icComm;}
+   InterColComm * getComm(){return icComm;}
    int getWorldRank(){return worldRank;}
    int getWorldSize(){return worldSize;}
 private:
    int commInit(int* argc, char*** argv);
    int commFinalize();
+   //int getNBatchValue(char* infile);
    PVParams * params;
-   //InterColComm * icComm;
+   InterColComm * icComm;
    int initialized;
    int worldRank;
    int worldSize;

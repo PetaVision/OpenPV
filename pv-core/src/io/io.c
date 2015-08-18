@@ -47,7 +47,7 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
                   char ** output_path, char ** param_file, char ** log_file, char ** gpu_devices,
                   unsigned int * random_seed, char ** working_dir,
                   int * restart, char ** checkpointReadDir,
-                  int * numthreads, int * num_rows, int * num_columns)
+                  int * numthreads, int * num_rows, int * num_columns, int* batch_width)
 {
    if (argc < 2) {
       usage();
@@ -81,6 +81,7 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
    pv_getopt_str(argc, argv, "-c", checkpointReadDir, paramusage);
    pv_getopt_int(argc, argv, "-rows", num_rows, paramusage);
    pv_getopt_int(argc, argv, "-columns", num_columns, paramusage);
+   pv_getopt_int(argc, argv, "-batchwidth", batch_width, paramusage);
 
    return 0;
 }

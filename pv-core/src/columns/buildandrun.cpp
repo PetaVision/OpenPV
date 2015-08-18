@@ -41,17 +41,22 @@ int rebuildandrun(int argc, char * argv[], PV_Init* initObj,
    //PVParams * params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
    //free(param_file);
 
-   int numSweepValues = initObj->getParams()->getSweepSize();
+   int numParamSweepValues = initObj->getParams()->getParameterSweepSize();
+   int numBatchSweepValues = initObj->getParams()->getBatchSweepSize();
 
    int status = PV_SUCCESS;
-   if (numSweepValues) {
-      for (int k=0; k<numSweepValues; k++) {
+   if (numParamSweepValues) {
+      for (int k=0; k<numParamSweepValues; k++) {
          if (initObj->getWorldRank()==0) {
-            printf("Parameter sweep: starting run %d of %d\n", k+1, numSweepValues);
+            printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
          }
-         initObj->getParams()->setSweepValues(k);
+         initObj->getParams()->setParameterSweepValues(k);
          status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, customgroups) == PV_SUCCESS ? status : PV_FAILURE;
       }
+   }
+   else if(numBatchSweepValues){
+      initObj->getParams()->setBatchSweepValues();
+      status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, customgroups) == PV_SUCCESS ? status : PV_FAILURE;
    }
    else {
       status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, customgroups);
@@ -85,17 +90,22 @@ int rebuildandrun(int argc, char * argv[], PV_Init* initObj,
    //PVParams * params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
    //free(param_file);
 
-   int numSweepValues = initObj->getParams()->getSweepSize();
+   int numParamSweepValues = initObj->getParams()->getParameterSweepSize();
+   int numBatchSweepValues = initObj->getParams()->getBatchSweepSize();
 
    int status = PV_SUCCESS;
-   if (numSweepValues) {
-      for (int k=0; k<numSweepValues; k++) {
+   if (numParamSweepValues) {
+      for (int k=0; k<numParamSweepValues; k++) {
          if (initObj->getWorldRank()==0) {
-            printf("Parameter sweep: starting run %d of %d\n", k+1, numSweepValues);
+            printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
          }
-         initObj->getParams()->setSweepValues(k);
+         initObj->getParams()->setParameterSweepValues(k);
          status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, groupHandlerList, numGroupHandlers) == PV_SUCCESS ? status : PV_FAILURE;
       }
+   }
+   else if(numBatchSweepValues){
+      initObj->getParams()->setBatchSweepValues();
+      status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, groupHandlerList, numGroupHandlers) == PV_SUCCESS ? status : PV_FAILURE;
    }
    else {
       status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, groupHandlerList, numGroupHandlers);

@@ -22,11 +22,11 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
       if(${inMpi})
          #Two processes
          add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
-            mpirun -np 2 Debug/${BaseName} ${inFlags} -l -rows 2 -columns 1
+            mpirun -np 2 Debug/${BaseName} ${inFlags} -l 
             ${testName}_2.log)
          #Four processes
          add_test(${testName}_4 ${CMAKE_COMMAND} -E chdir ${BaseName}
-            mpirun -np 4 Debug/${BaseName} ${inFlags} -l -rows 2 -columns 2
+            mpirun -np 4 Debug/${BaseName} ${inFlags} -l 
             ${testName}_4.log)
          #Add dependencies
          set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
@@ -49,12 +49,12 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
             #Two processes
             add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
                mpirun -np 2 Debug/${BaseName} -p input/${param}.params
-               ${inFlags} -rows 2 -columns 1 -l
+               ${inFlags} -l
                ${testName}_2.log)
             #Four processes
             add_test(${testName}_4 ${CMAKE_COMMAND} -E chdir ${BaseName}
                mpirun -np 4 Debug/${BaseName} -p input/${param}.params
-               ${inFlags} -rows 2 -columns 2 -l
+               ${inFlags} -l
                ${testName}_4.log)
             #Add dependencies
             set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
@@ -131,6 +131,7 @@ add_subdirectory(ArborSystemTest)
 add_subdirectory(BackgroundLayerTest)
 add_subdirectory(BasicSystemTest)
 add_subdirectory(BatchCheckpointSystemTest)
+add_subdirectory(BatchSweepTest)
 add_subdirectory(BatchWeightUpdateTest)
 add_subdirectory(BinningLayerTest)
 add_subdirectory(CheckpointSystemTest)
