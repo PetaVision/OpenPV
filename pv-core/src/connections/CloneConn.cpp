@@ -33,6 +33,13 @@ int CloneConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
+void CloneConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
+   if (ioFlag==PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "writeStep");
+      writeStep = -1;
+   }   
+}
+
 void CloneConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
