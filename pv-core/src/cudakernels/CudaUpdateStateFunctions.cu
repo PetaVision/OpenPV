@@ -206,11 +206,6 @@ void CudaUpdateISTALayer::setArgs(
 				  /* float* */ CudaBuffer* V,
 				  
 				  const float Vth,
-				  const float AMax,
-				  const float AMin,
-				  const float AShift,
-				  const float VWidth,
-				  const bool selfInteract,
 				  /* double* */ CudaBuffer* dtAdapt,
 				  const float tau,
 				  
