@@ -200,9 +200,9 @@ class Param_Parser(Param_Reader):
                     if conn.type == 'TransposePoolingConn':
                         pool_type = conn['pvpatchAccumulateType']
                         if pool_type == 'maxpooling':
-                            conn.label = ('MAX_' + conn.label + '^T')
+                            conn.label = ('MAX_' + conn.label)
                         if pool_type == 'sumpooling':
-                            conn.label = ('SUM_' + conn.label + '^T')
+                            conn.label = ('SUM_' + conn.label)
                 else:
                     print('Warning: originalConn "' + conn['originalConnName'] + '" of ' + conn.name + ' not found.') 
             
