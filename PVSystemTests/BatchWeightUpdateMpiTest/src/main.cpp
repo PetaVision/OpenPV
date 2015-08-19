@@ -140,7 +140,7 @@ int main(int argc, char * argv[]) {
    pv_argv[pv_arg++] = strdup("-rows");
    pv_argv[pv_arg++] = strdup("1");
    pv_argv[pv_arg++] = strdup("-columns");
-   pv_argv[pv_arg++] = strdup("1");
+   pv_argv[pv_arg++] = strdup("2");
    pv_argv[pv_arg++] = strdup("-batchwidth");
    pv_argv[pv_arg++] = strdup("1");
 
@@ -185,6 +185,14 @@ int compareFiles(const char* file1, const char* file2){
 
    FILE * fp1 = fopen(file1, "r");
    FILE * fp2 = fopen(file2, "r");
+   if(!fp1){
+      std::cout << "Unable to open file " << file1 << "\n";
+      exit(-1);
+   }
+   if(!fp2){
+      std::cout << "Unable to open file " << file2 << "\n";
+      exit(-1);
+   }
 #define NUM_WGT_PARAMS (NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS)
    //Seek past the header
    fseek(fp1, NUM_WGT_PARAMS * sizeof(int), SEEK_SET);

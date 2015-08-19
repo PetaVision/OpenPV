@@ -345,7 +345,7 @@ int MoviePvp::allocateDataStructures() {
       int kb0 = getLayerLoc()->kb0;
       int nbatchGlobal = getLayerLoc()->nbatchGlobal;
       for(int b = 0; b < nbatch; b++){ 
-         startFrameIndex[b] = offset + kb0;
+         startFrameIndex[b] = offset + kb0 + b;
          skipFrameIndex[b] = nbatchGlobal;
       }
    }

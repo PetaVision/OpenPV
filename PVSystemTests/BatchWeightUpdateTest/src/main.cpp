@@ -147,7 +147,7 @@ int main(int argc, char * argv[]) {
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
-   int rank = hc->icCommunicator()->commRank();
+   int rank = hc->icCommunicator()->globalCommRank();
    int rootproc = 0;
    if( rank == rootproc ) {
       int index = hc->getFinalStep()-hc->getInitialStep();
@@ -178,31 +178,9 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
             exit(-1);
          }
       }
-      
-      //char * shellcommand;
-      //char c;
-      //const char * fmtstr = "diff -q %s/plasticConn_W.pvp %s/plasticConn_W.pvp";
-      //int len = snprintf(&c, 1, fmtstr, cpdir1, cpdir2);
-      //shellcommand = (char *) malloc(len+1);
-      //if( shellcommand == NULL) {
-      //   fprintf(stderr, "%s: unable to allocate memory for shell diff command.\n", argv[0]);
-      //   status = PV_FAILURE;
-      //}
-      //assert( snprintf(shellcommand, len+1, fmtstr, cpdir1, cpdir2) == len );
-      //status = system(shellcommand);
-      //if( status != 0 ) {
-      //   fprintf(stderr, "system(\"%s\") returned %d\n", shellcommand, status);
-      //   // Because system() seems to return the result of the shell command multiplied by 256,
-      //   // and Unix only sees the 8 least-significant bits of the value returned by a C/C++ program,
-      //   // simply returning the result of the system call doesn't work.
-      //   // I haven't found the mult-by-256 behavior in the documentation, so I'm not sure what's
-      //   // going on.
-      //   status = PV_FAILURE;
-      //}
-      //free(shellcommand); shellcommand = NULL;
    }
 #ifdef PV_USE_MPI
-   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
+   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->globalCommunicator());
 #endif
    return status;
 }
