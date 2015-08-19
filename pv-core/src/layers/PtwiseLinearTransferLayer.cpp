@@ -83,7 +83,7 @@ int PtwiseLinearTransferLayer::initialize(const char * name, HyPerCol * hc) {
 int PtwiseLinearTransferLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerLayer::ioParamsFillGroup(ioFlag);
 
-   assert(numVertices==0);
+   if (ioFlag==PARAMS_IO_READ) { assert(numVertices==0); }
    ioParam_verticesV(ioFlag);
    ioParam_verticesA(ioFlag);
    assert(numVertices!=0);
@@ -99,57 +99,61 @@ int PtwiseLinearTransferLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void PtwiseLinearTransferLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
    int numVerticesV;
    this->getParent()->ioParamArray(ioFlag, this->getName(), "verticesV", &verticesV, &numVerticesV);
-   if (ioFlag==PARAMS_IO_READ && numVerticesV==0) {
-      if (this->getParent()->columnId()==0) {
-         fprintf(stderr,
-               "%s \"%s\" error: verticesV cannot be empty\n",
-               this->getParent()->parameters()->groupKeywordFromName(this->getName()),
-               this->getName());
+   if (ioFlag==PARAMS_IO_READ) {
+      if (numVerticesV==0) {
+         if (this->getParent()->columnId()==0) {
+            fprintf(stderr,
+                  "%s \"%s\" error: verticesV cannot be empty\n",
+                  this->getParent()->parameters()->groupKeywordFromName(this->getName()),
+                  this->getName());
+         }
+         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
       }
-      MPI_Barrier(this->getParent()->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   if (numVertices !=0 && numVerticesV != numVertices) {
-      if (this->getParent()->columnId()==0) {
-         fprintf(stderr,
-               "%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
-               this->getParent()->parameters()->groupKeywordFromName(this->getName()), 
-               this->getName(),
-               numVerticesV, numVertices);
+      if (numVertices !=0 && numVerticesV != numVertices) {
+         if (this->getParent()->columnId()==0) {
+            fprintf(stderr,
+                  "%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
+                  this->getParent()->parameters()->groupKeywordFromName(this->getName()), 
+                  this->getName(),
+                  numVerticesV, numVertices);
+         }
+         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
       }
-      MPI_Barrier(this->getParent()->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
+      assert(numVertices==0 || numVertices==numVerticesV);
+      numVertices = numVerticesV;
    }
-   assert(numVertices==0 || numVertices==numVerticesV);
-   numVertices = numVerticesV;
 }
 
 void PtwiseLinearTransferLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
    int numVerticesA;
    this->getParent()->ioParamArray(ioFlag, this->getName(), "verticesA", &verticesA, &numVerticesA);
-   if (ioFlag==PARAMS_IO_READ && numVerticesA==0) {
-      if (this->getParent()->columnId()==0) {
-         fprintf(stderr,
-               "%s \"%s\" error: verticesA cannot be empty\n",
-               this->getParent()->parameters()->groupKeywordFromName(this->getName()),
-               this->getName());
+   if (ioFlag==PARAMS_IO_READ) {
+      if (numVerticesA==0) {
+         if (this->getParent()->columnId()==0) {
+            fprintf(stderr,
+                  "%s \"%s\" error: verticesA cannot be empty\n",
+                  this->getParent()->parameters()->groupKeywordFromName(this->getName()),
+                  this->getName());
+         }
+         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
       }
-      MPI_Barrier(this->getParent()->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-   if (numVertices !=0 && numVerticesA != numVertices) {
-      if (this->getParent()->columnId()==0) {
-         fprintf(stderr,
-               "%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
-               this->getParent()->parameters()->groupKeywordFromName(this->getName()), 
-               this->getName(),
-               numVertices, numVerticesA);
+      if (numVertices !=0 && numVerticesA != numVertices) {
+         if (this->getParent()->columnId()==0) {
+            fprintf(stderr,
+                  "%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
+                  this->getParent()->parameters()->groupKeywordFromName(this->getName()), 
+                  this->getName(),
+                  numVertices, numVerticesA);
+         }
+         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
       }
-      MPI_Barrier(this->getParent()->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
+      assert(numVertices==0 || numVertices==numVerticesA);
+      numVertices = numVerticesA;
    }
-   assert(numVertices==0 || numVertices==numVerticesA);
-   numVertices = numVerticesA;
 }
 
 void PtwiseLinearTransferLayer::ioParam_slopeNegInf(enum ParamsIOFlag ioFlag) {
