@@ -18,6 +18,7 @@
 #else
 #  include <include/mpi_stubs.h>
 #endif
+#include <columns/PV_Init.hpp>
 
 // function declarations that are not public in fileio.hpp
 //
@@ -31,6 +32,7 @@ using namespace PV;
 
 int main(int argc, char* argv[])
 {
+   PV_Init* initObj = new PV_Init(&argc, &argv);
    int status = 0;
    PV_Stream * stream = NULL;
    double time, write_time = 33.3;
@@ -47,7 +49,7 @@ int main(int argc, char* argv[])
 
    // create the Communicator object for MPI
    //
-   Communicator * comm = new Communicator(&argc, &argv);
+   Communicator * comm = new Communicator(argc, argv);
    int numRows = comm->numCommRows();
    int numCols = comm->numCommColumns();
    PVLayerLoc loc;
@@ -133,6 +135,8 @@ int main(int argc, char* argv[])
    if (status != 0) {
       fprintf(stderr, "ERROR in test_read_header, err==%d\n", status);
    }
+
+   delete initObj;
 
    return status;
 }

@@ -91,7 +91,7 @@ private:
 class InterColComm : public Communicator {
 
 public:
-   InterColComm(int * argc, char *** argv);
+   InterColComm(int argc, char ** argv);
    virtual ~InterColComm();
 
    int addPublisher(HyPerLayer * pub);

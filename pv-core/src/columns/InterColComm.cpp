@@ -15,7 +15,7 @@
 
 namespace PV {
 
-InterColComm::InterColComm(int* argc, char*** argv) : Communicator(argc, argv)
+InterColComm::InterColComm(int argc, char** argv) : Communicator(argc, argv)
 {
    numPublishers = 0;
    publisherArraySize = INITIAL_PUBLISHER_ARRAY_SIZE;
@@ -270,6 +270,7 @@ int Publisher::exchangeBorders(int neighbors[], int numNeighbors, const PVLayerL
    int status = PV_SUCCESS;
 
 #ifdef PV_USE_MPI
+   //Using local ranks and communicators for border exchange
    int icRank = comm->commRank();
    MPI_Comm mpiComm = comm->communicator();
 

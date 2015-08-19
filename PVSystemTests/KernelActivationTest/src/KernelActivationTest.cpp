@@ -22,17 +22,18 @@
 #  include <mpi.h>
 #endif
 
-int runKernelActivationTest(int argc, char * argv[]);
+int runKernelActivationTest(int argc, char * argv[], PV_Init* initObj);
 int dumpweights(HyPerCol * hc, int argc, char * argv[]);
 int dumponeweight(HyPerConn * conn);
 
 int main(int argc, char * argv[]) {
    int status;
-#ifdef PV_USE_MPI
-   int mpi_initialized_on_entry;
-   MPI_Initialized(&mpi_initialized_on_entry);
-   if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
-#endif // PV_USE_MPI
+   PV_Init * initObj = new PV_Init(&argc, &argv);
+//#ifdef PV_USE_MPI
+//   int mpi_initialized_on_entry;
+//   MPI_Initialized(&mpi_initialized_on_entry);
+//   if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
+//#endif // PV_USE_MPI
    int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
    int num_cl_args;
    char ** cl_args;
@@ -46,28 +47,28 @@ int main(int argc, char * argv[]) {
          cl_args[k+2] = strdup(argv[k]);
       }
       cl_args[num_cl_args] = NULL;
-      status = runKernelActivationTest(num_cl_args, cl_args);
+      status = runKernelActivationTest(num_cl_args, cl_args, initObj);
       if( status == PV_SUCCESS ) {
          free(cl_args[2]);
          cl_args[2] = strdup("input/KernelActivationTest-maskData.params");
-         status = runKernelActivationTest(num_cl_args, cl_args);
+         status = runKernelActivationTest(num_cl_args, cl_args, initObj);
       }
-      for (int arg=1; arg<num_cl_args; arg++) {
-         free(cl_args[arg]); cl_args[arg] = NULL;
-      }
+      free(cl_args[1]); cl_args[1] = NULL;
+      free(cl_args[2]); cl_args[2] = NULL;
       free(cl_args); cl_args = NULL;
    }
    else {
-      status = runKernelActivationTest(argc, argv);
+      status = runKernelActivationTest(argc, argv, initObj);
    }
-#ifdef PV_USE_MPI
-   MPI_Finalize();
-#endif
+//#ifdef PV_USE_MPI
+//   MPI_Finalize();
+//#endif
+   delete initObj;
    return status;
 }
 
-int runKernelActivationTest(int argc, char * argv[]) {
-   int status = buildandrun(argc, argv, NULL, &dumpweights);
+int runKernelActivationTest(int argc, char * argv[], PV_Init* initObj) {
+   int status = rebuildandrun(argc, argv, initObj, NULL, &dumpweights);
    return status;
 }
 

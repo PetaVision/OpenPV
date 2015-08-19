@@ -35,10 +35,11 @@ int main(int argc, char * argv[])
    int status = 0;
 
    int rank=0;
-#ifdef PV_USE_MPI
-   MPI_Init(&argc, &argv);
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif // PV_USE_MPI
+   PV_Init* initObj = new PV_Init(&argc, &argv);
+//#ifdef PV_USE_MPI
+//   MPI_Init(&argc, &argv);
+//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//#endif // PV_USE_MPI
 
    if (pv_getopt(argc, argv, "-p", NULL)==0) {
       if (rank==0) {
@@ -61,7 +62,9 @@ int main(int argc, char * argv[])
    int paramfile_argnum = argc+1;
    cl_argv[paramfile_argnum] = strdup("input/test_border_activity.params");
    cl_argv[paramfile_argnum+1] = NULL;
-   HyPerCol * hc = new HyPerCol("column", cl_argc, cl_argv);
+
+   initObj->initialize(cl_argc, cl_argv);
+   HyPerCol * hc = new HyPerCol("column", cl_argc, cl_argv, initObj);
    for( int k=0; k<cl_argc; k++ )
    {
       free(cl_argv[k]);
@@ -95,9 +98,10 @@ int main(int argc, char * argv[])
 
    delete hc;
 
-#ifdef PV_USE_MPI
-   MPI_Finalize();
-#endif // PV_USE_MPI
+//#ifdef PV_USE_MPI
+//   MPI_Finalize();
+//#endif // PV_USE_MPI
+   delete initObj;
 
    return status;
 }

@@ -9,14 +9,15 @@
 #include <connections/HyPerConn.hpp>
 #include <normalizers/NormalizeBase.hpp>
 
-int runparamsfile(int argc, char ** argv, char const * paramsfile);
+int runparamsfile(int argc, char ** argv, PV_Init* initObj, char const * paramsfile);
 
 int main(int argc, char * argv[]) {
    int rank = 0;
-#ifdef PV_USE_MPI
-   MPI_Init(&argc, &argv);
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif // PV_USE_MPI
+   PV_Init* initObj = new PV_Init(&argc, &argv);
+//#ifdef PV_USE_MPI
+//   MPI_Init(&argc, &argv);
+//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//#endif // PV_USE_MPI
 
    if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
       if (rank==0) {
@@ -29,14 +30,12 @@ int main(int argc, char * argv[]) {
 
    int status = PV_SUCCESS;
 
-   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, "input/CopyConnInitializeTest.params"); }
-   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, "input/CopyConnInitializeNonsharedTest.params"); }
-   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, "input/CopyConnPlasticTest.params"); }
-   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, "input/CopyConnPlasticNonsharedTest.params"); }
+   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, initObj, "input/CopyConnInitializeTest.params"); }
+   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, initObj, "input/CopyConnInitializeNonsharedTest.params"); }
+   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, initObj, "input/CopyConnPlasticTest.params"); }
+   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, initObj, "input/CopyConnPlasticNonsharedTest.params"); }
 
-#ifdef PV_USE_MPI
-   MPI_Finalize();
-#endif // PV_USE_MPI
+   delete initObj;
    return status;
 }
 
@@ -48,7 +47,7 @@ int main(int argc, char * argv[]) {
 // are within 1.0e-6 in absolute value.  This is reasonable if the weights and strengths are order-of-magnitude 1.0)
 // 
 // Note that this check makes assumptions on the normalization method, although normalizeSum, normalizeL2 and normalizeMax all satisfy them.
-int runparamsfile(int argc, char ** argv, char const * paramsfile) {
+int runparamsfile(int argc, char ** argv, PV_Init* initObj, char const * paramsfile) {
    //
    // argv should not contain a "-p" argument.  buildandrun is called with the argv arguments augmented by "-p" and paramsfile
    //
@@ -72,8 +71,11 @@ int runparamsfile(int argc, char ** argv, char const * paramsfile) {
    assert(pv_argv[argc]!=NULL && pv_argv[argc+1]!=NULL);
    pv_argv[pv_argc]=NULL;
 
+
+   initObj->initialize(pv_argc, pv_argv);
+
    int status = PV_SUCCESS;
-   HyPerCol * hc = build((int) pv_argc, pv_argv);
+   HyPerCol * hc = build((int) pv_argc, pv_argv, initObj);
    if (hc != NULL) {
       status = hc->run();
       if( status != PV_SUCCESS ) {

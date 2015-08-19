@@ -28,11 +28,15 @@ int testDataPatchEqual(pvdata_t * w1, pvdata_t * w2, int patchSize, const char *
 int dumpWeights(HyPerConn * conn, FILE * stream);
 
 int main(int argc, char * argv[]) {
-   InterColComm * icComm = new InterColComm(&argc, &argv);
+   PV_Init* initObj = new PV_Init(&argc, &argv);
+
+   InterColComm * icComm = new InterColComm(argc, argv);
    PVParams * params = new PVParams("input/TransposeHyPerConnTest.params", 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
 
+   initObj->initialize(params, icComm);
+
    // Don't call buildandrun because it will delete hc before returning. (I could use the customexit hook)
-   HyPerCol * hc = build(argc, argv, NULL, params);
+   HyPerCol * hc = build(argc, argv, initObj);
    hc->run(); // Weight values are initialized when run calls allocateDataStructures
 
    int status = PV_SUCCESS;
@@ -85,43 +89,42 @@ int main(int argc, char * argv[]) {
    status = testTransposeOfTransposeWeights(originalMap, transpose, transposeOfTranspose, "One-to-many case, FeedbackConn");
 
    delete hc;
-   delete params;
-   delete icComm;
+   delete initObj;
    return status;
 }
 
-int manyToOneForTransposeConn(int argc, char * argv[]) {
-   HyPerCol * hc = new HyPerCol("column", argc, argv);
-   // Layers
-   const char * layerAname = "Layer A";
-   const char * layerB1to1name = "Layer B One to one";
-   const char * layerB_ManyTo1Name = "Layer B Many to one";
-   const char * layerB1toManyName = "Layer B One to many";
-   const char * originalConnName = "Many to one original map";
-   const char * transposeConnName = "Many to one transpose";
-   const char * transposeOfTransposeConnName = "Many to one double transpose";
-
-   ANNLayer * layerA = new ANNLayer(layerAname, hc);
-   assert(layerA);
-   ANNLayer * layerB_ManyTo1 = new ANNLayer(layerB_ManyTo1Name, hc);
-   assert(layerB_ManyTo1);
-   new ANNLayer(layerB1to1name, hc); // This layer and the next are unused in this test, but get created anyway
-   new ANNLayer(layerB1toManyName, hc); // to cause the params to be read, so we don't get unused-parameter warnings.
-
-   // Connections
-   HyPerConn * originalMapManyto1 = new HyPerConn(originalConnName, hc);
-   assert(originalMapManyto1);
-   TransposeConn * transposeManyto1 = new TransposeConn(transposeConnName, hc);
-   assert(transposeManyto1);
-   TransposeConn * transposeOfTransposeManyto1 = new TransposeConn(transposeOfTransposeConnName, hc);
-   assert(transposeOfTransposeManyto1);
-
-   hc->run(); // Weight values are initialized when run calls allocateDataStructures
-
-   int status = testTransposeOfTransposeWeights(originalMapManyto1, transposeManyto1, transposeOfTransposeManyto1, "Many-to-one case, TransposeConn");
-   delete hc;
-   return status;
-}
+//int manyToOneForTransposeConn(int argc, char * argv[]) {
+//   HyPerCol * hc = new HyPerCol("column", argc, argv);
+//   // Layers
+//   const char * layerAname = "Layer A";
+//   const char * layerB1to1name = "Layer B One to one";
+//   const char * layerB_ManyTo1Name = "Layer B Many to one";
+//   const char * layerB1toManyName = "Layer B One to many";
+//   const char * originalConnName = "Many to one original map";
+//   const char * transposeConnName = "Many to one transpose";
+//   const char * transposeOfTransposeConnName = "Many to one double transpose";
+//
+//   ANNLayer * layerA = new ANNLayer(layerAname, hc);
+//   assert(layerA);
+//   ANNLayer * layerB_ManyTo1 = new ANNLayer(layerB_ManyTo1Name, hc);
+//   assert(layerB_ManyTo1);
+//   new ANNLayer(layerB1to1name, hc); // This layer and the next are unused in this test, but get created anyway
+//   new ANNLayer(layerB1toManyName, hc); // to cause the params to be read, so we don't get unused-parameter warnings.
+//
+//   // Connections
+//   HyPerConn * originalMapManyto1 = new HyPerConn(originalConnName, hc);
+//   assert(originalMapManyto1);
+//   TransposeConn * transposeManyto1 = new TransposeConn(transposeConnName, hc);
+//   assert(transposeManyto1);
+//   TransposeConn * transposeOfTransposeManyto1 = new TransposeConn(transposeOfTransposeConnName, hc);
+//   assert(transposeOfTransposeManyto1);
+//
+//   hc->run(); // Weight values are initialized when run calls allocateDataStructures
+//
+//   int status = testTransposeOfTransposeWeights(originalMapManyto1, transposeManyto1, transposeOfTransposeManyto1, "Many-to-one case, TransposeConn");
+//   delete hc;
+//   return status;
+//}
 
 int testTransposeOfTransposeWeights(HyPerConn * originalMap, TransposeConn * transpose, TransposeConn * transposeOfTranspose, const char * message) {
    int status = testWeightsEqual(originalMap, transposeOfTranspose);

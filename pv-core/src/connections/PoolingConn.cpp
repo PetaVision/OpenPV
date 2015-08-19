@@ -211,7 +211,7 @@ int PoolingConn::allocateDataStructures(){
 
    if(needPostIndexLayer){
       //Allocate temp buffers if needed, 1 for each thread
-      if(!parent->getThreadBatch() && parent->getNumThreads() > 1){
+      if(parent->getNumThreads() > 1){
          thread_gateIdxBuffer= (int**) malloc(sizeof(int*) * parent->getNumThreads());
          //thread_gateIdxBuffer= (float**) malloc(sizeof(float*) * parent->getNumThreads());
          assert(thread_gateIdxBuffer);

@@ -22,7 +22,9 @@ int check_cocirc_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre,
 
 int main(int argc, char * argv[])
 {
-   PV::HyPerCol * hc = new PV::HyPerCol("test_cocirc column", argc, argv);
+   PV_Init * initObj = new PV_Init(&argc, &argv);
+   initObj->initialize(argc, argv);
+   PV::HyPerCol * hc = new PV::HyPerCol("test_cocirc column", argc, argv, initObj);
    
    const char * preLayerName = "test_cocirc pre";
    const char * postLayerName = "test_cocirc post";
@@ -79,6 +81,7 @@ int main(int argc, char * argv[])
    }
 
    delete hc;
+   delete initObj;
    return 0;
 }
 

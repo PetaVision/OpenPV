@@ -16,42 +16,109 @@
 using namespace PV;
 
 // TODO: Lots of duplicated code between the two flavors of buildandrun, buildandrun1paramset, and build
-int buildandrun(int argc, char * argv[], int (*custominit)(HyPerCol *, int, char **), int (*customexit)(HyPerCol *, int, char **), void * (*customgroups)(const char *, const char *, HyPerCol *)) {
+int buildandrun(int argc, char * argv[],
+      int (*custominit)(HyPerCol *, int, char **),
+      int (*customexit)(HyPerCol *, int, char **),
+      void * (*customgroups)(const char *, const char *, HyPerCol *)) {
 
-   //Parse param file
-   char * param_file = NULL;
-   pv_getopt_str(argc, argv, "-p", &param_file, NULL);
-   InterColComm * icComm = new InterColComm(&argc, &argv);
-   PVParams * params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
-   free(param_file);
+   PV_Init * initObj = new PV_Init(&argc, &argv);
+   int status = rebuildandrun(argc, argv, initObj, custominit, customexit, customgroups);
+   delete initObj;
+   return status;
+}
 
-   int numSweepValues = params->getSweepSize();
+int rebuildandrun(int argc, char * argv[], PV_Init* initObj,
+      int (*custominit)(HyPerCol *, int, char **),
+      int (*customexit)(HyPerCol *, int, char **),
+      void * (*customgroups)(const char *, const char *, HyPerCol *)) {
+
+
+   initObj->initialize(argc, argv);
+   if(initObj->isExtraProc()){
+      return 0;
+   }
+   
+   ////Parse param file
+   //char * param_file = NULL;
+   //pv_getopt_str(argc, argv, "-p", &param_file, NULL);
+   //InterColComm * icComm = new InterColComm(&argc, &argv);
+   //PVParams * params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
+   //free(param_file);
+
+   int numParamSweepValues = initObj->getParams()->getParameterSweepSize();
 
    int status = PV_SUCCESS;
-   if (numSweepValues) {
-      for (int k=0; k<numSweepValues; k++) {
-         if (icComm->commRank()==0) {
-            printf("Parameter sweep: starting run %d of %d\n", k+1, numSweepValues);
+   if (numParamSweepValues) {
+      for (int k=0; k<numParamSweepValues; k++) {
+         if (initObj->getWorldRank()==0) {
+            printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
          }
-         params->setSweepValues(k);
-         status = buildandrun1paramset(argc, argv, custominit, customexit, customgroups, params) == PV_SUCCESS ? status : PV_FAILURE;
+         initObj->getParams()->setParameterSweepValues(k);
+         status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, customgroups) == PV_SUCCESS ? status : PV_FAILURE;
       }
    }
-   else {
-      status = buildandrun1paramset(argc, argv, custominit, customexit, customgroups, params);
+   else{
+      if(initObj->getComm()->numCommBatches() > 1){
+         initObj->getParams()->setBatchSweepValues();
+      }
+      status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, customgroups) == PV_SUCCESS ? status : PV_FAILURE;
    }
 
-   delete params;
-   delete icComm;
+   return status;
+}
+
+
+int buildandrun(int argc, char * argv[],
+                int (*custominit)(HyPerCol *, int, char **),
+                int (*customexit)(HyPerCol *, int, char **),
+                ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
+
+   PV_Init * initObj = new PV_Init(&argc, &argv);
+   int status = rebuildandrun(argc, argv, initObj, custominit, customexit, groupHandlerList, numGroupHandlers);
+   delete initObj;
+   return status;
+}
+
+int rebuildandrun(int argc, char * argv[], PV_Init* initObj,
+                int (*custominit)(HyPerCol *, int, char **),
+                int (*customexit)(HyPerCol *, int, char **),
+                ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
+
+   initObj->initialize(argc, argv);
+   if(initObj->isExtraProc()){
+      return 0;
+   }
+
+   int numParamSweepValues = initObj->getParams()->getParameterSweepSize();
+
+   int status = PV_SUCCESS;
+   if (numParamSweepValues) {
+      for (int k=0; k<numParamSweepValues; k++) {
+         if (initObj->getWorldRank()==0) {
+            printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
+         }
+         initObj->getParams()->setParameterSweepValues(k);
+         status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, groupHandlerList, numGroupHandlers) == PV_SUCCESS ? status : PV_FAILURE;
+      }
+   }
+   else{
+      if(initObj->getComm()->numCommBatches() > 1){
+         initObj->getParams()->setBatchSweepValues();
+      }
+      status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, groupHandlerList, numGroupHandlers) == PV_SUCCESS ? status : PV_FAILURE;
+   }
+
+   //delete params;
+   //delete icComm;
    return status;
 }
 
 int buildandrun1paramset(int argc, char * argv[],
+                         PV_Init* initObj,
                          int (*custominit)(HyPerCol *, int, char **),
                          int (*customexit)(HyPerCol *, int, char **),
-                         void * (*customgroups)(const char *, const char *, HyPerCol *),
-                         PVParams * params) {
-   HyPerCol * hc = build(argc, argv, customgroups, params);
+                         void * (*customgroups)(const char *, const char *, HyPerCol *)) {
+   HyPerCol * hc = build(argc, argv, initObj, customgroups);
    if( hc == NULL ) return PV_FAILURE;  // build() prints error message
 
    int status = PV_SUCCESS;
@@ -78,8 +145,10 @@ int buildandrun1paramset(int argc, char * argv[],
    return status;
 }
 
-HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, const char *, HyPerCol *), PVParams * params) {
-   HyPerCol * hc = new HyPerCol("column", argc, argv, params);
+HyPerCol * build(int argc, char * argv[], 
+                 PV_Init* initObj, 
+                 void * (*customgroups)(const char *, const char *, HyPerCol *)) {
+   HyPerCol * hc = new HyPerCol("column", argc, argv, initObj);
    if( hc == NULL ) {
       fprintf(stderr, "Unable to create HyPerCol\n");
       return NULL;
@@ -127,10 +196,10 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
          assert(0); // All possibilities for groupType are handled above
       }
       if(addedObject == NULL) {
-         if (hc->icCommunicator()->commRank()==0) {
+         if (hc->globalRank()==0) {
             fprintf(stderr, "Parameter group \"%s\": %s could not be created.\n", name, kw);
          }
-         MPI_Barrier(hc->icCommunicator()->communicator());
+         MPI_Barrier(hc->icCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -144,44 +213,13 @@ HyPerCol * build(int argc, char * argv[], void * (*customgroups)(const char *, c
    return hc;
 }
 
-int buildandrun(int argc, char * argv[],
-                int (*custominit)(HyPerCol *, int, char **),
-                int (*customexit)(HyPerCol *, int, char **),
-                ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
-   //Parse param file
-   char * param_file = NULL;
-   pv_getopt_str(argc, argv, "-p", &param_file, NULL);
-   InterColComm * icComm = new InterColComm(&argc, &argv);
-   PVParams * params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
-   free(param_file);
-
-   int numSweepValues = params->getSweepSize();
-
-   int status = PV_SUCCESS;
-   if (numSweepValues) {
-      for (int k=0; k<numSweepValues; k++) {
-         if (icComm->commRank()==0) {
-            printf("Parameter sweep: starting run %d of %d\n", k+1, numSweepValues);
-         }
-         params->setSweepValues(k);
-         status = buildandrun1paramset(argc, argv, custominit, customexit, groupHandlerList, numGroupHandlers, params) == PV_SUCCESS ? status : PV_FAILURE;
-      }
-   }
-   else {
-      status = buildandrun1paramset(argc, argv, custominit, customexit, groupHandlerList, numGroupHandlers, params);
-   }
-
-   delete params;
-   delete icComm;
-   return status;
-}
 
 int buildandrun1paramset(int argc, char * argv[],
+                         PV_Init * initObj,
                          int (*custominit)(HyPerCol *, int, char **),
                          int (*customexit)(HyPerCol *, int, char **),
-                         ParamGroupHandler ** groupHandlerList, int numGroupHandlers,
-                         PVParams * params) {
-   HyPerCol * hc = build(argc, argv, groupHandlerList, numGroupHandlers, params);
+                         ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
+   HyPerCol * hc = build(argc, argv, initObj, groupHandlerList, numGroupHandlers);
    if( hc == NULL ) return PV_FAILURE;  // build() prints error message
 
    int status = PV_SUCCESS;
@@ -208,8 +246,9 @@ int buildandrun1paramset(int argc, char * argv[],
    return status;
 }
 
-HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList, int numGroupHandlers, PVParams * params) {
-   HyPerCol * hc = new HyPerCol("column", argc, argv, params);
+HyPerCol * build(int argc, char * argv[],
+                 PV_Init* initObj, ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
+   HyPerCol * hc = new HyPerCol("column", argc, argv, initObj);
    if( hc == NULL ) {
       fprintf(stderr, "Unable to create HyPerCol\n");
       return NULL;
@@ -232,10 +271,10 @@ HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList,
       ParamGroupType groupType = UnrecognizedGroupType;
       ParamGroupHandler * handler = getGroupHandlerFromList(kw, coreHandler, groupHandlerList, numGroupHandlers, &groupType);
       if (handler == NULL) {
-         if (hc->icCommunicator()->commRank()==0) {
+         if (hc->globalRank()==0) {
             fprintf(stderr, "Error: parameter group \"%s\": %s is not recognized by any known ParamGroupHandler.\n", name, kw);
          }
-         MPI_Barrier(hc->icCommunicator()->communicator());
+         MPI_Barrier(hc->icCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
       }
       switch (groupType) {
@@ -267,10 +306,10 @@ HyPerCol * build(int argc, char * argv[], ParamGroupHandler ** groupHandlerList,
           assert(0); // All possibilities for groupType are handled above
       }
       if (addedObject==NULL) {
-         if (hc->columnId()==0) {
+         if (hc->globalRank()==0) {
             fprintf(stderr, "Error creating %s \"%s\".\n", kw, name);
          }
-         MPI_Barrier(hc->icCommunicator()->communicator());
+         MPI_Barrier(hc->icCommunicator()->globalCommunicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -347,9 +386,9 @@ int checknewobject(void * object, const char * kw, const char * name, HyPerCol *
       fprintf(stderr, "checknewobject error: HyPerCol argument must be set.\n");
       exit(EXIT_FAILURE);
    }
-   int rank = hc->icCommunicator()->commRank();
+   int rank = hc->globalRank();
    if( object == NULL ) {
-      fprintf(stderr, "Rank %d process: Group \"%s\" unable to add object of class %s\n", rank, name, kw);
+      fprintf(stderr, "Global Rank %d process: Group \"%s\" unable to add object of class %s\n", rank, name, kw);
       status = PV_FAILURE;
    }
    else {

@@ -1804,7 +1804,7 @@ int HyPerConn::allocateDataStructures() {
 
    //Allocate temp buffers if needed, 1 for each thread
    //Only allocate for recv from pre, and not threading over batches
-   if(!getUpdateGSynFromPostPerspective() && !parent->getThreadBatch() && parent->getNumThreads() > 1){
+   if(!getUpdateGSynFromPostPerspective() && parent->getNumThreads() > 1){
       //thread_gSyn is only a buffer for one batch, as if we're not threading over batches, batches will be sequential
       thread_gSyn = (pvdata_t**) malloc(sizeof(pvdata_t*) * parent->getNumThreads());
       assert(thread_gSyn);
@@ -3198,9 +3198,10 @@ int HyPerConn::reduceActivations(int arborID){
    Communicator * comm = parent->icCommunicator();
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
-   const int nProcs = nxProcs * nyProcs;
+   const int nbProcs = comm->numCommBatches();
+   const int nProcs = nxProcs * nyProcs * nbProcs;
    if(numKernelActivations && nProcs != 1){
-      const MPI_Comm mpi_comm = comm->communicator();
+      const MPI_Comm mpi_comm = comm->globalCommunicator();
       int ierr;
       const int numPatches = getNumDataPatches();
       const size_t patchSize = (size_t)nxp * (size_t)nyp * (size_t)nfp;
@@ -3222,9 +3223,10 @@ int HyPerConn::reduceKernels(int arborID) {
    Communicator * comm = parent->icCommunicator();
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
-   const int nProcs = nxProcs * nyProcs;
+   const int nbProcs = comm->numCommBatches();
+   const int nProcs = nxProcs * nyProcs * nbProcs;
    if (nProcs != 1){
-      const MPI_Comm mpi_comm = comm->communicator();
+      const MPI_Comm mpi_comm = comm->globalCommunicator();
       int ierr;
       const int numPatches = getNumDataPatches();
       const size_t patchSize = (size_t)nxp * (size_t)nyp * (size_t)nfp;
@@ -3609,7 +3611,7 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 
 #ifdef DEBUG_OUTPUT
    int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   MPI_Comm_rank(parent->icCommunicator()->communicator(), &rank);
    //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
    printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numExtended, activity, this, conn);
    fflush(stdout);
@@ -3712,7 +3714,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
 
 #ifdef DEBUG_OUTPUT
    int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   MPI_Comm_rank(parent->icCommunicator()->communicator(), &rank);
    //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
    printf("[%d]: HyPerLayr::pullSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numRestricted, activity, this, this);
    fflush(stdout);

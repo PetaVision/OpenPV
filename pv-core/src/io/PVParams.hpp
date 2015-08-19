@@ -9,8 +9,10 @@
 #define PVPARAMS_HPP_
 
 #include "../include/pv_common.h"
-#include "../columns/HyPerCol.hpp"
+//#include "../columns/HyPerCol.hpp"
 #include "../columns/InterColComm.hpp"
+#include "fileio.hpp"
+#include "io.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -180,10 +182,10 @@ private:
 };
 
 
-enum ParameterSweepType {
-   PARAMSWEEP_UNDEF = 0,
-   PARAMSWEEP_NUMBER  = 1,
-   PARAMSWEEP_STRING  = 2
+enum SweepType {
+   SWEEP_UNDEF = 0,
+   SWEEP_NUMBER  = 1,
+   SWEEP_STRING  = 2
 };
 
 class ParameterSweep {
@@ -195,7 +197,7 @@ public:
    int pushNumericValue(double val);
    int pushStringValue(const char * sval);
    int getNumValues() {return numValues;}
-   ParameterSweepType getType() {return type;}
+   SweepType getType() {return type;}
    int getNumericValue(int n, double * val);
    const char * getStringValue(int n);
    const char * getGroupName() {return groupName;}
@@ -204,7 +206,7 @@ public:
 private:
    char * groupName;
    char * paramName;
-   ParameterSweepType type;
+   SweepType type;
    int numValues;
    int currentBufferSize;
    double * valuesNumber;
@@ -213,9 +215,9 @@ private:
 
 class PVParams {
 public:
-   PVParams(size_t initialSize, InterColComm * icComm); // TODO Should be const InterColComm * comm
-   PVParams(const char * filename, size_t initialSize, InterColComm * icComm);
-   PVParams(const char * buffer, long int bufferLength, size_t initialSize, InterColComm * icComm);
+   PVParams(size_t initialSize, InterColComm* inIcComm);
+   PVParams(const char * filename, size_t initialSize, InterColComm* inIcComm);
+   PVParams(const char * buffer, long int bufferLength, size_t initialSize, InterColComm* inIcComm);
    virtual ~PVParams();
 
    int parseBufferInRootProcess(char * buffer, long int bufferLength);
@@ -240,7 +242,8 @@ public:
    void handleUnnecessaryParameter(const char * group_name, const char * param_name, T correct_value);
    void handleUnnecessaryStringParameter(const char * group_name, const char * param_name, const char * correctValue=NULL, bool case_insensitive_flag=false);
    int outputParams(FILE *);
-   int setSweepValues(int n);
+   int setParameterSweepValues(int n);
+   int setBatchSweepValues();
 
    void action_pvparams_directive(char * id, double val);
    void action_parameter_group_name(char * keyword, char * name);
@@ -255,16 +258,25 @@ public:
    void action_parameter_filename_def(const char * id, const char * stringval);
    void action_parameter_filename_def_overwrite(const char * id, const char * stringval);
    void action_include_directive(const char * stringval);
-   void action_parameter_sweep_open(const char * id, const char * groupname, const char * paramname);
+
+   void action_sweep_open(const char * groupname, const char * paramname);
    void action_parameter_sweep_close();
-   void action_sweep_values_number(double val);
-   void action_sweep_values_string(const char * stringval);
-   void action_sweep_values_filename(const char * stringval);
+   void action_parameter_sweep_values_number(double val);
+   void action_parameter_sweep_values_string(const char * stringval);
+   void action_parameter_sweep_values_filename(const char * stringval);
+
+   void action_batch_sweep_close();
+   void action_batch_sweep_values_number(double val);
+   void action_batch_sweep_values_string(const char * stringval);
+   void action_batch_sweep_values_filename(const char * stringval);
 
    int numberOfGroups() {return numGroups;}
-   InterColComm * getInterColComm() {return icComm;}
-   int numberOfSweeps() {return numParamSweeps;}
-   int getSweepSize() {return sweepSize;}
+   //InterColComm * getInterColComm() {return icComm;}
+   int numberOfParameterSweeps() {return numParamSweeps;}
+   int getParameterSweepSize() {return parameterSweepSize;}
+
+   int numberOfBatchSweeps() {return numBatchSweeps;}
+   int getBatchSweepSize() {return batchSweepSize;}
 
 private:
    int parseStatus;
@@ -278,14 +290,21 @@ private:
    bool debugParsing;
    bool disable;
    InterColComm * icComm;
-   int getRank() {return icComm->commRank();}
+   //int getRank() {return icComm->commRank();}
+   int worldRank;
+   int worldSize;
 
    ParameterArray * currentParamArray;
 
    int numParamSweeps; // The number of different parameters that are changed during the sweep.
    ParameterSweep ** paramSweeps;
    ParameterSweep * activeParamSweep;
-   int sweepSize; // The number of parameter value sets in the sweep.  Each ParameterSweep group in the params file must contain the same number of values, which is sweepSize.
+   int parameterSweepSize; // The number of parameter value sets in the sweep.  Each ParameterSweep group in the params file must contain the same number of values, which is sweepSize.
+
+   int numBatchSweeps; // The number of different parameters that are changed during the sweep.
+   ParameterSweep ** batchSweeps;
+   ParameterSweep * activeBatchSweep;
+   int batchSweepSize; // The number of batch values sets in the sweep.  Each BatchSweep group in the params file must contain the same number of values, which is batchSweepSize.
 
    char* currGroupKeyword;
    char* currGroupName;
@@ -293,17 +312,22 @@ private:
    char * currSweepGroupName;
    char * currSweepParamName;
 
-   int initialize(size_t initialSize, InterColComm * icComm);
+   int initialize(size_t initialSize);
    int parseFile(const char * filename);
    int parseBuffer(const char * buffer, long int bufferLength);
-   int setSweepSize();
+   int setParameterSweepSize();
+   int setBatchSweepSize();
    void addGroup(char * keyword, char * name);
    void addActiveParamSweep(const char * group_name, const char * param_name);
+   void addActiveBatchSweep(const char * group_name, const char * param_name);
    int checkDuplicates(const char * paramName, double val);
    int newActiveParamSweep();
+   int newActiveBatchSweep();
    int clearHasBeenReadFlags();
    static char * stripQuotationMarks(const char *s);
    static char * stripOverwriteTag(const char *s);
+   bool hasOutputPath();
+   
 };
 
 }

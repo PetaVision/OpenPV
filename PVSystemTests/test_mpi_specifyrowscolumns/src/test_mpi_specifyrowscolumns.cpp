@@ -24,7 +24,7 @@ int main(int argc, char * argv[]) {
 #ifdef PV_USE_MPI
 #include <mpi.h>
 
-int buildandverify(int argc, char * argv[]);
+int buildandverify(int argc, char * argv[], PV::PV_Init* initObj);
 int verifyLoc(PV::HyPerCol * loc, int rows, int columns);
 int dumpLoc(const PVLayerLoc * loc, int rank);
 #endif // PV_USE_MPI
@@ -32,14 +32,17 @@ int dumpLoc(const PVLayerLoc * loc, int rank);
 using namespace PV;
 
 int main(int argc, char * argv[]) {
+   PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv);
    int status = PV_SUCCESS;
-   int mpi_initialized_on_entry;
-   MPI_Initialized(&mpi_initialized_on_entry);
-   if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
+   //int mpi_initialized_on_entry;
+   //MPI_Initialized(&mpi_initialized_on_entry);
+   //if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
+   //int rank = initObj->getWorldRank();
    int rank = 0;
+   int numProcs = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   int numProcs;
    MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+   //int numProcs = initObj->getWorldSize();
 
    if( numProcs != 6) {
       // TODO Greater than six should be permissible, with the excess over 6 being idle
@@ -89,27 +92,29 @@ int main(int argc, char * argv[]) {
    pv_argv[argc+3] = strdup("2");
    pv_argv[argc+4] = strdup("-columns");
    pv_argv[argc+5] = strdup("3");
-   buildandverify(pv_argc, pv_argv);
+   buildandverify(pv_argc, pv_argv, initObj);
 
    free(pv_argv[argc+3]);
    pv_argv[argc+3] = strdup("3");
    free(pv_argv[argc+5]);
    pv_argv[argc+5] = strdup("2");
-   buildandverify(pv_argc, pv_argv);
+   buildandverify(pv_argc, pv_argv, initObj);
 
    for( int arg=1; arg<pv_argc; arg++ ) {
       free(pv_argv[arg]);
    }
    free(pv_argv);
-   if( !mpi_initialized_on_entry ) MPI_Finalize();
+   //if( !mpi_initialized_on_entry ) MPI_Finalize();
+   delete initObj;
    return status;
 }
 
-int buildandverify(int argc, char * argv[]) {
+int buildandverify(int argc, char * argv[], PV::PV_Init* initObj) {
    for( int i=0; i<argc; i++ ) {
       assert(argv[i] != NULL);
    }
-   PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv);
+   initObj->initialize(argc, argv);
+   PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv, initObj);
    /* PV::ANNLayer * layer = */ new PV::ANNLayer("layer", hc);
    int rows = -1;
    int columns = -1;

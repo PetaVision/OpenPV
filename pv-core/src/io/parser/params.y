@@ -151,7 +151,8 @@ int pv_parseParameters(PV::PVParams * action_handler, const char * paramBuffer, 
 %token <sval> T_FILE_KEYWORD
 %token <sval> T_FILENAME
 %token <sval> T_INCLUDE
-%token <sval> T_SWEEP
+%token <sval> T_PARAM_SWEEP
+%token <sval> T_BATCH_SWEEP
 
 %%
 
@@ -159,6 +160,7 @@ declarations : /* empty */
              | declarations pvparams_directive
              | declarations parameter_group
              | declarations parameter_sweep
+             | declarations batch_sweep
              ;
 
 
@@ -224,41 +226,84 @@ include_directive : T_INCLUDE T_STRING ';'
                         { handler->action_include_directive($2); }
                   ;
 
-parameter_sweep_id : T_ID T_STRING ':' T_ID '='
-                      { handler->action_parameter_sweep_open($1, $2, $4); }
-                   ;
 
-parameter_sweep : parameter_sweep_id '{' sweep_values '}' ';'
+/* Sweeps */
+parameter_sweep_id : T_PARAM_SWEEP T_STRING ':' T_ID '='
+                      { handler->action_sweep_open($2, $4); }
+
+
+parameter_sweep : parameter_sweep_id '{' parameter_sweep_values '}' ';'
                         { handler->action_parameter_sweep_close(); }
                 ;
 
-sweep_values : /* empty */
-             | sweep_values_numbers
-             | sweep_values_strings
-             | sweep_values_filenames
+parameter_sweep_values : /* empty */
+             | parameter_sweep_values_numbers
+             | parameter_sweep_values_strings
+             | parameter_sweep_values_filenames
              ;
 
-sweep_values_numbers : sweep_values_number
-                     | sweep_values_numbers sweep_values_number
+parameter_sweep_values_numbers : parameter_sweep_values_number
+                     | parameter_sweep_values_numbers parameter_sweep_values_number
                      ; /* empty not included because this leads to a reduce/reduce conflict if sweep_values is empty */
 
-sweep_values_number : T_NUMBER ';'
-                       { handler->action_sweep_values_number($1); }
+parameter_sweep_values_number : T_NUMBER ';'
+                       { handler->action_parameter_sweep_values_number($1); }
                     ;
 
-sweep_values_strings : sweep_values_string
-                     | sweep_values_strings sweep_values_string
+parameter_sweep_values_strings : parameter_sweep_values_string
+                     | parameter_sweep_values_strings parameter_sweep_values_string
                      ; /* empty not included because this leads to a reduce/reduce conflict if sweep_values is empty */
 
-sweep_values_string : T_STRING ';'
-                       { handler->action_sweep_values_string($1); }
+parameter_sweep_values_string : T_STRING ';'
+                       { handler->action_parameter_sweep_values_string($1); }
                     ;
 
-sweep_values_filenames : sweep_values_filename
-                       | sweep_values_filenames sweep_values_filename
+parameter_sweep_values_filenames : parameter_sweep_values_filename
+                       | parameter_sweep_values_filenames parameter_sweep_values_filename
                        ; /* empty not included because this leads to a reduce/reduce conflict if sweep_values is empty */
 
-sweep_values_filename : T_FILENAME ';'
-                         { handler->action_sweep_values_filename($1); }
+parameter_sweep_values_filename : T_FILENAME ';'
+                         { handler->action_parameter_sweep_values_filename($1); }
                       ;
+
+batch_sweep : batch_sweep_id '{' batch_sweep_values '}' ';'
+                        { handler->action_batch_sweep_close(); }
+                ;
+
+batch_sweep_id : T_BATCH_SWEEP T_STRING ':' T_ID '='
+                      { handler->action_sweep_open($2, $4); }
+                   ;
+
+
+batch_sweep_values : /* empty */
+             | batch_sweep_values_numbers
+             | batch_sweep_values_strings
+             | batch_sweep_values_filenames
+             ;
+
+batch_sweep_values_numbers : batch_sweep_values_number
+                     | batch_sweep_values_numbers batch_sweep_values_number
+                     ; /* empty not included because this leads to a reduce/reduce conflict if sweep_values is empty */
+
+batch_sweep_values_number : T_NUMBER ';'
+                       { handler->action_batch_sweep_values_number($1); }
+                    ;
+
+batch_sweep_values_strings : batch_sweep_values_string
+                     | batch_sweep_values_strings batch_sweep_values_string
+                     ; /* empty not included because this leads to a reduce/reduce conflict if sweep_values is empty */
+
+batch_sweep_values_string : T_STRING ';'
+                       { handler->action_batch_sweep_values_string($1); }
+                    ;
+
+batch_sweep_values_filenames : batch_sweep_values_filename
+                       | batch_sweep_values_filenames batch_sweep_values_filename
+                       ; /* empty not included because this leads to a reduce/reduce conflict if sweep_values is empty */
+
+batch_sweep_values_filename : T_FILENAME ';'
+                         { handler->action_batch_sweep_values_filename($1); }
+                      ;
+
+
                      

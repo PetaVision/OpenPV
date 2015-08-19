@@ -8,15 +8,17 @@
 #undef DEBUG_PRINT
 
 #include <columns/Communicator.hpp>
+#include <columns/PV_Init.hpp>
 
 static int check_borders(pvdata_t * buf, PV::Communicator * comm, PVLayerLoc loc);
 
 int main(int argc, char * argv[])
 {
+   PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv);
    int err = 0;
    PVLayerLoc loc;
 
-   PV::Communicator * comm = new PV::Communicator(&argc, &argv);
+   PV::Communicator * comm = new PV::Communicator(argc, argv);
 
    int nxProc = comm->numCommColumns();
    int nyProc = comm->numCommRows();
@@ -71,6 +73,8 @@ int main(int argc, char * argv[])
 
    delete datatypes;
    delete comm;
+
+   delete initObj;
 
    return 0;
 }

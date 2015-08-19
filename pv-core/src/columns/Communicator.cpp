@@ -14,107 +14,148 @@
 
 namespace PV {
 
-Communicator::Communicator(int* argc, char*** argv)
+int Communicator::gcd ( int a, int b ){
+   int c;
+   while ( a != 0 ) {
+      c = a; a = b%a;  b = c;
+   }
+   return b;
+}
+
+Communicator::Communicator(int argc, char** argv)
 {
    float r;
 
-   commInit(argc, argv);
+   int totalSize;
+   localIcComm = NULL;
+   globalIcComm = NULL;
+#ifdef PV_USE_MPI
+   MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
+   MPI_Comm_size(MPI_COMM_WORLD, &totalSize);
+#else // PV_USE_MPI
+   globalRank = 0;
+   totalSize = 1;
+#endif // PV_USE_MPI
+   //commInit(argc, argv);
 
    // sprintf(commName, "[%2d]: ", icRank); // icRank not initialized yet; commName not used until later.
 
-   bool rowsDefined = pv_getopt_int(*argc,  *argv, "-rows", &numRows, NULL)==0;
-   bool colsDefined = pv_getopt_int(*argc, *argv, "-columns", &numCols, NULL)==0;
+   bool rowsDefined = pv_getopt_int(argc,  argv, "-rows", &numRows, NULL)==0;
+   bool colsDefined = pv_getopt_int(argc, argv, "-columns", &numCols, NULL)==0;
+   bool batchDefined = pv_getopt_int(argc, argv, "-batchwidth", &batchWidth, NULL)==0;
 
+   bool inferingDim = !rowsDefined || !colsDefined || !batchDefined;
+
+   if(!batchDefined){
+      ////Case where both rows and cols are defined, we can find out what the batch width is
+      //if(rowsDefined && colsDefined){
+      //   batchWidth = globalSize/(numRows * numCols);
+      //}
+      //else if(rowsDefined && !colsDefined){
+      //   batchWidth = gcd(globalSize/numRows, nbatch);
+      //}
+      //else if(!rowsDefined && colsDefined){
+      //   batchWidth = gcd(globalSize/numCols, nbatch);
+      //}
+      //else{
+      //   //Find gcd between np and nbatch, and set that as the batchWidth
+      //   batchWidth = gcd(globalSize, nbatch);
+      //}
+      batchWidth = 1;
+   }
+   //if(batchWidth > nbatch){
+   //   std::cout << "Error: batchWidth of " << batchWidth << " must be bigger than nbatch of " << nbatch << "\n";
+   //   exit(-1);
+   //}
+   //if(nbatch % batchWidth != 0){
+   //   std::cout << "Error: batchWidth of " << batchWidth << " must be a multiple of nbatch of " << nbatch << "\n";
+   //   exit(-1);
+   //}
+
+   int procsLeft = totalSize/batchWidth;
    if( rowsDefined && !colsDefined ) {
-      numCols = (int) worldSize / numRows;
+      numCols = (int) ceil(procsLeft / numRows);
    }
    if( !rowsDefined && colsDefined ) {
-      numRows = (int) worldSize / numCols;
+      numRows = (int) ceil(procsLeft / numCols);
    }
    if( !rowsDefined  && !colsDefined ) {
-      r = sqrtf(worldSize);
+      r = sqrtf(procsLeft);
       numRows = (int) r;
-      numCols = (int) worldSize / numRows;
+      numCols = (int) ceil(procsLeft / numRows);
    }
 
-   int commSize = numRows * numCols;
+   int commSize = batchWidth * numRows * numCols;
+
+   //For debugging
+   if(globalRank == 0){
+      std::cout << "Running with batchWidth=" << batchWidth << ", numRows=" << numRows << ", and numCols=" << numCols << "\n";
+   }
+
+   if(commSize > totalSize){
+      std::cout << "Total number of specified processes (" << commSize << ") must be bigger than the number of processes launched (" << totalSize << ")\n";
+      exit(-1);
+   }
 
 #ifdef PV_USE_MPI
-   int exclsize = worldSize - commSize;
-
-   if (exclsize == 0) {
-      MPI_Comm_dup(MPI_COMM_WORLD, &icComm);
+   //Create a new split of useful mpi processes vs extras
+   isExtra = globalRank >= commSize ? 1 : 0;
+   MPI_Comm_split(MPI_COMM_WORLD, isExtra, globalRank % commSize, &globalIcComm);
+   if(isExtra){
+      std::cout << "Global process rank " << globalRank << " is extra, as only " << commSize << " mpiProcesses are required. Process exiting\n";
+      return;
    }
-   else {
-      // Currently, excess processes cause problems because all processes, whether in the icComm group or not, call all the MPI commands.
-      // The excluded processes should be prevented from calling commands in the communicator.  It isn't desirable to have the excess
-      // processes simply exit, because there may be additional HyPerColumn simulations to run.
-      /*
-            MPI_Group worldGroup, newGroup;
-            MPI_Comm_group(MPI_COMM_WORLD, &worldGroup);
+   //Grab globalSize now that extra processes have been exited
+   MPI_Comm_size(globalIcComm, &globalSize);
 
-            int * ranks = new int [exclsize];
 
-            for (int i = 0; i < exclsize; i++) {
-               ranks[i] = i + commSize;
-            }
-
-            MPI_Group_excl(worldGroup, exclsize, ranks, &newGroup);
-            MPI_Comm_create(MPI_COMM_WORLD, newGroup, &icComm);
-
-            delete ranks;
-       */
-      int icRank;
-      MPI_Comm_rank(MPI_COMM_WORLD, &icRank);
-      if (icRank==0) {
-         if (exclsize < 0) {
-            fprintf(stderr, "Error: %d rows and %d columns specified but only %d processes are available.\n", numRows, numCols, worldSize);
-         }
-         else {
-            assert(exclsize > 0);
-            if (rowsDefined && colsDefined) {
-               fprintf(stderr, "Error: %d rows and %d columns specified but %d processes available.  Excess processes not yet supported.  Exiting.\n", numRows, numCols, worldSize);
-            }
-            else {
-               fprintf(stderr, "Error: trying %d rows and %d columns but this does not correspond to the %d processes specified.\n", numRows, numCols, worldSize);
-               fprintf(stderr, "You can use the \"-rows\" and \"-columns\" options to specify the arrangement of processes.\n");
-            }
-         }
-      }
-      exit(EXIT_FAILURE);
-   }
+   //globalIcComm is now a communicator with only useful mpi processes
+   
+   //Calculate the batch idx from global rank 
+   int batchColIdx = commBatch(globalRank);
+   //Set local rank
+   localRank = globalToLocalRank(globalRank, batchWidth, numRows, numCols);
+   //Make new local communicator
+   MPI_Comm_split(globalIcComm, batchColIdx, localRank, &localIcComm);
 #endif // PV_USE_MPI
 
-#ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: Formed resized communicator, size==%d cols==%d rows==%d\n", icRank, icSize, numCols, numRows);
-#endif // DEBUG_OUTPUT
+//#ifdef DEBUG_OUTPUT
+//      fprintf(stderr, "[%2d]: Formed resized communicator, size==%d cols==%d rows==%d\n", icRank, icSize, numCols, numRows);
+//#endif // DEBUG_OUTPUT
 
-   // some ranks are excluded if they don't fit in the processor quilt
-   if (worldRank < commSize) {
+//   // some ranks are excluded if they don't fit in the processor quilt
+//   if (worldRank < commSize) {
+
+//Grab local rank and check for errors
+   int tmpLocalRank;
 #ifdef PV_USE_MPI
-      MPI_Comm_rank(icComm, &icRank);
-      MPI_Comm_size(icComm, &icSize);
+   MPI_Comm_size(localIcComm, &localSize);
+   MPI_Comm_rank(localIcComm, &tmpLocalRank);
 #else // PV_USE_MPI
-      icRank = 0;
-      icSize = 1;
+   localSize = 1;
+   tmpLocalRank = 0;
 #endif // PV_USE_MPI
-   }
-   else {
-      icSize = 0;
-      icRank = -worldRank;
-   }
+   //This should be equiv
+   assert(tmpLocalRank == localRank);
+
+
+//   }
+//   else {
+//      icSize = 0;
+//      icRank = -worldRank;
+//   }
 
    commName[0] = '\0';
-   if (icSize > 1) {
-      snprintf(commName, COMMNAME_MAXLENGTH, "[%2d]: ", icRank);
+   if (globalSize > 1) {
+      snprintf(commName, COMMNAME_MAXLENGTH, "[%2d]: ", globalRank);
    }
 
-   if (icSize > 0) {
+   if (globalSize > 0) {
       neighborInit();
    }
 
 #ifdef PV_USE_MPI
-   MPI_Barrier(MPI_COMM_WORLD);
+   MPI_Barrier(globalIcComm);
 #endif
 
    // install timers
@@ -124,54 +165,59 @@ Communicator::Communicator(int* argc, char*** argv)
 Communicator::~Communicator()
 {
 #ifdef PV_USE_MPI
-   MPI_Barrier(MPI_COMM_WORLD);
-   MPI_Comm_free(&icComm);
+   MPI_Barrier(globalIcComm);
+   if(localIcComm){
+      MPI_Comm_free(&localIcComm);
+   }
+   if(globalIcComm){
+      MPI_Comm_free(&globalIcComm);
+   }
 #endif
-   commFinalize(); // calls MPI_Finalize
+   //commFinalize(); // calls MPI_Finalize
 
    // delete timers
    //
-   if (commRank() == 0) {
+   if (globalCommRank() == 0) {
       exchange_timer->fprint_time(stdout);
       fflush(stdout);
    }
    delete exchange_timer; exchange_timer = NULL;
 }
 
-int Communicator::commInit(int* argc, char*** argv)
-{
-#ifdef PV_USE_MPI
-   // If MPI wasn't initialized, initialize it.
-   // Remember if it was initialized on entry; the destructor will only finalize if the constructor init'ed.
-   // This way, you can do several simulations sequentially by initializing MPI before creating
-   // the first HyPerCol; after running the first simulation the MPI environment will still exist and you
-   // can run the second simulation, etc.
-   MPI_Initialized(&mpi_initialized_on_entry);
-   if( !mpi_initialized_on_entry ) {
-      assert((*argv)[*argc]==NULL); // Open MPI 1.7 assumes this.
-      MPI_Init(argc, argv);
-   }
-   MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
-   MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
-#else // PV_USE_MPI
-   worldRank = 0;
-   worldSize = 1;
-#endif // PV_USE_MPI
+//int Communicator::commInit(int* argc, char*** argv)
+//{
+//#ifdef PV_USE_MPI
+//   // If MPI wasn't initialized, initialize it.
+//   // Remember if it was initialized on entry; the destructor will only finalize if the constructor init'ed.
+//   // This way, you can do several simulations sequentially by initializing MPI before creating
+//   // the first HyPerCol; after running the first simulation the MPI environment will still exist and you
+//   // can run the second simulation, etc.
+//   MPI_Initialized(&mpi_initialized_on_entry);
+//   if( !mpi_initialized_on_entry ) {
+//      assert((*argv)[*argc]==NULL); // Open MPI 1.7 assumes this.
+//      MPI_Init(argc, argv);
+//   }
+//   MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
+//   MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
+//#else // PV_USE_MPI
+//   worldRank = 0;
+//   worldSize = 1;
+//#endif // PV_USE_MPI
+//
+//#ifdef DEBUG_OUTPUT
+//   fprintf(stderr, "[%2d]: Communicator::commInit: world_size==%d\n", worldRank, worldSize);
+//#endif // DEBUG_OUTPUT
+//
+//   return 0;
+//}
 
-#ifdef DEBUG_OUTPUT
-   fprintf(stderr, "[%2d]: Communicator::commInit: world_size==%d\n", worldRank, worldSize);
-#endif // DEBUG_OUTPUT
-
-   return 0;
-}
-
-int Communicator::commFinalize()
-{
-#ifdef PV_USE_MPI
-   if( !mpi_initialized_on_entry ) MPI_Finalize();
-#endif
-   return 0;
-}
+//int Communicator::commFinalize()
+//{
+//#ifdef PV_USE_MPI
+//   if( !mpi_initialized_on_entry ) MPI_Finalize();
+//#endif
+//   return 0;
+//}
 
 /**
  * Initialize the communication neighborhood
@@ -195,20 +241,20 @@ int Communicator::neighborInit()
    // can be distinguished.
 
    for (int i = 0; i < NUM_NEIGHBORHOOD; i++) {
-      int n = neighborIndex(icRank, i);
-      neighbors[i] = icRank;   // default neighbor is self
+      int n = neighborIndex(localRank, i);
+      neighbors[i] = localRank;   // default neighbor is self
       remoteNeighbors[i] = 0;
       if (n >= 0) {
          neighbors[i] = n;
          remoteNeighbors[num_neighbors++] = n;
 #ifdef DEBUG_OUTPUT
          fprintf(stderr, "[%2d]: neighborInit: remote[%d] of %d is %d, i=%d, neighbor=%d\n",
-                icRank, num_neighbors - 1, this->numNeighbors, n, i, neighbors[i]);
+                localRank, num_neighbors - 1, this->numNeighbors, n, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
       } else {
          borders[num_borders++] = -n;
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: neighborInit: i=%d, neighbor=%d\n", icRank, i, neighbors[i]);
+         fprintf(stderr, "[%2d]: neighborInit: i=%d, neighbor=%d\n", localRank, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
       }
       this->tags[i] = tags[i];
@@ -236,6 +282,17 @@ int Communicator::commColumn(int commId)
 }
 
 /**
+ * Returns the batch column id for the given communication id
+ */
+int Communicator::commBatch(int commId)
+{
+   return batchFromRank(commId, batchWidth, numRows, numCols);
+}
+
+
+
+
+/**
  * Returns the communication id for a given row and column
  */
 int Communicator::commIdFromRowColumn(int commRow, int commColumn) {
@@ -248,7 +305,7 @@ int Communicator::commIdFromRowColumn(int commRow, int commColumn) {
  */
 bool Communicator::hasNeighbor(int neighbor)
 {
-   int nbrIdx = neighborIndex(icRank, neighbor);
+   int nbrIdx = neighborIndex(localRank, neighbor);
    return nbrIdx >= 0;
 
 //   switch (neighbor) {
@@ -615,6 +672,7 @@ int Communicator::reverseDirection(int commId, int direction) {
  */
 size_t Communicator::recvOffset(int n, const PVLayerLoc * loc)
 {
+   //This check should make sure n is a local rank
    const int nx = loc->nx;
    const int ny = loc->ny;
    const int leftBorder = loc->halo.lt;
@@ -800,21 +858,21 @@ int Communicator::exchange(pvdata_t * data,
    // don't send interior
    int nreq = 0;
    for (int n = 1; n < NUM_NEIGHBORHOOD; n++) {
-      if (neighbors[n] == icRank) continue;  // don't send interior/self
+      if (neighbors[n] == localRank) continue;  // don't send interior/self
       pvdata_t * recvBuf = data + recvOffset(n, loc);
       pvdata_t * sendBuf = data + sendOffset(n, loc);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", icRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
+      fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", localRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
 #endif // DEBUG_OUTPUT
-      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], getReverseTag(n), icComm,
+      MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], getReverseTag(n), localIcComm,
                 &requests[nreq++]);
-      MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], getTag(n), icComm);
+      MPI_Send( sendBuf, 1, neighborDatatypes[n], neighbors[n], getTag(n), localIcComm);
    }
 
    // don't recv interior
    int count = numberOfNeighbors() - 1;
 #ifdef DEBUG_OUTPUT
-   fprintf(stderr, "[%2d]: waiting for data, count==%d\n", icRank, count); fflush(stdout);
+   fprintf(stderr, "[%2d]: waiting for data, count==%d\n", localRank, count); fflush(stdout);
 #endif // DEBUG_OUTPUT
    MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
 

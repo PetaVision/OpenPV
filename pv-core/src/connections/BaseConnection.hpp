@@ -374,7 +374,7 @@ protected:
     * Sets *preLayerNamePtr and *postLayerNamePtr according to the preLayerName and postLayerName parameters in
     * the parameter group specified by the name and params arguments.
     */
-   int getPreAndPostLayerNames(const char * name, PVParams * params, char ** preLayerNamePtr, char ** postLayerNamePtr);
+   int getPreAndPostLayerNames(const char * name, char ** preLayerNamePtr, char ** postLayerNamePtr);
 
    /**
     * The virtual method for reading parameters from the parent HyPerCol's parameters, and writing to the output params file.

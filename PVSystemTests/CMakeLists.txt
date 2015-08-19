@@ -22,11 +22,11 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
       if(${inMpi})
          #Two processes
          add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
-            mpirun -np 2 Debug/${BaseName} ${inFlags} -l
+            mpirun -np 2 Debug/${BaseName} ${inFlags} -l 
             ${testName}_2.log)
          #Four processes
          add_test(${testName}_4 ${CMAKE_COMMAND} -E chdir ${BaseName}
-            mpirun -np 4 Debug/${BaseName} ${inFlags} -l
+            mpirun -np 4 Debug/${BaseName} ${inFlags} -l 
             ${testName}_4.log)
          #Add dependencies
          set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
@@ -48,11 +48,13 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
          if(${inMpi})
             #Two processes
             add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
-               mpirun -np 2 Debug/${BaseName} -p input/${param}.params ${inFlags} -l
+               mpirun -np 2 Debug/${BaseName} -p input/${param}.params
+               ${inFlags} -l
                ${testName}_2.log)
             #Four processes
             add_test(${testName}_4 ${CMAKE_COMMAND} -E chdir ${BaseName}
-               mpirun -np 4 Debug/${BaseName} -p input/${param}.params ${inFlags} -l
+               mpirun -np 4 Debug/${BaseName} -p input/${param}.params
+               ${inFlags} -l
                ${testName}_4.log)
             #Add dependencies
             set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
@@ -129,7 +131,9 @@ add_subdirectory(ArborSystemTest)
 add_subdirectory(BackgroundLayerTest)
 add_subdirectory(BasicSystemTest)
 add_subdirectory(BatchCheckpointSystemTest)
+add_subdirectory(BatchSweepTest)
 add_subdirectory(BatchWeightUpdateTest)
+add_subdirectory(BatchWeightUpdateMpiTest)
 add_subdirectory(BinningLayerTest)
 add_subdirectory(CheckpointSystemTest)
 add_subdirectory(CloneHyPerConnTest)
@@ -174,7 +178,6 @@ add_subdirectory(RandStateSystemTest)
 add_subdirectory(ReadArborFileTest)
 add_subdirectory(ReceiveFromPostTest)
 add_subdirectory(RescaleLayerTest)
-add_subdirectory(ResetStateOnTriggerTest)
 add_subdirectory(ShrunkenPatchTest)
 add_subdirectory(ShrunkenPatchFlagTest)
 add_subdirectory(StochasticReleaseTest)
@@ -240,11 +243,29 @@ set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision t
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
+set(testBaseName BatchSweepTest) #The base name of the test
+set(testParams BatchSweepTest) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -t ${PV_SYSTEM_TEST_THREADS} -batchwidth 4) #Extra flags to pass to PetaVision test
+set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
+#This addtest is hard coded because this test requires a run with exactly 4 mpi processes
+add_test(${testBaseName}_4 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+   mpirun -np 4 Debug/${testBaseName} ${testFlags} -p input/BatchSweepTest.params -l
+   ${testBaseName}_4.log)
+
 set(testBaseName BatchWeightUpdateTest) #The base name of the test
 set(testParams ) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+
+set(testBaseName BatchWeightUpdateMpiTest) #The base name of the test
+set(testParams ) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
+#This addtest is hard coded because this test requires a run with exactly 10 mpi processes
+add_test(${testBaseName}_10 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+   mpirun -np 10 Debug/${testBaseName} ${testFlags} -l
+   ${testBaseName}_10.log)
 
 set(testBaseName BinningLayerTest) #The base name of the test
 set(testParams BinningLayerTest) #Names of the parameter files in the input directory, leaving out .params
@@ -480,12 +501,6 @@ AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName RescaleLayerTest) #The base name of the test
 set(testParams RescaleLayerTest) #Names of the parameter files in the input directory, leaving out .params
-set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
-set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
-
-set(testBaseName ResetStateOnTriggerTest) #The base name of the test
-set(testParams ResetStateOnTriggerTest) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})

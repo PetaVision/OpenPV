@@ -21,16 +21,15 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre,
 
 int main(int argc, char * argv[])
 {
+   PV_Init* initObj = new PV_Init(&argc, &argv);
    if (pv_getopt(argc, argv, "-p", NULL)==0) {
 #ifdef PV_USE_MPI
-      MPI_Init(&argc, &argv);
       int rank = 0;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       if (rank==0) {
          fprintf(stderr, "%s does not take a -p argument; the necessary param file is hardcoded.\n", argv[0]);
       }
       MPI_Barrier(MPI_COMM_WORLD);
-      MPI_Finalize();
       exit(EXIT_FAILURE);
 #endif // PV_USE_MPI
    }
@@ -51,7 +50,9 @@ int main(int argc, char * argv[])
    const char * post_layer_name = "test_gauss2d post";
    const char * pre2_layer_name = "test_gauss2d pre 2";
    const char * post2_layer_name = "test_gauss2d post 2";
-   PV::HyPerCol * hc = new PV::HyPerCol("test_gauss2d column", cl_argc, cl_argv);
+
+   initObj->initialize(cl_argc, cl_argv);
+   PV::HyPerCol * hc = new PV::HyPerCol("test_gauss2d column", cl_argc, cl_argv, initObj);
    PV::Example * pre = new PV::Example(pre_layer_name, hc);
    assert(pre);
    PV::Example * post = new PV::Example(post_layer_name, hc);
@@ -123,6 +124,7 @@ int main(int argc, char * argv[])
       free(cl_argv[arg]);
    }
    free(cl_argv);
+   delete initObj;
    return 0;
 }
 
