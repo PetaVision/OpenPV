@@ -48,11 +48,10 @@ int checkProbesOnExit(HyPerCol * hc, int argc, char * argv[]);
 int main(int argc, char * argv[]) {
    int rank = 0;
    PV_Init * initObj = new PV_Init(&argc, &argv);
-   rank = initObj->getWorldRank();
-//#ifdef PV_USE_MPI
-//   MPI_Init(&argc, &argv);
-//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//#endif // PV_USE_MPI
+   //rank = initObj->getWorldRank();
+#ifdef PV_USE_MPI
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif // PV_USE_MPI
    char const * paramFile1 = "input/GenerateOutput.params";
    char const * paramFile2 = "input/TestOutput.params";
    char const * outputDir1 = "outputGenerate";

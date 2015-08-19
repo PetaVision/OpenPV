@@ -26,11 +26,11 @@ void * customgroup(const char * name, const char * groupname, HyPerCol * hc);
 
 int main(int argc, char * argv[]) {
    PV_Init* initObj = new PV_Init(&argc, &argv);
-//#ifdef PV_USE_MPI
-//   MPI_Init(&argc, &argv);
-//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//#endif // PV_USE_MPI
-   int rank = initObj->getWorldRank();
+   int rank = 0;
+#ifdef PV_USE_MPI
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif // PV_USE_MPI
+   //int rank = initObj->getWorldRank();
 
    int pv_argc = 0;
    bool generateFlag = false; // Flag for whether to generate correct output for future tests; don't check the RequireAllZeroActivity probe

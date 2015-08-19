@@ -1,11 +1,15 @@
 #!/bin/bash
-while getopts ":pl" opt; do
+FILEWRITE=false
+while getopts ":plf" opt; do
     case $opt in
         p)
             PHASE=true
             ;;
 	l) 
 	    LEGEND=true
+	    ;;
+	f)
+	    FILEWRITE=true
 	    ;;
     esac
 done
@@ -50,10 +54,12 @@ else
     fi
 fi
 
-mermaid param_graph
-rm param_graph
+mermaid mermaid_input
+if [ "$FILEWRITE" = false ] ; then
+    rm mermaid_input
+fi
 filename=$(basename "$pfile")
 extension="${filename##*.}"
 filename="${filename%.*}"
-mv param_graph.png "$filename.png"
+mv mermaid_input.png "$filename.png"
 open "$filename.png"

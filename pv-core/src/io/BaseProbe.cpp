@@ -6,6 +6,7 @@
  */
 
 #include "BaseProbe.hpp"
+#include "ColumnEnergyProbe.hpp"
 #include "../layers/HyPerLayer.hpp"
 
 namespace PV {
@@ -58,7 +59,7 @@ int BaseProbe::initialize(const char * probeName, HyPerCol * hc)
    setProbeName(probeName);
    ioParams(PARAMS_IO_READ);
    //Add probe to list of probes
-   parent->addBaseProbe(this); // Can't call HyPerLayer::insertProbe yet because HyPerLayer is not known to be instantiated until the communicateInitInfo stage
+   parent->addBaseProbe(this); // Adds probe to HyPerCol.  If needed, probe will be attached to layer or connection during communicateInitInfo
    owner = (void *) parent;
    return PV_SUCCESS;
 }
@@ -89,6 +90,8 @@ int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_triggerFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerOffset(ioFlag);
+   ioParam_energyProbe(ioFlag);
+   ioParam_coefficient(ioFlag);
    return PV_SUCCESS;
 }
 
@@ -100,6 +103,17 @@ void BaseProbe::ioParam_message(enum ParamsIOFlag ioFlag) {
    parent->ioParamString(ioFlag, name, "message", &msgparams, NULL, false/*warnIfAbsent*/);
    if (ioFlag == PARAMS_IO_READ) {
       initMessage(msgparams);
+   }
+}
+
+void BaseProbe::ioParam_energyProbe(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "energyProbe", &energyProbe, NULL, false/*warnIfAbsent*/);
+}
+
+void BaseProbe::ioParam_coefficient(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "energyProbe"));
+   if (energyProbe && energyProbe[0]) {
+      parent->ioParamValue(ioFlag, name, "coefficient", &coefficient, 1.0/*default*/, true/*warnIfAbsent*/);
    }
 }
 
@@ -171,6 +185,21 @@ int BaseProbe::communicateInitInfo() {
 #endif
          exit(EXIT_FAILURE);
       }
+   }
+   if (energyProbe && energyProbe[0]) {
+      ColProbe * colprobe = getParent()->getColProbeFromName(energyProbe);
+      ColumnEnergyProbe * probe = dynamic_cast<ColumnEnergyProbe *>(colprobe);
+      if (probe==NULL) {
+         if (getParent()->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: energyProbe \"%s\" is not a ColumnEnergyProbe in the column.\n",
+                  getParent()->parameters()->groupKeywordFromName(getName()), getName(), energyProbe);
+         }
+#ifdef PV_USE_MPI
+         MPI_Barrier(getParent()->icCommunicator()->communicator());
+#endif
+         exit(EXIT_FAILURE);
+      }
+      status = probe->addTerm(this, coefficient, getParent()->getNBatch());
    }
    return status;
 }

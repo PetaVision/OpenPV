@@ -1,16 +1,16 @@
 //
-// Total_Energy_Demo.params
+// HardThreshold.params
 //
-// created by peteschultz: Aug 11, 2015
+// created by peteschultz: Aug 14, 2015
 //
 
 //  A demonstration of using GenColProbes to measure
 //  the total energy in S1.
 //
-//  For a soft-threshold model, LCA minimizes the
-//  energy \frac{1}{2}\| x-\Phi y\|_2^2 + \|y\|_1.
+//  For a hard-threshold model, LCA minimizes the
+//  energy \frac{1}{2}\| x-\Phi y\|_2^2 + sum(H(y_i - threshold)).
 
-debugParsing = false;
+debugParsing = true;
 
 HyPerCol "column" = {
     startTime                           = 0;
@@ -25,7 +25,7 @@ HyPerCol "column" = {
     progressInterval                    = 1000;
     writeProgressToErr                  = false;
     verifyWrites                        = true;
-    outputPath                          = "output/";
+    outputPath                          = "output-HardThreshold/";
     printParamsFilename                 = "pv.params";
     randomSeed                          = 1234567890;
     nx                                  = 32;
@@ -83,7 +83,7 @@ ANNNormalizedErrorLayer "residual" = {
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
     writeStep                           = 200;
-    initialWriteTime                    = 199;
+    initialWriteTime                    = 200;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
@@ -105,15 +105,15 @@ HyPerLCALayer "V1" = {
     maxV                                = 0.1;
     triggerLayerName                    = NULL;
     writeStep                           = 200;
-    initialWriteTime                    = 199;
+    initialWriteTime                    = 200;
     sparseLayer                         = true;
     writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
-    VThresh                             = 0.025;
+    VThresh                             = 0.25; // This VThresh is much larger than we usually use, to make the graphs produced by analysis/energy_graph.m comprehensible.
     AMin                                = 0;
     AMax                                = infinity;
-    AShift                              = 0.025;
+    AShift                              = 0.0;
     VWidth                              = 0;
     clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
@@ -132,7 +132,7 @@ ANNLayer "reconstruction" = {
     triggerOffset                       = 1;
     triggerBehavior                     = "updateOnlyOnTrigger";
     writeStep                           = 200;
-    initialWriteTime                    = 199;
+    initialWriteTime                    = 200;
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
@@ -169,20 +169,16 @@ HyPerConn "V1_to_residual" = {
     convertRateToSpikeCount             = false;
     receiveGpu                          = false;
     sharedWeights                       = true;
-    weightInitType                      = "UniformRandomWeight";
-    initWeightsFile                     = NULL;
-    wMinInit                            = -1;
-    wMaxInit                            = 1;
-    sparseFraction                      = 0.9;
+    weightInitType                      = "FileWeight";
+    initWeightsFile                     = "input/ICA_Dictionary.pvp";
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    writeStep                           = 1;
-    initialWriteTime                    = 0;
+    writeStep                           = -1;
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
-    nxp                                 = 10;
-    nyp                                 = 10;
+    nxp                                 = 16;
+    nyp                                 = 16;
     nfp                                 = 3;
     shrinkPatches                       = false;
     normalizeMethod                     = "normalizeL2";
@@ -232,7 +228,8 @@ CloneConn "V1_to_reconstruction" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    writeStep                           = -1;
+    writeStep                           = 0;
+    initialWriteTime                    = 200;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     gpuGroupIdx                         = 0;
@@ -243,7 +240,7 @@ CloneConn "V1_to_reconstruction" = {
     originalConnName                    = "V1_to_residual";
 };
 
-GenColProbe "Total_Energy_Probe" = {
+ColumnEnergyProbe "Total_Energy_Probe" = {
     probeOutputFile                     = "total_energy.txt";
 };
 
@@ -252,17 +249,17 @@ L2NormProbe "Reconstruction_Error_Probe" = {
     message                             = NULL;
     probeOutputFile                     = "recon_error_l2norm.txt";
     triggerFlag                         = false;
-    nnzThreshold                        = 0;
-    parentGenColProbe                   = "Total_Energy_Probe";
-    coeff                               = 1.0;
+    energyProbe                         = "Total_Energy_Probe";
+    coefficient                         = 0.5;
+    exponent                            = 2.0;
 };
 
-L1NormProbe "Sparsity_Penalty_Probe" = {
+L0NormProbe "Cost_Function_Probe" = {
     targetLayer                         = "V1";
     message                             = NULL;
-    probeOutputFile                     = "sparsity_penalty.txt";
+    probeOutputFile                     = "cost_function.txt";
     triggerFlag                         = false;
-    nnzThreshold                        = 0;
-    parentGenColProbe                   = "Total_Energy_Probe";
-    coeff                               = 0.025;
+    energyProbe                         = "Total_Energy_Probe";
+    nnzThreshold                        = 0.0;
+    coefficient                         = 0.03125; // VThresh^2/2
 };

@@ -43,17 +43,12 @@ int main(int argc, char * argv[]) {
       exit(EXIT_FAILURE);
    }
    PV_Init * initObj = new PV_Init(&argc, &argv);
-   int rank = initObj->getWorldRank();
+   //int rank = initObj->getWorldRank();
+   int rank = 0;
+#ifdef PV_USE_MPI
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#endif // PV_USE_MPI
 
-//#ifdef PV_USE_MPI
-//   int mpi_initialized_on_entry;
-//   MPI_Initialized(&mpi_initialized_on_entry);
-//   if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
-//   int rank;
-//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//#else // PV_USE_MPI
-//   int rank = 0;
-//#endif // PV_USE_MPI
 
    int num_cl_args;
    char ** cl_args;

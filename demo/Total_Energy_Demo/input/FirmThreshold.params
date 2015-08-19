@@ -1,0 +1,267 @@
+//
+// FirmThreshold.params
+//
+// created by peteschultz: Aug 14, 2015
+//
+
+//  A demonstration of using GenColProbes to measure
+//  the total energy in S1.
+//
+//  For a firm-threshold model, LCA minimizes the
+//  energy \frac{1}{2}\| x-\Phi y\|_2^2 + sum(C(y_i)),
+//  where C(y) = VThresh*VWidth/2 if |y|>=VThresh+VWidth,
+//  and C(y) = VThresh*|y|*(1-|y|/(2*(VThresh+VWidth))) if |y|<=VThresh+VWidth.
+
+debugParsing = false;
+
+HyPerCol "column" = {
+    startTime                           = 0;
+    dt                                  = 1;
+    dtAdaptFlag                         = true;
+    dtScaleMax                          = 5;
+    dtScaleMin                          = 0.125;
+    dtChangeMax                         = 0.05;
+    dtChangeMin                         = 0;
+    dtMinToleratedTimeScale             = 0.0001;
+    stopTime                            = 1000;
+    progressInterval                    = 1000;
+    writeProgressToErr                  = false;
+    verifyWrites                        = true;
+    outputPath                          = "output-FirmThreshold/";
+    printParamsFilename                 = "pv.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 32;
+    ny                                  = 32;
+    nbatch                              = 1;
+    threadBatch                         = 1;
+    filenamesContainLayerNames          = 1;
+    filenamesContainConnectionNames     = 1;
+    initializeFromCheckpointDir         = "";
+    checkpointWrite                     = false;
+    suppressLastOutput                  = false;
+    writeTimescales                     = true;
+    errorOnNotANumber                   = false;
+};
+
+Movie "input" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    triggerLayerName                    = NULL;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    inputPath                           = "input/CIFAR_frames.txt";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    useImageBCflag                      = false;
+    padValue                            = 0;
+    autoResizeFlag                      = false;
+    displayPeriod                       = 200;
+    echoFramePathnameFlag               = true;
+    batchMethod                         = "bySpecified";
+    start_frame_index                   = [0.000000];
+    skip_frame_index                    = [0.000000];
+    writeFrameToTimestamp               = true;
+    flipOnTimescaleError                = true;
+    resetToStartOnLoop                  = false;
+};
+
+ANNNormalizedErrorLayer "residual" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 1;
+    mirrorBCflag                        = true;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = NULL;
+    writeStep                           = 200;
+    initialWriteTime                    = 200;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = -infinity;
+    clearGSynInterval                   = 0;
+    errScale                            = 1;
+    useMask                             = false;
+};
+
+HyPerLCALayer "V1" = {
+    nxScale                             = 0.5;
+    nyScale                             = 0.5;
+    nf                                  = 48;
+    phase                               = 2;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "UniformRandomV";
+    minV                                = -1;
+    maxV                                = 0.1;
+    triggerLayerName                    = NULL;
+    writeStep                           = 200;
+    initialWriteTime                    = 200;
+    sparseLayer                         = true;
+    writeSparseValues                   = true;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = 0.25; // This VThresh is much larger than we usually use, to make the graphs produced by analysis/energy_graph.m comprehensible.
+    AMin                                = 0;
+    AMax                                = infinity;
+    AShift                              = 0.0;
+    VWidth                              = 1.00;
+    clearGSynInterval                   = 0;
+    timeConstantTau                     = 100;
+    selfInteract                        = true;
+};
+
+ANNLayer "reconstruction" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 3;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    InitVType                           = "ZeroV";
+    triggerLayerName                    = "input";
+    triggerOffset                       = 1;
+    triggerBehavior                     = "updateOnlyOnTrigger";
+    writeStep                           = 200;
+    initialWriteTime                    = 200;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    VThresh                             = -infinity;
+    AMin                                = -infinity;
+    AMax                                = infinity;
+    AShift                              = 0;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
+};
+
+IdentConn "input_to_residual" = {
+    preLayerName                        = "input";
+    postLayerName                       = "residual";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    receiveGpu                          = false;
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+    gpuGroupIdx                         = 0;
+    preDataLocal                        = false;
+    numXLocal                           = 0;
+    numYLocal                           = 0;
+    numFLocal                           = 0;
+};
+
+HyPerConn "V1_to_residual" = {
+    preLayerName                        = "V1";
+    postLayerName                       = "residual";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = false;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "FileWeight";
+    initWeightsFile                     = "input/ICA_Dictionary.pvp";
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedWeights              = false;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 16;
+    nyp                                 = 16;
+    nfp                                 = 3;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "normalizeL2";
+    strength                            = 1;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = 0;
+    normalizeFromPostPerspective        = false;
+    minL2NormTolerated                  = 0;
+    gpuGroupIdx                         = 0;
+    preDataLocal                        = false;
+    numXLocal                           = 0;
+    numYLocal                           = 0;
+    numFLocal                           = 0;
+};
+
+TransposeConn "residual_to_V1" = {
+    preLayerName                        = "residual";
+    postLayerName                       = "V1";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    updateGSynFromPostPerspective       = true;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    gpuGroupIdx                         = 0;
+    preDataLocal                        = false;
+    numXLocal                           = 0;
+    numYLocal                           = 0;
+    numFLocal                           = 0;
+    originalConnName                    = "V1_to_residual";
+};
+
+CloneConn "V1_to_reconstruction" = {
+    preLayerName                        = "V1";
+    postLayerName                       = "reconstruction";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    gpuGroupIdx                         = 0;
+    preDataLocal                        = false;
+    numXLocal                           = 0;
+    numYLocal                           = 0;
+    numFLocal                           = 0;
+    originalConnName                    = "V1_to_residual";
+};
+
+ColumnEnergyProbe "Total_Energy_Probe" = {
+    probeOutputFile                     = "total_energy.txt";
+};
+
+L2NormProbe "Reconstruction_Error_Probe" = {
+    targetLayer                         = "residual";
+    message                             = NULL;
+    probeOutputFile                     = "recon_error_l2norm.txt";
+    triggerFlag                         = false;
+    energyProbe                         = "Total_Energy_Probe";
+    coefficient                         = 0.5;
+    exponent                            = 2.0;
+};
+
+FirmThresholdCostFnProbe "Cost_Function_Probe" = {
+    targetLayer                         = "V1";
+    message                             = NULL;
+    probeOutputFile                     = "cost_function.txt";
+    triggerFlag                         = false;
+    energyProbe                         = "Total_Energy_Probe";
+    // VThresh inherited from targetLayer
+    // VWidth inherited from targetLayer
+    coefficient                         = 0.25;
+};

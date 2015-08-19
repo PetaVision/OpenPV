@@ -37,10 +37,12 @@ int main(int argc, char * argv[]) {
    //int mpi_initialized_on_entry;
    //MPI_Initialized(&mpi_initialized_on_entry);
    //if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
-   int rank = initObj->getWorldRank();
-   //MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   int numProcs = initObj->getWorldSize();
-   //MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+   //int rank = initObj->getWorldRank();
+   int rank = 0;
+   int numProcs = 0;
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+   //int numProcs = initObj->getWorldSize();
 
    if( numProcs != 6) {
       // TODO Greater than six should be permissible, with the excess over 6 being idle
