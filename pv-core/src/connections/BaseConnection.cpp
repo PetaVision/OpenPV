@@ -63,7 +63,7 @@ int BaseConnection::setParent(HyPerCol * hc) {
    if(hc==NULL) {
       int rank = 0;
 #ifdef PV_USE_MPI
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      MPI_Comm_rank(hc->icCommunicator()->communicator(), &rank);
 #endif
       fprintf(stderr, "HyPerConn error in rank %d process: constructor called with HyPerCol set to the null pointer.\n", rank);
       exit(EXIT_FAILURE);

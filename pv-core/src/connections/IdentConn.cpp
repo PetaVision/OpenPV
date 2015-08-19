@@ -278,7 +278,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 
 #ifdef DEBUG_OUTPUT
    int rank;
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   MPI_Comm_rank(parent->icCommunicator()->communicator(), &rank);
    //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
    printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numExtended, activity, this, conn);
    fflush(stdout);

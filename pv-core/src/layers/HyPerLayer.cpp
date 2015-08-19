@@ -602,9 +602,8 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
 
    layerLoc->nbatch = numBatches;
 
-   //TODO: Set these variables when setting up MPI with batches
-   layerLoc->kb0 = 0;
-   layerLoc->nbatchGlobal = numBatches;
+   layerLoc->kb0 = parent->commBatch() * numBatches;
+   layerLoc->nbatchGlobal = parent->numCommBatches() * numBatches;
 
    // halo is set in calls to updateClayerMargin
    layerLoc->halo.lt = 0; // margin;

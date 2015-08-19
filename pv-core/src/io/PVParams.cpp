@@ -1026,6 +1026,7 @@ bool PVParams::hasOutputPath(){
          break;
       }
    }
+
    if(!out){
       for (int k=0; k<numberOfBatchSweeps(); k++) {
          ParameterSweep * sweep = batchSweeps[k];
@@ -1067,7 +1068,7 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
       fprintf(stderr, "PVParams::simultaneous batchSweep and parameterSweep not supported yet.\n");
       abort();
    }
-   else if (numberOfParameterSweeps() > 0) {
+   if (numberOfParameterSweeps() > 0) {
       if (!hasOutputPath()) {
          const char * hypercolgroupname = NULL;
          for (int g=0; g<numGroups; g++) {
@@ -1094,7 +1095,7 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
          addActiveParamSweep(hypercolgroupname, "outputPath");
       }
    }
-   else if(numberOfBatchSweeps() > 0){
+   if(icComm->numCommBatches() > 1){
       if (!hasOutputPath()) {
          const char * hypercolgroupname = NULL;
          for (int g=0; g<numGroups; g++) {
@@ -1109,14 +1110,17 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
          }
          char dummy;
          int lenserialno = snprintf(&dummy, 0, "%d", batchSweepSize-1);
-         int len = snprintf(&dummy, 0, "output_batchsweep_%0*d/", lenserialno, batchSweepSize-1)+1;
+         int len = snprintf(&dummy, 0, "output_batchsweep_%0*d/", lenserialno, icComm->numCommBatches()-1)+1;
          char * outputPathStr = (char *) calloc(len, sizeof(char));
          if (outputPathStr == NULL) abort();
-         for (int i=0; i<batchSweepSize; i++) {
+
+         int batchRank = icComm->commBatch();
+         for (int i=0; i<icComm->numCommBatches(); i++) {
             int chars_needed = snprintf(outputPathStr, len, "output_batchsweep_%0*d/", lenserialno, i);
             assert(chars_needed < len);
             activeBatchSweep->pushStringValue(outputPathStr);
          }
+
          free(outputPathStr); outputPathStr = NULL;
          addActiveBatchSweep(hypercolgroupname, "outputPath");
       }

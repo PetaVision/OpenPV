@@ -39,8 +39,9 @@ public:
 
    PVParams * getParams(){return params;}
    InterColComm * getComm(){return icComm;}
-   int getWorldRank(){return worldRank;}
-   int getWorldSize(){return worldSize;}
+   int getWorldRank(){return icComm->globalCommRank();}
+   int getWorldSize(){return icComm->globalCommSize();}
+   int isExtraProc(){return icComm->isExtraProc();}
 private:
    int commInit(int* argc, char*** argv);
    int commFinalize();
@@ -48,8 +49,6 @@ private:
    PVParams * params;
    InterColComm * icComm;
    int initialized;
-   int worldRank;
-   int worldSize;
 };
 
 }

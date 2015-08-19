@@ -342,9 +342,11 @@ int MoviePvp::allocateDataStructures() {
       }
       //Allocate and default
       //Not done in allocate, as Image Allocate needs this parameter to be set
+      int kb0 = getLayerLoc()->kb0;
+      int nbatchGlobal = getLayerLoc()->nbatchGlobal;
       for(int b = 0; b < nbatch; b++){ 
-         startFrameIndex[b] = offset + b;
-         skipFrameIndex[b] = nbatch;
+         startFrameIndex[b] = offset + kb0;
+         skipFrameIndex[b] = nbatchGlobal;
       }
    }
    else if (strcmp(batchMethod, "byMovie") == 0){
@@ -367,13 +369,16 @@ int MoviePvp::allocateDataStructures() {
          exit(-1);
       }
 
-      int framesPerBatch = floor(fileNumFrames/nbatch);
+      int nbatchGlobal = getLayerLoc()->nbatchGlobal;
+      int kb0 = getLayerLoc()->kb0;
+
+      int framesPerBatch = floor(fileNumFrames/nbatchGlobal);
       if(framesPerBatch < 1){
          framesPerBatch = 1;
       }
       for(int b = 0; b < nbatch; b++){ 
          //+1 for 1 indexed
-         startFrameIndex[b] = offset + (b*framesPerBatch);
+         startFrameIndex[b] = offset + ((b+kb0)*framesPerBatch);
          skipFrameIndex[b] = 1;
       }
    }
@@ -565,8 +570,9 @@ bool MoviePvp::updateImage(double time, double dt)
           if(timestampFile){
              std::ostringstream outStrStream;
              outStrStream.precision(15);
+             int kb0 = getLayerLoc()->kb0;
              for(int b = 0; b < parent->getNBatch(); b++){
-                outStrStream << time << "," << b << "," << frameNumbers[b] << "," << inputPath << "\n";
+                outStrStream << time << "," << b+kb0 << "," << frameNumbers[b] << "," << inputPath << "\n";
              }
              size_t len = outStrStream.str().length();
              int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;

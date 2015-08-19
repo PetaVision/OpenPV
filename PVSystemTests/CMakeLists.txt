@@ -133,6 +133,7 @@ add_subdirectory(BasicSystemTest)
 add_subdirectory(BatchCheckpointSystemTest)
 add_subdirectory(BatchSweepTest)
 add_subdirectory(BatchWeightUpdateTest)
+add_subdirectory(BatchWeightUpdateMpiTest)
 add_subdirectory(BinningLayerTest)
 add_subdirectory(CheckpointSystemTest)
 add_subdirectory(CloneHyPerConnTest)
@@ -242,11 +243,29 @@ set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision t
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
+set(testBaseName BatchSweepTest) #The base name of the test
+set(testParams BatchSweepTest) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -t ${PV_SYSTEM_TEST_THREADS} -batchwidth 4) #Extra flags to pass to PetaVision test
+set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
+#This addtest is hard coded because this test requires a run with exactly 4 mpi processes
+add_test(${testBaseName}_4 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+   mpirun -np 4 Debug/${testBaseName} ${testFlags} -p input/BatchSweepTest.params -l
+   ${testBaseName}_4.log)
+
 set(testBaseName BatchWeightUpdateTest) #The base name of the test
 set(testParams ) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+
+set(testBaseName BatchWeightUpdateMpiTest) #The base name of the test
+set(testParams ) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
+#This addtest is hard coded because this test requires a run with exactly 5 mpi processes
+add_test(${testBaseName}_5 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+   mpirun -np 5 Debug/${testBaseName} ${testFlags} -l
+   ${testBaseName}_5.log)
 
 set(testBaseName BinningLayerTest) #The base name of the test
 set(testParams BinningLayerTest) #Names of the parameter files in the input directory, leaving out .params

@@ -951,7 +951,9 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
    case PARAMS_IO_READ:
       if (outputPath==NULL) {
          if( params->stringPresent(name, "outputPath") ) {
-            outputPath = strdup(params->stringValue(name, "outputPath"));
+            const char* strval = params->stringValue(name, "outputPath");
+            assert(strval);
+            outputPath = strdup(strval);
             assert(outputPath != NULL);
          }
          else {
@@ -2534,8 +2536,9 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       assert(chars_needed < PV_PATH_MAX);
       timescalefile = PV_fopen(timescalepath,"w", getVerifyWrites());
       assert(timescalefile);
+      int kb0 = commBatch() * nbatch;
       for(int b = 0; b < nbatch; b++){
-         fprintf(timescalefile->fp,"batch = %d\n", b);
+         fprintf(timescalefile->fp,"batch = %d\n", b+kb0);
          fprintf(timescalefile->fp,"time = %g\n", timeScale[b]);
          fprintf(timescalefile->fp,"timeScaleTrue = %g\n", timeScaleTrue[b]);
       }

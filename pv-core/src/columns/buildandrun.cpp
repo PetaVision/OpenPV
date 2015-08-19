@@ -34,6 +34,10 @@ int rebuildandrun(int argc, char * argv[], PV_Init* initObj,
 
 
    initObj->initialize(argc, argv);
+   if(initObj->isExtraProc()){
+      return 0;
+   }
+   
    ////Parse param file
    //char * param_file = NULL;
    //pv_getopt_str(argc, argv, "-p", &param_file, NULL);
@@ -42,7 +46,6 @@ int rebuildandrun(int argc, char * argv[], PV_Init* initObj,
    //free(param_file);
 
    int numParamSweepValues = initObj->getParams()->getParameterSweepSize();
-   int numBatchSweepValues = initObj->getParams()->getBatchSweepSize();
 
    int status = PV_SUCCESS;
    if (numParamSweepValues) {
@@ -54,12 +57,11 @@ int rebuildandrun(int argc, char * argv[], PV_Init* initObj,
          status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, customgroups) == PV_SUCCESS ? status : PV_FAILURE;
       }
    }
-   else if(numBatchSweepValues){
-      initObj->getParams()->setBatchSweepValues();
+   else{
+      if(initObj->getComm()->numCommBatches() > 1){
+         initObj->getParams()->setBatchSweepValues();
+      }
       status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, customgroups) == PV_SUCCESS ? status : PV_FAILURE;
-   }
-   else {
-      status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, customgroups);
    }
 
    return status;
@@ -83,15 +85,11 @@ int rebuildandrun(int argc, char * argv[], PV_Init* initObj,
                 ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
 
    initObj->initialize(argc, argv);
-   ////Parse param file
-   //char * param_file = NULL;
-   //pv_getopt_str(argc, argv, "-p", &param_file, NULL);
-   //InterColComm * icComm = new InterColComm(&argc, &argv);
-   //PVParams * params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
-   //free(param_file);
+   if(initObj->isExtraProc()){
+      return 0;
+   }
 
    int numParamSweepValues = initObj->getParams()->getParameterSweepSize();
-   int numBatchSweepValues = initObj->getParams()->getBatchSweepSize();
 
    int status = PV_SUCCESS;
    if (numParamSweepValues) {
@@ -103,12 +101,11 @@ int rebuildandrun(int argc, char * argv[], PV_Init* initObj,
          status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, groupHandlerList, numGroupHandlers) == PV_SUCCESS ? status : PV_FAILURE;
       }
    }
-   else if(numBatchSweepValues){
-      initObj->getParams()->setBatchSweepValues();
+   else{
+      if(initObj->getComm()->numCommBatches() > 1){
+         initObj->getParams()->setBatchSweepValues();
+      }
       status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, groupHandlerList, numGroupHandlers) == PV_SUCCESS ? status : PV_FAILURE;
-   }
-   else {
-      status = buildandrun1paramset(argc, argv, initObj, custominit, customexit, groupHandlerList, numGroupHandlers);
    }
 
    //delete params;

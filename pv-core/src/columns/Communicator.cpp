@@ -26,12 +26,15 @@ Communicator::Communicator(int argc, char** argv)
 {
    float r;
 
+   int totalSize;
+   localIcComm = NULL;
+   globalIcComm = NULL;
 #ifdef PV_USE_MPI
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
-   MPI_Comm_size(MPI_COMM_WORLD, &globalSize);
+   MPI_Comm_size(MPI_COMM_WORLD, &totalSize);
 #else // PV_USE_MPI
    globalRank = 0;
-   globalSize = 1;
+   totalSize = 1;
 #endif // PV_USE_MPI
    //commInit(argc, argv);
 
@@ -69,17 +72,17 @@ Communicator::Communicator(int argc, char** argv)
    //   exit(-1);
    //}
 
-   int procsLeft = globalSize/batchWidth;
+   int procsLeft = totalSize/batchWidth;
    if( rowsDefined && !colsDefined ) {
-      numCols = (int) procsLeft / numRows;
+      numCols = (int) ceil(procsLeft / numRows);
    }
    if( !rowsDefined && colsDefined ) {
-      numRows = (int) procsLeft / numCols;
+      numRows = (int) ceil(procsLeft / numCols);
    }
    if( !rowsDefined  && !colsDefined ) {
       r = sqrtf(procsLeft);
       numRows = (int) r;
-      numCols = (int) procsLeft / numRows;
+      numCols = (int) ceil(procsLeft / numRows);
    }
 
    int commSize = batchWidth * numRows * numCols;
@@ -89,47 +92,25 @@ Communicator::Communicator(int argc, char** argv)
       std::cout << "Running with batchWidth=" << batchWidth << ", numRows=" << numRows << ", and numCols=" << numCols << "\n";
    }
 
-#ifdef PV_USE_MPI
-   int exclsize = globalSize - commSize;
-
-   if (exclsize != 0) {
-      // Currently, excess processes cause problems because all processes, whether in the icComm group or not, call all the MPI commands.
-      // The excluded processes should be prevented from calling commands in the communicator.  It isn't desirable to have the excess
-      // processes simply exit, because there may be additional HyPerColumn simulations to run.
-      /*
-            MPI_Group worldGroup, newGroup;
-            MPI_Comm_group(MPI_COMM_WORLD, &worldGroup);
-
-            int * ranks = new int [exclsize];
-
-            for (int i = 0; i < exclsize; i++) {
-               ranks[i] = i + commSize;
-            }
-
-            MPI_Group_excl(worldGroup, exclsize, ranks, &newGroup);
-            MPI_Comm_create(MPI_COMM_WORLD, newGroup, &icComm);
-
-            delete ranks;
-       */
-      MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
-      if (globalRank==0) {
-         if (exclsize < 0) {
-            fprintf(stderr, "Error: %d batchwidth, %d rows, and %d columns specified but only %d processes are available.\n", batchWidth, numRows, numCols, globalSize);
-         }
-         else {
-            assert(exclsize > 0);
-            if (!inferingDim) {
-               fprintf(stderr, "Error: %d batchwidth, %d rows, and %d columns specified but %d processes available.  Excess processes not yet supported.  Exiting.\n", batchWidth, numRows, numCols, globalSize);
-            }
-            else {
-               fprintf(stderr, "Error: trying %d batchwidth, %d rows, and %d columns but this does not correspond to the %d processes specified.\n", batchWidth, numRows, numCols, globalSize);
-               fprintf(stderr, "You can use the \"-batchwidth\", \"-rows\", and \"-columns\" options to specify the arrangement of processes.\n");
-            }
-         }
-      }
-      exit(EXIT_FAILURE);
+   if(commSize > totalSize){
+      std::cout << "Total number of specified processes (" << commSize << ") must be bigger than the number of processes launched (" << totalSize << ")\n";
+      exit(-1);
    }
-   MPI_Comm_dup(MPI_COMM_WORLD, &globalIcComm);
+
+#ifdef PV_USE_MPI
+   //Create a new split of useful mpi processes vs extras
+   isExtra = globalRank >= commSize ? 1 : 0;
+   MPI_Comm_split(MPI_COMM_WORLD, isExtra, globalRank % commSize, &globalIcComm);
+   if(isExtra){
+      std::cout << "Global process rank " << globalRank << " is extra, as only " << commSize << " mpiProcesses are required. Process exiting\n";
+      return;
+   }
+   //Grab globalSize now that extra processes have been exited
+   MPI_Comm_size(globalIcComm, &globalSize);
+
+
+   //globalIcComm is now a communicator with only useful mpi processes
+   
    //Calculate the batch idx from global rank 
    int batchColIdx = commBatch(globalRank);
    //Set local rank
@@ -174,7 +155,7 @@ Communicator::Communicator(int argc, char** argv)
    }
 
 #ifdef PV_USE_MPI
-   MPI_Barrier(MPI_COMM_WORLD);
+   MPI_Barrier(globalIcComm);
 #endif
 
    // install timers
@@ -184,9 +165,13 @@ Communicator::Communicator(int argc, char** argv)
 Communicator::~Communicator()
 {
 #ifdef PV_USE_MPI
-   MPI_Barrier(MPI_COMM_WORLD);
-   MPI_Comm_free(&localIcComm);
-   MPI_Comm_free(&globalIcComm);
+   MPI_Barrier(globalIcComm);
+   if(localIcComm){
+      MPI_Comm_free(&localIcComm);
+   }
+   if(globalIcComm){
+      MPI_Comm_free(&globalIcComm);
+   }
 #endif
    //commFinalize(); // calls MPI_Finalize
 

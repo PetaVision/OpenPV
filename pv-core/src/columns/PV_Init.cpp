@@ -12,7 +12,21 @@ PV_Init::PV_Init(int* argc, char ** argv[]){
    //Initialize MPI
    commInit(argc, argv);
    params = NULL;
-   //icComm = NULL;
+   icComm = NULL;
+
+//   int rank = 0;
+//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+//   if(rank == 0){
+//      printf("Hit enter to begin! ");
+//      fflush(stdout);
+//      int charhit = -1;
+//      while(charhit != '\n') {
+//         charhit = getc(stdin);
+//      }
+//   }
+//#ifdef PV_USE_MPI
+//   MPI_Barrier(MPI_COMM_WORLD);
+//#endif // PV_USE_MPI
 }
 
 PV_Init::~PV_Init(){
@@ -26,11 +40,11 @@ PV_Init::~PV_Init(){
 }
 
 int PV_Init::initialize(int argc, char* argv[]){
-   if(params){
-      delete params;
-   }
    if(icComm){
       delete icComm;
+   }
+   if(params){
+      delete params;
    }
    //Parse param file
    char * param_file = NULL;
@@ -52,7 +66,7 @@ int PV_Init::initialize(int argc, char* argv[]){
 
 int PV_Init::initialize(PVParams* inparams, InterColComm* incomm){
    assert(inparams);
-   //assert(incomm);
+   assert(incomm);
    if(params){
       delete params;
    }
@@ -81,16 +95,7 @@ int PV_Init::commInit(int* argc, char*** argv)
       std::cout << "Error: PV_Init communicator already initialized\n";
       exit(-1);
    }
-   MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
-   MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
-#else // PV_USE_MPI
-   worldRank = 0;
-   worldSize = 1;
-#endif // PV_USE_MPI
-//
-//#ifdef DEBUG_OUTPUT
-//   fprintf(stderr, "[%2d]: Communicator::commInit: world_size==%d\n", worldRank, worldSize);
-//#endif // DEBUG_OUTPUT
+#endif
 
    return 0;
 }
