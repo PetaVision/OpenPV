@@ -1,22 +1,22 @@
 %A script to make depth tuning curves
-addpath('~/workspace/PetaVision/mlab/util');
+addpath('~/workspace/pv-core/mlab/util');
 
 %To avoid losing focus when plotting
 setenv("GNUTERM","dumb");
 
 %outDir = '/nh/compneuro/Data/Depth/LCA/benchmark/depth_tune/';
-outDir = '~/NIPS/';
+outDir = '~/mountData/NIPS/rect';
 %dataDir = '/nh/compneuro/Data/Depth/';
-dataDir = '~/NIPS/data/';
+dataDir = '~/mountData/benchmark/';
 loadData = false;
 
-LCA_v1ActFile = [dataDir, 'a12_V1_LCA.pvp'];
-RELU_v1ActFile = [dataDir, 'a12_V1_RELU.pvp'];
+LCA_v1ActFile = [dataDir, 'icaweights_rect_LCA/a12_V1.pvp'];
+RELU_v1ActFile = [dataDir, 'icaweights_rect_RELU/a12_V1.pvp'];
 
-depthFile = [dataDir, '/a3_DepthDownsample.pvp'];
+depthFile = [dataDir, '/train/aws_icaweights_rect_LCA/a4_DepthDownsample.pvp'];
 plotOutDir = [outDir, '/depthTuning/'];
 
-dictPvpDir = [dataDir, '/recons_run/Last/'];
+dictPvpDir = [dataDir, '/train/aws_icaweights_rect_LCA/Last/'];
 dictPvpFiles = {[dictPvpDir, 'LCA_V1ToLeftRecon_W.pvp'];...
                 [dictPvpDir, 'LCA_V1ToRightRecon_W.pvp']};
 
@@ -24,7 +24,7 @@ dictPvpFiles = {[dictPvpDir, 'LCA_V1ToLeftRecon_W.pvp'];...
 sampleDim = 5;
 numDepthBins = 64;
 
-targetNeurons = [239, 3, 308];
+targetNeurons = 1:512;
 
 
 %Create output directory in outDir
@@ -35,7 +35,7 @@ saveFilename = [outDir, 'tuningData.mat']
 if(loadData)
    load(saveFilename);
 else
-   [LCA_outVals, LCA_kurtVals, LCA_peakMean] = calcDepthTuning(LCA_v1ActFile, depthFile, sampleDim, numDepthBins, 11);
+   [LCA_outVals, LCA_kurtVals, LCA_peakMean] = calcDepthTuning(LCA_v1ActFile, depthFile, sampleDim, numDepthBins, 1);
    [RELU_outVals, RELU_kurtVals, RELU_peakMean] = calcDepthTuning(RELU_v1ActFile, depthFile, sampleDim, numDepthBins, 1);
    save(saveFilename, 'LCA_outVals', 'LCA_kurtVals', 'LCA_peakMean', 'RELU_outVals', 'RELU_kurtVals', 'RELU_peakMean');
 end

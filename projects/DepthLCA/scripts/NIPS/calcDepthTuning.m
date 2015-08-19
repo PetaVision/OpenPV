@@ -15,8 +15,8 @@ function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFil
    assert(mod(sampleDim, 2) == 1);
 
    %if(v1_data{1}.time ~= depth_data{1}.time)
-   %   %v1's first write is at time 0, remove
-   %   v1_data(1) = [];
+      %v1's first write is at time 0, remove
+      v1_data(1) = [];
    %end
 
    %assert(v1_data{1}.time == depth_data{1}.time);
@@ -38,7 +38,6 @@ function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFil
    %Use 2 arrays for storing v1 act
    v1_act = zeros(numTimes, nf, nx, ny); 
 
-   keyboard
 
    %%Reshape cell structs to be one big array
    %try
