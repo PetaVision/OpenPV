@@ -39,8 +39,26 @@ public:
 
    PVParams * getParams(){return params;}
    InterColComm * getComm(){return icComm;}
-   int getWorldRank(){return icComm->globalCommRank();}
-   int getWorldSize(){return icComm->globalCommSize();}
+   int getWorldRank(){
+      if(icComm){
+         return icComm->globalCommRank();
+      }
+      else{
+         int rank = 0;
+         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+         return rank;
+      }
+   }
+   int getWorldSize(){
+      if(icComm){
+         return icComm->globalCommSize();
+      }
+      else{
+         int size = 0;
+         MPI_Comm_size(MPI_COMM_WORLD, &size);
+         return size;
+      }
+   }
    int isExtraProc(){return icComm->isExtraProc();}
 private:
    int commInit(int* argc, char*** argv);
