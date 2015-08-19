@@ -9,11 +9,6 @@
 
 namespace PV {
 
-//GaussianRandom::GaussianRandom(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex) {
-//   initialize_base();
-//   initialize(hc, numBlocks, blockLength, numGlobalBlocks, globalBlockLength, startIndex);
-//}
-
 GaussianRandom::GaussianRandom(HyPerCol * hc, int count) {
    initialize_base();
    initializeFromCount(hc, (unsigned int) count);
@@ -21,10 +16,7 @@ GaussianRandom::GaussianRandom(HyPerCol * hc, int count) {
 
 GaussianRandom::GaussianRandom(HyPerCol * hc, const PVLayerLoc * locptr, bool isExtended) {
    initialize_base();
-   //unsigned int numBlocks, blockLength, numGlobalBlocks, nxGlobal, globalBlockLength, startIndex;
-   //defineBlocksFromPVLayerLoc(locptr, isExtended, &numBlocks, &blockLength, &numGlobalBlocks, &globalBlockLength, &startIndex);
-
-   //initialize(hc, numBlocks, blockLength, numGlobalBlocks, globalBlockLength, startIndex);
+   initializeFromLoc(hc, locptr, isExtended);
 }
 
 GaussianRandom::GaussianRandom() {
