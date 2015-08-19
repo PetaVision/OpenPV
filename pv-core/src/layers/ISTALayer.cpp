@@ -219,7 +219,7 @@ int ISTALayer::allocateUpdateKernel(){
       nx, ny, nf, lt, rt, dn, up,
       numChannels, 
       d_V,
-      Vth, AMax, AMin, AShift, VWidth, selfInteract, 
+      Vth,
       d_dtAdapt,
       tau,
       d_GSyn, d_activity);

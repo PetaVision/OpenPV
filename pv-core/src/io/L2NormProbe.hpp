@@ -11,21 +11,60 @@
 #include "AbstractNormProbe.hpp"
 
 namespace PV {
+
+/**
+ * A layer probe for returning the L2-norm of its target layer's activity, raised to
+ * a power (set by the exponent parameter).
+ */
 class L2NormProbe : public AbstractNormProbe {
 public:
    L2NormProbe(const char * probeName, HyPerCol * hc);
    virtual ~L2NormProbe();
+
+   /**
+    * Returns a vector whose length is the HyPerCol's batch size.
+    * The kth element of the vector is the L2Norm of batch element k of the target
+    * layer's activity buffer, raised to the power given in the exponent parameter,
+    * using the batch element specified by the index input argument.
+    */
    virtual int getValues(double timevalue, std::vector<double> * values);
+   
+   /**
+    * Returns the L2Norm of the target layer's activity buffer, raised to
+    * the power given in the exponent parameter, using the batch element
+    * specified by the index input argument.
+    */
    virtual double getValue(double timevalue, int index);
 
 protected:
    L2NormProbe();
    int initL2NormProbe(const char * probeName, HyPerCol * hc);
+   
+   /**
+    * Each MPI process returns the sum of the squares of the activities in its
+    * restricted activity space.  Note that the exponent parameter is not applied
+    * inside the call to getValueInternal.
+    */
    virtual double getValueInternal(double timevalue, int index);
    virtual int outputState(double timevalue);
    
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
+   /** 
+    * List of parameters for the L2NormProbe class
+    * @name L2NormProbe Parameters
+    * @{
+    */
+
+   /**
+    * @brief exponent: The exponent on the L2-norm.
+    * getValue(t, index) returns (L2-Norm)^exponent.
+    * @details (e.g. when exponent=2, getValue returns the sum of the squares;
+    * when exponent=1, getValue returns the square root of the sum of the squares.)
+    * default is 1.
+    */
    virtual void ioParam_exponent(enum ParamsIOFlag ioFlag);
+   /** @} */
 
 private:
    int initL2NormProbe_base() {return PV_SUCCESS;}

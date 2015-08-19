@@ -22,6 +22,9 @@ typedef enum {
    BufActivity
 } PVBufType;
 
+/**
+ * The base class for probes attached to layers.
+ */
 class LayerProbe : public BaseProbe {
 
 // Methods
@@ -29,6 +32,11 @@ public:
    LayerProbe(const char * probeName, HyPerCol * hc);
    virtual ~LayerProbe();
 
+   /**
+    * Called by HyPerCol::run.  It calls BaseProbe::communicateInitInfo, then checks that
+    * the targetLayer/targetName parameter refers to a HyPerLayer in the parent HyPerCol,
+    * and then calls the layer's insertProbe method.
+    */
    virtual int communicateInitInfo();
 
    HyPerLayer * getTargetLayer() {return targetLayer;}
@@ -36,7 +44,20 @@ public:
 protected:
    LayerProbe();
    int initialize(const char * probeName, HyPerCol * hc);
+
+   /** 
+    * List of parameters for the LayerProbe class
+    * @name LayerProbe Parameters
+    * @{
+    */
+
+   /**
+    * @brief targetName: the name of the layer to attach the probe to.
+    * In LayerProbes, targetLayer can be used in the params file instead of targetName.  LayerProbe looks for targetLayer first
+    * and then targetName.
+    */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
+   /** @} */
 
 private:
    int initialize_base();

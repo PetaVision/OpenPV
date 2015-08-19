@@ -110,7 +110,7 @@ ISTALayer "V1" = {
     writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
-    VThresh                             = 0.025;
+    VThresh                             = 0.25; // This VThresh is much larger than we usually use, to make the graphs produced by analysis/energy_graph.m comprehensible.
     clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
 };
@@ -223,8 +223,7 @@ CloneConn "V1_to_reconstruction" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    writeStep                           = 0;
-    initialWriteTime                    = 200;
+    writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     gpuGroupIdx                         = 0;
@@ -255,5 +254,5 @@ L1NormProbe "Cost_Function_Probe" = {
     probeOutputFile                     = "cost_function.txt";
     triggerFlag                         = false;
     energyProbe                         = "Total_Energy_Probe";
-    coefficient                         = 0.025;
+    coefficient                         = 0.25;
 };

@@ -10,7 +10,7 @@
 //  For a hard-threshold model, LCA minimizes the
 //  energy \frac{1}{2}\| x-\Phi y\|_2^2 + sum(H(y_i - threshold)).
 
-debugParsing = false;
+debugParsing = true;
 
 HyPerCol "column" = {
     startTime                           = 0;
@@ -110,7 +110,7 @@ HyPerLCALayer "V1" = {
     writeSparseValues                   = true;
     updateGpu                           = false;
     dataType                            = NULL;
-    VThresh                             = 0.025;
+    VThresh                             = 0.25; // This VThresh is much larger than we usually use, to make the graphs produced by analysis/energy_graph.m comprehensible.
     AMin                                = 0;
     AMax                                = infinity;
     AShift                              = 0.0;
@@ -261,5 +261,5 @@ L0NormProbe "Cost_Function_Probe" = {
     triggerFlag                         = false;
     energyProbe                         = "Total_Energy_Probe";
     nnzThreshold                        = 0.0;
-    coefficient                         = 0.025;
+    coefficient                         = 0.03125; // VThresh^2/2
 };
