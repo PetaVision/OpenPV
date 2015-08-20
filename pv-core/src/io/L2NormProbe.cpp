@@ -23,8 +23,13 @@ L2NormProbe::L2NormProbe(const char * probeName, HyPerCol * hc) : AbstractNormPr
 L2NormProbe::~L2NormProbe() {
 }
 
+int L2NormProbe::initL2NormProbe_base() {
+   exponent = 1.0;
+   return PV_SUCCESS;
+}
+
 int L2NormProbe::initL2NormProbe(const char * probeName, HyPerCol * hc) {
-   return initialize(probeName, hc);
+   return initAbstractNormProbe(probeName, hc);
 }
 
 int L2NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -34,11 +39,25 @@ int L2NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void L2NormProbe::ioParam_exponent(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "energyProbe"));
-   if (energyProbe && energyProbe[0]) {
-      parent->ioParamValue(ioFlag, name, "exponent", &exponent, 1.0/*default*/, true/*warnIfAbsent*/);
-   }
+   parent->ioParamValue(ioFlag, name, "exponent", &exponent, 1.0/*default*/, true/*warnIfAbsent*/);
 }
+
+int L2NormProbe::setNormDescription() {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "exponent"));
+   int status = PV_SUCCESS;
+   if (exponent == 1.0) {
+      status = setNormDescriptionToString("L2-norm");
+   }
+   else if (exponent == 2.0) {
+      status = setNormDescriptionToString("L2-norm squared");
+   }
+   else {
+      std::stringstream desc("(L2-norm)^");
+      desc << exponent;
+      status = setNormDescriptionToString(desc.str().c_str());
+   };
+   return status;
+};
 
 double L2NormProbe::getValueInternal(double timevalue, int index) {
    if (index < 0 || index >= getParent()->getNBatch()) { return PV_FAILURE; }
@@ -81,35 +100,6 @@ double L2NormProbe::getValue(double timevalue, int index) {
    double v = AbstractNormProbe::getValue(timevalue, index);
    if (exponent != 2.0) { v = pow(v, exponent/2.0); }
    return v;
-}
-
-int L2NormProbe::outputState(double timevalue) {
-   std::vector<double> values;
-   getValues(timevalue, &values);
-   if (outputstream!=NULL) {
-      int nBatch = getParent()->getNBatch();
-      int nk = getTargetLayer()->getNumGlobalNeurons();
-      if (exponent==1.0) {
-         for (int b=0; b<nBatch; b++) {
-            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d L2-norm          = %f\n",
-                  getMessage(), timevalue, b, nk, values.at(b));
-         }
-      }
-      else if (exponent==2.0) {
-         for (int b=0; b<nBatch; b++) {
-            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d L2-norm squared  = %f\n",
-                  getMessage(), timevalue, b, nk, values.at(b));
-         }
-      }
-      else {
-         for (int b=0; b<nBatch; b++) {
-            fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d L2-norm^%f = %f\n",
-                  getMessage(), timevalue, b, nk, exponent, values.at(b));
-         }
-      }
-      fflush(outputstream->fp);
-   }
-   return PV_SUCCESS;
 }
 
 }  // end namespace PV

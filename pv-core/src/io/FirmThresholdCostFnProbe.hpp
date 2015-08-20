@@ -54,6 +54,12 @@ protected:
    virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
    /** @} */
 
+   /**
+    * Overrides AbstractNormProbe::setNormDescription() to set normDescription to "Cost function".
+    * Return values and errno are set by a call to setNormDescriptionToString.
+    */
+   virtual int setNormDescription();
+
 private:
    int initFirmThresholdCostFnProbe_base();
 

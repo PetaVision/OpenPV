@@ -24,7 +24,7 @@ L1NormProbe::~L1NormProbe() {
 }
 
 int L1NormProbe::initL1NormProbe(const char * probeName, HyPerCol * hc) {
-   return initialize(probeName, hc);
+   return initAbstractNormProbe(probeName, hc);
 }
 
 double L1NormProbe::getValueInternal(double timevalue, int index) {
@@ -47,19 +47,8 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
    return sum;
 }
 
-int L1NormProbe::outputState(double timevalue) {
-   std::vector<double> values;
-   getValues(timevalue, &values);
-   if (outputstream!=NULL) {
-      int nBatch = getParent()->getNBatch();   
-      int nk = getTargetLayer()->getNumGlobalNeurons();
-      for (int b=0; b<nBatch; b++) {
-         fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d L1-norm          = %f\n",
-               getMessage(), timevalue, b, nk, values.at(b));
-      }
-      fflush(outputstream->fp);
-   }
-   return PV_SUCCESS;
+int L1NormProbe::setNormDescription() {
+   return setNormDescriptionToString("L1-norm");
 }
 
 }  // end namespace PV

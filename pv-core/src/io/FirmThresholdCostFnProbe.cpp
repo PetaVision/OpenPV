@@ -31,7 +31,7 @@ FirmThresholdCostFnProbe::~FirmThresholdCostFnProbe() {
 }
 
 int FirmThresholdCostFnProbe::initFirmThresholdCostFnProbe(const char * probeName, HyPerCol * hc) {
-   return initialize(probeName, hc);
+   return initAbstractNormProbe(probeName, hc);
 }
 
 int FirmThresholdCostFnProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
@@ -47,6 +47,10 @@ void FirmThresholdCostFnProbe::ioParam_VThresh(enum ParamsIOFlag ioFlag) {
 
 void FirmThresholdCostFnProbe::ioParam_VWidth(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "VWidth", &VWidth, VWidth/*default*/, false/*warnIfAbsent*/);
+}
+
+int FirmThresholdCostFnProbe::setNormDescription() {
+   return setNormDescriptionToString("Cost function");
 }
 
 int FirmThresholdCostFnProbe::communicateInitInfo() {

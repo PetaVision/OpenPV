@@ -22,10 +22,15 @@ AbstractNormProbe::AbstractNormProbe(const char * probeName, HyPerCol * hc) : La
 }
 
 AbstractNormProbe::~AbstractNormProbe() {
+   free(normDescription); normDescription = NULL;
 }
 
 int AbstractNormProbe::initAbstractNormProbe(const char * probeName, HyPerCol * hc) {
-   return initialize(probeName, hc);
+   int status = LayerProbe::initialize(probeName, hc);
+   if (status == PV_SUCCESS) {
+      status = setNormDescription();
+   }
+   return status;
 }
 
 int AbstractNormProbe::getValues(double timevalue, std::vector<double> * values) {
@@ -50,6 +55,15 @@ double AbstractNormProbe::getValue(double timevalue, int index) {
    }
 }
 
+int AbstractNormProbe::setNormDescription() {
+    return setNormDescriptionToString("norm");
+}
+
+int AbstractNormProbe::setNormDescriptionToString(char const * s) {
+    normDescription = strdup(s);
+    return normDescription ? PV_SUCCESS : PV_FAILURE;
+}
+
 int AbstractNormProbe::outputState(double timevalue) {
    std::vector<double> values;
    getValues(timevalue, &values);
@@ -58,8 +72,8 @@ int AbstractNormProbe::outputState(double timevalue) {
       int nBatch = getParent()->getNBatch();
       int nk = getTargetLayer()->getNumGlobalNeurons();
       for (int b=0; b<nBatch; b++) {
-         fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d norm             = %f\n",
-               getMessage(), timevalue, b, nk, values[b]);
+         fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d %s = %f\n",
+               getMessage(), timevalue, b, nk, getNormDescription(), values[b]);
       }
       fflush(outputstream->fp);
    }

@@ -45,6 +45,23 @@ protected:
    int initAbstractNormProbe(const char * probeName, HyPerCol * hc);
    
    /**
+    * Called during initialization, sets the member variable normDescription.
+    * This member variable is used by outputState() when printing the norm value.
+    * AbstractNormProbe::setNormDescription calls setNormDescriptionToString("norm")
+    * and can be overridden.  setNormDescription() returns PV_SUCCESS or PV_FAILURE
+    * and on failure it sets errno.
+    */
+   virtual int setNormDescription();
+   
+   /**
+    * A generic method for setNormDescription() implementations to call.  It
+    * frees normDescription if it has already been set, and then copies the
+    * string in the input argument to the normDescription member variable.
+    * It returns PV_SUCCESS or PV_FAILURE; on failure it sets errno.
+    */
+   int setNormDescriptionToString(char const * s);
+   
+   /**
     * getValueInternal(double, index) is a pure virtual function
     * called by getValue() and getValues().  The index refers to the layer's batch element index.
     *
@@ -54,12 +71,18 @@ protected:
    virtual double getValueInternal(double timevalue, int index) = 0;
    
    /**
-    * Prints to the outputFile the probe message, timestamp, number of neurons, and norm value for each batch element
+    * Implements the outputState method required by classes derived from BaseProbe.
+    * Prints to the outputFile the probe message, timestamp, number of neurons, and norm value for each batch element.
     */
    virtual int outputState(double timevalue);
+   
+   char const * getNormDescription() { return normDescription; }
 
 private:
    int initAbstractNormProbe_base() {return PV_SUCCESS;}
+
+private:
+   char * normDescription;
 }; // end class AbstractNormProbe
 
 }  // end namespace PV

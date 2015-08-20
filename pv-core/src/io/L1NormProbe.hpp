@@ -28,7 +28,12 @@ protected:
     * values of the activities in the restricted space of that MPI process.
     */
    virtual double getValueInternal(double timevalue, int index);
-   virtual int outputState(double timevalue);
+
+   /**
+    * Overrides AbstractNormProbe::setNormDescription() to set normDescription to "L1-norm".
+    * Return values and errno are set by a call to setNormDescriptionToString.
+    */
+   virtual int setNormDescription();
 
 private:
    int initL1NormProbe_base() {return PV_SUCCESS;}

@@ -41,12 +41,21 @@ protected:
    int initL2NormProbe(const char * probeName, HyPerCol * hc);
    
    /**
+    * Overrides AbstractNormProbe::setNormDescription().
+    * If exponent == 1.0, normDescription is set to "L2-Norm".
+    * If exponent == 2.0, normDescription is set to "L2-Norm squared".
+    * Otherwise, it is set to "(L2-Norm)^exp", with "exp" replaced by
+    * the value of exponent.
+    * Return values and errno are set by a call to setNormDescriptionToString.
+    */
+   virtual int setNormDescription();
+   
+   /**
     * Each MPI process returns the sum of the squares of the activities in its
     * restricted activity space.  Note that the exponent parameter is not applied
     * inside the call to getValueInternal.
     */
    virtual double getValueInternal(double timevalue, int index);
-   virtual int outputState(double timevalue);
    
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
@@ -67,7 +76,7 @@ protected:
    /** @} */
 
 private:
-   int initL2NormProbe_base() {return PV_SUCCESS;}
+   int initL2NormProbe_base();
 
 // Member variables
    double exponent;

@@ -25,7 +25,6 @@ protected:
    L0NormProbe();
    int initL0NormProbe(const char * probeName, HyPerCol * hc);
    virtual double getValueInternal(double timevalue, int index);
-   virtual int outputState(double timevalue);
    
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    /** 
@@ -33,6 +32,12 @@ protected:
     * @name L0NormProbe Parameters
     * @{
     */
+
+   /**
+    * Overrides AbstractNormProbe::setNormDescription() to set normDescription to "L0-norm".
+    * Return values and errno are set by a call to setNormDescriptionToString.
+    */
+   virtual int setNormDescription();
 
    /**
     * @brief nnzThreshold: The threshold for computing the L0-norm.
