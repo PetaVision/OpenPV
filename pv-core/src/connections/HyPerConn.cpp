@@ -18,28 +18,7 @@
 #include <iostream>
 #include "../layers/accumulate_functions.h"
 #include "../weightinit/InitWeights.hpp"
-#ifdef OBSOLETE // Marked obsolete Feb 9, 2015.  HyPerConn should not need to know about subclasses of InitWeights
-#include "../weightinit/InitGauss2DWeights.hpp"
-#include "../weightinit/InitCocircWeights.hpp"
-#include "../weightinit/InitSmartWeights.hpp"
-#include "../weightinit/InitUniformRandomWeights.hpp"
-#include "../weightinit/InitGaussianRandomWeights.hpp"
-#include "../weightinit/InitGaborWeights.hpp"
-#include "../weightinit/InitBIDSLateral.hpp"
-#include "../weightinit/InitOneToOneWeights.hpp"
-#include "../weightinit/InitOneToOneWeightsWithDelays.hpp"
-#include "../weightinit/InitIdentWeights.hpp"
-#include "../weightinit/InitUniformWeights.hpp"
-#include "../weightinit/InitMaxPoolingWeights.hpp"
-#include "../weightinit/InitSpreadOverArborsWeights.hpp"
-#endif // OBSOLETE // Marked obsolete Feb 9, 2015.  HyPerConn should not need to know about subclasses of InitWeights
 #include "../normalizers/NormalizeBase.hpp"
-#ifdef OBSOLETE // Marked obsolete Feb 17, 2015.  HyPerConn should not need to know about subclasses of NormalizeBase
-#include "../normalizers/NormalizeSum.hpp"
-#include "../normalizers/NormalizeL2.hpp"
-#include "../normalizers/NormalizeMax.hpp"
-#include "../normalizers/NormalizeContrastZeroMean.hpp"
-#endif // OBSOLETE // Marked obsolete Feb 17, 2015.  HyPerConn should not need to know about subclasses of NormalizeBase
 #include "privateTransposeConn.hpp"
 #include "PlasticCloneConn.hpp"
 #include "../io/CoreParamGroupHandler.hpp"
@@ -594,53 +573,6 @@ InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr)
    CoreParamGroupHandler * initWeightsHandler = new CoreParamGroupHandler();
    weightInitializer = initWeightsHandler->createWeightInitializer(weightInitTypeStr, name, parent);
    delete initWeightsHandler;
-#ifdef OBSOLETE // Marked obsolete Feb 9, 2015. // Functionality moved into CoreParamGroupHandler
-   if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "Gauss2DWeight"))) {
-      weightInitializer = new InitGauss2DWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "CoCircWeight"))) {
-      weightInitializer = new InitCocircWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformWeight"))) {
-      weightInitializer = new InitUniformWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SmartWeight"))) {
-      weightInitializer = new InitSmartWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "BIDSLateral"))) {
-      weightInitializer = new InitBIDSLateral(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "UniformRandomWeight"))) {
-      weightInitializer = new InitUniformRandomWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "GaussianRandomWeight"))) {
-      weightInitializer = new InitGaussianRandomWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "GaborWeight"))) {
-      weightInitializer = new InitGaborWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "IdentWeight"))) {
-      weightInitializer = new InitIdentWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "OneToOneWeights"))) {
-      weightInitializer = new InitOneToOneWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "OneToOneWeightsWithDelays"))) {
-      weightInitializer = new InitOneToOneWeightsWithDelays(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "SpreadOverArborsWeight"))) {
-      weightInitializer = new InitSpreadOverArborsWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "MaxPoolingWeight"))) {
-      weightInitializer = new InitMaxPoolingWeights(this);
-   }
-   else if(( weightInitTypeStr!=0 )&&(!strcmp(weightInitTypeStr, "FileWeight"))) {
-      weightInitializer = new InitWeights(this);
-   }
-   else {
-      weightInitializer = NULL;
-   }
-#endif // OBSOLETE // Marked obsolete Feb 9, 2015. Functionality moved into CoreParamGroupHandler
 
    return weightInitializer;
 }

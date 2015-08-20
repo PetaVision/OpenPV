@@ -178,48 +178,6 @@ int MatchingPursuitLayer::allocateDataStructures() {
    return status;
 }
 
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-int MatchingPursuitLayer::resetGSynBuffers(double timed, double dt) {
-   // Only reset the GSyn of those neurons in the window.
-   for (int k=0; k<getNumNeurons(); k++) {
-      if (inWindowRes(0, k)) {
-         GSyn[0][k] = 0.0f;
-      }
-   }
-   if (numChannels > 1) {
-      for (int k=0; k<getNumNeurons(); k++) {
-         if (inWindowRes(0, k)) {
-            GSyn[1][k] = 0.0f;
-         }
-      }
-   }
-   return PV_SUCCESS;
-}
-
-bool MatchingPursuitLayer::inWindowExt(int windowId, int neuronIdxExt) {
-   bool inWindow = true;
-   if (useWindowedSynapticInput && maxinfo.maxloc>=0) {
-      const PVLayerLoc * loc = getLayerLoc();
-      // maxinfo.maxloc is global restricted; neuronIdxExt is local extended.
-      int neuronIdxRes = kIndexRestricted(neuronIdxExt, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-      if (neuronIdxRes >= 0) {
-         inWindow = inWindowGlobalRes(neuronIdxRes, loc);
-      }
-   }
-   return inWindow;
-}
-
-bool MatchingPursuitLayer::inWindowRes(int windowId, int neuronIdxRes) {
-   bool inWindow = true;
-   if (useWindowedSynapticInput && maxinfo.maxloc>=0) {
-      const PVLayerLoc * loc = getLayerLoc();
-      // maxinfo.maxloc is global restricted; neuronIdxExt is local restricted.
-      inWindow = inWindowGlobalRes(neuronIdxRes, loc);
-   }
-   return inWindow;
-}
-#endif // OBSOLETE
-
 bool MatchingPursuitLayer::inWindowGlobalRes(int neuronIdxRes, const PVLayerLoc * loc) {
    int neuronIdxGlobal = globalIndexFromLocal(neuronIdxRes, *loc);
    int xdiff = kxPos(neuronIdxGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf) - kxPos(maxinfo.maxloc, loc->nxGlobal, loc->nyGlobal, loc->nf);

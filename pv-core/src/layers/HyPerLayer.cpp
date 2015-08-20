@@ -3170,30 +3170,6 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
 //   return PV_SUCCESS;
 //}
 
-//#ifdef OBSOLETE // Marked obsolete Dec 15, 2014.  Moved to HyPerConn
-//float HyPerLayer::getConvertToRateDeltaTimeFactor(HyPerConn* conn)
-//{
-//   //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
-//   float dt_factor = 1.0f;
-//   bool preActivityIsNotRate = conn->preSynapticActivityIsNotRate();
-//   if (preActivityIsNotRate) {
-//      enum ChannelType channel_type = conn->getChannel();
-//      float dt = getParent()->getDeltaTime();
-//      float tau = this->getChannelTimeConst(channel_type);
-//      if (tau > 0) {
-//         double exp_dt_tau = exp(-dt / tau);
-//         dt_factor = (1 - exp_dt_tau) / exp_dt_tau;
-//         // the above factor ensures that for a constant input of G_SYN to an excitatory conductance G_EXC,
-//         // then G_EXC -> G_SYN as t -> inf
-//      }
-//      else {
-//         dt_factor = dt;
-//      }
-//   }
-//   return dt_factor;
-//}
-//#endif // OBSOLETE
-
 //int HyPerLayer::updateV() {
 //   pvdata_t * V = getV();
 //   pvdata_t * GSynExc = getChannel(CHANNEL_EXC);

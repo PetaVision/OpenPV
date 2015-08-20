@@ -21,11 +21,6 @@ public:
    virtual ~MatchingPursuitLayer();
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
-#ifdef OBSOLETE // Marked obsolete Dec 2, 2014.  Use sharedWeights=false instead of windowing.
-   virtual bool inWindowExt(int windowId, int neuronIdxExt);
-   virtual bool inWindowRes(int windowId, int neuronIdxRes);
-   virtual int resetGSynBuffers(double timed, double dt);
-#endif // OBSOLETE
    virtual bool activityIsSpiking() { return false; }
    virtual int updateState(double timed, double dt);
    virtual int outputState(double timed, bool last=false);

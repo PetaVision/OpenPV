@@ -827,9 +827,6 @@ protected:
    //virtual int label(int k);
    //virtual int * getMarginIndices();
    //virtual int getNumMargin();
-//#ifdef OBSOLETE // Marked obsolete Dec 15, 2014.  Moved to HyPerConn
-//   float getConvertToRateDeltaTimeFactor(HyPerConn* conn);
-//#endif // OBSOLETE
 
 //   int getFeedbackDelay(){return feedbackDelay;};
 //   int getFeedforwardDelay(){return feedforwardDelay;};
