@@ -181,7 +181,9 @@ Communicator::~Communicator()
       exchange_timer->fprint_time(stdout);
       fflush(stdout);
    }
-   delete exchange_timer; exchange_timer = NULL;
+   if(!isExtra){
+      delete exchange_timer; exchange_timer = NULL;
+   }
 }
 
 //int Communicator::commInit(int* argc, char*** argv)
