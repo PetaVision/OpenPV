@@ -177,9 +177,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
             fprintf(stderr, "%s \"%s\" error: buffer \"%s\" is not recognized.\n",
                   this->getKeyword(), getName(), bufnameinparams);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(getParent()->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
    }
@@ -268,10 +266,6 @@ int StatsProbe::outputState(double timed)
 #ifdef PV_USE_MPI
    mpitimer->start();
    int ierr;
-   //double reducedsum, reducedsum2;
-   //int reducednnz;
-   //float reducedmin, reducedmax;
-   //int totalNeurons;
 
    //In place reduction to prevent allocating a temp recv buffer
    if(rank == rcvProc){
@@ -291,17 +285,11 @@ int StatsProbe::outputState(double timed)
       ierr = MPI_Reduce(&nk, &nk, 1, MPI_INT, MPI_SUM, rcvProc, comm);
       return 0;
    }
-   //sum = reducedsum;
-   //sum2 = reducedsum2;
-   //nnz = reducednnz;
-   //fMin = reducedmin;
-   //fMax = reducedmax;
-   //nk = totalNeurons;
-
-   double divisor = nk;
 
    mpitimer->stop();
 #endif // PV_USE_MPI
+   double divisor = nk;
+
    iotimer->start();
    for(int b = 0; b < nbatch; b++){
       avg[b] = sum[b]/divisor;

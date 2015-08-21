@@ -114,11 +114,9 @@ double ANNNormalizedErrorLayer::calcTimeScale(int batchIdx){
          fprintf(stderr, "Layer \"%s\": errorMag on process %d is negative.  This should absolutely never happen.\n", getName(), getParent()->columnId());
          exit(EXIT_FAILURE);
       }
-#ifdef PV_USE_MPI
       //Sum all errMag across processors
       MPI_Allreduce(MPI_IN_PLACE, &errorMag, 1, MPI_DOUBLE, MPI_SUM, icComm->communicator());
       MPI_Allreduce(MPI_IN_PLACE, &inputMag, 1, MPI_DOUBLE, MPI_SUM, icComm->communicator());
-#endif // PV_USE_MPI
       //errorMag /= num_neurons * num_procs;
       //inputMag /= num_neurons * num_procs;
       timeScale[batchIdx] = errorMag > 0 ? sqrt(inputMag / errorMag) : parent->getTimeScaleMin();
@@ -197,9 +195,7 @@ int ANNNormalizedErrorLayer::communicateInitInfo() {
             fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
                     getKeyword(), name, maskLayerName);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
 
@@ -213,9 +209,7 @@ int ANNNormalizedErrorLayer::communicateInitInfo() {
             fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
 
@@ -226,9 +220,7 @@ int ANNNormalizedErrorLayer::communicateInitInfo() {
             fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
 

@@ -23,9 +23,7 @@ PV_Init::PV_Init(int* argc, char ** argv[]){
 //            charhit = getc(stdin);
 //         }
 //      }
-//#ifdef PV_USE_MPI
 //      MPI_Barrier(icComm->globalCommunicator());
-//#endif // PV_USE_MPI
 
 
 }
@@ -83,7 +81,6 @@ int PV_Init::initialize(PVParams* inparams, InterColComm* incomm){
 
 int PV_Init::commInit(int* argc, char*** argv)
 {
-#ifdef PV_USE_MPI
    int mpiInit;
    // If MPI wasn't initialized, initialize it.
    // Remember if it was initialized on entry; the destructor will only finalize if the constructor init'ed.
@@ -99,16 +96,13 @@ int PV_Init::commInit(int* argc, char*** argv)
       std::cout << "Error: PV_Init communicator already initialized\n";
       exit(-1);
    }
-#endif
 
    return 0;
 }
 
 int PV_Init::commFinalize()
 {
-#ifdef PV_USE_MPI
    MPI_Finalize();
-#endif
    return 0;
 }
 

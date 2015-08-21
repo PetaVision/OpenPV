@@ -13,11 +13,7 @@
 
 #undef DEBUG_OUTPUT
 
-#ifdef PV_USE_MPI
-#  include <mpi.h>
-#else
-#  include <include/mpi_stubs.h>
-#endif
+#include <arch/mpi/mpi.h>
 #include <columns/PV_Init.hpp>
 
 // function declarations that are not public in fileio.hpp

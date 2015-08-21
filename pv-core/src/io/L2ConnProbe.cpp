@@ -24,11 +24,9 @@ int L2ConnProbe::initialize_base() {
 }
 
 int L2ConnProbe::outputState(double timed) {
-#ifdef PV_USE_MPI
    InterColComm * icComm = parent->icCommunicator();
    const int rank = icComm->commRank();
    if( rank != 0 ) return PV_SUCCESS;
-#endif // PV_USE_MPI
    assert(getTargetConn()!=NULL);
    int nxp = getTargetHyPerConn()->xPatchSize();
    int nyp = getTargetHyPerConn()->yPatchSize();

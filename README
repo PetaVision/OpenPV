@@ -7,10 +7,10 @@ Required dependencies:
     bison (https://www.gnu.org/software/bison/).
     flex (https://www.gnu.org/software/flex/).
     cmake (http://www.cmake.org)
-    OpenMPI (http://www.open-mpi.org).  You'll need mpicc, mpic++, and mpiexec.
     GDAL (http://www.gdal.org)
 
 Suggested additional tools:
+    OpenMPI (http://www.open-mpi.org).  You'll need mpicc, mpic++, and mpiexec.
     OpenMP (http://openmp.org/wp/)
     CUDA (https://developer.nvidia.com/cuda-downloads)
     cuDNN (https://developer.nvidia.com/cudnn)

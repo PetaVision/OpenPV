@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
 
 #include "Communicator.hpp"
 #include "../utils/conversions.h"
@@ -29,16 +30,8 @@ Communicator::Communicator(int argc, char** argv)
    int totalSize;
    localIcComm = NULL;
    globalIcComm = NULL;
-#ifdef PV_USE_MPI
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
    MPI_Comm_size(MPI_COMM_WORLD, &totalSize);
-#else // PV_USE_MPI
-   globalRank = 0;
-   totalSize = 1;
-#endif // PV_USE_MPI
-   //commInit(argc, argv);
-
-   // sprintf(commName, "[%2d]: ", icRank); // icRank not initialized yet; commName not used until later.
 
    bool rowsDefined = pv_getopt_int(argc,  argv, "-rows", &numRows, NULL)==0;
    bool colsDefined = pv_getopt_int(argc, argv, "-columns", &numCols, NULL)==0;
@@ -121,6 +114,12 @@ Communicator::Communicator(int argc, char** argv)
    localRank = globalToLocalRank(globalRank, batchWidth, numRows, numCols);
    //Make new local communicator
    MPI_Comm_split(globalIcComm, batchColIdx, localRank, &localIcComm);
+#else // PV_USE_MPI
+   isExtra = 0;
+   globalIcComm = MPI_COMM_WORLD;
+   globalSize = 1;
+   localRank = 0;
+   localIcComm = MPI_COMM_WORLD;
 #endif // PV_USE_MPI
 
 //#ifdef DEBUG_OUTPUT
@@ -132,13 +131,8 @@ Communicator::Communicator(int argc, char** argv)
 
 //Grab local rank and check for errors
    int tmpLocalRank;
-#ifdef PV_USE_MPI
    MPI_Comm_size(localIcComm, &localSize);
    MPI_Comm_rank(localIcComm, &tmpLocalRank);
-#else // PV_USE_MPI
-   localSize = 1;
-   tmpLocalRank = 0;
-#endif // PV_USE_MPI
    //This should be equiv
    assert(tmpLocalRank == localRank);
 
@@ -158,9 +152,7 @@ Communicator::Communicator(int argc, char** argv)
       neighborInit();
    }
 
-#ifdef PV_USE_MPI
    MPI_Barrier(globalIcComm);
-#endif
 
    // install timers
    this->exchange_timer = new Timer("Communicator", " comm", "exchng ");
@@ -189,41 +181,6 @@ Communicator::~Communicator()
       delete exchange_timer; exchange_timer = NULL;
    }
 }
-
-//int Communicator::commInit(int* argc, char*** argv)
-//{
-//#ifdef PV_USE_MPI
-//   // If MPI wasn't initialized, initialize it.
-//   // Remember if it was initialized on entry; the destructor will only finalize if the constructor init'ed.
-//   // This way, you can do several simulations sequentially by initializing MPI before creating
-//   // the first HyPerCol; after running the first simulation the MPI environment will still exist and you
-//   // can run the second simulation, etc.
-//   MPI_Initialized(&mpi_initialized_on_entry);
-//   if( !mpi_initialized_on_entry ) {
-//      assert((*argv)[*argc]==NULL); // Open MPI 1.7 assumes this.
-//      MPI_Init(argc, argv);
-//   }
-//   MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
-//   MPI_Comm_size(MPI_COMM_WORLD, &worldSize);
-//#else // PV_USE_MPI
-//   worldRank = 0;
-//   worldSize = 1;
-//#endif // PV_USE_MPI
-//
-//#ifdef DEBUG_OUTPUT
-//   fprintf(stderr, "[%2d]: Communicator::commInit: world_size==%d\n", worldRank, worldSize);
-//#endif // DEBUG_OUTPUT
-//
-//   return 0;
-//}
-
-//int Communicator::commFinalize()
-//{
-//#ifdef PV_USE_MPI
-//   if( !mpi_initialized_on_entry ) MPI_Finalize();
-//#endif
-//   return 0;
-//}
 
 /**
  * Initialize the communication neighborhood

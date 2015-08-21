@@ -5,7 +5,7 @@
 
 #include <iostream>
 #include <sstream>
-#include <mpi.h>
+#include <arch/mpi/mpi.h>
 #include <columns/buildandrun.hpp>
 
 #undef MAIN_USES_CUSTOMGROUPS

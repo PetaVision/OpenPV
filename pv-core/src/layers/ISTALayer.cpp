@@ -113,9 +113,7 @@ void ISTALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
          fprintf(stderr, "%s \"%s\" requires 1 or 2 channels, numChannels = %d\n",
                getKeyword(), name, numChannels);
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
       exit(EXIT_FAILURE);
    }
 #endif // OBSOLETE // Marked obsolete Jul 9, 2015.  A layer learns how many channels it has during the communication stage.

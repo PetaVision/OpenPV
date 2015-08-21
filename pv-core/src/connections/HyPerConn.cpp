@@ -814,9 +814,7 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
             fprintf(stderr, "%s \"%s\": channelCode %d is not a valid channel.\n",
                   this->getKeyword(), name,  ch);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
    }
@@ -996,9 +994,7 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
             fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType \"%s\" unrecognized.  Allowed values are \"convolve\", \"stochastic\", or \"maxpooling\"\n",
                   this->getKeyword(), name, pvpatchAccumulateTypeString);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
 //Case now handled in PoolingConn
@@ -1010,9 +1006,7 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 //               fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType of maxpooling or sumpooling require a weightInitType of MaxPoolingWeight.\n",
 //                     this->getKeyword(), name);
 //            }
-//#ifdef PV_USE_MPI
 //            MPI_Barrier(parent->icCommunicator()->communicator());
-//#endif
 //            exit(EXIT_FAILURE);
 //         }
       //}
@@ -1391,9 +1385,7 @@ int HyPerConn::communicateInitInfo() {
          fprintf( stderr, "but %d features for post-synaptic layer %s\n",
                post->getCLayer()->loc.nf, post->getName() );
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
       exit(PV_FAILURE);
    }
    // Currently, the only acceptable number for nfp is the number of post-synaptic features.
@@ -1440,9 +1432,7 @@ int HyPerConn::communicateInitInfo() {
             fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                     this->getKeyword(), name, triggerLayerName);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
 
@@ -3139,9 +3129,7 @@ int HyPerConn::reduceActivations(int arborID){
       const size_t patchSize = (size_t)nxp * (size_t)nyp * (size_t)nfp;
       const size_t localSize = numPatches * patchSize;
       const size_t arborSize = localSize * this->numberOfAxonalArborLists();
-#ifdef PV_USE_MPI
       ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_activations(arborID), arborSize, MPI_LONG, MPI_SUM, mpi_comm);
-#endif
    }
    //reduction not necessary, as clones will accumulate into this buffer
    //for(int i = 0; i < clones.size(); i++){
@@ -3164,9 +3152,7 @@ int HyPerConn::reduceKernels(int arborID) {
       const size_t patchSize = (size_t)nxp * (size_t)nyp * (size_t)nfp;
       const size_t localSize = numPatches * patchSize;
       const size_t arborSize = localSize * this->numberOfAxonalArborLists();
-#ifdef PV_USE_MPI
       ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
-#endif
    }
    //reduction not necessary, as clones will accumulate into this buffer
    //for(int i = 0; i < clones.size(); i++){

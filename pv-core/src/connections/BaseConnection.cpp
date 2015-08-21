@@ -62,9 +62,7 @@ int BaseConnection::setParent(HyPerCol * hc) {
    assert(parent==NULL);
    if(hc==NULL) {
       int rank = 0;
-#ifdef PV_USE_MPI
       MPI_Comm_rank(hc->icCommunicator()->communicator(), &rank);
-#endif
       fprintf(stderr, "HyPerConn error in rank %d process: constructor called with HyPerCol set to the null pointer.\n", rank);
       exit(EXIT_FAILURE);
    }
@@ -251,9 +249,7 @@ int BaseConnection::getPreAndPostLayerNames(const char * name, char ** preLayerN
    else {
       assert(preLayerName!=NULL && postLayerName!=NULL);
    }
-#ifdef PV_USE_MPI
    MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }
@@ -306,9 +302,7 @@ void BaseConnection::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
             fprintf(stderr, "%s \"%s\": channelCode %d is not a valid channel.\n",
                   this->getKeyword(), this->getName(),  ch);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
    }
@@ -448,9 +442,7 @@ int BaseConnection::communicateInitInfo() {
       assert(this->getPostLayerName()==NULL);
       status = handleMissingPreAndPostLayerNames();
    }
-#ifdef PV_USE_MPI
    MPI_Barrier(this->getParent()->icCommunicator()->communicator());
-#endif
    if (status != PV_SUCCESS) {
       assert(this->getPreLayerName()==NULL && this->getPostLayerName()==NULL);
       if (this->getParent()->columnId()==0) {
@@ -472,9 +464,7 @@ int BaseConnection::communicateInitInfo() {
       }
       status = PV_FAILURE;
    }
-#ifdef PV_USE_MPI
    MPI_Barrier(this->getParent()->icCommunicator()->communicator());
-#endif
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }

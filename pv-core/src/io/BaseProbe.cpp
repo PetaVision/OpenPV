@@ -228,9 +228,7 @@ int BaseProbe::communicateInitInfo() {
             fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                   parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
    }
@@ -242,9 +240,7 @@ int BaseProbe::communicateInitInfo() {
             fprintf(stderr, "%s \"%s\" error: energyProbe \"%s\" is not a ColumnEnergyProbe in the column.\n",
                   getParent()->parameters()->groupKeywordFromName(getName()), getName(), energyProbe);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(getParent()->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
       status = probe->addTerm(this, coefficient);

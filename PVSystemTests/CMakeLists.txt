@@ -19,7 +19,7 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
       add_test(${testName}_1 ${CMAKE_COMMAND} -E chdir ${BaseName}
          Debug/${BaseName} ${inFlags} -l
          ${testName}_1.log)
-      if(${inMpi})
+      if(${PV_USE_MPI} AND ${inMpi})
          #Two processes
          add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
             mpirun -np 2 Debug/${BaseName} ${inFlags} -l 
@@ -31,7 +31,7 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
          #Add dependencies
          set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
          set_tests_properties(${testName}_4 PROPERTIES DEPENDS ${testName}_2)
-      endif(${inMpi})
+      endif(${PV_USE_MPI} AND ${inMpi})
    else(${numParams} EQUAL 0)
       #Multiple params here
       foreach(param IN LISTS ${ParamNames})
@@ -45,7 +45,7 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
          add_test(${testName}_1 ${CMAKE_COMMAND} -E chdir ${BaseName}
             Debug/${BaseName} -p input/${param}.params ${inFlags} -l
             ${testName}_1.log)
-         if(${inMpi})
+         if(${PV_USE_MPI} AND ${inMpi})
             #Two processes
             add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
                mpirun -np 2 Debug/${BaseName} -p input/${param}.params
@@ -59,7 +59,7 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
             #Add dependencies
             set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
             set_tests_properties(${testName}_4 PROPERTIES DEPENDS ${testName}_2)
-         endif(${inMpi})
+         endif(${PV_USE_MPI} AND ${inMpi})
       endforeach(param)
    endif(${numParams} EQUAL 0)
 endmacro(AddPVTest)
@@ -224,28 +224,32 @@ set(testBaseName BatchMPICheckpointSystemTest) #The base name of the test
 set(testParams ) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
-#This addtest is hard coded because this test requires a run with 2, 4, and 8 mpi processes
-add_test(${testBaseName}_2 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-   mpirun -np 2 Debug/${testBaseName} ${testFlags} -l
-   ${testBaseName}_2.log)
-add_test(${testBaseName}_4 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-   mpirun -np 4 Debug/${testBaseName} ${testFlags} -l
-   ${testBaseName}_4.log)
-add_test(${testBaseName}_8 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-   mpirun -np 8 Debug/${testBaseName} ${testFlags} -l
-   ${testBaseName}_8.log)
-#Add dependencies
-set_tests_properties(${testBaseName}_4 PROPERTIES DEPENDS ${testBaseName}_2)
-set_tests_properties(${testBaseName}_8 PROPERTIES DEPENDS ${testBaseName}_4)
+if (${PV_USE_MPI})
+    #This addtest is hard coded because this test requires a run with 2, 4, and 8 mpi processes
+    add_test(${testBaseName}_2 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+       mpirun -np 2 Debug/${testBaseName} ${testFlags} -l
+       ${testBaseName}_2.log)
+    add_test(${testBaseName}_4 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+       mpirun -np 4 Debug/${testBaseName} ${testFlags} -l
+       ${testBaseName}_4.log)
+    add_test(${testBaseName}_8 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+       mpirun -np 8 Debug/${testBaseName} ${testFlags} -l
+       ${testBaseName}_8.log)
+    #Add dependencies
+    set_tests_properties(${testBaseName}_4 PROPERTIES DEPENDS ${testBaseName}_2)
+    set_tests_properties(${testBaseName}_8 PROPERTIES DEPENDS ${testBaseName}_4)
+endif (${PV_USE_MPI})
 
 set(testBaseName BatchSweepTest) #The base name of the test
 set(testParams BatchSweepTest) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS} -batchwidth 4) #Extra flags to pass to PetaVision test
 set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
-#This addtest is hard coded because this test requires a run with exactly 4 mpi processes
-add_test(${testBaseName}_4 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-   mpirun -np 4 Debug/${testBaseName} ${testFlags} -p input/BatchSweepTest.params -l
-   ${testBaseName}_4.log)
+if (${PV_USE_MPI})
+   #This addtest is hard coded because this test requires a run with exactly 4 mpi processes
+   add_test(${testBaseName}_4 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+      mpirun -np 4 Debug/${testBaseName} ${testFlags} -p input/BatchSweepTest.params -l
+      ${testBaseName}_4.log)
+endif (${PV_USE_MPI})
 
 set(testBaseName BatchWeightUpdateTest) #The base name of the test
 set(testParams ) #Names of the parameter files in the input directory, leaving out .params
@@ -253,14 +257,16 @@ set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision t
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
-set(testBaseName BatchWeightUpdateMpiTest) #The base name of the test
-set(testParams ) #Names of the parameter files in the input directory, leaving out .params
-set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
-set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
-#This addtest is hard coded because this test requires a run with exactly 10 mpi processes
-add_test(${testBaseName}_10 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-   mpirun -np 10 Debug/${testBaseName} ${testFlags} -l
-   ${testBaseName}_10.log)
+if (${PV_USE_MPI})
+   set(testBaseName BatchWeightUpdateMpiTest) #The base name of the test
+   set(testParams ) #Names of the parameter files in the input directory, leaving out .params
+   set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+   set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
+   #This addtest is hard coded because this test requires a run with exactly 10 mpi processes
+   add_test(${testBaseName}_10 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+      mpirun -np 10 Debug/${testBaseName} ${testFlags} -l
+      ${testBaseName}_10.log)
+endif (${PV_USE_MPI})
 
 set(testBaseName BinningLayerTest) #The base name of the test
 set(testParams BinningLayerTest) #Names of the parameter files in the input directory, leaving out .params
@@ -588,10 +594,12 @@ set(testBaseName test_mpi_specifyrowscolumns) #The base name of the test
 set(testParams ) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
-#This addtest is hard coded because this test requires a run with exactly 6 mpi processes
-add_test(${testBaseName}_6 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-   mpirun -np 6 Debug/${testBaseName} ${testFlags} -l
-   ${testBaseName}_6.log)
+if (${PV_USE_MPI})
+    #This addtest is hard coded because this test requires a run with exactly 6 mpi processes
+    add_test(${testBaseName}_6 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+       mpirun -np 6 Debug/${testBaseName} ${testFlags} -l
+       ${testBaseName}_6.log)
+endif (${PV_USE_MPI})
 
 #Test from here
 set(testBaseName test_nearby_neighbor) #The base name of the test

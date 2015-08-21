@@ -361,9 +361,7 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
             fprintf(stderr, "    Use ANNLayer with parameter triggerFlag set to true\n");
             fprintf(stderr, "    and triggerLayerName set to the triggering layer.\n");
          }
-   #ifdef PV_USE_MPI
          MPI_Barrier(hc->icCommunicator()->communicator());
-   #endif
          exit(EXIT_FAILURE);
       }
    else if( !strcmp(keyword, "ANNWhitenedLayer") ) {

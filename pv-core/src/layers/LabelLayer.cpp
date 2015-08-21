@@ -34,9 +34,7 @@
 
 #include "LabelLayer.hpp"
 
-#ifdef PV_USE_MPI
-   #include <mpi.h>
-#endif
+#include "../arch/mpi/mpi.h"
 #include <string.h>
 #include <sstream>
 

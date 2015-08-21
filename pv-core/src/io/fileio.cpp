@@ -862,14 +862,10 @@ int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int
       mpi_buffer[0] = status;
       mpi_buffer[1] = numParamsRead;
       memcpy(&mpi_buffer[2], params, sizeof(int)*(*numParams));
-#ifdef PV_USE_MPI
       MPI_Bcast(mpi_buffer, 22, MPI_INT, 0/*root*/, comm->communicator());
-#endif
    } // comm->communicator()==0
    else {
-#ifdef PV_USE_MPI
       MPI_Bcast(mpi_buffer, 22, MPI_INT, 0/*root*/, comm->communicator());
-#endif
       status = mpi_buffer[0];
       memcpy(params, &mpi_buffer[2], sizeof(int)*(*numParams));
    }
@@ -963,22 +959,18 @@ int pvp_read_header(const char * filename, Communicator * comm, double * time,
        if (status != 0) return status;
    }
 
-#ifdef PV_USE_MPI
    const int icRoot = 0;
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: pvp_read_header: will broadcast, numParams==%d\n",
            comm->commRank(), *numParams);
 #endif // DEBUG_OUTPUT
 
-#ifdef PV_USE_MPI
    status = MPI_Bcast(params, *numParams, MPI_INT, icRoot, comm->communicator());
-#endif
 
 #ifdef DEBUG_OUTPUT
    fprintf(stderr, "[%2d]: pvp_read_header: broadcast completed, numParams==%d\n",
            comm->commRank(), *numParams);
 #endif // DEBUG_OUTPUT
-#endif // PV_USE_MPI
 
    *filetype = params[INDEX_FILE_TYPE];
    *datatype = params[INDEX_DATA_TYPE];
@@ -1294,9 +1286,7 @@ int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, d
       mpi_data.status = (numread == 1) ? PV_SUCCESS : PV_FAILURE;
       mpi_data.time = *timed;
    }
-#ifdef PV_USE_MPI
    MPI_Bcast(&mpi_data, (int) sizeof(timeandstatus), MPI_CHAR, root_process, comm->communicator());
-#endif
    status = mpi_data.status;
    *timed = mpi_data.time;
    return status;
@@ -1307,11 +1297,7 @@ int writeActivity(PV_Stream * pvstream, Communicator * comm, double timed, DataS
    int status = PV_SUCCESS;
 
    // write header, but only at the beginning
-#ifdef PV_USE_MPI
    int rank = comm->commRank();
-#else // PV_USE_MPI
-   int rank = 0;
-#endif // PV_USE_MPI
 
    for(int b = 0; b < loc->nbatch; b++){
       pvadata_t * data = (pvadata_t*) store->buffer(b);
@@ -1675,11 +1661,13 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    }
 
    const int expected_file_type = patches == NULL ? PVP_KERNEL_FILE_TYPE : PVP_WGT_FILE_TYPE;
-#ifdef PV_USE_MPI
    const int tagbase = expected_file_type;
+#ifdef PV_USE_MPI
    const MPI_Comm mpi_comm = comm->communicator();
-   const int src = 0;
+#else
+   const MPI_Comm mpi_comm = NULL;
 #endif // PV_USE_MPI
+   const int src = 0;
    if (expected_file_type != header_file_type) {
       if (icRank==0) {
          fprintf(stderr, "readWeights: file \"%s\" has type %d but readWeights was called expecting type %d\n",
@@ -2340,9 +2328,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
             }
          }
          else {
-#ifdef PV_USE_MPI
             MPI_Recv(temp_buffer, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
-#endif
          }
 
          // Data to be written is in temp_buffer, which is nonextend.
@@ -2376,14 +2362,10 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
             int k_restricted = kIndex(0, y, 0, layerLoc->nx, layerLoc->ny, layerLoc->nf);
             memcpy(&temp_buffer[k_restricted], &buffer[k_extended], datasize*linesize);
          }
-#ifdef PV_USE_MPI
          MPI_Send(temp_buffer, numLocalNeurons*datasize, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator());
-#endif
       }
       else {
-#ifdef PV_USE_MPI
          MPI_Send(buffer, numLocalNeurons*datasize, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator());
-#endif
       }
    }
 
@@ -2495,9 +2477,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
                   abort();
                }
             }
-#ifdef PV_USE_MPI
             MPI_Send(TBuff, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
-#endif
          }
          for (int y=0; y<layerLoc->ny; y++) {
             int ky0 = layerLoc->ny*rowFromRank(rootproc, comm->numCommRows(), comm->numCommColumns());
@@ -2535,9 +2515,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
                   }
             }
             //Send buffer to appropriate mpi process
-#ifdef PV_USE_MPI
             MPI_Send(TBuff1, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
-#endif
             //Clear the buffer so rootproc can calculate the next process's buffer.
             for (int i = 0; i < numLocalNeurons; i++) {
                TBuff1[i] = 0;
@@ -2590,9 +2568,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
                }
             }
             //Send buffer to appropriate mpi process
-#ifdef PV_USE_MPI
             MPI_Send(TBuff1, numLocalNeurons*(int) datasize, MPI_BYTE, r, 171+r/*tag*/, comm->communicator());
-#endif
             //Clear the buffer so rootproc can calculate the next process's buffer.
             for (int i = 0; i < numLocalNeurons; i++) {
                TBuff1[i] = 0;
@@ -2618,16 +2594,12 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
    else {
       switch (filetype) {
       case PVP_NONSPIKING_ACT_FILE_TYPE:
-#ifdef PV_USE_MPI
          MPI_Recv(TBuff, datasize*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
-#endif
          break;
       case PVP_ACT_FILE_TYPE:
       case PVP_ACT_SPARSEVALUES_FILE_TYPE:
          //Receive buffers from rootproc
-#ifdef PV_USE_MPI
          MPI_Recv(TBuff1, datasize*numLocalNeurons, MPI_BYTE, rootproc, 171+rank/*tag*/, comm->communicator(), MPI_STATUS_IGNORE);
-#endif
          break;
       }
 

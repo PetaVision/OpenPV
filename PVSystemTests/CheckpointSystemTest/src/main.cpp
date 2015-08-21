@@ -59,10 +59,6 @@ int main(int argc, char * argv[]) {
    PV_Init* initObj = new PV_Init(&argc, &argv);
    int rank = initObj->getWorldRank();
    
-//#ifdef PV_USE_MPI
-//   MPI_Init(&argc, &argv);
-//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//#endif // PV_USE_MPI
    char const * paramFile1 = "input/CheckpointParameters1.params";
    char const * paramFile2 = "input/CheckpointParameters2.params";
    int status = PV_SUCCESS;
@@ -147,9 +143,8 @@ int main(int argc, char * argv[]) {
    }
    free(pv_argv);
 
-#ifdef PV_USE_MPI
-   MPI_Finalize();
-#endif
+   delete initObj;
+
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

@@ -10,11 +10,7 @@
 #include "../include/pv_types.h"
 #include "../utils/Timer.hpp"
 
-#ifdef PV_USE_MPI
-#  include <mpi.h>
-#else
-#  include "../include/mpi_stubs.h"
-#endif // PV_USE_MPI
+#include "../arch/mpi/mpi.h"
 
 // number in communicating neighborhood
 #define NUM_NEIGHBORHOOD 9
@@ -106,9 +102,6 @@ private:
 
    int gcd(int a, int b);
 
-#ifdef PV_USE_MPI
-   int mpi_initialized_on_entry;
-#endif // PV_USE_MPI
    int localRank;
    int localSize;
    int globalRank;

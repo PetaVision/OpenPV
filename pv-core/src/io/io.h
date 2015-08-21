@@ -11,11 +11,7 @@
 #include <stdbool.h>
 #include "../include/pv_types.h"
 
-#ifdef PV_USE_MPI
-#  include <mpi.h>
-#else
-#  include "../include/mpi_stubs.h"
-#endif // PV_USE_MPI
+#include "../arch/mpi/mpi.h"
 
 #define MIN_BIN_PARAMS  6
 #define NUM_BIN_PARAMS (18 + sizeof(double)/sizeof(int))

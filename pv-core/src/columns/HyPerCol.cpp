@@ -29,6 +29,9 @@
 #include <fstream>
 #include <time.h>
 #include <csignal>
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#include <map>
+#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
 namespace PV {
 
@@ -323,9 +326,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
             charhit = getc(stdin);
          }
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(icComm->globalCommunicator());
-#endif // PV_USE_MPI
    }
 #endif // PVP_DEBUG
 
@@ -502,9 +503,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
       if (globalRank()==0) {
          fprintf(stderr, "%s error: cannot set both -r and -c.\n", argv[0]);
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(icComm->globalCommunicator());
-#endif // PV_USE_MPI
       exit(EXIT_FAILURE);
    }
    if (warmStart) {
@@ -586,9 +585,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
          }
 
       }
-#ifdef PV_USE_MPI
       MPI_Bcast(checkpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
-#endif // PV_USE_MPI
    }
    if (checkpointReadDir) {
       char* origChkPtr = checkpointReadDir;
@@ -851,9 +848,7 @@ void HyPerCol::ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * grou
             fprintf(stderr, "%s \"%s\" error: string parameter \"%s\" is required.\n",
                             params->groupKeywordFromName(group_name), group_name, param_name);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(icComm->globalCommunicator());
-#endif
          exit(EXIT_FAILURE);
       }
       break;
@@ -1164,9 +1159,7 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
             if (globalRank()==0) {
                fprintf(stderr, "HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n", name, checkpointWriteTriggerModeString);
             }
-#ifdef PV_USE_MPI
             MPI_Barrier(icCommunicator()->globalCommunicator());
-#endif
             exit(EXIT_FAILURE);
          }
       }
@@ -2423,9 +2416,7 @@ int HyPerCol::checkpointRead() {
       assert(endpos-startpos==(int)timestamp_size);
       PV_fclose(timestampfile);
    }
-#ifdef PV_USE_MPI
    MPI_Bcast(&timestamp,(int) timestamp_size,MPI_CHAR,0,icCommunicator()->communicator());
-#endif // PV_USE_MPI
    simTime = timestamp.time;
    currentStep = timestamp.step;
 
@@ -2473,9 +2464,7 @@ int HyPerCol::checkpointRead() {
             PV_fclose(timescalefile);
          }
       }
-   #ifdef PV_USE_MPI
       MPI_Bcast(&timescale,(int) timescale_size*nbatch,MPI_CHAR,0,icCommunicator()->communicator());
-   #endif // PV_USE_MPI
       //Grab only the necessary part based on comm batch id
       for(int b = 0; b < nbatch; b++){
          timeScale[b] = timescale[b].timeScale;
@@ -2704,11 +2693,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
 
 int HyPerCol::outputParams(char const * path) {
    int status = PV_SUCCESS;
-#ifdef PV_USE_MPI
    int rank=icComm->commRank();
-#else
-   int rank=0;
-#endif
    assert(printParamsStream==NULL);
    char printParamsPath[PV_PATH_MAX];
    if(rank == 0){
@@ -3243,9 +3228,7 @@ unsigned int HyPerCol::getRandomSeed() {
    if (columnId()==rootproc) {
        t = time((time_t *) NULL);
    }
-#ifdef PV_USE_MPI
    MPI_Bcast(&t, 1, MPI_UNSIGNED, rootproc, icComm->communicator());
-#endif
    return t;
 }
 
@@ -3344,9 +3327,7 @@ int HyPerCol::readArrayFromFile(const char * cp_dir, const char * group_name, co
          PV_fclose(pvstream);
       }
    }
-#ifdef PV_USE_MPI
    MPI_Bcast(val, sizeof(T)*count, MPI_CHAR, 0, icCommunicator()->communicator());
-#endif // PV_USE_MPI
 
    return status;
 }

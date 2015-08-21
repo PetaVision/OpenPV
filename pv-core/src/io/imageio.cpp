@@ -399,9 +399,6 @@ int gatherImageFileGDAL(const char * filename,
       const int dest = 0;
 
       MPI_Send(buf, nxnynf, MPI_BYTE, dest, tag, mpi_comm);
-      // for (int b = 0; b < numBands; b++) {
-      //   MPI_Send(&buf[b*nxny], nxny, MPI_BYTE, dest, tag, mpi_comm);
-      // }
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: gather: sent to 0, nx==%d ny==%d nf==%d size==%d\n",
               comm->commRank(), nx, ny, numBands, nxnynf);
@@ -597,9 +594,7 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    const int numBands = loc->nf;
    int numTotal; // will be nx*ny*bandsInFile;
 
-#ifdef PV_USE_MPI
    const MPI_Comm mpi_comm = comm->communicator();
-#endif // PV_USE_MPI
 
    if (icRank > 0) {
 #ifdef PV_USE_MPI
@@ -629,12 +624,10 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       const int bandsInFile = dataset->GetRasterCount();
       
       numTotal = nx * ny * bandsInFile;
-#ifdef PV_USE_MPI
 #ifdef DEBUG_OUTPUT
       fprintf(stderr, "[%2d]: scatterImageFileGDAL: broadcast from 0, total number of bytes in buffer is %d\n", numTotal);
 #endif // DEBUG_OUTPUT
       MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
-#endif // PV_USE_MPI
 
       int xTotalSize = nx * nxProcs;
       int yTotalSize = ny * nyProcs;

@@ -72,9 +72,7 @@ int LayerProbe::setTargetLayer(const char * layerName) {
          fprintf(stderr, "%s \"%s\" error: targetLayer \"%s\" is not a layer in the column.\n",
                this->getKeyword(), name, layerName);
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
       exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;

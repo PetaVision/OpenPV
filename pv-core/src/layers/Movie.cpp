@@ -774,9 +774,7 @@ int Movie::getNumFrames(){
       PV_fseek(filenamestream, 0L, SEEK_SET);
       batchPos[0] = 0L;
    }
-#ifdef PV_USE_MPI
    MPI_Bcast(&count, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
    return count;
 }
 

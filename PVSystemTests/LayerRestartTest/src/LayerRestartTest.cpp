@@ -26,11 +26,7 @@
 
 #include <columns/buildandrun.hpp>
 #include <io/io.h>
-#ifdef PV_USE_MPI
-#  include <mpi.h>
-#else
-#  include <include/mpi_stubs.h>
-#endif // PV_USE_MPI
+#include <arch/mpi/mpi.h>
 
 int checkComparisonZero(HyPerCol * hc, int argc, char * argv[]);
 int checkComparisonNonzero(HyPerCol * hc, int argc, char * argv[]);

@@ -76,9 +76,7 @@ int KernelProbe::communicateInitInfo() {
       }
       status = PV_FAILURE;
    }
-#ifdef PV_USE_MPI
    MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
    if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }
@@ -108,11 +106,9 @@ int KernelProbe::allocateDataStructures() {
 }
 
 int KernelProbe::outputState(double timed) {
-#ifdef PV_USE_MPI
    InterColComm * icComm = parent->icCommunicator();
    const int rank = icComm->commRank();
    if( rank != 0 ) return PV_SUCCESS;
-#endif // PV_USE_MPI
    assert(getTargetConn()!=NULL);
    int nxp = getTargetHyPerConn()->xPatchSize();
    int nyp = getTargetHyPerConn()->yPatchSize();

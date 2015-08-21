@@ -11,9 +11,6 @@
 /* define this for 64 bit architectures */
 #define PV_ARCH_64
 
-/* define this if using a vendor supplied MPI library */
-#define PV_USE_MPI
-
 /* define this if using OpenGL library for online graphics */
 #undef PV_USE_OPENGL
 

@@ -424,7 +424,7 @@ int BaseInput::postProcess(double timef, double dt){
             image_ave /= parent->icCommunicator()->commSize();
             MPI_Allreduce(MPI_IN_PLACE, &image_ave2, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
             image_ave2 /= parent->icCommunicator()->commSize();
-#endif
+#endif // PV_USE_MPI
             // set mean to zero
             for (int k=0; k<numExtended; k++) {
                buf[k] -= image_ave;
@@ -449,10 +449,8 @@ int BaseInput::postProcess(double timef, double dt){
                image_max = buf[k] > image_max ? buf[k] : image_max;
                image_min = buf[k] < image_min ? buf[k] : image_min;
             }
-#ifdef PV_USE_MPI
             MPI_Allreduce(MPI_IN_PLACE, &image_max, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
             MPI_Allreduce(MPI_IN_PLACE, &image_min, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
-#endif
             if (image_max > image_min){
                float image_stretch = 1.0f / (image_max - image_min);
                for (int k=0; k<numExtended; k++) {

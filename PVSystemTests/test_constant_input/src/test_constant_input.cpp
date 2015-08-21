@@ -21,11 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef PV_USE_MPI
-#  include <mpi.h>
-#else
-#  include "../include/mpi_stubs.h"
-#endif
+#include <arch/mpi/mpi.h>
 
 #undef DEBUG_OUTPUT
 

@@ -1,33 +1,45 @@
-#ifdef PV_USE_LOCAL_MPI
-
 #include "mpi.h"
+
+#ifndef PV_USE_MPI
+
 #include <assert.h>
 #include <string.h>
 #include <time.h>
 
-/* TODO - add a timer to MPI_Wtime */
-
-/* the following items are for a very special form recv/send (recv immediately followed by send) */
-char * PV_MPI_recvBuf;
-int    PV_MPI_recvCount;
+int pvmpiInitialized = 0;
 
 /**
- * @argc
- * @argv
+ * A stub for MPI_Initialized() when PV_USE_MPI is off.  It
+ * returns the value of the flag that MPI_Init turns on and MPI_Finalize turns off.
  */
+ int MPI_Initialized(int * flag)
+ {
+    *flag = pvmpiInitialized;
+    return 0;
+ }
 
+/**
+ * A stub for MPI_Init() when PV_USE_MPI is off.  It sets the global variable
+ * pvmpiInitialized to true.
+ */
 int MPI_Init(int * argc, char *** argv)
 {
-   return 0;
-}
-
-int MPI_Finalize()
-{
+   pvmpiInitialized = 1;
    return 0;
 }
 
 /**
- * @comm
+ * A stub for MPI_Finalize() when PV_USE_MPI is off.  It sets the global variable
+ * pvmpiInitialized to false.
+ */
+int MPI_Finalize()
+{
+   pvmpiInitialized = 0;
+   return 0;
+}
+
+/**
+ * A stub for MPI_Barrier() when PV_USE_MPI is off.
  */
 
 int MPI_Barrier(MPI_Comm comm)
@@ -36,12 +48,7 @@ int MPI_Barrier(MPI_Comm comm)
 }
 
 /**
- * @buffer
- * @count
- * @datatype
- * @root
- * @comm
- */
+ * A stub for MPI_Bcast when PV_USE_MPI is off */
 
 int MPI_Bcast (void * buffer, int count, MPI_Datatype datatype, int root,
                MPI_Comm comm)
@@ -50,8 +57,17 @@ int MPI_Bcast (void * buffer, int count, MPI_Datatype datatype, int root,
 }
 
 /**
- * @comm
- * @rank
+ * A stub for MPI_Allreduce when PV_USE_MPI is off.  Returns immediately
+ * (hence it assumes that the MPI_Op functio acting on one argument is the identity).
+ */
+int MPI_Allreduce(void * sendbuf, void * recvbuf, int count, MPI_Datatype datatype,
+                  MPI_Op op, MPI_Comm comm)
+{
+   return 0;
+}
+
+/**
+ * A stub for MPI_Comm_rank when PV_USE_MPI is off.  The resulting rank is always zero.
  */
 
 int MPI_Comm_rank(MPI_Comm comm, int* rank)
@@ -61,8 +77,7 @@ int MPI_Comm_rank(MPI_Comm comm, int* rank)
 }
 
 /**
- * @comm
- * @size
+ * A stub for MPI_Comm_size when PV_USE_MPI is off.  The resulting size is always one.
  */
 
 int MPI_Comm_size(MPI_Comm comm, int* size)
@@ -72,69 +87,59 @@ int MPI_Comm_size(MPI_Comm comm, int* size)
 }
 
 /**
- * @sendbuf
- * @sendcount
- * @sendtype
- * @recvbuf
- * @recvcount
- * @recvtype
- * @root
- * @comm
- */
-
-int MPI_Gather(void * sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf,
-      int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
-{
-   // should be able to just copy from sendbuf to recvbuf as MPI size is 1
-   memcpy(recvbuf, sendbuf, sendtype*sendcount);
-   return 0;
-}
-
-/**
- * @buf
- * @count
- * @datatype
- * @source
- * @tag
- * @comm
- * @request
+ * A stub for MPI_Irecv when PV_USE_MPI is off.  Returns immediately.
+ * Note that if the code calls this function when PV_USE_MPI is false,
+ * the receive buffer does not get written to.  A better implementation of MPI_Irecv
+ * would need to be implemented if that's ever something we find convenient to do.
  */
 
 int MPI_Irecv(void * buf, int count, MPI_Datatype datatype, int source, int tag,
               MPI_Comm comm, MPI_Request *request)
 {
-   assert(datatype == MPI_CHAR);
-   PV_MPI_recvBuf = buf;
-   PV_MPI_recvCount = count;
    return 0;
 }
 
 /**
- * @buf
- * @count
- * @datatype
- * @dest
- * @tag
- * @comm
+ * A stub for MPI_Recv when PV_USE_MPI is off.  Returns immediately.
+ * Note that if the code calls this function when PV_USE_MPI is false,
+ * the receive buffer does not get written to.  A better implementation of MPI_Recv
+ * would need to be implemented if that's ever something we find convenient to do.
  */
 
+int MPI_Recv(void * buf, int count, MPI_Datatype datatype, int source, int tag,
+              MPI_Comm comm, MPI_Status *status)
+{
+   return 0;
+}
+
+/**
+ * A stub for MPI_Isend when PV_USE_MPI is off.  Returns immediately.
+ * Note that if the code calls this function when PV_USE_MPI is false,
+ * the send buffer does not get read.  A better implementation of MPI_Isend
+ * would need to be implemented if that's ever something we find convenient to do.
+ */
+
+int MPI_Isend(void * buf, int count, MPI_Datatype datatype, int dest, int tag,
+              MPI_Comm comm, MPI_Request * request)
+{
+   return 0;
+}
+
+/**
+ * A stub for MPI_Send when PV_USE_MPI is off.  Returns immediately.
+ * Note that if the code calls this function when PV_USE_MPI is false,
+ * the send buffer does not get read.  A better implementation of MPI_Send
+ * would need to be implemented if that's ever something we find convenient to do.
+ */
 int MPI_Send(void * buf, int count, MPI_Datatype datatype, int dest, int tag,
              MPI_Comm comm)
 {
-   /* WARNING, this only works for MPI_Irecv immediately followed by MPI_Send */
-   assert(datatype == MPI_CHAR);
-   assert(count == PV_MPI_recvCount);
-   memcpy(PV_MPI_recvBuf, buf, count);
-
    return 0;
 }
 
 /**
- * @count
- * @array_of_requests
- * @array_of_statuses
+ * A stub for MPI_Waitall when PV_USE_MPI is off.  Returns immediately.
  */
-
 int MPI_Waitall(int count, MPI_Request array_of_requests[],
                 MPI_Status array_of_statuses[])
 {
@@ -142,30 +147,16 @@ int MPI_Waitall(int count, MPI_Request array_of_requests[],
 }
 
 /**
- * @count
- * @array_of_requests
- * @index
- * @status
+ * A stub for MPI_Wtime when PV_USE_MPI is off.  Returns the time in seconds
+ * since the calling process started.
  */
-
-int MPI_Waitany(int count, MPI_Request array_of_requests[], int * index,
-      MPI_Status * status)
-{
-   return 0;
-}
-
 double MPI_Wtime()
 {
    return clock() / CLOCKS_PER_SEC;
-}
-
-double MPI_Wtick()
-{
-   return CLOCKS_PER_SEC;
 }
 
 #else
 
 void pv_mpi_noop() { }
 
-#endif // PV_USE_LOCAL_MPI
+#endif // PV_USE_MPI

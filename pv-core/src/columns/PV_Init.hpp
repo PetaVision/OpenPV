@@ -8,9 +8,10 @@
 #ifndef PV_INIT_HPP_
 #define PV_INIT_HPP_
 
+#include <iostream>
+#include "../arch/mpi/mpi.h"
 #include "../io/PVParams.hpp"
 #include "../io/io.h"
-//#include "InterColComm.hpp"
 
 namespace PV {
 

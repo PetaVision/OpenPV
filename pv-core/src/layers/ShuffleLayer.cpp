@@ -212,10 +212,8 @@ void ShuffleLayer::collectFreq(const pvdata_t * sourceData){
          }
       }
 
-#ifdef PV_USE_MPI
       //Collect over mpi
       MPI_Allreduce(MPI_IN_PLACE, currFeatureFreqCount[b], nf, MPI_LONG, MPI_SUM, parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
       
       for (int kf = 0; kf < nf; kf++){
          featureFreqCount[b][kf] += currFeatureFreqCount[b][kf];

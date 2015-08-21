@@ -220,7 +220,9 @@ public:
    PVParams(const char * buffer, long int bufferLength, size_t initialSize, InterColComm* inIcComm);
    virtual ~PVParams();
 
+#ifdef OBSOLETE // Marked obsolete Aug 30, 2015. Never gets called anywhere in the OpenPV repository, and undocumented.
    int parseBufferInRootProcess(char * buffer, long int bufferLength);
+#endif // OBSOLETE // Marked obsolete Aug 30, 2015. Never gets called anywhere in the OpenPV repository, and undocumented.
    bool getParseStatus() { return parseStatus; }
    int   present(const char * groupName, const char * paramName);
    double value  (const char * groupName, const char * paramName);

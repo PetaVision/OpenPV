@@ -7,9 +7,7 @@
 
 #include "Image.hpp"
 
-#ifdef PV_USE_MPI
-#include <mpi.h>
-#endif
+#include "../arch/mpi/mpi.h"
 #include <assert.h>
 #include <string.h>
 #include <iostream>
@@ -173,9 +171,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    const int numBands = loc->nf;
    int numTotal; // will be nx*ny*bandsInFile;
 
-#ifdef PV_USE_MPI
    const MPI_Comm mpi_comm = comm->communicator();
-#endif // PV_USE_MPI
    GDALDataType dataType;
    char** metadata;
    char isBinary = true;

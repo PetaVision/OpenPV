@@ -9,11 +9,7 @@
 #define FILEIO_HPP_
 
 #include "io.h"
-#ifdef PV_USE_MPI
-#  include <mpi.h>
-#else
-#  include "../include/mpi_stubs.h"
-#endif // PV_USE_MPI
+#include "../arch/mpi/mpi.h"
 #include "../include/pv_types.h"
 #include "../include/PVLayerLoc.h"
 #include "../columns/Communicator.hpp"

@@ -155,9 +155,7 @@ void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
 //   const size_t localSize = numPatches * patchSize;
 //   const size_t arborSize = localSize * this->numberOfAxonalArborLists();
 //
-//#ifdef PV_USE_MPI
 //   ierr = MPI_Allreduce(MPI_IN_PLACE, this->get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
-//#endif
 //   return PV_BREAK;
 //}
 //

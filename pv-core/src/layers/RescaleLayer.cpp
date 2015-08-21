@@ -177,10 +177,8 @@ int RescaleLayer::updateState(double timef, double dt) {
              }
           }
 
-#ifdef PV_USE_MPI
           MPI_Allreduce(MPI_IN_PLACE, &maxA, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
           MPI_Allreduce(MPI_IN_PLACE, &minA, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
 
           float rangeA = maxA - minA;
           if (rangeA != 0) {
@@ -217,9 +215,7 @@ int RescaleLayer::updateState(double timef, double dt) {
              sum += originalABatch[kextOriginal];
           }
 
-#ifdef PV_USE_MPI
           MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
 
           float mean = sum / originalLayer->getNumGlobalNeurons();
 
@@ -233,9 +229,7 @@ int RescaleLayer::updateState(double timef, double dt) {
              sumsq += (originalABatch[kextOriginal] - mean) * (originalABatch[kextOriginal] - mean);
           }
 
-#ifdef PV_USE_MPI
           MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
           float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
           // The difference between the if and the else clauses is only in the computation of A[kext], but this
           // way the std != 0.0 conditional is only evaluated once, not every time through the for-loop.
@@ -275,9 +269,7 @@ int RescaleLayer::updateState(double timef, double dt) {
              sum += originalABatch[kextOriginal];
           }
 
-#ifdef PV_USE_MPI
           MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
 
           float mean = sum / originalLayer->getNumGlobalNeurons();
 
@@ -291,9 +283,7 @@ int RescaleLayer::updateState(double timef, double dt) {
              sumsq += (originalABatch[kextOriginal] - mean) * (originalABatch[kextOriginal] - mean);
           }
 
-#ifdef PV_USE_MPI
           MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
-#endif // PV_USE_MPI
           float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
           // The difference between the if and the else clauses is only in the computation of A[kext], but this
           // way the std != 0.0 conditional is only evaluated once, not every time through the for-loop.

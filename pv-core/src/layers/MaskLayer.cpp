@@ -97,9 +97,7 @@ int MaskLayer::communicateInitInfo() {
             fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
                     getKeyword(), name, maskLayerName);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
 
@@ -113,9 +111,7 @@ int MaskLayer::communicateInitInfo() {
             fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
 
@@ -126,9 +122,7 @@ int MaskLayer::communicateInitInfo() {
             fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
-#ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
          exit(EXIT_FAILURE);
       }
 

@@ -55,9 +55,7 @@ int CloneVLayer::communicateInitInfo() {
          fprintf(stderr, "%s \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                  getKeyword(), name, originalLayerName);
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
       exit(EXIT_FAILURE);
    }
    //originalLayer->synchronizeMarginWidth(this);
@@ -71,9 +69,7 @@ int CloneVLayer::communicateInitInfo() {
          fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
-#endif
       exit(EXIT_FAILURE);
    }
    assert(srcLoc->nx==loc->nx && srcLoc->ny==loc->ny);

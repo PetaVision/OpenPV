@@ -17,6 +17,7 @@ endif (NOT CMAKE_BUILD_TYPE)
 
 # Variables to set on the command line
 set(PV_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "The base PetaVision directory")
+set(PV_USE_MPI TRUE CACHE BOOL "Defines whether the MPI environment is present")
 set(PV_USE_OPENMP_THREADS FALSE CACHE BOOL "Defines whether PetaVision uses OpenMP threads")
 set(PV_USE_OPENCL FALSE CACHE BOOL "Defines whether PetaVision uses OpenCL GPU")
 set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of OpenCL headers")
@@ -208,13 +209,15 @@ include_directories(${GDAL_INCLUDE_DIR})
 #    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
 #
 
-if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
-    MESSAGE("-- Searching for MPI library ............")
-    find_package(MPI REQUIRED)
-endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+if (PV_USE_MPI)
+    if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+        MESSAGE("-- Searching for MPI library ............")
+        find_package(MPI REQUIRED)
+    endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
 
-set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
-set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+    set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
+    set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+endif (PV_USE_MPI)
 
 # Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
 # if (LIB_SND_FILE AND NOT DEFINED LIBSNDFILE_FOUND)
@@ -272,7 +275,6 @@ endif(PV_USE_CUDA)
 
 # Link executable to external libraries
 target_link_libraries(pv ${GDAL_LIBRARY})
-target_link_libraries(pv ${MPI_LIBRARY})
 # Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
 # IF(LIBSNDFILE_FOUND)
 #    target_link_libraries(pv ${LIBSNDFILE_LIBRARY})

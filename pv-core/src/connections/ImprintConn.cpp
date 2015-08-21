@@ -230,9 +230,7 @@ int ImprintConn::update_dW(int arbor_ID){
 
    }
    //Do mpi to update lastActiveTime
-#ifdef PV_USE_MPI
    int ierr = MPI_Allreduce(MPI_IN_PLACE, lastActiveTime, numKernelIndices * numberOfAxonalArborLists(), MPI_DOUBLE, MPI_MAX, parent->icCommunicator()->communicator());
-#endif
 
    return PV_SUCCESS;
 }
@@ -277,12 +275,10 @@ int ImprintConn::checkpointRead(const char * cpDir, double * timeptr) {
       free(filename);
    }
 
-#ifdef PV_USE_MPI
    if (parent->icCommunicator()->commSize()>1) {
       //Communicate buffer size to rest of processes
       MPI_Bcast(lastActiveTime, numBuf, MPI_DOUBLE, 0, parent->icCommunicator()->communicator());
    }
-#endif // PV_USE_MPI
    return status;
 }
 

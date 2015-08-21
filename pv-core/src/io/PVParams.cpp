@@ -887,13 +887,8 @@ int PVParams::initialize(size_t initialSize) {
    groupArraySize = initialSize;
    //this->icComm = icComm;
    //Get world rank and size
-#ifdef PV_USE_MPI
    MPI_Comm_rank(icComm->globalCommunicator(), &worldRank);
    MPI_Comm_size(icComm->globalCommunicator(), &worldSize);
-#else // PV_USE_MPI
-   worldRank = 0;
-   worldSize = 1;
-#endif // PV_USE_MPI
    
    groups = (ParameterGroup **) malloc(initialSize * sizeof(ParameterGroup *));
    stack = new ParameterStack(MAX_PARAMS);
@@ -993,7 +988,7 @@ int PVParams::parseFile(const char * filename) {
       int count;
       MPI_Probe(rootproc, 31, icComm->globalCommunicator(), &mpi_status);
       // int status =
-      MPI_Get_count(&mpi_status, MPI_CHAR, &count); //mpi_status._count;
+      MPI_Get_count(&mpi_status, MPI_CHAR, &count);
       bufferlen = (size_t) count;
       paramBuffer = (char *) malloc(bufferlen);
       if( paramBuffer == NULL ) {
@@ -1264,6 +1259,7 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
    return PV_SUCCESS;
 }
 
+#ifdef OBSOLETE // Marked obsolete Aug 30, 2015. Never gets called anywhere in the OpenPV repository, and undocumented.
 int PVParams::parseBufferInRootProcess(char * buffer, long int bufferLength) {
    // Under MPI, if this process is called, it should be called by all processes.
 #ifdef PV_USE_MPI
@@ -1291,6 +1287,7 @@ int PVParams::parseBufferInRootProcess(char * buffer, long int bufferLength) {
 #endif // PV_USE_MPI
    return status;
 }
+#endif // OBSOLETE // Marked obsolete Aug 30, 2015. Never gets called anywhere in the OpenPV repository, and undocumented.
 
 int PVParams::setBatchSweepSize() {
    //std::cout << "Exiting test\n";
@@ -1748,9 +1745,7 @@ void PVParams::handleUnnecessaryParameter(const char * group_name, const char * 
          }
       }
    }
-#ifdef PV_USE_MPI
    MPI_Barrier(icComm->globalCommunicator());
-#endif
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 }
 // Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may get linker errors.
@@ -1801,9 +1796,7 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
          free(params_value_i);
       }
    }
-#ifdef PV_USE_MPI
    MPI_Barrier(icComm->globalCommunicator());
-#endif
    if (status != PV_SUCCESS) exit(EXIT_FAILURE);
 }
 

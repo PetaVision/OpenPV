@@ -2,7 +2,7 @@
 #define PV_VERSION_MINOR @PV_VERSION_MINOR@
 
 #define PV_DIR "@PV_DIR@"
-#define PV_USE_MPI // Currently MPI is required
+#cmakedefine PV_USE_MPI
 #cmakedefine PV_USE_OPENMP_THREADS
 #cmakedefine PV_USE_OPENCL
 #cmakedefine PV_USE_CUDA
