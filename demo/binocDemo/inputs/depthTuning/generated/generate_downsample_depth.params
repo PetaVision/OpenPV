@@ -1,0 +1,96 @@
+debugParsing = true;
+HyPerCol "column" = {
+    filenamesContainLayerNames = 2;
+    randomSeed = 1234567890;
+    dtScaleMin = 0.25;
+    nx = 1200;
+    ny = 360;
+    stopTime = 195;
+    dtChangeMax = 0.05;
+    outputPath = "/home/ec2-user/output/depthTuning/downsample_depth/";
+    suppressLastOutput = false;
+    startTime = 0;
+    progressStep = 5;
+    checkpointWrite = false;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+    checkpointRead = false;
+    dtScaleMax = 5;
+    dtAdaptFlag = true;
+    deleteOlderCheckpoints = true;
+    filenamesContainConnectionNames = 2;
+    dtChangeMin = 0;
+    writeProgressToErr = true;
+    dt = 1;
+};
+
+ANNLayer "DepthDownsample" = {
+    VMin = -infinity;
+    VWidth = 0;
+    VShift = 0;
+    restart = 0;
+    phase = 1;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 1;
+    writeStep = 1;
+    VThresh = -infinity;
+    InitVType = "ZeroV";
+    writeSparseActivity = 0;
+    mirrorBCflag = false;
+    initialWriteTime = 1;
+    VMax = infinity;
+};
+
+PoolingConn "DepthImageToDepthDownsample" = {
+    postLayerName = "DepthDownsample";
+    updateGSynFromPostPerspective = false;
+    plasticityFlag = 0;
+    preLayerName = "DepthImage";
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    pvpatchAccumulateType = "maxpooling";
+    writeCompressedCheckpoints = false;
+    sharedWeights = true;
+    useWindowPost = false;
+    keepKernelsSynchronized = true;
+    selfFlag = false;
+    delay = 0;
+    convertRateToSpikeCount = false;
+    shrinkPatches = false;
+    writeStep = -1;
+    writeCompressedWeights = false;
+    nxp = 1;
+    nyp = 1;
+    normalizeMethod = "none";
+    initialWriteTime = 0;
+    channelCode = 0;
+};
+
+Movie "DepthImage" = {
+    offsetAnchor = "br";
+    start_frame_index = 1;
+    normalizeLuminanceFlag = false;
+    sparseLayer = false;
+    writeStep = -1;
+    readPvpFile = false;
+    echoFramePathnameFlag = true;
+    writeImages = false;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    offsetY = 0;
+    offsetX = 0;
+    skip_frame_index = 1;
+    restart = 0;
+    phase = 0;
+    nxScale = 1;
+    nyScale = 1;
+    inverseFlag = false;
+    imageListPath = "/home/ec2-user/dataset/list/benchmark_depth_noc.txt";
+    useImageBCflag = false;
+    displayPeriod = 1;
+    mirrorBCflag = false;
+    jitterFlag = 0;
+    writeFrameToTimestamp = true;
+    nf = 1;
+};
+
