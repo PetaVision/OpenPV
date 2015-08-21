@@ -17,6 +17,7 @@ Suggested additional tools:
     lua (http://www.lua.org/)
     octave (https://www.gnu.org/software/octave/)
     python (https://www.python.org/)
+    mermaid (http://knsv.github.io/mermaid/)
 
 Instructions for building:
     git clone https://github.com/PetaVision/openpv
