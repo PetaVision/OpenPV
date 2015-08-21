@@ -2821,8 +2821,8 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
 int HyPerCol::getAutoGPUDevice(){
    int returnGpuIdx = -1;
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   int mpiRank = icComm->commRank();
-   int numMpi = icComm->commSize();
+   int mpiRank = icComm->globalCommRank();
+   int numMpi = icComm->globalCommSize();
    char hostNameStr[PV_PATH_MAX];
    gethostname(hostNameStr, PV_PATH_MAX);
    size_t hostNameLen = strlen(hostNameStr) + 1; //+1 for null terminator
@@ -2845,8 +2845,8 @@ int HyPerCol::getAutoGPUDevice(){
             rankToMaxGpu[rank] = PVCuda::CudaDevice::getNumDevices();
          }
          else{
-            MPI_Recv(rankToHost[rank], PV_PATH_MAX, MPI_CHAR, rank, 0, icComm->communicator(), MPI_STATUS_IGNORE);
-            MPI_Recv(&(rankToMaxGpu[rank]), 1, MPI_INT, rank, 0, icComm->communicator(), MPI_STATUS_IGNORE);
+            MPI_Recv(rankToHost[rank], PV_PATH_MAX, MPI_CHAR, rank, 0, icComm->globalCommunicator(), MPI_STATUS_IGNORE);
+            MPI_Recv(&(rankToMaxGpu[rank]), 1, MPI_INT, rank, 0, icComm->globalCommunicator(), MPI_STATUS_IGNORE);
          }
       }
 
@@ -2896,19 +2896,19 @@ int HyPerCol::getAutoGPUDevice(){
             returnGpuIdx = rankToGpu[rank];
          }
          else{
-            MPI_Send(&(rankToGpu[rank]), 1, MPI_INT, rank, 0, icComm->communicator());
+            MPI_Send(&(rankToGpu[rank]), 1, MPI_INT, rank, 0, icComm->globalCommunicator());
          }
       }
    }
    //Non root process
    else{
       //Send host name
-      MPI_Send(hostNameStr, hostNameLen, MPI_CHAR, 0, 0, icComm->communicator());
+      MPI_Send(hostNameStr, hostNameLen, MPI_CHAR, 0, 0, icComm->globalCommunicator());
       //Send max gpus for that host
       int maxGpu = PVCuda::CudaDevice::getNumDevices();
-      MPI_Send(&maxGpu, 1, MPI_INT, 0, 0, icComm->communicator());
+      MPI_Send(&maxGpu, 1, MPI_INT, 0, 0, icComm->globalCommunicator());
       //Recv gpu idx
-      MPI_Recv(&(returnGpuIdx), 1, MPI_INT, 0, 0, icComm->communicator(), MPI_STATUS_IGNORE);
+      MPI_Recv(&(returnGpuIdx), 1, MPI_INT, 0, 0, icComm->globalCommunicator(), MPI_STATUS_IGNORE);
    }
    assert(returnGpuIdx >= 0 && returnGpuIdx < PVCuda::CudaDevice::getNumDevices());
 #else
@@ -2920,7 +2920,7 @@ int HyPerCol::getAutoGPUDevice(){
 
 int HyPerCol::initializeThreads(char* in_device)
 {
-   int numMpi = icComm->commSize();
+   int numMpi = icComm->globalCommSize();
    int device;
 
    //default value
