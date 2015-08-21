@@ -18,7 +18,7 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime= 100000000;
     progressStep = 5000;
-    outputPath = "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024/";
+    //outputPath = "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
@@ -38,6 +38,46 @@ HyPerCol "column" = {
     dtChangeMin = -0.05;
     nbatch = 32;
 };
+
+BatchSweep "column":outputPath = {
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_0/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_1/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_2/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_3/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_4/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_5/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_6/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_7/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_8/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_9/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_10/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_11/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_12/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_13/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_14/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_15/";
+};
+
+BatchSweep "column":checkpointWriteDir = {
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_0/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_1/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_2/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_3/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_4/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_5/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_6/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_7/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_8/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_9/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_10/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_11/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_12/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_13/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_14/Checkpoints/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_15/Checkpoints/";
+};
+
+
 
 //
 // layers
