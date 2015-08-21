@@ -60,6 +60,9 @@ public:
       }
    }
    int isExtraProc(){return icComm->isExtraProc();}
+   int getInit(){return initialized;}
+
+
 private:
    int commInit(int* argc, char*** argv);
    int commFinalize();

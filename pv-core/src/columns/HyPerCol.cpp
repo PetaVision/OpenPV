@@ -251,37 +251,16 @@ int HyPerCol::initialize_base() {
 
 int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* initObj)
 {
-   //ownsInterColComm = (inparams==NULL || inparams->getInterColComm()==NULL);
-   //if (ownsInterColComm) {
-   //   icComm = new InterColComm(&argc, &argv);
-   //}
-   //else {
-   //   icComm = inparams->getInterColComm();
-   //}
-   //ownsParams = inparams==NULL;
-   //if (ownsParams) {
-   //   size_t groupArraySize = 2*(layerArraySize + connectionArraySize);
-   //   this->params = new PVParams(param_file, groupArraySize, icComm);  // PVParams::addGroup can resize if initialGroups is exceeded
-   //}
-   //else {
-   //   this->params = inparams;
-   //}
-   //free(param_file);
-   //param_file = NULL;
-
+   if(!initObj->getInit()){
+      std::cout << "PV_Init object must call initialized before passing to HyPerCol\n";
+      exit(-1);
+   }
    this->icComm = initObj->getComm();
    this->params = initObj->getParams();
    if(!this->params){
       std::cout << "Parameter file (-p) must be specified to the HyPerCol\n";
       exit(-1);
    }
-
-   //Grab nbatch here, but don't set yet, as it's being read again in ioParamsFillGroup
-   //int numBatches = 0;
-   //ioParamValue(PARAMS_IO_READ, name, "nbatch", &numBatches, 1);
-   
-   ////Allocate communicator
-   //icComm = new InterColComm(argc, argv, numBatches);
 
    int rank = icComm->globalCommRank();
 

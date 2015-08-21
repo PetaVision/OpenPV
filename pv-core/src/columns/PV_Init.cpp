@@ -13,29 +13,16 @@ PV_Init::PV_Init(int* argc, char ** argv[]){
    commInit(argc, argv);
    params = NULL;
    icComm = NULL;
-
-//   int rank = 0;
-//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//   if(rank == 0){
-//      printf("Hit enter to begin! ");
-//      fflush(stdout);
-//      int charhit = -1;
-//      while(charhit != '\n') {
-//         charhit = getc(stdin);
-//      }
-//   }
-//#ifdef PV_USE_MPI
-//   MPI_Barrier(MPI_COMM_WORLD);
-//#endif // PV_USE_MPI
+   initialized = false;
 }
 
 PV_Init::~PV_Init(){
    if(params){
       delete params;
    }
-   //if(icComm){
-   //   delete icComm;
-   //}
+   if(icComm){
+      delete icComm;
+   }
    commFinalize();
 }
 
@@ -55,12 +42,10 @@ int PV_Init::initialize(int argc, char* argv[]){
       exit(-1);
    }
 
+   //Set up communicator and parameters
    icComm = new InterColComm(argc, argv);
-   //Read parameters and send to everyone
    params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
-   //Get nbatch dimension from params
-   //nbatch = (int) params->value(group_name, param_name, defaultValue, warnIfAbsent);
-   //Set up communicators
+   initialized = true;
    return 0;
 }
 
@@ -75,19 +60,21 @@ int PV_Init::initialize(PVParams* inparams, InterColComm* incomm){
    }
    params = inparams;
    icComm = incomm;
+   initialized = true;
    return 0;
 }
 
 int PV_Init::commInit(int* argc, char*** argv)
 {
 #ifdef PV_USE_MPI
+   int mpiInit;
    // If MPI wasn't initialized, initialize it.
    // Remember if it was initialized on entry; the destructor will only finalize if the constructor init'ed.
    // This way, you can do several simulations sequentially by initializing MPI before creating
    // the first HyPerCol; after running the first simulation the MPI environment will still exist and you
    // can run the second simulation, etc.
-   MPI_Initialized(&initialized);
-   if( !initialized) {
+   MPI_Initialized(&mpiInit);
+   if( !mpiInit) {
       assert((*argv)[*argc]==NULL); // Open MPI 1.7 assumes this.
       MPI_Init(argc, argv);
    }
