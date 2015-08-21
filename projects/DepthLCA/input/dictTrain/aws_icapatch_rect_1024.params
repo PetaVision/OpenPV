@@ -32,9 +32,9 @@ HyPerCol "column" = {
     writeProgressToErr = true;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
     dtAdaptFlag = true;
-    dtScaleMax = 5.0;
-    dtScaleMin = 0.25;
-    dtChangeMax = 0.05;
+    dtScaleMax = 1.0;
+    dtScaleMin = 0.02;
+    dtChangeMax = 0.01;
     dtChangeMin = -0.05;
     nbatch = 32;
 };
@@ -498,8 +498,8 @@ MomentumConn "V1ToLeftError" = {
     triggerOffset = 1;
     initialWriteTime = 0.0;
 
-    dWMax = .1; // 200.0 used for initial training
-    momentumTau = 100;
+    dWMax = 1; // 200.0 used for initial training
+    momentumTau = 50;
     momentumMethod = "viscosity";
 
     selfFlag = false;
