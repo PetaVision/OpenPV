@@ -30,5 +30,5 @@ do
    done
 
    #Update and build petavision
-   ssh -t ec2-user@$ip 'cd ~/workspace/; git pull; cd ~/workspace/; echo PVSystemTests > subdirectories.txt; cmake -DCMAKE_BUILD_TYPE=Release -DCUDA_GPU=True -DCUDA_RELEASE=True -DCUDNN=True -DCUDNN_PATH=~/cuDNN/cudnn-6.5-linux-x64-R2-rc1 -DOPEN_MP_THREADS=True -DPV_DIR=~/workspace/pv-core; cd ~/workspace/pv-core; make -j 8'
+   ssh -t ec2-user@$ip 'cd ~/workspace/; git pull; cd ~/workspace/; echo PVSystemTests > subdirectories.txt; cmake -DCMAKE_BUILD_TYPE=Release -DPV_USE_CUDA=True -DCUDA_RELEASE=True -DPV_USE_CUDNN=True -DCUDNN_PATH=~/cuDNN/cudnn-6.5-linux-x64-R2-rc1 -DPV_USE_OPENMP_THREADS=True -DPV_DIR=~/workspace/pv-core; cd ~/workspace/pv-core; make -j 8'
 done
