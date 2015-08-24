@@ -52,7 +52,8 @@ This section explains how to get a new user set up on the aws account to do runs
 ## Activate your account 
 To create an AWS account, go to [Amazon's AWS page](http://aws.amazon.com) and click on Products.
 
-If you are in Kenyon Lab, contact an account administrator to create and set up your account. You should get a user name and a temporary password starting up. Follow [these instructions](md_src_aws_pv_internal.html) for setting up a user in the PetaVision account.
+If you are in Kenyon Lab, contact an account administrator to create and set up your account. You should get a user name and a
+temporary password starting up. Follow [these instructions](md_docs_doxygen_src_aws_pv_internal.html) for setting up a user in the PetaVision account.
 
 ## Create your ssh key pair
 Each instance must have an ssh key for security. Here's how to generate your own.
