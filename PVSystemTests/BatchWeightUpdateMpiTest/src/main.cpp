@@ -237,11 +237,11 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    if( rank == rootproc ) {
       int index = hc->getFinalStep()-hc->getInitialStep();
       const char * filetime = "outputTime/Last/plasticConn_W.pvp";
-      const char * filebatch0 = "output_batchsweep_00/Last/plasticConn_W.pvp";
-      const char * filebatch1 = "output_batchsweep_01/Last/plasticConn_W.pvp";
-      const char * filebatch2 = "output_batchsweep_02/Last/plasticConn_W.pvp";
-      const char * filebatch3 = "output_batchsweep_03/Last/plasticConn_W.pvp";
-      const char * filebatch4 = "output_batchsweep_04/Last/plasticConn_W.pvp";
+      const char * filebatch0 = "outputDim/batchsweep_00/Last/plasticConn_W.pvp";
+      const char * filebatch1 = "outputDim/batchsweep_01/Last/plasticConn_W.pvp";
+      const char * filebatch2 = "outputDim/batchsweep_02/Last/plasticConn_W.pvp";
+      const char * filebatch3 = "outputDim/batchsweep_03/Last/plasticConn_W.pvp";
+      const char * filebatch4 = "outputDim/batchsweep_04/Last/plasticConn_W.pvp";
       status = compareFiles(filetime, filebatch0);
       status = compareFiles(filetime, filebatch1);
       status = compareFiles(filetime, filebatch2);
