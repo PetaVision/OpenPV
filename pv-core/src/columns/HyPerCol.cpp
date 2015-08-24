@@ -88,8 +88,8 @@ HyPerCol::~HyPerCol()
    //if (ownsInterColComm) {
    //}
    //else {
-   //   icComm->clearPublishers();
    //}
+   icComm->clearPublishers();
 
    delete runTimer;
    delete checkpointTimer;
