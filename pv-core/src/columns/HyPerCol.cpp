@@ -490,6 +490,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
       }
    }
 
+   //warmStart is set if restart flag != 0
    if (warmStart && checkpointReadDir) {
       if (globalRank()==0) {
          fprintf(stderr, "%s error: cannot set both -r and -c.\n", argv[0]);
@@ -583,8 +584,39 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
 #endif // PV_USE_MPI
    }
    if (checkpointReadDir) {
+      char* origChkPtr = checkpointReadDir;
+      char** splitCheckpoint = (char**)calloc(icComm->numCommBatches(), sizeof(char*));
+      assert(splitCheckpoint);
+      size_t count = 0;
+      char * tmp = NULL;
+      tmp = strtok(checkpointReadDir, ":");
+      while(tmp != NULL){
+         splitCheckpoint[count] = strdup(tmp);
+         count++;
+         if(count > icComm->numCommBatches()){
+            fprintf(stderr, "Checkpoint read dir parsing error: Specified too many colon seperated checkpoint read directories. Only specify %d checkpoint directories.\n", icComm->numCommBatches());
+            exit(EXIT_FAILURE);
+         }
+         tmp = strtok(NULL, ":");
+      }
+      //Make sure number matches up
+      if(count != icComm->numCommBatches()){
+         fprintf(stderr, "Checkpoint read dir parsing error: Specified not enough colon seperated checkpoint read directories. Running with %d batch MPIs but only %d colon seperated checkpoint directories.\n", icComm->numCommBatches(), count);
+         exit(EXIT_FAILURE);
+      }
+      
+      //Grab this rank's actual checkpointReadDir and replace with checkpointReadDir
+      checkpointReadDir = strdup(splitCheckpoint[icComm->commBatch()]);
+      //Free all tmp memories
+      free(origChkPtr);
+      for(int i = 0; i < icComm->numCommBatches(); i++){
+         free(splitCheckpoint[i]);
+      }
+      free(splitCheckpoint);
+      assert(checkpointReadDir);
+      
       checkpointReadFlag = true;
-      printf("Rank %d process setting checkpointReadDir to %s.\n", columnId(), checkpointReadDir);
+      printf("Global Rank %d process setting checkpointReadDir to %s.\n", globalRank(), checkpointReadDir);
    }
 
    // run only on GPU for now

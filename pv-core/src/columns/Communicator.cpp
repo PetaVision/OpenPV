@@ -82,6 +82,10 @@ Communicator::Communicator(int argc, char** argv)
    if( !rowsDefined  && !colsDefined ) {
       r = sqrtf(procsLeft);
       numRows = (int) r;
+      if(numRows == 0){
+         std::cout << "Not enough processes left, error\n";
+         exit(-1);
+      }
       numCols = (int) ceil(procsLeft / numRows);
    }
 
