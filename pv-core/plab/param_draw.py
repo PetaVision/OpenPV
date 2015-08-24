@@ -307,6 +307,28 @@ def mermaid_writeout(parser_output, colorby, legend):
                 strcolor = ''.join(strcolor)
                 layer_dict[j].color = strcolor
 
+    def append_dots():
+        regex_list = ['v$',
+                      'style$'
+                      'default$',
+                      'linkStyle$'
+                      'classDef$'
+                      'class$'
+                      'click$'
+                      'graph$'
+                      'subgraph$'
+                      'end$']
+        for r in regex_list:
+            for i in layer_dict.values():
+                if re.search(r,i.name):
+                    print('Warning: ' + i.name + ' ends in a mermaid-reserved string. Appending junk characters to input file.')
+                    i.name = i.name + 'xxx'
+            for i in conn_dict.values():
+                if re.search(r,i.pre):
+                    i.pre = i.pre + 'xxx'
+                if re.search(r,i.post):
+                    i.post = i.post + 'xxx'
+                
     if colorby == 'phase':
         calculate_phase_colorvalues()
     elif colorby == 'scale':
@@ -316,6 +338,7 @@ def mermaid_writeout(parser_output, colorby, legend):
 
     f = open('mermaid_input', 'w')
     f.write('graph BT;\n')
+    append_dots()
 
     if legend:
         f.write('leg[Legend:<br>'
@@ -331,10 +354,13 @@ def mermaid_writeout(parser_output, colorby, legend):
                 'of duplicated/transposed<br>'
                 'connections.];')
     for i in layers_in_order:
+        label = layer_dict[i].name
+        if re.search('xxx$',layer_dict[i].name):
+            label = layer_dict[i].name[0:-4]
         if layer_dict[i].type == 'HyPerLCALayer':
-            f.write(i + '{' + i + '};\n')
+            f.write(layer_dict[i].name + '{' + label + '};\n')
         else: 
-            f.write(i + '[' + i + '];\n')
+            f.write(layer_dict[i].name + '[' + label + '];\n')
 
     for i in conn_dict.values():
         if i.pre and i.post:
