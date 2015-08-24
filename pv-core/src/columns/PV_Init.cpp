@@ -14,6 +14,20 @@ PV_Init::PV_Init(int* argc, char ** argv[]){
    params = NULL;
    icComm = NULL;
    initialized = false;
+
+//      if( rank == 0 ) {
+//         printf("Hit enter to begin! ");
+//         fflush(stdout);
+//         int charhit = -1;
+//         while(charhit != '\n') {
+//            charhit = getc(stdin);
+//         }
+//      }
+//#ifdef PV_USE_MPI
+//      MPI_Barrier(icComm->globalCommunicator());
+//#endif // PV_USE_MPI
+
+
 }
 
 PV_Init::~PV_Init(){
