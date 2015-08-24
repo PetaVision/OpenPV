@@ -20,7 +20,7 @@ HyPerCol "column" = {
    progressInterval = 10;
    writeProgressToErr = false;
    verifyWrites = true;
-   //outputPath = "output/";
+   outputPath = "output/";
    printParamsFilename = "pv.params";
    filenamesContainLayerNames = false;
    filenamesContainConnectionNames = false;
@@ -484,10 +484,10 @@ ParameterSweep "Comparison7x7Probe":expectedMin = {
 ParameterSweep "Comparison7x7Probe":expectedMax = {
     0; 0; 0; 0;
 };
-
-ParameterSweep "column":outputPath = {
-    "output1/";
-    "output3/";
-    "output5/";
-    "output7/";
-};
+//
+//ParameterSweep "column":outputPath = {
+//    "output1/";
+//    "output3/";
+//    "output5/";
+//    "output7/";
+//};

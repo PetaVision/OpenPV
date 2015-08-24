@@ -1071,9 +1071,15 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
    if (numberOfParameterSweeps() > 0) {
       if (!hasOutputPath()) {
          const char * hypercolgroupname = NULL;
+         const char * outputPathName = NULL;
          for (int g=0; g<numGroups; g++) {
             if (groups[g]->getGroupKeyword(),"HyPerCol") {
                hypercolgroupname = groups[g]->name();
+               outputPathName = groups[g]->stringValue("outputPath");
+               if(outputPathName == NULL){
+                  fprintf(stderr, "PVParams::outputPath must be specified if parameterSweep does not sweep over outputPath\n");
+                  abort();
+               }
                break;
             }
          }
@@ -1083,11 +1089,11 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
          }
          char dummy;
          int lenserialno = snprintf(&dummy, 0, "%d", parameterSweepSize-1);
-         int len = snprintf(&dummy, 0, "output_paramsweep_%0*d/", lenserialno, parameterSweepSize-1)+1;
+         int len = snprintf(&dummy, 0, "%s/paramsweep_%0*d/", outputPathName, lenserialno, parameterSweepSize-1)+1;
          char * outputPathStr = (char *) calloc(len, sizeof(char));
          if (outputPathStr == NULL) abort();
          for (int i=0; i<parameterSweepSize; i++) {
-            int chars_needed = snprintf(outputPathStr, len, "output_paramsweep_%0*d/", lenserialno, i);
+            int chars_needed = snprintf(outputPathStr, len, "%s/paramsweep_%0*d/", outputPathName, lenserialno, i);
             assert(chars_needed < len);
             activeParamSweep->pushStringValue(outputPathStr);
          }
