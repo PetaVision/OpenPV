@@ -375,6 +375,8 @@ function addMaxPoolingLayer
 
     writeStep = writeStep;
     initialWriteTime = writeStep;    
+
+    sparseLayer = inputLayer['sparseLayer'];
   };
   pv.addGroup(pvParams, poolingLayerName, poolingLayer);
 
@@ -413,12 +415,41 @@ function addMaxPoolingLayer
 end
 
 
+function PVSubnets.deconvPath(pvParams, start, path, trigger)
+  for idx,_ in ipairs(path) do
+
+    if path[idx+2] then
+      start = PVSubnets.deconvStep
+        ( pvParams     -- params
+        , start        -- start
+        , path[idx+1] -- origpre
+        , path[idx]   -- origpost
+        , trigger      -- trigger
+        , false        -- writeout
+        );
+    else
+      PVSubnets.deconvStep
+        ( pvParams     -- params
+        , start        -- start
+        , path[idx+1] -- origpre
+        , path[idx]   -- origpost
+        , trigger      -- trigger
+        , true        -- writeout
+        );
+      break;
+    end
+
+  end
+
+end
+
 
 -- this really needs to be cleaned up -- I'd avoid using it for now
 function PVSubnets.deconvStep
   ( pvParams
   , currentReconName
-  , originalConnectionName
+  , originalPreName
+  , originalPostName
   , triggerLayerName
   , writeOut
   )
@@ -426,9 +457,8 @@ function PVSubnets.deconvStep
 
   local currentReconLayer  = pvParams[currentReconName];
 
+  local originalConnectionName = originalPreName .. 'To' .. originalPostName
   local originalConnection = pvParams[originalConnectionName];
-  local originalPostName   = originalConnection['postLayerName'];
-  local originalPreName    = originalConnection['preLayerName'];
   local originalPreLayer   = pvParams[originalPreName];
 
   local newPreName  = currentReconName;
@@ -454,18 +484,23 @@ function PVSubnets.deconvStep
     initialWriteTime = writeOut and displayPeriod or nil;
   };
   pv.addGroup(pvParams, newPostName, newPostLayer);
-    
+
+  isPoolingConn = originalConnection['groupType'] == "PoolingConn";
+  isIdentConn   = originalConnection['groupType'] == "IdentConn";
+ 
   local deconvConn = {
-    preLayerName = newPreName;
+    preLayerName  = newPreName;
     postLayerName = newPostName;
 
-    groupType = originalConnection['groupType'] == "PoolingConn"
-             and "TransposePoolingConn" or "TransposeConn";
+    groupType =
+         isPoolingConn and "TransposePoolingConn" 
+      or isIdentConn and "CloneConn"
+      or "TransposeConn";
     
-    receiveGpu = not originalConnection['groupType'] == "PoolingConn";
-    updateGSynFromPostPerspective = 
-      not originalConnection['groupType'] == "PoolingConn";
-   
+    receiveGpu = not (isPoolingConn or isIdentConn);
+ 
+    updateGSynFromPostPerspective = not (isPoolingConn or isIdentConn);
+                 
     channelCode = 0; 
 
     originalConnName = originalConnectionName;
@@ -476,7 +511,191 @@ function PVSubnets.deconvStep
   };
   pv.addGroup(pvParams, newConnName, deconvConn);
 
- 
+  return newPostName
 end
+
+
+function PVSubnets.backPropStep
+  ( pvParams
+  , currentDeltaLayerName
+  , forwardPostLayerName
+  , forwardPreLayerName
+  , connParams
+  , triggerLayerName
+  , isTop
+  )
+
+  local displayPeriod = pvParams[triggerLayerName]['displayPeriod'];
+
+  local currentDeltaLayer     = pvParams[currentDeltaLayerName];
+  local forwardPostLayer      = pvParams[forwardPostLayerName];
+  local forwardPreLayer       = pvParams[forwardPreLayerName];
+  local newDeltaLayerName     = 'Delta' .. forwardPreLayerName;
+
+  local originalConnName = forwardPreLayerName .. 'To' .. forwardPostLayerName;
+  local originalConn = pvParams[originalConnName];
+
+  local newDeltaLayer = {
+    groupType = "ANNLayer";
+    nxScale   = forwardPreLayer['nxScale'];
+    nyScale   = forwardPreLayer['nyScale'];
+    nf        = forwardPreLayer['nf'];
+
+    phase = currentDeltaLayer['phase'] + 1;
+
+    writeStep = displayPeriod;
+    initialWriteTime = displayPeriod;
+
+    InitVType = "ZeroV";
+
+    triggerFlag = true;
+    triggerLayerName = triggerLayerName;
+    triggerOffset = 1;
+
+    sparseLayer = forwardPreLayer['sparseLayer'];
+  };
+  pv.addGroup(pvParams, newDeltaLayerName, newDeltaLayer);
+
+--  if forwardPreLayer['sparseLayer'] then
+--    addActivityMask
+--    ( pvParams
+--    , newDeltaLayerName
+--    , forwardPreLayerName
+--    , triggerLayerName
+--    );
+--  end
+
+  if originalConn and originalConn['groupType'] == "PoolingConn" then
+
+    local newBackwardConn = {
+      groupType = "TransposePoolingConn";
+      preLayerName = currentDeltaLayerName;
+      postLayerName = newDeltaLayerName;
+      channelCode = 0;
+
+      originalConnName = originalConnName;
+
+      writeStep = -1;
+
+      pvpatchAccumulateType = "maxpooling";
+    };
+    pv.addGroup(pvParams, currentDeltaLayerName .. 'To' .. newDeltaLayerName,
+      newBackwardConn);
+
+  else 
+
+    
+
+    local newLearningConn = {
+      groupType        = "MomentumConn";
+      preLayerName     = isTop and forwardPreLayerName or forwardPostLayerName;
+      postLayerName    = isTop and currentDeltaLayerName or newDeltaLayerName;
+
+      triggerFlag      = connParams['plasticityFlag'];
+      triggerLayerName = 
+        connParams['plasticityFlag'] and triggerLayerName or nil;
+
+      triggerOffset    = connParams['plasticityFlag'] and 1 or nil;
+
+      channelCode = -1;
+
+      writeStep = -1;
+    };
+
+    for _,required in pairs( { 
+      'nxp', 'nyp', 'normalizeMethod', 'weightInitType'
+    }) do
+
+      newLearningConn[required] = connParams[required]
+        or error( required .. ' is required' );
+
+    end
+
+    for k,v in pairs(connParams) do newLearningConn[k] = v; end
+    pv.addGroup(pvParams, 
+      isTop and (forwardPreLayerName ..'To' .. currentDeltaLayerName)
+             or (forwardPostLayerName .. 'To' .. newDeltaLayerName),
+      newLearningConn);
+
+    if isTop then
+      newBackwardConn = {
+        groupType = "TransposeConn";
+        preLayerName = currentDeltaLayerName;
+        postLayerName = newDeltaLayerName;
+        originalConnName = forwardPreLayerName .. 'To' .. currentDeltaLayerName;
+
+        receiveGpu = forwardPreLayer['sparseLayer'];
+        updateGSynFromPostPerspective = forwardPreLayer['sparseLayer'];
+        channelCode = 0;
+        writeStep = -1;
+      };
+
+      newForwardConn = {
+        groupType = "CloneConn";
+        preLayerName = forwardPreLayerName;
+        postLayerName = forwardPostLayerName;
+        originalConnName = forwardPreLayerName .. 'To' .. currentDeltaLayerName;
+        channelCode = 0;
+        
+        writeStep = -1;
+      };
+
+    else
+      newBackwardConn = {
+        groupType = "CloneConn";
+        preLayerName = currentDeltaLayerName;
+        postLayerName = newDeltaLayerName;
+        originalConnName = forwardPostLayerName .. 'To' .. newDeltaLayerName;
+        channelCode = 0;
+        
+        writeStep = -1;
+      };
+
+      newForwardConn = {
+        groupType = "TransposeConn";
+        preLayerName = forwardPreLayerName;
+        postLayerName = forwardPostLayerName;
+        originalConnName = forwardPostLayerName .. 'To' .. newDeltaLayerName;
+
+        receiveGpu = forwardPostLayer['sparseLayer'];
+        updateGSynFromPostPerspective = forwardPostLayer['sparseLayer'];
+        channelCode = 0;
+        writeStep = -1;
+      };
+    end
+    -- explicit overwrites
+    pv.addGroup(pvParams, currentDeltaLayerName .. 'To' .. newDeltaLayerName,
+      newBackwardConn);
+    -- explicit overwrites
+    pvParams[forwardPreLayerName .. 'To' .. forwardPostLayerName] = newForwardConn;
+
+  end
+
+end
+
+--local function findPath(startLayer, endLayer, visited, path, idx, pvParams)
+--
+--  idx += 1;
+--  path[idx] = endLayer;
+--
+--  if startLayer == endLayer then 
+--    return path
+--  end  
+--
+--  for groupName, group in pairs(pvParams) do
+--    
+--    if group['preLayerName'] == startLayer then
+--      idx += 1;
+--      path[idx] = groupName;
+--
+--      if visited[group['postLayerName']] ~= nil then
+--      findPath(group['postLayerName'], endLayer, )--TODO )
+--      end
+--
+--    end
+--
+--  end
+--
+--end
 
 return PVSubnets;
