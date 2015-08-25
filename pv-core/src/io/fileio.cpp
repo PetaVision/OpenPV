@@ -1103,7 +1103,7 @@ int * pvp_set_file_params(Communicator * comm, double timed, const PVLayerLoc * 
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
    params[INDEX_NBATCH]      = loc->nbatch; // loc->nb;
-   params[INDEX_NBANDS]      = numbands * loc->nbatchGlobal;
+   params[INDEX_NBANDS]      = numbands * loc->nbatch;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
 }
@@ -1127,7 +1127,7 @@ int * pvp_set_activity_params(Communicator * comm, double timed, const PVLayerLo
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NBANDS]      = numbands * loc->nbatchGlobal;
+   params[INDEX_NBANDS]      = numbands * loc->nbatch;
    params[INDEX_NBATCH]      = loc->nbatch;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
@@ -1182,7 +1182,7 @@ int * pvp_set_nonspiking_act_params(Communicator * comm, double timed, const PVL
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
    params[INDEX_NBATCH]      = loc->nbatch; // loc->nb;
-   params[INDEX_NBANDS]      = numbands * loc->nbatchGlobal;
+   params[INDEX_NBANDS]      = numbands * loc->nbatch;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
 }
@@ -1233,7 +1233,7 @@ int * pvp_set_nonspiking_sparse_act_params(Communicator * comm, double timed, co
    params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
    params[INDEX_KX0]         = 0;
    params[INDEX_KY0]         = 0;
-   params[INDEX_NBANDS]      = numbands * loc->nbatchGlobal;
+   params[INDEX_NBANDS]      = numbands * loc->nbatch;
    params[INDEX_NBATCH]      = loc->nbatch; // loc->nb;
    timeToParams(timed, &params[INDEX_TIME]);
    return params;
