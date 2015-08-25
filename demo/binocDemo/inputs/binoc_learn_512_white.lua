@@ -42,8 +42,8 @@ local useMomentum = true  --Using momentum
 local learningMomentumTau = 100; --Learning Omega
 
 --nil for new dict, a checkpoint directory for loading weights
-local V1DictDir = nil
---local V1DictDir = "/nh/compneuro/Data/Depth/LCA/benchmark/LCATrain/Checkpoints/
+--local V1DictDir = nil
+local V1DictDir = "/nh/compneuro/Data/Depth/LCA/benchmark/LCATrain/Checkpoints/Checkpoint5000/"
 ------------------------------------------------
 
 
@@ -483,7 +483,7 @@ if(V1DictDir == nil) then
    v1ConnLeft["sparseFraction"] = .9;
 else
    v1ConnLeft["weightInitType"] = "FileWeight"
-   v1ConnLeft["initWeightsFile"] = V1DictDir.."/V1ToToLeftError_W.pvp";
+   v1ConnLeft["initWeightsFile"] = V1DictDir.."/V1ToLeftError_W.pvp";
 end
 
 --Copy lefterror connection to righterror connection
