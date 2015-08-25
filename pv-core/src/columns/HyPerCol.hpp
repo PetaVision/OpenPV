@@ -245,6 +245,11 @@ private:
     */
    virtual void ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag);
    /**
+    * @brief dtAdaptController: The name of a ColProbe to use for controlling the adaptive timestep.
+    * The ColProbe's vectorSize (returned by getVectorSize()) must be the same as the HyPerCol's nBatch parameter.
+    */
+   virtual void ioParam_dtAdaptController(enum ParamsIOFlag ioFlag);
+   /**
     * @brief dtScaleMax: If dtAdaptFlag is set, specifies the maximum timescale allowed
     */
    virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
@@ -436,7 +441,8 @@ private:
 
    int outputParams(char const * path);
 
-   virtual double* adaptTimeScale();
+   double* adaptTimeScale();
+   int calcTimeScaleTrue();
 
    long int currentStep;
    long int initialStep;
@@ -484,6 +490,8 @@ private:
    double stopTime;         // time to stop time
    double deltaTime;        // time step interval
    bool   dtAdaptFlag;      // turns adaptive time step on/off
+   char * dtAdaptController;       // If nonblank, the name of a ColProbe whose getValues() method is called to control timeScale
+   ColProbe * dtAdaptControlProbe; // If dtAdaptFlag is on, dtAdaptControlProbe->getValues() is used to control timeScale.  If blank, use the original method
    double deltaTimeBase;    // base time step interval if dtAdaptFlag == true, timeScale is applied to this value
    double * timeScale;        // scale factor for deltaTimeBase, deltaTime = timeScale*deltaTimeBase
    double * timeScaleTrue;    // true timeScale returned by min(HyPerLayer::getTimeScale) before MIN/MAX/CHANGE constraints applied
