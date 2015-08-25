@@ -1,6 +1,9 @@
 function [t,E] = readenergydata(filename, formatstring, fields)
     fid = fopen(filename);
-    assert(fid > 0);
+    if fid<0
+        error('readenergydata::badfilename', 'Error opening %s', filename);
+    end%if
+    
     t = [];
     E = [];
     fgetlresult = fgetl(fid);
