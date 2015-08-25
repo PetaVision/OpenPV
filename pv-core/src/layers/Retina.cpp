@@ -77,7 +77,7 @@ Retina::Retina() {
 
 Retina::Retina(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, TypeRetina);
+   initialize(name, hc);
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag)
 //      initializeGPU();
@@ -115,10 +115,8 @@ int Retina::initialize_base() {
    return PV_SUCCESS;
 }
 
-int Retina::initialize(const char * name, HyPerCol * hc, PVLayerType type) {
+int Retina::initialize(const char * name, HyPerCol * hc) {
    int status = HyPerLayer::initialize(name, hc);
-
-   clayer->layerType = type;
 
    setRetinaParams(parent->parameters());
 
@@ -312,7 +310,7 @@ int Retina::allocateDataStructures() {
 //   assert(neighbor!=LOCAL && neighbor>=0 && neighbor<NUM_NEIGHBORHOOD);
 //   border_indices[neighbor] = (int *) malloc(rand_state_size[neighbor]*sizeof(int));
 //   if (border_indices[neighbor]==NULL) {
-//      fprintf(stderr, "%s \"%s\" error in rank %d process: setBorderIndices unable to allocate memory for neighbor %d\n.", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), neighbor);
+//      fprintf(stderr, "%s \"%s\" error in rank %d process: setBorderIndices unable to allocate memory for neighbor %d\n.", getKeyword(), name, parent->columnId(), neighbor);
 //      exit(EXIT_FAILURE);
 //   }
 //   int index = indexStart;
@@ -413,7 +411,7 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
       assert(!parent->parameters()->presentAndNotBeenRead(name, "foregroundRate"));
       if (probBaseParam > probStimParam) {
          fprintf(stderr, "Error in %s \"%s\": backgroundRate cannot be greater than foregroundRate.\n",
-               parent->parameters()->groupKeywordFromName(name), name);
+               getKeyword(), name);
          exit(EXIT_FAILURE);
       }
    }

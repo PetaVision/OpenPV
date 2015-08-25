@@ -52,7 +52,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
       buffer = (pvadata_t *) malloc((size_t) buffersize * sizeof(pvadata_t));
       if (buffer==NULL) {
          fprintf(stderr, "%s \"%s\": unable to allocate buffer for %d values of %zu chars each: %s\n",
-               parent->parameters()->groupKeywordFromName(name), name, buffersize, sizeof(pvadata_t), strerror(errno));
+               getKeyword(), name, buffersize, sizeof(pvadata_t), strerror(errno));
          exit(EXIT_FAILURE);
       }
       for (int k=0; k<buffersize; k++) {
@@ -145,7 +145,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
    if (checkValidAnchorString()!=PV_SUCCESS) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: setMemoryBuffer called with invalid anchor string \"%s\"",
-               parent->parameters()->groupKeywordFromName(name), name, offsetAnchor);
+               getKeyword(), name, offsetAnchor);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -184,7 +184,7 @@ int ImageFromMemoryBuffer::copyBuffer() {
    if (parent->columnId()==0) {
       if (buffer == NULL) {
          fprintf(stderr, "%s \"%s\" error: moveBufferToData called without having called setMemoryBuffer.\n",
-               parent->parameters()->groupKeywordFromName(name), name);
+               getKeyword(), name);
          exit(PV_FAILURE); // return PV_FAILURE;
       }
       for (int rank=1; rank<icComm->commSize(); rank++) {
@@ -271,7 +271,7 @@ int ImageFromMemoryBuffer::moveBufferToData(int rank) {
    assert(startxbuffer >= 0 && startxbuffer + xsize <= imageLoc.nxGlobal);
    assert(startybuffer >= 0 && startybuffer + ysize <= imageLoc.nyGlobal);
    if (fsize != 1 && imageLoc.nf != 1 && fsize != imageLoc.nf) {
-      fprintf(stderr, "%s \"%s\": If nf and the number of bands in the image are both greater than 1, they must be equal.\n", parent->parameters()->groupKeywordFromName(name), name);
+      fprintf(stderr, "%s \"%s\": If nf and the number of bands in the image are both greater than 1, they must be equal.\n", getKeyword(), name);
       exit(EXIT_FAILURE);
    }
    if (fsize == 1 && imageLoc.nf > 1) {

@@ -34,7 +34,7 @@ int BaseHyPerConnProbe::communicateInitInfo() {
    if (targetHyPerConn==NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: targetConn \"%s\" must be a HyPerConn or HyPerConn-derived class.\n",
-               this->getParent()->parameters()->groupKeywordFromName(this->getName()), this->getName(), targetConn->getName());
+               this->getKeyword(), this->getName(), targetConn->getName());
       }
       status = PV_FAILURE;
    }

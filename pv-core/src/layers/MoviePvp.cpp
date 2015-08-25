@@ -75,7 +75,7 @@ int MoviePvp::readFrameNumStateFromCheckpoint(const char * cpDir) {
    //   if (parent->columnId()==0) assert(frameNumber==startFrame);
    //   if (parent->columnId()==0) {
    //      printf("%s \"%s\" checkpointRead set frameNumber to %d and filename to \"%s\"\n",
-   //            parent->parameters()->groupKeywordFromName(name), name, frameNumber, filename);
+   //            getKeyword(), name, frameNumber, filename);
    //   }
    //}
    return status;
@@ -182,7 +182,7 @@ int MoviePvp::initialize(const char * name, HyPerCol * hc) {
              struct stat statbuf;
              if (PV_stat(timestampFilename.c_str(), &statbuf) != 0) {
                 fprintf(stderr, "%s \"%s\" warning: timestamp file \"%s\" unable to be found.  Creating new file.\n",
-                      parent->parameters()->groupKeywordFromName(name), name, timestampFilename.c_str());
+                      getKeyword(), name, timestampFilename.c_str());
                 timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
              }
              else {
@@ -577,7 +577,7 @@ bool MoviePvp::updateImage(double time, double dt)
              size_t len = outStrStream.str().length();
              int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
              if (status != PV_SUCCESS) {
-                fprintf(stderr, "%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", parent->parameters()->groupKeywordFromName(name), name);
+                fprintf(stderr, "%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
                 exit(EXIT_FAILURE);
              }
              //Flush buffer

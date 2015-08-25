@@ -142,7 +142,7 @@ void BaseInput::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
       int status = checkValidAnchorString();
       if (status != PV_SUCCESS) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", parent->parameters()->groupKeywordFromName(getName()), getName());
+            fprintf(stderr, "%s \"%s\" error: offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", getKeyword(), getName());
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -238,7 +238,7 @@ void BaseInput::ioParam_biasConstraintMethod(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "biasConstraintMethod", &biasConstraintMethod, biasConstraintMethod);
       if (ioFlag == PARAMS_IO_READ && (biasConstraintMethod <0 || biasConstraintMethod >3)) {
          fprintf(stderr, "%s \"%s\": biasConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n",
-               parent->parameters()->groupKeywordFromName(getName()), getName());
+               getKeyword(), getName());
          exit(EXIT_FAILURE);
       }
    }
@@ -756,7 +756,7 @@ bool BaseInput::constrainOffsets() {
 int BaseInput::requireChannel(int channelNeeded, int * numChannelsResult) {
    if (parent->columnId()==0) {
       fprintf(stderr, "%s \"%s\" cannot be a post-synaptic layer.\n",
-            parent->parameters()->groupKeywordFromName(name), name);
+            getKeyword(), name);
    }
    *numChannelsResult = 0;
    return PV_FAILURE;
@@ -766,7 +766,7 @@ int BaseInput::initRandState() {
    assert(randState==NULL);
    randState = new Random(parent, 1);
    if (randState==NULL) {
-      fprintf(stderr, "%s \"%s\" error in rank %d process: unable to create object of class Random.\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId());
+      fprintf(stderr, "%s \"%s\" error in rank %d process: unable to create object of class Random.\n", getKeyword(), name, parent->columnId());
       exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;

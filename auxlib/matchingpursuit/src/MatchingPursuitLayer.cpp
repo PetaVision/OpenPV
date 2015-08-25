@@ -109,7 +109,7 @@ int MatchingPursuitLayer::openPursuitFile() {
       char * tracePath = (char *) malloc(tracePathLen + (size_t) 1); // tracePath plus string terminator
       if(tracePath == NULL) {
          fprintf(stderr, "%s \"%s\" error: Unable to allocate memory for traceFile path: %s\n",
-               parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+               getKeyword(), name, strerror(errno));
          exit(EXIT_FAILURE);
       }
       if (traceFileName[0] != '/') {

@@ -146,6 +146,10 @@ void BaseConnection::setChannelType(ChannelType ch) {
    this->channel = ch;
 }
 
+char const * BaseConnection::getKeyword() {
+   return this->getParent()->parameters()->groupKeywordFromName(this->getName());
+}
+
 void BaseConnection::setNumberOfAxonalArborLists(int numArbors) {
    assert(!initInfoCommunicatedFlag);
    this->numAxonalArborLists = numArbors;
@@ -300,7 +304,7 @@ void BaseConnection::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
       if (status != PV_SUCCESS) {
          if (this->getParent()->columnId()==0) {
             fprintf(stderr, "%s \"%s\": channelCode %d is not a valid channel.\n",
-                  this->getParent()->parameters()->groupKeywordFromName(this->getName()), this->getName(),  ch);
+                  this->getKeyword(), this->getName(),  ch);
          }
 #ifdef PV_USE_MPI
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
@@ -326,14 +330,14 @@ void BaseConnection::ioParam_delay(enum ParamsIOFlag ioFlag) {
       fDelayArray = (float *) malloc(sizeof(float));
       if (fDelayArray == NULL) {
          fprintf(stderr, "%s \"%s\" error setting default delay: %s\n",
-               this->getParent()->parameters()->groupKeywordFromName(this->getName()), this->getName(), strerror(errno));
+               this->getKeyword(), this->getName(), strerror(errno));
          exit(EXIT_FAILURE);
       }
       *fDelayArray = 0.0f; // Default delay
       delayArraySize = 1;
       if (this->getParent()->columnId()==0) {
          printf("%s \"%s\": Using default value of zero for delay.\n",
-               this->getParent()->parameters()->groupKeywordFromName(this->getName()), this->getName());
+               this->getKeyword(), this->getName());
       }
    }
 }
@@ -367,7 +371,7 @@ void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
          bool preActivityIsNotRateValue = this->getParent()->parameters()->value(this->getName(), "preActivityIsNotRate");
          if (this->getParent()->columnId()==0) {
             fprintf(stderr, "%s \"%s\" %s: preActivityIsNotRate has been replaced with convertRateToSpikeCount.\n",
-                  this->getParent()->parameters()->groupKeywordFromName(this->getName()), this->getName(),
+                  this->getKeyword(), this->getName(),
                   preActivityIsNotRateValue ? "error" : "warning");
             if (preActivityIsNotRateValue) {
                fprintf(stderr, "   Setting preActivityIsNotRate to true is regarded as an error because convertRateToSpikeCount is not exactly equivalent.  Exiting.\n");
@@ -450,7 +454,7 @@ int BaseConnection::communicateInitInfo() {
    if (status != PV_SUCCESS) {
       assert(this->getPreLayerName()==NULL && this->getPostLayerName()==NULL);
       if (this->getParent()->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: Unable to determine pre- and post-layer names.  Exiting.\n", this->getParent()->parameters()->groupKeywordFromName(this->getName()), this->getName());
+         fprintf(stderr, "%s \"%s\" error: Unable to determine pre- and post-layer names.  Exiting.\n", this->getKeyword(), this->getName());
       }
       exit(EXIT_FAILURE);
    }
@@ -501,7 +505,7 @@ int BaseConnection::communicateInitInfo() {
    if (status != PV_SUCCESS) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: postsynaptic layer \"%s\" failed to add channel %d\n",
-               this->getParent()->parameters()->groupKeywordFromName(this->getName()), this->getName(), this->postSynapticLayer()->getName(), (int) this->getChannel());
+               this->getKeyword(), this->getName(), this->postSynapticLayer()->getName(), (int) this->getChannel());
       }
    }
    return status;
@@ -518,7 +522,7 @@ int BaseConnection::initializeDelays(const float * fDelayArray, int size){
    //Allocate delay data structure
    delays = (int *) calloc(this->numberOfAxonalArborLists(), sizeof(int));
    if( delays == NULL ) {
-      fprintf(stderr, "%s \"%s\": unable to allocate memory for %d delays: %s\n", parent->parameters()->groupKeywordFromName(name), name, size, strerror(errno));
+      fprintf(stderr, "%s \"%s\": unable to allocate memory for %d delays: %s\n", this->getKeyword(), name, size, strerror(errno));
       exit(EXIT_FAILURE);
    }
 

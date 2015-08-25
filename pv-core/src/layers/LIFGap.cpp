@@ -121,16 +121,7 @@ LIFGap::LIFGap() {
 
 LIFGap::LIFGap(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, TypeLIFGap, "LIFGap_update_state");
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag)
-//      initializeGPU();
-//#endif
-}
-
-LIFGap::LIFGap(const char * name, HyPerCol * hc, PVLayerType type) {
-   initialize_base();
-   initialize(name, hc, type, "LIFGap_update_state");
+   initialize(name, hc, "LIFGap_update_state");
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag)
 //      initializeGPU();
@@ -165,8 +156,8 @@ int LIFGap::initialize_base() {
 /*
  *
  */
-int LIFGap::initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name) {
-   int status = LIF::initialize(name, hc, type, kernel_name);
+int LIFGap::initialize(const char * name, HyPerCol * hc, const char * kernel_name) {
+   int status = LIF::initialize(name, hc, kernel_name);
 
 //#ifdef PV_USE_OPENCL
 //   numEvents=NUM_LIFGAP_EVENTS;
@@ -223,7 +214,7 @@ int LIFGap::allocateConductances(int num_channels) {
    gapStrength = (pvgsyndata_t *) calloc((size_t) getNumNeuronsAllBatches(), sizeof(*gapStrength));
    if(gapStrength == NULL) {
       fprintf(stderr, "%s layer \"%s\": rank %d process unable to allocate memory for gapStrength: %s\n",
-              parent->parameters()->groupKeywordFromName(getName()), getName(), parent->columnId(), strerror(errno));
+              getKeyword(), getName(), parent->columnId(), strerror(errno));
       exit(EXIT_FAILURE);
    }
    return status;
@@ -250,7 +241,7 @@ int LIFGap::calcGapStrength() {
       HyPerConn * conn = dynamic_cast<HyPerConn *>(parent->getConnection(c));
       if (conn->postSynapticLayer() != this || conn->getChannel() != CHANNEL_GAP) { continue; }
       if (conn->getPlasticityFlag() && parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" warning: connection \"%s\" on CHANNEL_GAP has plasticity flag set to true\n", parent->parameters()->groupKeywordFromName(getName()), getName(), conn->getName());
+         fprintf(stderr, "%s \"%s\" warning: connection \"%s\" on CHANNEL_GAP has plasticity flag set to true\n", getKeyword(), getName(), conn->getName());
       }
       HyPerLayer * pre = conn->preSynapticLayer();
       const int sy = conn->getPostNonextStrides()->sy;

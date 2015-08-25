@@ -105,7 +105,7 @@ void MLPForwardLayer::ioParam_DropoutChance(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "dropoutChance", &dropoutChance, dropoutChance);
    if(dropoutChance < 0 || dropoutChance >= 1){
       fprintf(stderr, "%s \"%s\": dropoutChance must be between 0 (inclusive) and 1 (exclusive).\n",
-            parent->parameters()->groupKeywordFromName(name), name);
+            getKeyword(), name);
    }
 }
 

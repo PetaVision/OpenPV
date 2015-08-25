@@ -88,7 +88,7 @@ int ANNErrorLayer::setVertices() {
       verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
       if (verticesV==NULL || verticesA==NULL) {
          fprintf(stderr, "%s \"%s\": unable to allocate memory for vertices: %s\n",
-               parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+               getKeyword(), name, strerror(errno));
          exit(EXIT_FAILURE);
       }
       verticesV[0] = -VThresh; verticesA[0] = -VThresh;
@@ -103,7 +103,7 @@ int ANNErrorLayer::setVertices() {
       verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
       if (verticesV==NULL || verticesA==NULL) {
          fprintf(stderr, "%s \"%s\": unable to allocate memory for vertices: %s\n",
-               parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+               getKeyword(), name, strerror(errno));
          exit(EXIT_FAILURE);
       }
       verticesV[0] = 0.0f; verticesA[0] = 0.0f;
@@ -116,8 +116,7 @@ int ANNErrorLayer::checkVertices() {
    if (VThresh < 0 && VThresh > -0.999*max_pvvdata_t) { // 0.999 is to allow for imprecision from params files using 3.40282e+38 instead of infinity
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: VThresh cannot be negative (value is %f).\n",
-                  this->getParent()->parameters()->groupKeywordFromName(this->getName()),
-                  this->getName(), VThresh);
+                  this->getKeyword(), this->getName(), VThresh);
       }
       status = PV_FAILURE;
    }

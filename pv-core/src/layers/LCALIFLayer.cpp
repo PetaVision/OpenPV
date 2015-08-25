@@ -105,7 +105,7 @@ int LCALIFLayer::initialize_base(){
 }
 
 int LCALIFLayer::initialize(const char * name, HyPerCol * hc, const char * kernel_name){
-   LIFGap::initialize(name, hc, TypeLCA, kernel_name);
+   LIFGap::initialize(name, hc, kernel_name);
    PVParams * params = hc->parameters();
 
    float defaultDynVthScale = lParams.VthRest-lParams.Vrest;

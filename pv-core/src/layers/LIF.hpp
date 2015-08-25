@@ -34,8 +34,7 @@ public:
    friend int test_LIF    (int argc, char * argv[]);
 
    LIF(const char* name, HyPerCol * hc);
-   LIF(const char* name, HyPerCol * hc, PVLayerType type);
-   LIF(const char* name, HyPerCol * hc, PVLayerType type, int num_channels);
+   LIF(const char* name, HyPerCol * hc, int num_channels);
    virtual ~LIF();
 
    virtual int communicateInitInfo();
@@ -111,7 +110,7 @@ protected:
 
 protected:
    LIF();
-   int initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name);
+   int initialize(const char * name, HyPerCol * hc, const char * kernel_name);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vrest(enum ParamsIOFlag ioFlag);
    virtual void ioParam_Vexc(enum ParamsIOFlag ioFlag);

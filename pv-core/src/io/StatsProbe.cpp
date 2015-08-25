@@ -175,7 +175,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
             const char * bufnameinparams = getParent()->parameters()->stringValue(getName(), "buffer");
             assert(bufnameinparams);
             fprintf(stderr, "%s \"%s\" error: buffer \"%s\" is not recognized.\n",
-                  getParent()->parameters()->groupKeywordFromName(getName()), getName(), bufnameinparams);
+                  this->getKeyword(), getName(), bufnameinparams);
          }
 #ifdef PV_USE_MPI
          MPI_Barrier(getParent()->icCommunicator()->communicator());

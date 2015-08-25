@@ -53,7 +53,7 @@ int CloneVLayer::communicateInitInfo() {
    if (originalLayer==NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, originalLayerName);
+                 getKeyword(), name, originalLayerName);
       }
 #ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -67,7 +67,7 @@ int CloneVLayer::communicateInitInfo() {
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal || srcLoc->nf != loc->nf) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: originalLayerName \"%s\" does not have the same dimensions.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, originalLayerName);
+                 getKeyword(), name, originalLayerName);
          fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }
@@ -107,7 +107,7 @@ int CloneVLayer::allocateV() {
    clayer->V = originalLayer->getV();
    if (getV()==NULL) {
       fprintf(stderr, "%s \"%s\": originalLayer \"%s\" has a null V buffer in rank %d process.\n",
-              parent->parameters()->groupKeywordFromName(name), name, originalLayerName, parent->columnId());
+              getKeyword(), name, originalLayerName, parent->columnId());
       exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;
@@ -115,7 +115,7 @@ int CloneVLayer::allocateV() {
 
 int CloneVLayer::requireChannel(int channelNeeded, int * numChannelsResult) {
    if (parent->columnId()==0) {
-      fprintf(stderr, "%s \"%s\": layers derived from CloneVLayer do not have GSyn channels (requireChannel called with channel %d)\n", parent->parameters()->groupKeywordFromName(name), name, channelNeeded);
+      fprintf(stderr, "%s \"%s\": layers derived from CloneVLayer do not have GSyn channels (requireChannel called with channel %d)\n", getKeyword(), name, channelNeeded);
    }
    return PV_FAILURE;
 }

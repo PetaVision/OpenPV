@@ -50,7 +50,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe, double coefficient, size_t vec
    if (numTerms>0 && vectorSize != this->vectorSize) {
       if (parentCol->columnId()==0) {
          fprintf(stderr, "Error adding terms to %s \%s\": vector size %zu of new probe \"%s\" does not agree with existing vector size %zu\n",
-               keyword(), getColProbeName(), vectorSize, probe->getName(), this->vectorSize);
+               getKeyword(), getColProbeName(), vectorSize, probe->getName(), this->vectorSize);
       }
       exit(EXIT_FAILURE);
    }
@@ -59,7 +59,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe, double coefficient, size_t vec
    if (newNumTerms<=numTerms) {
       if (parentCol->columnId()==0) {
          fprintf(stderr, "How did you manage to add %zu terms to %s \"%s\"?  Unable to add any more!\n",
-               numTerms, keyword(), colProbeName);
+               numTerms, getKeyword(), colProbeName);
       }
       MPI_Barrier(parentCol->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -67,7 +67,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe, double coefficient, size_t vec
    energyTerm * newTermsArray = (energyTerm *) realloc(terms, (numTerms+(size_t) 1)*sizeof(energyTerm));
    if (newTermsArray==NULL) {
       fprintf(stderr, "%s \"%s\" error: unable to add term %zu (\"%s\"): %s\n",
-         keyword(), colProbeName, numTerms+(size_t) 1, probe->getName(),
+         getKeyword(), colProbeName, numTerms+(size_t) 1, probe->getName(),
          strerror(errno));
       exit(EXIT_FAILURE);
    }

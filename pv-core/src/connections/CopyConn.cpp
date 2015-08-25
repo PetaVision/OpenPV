@@ -135,7 +135,7 @@ int CopyConn::communicateInitInfo() {
    BaseConnection * originalConnBase = parent->getConnFromName(this->originalConnName);
    if (originalConnBase==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: originalConnName \"%s\" does not refer to any connection in the column.\n", parent->parameters()->groupKeywordFromName(name), name, this->originalConnName);
+         fprintf(stderr, "%s \"%s\" error: originalConnName \"%s\" does not refer to any connection in the column.\n", this->getKeyword(), name, this->originalConnName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -151,7 +151,7 @@ int CopyConn::communicateInitInfo() {
 
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
+         const char * connectiontype = this->getKeyword();
          printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
       }
       return PV_POSTPONE;

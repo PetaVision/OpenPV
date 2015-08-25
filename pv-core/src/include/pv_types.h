@@ -80,25 +80,6 @@ typedef struct PV_Stream_ {
    int    verifyWrites; /* True or false, if true, calls to PV_fwrite will do a readback check.  */
 } PV_Stream;
 
-typedef enum {
-   TypeGeneric,
-   TypeImage,
-   TypeRetina,
-   TypeSimple,
-   TypeLIFSimple,
-   TypeLIFGap,
-   TypeLIFHC,
-   TypeLIFSimple2,
-   TypeLIFFlankInhib,
-   TypeLIFFeedbackInhib,
-   TypeLIFFeedback2Inhib,
-   TypeLIFSurroundInhib,
-   TypeLIFGeisler,
-   TypeBIDS,
-   TypeLCA,
-   TypeNonspiking
-} PVLayerType;
-
 /**
  * PVLayerCube is a 3D cube (features,x,y) of a layer's data,
  *    plus location information
@@ -126,9 +107,6 @@ typedef struct PVLayer_ {
    //unsigned int   numActive;      // # neurons that fired
    //unsigned int * activeIndices;  // indices of neurons that fired
    PV_Stream    * activeFP;       // file of sparse activity
-
-   // TODO - deprecate?
-   PVLayerType layerType;  // the type/subtype of the layer (ie, Type_LIFSimple2)
 
    PVLayerLoc loc;
    int   xScale, yScale;   // layersize=2**(-scale)*columnsize.  Layers with positive xScale are more dense in the x-dimension.

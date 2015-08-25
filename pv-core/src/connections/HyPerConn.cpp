@@ -556,7 +556,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weight
 int HyPerConn::setWeightInitializer() {
    weightInitializer = createInitWeightsObject(weightInitTypeString);
    if( weightInitializer == NULL ) {
-      weightInitializer = getDefaultInitWeightsMethod(parent->parameters()->groupKeywordFromName(name));
+      weightInitializer = getDefaultInitWeightsMethod(this->getKeyword());
    }
    return weightInitializer==NULL ? PV_FAILURE : PV_SUCCESS;
 }
@@ -812,7 +812,7 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
       if (status != PV_SUCCESS) {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\": channelCode %d is not a valid channel.\n",
-                  parent->parameters()->groupKeywordFromName(name), name,  ch);
+                  this->getKeyword(), name,  ch);
          }
 #ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -839,7 +839,7 @@ void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
       int status = setWeightInitializer();
       if (status != PV_SUCCESS) {
          fprintf(stderr, "%s \"%s\": Rank %d process unable to construct weightInitializer\n",
-               parent->parameters()->groupKeywordFromName(name), name, parent->columnId());
+               this->getKeyword(), name, parent->columnId());
          exit(EXIT_FAILURE);
       }
    }
@@ -859,7 +859,7 @@ void HyPerConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
          if (triggerLayerName && !strcmp(name, triggerLayerName)) {
             if (parent->columnId()==0) {
                fprintf(stderr, "%s \"%s\" error: triggerLayerName cannot be the same as the name of the layer itself.\n",
-                     parent->parameters()->groupKeywordFromName(name), name);
+                     this->getKeyword(), name);
             }
             MPI_Barrier(parent->icCommunicator()->communicator());
             exit(EXIT_FAILURE);
@@ -912,7 +912,7 @@ void HyPerConn::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
       if (triggerFlag) {
          parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
          if(triggerOffset < 0){
-            fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset);
+            fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", this->getKeyword(), name, parent->columnId(), triggerOffset);
             exit(EXIT_FAILURE);
          }
       }
@@ -944,7 +944,7 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
    // stochasticReleaseFlag deprecated on Aug 22, 2013, and declared obsolete Apr 10, 2015.
    if (ioFlag==PARAMS_IO_READ && params->present(name, "stochasticReleaseFlag")) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: parameter stochasticReleaseFlag is obsolete.  Instead, set pvpatchAccumulateType to either \"convolve\" (the default) or \"stochastic\".\n", parent->parameters()->groupKeywordFromName(name), name);
+         fprintf(stderr, "%s \"%s\" error: parameter stochasticReleaseFlag is obsolete.  Instead, set pvpatchAccumulateType to either \"convolve\" (the default) or \"stochastic\".\n", this->getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -954,13 +954,13 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
       bool stochasticReleaseFlag = params->value(name, "stochasticReleaseFlag")!=0.0;
       const char * pvpatch_accumulate_string = stochasticReleaseFlag ? "stochastic" : "convolve";
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" warning: parameter stochasticReleaseFlag is deprecated.  Instead, set pvpatchAccumulateType to one of \"convolve\" (the default), \"stochastic\", or \"maxpooling\".\n", parent->parameters()->groupKeywordFromName(name), name);
+         fprintf(stderr, "%s \"%s\" warning: parameter stochasticReleaseFlag is deprecated.  Instead, set pvpatchAccumulateType to one of \"convolve\" (the default), \"stochastic\", or \"maxpooling\".\n", this->getKeyword(), name);
          fprintf(stderr, "    pvpatchAccumulateType set to \"%s\" \n", pvpatch_accumulate_string);
       }
       pvpatchAccumulateTypeString = strdup(pvpatch_accumulate_string);
       if (pvpatchAccumulateTypeString==NULL) {
          fprintf(stderr, "%s \"%s\": rank %d process unable to set pvpatchAccumulateType string: %s.\n",
-               params->groupKeywordFromName(name), name, parent->columnId(), strerror(errno));
+               this->getKeyword(), name, parent->columnId(), strerror(errno));
          exit(EXIT_FAILURE);
       }
       pvpatchAccumulateType = stochasticReleaseFlag ? ACCUMULATE_STOCHASTIC : ACCUMULATE_CONVOLVE;
@@ -994,7 +994,7 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
       else {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType \"%s\" unrecognized.  Allowed values are \"convolve\", \"stochastic\", or \"maxpooling\"\n",
-                  parent->parameters()->groupKeywordFromName(name), name, pvpatchAccumulateTypeString);
+                  this->getKeyword(), name, pvpatchAccumulateTypeString);
          }
 #ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -1008,7 +1008,7 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 //         if(strcmp(weightInitTypeString, "MaxPoolingWeight") != 0){
 //            if (parent->columnId()==0) {
 //               fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType of maxpooling or sumpooling require a weightInitType of MaxPoolingWeight.\n",
-//                     parent->parameters()->groupKeywordFromName(name), name);
+//                     this->getKeyword(), name);
 //            }
 //#ifdef PV_USE_MPI
 //            MPI_Barrier(parent->icCommunicator()->communicator());
@@ -1033,7 +1033,7 @@ void HyPerConn::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
          if (writeStep>0 && initialWriteTime < start_time) {
             if (parent->columnId()==0) {
                printf("%s \"%s\": initialWriteTime %f earlier than starting time %f.  Adjusting initialWriteTime:\n",
-                     parent->parameters()->groupKeywordFromName(name), name, initialWriteTime, start_time);
+                     this->getKeyword(), name, initialWriteTime, start_time);
                fflush(stdout);
             }
             while (initialWriteTime < start_time) {
@@ -1041,7 +1041,7 @@ void HyPerConn::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
             }
             if (parent->columnId()==0) {
                printf("%s \"%s\": initialWriteTime adjusted to %f\n",
-                     parent->parameters()->groupKeywordFromName(name), name, initialWriteTime);
+                     this->getKeyword(), name, initialWriteTime);
             }
          }
          writeTime = initialWriteTime;
@@ -1098,13 +1098,13 @@ void HyPerConn::ioParam_nxpShrunken(enum ParamsIOFlag ioFlag) {
             nxp = nxpShrunken;
             if (parent->columnId()==0) {
                fprintf(stderr, "%s \"%s\" warning: nxpShrunken is deprecated, as nxp can now take any of the values nxpShrunken could take before.  nxp will be set to %d and nxpShrunken will not be used.\n",
-                     parent->parameters()->groupKeywordFromName(name), name, nxp);
+                     this->getKeyword(), name, nxp);
             }
          }
          else {
             if (parent->columnId()==0) {
                fprintf(stderr, "%s \"%s\" warning: nxpShrunken is deprecated.  Instead, nxp can take any of the values nxpShrunken could take before.\n",
-                     parent->parameters()->groupKeywordFromName(name), name);
+                     this->getKeyword(), name);
                fprintf(stderr, "However, setting nxp to %d and nxpShrunken to the larger value %d is probably not what you meant.  Exiting.\n", nxp, nxpShrunken);
             }
             MPI_Barrier(parent->icCommunicator()->communicator());
@@ -1123,13 +1123,13 @@ void HyPerConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
             nyp = nypShrunken;
             if (parent->columnId()==0) {
                fprintf(stderr, "%s \"%s\" warning: nypShrunken is deprecated, as nyp can now take any of the values nypShrunken could take before.  nyp will be set to %d and nypShrunken will not be used.\n",
-                     parent->parameters()->groupKeywordFromName(name), name, nyp);
+                     this->getKeyword(), name, nyp);
             }
          }
          else {
             if (parent->columnId()==0) {
                fprintf(stderr, "%s \"%s\" warning: nypShrunken is deprecated.  Instead, nyp can take any of the values nypShrunken could take before.\n",
-                     parent->parameters()->groupKeywordFromName(name), name);
+                     this->getKeyword(), name);
                fprintf(stderr, "However, setting nyp to %d and nypShrunken to the larger value %d is probably not what you meant.  Exiting.\n", nyp, nypShrunken);
             }
             MPI_Barrier(parent->icCommunicator()->communicator());
@@ -1142,7 +1142,7 @@ void HyPerConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "nfp", &nfp, -1, false);
    if (ioFlag==PARAMS_IO_READ && nfp==-1 && !parent->parameters()->present(name, "nfp") && parent->columnId()==0) {
       printf("%s \"%s\": nfp will be set in the communicateInitInfo() stage.\n",
-            parent->parameters()->groupKeywordFromName(name), name);
+            this->getKeyword(), name);
    }
 }
 
@@ -1173,7 +1173,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (normalizeMethod==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "Error in %s \"%s\": specifying a normalizeMethod string is required.\n", parent->parameters()->groupKeywordFromName(name), name);
+            fprintf(stderr, "Error in %s \"%s\": specifying a normalizeMethod string is required.\n", this->getKeyword(), name);
             exit(EXIT_FAILURE);
          }
       }
@@ -1185,7 +1185,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
          int status = setWeightNormalizer();
          if (status != PV_SUCCESS) {
             fprintf(stderr, "%s \"%s\": Rank %d process unable to construct weight normalizer\n",
-                  parent->parameters()->groupKeywordFromName(name), name, parent->columnId());
+                  this->getKeyword(), name, parent->columnId());
             exit(EXIT_FAILURE);
          }
       }
@@ -1313,7 +1313,7 @@ int HyPerConn::communicateInitInfo() {
    int status = BaseConnection::communicateInitInfo();
    if (status != PV_SUCCESS) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\": communicateInitInfo failed.\n", parent->parameters()->groupKeywordFromName(name), name);
+         fprintf(stderr, "%s \"%s\": communicateInitInfo failed.\n", this->getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -1438,7 +1438,7 @@ int HyPerConn::communicateInitInfo() {
       if (triggerLayer==NULL) {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
-                    parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
+                    this->getKeyword(), name, triggerLayerName);
          }
 #ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -1456,7 +1456,7 @@ int HyPerConn::communicateInitInfo() {
          }
       }
       if(weightUpdatePeriod != -1 && triggerOffset >= weightUpdatePeriod){
-         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) of the attached trigger layer\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset, weightUpdatePeriod);
+         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) of the attached trigger layer\n", this->getKeyword(), name, parent->columnId(), triggerOffset, weightUpdatePeriod);
          exit(EXIT_FAILURE);
       }
       weightUpdateTime = parent->getDeltaTime();
@@ -1477,7 +1477,7 @@ int HyPerConn::communicateInitInfo() {
       if (groupNormalizer==NULL) {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: normalizeGroupName \"%s\" is not a recognized normalizer.\n",
-                  parent->parameters()->groupKeywordFromName(name), name, normalizeGroupName);
+                  this->getKeyword(), name, normalizeGroupName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -1518,7 +1518,7 @@ int HyPerConn::communicateInitInfo() {
    if(parent->getNBatch() > 1 && !sharedWeights){
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: Non-shared weights with batches not implemented yet.\n",
-               parent->parameters()->groupKeywordFromName(name), name);
+               this->getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -1667,7 +1667,7 @@ int HyPerConn::allocateDataStructures() {
          while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
          if (parent->columnId()==0) {
             fprintf(stderr, "Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
-                  parent->parameters()->groupKeywordFromName(name), name, weightUpdateTime);
+                  this->getKeyword(), name, weightUpdateTime);
          }
       }
       lastUpdateTime = weightUpdateTime - parent->getDeltaTime();
@@ -2549,7 +2549,7 @@ int HyPerConn::writeWeights(PVPatch *** patches, pvwdata_t ** dataStart, int num
          nfp, minVal, maxVal, patches, dataStart, numPatches,
          numberOfAxonalArborLists(), compressWeights, fileType);
    if(status != PV_SUCCESS) {
-      fprintf(stderr, "%s \"%s\" error in writing weights.\n", parent->parameters()->groupKeywordFromName(name), name);
+      fprintf(stderr, "%s \"%s\" error in writing weights.\n", this->getKeyword(), name);
       exit(EXIT_FAILURE);
    }
 
@@ -2752,7 +2752,7 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
       while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
       if (parent->columnId()==0) {
          fprintf(stderr, "Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
-               parent->parameters()->groupKeywordFromName(name), name, weightUpdateTime);
+               this->getKeyword(), name, weightUpdateTime);
       }
    }
 

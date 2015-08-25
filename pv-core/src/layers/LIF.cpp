@@ -113,25 +113,7 @@ LIF::LIF() {
 
 LIF::LIF(const char * name, HyPerCol * hc) {
    initialize_base();
-   initialize(name, hc, TypeLIFSimple, "LIF_update_state");
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag)
-//      initializeGPU();
-//#endif
-}
-
-LIF::LIF(const char * name, HyPerCol * hc, PVLayerType type) {
-   initialize_base();
-   initialize(name, hc, type, "LIF_update_state");
-//#ifdef PV_USE_OPENCL
-//   if(gpuAccelerateFlag)
-//      initializeGPU();
-//#endif
-}
-
-LIF::LIF(const char * name, HyPerCol * hc, PVLayerType type, int num_channels) {
-   initialize_base();
-   initialize(name, hc, type, "LIF_update_state");
+   initialize(name, hc, "LIF_update_state");
 //#ifdef PV_USE_OPENCL
 //   if(gpuAccelerateFlag)
 //      initializeGPU();
@@ -186,10 +168,9 @@ int LIF::initialize_base() {
 }
 
 // Initialize this class
-int LIF::initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name) {
+int LIF::initialize(const char * name, HyPerCol * hc, const char * kernel_name) {
    HyPerLayer::initialize(name, hc);
    clayer->params = &lParams;
-   clayer->layerType = type;
 
 //   // initialize OpenCL parameters
 //   //
@@ -390,7 +371,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
       free(methodString);
       methodString = strdup(default_method);
       if (methodString==NULL) {
-         fprintf(stderr, "%s \"%s\" error: unable to set method string: %s\n", parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+         fprintf(stderr, "%s \"%s\" error: unable to set method string: %s\n", getKeyword(), name, strerror(errno));
          exit(EXIT_FAILURE);
       }
    }

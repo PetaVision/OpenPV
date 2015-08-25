@@ -183,7 +183,7 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
    //if (autoResizeFlag) {
    //   if (parent->columnId()==0) {
    //      fprintf(stderr, "%s \"%s\" error: autoRescaleFlag=true has not been implemented for .pvp files.\n",
-   //         parent->parameters()->groupKeywordFromName(name), name);
+   //         getKeyword(), name);
    //   }
    //   MPI_Barrier(parent->icCommunicator()->communicator());
    //   exit(EXIT_FAILURE);

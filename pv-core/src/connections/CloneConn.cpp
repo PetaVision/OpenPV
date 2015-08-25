@@ -185,7 +185,7 @@ int CloneConn::communicateInitInfo() {
    }
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
+         const char * connectiontype = this->getKeyword();
          printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
       }
       return PV_POSTPONE;
@@ -220,7 +220,7 @@ int CloneConn::communicateInitInfo() {
 
    if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf ) {
       if (parent->icCommunicator()->commRank()==0) {
-         const char * classname = parent->parameters()->groupKeywordFromName(name);
+         const char * classname = this->getKeyword();
          fprintf(stderr, "%s \"%s\" error in rank %d process: CloneConn and originalConn \"%s\" must have presynaptic layers with the same nx,ny,nf.\n",
                classname, name, parent->columnId(), originalConn->getName());
          fprintf(stderr, "{nx=%d, ny=%d, nf=%d} versus {nx=%d, ny=%d, nf=%d}\n",
@@ -261,7 +261,7 @@ int CloneConn::allocatePostConn(){
 int CloneConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
+         const char * connectiontype = this->getKeyword();
          printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
       }
       return PV_POSTPONE;

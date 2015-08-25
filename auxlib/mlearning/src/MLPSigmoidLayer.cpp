@@ -88,7 +88,7 @@ int MLPSigmoidLayer::communicateInitInfo() {
    if(!forwardLayer){
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: Original layer \"%s\" need to be a MLPForwardLayer.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, originalLayerName);
+                 getKeyword(), name, originalLayerName);
       }
 #ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());

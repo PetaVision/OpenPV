@@ -104,8 +104,7 @@ void PtwiseLinearTransferLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
          if (this->getParent()->columnId()==0) {
             fprintf(stderr,
                   "%s \"%s\" error: verticesV cannot be empty\n",
-                  this->getParent()->parameters()->groupKeywordFromName(this->getName()),
-                  this->getName());
+                  this->getKeyword(), this->getName());
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -114,9 +113,7 @@ void PtwiseLinearTransferLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
          if (this->getParent()->columnId()==0) {
             fprintf(stderr,
                   "%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
-                  this->getParent()->parameters()->groupKeywordFromName(this->getName()), 
-                  this->getName(),
-                  numVerticesV, numVertices);
+                  this->getKeyword(), this->getName(), numVerticesV, numVertices);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -134,8 +131,7 @@ void PtwiseLinearTransferLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
          if (this->getParent()->columnId()==0) {
             fprintf(stderr,
                   "%s \"%s\" error: verticesA cannot be empty\n",
-                  this->getParent()->parameters()->groupKeywordFromName(this->getName()),
-                  this->getName());
+                  this->getKeyword(), this->getName());
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -144,9 +140,7 @@ void PtwiseLinearTransferLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
          if (this->getParent()->columnId()==0) {
             fprintf(stderr,
                   "%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
-                  this->getParent()->parameters()->groupKeywordFromName(this->getName()), 
-                  this->getName(),
-                  numVertices, numVerticesA);
+                  this->getKeyword(), this->getName(), numVertices, numVerticesA);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -261,8 +255,7 @@ int PtwiseLinearTransferLayer::checkVertices() {
          status = PV_FAILURE;
          if (this->getParent()->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: vertices %d and %d: V-coordinates decrease from %f to %f.\n",
-                  this->getParent()->parameters()->groupKeywordFromName(this->getName()),
-                  this->getName(), v, v+1, verticesV[v-1], verticesV[v]);
+                  this->getKeyword(), this->getName(), v, v+1, verticesV[v-1], verticesV[v]);
          }
       }
    }
@@ -276,7 +269,7 @@ int PtwiseLinearTransferLayer::setSlopes() {
    slopes = (float *) malloc((size_t)(numVertices+1)*sizeof(*slopes));
    if (slopes == NULL) {
       fprintf(stderr, "%s \"%s\" error: unable to allocate memory for transfer function slopes: %s\n",
-            parent->parameters()->groupKeywordFromName(name), name, strerror(errno));
+            this->getKeyword(), name, strerror(errno));
       exit(EXIT_FAILURE);
       
    }

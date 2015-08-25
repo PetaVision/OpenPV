@@ -306,7 +306,7 @@ int ImprintConn::checkpointWrite(const char * cpDir) {
          exit(-1);
       }
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "Patterns::checkpointWrite error: %s \"%s\" failed writing to %s\n", parent->parameters()->groupKeywordFromName(name), name, filename);
+         fprintf(stderr, "Patterns::checkpointWrite error: %s \"%s\" failed writing to %s\n", this->getKeyword(), name, filename);
          exit(EXIT_FAILURE);
       }
       free(filename); filename=NULL;

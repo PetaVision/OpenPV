@@ -18,7 +18,7 @@ CloneKernelConn::CloneKernelConn(const char * name, HyPerCol * hc) {
 int CloneKernelConn::initialize(const char * name, HyPerCol * hc) {
    int status = CloneConn::initialize(name, hc);
    if (hc->columnId()==0) {
-      fprintf(stderr, "%s \"%s\": CloneKernelConn has been deprecated.  Use CloneConn.\n", hc->parameters()->groupKeywordFromName(name), name);
+      fprintf(stderr, "%s \"%s\": CloneKernelConn has been deprecated.  Use CloneConn.\n", this->getKeyword(), name);
    }
    return status;
 }
@@ -28,7 +28,7 @@ int CloneKernelConn::communicateInitInfo() {
    if (originalConn->usingSharedWeights()==false) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\": originalConn \"%s\" does not use shared weights but CloneKernelConn assumes shared weights.\n",
-               parent->parameters()->groupKeywordFromName(name), name, originalConn->getName());
+               this->getKeyword(), name, originalConn->getName());
          fprintf(stderr, "Use CloneConn instead of CloneKernelConn.\n");
       }
       MPI_Barrier(parent->icCommunicator()->communicator());

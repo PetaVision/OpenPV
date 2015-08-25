@@ -36,8 +36,6 @@ int GapLayer::initialize(const char * name, HyPerCol * hc)
    int status_init = CloneVLayer::initialize(name, hc);
    assert(originalLayerName != NULL);
 
-   this->clayer->layerType = TypeNonspiking;
-
    return status_init;
 }
 

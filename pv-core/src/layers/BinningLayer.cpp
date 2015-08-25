@@ -49,7 +49,7 @@ void BinningLayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && originalLayerName[0]=='\0') {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: originalLayerName must be set.\n",
-                 parent->parameters()->groupKeywordFromName(name), name);
+                 getKeyword(), name);
       }
 #ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -64,7 +64,7 @@ void BinningLayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
    if(ioFlag == PARAMS_IO_READ && binMax <= binMin){
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: binMax (%f) must be greater than binMin (%f).\n",
-            parent->parameters()->groupKeywordFromName(name), name, binMax, binMin);
+            getKeyword(), name, binMax, binMin);
       }
 #ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -101,7 +101,7 @@ int BinningLayer::communicateInitInfo() {
    if (originalLayer==NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, originalLayerName);
+                 getKeyword(), name, originalLayerName);
       }
 #ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -119,7 +119,7 @@ int BinningLayer::communicateInitInfo() {
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: originalLayerName \"%s\" does not have the same dimensions.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, originalLayerName);
+                 getKeyword(), name, originalLayerName);
          fprintf(stderr, "    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, loc->nxGlobal, loc->nyGlobal);
       }
@@ -130,7 +130,7 @@ int BinningLayer::communicateInitInfo() {
    }
    if(srcLoc->nf != 1){
       fprintf(stderr, "%s \"%s\" error: originalLayerName \"%s\" can only have 1 feature.\n",
-         parent->parameters()->groupKeywordFromName(name), name, originalLayerName);
+         getKeyword(), name, originalLayerName);
    }
    assert(srcLoc->nx==loc->nx && srcLoc->ny==loc->ny);
    return status;

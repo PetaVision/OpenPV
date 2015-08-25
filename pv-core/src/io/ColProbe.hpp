@@ -59,11 +59,9 @@ public:
    char const * getColProbeName() { return colProbeName; }
    
    /**
-    * Searches the params database belonging to the HyPerCol specified during initialization
-    * for the group whose name is the probe's name, and returns the associated keyword
-    * (typically "ColProbe" or the name of the derived class).
+    * Returns the keyword of the params group associated with this ColProbe.
     */
-   char const * keyword();
+   char const * getKeyword();
     
    /**
     * Derived classes of ColProbe should override this method to return a vector of length

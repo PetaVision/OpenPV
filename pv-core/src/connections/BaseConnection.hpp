@@ -187,6 +187,12 @@ public:
    virtual int insertProbe(BaseConnectionProbe* p);
 
    /**
+    * Returns the keyword of the params group associated with this connection.
+    * (typically the name of the derived class).
+    */
+   char const * getKeyword();
+
+   /**
     * Returns the connection's name
     */
    inline const char * getName() { return name; }

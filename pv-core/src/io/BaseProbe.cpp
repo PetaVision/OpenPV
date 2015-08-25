@@ -76,6 +76,10 @@ int BaseProbe::setProbeName(const char * probeName) {
    return PV_SUCCESS;
 }
 
+char const * BaseProbe::getKeyword() {
+   return this->getParent()->parameters()->groupKeywordFromName(this->getName());
+}
+
 int BaseProbe::ioParams(enum ParamsIOFlag ioFlag) {
    parent->ioParamsStartGroup(ioFlag, name);
    ioParamsFillGroup(ioFlag);

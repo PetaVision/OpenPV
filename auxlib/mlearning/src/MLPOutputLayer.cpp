@@ -62,7 +62,7 @@ int MLPOutputLayer::communicateInitInfo(){
       if (gtLayer==NULL) {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: gtLayername \"%s\" is not a layer in the HyPerCol.\n",
-                    parent->parameters()->groupKeywordFromName(name), name, gtLayername);
+                    getKeyword(), name, gtLayername);
          }
 #ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -76,7 +76,7 @@ int MLPOutputLayer::communicateInitInfo(){
       if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal || srcLoc->nf != loc->nf) {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: gtLayerName \"%s\" does not have the same dimensions.\n",
-                    parent->parameters()->groupKeywordFromName(name), name, gtLayername);
+                    getKeyword(), name, gtLayername);
             fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }

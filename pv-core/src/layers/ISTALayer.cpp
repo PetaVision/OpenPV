@@ -111,7 +111,7 @@ void ISTALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
    if (numChannels != 1 && numChannels != 2){
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" requires 1 or 2 channels, numChannels = %d\n",
-               parent->parameters()->groupKeywordFromName(name), name, numChannels);
+               getKeyword(), name, numChannels);
       }
 #ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());

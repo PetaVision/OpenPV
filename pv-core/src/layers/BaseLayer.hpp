@@ -118,4 +118,4 @@ public:
 
 } // namespace PV
 
-#endif /* LAYERDATAINTERFACE_HPP_ */
+#endif /* BASELAYER_HPP_ */

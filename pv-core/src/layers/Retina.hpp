@@ -51,7 +51,7 @@ public:
 
 protected:
    Retina();
-   int initialize(const char * name, HyPerCol * hc, PVLayerType type);
+   int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
    virtual void ioParam_spikingFlag(enum ParamsIOFlag ioFlag);

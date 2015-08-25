@@ -70,7 +70,7 @@ int LayerProbe::setTargetLayer(const char * layerName) {
    if (targetLayer==NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: targetLayer \"%s\" is not a layer in the column.\n",
-               parent->parameters()->groupKeywordFromName(name), name, layerName);
+               this->getKeyword(), name, layerName);
       }
 #ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());

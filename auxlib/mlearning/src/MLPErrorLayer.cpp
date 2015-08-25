@@ -78,7 +78,7 @@ int MLPErrorLayer::communicateInitInfo(){
    if (tmpLayer==NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: ForwardLayername \"%s\" is not a layer in the HyPerCol.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, forwardLayername);
+                 getKeyword(), name, forwardLayername);
       }
 #ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -89,7 +89,7 @@ int MLPErrorLayer::communicateInitInfo(){
    if (forwardLayer==NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: ForwardLayername \"%s\" is not a MLPErrorLayer.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, forwardLayername);
+                 getKeyword(), name, forwardLayername);
       }
 #ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -102,7 +102,7 @@ int MLPErrorLayer::communicateInitInfo(){
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal || srcLoc->nf != loc->nf) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: ForwardLayerName \"%s\" does not have the same dimensions.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, forwardLayername);
+                 getKeyword(), name, forwardLayername);
          fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }
@@ -135,7 +135,7 @@ int MLPErrorLayer::allocateV() {
    clayer->V = forwardLayer->getV();
    if (getV()==NULL) {
       fprintf(stderr, "%s \"%s\": forwardLayer \"%s\" has a null V buffer in rank %d process.\n",
-              parent->parameters()->groupKeywordFromName(name), name, forwardLayername, parent->columnId());
+              getKeyword(), name, forwardLayername, parent->columnId());
       exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;
@@ -211,7 +211,7 @@ void MLPErrorLayer::ioParam_LossFunction(enum ParamsIOFlag ioFlag) {
    }
    else{
       fprintf(stderr, "%s \"%s\" error: Loss function not defined. Options are \"squared\", \"entropy\", or \"hidden\".\n",
-           parent->parameters()->groupKeywordFromName(name), name);
+           getKeyword(), name);
    }
 }
 

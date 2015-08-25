@@ -360,7 +360,7 @@ int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
       if (hc->columnId()==0) {
          double t = allzeroProbe->getNonzeroTime();
          fprintf(stderr, "%s \"%s\" had at least one nonzero activity value, beginning at time %f\n",
-               hc->parameters()->groupKeywordFromName(targetLayerName), targetLayerName, t);
+               layer->getKeyword(), targetLayerName, t);
       }
       MPI_Barrier(hc->icCommunicator()->communicator());
       exit(EXIT_FAILURE);

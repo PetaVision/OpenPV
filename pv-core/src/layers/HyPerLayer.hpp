@@ -447,7 +447,13 @@ public:
    virtual int mirrorToSouth    (PVLayerCube * dest, PVLayerCube * src);
    virtual int mirrorToSouthEast(PVLayerCube * dest, PVLayerCube * src);
 
-   const char * getOutputFilename(char * buf, const char * dataName, const char * term);
+   // const char * getOutputFilename(char * buf, const char * dataName, const char * term);
+
+   /**
+    * Returns the keyword of the params group associated with this layer.
+    * (typically the name of the derived class).
+    */
+   char const * getKeyword();
 
    // Public access functions:
 
@@ -464,7 +470,6 @@ public:
    int getNumDelayLevels()           {return numDelayLevels;}
 
    int  getLayerId()                 {return layerId;}
-   PVLayerType getLayerType()        {return clayer->layerType;}
    void setLayerId(int id)           {layerId = id;}
    int increaseDelayLevels(int neededDelay);
    virtual int requireMarginWidth(int marginWidthNeeded, int * marginWidthResult, char axis);

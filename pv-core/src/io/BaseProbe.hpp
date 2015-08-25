@@ -70,8 +70,29 @@ public:
    virtual int outputState(double timef) = 0;
    virtual int writeTimer(FILE* stream) {return PV_SUCCESS;}
 
+   /**
+    * Returns the keyword of the params group associated with this probe.
+    */
+   char const * getKeyword();
+
+   /**
+    * Returns the name of the probe, specified in the public constructor.
+    */
    const char * getName() {return name;}
+   
+   /**
+    * Returns the name of the targetName parameter for this probe.
+    * LayerProbe uses targetName to specify the layer to attach to;
+    * BaseConnectionProbe uses it to specify the connection to attach to.
+    */
    const char * getTargetName() {return targetName;}
+   
+   /**
+    * Specifies the object responsible calling the probe's destructor.
+    * BaseProbe sets owner to the parent HyPerCol during initialization.
+    * During the communicateInitInfo stage, layer probes and connection probes
+    * change their owner to the layer or connection they attach to.
+    */
    void const * getOwner() { return owner;}
    
    /**

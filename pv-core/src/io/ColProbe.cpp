@@ -46,7 +46,7 @@ int ColProbe::initialize(const char * probeName, HyPerCol * hc) {
    return status;
 }
 
-char const * ColProbe::keyword() {
+char const * ColProbe::getKeyword() {
    return parentCol->parameters()->groupKeywordFromName(colProbeName);
 }
 
@@ -74,7 +74,7 @@ void ColProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
 int ColProbe::initialize_stream(const char * filename) {
    if(stream!=NULL) {
       fprintf(stderr, "%s \"%s error: initialize_stream called but stream is already initialized.\n",
-            keyword(), getColProbeName());
+            getKeyword(), getColProbeName());
       exit(EXIT_FAILURE);
    }
    int status = PV_SUCCESS;

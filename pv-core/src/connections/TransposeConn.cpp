@@ -186,7 +186,7 @@ int TransposeConn::communicateInitInfo() {
    BaseConnection * originalConnBase = parent->getConnFromName(this->originalConnName);
    if (originalConnBase==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: originalConnName \"%s\" does not refer to any connection in the column.\n", parent->parameters()->groupKeywordFromName(name), name, this->originalConnName);
+         fprintf(stderr, "%s \"%s\" error: originalConnName \"%s\" does not refer to any connection in the column.\n", this->getKeyword(), name, this->originalConnName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -202,7 +202,7 @@ int TransposeConn::communicateInitInfo() {
 
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
+         const char * connectiontype = this->getKeyword();
          printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
       }
       return PV_POSTPONE;
@@ -234,7 +234,7 @@ int TransposeConn::communicateInitInfo() {
    const PVLayerLoc * origPostLoc = originalConn->postSynapticLayer()->getLayerLoc();
    if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny || preLoc->nf != origPostLoc->nf) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: transpose's pre layer and original connection's post layer must have the same dimensions.\n", parent->parameters()->groupKeywordFromName(name), name);
+         fprintf(stderr, "%s \"%s\" error: transpose's pre layer and original connection's post layer must have the same dimensions.\n", this->getKeyword(), name);
          fprintf(stderr, "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", preLoc->nx, preLoc->ny, preLoc->nf, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf);
       }
 #ifdef PV_USE_MPI
@@ -246,7 +246,7 @@ int TransposeConn::communicateInitInfo() {
    const PVLayerLoc * origPreLoc = originalConn->postSynapticLayer()->getLayerLoc();
    if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny || postLoc->nf != origPreLoc->nf) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: transpose's post layer and original connection's pre layer must have the same dimensions.\n", parent->parameters()->groupKeywordFromName(name), name);
+         fprintf(stderr, "%s \"%s\" error: transpose's post layer and original connection's pre layer must have the same dimensions.\n", this->getKeyword(), name);
          fprintf(stderr, "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", postLoc->nx, postLoc->ny, postLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
       }
 #ifdef PV_USE_MPI
@@ -341,7 +341,7 @@ int TransposeConn::allocatePostConn(){
 int TransposeConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
-         const char * connectiontype = parent->parameters()->groupKeywordFromName(name);
+         const char * connectiontype = this->getKeyword();
          printf("%s \"%s\" must wait until original connection \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, originalConn->getName());
       }
       return PV_POSTPONE;
@@ -469,12 +469,12 @@ int TransposeConn::finalizeUpdate(double timed, double dt){
 //         mpiexchangesize(neighbor,  &size[neighbor], &startx[neighbor], &stopx[neighbor], &starty[neighbor], &stopy[neighbor], &blocksize[neighbor], &buffersize[neighbor]);
 //         sendbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
 //         if (sendbuf[neighbor]==NULL) {
-//            fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose send buffer: %s\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), strerror(errno));
+//            fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose send buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
 //            exit(EXIT_FAILURE);
 //         }
 //         recvbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
 //         if (recvbuf[neighbor]==NULL) {
-//            fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose receive buffer: %s\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), strerror(errno));
+//            fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose receive buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
 //            exit(EXIT_FAILURE);
 //         }
 //         request[neighbor] = NULL;

@@ -44,7 +44,7 @@ int FilenameParsingGroundTruthLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    if(movieLayer==NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: movieLayerName \"%s\" is not a layer in the HyPerCol.\n",
-            parent->parameters()->groupKeywordFromName(name), name, movieLayerName); 
+            getKeyword(), name, movieLayerName); 
       }
    exit(EXIT_FAILURE);
    }

@@ -1190,7 +1190,7 @@ int Patterns::checkpointWrite(const char * cpDir) {
          fprintf(stderr, "Unable to write to \"%s\"\n", filename);
       }
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "Patterns::checkpointWrite error: %s \"%s\" failed writing to %s\n", parent->parameters()->groupKeywordFromName(name), name, pvstream->name);
+         fprintf(stderr, "Patterns::checkpointWrite error: %s \"%s\" failed writing to %s\n", getKeyword(), name, pvstream->name);
          exit(EXIT_FAILURE);
       }
       sprintf(filename, "%s/%s_PatternState.txt", cpDir, name);

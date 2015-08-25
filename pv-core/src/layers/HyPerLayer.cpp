@@ -292,6 +292,10 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
    return PV_SUCCESS;
 }
 
+char const * HyPerLayer::getKeyword() {
+   return this->getParent()->parameters()->groupKeywordFromName(this->getName());
+}
+
 int HyPerLayer::initClayer() {
    clayer = (PVLayer *) calloc(1UL, sizeof(PVLayer));
    int status = PV_SUCCESS;
@@ -846,7 +850,7 @@ void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       initVObject = new InitV(parent, name);
       if( initVObject == NULL ) {
-         fprintf(stderr, "%s \"%s\" error: unable to create InitV object\n", parent->parameters()->groupKeywordFromName(name), name);
+         fprintf(stderr, "%s \"%s\" error: unable to create InitV object\n", getKeyword(), name);
          abort();
       }
    }
@@ -861,7 +865,7 @@ void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
       if (triggerLayerName && !strcmp(name, triggerLayerName)) {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: triggerLayerName cannot be the same as the name of the layer itself.\n",
-                  parent->parameters()->groupKeywordFromName(name), name);
+                  getKeyword(), name);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -908,7 +912,7 @@ void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    if (triggerFlag) {
       parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if(triggerOffset < 0){
-         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset);
+         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", getKeyword(), name, parent->columnId(), triggerOffset);
          exit(EXIT_FAILURE);
       }
    }
@@ -934,7 +938,7 @@ void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
       else {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: triggerBehavior=\"%s\" is unrecognized.\n",
-                  parent->parameters()->groupKeywordFromName(name), name, triggerBehavior);
+                  getKeyword(), name, triggerBehavior);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -965,7 +969,7 @@ void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
       if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < start_time) {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" warning: initialWriteTime is earlier than start time.  Adjusting initialWriteTime:\n",
-                  parent->parameters()->groupKeywordFromName(name), name);
+                  getKeyword(), name);
          }
          while (initialWriteTime < start_time) {
             initialWriteTime += writeStep;
@@ -1005,7 +1009,7 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
 int HyPerLayer::allocateUpdateKernel(){
-   std::cout << "Layer " << name << " of type " << parent->parameters()->groupKeywordFromName(getName()) << " does not support updating on gpus yet\n"; 
+   std::cout << "Layer " << name << " of type " << getKeyword() << " does not support updating on gpus yet\n"; 
    exit(-1);
    return -1;
 }
@@ -1114,7 +1118,7 @@ int HyPerLayer::communicateInitInfo()
       if (triggerLayer==NULL) {
          if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: triggerLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                  parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
+                  getKeyword(), name, triggerLayerName);
          }
 #ifdef PV_USE_MPI
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -1134,7 +1138,7 @@ int HyPerLayer::communicateInitInfo()
             if (triggerResetLayer==NULL) {
                if (parent->columnId()==0) {
                   fprintf(stderr, "%s \"%s\" error: triggerResetLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                        parent->parameters()->groupKeywordFromName(name), name, triggerResetLayerName);
+                        getKeyword(), name, triggerResetLayerName);
                }
                MPI_Barrier(parent->icCommunicator()->communicator());
                exit(EXIT_FAILURE);
@@ -1147,7 +1151,7 @@ int HyPerLayer::communicateInitInfo()
          if (triggerLoc->nxGlobal != localLoc->nxGlobal || triggerLoc->nyGlobal != localLoc->nyGlobal || triggerLoc->nf != localLoc->nf) {
             if (parent->columnId()==0) {
                fprintf(stderr, "%s \"%s\" error: triggerResetLayer \"%s\" has incompatible dimensions.\n",
-                     parent->parameters()->groupKeywordFromName(name), name, resetLayerName);
+                     getKeyword(), name, resetLayerName);
                fprintf(stderr, "    \"%s\" is %d-by-%d-by-%d and \"%s\" is %d-by-%d-by-%d.\n",
                      name, localLoc->nxGlobal, localLoc->nyGlobal, localLoc->nf,
                      resetLayerName, triggerLoc->nxGlobal, triggerLoc->nyGlobal, triggerLoc->nf);
@@ -1329,7 +1333,7 @@ int HyPerLayer::allocateDataStructures()
    if(triggerFlag){
       double deltaUpdateTime = getDeltaUpdateTime();
       if(deltaUpdateTime != -1 && triggerOffset >= deltaUpdateTime){ 
-         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) \n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId(), triggerOffset, deltaUpdateTime);
+         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) \n", getKeyword(), name, parent->columnId(), triggerOffset, deltaUpdateTime);
          exit(EXIT_FAILURE);
       }
    }
@@ -1752,7 +1756,7 @@ int HyPerLayer::resetStateOnTrigger() {
    if (V==NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a membrane potential.\n",
-               parent->parameters()->groupKeywordFromName(name), name);
+               getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -2117,7 +2121,7 @@ int HyPerLayer::outputState(double timef, bool last)
       }
    }
    if (status!=PV_SUCCESS) {
-      fprintf(stderr, "%s \"%s\": outputState failed on rank %d process.\n", parent->parameters()->groupKeywordFromName(name), name, parent->columnId());
+      fprintf(stderr, "%s \"%s\": outputState failed on rank %d process.\n", getKeyword(), name, parent->columnId());
       exit(EXIT_FAILURE);
    }
 

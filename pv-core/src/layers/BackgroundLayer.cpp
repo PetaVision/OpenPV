@@ -43,7 +43,7 @@ int BackgroundLayer::communicateInitInfo() {
    if (originalLayer==NULL) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, originalLayerName);
+                 getKeyword(), name, originalLayerName);
       }
 #ifdef PV_USE_MPI
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -57,7 +57,7 @@ int BackgroundLayer::communicateInitInfo() {
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: originalLayerName \"%s\" does not have the same X/Y dimensions.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, originalLayerName);
+                 getKeyword(), name, originalLayerName);
          fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }
@@ -69,7 +69,7 @@ int BackgroundLayer::communicateInitInfo() {
    if ((srcLoc->nf + 1)*repFeatureNum != loc->nf) {
       if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: nf must have (n+1)*repFeatureNum (%d) features in BackgroundLayer \"%s\", where n is the orig layer number of features.\n",
-                 parent->parameters()->groupKeywordFromName(name), name, (srcLoc->nf+1)*repFeatureNum, originalLayerName);
+                 getKeyword(), name, (srcLoc->nf+1)*repFeatureNum, originalLayerName);
          fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, srcLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
       }

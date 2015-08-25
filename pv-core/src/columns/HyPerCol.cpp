@@ -601,7 +601,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
       }
       //Make sure number matches up
       if(count != icComm->numCommBatches()){
-         fprintf(stderr, "Checkpoint read dir parsing error: Specified not enough colon seperated checkpoint read directories. Running with %d batch MPIs but only %d colon seperated checkpoint directories.\n", icComm->numCommBatches(), count);
+         fprintf(stderr, "Checkpoint read dir parsing error: Specified not enough colon seperated checkpoint read directories. Running with %d batch MPIs but only %zu colon seperated checkpoint directories.\n", icComm->numCommBatches(), count);
          exit(EXIT_FAILURE);
       }
       
