@@ -18,6 +18,7 @@ HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
     dtAdaptFlag                         = true;
+    dtAdaptController                   = "Total_Energy_Probe";
     dtScaleMax                          = 5;
     dtScaleMin                          = 0.125;
     dtChangeMax                         = 0.05;
