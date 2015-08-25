@@ -580,7 +580,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
 
       }
 #ifdef PV_USE_MPI
-      MPI_Bcast(checkpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, icComm->globalCommunicator());
+      MPI_Bcast(checkpointReadDir, PV_PATH_MAX, MPI_CHAR, 0, icComm->communicator());
 #endif // PV_USE_MPI
    }
    if (checkpointReadDir) {
@@ -2085,7 +2085,7 @@ int HyPerCol::advanceTime(double sim_time)
    }
 
 
-   if (columnId()==0) {
+   if (globalRank()==0) {
       int sigstatus = PV_SUCCESS;
       sigset_t pollusr1;
 
@@ -2100,7 +2100,7 @@ int HyPerCol::advanceTime(double sim_time)
       }
    }
    // Balancing MPI_Recv is after the for-loop over phases.  Is this better than MPI_Bcast?  Should it be MPI_Isend?
-   if (columnId()==0) {
+   if (globalRank()==0) {
       for (int k=1; k<numberOfGlobalColumns(); k++) {
          MPI_Send(&checkpointSignal, 1/*count*/, MPI_INT, k/*destination*/, 99/*tag*/, icComm->globalCommunicator());
       }
@@ -2287,7 +2287,7 @@ int HyPerCol::advanceTime(double sim_time)
    }
 
    // Balancing MPI_Send is before the for-loop over phases.  Is this better than MPI_Bcast?
-   if (columnId()!=0) {
+   if (globalRank()!=0) {
       MPI_Recv(&checkpointSignal, 1/*count*/, MPI_INT, 0/*source*/, 99/*tag*/, icCommunicator()->globalCommunicator(), MPI_STATUS_IGNORE);
    }
 
@@ -2370,7 +2370,7 @@ int HyPerCol::checkpointRead() {
       PV_fclose(timestampfile);
    }
 #ifdef PV_USE_MPI
-   MPI_Bcast(&timestamp,(int) timestamp_size,MPI_CHAR,0,icCommunicator()->globalCommunicator());
+   MPI_Bcast(&timestamp,(int) timestamp_size,MPI_CHAR,0,icCommunicator()->communicator());
 #endif // PV_USE_MPI
    simTime = timestamp.time;
    currentStep = timestamp.step;
@@ -2388,13 +2388,13 @@ int HyPerCol::checkpointRead() {
          double timeScale; // timeScale factor for increasing/decreasing dt
          double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScale() before applications of constraints
       };
-      struct timescale_struct timescale[nbatchGlobal];
+      struct timescale_struct timescale[nbatch];
       //Default values
-      for(int b = 0; b < nbatchGlobal; b++){
+      for(int b = 0; b < nbatch; b++){
          timescale[b].timeScale = 1;
          timescale[b].timeScaleTrue = 1;
       }
-      size_t timescale_size = sizeof(struct timescale_struct) * nbatchGlobal;
+      size_t timescale_size = sizeof(struct timescale_struct) * nbatch;
       assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
       // read timeScale info
       if(columnId()==0 ) {
@@ -2420,7 +2420,7 @@ int HyPerCol::checkpointRead() {
          }
       }
    #ifdef PV_USE_MPI
-      MPI_Bcast(&timescale,(int) timescale_size,MPI_CHAR,0,icCommunicator()->globalCommunicator());
+      MPI_Bcast(&timescale,(int) timescale_size,MPI_CHAR,0,icCommunicator()->communicator());
    #endif // PV_USE_MPI
       //Grab only the necessary part based on comm batch id
       int kb0 = commBatch() * nbatch;
