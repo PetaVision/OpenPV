@@ -53,12 +53,28 @@ local function printGroup(key, group)
    assert(group["groupType"] ~= nil)
    assert(type(group) == "table")
 
-   io.write(group["groupType"], " \"", key, "\" = {\n")
-   for k,v in pairs(group) do
-      if(k ~= "groupType") then
-         io.write("    ")
-         printKeyValue(k, v)
+   if group["groupType"] == "BatchSweep" then
+
+      io.write(group["groupType"], " ", key, " ", " = {\n")
+
+      for k,v in pairs(group) do
+         if(k ~= "groupType") then
+            io.write("    ");
+            valToString(v);
+            io.write(";\n");
+         end
       end
+
+   else
+
+      io.write(group["groupType"], " \"", key, "\" = {\n")
+      for k,v in pairs(group) do
+         if(k ~= "groupType") then
+            io.write("    ")
+            printKeyValue(k, v)
+         end
+      end
+
    end
    io.write("};\n\n") --endOfGroup
 end
@@ -213,6 +229,22 @@ function PVModule.deepCopy(obj, seen)
    return res
 end
 
+
+function PVModule.batchSweep(pvParams, group, param, generator, nprocs)
+
+   key = string.format('"%s":%s', group, param);
+
+   local sweep = {};
+
+   for i = 1,nprocs do
+      sweep[i] = string.format(generator, i);
+   end
+
+   sweep['groupType'] = "BatchSweep";
+
+   PVModule.addGroup(pvParams, key, sweep);
+
+end
 --Deprecated, no more array requirement for parameterTables
 ----Determins if obj is a group or an array
 --function PVModule.isArray(obj)
