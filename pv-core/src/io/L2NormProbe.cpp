@@ -33,7 +33,7 @@ int L2NormProbe::initL2NormProbe(const char * probeName, HyPerCol * hc) {
 }
 
 int L2NormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = LayerProbe::ioParamsFillGroup(ioFlag);
+   int status = AbstractNormProbe::ioParamsFillGroup(ioFlag);
    ioParam_exponent(ioFlag);
    return status;
 }
@@ -72,14 +72,58 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
    int const up = halo->up;
    double l2normsq = 0.0;
    pvadata_t const * aBuffer = getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
-   #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for
-   #endif // PV_USE_OPENMP_THREADS
-   for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {      
-      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      pvadata_t val = aBuffer[kex];
-      l2normsq += fabs(val*val);
+   
+   if (getMaskLayer()) {
+      PVLayerLoc const * maskLoc = getMaskLayer()->getLayerLoc();
+      PVHalo const * maskHalo = &maskLoc->halo;
+      pvadata_t const * maskLayerData = getMaskLayer()->getLayerData() + index*getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the part of the layer data for a given batch index?
+      int const maskLt = maskHalo->lt;
+      int const maskRt = maskHalo->rt;
+      int const maskDn = maskHalo->dn;
+      int const maskUp = maskHalo->up;
+      if (maskHasSingleFeature()) {
+         assert(getTargetLayer()->getNumNeurons()==nx*ny*nf);
+         int nxy = nx*ny;
+         #ifdef PV_USE_OPENMP_THREADS
+         #pragma omp parallel for
+         #endif // PV_USE_OPENMP_THREADS
+         for (int kxy=0; kxy<nxy; kxy++) {
+            int kexMask = kIndexExtended(kxy, nx, ny, 1, maskLt, maskRt, maskDn, maskUp);
+            if (maskLayerData[kexMask]) {
+               int featureBase = kxy*nf;
+               for (int f=0; f<nf; f++) {
+                  int kex = kIndexExtended(featureBase++, nx, ny, nf, lt, rt, dn, up);
+                  pvadata_t val = aBuffer[kex];
+                  l2normsq += fabs(val*val);
+               }
+            }
+         }         
+      }
+      else {
+         #ifdef PV_USE_OPENMP_THREADS
+         #pragma omp parallel for
+         #endif // PV_USE_OPENMP_THREADS
+         for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
+            int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+            int kexMask = kIndexExtended(k, nx, ny, nf, maskLt, maskRt, maskDn, maskUp);
+            if (maskLayerData[kexMask]) {
+               pvadata_t val = aBuffer[kex];
+               l2normsq += fabs(val*val);
+            }
+         }
+      }
    }
+   else {
+      #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+      #endif // PV_USE_OPENMP_THREADS
+      for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {      
+         int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+         pvadata_t val = aBuffer[kex];
+         l2normsq += fabs(val*val);
+      }
+   }
+   
    return l2normsq;
 }
 

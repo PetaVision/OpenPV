@@ -23,6 +23,17 @@ AbstractNormProbe::AbstractNormProbe(const char * probeName, HyPerCol * hc) : La
 
 AbstractNormProbe::~AbstractNormProbe() {
    free(normDescription); normDescription = NULL;
+   free(maskLayerName); maskLayerName = NULL;
+   // Don't free maskLayer, which belongs to the HyPerCol.
+}
+
+int AbstractNormProbe::initAbstractNormProbe_base() {
+   normDescription = NULL;
+   maskLayerName = NULL;
+   maskLayer = NULL;
+   singleFeatureMask = false;
+   timeLastComputed = -std::numeric_limits<double>::infinity();
+   return PV_SUCCESS;
 }
 
 int AbstractNormProbe::initAbstractNormProbe(const char * probeName, HyPerCol * hc) {
@@ -30,17 +41,82 @@ int AbstractNormProbe::initAbstractNormProbe(const char * probeName, HyPerCol * 
    if (status == PV_SUCCESS) {
       status = setNormDescription();
    }
+   norms.assign(getParent()->getNBatch(), 0);
+   return status;
+}
+   
+int AbstractNormProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = LayerProbe::ioParamsFillGroup(ioFlag);
+   ioParam_maskLayerName(ioFlag);
+   return status;
+}
+   
+void AbstractNormProbe::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "maskLayerName", &maskLayerName, NULL, false/*warnIfAbsent*/);
+}
+
+int AbstractNormProbe::communicateInitInfo() {
+   int status = LayerProbe::communicateInitInfo();
+   assert(targetLayer);
+   if (maskLayerName && maskLayerName[0]) {
+      maskLayer = parent->getLayerFromName(maskLayerName);
+      if (maskLayer==NULL) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" is not a layer in the HyPerCol.\n",
+                    parent->parameters()->groupKeywordFromName(name), name, maskLayerName);
+         }
+#ifdef PV_USE_MPI
+         MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
+         exit(EXIT_FAILURE);
+      }
+
+      const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
+      const PVLayerLoc * loc = targetLayer->getLayerLoc();
+      assert(maskLoc != NULL && loc != NULL);
+      if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" does not have the same x and y dimensions.\n",
+                    parent->parameters()->groupKeywordFromName(name), name, maskLayerName);
+            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+                    maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
+         }
+#ifdef PV_USE_MPI
+         MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
+         exit(EXIT_FAILURE);
+      }
+
+      if(maskLoc->nf != 1 && maskLoc->nf != loc->nf){
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
+                    parent->parameters()->groupKeywordFromName(name), name, maskLayerName);
+            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+                    maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
+         }
+#ifdef PV_USE_MPI
+         MPI_Barrier(parent->icCommunicator()->communicator());
+#endif
+         exit(EXIT_FAILURE);
+      }
+      assert(maskLoc->nx==loc->nx && maskLoc->ny==loc->ny);
+      singleFeatureMask = maskLoc->nf==1 && loc->nf !=1;
+   }
    return status;
 }
 
 int AbstractNormProbe::getValues(double timevalue, std::vector<double> * values) {
    if (values==NULL) { return PV_FAILURE; }
-   int nBatch = getParent()->getNBatch();
-   values->resize(nBatch); // Should we test if values->size()==nBatch before resizing?
-   for (int b=0; b<nBatch; b++) {
-      values->at(b) = getValueInternal(timevalue, b);
+   size_t nBatch = norms.size();
+   values->resize(nBatch); // Should we test if values->size()==nBatch before resizing or does std::vector already do that?
+   if (timevalue > timeLastComputed) {
+      for (int b=0; b<nBatch; b++) {
+         norms.at(b) = getValueInternal(timevalue, b);
+      }
+      MPI_Allreduce(MPI_IN_PLACE, &norms.front(), nBatch, MPI_DOUBLE, MPI_SUM, getParent()->icCommunicator()->communicator());
+      timeLastComputed = timevalue;
    }
-   MPI_Allreduce(MPI_IN_PLACE, &values->front(), nBatch, MPI_DOUBLE, MPI_SUM, getParent()->icCommunicator()->communicator());
+   memcpy(&values->front(), &norms.front(), nBatch*sizeof(double));
    return PV_SUCCESS;
 }
    

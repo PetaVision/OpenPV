@@ -54,7 +54,7 @@ int FirmThresholdCostFnProbe::setNormDescription() {
 }
 
 int FirmThresholdCostFnProbe::communicateInitInfo() {
-   LayerProbe::communicateInitInfo();
+   AbstractNormProbe::communicateInitInfo();
    ANNLayer * targetANNLayer = dynamic_cast<ANNLayer *>(getTargetLayer());
    if (targetANNLayer!=NULL) {
       if (!getParent()->parameters()->present(getName(), "VThresh")) {
@@ -88,6 +88,80 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    double amax=0.5f*VThreshPlusVWidth;
    double a2 = 0.5f/VThreshPlusVWidth;
    pvadata_t const * aBuffer = getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
+   
+      if (getMaskLayer()) {
+      PVLayerLoc const * maskLoc = getMaskLayer()->getLayerLoc();
+      PVHalo const * maskHalo = &maskLoc->halo;
+      pvadata_t const * maskLayerData = getMaskLayer()->getLayerData() + index*getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the part of the layer data for a given batch index?
+      int const maskLt = maskHalo->lt;
+      int const maskRt = maskHalo->rt;
+      int const maskDn = maskHalo->dn;
+      int const maskUp = maskHalo->up;
+      if (maskHasSingleFeature()) {
+         assert(getTargetLayer()->getNumNeurons()==nx*ny*nf);
+         int nxy = nx*ny;
+         #ifdef PV_USE_OPENMP_THREADS
+         #pragma omp parallel for
+         #endif // PV_USE_OPENMP_THREADS
+         for (int kxy=0; kxy<nxy; kxy++) {
+            int kexMask = kIndexExtended(kxy, nx, ny, 1, maskLt, maskRt, maskDn, maskUp);
+            if (maskLayerData[kexMask]==0) { continue; }
+            int featureBase = kxy*nf;
+            for (int f=0; f<nf; f++) {
+               int kex = kIndexExtended(featureBase++, nx, ny, nf, lt, rt, dn, up);
+               pvadata_t a = fabsf(aBuffer[kex]);
+               if (a>=VThreshPlusVWidth) {
+                  sum += amax;
+               }
+               else {
+                  sum += a*(1 - a2*a);
+               }
+            }
+         }         
+      }
+      else {
+         #ifdef PV_USE_OPENMP_THREADS
+         #pragma omp parallel for
+         #endif // PV_USE_OPENMP_THREADS
+         for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
+            int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+            pvadata_t a = fabsf(aBuffer[kex]);
+            if (a==0) { continue; }
+            int kexMask = kIndexExtended(k, nx, ny, nf, maskLt, maskRt, maskDn, maskUp);
+            if (maskLayerData[kexMask]==0) { continue; }
+            if (a>=VThreshPlusVWidth) {
+               sum += amax;
+            }
+            else {
+               sum += a*(1 - a2*a);
+            }
+         }
+      }
+   }
+   else {
+      #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+      #endif // PV_USE_OPENMP_THREADS
+      for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {      
+         int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+         pvadata_t a = fabsf(aBuffer[kex]);
+         if (a==0) { continue; }
+         if (a>=VThreshPlusVWidth) {
+            sum += amax;
+         }
+         else {
+            sum += a*(1 - a2*a);
+         }
+      }
+   }
+   
+   return sum;
+
+   
+   
+   
+   
+   
    #ifdef PV_USE_OPENMP_THREADS
    #pragma omp parallel for
    #endif // PV_USE_OPENMP_THREADS

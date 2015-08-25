@@ -1,16 +1,14 @@
 //
-// FirmThreshold.params
+// SoftThreshMasked.params
 //
-// created by peteschultz: Aug 14, 2015
+// created by peteschultz: Aug 11, 2015
 //
 
 //  A demonstration of using GenColProbes to measure
 //  the total energy in S1.
 //
-//  For a firm-threshold model, LCA minimizes the
-//  energy \frac{1}{2}\| x-\Phi y\|_2^2 + sum(C(y_i)),
-//  where C(y) = VThresh*VWidth/2 if |y|>=VThresh+VWidth,
-//  and C(y) = VThresh*|y|*(1-|y|/(2*(VThresh+VWidth))) if |y|<=VThresh+VWidth.
+//  For a soft-threshold model, LCA minimizes the
+//  energy \frac{1}{2}\| x-\Phi y\|_2^2 + \|y\|_1.
 
 debugParsing = false;
 
@@ -27,7 +25,7 @@ HyPerCol "column" = {
     progressInterval                    = 1000;
     writeProgressToErr                  = false;
     verifyWrites                        = true;
-    outputPath                          = "output-FirmThreshold/";
+    outputPath                          = "output-SoftThreshMasked/";
     printParamsFilename                 = "pv.params";
     randomSeed                          = 1234567890;
     nx                                  = 32;
@@ -114,8 +112,8 @@ HyPerLCALayer "V1" = {
     VThresh                             = 0.25; // This VThresh is much larger than we usually use, to make the graphs produced by analysis/energy_graph.m comprehensible.
     AMin                                = 0;
     AMax                                = infinity;
-    AShift                              = 0.0;
-    VWidth                              = 1.00;
+    AShift                              = 0.25;
+    VWidth                              = 0;
     clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
     selfInteract                        = true;
@@ -143,6 +141,38 @@ ANNLayer "reconstruction" = {
     AShift                              = 0;
     VWidth                              = 0;
     clearGSynInterval                   = 0;
+};
+
+ConstantLayer "mask" = {
+    nxScale                             = 1.0;
+    nyScale                             = 1.0;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/mask.pvp";
+    VThresh                             = -infinity;
+    AMin                                = -infinity;
+    AMax                                = infinity;
+    AShift                              = 0;
+    VWidth                              = 0;
+};
+
+ANNLayer "negmask" = {
+    nxScale                             = 1.0;
+    nyScale                             = 1.0;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    InitVType                           = "InitVFromFile";
+    Vfilename                           = "input/mask.pvp";
+    VThresh                             = -infinity;
+    AMin                                = -infinity;
+    AMax                                = infinity;
+    AShift                              = -1;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
+    writeStep                           = -1;
 };
 
 IdentConn "input_to_residual" = {
@@ -230,7 +260,6 @@ CloneConn "V1_to_reconstruction" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     gpuGroupIdx                         = 0;
@@ -241,27 +270,35 @@ CloneConn "V1_to_reconstruction" = {
     originalConnName                    = "V1_to_residual";
 };
 
-ColumnEnergyProbe "Total_Energy_Probe" = {
-    probeOutputFile                     = "total_energy.txt";
+IdentConn "maskTonegmask" = {
+    preLayerName = "mask";
+    postLayerName = "negmask";
+    channelCode = 1;
+    delay = 0;
 };
 
-L2NormProbe "Reconstruction_Error_Probe" = {
+L2NormProbe "Unmasked_Probe" = {
     targetLayer                         = "residual";
     message                             = NULL;
-    probeOutputFile                     = "recon_error_l2norm.txt";
+    probeOutputFile                     = "unmasked_probe.txt";
     triggerFlag                         = false;
-    energyProbe                         = "Total_Energy_Probe";
-    coefficient                         = 0.5;
     exponent                            = 2.0;
 };
 
-FirmThresholdCostFnProbe "Cost_Function_Probe" = {
-    targetLayer                         = "V1";
+L2NormProbe "Mask_Probe_Pos" = {
+    targetLayer                         = "residual";
     message                             = NULL;
-    probeOutputFile                     = "cost_function.txt";
+    probeOutputFile                     = "mask_probe_pos.txt";
     triggerFlag                         = false;
-    energyProbe                         = "Total_Energy_Probe";
-    // VThresh inherited from targetLayer
-    // VWidth inherited from targetLayer
-    coefficient                         = 0.25;
+    maskLayerName                       = "mask";
+    exponent                            = 2.0;
+};
+
+L2NormProbe "Mask_Probe_Neg" = {
+    targetLayer                         = "residual";
+    message                             = NULL;
+    probeOutputFile                     = "mask_probe_neg.txt";
+    triggerFlag                         = false;
+    maskLayerName                       = "negmask";
+    exponent                            = 2.0;
 };
