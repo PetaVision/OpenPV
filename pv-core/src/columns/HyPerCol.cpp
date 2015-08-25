@@ -1618,6 +1618,17 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          }
       }
 
+      parameters()->warnUnread();
+      std::string printParamsPath = "";
+      if (printParamsFilename!=NULL && printParamsFilename[0] != '\0') {
+         if (printParamsFilename[0] != '/') {
+            printParamsPath += outputPath;
+            printParamsPath += "/";
+         }
+         printParamsPath += printParamsFilename;
+      }
+      outputParams(printParamsPath.c_str());
+
       // allocateDataStructures stage
       layerInitializationStage = &HyPerCol::layerAllocateDataStructures;
       connInitializationStage = &HyPerCol::connAllocateDataStructures;
@@ -1671,17 +1682,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       for (int c = 0; c < numConnections; c++) {
          connections[c]->finalizeUpdate(simTime, deltaTimeBase);
       }
-
-      parameters()->warnUnread();
-      std::string printParamsPath = "";
-      if (printParamsFilename!=NULL && printParamsFilename[0] != '\0') {
-         if (printParamsFilename[0] != '/') {
-            printParamsPath += outputPath;
-            printParamsPath += "/";
-         }
-         printParamsPath += printParamsFilename;
-      }
-      outputParams(printParamsPath.c_str());
 
       // publish initial conditions
       //
