@@ -236,8 +236,8 @@ function PVModule.batchSweep(pvParams, group, param, generator, nprocs)
 
    local sweep = {};
 
-   for i = 1,nprocs do
-      sweep[i] = string.format(generator, i);
+   for i = 0,nprocs-1 do
+      sweep[i+1] = string.format(generator, i);
    end
 
    sweep['groupType'] = "BatchSweep";
