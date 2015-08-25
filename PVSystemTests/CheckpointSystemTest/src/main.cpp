@@ -56,8 +56,9 @@ public:
 int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
-   int rank = 0;
    PV_Init* initObj = new PV_Init(&argc, &argv);
+   int rank = initObj->getWorldRank();
+   
 //#ifdef PV_USE_MPI
 //   MPI_Init(&argc, &argv);
 //   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
