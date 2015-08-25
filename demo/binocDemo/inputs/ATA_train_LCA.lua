@@ -9,7 +9,7 @@
 -------------------------------------------------------------------
 
 --Util module
-package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/PetaVision/parameterWrapper/?.lua;"
+package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspaceGit/OpenPV/pv-core/parameterWrapper/?.lua;"
 local pv = require("PVModule")
 
 ------------------------------------------------
@@ -18,14 +18,14 @@ local pv = require("PVModule")
 -- User defined variables
 local nxSize = 1200 --Size of image
 local nySize = 360 
-local outputPath = "/home/ec2-user/output/depthInference/ATA_train_LCA/" --Output directory
+local outputPath = "/home/slundquist/workspaceGit/OpenPV/demo/binocDemo/ataOutput/ATA_train_LCA/" --Output directory
 local writePeriod = 1 --How often to write out
 local stopTime = 100 --Stopping time, first 100 
 local progressStep = 5; --How often to print out a status report
 
 --Image parameters
-local V1PVP = "/home/ec2-user/saved_output/benchmarkEncoding/V1_LCA.pvp" --Activity file
-local depthImageListPath = "/home/ec2-user/dataset/list/benchmark_depth_noc.txt" --List of images, raw
+local V1PVP = "/nh/compneuro/Data/Depth/a12_V1_LCA.pvp" --Activity file
+local depthImageListPath = "/nh/compneuro/Data/KITTI/list/benchmark_depth_disp_noc.txt" --List of images, raw
 local numDepthBins = 128;
 
 --LCA parameters
@@ -61,19 +61,19 @@ local pvParams = {
    };
 
    V1_LCA = {
-      groupType = "Movie";
+      groupType = "MoviePvp";
       restart = 0;
       nxScale = .5/stride;
       nyScale = .5/stride;
       nf = numDictElements;
       readPvpFile = true;
-      imageListPath = V1PVP;
+      inputPath = V1PVP;
       writeFrameToTimestamp = true;
       writeStep = -1;
       sparseLayer = true;
       writeSparseValues = true;
       displayPeriod = 1;
-      start_frame_index = 22;
+      start_frame_index = 21;
       skip_frame_index = 11;
       echoFramePathnameFlag = true;
       mirrorBCflag = true;
@@ -95,13 +95,13 @@ local pvParams = {
        nxScale = 1;
        nyScale = 1;
        readPvpFile = false; 
-       imageListPath = depthImageListPath;
+       inputPath = depthImageListPath;
        writeFrameToTimestamp = true;
        nf = 1;
        writeStep = -1;
        sparseLayer = false;
        displayPeriod = 1;
-       start_frame_index = 1;
+       start_frame_index = 0;
        skip_frame_index = 1;
        echoFramePathnameFlag = true;
        mirrorBCflag = false;
@@ -130,9 +130,9 @@ local pvParams = {
        writeSparseActivity = 0;
        InitVType = "ZeroV";
        VThresh = -INFINITY;
-       VMax =  INFINITY;
-       VMin = -INFINITY;
-       VShift = 0;
+       AMax =  INFINITY;
+       AMin = -INFINITY;
+       AShift = 0;
        VWidth = 0;
        phase = 1;  
    };
@@ -186,7 +186,7 @@ local pvParams = {
    };
 
    V1ToDepthGT = {
-       groupType = "BatchConn";
+       groupType = "MomentumConn";
        preLayerName = "V1_LCA";
        postLayerName = "DepthGT";
        channelCode = -1;
@@ -225,6 +225,8 @@ local pvParams = {
        maskLayerName = "DepthDownsample";
        batchPeriod = stopTime;
        sharedWeights = true;
+       momentumMethod = "viscosity";
+       momentumTau = 1;
    };
 }
 
