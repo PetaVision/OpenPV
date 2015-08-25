@@ -2410,7 +2410,7 @@ int HyPerCol::checkpointRead() {
             fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", 1.0, 1.0);
          }
          else {
-            for(int b = 0; b < nbatchGlobal; b++){
+            for(int b = 0; b < nbatch; b++){
                long int startpos = getPV_StreamFilepos(timescalefile);
                PV_fread(&timescale[b],1,timescale_size,timescalefile);
                long int endpos = getPV_StreamFilepos(timescalefile);
