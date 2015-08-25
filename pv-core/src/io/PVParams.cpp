@@ -1009,7 +1009,7 @@ int PVParams::parseFile(const char * filename) {
    return status;
 }
 
-bool PVParams::hasOutputPath(){
+bool PVParams::hasSweepValue(const char* inParamName){
    bool out = false;
    const char * group_name;
    for (int k=0; k<numberOfParameterSweeps(); k++) {
@@ -1021,7 +1021,7 @@ bool PVParams::hasOutputPath(){
          fprintf(stderr, "PVParams::parseBuffer error: ParameterSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
          exit(EXIT_FAILURE);
       }
-      if ( !strcmp(gp->getGroupKeyword(),"HyPerCol") && !strcmp(param_name, "outputPath") ) {
+      if ( !strcmp(gp->getGroupKeyword(),"HyPerCol") && !strcmp(param_name, inParamName)) {
          out = true;
          break;
       }
@@ -1037,7 +1037,7 @@ bool PVParams::hasOutputPath(){
             fprintf(stderr, "PVParams::parseBuffer error: BatchSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
             exit(EXIT_FAILURE);
          }
-         if ( !strcmp(gp->getGroupKeyword(),"HyPerCol") && !strcmp(param_name, "outputPath") ) {
+         if ( !strcmp(gp->getGroupKeyword(),"HyPerCol") && !strcmp(param_name, inParamName) ) {
             out = true;
             break;
          }
@@ -1069,7 +1069,7 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
       abort();
    }
    if (numberOfParameterSweeps() > 0) {
-      if (!hasOutputPath()) {
+      if (!hasSweepValue("outputPath")) {
          const char * hypercolgroupname = NULL;
          const char * outputPathName = NULL;
          for (int g=0; g<numGroups; g++) {
@@ -1087,6 +1087,7 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
             fprintf(stderr, "PVParams::parseBuffer error: no HyPerCol group\n");
             abort();
          }
+
          char dummy;
          int lenserialno = snprintf(&dummy, 0, "%d", parameterSweepSize-1);
          int len = snprintf(&dummy, 0, "%s/paramsweep_%0*d/", outputPathName, lenserialno, parameterSweepSize-1)+1;
@@ -1100,10 +1101,42 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
          free(outputPathStr); outputPathStr = NULL;
          addActiveParamSweep(hypercolgroupname, "outputPath");
       }
+
+      if(!hasSweepValue("checkpointWriteDir")){
+         const char * hypercolgroupname = NULL;
+         const char * checkpointWriteDir = NULL;
+         for (int g=0; g<numGroups; g++) {
+            if (groups[g]->getGroupKeyword(),"HyPerCol") {
+               hypercolgroupname = groups[g]->name();
+               checkpointWriteDir = groups[g]->stringValue("checkpointWriteDir");
+               //checkpointWriteDir can be NULL if checkpointWrite is set to false
+               break;
+            }
+         }
+         if (hypercolgroupname == NULL) {
+            fprintf(stderr, "PVParams::parseBuffer error: no HyPerCol group\n");
+            abort();
+         }
+         if(checkpointWriteDir){
+            char dummy;
+            int lenserialno = snprintf(&dummy, 0, "%d", parameterSweepSize-1);
+            int len = snprintf(&dummy, 0, "%s/paramsweep_%0*d/", checkpointWriteDir, lenserialno, parameterSweepSize-1)+1;
+            char* checkpointPathStr = (char *) calloc(len, sizeof(char));
+            if (checkpointPathStr == NULL) abort();
+            for (int i=0; i<parameterSweepSize; i++) {
+               int chars_needed = snprintf(checkpointPathStr, len, "%s/paramsweep_%0*d/", checkpointWriteDir, lenserialno, i);
+               assert(chars_needed < len);
+               activeParamSweep->pushStringValue(checkpointPathStr);
+            }
+            free(checkpointPathStr); checkpointPathStr = NULL;
+            addActiveParamSweep(hypercolgroupname, "checkpointWriteDir");
+         }
+      }
    }
+
    if(icComm->numCommBatches() > 1){
       //This checks if there is a batch sweep of outputPath
-      if (!hasOutputPath()) {
+      if (!hasSweepValue("outputPath")) {
          const char * hypercolgroupname = NULL;
          const char * outputPathName = NULL;
          for (int g=0; g<numGroups; g++) {
@@ -1127,15 +1160,43 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
          char * outputPathStr = (char *) calloc(len, sizeof(char));
          if (outputPathStr == NULL) abort();
 
-         int batchRank = icComm->commBatch();
          for (int i=0; i<icComm->numCommBatches(); i++) {
             int chars_needed = snprintf(outputPathStr, len, "%s/batchsweep_%0*d/", outputPathName, lenserialno, i);
             assert(chars_needed < len);
             activeBatchSweep->pushStringValue(outputPathStr);
          }
-
          free(outputPathStr); outputPathStr = NULL;
          addActiveBatchSweep(hypercolgroupname, "outputPath");
+      }
+
+      if(!hasSweepValue("checkpointWriteDir")){
+         const char * hypercolgroupname = NULL;
+         const char * checkpointWriteDir = NULL;
+         for (int g=0; g<numGroups; g++) {
+            if (groups[g]->getGroupKeyword(),"HyPerCol") {
+               hypercolgroupname = groups[g]->name();
+               checkpointWriteDir = groups[g]->stringValue("checkpointWriteDir");
+               break;
+            }
+         }
+         if (hypercolgroupname == NULL) {
+            fprintf(stderr, "PVParams::parseBuffer error: no HyPerCol group\n");
+            abort();
+         }
+         if(checkpointWriteDir){
+            char dummy;
+            int lenserialno = snprintf(&dummy, 0, "%d", batchSweepSize-1);
+            int len = snprintf(&dummy, 0, "%s/batchsweep_%0*d/", checkpointWriteDir, lenserialno, parameterSweepSize-1)+1;
+            char * checkpointPathStr = (char *) calloc(len, sizeof(char));
+            if (checkpointPathStr == NULL) abort();
+            for (int i=0; i<icComm->numCommBatches(); i++) {
+               int chars_needed = snprintf(checkpointPathStr, len, "%s/batchsweep_%0*d/", checkpointWriteDir, lenserialno, i);
+               assert(chars_needed < len);
+               activeBatchSweep->pushStringValue(checkpointPathStr);
+            }
+            free(checkpointPathStr); checkpointPathStr= NULL;
+            addActiveBatchSweep(hypercolgroupname, "checkpointWriteDir");
+         }
       }
    }
 
@@ -1179,6 +1240,7 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
          fprintf(stderr, "BatchSweep error: there is no group \"%s\"\n", group_name);
          abort();
       }
+      std::cout << "group_name: " << group_name << " param_name: " << param_name << " type: " << type << "\n";
       switch (type) {
       case SWEEP_NUMBER:
          if (!g->present(param_name) ) {

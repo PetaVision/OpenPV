@@ -326,7 +326,7 @@ private:
    int clearHasBeenReadFlags();
    static char * stripQuotationMarks(const char *s);
    static char * stripOverwriteTag(const char *s);
-   bool hasOutputPath();
+   bool hasSweepValue(const char* paramName);
    
 };
 
