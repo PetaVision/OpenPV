@@ -4,12 +4,12 @@ close all;
 %setenv("GNUTERM","X11")
 
 workspace_path = "/home/ec2-user/workspace";
-output_dir = "/home/ec2-user/mountData/dictLearn/aws_icapatch/"; 
+output_dir = "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_0/"; 
 %output_dir = "/nh/compneuro/Data/Depth/LCA/arbortest/"; 
 
 addpath([workspace_path, filesep, "/pv-core/mlab/util"]);
 addpath([workspace_path, filesep, "/pv-core/mlab/HyPerLCA"]);
-last_checkpoint_ndx = 250000;
+last_checkpoint_ndx = 100000;
 checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, '%i')]; %% 
 max_history = 100000000;
 numarbors = 1;
@@ -218,7 +218,7 @@ endif  %% plot_StatsProbe_vs_time
 
 
 plot_flag = 1;
-analyze_Sparse_flag = true;
+analyze_Sparse_flag = false;
 if analyze_Sparse_flag
     Sparse_list = ...
        {["a12_"], ["V1"]; ...
@@ -253,7 +253,7 @@ if analyze_Sparse_flag
 			     num_epochs);
 endif
 
-analyze_nonSparse_flag = true;
+analyze_nonSparse_flag = false;
 if analyze_nonSparse_flag
     nonSparse_list = ...
         {["a4_"], ["LeftError"]; ...
