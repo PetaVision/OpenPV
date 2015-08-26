@@ -210,9 +210,15 @@ class Param_Parser(Param_Reader):
             if i.type == 'PoolingConn':
                 pool_type = i['pvpatchAccumulateType']
                 if pool_type == 'maxpooling':
-                    i.label = ('MAX_' + i.label)
+                    if i.label:
+                        i.label = ('MAX_' + i.label)
+                    else:
+                        i.label = ('MAX')
                 elif pool_type == 'sumpooling':
-                    i.label = ('SUM_' + i.label)
+                    if i.label:
+                        i.label = ('SUM_' + i.label)
+                    else:
+                        i.label = ('SUM')
 
     def make_original_layer_conns(self):
         for i in self.layer_dict.values():
