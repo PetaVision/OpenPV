@@ -277,6 +277,10 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    parse_options(argc, argv, paramusage, &reqrtn, &outputPath, &param_file, &log_file,
                  &gpu_devices, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads, &numRows, &numColumns, &batchWidth);
 
+   if(param_file){
+      free(param_file);
+   }
+
    //Set up log file if it exists
    if(log_file){
       //Flush buffers before duplicating stdout
@@ -413,6 +417,9 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
          fprintf(stderr, "chdir error: %s\n", strerror(errno));
          exit(status);
       }
+   }
+   if(working_dir){
+      free(working_dir);
    }
 
 
@@ -624,6 +631,10 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    //Default to auto assign gpus
    initializeThreads(gpu_devices);
 #endif
+
+   if(gpu_devices){
+      free(gpu_devices);
+   }
 
    //Only print rank for comm rank 0
    if(globalRank() == 0){

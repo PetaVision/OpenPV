@@ -59,6 +59,9 @@ int PV_Init::initialize(int argc, char* argv[]){
    //Set up communicator and parameters
    icComm = new InterColComm(argc, argv);
    params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
+   if(param_file){
+      free(param_file);
+   }
    initialized = true;
    return 0;
 }
