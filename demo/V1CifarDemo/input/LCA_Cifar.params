@@ -1,0 +1,152 @@
+debugParsing = true;
+HyPerCol "column" = {
+    stopTime = 50000000;
+    writeTimescales = true;
+    dt = 1;
+    dtAdaptFlag = true;
+    nbatch = 1;
+    checkpointWrite = true;
+    dtMinToleratedTimeScale = 0.0001;
+    nx = 32;
+    dtChangeMax = 0.01;
+    randomSeed = 123456890;
+    ny = 32;
+    filenamesContainLayerNames = 2;
+    checkpointWriteStepInterval = 100000;
+    dtScaleMin = 0.001;
+    checkpointWriteDir = "/Checkpoints";
+    dtChangeMin = -0.01;
+    startTime = 0;
+    outputPath = "";
+    progressInterval = 10000;
+};
+
+ANNLayer "InputScaled" = {
+    phase = 1;
+    InitVType = "ZeroV";
+    nf = 3;
+    writeStep = -1;
+    triggerFlag = true;
+    nxScale = 1;
+    triggerLayerName = "Input";
+    nyScale = 1;
+};
+
+HyPerConn "InputToInputScaled" = {
+    nfp = 3;
+    postLayerName = "InputScaled";
+    writeStep = -1;
+    weightInit = 0.2;
+    nxp = 1;
+    channelCode = 0;
+    nyp = 1;
+    normalizeMethod = "none";
+    preLayerName = "Input";
+    weightInitType = "OneToOneWeights";
+    plasticityFlag = false;
+};
+
+IdentConn "InputScaledToInputScaledError_V1" = {
+    channelCode = 0;
+    postLayerName = "InputScaledError_V1";
+    preLayerName = "InputScaled";
+    writeStep = -1;
+};
+
+ANNNormalizedErrorLayer "InputScaledError_V1" = {
+    initialWriteTime = 1000;
+    nxScale = 1;
+    nf = 3;
+    phase = 2;
+    writeStep = 1000;
+    nyScale = 1;
+    InitVType = "ZeroV";
+};
+
+CloneConn "V1ToInputScaledRecon_V1" = {
+    channelCode = 0;
+    postLayerName = "InputScaledRecon_V1";
+    preLayerName = "V1";
+    originalConnName = "V1ToInputScaledError_V1";
+    writeStep = -1;
+};
+
+Movie "Input" = {
+    inputPath = "";
+    nyScale = 1;
+    normalizeStdDev = false;
+    normalizeLuminanceFlag = false;
+    nxScale = 1;
+    batchMethod = "byImage";
+    start_frame_index = 0;
+    writeStep = -1;
+    displayPeriod = 1000;
+    phase = 0;
+    nf = 3;
+};
+
+ANNLayer "InputScaledRecon_V1" = {
+    initialWriteTime = 1000;
+    phase = 2;
+    triggerOffset = 1;
+    nxScale = 1;
+    nf = 3;
+    writeStep = 1000;
+    triggerFlag = true;
+    InitVType = "ZeroV";
+    triggerLayerName = "Input";
+    nyScale = 1;
+};
+
+HyPerLCALayer "V1" = {
+    VThresh = 0.015;
+    AMin = 0;
+    nf = 150;
+    writeStep = 1000;
+    minV = -1;
+    AMax = infinity;
+    AShift = 0.015;
+    timeConstantTau = 100;
+    sparseLayer = true;
+    nyScale = 1;
+    updateGpu = true;
+    maxV = 0.05;
+    initialWriteTime = 1000;
+    InitVType = "UniformRandomV";
+    phase = 3;
+    nxScale = 1;
+};
+
+MomentumConn "V1ToInputScaledError_V1" = {
+    strength = 1;
+    nyp = 5;
+    normalizeMethod = "normalizeL2";
+    triggerOffset = 1;
+    preLayerName = "V1";
+    triggerLayerName = "Input";
+    plasticityFlag = true;
+    nfp = 3;
+    postLayerName = "InputScaledError_V1";
+    triggerFlag = true;
+    sparseFraction = 0.9;
+    nxp = 5;
+    momentumTau = 100;
+    dWMax = 0.5;
+    wMinInit = -1;
+    weightInitType = "UniformRandomWeight";
+    momentumMethod = "viscosity";
+    channelCode = 1;
+    wMaxInit = 1;
+    writeStep = -1;
+};
+
+TransposeConn "InputScaledError_V1ToV1" = {
+    originalConnName = "V1ToInputScaledError_V1";
+    updateGSynFromPostPerspective = true;
+    channelCode = 0;
+    postLayerName = "V1";
+    preLayerName = "InputScaledError_V1";
+    writeStep = -1;
+    receiveGpu = true;
+};
+
