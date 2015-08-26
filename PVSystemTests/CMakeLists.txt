@@ -107,6 +107,7 @@ add_subdirectory(ArborSystemTest)
 add_subdirectory(BackgroundLayerTest)
 add_subdirectory(BasicSystemTest)
 add_subdirectory(BatchCheckpointSystemTest)
+add_subdirectory(BatchMPICheckpointSystemTest)
 add_subdirectory(BatchSweepTest)
 add_subdirectory(BatchWeightUpdateTest)
 add_subdirectory(BatchWeightUpdateMpiTest)
@@ -218,6 +219,24 @@ set(testParams ) #Names of the parameter files in the input directory, leaving o
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+
+set(testBaseName BatchMPICheckpointSystemTest) #The base name of the test
+set(testParams ) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
+#This addtest is hard coded because this test requires a run with 2, 4, and 8 mpi processes
+add_test(${testBaseName}_2 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+   mpirun -np 2 Debug/${testBaseName} ${testFlags} -l
+   ${testBaseName}_2.log)
+add_test(${testBaseName}_4 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+   mpirun -np 4 Debug/${testBaseName} ${testFlags} -l
+   ${testBaseName}_4.log)
+add_test(${testBaseName}_8 ${CMAKE_COMMAND} -E chdir ${testBaseName}
+   mpirun -np 8 Debug/${testBaseName} ${testFlags} -l
+   ${testBaseName}_8.log)
+#Add dependencies
+set_tests_properties(${testBaseName}_4 PROPERTIES DEPENDS ${testBaseName}_2)
+set_tests_properties(${testBaseName}_8 PROPERTIES DEPENDS ${testBaseName}_4)
 
 set(testBaseName BatchSweepTest) #The base name of the test
 set(testParams BatchSweepTest) #Names of the parameter files in the input directory, leaving out .params

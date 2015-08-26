@@ -132,8 +132,9 @@ int main(int argc, char * argv[]) {
    assert(pv_argv[argc+1]);
    assert(pv_arg==argc+4);
    pv_argv[pv_arg++] = strdup("-c");
-   pv_argv[pv_arg++] = strdup("checkpoints1/Checkpoint12"); //TODO change this based on output
-   assert(pv_arg==pv_argc2 && pv_arg==argc+4);
+   pv_argv[pv_arg++] = strdup("checkpoints1/batchsweep_00/Checkpoint12:checkpoints1/batchsweep_01/Checkpoint12");
+
+   assert(pv_arg==pv_argc2 && pv_arg==argc+6);
    assert(pv_argv[argc+4]!=NULL && pv_argv[argc+5]!=NULL && pv_argv[argc+6]==NULL);
 
    status = rebuildandrun(pv_argc2, pv_argv, initObj, NULL, &customexit, &customGroupHandler, 1);
@@ -155,42 +156,59 @@ int main(int argc, char * argv[]) {
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int customexit(HyPerCol * hc, int argc, char * argv[]) {
+int diffDirs(const char* cpdir1, const char* cpdir2, int index){
    int status = PV_SUCCESS;
+   if(cpdir1 == NULL || cpdir2 == NULL) {
+      fprintf(stderr, "unable to allocate memory for names of checkpoint directories");
+      exit(EXIT_FAILURE);
+   }
+   char * shellcommand;
+   char c;
+   const char * fmtstr = "diff -r -q -x timers.txt -x pv.params -x pv.params.lua %s/Checkpoint%d %s/Checkpoint%d";
+   int len = snprintf(&c, 1, fmtstr, cpdir1, index, cpdir2, index);
+   shellcommand = (char *) malloc(len+1);
+   if( shellcommand == NULL) {
+      fprintf(stderr, "unable to allocate memory for shell diff command.\n");
+      status = PV_FAILURE;
+   }
+   assert( snprintf(shellcommand, len+1, fmtstr, cpdir1, index, cpdir2, index) == len );
+   status = system(shellcommand);
+   if( status != 0 ) {
+      fprintf(stderr, "system(\"%s\") returned %d\n", shellcommand, status);
+      // Because system() seems to return the result of the shell command multiplied by 256,
+      // and Unix only sees the 8 least-significant bits of the value returned by a C/C++ program,
+      // simply returning the result of the system call doesn't work.
+      // I haven't found the mult-by-256 behavior in the documentation, so I'm not sure what's
+      // going on.
+      status = PV_FAILURE;
+   }
+   free(shellcommand); shellcommand = NULL;
+   return status;
+}
+
+int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int rank = hc->icCommunicator()->commRank();
    int rootproc = 0;
+   int status = PV_SUCCESS;
    if( rank == rootproc ) {
       int index = hc->getFinalStep()-hc->getInitialStep();
-      const char * cpdir1 = "checkpoints1";
-      const char * cpdir2 = hc->parameters()->stringValue("column", "checkpointWriteDir");
-      if(cpdir1 == NULL || cpdir2 == NULL) {
-         fprintf(stderr, "%s: unable to allocate memory for names of checkpoint directories", argv[0]);
-         exit(EXIT_FAILURE);
-      }
-      char * shellcommand;
-      char c;
-      const char * fmtstr = "diff -r -q -x timers.txt -x pv.params -x pv.params.lua %s/Checkpoint%d %s/Checkpoint%d";
-      int len = snprintf(&c, 1, fmtstr, cpdir1, index, cpdir2, index);
-      shellcommand = (char *) malloc(len+1);
-      if( shellcommand == NULL) {
-         fprintf(stderr, "%s: unable to allocate memory for shell diff command.\n", argv[0]);
-         status = PV_FAILURE;
-      }
-      assert( snprintf(shellcommand, len+1, fmtstr, cpdir1, index, cpdir2, index) == len );
-      status = system(shellcommand);
-      if( status != 0 ) {
-         fprintf(stderr, "system(\"%s\") returned %d\n", shellcommand, status);
-         // Because system() seems to return the result of the shell command multiplied by 256,
-         // and Unix only sees the 8 least-significant bits of the value returned by a C/C++ program,
-         // simply returning the result of the system call doesn't work.
-         // I haven't found the mult-by-256 behavior in the documentation, so I'm not sure what's
-         // going on.
-         status = PV_FAILURE;
-      }
-      free(shellcommand); shellcommand = NULL;
+      const char * cpdir1 = "checkpoints1/batchsweep_00";
+      const char * cpdir2 = "checkpoints2/batchsweep_00";
+      status = diffDirs(cpdir1, cpdir2, index);
    }
 #ifdef PV_USE_MPI
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
 #endif
+   assert(status == PV_SUCCESS);
+   if( rank == rootproc ) {
+      int index = hc->getFinalStep()-hc->getInitialStep();
+      const char * cpdir1 = "checkpoints1/batchsweep_01";
+      const char * cpdir2 = "checkpoints2/batchsweep_01";
+      status = diffDirs(cpdir1, cpdir2, index);
+   }
+#ifdef PV_USE_MPI
+   MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
+#endif
+   assert(status == PV_SUCCESS);
    return status;
 }
