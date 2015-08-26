@@ -50,11 +50,6 @@ HyPerCol::~HyPerCol()
 
    if (image_file != NULL) free(image_file);
 
-   for (int k=0; k<numBaseProbes; k++) {
-      if (baseProbes[k] && baseProbes[k]->getOwner()==(void *) this) { delete baseProbes[k]; }
-   }
-   free(baseProbes);
-
    for (n = 0; n < numConnections; n++) {
       delete connections[n];
    }
@@ -99,6 +94,12 @@ HyPerCol::~HyPerCol()
    // colProbes do not have to be deleted because their owner is the HyPerCol and
    // they are still in baseProbes, so they will be deleted when baseProbes is deleted.
    free(colProbes);
+
+   for (int k=0; k<numBaseProbes; k++) {
+      if (baseProbes[k] && baseProbes[k]->getOwner()==(void *) this) { delete baseProbes[k]; }
+   }
+   free(baseProbes);
+
    free(name);
    free(printParamsFilename);
    // free(outputNamesOfLayersAndConns);
@@ -2037,7 +2038,7 @@ int HyPerCol::calcTimeScaleTrue() {
       dtAdaptControlProbe->getValues(simTime, &colProbeValues);
       assert(colProbeValues.size()==nbatch); // Need to make sure dtAdaptControlProbe->vectorSize == nbatch
       for (int b=0; b<nbatch; b++) {
-         timeScaleTrue[b] = 1.0/colProbeValues.at(b);
+         timeScaleTrue[b] = colProbeValues.at(b);
       }
    }
    else {
@@ -3157,9 +3158,6 @@ int HyPerCol::insertProbe(ColProbe * p)
 
    colProbes = newprobes;
    colProbes[numColProbes] = p;
-   // Note: if ColProbe becomes a subclass of BaseProbe and the probe gets added to the baseProbes array
-   // before getting inserted, as LayerProbes and BaseConnectionProbes do, we'll have to remove the probe from baseProbes
-   // when adding it to colProbes, or the destructor will try to delete it twice.
    return ++numColProbes;
 }
 
@@ -3237,8 +3235,8 @@ ColProbe * HyPerCol::getColProbeFromName(const char * probeName) {
       assert(curName);
       if (!strcmp(curName, probeName)) {
          p = curColProbe;
+         break;
       }
-      break;
    }
    return p;
 }

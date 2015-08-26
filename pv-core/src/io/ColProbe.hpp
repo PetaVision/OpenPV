@@ -50,7 +50,7 @@ public:
     * will fprintf to outputstream->fp, where stream is the BaseProbe member variable.
     */
    virtual int outputState(double timed) {return PV_SUCCESS;}
-    
+
    /**
     * Derived classes of ColProbe should override this method to return a vector of length
     * getVectorSize().  The base class leaves the input vector untouched and returns PV_SUCCESS;

@@ -104,6 +104,7 @@
 
 #include "ColProbe.hpp"
 #include "ColumnEnergyProbe.hpp"
+#include "QuotientColProbe.hpp"
 #include "FirmThresholdCostFnProbe.hpp"
 #include "L0NormProbe.hpp"
 #include "L1NormProbe.hpp"
@@ -249,14 +250,16 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"TransposeConn", ConnectionGroupType},
          {"TransposePoolingConn", ConnectionGroupType},
 
+         // Probes
+
          // ColProbes
          {"ColProbe", ColProbeGroupType},
          {"ColumnEnergyProbe", ColProbeGroupType},
+         {"QuotientColProbe", ColProbeGroupType},
 #ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  GenColProbe is being replaced by ColumnEnergyProbe
          {"GenColProbe", ColProbeGroupType},
 #endif // OBSOLETE // Marked obsolete Aug 12, 2015.  GenColProbe is being replaced by ColumnEnergyProbe
 
-         // Probes
          // // Layer probes
          {"LayerProbe", ProbeGroupType},
          {"FirmThresholdCostFnProbe", ProbeGroupType},
@@ -637,6 +640,9 @@ ColProbe * CoreParamGroupHandler::createColProbe(char const * keyword, char cons
       addedColProbe = new GenColProbe(name, hc);
    }
 #endif // OBSOLETE // Marked obsolete Aug 12, 2015.  GenColProbe is being replaced by ColumnEnergyProbe
+   else if (!strcmp(keyword, "QuotientColProbe")) {
+      addedColProbe = new QuotientColProbe(name, hc);
+   }
 
    if (addedColProbe==NULL && getGroupType(keyword)==ColProbeGroupType) {
       if (hc->columnId()==0) {

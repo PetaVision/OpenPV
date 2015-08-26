@@ -255,16 +255,21 @@ public:
     */
    inline int getDelay(int arbor) { return (arbor >= 0 && arbor < this->numberOfAxonalArborLists()) ? delays[arbor] : -1; }
 
-   // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
-   // /**
-   //  * Returns true if the connection treats pre-synaptic activity as a not-rate.
-   //  * Returns false if the connection treats pre-synaptic activity as a rate.
-   //  */
-   // inline bool preSynapticActivityIsNotRate() { return preActivityIsNotRate; }
    inline bool getConvertRateToSpikeCount() { return convertRateToSpikeCount; }
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    inline bool getReceiveGpu() { return receiveGpu; }
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+
+   /**
+    * Returns the number of probes that have been attached to this connection
+    */
+   int getNumProbes() { return numProbes; }
+
+   /**
+    * Returns the probe with the indicated position in the list of probes.
+    * It does not do sanity checking on the value of i.
+    */
+   BaseConnectionProbe * getProbe(int i) { return probes[i]; }
 
 protected:
 
@@ -465,19 +470,6 @@ protected:
     * @details Checkpoint read directory must be set in HyPerCol to initialize from checkpoint.
     */
    virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
-
-//   virtual int writeWeights(double timed, bool last = false) = 0;
-
-   /**
-    * Returns the number of probes that have been attached to this connection
-    */
-   int getNumProbes() { return numProbes; }
-
-   /**
-    * Returns the probe with the indicated position in the list of probes.
-    * It does not do sanity checking on the value of i.
-    */
-   BaseConnectionProbe * getProbe(int i) { return probes[i]; }
 
    /**
     * A pure virtual method that uses an existing checkpoint to

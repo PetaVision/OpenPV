@@ -78,6 +78,10 @@ int BaseProbe::setProbeName(const char * probeName) {
    return PV_SUCCESS;
 }
 
+int BaseProbe::getNumValues() {
+   return parent->getNBatch();
+}
+
 char const * BaseProbe::getKeyword() {
    return this->getParent()->parameters()->groupKeywordFromName(this->getName());
 }

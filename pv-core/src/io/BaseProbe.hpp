@@ -56,6 +56,14 @@ public:
     * to choose when output its state.
     */
    virtual bool needUpdate(double time, double dt);
+
+   /**
+    * Returns the number of value indices the probe can compute.
+    * getValues() will return a vector of that length, and
+    * getValue() returns a signaling NaN if the input index is >= getNumValues() or negative.
+    * BaseProbe returns the parent HyPerCol's getNBatch().  getNumValues() can be overridden.
+    */
+   virtual int getNumValues();
    
    /**
     * The public interface for calling the outputState method.
