@@ -96,9 +96,8 @@ HyPerCol::~HyPerCol()
 
    free(dtAdaptController);
 
-   for (int k=0; k<numColProbes; k++) {
-      delete colProbes[k];
-   }
+   // colProbes do not have to be deleted because their owner is the HyPerCol and
+   // they are still in baseProbes, so they will be deleted when baseProbes is deleted.
    free(colProbes);
    free(name);
    free(printParamsFilename);
@@ -269,7 +268,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    int rank = icComm->globalCommRank();
 
    char* gpu_devices = NULL; 
-   char * param_file = NULL;
    char * working_dir = NULL;
    int restart = 0;
    int numthreads = 1; //Default to 1 thread
@@ -278,7 +276,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    int numColumns = 1;
    int batchWidth = 1;
    bool paramusage[argc]; // array to indicate whether parse_options recognized the argument.
-   parse_options(argc, argv, paramusage, &reqrtn, &outputPath, &param_file, &log_file,
+   // param_file is handled by PV_Init
+   parse_options(argc, argv, paramusage, &reqrtn, &outputPath, NULL, &log_file,
                  &gpu_devices, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads, &numRows, &numColumns, &batchWidth);
 
    if(param_file){
@@ -3164,7 +3163,7 @@ int HyPerCol::insertProbe(ColProbe * p)
    return ++numColProbes;
 }
 
-// BaseProbes include layer probes and connection probes, but not (yet) column probes.
+// BaseProbes include layer probes, connection probes, and not column probes.
 int HyPerCol::addBaseProbe(BaseProbe * p) {
    BaseProbe ** newprobes;
    newprobes = (BaseProbe **) malloc( ((size_t) (numBaseProbes + 1)) * sizeof(BaseProbe *) );
@@ -3183,7 +3182,7 @@ int HyPerCol::addBaseProbe(BaseProbe * p) {
 int HyPerCol::outputState(double time)
 {
    for( int n = 0; n < numColProbes; n++ ) {
-       colProbes[n]->outputState(time, this);
+       colProbes[n]->outputState(time);
    }
    return PV_SUCCESS;
 }
@@ -3234,7 +3233,7 @@ ColProbe * HyPerCol::getColProbeFromName(const char * probeName) {
    int n = numberOfProbes();
    for (int i=0; i<n; i++) {
       ColProbe * curColProbe = getColProbe(i);
-      const char * curName = curColProbe->getColProbeName();
+      const char * curName = curColProbe->getName();
       assert(curName);
       if (!strcmp(curName, probeName)) {
          p = curColProbe;

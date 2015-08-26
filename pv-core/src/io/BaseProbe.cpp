@@ -31,6 +31,7 @@ BaseProbe::~BaseProbe()
       triggerLayerName = NULL;
    }
    free(name);
+   free(energyProbe);
 }
 
 int BaseProbe::initialize_base() {
@@ -46,6 +47,7 @@ int BaseProbe::initialize_base() {
    triggerLayerName = NULL;
    triggerLayer = NULL;
    triggerOffset = 0;
+   energyProbe = NULL;
    return PV_SUCCESS;
 }
 

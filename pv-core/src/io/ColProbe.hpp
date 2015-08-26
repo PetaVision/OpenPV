@@ -26,7 +26,7 @@ namespace PV {
  * A HyPerCol object with dtAdaptFlag set to true uses a ColProbe::getValues() call to
  * compute the dtAdapt vector.
  */
-class ColProbe {
+class ColProbe : public BaseProbe {
 public:
    /**
     * Public constructor for the ColProbe class.
@@ -37,31 +37,19 @@ public:
     * Destructor for the ColumnEnergyProbe class.
     */
    virtual ~ColProbe();
-
+   
    /**
-    * Reads parameters from the params file/writes parameters to the output params file.
-    * Derived classes should not override or hide this method.  Instead, they should
-    * override the protected method ioParamsFillGroup(), which is called by ioParams().
+    * Calls BaseProbe::communicateInitInfo (which sets up any triggering or attaching to an energy probe)
+    * and then attaches to the parent HyPerCol by calling parent->insertProbe().
     */
-   int ioParams(enum ParamsIOFlag ioFlag);
+   virtual int communicateInitInfo();
    
    /**
     * The virtual method for outputting the quantities measured by the ColProbe.
     * Derived classes should override this method.  Typically, outputState
-    * will fprintf to stream->fp, where stream is the ColProbe member variable.
+    * will fprintf to outputstream->fp, where stream is the BaseProbe member variable.
     */
-   virtual int outputState(double time, HyPerCol * hc) {return PV_SUCCESS;}
-   
-   /**
-    * Public get-method for returning the name of the ColProbe, which is set during
-    * initialization.
-    */
-   char const * getColProbeName() { return colProbeName; }
-   
-   /**
-    * Returns the keyword of the params group associated with this ColProbe.
-    */
-   char const * getKeyword();
+   virtual int outputState(double timed) {return PV_SUCCESS;}
     
    /**
     * Derived classes of ColProbe should override this method to return a vector of length
@@ -83,9 +71,6 @@ public:
    size_t getVectorSize() { return 0; }
 
 protected:
-   HyPerCol * parentCol;
-   PV_Stream * stream;
-   char * colProbeName;
 
    /**
     * The constructor without arguments should be used by derived classes.
@@ -103,28 +88,23 @@ protected:
     * Reads parameters from the params file/writes parameters to the output params file.
     * If a derived class introduces a new parameter, its ioParamsFillGroup method should
     * call an ioParam_ method for that parameter.  If a derived class eliminates a
-    * a parameter, or changes the dependencies of the parameter, it should override
-    * the ioParam_ method for that parameter.  The derived class's ioParamsFillGroup
-    * method should call its base class's ioParamsFillGroup method.
+    * a parameter of the base class, or changes the dependencies of a parameter, it
+    * should override the ioParam_ method for that parameter.  The derived class's
+    * ioParamsFillGroup method should call its base class's ioParamsFillGroup method.
     */
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-
-   /**
-    * @brief probeOutputFile: the path, relative to the HyPerCol's outputPath directory,
-    * to write to during outputState.
-    * @details If blank, output is sent to stdout.
-    */
-   virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
     
    /**
-    * Opens a stream for writing associated to the given path.  Relative paths are
-    * relative to the HyPerCol's outputPath.
-    * Under MPI, only the root process initializes the stream; nonroot processes set
-    * the stream member variable to NULL.
-    * This method is called by ColProbe::ioParam_probeOutputFile during initialization.
-    * It is an error to call it again once the stream has been initialized.
+    * @brief targetName: ColProbe overrides targetName since the only possible target
+    * is the parent HyPerCol.  On reading, it sets targetName.  Parameters are
+    * neither read nor written by this method.
     */
-   int initialize_stream(const char * filename);
+   virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
+    
+   /**
+    * Calls BaseProbe::initOutputStream and then calls outputHeader()
+    */
+   virtual int initOutputStream(const char * filename);
     
    /**
     * Called by initialize_stream after opening the stream member variable.
@@ -134,11 +114,6 @@ protected:
    virtual int outputHeader() { return PV_SUCCESS; }
 
 private:
-    
-    /**
-     * Sets the colProbeName member variable.  It is called by ColProbe::initialize().
-     */
-   int setColProbeName(const char * name);
     
    /**
     * Initializes member variables to safe values (e.g. pointers are set to NULL).

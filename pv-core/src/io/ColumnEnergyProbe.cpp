@@ -39,8 +39,8 @@ int ColumnEnergyProbe::initializeColumnEnergyProbe(const char * probename, HyPer
 }
 
 int ColumnEnergyProbe::outputHeader() {
-   if (stream) {
-      fprintf(stream->fp, "Probe_name,time,index,energy\n");
+   if (outputstream) {
+      fprintf(outputstream->fp, "Probe_name,time,index,energy\n");
    }
    return PV_SUCCESS;
 }
@@ -48,26 +48,26 @@ int ColumnEnergyProbe::outputHeader() {
 int ColumnEnergyProbe::addTerm(BaseProbe * probe, double coefficient, size_t vectorSize) {
    if (probe==NULL) { return PV_FAILURE; }
    if (numTerms>0 && vectorSize != this->vectorSize) {
-      if (parentCol->columnId()==0) {
+      if (this->getParent()->columnId()==0) {
          fprintf(stderr, "Error adding terms to %s \%s\": vector size %zu of new probe \"%s\" does not agree with existing vector size %zu\n",
-               getKeyword(), getColProbeName(), vectorSize, probe->getName(), this->vectorSize);
+               getKeyword(), getName(), vectorSize, probe->getName(), this->vectorSize);
       }
       exit(EXIT_FAILURE);
    }
    this->vectorSize = vectorSize;
    size_t newNumTerms = numTerms+(size_t) 1;
    if (newNumTerms<=numTerms) {
-      if (parentCol->columnId()==0) {
+      if (this->getParent()->columnId()==0) {
          fprintf(stderr, "How did you manage to add %zu terms to %s \"%s\"?  Unable to add any more!\n",
-               numTerms, getKeyword(), colProbeName);
+               numTerms, getKeyword(), getName());
       }
-      MPI_Barrier(parentCol->icCommunicator()->communicator());
+      MPI_Barrier(this->getParent()->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
    energyTerm * newTermsArray = (energyTerm *) realloc(terms, (numTerms+(size_t) 1)*sizeof(energyTerm));
    if (newTermsArray==NULL) {
       fprintf(stderr, "%s \"%s\" error: unable to add term %zu (\"%s\"): %s\n",
-         getKeyword(), colProbeName, numTerms+(size_t) 1, probe->getName(),
+         getKeyword(), getName(), numTerms+(size_t) 1, probe->getName(),
          strerror(errno));
       exit(EXIT_FAILURE);
    }
@@ -103,15 +103,16 @@ double ColumnEnergyProbe::getValue(double timevalue, int index) {
    return sum;
 }  // end ColumnEnergyProbe::evaluate(float)
 
-int ColumnEnergyProbe::outputState(double timevalue, HyPerCol * hc) {
+int ColumnEnergyProbe::outputState(double timevalue) {
    std::vector<double> energy;
    getValues(timevalue, &energy);
-   if( hc->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
-   for(int b = 0; b < hc->getNBatch(); b++){
-      fprintf(stream->fp, "\"%s\",%f,%d,%f\n",
-            colProbeName, timevalue, b, energy.at(b));
+   if( this->getParent()->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
+   int nbatch = this->getParent()->getNBatch();
+   for(int b = 0; b < nbatch; b++){
+      fprintf(outputstream->fp, "\"%s\",%f,%d,%f\n",
+            this->getName(), timevalue, b, energy.at(b));
    }
-   fflush(stream->fp);
+   fflush(outputstream->fp);
    return PV_SUCCESS;
 }  // end ColumnEnergyProbe::outputState(float, HyPerCol *)
 

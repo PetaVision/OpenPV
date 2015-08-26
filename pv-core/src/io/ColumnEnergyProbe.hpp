@@ -70,7 +70,7 @@ public:
     * "Name of probe",timevalue,index,energy
     * The number of lines printed is equal to getVectorSize(), and index goes from 0 to getVectorSize()-1.
     */
-   virtual int outputState(double timevalue, HyPerCol * hc);
+   virtual int outputState(double timevalue);
    
    /**
     * Computes the vector of total energies.  Any existing contents of *values
