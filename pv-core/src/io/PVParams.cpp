@@ -1240,7 +1240,6 @@ int PVParams::parseBuffer(char const * buffer, long int bufferLength) {
          fprintf(stderr, "BatchSweep error: there is no group \"%s\"\n", group_name);
          abort();
       }
-      std::cout << "group_name: " << group_name << " param_name: " << param_name << " type: " << type << "\n";
       switch (type) {
       case SWEEP_NUMBER:
          if (!g->present(param_name) ) {
