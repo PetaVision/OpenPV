@@ -1,13 +1,13 @@
 clear all; close all; dbstop error;
 
 %addpath('devkit/matlab/')
-addpath('~/workspace/PetaVision/mlab/util')
-outdir =  '~/NIPS/'
-LCAdir =  '~/NIPS/data/aws_white_rcorr_LCA/';
-RELUdir = '~/NIPS/data/aws_white_rcorr_RELU/';
+addpath('~/workspaceGit/OpenPV/pv-core/mlab/util')
+outdir =  '~/NIPS/icapatch/'
+LCAdir =  '~/NIPS/icapatch/data/validate/aws_icapatch_LCA/';
+RELUdir = '~/NIPS/icapatch/data/validate/aws_icapatch_RELU/';
 
 %For rcorr patches
-targetNeurons = [239, 3, 308]; %1 indexed
+targetNeurons = [164, 25, 126]; %1 indexed
 LCADictFilename = [LCAdir, 'Last/LCA_V1ToRCorrBuf_W.pvp'];
 RELUDictFilename = [RELUdir, 'Last/RELU_V1ToRCorrBuf_W.pvp'];
 %For rcorr patch plots
@@ -147,16 +147,22 @@ for ni = 1:length(targetNeurons)
       yi = sampleIdxs(i);
       whitenVal = whitenVals(i);
       
+      LCAData = squeeze(plot_LCA(yi, :));
+      RELUData = squeeze(plot_RELU(yi, :));
+
+      LCAData = (LCAData - min(LCAData(:)))/(max(LCAData(:)) - min(LCAData(:)));
+      RELUData = (RELUData - min(RELUData(:)))/(max(RELUData(:)) - min(RELUData(:)));
+
       if(i == 1)
-         h_LCA = plot(squeeze(plot_LCA(yi, :)), 'color', [1, whitenVal, whitenVal]);
-         axis([0, 128, -.12, -.04])
-         h_RELU = plot(squeeze(plot_RELU(yi, :)), 'color', [whitenVal, whitenVal, 1]);
-         axis([0, 128, -.12, -.04])
+         h_LCA = plot(LCAData, 'color', [1, whitenVal, whitenVal]);
+         axis([0, 128, 0, 1])
+         h_RELU = plot(RELUData, 'color', [whitenVal, whitenVal, 1]);
+         axis([0, 128, 0, 1])
       else
-         plot(squeeze(plot_LCA(yi, :)), 'color', [1, whitenVal, whitenVal]);
-         axis([0, 128, -.12, -.04])
-         plot(squeeze(plot_RELU(yi, :)), 'color', [whitenVal, whitenVal, 1]);
-         axis([0, 128, -.12, -.04])
+         plot(LCAData, 'color', [1, whitenVal, whitenVal]);
+         axis([0, 128, 0, 1])
+         plot(RELUData, 'color', [whitenVal, whitenVal, 1]);
+         axis([0, 128, 0, 1])
       end
    end
    hold off
@@ -181,25 +187,25 @@ for ni = 1:length(targetNeurons)
    plot_LCA = squeeze(sum(LCA_targetPatch, 1));
    plot_RELU= squeeze(sum(RELU_targetPatch, 1));
    
-   maxVal = -inf;
-   minVal = inf;
+   %maxVal = -inf;
+   %minVal = inf;
 
-   if(max(plot_LCA(:)) > maxVal)
-      maxVal = max(plot_LCA(:));
-   end
-   if(max(plot_RELU(:)) > maxVal)
-      maxVal = max(plot_RELU(:));
-   end
-   if(min(plot_LCA(:)) < minVal)
-      minVal = min(plot_LCA(:));
-   end
-   if(min(plot_RELU(:)) < minVal)
-      minVal = min(plot_RELU(:));
-   end
+   %if(max(plot_LCA(:)) > maxVal)
+   %   maxVal = max(plot_LCA(:));
+   %end
+   %if(max(plot_RELU(:)) > maxVal)
+   %   maxVal = max(plot_RELU(:));
+   %end
+   %if(min(plot_LCA(:)) < minVal)
+   %   minVal = min(plot_LCA(:));
+   %end
+   %if(min(plot_RELU(:)) < minVal)
+   %   minVal = min(plot_RELU(:));
+   %end
 
    %Normalize to be between 0 and 1
-   norm_plotLCA = (plot_LCA - minVal)/(maxVal-minVal);
-   norm_plotRELU = (plot_RELU - minVal)/(maxVal-minVal);
+   norm_plotLCA = (plot_LCA - min(plot_LCA(:)))/(max(plot_LCA(:))-min(plot_LCA(:)));
+   norm_plotRELU = (plot_RELU - min(plot_RELU(:)))/(max(plot_RELU(:))-min(plot_RELU(:)));
 
    [ny, ndepth] = size(norm_plotLCA);
    assert(ny == size(norm_plotRELU, 1));
