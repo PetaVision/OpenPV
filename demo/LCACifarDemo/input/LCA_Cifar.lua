@@ -8,8 +8,8 @@ local subnets = require "PVSubnets";
 --Parameters
 local nxSize = 32; --Cifar is 32 x 32
 local nySize = 32;
-local xPatchSize = 5; --Patch size of basis vectors
-local yPatchSize = 5;
+local xPatchSize = 6; --Patch size of basis vectors
+local yPatchSize = 6;
 local displayPeriod = 1000; --Number of timesteps to find sparse approximation
 
 local basisVectorFile = nil; --nil for initial weights, otherwise, specifies the weights file to load for dictionaries
@@ -21,8 +21,8 @@ local numImages = 50000; --Total number of images in dataset
 local numEpochs = 1; --Number of times to run through dataset
 local nbatch = 32; --Batch size of learning
 
-local cifarInputPath = ""; --TODO
-local outputPath = ""; --TODO
+local cifarInputPath = "/home/slundquist/workspace/OpenPV/demo/LCACifarDemo/dataset/cifar-10-batches-mat/mixed_cifar.txt"; --TODO
+local outputPath = "/home/slundquist/workspace/OpenPV/demo/LCACifarDemo/output/"; --TODO
 
 local numBasisVectors = 128; --Total number of basis vectors being learned
 local VThresh = .015; --The threshold, or lambda, of the network
