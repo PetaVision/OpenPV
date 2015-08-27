@@ -18,7 +18,7 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime= 100000000;
     progressStep = 5000;
-    //outputPath = "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024/";
+    outputPath = "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
@@ -36,7 +36,7 @@ HyPerCol "column" = {
     dtScaleMin = 0.02;
     dtChangeMax = 0.01;
     dtChangeMin = -0.05;
-    nbatch = 32;
+    nbatch = 4;
 };
 
 BatchSweep "column":outputPath = {
@@ -44,18 +44,6 @@ BatchSweep "column":outputPath = {
     "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_1/";
     "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_2/";
     "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_3/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_4/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_5/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_6/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_7/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_8/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_9/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_10/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_11/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_12/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_13/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_14/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_15/";
 };
 
 BatchSweep "column":checkpointWriteDir = {
@@ -63,19 +51,45 @@ BatchSweep "column":checkpointWriteDir = {
     "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_1/Checkpoints/";
     "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_2/Checkpoints/";
     "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_3/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_4/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_5/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_6/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_7/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_8/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_9/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_10/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_11/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_12/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_13/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_14/Checkpoints/";
-    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_15/Checkpoints/";
 };
+
+//BatchSweep "column":outputPath = {
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_0/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_1/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_2/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_3/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_4/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_5/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_6/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_7/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_8/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_9/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_10/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_11/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_12/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_13/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_14/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_15/";
+//};
+//
+//BatchSweep "column":checkpointWriteDir = {
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_0/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_1/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_2/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_3/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_4/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_5/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_6/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_7/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_8/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_9/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_10/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_11/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_12/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_13/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_14/Checkpoints/";
+//    "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_15/Checkpoints/";
+//};
 
 
 
@@ -98,7 +112,7 @@ Movie "LeftImage" = {
     writeSparseActivity = false;
     displayPeriod = 400;
     batchMethod = "byMovie";
-    //start_frame_index = 0;
+    start_frame_index = 250;
     //skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
@@ -468,7 +482,7 @@ MomentumConn "V1ToLeftError" = {
     sharedWeights = true;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/leftDictRect1024.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/dictLearn/rect_1024_saved/V1ToLeftError_W.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
@@ -498,7 +512,7 @@ MomentumConn "V1ToLeftError" = {
     triggerOffset = 1;
     initialWriteTime = 0.0;
 
-    dWMax = 1; // 200.0 used for initial training
+    dWMax = 5; // 200.0 used for initial training
     momentumTau = 50;
     momentumMethod = "viscosity";
 
@@ -548,7 +562,7 @@ MomentumConn "V1ToRightError" = {
     @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
     normalizeGroupName = "V1ToLeftError";
-    @initWeightsFile = "/home/ec2-user/mountData/rightDictRect1024.pvp";
+    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/rect_1024_saved/V1ToRightError_W.pvp";
 };
 
 TransposeConn "RightErrorToV1" = {
