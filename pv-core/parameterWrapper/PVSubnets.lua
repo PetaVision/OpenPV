@@ -165,6 +165,11 @@ function addLCASubnet
 
   local displayPeriod = pvParams[triggerLayerName]['displayPeriod'];
 
+
+  local inputLayer = pvParams[inputLayerName];
+  local errorLayerName = inputLayerName .. 'Error_' .. lcaLayerName;
+  local reconLayerName = inputLayerName .. 'Recon_' .. lcaLayerName;
+
   if inputValueScale ~= 1 then
     PVSubnets.addScaleValueConn
       { pvParams       = pvParams
@@ -174,11 +179,6 @@ function addLCASubnet
       }
     inputLayerName = inputLayerName .. 'Scaled';
   end
-
-
-  local inputLayer = pvParams[inputLayerName];
-  local errorLayerName = inputLayerName .. 'Error_' .. lcaLayerName;
-  local reconLayerName = inputLayerName .. 'Recon_' .. lcaLayerName;
 
 
   local inputToError = {
