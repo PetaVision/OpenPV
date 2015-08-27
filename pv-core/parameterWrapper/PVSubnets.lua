@@ -97,6 +97,10 @@ function PVSubnets.addMaxPoolingLayer(args)
   addMaxPoolingLayer
     ( args.pvParams          -- params table
     , args.inputLayerName    -- layer to max pool
+
+    , args.poolingLayerName  -- desired name for pooling layer
+      or args.inputLayerName .. 'MaxPool' -- default
+
     , args.stride            -- stride at which to max-pool
     , args.writeStep         -- writeStep for pooled layer
     );
@@ -106,11 +110,10 @@ end
 function PVSubnets.singleLayerPerceptron(args)
   singleLayerPerceptron
     ( args.pvParams             -- params table
-    , args.inputLayerName       -- input to perceptron
+    , args.inputLayerNames      -- input to perceptron
     , args.groundTruthLayerName -- desired output of perceptron
     , args.connParams           -- learning / connection parameters
     , args.biasConnParams       -- bias connection parameters (if different)
-      or args.connParams
     , args.triggerLayerName     -- trigger layer (usually image)
     , args.addDeltaInputLayer   -- whether to begin backpropagating the error
     );
@@ -423,11 +426,11 @@ end
 function addMaxPoolingLayer
   ( pvParams
   , inputLayerName
+  , poolingLayerName
   , stride
   , writeStep
   );
 
-  local poolingLayerName = inputLayerName .. "MaxPool";
   local inputLayer = pvParams[inputLayerName];
 
   local poolingLayer = {
@@ -484,7 +487,7 @@ end
 
 function singleLayerPerceptron
   ( pvParams
-  , inputLayerName
+  , inputLayerNames
   , groundTruthLayerName
   , inputConnParams
   , biasConnParams
@@ -492,8 +495,42 @@ function singleLayerPerceptron
   , addDeltaInputLayer
   )
 
+  -- table-ize non-table values for single input case
+  if  type(inputConnParams[1]) ~= "table" and 
+      type(inputLayerNames)    ~= "table" then
+
+    local connParams = pv.deepCopy(inputConnParams);
+    inputConnParams = {};
+    inputConnParams[inputLayerNames] = connParams;
+    inputLayerNames = { inputLayerNames };
+
+  -- replicate params if only one passed in
+  elseif type(inputLayerNames)    == "table" and
+         type(inputConnParams[1]) ~= "table" then
+
+    local connParams = pv.deepCopy(inputConnParams);
+    inputConnParams = {};
+    for _,inputLayerName in pairs(inputLayerNames) do
+      inputConnParams[inputLayerName] = pv.deepCopy(connParams);
+    end
+
+  -- throw error if more connections then layers
+  elseif type(inputLayerNames) ~= "table" and
+         type(inputConnParams) == "table" then
+
+    error('type mismatch: multiple connection params passed in for only one layer');
+  end 
+
+  -- replicate input params for bias if not passed in
+  if biasConnParams == nil then
+    biasConnParams = pv.deepCopy(inputConnParams[inputLayerNames[1]]);
+  end
+
+  allConnParams = pv.deepCopy(inputConnParams)
+  allConnParams['biasConn'] = biasConnParams;
+
   -- Error checking
-  for _,connParams in pairs({ inputConnParams, biasConnParams }) do
+  for _,connParams in pairs(allConnParams) do
     if connParams['normalizeMethod'] ~= nil    and
        connParams['normalizeMethod'] ~= 'none' then
       error('perceptron connections are not normalized!');
@@ -510,14 +547,27 @@ function singleLayerPerceptron
     end
   end
 
+
   local displayPeriod    = pvParams[triggerLayerName]['displayPeriod'];
-
   local groundTruthLayer = pvParams[groundTruthLayerName];
-  local inputLayer       = pvParams[inputLayerName];
 
-  local reconLayerName   = groundTruthLayerName .. 'Recon_' .. inputLayerName;
+
+  local reconLayerName   = groundTruthLayerName .. 'Recon_';
+  local maxPhase = 0;
+  for _,inputLayerName in pairs(inputLayerNames) do
+
+    local inputLayer       = pvParams[inputLayerName];
+    if inputLayer['phase'] > maxPhase then
+      maxPhase = inputLayer['phase'];
+    end
+
+    reconLayerName = reconLayerName .. inputLayerName;
+
+  end
+
   local deltaLayerName   = 'Delta' .. reconLayerName;
   local biasLayerName    = groundTruthLayerName .. 'Bias';
+
 
   -- Layers
   local reconLayer = {
@@ -526,7 +576,7 @@ function singleLayerPerceptron
     nyScale   = groundTruthLayer['nyScale'];
     nf        = groundTruthLayer['nf'];
 
-    phase = inputLayer['phase'] + 1;
+    phase = maxPhase + 1;
 
     InitVType = "ZeroV";
 
@@ -564,8 +614,7 @@ function singleLayerPerceptron
     channelCode   = 0;
     writeStep     = -1;
   };
-  pvParams[groundTruthLayerName .. 'To' .. deltaLayerName] =
-    groundTruthToDelta;
+  pvParams[groundTruthLayerName .. 'To' .. deltaLayerName] = groundTruthToDelta;
 
   local reconToDelta = {
     groupType     = "IdentConn";
@@ -574,44 +623,58 @@ function singleLayerPerceptron
     channelCode   = 1;
     writeStep     = -1;
   };
-  pvParams[reconLayerName .. 'To' .. deltaLayerName] =
-    reconToDelta;
+  pvParams[reconLayerName .. 'To' .. deltaLayerName] = reconToDelta;
+
+  for _,inputLayerName in pairs(inputLayerNames) do
+    local inputConn = inputConnParams[inputLayerName];
+
+    local inputToDelta = {
+      groupType = "HyPerConn";
+      preLayerName = inputLayerName;
+      postLayerName = deltaLayerName;
+      nfp = deltaLayer['nfp'];
+
+      channelCode = -1;
+      normalizeMethod  = inputConn['normalizeMethod'] or 'none';
+
+      triggerFlag      = inputConn['plasticityFlag'];
+      triggerLayerName = inputConn['plasticityFlag'] and triggerLayerName or nil;
+      triggerOffset    = inputConn['plasticityFlag'] and 1 or nil;
+
+      writeStep = -1;
+    };
+    for k,v in pairs(inputConn) do inputToDelta[k] = v end
+    pvParams[inputLayerName .. 'To' .. deltaLayerName] = inputToDelta;
+
+    local inputToRecon = {
+      groupType = "CloneConn";
+      preLayerName = inputLayerName;
+      postLayerName = reconLayerName;
+      originalConnName = inputLayerName .. 'To' .. deltaLayerName;
+
+      channelCode = 0;
+
+      writeStep = -1;
+    };
+    pvParams[inputLayerName .. 'To' .. reconLayerName] = inputToRecon;
+  end
 
 
-  local inputToDelta = {
+  local biasToDelta = {
     groupType = "HyPerConn";
-    preLayerName = inputLayerName;
+    preLayerName = biasLayerName;
     postLayerName = deltaLayerName;
     nfp = deltaLayer['nfp'];
 
     channelCode = -1;
-    normalizeMethod  = inputConnParams['normalizeMethod'] or 'none';
+    normalizeMethod  = biasConnParams['normalizeMethod'] or 'none';
 
-    triggerFlag      = inputConnParams['plasticityFlag'];
-    triggerLayerName = inputConnParams['plasticityFlag'] and triggerLayerName or nil;
-    triggerOffset    = inputConnParams['plasticityFlag'] and 1 or nil;
-
-    writeStep = -1;
-  };
-  for k,v in pairs(inputConnParams) do inputToDelta[k] = v end
-  pvParams[inputLayerName .. 'To' .. deltaLayerName] =
-    inputToDelta;
-
-  local inputToRecon = {
-    groupType = "CloneConn";
-    preLayerName = inputLayerName;
-    postLayerName = reconLayerName;
-    originalConnName = inputLayerName .. 'To' .. deltaLayerName;
-
-    channelCode = 0;
+    triggerFlag      = biasConnParams['plasticityFlag'];
+    triggerLayerName = biasConnParams['plasticityFlag'] and triggerLayerName or nil;
+    triggerOffset    = biasConnParams['plasticityFlag'] and 1 or nil;
 
     writeStep = -1;
-  };
-  pvParams[inputLayerName .. 'To' .. reconLayerName] =
-    inputToRecon;
-
-  local biasToDelta           = pv.deepCopy(inputToDelta);
-  biasToDelta['preLayerName'] = biasLayerName;
+  }
   for k,v in pairs(biasConnParams) do biasToDelta[k] = v end
   pvParams[biasLayerName .. 'To' .. deltaLayerName] = biasToDelta;
 
@@ -629,6 +692,8 @@ function singleLayerPerceptron
 
   -- Add extra layer and connection if perceptron will be used to start backprop
   if addDeltaInputLayer then
+    local inputLayerName = inputLayerNames[1];
+    local inputLayer = pvParams[inputLayerName];
     local deltaInputLayerName = 'Delta' .. inputLayerName;
 
     local deltaInputLayer = {
