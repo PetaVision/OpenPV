@@ -1,7 +1,7 @@
 --Load packages
 package.path = package.path .. ";" 
             .. os.getenv("HOME") 
-            .. "/workspaceGit/OpenPV/pv-core/parameterWrapper/?.lua";
+            .. "/workspace/OpenPV/pv-core/parameterWrapper/?.lua";
 local pv = require "PVModule";
 local subnets = require "PVSubnets";
 
@@ -21,8 +21,8 @@ local numImages = 50000; --Total number of images in dataset
 local numEpochs = 1; --Number of times to run through dataset
 local nbatch = 32; --Batch size of learning
 
-local cifarInputPath = "/home/slundquist/workspace/OpenPV/demo/LCACifarDemo/dataset/cifar-10-batches-mat/mixed_cifar.txt";
-local outputPath = "/home/slundquist/workspace/OpenPV/demo/LCACifarDemo/output/";
+local cifarInputPath = "~/workspace/OpenPV/demo/LCACifarDemo/dataset/cifar-10-batches-mat/mixed_cifar.txt";
+local outputPath = "~/workspace/OpenPV/demo/LCACifarDemo/output/";
 
 local numBasisVectors = 128; --Total number of basis vectors being learned
 local VThresh = .015; --The threshold, or lambda, of the network
