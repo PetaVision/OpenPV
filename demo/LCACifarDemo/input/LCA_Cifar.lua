@@ -15,14 +15,14 @@ local displayPeriod = 1000; --Number of timesteps to find sparse approximation
 local basisVectorFile = nil; --nil for initial weights, otherwise, specifies the weights file to load for dictionaries
 local plasticityFlag = true; --Determines if we are learning weights or holding them constant
 local momentumTau = 100; --The momentum parameter. A single weight update will last for momentumTau timesteps.
-local dwMax = .5; --The learning rate
+local dwMax = 1; --The learning rate
 
 local numImages = 50000; --Total number of images in dataset
 local numEpochs = 1; --Number of times to run through dataset
 local nbatch = 32; --Batch size of learning
 
-local cifarInputPath = "/home/slundquist/workspace/OpenPV/demo/LCACifarDemo/dataset/cifar-10-batches-mat/mixed_cifar.txt"; --TODO
-local outputPath = "/home/slundquist/workspace/OpenPV/demo/LCACifarDemo/output/"; --TODO
+local cifarInputPath = "/home/slundquist/workspace/OpenPV/demo/LCACifarDemo/dataset/cifar-10-batches-mat/mixed_cifar.txt";
+local outputPath = "/home/slundquist/workspace/OpenPV/demo/LCACifarDemo/output/";
 
 local numBasisVectors = 128; --Total number of basis vectors being learned
 local VThresh = .015; --The threshold, or lambda, of the network
@@ -71,15 +71,6 @@ params['Input'] = {
   normalizeStdDev = false;
 };
 
---Creates a new layer that scales the input. This makes the scale of the input
---match the scale of the basis vectors, as we are normalizing the basis vectors
---to have a unit norm.
-subnets.addScaleValueConn{
-   pvParams       = params; --Parameter group object to add layers to
-   inputLayerName = "Input"; --The input layer name
-   scaleFactor    = 1/math.sqrt(xPatchSize * yPatchSize); --The scale factor to scale the image with
-};
-
 --Connection table input to addLCASubnet
 connTable = {
    nxp              = xPatchSize; --The patch size of the basis vectors
@@ -107,7 +98,8 @@ end
 subnets.addLCASubnet{
    pvParams                      = params; --Outermost parameter group to add groups to
    lcaLayerName                  = "V1"; --The name of the LCA layer
-   inputLayerName                = "InputScaled"; --The name of the input to the LCA layer
+   inputLayerName                = "Input"; --The name of the input to the LCA layer
+   inputValueScale               = 1/math.sqrt(xPatchSize * yPatchSize);
    stride                        = 2; --The stride of the receptive fields
 
    lcaParams = { 
