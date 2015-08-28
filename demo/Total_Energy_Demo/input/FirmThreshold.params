@@ -18,7 +18,7 @@ HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
     dtAdaptFlag                         = true;
-    dtAdaptController                   = "Total_Energy_Probe";
+    dtAdaptController                   = "TimeScale";
     dtScaleMax                          = 5;
     dtScaleMin                          = 0.125;
     dtChangeMax                         = 0.05;
@@ -231,7 +231,6 @@ CloneConn "V1_to_reconstruction" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     gpuGroupIdx                         = 0;
@@ -265,4 +264,33 @@ FirmThresholdCostFnProbe "Cost_Function_Probe" = {
     // VThresh inherited from targetLayer
     // VWidth inherited from targetLayer
     coefficient                         = 0.25;
+};
+
+L0NormProbe "Activation_Percentage" = {
+    targetLayer                         = "V1";
+    message                             = NULL;
+    probeOutputFile                     = "activation_percentage.txt";
+    triggerFlag                         = false;
+};
+
+ColumnEnergyProbe "Input_Energy" = {
+    probeOutputFile                     = "input_energy.txt";
+};
+
+L2NormProbe "Input_L2Norm" = {
+    targetLayer                         = "input";
+    message                             = NULL;
+    probeOutputFile                     = "input_l2norm.txt";
+    triggerFlag                         = true;
+    triggerLayerName                    = "input";
+    exponent                            = 2;
+    energyProbe                         = "Input_Energy";
+    coefficient                         = 0.5;
+};
+
+QuotientColProbe "TimeScale" = {
+    numerator                           = "Input_Energy";
+    denominator                         = "Total_Energy_Probe";
+    probeOutputFile                     = "timescale.txt";
+    valueDescription                    = "TimeScale";
 };

@@ -229,7 +229,6 @@ CloneConn "V1_to_reconstruction" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     gpuGroupIdx                         = 0;
@@ -289,5 +288,5 @@ QuotientColProbe "TimeScale" = {
     numerator                           = "Input_Energy";
     denominator                         = "Total_Energy_Probe";
     probeOutputFile                     = "timescale.txt";
-    valueDescription                    = "Scaled_Energy";
+    valueDescription                    = "TimeScale";
 };

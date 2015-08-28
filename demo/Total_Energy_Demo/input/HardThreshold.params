@@ -10,13 +10,13 @@
 //  For a hard-threshold model, LCA minimizes the
 //  energy \frac{1}{2}\| x-\Phi y\|_2^2 + sum(H(y_i - threshold)).
 
-debugParsing = true;
+debugParsing = false;
 
 HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
     dtAdaptFlag                         = true;
-    dtAdaptController                   = "Total_Energy_Probe";
+    dtAdaptController                   = "TimeScale";
     dtScaleMax                          = 5;
     dtScaleMin                          = 0.125;
     dtChangeMax                         = 0.05;
@@ -260,5 +260,34 @@ L0NormProbe "Cost_Function_Probe" = {
     triggerFlag                         = false;
     energyProbe                         = "Total_Energy_Probe";
     nnzThreshold                        = 0.0;
-    coefficient                         = 0.03125; // VThresh^2/2
+    coefficient                         = 0.03125; // 0.5 * VThresh^2
+};
+
+L0NormProbe "Activation_Percentage" = {
+    targetLayer                         = "V1";
+    message                             = NULL;
+    probeOutputFile                     = "activation_percentage.txt";
+    triggerFlag                         = false;
+};
+
+ColumnEnergyProbe "Input_Energy" = {
+    probeOutputFile                     = "input_energy.txt";
+};
+
+L2NormProbe "Input_L2Norm" = {
+    targetLayer                         = "input";
+    message                             = NULL;
+    probeOutputFile                     = "input_l2norm.txt";
+    triggerFlag                         = true;
+    triggerLayerName                    = "input";
+    exponent                            = 2;
+    energyProbe                         = "Input_Energy";
+    coefficient                         = 0.5;
+};
+
+QuotientColProbe "TimeScale" = {
+    numerator                           = "Input_Energy";
+    denominator                         = "Total_Energy_Probe";
+    probeOutputFile                     = "timescale.txt";
+    valueDescription                    = "TimeScale";
 };
