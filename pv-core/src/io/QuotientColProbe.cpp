@@ -96,7 +96,7 @@ int QuotientColProbe::communicateInitInfo() {
          exit(EXIT_FAILURE);
       }
       status = setNumValues(nNumValues);
-      if (status != PV_FAILURE) {
+      if (status != PV_SUCCESS) {
          fprintf(stderr, "%s \"%s\" error: unable to allocate memory for %d values: %s\n",
                this->getKeyword(), this->getName(), nNumValues, strerror(errno));
          exit(EXIT_FAILURE);
@@ -140,7 +140,7 @@ int QuotientColProbe::calcValues(double timeValue) {
    double n[numValues];
    numerProbe->getValues(timeValue, n);
    double d[numValues];
-   numerProbe->getValues(timeValue, d);
+   denomProbe->getValues(timeValue, d);
    double * valuesBuffer = getValuesBuffer();
    for (int b=0; b<numValues; b++) {
       valuesBuffer[b] = n[b]/d[b];
@@ -154,8 +154,8 @@ int QuotientColProbe::outputState(double timevalue) {
    double * valuesBuffer = getValuesBuffer();
    int numValues = this->getNumValues();
    for(int b = 0; b < numValues; b++){
-      fprintf(outputstream->fp, "\"%s\",%f,%d,%f\n",
-            this->getName(), timevalue, b, valuesBuffer[b]);
+      fprintf(outputstream->fp, "%s,%f,%d,%f\n",
+            this->valueDescription, timevalue, b, valuesBuffer[b]);
    }
    fflush(outputstream->fp);
    return PV_SUCCESS;

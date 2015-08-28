@@ -45,6 +45,7 @@ int BaseProbe::initialize_base() {
    targetName = NULL;
    msgparams = NULL;
    msgstring = NULL;
+   textOutputFlag = true;
    probeOutputFilename = NULL;
    triggerFlag = false;
    triggerLayerName = NULL;
@@ -100,6 +101,7 @@ int BaseProbe::ioParams(enum ParamsIOFlag ioFlag) {
 int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_targetName(ioFlag);
    ioParam_message(ioFlag);
+   ioParam_textOutputFlag(ioFlag);
    ioParam_probeOutputFile(ioFlag);
    ioParam_triggerFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
@@ -131,8 +133,15 @@ void BaseProbe::ioParam_coefficient(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void BaseProbe::ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "textOutputFlag", &textOutputFlag, textOutputFlag);
+}
+
 void BaseProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
-   parent->ioParamString(ioFlag, name, "probeOutputFile", &probeOutputFilename, NULL, false/*warnIfAbsent*/);
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "textOutputFlag"));
+   if (textOutputFlag) {
+      parent->ioParamString(ioFlag, name, "probeOutputFile", &probeOutputFilename, NULL, false/*warnIfAbsent*/);
+   }
 }
 
 void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
@@ -342,7 +351,7 @@ double BaseProbe::getValue(double timevalue, int index) {
 
 int BaseProbe::outputStateWrapper(double timef, double dt){
    int status = PV_SUCCESS;
-   if(needUpdate(timef, dt)){
+   if(textOutputFlag && needUpdate(timef, dt)){
       status = outputState(timef);
    }
    return status;

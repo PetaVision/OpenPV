@@ -16,8 +16,8 @@ HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
     dtAdaptFlag                         = true;
-    dtAdaptController                   = "Total_Energy_Probe";
-    dtScaleMax                          = 5;
+    dtAdaptController                   = "TimeScale";
+    dtScaleMax                          = 4;
     dtScaleMin                          = 0.125;
     dtChangeMax                         = 0.05;
     dtChangeMin                         = 0;
@@ -261,4 +261,33 @@ L1NormProbe "Cost_Function_Probe" = {
     triggerFlag                         = false;
     energyProbe                         = "Total_Energy_Probe";
     coefficient                         = 0.25;
+};
+
+L0NormProbe "Activation_Percentage" = {
+    targetLayer                         = "V1";
+    message                             = NULL;
+    probeOutputFile                     = "activation_percentage.txt";
+    triggerFlag                         = false;
+};
+
+ColumnEnergyProbe "Input_Energy" = {
+    probeOutputFile                     = "input_energy.txt";
+};
+
+L2NormProbe "Input_L2Norm" = {
+    targetLayer                         = "input";
+    message                             = NULL;
+    probeOutputFile                     = "input_l2norm.txt";
+    triggerFlag                         = true;
+    triggerLayerName                    = "input";
+    exponent                            = 2;
+    energyProbe                         = "Input_Energy";
+    coefficient                         = 0.5;
+};
+
+QuotientColProbe "TimeScale" = {
+    numerator                           = "Input_Energy";
+    denominator                         = "Total_Energy_Probe";
+    probeOutputFile                     = "timescale.txt";
+    valueDescription                    = "Scaled_Energy";
 };
