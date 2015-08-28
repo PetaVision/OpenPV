@@ -262,7 +262,7 @@ function addLCASubnet
     triggerLayerName = connParams['plasticityFlag']
                    and triggerLayerName or nil;
 
-    triggerOffset    = connParams['plasticityFlag'] and 1 or nil;
+    triggerOffset    = connParams['plasticityFlag'] and 0 or nil;
 
     writeStep = -1;
   };
@@ -639,7 +639,7 @@ function singleLayerPerceptron
 
       triggerFlag      = inputConn['plasticityFlag'];
       triggerLayerName = inputConn['plasticityFlag'] and triggerLayerName or nil;
-      triggerOffset    = inputConn['plasticityFlag'] and 1 or nil;
+      triggerOffset    = inputConn['plasticityFlag'] and 0 or nil;
 
       writeStep = -1;
     };
@@ -671,7 +671,7 @@ function singleLayerPerceptron
 
     triggerFlag      = biasConnParams['plasticityFlag'];
     triggerLayerName = biasConnParams['plasticityFlag'] and triggerLayerName or nil;
-    triggerOffset    = biasConnParams['plasticityFlag'] and 1 or nil;
+    triggerOffset    = biasConnParams['plasticityFlag'] and 0 or nil;
 
     writeStep = -1;
   }
@@ -821,7 +821,7 @@ function backPropStep
 
       triggerFlag      = connParams['plasticityFlag'];
       triggerLayerName = connParams['plasticityFlag'] and triggerLayerName or nil;
-      triggerOffset    = connParams['plasticityFlag'] and 1 or nil;
+      triggerOffset    = connParams['plasticityFlag'] and 0 or nil;
 
       channelCode = -1;
 
@@ -862,7 +862,7 @@ function backPropStep
 
       triggerFlag      = connParams['plasticityFlag'];
       triggerLayerName = connParams['plasticityFlag'] and triggerLayerName or nil;
-      triggerOffset    = connParams['plasticityFlag'] and 1 or nil;
+      triggerOffset    = connParams['plasticityFlag'] and 0 or nil;
 
       channelCode = -1;
 
