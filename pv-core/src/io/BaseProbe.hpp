@@ -163,7 +163,7 @@ protected:
 
    /**
     * @brief triggerFlag: If false, the needUpdate method always returns true,
-    * so that outputState is called every timestep.  If false, the needUpdate
+    * so that outputState is called every timestep.  If true, the needUpdate
     * method uses triggerLayerName and triggerOffset to determine if the probe
     * should be triggered.
     */
