@@ -17,6 +17,12 @@ public:
 
 protected:
    /**
+    * @brief textOutputFlag: TriggerTestLayerProbe does not use textOutputFlag;
+    * as it overrides outputStateWrapper to always create a text file.
+    */
+   virtual void ioParam_textOutputFlag(enum ParamsIOFlag ioFlag) {}
+
+   /**
     * TriggerTestLayerProbe::needRecalc(double) always returns true so that we can always
     * investigate the value of needUpdate()
     */

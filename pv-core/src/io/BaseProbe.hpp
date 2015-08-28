@@ -156,7 +156,13 @@ protected:
    virtual void ioParam_message(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief probeOutputFile: the name of the file that the outputState method writes to.
+    * @brief textOutputFlag: A boolean parameter that sets whether to generate an output file.  Defaults to true.
+    */
+   virtual void ioParam_textOutputFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief probeOutputFile: If textOutputFlag is true, probeOutputFile specifies
+    * the name of the file that the outputState method writes to.
     * If blank, the output is sent to stdout.
     */
    virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
@@ -300,6 +306,7 @@ private:
    int numValues;
    double * probeValues;
    double lastUpdateTime; // The time of the last time calcValues was called.
+   bool textOutputFlag;
 };
 
 }
