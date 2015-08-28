@@ -58,6 +58,12 @@ protected:
     */
    virtual void ioParam_targetName(enum ParamsIOFlag ioFlag);
    /** @} */
+   
+   /**
+    * Implements the needRecalc method.  Returns true if the target layer's getLastUpdateTime method
+    * is greater than the probe's lastUpdateTime member variable.
+    */
+   virtual bool needRecalc(double timevalue);
 
 private:
    int initialize_base();

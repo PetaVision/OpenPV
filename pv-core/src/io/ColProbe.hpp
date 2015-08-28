@@ -16,6 +16,8 @@ namespace PV {
 /**
  * ColProbe is the base class for probes that are attached to the column as a whole,
  * as opposed to an individual layer or connection.
+ * Derived classes must implement the needRecalc and calcValues methods.
+ * 
  *
  * The original motivation for ColProbe was for computing total energy of a sparse-coding
  * hierarchy.  In this situation, the energy is a sum of contributions from the residual
@@ -23,8 +25,8 @@ namespace PV {
  * of the batch.  The getValues() method would compute the energy for each element of the
  * batch.  The getValue() method returns the energy for a single batch element.
  *
- * A HyPerCol object with dtAdaptFlag set to true uses a ColProbe::getValues() call to
- * compute the dtAdapt vector.
+ * A HyPerCol object with dtAdaptFlag set to true and dtAdaptController set to a ColProbe
+ * uses a ColProbe::getValues() call to compute the timeScaleTrue buffer.
  */
 class ColProbe : public BaseProbe {
 public:
@@ -50,25 +52,6 @@ public:
     * will fprintf to outputstream->fp, where stream is the BaseProbe member variable.
     */
    virtual int outputState(double timed) {return PV_SUCCESS;}
-
-   /**
-    * Derived classes of ColProbe should override this method to return a vector of length
-    * getVectorSize().  The base class leaves the input vector untouched and returns PV_SUCCESS;
-    */
-   virtual int getValues(double timevalue, std::vector<double> * values) { return PV_SUCCESS; }
-   
-   /**
-    * Derived classes of ColProbe should override getValue() to
-    * return a value for one index in the range 0, 1, ..., getVectorSize()-1.
-    * The base class always returns zero.
-    */
-   virtual double getValue(double timevalue, int index) { return 0; }
-   
-   /**
-    * Derived classes of ColProbe should override getVectorSize()
-    * to return the size of the vectors that getValues computes.
-    */
-   size_t getVectorSize() { return 0; }
 
 protected:
 

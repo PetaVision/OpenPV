@@ -41,6 +41,10 @@ int BaseHyPerConnProbe::communicateInitInfo() {
    return status;
 }
 
+bool BaseHyPerConnProbe::needRecalc(double timevalue) {
+   return this->getLastUpdateTime() < targetHyPerConn->getLastUpdateTime();
+}
+
 BaseHyPerConnProbe::~BaseHyPerConnProbe() {
 }
 

@@ -127,23 +127,18 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
    return l2normsq;
 }
 
-int L2NormProbe::getValues(double timevalue, std::vector<double> * values) {
-   int status = AbstractNormProbe::getValues(timevalue, values);
+int L2NormProbe::calcValues(double timevalue) {
+   int status = AbstractNormProbe::calcValues(timevalue);
    if (status != PV_SUCCESS) { return status; }
    if (exponent != 2.0) {
-      int nBatch = getParent()->getNBatch();
-      for (int b=0; b<nBatch; b++) {
-         double * vptr = &(*values)[b];
-         *vptr = pow(*vptr, exponent/2.0);
+      double * valBuf = getValuesBuffer();
+      int numVals = this->getNumValues();
+      for (int b=0; b<numVals; b++) {
+         double v = valBuf[b];
+         valBuf[b] = pow(v, exponent/2.0);
       }
    }
    return PV_SUCCESS;
-}
-   
-double L2NormProbe::getValue(double timevalue, int index) {
-   double v = AbstractNormProbe::getValue(timevalue, index);
-   if (exponent != 2.0) { v = pow(v, exponent/2.0); }
-   return v;
 }
 
 }  // end namespace PV

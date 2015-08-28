@@ -25,6 +25,7 @@ public:
 protected:
    BaseHyPerConnProbe();
    int initialize(const char * probeName, HyPerCol * hc);
+   bool needRecalc(double timevalue);
 
 private:
    int initialize_base();

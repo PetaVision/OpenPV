@@ -26,6 +26,24 @@ protected:
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
    virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);
    void requireType(PVBufType requiredType);
+   
+   /**
+    * StatsProbe sets numValues to -1, indicating that the getValues and getValue methods don't work.
+    * StatsProbe is an old probe that might be deprecated in favor of more getValues-friendly probes.
+    */
+   virtual int initNumValues();
+   
+   /**
+    * Implements needRecalc() for StatsProbe to always return false (getValues and getValue methods should not be used).
+    */
+   virtual bool needRecalc(double timevalue) { return false; }
+   
+   /**
+    * Implements calcValues() for StatsProbe to always fail (getValues and getValue methods should not be used).
+    */
+   virtual int calcValues(double timevalue) { return PV_FAILURE; }
+
+// Member variables
    PVBufType type;
    double* sum;
    double* sum2;

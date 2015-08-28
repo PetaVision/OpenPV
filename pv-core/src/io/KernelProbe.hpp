@@ -31,6 +31,10 @@ protected:
    virtual void ioParam_outputPlasticIncr(enum ParamsIOFlag ioFlag);
    virtual void ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag);
    int patchIndices(HyPerConn * conn);
+   
+   virtual int initNumValues();
+      
+   virtual int calcValues(double timevalue) {return PV_FAILURE;}
 
    int getKernelIndex() {return kernelIndex;}
    int getArbor()       {return arborID;}

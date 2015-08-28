@@ -58,12 +58,14 @@ public:
    virtual bool needUpdate(double time, double dt);
 
    /**
-    * Returns the number of value indices the probe can compute.
-    * getValues() will return a vector of that length, and
-    * getValue() returns a signaling NaN if the input index is >= getNumValues() or negative.
-    * BaseProbe returns the parent HyPerCol's getNBatch().  getNumValues() can be overridden.
+    * Returns the number of value indices the probe can compute (typically the value
+    * of the parent HyPerCol's nBatch parameter).
+    * BaseProbe::getNumValues() returns the parent HyPerCol's getNBatch(), which can be overridden.
+    * Probes derived from BaseProbe can set numValues to zero or a negative number to indicate that
+    * getValues() and getNumValues()
+    * are not fully implemented for that probe.
     */
-   virtual int getNumValues();
+   int getNumValues() { return numValues; }
    
    /**
     * The public interface for calling the outputState method.
@@ -104,23 +106,31 @@ public:
    void const * getOwner() { return owner;}
    
    /**
-    * getValues() sets the vector argument to the values of the probe.
-    * BaseProbe::getValues() always leaves the vector untouched and always returns PV_FAILURE.
-    * derived classes should override this method.  The number of elements of the vector is up to
-    * the derived class.
-    * getValues() was motivated by the need to have a layer report its energy
-    * for each element of the batch.  In this case the number of elements
-    * of the vector is the HyPerCol's batch size.
-    * 
+    * getValues(double timevalue, double * values) sets the buffer 'values' with the probe's calculated values.
+    * It assumes that the values buffer is large enough to hold getNumValues()
+    * double-precision values.
+    * If 'values' is NULL, the values are still updated internally if needed, but
+    * those values are not returned.
+    * Internally, getValues() calls calcValues() if needRecalc() is true.  It then
+    * copies the probeValues buffer to the input argument buffer 'values'.
+    * Derived classes should not override or hide this method.  Instead, they should override calcValues.
     */
-   virtual int getValues(double timevalue, std::vector<double> * values) { return PV_FAILURE; }
+   int getValues(double timevalue, double * valuesVector);
+   /**
+    * getValues(double timevalue, vector<double> * valuesVector) is a wrapper around
+    * getValues(double, double *) that uses C++ vectors.  It resizes valuesVector
+    * to size getNumValues() and then fills the vector with the values returned by getValues.
+    */
+   int getValues(double timevalue, std::vector<double> * valuesVector);
    /**
     * getValue() is meant for situations where the caller needs one value
-    * of the vector that would be returned by getValues(), not the whole vector.
-    * the base class always returns zero, no matter the value of the index.
-    * Derived classes should override this method.
+    * that would be returned by getValues(), not the whole buffer.
+    * getValue() returns a signaling NaN if index is out of bounds.  If index is valid,
+    * getValue() calls calcValues() if needRecalc() returns true, and then
+    * returns probeValues[index].
+    * Derived classes should not override or hide this method.  Instead, they should override calcValues.
     */
-   virtual double getValue(double timevalue, int index) { return 0.0; }
+   double getValue(double timevalue, int index);
 
 protected:
    BaseProbe();
@@ -189,10 +199,80 @@ protected:
 
    virtual int initOutputStream(const char * filename);
 
+   /**
+    * A pure virtual method for that should return true if the quantities being measured
+    * by the probe have changed since the last time the quantities were calculated.
+    * Typically, an implementation of needRecalc() will check the lastUpdateTime of
+    * the object being probed, and return true if that value is greater than the
+    * lastUpdateTime member variable.
+    * needRecalc() is called by getValues(double) (and hence by getValue() and the other
+    * flavors of getValues).
+    * Note that there is a single needRecalc that applies to all getNumValues() quantities.
+    */
+   virtual bool needRecalc(double timevalue) = 0;
+
+   /**
+    * A pure virtual method to calculate the values of the probe.  calcValues() can
+    * assume that needRecalc() has been called and returned true.
+    * It should write the computed values into the buffer of member variable 'probeValues'.
+    */
+   virtual int calcValues(double timevalue) = 0;
+
+   /**
+    * If needRecalc() returns true, getValues(double) updates the probeValues buffer
+    * (by calling calcValues) and sets lastUpdateTime to the timevalue input argument.
+    */
+   int getValues(double timevalue);
+
+   /**
+    * Returns a pointer to parent HyPerCol.
+    */
    HyPerCol * getParent() {return parent;}
+   
+   /**
+    * Returns a pointer to the message parameter.
+    */
    const char * getMessage() {return msgstring;}
+   
+   /**
+    * The method called by BaseProbe::initialize() to set the message used by
+    * the probe's outputState method.
+    */
    virtual int initMessage(const char * msg);
+   
+   /**
+    * Returns a pointer to the PV_Stream used by outputState.
+    */
    PV_Stream * getStream() {return outputstream;}
+   
+   /**
+    * initNumValues is called by initialize.
+    * BaseProbe::initNumValues sets numValues to the parent HyPerCol's getNBatch().
+    * Derived classes can override initNumValues to initialize numValues to a different
+    * value.
+    */
+   virtual int initNumValues();
+   
+   /**
+    * Sets the numValues member variable (returned by getNumValues()) and reallocates
+    * the probeValues member variable to hold numValues double-precision values.
+    * If the reallocation fails, the probeValues buffer is left unchanged, errno is
+    * set (by a realloc() call), and PV_FAILURE is returned.
+    * Otherwise, PV_SUCCESS is returned.
+    */
+   int setNumValues(int n);
+   
+   /**
+    * Returns a pointer to the buffer containing the probeValues.
+    */
+   double * getValuesBuffer() { return probeValues; }
+
+   /**
+    * Returns the time that calcValues was last called.
+    * BaseProbe updates the last update time in getValues() and getValue(),
+    * based on the result of needRecalc.
+    */
+   double getLastUpdateTime() { return lastUpdateTime; }
 
 private:
    int initialize_base();
@@ -217,6 +297,9 @@ private:
    char * msgparams; // the message parameter in the params
    char * msgstring; // the string that gets printed by outputState ("" if message is empty or null; message + ":" if nonempty
    char * probeOutputFilename;
+   int numValues;
+   double * probeValues;
+   double lastUpdateTime; // The time of the last time calcValues was called.
 };
 
 }

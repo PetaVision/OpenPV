@@ -21,21 +21,6 @@ public:
    L2NormProbe(const char * probeName, HyPerCol * hc);
    virtual ~L2NormProbe();
 
-   /**
-    * Returns a vector whose length is the HyPerCol's batch size.
-    * The kth element of the vector is the L2Norm of batch element k of the target
-    * layer's activity buffer, raised to the power given in the exponent parameter,
-    * using the batch element specified by the index input argument.
-    */
-   virtual int getValues(double timevalue, std::vector<double> * values);
-   
-   /**
-    * Returns the L2Norm of the target layer's activity buffer, raised to
-    * the power given in the exponent parameter, using the batch element
-    * specified by the index input argument.
-    */
-   virtual double getValue(double timevalue, int index);
-
 protected:
    L2NormProbe();
    int initL2NormProbe(const char * probeName, HyPerCol * hc);
@@ -49,6 +34,11 @@ protected:
     * Return values and errno are set by a call to setNormDescriptionToString.
     */
    virtual int setNormDescription();
+   
+   /**
+    * Overrides AbstractNormProbe::calcValues method to apply the exponent.
+    */
+   virtual int calcValues(double timevalue);
    
    /**
     * Each MPI process returns the sum of the squares of the activities in its

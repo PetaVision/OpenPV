@@ -5,6 +5,8 @@
  *      Author: rasmussn
  */
 
+#include <float.h>
+#include <limits>
 #include "BaseProbe.hpp"
 #include "ColumnEnergyProbe.hpp"
 #include "../layers/HyPerLayer.hpp"
@@ -32,6 +34,7 @@ BaseProbe::~BaseProbe()
    }
    free(name);
    free(energyProbe);
+   free(probeValues);
 }
 
 int BaseProbe::initialize_base() {
@@ -48,6 +51,9 @@ int BaseProbe::initialize_base() {
    triggerLayer = NULL;
    triggerOffset = 0;
    energyProbe = NULL;
+   numValues = 0;
+   probeValues = NULL;
+   lastUpdateTime = -DBL_MAX;
    return PV_SUCCESS;
 }
 
@@ -57,13 +63,15 @@ int BaseProbe::initialize_base() {
  */
 int BaseProbe::initialize(const char * probeName, HyPerCol * hc)
 {
+   int status = PV_SUCCESS;
    setParentCol(hc);
    setProbeName(probeName);
    ioParams(PARAMS_IO_READ);
    //Add probe to list of probes
    parent->addBaseProbe(this); // Adds probe to HyPerCol.  If needed, probe will be attached to layer or connection during communicateInitInfo
    owner = (void *) parent;
-   return PV_SUCCESS;
+   status = initNumValues();
+   return status;
 }
 
 int BaseProbe::setProbeName(const char * probeName) {
@@ -76,10 +84,6 @@ int BaseProbe::setProbeName(const char * probeName) {
       exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;
-}
-
-int BaseProbe::getNumValues() {
-   return parent->getNBatch();
 }
 
 char const * BaseProbe::getKeyword() {
@@ -179,6 +183,31 @@ int BaseProbe::initOutputStream(const char * filename) {
    return PV_SUCCESS;
 }
 
+int BaseProbe::initNumValues() {
+   return setNumValues(parent->getNBatch());
+}
+
+int BaseProbe::setNumValues(int n) {
+   int status = PV_SUCCESS;
+   if (n>0) {
+      double * newValuesBuffer = (double *) realloc(probeValues, (size_t) n*sizeof(*probeValues));
+      if (newValuesBuffer != NULL) {
+         // realloc() succeeded
+         probeValues = newValuesBuffer;
+         numValues = n;
+      }
+      else {
+         // realloc() failed
+         status = PV_FAILURE;
+      }
+   }
+   else {
+      free(probeValues);
+      probeValues = NULL;
+   }
+   return status;
+}
+
 int BaseProbe::communicateInitInfo() {
    //Set up output stream
    int status = initOutputStream(probeOutputFilename);
@@ -209,7 +238,7 @@ int BaseProbe::communicateInitInfo() {
 #endif
          exit(EXIT_FAILURE);
       }
-      status = probe->addTerm(this, coefficient, getParent()->getNBatch());
+      status = probe->addTerm(this, coefficient);
    }
    return status;
 }
@@ -273,6 +302,44 @@ bool BaseProbe::needUpdate(double time, double dt){
    }
 }
 
+int BaseProbe::getValues(double timevalue) {
+   int status = PV_SUCCESS;
+   if (needRecalc(timevalue)) {
+      status = calcValues(timevalue);
+      if (status == PV_SUCCESS) {
+         lastUpdateTime = timevalue;
+      }
+   }
+   return status;
+}
+
+int BaseProbe::getValues(double timevalue, double * values) {
+   int status = getValues(timevalue);
+   if (status == PV_SUCCESS) {
+      memcpy(values, probeValues, sizeof(*probeValues)*(size_t) getNumValues());
+   }
+   return status;
+}
+
+int BaseProbe::getValues(double timevalue, std::vector<double> * valuesVector) {
+   valuesVector->resize(this->getNumValues());
+   return getValues(timevalue, &valuesVector->front());
+}
+
+double BaseProbe::getValue(double timevalue, int index) {
+   if (index<0 || index>=getNumValues()) {
+      return std::numeric_limits<double>::signaling_NaN();
+   }
+   else {
+      int status = PV_SUCCESS;
+      if (needRecalc(timevalue)) { status = getValues(timevalue); }
+      if (status != PV_SUCCESS) {
+         return std::numeric_limits<double>::signaling_NaN();
+      }
+   }
+   return probeValues[index];
+}
+
 int BaseProbe::outputStateWrapper(double timef, double dt){
    int status = PV_SUCCESS;
    if(needUpdate(timef, dt)){
@@ -280,13 +347,5 @@ int BaseProbe::outputStateWrapper(double timef, double dt){
    }
    return status;
 }
-
-/**
- * @time
- */
-//int BaseProbe::outputState(double timef)
-//{
-//   return 0;
-//}
 
 } // namespace PV

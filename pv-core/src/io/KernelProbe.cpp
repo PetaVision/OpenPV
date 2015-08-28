@@ -63,6 +63,10 @@ void KernelProbe::ioParam_outputPatchIndices(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "outputPatchIndices", &outputPatchIndices, false/*default value*/);
 }
 
+int KernelProbe::initNumValues() {
+   return setNumValues(-1);
+}
+
 int KernelProbe::communicateInitInfo() {
    int status = BaseHyPerConnProbe::communicateInitInfo();
    assert(targetHyPerConn);

@@ -21,16 +21,12 @@ public:
 
    virtual int outputState(double timef);
 
-   // void setSparseOutput(bool flag) {sparseOutput = flag;}
-
 protected:
    int xLoc;
    int yLoc;
    int fLoc;
    int batchLoc;
    char * msg;
-
-   // bool sparseOutput;
 
    PointProbe();
    int initialize(const char * probeName, HyPerCol * hc);
@@ -40,10 +36,34 @@ protected:
    virtual void ioParam_fLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_batchLoc(enum ParamsIOFlag ioFlag);
    virtual int initOutputStream(const char * filename);
-   virtual int point_writeState(double timef, float outVVal, float outAVal);
+   virtual int writeState(double timef);
+   
+   /**
+    * Overrides initNumValues() to set numValues to 2 (membrane potential and activity)
+    */
+   virtual int initNumValues();
+   
+   /**
+    * Implements calcValues for PointProbe.  probeValues[0] is the point's membrane potential and probeValues[1] is the point's activity.
+    * If the target layer does not have a membrane potential, probeValues[0] is zero.
+    * Note that under MPI, only the root process and the process containing the neuron being probed contain
+    * the values.
+    */
+   virtual int calcValues(double timevalue);
+   
 
 private:
    int initPointProbe_base();
+   
+   /**
+    * A convenience method to return probeValues[0] (the membrane potential).  Note that it does not call needRecalc().
+    */
+   inline double getV();
+   
+   /**
+    * A convenience method to return probeValues[0] (the activity).  Note that it does not call needRecalc().
+    */   
+   inline double getA();
 };
 
 }

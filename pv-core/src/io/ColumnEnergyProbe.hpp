@@ -38,8 +38,7 @@ typedef struct energyterm_ {
  * At the C/C++ code level, BaseProbes register themselves to the
  * ColumnEnergyProbe by calling the ColumnEnergyProbe's addTerm() method.
  * Each call to a ColumnEnergyProbe's object that calls addTerm() must
- * use the same vectorSize value, which must agree with the size of the
- * vector computed by the BaseProbe's getValues() method.
+ * have the same getNumValues() value, which becomes the ColumnEnergyProbe's getNumValues() value.
  */
 
 class ColumnEnergyProbe : public ColProbe {
@@ -58,12 +57,10 @@ public:
     * @details Returns PV_SUCCESS if the probe is added successfully.
     * If probe is NULL, the list of terms is unchanged and PV_FAILURE is returned.
     * Nothing prevents a probe from being added more than once.
-    * All BaseProbes added to the ColumnEnergyProbe must pass the same
-    * vectorSize. Their getValues() method must return a vector of
-    * size vectorSize, and their getValue method must return a value
-    * for any index with 0 <= index < vectorSize.
+    * All BaseProbes added to the ColumnEnergyProbe must have the same
+    * getNumValues().
     */
-   int addTerm(BaseProbe * probe, double coefficient, size_t vectorSize);
+   int addTerm(BaseProbe * probe, double coefficient);
    
    /**
     * Prints the energies to the output stream, formatted as a comma-separated value:
@@ -71,24 +68,8 @@ public:
     * The number of lines printed is equal to getVectorSize(), and index goes from 0 to getVectorSize()-1.
     */
    virtual int outputState(double timevalue);
-   
-   /**
-    * Computes the vector of total energies.  Any existing contents of *values
-    * are clobbered.  On return, *values is a vector of length
-    * getVectorSize(), and values[b] is the energy for index b.
-    */
-   virtual int getValues(double timevalue, std::vector<double> * values);
-   
-   /**
-    * Returns the total energy for the given index.
-    */
-   virtual double getValue(double timevalue, int index);
-   
-   /**
-    * Returns the vectorSize determined by calls to addTerm().
-    * All calls to addTerm must pass the same value of vectorSize.
-    */
-   size_t getVectorSize() { return vectorSize; }
+
+   virtual int calcValues(double timevalue);
 
 protected:
    /**
@@ -104,9 +85,14 @@ protected:
    int initializeColumnEnergyProbe(const char * probename, HyPerCol * hc);
    virtual int outputHeader();
 
+   /**
+    * Implements the needRecalc method.  Always returns true, in the expectation
+    * that the hard work is done by the probes in the constituent energy terms.
+    */
+   virtual bool needRecalc(double timevalue);
+
    size_t numTerms;
    energyTerm * terms;
-   size_t vectorSize;
 
 private:
    /**

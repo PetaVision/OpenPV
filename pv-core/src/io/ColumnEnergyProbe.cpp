@@ -45,17 +45,41 @@ int ColumnEnergyProbe::outputHeader() {
    return PV_SUCCESS;
 }
 
-int ColumnEnergyProbe::addTerm(BaseProbe * probe, double coefficient, size_t vectorSize) {
+int ColumnEnergyProbe::addTerm(BaseProbe * probe, double coefficient) {
    if (probe==NULL) { return PV_FAILURE; }
-   if (numTerms>0 && vectorSize != this->vectorSize) {
-      if (this->getParent()->columnId()==0) {
-         fprintf(stderr, "Error adding terms to %s \%s\": vector size %zu of new probe \"%s\" does not agree with existing vector size %zu\n",
-               getKeyword(), getName(), vectorSize, probe->getName(), this->vectorSize);
+   int status = PV_SUCCESS;
+   if (numTerms==0) {
+      int newNumValues = probe->getNumValues();
+      if (newNumValues < 0) {
+         status = PV_FAILURE;
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: probe \"%s\" cannot be used as a term of the energy probe (getNumValue() returned a negative number).\n",
+               getKeyword(), getName(), probe->getName());
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
       }
-      exit(EXIT_FAILURE);
+      if (newNumValues != this->getNumValues()) {
+         status = setNumValues(newNumValues);
+         if (status != PV_SUCCESS) {
+            fprintf(stderr, "%s \"%s\" error: unable to allocate memory for %d probe values: %s\n",
+                  this->getKeyword(), this->getName(), newNumValues, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+      }
    }
-   this->vectorSize = vectorSize;
-   size_t newNumTerms = numTerms+(size_t) 1;
+   else {
+      if (probe->getNumValues() != this->getNumValues()) {
+         if (this->getParent()->columnId()==0) {
+            fprintf(stderr, "Error adding terms to %s \%s\":  new probe \"%s\" returns %d values, but previous probes return %d values\n",
+                  getKeyword(), getName(), probe->getName(), probe->getNumValues(), this->getNumValues());
+         }
+         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+   assert(probe->getNumValues()==getNumValues());
+   int newNumTerms = numTerms+(size_t) 1;
    if (newNumTerms<=numTerms) {
       if (this->getParent()->columnId()==0) {
          fprintf(stderr, "How did you manage to add %zu terms to %s \"%s\"?  Unable to add any more!\n",
@@ -78,39 +102,33 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe, double coefficient, size_t vec
    return PV_SUCCESS;
 }  // end ColumnEnergyProbe::addTerm(BaseProbe *, double)
 
-int ColumnEnergyProbe::getValues(double timevalue, std::vector<double> * values) {
-   values->assign(vectorSize, 0.0);
+bool ColumnEnergyProbe::needRecalc(double timevalue) {
+   return true;
+}
+
+int ColumnEnergyProbe::calcValues(double timevalue) {
+   double * valuesBuffer = getValuesBuffer();
+   int numValues = this->getNumValues();
+   memset(valuesBuffer, 0, numValues*sizeof(*valuesBuffer));
+   double energy1[numValues];
    for (int n=0; n<numTerms; n++) {
-      std::vector<double> energy1;
       energyTerm * p = &terms[n];
-      p->probe->getValues(timevalue, &energy1);
-      for (int b=0; b<vectorSize; b++) {
-         values->at(b) += p->coeff * energy1.at(b);
+      p->probe->getValues(timevalue, energy1);
+      for (int b=0; b<numValues; b++) {
+         valuesBuffer[b] += p->coeff * energy1[b];
       }
    }
    return PV_SUCCESS;
 }
 
-double ColumnEnergyProbe::getValue(double timevalue, int index) {
-   if (index<0 || index>=vectorSize) {
-      return std::numeric_limits<double>::signaling_NaN();
-   }
-   double sum = 0;
-   for (int n=0; n<numTerms; n++) {
-      energyTerm * p = &terms[n];
-      sum += p->coeff * p->probe->getValue(timevalue, index);
-   }
-   return sum;
-}  // end ColumnEnergyProbe::evaluate(float)
-
 int ColumnEnergyProbe::outputState(double timevalue) {
-   std::vector<double> energy;
-   getValues(timevalue, &energy);
+   getValues(timevalue);
    if( this->getParent()->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
-   int nbatch = this->getParent()->getNBatch();
+   double * valuesBuffer = getValuesBuffer();
+   int nbatch = this->getNumValues();
    for(int b = 0; b < nbatch; b++){
       fprintf(outputstream->fp, "\"%s\",%f,%d,%f\n",
-            this->getName(), timevalue, b, energy.at(b));
+            this->getName(), timevalue, b,valuesBuffer[b]);
    }
    fflush(outputstream->fp);
    return PV_SUCCESS;

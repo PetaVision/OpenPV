@@ -41,7 +41,6 @@ int AbstractNormProbe::initAbstractNormProbe(const char * probeName, HyPerCol * 
    if (status == PV_SUCCESS) {
       status = setNormDescription();
    }
-   norms.assign(getParent()->getNBatch(), 0);
    return status;
 }
    
@@ -105,32 +104,6 @@ int AbstractNormProbe::communicateInitInfo() {
    return status;
 }
 
-int AbstractNormProbe::getValues(double timevalue, std::vector<double> * values) {
-   if (values==NULL) { return PV_FAILURE; }
-   size_t nBatch = norms.size();
-   values->resize(nBatch); // Should we test if values->size()==nBatch before resizing or does std::vector already do that?
-   if (timevalue > timeLastComputed) {
-      for (int b=0; b<nBatch; b++) {
-         norms.at(b) = getValueInternal(timevalue, b);
-      }
-      MPI_Allreduce(MPI_IN_PLACE, &norms.front(), nBatch, MPI_DOUBLE, MPI_SUM, getParent()->icCommunicator()->communicator());
-      timeLastComputed = timevalue;
-   }
-   memcpy(&values->front(), &norms.front(), nBatch*sizeof(double));
-   return PV_SUCCESS;
-}
-   
-double AbstractNormProbe::getValue(double timevalue, int index) {
-   if (index>=0 && index < getParent()->getNBatch()) {
-      double norm = getValueInternal(timevalue, index);
-      MPI_Allreduce(MPI_IN_PLACE, &norm, 1, MPI_DOUBLE, MPI_SUM, getParent()->icCommunicator()->communicator());
-      return norm;
-   }
-   else {
-      return std::numeric_limits<double>::signaling_NaN();
-   }
-}
-
 int AbstractNormProbe::setNormDescription() {
     return setNormDescriptionToString("norm");
 }
@@ -140,16 +113,24 @@ int AbstractNormProbe::setNormDescriptionToString(char const * s) {
     return normDescription ? PV_SUCCESS : PV_FAILURE;
 }
 
+int AbstractNormProbe::calcValues(double timeValue) {
+   double * valuesBuffer = this->getValuesBuffer();
+   for (int b=0; b<this->getNumValues(); b++) {
+      valuesBuffer[b] = getValueInternal(timeValue, b);
+   }
+   MPI_Allreduce(MPI_IN_PLACE, valuesBuffer, getNumValues(), MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
+   return PV_SUCCESS;
+}
+
 int AbstractNormProbe::outputState(double timevalue) {
-   std::vector<double> values;
-   getValues(timevalue, &values);
-   assert(values.size()==getParent()->getNBatch());
+   getValues(timevalue);
+   double * valuesBuffer = this->getValuesBuffer();
    if (outputstream!=NULL) {
-      int nBatch = getParent()->getNBatch();
+      int nBatch = getNumValues();
       int nk = getTargetLayer()->getNumGlobalNeurons();
       for (int b=0; b<nBatch; b++) {
          fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d %s = %f\n",
-               getMessage(), timevalue, b, nk, getNormDescription(), values[b]);
+               getMessage(), timevalue, b, nk, getNormDescription(), valuesBuffer[b]);
       }
       fflush(outputstream->fp);
    }

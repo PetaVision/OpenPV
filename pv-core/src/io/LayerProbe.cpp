@@ -80,4 +80,8 @@ int LayerProbe::setTargetLayer(const char * layerName) {
    return PV_SUCCESS;
 }
 
+bool LayerProbe::needRecalc(double timevalue) {
+   return this->getLastUpdateTime() < targetLayer->getLastUpdateTime();
+}
+
 } // namespace PV

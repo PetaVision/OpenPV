@@ -85,25 +85,6 @@ public:
     * The number of lines printed is equal to getVectorSize(), and index goes from 0 to getVectorSize()-1.
     */
    virtual int outputState(double timevalue);
-   
-   /**
-    * Until communicateInitInfo is called, returns the parent HyPerCol's getNBatch().
-    * After communicateInitInfo is called, returns the common value of the
-    * numerator and denominator probes' getNumValues().
-    */
-   virtual int getNumValues() { return numValues; }
-   
-   /**
-    * Computes the vector of total energies.  Any existing contents of *values
-    * are clobbered.  On return, *values is a vector of length
-    * getVectorSize(), and values[b] is the energy for index b.
-    */
-   virtual int getValues(double timevalue, std::vector<double> * values);
-   
-   /**
-    * Returns the total energy for the given index.
-    */
-   virtual double getValue(double timevalue, int index);
 
 protected:
    /**
@@ -117,6 +98,15 @@ protected:
     * and should be called by the initializer of any derived classes.
     */
    int initializeQuotientColProbe(const char * probename, HyPerCol * hc);
+   
+   virtual bool needRecalc(double timevalue) { return true; }
+   
+   /**                                                                             
+    * Implements the needRecalc method.  Always returns true, in the expectation
+    * that the hard work is done by the probes in the numerator and denominator. 
+    */                                                                             
+   virtual int calcValues(double timeValue);
+   
    virtual int outputHeader();
 
 private:
@@ -133,7 +123,6 @@ protected:
    char * denominator; // The name of the probe that supplies the denominator
    BaseProbe * numerProbe; // A pointer to the probe that supplies the numerator.
    BaseProbe * denomProbe; // A pointer to the probe that supplies the denominator.
-   int numValues; // The number of values return by getNumValues().  numerProbe and denomProbe must have the same number of values, and that number is stored as numValues.
 
 }; // end class QuotientColProbe
 

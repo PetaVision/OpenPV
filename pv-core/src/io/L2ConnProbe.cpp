@@ -23,7 +23,6 @@ int L2ConnProbe::initialize_base() {
    return PV_SUCCESS;
 }
 
-
 int L2ConnProbe::outputState(double timed) {
 #ifdef PV_USE_MPI
    InterColComm * icComm = parent->icCommunicator();

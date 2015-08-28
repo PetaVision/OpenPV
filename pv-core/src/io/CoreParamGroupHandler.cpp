@@ -102,7 +102,6 @@
 #include "../connections/BiLinearConn.hpp"
 #endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 
-#include "ColProbe.hpp"
 #include "ColumnEnergyProbe.hpp"
 #include "QuotientColProbe.hpp"
 #include "FirmThresholdCostFnProbe.hpp"
@@ -253,7 +252,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          // Probes
 
          // ColProbes
-         {"ColProbe", ColProbeGroupType},
          {"ColumnEnergyProbe", ColProbeGroupType},
          {"QuotientColProbe", ColProbeGroupType},
 #ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  GenColProbe is being replaced by ColumnEnergyProbe
@@ -628,9 +626,6 @@ ColProbe * CoreParamGroupHandler::createColProbe(char const * keyword, char cons
 
    if (keyword==NULL) {
       addedColProbe = NULL;
-   }
-   else if( !strcmp(keyword, "ColProbe") ) {
-      addedColProbe = new ColProbe(name, hc);
    }
    else if (!strcmp(keyword, "ColumnEnergyProbe")) {
       addedColProbe = new ColumnEnergyProbe(name, hc);

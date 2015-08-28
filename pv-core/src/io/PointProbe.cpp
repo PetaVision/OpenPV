@@ -92,6 +92,10 @@ int PointProbe::initOutputStream(const char * filename) {
    return PV_SUCCESS;
 }
 
+int PointProbe::initNumValues() {
+   return setNumValues(2);
+}
+
 int PointProbe::communicateInitInfo() {
    int status = LayerProbe::communicateInitInfo();
    assert(getTargetLayer());
@@ -129,6 +133,18 @@ int PointProbe::communicateInitInfo() {
  */
 int PointProbe::outputState(double timef)
 {
+   getValues(timef);
+   if (parent->columnId()==0) {
+      return writeState(timef);
+   }
+   else{
+      return PV_SUCCESS;
+   }
+}
+
+int PointProbe::calcValues(double timevalue) {
+   assert(this->getNumValues()==2);
+   double * valuesBuffer = this->getValuesBuffer();
    //We need to calculate which mpi process contains the target point, and send that info to the root process
    //Each process calculates local index
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
@@ -144,8 +160,6 @@ int PointProbe::outputState(double timef)
    const int yLocLocal = yLoc - ky0;
    const int nbatchLocal = batchLoc - kb0;
    
-   float vval = 0;
-   float aval = 0;
    //if in bounds
    if( xLocLocal >= 0 && xLocLocal < nx &&
        yLocLocal >= 0 && yLocLocal < ny &&
@@ -154,18 +168,23 @@ int PointProbe::outputState(double timef)
       const pvdata_t * activity = getTargetLayer()->getLayerData();
       //Send V and A to root
       const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
-      const int kex = kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
       if(V){
-         vval = V[k + nbatchLocal*getTargetLayer()->getNumNeurons()];
+         valuesBuffer[0] = V[k + nbatchLocal*getTargetLayer()->getNumNeurons()];
+      }
+      else {
+         valuesBuffer[0] = 0.0;
       }
       if(activity){
-         aval = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
+         const int kex = kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+         valuesBuffer[1] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
+      }
+      else {
+         valuesBuffer[1] = 0.0;
       }
 #ifdef PV_USE_MPI
       //If not in root process, send to root process
       if(parent->columnId()!=0){
-         MPI_Send(&vval, 1, MPI_FLOAT, 0, 0, parent->icCommunicator()->communicator());
-         MPI_Send(&aval, 1, MPI_FLOAT, 0, 0, parent->icCommunicator()->communicator());
+         MPI_Send(&valuesBuffer, 2, MPI_DOUBLE, 0, 0, parent->icCommunicator()->communicator());
       }
 #endif
    }
@@ -182,34 +201,30 @@ int PointProbe::outputState(double timef)
 #ifdef PV_USE_MPI
       //If srcRank is not root process, MPI_Recv from that rank
       if(srcRank != 0){
-         MPI_Recv(&vval, 1, MPI_FLOAT, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
-         MPI_Recv(&aval, 1, MPI_FLOAT, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+         MPI_Recv(&valuesBuffer, 2, MPI_DOUBLE, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
       }
 #endif
-      return point_writeState(timef, vval, aval);
    }
-   else{
-      return PV_SUCCESS;
-   }
+   return PV_SUCCESS;
 }
 
-/**
- * @time
- * @l
- * @k
- * @kex
- */
-int PointProbe::point_writeState(double timef, float outVVal, float outAVal) {
+int PointProbe::writeState(double timef) {
+   double * valuesBuffer = this->getValuesBuffer();
    if(parent->columnId()==0){
       assert(outputstream && outputstream->fp);
 
-      fprintf(outputstream->fp, "%s t=%.1f", msg, timef);
-      fprintf(outputstream->fp, " V=%6.5f", outVVal);
-      fprintf(outputstream->fp, " a=%.5f", outAVal);
-      fprintf(outputstream->fp, "\n");
+      fprintf(outputstream->fp, "%s t=%.1f V=%6.5f a=%.5f\n", msg, timef, getV(), getA());
       fflush(outputstream->fp);
    }
    return PV_SUCCESS;
+}
+
+double PointProbe::getV() {
+   return getValuesBuffer()[0];
+}
+
+double PointProbe::getA() {
+   return getValuesBuffer()[1];
 }
 
 } // namespace PV

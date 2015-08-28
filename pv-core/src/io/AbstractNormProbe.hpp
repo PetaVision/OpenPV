@@ -28,19 +28,6 @@ public:
    virtual ~AbstractNormProbe();
    
    /**
-    * Returns a vector whose length is the HyPerCol's batch size.
-    * The kth element of the vector is the norm of the kth batch element of the targetLayer.
-    * Derived classes must define the norm in the getValuesInternal() method.
-    */
-   virtual int getValues(double timevalue, std::vector<double> * values);
-   
-   /**
-    * Returns the norm of the kth batch element of the targetLayer.
-    * Derived classes must define the norm in the getValuesInternal() method.
-    */
-   virtual double getValue(double timevalue, int index);
-   
-   /**
     * Returns a pointer to the masking layer.  Returns NULL if masking is not used.
     */
    HyPerLayer * getMaskLayer() { return maskLayer; }
@@ -95,11 +82,17 @@ protected:
    /** @} */
    
    /**
+    * Computes the norms.  Each MPI process calls getValueInternal to compute its
+    * own contribution to the norms, and then calcValues calls MPI_Allreduce.
+    */
+   virtual int calcValues(double timeValue);
+   
+   /**
     * getValueInternal(double, index) is a pure virtual function
-    * called by getValue() and getValues().  The index refers to the layer's batch element index.
+    * called by calcValues().  The index refers to the layer's batch element index.
     *
-    * getValue(t, index) returns the sum of each MPI process's getValueInternal(t, index).
-    * getValues(t, values) returns a vector whose kth element is the value that getValue(t, k) returns.
+    * Typically, getValueInternal should compute the contribution to the norm from
+    * its own MPI process.  Then calcValues calls MPI_Allreduce.
     */
    virtual double getValueInternal(double timevalue, int index) = 0;
    
@@ -135,7 +128,6 @@ private:
    bool singleFeatureMask;
    
    double timeLastComputed; // the value of the input argument timevalue for the most recent getValues() call.  Calls to getValue() do not set or refer to this time.
-   std::vector<double> norms; // the values of the norms, as given by the most recent getValues() call.
    
 }; // end class AbstractNormProbe
 

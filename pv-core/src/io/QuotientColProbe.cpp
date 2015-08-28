@@ -8,7 +8,6 @@
 #include "QuotientColProbe.hpp"
 #include "BaseProbe.hpp"
 #include <limits>
-#include <vector>
 
 namespace PV {
 
@@ -36,13 +35,11 @@ int QuotientColProbe::initialize_base() {
    denominator = NULL;
    numerProbe = NULL;
    denomProbe = NULL;
-   numValues = 0;
    return PV_SUCCESS;
 }
 
 int QuotientColProbe::initializeQuotientColProbe(const char * probename, HyPerCol * hc) {
    return ColProbe::initialize(probename, hc);
-   numValues = parent->getNBatch();
 }
 
 int QuotientColProbe::outputHeader() {
@@ -95,8 +92,15 @@ int QuotientColProbe::communicateInitInfo() {
             fprintf(stderr, "%s \"%s\" error: numerator probe \"%s\" and denominator probe \"%s\" have differing numbers of values (%d vs. %d)\n",
                   getKeyword(), getName(), numerator, denominator, nNumValues, dNumValues);
          }
+         MPI_Barrier(this->getParent()->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
       }
-      numValues = nNumValues;
+      status = setNumValues(nNumValues);
+      if (status != PV_FAILURE) {
+         fprintf(stderr, "%s \"%s\" error: unable to allocate memory for %d values: %s\n",
+               this->getKeyword(), this->getName(), nNumValues, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
    }
    if (status != PV_SUCCESS) {
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -131,33 +135,27 @@ BaseProbe * QuotientColProbe::findProbe(char const * probeName) {
    return NULL;
 }
 
-int QuotientColProbe::getValues(double timevalue, std::vector<double> * values) {
-   std::vector<double> n, d;
-   numerProbe->getValues(timevalue, &n);
-   denomProbe->getValues(timevalue, &d);
-   assert(n.size()==numValues && d.size()==numValues);
-   values->assign(numValues, 0.0);
+int QuotientColProbe::calcValues(double timeValue) {
+   int numValues = this->getNumValues();
+   double n[numValues];
+   numerProbe->getValues(timeValue, n);
+   double d[numValues];
+   numerProbe->getValues(timeValue, d);
+   double * valuesBuffer = getValuesBuffer();
    for (int b=0; b<numValues; b++) {
-      values->at(b) = n.at(b)/d.at(b);
+      valuesBuffer[b] = n[b]/d[b];
    }
    return PV_SUCCESS;
 }
 
-double QuotientColProbe::getValue(double timevalue, int index) {
-   if (index<0 || index>=numValues) {
-      return std::numeric_limits<double>::signaling_NaN();
-   }
-   return numerProbe->getValue(timevalue, index)/denomProbe->getValue(timevalue, index);
-}  // end QuotientColProbe::evaluate(float)
-
 int QuotientColProbe::outputState(double timevalue) {
-   std::vector<double> qValue;
-   getValues(timevalue, &qValue);
+   getValues(timevalue);
    if( this->getParent()->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
-   int nbatch = this->getParent()->getNBatch();
-   for(int b = 0; b < nbatch; b++){
+   double * valuesBuffer = getValuesBuffer();
+   int numValues = this->getNumValues();
+   for(int b = 0; b < numValues; b++){
       fprintf(outputstream->fp, "\"%s\",%f,%d,%f\n",
-            this->getName(), timevalue, b, qValue.at(b));
+            this->getName(), timevalue, b, valuesBuffer[b]);
    }
    fflush(outputstream->fp);
    return PV_SUCCESS;

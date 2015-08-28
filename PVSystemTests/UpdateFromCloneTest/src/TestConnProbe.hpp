@@ -20,6 +20,21 @@ public:
 
 protected:
    TestConnProbe(); // Default constructor, can only be called by derived classes
+   
+   /**
+    * TestConnProbe::initNumValues() sets numValues to -1, indicating that getValues() and getValue() should not be used.
+    */
+   int initNumValues();
+   
+   /**
+    * TestConnProbe::needRecalc() always returns false since calcValues should not be called.
+    */
+   bool needRecalc(double timevalue) { return false; }
+   
+   /**
+    * TestConnProbe::calcValues() always fails since this probe does not use getValues() or getValue().
+    */
+   int calcValues(double timevalue) { return PV_FAILURE; }
 
 private:
    int initialize_base();

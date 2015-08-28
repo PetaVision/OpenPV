@@ -281,10 +281,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    parse_options(argc, argv, paramusage, &reqrtn, &outputPath, NULL, &log_file,
                  &gpu_devices, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads, &numRows, &numColumns, &batchWidth);
 
-   if(param_file){
-      free(param_file);
-   }
-
    //Set up log file if it exists
    if(log_file){
       //Flush buffers before duplicating stdout

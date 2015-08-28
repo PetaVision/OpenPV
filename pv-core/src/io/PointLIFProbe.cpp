@@ -11,6 +11,9 @@
 #include <string.h>
 #include <assert.h>
 
+#define NUMBER_OF_VALUES 6 // G_E, G_I, G_IB, V, Vth, A
+#define CONDUCTANCE_PRINT_FORMAT "%6.3f"
+
 namespace PV {
 
 PointLIFProbe::PointLIFProbe() : PointProbe()
@@ -52,6 +55,81 @@ void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    getParent()->ioParamValue(ioFlag, getName(), "writeStep", &writeStep, writeStep, true/*warnIfAbsent*/);
 }
 
+int PointLIFProbe::initNumValues() {
+   return setNumValues(NUMBER_OF_VALUES);
+}
+
+int PointLIFProbe::calcValues(double timevalue) {
+   // TODO: Reduce duplicated code between PointProbe::calcValues and PointLIFProbe::calcValues.
+   assert(this->getNumValues()==NUMBER_OF_VALUES);
+   LIF * LIF_layer = dynamic_cast<LIF *>(getTargetLayer());
+   assert(LIF_layer != NULL);
+   pvconductance_t const * G_E  = LIF_layer->getConductance(CHANNEL_EXC) + batchLoc * LIF_layer->getNumNeurons();
+   pvconductance_t const * G_I  = LIF_layer->getConductance(CHANNEL_INH) + batchLoc * LIF_layer->getNumNeurons();
+   pvconductance_t const * G_IB = LIF_layer->getConductance(CHANNEL_INHB) + batchLoc * LIF_layer->getNumNeurons();
+   pvdata_t const * V = getTargetLayer()->getV();
+   pvdata_t const * Vth  = LIF_layer->getVth();
+   pvdata_t const * activity = getTargetLayer()->getLayerData();
+   assert(V && activity && G_E && G_I && G_IB && Vth);
+   double * valuesBuffer = this->getValuesBuffer();
+   //We need to calculate which mpi process contains the target point, and send that info to the root process
+   //Each process calculates local index
+   const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
+   //Calculate local cords from global
+   const int kx0 = loc->kx0;
+   const int ky0 = loc->ky0;
+   const int kb0 = loc->kb0;
+   const int nx = loc->nx;
+   const int ny = loc->ny;
+   const int nf = loc->nf;
+   const int nbatch = loc->nbatch;
+   const int xLocLocal = xLoc - kx0;
+   const int yLocLocal = yLoc - ky0;
+   const int nbatchLocal = batchLoc - kb0;
+   
+   //if in bounds
+   if( xLocLocal >= 0 && xLocLocal < nx &&
+       yLocLocal >= 0 && yLocLocal < ny &&
+       nbatchLocal >= 0 && nbatchLocal < nbatch){
+      const pvdata_t * V = getTargetLayer()->getV();
+      const pvdata_t * activity = getTargetLayer()->getLayerData();
+      //Send V and A to root
+      const int k = kIndex(xLocLocal, yLocLocal, fLoc, nx, ny, nf);
+      const int kbatch = k + nbatchLocal*getTargetLayer()->getNumNeurons();
+      valuesBuffer[0] = G_E[kbatch];
+      valuesBuffer[1] = G_I[kbatch];
+      valuesBuffer[2] = G_IB[kbatch];
+      valuesBuffer[3] = V[kbatch];
+      valuesBuffer[4] = Vth[kbatch];
+      const int kex = kIndexExtended(k, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
+      valuesBuffer[5] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
+#ifdef PV_USE_MPI
+      //If not in root process, send to root process
+      if(parent->columnId()!=0){
+         MPI_Send(&valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, 0, 0, parent->icCommunicator()->communicator());
+      }
+#endif
+   }
+
+   //Root process
+   if(parent->columnId()==0){
+      //Calculate which rank target neuron is
+      //TODO we need to calculate rank from batch as well
+      int xRank = xLoc/nx;
+      int yRank = yLoc/ny;
+
+      int srcRank = rankFromRowAndColumn(yRank, xRank, parent->icCommunicator()->numCommRows(), parent->icCommunicator()->numCommColumns());
+
+#ifdef PV_USE_MPI
+      //If srcRank is not root process, MPI_Recv from that rank
+      if(srcRank != 0){
+         MPI_Recv(&valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+      }
+#endif
+   }
+   return PV_SUCCESS;
+}
+
 /**
  * @time
  * @l
@@ -62,34 +140,26 @@ void PointLIFProbe::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
  * includes boundaries.
  *     - The other dynamic variables (G_E, G_I, V, Vth) cover the "real" or "restricted"
  *     frame.
- *     - sparseOutput was introduced to deal with ConditionalProbes.
  */
-int PointLIFProbe::writeState(double timed, HyPerLayer * l, int b, int k, int kex)
+int PointLIFProbe::writeState(double timed)
 {
-   assert(outputstream && outputstream->fp);
-   LIF * LIF_layer = dynamic_cast<LIF *>(l);
-   assert(LIF_layer != NULL);
-
-   const pvdata_t * V = l->getV() + b * l->getNumNeurons();
-   const pvdata_t * activity = l->getLayerData() + b * l->getNumExtended();
-
-   if (timed >= writeTime) {
+   if (parent->columnId()==0 && timed >= writeTime) {
+      assert(outputstream && outputstream->fp);
       writeTime += writeStep;
-      fprintf(outputstream->fp, "%s t=%.1f k=%d", msg, timed, k);
-      pvconductance_t * G_E  = LIF_layer->getConductance(CHANNEL_EXC) + b * l->getNumNeurons();
-      pvconductance_t * G_I  = LIF_layer->getConductance(CHANNEL_INH) + b * l->getNumNeurons();
-      pvconductance_t * G_IB = LIF_layer->getConductance(CHANNEL_INHB) + b * l->getNumNeurons();
-      pvdata_t * Vth  = LIF_layer->getVth();
-
-      fprintf(outputstream->fp, " G_E=" CONDUCTANCE_PRINT_FORMAT, G_E[k]);
-      fprintf(outputstream->fp, " G_I=" CONDUCTANCE_PRINT_FORMAT, G_I[k]);
-      fprintf(outputstream->fp, " G_IB=" CONDUCTANCE_PRINT_FORMAT, G_IB[k]);
-      fprintf(outputstream->fp, " V=%6.3f", V[k]);
-      fprintf(outputstream->fp, " Vth=%6.3f", Vth[k]);
-      fprintf(outputstream->fp, " a=%.1f\n", activity[kex]);
+      PVLayerLoc const * loc = getTargetLayer()->getLayerLoc();
+      const int k = kIndex(xLoc, yLoc, fLoc, loc->nxGlobal, loc->nyGlobal, loc->nf);
+      double * valuesBuffer = getValuesBuffer();
+      fprintf(outputstream->fp, "%s t=%.1f %d", msg, timed, k);
+      fprintf(outputstream->fp, " G_E=" CONDUCTANCE_PRINT_FORMAT, valuesBuffer[0]);
+      fprintf(outputstream->fp, " G_I=" CONDUCTANCE_PRINT_FORMAT, valuesBuffer[1]);
+      fprintf(outputstream->fp, " G_IB=" CONDUCTANCE_PRINT_FORMAT, valuesBuffer[2]);
+      fprintf(outputstream->fp, " V=%6.3f", valuesBuffer[3]);
+      fprintf(outputstream->fp, " Vth=%6.3f", valuesBuffer[4]);
+      fprintf(outputstream->fp, " a=%.1f", valuesBuffer[5]);
+      fprintf(outputstream->fp, "\n");
       fflush(outputstream->fp);
    }
-   return 0;
+   return PV_SUCCESS;
 }
 
 } // namespace PV

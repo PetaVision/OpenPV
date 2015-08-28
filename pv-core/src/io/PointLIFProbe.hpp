@@ -10,21 +10,31 @@
 
 #include "PointProbe.hpp"
 
-#define CONDUCTANCE_PRINT_FORMAT "%6.3f"
-
 namespace PV {
 
 class PointLIFProbe: public PointProbe {
 public:
    PointLIFProbe(const char * probeName, HyPerCol * hc);
 
-   virtual int writeState(double timed, HyPerLayer * l, int b, int k, int kex);
+   virtual int writeState(double timed);
 
 protected:
    PointLIFProbe();
    int initialize(const char * probeName, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+
+   /**
+    * Overrides initNumValues to set numValues to 6 (G_E, G_I, G_IB, V, Vth, a)
+    */
+   virtual int initNumValues();
+   
+   /**
+    * Overrides PointProbe::calcValues to report the conductances and threshold V as well as V and A.
+    * Note that under MPI, only the root process and the process containing the neuron being probed contain
+    * the values.
+    */
+   virtual int calcValues(double timevalue);
 
 private:
    int initPointLIFProbe_base();

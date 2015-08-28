@@ -190,6 +190,10 @@ void StatsProbe::ioParam_nnzThreshold(enum ParamsIOFlag ioFlag) {
     getParent()->ioParamValue(ioFlag, getName(), "nnzThreshold", &nnzThreshold, (pvdata_t) 0);
 }
 
+int StatsProbe::initNumValues() {
+    return setNumValues(-1);
+}
+
 /**
  * @time
  * @l
