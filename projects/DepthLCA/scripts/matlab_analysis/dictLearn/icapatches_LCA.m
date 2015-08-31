@@ -9,7 +9,7 @@ output_dir = "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_0/
 
 addpath([workspace_path, filesep, "/pv-core/mlab/util"]);
 addpath([workspace_path, filesep, "/pv-core/mlab/HyPerLCA"]);
-last_checkpoint_ndx = 100000;
+last_checkpoint_ndx = 50000;
 checkpoint_path = [output_dir, filesep, "Checkpoints", filesep,  "Checkpoint", num2str(last_checkpoint_ndx, '%i')]; %% 
 max_history = 100000000;
 numarbors = 1;
