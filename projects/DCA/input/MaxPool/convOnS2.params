@@ -34,7 +34,7 @@ HyPerCol "column" = {
 };
 
 //Movie layer that loops through neurons
-MoviePvp "Input" = {
+MoviePvp "InputMovie" = {
     restart = 0; 
     nxScale = 1;
     nyScale = 1;
@@ -47,6 +47,7 @@ MoviePvp "Input" = {
     useImageBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
+    normalizeStdDev = false;
     writeImages = false;
     offsetX = 0;  //No offsets, as this layer is exactly the size of the image
     offsetY = 0;
@@ -56,11 +57,29 @@ MoviePvp "Input" = {
     displayPeriod = 1;
 };
 
+RescaleLayer "Input" = {
+    restart                         = false;
+    originalLayerName               = "InputMovie";
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 3;
+    mirrorBCflag                    = true;
+    //
+    writeStep                       = -1;
+    initialWriteTime                = 400;
+    writeSparseActivity             = false;
+    //
+    rescaleMethod                   = "l2NoMean"; //Can be either meanstd or maxmin
+    patchSize                       = 972; //18*18*3
+    valueBC = 0;
+    phase                           = 1;
+};
+
 ANNLayer "S1" = {
     nxScale                             = 0.5;
     nyScale                             = 0.5;
     nf                                  = 128;
-    phase                               = 1;
+    phase                               = 2;
     mirrorBCflag                        = false;
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
@@ -83,7 +102,7 @@ ANNLayer "S1Pool" = {
     nxScale                             = 0.25;
     nyScale                             = 0.25;
     nf                                  = 128;
-    phase                               = 2;
+    phase                               = 3;
     mirrorBCflag                        = false;
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
@@ -106,7 +125,7 @@ ANNLayer "S2" = {
     nxScale                             = 0.25;
     nyScale                             = 0.25;
     nf                                  = 256;
-    phase                               = 3;
+    phase                               = 4;
     mirrorBCflag                        = false;
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
@@ -129,7 +148,7 @@ ANNLayer "S2Pool" = {
     nxScale                             = 0.125;
     nyScale                             = 0.125;
     nf                                  = 256;
-    phase                               = 4;
+    phase                               = 5;
     mirrorBCflag                        = false;
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
@@ -152,7 +171,7 @@ ANNLayer "S3" = {
     nxScale                             = 0.125;
     nyScale                             = 0.125;
     nf                                  = 512;
-    phase                               = 5;
+    phase                               = 6;
     mirrorBCflag                        = false;
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
