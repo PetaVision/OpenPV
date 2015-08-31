@@ -78,6 +78,9 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
    else if(strcmp(rescaleMethod, "l2") == 0){
       ioParam_patchSize(ioFlag);
    }
+   else if(strcmp(rescaleMethod, "l2NoMean") == 0){
+      ioParam_patchSize(ioFlag);
+   }
    else if(strcmp(rescaleMethod, "pointResponseNormalization") == 0){
    }
    else if(strcmp(rescaleMethod, "zerotonegative") == 0){
@@ -87,7 +90,7 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
    else if(strcmp(rescaleMethod, "logreg") == 0){
    }
    else{
-      fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd, pointResponseNormalization, softmax, and logreg.\n",
+      fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd, pointResponseNormalization, softmax, l2, l2NoMean, and logreg.\n",
             name);
       exit(PV_FAILURE);
    }
@@ -128,7 +131,7 @@ void RescaleLayer::ioParam_targetStd(enum ParamsIOFlag ioFlag){
 
 void RescaleLayer::ioParam_patchSize(enum ParamsIOFlag ioFlag){
    assert(!parent->parameters()->presentAndNotBeenRead(name, "rescaleMethod"));
-   if (strcmp(rescaleMethod, "l2")==0) {
+   if (strcmp(rescaleMethod, "l2")==0 || strcmp(rescaleMethod, "l2NoMean") == 0) {
       parent->ioParamValue(ioFlag, name, "patchSize", &patchSize, patchSize);
    }
 }
@@ -303,6 +306,48 @@ int RescaleLayer::updateState(double timef, double dt) {
                 int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
                       locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
                 ABatch[kext] = ((originalABatch[kextOriginal] - mean) * (1/(std * sqrt((float)patchSize))));
+             }
+          }
+          else {
+             std::cout << "Warining: std of layer " << originalLayer->getName() << " is 0, layer remains unchanged\n";
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+             for (int k = 0; k < numNeurons; k++){
+                int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
+                int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                      locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
+                ABatch[kext] = originalABatch[kextOriginal];
+             }
+          }
+       }
+       else if(strcmp(rescaleMethod, "l2NoMean") == 0){
+          float sumsq = 0;
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : sumsq)
+#endif
+          for (int k = 0; k < numNeurons; k++){
+             int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                   locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
+             sumsq += (originalABatch[kextOriginal]) * (originalABatch[kextOriginal]);
+          }
+
+#ifdef PV_USE_MPI
+          MPI_Allreduce(MPI_IN_PLACE, &sumsq, 1, MPI_FLOAT, MPI_SUM, parent->icCommunicator()->communicator());
+#endif // PV_USE_MPI
+
+          float std = sqrt(sumsq / originalLayer->getNumGlobalNeurons());
+          // The difference between the if and the else clauses is only in the computation of A[kext], but this
+          // way the std != 0.0 conditional is only evaluated once, not every time through the for-loop.
+          if (std != 0.0) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for
+#endif
+             for (int k = 0; k < numNeurons; k++){
+                int kext = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.up, loc->halo.dn);
+                int kextOriginal = kIndexExtended(k, locOriginal->nx, locOriginal->ny, locOriginal->nf,
+                      locOriginal->halo.lt, locOriginal->halo.rt, locOriginal->halo.dn, locOriginal->halo.up);
+                ABatch[kext] = ((originalABatch[kextOriginal]) * (1/(std * sqrt((float)patchSize))));
              }
           }
           else {
