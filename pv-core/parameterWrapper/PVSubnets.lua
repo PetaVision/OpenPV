@@ -693,41 +693,46 @@ function singleLayerPerceptron
 
   -- Add extra layer and connection if perceptron will be used to start backprop
   if addDeltaInputLayer then
-    local inputLayerName = inputLayerNames[1];
-    local inputLayer = pvParams[inputLayerName];
-    local deltaInputLayerName = 'Delta' .. inputLayerName;
 
-    local deltaInputLayer = {
-      groupType = "ANNErrorLayer";
-      nxScale   = inputLayer['nxScale'];
-      nyScale   = inputLayer['nyScale'];
-      nf        = inputLayer['nf'];
+    for _,inputLayerName in pairs(inputLayerNames) do
 
-      phase = deltaLayer['phase'] + 1;
+      local inputLayer = pvParams[inputLayerName];
+      local deltaInputLayerName = 'Delta' .. inputLayerName;
 
-      InitVType = "ZeroV";
+      local deltaInputLayer = {
+        groupType = "ANNErrorLayer";
+        nxScale   = inputLayer['nxScale'];
+        nyScale   = inputLayer['nyScale'];
+        nf        = inputLayer['nf'];
 
-      writeStep = displayPeriod;
-      initialWriteTime = displayPeriod;
+        phase = deltaLayer['phase'] + 1;
 
-      triggerFlag = true;
-      triggerLayerName = triggerLayerName;
-      triggerOffset = 1;
-    };
-    pvParams[deltaInputLayerName] = deltaInputLayer;
+        InitVType = "ZeroV";
 
-    pvParams[deltaLayerName .. 'To' .. deltaInputLayerName] = {
-      groupType = "TransposeConn";
-      preLayerName = deltaLayerName;
-      postLayerName = deltaInputLayerName;
-      originalConnName = inputLayerName .. 'To' .. deltaLayerName;
+        writeStep = displayPeriod;
+        initialWriteTime = displayPeriod;
 
-      channelCode = 0;
-      writeStep = -1;
+        triggerFlag = true;
+        triggerLayerName = triggerLayerName;
+        triggerOffset = 1;
+      };
+      pvParams[deltaInputLayerName] = deltaInputLayer;
 
-      receiveGpu = true;
-      updateGSynFromPostPerspective = true;
-    };
+      pvParams[deltaLayerName .. 'To' .. deltaInputLayerName] = {
+        groupType = "TransposeConn";
+        preLayerName = deltaLayerName;
+        postLayerName = deltaInputLayerName;
+        originalConnName = inputLayerName .. 'To' .. deltaLayerName;
+
+        channelCode = 0;
+        writeStep = -1;
+
+        receiveGpu = true;
+        updateGSynFromPostPerspective = true;
+      };
+
+    end
+
   end
 
 end
