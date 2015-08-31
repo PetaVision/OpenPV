@@ -131,6 +131,7 @@ function PVSubnets.backPropStep(args)
     , args.triggerLayerName            -- trigger layer name
     , args.learningDirection           -- "forward" (e.g. for convnet)
                                        -- or "backward" (e.g. for LCA)
+    , args.errScale or 1               -- errScale for delta layer
     , args.createMask == nil and true  -- create mask unless otherwise specified
     )
 end
@@ -739,6 +740,7 @@ function backPropStep
   , connParams
   , triggerLayerName
   , learningDirection
+  , errScale
   , createMask
   )
 
@@ -774,7 +776,7 @@ function backPropStep
 
   -- create delta version of forward pre layer
   local newDeltaLayer = {
-    groupType = "ANNLayer";
+    groupType = "ANNErrorLayer";
     nxScale   = forwardPreLayer['nxScale'];
     nyScale   = forwardPreLayer['nyScale'];
     nf        = forwardPreLayer['nf'];
@@ -790,6 +792,9 @@ function backPropStep
     triggerLayerName = triggerLayerName;
     triggerOffset = 1;
 
+    errScale = errScale;
+
+    sparseLayer = isPoolingConn;
   };
   pv.addGroup(pvParams, newDeltaLayerName, newDeltaLayer);
 
