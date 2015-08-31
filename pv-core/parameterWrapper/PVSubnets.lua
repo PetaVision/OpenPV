@@ -825,7 +825,7 @@ function backPropStep
   elseif learningDirection == "forward" then
 
     newLearningConn = {
-      groupType        = "MomentumConn";
+      groupType        = "HyPerConn";
       preLayerName     = forwardPreLayerName;
       postLayerName    = currentDeltaLayerName;
 
@@ -866,7 +866,7 @@ function backPropStep
   elseif learningDirection == "backward" then
 
     newLearningConn = {
-      groupType        = "MomentumConn";
+      groupType        = "HyPerConn";
       preLayerName     = forwardPostLayerName;
       postLayerName    = newDeltaLayerName;
 
