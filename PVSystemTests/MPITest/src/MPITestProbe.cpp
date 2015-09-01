@@ -35,13 +35,11 @@ int MPITestProbe::initMPITestProbe(const char * probeName, HyPerCol * hc) {
  */
 int MPITestProbe::outputState(double timed) {
 	int status = StatsProbe::outputState(timed);
-#ifdef PV_USE_MPI
 	InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
 	const int rcvProc = 0;
 	if( icComm->commRank() != rcvProc ) {
 		return status;
 	}
-#endif // PV_USE_MPI
 	double tol = 1e-4f;
 
 	// if many to one connection, each neuron should receive its global x/y/f position

@@ -31,13 +31,11 @@ int DelayTestProbe::initDelayTestProbe(const char * probeName, HyPerCol * hc) {
 int DelayTestProbe::outputState(double timed)
 {
    int status = StatsProbe::outputState(timed);
-#ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return 0;
    }
-#endif // PV_USE_MPI
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
    const int rows = getTargetLayer()->getParent()->icCommunicator()->numCommRows();
    const int cols = getTargetLayer()->getParent()->icCommunicator()->numCommColumns();

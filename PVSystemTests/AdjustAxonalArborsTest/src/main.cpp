@@ -34,9 +34,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
           inLayer->getNumGlobalExtended()==16);
    
    fflush(stdout);
-#ifdef PV_USE_MPI
    MPI_Barrier(hc->icCommunicator()->communicator());
-#endif
    for (int r=0; r<hc->icCommunicator()->commSize(); r++) {
       if (r==hc->columnId()) {
          printf("Rank %d, Input layer activity\n",r);
@@ -57,9 +55,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             }
          }
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(hc->icCommunicator()->communicator());
-#endif
    }
 
    // Connection should be a 3x3 kernel with values 0 through 8 in the weights
@@ -81,9 +77,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             }
          }
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(hc->icCommunicator()->communicator());
-#endif
    }
    for (int k=0; k<patchSize; k++) {
       assert(w[k]==(pvdata_t) k);
@@ -119,9 +113,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             }
          }
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(hc->icCommunicator()->communicator());
-#endif
    }
 
    return status;

@@ -41,9 +41,7 @@ int main(int argc, char * argv[]) {
    PV_Init * initObj = new PV_Init(&argc, &argv);
    //int rank = initObj->getWorldRank();
    int rank = 0;
-#ifdef PV_USE_MPI
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif // PV_USE_MPI
 
 
    int num_cl_args;

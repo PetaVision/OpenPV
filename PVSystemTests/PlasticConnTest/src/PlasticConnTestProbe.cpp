@@ -31,13 +31,11 @@ int PlasticConnTestProbe::initialize(const char * probename, HyPerCol * hc) {
  */
 int PlasticConnTestProbe::outputState(double timed) {
    HyPerConn * c = getTargetHyPerConn();
-#ifdef PV_USE_MPI
    InterColComm * icComm = c->getParent()->icCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return PV_SUCCESS;
    }
-#endif // PV_USE_MPI
    assert(getTargetConn()!=NULL);
    FILE * fp = getStream()->fp;
    fprintf(fp, "    Time %f, connection \"%s\":\n", timed, getTargetName());

@@ -39,13 +39,11 @@ void DatastoreDelayTestProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
  */
 int DatastoreDelayTestProbe::outputState(double timed) {
    HyPerLayer * l = getTargetLayer();
-#ifdef PV_USE_MPI
    InterColComm * icComm = l->getParent()->icCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return PV_SUCCESS;
    }
-#endif // PV_USE_MPI
    int status = PV_SUCCESS;
    int numDelayLevels = l->getParent()->getLayer(0)->getNumDelayLevels();
    pvdata_t correctValue = numDelayLevels*(numDelayLevels+1)/2;

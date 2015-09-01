@@ -58,10 +58,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 int main(int argc, char * argv[]) {
    int rank = 0;
    PV_Init * initObj = new PV_Init(&argc, &argv);
-   //rank = initObj->getWorldRank();
-#ifdef PV_USE_MPI
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif // PV_USE_MPI
    char const * paramFile1 = "input/CheckpointParameters1.params";
    char const * paramFile2 = "input/CheckpointParameters2.params";
    int status = PV_SUCCESS;
@@ -149,9 +146,6 @@ int main(int argc, char * argv[]) {
    }
    free(pv_argv);
 
-//#ifdef PV_USE_MPI
-//   MPI_Finalize();
-//#endif
    delete initObj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -196,9 +190,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       const char * cpdir2 = "checkpoints2/batchsweep_00";
       status = diffDirs(cpdir1, cpdir2, index);
    }
-#ifdef PV_USE_MPI
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
-#endif
    assert(status == PV_SUCCESS);
    if( rank == rootproc ) {
       int index = hc->getFinalStep()-hc->getInitialStep();
@@ -206,9 +198,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       const char * cpdir2 = "checkpoints2/batchsweep_01";
       status = diffDirs(cpdir1, cpdir2, index);
    }
-#ifdef PV_USE_MPI
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
-#endif
    assert(status == PV_SUCCESS);
    return status;
 }

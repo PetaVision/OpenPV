@@ -50,12 +50,8 @@ int RescaleLayerTestProbe::outputState(double timed)
    int status = StatsProbe::outputState(timed);
    if (timed==getParent()->getStartTime()) { return PV_SUCCESS; }
    float tolerance = 2.0e-5f;
-#ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    bool isRoot = icComm->commRank() == 0;
-#else
-   bool isRoot = true;
-#endif // PV_USE_MPI
 
    RescaleLayer * targetRescaleLayer = dynamic_cast<RescaleLayer *>(getTargetLayer());
    assert(targetRescaleLayer);

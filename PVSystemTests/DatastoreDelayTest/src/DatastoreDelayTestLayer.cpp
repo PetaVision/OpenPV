@@ -66,12 +66,8 @@ int DatastoreDelayTestLayer::updateV_DatastoreDelayTestLayer(const PVLayerLoc * 
       for(int b = 0; b < loc->nbatch; b++){
          pvdata_t * VBatch = V + b * loc->nx * loc->ny * loc->nf;
          if( loc->ny < period ) {
-#ifdef PV_USE_MPI
             int rank;
             MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#else
-            int rank = 0;
-#endif // PV_USE_MPI
 
             if( rank == 0 ) {
                fflush(stdout);

@@ -23,7 +23,6 @@ int main(int argc, char * argv[])
 {
    PV_Init* initObj = new PV_Init(&argc, &argv);
    if (pv_getopt(argc, argv, "-p", NULL)==0) {
-#ifdef PV_USE_MPI
       int rank = 0;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       if (rank==0) {
@@ -31,7 +30,6 @@ int main(int argc, char * argv[])
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
-#endif // PV_USE_MPI
    }
 
    int const cl_argc = argc+2;

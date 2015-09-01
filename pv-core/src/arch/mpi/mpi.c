@@ -57,12 +57,29 @@ int MPI_Bcast (void * buffer, int count, MPI_Datatype datatype, int root,
 }
 
 /**
- * A stub for MPI_Allreduce when PV_USE_MPI is off.  Returns immediately
- * (hence it assumes that the MPI_Op functio acting on one argument is the identity).
+ * A stub for MPI_Allreduce when PV_USE_MPI is off.  Copies recvbuf into sendbuf
+ * (if MPI_IN_PLACE is used or if sendbuf==recvbuf, returns immediately).
  */
 int MPI_Allreduce(void * sendbuf, void * recvbuf, int count, MPI_Datatype datatype,
                   MPI_Op op, MPI_Comm comm)
 {
+   if (sendbuf != MPI_IN_PLACE && sendbuf != recvbuf) {
+      memmove(sendbuf, recvbuf, count*datatype);
+   }
+   return 0;
+}
+
+/**
+ * A stub for MPI_Allreduce when PV_USE_MPI is off.  Copies recvbuf into sendbuf
+ * (if MPI_IN_PLACE is used or if sendbuf==recvbuf, returns immediately).
+ * The root argument is not read.
+ */
+int MPI_Reduce(void * sendbuf, void * recvbuf, int count, MPI_Datatype datatype,
+                  MPI_Op op, int root, MPI_Comm comm)
+{
+   if (sendbuf != MPI_IN_PLACE && sendbuf != recvbuf) {
+      memmove(sendbuf, recvbuf, count*datatype);
+   }
    return 0;
 }
 

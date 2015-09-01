@@ -18,17 +18,13 @@ int main(int argc, char * argv[]) {
 
    int rank=0;
    PV_Init* initObj = new PV_Init(&argc, &argv);
-#ifdef PV_USE_MPI
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif // PV_USE_MPI
 
    if (pv_getopt(argc, argv, "-p", NULL)==0) {
       if (rank==0) {
          fprintf(stderr, "%s does not take -p as an option.  Instead the necessary params files are hard-coded.\n", argv[0]);
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(MPI_COMM_WORLD);
-#endif // PV_USE_MPI
       exit(EXIT_FAILURE);
    }
 

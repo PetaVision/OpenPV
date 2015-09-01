@@ -29,13 +29,11 @@ int CloneHyPerConnTestProbe::initCloneHyPerConnTestProbe(const char * probeName,
 int CloneHyPerConnTestProbe::outputState(double timed)
 {
    int status = StatsProbe::outputState(timed);
-#ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return 0;
    }
-#endif // PV_USE_MPI
    for(int b = 0; b < getParent()->getNBatch(); b++){
       if(timed>2.0f){
          assert(fabs(fMin[b]) < 1e-6);

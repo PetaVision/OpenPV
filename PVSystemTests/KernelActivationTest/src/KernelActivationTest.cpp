@@ -18,9 +18,7 @@
 
 #include <columns/buildandrun.hpp>
 #include <io/io.h>
-#ifdef PV_USE_MPI
-#  include <mpi.h>
-#endif
+#include <arch/mpi/mpi.h>
 
 int runKernelActivationTest(int argc, char * argv[], PV_Init* initObj);
 int dumpweights(HyPerCol * hc, int argc, char * argv[]);
@@ -29,11 +27,6 @@ int dumponeweight(HyPerConn * conn);
 int main(int argc, char * argv[]) {
    int status;
    PV_Init * initObj = new PV_Init(&argc, &argv);
-//#ifdef PV_USE_MPI
-//   int mpi_initialized_on_entry;
-//   MPI_Initialized(&mpi_initialized_on_entry);
-//   if( !mpi_initialized_on_entry ) MPI_Init(&argc, &argv);
-//#endif // PV_USE_MPI
    int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
    int num_cl_args;
    char ** cl_args;
@@ -60,9 +53,6 @@ int main(int argc, char * argv[]) {
    else {
       status = runKernelActivationTest(argc, argv, initObj);
    }
-//#ifdef PV_USE_MPI
-//   MPI_Finalize();
-//#endif
    delete initObj;
    return status;
 }

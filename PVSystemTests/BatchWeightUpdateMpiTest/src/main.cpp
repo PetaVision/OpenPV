@@ -170,9 +170,6 @@ int main(int argc, char * argv[]) {
    }
    free(pv_argv);
 
-//#ifdef PV_USE_MPI
-//   MPI_Finalize();
-//#endif
    delete initObj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -248,8 +245,6 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
       status = compareFiles(filetime, filebatch3);
       status = compareFiles(filetime, filebatch4);
    }
-#ifdef PV_USE_MPI
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
-#endif
    return status;
 }

@@ -36,18 +36,12 @@ int main(int argc, char * argv[])
 
    int rank=0;
    PV_Init* initObj = new PV_Init(&argc, &argv);
-//#ifdef PV_USE_MPI
-//   MPI_Init(&argc, &argv);
-//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//#endif // PV_USE_MPI
 
    if (pv_getopt(argc, argv, "-p", NULL)==0) {
       if (rank==0) {
          fprintf(stderr, "%s does not take -p as an option.  Instead the necessary params file is hard-coded.\n", argv[0]);
       }
-#ifdef PV_USE_MPI
       MPI_Barrier(MPI_COMM_WORLD);
-#endif // PV_USE_MPI
       exit(EXIT_FAILURE);
    }
 
@@ -98,9 +92,6 @@ int main(int argc, char * argv[])
 
    delete hc;
 
-//#ifdef PV_USE_MPI
-//   MPI_Finalize();
-//#endif // PV_USE_MPI
    delete initObj;
 
    return status;

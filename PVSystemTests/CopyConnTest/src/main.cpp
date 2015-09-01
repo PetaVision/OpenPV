@@ -14,10 +14,6 @@ int runparamsfile(int argc, char ** argv, PV_Init* initObj, char const * paramsf
 int main(int argc, char * argv[]) {
    int rank = 0;
    PV_Init* initObj = new PV_Init(&argc, &argv);
-//#ifdef PV_USE_MPI
-//   MPI_Init(&argc, &argv);
-//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//#endif // PV_USE_MPI
 
    if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
       if (rank==0) {
@@ -53,9 +49,7 @@ int runparamsfile(int argc, char ** argv, PV_Init* initObj, char const * paramsf
    //
    assert(pv_getopt_str(argc, argv, "-p", NULL, NULL)==-1);
    int rank = 0;
-#ifdef PV_USE_MPI
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif // PV_USE_MPI
    int pv_argc = 2+argc;
    char ** pv_argv = (char **) malloc((pv_argc+1)*sizeof(char *));
    assert(pv_argv!=NULL);

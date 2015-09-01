@@ -48,6 +48,9 @@ int MPI_Bcast (void * buffer, int count, MPI_Datatype datatype, int root,
 int MPI_Allreduce(void * sendbuf, void * recvbuf, int count, MPI_Datatype datatype,
                   MPI_Op op, MPI_Comm comm);
 
+int MPI_Reduce(void * sendbuf, void * recvbuf, int count, MPI_Datatype datatype,
+               MPI_Op op, int root, MPI_Comm comm);
+
 int MPI_Comm_rank(MPI_Comm comm, int * rank);
 int MPI_Comm_size(MPI_Comm comm, int * size);
 

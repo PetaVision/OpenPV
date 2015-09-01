@@ -57,10 +57,6 @@ int main(int argc, char * argv[]) {
    int rank = 0;
    PV_Init* initObj = new PV_Init(&argc, &argv);
    rank = initObj->getWorldRank();
-//#ifdef PV_USE_MPI
-//   MPI_Init(&argc, &argv);
-//   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-//#endif // PV_USE_MPI
    char const * paramFile1 = "input/timeBatch.params";
    char const * paramFile2 = "input/dimBatch.params";
    int status = PV_SUCCESS;
@@ -138,9 +134,6 @@ int main(int argc, char * argv[]) {
    }
    free(pv_argv);
 
-//#ifdef PV_USE_MPI
-//   MPI_Finalize();
-//#endif
    delete initObj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -179,8 +172,6 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
          }
       }
    }
-#ifdef PV_USE_MPI
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->globalCommunicator());
-#endif
    return status;
 }

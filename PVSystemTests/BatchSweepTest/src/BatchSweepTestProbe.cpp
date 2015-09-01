@@ -46,13 +46,11 @@ void BatchSweepTestProbe::ioParam_expectedMax(enum ParamsIOFlag ioFlag) {
 
 int BatchSweepTestProbe::outputState(double timed) {
    int status = StatsProbe::outputState(timed);
-#ifdef PV_USE_MPI
    InterColComm * icComm = getTargetLayer()->getParent()->icCommunicator();
    const int rcvProc = 0;
    if( icComm->commRank() != rcvProc ) {
       return 0;
    }
-#endif // PV_USE_MPI
    for(int b = 0; b < parent->getNBatch(); b++){
       if (timed >= 3.0 ) {
          assert(fabs(expectedSum - sum[b])<1e-6);

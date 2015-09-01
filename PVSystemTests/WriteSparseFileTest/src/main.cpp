@@ -23,10 +23,7 @@ int testioparams(int argc, char * argv[], PV_Init* initObj, int rank);
 int main(int argc, char * argv[]) {
    PV_Init* initObj = new PV_Init(&argc, &argv); 
    int rank = 0;
-#ifdef PV_USE_MPI
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif // PV_USE_MPI
-   //int rank = initObj->getWorldRank();
 
    int pv_argc = 0;
    bool generateFlag = false; // Flag for whether to generate correct output for future tests; don't check the RequireAllZeroActivity probe
@@ -123,9 +120,6 @@ int main(int argc, char * argv[]) {
    }
    free(pv_argv); pv_argv = NULL;
 
-//#ifdef PV_USE_MPI
-//   MPI_Finalize();
-//#endif // PV_USE_MPI
    delete initObj;
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
