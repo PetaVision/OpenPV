@@ -3005,7 +3005,6 @@ int HyPerCol::initializeThreads(char* in_device)
    //default value
    if(in_device == NULL){
       std::cout << "Auto assigning GPUs\n";
-      //Device of -1 means to use mpi process for each device
       device = getAutoGPUDevice();
    }
    else{
@@ -3013,7 +3012,6 @@ int HyPerCol::initializeThreads(char* in_device)
       std::stringstream ss(in_device);
       std::string stoken;
       //Grabs strings from ss into item, seperated by commas
-      //TODO does this support no tokens?
       while(std::getline(ss, stoken, ',')){
          //Convert stoken to integer
          for(std::string::const_iterator k = stoken.begin(); k != stoken.end(); ++k){
@@ -3030,13 +3028,13 @@ int HyPerCol::initializeThreads(char* in_device)
          device = deviceVec[0];
       }
       else if(deviceVec.size() >= numMpi){
-         device = deviceVec[icComm->commRank()];
+         device = deviceVec[icComm->globalCommRank()];
       }
       else{
-         fprintf(stderr, "Device specification error: Number of devices specified (%zu) must be either 1 or greater than number of mpi processes (%d).\n", deviceVec.size(), numMpi);
+         fprintf(stderr, "Device specification error: Number of devices specified (%zu) must be either 1 or >= than number of mpi processes (%d).\n", deviceVec.size(), numMpi);
          exit(EXIT_FAILURE);
       }
-      std::cout << "MPI Process " << icComm->commRank() << " using device " << device << "\n";
+      std::cout << "Global MPI Process " << icComm->globalCommRank() << " using device " << device << "\n";
    }
 
 #ifdef PV_USE_OPENCL
