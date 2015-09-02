@@ -120,6 +120,7 @@ function PVSubnets.singleLayerPerceptron(args)
     , args.biasConnParams       -- bias connection parameters (if different)
     , args.triggerLayerName     -- trigger layer (usually image)
     , args.addDeltaInputLayer   -- whether to begin backpropagating the error
+    , args.deltaErrScale        -- err scale for delta layer
     );
 end
 
@@ -502,6 +503,7 @@ function singleLayerPerceptron
   , biasConnParams
   , triggerLayerName
   , addDeltaInputLayer
+  , deltaErrScale
   )
 
   -- table-ize non-table values for single input case
@@ -729,6 +731,8 @@ function singleLayerPerceptron
         triggerFlag = true;
         triggerLayerName = triggerLayerName;
         triggerOffset = 1;
+
+        errScale = deltaErrScale;
       };
       pvParams[deltaInputLayerName] = deltaInputLayer;
 
