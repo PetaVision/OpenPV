@@ -290,12 +290,6 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
       int num_neurons = nx*ny*nf;
       int nbatch = loc->nbatch;
       //Only update when the probe updates
-
-      if (triggerLayer != NULL && triggerLayer->needUpdate(time, parent->getDeltaTime())){
-         for (int i = 0; i<num_neurons*nbatch; i++){
-            V[i]=0.0;
-         }
-      }
       
       double * deltaTimeAdapt = parent->getTimeScale();
 
