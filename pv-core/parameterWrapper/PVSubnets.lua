@@ -75,6 +75,10 @@ function PVSubnets.addScaleValueConn(args)
   addScaleValueConn
     ( args.pvParams          -- params table
     , args.inputLayerName    -- the layer to value-scale
+
+    , args.scaleLayerName    -- desired name for scaled layer
+      or args.inputLayerName .. 'Scaled' -- default
+
     , args.scaleFactor       -- the scale factor
     , args.writeStep or -1   -- write step
     );
@@ -295,10 +299,14 @@ function addLCASubnet
 end
 
 
-function addScaleValueConn(pvParams, inputLayerName, scaleFactor, writeStep)
+function addScaleValueConn
+  ( pvParams
+  , inputLayerName
+  , scaledLayerName
+  , scaleFactor
+  , writeStep
+  )
   local inputLayer = pvParams[inputLayerName];
-
-  local scaledLayerName = inputLayerName .. "Scaled";
 
   local scaledLayer = {
     groupType        = "ANNLayer";
@@ -541,11 +549,17 @@ function singleLayerPerceptron
       error('plasticity on but no dWMax given');
     end
 
-    for _,required in pairs({'nxp', 'nyp', 'weightInitType', 'plasticityFlag'}) do
-      if connParams[required] == nil then
-        error(string.format('%s is required', required))
+    if connParams['groupType'] ~= "CloneConn" and
+       connParams['groupType'] ~= "PlasticCloneConn" then
+
+      for _,required in pairs({'nxp', 'nyp', 'weightInitType', 'plasticityFlag'}) do
+        if connParams[required] == nil then
+          error(string.format('%s is required', required))
+        end
       end
+
     end
+
   end
 
 
