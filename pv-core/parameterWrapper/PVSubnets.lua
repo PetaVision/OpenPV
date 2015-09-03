@@ -93,6 +93,7 @@ function PVSubnets.addActivityMask(args)
     , args.unmaskedLayerName -- layer to mask
     , args.maskingLayerName  -- layer to pull mask from
     , args.triggerLayerName  -- trigger layer (usually image)
+    , args.writeStep or -1
     );
 end
 
@@ -352,6 +353,7 @@ function addActivityMask
   , unmaskedLayerName
   , maskingLayerName
   , triggerLayerName
+  , writeStep
   )
 
   local unmaskedLayer = pvParams[unmaskedLayerName];
@@ -411,7 +413,8 @@ function addActivityMask
 
     InitVType = "ZeroV";
 
-    writeStep = -1;
+    writeStep = writeStep;
+    initalWriteTime = writeStep;
   };
   pv.addGroup(pvParams, maskedLayerName, maskedLayer);
 
@@ -942,6 +945,7 @@ function backPropStep
       , unmaskedLayerName = newDeltaLayerName
       , maskingLayerName  = forwardPreLayerName
       , triggerLayerName  = triggerLayerName
+      , writeStep         = displayPeriod
       }
     return maskedDeltaLayerName;
   else
