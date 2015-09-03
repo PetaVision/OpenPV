@@ -745,7 +745,7 @@ function singleLayerPerceptron
         postLayerName = deltaInputLayerName;
         originalConnName = inputLayerName .. 'To' .. deltaLayerName;
 
-        channelCode = 0;
+        channelCode = 1;
         writeStep = -1;
 
         receiveGpu = true;
