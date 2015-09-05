@@ -155,6 +155,7 @@ add_subdirectory(RandStateSystemTest)
 add_subdirectory(ReadArborFileTest)
 add_subdirectory(ReceiveFromPostTest)
 add_subdirectory(RescaleLayerTest)
+add_subdirectory(ResetStateOnTriggerTest)
 add_subdirectory(ShrunkenPatchTest)
 add_subdirectory(ShrunkenPatchFlagTest)
 add_subdirectory(StochasticReleaseTest)
@@ -502,6 +503,12 @@ AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName RescaleLayerTest) #The base name of the test
 set(testParams RescaleLayerTest) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+
+set(testBaseName ResetStateOnTriggerTest) #The base name of the test
+set(testParams ResetStateOnTriggerTest) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
