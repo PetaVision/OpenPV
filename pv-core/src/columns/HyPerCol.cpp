@@ -144,6 +144,12 @@ HyPerCol::~HyPerCol()
    if(timeScaleTrue){
       free(timeScaleTrue);
    }
+   if(oldTimeScale){
+      free(oldTimeScale);
+   }
+   if(oldTimeScaleTrue){
+      free(oldTimeScaleTrue);
+   }
    if(deltaTimeAdapt){
       free(deltaTimeAdapt);
    }
@@ -654,6 +660,16 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
       fprintf(stderr, "%s error: unable to allocate memory for timeScaleTrue buffer.\n", argv[0]);
       exit(EXIT_FAILURE);
    }
+   oldTimeScale = (double*) malloc(sizeof(double) * nbatch);
+   if(oldTimeScale ==NULL) {
+      fprintf(stderr, "%s error: unable to allocate memory for oldTimeScale buffer.\n", argv[0]);
+      exit(EXIT_FAILURE);
+   }
+   oldTimeScaleTrue = (double*) malloc(sizeof(double) * nbatch);
+   if(oldTimeScaleTrue ==NULL) {
+      fprintf(stderr, "%s error: unable to allocate memory for oldTimeScaleTrue buffer.\n", argv[0]);
+      exit(EXIT_FAILURE);
+   }
    deltaTimeAdapt = (double*) malloc(sizeof(double) * nbatch);
    if(deltaTimeAdapt == NULL) {
       fprintf(stderr, "%s error: unable to allocate memory for deltaTimeAdapt buffer.\n", argv[0]);
@@ -663,6 +679,8 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    for(int b = 0; b < nbatch; b++){
       timeScale[b] = 1;
       timeScaleTrue[b] = 1;
+      oldTimeScale[b] = 1;
+      oldTimeScaleTrue[b] = 1;
       deltaTimeAdapt[b] = 1;
    }
 
@@ -1964,9 +1982,6 @@ int HyPerCol::initPublishers() {
 double * HyPerCol::adaptTimeScale(){
    calcTimeScaleTrue();
    for(int b = 0; b < nbatch; b++){
-      double oldTimeScale = timeScale[b];
-      double oldTimeScaleTrue = timeScaleTrue[b];
-      //double timeScaleMin = -1.0;
       //const double timeScaleMax = 5.0;             // maxiumum value of timeScale
       //const double changeTimeScaleMax = 0.05;      // maximum change in timeScale from previous time step
       //const double changeTimeScaleTrueMax = 0.05;  // if change in timeScaleTrue exceeds changeTimeScaleMax, timeScale does not increase;
@@ -1984,22 +1999,22 @@ double * HyPerCol::adaptTimeScale(){
       timeScale[b] = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : timeScaleMin;
 
       // only let the timeScale change by a maximum percentage of oldTimescale of changeTimeScaleMax on any given time step
-      double changeTimeScale = (timeScale[b] - oldTimeScale)/oldTimeScale;
-      timeScale[b] = changeTimeScale < changeTimeScaleMax ? timeScale[b] : oldTimeScale * (1 + changeTimeScaleMax);
+      double changeTimeScale = (timeScale[b] - oldTimeScale[b])/oldTimeScale[b];
+      timeScale[b] = changeTimeScale < changeTimeScaleMax ? timeScale[b] : oldTimeScale[b] * (1 + changeTimeScaleMax);
 
       //Positive if timescale increased, error decreased
       //Negative if timescale decreased, error increased
-      double changeTimeScaleTrue = timeScaleTrue[b] - oldTimeScaleTrue;
+      double changeTimeScaleTrue = timeScaleTrue[b] - oldTimeScaleTrue[b];
       // keep the timeScale constant if the error is decreasing too rapidly
       if (changeTimeScaleTrue > changeTimeScaleMax){
-         timeScale[b] = oldTimeScale;
+         timeScale[b] = oldTimeScale[b];
       }
 
       // if error is increasing,
       if (changeTimeScaleTrue < changeTimeScaleMin){
          //retreat back to the MIN(timeScaleMin, minTimeScaleTmp)
          if (minTimeScaleTmp > 0.0){
-            double setTimeScale = oldTimeScale < timeScaleMin ? oldTimeScale : timeScaleMin;
+            double setTimeScale = oldTimeScale[b] < timeScaleMin ? oldTimeScale[b] : timeScaleMin;
             timeScale[b] = setTimeScale < minTimeScaleTmp ? setTimeScale : minTimeScaleTmp;
             //timeScale =  minTimeScaleTmp < timeScaleMin ? minTimeScaleTmp : setTimeScale;
          }
@@ -2011,7 +2026,7 @@ double * HyPerCol::adaptTimeScale(){
       if(timeScale[b] > 0 && timeScaleTrue[b] > 0 && timeScale[b] > timeScaleTrue[b]){
          std::cout << "timeScale is bigger than timeScaleTrue\n";
          std::cout << "minTimeScaleTmp: " << minTimeScaleTmp << "\n";
-         std::cout << "oldTimeScaleTrue " << oldTimeScaleTrue << "\n";
+         std::cout << "oldTimeScaleTrue " << oldTimeScaleTrue[b] << "\n";
          exit(EXIT_FAILURE);
       }
 
@@ -2039,6 +2054,8 @@ int HyPerCol::calcTimeScaleTrue() {
       // on next time step based on current value of deltaTime
       // TODO: implement the method as a ColProbe subclass.
       for (int b=0; b<nbatch; b++) {
+	oldTimeScale[b] = timeScale[b];
+	oldTimeScaleTrue[b] = timeScaleTrue[b];
          // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
          double minTimeScaleTmp = -1;
          for(int l = 0; l < numLayers; l++) {

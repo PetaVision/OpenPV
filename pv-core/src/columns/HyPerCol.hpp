@@ -495,6 +495,8 @@ private:
    double deltaTimeBase;    // base time step interval if dtAdaptFlag == true, timeScale is applied to this value
    double * timeScale;        // scale factor for deltaTimeBase, deltaTime = timeScale*deltaTimeBase
    double * timeScaleTrue;    // true timeScale returned by min(HyPerLayer::getTimeScale) before MIN/MAX/CHANGE constraints applied
+   double * oldTimeScale;        // old value of timeScale
+   double * oldTimeScaleTrue;    // old value of timeScaleTrue
    double * deltaTimeAdapt;    // Actual deltaTimeAdapt buffer passed to updateState
    double timeScaleMax;     // maximum value of timeScale (prevents deltaTime from growing too large)
    double timeScaleMin;     // minimum value of timeScale (not really a minimum, actually sets starting/iniital value of deltaTime)
