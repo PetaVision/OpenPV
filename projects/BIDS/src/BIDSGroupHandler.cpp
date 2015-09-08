@@ -62,7 +62,7 @@ HyPerLayer * BIDSGroupHandler::createLayer(char const * keyword, char const * na
       addedLayer = new BIDSSensorLayer(name, hc);
    }
    if (addedLayer==NULL) {
-      fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", keyword, name);
+      fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", hc->columnId(), keyword, name);
       exit(EXIT_FAILURE);
    }
    return addedLayer;
@@ -75,7 +75,7 @@ BaseConnection * BIDSGroupHandler::createConnection(char const * keyword, char c
       addedConn = new BIDSConn(name, hc, weightInitializer, weightNormalizer);
    }
    if (addedConn==NULL) {
-      fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", keyword, name);
+      fprintf(stderr, "Rank %d process unable to add %s \"%s\"\n", hc->columnId(), keyword, name);
       exit(EXIT_FAILURE);
    }
    return addedConn;

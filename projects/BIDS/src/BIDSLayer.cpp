@@ -109,11 +109,11 @@ BIDSLayer::BIDSLayer() {
 }
 
 BIDSLayer::BIDSLayer(const char * name, HyPerCol * hc) {
-   initialize(name, hc, TypeBIDS, "BIDS_update_state");
+   initialize(name, hc, "BIDS_update_state");
 }
 
-int BIDSLayer::initialize(const char * name, HyPerCol * hc, PVLayerType type, const char * kernel_name){
-   LIF::initialize(name, hc, TypeBIDS, "BIDS_update_state");
+int BIDSLayer::initialize(const char * name, HyPerCol * hc, const char * kernel_name){
+   LIF::initialize(name, hc, "BIDS_update_state");
    assert(numChannels==3);
    return PV_SUCCESS;
 }

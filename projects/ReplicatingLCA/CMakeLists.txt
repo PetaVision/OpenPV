@@ -32,16 +32,22 @@ set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
 set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
 
-if (NOT LIBSNDFILE_FOUND)
-    find_package(LIBSNDFILE)
-endif (NOT LIBSNDFILE_FOUND)
+                                                                                   
+if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)        
+   if(APPLE AND CLANG_OMP)                                                         
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++ -fopenmp=libiomp5")                  
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -stdlib=libstdc++ -fopenmp=libiomp5")                      
+   else(APPLE AND CLANG_OMP)                                                       
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")                           
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")                               
+   endif(APPLE AND CLANG_OMP)                                                      
+   set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)                                     
+endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED) 
+
 
 # Header files
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
-IF(LIBSNDFILE_FOUND)
-    include_directories(${LIBSNDFILE_INCLUDE_DIR})
-ENDIF(LIBSNDFILE_FOUND)
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
@@ -57,7 +63,4 @@ target_link_libraries(${PV_PROJECT_NAME} pv)
 
 # Link executable to external libraries
 target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
-IF(LIBSNDFILE_FOUND)
-   target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
-ENDIF(LIBSNDFILE_FOUND)
 

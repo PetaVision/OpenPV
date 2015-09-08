@@ -13,6 +13,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
 set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
 
+set(BUILD_DIR "" CACHE STRING "The directory to write the executable binary into. (if blank, CMAKE_BUILD_TYPE will give the build directory")
+
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
 endif (NOT CMAKE_BUILD_TYPE)
@@ -22,28 +24,46 @@ IF(APPLE AND CLANG_OMP)
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
 ENDIF(APPLE AND CLANG_OMP)
 
-if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -DPV_USE_THREADS")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp -DPV_USE_THREADS")
-   set(OPEN_MP_THREADS_FLAGS_ADDED TRUE)
-endif (OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
+if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
+   if(APPLE AND CLANG_OMP)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libiomp5")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp=libiomp5")
+   else(APPLE AND CLANG_OMP)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+   endif(APPLE AND CLANG_OMP)
+   set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)
+endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
 
-if(OPEN_CL_GPU AND NOT DEFINED OPEN_CL_GPU_FLAGS_ADDED)
+if(PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
    IF(APPLE)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework opencl -DPV_OPENCL")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -framework opencl -DPV_OPENCL")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework opencl")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -framework opencl")
    ELSE(APPLE)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL -DPV_OPENCL")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL -DPV_OPENCL")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL")
    ENDIF(APPLE)
-   set(OPEN_CL_GPU_FLAGS_ADDED TRUE)
-endif (OPEN_CL_GPU AND NOT DEFINED OPEN_CL_GPU_FLAGS_ADDED)
+   set(PV_USE_OPENCL_FLAGS_ADDED TRUE)
+endif (PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
 
 set(PV_SOURCE_DIR "${PV_DIR}/src")
 set(PV_BINARY_DIR "${PV_DIR}/lib")
 set(PROJECT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
 
+# Define the directory for the executable file.
+# If BUILD_DIR is empty, use CMAKE_BUILD_TYPE string as the name.
+# If BUILD_DIR starts with "/", use it as an absolute path
+# If BUILD_DIR is nonempty and doesn't start with "/", use it as a path relative to the current directory
+if("${BUILD_DIR}" STREQUAL "")
+   set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${CMAKE_BUILD_TYPE}")
+else("${BUILD_DIR}" STREQUAL "")
+   string(SUBSTRING "${BUILD_DIR}" 0 1 BUILD_DIR_FIRSTCHAR)
+   if("${BUILD_DIR_FIRSTCHAR}" STREQUAL "/")
+      set(PROJECT_BINARY_DIR "${BUILD_DIR}")
+   else("${BUILD_DIR_FIRSTCHAR}" STREQUAL "/")
+      set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${BUILD_DIR}")
+   endif("${BUILD_DIR_FIRSTCHAR}" STREQUAL "/")
+endif("${BUILD_DIR}" STREQUAL "")
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 if (NOT GDAL_FOUND)
@@ -74,11 +94,11 @@ link_directories(${PV_BINARY_DIR})
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
 
-if(CUDA_GPU)
+if(PV_USE_CUDA)
    cuda_add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
-else(CUDA_GPU)
+else(PV_USE_CUDA)
    add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
-endif(CUDA_GPU)
+endif(PV_USE_CUDA)
 
 target_link_libraries(${PV_PROJECT_NAME} pv)
 
@@ -86,7 +106,7 @@ target_link_libraries(${PV_PROJECT_NAME} pv)
 target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
 
 ## target_link_libraries command no longer needed because the libraries are included in libpv.so
-#IF(CUDNN)
+#IF(PV_USE_CUDNN)
 #   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
-#ENDIF(CUDNN)
+#ENDIF(PV_USE_CUDNN)
 #

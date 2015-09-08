@@ -16,13 +16,11 @@ set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pv-core CACHE PATH "The core PetaVision d
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH "${PV_DIR}/docs/cmake/Modules/")
 
+set(PV_USE_MPI TRUE CACHE BOOL "Defines whether PetaVision uses MPI")
 set(PV_USE_OPENMP_THREADS TRUE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
 set(PV_USE_OPENCL FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
 set(PV_USE_CUDA FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
-# Sound-related classes moved to auxlib/pvsound Mar 16, 2015
-# set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
-set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with
-optimization")
+set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 
 set(PV_USE_CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/ CACHE PATH "Location of cuDNN libraries")
@@ -32,8 +30,13 @@ set(CLANG_OMP TRUE CACHE BOOL "Defines if we're compiling with Clang + omp suppo
 set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
 
 if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+   if(APPLE AND CLANG_OMP)                                                         
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++ -fopenmp=libiomp5")                  
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -stdlib=libstdc++ -fopenmp=libiomp5")                      
+   else(APPLE AND CLANG_OMP)                                                       
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")                           
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")                               
+   endif(APPLE AND CLANG_OMP)                                                      
    set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)
 endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
 

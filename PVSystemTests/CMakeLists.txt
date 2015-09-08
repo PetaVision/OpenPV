@@ -1,12 +1,33 @@
 # This CMakeLists.txt file can be used to generate makefiles for several projects at once.
 # It should be put in the directory containing the projects.
 
-project(PetaVision)
+project(PVSystemTests)
 
 enable_testing()
 
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.8)
+
+
+# Set variable for current working directory (workspace directory)
+set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision CACHE PATH "The base petavision directory")
+
+IF(NOT EXISTS "${PV_DIR}")
+   message(FATAL_ERROR "PV_DIR \"${PV_DIR}\" does not exist. Please set PV_DIR to the path containing the PetaVision lib and src
+directories.")
+ENDIF(NOT EXISTS "${PV_DIR}")
+
+# Note: It would be preferable to parse ${PV_DIR}/src/include/cMakeHeader.h for these values.
+set(PV_USE_MPI TRUE CACHE BOOL "Defines whether the MPI environment is present")
+set(PV_USE_OPENMP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
+set(PV_USE_OPENCL FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
+set(PV_USE_CUDA FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
+set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
+set(PV_USE_CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
+set(PV_SYSTEM_TEST_THREADS 1 CACHE STRING "Defines the number of threads to use for system tests")
+set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
+set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
+
 
 #Define function for adding a test to the test harness
 macro(AddPVTest BaseName ParamNames inFlags inMpi)
@@ -68,19 +89,6 @@ endmacro(AddPVTest)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
 
-# Set variable for current working directory (workspace directory)
-set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision CACHE PATH "The base petavision directory")
-
-set(PV_USE_OPENMP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
-set(PV_USE_OPENCL FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
-set(PV_USE_CUDA FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
-set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
-set(PV_USE_CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
-set(PV_SYSTEM_TEST_THREADS 1 CACHE STRING "Defines the number of threads to use for system tests")
-set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
-set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
-
-
 if(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
    #Do nothing, correct
 else(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
@@ -91,13 +99,14 @@ IF(PV_USE_CUDA AND PV_USE_OPENCL)
    message(FATAL_ERROR "PV_USE_CUDA and PV_USE_OPENCL cannot both be true")
 ENDIF(PV_USE_CUDA AND PV_USE_OPENCL)
 
-IF(NOT EXISTS "${PV_DIR}")
-   message(FATAL_ERROR "PV_DIR \"${PV_DIR}\" does not exist.")
-ENDIF(NOT EXISTS "${PV_DIR}")
-
 if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+   if(APPLE AND CLANG_OMP)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libiomp5")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp=libiomp5")
+   else(APPLE AND CLANG_OMP)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+   endif(APPLE AND CLANG_OMP)
    set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)
 endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
 

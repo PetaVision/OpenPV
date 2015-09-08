@@ -42,7 +42,7 @@ xcode-select --install
 
 Homebrew
 ----------------------------------
-Homebrew is a package manager for OS X, which we will use to install all of PetaVision's dependencies. Additional information can be found at <http://brew.sh>
+Homebrew is a package manager for OS X, which we will use for many of PetaVision's dependencies. Additional information can be found at <http://brew.sh>
 To install homebrew:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
@@ -54,94 +54,78 @@ Initialization
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 brew update
-brew install svn
 brew install cmake
 brew install wget
-# optionally, to install Octave using homebrew:
+brew install gdal
+# optionally, to install OpenMPI:
+brew install open-mpi
+# optionally, to install Octave using homebrew
+# (note: installation of Octave on a fresh system typically takes several hours):
 brew tap homebrew/science
 brew install octave
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Clang + OMP (optional)
+If you want to take advantage of OpenMP threading, see below.
+
+Clang + OpenMP (optional)
 ----------------------------------
-Currently (OS X Yosemite), the version of Clang installed by Xcode does not support OpenMP.  The program installed as gcc is also Clang, not GNU-GCC (as can be verified by running gcc --version). To make use of the OpenMP threading in PetaVision you will need an OpenMP compatible compiler.  Here are instructions to download a different version of clang and replace the current clang.
+Currently (OS X Yosemite 10.10.5 and Xcode 6.4), the version of Clang installed by Xcode does not support OpenMP.
+The program installed as gcc is also Clang, not GNU-GCC (as can be verified by running gcc --version).
+To make use of the OpenMP threading in PetaVision you will need an OpenMP-compatible compiler. 
+As of this writing, the most recent release of clang (3.7.0) supports OpenMP, but Xcode is still behind
+this version.
+Here are instructions to download the most recent version of clang.
 
-###Replace OS X default clang with clang+omp ###############
+###Install the OMP-compatible version of Clang ###############
+Download the most recent pre-built binary for Mac OS X from <http://llvm.org/releases/download.html>.
+Make a note of the location of the downloaded file and the filename.  In what follows, we will
+be using the filename `clang+llvm-3.7.0-x86_64-apple-darwin.tar.xz`, the most recent version as of
+this writing; modify as necessary.
 
+~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
+cd ${HOME}/clang_omp
+cp /path/to/clang+llvm-3.7.0-x86_64-apple-darwin.tar.xz .
+unxz clang+llvm-3.7.0-x86_64-apple-darwin.tar.xz
+tar xf clang+llvm-3.7.0-x86_64-apple-darwin.tar
+cd clang+llvm-3.7.0-x86_64-apple-darwin/bin
+ln -s clang cc
+ln -s clang++ c++
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+###Install the OMP library ###############
+Download the most recent version of the OpenMP Runtime Library from <https://www.openmprtl.org/download#stable-releases>.
+Make a note of the location of the downloaded file.  In what follows, we will be using `libomp_20150701_oss.tgz`,
+the most recent version as of this writing; modify as necessary.
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 cd ${HOME}
-mkdir clang-omp
-cd clang-omp
-git clone https://github.com/clang-omp/llvm
-git clone https://github.com/clang-omp/compiler-rt llvm/projects/compiler-rt
-git clone -b clang-omp https://github.com/clang-omp/clang llvm/tools/clang
-mkdir build
-cd build
-../llvm/configure --enable-optimized
-make -j8
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Open your `~/.bash_profile` (or `~/.profile`, whichever one you use) and append these lines to the end of the file, making sure the clang-omp path is before `/usr/bin`
-
-~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-export PATH=~/clang-omp/build/Release+Asserts/bin:$PATH 
-export C_INCLUDE_PATH=~/clang-omp/build/Release+Asserts/include:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=~/clang-omp/build/Release+Asserts/include:$CPLUS_INCLUDE_PATH
-export LIBRARY_PATH=~/clang-omp/build/Release+Asserts/lib:$LIBRARY_PATH
-export DYLD_LIBRARY_PATH=~/clang-omp/build/Release+Asserts/lib:$DYLD_LIBRARY_PATH
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In any open terminals, run `source ~/.bash_profile`.
-Run `which clang` to verify that it's pointing to `${HOME}/clang-omp/build/Release_Asserts/bin/clang`.
-
-###Install the openmp runtime library ##################
-Releases can be found at <https://www.openmprtl.org/download#stable-releases>
-
-~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-mv ~/Downloads/name_of_openmp_runtime_library.tar ~/clang-omp
-cd ~/clang-omp
-tar -xvf name_of_openmp_runtime_library.tar
+mkdir clang_omp
+cd clang_omp
+tar xf /path/to/libomp_20150701_oss.tgz
 cd libomp_oss
-cmake CMakeLists.txt
-make -j8
+cmake .
+make
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Once again, append these lines to the end of your `~/.bash_profile`.
 
+###Update necessary environmental variables ###############
+Open your `~/.bash_profile` (or `~/.profile`, whichever one you use) and append these lines to the end of the file, making sure the clang-omp path is before `/usr/bin`
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-export C_INCLUDE_PATH=~/clang-omp/libomp_oss:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=~/clang-omp/libomp_oss:$CPLUS_INCLUDE_PATH
-export LIBRARY_PATH=~/clang-omp/libomp_oss:$LIBRARY_PATH
-export DYLD_LIBRARY_PATH=~/clang-omp/libomp_oss:$DYLD_LIBRARY_PATH
+export PATH=$HOME/clang_omp/clang+llvm-3.7.0-x86_64-apple-darwin/bin:$PATH
+
+export C_INCLUDE_PATH=$HOME/clang_omp/clang+llvm-3.7.0-x86_64-apple-darwin/include:$C_INCLUDE_PATH
+export CPLUS_INCLUDE_PATH=$HOME/clang_omp/clang+llvm-3.7.0-x86_64-apple-darwin/include:$CPLUS_INCLUDE_PATH
+export LIBRARY_PATH=$HOME/clang_omp/clang+llvm-3.7.0-x86_64-apple-darwin/lib:$LIBRARY_PATH
+export DYLD_LIBRARY_PATH=$HOME/clang_omp/clang+llvm-3.7.0-x86_64-apple-darwin/lib:$DYLD_LIBRARY_PATH
+
+export C_INCLUDE_PATH=$HOME/clang_omp/libomp_oss/exports/common/include:$C_INCLUDE_PATH
+export CPLUS_INCLUDE_PATH=$HOME/clang_omp/libomp_oss/exports/common/include:$CPLUS_INCLUDE_PATH
+export LIBRARY_PATH=$HOME/clang_omp/libomp_oss/exports/mac_32e/lib.thin:$LIBRARY_PATH
+export DYLD_LIBRARY_PATH=$HOME/clang_omp/libomp_oss/exports/mac_32e/lib.thin:$DYLD_LIBRARY_PATH
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Make sure to run `source ~/.bash_profile`.
-
-
-OpenMPI
-----------------------------------
-With the new version of Clang installed, we can now install Open MPI using the new Clang.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-brew install gcc --without-multilib
-brew install openmpi
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-*Note*: Installing GCC can take a couple of hours.  You need to use the '--without-multilib' flag or Homebrew will issue the caveat:
-
-~~~~~~~~~~~~~~~~~~~~~~~~
-GCC has been built with multilib support. Notably, OpenMP may not work:
-  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=60670
-If you need OpenMP support you may want to
-  brew reinstall gcc --without-multilib
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-GDAL
-----------------------------------
-~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-brew install gdal
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
+If you have any open terminal windows, run `source ~/.bash_profile` in each of them.
+Test by running `which clang` and `which clang++` to verify that clang and clang++ resolve
+to the versions just installed.
 
 CUDA and NVIDIA Driver (optional):
 ----------------------------------
