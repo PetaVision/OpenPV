@@ -163,7 +163,7 @@ ccmake .
 
 CMake options:
 ~~~~~~~~~~~~~~~~~~~~
-CLANG_OMP = (ON or OFF) #Whether the compiler uses the OpenMP/Clang compiler
+CLANG_OMP = (ON or OFF) #Turn this on if using a version of Clang that supports OpenMP as opposed to the Apple-supplied clang.
 CMAKE_BUILD_TYPE = (Release or Debug) #Whether to optimize for performance or for debugging
 ...
 CUDA_RELEASE = (ON or OFF) #Whether to Optimization for Cuda
@@ -174,8 +174,12 @@ PV_USE_CUDNN = True #Whether to use CUDNN
 PV_USE_OPENMP_THREADS = (ON or OFF) #Whether to use OpenMP threading
 ~~~~~~~~~~~~~~~~~~~~
 
-If some of these options do not show up on ccmake, fill the ones you can, press c to configure, and look again for variables
-Press G to generate when avaliable.
+Not all options will show up immediately the first time you run ccmake.  Fill the ones you can, press c to configure, and
+look for new variables (marked with an asterisk).  Fill in those variables and repeat.
+
+Note: if you are using OpenMP but not using OpenMPI, then you should also set the cmake-built-in variables CMAKE_C_COMPILER and CMAKE_CXX_COMPILER.  Press t to toggle advanced mode, and find the compiler variables.  Replace their values with the full path to the clang and clang++ that you installed earlier.  (If you are using OpenMPI, this is not necessary.  Turning PV_USE_MPI on will use the MPI-supplied compilers, which wrap around c/clang and c++/clang++.  Editing and exporting the PATH variable in .bash_profile or .profile made sure that the MPI compilers would find the new versions of the compilers.)
+
+When all options have been set, press g to generate.  (If that option does not appear, there are either new variables -- press c to configure when they or filled in -- or there is an error in some of the existing values.)
 
 To Test:
 ~~~~~~~~~~~~~~~~~~~~{.sh}
