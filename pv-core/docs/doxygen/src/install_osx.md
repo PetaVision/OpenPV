@@ -1,7 +1,9 @@
 OS X Installation
 ==================================
 
-This is a tutorial on getting PetaVision installed and running on OS X, assuming you have a clean installation of OS X. You will need an admin account (for installing packages with sudo). Tested on OS X 10.9.5 (Mavericks). If you have an NVIDIA card, upgrading to Yosemite currently creates issues with cuDNN that are fixed by reinstalling cuDNN.
+This is a tutorial on getting PetaVision installed and running on OS X, assuming you have a clean installation of OS X. You will
+need an admin account (for installing packages with sudo). Tested on OS X 10.10.5 (Yosemite). If you have an NVIDIA card and
+upgrade to Yosemite, you will need to reinstall cuDNN.
 
 Requirements
 ----------------------------------
@@ -83,7 +85,9 @@ be using the filename `clang+llvm-3.7.0-x86_64-apple-darwin.tar.xz`, the most re
 this writing; modify as necessary.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-cd ${HOME}/clang_omp
+cd ${HOME}
+mkdir clang_omp
+cd clang_omp
 cp /path/to/clang+llvm-3.7.0-x86_64-apple-darwin.tar.xz .
 unxz clang+llvm-3.7.0-x86_64-apple-darwin.tar.xz
 tar xf clang+llvm-3.7.0-x86_64-apple-darwin.tar
@@ -97,9 +101,7 @@ Download the most recent version of the OpenMP Runtime Library from <https://www
 Make a note of the location of the downloaded file.  In what follows, we will be using `libomp_20150701_oss.tgz`,
 the most recent version as of this writing; modify as necessary.
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
-cd ${HOME}
-mkdir clang_omp
-cd clang_omp
+cd ${HOME}/clang_omp
 tar xf /path/to/libomp_20150701_oss.tgz
 cd libomp_oss
 cmake .
@@ -108,7 +110,7 @@ make
 
 
 ###Update necessary environmental variables ###############
-Open your `~/.bash_profile` (or `~/.profile`, whichever one you use) and append these lines to the end of the file, making sure the clang-omp path is before `/usr/bin`
+Open your `~/.bash_profile` (or `~/.profile`, whichever one you use) and append these lines to the end of the file:
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 export PATH=$HOME/clang_omp/clang+llvm-3.7.0-x86_64-apple-darwin/bin:$PATH
 
