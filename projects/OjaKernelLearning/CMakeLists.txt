@@ -27,9 +27,11 @@ if (NOT GDAL_FOUND)
     find_package(GDAL REQUIRED)
 endif (NOT GDAL_FOUND)
 
-if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
-    find_package(MPI REQUIRED)
-endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+if (PV_USE_MPI)
+   if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+       find_package(MPI REQUIRED)
+   endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+endif (PV_USE_MPI)
 
 # Header files
 include_directories(${PV_SOURCE_DIR})
@@ -50,8 +52,6 @@ target_link_libraries(OjaKernelLearning pv)
 
 # Link executable to external libraries
 target_link_libraries(OjaKernelLearning ${GDAL_LIBRARY})
-target_link_libraries(OjaKernelLearning ${MPI_C_LIBRARIES})
-target_link_libraries(OjaKernelLearning ${MPI_CXX_LIBRARIES})
 
 if (BUILD_TYPE_OJAKERNELLEARNING)
     set(CMAKE_BUILD_TYPE ${BUILD_TYPE_OJAKERNELLEARNING})

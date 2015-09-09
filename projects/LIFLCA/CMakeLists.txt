@@ -28,21 +28,16 @@ if (NOT GDAL_FOUND)
     find_package(GDAL REQUIRED)
 endif (NOT GDAL_FOUND)
 
-if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
-    find_package(MPI REQUIRED)
-set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
-set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
-endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
-
-if (LIB_SND_FILE)
-   find_package(LIBSNDFILE)
-endif (LIB_SND_FILE)
+if (PV_USE_MPI)
+    if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+        find_package(MPI REQUIRED)
+        set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
+        set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+    endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+endif (PV_USE_MPI)
 
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
-IF(LIB_SND_FILE)
-   include_directories(${LIBSNDFILE_INCLUDE_DIR})
-ENDIF(LIB_SND_FILE)
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})
@@ -61,9 +56,6 @@ target_link_libraries(${PV_PROJECT_NAME} pv)
 
 # Link executable to external libraries
 target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
-IF(LIBSNDFILE_FOUND)
-   target_link_libraries(${PV_PROJECT_NAME} ${LIBSNDFILE_LIBRARY})
-ENDIF(LIBSNDFILE_FOUND)
 
 IF(CUDNN)
    target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
