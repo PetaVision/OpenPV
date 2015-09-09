@@ -31,6 +31,8 @@ if (PV_USE_MPI)
    if (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
        find_package(MPI REQUIRED)
    endif (NOT MPI_C_FOUND OR NOT MPI_CXX_FOUND)
+   set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
+   set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (PV_USE_MPI)
 
 # Header files
