@@ -32,6 +32,7 @@ int main(int argc, char * argv[])
    int syex = ( nS + halo->lt + halo->rt ) * nf;
    int sy = nS * nf;
 
+   sLoc.nbatch = 1;
    sLoc.nxGlobal = sLoc.nyGlobal = nS; // shouldn't be used
    sLoc.kx0 = sLoc.ky0 = 0; // shouldn't be used
    sLoc.nx = sLoc.ny = nS;
