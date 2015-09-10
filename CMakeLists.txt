@@ -31,6 +31,7 @@ set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
 
 if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
    if(APPLE AND CLANG_OMP)
+      message(WARNING "Using OpenMP threads with Clang. Make sure that your version of Clang supports OpenMP.")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++ -fopenmp=libiomp5")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -stdlib=libstdc++ -fopenmp=libiomp5")
    else(APPLE AND CLANG_OMP)
