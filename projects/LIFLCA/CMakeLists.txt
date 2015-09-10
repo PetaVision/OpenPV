@@ -46,18 +46,18 @@ link_directories(${PV_BINARY_DIR})
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
 
-if(CUDA_GPU)
+if(PV_USE_CUDA)
    cuda_add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
-else(CUDA_GPU)
+else(PV_USE_CUDA)
    add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
-endif(CUDA_GPU)
+endif(PV_USE_CUDA)
 
 target_link_libraries(${PV_PROJECT_NAME} pv)
 
 # Link executable to external libraries
 target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
 
-IF(CUDNN)
+IF(PV_USE_CUDNN)
    target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
-ENDIF(CUDNN)
+ENDIF(PV_USE_CUDNN)
 

@@ -26,7 +26,7 @@ IF(APPLE AND CLANG_OMP)
    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
 ENDIF(APPLE AND CLANG_OMP)
 
-if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
+if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
    if(APPLE AND CLANG_OMP)                                                         
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libiomp5")                  
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp=libiomp5")                      
@@ -34,10 +34,10 @@ if(OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")                           
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")                               
    endif(APPLE AND CLANG_OMP)                                                      
-   set(OPEN_MP_THREADS_FLAGS_ADDED TRUE)
-endif (OPEN_MP_THREADS AND NOT DEFINED OPEN_MP_THREADS_FLAGS_ADDED)
+   set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)
+endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
 
-if(OPEN_CL_GPU AND NOT DEFINED OPEN_CL_GPU_FLAGS_ADDED)
+if(PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
    IF(APPLE)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework opencl -DPV_OPENCL")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -framework opencl -DPV_OPENCL")
@@ -45,8 +45,8 @@ if(OPEN_CL_GPU AND NOT DEFINED OPEN_CL_GPU_FLAGS_ADDED)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL -DPV_OPENCL")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL -DPV_OPENCL")
    ENDIF(APPLE)
-   set(OPEN_CL_GPU_FLAGS_ADDED TRUE)
-endif (OPEN_CL_GPU AND NOT DEFINED OPEN_CL_GPU_FLAGS_ADDED)
+   set(PV_USE_OPENCL_FLAGS_ADDED TRUE)
+endif (PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
 
 set(PV_SOURCE_DIR "${PV_DIR}/src")
 set(PV_BINARY_DIR "${PV_DIR}/lib")
@@ -65,19 +65,21 @@ if (NOT LIBSNDFILE_FOUND)
     find_package(LIBSNDFILE REQUIRED)
 endif (NOT LIBSNDFILE_FOUND)
 
-# The user may specify a non-standard compiler name for MPI
-#  For example, the user may type:
-#    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
-#
-
-set(MPI_C_COMPILER_NAME "${CMAKE_C_COMPILER}")
-set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
-
-if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
-    find_package(MPI REQUIRED)
-endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
-set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
-set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+if (PV_USE_MPI)
+    # The user may specify a non-standard compiler name for MPI
+    #  For example, the user may type:
+    #    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
+    #
+    
+    set(MPI_C_COMPILER_NAME "${CMAKE_C_COMPILER}")
+    set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
+    
+    if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+        find_package(MPI REQUIRED)
+    endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+    set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
+    set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+endif (PV_USE_MPI)
 
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
@@ -91,11 +93,11 @@ link_directories(${PVSOUND_LIB_DIR})
 file(GLOB libSrcCPP ${PROJECT_SOURCE_DIR}/*.cpp)
 file(GLOB libSrcC ${PROJECT_SOURCE_DIR}/*.c)
 
-if(CUDA_GPU)
+if(PV_USE_CUDA)
    cuda_add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
-else(CUDA_GPU)
+else(PV_USE_CUDA)
    add_executable(${PV_PROJECT_NAME} ${libSrcCPP} ${libSrcC})
-endif(CUDA_GPU)
+endif(PV_USE_CUDA)
 
 target_link_libraries(${PV_PROJECT_NAME} pv)
 target_link_libraries(${PV_PROJECT_NAME} pvsound)
@@ -105,7 +107,7 @@ target_link_libraries(${PV_PROJECT_NAME} sndfile)
 target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
 
 ## target_link_libraries command no longer needed because the libraries are included in libpv.so
-#IF(CUDNN)
+#IF(PV_USE_CUDNN)
 #   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
-#ENDIF(CUDNN)
+#ENDIF(PV_USE_CUDNN)
 #
