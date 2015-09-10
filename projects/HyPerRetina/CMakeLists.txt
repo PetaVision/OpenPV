@@ -19,15 +19,11 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
 endif (NOT CMAKE_BUILD_TYPE)
 
-IF(APPLE AND CLANG_OMP)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
-   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
-ENDIF(APPLE AND CLANG_OMP)
-
 if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
    if(APPLE AND CLANG_OMP)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libiomp5")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp=libiomp5")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
    else(APPLE AND CLANG_OMP)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")

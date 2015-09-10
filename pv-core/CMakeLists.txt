@@ -31,15 +31,11 @@ set(CLANG_OMP TRUE CACHE BOOL "Defines whether we're compiling with Clang + omp 
 # Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
 # set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
 
-IF(APPLE AND CLANG_OMP)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
-   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
-ENDIF(APPLE AND CLANG_OMP)
-
 if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
    if(APPLE AND CLANG_OMP)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libiomp5")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp=libiomp5")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
    else(APPLE AND CLANG_OMP)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")

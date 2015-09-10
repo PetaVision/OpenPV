@@ -9,12 +9,9 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
 set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
 set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
 
-# To allow for a single CMakeLists.txt to add_subdirectory several projects, where build type might not all be the same,
-# can set BUILD_TYPE_OJAKERNELLEARNING separately and it will be used as set
-if (BUILD_TYPE_OJAKERNELLEARNING)
-    set(BUILD_TYPE_SAVE_OLD ${CMAKE_BUILD_TYPE})
-    set(CMAKE_BUILD_TYPE ${BUILD_TYPE_OJAKERNELLEARNING}) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
-endif (BUILD_TYPE_OJAKERNELLEARNING)
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
+endif (NOT CMAKE_BUILD_TYPE)
 
 set(PV_SOURCE_DIR "${PV_DIR}/src")
 set(PV_BINARY_DIR "${PV_DIR}/lib")
@@ -55,6 +52,3 @@ target_link_libraries(OjaKernelLearning pv)
 # Link executable to external libraries
 target_link_libraries(OjaKernelLearning ${GDAL_LIBRARY})
 
-if (BUILD_TYPE_OJAKERNELLEARNING)
-    set(CMAKE_BUILD_TYPE ${BUILD_TYPE_OJAKERNELLEARNING})
-endif (BUILD_TYPE_OJAKERNELLEARNING)

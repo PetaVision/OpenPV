@@ -30,21 +30,15 @@ IF(NOT EXISTS "${PV_DIR}")
    message(FATAL_ERROR "PV_DIR \"${PV_DIR}\" does not exist.")
 ENDIF(NOT EXISTS "${PV_DIR}")
 
-IF(APPLE AND CLANG_OMP AND NOT DEFINED APPLE_CLANG_OMP_FLAGS_ADDED)
-   message(WARNING "Using OpenMP threads with Clang. Make sure that your version of Clang supports OpenMP.")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
-   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
-   set(APPLE_CLANG_OMP_FLAGS_ADDED TRUE)
-ENDIF(APPLE AND CLANG_OMP AND NOT DEFINED APPLE_CLANG_OMP_FLAGS_ADDED)
-
 if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
-   if(APPLE AND CLANG_OMP)                                                         
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libiomp5")                  
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp=libiomp5")                      
-   else(APPLE AND CLANG_OMP)                                                       
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")                           
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")                               
-   endif(APPLE AND CLANG_OMP)                                                      
+   if(APPLE AND CLANG_OMP)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libiomp5")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp=libiomp5")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
+   else(APPLE AND CLANG_OMP)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+   endif(APPLE AND CLANG_OMP)
    set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)
 endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
 
@@ -102,12 +96,12 @@ if (PV_USE_MPI)
     #  For example, the user may type:
     #    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
     #
-    
+
     if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
         MESSAGE("-- Searching for MPI library ............")
         find_package(MPI REQUIRED)
     endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
-    
+
     set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
     set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (PV_USE_MPI)
@@ -169,7 +163,6 @@ endif(PV_USE_CUDA)
 # Link executable to external libraries
 target_link_libraries(${PV_AUXLIB_NAME} pv)
 target_link_libraries(${PV_AUXLIB_NAME} ${GDAL_LIBRARY})
-target_link_libraries(${PV_AUXLIB_NAME} ${MPI_LIBRARY})
 target_link_libraries(${PV_AUXLIB_NAME} ${LIBSNDFILE_LIBRARY})
 
 IF(PV_USE_CUDNN)
