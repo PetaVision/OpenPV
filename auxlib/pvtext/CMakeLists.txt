@@ -114,7 +114,7 @@ if (PV_USE_MPI)
 
     set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
     set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
-if (PV_USE_MPI)
+endif (PV_USE_MPI)
 
 if (PV_USE_CUDA)
     MESSAGE("-- Searching for CUDA library ............")
