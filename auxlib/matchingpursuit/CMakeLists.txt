@@ -97,22 +97,24 @@ if(PV_USE_CUDA)
    set(PVauxlibSrcCu ${PVauxlibSrcCu} ${libSrcCU})
 endif(PV_USE_CUDA)
 
-# The user may specify a non-standard compiler name for MPI
-#  For example, the user may type:
-#    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
-#
+if (PV_USE_MPI)
+    # The user may specify a non-standard compiler name for MPI
+    #  For example, the user may type:
+    #    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
+    #
+    
+    if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+        MESSAGE("-- Searching for MPI library ............")
+        find_package(MPI REQUIRED)
+    endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+    if (NOT GDAL_FOUND)
+        MESSAGE("-- Searching for GDAL library ...........")
+        find_package(GDAL REQUIRED)
+    endif (NOT GDAL_FOUND)
 
-if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
-    MESSAGE("-- Searching for MPI library ............")
-    find_package(MPI REQUIRED)
-endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
-if (NOT GDAL_FOUND)
-    MESSAGE("-- Searching for GDAL library ...........")
-    find_package(GDAL REQUIRED)
-endif (NOT GDAL_FOUND)
-
-set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
-set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+    set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
+    set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+endif (PV_USE_MPI)
 
 if (PV_USE_CUDA)
     MESSAGE("-- Searching for CUDA library ............")
@@ -162,7 +164,6 @@ endif(PV_USE_CUDA)
 # Link executable to external libraries
 target_link_libraries(${PV_AUXLIB_NAME} pv)
 target_link_libraries(${PV_AUXLIB_NAME} ${GDAL_LIBRARY})
-target_link_libraries(${PV_AUXLIB_NAME} ${MPI_LIBRARY})
 
 IF(PV_USE_CUDNN)
    IF(APPLE)

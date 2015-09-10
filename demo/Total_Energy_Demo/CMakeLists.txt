@@ -80,19 +80,21 @@ if (NOT GDAL_FOUND)
     find_package(GDAL REQUIRED)
 endif (NOT GDAL_FOUND)
 
-# The user may specify a non-standard compiler name for MPI
-#  For example, the user may type:
-#    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
-#
-
-set(MPI_C_COMPILER_NAME "${CMAKE_C_COMPILER}")
-set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
-
-if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
-    find_package(MPI REQUIRED)
-endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
-set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
-set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+if (PV_USE_MPI)
+    # The user may specify a non-standard compiler name for MPI
+    #  For example, the user may type:
+    #    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
+    #
+    
+    set(MPI_C_COMPILER_NAME "${CMAKE_C_COMPILER}")
+    set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
+    
+    if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+        find_package(MPI REQUIRED)
+    endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+    set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
+    set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+if (PV_USE_MPI)
 
 if(PV_USE_CUDA)
     #Set include file
