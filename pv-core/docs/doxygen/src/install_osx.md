@@ -15,17 +15,17 @@ Required installations
 - Xcode and Xcode command line tools
 - Homebrew
 - GDAL
-- OpenMPI
 
 Optional installations
 ----------------------------------
+- OpenMPI (to take advantage of MPI parallelization)
 - CUDA and cuDNN (to take advantage of CUDA GPU acceleration)
 - A C/C++ compiler with OpenMP capabilities (to take advantage of OpenMP parallelization)
 - Octave (to use the m-files in the mlab directory for analysis)
 
 Xcode
 ----------------------------------
-Xcode is needed by homebrew and gcc/g++/clang. Here's how to get it.
+Xcode is needed to install Homebrew and C/C++ compilers. Here's how to get it.
 - Go to the Apple App Store and search for Xcode
 - Click 'GET', then 'INSTALL'. Put in your Apple ID information
 - After it's installed, we need to accept the Xcode license.
@@ -69,12 +69,12 @@ brew install octave
 
 If you want to take advantage of OpenMP threading, see below.
 
-Clang + OpenMP (optional)
+OpenMP-compatible Clang (optional)
 ----------------------------------
 Currently (OS X Yosemite 10.10.5 and Xcode 6.4), the version of Clang installed by Xcode does not support OpenMP.
 The program installed as gcc is also Clang, not GNU-GCC (as can be verified by running gcc --version).
 To make use of the OpenMP threading in PetaVision you will need an OpenMP-compatible compiler. 
-As of this writing, the most recent release of clang (3.7.0) supports OpenMP, but Xcode is still behind
+As of this writing, the most recent release of Clang (3.7.0) supports OpenMP, but Xcode is still behind
 this version.
 Here are instructions to download the most recent version of clang.
 
@@ -82,9 +82,11 @@ Here are instructions to download the most recent version of clang.
 Download the most recent pre-built binary for Mac OS X from <http://llvm.org/releases/download.html>.
 Make a note of the location of the downloaded file and the filename.  In what follows, we will
 be using the filename `clang+llvm-3.7.0-x86_64-apple-darwin.tar.xz`, the most recent version as of
-this writing; modify as necessary.
+this writing; modify as necessary.  To extract the downloaded `.xz` file using the command line,
+you will need the xz program, which can be installed using Homebrew.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
+brew install xz
 cd ${HOME}
 mkdir clang_omp
 cd clang_omp
@@ -138,11 +140,11 @@ NVIDIA drivers are included with the cuda download. To install cuda:
 - Follow the onscreen instructions. Make sure to select cuda driver and cuda toolkit.
 
 
-CUDNN (optional)
+cuDNN (optional)
 ----------------------------------
 Go to <https://developer.nvidia.com/cuDNN> and click Download at the bottom.
 Register with NVIDIA developers if need be, and wait for confirmation.
-Download the OS X version of CUDNN
+Download the OS X version of cuDNN
 (Optional: if you have access to NMC's compuneuro, grab it from here: `/nh/compneuro/Data/cuDNN`)
 
 
@@ -170,7 +172,7 @@ CUDA_RELEASE = (ON or OFF) #Whether to Optimization for Cuda
 CUDNN_PATH = /path/to/cudnn/folder #The path to the cuDNN folder you downloaded/copied
 ...
 PV_USE_CUDA = (ON or OFF) #Whether to use CUDA GPU acceleration
-PV_USE_CUDNN = True #Whether to use CUDNN
+PV_USE_CUDNN = True #Whether to use cuDNN
 PV_USE_OPENMP_THREADS = (ON or OFF) #Whether to use OpenMP threading
 ~~~~~~~~~~~~~~~~~~~~
 
