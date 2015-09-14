@@ -74,7 +74,7 @@ function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFil
       endfor
 
       %Take out unnessessary depth_data and v1_data for memory
-      clear depth_data v1_data tmp_v1 active_ndx active_vals;
+      %clear depth_data v1_data tmp_v1 active_ndx active_vals;
 
       disp(['Histograming Depth']);
       %bin depth_act into 64 bins, and use the index as the new matrix
