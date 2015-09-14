@@ -1,30 +1,31 @@
 %A script to make depth tuning curves
-addpath('~/workspace/pv-core/mlab/util');
+addpath('~/workspace/OpenPV/pv-core/mlab/util');
 
 %To avoid losing focus when plotting
 setenv("GNUTERM","dumb");
 
-%outDir = '/nh/compneuro/Data/Depth/LCA/benchmark/depth_tune/';
-outDir = '~/mountData/NIPS/rect';
-%dataDir = '/nh/compneuro/Data/Depth/';
-dataDir = '~/mountData/benchmark/';
+outDir = '/nh/compneuro/Data/Depth/NIPS/rect_1024/';
+%outDir = '~/mountData/NIPS/rect';
+dataDir = '/nh/compneuro/Data/Depth/NIPS/rect_1024/';
+%dataDir = '~/mountData/benchmark/';
 loadData = false;
 
-LCA_v1ActFile = [dataDir, 'icaweights_rect_LCA/a12_V1.pvp'];
-RELU_v1ActFile = [dataDir, 'icaweights_rect_RELU/a12_V1.pvp'];
+LCA_v1ActFile = [dataDir, 'icaweights_rect_1024_LCA/a12_V1.pvp'];
+RELU_v1ActFile = [dataDir, 'icaweights_rect_1024_RELU/a12_V1.pvp'];
 
-depthFile = [dataDir, '/train/aws_icaweights_rect_LCA/a4_DepthDownsample.pvp'];
+depthFile = [dataDir, '/train/aws_icaweights_rect_1024_LCA/a4_DepthDownsample.pvp'];
 plotOutDir = [outDir, '/depthTuning/'];
 
-dictPvpDir = [dataDir, '/train/aws_icaweights_rect_LCA/Last/'];
+dictPvpDir = [dataDir, '/train/aws_icaweights_rect_1024_LCA/Last/'];
 dictPvpFiles = {[dictPvpDir, 'LCA_V1ToLeftRecon_W.pvp'];...
                 [dictPvpDir, 'LCA_V1ToRightRecon_W.pvp']};
 
 %Given a depth and a neuron, these values define how big of an x/y patch to look for that neuron at
 sampleDim = 5;
 numDepthBins = 64;
+numEpochs = 2; %Splitting up nf to save memory
 
-targetNeurons = 1:512;
+targetNeurons = 1:1024;
 
 
 %Create output directory in outDir
@@ -35,8 +36,8 @@ saveFilename = [outDir, 'tuningData.mat']
 if(loadData)
    load(saveFilename);
 else
-   [LCA_outVals, LCA_kurtVals, LCA_peakMean] = calcDepthTuning(LCA_v1ActFile, depthFile, sampleDim, numDepthBins, 1);
-   [RELU_outVals, RELU_kurtVals, RELU_peakMean] = calcDepthTuning(RELU_v1ActFile, depthFile, sampleDim, numDepthBins, 1);
+   [LCA_outVals, LCA_kurtVals, LCA_peakMean] = calcDepthTuning(LCA_v1ActFile, depthFile, sampleDim, numDepthBins, 1, numEpochs);
+   [RELU_outVals, RELU_kurtVals, RELU_peakMean] = calcDepthTuning(RELU_v1ActFile, depthFile, sampleDim, numDepthBins, 1, numEpochs);
    save(saveFilename, 'LCA_outVals', 'LCA_kurtVals', 'LCA_peakMean', 'RELU_outVals', 'RELU_kurtVals', 'RELU_peakMean');
 end
 
