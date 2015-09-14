@@ -357,6 +357,12 @@ function [Sparse_hdr, ...
     Sparse_percent_active_array{i_Sparse} = Sparse_percent_active;
     Sparse_percent_change_array{i_Sparse} = Sparse_percent_change;
     Sparse_std_array{i_Sparse} = Sparse_std;
+
+    if num_Sparse_list > 10
+      close(Sparse_hist_fig);
+      close(Sparse_percent_change_fig);
+      close(Sparse_percent_active_fig);
+    endif
     
   endfor  %% i_Sparse
   

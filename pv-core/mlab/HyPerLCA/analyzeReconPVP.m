@@ -164,7 +164,18 @@ function [Recon_hdr, ...
       Recon_std(i_Recon) = Recon_std(i_Recon) + std_Recon_tmp;
       Recon_fig_name{i_Recon} = [Recon_fig_name{i_Recon}, "_", num2str(Recon_time{i_Recon}(i_frame), "%08d")];
       Recon_vals_tmp = ...
-	  permute(Recon_vals{i_Recon}{i_frame},[2,1,3]);
+      permute(Recon_vals{i_Recon}{i_frame},[2,1,3]);
+      if num_Recon_colors > 3
+	Recon_colormap = prism(num_Recon_colors+1);
+	Recon_vals_tmp2 = zeros([size(Recon_vals_tmp,1),size(Recon_vals_tmp,2),3]);
+	for Recon_color_ndx = 1 : num_Recon_colors
+	  Recon_color = Recon_colormap(Recon_color_ndx,:);
+	  Recon_vals_tmp2(:,:,1) = squeeze(Recon_vals_tmp2(:,:,1)) + squeeze(Recon_vals_tmp(:,:,Recon_color_ndx) .* Recon_color(1));
+	  Recon_vals_tmp2(:,:,2) = squeeze(Recon_vals_tmp2(:,:,2)) + squeeze(Recon_vals_tmp(:,:,Recon_color_ndx) .* Recon_color(2));
+	  Recon_vals_tmp2(:,:,3) = squeeze(Recon_vals_tmp2(:,:,3)) + squeeze(Recon_vals_tmp(:,:,Recon_color_ndx) .* Recon_color(3));
+	endfor
+	Recon_vals_tmp = Recon_vals_tmp2;
+      endif
 
       if num_Recon_colors > 3
 	Recon_colormap = prism(num_Recon_colors+1);
@@ -192,6 +203,9 @@ function [Recon_hdr, ...
 	box off; axis off; axis image;
 	saveas(Recon_fig(i_Recon, i_frame), ...
 	       [Recon_dir, filesep, Recon_fig_name{i_Recon}, ".png"], "png");
+	if num_Recon_list > 10
+	  close(Recon_fig(i_Recon, i_frame));
+	endif
       else
 	imwrite(Recon_vals_tmp, [Recon_dir, filesep, Recon_fig_name{i_Recon}, ".png"], "png");
       endif

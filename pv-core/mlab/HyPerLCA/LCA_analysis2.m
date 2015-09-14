@@ -1,5 +1,4 @@
 
-
 clear all;
 close all;
 more off
@@ -15,53 +14,108 @@ no_clobber = false; %%true;
 
 %% machine/run_type environment
 if ismac
-  workspace_path = "/Users/gkenyon/workspace";
+  workspace_path = "/Users/gkenyon/openpv";
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  run_type = "PASCAL_DPT3";
-  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512/VOC2007_landscape2"
-  checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512";
-  checkpoint_children = ...
-  {"VOC2007_landscape2"}; %%
-  %%{"VOC2007_landscape"; "VOC2007_landscape2"}; %%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%run_type = "CIFAR_C1"; 
-  %%output_dir = "/Users/garkenyon/workspace/HyPerHLCA/CIFAR_C1_task/data_batch_all8"
-  %%checkpoint_parent = "/Users/garkenyon/workspace/HyPerHLCA";
-  %%checkpoint_children = ...
-  %%    {"CIFAR_C1_task/data_batch_all8"}; %%
+  %%run_type = "Grains";
+  run_type = "ICA";
+  ICA_subtype = "ICAX4";
+  %%run_type = "experts";
+  %%run_type = "MaxPool";
+  %%run_type = "DCA";
+  if strcmp(run_type, "Grains")
+    output_dir = "/Volumes/mountData/Grains/Grains_S1_128/test3"; %%
+    checkpoint_parent = "/Volumes/mountData/Grains/Grains_S1_128"; %%
+    checkpoint_children = ...
+    {"test3"};
+  elseif strcmp(run_type, "ICA")
+    if ~exist("ICA_subtype", "var")
+      output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape8";
+      checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA";
+      checkpoint_children = ...
+      {"VOC2007_landscape8"};
+    elseif strcmp(ICA_subtype, "ICAX4")
+      output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape1";
+      checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA";
+      checkpoint_children = ...
+      {"VOC2007_landscape1"};
+    endif
+  elseif strcmp(run_type, "experts")
+    output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_16_8_4_experts/VOC2007_landscape";
+    checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_16_8_4_experts";
+    checkpoint_children = ...
+    {"VOC2007_landscape"};
+  elseif strcmp(run_type, "DCA")
+    output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape12";
+    checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN";
+    checkpoint_children = {"VOC2007_landscape12"}; %%
+  elseif strcmp(run_type, "MaxPool")
+    output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape6";
+    checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool";
+    checkpoint_children = ...
+    {"VOC2007_landscape6"};
+  endif
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif isunix
-  workspace_path = "/home/gkenyon/workspace";
+  workspace_path = "/nh/compneuro/Data/openpv";
   
   %%run_type = "Heli_DPTX3";
-  run_type = "PASCAL_MLP";
-  run_type = "PASCAL_DPT";
+  %%run_type = "PASCAL_DPT";
   %%run_type = "MRI";
   %%run_type = "M1";
-  run_type = "SLP";
-  if strcmp(run_type, "Heli_DPTX3")
-    output_dir = ...
-    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/TrainingPlusFormative_Car_Plane/output_18x18x48_10x10x96_10x10x192_lambda_001X50_DPTX3c";
-%%    output_dir = ...
-%%    	"/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli/Challenge/026/output_18x18x48_10x10x96_10x10x192_lambda_001X050_DPTX3c";
-    checkpoint_parent = "/nh/compneuro/Data/repo/neovision-programs-petavision/LCA/Heli";
-    checkpoint_children = {}; %%{"TrainingPlusFormative_Car_Plane/output_18x18x48_10x10x96_10x10x192_lambda_001X50_DPTX3"};
-%%    checkpoint_children = {"Challenge/026/output_18x18x48_10x10x96_10x10x192_lambda_001X050_DPTX3c"};
-  elseif strcmp(run_type, "PASCAL_MLP")
-    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_portrait5AWS"
-    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP"
-    checkpoint_children = {"VOC2007_portrait5AWS"}; %%
-    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_LCA_dynamics_demo/VOC2007_landscape"
-    %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_LCA_dynamics_demo"
-    %%checkpoint_children = {"VOC2007_landscape"}; %%
-  elseif strcmp(run_type, "PASCAL_DPT")
-    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_384_S3_1536_DPTG/Vine8";
-    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_384_S3_1536_DPTG";
-    checkpoint_children = {"Vine8"}; %%
-  elseif strcmp(run_type, "SLP")
-    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP/VOC2007_landscape6";
-    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_16X12_4X3_SLP";
+  %%run_type = "SLP";
+  %%run_type = "PCA";
+  %%run_type = "dSCANN";
+  run_type = "DCNN";
+  %%run_type = "MaxPool";
+  %%run_type = "DCA";
+  %%run_type = "DCNNX3";
+  %%run_type = "DBN";
+  %%run_type = "experts";
+  if strcmp(run_type, "experts") 
+    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts/VOC2007_landscape";
+    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts";
+    checkpoint_children = {"VOC2007_landscape"}; %%
+  elseif strcmp(run_type, "DCA")
+    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape12";
+    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN";
+    checkpoint_children = {"VOC2007_landscape12"}; %%
+  elseif strcmp(run_type, "MaxPool")
+    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape6";
+    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool";
     checkpoint_children = {"VOC2007_landscape6"}; %%
+  elseif strcmp(run_type, "SLP")
+    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape2";
+    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536";
+    checkpoint_children = {"VOC2007_landscape26"}; %%
+  elseif strcmp(run_type, "PCA")
+    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_PCA_4X3_1536/VOC2007_landscape16";
+    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_PCA_4X3_1536";
+    checkpoint_children = {"VOC2007_landscape16"}; %%
+  elseif strcmp(run_type, "dSCANN")
+    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN/VOC2007_landscape2";
+    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_dSCANN";
+    checkpoint_children = {"VOC2007_landscape2"}; %%
+  elseif strcmp(run_type, "DBN")
+    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DBN/VOC2007_landscape";
+    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DBN";
+    checkpoint_children = {"VOC2007_landscape"}; %%
+  elseif strcmp(run_type, "DCNN")
+    %%   output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape7";
+    %%   checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN";
+    %%   checkpoint_children = {"VOC2007_landscape7"}; %%
+       output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/PASCAL_Vine10";
+       checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN";
+       checkpoint_children = {"PASCAL_Vine10"}; %%
+    %%    output_dir = "/nh/compneuro/Data/Grains/Grains_S1_128_S2_256_S3_512_DCNN/test4";
+    %%    checkpoint_parent = "/nh/compneuro/Data/Grains/Grains_S1_128_S2_256_S3_512_DCNN";
+    %%    checkpoint_children = {"test4"}; %%
+    %%output_dir = "/nh/compneuro/Data/CIFAR/CIFAR_S1_128_S2_256_S3_512_DCNN/test5";
+    %%checkpoint_parent = "/nh/compneuro/Data/CIFAR/CIFAR_S1_128_S2_256_S3_512_DCNN";
+    %%checkpoint_children = {"test5"}; %%
+  elseif strcmp(run_type, "DCNNX3")
+    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X3_128_S2X2_256_S3_512_DCNN/VOC2007_landscape10";
+    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X3_128_S2X2_256_S3_512_DCNN";
+    checkpoint_children = {"VOC2007_landscape10"}; %%
   elseif strcmp(run_type, "MRI")
     output_dir = "/nh/compneuro/Data/MRI/5_subjects/3D";
     checkpoint_parent = "/nh/compneuro/Data/MRI/5_subjects";
@@ -73,7 +127,7 @@ elseif isunix
   endif
 endif %% isunix
 addpath(pwd);
-addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
+addpath([workspace_path, filesep, "pv-core/mlab/util"]);
 
 %% default paths
 if ~exist("output_dir") || isempty(output_dir)
@@ -98,49 +152,14 @@ checkpoint_weights_movie = true; %% make movie of weights over time using list o
 %% plot Reconstructions
 analyze_Recon = true;
 if analyze_Recon
-  if strcmp(run_type, "Heli_DPTX3")  
+  if strcmp(run_type, "SLP")  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_DPTX3 list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Recon_list = ...
-	{["a0_"], ["Image"];
-	 ["a3_"], ["ReconV1"];
-	 ["a9_"], ["ReconInfraV2"];
-	 ["a7_"], ["ReconV2"];
-	 ["a7_"], ["ReconV2"];
-	 ["a16_"], ["ReconInfraV4"];
-	 ["a13_"], ["ReconV4"];
-	 ["a13_"], ["ReconV4"];
-	 ["a16_"], ["ReconInfraV4"]};
-    %% list of layers to unwhiten
-    num_Recon_list = size(Recon_list,1);
-    Recon_unwhiten_list = zeros(num_Recon_list,1);
-    %%Recon_unwhiten_list([2,3,5,6]) = 1;
-    %% list of layers to use as a normalization reference for unwhitening
-    Recon_normalize_list = 1:num_Recon_list;
-    %% list of (previous) layers to sum with current layer
-    Recon_sum_list = cell(num_Recon_list,1);
-    Recon_sum_list{5} = [3];
-    Recon_sum_list{8} = [6];
-    Recon_sum_list{9} = [3 2];
-  elseif strcmp(run_type, "PASCAL_MLP") 
-    %% PASCAL_MLP list
+    %% SLP list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Recon_list = ...
 	{["a0_"],  ["Image"];
 	 ["a3_"],  ["ImageReconS1"];
-	 ["a9_"],  ["ImageReconS2"];
-	 ["a18_"],  ["ImageReconS3"];
-	 ["a18_"],  ["ImageReconS3"];
-	 ["a4_"],  ["ImageReconS1Downsampled"];
-	 ["a11_"],  ["ImageReconS1DownsampledReconS2"];
-	 ["a12_"],  ["ImageReconS2Downsampled"];
-	 ["a20_"],  ["ImageReconS2DownsampledReconS3"]};
-%%    Recon_list = ...
-%%	{["a0_"],  ["Image"]};
-%%    Recon_list = ...
-%%	{["a3_"],  ["ImageReconS1"];
-%%	 ["a7_"],  ["ImageReconS2"]};
+	 ["a7_"],  ["ImageReconS2"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     Recon_unwhiten_list = zeros(num_Recon_list,1);
@@ -148,21 +167,39 @@ if analyze_Recon
     Recon_normalize_list = 1:num_Recon_list;
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
-    Recon_sum_list{5} = [2,3];
-  elseif strcmp(run_type, "SLP")  
+  elseif  strcmp(run_type, "default") || strcmp(run_type, "ICA") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "DCA") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% PASCAL_MLP list
+    %% default/glob generated list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_glob_list = glob([output_dir, filesep, "a*_Image*.pvp"]);
+    num_Recon_list = length(Recon_glob_list);    
+    Recon_list = cell(num_Recon_list,1);
+    for i_Recon_list = 1 : num_Recon_list
+      [Recon_list_dir, Recon_list_name, Recon_list_ext, Recon_list_ver] = fileparts(Recon_glob_list{i_Recon_list});
+      Recon_underscore_ndx = strfind(Recon_list_name, "_");
+      Recon_list{i_Recon_list,1} = Recon_list_name(1:Recon_underscore_ndx(1));
+      Recon_list{i_Recon_list,2} = Recon_list_name(Recon_underscore_ndx(1)+1:length(Recon_list_name));
+    endfor
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
+  elseif strcmp(run_type, "dSCANN")  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% dSCANN list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Recon_list = ...
-    	{["a0_"],  ["Image"];
-    	 ["a6_"],  ["ImageReconS1"];
-    	 ["a7_"],  ["ImageReconS1Stride2"];
-    	 ["a8_"],  ["ImageReconS1Stride4"];
-    	 ["a9_"],  ["ImageReconS1Stride8"];
-    	 ["a10_"],  ["ImageReconS1Stride16"];
-    	 ["a11_"],  ["ImageReconS1Stride2Downsampled"];
-    	 ["a16_"],  ["ImageReconS1Stride2DownsampledReconC1"];
-    	 ["a17_"],  ["ImageReconS1Stride2ReconC1"]};
+	{["a0_"],  ["Image"];
+	 ["a1_"],  ["ImageDecon"];
+	 ["a2_"],  ["ImageRecon"];
+	 ["a7_"],  ["ImageDeconS1"];
+	 ["a8_"],  ["ImageReconS1"];
+	 ["a14_"],  ["ImageDeconS2"];
+	 ["a15_"],  ["ImageReconS2"];
+	 ["a23_"],  ["ImageReconS3"];
+	 ["a24_"],  ["ImageDeconS3"]};
     %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     Recon_unwhiten_list = zeros(num_Recon_list,1);
@@ -170,20 +207,101 @@ if analyze_Recon
     Recon_normalize_list = 1:num_Recon_list;
     %% list of (previous) layers to sum with current layer
     Recon_sum_list = cell(num_Recon_list,1);
-  elseif strcmp(run_type, "PASCAL_DPT3") 
+  elseif strcmp(run_type, "DBN")  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% PASCAL_DPT3 list
+    %% DBN list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Recon_list = ...
-    	{["a0_"],  ["Image"];
-    	 ["a1_"],  ["ImageRecon"];
-    	 ["a6_"],  ["ImageReconS1"];
-    	 ["a12_"],  ["ImageReconS2"];
-    	 ["a18_"],  ["ImageReconS3"];
-    	 ["a2_"],  ["ImageReconDownsampled2to1"];
-    	 ["a11_"],  ["ImageReconDownsampled2to1ReconS2"];
-    	 ["a3_"],  ["ImageReconDownsampled4To1"];
-    	 ["a19_"],  ["ImageReconDownsampled4To1ReconS3"]};
+	{["a0_"],  ["Image"];
+	 ["a1_"],  ["ImageRecon"];
+	 ["a4_"],  ["ImageReconS1"];
+	 ["a8_"],  ["ImageReconS2"];
+	 ["a13_"],  ["ImageReconS3"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
+  elseif strcmp(run_type, "DCNN")  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCNN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"],  ["Image"];
+	 ["a1_"],  ["ImageDecon"];
+	 ["a5_"],  ["ImageDeconS1"];
+	 ["a9_"],  ["ImageDeconS2"];
+	 ["a14_"],  ["ImageDeconS3"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
+  elseif strcmp(run_type, "DCNNX3")  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCNNX3 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"],  ["Image"];
+	 ["a1_"],  ["ImageDecon"];
+	 ["a7_"],  ["ImageDeconS1"];
+	 ["a12_"],  ["ImageDeconS2"];
+	 ["a17_"],  ["ImageDeconS3"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
+  elseif strcmp(run_type, "PCA")  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% PCA list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"],  ["Image"];
+	 ["a3_"],  ["ImageReconS1"];
+	 ["a14_"],  ["ImageReconS2"];
+	 ["a34_"],  ["ImageReconPCA"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
+  elseif strcmp(run_type, "MRI")  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MRI list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"],  ["Image0"];
+	 ["a1_"],  ["Image1"];
+	 ["a2_"],  ["Image2"];
+	 ["a3_"],  ["Image3"];
+	 ["a9_"],  ["Image0ReconS1"];
+	 ["a10_"],  ["Image1ReconS1"];
+	 ["a11_"],  ["Image2ReconS1"];
+	 ["a12_"],  ["Image3ReconS1"]};
+    %% list of layers to unwhiten
+    num_Recon_list = size(Recon_list,1);
+    Recon_unwhiten_list = zeros(num_Recon_list,1);
+    %% list of layers to use as a normalization reference for unwhitening
+    Recon_normalize_list = 1:num_Recon_list;
+    %% list of (previous) layers to sum with current layer
+    Recon_sum_list = cell(num_Recon_list,1);
+  elseif strcmp(run_type, "M1")  
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% M1 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Recon_list = ...
+	{["a0_"],  ["Image"];
+	 ["a5_"],  ["GroundTruthReconM1"]};
+    %% list of layers to unwhiten
     num_Recon_list = size(Recon_list,1);
     Recon_unwhiten_list = zeros(num_Recon_list,1);
     %% list of layers to use as a normalization reference for unwhitening
@@ -253,6 +371,39 @@ if plot_StatsProbe_vs_time && plot_flag
          ["V2"],["_Stats.txt"];
          ["Error1_2"],["_Stats.txt"]; ...
          ["V1Infra"],["_Stats.txt"]};
+  elseif strcmp(run_type, "noPulvinar") || strcmp(run_type, "TopDown")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% noPulvinar list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_list = ...
+        {["Error"],["_Stats.txt"]; ...
+         ["V1"],["_Stats.txt"];
+         ["V2"],["_Stats.txt"];
+         ["Error1_2"],["_Stats.txt"]; ...
+         ["V1Infra"],["_Stats.txt"]};
+  elseif strcmp(run_type, "lateral")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% lateral list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_list = ...
+	{["Error"],["_Stats.txt"]; ...
+	 ["V1"],["_Stats.txt"];
+	 ["Error2"],["_Stats.txt"]; ...
+	 ["V2"],["_Stats.txt"];
+	 ["Error1_2"],["_Stats.txt"]; ...
+	 ["V2"],["_Stats.txt"]; ...
+	 ["V2"],["_Stats.txt"]};
+  elseif strcmp(run_type, "CIFAR_deep")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MNIST/CIFAR list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_list = ...
+	{["LabelError"],["_Stats.txt"]; ...
+	 ["Error"],["_Stats.txt"]; ...
+	 ["Error1_2"],["_Stats.txt"]; ...
+	 ["V1"],["_Stats.txt"];...
+	 ["V2"],["_Stats.txt"]};
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   StatsProbe_vs_time_dir = [output_dir, filesep, "StatsProbe_vs_time"]
   [status, msg, msgid] = mkdir(StatsProbe_vs_time_dir);
@@ -267,6 +418,24 @@ if plot_StatsProbe_vs_time && plot_flag
     %% deep list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     StatsProbe_sigma_flag([2,4,6]) = 0;
+  elseif strcmp(run_type, "noPulvinar") || strcmp(run_type, "TopDown")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% noPulvinar list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_sigma_flag([2,3,5]) = 0;
+  elseif strcmp(run_type, "lateral")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% lateral list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_sigma_flag([2,4,6,7]) = 0;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif  strcmp(run_type, "CIFAR_deep") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MNIST/CIFAR list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    StatsProbe_sigma_flag([4]) = 0;
+    StatsProbe_sigma_flag([5]) = 0;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
   StatsProbe_nnz_flag = ~StatsProbe_sigma_flag;
   for i_StatsProbe = 1 : num_StatsProbe_list
@@ -361,32 +530,108 @@ endif  %% plot_StatsProbe_vs_time
 analyze_Sparse_flag = true;
 if analyze_Sparse_flag
   Sparse_frames_list = [];
-  if strcmp(run_type, "Heli_DPTX3")
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_DPTX3 list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Sparse_list = ...
-	{["a2_"], ["V1"]; ...
-	 ["a6_"], ["V2"]; ...
-	 ["a12_"], ["V4"]};
-  elseif strcmp(run_type, "SLP")
+  if strcmp(run_type, "SLP")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% SLP list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
-	{["a2_"],  ["S1Stride2"]; ...
-	 ["a3_"],  ["S1Stride4"]; ...
-	 ["a4_"],  ["S1Stride8"]; ...
-	 ["a5_"],  ["S1Stride16"]; ...
-	 ["a14_"],  ["C1"]}; 
-  elseif strcmp(run_type, "PASCAL_DPT3")
+	{["a2_"],  ["S1"]; ...
+	 ["a5_"],  ["S2"]}; 
+  elseif strcmp(run_type, "DCA") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% PASCAL_DPT3 list
+    %% DCA list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
-	{["a5_"],  ["S1"]; ...
-	 ["a9_"],  ["S2"]; ...
-	 ["a15_"],  ["S3"]}; 
+	{["a4_"],  ["S1"]; ...
+	 ["a7_"],  ["S2"]; ...
+	 ["a11_"],  ["S3"]; ...
+	 ["a17_"],  ["GroundTruth"]}; 
+  elseif strcmp(run_type, "MaxPool")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MaxPool list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a3_"],  ["S1"]; ...
+	 ["a7_"],  ["S2"]; ...
+	 ["a14_"],  ["S3"]; ...
+	 ["a22_"],  ["GroundTruth"]}; 
+  elseif strcmp(run_type, "default") || strcmp(run_type, "ICA") || strcmp(run_type, "experts") 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% ICA list
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if strcmp(run_type, "ICA")
+      Sparse_glob_str = {"a*_S*.pvp";"a*_GroundTruth.pvp"};
+    elseif strcmp(run_type, "experts")
+      Sparse_glob_str = ["a*_S*.pvp"];
+    elseif strcmp(run_type, "MaxPool")
+      Sparse_glob_str = "a*_S?.pvp";
+    endif
+    Sparse_glob_path = cell(size(Sparse_glob_str,1),1);
+    for i_glob = 1 : size(Sparse_glob_str,1)
+      Sparse_glob_path{i_glob,1} = [output_dir, filesep, Sparse_glob_str{i_glob,:}];
+    endfor
+    Sparse_glob_list = glob(Sparse_glob_path);
+    num_Sparse_list = length(Sparse_glob_list);    
+    Sparse_list = cell(num_Sparse_list,1);
+    for i_Sparse_list = 1 : num_Sparse_list
+      [Sparse_list_dir, Sparse_list_name, Sparse_list_ext, Sparse_list_ver] = fileparts(Sparse_glob_list{i_Sparse_list});
+      Sparse_underscore_ndx = strfind(Sparse_list_name, "_");
+      Sparse_list{i_Sparse_list,1} = Sparse_list_name(1:Sparse_underscore_ndx(1));
+      Sparse_list{i_Sparse_list,2} = Sparse_list_name(Sparse_underscore_ndx(1)+1:length(Sparse_list_name));
+    endfor
+  elseif strcmp(run_type, "dSCANN")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% dSCANN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a6_"],  ["S1"]; ...
+	 ["a11_"],  ["S2"]; ...
+	 ["a18_"],  ["S3"]}; 
+  elseif strcmp(run_type, "DBN")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DBN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a3_"],  ["S1"]; ...
+	 ["a6_"],  ["S2"]; ...
+	 ["a10_"],  ["S3"]}; 
+  elseif strcmp(run_type, "DCNN")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCNN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a4_"],  ["S1"]; ...
+	 ["a7_"],  ["S2"]; ...
+	 ["a11_"],  ["S3"]}; 
+  elseif strcmp(run_type, "DCNNX3")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCNNX3 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a6_"],  ["S1"]; ...
+	 ["a10_"],  ["S2"]; ...
+	 ["a14_"],  ["S3"]}; 
+  elseif strcmp(run_type, "PCA")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% PCA list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a2_"],  ["S1"]; ...
+	 ["a5_"],  ["S201"]; ...
+	 ["a6_"],  ["S202"]; ...
+	 ["a7_"],  ["S203"]; ...
+	 ["a8_"],  ["S204"]; ...
+	 ["a9_"],  ["S205"]; ...
+	 ["a10_"],  ["S206"]; ...
+	 ["a11_"],  ["S207"]; ...
+	 ["a12_"],  ["S208"]; ...
+	 ["a24_"],  ["PCA"]}; 
+ elseif strcmp(run_type, "MRI")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MRI list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    Sparse_list = ...
+	{["a8_"],  ["S1"]}; 
  elseif strcmp(run_type, "M1")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% M1 list
@@ -395,6 +640,7 @@ if analyze_Sparse_flag
 	{["a2_"],  ["GroundTruth"]; 
 	 ["a4_"],  ["M1"]}; 
   endif %% run_type
+  num_Sparse_list = length(Sparse_list);    
 
   fraction_Sparse_frames_read = 1;
   min_Sparse_skip = 1;
@@ -471,83 +717,245 @@ endif
 
 analyze_nonSparse_flag = true;
 if analyze_nonSparse_flag
-  if strcmp(run_type, "Heli_DPTX3") 
+  if strcmp(run_type, "experts") 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% default/glog generated list
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_glob_list = glob([output_dir, filesep, "a*_*Error*.pvp"]);
+    num_nonSparse_list = length(nonSparse_glob_list);    
+    nonSparse_list = cell(num_nonSparse_list,1);
+    for i_nonSparse_list = 1 : num_nonSparse_list
+      [nonSparse_list_dir, nonSparse_list_name, nonSparse_list_ext, nonSparse_list_ver] = fileparts(nonSparse_glob_list{i_nonSparse_list});
+      nonSparse_underscore_ndx = strfind(nonSparse_list_name, "_");
+      nonSparse_list{i_nonSparse_list,1} = nonSparse_list_name(1:nonSparse_underscore_ndx(1));
+      nonSparse_list{i_nonSparse_list,2} = nonSparse_list_name(nonSparse_underscore_ndx(1)+1:length(nonSparse_list_name));
+    endfor
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_norm_list = cell(num_nonSparse_list, 2);
+    if strcmp(run_type, "ICA")
+      image_num_str = "1";
+      if strcmp(ICA_subtype, "ICAX4")
+	image_num_str = "11";
+      endif
+    elseif strcmp(run_type, "experts")
+      image_num_str = "121";
+    elseif strcmp(run_type, "MaxPool")
+      image_num_str = "0";
+    endif
+    for i_nonSparse_norm_list = 1 : num_nonSparse_list
+      nonSparse_norm_list{i_nonSparse_norm_list,1} = ...
+      ["a", image_num_str, "_"]; %%
+      nonSparse_norm_list{i_nonSparse_norm_list,2} = ...
+      ["Image"];
+    endfor
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength = nonSparse_norm_strength./sqrt(18*18*3);
+  elseif strcmp(run_type, "ICA") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_DPTX3
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    nonSparse_list = ...
-        {["a1_"], ["Error"]; ...
-         ["a4_"], ["ErrorV2"]; ...
-         ["a5_"], ["ErrorV1InfraV2"]; ...
-         ["a10_"], ["ErrorV4"]; ...
-         ["a11_"], ["ErrorV2InfraV4"]}; %%; ...
+    %% ICA list
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if ~exist("ICA_subtype", "var")
+      nonSparse_list = ...
+      {["a3_"], ["ImageReconS1Error"]; ...
+       ["a6_"], ["GroundTruthReconS1Error"]};
+    elseif strcmp(ICA_subtype, "ICAX4")
+      nonSparse_list = ...
+      {["a4_"], ["ImageReconS1Error"]; ...
+       ["a1_"], ["GroundTruthReconS1Error"]};
+    endif
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 1;
-    nonSparse_skip(2) = 1;
-    nonSparse_skip(3) = 1;
-    nonSparse_norm_list = ...
-        {["a0_"], ["Image"]; ...
-         ["a7_"], ["ReconV2"]; ...
-         ["a2_"], ["V1"]; ...
-         ["a13_"], ["ReconV4"]; ...
-         ["a6_"], ["V2"]}; ...
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
-    nonSparse_norm_strength(1) = ...
-	1/sqrt(18*18);
-    nonSparse_norm_strength(2) = 1;
-    nonSparse_norm_strength(3) = 1;
-    nonSparse_norm_strength(4) = 1;
-    nonSparse_norm_strength(5) = 1;
-    Sparse_std_ndx = [0 0 1 0 2];
+    nonSparse_norm_strength(1) = 1/sqrt(18*18*3);
+    if ~exist("ICA_subtype", "var")
+      nonSparse_norm_list = ...
+      {["a7_"], ["Image"]; ...
+       ["a11_"], ["GroundTruth"]};
+      Sparse_std_ndx = [0 1]; 
+    elseif strcmp(ICA_subtype, "ICAX4")
+      nonSparse_norm_list = ...
+      {["a11_"], ["Image"]; ...
+       ["a8_"], ["GroundTruth"]};
+      Sparse_std_ndx = [0 2]; 
+    endif      
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "PASCAL_DPT") 
+  elseif strcmp(run_type, "SLP") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% PASCAL_MLP list
+    %% SLP list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_list = ...
 	{["a1_"], ["ImageReconS1Error"]; ...
-         ["a10_"], ["ImageReconS2Error"]; ...
-         ["a19_"], ["ImageReconS3Error"]; ...
-         ["a6_"], ["ImageReconS1DownsampledReconS2Error"]; ...
-         ["a14_"], ["ImageReconS2DownsampledReconS3Error"]}; 
+         ["a8_"], ["ImageReconS2Error"]; ...
+         ["a4_"], ["S1ReconS2Error"]}; 
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_norm_list = ...
-    {["a0_"],["Image"];
-    ["a2_"],["S1Stride2"]};
-%%    nonSparse_norm_list = ...
-%%    {["a2_"],["GroundTruth"]};
+        {["a0_"], ["Image"]; ...
+         ["a_"], ["Image"]; ...
+         ["a22_"], ["GroundTruth"]};
+%%    nonSparse_norm_list = {[],[]; [],[]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength(1) = 1/sqrt(18*18*3);
-    nonSparse_norm_strength(3) = 1/sqrt(18*18*3);
-%%    Sparse_std_ndx = [1];
-    Sparse_std_ndx = [0 1 0]; 
-  elseif strcmp(run_type, "PASCAL_DPT3") 
+    nonSparse_norm_strength(2) = 1/sqrt(18*18*3);
+    Sparse_std_ndx = [0 0 1]; 
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DCA") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% PASCAL_DPT3 list
+    %% DCA list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_list = ...
-    {["a4_"], ["ImageReconError"];
-     ["a7_"],  ["ImageReconDownsampled2To1ReconS2Error"];
-     ["a13_"], ["ImageReconDownsampled4To1ReconS3Error"]}; 
-%%    nonSparse_list = ...
-%%    {["a3_"], ["GroundTruthReconM1Error"]}; 
+	{["a1_"], ["ImageDeconError"]; ...
+         ["a5_"], ["ImageDeconS1Error"]; ...
+         ["a9_"], ["ImageDeconS2Error"]; ...
+         ["a14_"], ["ImageDeconS3Error"]; ...
+         ["a26_"], ["GroundTruthReconS1Error"]; ...
+         ["a22_"], ["GroundTruthReconS2Error"]; ...
+         ["a18_"], ["GroundTruthReconS3Error"]; ...
+         ["a30_"], ["GroundTruthReconS1S2S3Error"]}; 
     num_nonSparse_list = size(nonSparse_list,1);
     nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-    nonSparse_skip(1) = 1;
     nonSparse_norm_list = ...
-    {["a0_"],["Image"];
-     ["a2_"],["ImageReconDownsampled2To1"];;
-    ["a3_"],["ImageReconDownsampled4To1"]};
-%%    nonSparse_norm_list = ...
-%%    {["a2_"],["GroundTruth"]};
+        {["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]; ...
+         ["a17_"], ["GroundTruth"]; ...
+         ["a17_"], ["GroundTruth"]; ...
+         ["a17_"], ["GroundTruth"]; ...
+         ["a17_"], ["GroundTruth"]};
+%%    nonSparse_norm_list = {[],[]; [],[]};
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength(1) = 1/sqrt(18*18*3);
     nonSparse_norm_strength(2) = 1/sqrt(18*18*3);
     nonSparse_norm_strength(3) = 1/sqrt(18*18*3);
-%%    Sparse_std_ndx = [1];
-    Sparse_std_ndx = [0 0 0]; 
+    nonSparse_norm_strength(4) = 1/sqrt(18*18*3);
+    Sparse_std_ndx = [0 0 0 0 4 4 4 4]; 
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "MaxPool") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MaxPool list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+	{["a2_"], ["ImageReconS1Error"]; ...
+         ["a6_"], ["S1MaxPoolReconS2Error"]; ...
+         ["a13_"], ["S2MaxPoolReconS3Error"]; ...
+         ["a31_"], ["GroundTruthReconS1Error"]; ...
+         ["a27_"], ["GroundTruthReconS2Error"]; ...
+         ["a23_"], ["GroundTruthReconS3Error"]; ...
+         ["a35_"], ["GroundTruthReconS1S2S3Error"]}; 
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a4_"], ["S1MaxPool"]; ...
+         ["a11_"], ["S2MaxPool"]; ...
+         ["a22_"], ["GroundTruth"]; ...
+         ["a22_"], ["GroundTruth"]; ...
+         ["a22_"], ["GroundTruth"]; ...
+         ["a22_"], ["GroundTruth"]};
+%%    nonSparse_norm_list = {[],[]; [],[]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = 1/sqrt(18*18*3);
+    Sparse_std_ndx = [0 0 0 4 4 4 4]; 
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "dSCANN") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% dSCANN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+	{["a3_"], ["ImageDeconError"]; ...
+         ["a4_"], ["ImageReconError"]}; 
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]};
+%%    nonSparse_norm_list = {[],[]; [],[]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = 1/sqrt(18*18*3);
+    nonSparse_norm_strength(2) = 1/sqrt(18*18*3);
+    Sparse_std_ndx = [0 0]; 
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DBN") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DBN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+	{["a2_"], ["ImageReconError"]}; 
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_norm_list = ...
+        {["a0_"], ["Image"]};
+%%    nonSparse_norm_list = {[],[]; [],[]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = 1/sqrt(18*18*3);
+    Sparse_std_ndx = [0]; 
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DCNN") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCNN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+	{["a2_"], ["ImageDeconError"]}; 
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_norm_list = ...
+        {["a0_"], ["Image"]};
+%%    nonSparse_norm_list = {[],[]; [],[]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = 1/sqrt(18*18*3);
+    Sparse_std_ndx = [0]; 
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DCNNX3") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCNNX3 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+	{["a2_"], ["ImageDeconError"]}; 
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_norm_list = ...
+        {["a0_"], ["Image"]};
+%%    nonSparse_norm_list = {[],[]; [],[]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = 1/sqrt(18*18*3);
+    Sparse_std_ndx = [0]; 
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "PCA") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% PCA list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonSparse_list = ...
+	{["a1_"], ["ImageReconS1Error"]; ...
+         ["a15_"], ["ImageReconS2Error"]; ...
+         ["a35_"], ["ImageReconPCAError"]; ...
+         ["a4_"], ["S1ReconS2Error"]; ...
+         ["a16_"], ["S201ReconPCAError"]; ...
+         ["a17_"], ["S202ReconPCAError"]; ...
+         ["a18_"], ["S203ReconPCAError"]; ...
+         ["a19_"], ["S204ReconPCAError"]; ...
+         ["a20_"], ["S205ReconPCAError"]; ...
+         ["a21_"], ["S206ReconPCAError"]; ...
+         ["a22_"], ["S207ReconPCAError"]; ...
+         ["a23_"], ["S208ReconPCAError"]}; 
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_norm_list = ...
+        {["a0_"], ["Image"]; ...
+         ["a0_"], ["Image"]; ...
+         ["a2_"], ["S1"]; ...
+         ["a5_"], ["S201"]; ...
+         ["a6_"], ["S202"]; ...
+         ["a7_"], ["S203"]; ...
+         ["a8_"], ["S204"]; ...
+         ["a9_"], ["S205"]; ...
+         ["a10_"], ["S206"]; ...
+         ["a11_"], ["S207"]; ...
+         ["a12_"], ["S208"]};
+%%    nonSparse_norm_list = {[],[]; [],[]};
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = 1/sqrt(18*18*3);
+    nonSparse_norm_strength(2) = 1/sqrt(18*18*3);
+    Sparse_std_ndx = [0 0 1 2 3 4 5 6 7 8 9]; 
     %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "MRI") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -623,7 +1031,7 @@ plot_ReconError = false && analyze_nonSparse_flag;
 ReconError_RMS_fig_ndx = [];
 ReconError_list = [];
 if plot_ReconError
-   if strcmp(run_type, "Heli_DPTX3") 
+  if strcmp(run_type, "Heli_DPTX3") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% Heli_DPTX3 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -644,19 +1052,18 @@ if plot_ReconError
     ReconError_norm_strength = ...
 	[1/sqrt(18*18); 1/sqrt(18*18); 1/sqrt(18*18)];
     ReconError_RMS_fig_ndx = [1 1 1];  %% causes recon error to be overlaid on specified  nonSparse (Error) figure
-  elseif strcmp(run_type, "PASCAL_MLP") 
+  elseif strcmp(run_type, "PASCAL_DPT") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% PASCAL_MLP list
+    %% PASCAL_DPT list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     ReconError_list = ...
-        {["a6_"],  ["ImageReconS1"]; ...
-         ["a7_"],  ["ImageReconS1Stride2"]; ...
-         ["a8_"],  ["ImageReconS1Stride4"]; ...
-         ["a9_"],  ["ImageReconS1Stride8"]; ...
-         ["a10_"], ["ImageReconS1Stride16"]}; 
+        {["a3_"],  ["ImageReconS1"]; ...
+         ["a8_"],  ["ImageReconS2"]; ...
+         ["a13_"],  ["ImageReconS3"]; ...
+         ["a10_"],  ["ImageReconS1ReconS2"]; ...
+         ["a18_"],  ["ImageReconS2ReconS3"]}; 
     num_ReconError_list = size(ReconError_list,1);
     ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 1;
     ReconError_norm_list = ...
         {["a0_"], ["Image"]; ...
          ["a0_"], ["Image"]; ...
@@ -665,34 +1072,7 @@ if plot_ReconError
          ["a0_"], ["Image"]}; 
     ReconError_norm_strength = ...
 	[1/sqrt(18*18*3); 1/sqrt(18*18*3); 1/sqrt(18*18*3); 1/sqrt(18*18*3); 1/sqrt(18*18*3)];
-    ReconError_RMS_fig_ndx = [1 1 1 1 1];
-   elseif strcmp(run_type, "PASCAL_DPT3") 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% PASCAL_DPT3 list
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    ReconError_list = ...
-        {["a1_"],  ["ImageRecon"]; ...
-         ["a6_"],  ["ImageReconS1"]; ...
-         ["a12_"], ["ImageReconS2"]; ...
-         ["a18_"], ["ImageReconS3"]; ...
-         ["a11_"], ["ImageReconDownsampled2To1ReconS2"]; ...
-         ["a19_"], ["ImageReconDownsampled4To1ReconS3"]}; 
-    num_ReconError_list = size(ReconError_list,1);
-    ReconError_skip = repmat(1, num_ReconError_list, 1);
-    ReconError_skip(1) = 1;
-    ReconError_norm_list = ...
-        {["a0_"], ["Image"]; ...
-         ["a0_"], ["Image"]; ...
-         ["a0_"], ["Image"]; ...
-         ["a0_"], ["Image"]; ...
-         ["a2_"], ["ImageReconDownsampled2To1"]; ...
-         ["a3_"], ["ImageReconDownsampled4To1"]}; 
-    ReconError_norm_strength = ones(1, num_ReconError_list);
-    ReconError_norm_strength(1) = [1/sqrt(18*18*3)];
-    ReconError_norm_strength(2) = [1/sqrt(18*18*3)];
-    ReconError_norm_strength(3) = [1/sqrt(18*18*3)];
-    ReconError_norm_strength(4) = [1/sqrt(18*18*3)];
-    ReconError_RMS_fig_ndx = [1 1 1 1 2 3];
+    ReconError_RMS_fig_ndx = [1 1 1 1 1];%% 1];
   endif %% run_type
   
   if ~isempty(ReconError_list)
@@ -933,59 +1313,111 @@ plot_weights = plot_flag;
 if analyze_weights
   weights_list = {};
   labelWeights_list = {};
-  if strcmp(run_type, "Heli_DPTX3") 
+  if strcmp(run_type, "ICA")  || strcmp(run_type, "experts")  || strcmp(run_type, "MaxPool")  || strcmp(run_type, "DCA")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_DPTX3 list
+    %% ICA; experts list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sparse_weights_ndx = [1; 2; 3];
     if ~checkpoint_weights_movie
       weights_list = ...
-          {["w4_"], ["V1ToError"]; ...
-           ["w8_"], ["V2ToError2"]};
+          {["w1_"], ["S1ToImageReconS1Error"]};
       checkpoints_list = {output_dir};
     else
-      weights_list = ...
-          {["V1ToError"], ["_W"]; ...
-           ["V2ToErrorV2"], ["_W"]; ...
-           ["V4ToErrorV4"], ["_W"]};
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      if strcmp(run_type, "ICA")
+	weights_glob_str = "S?ToImage*econ*Error*_W.pvp";
+      elseif strcmp(run_type, "experts")
+	weights_glob_str = "S*ToImageRecon*Error*_W.pvp";
+      elseif strcmp(run_type, "MaxPool") 
+	weights_glob_str = "S1ToImageReconS1Error*_W.pvp";
+      elseif strcmp(run_type, "DCA")
+	weights_glob_str = "S1ToImageDecon*Error*_W.pvp";
+      endif
+      weights_glob_list = glob([checkpoints_list{1}, filesep, weights_glob_str]);
+      num_weights_list = length(weights_glob_list);    
+      weights_list = cell(num_weights_list,1);
+      sparse_weights_ndx = zeros(num_weights_list,1);
+      for i_weights_list = 1 : num_weights_list
+	[weights_list_dir, weights_list_name, weights_list_ext, weights_list_ver] = fileparts(weights_glob_list{i_weights_list});
+	weights_underscore_ndx = strfind(weights_list_name, "_W");
+	weights_list{i_weights_list,1} = weights_list_name(1:weights_underscore_ndx(1)-1);
+	weights_list{i_weights_list,2} = weights_list_name(weights_underscore_ndx(1):length(weights_list_name));
+	if analyze_Sparse_flag
+	  weights_layer_ndx = strfind(weights_list{i_weights_list,1},"To")-1;
+	  weights_layer_str = weights_list{i_weights_list,1}(1:weights_layer_ndx);
+	  for i_Sparse_list = 1:num_Sparse_list
+	    layer_id_ndx = strfind(weights_layer_str, Sparse_list{i_Sparse_list, 2});
+	    if ~isempty(layer_id_ndx)
+	      sparse_weights_ndx(i_weights_list) = i_Sparse_list;
+	      break;
+	    endif
+	  endfor
+	endif
+      endfor
+      labelWeights_list = {}; %%...
     endif %% checkpoint_weights_movie
     num_checkpoints = size(checkpoints_list,1);
-    weights_pad_size = [0 0 0]; %[27, 18, 0];
-   elseif strcmp(run_type, "PASCAL_DPT") 
+   elseif strcmp(run_type, "SLP") || strcmp(run_type, "PCA") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% PASCAL_MLP list
+    %% SLP list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sparse_weights_ndx = [1 2 3];
+    sparse_weights_ndx = [1];
     if ~checkpoint_weights_movie
       weights_list = ...
           {["w1_"], ["S1ToImageReconS1Error"]};
       checkpoints_list = {output_dir};
     else
       weights_list = ...
-          {["S1ToImageReconS1Error"], ["_W"];
-	   ["S2ToImageReconS1DownsampledReconS2Error"], ["_W"];
-	   ["S3ToImageReconS2DownsampledReconS3Error"], ["_W"]};
+          {["S1ToImageReconS1Error"], ["_W"]};
       labelWeights_list = {}; %%...
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
     num_checkpoints = size(checkpoints_list,1);
-   elseif strcmp(run_type, "SLP") 
+   elseif strcmp(run_type, "dSCANN") || strcmp(run_type, "DCNN") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% SLP list
+    %% dSCANN or DCNN list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    sparse_weights_ndx = [1 2 3 4 5];
+    sparse_weights_ndx = [1];
     if ~checkpoint_weights_movie
       weights_list = ...
-          {["w1_"], ["S1ToImageReconS1Error"]};
+          {["w1_"], ["S1ToImageDeconError"]};
       checkpoints_list = {output_dir};
     else
       weights_list = ...
-      {["S1Stride2ToImageReconS1Error"], ["_W"]; ...
-       ["S1Stride4ToImageReconS1Error"], ["_W"]; ...
-       ["S1Stride8ToImageReconS1Error"], ["_W"]; ...
-       ["S1Stride16ToImageReconS1Error"], ["_W"]; ...
-       ["C1ToImageReconS1Stride2DownsampledReconC1Error"], ["_W"]};
+          {["S1ToImageDeconError"], ["_W"]};
+      labelWeights_list = {}; %%...
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    endif %% checkpoint_weights_movie
+    num_checkpoints = size(checkpoints_list,1);
+   elseif strcmp(run_type, "DCNNX3") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCNNX3 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    sparse_weights_ndx = [1 1 1];
+    if ~checkpoint_weights_movie
+      weights_list = ...
+          {["w1_"], ["S1ToImageDeconError"]};
+      checkpoints_list = {output_dir};
+    else
+      weights_list = ...
+          {["S1ToImageDeconError"], ["_W"];
+	   ["S1DeconS2ToImageDeconError"], ["_W"];
+	   ["S1DeconS3ToImageDeconError"], ["_W"]};
+      labelWeights_list = {}; %%...
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    endif %% checkpoint_weights_movie
+    num_checkpoints = size(checkpoints_list,1);
+   elseif strcmp(run_type, "DBN")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DBN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    sparse_weights_ndx = [1];
+    if ~checkpoint_weights_movie
+      weights_list = ...
+          {["w1_"], ["S1ToImageReconError"]};
+      checkpoints_list = {output_dir};
+    else
+      weights_list = ...
+          {["S1ToImageReconError"], ["_W"]};
       labelWeights_list = {}; %%...
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
     endif %% checkpoint_weights_movie
@@ -1071,9 +1503,10 @@ if analyze_weights
     endfor %% i_checkpoint
     for i_checkpoint = 1 : num_checkpoints
       if i_checkpoint ~= max_checkpoint
-	%%continue;
+	%%continue;  %% comment this line to generate movie of all checkpoints
       endif
       checkpoint_dir = checkpoints_list{i_checkpoint,:};
+      
       weights_file = [checkpoint_dir, filesep, weights_list{i_weights,1}, weights_list{i_weights,2}, ".pvp"];
       if ~exist(weights_file, "file")
 	warning(["file does not exist: ", weights_file]);
@@ -1099,7 +1532,7 @@ if analyze_weights
 	continue;
       endif
       tmp_ndx = sparse_weights_ndx(i_weights);
-      if analyze_Sparse_flag
+      if tmp_ndx > 0 && analyze_Sparse_flag
 	tmp_rank = Sparse_hist_rank_array{tmp_ndx};
       else
 	tmp_rank = [];
@@ -1146,20 +1579,24 @@ if analyze_weights
       i_patch = 1;
       num_weights_dims = ndims(weight_vals);
       num_patches = size(weight_vals, num_weights_dims);
+      tot_patches = num_patches;
       num_patches = min(num_patches, max_patches);
       num_patches_rows = floor(sqrt(num_patches));
       num_patches_cols = ceil(num_patches / num_patches_rows);
       num_weights_colors = 1;
+      num_weights_figs = ceil(tot_patches/num_patches);
+      for i_weights_fig = 1 : num_weights_figs
       if num_weights_dims == 4
 	num_weights_colors = size(weight_vals,3);
       endif
       if plot_weights && i_checkpoint == max_checkpoint
 	weights_fig = figure;
-	set(weights_fig, "name", weights_name);
+	set(weights_fig, "name", [weights_name, "_", num2str(i_weights_fig)]);
       endif
       weight_patch_array = [];
-      for j_patch = 1  : num_patches
-	i_patch = pre_hist_rank(j_patch);
+      for k_patch = (i_weights_fig-1)*num_patches + 1  : i_weights_fig*num_patches
+	i_patch = pre_hist_rank(k_patch);
+	j_patch = k_patch - (i_weights_fig-1)*num_patches;
 	if plot_weights && i_checkpoint == max_checkpoint
 	  subplot(num_patches_rows, num_patches_cols, j_patch); 
 	endif
@@ -1238,30 +1675,41 @@ if analyze_weights
 	%%cwd = pwd;
 	chdir(weights_dir)
 	if ~isempty(labelWeights_vals)
-	  saveas(weights_fig, [weights_dir, filesep, [weights_name,"_labeled"], ".png"], "png");
+	  saveas(weights_fig, [weights_dir, filesep, [weights_name,"_labeled"], "_", num2str(i_weights_fig), ".png"], "png");
 	  %%saveas(weights_fig, [weights_name, "_labeled", ".png"], "png");
 	else
-	  saveas(weights_fig, [weights_dir, filesep, weights_name, ".png"], "png");
+	  saveas(weights_fig, [weights_dir, filesep, weights_name, "_", num2str(i_weights_fig), ".png"], "png");
 	  %%saveas(weights_fig, [weights_name, ".png"], "png");
 	endif
 	%%chdir(cwd);
+	if num_weights_list > 10
+	  close(weights_fig);
+	endif
       endif
       if i_checkpoint == max_checkpoint
-	weight_patch_array_list{i_weights,1} = weight_patch_array;
+	weight_patch_array_list{i_weights,i_weights_fig} = weight_patch_array;
+      endif
+      if i_checkpoint == max_checkpoint
+ 	save("-mat", ...
+	     [weights_movie_dir, filesep, weights_name, ".mat"], ...
+	     "weight_patch_array");
       endif
       
       maxabs_weight_patch_array = max(abs(weight_patch_array(:)));
       %%weight_patch_array = uint8(127.5 + 127.5 * (weight_patch_array / (maxabs_weight_patch_array + (maxabs_weight_patch_array==0))));
-      imwrite(uint8(weight_patch_array), [weights_movie_dir, filesep, weights_name, ".png"], "png");
+      imwrite(uint8(weight_patch_array), [weights_movie_dir, filesep, weights_name, "_", num2str(i_weights_fig), ".png"], "png");
       %% make histogram of all weights
       if plot_weights && i_checkpoint == max_checkpoint
 	weights_hist_fig = figure;
 	[weights_hist, weights_hist_bins] = hist(weight_vals(:), 100);
 	bar(weights_hist_bins, log(weights_hist+1));
 	set(weights_hist_fig, "name", ...
-	    ["Hist_",  weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(weight_time, "%08d")]);
+	    ["Hist_",  weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(weight_time, "%08d"), "_", num2str(i_weights_fig)]);
 	saveas(weights_hist_fig, ...
-	       [weights_dir, filesep, "weights_hist_",  weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(weight_time, "%08d")], "png");
+	       [weights_dir, filesep, "weights_hist_",  weights_list{i_weights,1}, weights_list{i_weights,2}, "_", num2str(weight_time, "%08d"), "_", num2str(i_weights_fig)], "png");
+	if num_weights_list > 10
+	  close(weights_hist_fig);
+	endif
       endif
 
       if ~isempty(labelWeights_vals) && ...
@@ -1301,8 +1749,9 @@ if analyze_weights
 	  title(labeledWeights_subplot_str);
 	  axis off
 	endfor %% label
-	saveas(labeledWeights_fig,  [weights_dir, filesep, labeledWeights_str, ".png"], "png");
+	saveas(labeledWeights_fig,  [weights_dir, filesep, labeledWeights_str, ".png"], "_", num2str(i_weights_fig), "png");
       endif  %% ~isempty(labelWeights_vals) && ~isempty(labelWeights_time)
+      endfor  %% i_weights_fig
 
     endfor %% i_checkpoint
   endfor %% i_weights
@@ -1403,45 +1852,54 @@ plot_weights0_2_flag = plot_flag;
 plot_labelWeights_flag = true;
 if analyze_weights0_2
   weights1_2_list = {};
-  if strcmp(run_type, "Heli_DPTX3") || strcmp(run_type, "Heli_DTX3")  || strcmp(run_type, "Heli_DX3")   
+  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "DCA")
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% Heli_DPTX3/Heli_DTX3 list
+    %% MaxPool
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% list of weights from layer2 to layer1
     if ~checkpoint_weights_movie
       checkpoints_list = {output_dir};
-      weights1_2_list = ...
-      {["w12_"], ["V2ToError1_2"]};
-      post1_2_list = ...
-      {["a4_"], ["V1"]};
-      %% list of weights from layer1 to image
-      weights0_1_list = ...
-      {["w4_"], ["V1ToError"]};
-      image_list = ...
-      {["a0_"], ["Image"]};
+      break;
     else
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-      weights1_2_list = ...
-      {["V2ToErrorV1InfraV2"], "_W"};
-      post1_2_list = ...
-      {["V1"], ["_A"]};
+      weights1_2_glob_list = ...
+      glob([checkpoints_list{1}, filesep, "S2ToS1*econ*Error*_W.pvp"]);
+      num_weights1_2_list = length(weights1_2_glob_list);    
+      weights1_2_list = cell(num_weights1_2_list,2);
+      sparse_weights0_2_ndx = zeros(num_weights1_2_list,1);
+      post1_2_list = cell(num_weights1_2_list,2);
+      image_list = cell(num_weights1_2_list,2);
+      for i_weights1_2_list = 1 : num_weights1_2_list
+	[weights1_2_list_dir, weights1_2_list_name, weights1_2_list_ext, weights1_2_list_ver] = fileparts(weights1_2_glob_list{i_weights1_2_list});
+	weights1_2_underscore_ndx = strfind(weights1_2_list_name, "_W");
+	weights1_2_list{i_weights1_2_list,1} = weights1_2_list_name(1:weights1_2_underscore_ndx(1)-1);
+	weights1_2_list{i_weights1_2_list,2} = weights1_2_list_name(weights1_2_underscore_ndx(1):length(weights1_2_list_name));
+	if analyze_Sparse_flag
+	  weights1_2_layer_ndx = strfind(weights1_2_list{i_weights1_2_list,1},"To")-1;
+	  weights1_2_layer_str = weights1_2_list{i_weights1_2_list,1}(1:weights1_2_layer_ndx);
+	  for i_Sparse_list = 1:num_Sparse_list
+	    layer_id_ndx = strfind(weights1_2_layer_str, Sparse_list{i_Sparse_list, 2});
+	    if ~isempty(layer_id_ndx)
+	      sparse_weights0_2_ndx(i_weights1_2_list) = i_Sparse_list;
+	      break;
+	    endif
+	  endfor
+	endif
+	post1_2_list{i_weights1_2_list,1} = ["S1"];
+	post1_2_list{i_weights1_2_list,2} = ["_A"];
+	image_list{i_weights1_2_list,1} = ["Image"];
+	image_list{i_weights1_2_list,2} = ["_A"];
+      endfor
       %% list of weights from layer1 to image
-      weights0_1_list = ...
-      {["V1ToError"], ["_W"]};
-      %%      image_list = ...
-      %%          {["a1_"], ["Image"]};
-      image_list = ...
-      {["Image"], ["_A"]};
+      weights0_1_list = weights_list;
     endif %% checkpoint_weights_movie
-    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-    sparse_weights0_2_ndx = [2];
+    labelWeights_list = {}; %%...
     num_checkpoints = size(checkpoints_list,1);
-    weights1_2_pad_size = [0]; %[18];
+    weights1_2_pad_size = [0];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  elseif strcmp(run_type, "PASCAL_MLP")
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% PASCAL_MLP list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "SLP")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% PASCAL_SLP list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% list of weights from layer2 to layer1
     if ~checkpoint_weights_movie
       checkpoints_list = {output_dir};
@@ -1456,43 +1914,18 @@ if analyze_weights0_2
       weights0_1_list = ...
           {["S1ToImageReconS1Error"], ["_W"]};
       image_list = ...
-      {["Image"], ["_A"]};
-      %%      labelWeights_list = ...
-      %%	  {["V2ToLabelError"], ["_W"]};
-    endif %% checkpoint_weights_movie
-    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-    sparse_weights0_2_ndx = [5];
-    num_checkpoints = size(checkpoints_list,1);
-    weights1_2_pad_size = [0];
-  elseif strcmp(run_type, "PASCAL_DPT3")
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% PASCAL_DPT3 list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% list of weights from layer2 to layer1
-    if ~checkpoint_weights_movie
-      checkpoints_list = {output_dir};
-      break;
-    else
-      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-      weights1_2_list = ...
-      {["S2ToS1ReconS2Error"], ["_W"]};
-      post1_2_list = ...
-      {["S1"], ["_A"]};
-      %% list of weights from layer1 to image
-      weights0_1_list = ...
-      {["S1ToImageReconError"], ["_W"]};
-      image_list = ...
-      {["Image"], ["_A"]};
-      %%      labelWeights_list = ...
-      %%	  {["V2ToLabelError"], ["_W"]};
+          {["Image"], ["_A"]};
+%%      labelWeights_list = ...
+%%	  {["V2ToLabelError"], ["_W"]};
     endif %% checkpoint_weights_movie
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
     sparse_weights0_2_ndx = [2];
     num_checkpoints = size(checkpoints_list,1);
     weights1_2_pad_size = [0];
-  elseif strcmp(run_type, "SLP")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %% PASCAL_SLP list
+  elseif strcmp(run_type, "dSCANN")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% dSCANN list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% list of weights from layer2 to layer1
     if ~checkpoint_weights_movie
@@ -1501,29 +1934,176 @@ if analyze_weights0_2
     else
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
       weights1_2_list = ...
-      {["S2ToS1ReconS2Error"], ["_W"]};
+          {["S2ToS1DeconError"], ["_W"];
+	   ["S2ToS1ReconS2Error"], ["_W"]};
       post1_2_list = ...
-      {["S1"], ["_A"]};
+          {["S1"], ["_A"];
+	   ["S1"], ["_A"]};
       %% list of weights from layer1 to image
       weights0_1_list = ...
-      {["S1ToImageReconError"], ["_W"]};
+          {["S1ToImageDeconError"], ["_W"];
+	   ["S1ToImageDeconError"], ["_W"]};
       image_list = ...
-      {["Image"], ["_A"]};
-      %%      labelWeights_list = ...
-      %%	  {["V2ToLabelError"], ["_W"]};
+          {["Image"], ["_A"];
+	   ["Image"], ["_A"]};
+%%      labelWeights_list = ...
+%%	  {["V2ToLabelError"], ["_W"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_weights0_2_ndx = [2 2];
+    num_checkpoints = size(checkpoints_list,1);
+    weights1_2_pad_size = [0];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DCNN") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCNN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layer2 to layer1
+    if ~checkpoint_weights_movie
+      checkpoints_list = {output_dir};
+      break;
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weights1_2_list = ...
+          {["S2ToS1DeconError"], ["_W"];
+	   ["S2DeconS3ToS1DeconErrorS3"], ["_W"]};
+      post1_2_list = ...
+          {["S1"], ["_A"];
+	   ["S1"], ["_A"]};
+      %% list of weights from layer1 to image
+      weights0_1_list = ...
+          {["S1ToImageDeconError"], ["_W"];
+	   ["S1DeconS3ToImageDeconError"], ["_W"]};
+      image_list = ...
+          {["Image"], ["_A"];
+	   ["Image"], ["_A"]};
+%%      labelWeights_list = ...
+%%	  {["V2ToLabelError"], ["_W"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_weights0_2_ndx = [2 2];
+    num_checkpoints = size(checkpoints_list,1);
+    weights1_2_pad_size = [0 0];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DCNNX3")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCNN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layer2 to layer1
+    if ~checkpoint_weights_movie
+      checkpoints_list = {output_dir};
+      break;
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weights1_2_list = ...
+          {["S2ToS1DeconErrorS2"], ["_W"];
+	   ["S2DeconS3ToS1DeconErrorS3"], ["_W"]};
+      post1_2_list = ...
+          {["S1"], ["_A"];
+	   ["S1"], ["_A"]};
+      %% list of weights from layer1 to image
+      weights0_1_list = ...
+          {["S1DeconS2ToImageDeconError"], ["_W"];
+	   ["S1DeconS3ToImageDeconError"], ["_W"]};
+      image_list = ...
+          {["Image"], ["_A"];
+	   ["Image"], ["_A"]};
+%%      labelWeights_list = ...
+%%	  {["V2ToLabelError"], ["_W"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_weights0_2_ndx = [2 2];
+    num_checkpoints = size(checkpoints_list,1);
+    weights1_2_pad_size = [0 0];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DBN")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DBN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layer2 to layer1
+    if ~checkpoint_weights_movie
+      checkpoints_list = {output_dir};
+      break;
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weights1_2_list = ...
+          {["S2ToS1ReconError"], ["_W"]};
+      post1_2_list = ...
+          {["S1"], ["_A"]};
+      %% list of weights from layer1 to image
+      weights0_1_list = ...
+          {["S1ToImageReconError"], ["_W"]};
+      image_list = ...
+          {["Image"], ["_A"]};
+%%      labelWeights_list = ...
+%%	  {["V2ToLabelError"], ["_W"]};
     endif %% checkpoint_weights_movie
     %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
     sparse_weights0_2_ndx = [2];
     num_checkpoints = size(checkpoints_list,1);
     weights1_2_pad_size = [0];
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "PCA")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% PCA list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layer2 to layer1
+    if ~checkpoint_weights_movie
+      checkpoints_list = {output_dir};
+      break;
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weights1_2_list = ...
+          {["S201ToS1ReconS2Error"], ["_W"];
+	   ["S202ToS1ReconS2Error"], ["_W"];
+	   ["S203ToS1ReconS2Error"], ["_W"];
+	   ["S204ToS1ReconS2Error"], ["_W"];
+	   ["S205ToS1ReconS2Error"], ["_W"];
+	   ["S206ToS1ReconS2Error"], ["_W"];
+	   ["S207ToS1ReconS2Error"], ["_W"];
+	   ["S208ToS1ReconS2Error"], ["_W"]};
+      post1_2_list = ...
+          {["S1"], ["_A"];
+	   ["S1"], ["_A"];
+	   ["S1"], ["_A"];
+	   ["S1"], ["_A"];
+	   ["S1"], ["_A"];
+	   ["S1"], ["_A"];
+	   ["S1"], ["_A"];
+	   ["S1"], ["_A"]};
+      %% list of weights from layer1 to image
+      weights0_1_list = ...
+          {["S1ToImageReconS1Error"], ["_W"];
+	   ["S1ToImageReconS1Error"], ["_W"];
+	   ["S1ToImageReconS1Error"], ["_W"];
+	   ["S1ToImageReconS1Error"], ["_W"];
+	   ["S1ToImageReconS1Error"], ["_W"];
+	   ["S1ToImageReconS1Error"], ["_W"];
+	   ["S1ToImageReconS1Error"], ["_W"];
+	   ["S1ToImageReconS1Error"], ["_W"]};
+      image_list = ...
+          {["Image"], ["_A"];
+	   ["Image"], ["_A"];
+	   ["Image"], ["_A"];
+	   ["Image"], ["_A"];
+	   ["Image"], ["_A"];
+	   ["Image"], ["_A"];
+	   ["Image"], ["_A"];
+	   ["Image"], ["_A"]};
+%%      labelWeights_list = ...
+%%	  {["V2ToLabelError"], ["_W"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_weights0_2_ndx = [2 3 4 5 6 7 8 9];
+    num_checkpoints = size(checkpoints_list,1);
+    weights1_2_pad_size = [0 0 0 0 0 0 0 0 0];
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   endif %% run_type
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   num_weights1_2_list = size(weights1_2_list,1);
-  if num_weights1_2_list == 0
-    break;
-  endif
+  if num_weights1_2_list > 0
+
   if ~exist("weights1_2_pad_size") || length(weights1_2_pad_size(:)) < num_weights1_2_list
     weights1_2_pad_size = zeros(1, num_weights1_2_list);
   endif
@@ -1918,7 +2498,6 @@ if analyze_weights0_2
       endif %%  ~isempty(labelWeights_vals) 
 
       %%imwrite(uint8(weight_patch0_2_array), [weights1_2_movie_dir, filesep, weights1_2_name, ".png"], "png");
-
       for i_fig0_2 = 1 : num_figs0_2
 	weight_patch0_2_array_list{i_weights1_2, i_fig0_2} = weight_patch0_2_array{i_fig0_2};
 	num_combine0_2 = 1;
@@ -1943,7 +2522,7 @@ if analyze_weights0_2
 	
       endfor
       if i_checkpoint == max_checkpoint
-	save("-mat", ...
+ 	save("-mat", ...
 	     [weights1_2_movie_dir, filesep, weights1_2_name, ".mat"], ...
 	     "weight_patch0_2_array");
       endif
@@ -1987,6 +2566,7 @@ if analyze_weights0_2
 
   endfor %% i_weights
   
+  endif
 endif  %% plot_weights
 
 
@@ -2046,278 +2626,257 @@ endif %% deReconFlag
 
 
 %%keyboard;
-analyze_weightsN_Nplus1 = false; %%true;
+analyze_weightsN_Nplus1 = true;
 plot_weightsN_Nplus1_flag = plot_flag;
 plot_labelWeights_flag = false; %%true;
 if analyze_weightsN_Nplus1
-
-weightsN_Nplus1_list = {};
-layersN_Nplus1_list = {};
-if strcmp(run_type, "Heli_DPTX3") || strcmp(run_type, "Heli_DTX3")  || strcmp(run_type, "Heli_DX3")    
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %% Heli_DPTX3 list
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %% list of weights from layerN to layer0 (Image)
-  if ~checkpoint_weights_movie
-    checkpoints_list = {output_dir};
-    weightsN_Nplus1_list = ...
-        {["w15_"], ["V4ToError2_4"], ["w9_"], ["V2ToError1_2"], ["w1_"], ["V1ToError"]};
-    layersN_Nplus1_list = ...
-        {["a12_"], ["V4"], ["a5_"], ["V2"], ["a2_"], ["V1"], ["a0_"], ["Image"]};
-    labelWeights_list = ...
-	{["w26_"], ["V4ToLabelError"]};
-  else
-    checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-    weightsN_Nplus1_list = ...
-        {["V4ToErrorV2InfraV4"], ["_W"], ["V2ToErrorV1InfraV2"], ["_W"], ["V1ToError"], ["_W"]};
-    layersN_Nplus1_list = ...
-        {["V4"], ["_A"], ["V2"], ["_A"], ["V1"], ["_A"], ["Image"], ["_A"]};
-    labelWeights_list = ...
-	{[], []};
-  endif %% checkpoint_weights_movie
-  %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-  sparse_weightsN_Nplus1_ndx = [3];
-  num_checkpoints = size(checkpoints_list,1);
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif strcmp(run_type, "PASCAL_DPT") 
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %% PASCAL_MLP list
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %% list of weights from layerN to layer0 (Image)
-  if ~checkpoint_weights_movie
-  else
-    checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-    weightsN_Nplus1_list = ...
-        {["S3ToS2ReconS3Error"], ["_W"], ["S2ToS1ReconS2Error"], ["_W"], ["S1ToImageReconS1Error"], ["_W"]};
-    layersN_Nplus1_list = ...
-        {["S3"], ["_A"], ["S2"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"]};
-    labelWeights_list = ...
-	{[], []}; %%{["S3ToGroundTruthError"], ["_W"]};
-  endif %% checkpoint_weights_movie
-  %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-  sparse_weightsN_Nplus1_ndx = [3];
-  num_checkpoints = size(checkpoints_list,1);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif strcmp(run_type, "PASCAL_DPT3") 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %% PASCAL_DPT3 list
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %% list of weights from layerN to layer0 (Image)
-  if ~checkpoint_weights_movie
-    checkpoints_list = {output_dir};
-    weightsN_Nplus1_list = ...
-        {["w15_"], ["V4ToError2_4"], ["w9_"], ["V2ToError1_2"], ["w1_"], ["V1ToError"]};
-    layersN_Nplus1_list = ...
-        {["a12_"], ["V4"], ["a5_"], ["V2"], ["a2_"], ["V1"], ["a0_"], ["Image"]};
-    labelWeights_list = ...
-	{["w26_"], ["V4ToLabelError"]};
-  else
-    checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-    weightsN_Nplus1_list = ...
-        {["S3ToS2ReconS3Error"], ["_W"], ["S2ToS1ReconS2Error"], ["_W"], ["S1ToImageReconError"], ["_W"]};
+  
+  weightsN_Nplus1_list = {};
+  layersN_Nplus1_list = {};
+  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "DCA")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MaxPool
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if ~checkpoint_weights_movie
+      checkpoints_list = {output_dir};
+      break;
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weightsN_Nplus1_glob_list = ...
+	  glob([checkpoints_list{1}, filesep, "S3ToS2*econ*Error*_W.pvp"]);
+      num_weightsN_Nplus1_list = length(weightsN_Nplus1_glob_list);    
+      weightsN_Nplus1_list = cell(num_weightsN_Nplus1_list,6);
+      layersN_Nplus1_list = cell(num_weightsN_Nplus1_list,6);
+      sparse_weightsN_Nplus1_ndx = zeros(num_weightsN_Nplus1_list,1);
+      for i_weightsN_Nplus1_list = 1 : num_weightsN_Nplus1_list
+	[weightsN_Nplus1_list_dir, weightsN_Nplus1_list_name, weightsN_Nplus1_list_ext, weightsN_Nplus1_list_ver] = fileparts(weightsN_Nplus1_glob_list{i_weightsN_Nplus1_list});
+	weightsN_Nplus1_underscore_ndx = strfind(weightsN_Nplus1_list_name, "_W");
+	weightsN_Nplus1_list{i_weightsN_Nplus1_list,1} = weightsN_Nplus1_list_name(1:weightsN_Nplus1_underscore_ndx(1)-1);
+	weightsN_Nplus1_list{i_weightsN_Nplus1_list,2} = weightsN_Nplus1_list_name(weightsN_Nplus1_underscore_ndx(1):length(weightsN_Nplus1_list_name));
+	if analyze_Sparse_flag
+	  weightsN_Nplus1_layer_ndx = strfind(weightsN_Nplus1_list{i_weightsN_Nplus1_list,1},"To")-1;
+	  weightsN_Nplus1_layer_str = weightsN_Nplus1_list{i_weightsN_Nplus1_list,1}(1:weightsN_Nplus1_layer_ndx);
+	  for i_Sparse_list = 1:num_Sparse_list
+	    layer_id_ndx = strfind(weightsN_Nplus1_layer_str, Sparse_list{i_Sparse_list, 2});
+	    if ~isempty(layer_id_ndx)
+	      sparse_weightsN_Nplus1_ndx(i_weightsN_Nplus1_list) = i_Sparse_list;
+	      break;
+	    endif
+	  endfor
+	endif
+	weightsN_Nplus1_list{i_weightsN_Nplus1_list,3} = weights1_2_list{1,1};
+	weightsN_Nplus1_list{i_weightsN_Nplus1_list,4} = weights1_2_list{1,2};
+	weightsN_Nplus1_list{i_weightsN_Nplus1_list,5} = weights_list{1,1};
+	weightsN_Nplus1_list{i_weightsN_Nplus1_list,6} = weights_list{1,2};
+      endfor
+      %% list of weights from layer1 to image
+    endif %% checkpoint_weights_movie
     layersN_Nplus1_list = ...
         {["S3"], ["_A"], ["S2"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"]};
-    labelWeights_list = ...
-	{[], []};
-  endif %% checkpoint_weights_movie
-  %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
-  sparse_weightsN_Nplus1_ndx = [3];
-  num_checkpoints = size(checkpoints_list,1);
+    labelWeights_list = {[], []}; %%...
+    num_checkpoints = size(checkpoints_list,1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DCNN")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCNN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layerN to layer0 (Image)
+    if ~checkpoint_weights_movie
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weightsN_Nplus1_list = ...
+          {["S3ToS2DeconError"], ["_W"], ["S2ToS1DeconError"], ["_W"], ["S1ToImageDeconError"], ["_W"]};
+      layersN_Nplus1_list = ...
+          {["S3"], ["_A"], ["S2"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"]};
+      labelWeights_list = ...
+	  {[], []}; %%{["S3ToGroundTruthError"], ["_W"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_weightsN_Nplus1_ndx = [3];
+    num_checkpoints = size(checkpoints_list,1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "PCA") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% PCA list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layerN to layer0 (Image)
+    if ~checkpoint_weights_movie
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weightsN_Nplus1_list = ...
+          {["PCAToS201ReconPCAError"], ["_W"], ["S201ToS1ReconS2Error"], ["_W"], ["S1ToImageReconS1Error"], ["_W"];
+	   ["PCAToS202ReconPCAError"], ["_W"], ["S202ToS1ReconS2Error"], ["_W"], ["S1ToImageReconS1Error"], ["_W"];
+	   ["PCAToS203ReconPCAError"], ["_W"], ["S203ToS1ReconS2Error"], ["_W"], ["S1ToImageReconS1Error"], ["_W"];
+	   ["PCAToS204ReconPCAError"], ["_W"], ["S204ToS1ReconS2Error"], ["_W"], ["S1ToImageReconS1Error"], ["_W"];
+	   ["PCAToS205ReconPCAError"], ["_W"], ["S205ToS1ReconS2Error"], ["_W"], ["S1ToImageReconS1Error"], ["_W"];
+	   ["PCAToS206ReconPCAError"], ["_W"], ["S206ToS1ReconS2Error"], ["_W"], ["S1ToImageReconS1Error"], ["_W"];
+	   ["PCAToS207ReconPCAError"], ["_W"], ["S207ToS1ReconS2Error"], ["_W"], ["S1ToImageReconS1Error"], ["_W"];
+	   ["PCAToS208ReconPCAError"], ["_W"], ["S208ToS1ReconS2Error"], ["_W"], ["S1ToImageReconS1Error"], ["_W"]};
+      layersN_Nplus1_list = ...
+          {["PCA"], ["_A"], ["S201"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"];
+	   ["PCA"], ["_A"], ["S202"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"];
+	   ["PCA"], ["_A"], ["S203"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"];
+	   ["PCA"], ["_A"], ["S204"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"];
+	   ["PCA"], ["_A"], ["S205"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"];
+	   ["PCA"], ["_A"], ["S206"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"];
+	   ["PCA"], ["_A"], ["S207"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"];
+	   ["PCA"], ["_A"], ["S208"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"]};
+      labelWeights_list = ...
+	  {[], []}; %%{["S3ToGroundTruthError"], ["_W"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_weightsN_Nplus1_ndx = [10 10 10 10 10 10 10 10];
+    num_checkpoints = size(checkpoints_list,1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "dSCANN") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% dSCANN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layerN to layer0 (Image)
+    if ~checkpoint_weights_movie
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weightsN_Nplus1_list = ...
+          {["S3ToS2DeconError"], ["_W"], ["S2ToS1DeconError"], ["_W"], ["S1ToImageDeconError"], ["_W"];
+	   ["S3ToS2ReconS3Error"], ["_W"], ["S2ToS1ReconS2Error"], ["_W"], ["S1ToImageDeconError"], ["_W"]};
+      layersN_Nplus1_list = ...
+          {["S3"], ["_A"], ["S2"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"];
+	   ["S3"], ["_A"], ["S2"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"]};
+      labelWeights_list = ...
+	  {[], []}; %%{["S3ToGroundTruthError"], ["_W"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_weightsN_Nplus1_ndx = [3 3];
+    num_checkpoints = size(checkpoints_list,1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DCNNX3") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCNN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layerN to layer0 (Image)
+    if ~checkpoint_weights_movie
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weightsN_Nplus1_list = ...
+          {["S3ToS2DeconErrorS3"], ["_W"], ["S2DeconS3ToS1DeconErrorS3"], ["_W"], ["S1DeconS3ToImageDeconError"], ["_W"]};
+      layersN_Nplus1_list = ...
+          {["S3"], ["_A"], ["S2"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"]};
+      labelWeights_list = ...
+	  {[], []}; %%{["S3ToGroundTruthError"], ["_W"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_weightsN_Nplus1_ndx = [3];
+    num_checkpoints = size(checkpoints_list,1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DBN") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DBN list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layerN to layer0 (Image)
+    if ~checkpoint_weights_movie
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weightsN_Nplus1_list = ...
+          {["S3ToS2ReconS3Error"], ["_W"], ["S2ToS1ReconS2Error"], ["_W"], ["S1ToImageDeconError"], ["_W"]};
+      layersN_Nplus1_list = ...
+          {["S3"], ["_A"], ["S2"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"]};
+      labelWeights_list = ...
+	  {[], []}; %%{["S3ToGroundTruthError"], ["_W"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_weightsN_Nplus1_ndx = [3];
+    num_checkpoints = size(checkpoints_list,1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  endif %% run_type
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-endif %% run_type
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-num_weightsN_Nplus1_list = size(weightsN_Nplus1_list,1);
-num_layersN_Nplus1_list = size(layersN_Nplus1_list,2)/2;
-weightsNminus1_Nplus1_array_list = cell(num_weightsN_Nplus1_list, num_checkpoints);
-if num_weightsN_Nplus1_list == 0
-  analyze_weightsN_Nplus1 = false;
-  warning(["num_weightsN_Nplus1_list == 0"]);  
-elseif size(weightsN_Nplus1_list,2)/2 ~= num_layersN_Nplus1_list-1;
-  analyze_weightsN_Nplus1 = false;
-  warning(["num_weightsN_Nplus1_list ~= num_layersN_Nplus1_list-1", ...
-	 ", num_weightsN_Nplus1_list = ", num2str(num_weightsN_Nplus1_list), ...
-	 ", num_layersN_Nplus1_list = ", num2str(num_layersN_Nplus1_list)]);
-endif
-if num_weightsN_Nplus1_list == 0
-  analyze_weightsN_Nplus1 = false;
-endif
-
-if analyze_weightsN_Nplus1
-  weightsN_Nplus1_vals = cell(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
-  weightsN_Nplus1_hdr = cell(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
-  weightsN_Nplus1_framesize = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
-  weightsN_Nplus1_nxp = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
-  weightsN_Nplus1_nyp = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
-  weightsN_Nplus1_nfp = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
-  layersN_Nplus1_hdr = cell(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
-  layersN_Nplus1_nx = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
-  layersN_Nplus1_ny = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
-  layersN_Nplus1_nf = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
-
-  if checkpoint_weights_movie
-    weightsN_Nplus1_movie_dir = [output_dir, filesep, "weightsN_Nplus1_movie"]
-    [status, msg, msgid] = mkdir(weightsN_Nplus1_movie_dir);
-    if status ~= 1
-      warning(["mkdir(", weightsN_Nplus1_movie_dir, ")", " msg = ", msg]);
-    endif 
+  num_weightsN_Nplus1_list = size(weightsN_Nplus1_list,1);
+  num_layersN_Nplus1_list = size(layersN_Nplus1_list,2)/2;
+  weightsNminus1_Nplus1_array_list = cell(num_weightsN_Nplus1_list, num_checkpoints);
+  if num_weightsN_Nplus1_list == 0
+    analyze_weightsN_Nplus1 = false;
+    warning(["num_weightsN_Nplus1_list == 0"]);  
+  elseif size(weightsN_Nplus1_list,2)/2 ~= num_layersN_Nplus1_list-1;
+    analyze_weightsN_Nplus1 = false;
+    warning(["num_weightsN_Nplus1_list ~= num_layersN_Nplus1_list-1", ...
+	     ", num_weightsN_Nplus1_list = ", num2str(num_weightsN_Nplus1_list), ...
+	     ", num_layersN_Nplus1_list = ", num2str(num_layersN_Nplus1_list)]);
   endif
-  weightsN_Nplus1_dir = [output_dir, filesep, "weightsN_Nplus1"]
-  [status, msg, msgid] = mkdir(weightsN_Nplus1_dir);
-  if status ~= 1
-    warning(["mkdir(", weightsN_Nplus1_dir, ")", " msg = ", msg]);
-  endif 
-  for i_weightN_Nplus1 = 1 : num_weightsN_Nplus1_list
+  if num_weightsN_Nplus1_list == 0
+    analyze_weightsN_Nplus1 = false;
+  endif
 
-    %% find last (most recent) checkpoint
-    max_weightN_Nplus1_time = 0;
-    max_checkpoint = 0;
-    for i_checkpoint = 1 : num_checkpoints
-      checkpoint_dir = checkpoints_list{i_checkpoint,:};
+  if analyze_weightsN_Nplus1
+    weightsN_Nplus1_vals = cell(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+    weightsN_Nplus1_hdr = cell(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+    weightsN_Nplus1_framesize = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+    weightsN_Nplus1_nxp = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+    weightsN_Nplus1_nyp = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+    weightsN_Nplus1_nfp = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list-1);
+    layersN_Nplus1_hdr = cell(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
+    layersN_Nplus1_nx = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
+    layersN_Nplus1_ny = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
+    layersN_Nplus1_nf = zeros(num_weightsN_Nplus1_list, num_layersN_Nplus1_list);
 
-      %% get weight N->N+1 file
-      weightsN_Nplus1_file = ...
-	  [checkpoint_dir, filesep, ...
-	   weightsN_Nplus1_list{i_weightN_Nplus1,1}, ...
-	   weightsN_Nplus1_list{i_weightN_Nplus1,2}, ".pvp"]
-      if ~exist(weightsN_Nplus1_file, "file")
-	warning(["file does not exist: ", weightsN_Nplus1_file]);
-	continue;
-      endif
-      weightsN_Nplus1_fid = fopen(weightsN_Nplus1_file);
-      weightsN_Nplus1_hdr{i_weightN_Nplus1} = readpvpheader(weightsN_Nplus1_fid);    
-      fclose(weightsN_Nplus1_fid);
-
-      weightN_Nplus1_time = weightsN_Nplus1_hdr{i_weightN_Nplus1}.time;
-      if weightN_Nplus1_time > max_weightN_Nplus1_time
-	max_weightN_Nplus1_time = weightN_Nplus1_time;
-	max_checkpoint = i_checkpoint;
-      endif
-    endfor %% i_checkpoint
-
-    %% get weights headers
-    checkpoint_dir = checkpoints_list{max_checkpoint,:};
-    for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list-1
-      weightsN_Nplus1_file = ...
-	  [checkpoint_dir, filesep, ...
-	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
-	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ".pvp"]
-      if ~exist(weightsN_Nplus1_file, "file")
-	error(["file does not exist: ", weightsN_Nplus1_file]);
-      endif
-      weightsN_Nplus1_fid = fopen(weightsN_Nplus1_file);
-      weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1} = readpvpheader(weightsN_Nplus1_fid);    
-      fclose(weightsN_Nplus1_fid);
-      weightsN_Nplus1_filedata = dir(weightsN_Nplus1_file);
-      weightsN_Nplus1_framesize = ...
-	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.recordsize * ...
-	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.numrecords + ...
-	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.headersize;
-      weightsN_Nplus1_totframes(i_weightN_Nplus1, i_layerN_Nplus1) = ...
-	  weightsN_Nplus1_filedata(1).bytes/weightsN_Nplus1_framesize;
-      weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
-	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(1);
-      weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
-	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(2);
-      weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
-	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(3);
-    endfor %% i_layerN_Nplus1
-
-    %% get layer headers
-    checkpoint_dir = checkpoints_list{max_checkpoint,:};
-    for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list
-      layersN_Nplus1_file = ...
-	  [checkpoint_dir, filesep, ...
-	   layersN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
-	   layersN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ...
-	   ".pvp"]
-      if ~exist(layersN_Nplus1_file, "file")
-	warning(["file does not exist: ", layersN_Nplus1_file]);
-	continue;
-      endif
-      layersN_Nplus1_fid = fopen(layersN_Nplus1_file);
-      layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1} = readpvpheader(layersN_Nplus1_fid);
-      fclose(layersN_Nplus1_fid);
-      layersN_Nplus1_nx(i_weightN_Nplus1, i_layerN_Nplus1) = ...
-	  layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nx;
-      layersN_Nplus1_ny(i_weightN_Nplus1, i_layerN_Nplus1) = ...
-	  layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.ny;
-      layersN_Nplus1_nf(i_weightN_Nplus1, i_layerN_Nplus1) = ...
-	  layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nf;
-    endfor %% i_layerN_Nplus1
-
-    %% labels (if present)
-    checkpoint_dir = checkpoints_list{max_checkpoint,:};
-    if length(labelWeights_list) >= i_weightN_Nplus1 && ...
-	  ~isempty(labelWeights_list{i_weightN_Nplus1}) && ...
-	  plot_flag 
-      labelWeights_file = ...
-	  [checkpoint_dir, filesep, ...
-	   labelWeights_list{i_weightN_Nplus1,1}, labelWeights_list{i_weightN_Nplus1,2}, ".pvp"]
-      if ~exist(labelWeights_file, "file")
-	warning(["file does not exist: ", labelWeights_file]);
-	continue;
-      endif
-      labelWeights_fid = fopen(labelWeights_file);
-      labelWeights_hdr{i_weightN_Nplus1} = readpvpheader(labelWeights_fid);    
-      fclose(labelWeights_fid);
-      num_labelWeights = 1;
-      labelWeights_filedata = dir(labelWeights_file);
-      labelWeights_framesize = ...
-	  labelWeights_hdr{i_weightN_Nplus1}.recordsize * ...
-	  labelWeights_hdr{i_weightN_Nplus1}.numrecords+labelWeights_hdr{i_weightN_Nplus1}.headersize;
-      tot_labelWeights_frames = labelWeights_filedata(1).bytes/labelWeights_framesize;
-      [labelWeights_struct, labelWeights_hdr_tmp] = ...
-	  readpvpfile(labelWeights_file, ...
-		      progress_step, ...
-		      tot_labelWeights_frames, ...
-		      tot_labelWeights_frames-num_labelWeights+1);
-      labelWeights_vals = squeeze(labelWeights_struct{i_frame}.values{i_arbor});
-      labelWeights_time = squeeze(labelWeights_struct{i_frame}.time);
-      labeledWeightsNminus1_Nplus1 = cell(size(labelWeights_vals,1),1);
-    else
-      labelWeights_vals = [];
-      labelWeights_time = [];
-    endif %% labels
-    
-
-      %% get rank order of presynaptic elements
-    i_layerN_Nplus1 = 1;
-    tmp_ndx = sparse_weightsN_Nplus1_ndx(i_weightN_Nplus1);
-    if analyze_Sparse_flag
-      tmp_rank = Sparse_hist_rank_array{tmp_ndx};
-    else
-      tmp_rank = [];
+    if checkpoint_weights_movie
+      weightsN_Nplus1_movie_dir = [output_dir, filesep, "weightsN_Nplus1_movie"]
+      [status, msg, msgid] = mkdir(weightsN_Nplus1_movie_dir);
+      if status ~= 1
+	warning(["mkdir(", weightsN_Nplus1_movie_dir, ")", " msg = ", msg]);
+      endif 
     endif
-    if analyze_Sparse_flag && ~isempty(tmp_rank)
-      pre_hist_rank = tmp_rank;
-    else
-      pre_hist_rank = (1:weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nf);
-    endif
+    weightsN_Nplus1_dir = [output_dir, filesep, "weightsN_Nplus1"]
+    [status, msg, msgid] = mkdir(weightsN_Nplus1_dir);
+    if status ~= 1
+      warning(["mkdir(", weightsN_Nplus1_dir, ")", " msg = ", msg]);
+    endif 
+    for i_weightN_Nplus1 = 1 : num_weightsN_Nplus1_list
 
+      %% find last (most recent) checkpoint
+      max_weightN_Nplus1_time = 0;
+      max_checkpoint = 0;
+      for i_checkpoint = 1 : num_checkpoints
+	checkpoint_dir = checkpoints_list{i_checkpoint,:};
 
-    %% loop over checkpoints
-    for i_checkpoint = 1 : num_checkpoints
-	 if(i_checkpoint ~= max_checkpoint)
-	   continue;
-	 endif
+	%% get weight N->N+1 file
+	weightsN_Nplus1_file = ...
+	    [checkpoint_dir, filesep, ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1,1}, ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1,2}, ".pvp"]
+	if ~exist(weightsN_Nplus1_file, "file")
+	  warning(["file does not exist: ", weightsN_Nplus1_file]);
+	  continue;
+	endif
+	weightsN_Nplus1_fid = fopen(weightsN_Nplus1_file);
+	weightsN_Nplus1_hdr{i_weightN_Nplus1} = readpvpheader(weightsN_Nplus1_fid);    
+	fclose(weightsN_Nplus1_fid);
 
-      checkpoint_dir = checkpoints_list{i_checkpoint,:};
+	weightN_Nplus1_time = weightsN_Nplus1_hdr{i_weightN_Nplus1}.time;
+	if weightN_Nplus1_time > max_weightN_Nplus1_time
+	  max_weightN_Nplus1_time = weightN_Nplus1_time;
+	  max_checkpoint = i_checkpoint;
+	endif
+      endfor %% i_checkpoint
 
-      %% re-initialize patch sizes throughout hierarchy since these are modified during recursive deconvolution
+      %% get weights headers
+      checkpoint_dir = checkpoints_list{max_checkpoint,:};
       for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list-1
 	weightsN_Nplus1_file = ...
 	    [checkpoint_dir, filesep, ...
 	     weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
 	     weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ".pvp"]
 	if ~exist(weightsN_Nplus1_file, "file")
-	  warning(["file does not exist: ", weightsN_Nplus1_file]);
-	  continue;
+	  error(["file does not exist: ", weightsN_Nplus1_file]);
 	endif
 	weightsN_Nplus1_fid = fopen(weightsN_Nplus1_file);
 	weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1} = readpvpheader(weightsN_Nplus1_fid);    
@@ -2336,507 +2895,636 @@ if analyze_weightsN_Nplus1
 	weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
 	    weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(3);
       endfor %% i_layerN_Nplus1
-    
-      %% read the top layer of weights to initialize weightsN_Nplus1_vals
-      i_layerN_Nplus1 = 1;
-      weightsN_Nplus1_file = ...
-	  [checkpoint_dir, filesep, ...
-	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
-	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ".pvp"]
-      if ~exist(weightsN_Nplus1_file, "file")
-	warning(["file does not exist: ", weightsN_Nplus1_file]);
-	continue;
-      endif      
-      num_weightsN_Nplus1 = 1;
-      tot_weightsN_Nplus1_frames = weightsN_Nplus1_totframes(i_weightN_Nplus1, i_layerN_Nplus1);
-      progress_step = ceil( tot_weightsN_Nplus1_frames/ 10);
-      [weightsN_Nplus1_struct, weightsN_Nplus1_hdr_tmp] = ...
-	  readpvpfile(weightsN_Nplus1_file, progress_step, ...
-		      tot_weightsN_Nplus1_frames, ...
-		      tot_weightsN_Nplus1_frames-num_weightsN_Nplus1+1);
-      i_frame = num_weightsN_Nplus1;
-      i_arbor = 1;
-      weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1} = ...
-	  squeeze(weightsN_Nplus1_struct{i_frame}.values{i_arbor});
-      if ndims(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}) == 4
-	weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1} = ...
-	    permute(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}, [2,1,3,4]);
-      else
-	weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1} = ...
-	    permute(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}, [2,1,3]);
-      endif
-      weightsN_Nplus1_time = squeeze(weightsN_Nplus1_struct{i_frame}.time);
-      weightsN_Nplus1_name = ...
-	  [weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
-	   weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ...
-	   "_", num2str(weightsN_Nplus1_time, "%08d")];
-      if no_clobber && ...
-	    exist([weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_name, ".png"]) && ...
-	    i_checkpoint ~= max_checkpoint
-	continue;
-      endif
-      num_weightsN_Nplus1_dims = ...
-	  ndims(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1});
-      num_patchesN_Nplus1 = ...
-	  size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}, num_weightsN_Nplus1_dims);
-      num_patchesN_Nplus1_per_fig = min(num_patchesN_Nplus1, max_patches);
-      num_figsN_Nplus1 = ceil(num_patchesN_Nplus1/num_patchesN_Nplus1_per_fig);
-      weightsN_Nplus1_fig = zeros(num_figsN_Nplus1,1);      
-      if plot_weightsN_Nplus1_flag && i_checkpoint == max_checkpoint
-	for i_figN_Nplus1 = 1 : num_figsN_Nplus1
-	  weightsN_Nplus1_fig(i_figN_Nplus1) = figure;
-	  set(weightsN_Nplus1_fig(i_figN_Nplus1), "name", [weightsN_Nplus1_name, "_", num2str(i_figN_Nplus1)]);
-	endfor
-      endif
-      num_patchesN_Nplus1_rows = floor(sqrt(min(num_patchesN_Nplus1_per_fig, max_patches)));
-      num_patchesN_Nplus1_cols = ceil(min(num_patchesN_Nplus1_per_fig, max_patches) / num_patchesN_Nplus1_rows);
 
-      %% loop over lower layers
-      for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list - 2  %% last layer is image
-
-	%% reset patch sizes to reflect most recent deconvolution
-	weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
-	    size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},1);
-	weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
-	    size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},2);
-	weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
-	    size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},3);
-
-	weightsNminus1_Nplus1_name = ...
+      %% get layer headers
+      checkpoint_dir = checkpoints_list{max_checkpoint,:};
+      for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list
+	layersN_Nplus1_file = ...
 	    [checkpoint_dir, filesep, ...
-	     weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2-1}, ...
-	     weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2}, ...
+	     layersN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
+	     layersN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ...
 	     ".pvp"]
-
-	%% get weight N-1->N file (next set of weights in hierarchy)
-	weightsNminus1_N_file = ...
-	    [checkpoint_dir, filesep, ...
-	     weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2-1}, ...
-	     weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2}, ...
-	     ".pvp"]
-	if ~exist(weightsNminus1_N_file, "file")
-	  warning(["file does not exist: ", weightsNminus1_N_file]);
+	if ~exist(layersN_Nplus1_file, "file")
+	  warning(["file does not exist: ", layersN_Nplus1_file]);
 	  continue;
 	endif
-	num_weightsNminus1_N = 1;
-	tot_weightsNminus1_N_frames = weightsN_Nplus1_totframes(i_weightN_Nplus1, i_layerN_Nplus1+1);
-	progress_step = ceil(tot_weightsNminus1_N_frames / 10);
-	[weightsNminus1_N_struct, weightsNminus1_N_hdr_tmp] = ...
-	    readpvpfile(weightsNminus1_N_file, progress_step, ...
-			tot_weightsNminus1_N_frames, ...
-			tot_weightsNminus1_N_frames-num_weightsNminus1_N+1);
-	i_frame = num_weightsNminus1_N;
-	i_arbor = 1;
-	weightsNminus1_N_vals = squeeze(weightsNminus1_N_struct{i_frame}.values{i_arbor});
-	if ndims(weightsNminus1_N_vals) == 4
-	  weightsNminus1_N_vals = permute(weightsNminus1_N_vals, [2,1,3,4]);
-	else
-	  weightsNminus1_N_vals = permute(weightsNminus1_N_vals, [2,1,3]);
+	layersN_Nplus1_fid = fopen(layersN_Nplus1_file);
+	layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1} = readpvpheader(layersN_Nplus1_fid);
+	fclose(layersN_Nplus1_fid);
+	layersN_Nplus1_nx(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nx;
+	layersN_Nplus1_ny(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.ny;
+	layersN_Nplus1_nf(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nf;
+      endfor %% i_layerN_Nplus1
+
+      %% labels (if present)
+      checkpoint_dir = checkpoints_list{max_checkpoint,:};
+      if length(labelWeights_list) >= i_weightN_Nplus1 && ...
+	    ~isempty(labelWeights_list{i_weightN_Nplus1}) && ...
+	    plot_flag 
+	labelWeights_file = ...
+	    [checkpoint_dir, filesep, ...
+	     labelWeights_list{i_weightN_Nplus1,1}, labelWeights_list{i_weightN_Nplus1,2}, ".pvp"]
+	if ~exist(labelWeights_file, "file")
+	  warning(["file does not exist: ", labelWeights_file]);
+	  continue;
 	endif
-	weightsNminus1_N_time = squeeze(weightsNminus1_N_struct{i_frame}.time);
-	weightsNminus1_N_nyp = size(weightsNminus1_N_vals,1);
-	weightsNminus1_N_nxp = size(weightsNminus1_N_vals,2);
-	weightsNminus1_N_nfp = size(weightsNminus1_N_vals,3);
+	labelWeights_fid = fopen(labelWeights_file);
+	labelWeights_hdr{i_weightN_Nplus1} = readpvpheader(labelWeights_fid);    
+	fclose(labelWeights_fid);
+	num_labelWeights = 1;
+	labelWeights_filedata = dir(labelWeights_file);
+	labelWeights_framesize = ...
+	    labelWeights_hdr{i_weightN_Nplus1}.recordsize * ...
+	    labelWeights_hdr{i_weightN_Nplus1}.numrecords+labelWeights_hdr{i_weightN_Nplus1}.headersize;
+	tot_labelWeights_frames = labelWeights_filedata(1).bytes/labelWeights_framesize;
+	[labelWeights_struct, labelWeights_hdr_tmp] = ...
+	    readpvpfile(labelWeights_file, ...
+			progress_step, ...
+			tot_labelWeights_frames, ...
+			tot_labelWeights_frames-num_labelWeights+1);
+	labelWeights_vals = squeeze(labelWeights_struct{i_frame}.values{i_arbor});
+	labelWeights_time = squeeze(labelWeights_struct{i_frame}.time);
+	labeledWeightsNminus1_Nplus1 = cell(size(labelWeights_vals,1),1);
+      else
+	labelWeights_vals = [];
+	labelWeights_time = [];
+      endif %% labels
+      
+
+      %% get rank order of presynaptic elements
+      i_layerN_Nplus1 = 1;
+      tmp_ndx = sparse_weightsN_Nplus1_ndx(i_weightN_Nplus1);
+      if analyze_Sparse_flag
+	tmp_rank = Sparse_hist_rank_array{tmp_ndx};
+      else
+	tmp_rank = [];
+      endif
+      if analyze_Sparse_flag && ~isempty(tmp_rank)
+	pre_hist_rank = tmp_rank;
+      else
+	pre_hist_rank = (1:weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.nf);
+      endif
+
+
+      %% loop over checkpoints
+      for i_checkpoint = 1 : num_checkpoints
+	if(i_checkpoint ~= max_checkpoint)
+	  continue;
+	endif
+
+	checkpoint_dir = checkpoints_list{i_checkpoint,:};
+
+	%% re-initialize patch sizes throughout hierarchy since these are modified during recursive deconvolution
+	for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list-1
+	  weightsN_Nplus1_file = ...
+	      [checkpoint_dir, filesep, ...
+	       weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
+	       weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ".pvp"]
+	  if ~exist(weightsN_Nplus1_file, "file")
+	    warning(["file does not exist: ", weightsN_Nplus1_file]);
+	    continue;
+	  endif
+	  weightsN_Nplus1_fid = fopen(weightsN_Nplus1_file);
+	  weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1} = readpvpheader(weightsN_Nplus1_fid);    
+	  fclose(weightsN_Nplus1_fid);
+	  weightsN_Nplus1_filedata = dir(weightsN_Nplus1_file);
+	  weightsN_Nplus1_framesize = ...
+	      weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.recordsize * ...
+	      weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.numrecords + ...
+	      weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.headersize;
+	  weightsN_Nplus1_totframes(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	      weightsN_Nplus1_filedata(1).bytes/weightsN_Nplus1_framesize;
+	  weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	      weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(1);
+	  weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	      weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(2);
+	  weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	      weightsN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1}.additional(3);
+	endfor %% i_layerN_Nplus1
 	
-	%% compute layer N+1 -> N-1 patch size
-	Nminus1_N_nx_ratio = ...
-	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+2}.nxGlobal / ...
-	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+1}.nxGlobal;
-	Nminus1_N_ny_ratio = ...
-	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+2}.nyGlobal / ...
-	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+1}.nyGlobal;
-	weightsNminus1_N_overlapp_x = ...
-	    weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1) - Nminus1_N_nx_ratio;
-	weightsNminus1_N_overlapp_y = ...
-	    weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1) - Nminus1_N_ny_ratio;
-	weightsNminus1_Nplus1_nxp = ...
-	    weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1) + ...
-	    (weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1) - 1) * ...
-	    (weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1) - weightsNminus1_N_overlapp_x); 
-	weightsNminus1_Nplus1_nyp = ...
-	    weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1) + ...
-	    (weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1) - 1) * ...
-	    (weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1) - weightsNminus1_N_overlapp_y); 
-	weightsNminus1_Nplus1_nfp = ...
-	    layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+2}.nf;
-
-
-	%% make tableau of all patches
-	%% for one to many connections: dimensions of weightsN_Nplus1 are:
-	%% weightsN_Nplus1_vals{i_weightN_Nplus1, i_layersN_Nplus}(nxp, nyp, nf_post, nf_pre)
-	if plot_flag && ...
-	      i_checkpoint == max_checkpoint && ...
-	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
+	%% read the top layer of weights to initialize weightsN_Nplus1_vals
+	i_layerN_Nplus1 = 1;
+	weightsN_Nplus1_file = ...
+	    [checkpoint_dir, filesep, ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ".pvp"]
+	if ~exist(weightsN_Nplus1_file, "file")
+	  warning(["file does not exist: ", weightsN_Nplus1_file]);
+	  continue;
+	endif      
+	num_weightsN_Nplus1 = 1;
+	tot_weightsN_Nplus1_frames = weightsN_Nplus1_totframes(i_weightN_Nplus1, i_layerN_Nplus1);
+	progress_step = ceil( tot_weightsN_Nplus1_frames/ 10);
+	[weightsN_Nplus1_struct, weightsN_Nplus1_hdr_tmp] = ...
+	    readpvpfile(weightsN_Nplus1_file, progress_step, ...
+			tot_weightsN_Nplus1_frames, ...
+			tot_weightsN_Nplus1_frames-num_weightsN_Nplus1+1);
+	i_frame = num_weightsN_Nplus1;
+	i_arbor = 1;
+	weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1} = ...
+	    squeeze(weightsN_Nplus1_struct{i_frame}.values{i_arbor});
+	if ndims(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}) == 4
+	  weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1} = ...
+	      permute(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}, [2,1,3,4]);
+	else
+	  weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1} = ...
+	      permute(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}, [2,1,3]);
+	endif
+	weightsN_Nplus1_time = squeeze(weightsN_Nplus1_struct{i_frame}.time);
+	weightsN_Nplus1_name = ...
+	    [weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2-1}, ...
+	     weightsN_Nplus1_list{i_weightN_Nplus1, i_layerN_Nplus1*2}, ...
+	     "_", num2str(weightsN_Nplus1_time, "%08d")];
+	if no_clobber && ...
+	      exist([weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_name, ".png"]) && ...
+	      i_checkpoint ~= max_checkpoint
+	  continue;
+	endif
+	num_weightsN_Nplus1_dims = ...
+	    ndims(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1});
+	num_patchesN_Nplus1 = ...
+	    size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}, num_weightsN_Nplus1_dims);
+	num_patchesN_Nplus1_per_fig = min(num_patchesN_Nplus1, max_patches);
+	num_figsN_Nplus1 = ceil(num_patchesN_Nplus1/num_patchesN_Nplus1_per_fig);
+	weightsN_Nplus1_fig = zeros(num_figsN_Nplus1,1);      
+	if plot_weightsN_Nplus1_flag && i_checkpoint == max_checkpoint
 	  for i_figN_Nplus1 = 1 : num_figsN_Nplus1
-	    weightsNminus1_Nplus1_fig(i_figN_Nplus1) = figure;
-	    set(weightsNminus1_Nplus1_fig, "name", [weightsN_Nplus1_name, "_", num2str(i_figN_Nplus1)]);
-	  endfor  
-	endif %% plot_flag
+	    weightsN_Nplus1_fig(i_figN_Nplus1) = figure;
+	    set(weightsN_Nplus1_fig(i_figN_Nplus1), "name", [weightsN_Nplus1_name, "_", num2str(i_figN_Nplus1)]);
+	  endfor
+	endif
+	num_patchesN_Nplus1_rows = floor(sqrt(min(num_patchesN_Nplus1_per_fig, max_patches)));
+	num_patchesN_Nplus1_cols = ceil(min(num_patchesN_Nplus1_per_fig, max_patches) / num_patchesN_Nplus1_rows);
 
-	max_shrinkage = 8; %% 
-	%% storage for next iteration of deconvolved weights
-	weightsNminus1_Nplus1_array = cell(num_figsN_Nplus1,1);
-	%% plot weights in rank order
-	for kf_preN_Nplus1_rank = 1  : num_patchesN_Nplus1
-	  i_figN_Nplus1 = ceil(kf_preN_Nplus1_rank / num_patchesN_Nplus1_per_fig);
-	  kf_preN_Nplus1_rank_per_fig = kf_preN_Nplus1_rank - (i_figN_Nplus1 - 1) * num_patchesN_Nplus1_per_fig;	  
-	  kf_preN_Nplus1 = pre_hist_rank(kf_preN_Nplus1_rank);
+	%% loop over lower layers
+	for i_layerN_Nplus1 = 1 : num_layersN_Nplus1_list - 2  %% last layer is image
 
-	  plotNminus1_Nplus1_flag = ...
-	      plot_flag && ...
-	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 && ...
-	      i_checkpoint == max_checkpoint && ...
-	      kf_preN_Nplus1_rank <= max_patches;
-	  if plotNminus1_Nplus1_flag
-	    subplot(num_patchesN_Nplus1_rows, num_patchesN_Nplus1_cols, kf_preN_Nplus1_rank_per_fig); 
+	  %% reset patch sizes to reflect most recent deconvolution
+	  weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	      size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},1);
+	  weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	      size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},2);
+	  weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1) = ...
+	      size(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},3);
+
+	  weightsNminus1_Nplus1_name = ...
+	      [checkpoint_dir, filesep, ...
+	       weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2-1}, ...
+	       weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2}, ...
+	       ".pvp"]
+
+	  %% get weight N-1->N file (next set of weights in hierarchy)
+	  weightsNminus1_N_file = ...
+	      [checkpoint_dir, filesep, ...
+	       weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2-1}, ...
+	       weightsN_Nplus1_list{i_weightN_Nplus1, (i_layerN_Nplus1+1)*2}, ...
+	       ".pvp"]
+	  if ~exist(weightsNminus1_N_file, "file")
+	    warning(["file does not exist: ", weightsNminus1_N_file]);
+	    continue;
 	  endif
-
-	  if num_weightsN_Nplus1_dims == 4
-	    patchN_Nplus1_tmp = ...
-		squeeze(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}(:,:,:,kf_preN_Nplus1));
-	  elseif num_weightsN_Nplus1_dims <= 3
-	    patchN_Nplus1_tmp = ...
-		squeeze(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}(:,:,kf_preN_Nplus1));
-	    patchN_Nplus1_tmp = ...
-		reshape(patchN_Nplus1_tmp, ...
-			[weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1), ...
-			 weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1), ...
-			 1]);
-	  endif
-
-	  %% patchNminus1_Nplus1_array stores the sum over all patches, given by 
-	  %% weightsNminus1_Nplus1_vals, for every neuron in layer i_layerN_Nplus1+1 
-	  %% that is postsynaptic to layer i_layerN_Nplus1 as denoted by
-	  %% weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}.
-	  %% In other words, for the presynaptic neuron in layer i_layerN_Nplus1
-	  %% specified by feature index kf_preN_Nplus1,
-	  %% we deconvolve each of its postsynaptic  targets in layer i_layerN_Nplus1+1,
-	  %% specified by weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},
-	  %% with each of its targets in layer i_layerN_Nplus1+2, 
-	  %% specified by weightsNminus1_Nplus1_vals.
-	  patchNminus1_Nplus1_array = ...
-	      cell(weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1), ...
-		   weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1));
-	  %% patchNminus1_Nplus1 stores the complete image patch of the layer 
-	  %% i_layerN_Nplus1 neuron kf_preN_Nplus1
-	  patchNminus1_Nplus1 = ...
-	      zeros(weightsNminus1_Nplus1_nyp, ...
-		    weightsNminus1_Nplus1_nxp, ...
-		    weightsNminus1_Nplus1_nfp);
-	  %% loop over weightsN_Nplus1 rows and columns
-	  for N_Nplus1_patch_row = 1 : weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1)
-	    for N_Nplus1_patch_col = 1 : weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1)
-
-	      patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col} = ...
-		  zeros([weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1), ...
-			 weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1), ...
-			 weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1+1)]);
-
-	      %% accumulate weightsNminus1_N patches for each post feature separately 
-	      %% for each weightsN_Nplus1 column 
-	      for kf_postN_Nplus1 = 1 : layersN_Nplus1_nf(i_weightN_Nplus1,i_layerN_Nplus1+1)
-		patchN_Nplus1_weight = ...
-		    patchN_Nplus1_tmp(N_Nplus1_patch_row, N_Nplus1_patch_col, kf_postN_Nplus1);
-		if patchN_Nplus1_weight == 0
-		  continue;
-		endif
-		if weightsNminus1_N_nfp == 1
-		  weightsNminus1_N_patch = squeeze(weightsNminus1_N_vals(:,:,kf_postN_Nplus1));
-		else
-		  weightsNminus1_N_patch = squeeze(weightsNminus1_N_vals(:,:,:,kf_postN_Nplus1));
-		endif
-		%%  store weightsNminus1_N_patch by column
-		patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col} = ...
-		    patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col} + ...
-		    patchN_Nplus1_weight .* ...
-		    weightsNminus1_N_patch;
-	      endfor %% kf_postN_Nplus1
-	      Nminus1_Nplus1_row_start = 1+Nminus1_N_ny_ratio*(N_Nplus1_patch_row-1);
-	      Nminus1_Nplus1_row_end = Nminus1_N_ny_ratio*(N_Nplus1_patch_row-1)+weightsNminus1_N_nyp;
-	      Nminus1_Nplus1_col_start = 1+Nminus1_N_nx_ratio*(N_Nplus1_patch_col-1);
-	      Nminus1_Nplus1_col_end = Nminus1_N_nx_ratio*(N_Nplus1_patch_col-1)+weightsNminus1_N_nxp;
-	      patchNminus1_Nplus1(Nminus1_Nplus1_row_start:Nminus1_Nplus1_row_end, ...
-				  Nminus1_Nplus1_col_start:Nminus1_Nplus1_col_end, :) = ...
-		  patchNminus1_Nplus1(Nminus1_Nplus1_row_start:Nminus1_Nplus1_row_end, ...
-				      Nminus1_Nplus1_col_start:Nminus1_Nplus1_col_end, :) + ...
-		  patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col};
-	    endfor %% N_Nplus1_patch_col
-	  endfor %% N_Nplus1_patch_row
-
-	  %% get shrunken patch (if last level, but only do once)
-	  if 1 %%i_layerN_Nplus1 < num_layersN_Nplus1_list-2
-	    patch_tmp3 = patchNminus1_Nplus1;
-	    weightsNminus1_Nplus1_nyp_shrunken = weightsNminus1_Nplus1_nyp;
-	    weightsNminus1_Nplus1_nxp_shrunken = weightsNminus1_Nplus1_nxp;
-	  elseif kf_preN_Nplus1_rank == 1 
-	    patch_tmp3 = patchNminus1_Nplus1;
-	    weightsNminus1_Nplus1_nyp_shrunken = size(patch_tmp3, 1);
-	    patch_tmp4 = patch_tmp3(1, :, :);
-	    while ~any(patch_tmp4(:)) %% && ((weights0_2_nyp - weights0_2_nyp_shrunken) <= max_shrinkage/2)
-	      weightsNminus1_Nplus1_nyp_shrunken = weightsNminus1_Nplus1_nyp_shrunken - 1;
-	      patch_tmp3 = patch_tmp3(2:weightsNminus1_Nplus1_nyp_shrunken, :, :);
-	      patch_tmp4 = patch_tmp3(1, :, :);
-	    endwhile
-	    weightsNminus1_Nplus1_nyp_shrunken = size(patch_tmp3, 1);
-	    patch_tmp4 = patch_tmp3(weightsNminus1_Nplus1_nyp_shrunken, :, :);
-	    while ~any(patch_tmp4(:))
-	      weightsNminus1_Nplus1_nyp_shrunken = weightsNminus1_Nplus1_nyp_shrunken - 1;
-	      patch_tmp3 = patch_tmp3(1:weightsNminus1_Nplus1_nyp_shrunken, :, :);
-	      patch_tmp4 = patch_tmp3(weightsNminus1_Nplus1_nyp_shrunken, :, :);
-	    endwhile
-	    weightsNminus1_Nplus1_nxp_shrunken = size(patch_tmp3, 2);
-	    patch_tmp4 = patch_tmp3(:, 1, :);
-	    while ~any(patch_tmp4(:)) %% && ((weightsNminus1_Nplus1_nyp - weightsNminus1_Nplus1_nyp_shrunken) <= max_shrinkage/2)
-	      weightsNminus1_Nplus1_nxp_shrunken = weightsNminus1_Nplus1_nxp_shrunken - 1;
-	      patch_tmp3 = patch_tmp3(:, 2:weightsNminus1_Nplus1_nxp_shrunken, :);
-	      patch_tmp4 = patch_tmp3(:, 1, :);
-	    endwhile
-	    weightsNminus1_Nplus1_nxp_shrunken = size(patch_tmp3, 2);
-	    patch_tmp4 = patch_tmp3(:, weightsNminus1_Nplus1_nxp_shrunken, :);
-	    while ~any(patch_tmp4(:))
-	      weightsNminus1_Nplus1_nxp_shrunken = weightsNminus1_Nplus1_nxp_shrunken - 1;
-	      patch_tmp3 = patch_tmp3(:, 1:weightsNminus1_Nplus1_nxp_shrunken, :);
-	      patch_tmp4 = patch_tmp3(:, weightsNminus1_Nplus1_nxp_shrunken, :);
-	    endwhile
+	  num_weightsNminus1_N = 1;
+	  tot_weightsNminus1_N_frames = weightsN_Nplus1_totframes(i_weightN_Nplus1, i_layerN_Nplus1+1);
+	  progress_step = ceil(tot_weightsNminus1_N_frames / 10);
+	  [weightsNminus1_N_struct, weightsNminus1_N_hdr_tmp] = ...
+	      readpvpfile(weightsNminus1_N_file, progress_step, ...
+			  tot_weightsNminus1_N_frames, ...
+			  tot_weightsNminus1_N_frames-num_weightsNminus1_N+1);
+	  i_frame = num_weightsNminus1_N;
+	  i_arbor = 1;
+	  weightsNminus1_N_vals = squeeze(weightsNminus1_N_struct{i_frame}.values{i_arbor});
+	  if ndims(weightsNminus1_N_vals) == 4
+	    weightsNminus1_N_vals = permute(weightsNminus1_N_vals, [2,1,3,4]);
 	  else
-	    nyp_shift = floor((weightsNminus1_Nplus1_nyp - weightsNminus1_Nplus1_nyp_shrunken)/2);
-	    nxp_shift = floor((weightsNminus1_Nplus1_nxp - weightsNminus1_Nplus1_nxp_shrunken)/2);
-	    patch_tmp3 = ...
-		patchNminus1_Nplus1(nyp_shift+1:weightsNminus1_Nplus1_nyp_shrunken, ...
-				    nxp_shift+1:weightsNminus1_Nplus1_nxp_shrunken, :);
-	  endif  %% kf_preN_Nplus1_rank == 1
-
-	  %% rescale patch
-	  %%min_patch = min(patch_tmp3(:));
-	  maxabs_patch_tmp3 = max(abs(patch_tmp3(:)));
-	  patch_tmp5 = ...
-	      (127.5 + 127.5*( (patch_tmp3) / (maxabs_patch_tmp3 + (maxabs_patch_tmp3==0))));
-	  
-	  if plotNminus1_Nplus1_flag
-	    figure(weightsN_Nplus1_fig(i_figN_Nplus1));
-	    subplot(num_patchesN_Nplus1_rows, num_patchesN_Nplus1_cols, kf_preN_Nplus1_rank_per_fig); 
-	    imagesc(patch_tmp5); 
-	    if weightsNminus1_N_nfp == 1
-	      colormap(gray);
-	    endif
-	    box off
-	    axis off
-	    axis image
-	    if ~isempty(labelWeights_vals) %% && ~isempty(labelWeights_time) 
-	      [~, max_label] = max(squeeze(labelWeights_vals(:,kf_preN_Nplus1)));
-	      text(weightsNminus1_Nplus1_nyp_shrunken/2, ...
-		   -weightsNminus1_Nplus1_nxp_shrunken/6, ...
-		   num2str(max_label-1), "color", [1 0 0]);
-	    endif %% ~empty(labelWeights_vals)
-	    %%drawnow;
-	  endif %% plotNminus1_Nplus1_flag 
-
-	  if isempty(weightsNminus1_Nplus1_array{i_figN_Nplus1})
-	    weightsNminus1_Nplus1_array{i_figN_Nplus1} = ...
-		zeros(num_patchesN_Nplus1_rows*weightsNminus1_Nplus1_nyp_shrunken, ...
-		      num_patchesN_Nplus1_cols*weightsNminus1_Nplus1_nxp_shrunken, ...
-		      weightsNminus1_N_nfp);
-	    weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1} = ...
-		zeros(weightsNminus1_Nplus1_nyp_shrunken, ...
-		      weightsNminus1_Nplus1_nxp_shrunken, ...
-		      weightsNminus1_N_nfp, ...
-		      num_patchesN_Nplus1);
+	    weightsNminus1_N_vals = permute(weightsNminus1_N_vals, [2,1,3]);
 	  endif
-	  col_ndx = 1 + mod(kf_preN_Nplus1_rank_per_fig-1, num_patchesN_Nplus1_cols);
-	  row_ndx = 1 + floor((kf_preN_Nplus1_rank_per_fig-1) / num_patchesN_Nplus1_cols);
-	  maxabs_patchNminus1_Nplus1 = max(abs(patch_tmp5(:)));
+	  weightsNminus1_N_time = squeeze(weightsNminus1_N_struct{i_frame}.time);
+	  weightsNminus1_N_nyp = size(weightsNminus1_N_vals,1);
+	  weightsNminus1_N_nxp = size(weightsNminus1_N_vals,2);
+	  weightsNminus1_N_nfp = size(weightsNminus1_N_vals,3);
+	  
+	  %% compute layer N+1 -> N-1 patch size
+	  Nminus1_N_nx_ratio = ...
+	      layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+2}.nxGlobal / ...
+	      layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+1}.nxGlobal;
+	  Nminus1_N_ny_ratio = ...
+	      layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+2}.nyGlobal / ...
+	      layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+1}.nyGlobal;
+	  weightsNminus1_N_overlapp_x = ...
+	      weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1) - Nminus1_N_nx_ratio;
+	  weightsNminus1_N_overlapp_y = ...
+	      weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1) - Nminus1_N_ny_ratio;
+	  weightsNminus1_Nplus1_nxp = ...
+	      weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1) + ...
+	      (weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1) - 1) * ...
+	      (weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1) - weightsNminus1_N_overlapp_x); 
+	  weightsNminus1_Nplus1_nyp = ...
+	      weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1) + ...
+	      (weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1) - 1) * ...
+	      (weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1) - weightsNminus1_N_overlapp_y); 
+	  weightsNminus1_Nplus1_nfp = ...
+	      layersN_Nplus1_hdr{i_weightN_Nplus1, i_layerN_Nplus1+2}.nf;
+
+
+	  %% make tableau of all patches
+	  %% for one to many connections: dimensions of weightsN_Nplus1 are:
+	  %% weightsN_Nplus1_vals{i_weightN_Nplus1, i_layersN_Nplus}(nxp, nyp, nf_post, nf_pre)
+	  if plot_flag && ...
+		i_checkpoint == max_checkpoint && ...
+		i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
+	    for i_figN_Nplus1 = 1 : num_figsN_Nplus1
+	      weightsNminus1_Nplus1_fig(i_figN_Nplus1) = figure;
+	      set(weightsNminus1_Nplus1_fig, "name", [weightsN_Nplus1_name, "_", num2str(i_figN_Nplus1)]);
+	    endfor  
+	  endif %% plot_flag
+
+	  max_shrinkage = 8; %% 
+	  %% storage for next iteration of deconvolved weights
+	  weightsNminus1_Nplus1_array = cell(num_figsN_Nplus1,1);
+	  %% plot weights in rank order
+	  for kf_preN_Nplus1_rank = 1  : num_patchesN_Nplus1
+	    i_figN_Nplus1 = ceil(kf_preN_Nplus1_rank / num_patchesN_Nplus1_per_fig);
+	    kf_preN_Nplus1_rank_per_fig = kf_preN_Nplus1_rank - (i_figN_Nplus1 - 1) * num_patchesN_Nplus1_per_fig;	  
+	    kf_preN_Nplus1 = pre_hist_rank(kf_preN_Nplus1_rank);
+
+	    plotNminus1_Nplus1_flag = ...
+		plot_flag && ...
+		i_layerN_Nplus1 == num_layersN_Nplus1_list-2 && ...
+		i_checkpoint == max_checkpoint && ...
+		kf_preN_Nplus1_rank <= max_patches;
+	    if plotNminus1_Nplus1_flag
+	      subplot(num_patchesN_Nplus1_rows, num_patchesN_Nplus1_cols, kf_preN_Nplus1_rank_per_fig); 
+	    endif
+
+	    num_weightsN_Nplus1_dims = ...
+		ndims(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1});
+	    if num_weightsN_Nplus1_dims == 4
+	      patchN_Nplus1_tmp = ...
+		  squeeze(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}(:,:,:,kf_preN_Nplus1));
+	    elseif num_weightsN_Nplus1_dims <= 3
+	      patchN_Nplus1_tmp = ...
+		  squeeze(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}(:,:,kf_preN_Nplus1));
+	      patchN_Nplus1_tmp = ...
+		  reshape(patchN_Nplus1_tmp, ...
+			  [weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1), ...
+			   weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1), ...
+			   1]);
+	    endif
+
+	    %% patchNminus1_Nplus1_array stores the sum over all patches, given by 
+	    %% weightsNminus1_Nplus1_vals, for every neuron in layer i_layerN_Nplus1+1 
+	    %% that is postsynaptic to layer i_layerN_Nplus1 as denoted by
+	    %% weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1}.
+	    %% In other words, for the presynaptic neuron in layer i_layerN_Nplus1
+	    %% specified by feature index kf_preN_Nplus1,
+	    %% we deconvolve each of its postsynaptic  targets in layer i_layerN_Nplus1+1,
+	    %% specified by weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1},
+	    %% with each of its targets in layer i_layerN_Nplus1+2, 
+	    %% specified by weightsNminus1_Nplus1_vals.
+	    patchNminus1_Nplus1_array = ...
+		cell(weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1), ...
+		     weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1));
+	    %% patchNminus1_Nplus1 stores the complete image patch of the layer 
+	    %% i_layerN_Nplus1 neuron kf_preN_Nplus1
+	    patchNminus1_Nplus1 = ...
+		zeros(weightsNminus1_Nplus1_nyp, ...
+		      weightsNminus1_Nplus1_nxp, ...
+		      weightsNminus1_Nplus1_nfp);
+	    %% loop over weightsN_Nplus1 rows and columns
+	    for N_Nplus1_patch_row = 1 : weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1)
+	      for N_Nplus1_patch_col = 1 : weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1)
+
+		patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col} = ...
+		    zeros([weightsN_Nplus1_nyp(i_weightN_Nplus1, i_layerN_Nplus1+1), ...
+			   weightsN_Nplus1_nxp(i_weightN_Nplus1, i_layerN_Nplus1+1), ...
+			   weightsN_Nplus1_nfp(i_weightN_Nplus1, i_layerN_Nplus1+1)]);
+
+		%% accumulate weightsNminus1_N patches for each post feature separately 
+		%% for each weightsN_Nplus1 column 
+		for kf_postN_Nplus1 = 1 : layersN_Nplus1_nf(i_weightN_Nplus1,i_layerN_Nplus1+1)
+		  patchN_Nplus1_weight = ...
+		      patchN_Nplus1_tmp(N_Nplus1_patch_row, N_Nplus1_patch_col, kf_postN_Nplus1);
+		  if patchN_Nplus1_weight == 0
+		    continue;
+		  endif
+		  if ndims(weightsNminus1_N_vals) == 3 %%weightsNminus1_N_nfp == 1
+		    weightsNminus1_N_patch = squeeze(weightsNminus1_N_vals(:,:,kf_postN_Nplus1));
+		  else
+		    weightsNminus1_N_patch = squeeze(weightsNminus1_N_vals(:,:,:,kf_postN_Nplus1));
+		  endif
+		  %%  store weightsNminus1_N_patch by column
+		  patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col} = ...
+		      patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col} + ...
+		      patchN_Nplus1_weight .* ...
+		      weightsNminus1_N_patch;
+		endfor %% kf_postN_Nplus1
+		Nminus1_Nplus1_row_start = 1+Nminus1_N_ny_ratio*(N_Nplus1_patch_row-1);
+		Nminus1_Nplus1_row_end = Nminus1_N_ny_ratio*(N_Nplus1_patch_row-1)+weightsNminus1_N_nyp;
+		Nminus1_Nplus1_col_start = 1+Nminus1_N_nx_ratio*(N_Nplus1_patch_col-1);
+		Nminus1_Nplus1_col_end = Nminus1_N_nx_ratio*(N_Nplus1_patch_col-1)+weightsNminus1_N_nxp;
+		patchNminus1_Nplus1(Nminus1_Nplus1_row_start:Nminus1_Nplus1_row_end, ...
+				    Nminus1_Nplus1_col_start:Nminus1_Nplus1_col_end, :) = ...
+		    patchNminus1_Nplus1(Nminus1_Nplus1_row_start:Nminus1_Nplus1_row_end, ...
+					Nminus1_Nplus1_col_start:Nminus1_Nplus1_col_end, :) + ...
+		    patchNminus1_Nplus1_array{N_Nplus1_patch_row, N_Nplus1_patch_col};
+	      endfor %% N_Nplus1_patch_col
+	    endfor %% N_Nplus1_patch_row
+
+	    %% get shrunken patch (if last level, but only do once)
+	    if 1 %%i_layerN_Nplus1 < num_layersN_Nplus1_list-2
+	      patch_tmp3 = patchNminus1_Nplus1;
+	      weightsNminus1_Nplus1_nyp_shrunken = weightsNminus1_Nplus1_nyp;
+	      weightsNminus1_Nplus1_nxp_shrunken = weightsNminus1_Nplus1_nxp;
+	    elseif kf_preN_Nplus1_rank == 1 
+	      patch_tmp3 = patchNminus1_Nplus1;
+	      weightsNminus1_Nplus1_nyp_shrunken = size(patch_tmp3, 1);
+	      patch_tmp4 = patch_tmp3(1, :, :);
+	      while ~any(patch_tmp4(:)) %% && ((weights0_2_nyp - weights0_2_nyp_shrunken) <= max_shrinkage/2)
+		weightsNminus1_Nplus1_nyp_shrunken = weightsNminus1_Nplus1_nyp_shrunken - 1;
+		patch_tmp3 = patch_tmp3(2:weightsNminus1_Nplus1_nyp_shrunken, :, :);
+		patch_tmp4 = patch_tmp3(1, :, :);
+	      endwhile
+	      weightsNminus1_Nplus1_nyp_shrunken = size(patch_tmp3, 1);
+	      patch_tmp4 = patch_tmp3(weightsNminus1_Nplus1_nyp_shrunken, :, :);
+	      while ~any(patch_tmp4(:))
+		weightsNminus1_Nplus1_nyp_shrunken = weightsNminus1_Nplus1_nyp_shrunken - 1;
+		patch_tmp3 = patch_tmp3(1:weightsNminus1_Nplus1_nyp_shrunken, :, :);
+		patch_tmp4 = patch_tmp3(weightsNminus1_Nplus1_nyp_shrunken, :, :);
+	      endwhile
+	      weightsNminus1_Nplus1_nxp_shrunken = size(patch_tmp3, 2);
+	      patch_tmp4 = patch_tmp3(:, 1, :);
+	      while ~any(patch_tmp4(:)) %% && ((weightsNminus1_Nplus1_nyp - weightsNminus1_Nplus1_nyp_shrunken) <= max_shrinkage/2)
+		weightsNminus1_Nplus1_nxp_shrunken = weightsNminus1_Nplus1_nxp_shrunken - 1;
+		patch_tmp3 = patch_tmp3(:, 2:weightsNminus1_Nplus1_nxp_shrunken, :);
+		patch_tmp4 = patch_tmp3(:, 1, :);
+	      endwhile
+	      weightsNminus1_Nplus1_nxp_shrunken = size(patch_tmp3, 2);
+	      patch_tmp4 = patch_tmp3(:, weightsNminus1_Nplus1_nxp_shrunken, :);
+	      while ~any(patch_tmp4(:))
+		weightsNminus1_Nplus1_nxp_shrunken = weightsNminus1_Nplus1_nxp_shrunken - 1;
+		patch_tmp3 = patch_tmp3(:, 1:weightsNminus1_Nplus1_nxp_shrunken, :);
+		patch_tmp4 = patch_tmp3(:, weightsNminus1_Nplus1_nxp_shrunken, :);
+	      endwhile
+	    else
+	      nyp_shift = floor((weightsNminus1_Nplus1_nyp - weightsNminus1_Nplus1_nyp_shrunken)/2);
+	      nxp_shift = floor((weightsNminus1_Nplus1_nxp - weightsNminus1_Nplus1_nxp_shrunken)/2);
+	      patch_tmp3 = ...
+		  patchNminus1_Nplus1(nyp_shift+1:weightsNminus1_Nplus1_nyp_shrunken, ...
+				      nxp_shift+1:weightsNminus1_Nplus1_nxp_shrunken, :);
+	    endif  %% kf_preN_Nplus1_rank == 1
+
+	    %% rescale patch
+	    %%min_patch = min(patch_tmp3(:));
+	    maxabs_patch_tmp3 = max(abs(patch_tmp3(:)));
+	    patch_tmp5 = ...
+		(127.5 + 127.5*( (patch_tmp3) / (maxabs_patch_tmp3 + (maxabs_patch_tmp3==0))));
+	    
+	    if plotNminus1_Nplus1_flag
+	      figure(weightsN_Nplus1_fig(i_figN_Nplus1));
+	      subplot(num_patchesN_Nplus1_rows, num_patchesN_Nplus1_cols, kf_preN_Nplus1_rank_per_fig); 
+	      imagesc(patch_tmp5); 
+	      if ndims(patch_tmp5) == 2 
+		colormap(gray);
+	      endif
+	      box off
+	      axis off
+	      axis image
+	      if ~isempty(labelWeights_vals) %% && ~isempty(labelWeights_time) 
+		[~, max_label] = max(squeeze(labelWeights_vals(:,kf_preN_Nplus1)));
+		text(weightsNminus1_Nplus1_nyp_shrunken/2, ...
+		     -weightsNminus1_Nplus1_nxp_shrunken/6, ...
+		     num2str(max_label-1), "color", [1 0 0]);
+	      endif %% ~empty(labelWeights_vals)
+	      %%drawnow;
+	    endif %% plotNminus1_Nplus1_flag 
+
+	    if isempty(weightsNminus1_Nplus1_array{i_figN_Nplus1})
+	      weightsNminus1_Nplus1_array{i_figN_Nplus1} = ...
+		  zeros(num_patchesN_Nplus1_rows*weightsNminus1_Nplus1_nyp_shrunken, ...
+			num_patchesN_Nplus1_cols*weightsNminus1_Nplus1_nxp_shrunken, ...
+			weightsNminus1_N_nfp);
+	      weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1} = ...
+		  zeros(weightsNminus1_Nplus1_nyp_shrunken, ...
+			weightsNminus1_Nplus1_nxp_shrunken, ...
+			weightsNminus1_N_nfp, ...
+			num_patchesN_Nplus1);
+	    endif
+	    col_ndx = 1 + mod(kf_preN_Nplus1_rank_per_fig-1, num_patchesN_Nplus1_cols);
+	    row_ndx = 1 + floor((kf_preN_Nplus1_rank_per_fig-1) / num_patchesN_Nplus1_cols);
+	    maxabs_patchNminus1_Nplus1 = max(abs(patch_tmp5(:)));
 				%normalized_patchNminus1_Nplus1 = 127.5 + 127.5 * (patch_tmp5 / (maxabs_patchNminus1_Nplus1 + (maxabs_patchNminus1_Nplus1==0)));
-	  weightsNminus1_Nplus1_array{i_figN_Nplus1}((1+(row_ndx-1)*weightsNminus1_Nplus1_nyp_shrunken):...
-						     (row_ndx*weightsNminus1_Nplus1_nyp_shrunken), ...
-						     (1+(col_ndx-1)*weightsNminus1_Nplus1_nxp_shrunken): ...
-						     (col_ndx*weightsNminus1_Nplus1_nxp_shrunken),:) = ...
-	      patch_tmp5;
-	  %%normalized_patchNminus1_Nplus1; %%
+	    if ndims(patch_tmp5) == 3
+	      weightsNminus1_Nplus1_array{i_figN_Nplus1}((1+(row_ndx-1)*weightsNminus1_Nplus1_nyp_shrunken):...
+							 (row_ndx*weightsNminus1_Nplus1_nyp_shrunken), ...
+							 (1+(col_ndx-1)*weightsNminus1_Nplus1_nxp_shrunken): ...
+							 (col_ndx*weightsNminus1_Nplus1_nxp_shrunken),:) = ...
+		  patch_tmp5;
+	    else
+	      weightsNminus1_Nplus1_array{i_figN_Nplus1}((1+(row_ndx-1)*weightsNminus1_Nplus1_nyp_shrunken):...
+							 (row_ndx*weightsNminus1_Nplus1_nyp_shrunken), ...
+							 (1+(col_ndx-1)*weightsNminus1_Nplus1_nxp_shrunken): ...
+							 (col_ndx*weightsNminus1_Nplus1_nxp_shrunken)) = ...
+		  patch_tmp5;
+	    endif
+	    %%normalized_patchNminus1_Nplus1; %%
+	    
+	    %% set weightsN_Nplus1_vals to patch_tmp3
+	    %%	  weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:, :, :, kf_preN_Nplus1_rank) = ...
+	    %%	      patch_tmp3;
+	    if ndims(patch_tmp3) == 3
+	      weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:, :, :, kf_preN_Nplus1) = ...
+		  patch_tmp3;
+ 	    else
+	      weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:, :, kf_preN_Nplus1) = ...
+		  patch_tmp3;
+	    endif
+	    
+	    %% Plot the average movie weights for each label %%
+	    if ~isempty(labelWeights_vals) && ...
+		  plot_flag && ...
+		  i_checkpoint == max_checkpoint && ...
+		  i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
+	      if ~isempty(labeledWeightsNminus1_Nplus1{max_label})
+		labeledWeightsNminus1_Nplus1{max_label} = ...
+		    labeledWeightsNminus1_Nplus1{max_label} + double(patch_tmp5);
+	      else
+		labeledWeightsNminus1_Nplus1{max_label} = double(patch_tmp5);
+	      endif
+	    endif %%  ~isempty(labelWeights_vals) 
+
+	  endfor %% kf_preN_Nplus1_rank
 	  
-	  %% set weightsN_Nplus1_vals to patch_tmp3
-%%	  weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:, :, :, kf_preN_Nplus1_rank) = ...
-	  %%	      patch_tmp3;
-	  weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:, :, :, kf_preN_Nplus1) = ...
-	      patch_tmp3;
+	  for i_figN_Nplus1 = 1 : num_figsN_Nplus1
+	    weightsN_Nplus1_str{i_figN_Nplus1} = ...
+		[weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, ...
+		 "_", ...
+		 weightsN_Nplus1_list{i_weightN_Nplus1,3}, weightsN_Nplus1_list{i_weightN_Nplus1,4}, ...
+		 "_", num2str(weightsN_Nplus1_time, "%08d"), ...
+		 "_", num2str(i_figN_Nplus1)];
+	  endfor
+	  if plot_flag && ...
+		i_checkpoint == max_checkpoint && ...
+		i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
+	    for i_figN_Nplus1 = 1 : num_figsN_Nplus1
+	      figure(weightsN_Nplus1_fig(i_figN_Nplus1));
+	      saveas(weightsN_Nplus1_fig(i_figN_Nplus1), [weightsN_Nplus1_dir, filesep, weightsN_Nplus1_str{i_figN_Nplus1}, ".png"], "png");
+	      if ~isempty(labelWeights_vals) 
+		labeledWeightsN_Nplus1_str = ...
+		    ["labeledWeights_", ...
+		     weightsN_Nplus1_str{i_figN_Nplus1}];
+		labeledWeights_fig = figure("name", labeledWeightsN_Nplus1_str{i_figN_Nplus1});
+		title(labeledWeightsN_Nplus1_str{i_figN_Nplus1});
+		rows_labeledWeights = ceil(sqrt(size(labelWeights_vals,1)));
+		cols_labeledWeights = ceil(size(labelWeights_vals,1) / rows_labeledWeights);
+		for label = 1:size(labelWeights_vals,1)
+		  subplot(rows_labeledWeights, cols_labeledWeights, label);
+		  labeledWeights_subplot_str = ...
+		      [num2str(label, "%d")];
+		  imagesc(squeeze(labeledWeightsNminus1_Nplus1{label}));
+		  title(labeledWeights_subplot_str);
+		  axis off
+		endfor %% label = 1:size(labelWeights_vals,1)
+		saveas(labeledWeights_fig,  [weightsN_Nplus1_dir, filesep, labeledWeightsN_Nplus1_str{i_figN_Nplus1}, ".png"], "png");
+	      endif %%  ~isempty(labelWeights_vals) 
+	    endfor
+	  endif
 	  
-	  %% Plot the average movie weights for each label %%
+	  %%	  imwrite(uint8(weightsNminus1_Nplus1_array), ...
+	  %%		  [weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_str, ".png"], "png");
+	  if i_checkpoint == max_checkpoint
+ 	    save("-mat", ...
+		 [weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_str{1}, ".mat"], ...
+		 "weightsNminus1_Nplus1_array");
+	  endif
+	  if i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
+	    for i_figN_Nplus1 = 1 : num_figsN_Nplus1
+	      weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1} = weightsNminus1_Nplus1_array{i_figN_Nplus1};
+	      num_combineN_Nplus1 = 1;
+	      for i_weights = 1 : num_weights_list
+		if sparse_weightsN_Nplus1_ndx(i_weightN_Nplus1) == sparse_weights_ndx(i_weights)
+		  size_weightsNminus1_Nplus1_array = ...
+		      size(weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1});
+		  resized_weight_patch_array = ...
+		      imresize(weight_patch_array_list{i_weights}, size_weightsNminus1_Nplus1_array(1:2));
+		  maxabs_resized_weight_patch_array = max(abs(resized_weight_patch_array(:)));
+		  resized_weight_patchNminus1_Nplus1_array_uint8 = ...
+		      127.5 + 127.5 * (resized_weight_patch_array / (maxabs_resized_weight_patch_array + (maxabs_resized_weight_patch_array==0)));
+		  weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1} = ...
+		      weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1}  + ...
+		      resized_weight_patchNminus1_Nplus1_array_uint8;
+		  num_combineN_Nplus1 = num_combineN_Nplus1 + 1;
+		endif
+	      endfor
+	      weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1} = ...
+		  weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1} / num_combineN_Nplus1;
+	      maxabs_weightsNminus1_Nplus1_array = max(abs(weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1}(:)));
+	      weightsNminus1_Nplus1_array_uint8 = ...
+		  (127.5 + 127.5*(weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1} / ...
+				  (maxabs_weightsNminus1_Nplus1_array + (maxabs_weightsNminus1_Nplus1_array == 0))));
+	      imwrite(uint8(weightsNminus1_Nplus1_array_uint8), ...
+		      [weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_str{i_figN_Nplus1}, ".png"], "png");
+				%keyboard;
+	    endfor
+	  endif
+	  
+
+	  %% make histogram of all weights
+	  if plot_flag && ...
+		i_checkpoint == max_checkpoint && ...
+		i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
+	    weightsNminus1_Nplus1_hist_fig = figure;
+	    [weightsN_Nplus1_hist, weightsN_Nplus1_hist_bins] = ...
+		hist(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:), 100);
+	    bar(weightsN_Nplus1_hist_bins, log(weightsN_Nplus1_hist+1));
+	    set(weightsNminus1_Nplus1_hist_fig, "name", ...
+		["Hist_", ...
+		 weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, "_", ...
+		 num2str(weightsN_Nplus1_time, "%08d")]);
+	    saveas(weightsNminus1_Nplus1_hist_fig, ...
+		   [weightsN_Nplus1_dir, filesep, "weightsN_Nplus1_hist_", ...
+		    weightsN_Nplus1_str{i_figN_Nplus1}], "png");
+	  endif %% plotNminus1_Nplus1_flag
+
+	  %% plot average labelWeights for each label
 	  if ~isempty(labelWeights_vals) && ...
+		~isempty(labelWeights_time) && ...
 		plot_flag && ...
 		i_checkpoint == max_checkpoint && ...
 		i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
-	    if ~isempty(labeledWeightsNminus1_Nplus1{max_label})
-	      labeledWeightsNminus1_Nplus1{max_label} = ...
-		  labeledWeightsNminus1_Nplus1{max_label} + double(patch_tmp5);
-	    else
-	      labeledWeightsNminus1_Nplus1{max_label} = double(patch_tmp5);
-	    endif
-	  endif %%  ~isempty(labelWeights_vals) 
 
-	endfor %% kf_preN_Nplus1_rank
-	
-	for i_figN_Nplus1 = 1 : num_figsN_Nplus1
-	  weightsN_Nplus1_str{i_figN_Nplus1} = ...
-	      [weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, ...
-	       "_", ...
-	       weightsN_Nplus1_list{i_weightN_Nplus1,3}, weightsN_Nplus1_list{i_weightN_Nplus1,4}, ...
-	       "_", num2str(weightsN_Nplus1_time, "%08d"), ...
-	       "_", num2str(i_figN_Nplus1)];
-	endfor
-	if plot_flag && ...
-	      i_checkpoint == max_checkpoint && ...
-	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
-	  for i_figN_Nplus1 = 1 : num_figsN_Nplus1
-	    figure(weightsN_Nplus1_fig(i_figN_Nplus1));
-	    saveas(weightsNminus1_Nplus1_fig, [weightsN_Nplus1_dir, filesep, weightsN_Nplus1_str{i_figN_Nplus1}, ".png"], "png");
-	    if ~isempty(labelWeights_vals) 
-	      labeledWeightsN_Nplus1_str = ...
-		  ["labeledWeights_", ...
-		   weightsN_Nplus1_str{i_figN_Nplus1}];
-	      labeledWeights_fig = figure("name", labeledWeightsN_Nplus1_str{i_figN_Nplus1});
-	      title(labeledWeightsN_Nplus1_str{i_figN_Nplus1});
-	      rows_labeledWeights = ceil(sqrt(size(labelWeights_vals,1)));
-	      cols_labeledWeights = ceil(size(labelWeights_vals,1) / rows_labeledWeights);
-	      for label = 1:size(labelWeights_vals,1)
-		subplot(rows_labeledWeights, cols_labeledWeights, label);
-		labeledWeights_subplot_str = ...
-		    [num2str(label, "%d")];
-		imagesc(squeeze(labeledWeightsNminus1_Nplus1{label}));
-		title(labeledWeights_subplot_str);
-		axis off
-	      endfor %% label = 1:size(labelWeights_vals,1)
-	      saveas(labeledWeights_fig,  [weightsN_Nplus1_dir, filesep, labeledWeightsN_Nplus1_str{i_figN_Nplus1}, ".png"], "png");
-	    endif %%  ~isempty(labelWeights_vals) 
-	  endfor
+	    %% plot label weights as matrix of column vectors
+	    ranked_labelWeights = labelWeights_vals(:, pre_hist_rank(1:num_patchesN_Nplus1));
+	    [~, max_label] = max(ranked_labelWeights,[],1);
+	    [max_label_sorted, max_label_ndx] = sort(max_label, "ascend");
+	    label_weights_str = ...
+		["LabelWeights_", ...
+		 labelWeights_list{i_weightN_Nplus1,1}, labelWeights_list{i_weightN_Nplus1,2}, "_", ...
+		 num2str(labelWeights_time, "%08d")];
+	    label_weights_fig = figure("name", label_weights_str);;
+	    imagesc(ranked_labelWeights(:,max_label_ndx))
+	    %%title(label_weights_fig, label_weights_str);
+	    title(label_weights_str);
+	    saveas(label_weights_fig, [weightsN_Nplus1_dir, filesep, label_weights_str, ".png"] , "png");
+	  endif  %% ~isempty(labelWeights_vals) && ~isempty(labelWeights_time)
+
+	endfor %% i_checkpoint
+
+      endfor %% i_layerN_Nplus1
+
+    endfor %% i_weightN_Nplus1
+    
+  endif  %% plot_weights
+
+
+
+  deRecon_flag = true && ~isempty(labelWeights_vals);
+  if deRecon_flag
+    num_deRecon = 3;
+    deRecon_sparse_weightsN_Nplus1_ndx = 3;
+    deRecon_struct = Sparse_struct_array{deRecon_sparse_weightsN_Nplus1_ndx};
+    num_deRecon_frames = size(deRecon_struct,1);
+    Recon_dir = [output_dir, filesep, "Recon"];
+    for i_deRecon_frame = 1 : num_deRecon_frames
+      deRecon_time = deRecon_struct{i_deRecon_frame}.time
+      deRecon_indices = deRecon_struct{i_deRecon_frame}.values(:,1);
+      deRecon_vals = deRecon_struct{i_deRecon_frame}.values(:,2);
+      [deRecon_vals_sorted, deRecon_vals_rank] = sort(deRecon_vals, "descend");
+      deRecon_indices_sorted = deRecon_indices(deRecon_vals_rank)+1;
+      num_deRecon_indices = length(deRecon_indices(:));
+      deRecon_hist_rank = Sparse_hist_rank_array{deRecon_sparse_weightsN_Nplus1_ndx}(:);
+      for i_deRecon_index = 1 : min(num_deRecon, num_deRecon_indices)
+	deRecon_rank = find(deRecon_hist_rank == deRecon_indices_sorted(i_deRecon_index))
+	if deRecon_rank > num_patchesN_Nplus1
+	  continue;
 	endif
-	    
-%%	  imwrite(uint8(weightsNminus1_Nplus1_array), ...
-%%		  [weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_str, ".png"], "png");
-	if i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
-	  for i_figN_Nplus1 = 1 : num_figsN_Nplus1
-	    weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1} = weightsNminus1_Nplus1_array{i_figN_Nplus1};
-	    num_combineN_Nplus1 = 1;
-	    for i_weights = 1 : num_weights_list
-	      if sparse_weightsN_Nplus1_ndx(i_weightN_Nplus1) == sparse_weights_ndx(i_weights)
-		size_weightsNminus1_Nplus1_array = ...
-		    size(weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1});
-		resized_weight_patch_array = ...
-		    imresize(weight_patch_array_list{i_weights}, size_weightsNminus1_Nplus1_array(1:2));
-		maxabs_resized_weight_patch_array = max(abs(resized_weight_patch_array(:)));
-		resized_weight_patchNminus1_Nplus1_array_uint8 = ...
-		    127.5 + 127.5 * (resized_weight_patch_array / (maxabs_resized_weight_patch_array + (maxabs_resized_weight_patch_array==0)));
-		weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1} = ...
-		    weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1}  + ...
-		  resized_weight_patchNminus1_Nplus1_array_uint8;
-		num_combineN_Nplus1 = num_combineN_Nplus1 + 1;
-	      endif
-	    endfor
-	    weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1} = ...
-		weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1} / num_combineN_Nplus1;
-	    maxabs_weightsNminus1_Nplus1_array = max(abs(weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1}(:)));
-	    weightsNminus1_Nplus1_array_uint8 = ...
-		(127.5 + 127.5*(weightsNminus1_Nplus1_array_list{i_weightN_Nplus1, i_figN_Nplus1} / ...
-				(maxabs_weightsNminus1_Nplus1_array + (maxabs_weightsNminus1_Nplus1_array == 0))));
-	    imwrite(uint8(weightsNminus1_Nplus1_array_uint8), ...
-		    [weightsN_Nplus1_movie_dir, filesep, weightsN_Nplus1_str{i_figN_Nplus1}, ".png"], "png");
-				%keyboard;
-	  endfor
-	endif
-	
-
-	%% make histogram of all weights
-	if plot_flag && ...
-	      i_checkpoint == max_checkpoint && ...
-	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
-	  weightsNminus1_Nplus1_hist_fig = figure;
-	  [weightsN_Nplus1_hist, weightsN_Nplus1_hist_bins] = ...
-	      hist(weightsN_Nplus1_vals{i_weightN_Nplus1, i_layerN_Nplus1+1}(:), 100);
-	  bar(weightsN_Nplus1_hist_bins, log(weightsN_Nplus1_hist+1));
-	  set(weightsNminus1_Nplus1_hist_fig, "name", ...
-	      ["Hist_", ...
-	       weightsN_Nplus1_list{i_weightN_Nplus1,1}, weightsN_Nplus1_list{i_weightN_Nplus1,2}, "_", ...
-	       num2str(weightsN_Nplus1_time, "%08d")]);
-	  saveas(weightsNminus1_Nplus1_hist_fig, ...
-		 [weightsN_Nplus1_dir, filesep, "weightsN_Nplus1_hist_", ...
-		  weightsN_Nplus1_str{i_figN_Nplus1}], "png");
-	endif %% plotNminus1_Nplus1_flag
-
-	%% plot average labelWeights for each label
-	if ~isempty(labelWeights_vals) && ...
-	      ~isempty(labelWeights_time) && ...
-	      plot_flag && ...
-	      i_checkpoint == max_checkpoint && ...
-	      i_layerN_Nplus1 == num_layersN_Nplus1_list-2 
-
-	  %% plot label weights as matrix of column vectors
-	  ranked_labelWeights = labelWeights_vals(:, pre_hist_rank(1:num_patchesN_Nplus1));
-	  [~, max_label] = max(ranked_labelWeights,[],1);
-	  [max_label_sorted, max_label_ndx] = sort(max_label, "ascend");
-	  label_weights_str = ...
-	      ["LabelWeights_", ...
-	       labelWeights_list{i_weightN_Nplus1,1}, labelWeights_list{i_weightN_Nplus1,2}, "_", ...
-	       num2str(labelWeights_time, "%08d")];
-	  label_weights_fig = figure("name", label_weights_str);;
-	  imagesc(ranked_labelWeights(:,max_label_ndx))
-	  %%title(label_weights_fig, label_weights_str);
-	  title(label_weights_str);
-	  saveas(label_weights_fig, [weightsN_Nplus1_dir, filesep, label_weights_str, ".png"] , "png");
-	endif  %% ~isempty(labelWeights_vals) && ~isempty(labelWeights_time)
-
-      endfor %% i_checkpoint
-
-    endfor %% i_layerN_Nplus1
-
-  endfor %% i_weightN_Nplus1
-  
-endif  %% plot_weights
-
-
-
-deRecon_flag = true && ~isempty(labelWeights_vals);
-if deRecon_flag
-  num_deRecon = 3;
-  deRecon_sparse_weightsN_Nplus1_ndx = 3;
-  deRecon_struct = Sparse_struct_array{deRecon_sparse_weightsN_Nplus1_ndx};
-  num_deRecon_frames = size(deRecon_struct,1);
-  Recon_dir = [output_dir, filesep, "Recon"];
-  for i_deRecon_frame = 1 : num_deRecon_frames
-    deRecon_time = deRecon_struct{i_deRecon_frame}.time
-    deRecon_indices = deRecon_struct{i_deRecon_frame}.values(:,1);
-    deRecon_vals = deRecon_struct{i_deRecon_frame}.values(:,2);
-    [deRecon_vals_sorted, deRecon_vals_rank] = sort(deRecon_vals, "descend");
-    deRecon_indices_sorted = deRecon_indices(deRecon_vals_rank)+1;
-    num_deRecon_indices = length(deRecon_indices(:));
-    deRecon_hist_rank = Sparse_hist_rank_array{deRecon_sparse_weightsN_Nplus1_ndx}(:);
-    for i_deRecon_index = 1 : min(num_deRecon, num_deRecon_indices)
-      deRecon_rank = find(deRecon_hist_rank == deRecon_indices_sorted(i_deRecon_index))
-      if deRecon_rank > num_patchesN_Nplus1
-	continue;
-      endif
-      col_ndx = 1 + mod(deRecon_rank-1, num_patchesN_Nplus1_cols);
-      row_ndx = 1 + floor((deRecon_rank-1) / num_patchesN_Nplus1_cols);
-      row_indices = (1+(row_ndx-1)*weightsNminus1_Nplus1_nyp_shrunken):(row_ndx*weightsNminus1_Nplus1_nyp_shrunken);
-      col_indices = (1+(col_ndx-1)*weightsNminus1_Nplus1_nxp_shrunken):(col_ndx*weightsNminus1_Nplus1_nxp_shrunken);
-      deRecon_patch = weightsNminus1_Nplus1_array(row_indices, col_indices, :);
-      fh_deRecon = figure;
-      imagesc(deRecon_patch);
-      box off;
-      axis off;
-      deRecon_name = [Recon_list{3,2}, "_", num2str(deRecon_time, "%9i"), "_", num2str(i_deRecon_index)];
-      set(fh_deRecon, "name", deRecon_name);
-      saveas(fh_deRecon, [Recon_dir, filesep, deRecon_name, ".png"], "png");
-      fh_deRecon_label = figure;
-      bar(labelWeights_vals(:, deRecon_indices_sorted(i_deRecon_index)));
-      set(fh_deRecon_label, "name", [deRecon_name, "_", "bar"]);
-      saveas(fh_deRecon_label, [Recon_dir, filesep, deRecon_name, "_", "bar", ".png"], "png");
-    endfor %% i_deRecon_index
-%%    disp(mat2str(labelWeights_vals(:,deRecon_rank(1: min(num_deRecon, num_deRecon_indices))));
-    deRecon_labelWeights = labelWeights_vals(:,deRecon_indices_sorted);
-    deRecon_label_activity = repmat(deRecon_vals_sorted(:)',[size(labelWeights_vals,1),1]);
-    deRecon_label_prod = deRecon_labelWeights .* deRecon_label_activity;
-    deRecon_vals_sorted
-    sum_labelWeights = sum(deRecon_label_prod,2)
-  endfor %% i_deRecon
-endif %% deReconFlag
+	col_ndx = 1 + mod(deRecon_rank-1, num_patchesN_Nplus1_cols);
+	row_ndx = 1 + floor((deRecon_rank-1) / num_patchesN_Nplus1_cols);
+	row_indices = (1+(row_ndx-1)*weightsNminus1_Nplus1_nyp_shrunken):(row_ndx*weightsNminus1_Nplus1_nyp_shrunken);
+	col_indices = (1+(col_ndx-1)*weightsNminus1_Nplus1_nxp_shrunken):(col_ndx*weightsNminus1_Nplus1_nxp_shrunken);
+	deRecon_patch = weightsNminus1_Nplus1_array(row_indices, col_indices, :);
+	fh_deRecon = figure;
+	imagesc(deRecon_patch);
+	box off;
+	axis off;
+	deRecon_name = [Recon_list{3,2}, "_", num2str(deRecon_time, "%9i"), "_", num2str(i_deRecon_index)];
+	set(fh_deRecon, "name", deRecon_name);
+	saveas(fh_deRecon, [Recon_dir, filesep, deRecon_name, ".png"], "png");
+	fh_deRecon_label = figure;
+	bar(labelWeights_vals(:, deRecon_indices_sorted(i_deRecon_index)));
+	set(fh_deRecon_label, "name", [deRecon_name, "_", "bar"]);
+	saveas(fh_deRecon_label, [Recon_dir, filesep, deRecon_name, "_", "bar", ".png"], "png");
+      endfor %% i_deRecon_index
+      %%    disp(mat2str(labelWeights_vals(:,deRecon_rank(1: min(num_deRecon, num_deRecon_indices))));
+      deRecon_labelWeights = labelWeights_vals(:,deRecon_indices_sorted);
+      deRecon_label_activity = repmat(deRecon_vals_sorted(:)',[size(labelWeights_vals,1),1]);
+      deRecon_label_prod = deRecon_labelWeights .* deRecon_label_activity;
+      deRecon_vals_sorted
+      sum_labelWeights = sum(deRecon_label_prod,2)
+    endfor %% i_deRecon
+  endif %% deReconFlag
 
 endif %% plot_flag
 
