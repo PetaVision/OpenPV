@@ -27,7 +27,7 @@ HyPerCol "column" = {
     checkpointWrite = true;
     checkpointWriteDir = "/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024/Checkpoints";
     checkpointWriteStepInterval = 50000;
-    deleteOlderCheckpoints = true;
+    deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
     writeProgressToErr = true;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
@@ -104,7 +104,7 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    inputPath = "/home/ec2-user/mountData/list/image_02_aws.txt";
+    inputPath = "/home/ec2-user/mountData/kitti/list/image_02_aws.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
@@ -251,7 +251,7 @@ ANNLayer "LeftRecon" = {
 
 Movie "RightImage" = {
     #include "LeftImage";
-    @inputPath = "/home/ec2-user/mountData/list/image_03_aws.txt";
+    @inputPath = "/home/ec2-user/mountData/kitti/list/image_03_aws.txt";
 };
 
 ANNLayer "RightBipolar" = {
@@ -286,7 +286,7 @@ HyPerLCALayer "V1" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 512; //2048 or 4096;
+    nf = 1024; //2048 or 4096;
     numChannels = 1;
     numWindowX = 1;
     numWindowY = 1;
@@ -482,7 +482,7 @@ MomentumConn "V1ToLeftError" = {
     sharedWeights = true;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/dictLearn/rect_1024_saved/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData2/dictLearn/leftDictRect1024.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
@@ -562,7 +562,7 @@ MomentumConn "V1ToRightError" = {
     @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
     normalizeGroupName = "V1ToLeftError";
-    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/rect_1024_saved/V1ToRightError_W.pvp";
+    @initWeightsFile = "/home/ec2-user/mountData2/dictLearn/rightDictRect1024.pvp";
 };
 
 TransposeConn "RightErrorToV1" = {
