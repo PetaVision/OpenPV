@@ -17,29 +17,42 @@ if ismac
   workspace_path = "/Users/gkenyon/openpv";
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %%run_type = "Grains";
-  %%run_type = "ICA";
-  run_type = "experts";
+  run_type = "ICA";
+  ICA_subtype = "ICAX4";
+  %%run_type = "experts";
   %%run_type = "MaxPool";
+  %%run_type = "DCA";
   if strcmp(run_type, "Grains")
     output_dir = "/Volumes/mountData/Grains/Grains_S1_128/test3"; %%
     checkpoint_parent = "/Volumes/mountData/Grains/Grains_S1_128"; %%
     checkpoint_children = ...
     {"test3"};
   elseif strcmp(run_type, "ICA")
-    output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape3";
-    checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA";
-    checkpoint_children = ...
-    {"VOC2007_landscape"; "VOC2007_landscape2; VOC2007_landscape3"};
+    if ~exist("ICA_subtype", "var")
+      output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape8";
+      checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA";
+      checkpoint_children = ...
+      {"VOC2007_landscape8"};
+    elseif strcmp(ICA_subtype, "ICAX4")
+      output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape1";
+      checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA";
+      checkpoint_children = ...
+      {"VOC2007_landscape1"};
+    endif
   elseif strcmp(run_type, "experts")
     output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_16_8_4_experts/VOC2007_landscape";
     checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_16_8_4_experts";
     checkpoint_children = ...
     {"VOC2007_landscape"};
+  elseif strcmp(run_type, "DCA")
+    output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape12";
+    checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN";
+    checkpoint_children = {"VOC2007_landscape12"}; %%
   elseif strcmp(run_type, "MaxPool")
-    output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape2";
+    output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape6";
     checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool";
     checkpoint_children = ...
-    {"VOC2007_landscape"; "VOC2007_landscape2"};
+    {"VOC2007_landscape6"};
   endif
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif isunix
@@ -119,7 +132,7 @@ elseif isunix
   endif
 endif %% isunix
 addpath(pwd);
-addpath([workspace_path, filesep, "/pv-core/mlab/util"]);
+addpath([workspace_path, filesep, "pv-core/mlab/util"]);
 
 %% default paths
 if ~exist("output_dir") || isempty(output_dir)
@@ -534,6 +547,7 @@ if analyze_Sparse_flag
     %% DCA list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Sparse_list = ...
+<<<<<<< HEAD
 	{["a5_"],  ["S1"]; ...
 	 ["a9_"],  ["S2"]; ...
 	 ["a14_"],  ["S3"]; ...
@@ -713,7 +727,7 @@ endif
 
 analyze_nonSparse_flag = true;
 if analyze_nonSparse_flag
-  if strcmp(run_type, "ICA") || strcmp(run_type, "experts") 
+  if strcmp(run_type, "experts") 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glog generated list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -730,6 +744,9 @@ if analyze_nonSparse_flag
     nonSparse_norm_list = cell(num_nonSparse_list, 2);
     if strcmp(run_type, "ICA")
       image_num_str = "1";
+      if strcmp(ICA_subtype, "ICAX4")
+	image_num_str = "11";
+      endif
     elseif strcmp(run_type, "experts")
       image_num_str = "121";
     elseif strcmp(run_type, "MaxPool")
@@ -743,6 +760,35 @@ if analyze_nonSparse_flag
     endfor
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength = nonSparse_norm_strength./sqrt(18*18*3);
+  elseif strcmp(run_type, "ICA") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% ICA list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if ~exist("ICA_subtype", "var")
+      nonSparse_list = ...
+      {["a3_"], ["ImageReconS1Error"]; ...
+       ["a6_"], ["GroundTruthReconS1Error"]};
+    elseif strcmp(ICA_subtype, "ICAX4")
+      nonSparse_list = ...
+      {["a4_"], ["ImageReconS1Error"]; ...
+       ["a1_"], ["GroundTruthReconS1Error"]};
+    endif
+    num_nonSparse_list = size(nonSparse_list,1);
+    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
+    nonSparse_norm_strength = ones(num_nonSparse_list,1);
+    nonSparse_norm_strength(1) = 1/sqrt(18*18*3);
+    if ~exist("ICA_subtype", "var")
+      nonSparse_norm_list = ...
+      {["a7_"], ["Image"]; ...
+       ["a11_"], ["GroundTruth"]};
+      Sparse_std_ndx = [0 1]; 
+    elseif strcmp(ICA_subtype, "ICAX4")
+      nonSparse_norm_list = ...
+      {["a11_"], ["Image"]; ...
+       ["a8_"], ["GroundTruth"]};
+      Sparse_std_ndx = [0 2]; 
+    endif      
+    %%%%%%%%%%%%%%%%%%%%%%%%e%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "SLP") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% SLP list
@@ -1427,6 +1473,44 @@ if analyze_weights
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% M1 list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    sparse_weights_ndx = [1];
+    if ~checkpoint_weights_movie
+      weights_list = ...
+          {["w1_"], ["S1ToImageReconError"]};
+      checkpoints_list = {output_dir};
+    else
+      weights_list = ...
+          {["S1ToImageReconError"], ["_W"]};
+      labelWeights_list = {}; %%...
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    endif %% checkpoint_weights_movie
+    num_checkpoints = size(checkpoints_list,1);
+   elseif strcmp(run_type, "MRI") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% MRI list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    sparse_weights_ndx = [1 1 1 1];
+    if ~checkpoint_weights_movie
+      weights_list = ...
+          {["w1_"], ["S1ToImage0ReconS1Error"];
+	   ["w1_"], ["S1ToImage1ReconS1Error"];
+	   ["w1_"], ["S1ToImage2ReconS1Error"];
+	   ["w1_"], ["S1ToImage3ReconS1Error"]};
+      checkpoints_list = {output_dir};
+    else
+      weights_list = ...
+          {["S1ToImage0ReconS1Error"], ["_W"];
+	   ["S1ToImage1ReconS1Error"], ["_W"];
+	   ["S1ToImage2ReconS1Error"], ["_W"];
+	   ["S1ToImage3ReconS1Error"], ["_W"]};
+      labelWeights_list = {}; %%...
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+    endif %% checkpoint_weights_movie
+    num_checkpoints = size(checkpoints_list,1);
+   elseif strcmp(run_type, "M1") 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% M1 list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     sparse_weights_ndx = [2];
     if ~checkpoint_weights_movie
       weights_list = ...
@@ -1485,6 +1569,7 @@ if analyze_weights
 	%%continue;  %% comment this line to generate movie of all checkpoints
       endif
       checkpoint_dir = checkpoints_list{i_checkpoint,:};
+      
       weights_file = [checkpoint_dir, filesep, weights_list{i_weights,1}, weights_list{i_weights,2}, ".pvp"];
       if ~exist(weights_file, "file")
 	warning(["file does not exist: ", weights_file]);

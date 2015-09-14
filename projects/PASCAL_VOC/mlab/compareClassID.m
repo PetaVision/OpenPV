@@ -362,7 +362,7 @@ for i_scale = i_scale_list
 	subplot(num_subplot_rows,num_subplot_cols,i_subplot, 'color', [0 0 0])
 	%%
 	pos_hist = squeeze(pred_classID_hist(:,i_JIEDDO_classID,1)) ./ squeeze(pred_classID_norm(:,i_JIEDDO_classID,1));
-	hist_width_tmp = round(num_classID_bins/4);
+	hist_width_tmp = round(num_classID_bins/1);
 	bins_tmp = [pred_classID_thresh_bin(i_JIEDDO_classID)-hist_width_tmp:pred_classID_thresh_bin(i_JIEDDO_classID)+hist_width_tmp];
 	bins_tmp_fixed = bins_tmp(find(bins_tmp>0,1,"first"):find(bins_tmp<num_classID_bins,1,"last"));
 	bh_pos = bar(classID_hist_bins(bins_tmp_fixed), pos_hist(bins_tmp_fixed), "stacked", "facecolor", "g", "edgecolor", "g");
