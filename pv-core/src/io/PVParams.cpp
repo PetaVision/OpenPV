@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <iostream>
+#include <cmath> // nearbyint()
 
 #define PARAMETERARRAY_INITIALSIZE 8
 #define PARAMETERARRAYSTACK_INITIALCOUNT 5
@@ -1430,6 +1431,27 @@ double PVParams::value(const char * groupName, const char * paramName)
    }
 
    return g->value(paramName);
+}
+
+int PVParams::valueInt(const char * groupName, const char * paramName)
+{
+   double v = value(groupName, paramName);
+   return convertParamToInt(v);
+}
+
+int PVParams::valueInt(const char * groupName, const char * paramName, int initialValue, bool warnIfAbsent)
+{
+   double v = value(groupName, paramName, (double) initialValue, warnIfAbsent);
+   return convertParamToInt(v);
+}
+
+int PVParams::convertParamToInt(double value)
+{
+   int y=0;
+   if (value>=(double)INT_MAX) { y = INT_MAX;}
+   else if (value<=(double)INT_MIN) { y = INT_MIN; }
+   else { y = (int) nearbyint(value); }
+   return y;
 }
 
 /**
