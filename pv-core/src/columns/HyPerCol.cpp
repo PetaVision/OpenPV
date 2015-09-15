@@ -29,6 +29,7 @@
 #include <fstream>
 #include <time.h>
 #include <csignal>
+#include <limits>
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 #include <map>
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
