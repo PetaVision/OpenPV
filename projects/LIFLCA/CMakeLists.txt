@@ -58,6 +58,10 @@ target_link_libraries(${PV_PROJECT_NAME} pv)
 target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
 
 IF(PV_USE_CUDNN)
-   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
+   IF(APPLE)
+      file(GLOB_RECURSE CUDNN_LIBRARY "${CUDNN_PATH}*/libcudnn.dylib")
+   ELSE(APPLE)
+      file(GLOB_RECURSE CUDNN_LIBRARY "${CUDNN_PATH}*/libcudnn.so")
+   ENDIF(APPLE)
+   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_LIBRARY})
 ENDIF(PV_USE_CUDNN)
-
