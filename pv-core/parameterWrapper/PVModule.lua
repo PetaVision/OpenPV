@@ -3,7 +3,7 @@ local PVModule = {}
 -- PVModule.utils = require "utils"
 
 --Global variable infinity declaration
-INFINITY = math.huge
+infinity = math.huge
 
 --Prints a single parameter value to string for parameters in a group
 local function valToString(val)
@@ -53,14 +53,15 @@ local function printGroup(key, group)
    assert(group["groupType"] ~= nil)
    assert(type(group) == "table")
 
-   if group["groupType"] == "BatchSweep" then
+   if group["groupType"] == "BatchSweep" or group["groupType"] == "ParameterSweep" then
 
       io.write(group["groupType"], " ", key, " ", " = {\n")
 
       for k,v in pairs(group) do
          if(k ~= "groupType") then
             io.write("    ");
-            valToString(v);
+            valToString(v
+            );
             io.write(";\n");
          end
       end
@@ -229,34 +230,29 @@ function PVModule.deepCopy(obj, seen)
    return res
 end
 
-
-function PVModule.batchSweep(pvParams, group, param, generator, nprocs)
-
+function PVModule.batchSweep(pvParams, group, param, values)
+   assert(group ~= nil)
+   assert(param ~= nil)
    key = string.format('"%s":%s', group, param);
-
    local sweep = {};
-
-   for i = 0,nprocs-1 do
-      sweep[i+1] = string.format(generator, i);
+   for i,v in ipairs(values) do
+      sweep[i] = v;
    end
-
    sweep['groupType'] = "BatchSweep";
-
    PVModule.addGroup(pvParams, key, sweep);
-
 end
---Deprecated, no more array requirement for parameterTables
-----Determins if obj is a group or an array
---function PVModule.isArray(obj)
---   local i = 0
---   --Lua always starts from obj[1] and iterates continously
---   for _ in pairs(obj) do
---      i = i + 1
---      --Therefore, any entry must not be nil
---      if obj[i] == nil then return false end
---   end
---   return true
---end
+
+function PVModule.paramSweep(pvParams, group, param, values)
+   assert(group ~= nil)
+   assert(param ~= nil)
+   key = string.format('"%s":%s', group, param);
+   local sweep = {};
+   for i,v in ipairs(values) do
+      sweep[i] = v;
+   end
+   sweep['groupType'] = "ParameterSweep";
+   PVModule.addGroup(pvParams, key, sweep);
+end
 
 
 
