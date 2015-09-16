@@ -4,6 +4,7 @@ local PVModule = {}
 
 --Global variable infinity declaration
 infinity = math.huge
+INFINITY = math.huge
 
 --Prints a single parameter value to string for parameters in a group
 local function valToString(val)
