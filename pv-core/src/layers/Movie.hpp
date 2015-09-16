@@ -129,8 +129,10 @@ private:
    double displayPeriod;   // length of time a frame is displayed
    //double nextDisplayTime; // time of next frame; now handled by HyPerLayer nextUpdateTime
 
+#ifdef OBSOLETE // randomMovie was commented out of Movie.cpp on Jul 22, 2015.
    int randomMovie;       // these are used for performing a reverse correlation analysis
    float randomMovieProb;
+#endif // OBSOLETE // randomMovie was commented out of Movie.cpp on Jul 22, 2015.
 
    bool echoFramePathnameFlag; // if true, echo the frame pathname to stdout
    // bool newImageFlag; // true when a new image was presented this timestep;
@@ -150,6 +152,8 @@ private:
    char * batchMethod;
 
    PV_Stream * filenamestream;
+   
+   int* frameNumbers;
 
    bool writeFrameToTimestamp;
 
