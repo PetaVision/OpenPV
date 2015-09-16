@@ -19,14 +19,14 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime = 194000; 
     progressStep = 1000;
-    outputPath = "/home/ec2-user/mountData/benchmark/icaweights_LCA_nosparse/";
+    outputPath = "/home/ec2-user/mountData/benchmark/icaweights_LCA_fine/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/home/ec2-user/mountData/single_stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = true;
-    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/icaweights_LCA_nosparse/Checkpoints";
+    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/icaweights_LCA_fine/Checkpoints";
     checkpointWriteStepInterval = 10000;
     deleteOlderCheckpoints = true;
     //suppressLastOutput = false;
@@ -35,7 +35,7 @@ HyPerCol "column" = {
     dtAdaptFlag = true;
     dtScaleMax = 5.0;
     dtScaleMin = 0.25;
-    dtChangeMax = 0.25;
+    dtChangeMax = 0.05;
     dtChangeMin = 0.0;
 };
 
@@ -147,9 +147,9 @@ ANNNormalizedErrorLayer "LeftError" = {
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
-    //InitVType = "ZeroV";
-    InitVType = "InitVFromFile";
-    Vfilename = "/home/ec2-user/mountData/benchmark/saved_icaweights_nosparse_LCA/LeftError_V.pvp";
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
     //
     VThresh = 0; //Change this for efficiency
     AMax =  infinity;
@@ -217,7 +217,7 @@ RescaleLayer "RightRescale" = {
 
 ANNNormalizedErrorLayer "RightError" = {
     #include "LeftError";
-    @Vfilename = "/home/ec2-user/mountData/benchmark/saved_icaweights_nosparse_LCA/RightError_V.pvp";
+    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V.pvp";
 };
 
 // for visualization only, makes no output
@@ -242,21 +242,21 @@ HyPerLCALayer "V1" = {
     writeSparseActivity = 1;
     writeSparseValues   = 1;
     //
-    //InitVType = "UniformRandomV";
-    //minV = -1.0;
-    //maxV = .02; //0.05 above VThresh
-    InitVType = "InitVFromFile";
-    Vfilename = "/home/ec2-user/mountData/benchmark/saved_icaweights_nosparse_LCA/V1_V.pvp";
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .02; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2_V.pvp";
     // 
     timeConstantTau = 500.0;
     slopeErrorStd = 0.01;
     // 
     dVThresh = 0;
-    VThresh = .001;
+    VThresh = 0.006;
     AMax = infinity;
     AMin = 0;
-    AShift = 0.001;  // 0 -> hard threshold, 1 -> soft threshold
-    VWidth = 0; //Same as VThresh
+    AShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VWidth = 0.05; //Same as VThresh
     updateGpu = true;
     //
     phase = 5;
@@ -428,7 +428,7 @@ HyPerConn "V1ToLeftError" = {
     sharedWeights = true;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/dictLearn/leftDict.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/dictLearn/saved_icapatch_checkpoint/V1ToLeftError_W.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
@@ -504,7 +504,7 @@ HyPerConn "V1ToRightError" = {
     @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
     normalizeGroupName = "V1ToLeftError";
-    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/rightDict.pvp";
+    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/saved_icapatch_checkpoint/V1ToRightError_W.pvp";
 };
 
 TransposeConn "RightErrorToV1" = {
