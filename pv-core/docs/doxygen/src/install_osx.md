@@ -136,8 +136,11 @@ CUDA and NVIDIA Driver (optional):
 To take advantage of CUDA/cuDNN GPU acceleration your Macintosh needs to have an NVIDIA card with compute capabilities 3.0 or above. To find which video card you have, go to "About This Mac" under the Apple menu, select "System Report..." and then Graphics/Displays in the Hardware section.  Check at <https://developer.nvidia.com/cuda-gpus> to see if your video card supports CUDA.
 NVIDIA drivers are included with the cuda download. To install cuda:
 - Go to <https://developer.nvidia.com/cuda-downloads>
-- Select Mac OS X and download the pkg provided
-- Follow the onscreen instructions. Make sure to select cuda driver and cuda toolkit.
+- Select Mac OS X, and then your version of OS X and download the local installer .dmg
+- If the .dmg does not automatically open, double-click the .dmg file to mount the CUDAMacOSXInstaller disk.
+- Open the CUDAMacOSXInstaller/CUDAMacOSXInstaller app on that disk and follow the onscreen instructions.
+- Open the downloaded .pkg file and follow the onscreen instructions.
+  On the Select Packages To Install page, make sure to select cuda driver and cuda toolkit.
 
 
 cuDNN (optional)
