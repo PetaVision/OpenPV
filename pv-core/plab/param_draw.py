@@ -13,15 +13,16 @@ class Col(object):
         return self.params[item]
 
 class Layer(Col):
-    def __init__(self, name, type):
+    def __init__(self, name, type, nodraw_status):
         self.type = type
         self.name = name
         self.params = {}
         self.color = None
         self.label = None
+        self.nodraw = nodraw_status
 
 class Conn(Col):
-    def __init__(self, name, type):
+    def __init__(self, name, type, nodraw_status):
         self.type = type
         self.name = name
         self.params = {}
@@ -29,10 +30,14 @@ class Conn(Col):
         self.pre = None
         self.post = None
         self.label = None
+        self.nodraw = nodraw_status
 
 class Param_Reader(object):    
     comment_regex = re.compile('(.*)//')
     col_regex = re.compile('\s*HyPerCol\s*"\w+"\s*=\s*{')
+    start_nodraw_regex = re.compile('^// START NODRAW')
+    stop_nodraw_regex = re.compile('^// STOP NODRAW')
+    nodraw_flag = False
     regex_dict = {
         'object_regex' : re.compile('(\w+)\s*"(\w+)"\s*=\s*{'),
         'end_regex' : re.compile('};'),
@@ -42,12 +47,12 @@ class Param_Reader(object):
     def assign_object(self,type,name):
         official_layers,official_conns = self.lists
         if type in official_layers:
-            self.layer_dict[name] = Layer(name,type)
+            self.layer_dict[name] = Layer(name,type,self.nodraw_flag)
             self.current_object = self.layer_dict[name]
             self.layers_in_order.append(name)
             return
         elif type in official_conns:
-            self.conn_dict[name] = Conn(name,type)
+            self.conn_dict[name] = Conn(name,type,self.nodraw_flag)
             self.current_object = self.conn_dict[name]
             self.conns_in_order.append(name)
             return
@@ -85,9 +90,20 @@ class Param_Reader(object):
             elif parent in self.conn_dict:
                 self.current_object.params = self.conn_dict[parent].params.copy()
 
+    def check_nodraw(self,line):
+        if not self.nodraw_flag:
+            match = re.search(self.start_nodraw_regex, line)
+            if match:
+                self.nodraw_flag = True
+        elif self.nodraw_flag:
+            match = re.search(self.stop_nodraw_regex, line)
+            if match:
+                self.nodraw_flag = False
+
     def read(self):
         with open(self.filename, "r") as file:
             for line in file:
+                self.check_nodraw(line)
                 match = re.search(self.comment_regex, line)
                 if match:
                     line = match.group(1)
@@ -236,12 +252,33 @@ class Param_Parser(Param_Reader):
                 c.pre = i['postIndexLayerName']
                 self.conn_dict[c.name] = c
 
+    def remove_nodraws(self):
+        remove_list = []
+        for l in self.layer_dict.values():
+            if l.nodraw:
+                remove_list.append(l.name)
+                for c in self.conn_dict.values():
+                    if c.pre == l.name or c.post == l.name:
+                        remove_list.append(c.name)
+        for c in self.conn_dict.values():
+            if c.nodraw:
+                remove_list.append(c.name)
+        remove_list = set(remove_list)
+        for i in remove_list:
+            if i in self.layer_dict:
+                del self.layer_dict[i]
+                del self.layers_in_order[self.layers_in_order.index(i)]
+            if i in self.conn_dict:
+                del self.conn_dict[i]
+                del self.conns_in_order[self.conns_in_order.index(i)]
+
     def parse(self):
         self.relate_objects()
         self.assign_labels()
         self.calc_scale()
         self.make_original_layer_conns()
         self.make_pooling_layer_conns()
+        self.remove_nodraws()
         return [self.layer_dict,self.conn_dict,self.layers_in_order,self.conns_in_order]
 
     def __init__(self, filename, **kwargs):
