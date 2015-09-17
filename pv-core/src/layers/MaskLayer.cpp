@@ -148,8 +148,6 @@ int MaskLayer::updateState(double time, double dt)
 {
    ANNLayer::updateState(time, dt);
    const PVLayerLoc * loc = getLayerLoc();
-   const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
-   pvdata_t * maskActivity = maskLayer->getActivity();
    pvdata_t * A = getActivity();
 
    int nx = loc->nx;
@@ -159,7 +157,6 @@ int MaskLayer::updateState(double time, double dt)
    int nbatch = loc->nbatch;
 
    for(int b = 0; b < nbatch; b++){
-      pvdata_t * maskActivityBatch = maskActivity + b * getNumExtended();
       pvdata_t * ABatch = A + b * getNumExtended();
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
@@ -169,6 +166,9 @@ int MaskLayer::updateState(double time, double dt)
          int kThisExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          int maskVal;
          if(strcmp(maskMethod, "layer") == 0){
+            const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
+            pvdata_t * maskActivity = maskLayer->getActivity();
+            pvdata_t * maskActivityBatch = maskActivity + b * getNumExtended();
             int kMaskRes;
             if(maskLoc->nf == 1){
                kMaskRes = ni/nf;

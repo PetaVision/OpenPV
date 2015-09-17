@@ -226,8 +226,10 @@ public:
    bool getParseStatus() { return parseStatus; }
    int   present(const char * groupName, const char * paramName);
    double value  (const char * groupName, const char * paramName);
-   bool arrayPresent(const char * groupName, const char * paramName);
    double value  (const char * groupName, const char * paramName, double initialValue, bool warnIfAbsent=true);
+   int valueInt(const char * groupName, const char * paramName);
+   int valueInt(const char * groupName, const char * paramName, int initialValue, bool warnIfAbsent=true);
+   bool arrayPresent(const char * groupName, const char * paramName);
    const float * arrayValues(const char * groupName, const char * paramName, int * arraySize, bool warnIfAbsent=true);
    const double * arrayValuesDbl(const char * groupName, const char * paramName, int * arraySize, bool warnIfAbsent=true);
    int   stringPresent(const char * groupName, const char * paramStringName);
@@ -273,7 +275,6 @@ public:
    void action_batch_sweep_values_filename(const char * stringval);
 
    int numberOfGroups() {return numGroups;}
-   //InterColComm * getInterColComm() {return icComm;}
    int numberOfParameterSweeps() {return numParamSweeps;}
    int getParameterSweepSize() {return parameterSweepSize;}
 
@@ -292,7 +293,6 @@ private:
    bool debugParsing;
    bool disable;
    InterColComm * icComm;
-   //int getRank() {return icComm->commRank();}
    int worldRank;
    int worldSize;
 
@@ -329,7 +329,7 @@ private:
    static char * stripQuotationMarks(const char *s);
    static char * stripOverwriteTag(const char *s);
    bool hasSweepValue(const char* paramName);
-   
+   int convertParamToInt(double value);
 };
 
 }

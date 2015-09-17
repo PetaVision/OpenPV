@@ -73,6 +73,7 @@ int Movie::initialize_base() {
    displayPeriod = DISPLAY_PERIOD;
    framePath = NULL;
    numFrames = 0;
+   frameNumbers = NULL;
    writeFrameToTimestamp = true;
    timestampFile = NULL;
    flipOnTimescaleError = true;
@@ -86,6 +87,7 @@ int Movie::initialize_base() {
 
    batchPos = NULL;
    batchMethod = NULL;
+   //randomMovie commented out Jul 22, 2015
    //randomMovie = false;
    //updateThisTimestep = false;
    // newImageFlag = false;
@@ -105,6 +107,7 @@ int Movie::readFrameNumStateFromCheckpoint(const char * cpDir) {
    int nbatch = parent->getNBatch();
 
    parent->readArrayFromFile(cpDir, getName(), "FilenamePos", batchPos, nbatch);
+   parent->readArrayFromFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());
 
 
    //for(int b = 0; b < nbatch; b++){
@@ -154,6 +157,7 @@ int Movie::checkpointWrite(const char * cpDir){
    int status = Image::checkpointWrite(cpDir);
 
    parent->writeArrayToFile(cpDir, getName(), "FilenamePos", batchPos, parent->getNBatch());
+   parent->writeArrayToFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());
 
    //Only do a checkpoint TimestampState if there exists a timestamp file
    if (timestampFile) {
@@ -363,9 +367,19 @@ int Movie::allocateDataStructures() {
    }
    
    batchPos = (long*) malloc(parent->getNBatch() * sizeof(long));
-   assert(batchPos);
+   if(batchPos==NULL) {
+      fprintf(stderr, "%s \"%s\" error allocating memory for batchPos (batch size %d): %s\n",
+            name, getKeyword(), parent->getNBatch(), strerror(errno));
+      exit(EXIT_FAILURE);
+   }
    for(int b = 0; b < parent->getNBatch(); b++){
       batchPos[b] = 0L;
+   }
+   frameNumbers = (int*) calloc(parent->getNBatch(), sizeof(int));
+   if (frameNumbers==NULL) {
+      fprintf(stderr, "%s \"%s\" error allocating memory for frameNumbers (batch size %d): %s\n",
+            name, getKeyword(), parent->getNBatch(), strerror(errno));
+      exit(EXIT_FAILURE);
    }
 
    //Calculate file positions for beginning of each frame
@@ -469,6 +483,11 @@ int Movie::allocateDataStructures() {
    else{
       //This should never excute, as this check was done in the reading of this parameter
       assert(0);
+   }
+   if (parent->columnId()==0) {
+      for (int b=0; b<parent->getNBatch(); b++) {
+         frameNumbers[b] = -1;
+      }
    }
 
    //Call Image allocate, which will call getFrame
@@ -628,7 +647,7 @@ bool Movie::updateImage(double time, double dt)
              outStrStream.precision(15);
              int kb0 = getLayerLoc()->kb0;
              for(int b = 0; b < parent->getNBatch(); b++){
-                outStrStream << time << "," << b+kb0 << "," << framePath[b] << "\n";
+                outStrStream << time << "," << b+kb0 << "," << frameNumbers[b] << "," << framePath[b] << "\n";
              }
 
              size_t len = outStrStream.str().length();
@@ -773,6 +792,7 @@ int Movie::getNumFrames(){
       }
       PV_fseek(filenamestream, 0L, SEEK_SET);
       batchPos[0] = 0L;
+      frameNumbers[0] = -1;
    }
    MPI_Bcast(&count, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
    return count;
@@ -797,13 +817,13 @@ const char * Movie::advanceFileName(int batchIdx) {
       // if at end of file (EOF), rewind
       if ((c = fgetc(filenamestream->fp)) == EOF) {
          PV_fseek(filenamestream, 0L, SEEK_SET);
+         frameNumbers[0] = -1;
          fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, inputPath);
          if (hasrewound) {
             fprintf(stderr, "Movie %s: filenamestream \"%s\" does not have any non-blank lines.\n", name, filenamestream->name);
             exit(EXIT_FAILURE);
          }
          hasrewound = true;
-         //frameNumber[batchIdx] = 0;
          reset = true;
       }
       else {
@@ -816,7 +836,6 @@ const char * Movie::advanceFileName(int batchIdx) {
          char * path = fgets(inputfile, maxlen, filenamestream->fp);
          if (path != NULL) {
             filenamestream->filepos += strlen(path);
-            //frameNumber[batchIdx]++;
             path[PV_PATH_MAX-1] = '\0';
             size_t len = strlen(path);
             if (len > 0) {
@@ -827,6 +846,7 @@ const char * Movie::advanceFileName(int batchIdx) {
             }
             for (size_t n=0; n<len; n++) {
                if (!isblank(path[n])) {
+                  frameNumbers[batchIdx]++;
                   lineisblank = false;
                   break;
                }

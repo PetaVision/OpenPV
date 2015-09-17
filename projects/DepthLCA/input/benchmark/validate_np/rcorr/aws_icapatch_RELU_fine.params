@@ -18,7 +18,7 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime = 93; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "/home/ec2-user/mountData/benchmark/validate/aws_icapatch_rect_1024_LCA/";
+    outputPath = "/home/ec2-user/mountData/benchmark/validate/aws_icapatch_RELU_fine/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
@@ -42,16 +42,15 @@ HyPerCol "column" = {
 // layers
 //
 
-MoviePvp "LCA_V1" = {
+MoviePvp "RELU_V1" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 1024;
-    inputPath = "~/mountData/benchmark/icaweights_rect_1024_LCA/a12_V1.pvp";
+    nf = 512;
+    inputPath = "~/mountData/benchmark/icaweights_RELU_fine/a12_V1.pvp";
     writeFrameToTimestamp = true;
     writeStep = -1;
-    sparseLayer = true;
-    writeSparseValues = true;
+    sparseLayer = false;
     displayPeriod = 1;
     start_frame_index = 101;
     skip_frame_index = 1;
@@ -68,34 +67,6 @@ MoviePvp "LCA_V1" = {
     randomMovie = 0;
     phase = 0;
     //useParamsImage = true;
-};
-
-ANNLayer "LeftRecon" = {
-    restart = 0;
-    nxScale = .5;
-    nyScale = .5;
-    nf = 1;
-    writeStep = 1.0;
-    initialWriteTime = 1.0; //1 + writestep
-    mirrorBCflag = 0;
-    writeSparseActivity = 0;
-    //
-    //movieLayerName = "LeftImage";
-    InitVType = "ZeroV";
-    //
-    VThresh = -infinity;
-    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-    AMin = -infinity; 
-    AShift = 0;
-    VWidth = 0;
-    valueBC = 0;
-    // 
-    phase = 1;
-    //
-};
-
-ANNLayer "RightRecon" = {
-   #include "LeftRecon";
 };
 
 //Depth ground truth layers
@@ -294,8 +265,8 @@ PoolingConn "DepthImageToDepthDownsample" = {
 };
 
 //Reverse correlation connections
-KernelConn "LCA_V1ToRCorrBuf" = {
-    preLayerName = "LCA_V1";
+KernelConn "RELU_V1ToRCorrBuf" = {
+    preLayerName = "RELU_V1";
     postLayerName = "RCorrBuf";
     channelCode = 0;
     nxp = 33;
@@ -307,7 +278,7 @@ KernelConn "LCA_V1ToRCorrBuf" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_icaweights_rect_1024_LCA/Last/LCA_V1ToDepthGT_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_icaweights_RELU_fine/Last/RELU_V1ToDepthGT_W.pvp";
     //weightInitType = "UniformWeight";
     //weightInit = 0;
     //
@@ -343,60 +314,6 @@ KernelConn "LCA_V1ToRCorrBuf" = {
     pvpatchAccumulateType = "convolve";
 
     sharedWeights = true;
-};
-
-KernelConn "LCA_V1ToLeftRecon" = {
-    preLayerName = "LCA_V1";
-    postLayerName = "LeftRecon";
-    channelCode = 0;
-    nxp = 66;
-    nyp = 66;
-    shrinkPatches = false;
-    //
-    numAxonalArbors = 1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_rect_1024_LCA/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
-
-    strength = 1; //.25/2  
-    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
-    //normalizeMethod = "normalizeContrastZeroMean"; 
-    //SET PARAMS TO NEW NORMALIZATION METHOD
-    minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = false;
-    symmetrizeWeights = false;
-    //
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    keepKernelsSynchronized = true; 
-    combine_dW_with_W_flag = false; 
-    //
-    writeStep = -1;
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    //triggerFlag = true;
-    //triggerLayerName = "LeftImage";
-    //triggerOffset = 1;
-    initialWriteTime = 0.0;
-    //dWMax = 5; // 200.0 used for initial training
-    selfFlag = false;
-    shmget_flag = false;
-    //
-    delay = 0;
-    //
-    useWindowPost = false;
-    updateGSynFromPostPerspective = false;
-    pvpatchAccumulateType = "convolve";
-};
-
-KernelConn "LCA_V1ToRightRecon" = {
-   #include "LCA_V1ToLeftRecon";
-   @postLayerName = "RightRecon";
-   @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_rect_1024_LCA/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
-
 };
 
 ////SLP Connections
@@ -454,3 +371,4 @@ KernelConn "LCA_V1ToRightRecon" = {
 //    updateGSynFromPostPerspective = false;
 //    pvpatchAccumulateType = "convolve";
 //};
+

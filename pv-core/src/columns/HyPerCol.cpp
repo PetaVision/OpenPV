@@ -29,6 +29,7 @@
 #include <fstream>
 #include <time.h>
 #include <csignal>
+#include <limits>
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 #include <map>
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -787,7 +788,12 @@ template <typename T>
 void HyPerCol::ioParamValueRequired(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T * value) {
    switch(ioFlag) {
    case PARAMS_IO_READ:
-      *value = params->value(group_name, param_name);
+      if (typeid(T)==typeid(int)) {
+         *value = params->valueInt(group_name, param_name);
+      }
+      else {
+         *value = params->value(group_name, param_name);
+      }
       break;
    case PARAMS_IO_WRITE:
       writeParam(param_name, *value);
@@ -795,10 +801,8 @@ void HyPerCol::ioParamValueRequired(enum ParamsIOFlag ioFlag, const char * group
    }
 }
 // Declare the instantiations of readScalarToFile that occur in other .cpp files; otherwise you'll get linker errors.
-// template void HyPerCol::ioParamValueRequired<pvdata_t>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, pvdata_t * value);
 template void HyPerCol::ioParamValueRequired<float>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, float * value);
 template void HyPerCol::ioParamValueRequired<double>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, double * value);
-template void HyPerCol::ioParamValueRequired<int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, int * value);
 template void HyPerCol::ioParamValueRequired<unsigned int>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, unsigned int * value);
 template void HyPerCol::ioParamValueRequired<bool>(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, bool * value);
 
@@ -806,7 +810,12 @@ template <typename T>
 void HyPerCol::ioParamValue(enum ParamsIOFlag ioFlag, const char * group_name, const char * param_name, T * value, T defaultValue, bool warnIfAbsent) {
    switch(ioFlag) {
    case PARAMS_IO_READ:
-      *value = (T) params->value(group_name, param_name, defaultValue, warnIfAbsent);
+      if (typeid(T)==typeid(int)) {
+         *value = params->valueInt(group_name, param_name, defaultValue, warnIfAbsent);
+      }
+      else {
+         *value = (T) params->value(group_name, param_name, defaultValue, warnIfAbsent);
+      }
       break;
    case PARAMS_IO_WRITE:
       writeParam(param_name, *value);
@@ -1305,10 +1314,23 @@ void HyPerCol::writeParam(const char * param_name, T value) {
          vstr << (value ? "true" : "false");
       }
       else {
-         vstr << value;
+         if (std::numeric_limits<T>::has_infinity) {
+             if (value<=-FLT_MAX) {
+                 vstr << "-infinity";
+             }
+             else if (value>=FLT_MAX) {
+                 vstr << "infinity";
+             }
+             else {
+                 vstr << value;
+             }
+         }
+         else {
+             vstr << value;
+         }
       }
-      fprintf(printParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str()); // Check: does vstr.str().c_str() work?
-      fprintf(luaPrintParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str()); // Check: does vstr.str().c_str() work?
+      fprintf(printParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str());
+      fprintf(luaPrintParamsStream->fp, "    %-35s = %s;\n", param_name, vstr.str().c_str());
    }
 }
 // Declare the instantiations of writeParam that occur in other .cpp files; otherwise you'll get linker errors.

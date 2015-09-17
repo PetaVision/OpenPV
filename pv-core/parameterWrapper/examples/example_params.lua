@@ -8,7 +8,7 @@
 --
 
 --Util module
-package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/PetaVision/parameterWrapper/?.lua;"
+package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/OpenPV/pv-core/parameterWrapper/?.lua;"
 local pv = require "PVModule"
 
 -- Global variable, for debug parsing
@@ -95,9 +95,9 @@ pv.addMultiGroups(basicParams,
       mirrorBCflag = 1;
       sparseLayer = false;
       InitVType = "ZeroV";
-      VThresh = INFINITY; --Infinity, user defined variable
-      AMax = INFINITY;
-      AMin = -INFINITY;
+      VThresh = infinity; --Infinity, user defined variable
+      AMax = infinity;
+      AMin = -infinity;
       AShift = 0.0;
       VWidth = 0.0;
       clearGSynInterval = 0.0;
@@ -124,7 +124,7 @@ pv.addMultiGroups(basicParams,
       bowtieFlag = false;
       aspect = 3;
       sigma = 1;
-      rMax  = INFINITY;
+      rMax  = infinity;
       rMin = 0;
       numOrientationsPost = 8;
       strength = 4.0;
@@ -169,9 +169,9 @@ pv.addGroup(
       mirrorBCflag = 1;
       sparseLayer = false;
       InitVType = "ZeroV";
-      VThresh = INFINITY; --Infinity, user defined variable
-      AMax = INFINITY;
-      AMin = -INFINITY;
+      VThresh = infinity; --Infinity, user defined variable
+      AMax = infinity;
+      AMin = -infinity;
       AShift = 0.0;
       VWidth = 0.0;
       clearGSynInterval = 0.0;
@@ -194,9 +194,9 @@ basicParams["Output2"] =
    mirrorBCflag = 1;
    sparseLayer = false;
    InitVType = "ZeroV";
-   VThresh = INFINITY; --Infinity, user defined variable
-   AMax = INFINITY;
-   AMin = -INFINITY;
+   VThresh = infinity; --Infinity, user defined variable
+   AMax = infinity;
+   AMin = -infinity;
    AShift = 0.0;
    VWidth = 0.0;
    clearGSynInterval = 0.0;
@@ -214,6 +214,11 @@ pv.addGroup(basicParams,
       nyScale = .5;
    }
 )
+
+--Parameter Sweep
+pv.paramSweep(basicParams, "Output2", "nf", {2, 4, 6, 8});
+
+
 
 --Prints out a PetaVision approved parameter file to the console
 pv.printConsole(basicParams)
