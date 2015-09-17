@@ -40,14 +40,16 @@ def scaleMat(mat):
 # @outputDir The directory where the pvp files are located, as well as the directory to store output plots
 # @skipFrames Number of frames to skip in reconstructions
 ##
-def plotRecon(layernames, outputDir, skipFrames, startFrames=0, scale=True):
+def plotRecon(layernames, dataDir, skipFrames, startFrames=0, scale=True, outputDir=None, suffix=""):
+   if outputDir == None:
+      outputDir = dataDir
    reconDir = outputDir + "Recon/"
    if not os.path.exists(reconDir):
       os.makedirs(reconDir)
 
    #Open file
    for layername in layernames:
-      pvpFile = open(outputDir + layername + ".pvp", 'rb')
+      pvpFile = open(dataDir + layername + ".pvp", 'rb')
 
       #Grab header
       header = readHeaderFile(pvpFile)
@@ -76,7 +78,7 @@ def plotRecon(layernames, outputDir, skipFrames, startFrames=0, scale=True):
                img = (np.uint8)(mat.squeeze()*256)
          else:
             img = matToImage(mat)
-         imsave(reconDir + layername + str(int(idx[0])) + ".png", img)
+         imsave(reconDir + layername + str(int(idx[0])) + suffix + ".png", img)
          #Read a few extra for skipping frames
          for i in range(skipFrames):
              (idx, mat) = readData(pvpFile, shape, numPerFrame)

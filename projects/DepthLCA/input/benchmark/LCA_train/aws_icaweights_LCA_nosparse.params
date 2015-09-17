@@ -33,10 +33,10 @@ HyPerCol "column" = {
     writeProgressToErr = true;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
     dtAdaptFlag = true;
-    dtScaleMax = 5.0;
+    dtScaleMax = 3.0;
     dtScaleMin = 0.25;
-    dtChangeMax = 0.25;
-    dtChangeMin = 0.0;
+    dtChangeMax = 0.01;
+    dtChangeMin = -0.01;
 };
 
 //
@@ -248,7 +248,7 @@ HyPerLCALayer "V1" = {
     InitVType = "InitVFromFile";
     Vfilename = "/home/ec2-user/mountData/benchmark/saved_icaweights_nosparse_LCA/V1_V.pvp";
     // 
-    timeConstantTau = 500.0;
+    timeConstantTau = 1000.0;
     slopeErrorStd = 0.01;
     // 
     dVThresh = 0;
