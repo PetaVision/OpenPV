@@ -919,9 +919,11 @@ void HyPerConn::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-   if (plasticityFlag && !triggerLayerName) {
-      parent->ioParamValue(ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod, parent->getDeltaTime());
+   if (plasticityFlag) {
+	   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+	   if (!triggerLayerName) {
+	      parent->ioParamValue(ioFlag, name, "weightUpdatePeriod", &weightUpdatePeriod, parent->getDeltaTime());
+	   }
    }
 }
 
