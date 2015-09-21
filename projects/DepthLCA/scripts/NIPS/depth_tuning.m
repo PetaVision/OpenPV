@@ -4,28 +4,29 @@ addpath('~/workspace/OpenPV/pv-core/mlab/util');
 %To avoid losing focus when plotting
 setenv("GNUTERM","dumb");
 
-outDir = '/nh/compneuro/Data/Depth/NIPS/rect_1024/';
+outDir = '/nh/compneuro/Data/Depth/NIPS/finetuned/';
 %outDir = '~/mountData/NIPS/rect';
-dataDir = '/nh/compneuro/Data/Depth/NIPS/rect_1024/';
+dataDir = '/nh/compneuro/Data/Depth/NIPS/finetuned/';
 %dataDir = '~/mountData/benchmark/';
 loadData = false;
 
-LCA_v1ActFile = [dataDir, 'icaweights_rect_1024_LCA/a12_V1.pvp'];
-RELU_v1ActFile = [dataDir, 'icaweights_rect_1024_RELU/a12_V1.pvp'];
+LCA_v1ActFile = [dataDir, 'icaweights_LCA_fine/a12_V1.pvp'];
+RELU_v1ActFile = [dataDir, 'icaweights_RELU_fine/a12_V1.pvp'];
 
-depthFile = [dataDir, '/train/aws_icaweights_rect_1024_LCA/a4_DepthDownsample.pvp'];
-plotOutDir = [outDir, '/depthTuning/'];
+depthFile = [dataDir, '/train/aws_icaweights_LCA_fine/a4_DepthDownsample.pvp'];
+plotOutDir = [outDir, '/outplots/depthTuning/'];
 
-dictPvpDir = [dataDir, '/train/aws_icaweights_rect_1024_LCA/Last/'];
+dictPvpDir = [dataDir, '/train/aws_icaweights_LCA_fine/Last/'];
 dictPvpFiles = {[dictPvpDir, 'LCA_V1ToLeftRecon_W.pvp'];...
                 [dictPvpDir, 'LCA_V1ToRightRecon_W.pvp']};
 
 %Given a depth and a neuron, these values define how big of an x/y patch to look for that neuron at
 sampleDim = 5;
 numDepthBins = 64;
-numEpochs = 2; %Splitting up nf to save memory
+numEpochs = 1; %Splitting up nf to save memory
 
-targetNeurons = 1:1024;
+
+%targetNeurons = 1:512;
 
 
 %Create output directory in outDir
@@ -36,9 +37,9 @@ saveFilename = [outDir, 'tuningData.mat']
 if(loadData)
    load(saveFilename);
 else
-   [LCA_outVals, LCA_kurtVals, LCA_peakMean] = calcDepthTuning(LCA_v1ActFile, depthFile, sampleDim, numDepthBins, 1, numEpochs);
-   [RELU_outVals, RELU_kurtVals, RELU_peakMean] = calcDepthTuning(RELU_v1ActFile, depthFile, sampleDim, numDepthBins, 1, numEpochs);
-   save(saveFilename, 'LCA_outVals', 'LCA_kurtVals', 'LCA_peakMean', 'RELU_outVals', 'RELU_kurtVals', 'RELU_peakMean');
+   [LCA_outVals, LCA_kurtVals, LCA_peakMean, LCA_peakArea] = calcDepthTuning(LCA_v1ActFile, depthFile, sampleDim, numDepthBins, 1, 5, numEpochs);
+   [RELU_outVals, RELU_kurtVals, RELU_peakMean, RELU_peakArea] = calcDepthTuning(RELU_v1ActFile, depthFile, sampleDim, numDepthBins, 1, 5, numEpochs);
+   save(saveFilename, 'LCA_outVals', 'LCA_kurtVals', 'LCA_peakMean', 'LCA_peakArea', 'RELU_outVals', 'RELU_kurtVals', 'RELU_peakMean', 'RELU_peakArea');
 end
 
 disp('Loading done, reading dictionary pvpfiles');
@@ -64,9 +65,33 @@ set(0, ...
 'DefaultAxesFontName', 'Times New Roman', ...
 'DefaultLineLineWidth', 4)
 
+%%Peak mean
+%Write mean and std of peakmean in file
+LCA_pmFile = fopen([plotOutDir, 'LCA_peakmean.txt'], 'w');
+fprintf(LCA_pmFile, 'peak-mean: %f +- %f\n', mean(LCA_peakMean(:)), std(LCA_peakMean(:)));
+[LCA_sortedPm, LCA_sortedPmIdxs] = sort(LCA_peakMean, 'descend');
+
+RELU_pmFile = fopen([plotOutDir, 'RELU_peakmean.txt'], 'w');
+fprintf(RELU_pmFile, 'peak-mean: %f +- %f\n', mean(RELU_peakMean(:)), std(RELU_peakMean(:)));
+[RELU_sortedPm, RELU_sortedPmIdxs] = sort(RELU_peakMean, 'descend');
+
+%Write ranking by peakmean
+for(ni = 1:numNeurons)
+   fprintf(LCA_pmFile, '%d: %f\n', LCA_sortedPmIdxs(ni), LCA_sortedPm(ni));
+   fprintf(RELU_pmFile, '%d: %f\n', RELU_sortedPmIdxs(ni), RELU_sortedPm(ni));
+end
+
+%Using peakmean rank as the order of target neurons
+%targetNeurons = 1:512;
+targetNeurons = LCA_sortedPmIdxs; 
+
 %1 figure per neuron
 for i = 1:length(targetNeurons);
    ni = targetNeurons(i);
+   %Saved neurons for some reason has neuron 513. Take out
+   if(ni == 513)
+      continue
+   end
    handle = figure;
    if(size(left_w_data{1}.values{1}, 3) == 1)
       colormap(gray);
@@ -143,7 +168,7 @@ for i = 1:length(targetNeurons);
    ax(2) -= .06;
    set(SRELU, 'Position', ax);
 
-   print(handle, [plotOutDir, num2str(ni), '.png']);
+   print(handle, [plotOutDir, 'rank', num2str(i), '_neuron', num2str(ni), '.png']);
    close(handle)
 end
 
@@ -184,21 +209,22 @@ end
 %print(handle, outFilename);
 %close(handle);
 
-%%%Peak mean
-%%Write mean and std of peakmean in file
-%LCA_pmFile = fopen([plotOutDir, 'LCA_peakmean.txt'], 'w');
-%fprintf(LCA_pmFile, 'peak-mean: %f +- %f\n', mean(LCA_peakMean(:)), std(LCA_peakMean(:)));
-%[LCA_sortedPm, LCA_sortedPmIdxs] = sort(LCA_peakMean, 'descend');
-%
-%RELU_pmFile = fopen([plotOutDir, 'RELU_peakmean.txt'], 'w');
-%fprintf(RELU_pmFile, 'peak-mean: %f +- %f\n', mean(RELU_peakMean(:)), std(RELU_peakMean(:)));
-%[RELU_sortedPm, RELU_sortedPmIdxs] = sort(RELU_peakMean, 'descend');
-%
-%%Write ranking by peakmean
-%for(ni = 1:numNeurons)
-%   fprintf(LCA_pmFile, '%d: %f\n', LCA_sortedPmIdxs(ni), LCA_sortedPm(ni));
-%   fprintf(RELU_pmFile, '%d: %f\n', RELU_sortedPmIdxs(ni), RELU_sortedPm(ni));
-%end
+
+%%Peak Area
+%Write mean and std of peakArea in file
+LCA_paFile = fopen([plotOutDir, 'LCA_peakarea.txt'], 'w');
+fprintf(LCA_paFile, 'peak-mean: %f +- %f\n', mean(LCA_peakArea(:)), std(LCA_peakArea(:)));
+[LCA_sortedPa, LCA_sortedPaIdxs] = sort(LCA_peakArea, 'descend');
+
+RELU_paFile = fopen([plotOutDir, 'RELU_peakArea.txt'], 'w');
+fprintf(RELU_paFile, 'peak area: %f +- %f\n', mean(RELU_peakArea(:)), std(RELU_peakArea(:)));
+[RELU_sortedPa, RELU_sortedPaIdxs] = sort(RELU_peakArea, 'descend');
+
+%Write ranking by peak area
+for(ni = 1:numNeurons)
+   fprintf(LCA_paFile, '%d: %f\n', LCA_sortedPaIdxs(ni), LCA_sortedPa(ni));
+   fprintf(RELU_paFile, '%d: %f\n', RELU_sortedPaIdxs(ni), RELU_sortedPa(ni));
+end
 
 %Set plot default sizes
 set(0, ...
@@ -226,17 +252,38 @@ L = legend('ReLU', 'SCANN');
 %
 %set(L, 'Position', ax);
 %set(L, 'FontSize', 24);
-
-
 legend boxoff
 legend left
-
-
 xlabel('<- Less Selective   Peak-Mean Value   More Selective ->');
 ylabel('Normalized Count', 'FontSize', 24);
 outFilename = [plotOutDir, 'PeakMean_Hist.png'];
-
-
 print(handle, outFilename);
 close(handle);
+
+%Histogram of all peakAreas
+[RELUf, RELUx] = hist(RELU_peakArea, 'b', 'BarWidth', .9);
+[LCAf, LCAx] = hist(LCA_peakArea, 'r', 'BarWidth',.7);
+
+handle = figure;
+set(handle, 'Position', [1 1 1 .5])
+
+hold on;
+bar(RELUx, RELUf/max(RELUf(:)), 'b', 'BarWidth', .9);
+bar(LCAx, LCAf/max(LCAf(:)), 'r', 'BarWidth', .7);
+hold off;
+
+L = legend('ReLU', 'SCANN');
+%ax = get(L, 'Position');
+%ax(1) -= .01;
+%
+%set(L, 'Position', ax);
+%set(L, 'FontSize', 24);
+legend boxoff
+legend left
+xlabel('<- Less Selective   Peak-Mean Value   More Selective ->');
+ylabel('Normalized Count', 'FontSize', 24);
+outFilename = [plotOutDir, 'PeakArea_Hist.png'];
+print(handle, outFilename);
+close(handle);
+
 
