@@ -156,13 +156,13 @@ Checking Out and Installing PetaVision:
 
 ~~~~~~~~~~~~~~~~~~~~{.sh}
 cd ${HOME}
-mkdir workspace
-cd workspace
-svn co https://<useranme>@svn.code.sf.net/p/petavision/code/trunk PetaVision
-svn co https://<username>@svn.code.sf.net/p/petavision/code/PVSystemTests PVSystemTests
-#You can download your sandbox here
-cp PetaVision/docs/cmake/CMakeLists.txt .
-#Here, you would add your sandbox to the end of CMakeLists.txt
+git clone https://github.com/PetaVision/OpenPV
+cd OpenPV
+git clone https://github.com/PetaVision/OpenPV
+cd OpenPV
+echo PVSystemTests > subdirectories.txt
+#Edit the file subdirectories.txt to include any desired projects or
+#auxiliary libraries
 ccmake .
 ~~~~~~~~~~~~~~~~~~~~
 
