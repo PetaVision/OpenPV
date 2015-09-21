@@ -107,8 +107,27 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt)
    }   
 
    for(int b = 0; b < loc->nbatch; b++){
-      const char * currentFilename = movieLayer->getFilename(b);
-      std::string fil = strdup(currentFilename);
+      char * currentFilename = NULL;
+      int filenameLen = 0;
+      //TODO depending on speed of this layer, more efficient way would be to preallocate currentFilename buffer
+      if(parent->icCommunicator()->commRank()==0){
+         currentFilename = strdup(movieLayer->getFilename(b));
+         //Get length of currentFilename and broadcast
+         int filenameLen = (int) strlen(currentFilename) + 1; //+1 for the null terminator
+         //Using local communicator, as each batch MPI will handle it's own run
+         MPI_Bcast(&filenameLen, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+         //Braodcast filename to all other local processes
+         MPI_Bcast(currentFilename, filenameLen, MPI_CHAR, 0, parent->icCommunicator()->communicator());
+      }
+      else{
+         //Receive broadcast about length of filename
+         MPI_Bcast(&filenameLen, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
+         currentFilename = (char*)calloc(sizeof(char), filenameLen);
+         //Receive filename
+         MPI_Bcast(currentFilename, filenameLen, MPI_CHAR, 0, parent->icCommunicator()->communicator());
+      }
+
+      std::string fil = currentFilename;
       pvdata_t * ABatch = A + b * getNumExtended();
       for(int i = 0; i < num_neurons; i++){
          int nExt = kIndexExtended(i, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
@@ -121,6 +140,8 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt)
             ABatch[nExt] = gtClassFalseValue;
          }
       }
+      //Free buffer, TODO, preallocate buffer to avoid this
+      free(currentFilename);
    }
    update_timer->stop();
    return PV_SUCCESS;
