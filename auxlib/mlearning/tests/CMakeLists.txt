@@ -6,7 +6,7 @@ project(PetaVision)
 enable_testing()
 
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.10)
 
 #Define function for adding a test to the test harness
 macro(AddPVTest BaseName ParamNames inFlags inMpi)

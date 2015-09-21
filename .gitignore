@@ -1,7 +1,8 @@
 CMakeCache.txt
 CMakeFiles
 Makefile
-*.cmake
+CTestTestfile.cmake
+cmake_install.cmake
 .sass-cache/
 Gemfile
 Gemfile.lock

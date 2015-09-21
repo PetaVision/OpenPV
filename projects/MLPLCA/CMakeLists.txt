@@ -1,5 +1,5 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.10)
 
 set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../pv-core CACHE PATH "The base petavision directory")
 

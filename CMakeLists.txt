@@ -5,7 +5,7 @@ project(PetaVision)
 
 
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.10)
 
 
 # Set variable for PetaVision directory (the directory that contains

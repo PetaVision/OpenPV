@@ -1,5 +1,5 @@
 ## See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.10)
 
 string(FIND ${CMAKE_CURRENT_SOURCE_DIR} "/" pos REVERSE)
 MATH(EXPR pos ${pos}+1)
