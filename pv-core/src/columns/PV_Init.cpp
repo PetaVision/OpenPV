@@ -4,12 +4,14 @@
  *  Created on: Jul 31, 2015
  *      Author: slundquist
  */
+#include <csignal>
 #include "PV_Init.hpp"
 
 namespace PV {
 
 PV_Init::PV_Init(int* argc, char ** argv[]){
    //Initialize MPI
+   initSignalHandler();
    commInit(argc, argv);
    params = NULL;
    icComm = NULL;
@@ -36,6 +38,22 @@ PV_Init::~PV_Init(){
       delete icComm;
    }
    commFinalize();
+}
+
+int PV_Init::initSignalHandler()
+{
+   // Block SIGUSR1.  root process checks for SIGUSR1 during advanceTime() and broadcasts sends to all processes,
+   // which saves the result in the checkpointSignal member variable.
+   // When run() checks whether to call checkpointWrite, it looks at checkpointSignal, and writes a
+   // checkpoint if checkpointWriteFlag is true, regardless of whether the next scheduled checkpoint time has arrived.
+   //
+   // This needs to happen before MPI_Initialize; otherwise a thread created by MPI will not get the signal handler
+   // but will get the signal and the job will terminate.
+   sigset_t blockusr1;
+   sigemptyset(&blockusr1);
+   sigaddset(&blockusr1, SIGUSR1);
+   sigprocmask(SIG_BLOCK, &blockusr1, NULL);
+   return 0;
 }
 
 int PV_Init::initialize(int argc, char* argv[]){

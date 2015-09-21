@@ -65,6 +65,7 @@ public:
 
 
 private:
+   int initSignalHandler();
    int commInit(int* argc, char*** argv);
    int commFinalize();
    //int getNBatchValue(char* infile);

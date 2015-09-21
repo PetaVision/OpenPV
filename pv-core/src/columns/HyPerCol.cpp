@@ -449,17 +449,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
 
    checkpointSignal = 0;
 
-   // Block SIGUSR1.  root process checks for SIGUSR1 during advanceTime() and broadcasts sends to all processes,
-   // which saves the result in the checkpointSignal member variable.
-   // When run() checks whether to call checkpointWrite, it looks at checkpointSignal, and writes a
-   // checkpoint if checkpointWriteFlag is true, regardless of whether the next scheduled checkpoint time has arrived.
-   //
-   // I put this initialization after ioParams so that behavior could be controlled by params files, if desired.
-   sigset_t blockusr1;
-   sigemptyset(&blockusr1);
-   sigaddset(&blockusr1, SIGUSR1);
-   sigprocmask(SIG_BLOCK, &blockusr1, NULL);
-
 #ifdef PV_USE_OPENCL
    ensureDirExists(srcPath);
 #endif
