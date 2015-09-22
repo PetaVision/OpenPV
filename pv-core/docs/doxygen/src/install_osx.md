@@ -99,7 +99,7 @@ ln -s clang++ c++
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ###Install the OMP library ###############
-Download the most recent version of the OpenMP Runtime Library from <https://www.openmprtl.org/download#stable-releases>.
+Download the most recent version of the Intel OpenMP Runtime Library from <https://www.openmprtl.org/download#stable-releases>.
 Make a note of the location of the downloaded file.  In what follows, we will be using `libomp_20150701_oss.tgz`,
 the most recent version as of this writing; modify as necessary.
 ~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
@@ -130,6 +130,9 @@ export DYLD_LIBRARY_PATH=$HOME/clang_omp/libomp_oss/exports/mac_32e/lib.thin:$DY
 If you have any open terminal windows, run `source ~/.bash_profile` in each of them.
 Test by running `which clang` and `which clang++` to verify that clang and clang++ resolve
 to the versions just installed.
+
+When you run cmake or ccmake, you will need to set PV_OPENMP_COMPILER_FLAG to "-fopenmp=libiomp5" in order for
+the compiler to find the OpenMP Runtime library.
 
 CUDA and NVIDIA Driver (optional):
 ----------------------------------
