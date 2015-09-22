@@ -27,21 +27,21 @@ set(PV_USE_CUDNN FALSE CACHE BOOL "Defines whether PetaVision uses CUDA's cuDNN 
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/ CACHE PATH "Location of cuDNN libraries")
 set(PV_BUILD_SHARED FALSE CACHE BOOL "Defines whether the pv object is built as a shared object")
 set(CLANG_OMP TRUE CACHE BOOL "Defines whether we're compiling with Clang + omp support")
+set(PV_OPENMP_COMPILER_FLAG "-fopenmp" CACHE STRING "Compiler flag for compiling with OpenMP")
 
-# Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
-# set(LIB_SND_FILE FALSE CACHE BOOL "Defines if PetaVision uses LIB_SND_FILE")
 
 if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
    if(APPLE AND CLANG_OMP)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libiomp5")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp=libiomp5")
+      message(WARNING "Using OpenMP threads with Clang. Make sure that your version of Clang supports OpenMP.")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -stdlib=libstdc++")
       set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
-   else(APPLE AND CLANG_OMP)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
    endif(APPLE AND CLANG_OMP)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PV_OPENMP_COMPILER_FLAG}")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PV_OPENMP_COMPILER_FLAG}")
    set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)
 endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
+
 
 if(PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
    IF(APPLE)
@@ -222,24 +222,11 @@ if (PV_USE_MPI)
     set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (PV_USE_MPI)
 
-# Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
-# if (LIB_SND_FILE AND NOT DEFINED LIBSNDFILE_FOUND)
-#     MESSAGE("-- Searching for SND library ............")
-#     find_package(LIBSNDFILE)
-# endif (LIB_SND_FILE AND NOT DEFINED LIBSNDFILE_FOUND)
 
 if (PV_USE_CUDA)
     MESSAGE("-- Searching for CUDA library ............")
     find_package(CUDA)
 endif (PV_USE_CUDA)
-
-# Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
-# #Include compiler directive and include directory for LIBSNDFILE
-# if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
-#    include_directories(${LIBSNDFILE_INCLUDE_DIR})
-#    add_definitions(-DPV_USE_SNDFILE)
-#    set(LIB_SND_FILE_FLAGS_ADDED)
-# endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
 
 #IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 #   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -g3; -G3; -O0)
@@ -278,10 +265,6 @@ endif(PV_USE_CUDA)
 
 # Link executable to external libraries
 target_link_libraries(pv ${GDAL_LIBRARY})
-# Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
-# IF(LIBSNDFILE_FOUND)
-#    target_link_libraries(pv ${LIBSNDFILE_LIBRARY})
-# ENDIF(LIBSNDFILE_FOUND)
 
 IF(PV_USE_CUDNN)
    IF(APPLE)

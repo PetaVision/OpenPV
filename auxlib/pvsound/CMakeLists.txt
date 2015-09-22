@@ -21,6 +21,8 @@ set(PV_BUILD_SHARED FALSE CACHE BOOL "Defines if the pv object is built as a sha
 set(CLANG_OMP FALSE CACHE BOOL "Defines if we're compiling with Clang + omp support")
 set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../trunk CACHE PATH "The base PetaVision directory")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
+set(PV_OPENMP_COMPILER_FLAG "-fopenmp" CACHE STRING "Compiler flag for compiling with OpenMP")
+
 
 IF(PV_USE_CUDA AND PV_USE_OPENCL)
    message(FATAL_ERROR "PV_USE_CUDA and PV_USE_OPENCL cannot both be true")
@@ -32,13 +34,13 @@ ENDIF(NOT EXISTS "${PV_DIR}")
 
 if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
    if(APPLE AND CLANG_OMP)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libiomp5")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp=libiomp5")
+      message(WARNING "Using OpenMP threads with Clang. Make sure that your version of Clang supports OpenMP.")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -stdlib=libstdc++")
       set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
-   else(APPLE AND CLANG_OMP)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
    endif(APPLE AND CLANG_OMP)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PV_OPENMP_COMPILER_FLAG}")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PV_OPENMP_COMPILER_FLAG}")
    set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)
 endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
 

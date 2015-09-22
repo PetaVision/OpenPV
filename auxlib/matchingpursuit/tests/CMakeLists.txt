@@ -77,6 +77,7 @@ set(PV_USE_CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN libra
 set(PV_SYSTEM_TEST_THREADS 1 CACHE STRING "Defines the number of threads to use for system tests")
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
 set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
+set(PV_OPENMP_COMPILER_FLAG "-fopenmp" CACHE STRING "Compiler flag for compiling with OpenMP")
 
 
 if(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
@@ -93,18 +94,16 @@ IF(NOT EXISTS "${PV_DIR}")
    message(FATAL_ERROR "PV_DIR \"${PV_DIR}\" does not exist.")
 ENDIF(NOT EXISTS "${PV_DIR}")
 
-if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
-   if(APPLE AND CLANG_OMP)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libiomp5")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp=libiomp5")
-      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
-   else(APPLE AND CLANG_OMP)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-   endif(APPLE AND CLANG_OMP)
-   set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)
-endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
-
+if(PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
+   IF(APPLE)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework opencl")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -framework opencl")
+   ELSE(APPLE)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${OpenCL_dir}/include -L/${OpenCL_dir}/lib64 -lOpenCL")
+   ENDIF(APPLE)
+   set(PV_USE_OPENCL_FLAGS_ADDED TRUE)
+endif (PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
 
 add_subdirectory(MatchingPursuitTest)
 
