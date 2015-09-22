@@ -23,8 +23,10 @@ int main(int argc, char* argv[])
 {
    int status = PV_SUCCESS;
 
+   PV::PV_Init * pv_init = new PV_Init(&argc, &argv);
+
    // Build the column from the params file
-   PV::HyPerCol * hc = build(argc, argv);
+   PV::HyPerCol * hc = build(argc, argv, pv_init);
    assert(hc->getStartTime()==hc->simulationTime());
 
    double startTime = hc->getStartTime();
@@ -263,7 +265,7 @@ int main(int argc, char* argv[])
    free(imageFile);
    free(imageLayerName);
    free(resultLayerName);
-
+   delete pv_init;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
