@@ -80,10 +80,10 @@ protected:
     */
 
    /**
-    * @brief imagePath: Not used by ImageFromMemoryBuffer.
-    * @details ImageFromMemoryBuffer does not read the image from a path.  Instead, call setMemoryBuffer()
+    * @brief inputPath: Not used by ImageFromMemoryBuffer.
+    * @details ImageFromMemoryBuffer does not read the input from a path.  Instead, call setMemoryBuffer()
     */
-   virtual void ioParam_imagePath(enum ParamsIOFlag ioFlag) { return; }
+   virtual void ioParam_inputPath(enum ParamsIOFlag ioFlag) { return; }
    
    /**
     * Called by HyPerLayer::setActivity() during setInitialValues stage; calls copyBuffer()

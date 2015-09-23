@@ -11,7 +11,7 @@
 #define CONFIG_FILE "src/config.txt"
 #endif // CONFIG_FILE
 
-int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
+int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** drawBoundingBoxesPtr, char ** boundingBoxThicknessPtr, char ** dbscanEpsPtr, char ** dbscanDensityPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
 int parseConfigParameter(InterColComm * icComm, char const * inputLine, char const * configParameter, char ** parameterPtr, unsigned int lineNumber);
 int checkOctaveArgumentString(char const * argString, char const * argName);
 int checkOctaveArgumentNumeric(char const * argString, char const * argName);
@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
    int status = PV_SUCCESS;
 
    PV::PV_Init * pv_init = new PV_Init(&argc, &argv);
-
+   pv_init -> initialize(argc, argv);
    // Build the column from the params file
    PV::HyPerCol * hc = build(argc, argv, pv_init);
    assert(hc->getStartTime()==hc->simulationTime());
@@ -49,6 +49,10 @@ int main(int argc, char* argv[])
    char * highlightThreshold = NULL;
    char * heatMapThreshold = NULL;
    char * heatMapMaximum = NULL;
+   char * drawBoundingBoxes = NULL;
+   char * boundingBoxThickness = NULL;
+   char * dbscanEps = NULL;
+   char * dbscanDensity = NULL;
    char * heatMapMontageDir = NULL;
    char * displayCommand = NULL;
    int layerNx, layerNy, layerNf;
@@ -59,7 +63,7 @@ int main(int argc, char* argv[])
    int octavepid = 0; // pid of the child octave process.
 
    // Parse config file for image layer, result layer, file of image files
-   status = parseConfigFile(icComm, &imageLayerName, &resultLayerName, &resultTextFile, &octaveCommand, &octaveLogFile, &classNames, &evalCategoryIndices, &displayCategoryIndices, &highlightThreshold, &heatMapThreshold, &heatMapMaximum, &heatMapMontageDir, &displayCommand);
+   status = parseConfigFile(icComm, &imageLayerName, &resultLayerName, &resultTextFile, &octaveCommand, &octaveLogFile, &classNames, &evalCategoryIndices, &displayCategoryIndices, &highlightThreshold, &heatMapThreshold, &heatMapMaximum, &drawBoundingBoxes, &boundingBoxThickness, &dbscanEps, &dbscanDensity, &heatMapMontageDir, &displayCommand);
    if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
 
    BaseLayer * imageBaseLayer = hc->getLayerFromName(imageLayerName);
@@ -236,6 +240,10 @@ int main(int argc, char* argv[])
                   highlightThreshold << ", " <<
                   heatMapThreshold << ", " <<
                   heatMapMaximum << ", " <<
+                  drawBoundingBoxes << ", " <<
+                  boundingBoxThickness << ", " <<
+                  dbscanEps << ", " <<
+                  dbscanDensity << ", " <<
                   "\"" << montagePath.str() << "\"" << ", " <<
                   "\"" << displayCommand << "\"" <<
                   ");'" <<
@@ -269,7 +277,7 @@ int main(int argc, char* argv[])
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
+int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** drawBoundingBoxesPtr, char ** boundingBoxThicknessPtr, char ** dbscanEpsPtr, char ** dbscanDensityPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
 {
    // Under MPI, all processes must call this function in parallel, but only the root process does I/O
    int status = PV_SUCCESS;
@@ -292,6 +300,10 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
    *highlightThresholdPtr = NULL;
    *heatMapThresholdPtr = NULL;
    *heatMapMaximumPtr = NULL;
+   *drawBoundingBoxesPtr = NULL;
+   *boundingBoxThicknessPtr = NULL;
+   *dbscanEpsPtr = NULL;
+   *dbscanDensityPtr = NULL;
    *heatMapMontageDirPtr = NULL;
    *displayCommandPtr = NULL;
    struct fgetsresult { char contents[TEXTFILEBUFFERSIZE]; char * result; };
@@ -373,6 +385,26 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
       if (!strcmp(keyword,"heatMapMaximum"))
       {   
          status = parseConfigParameter(icComm, keyword, value, heatMapMaximumPtr, linenumber);
+         if (status != PV_SUCCESS) { break; }
+      }   
+      if (!strcmp(keyword,"drawBoundingBoxes"))
+      {   
+         status = parseConfigParameter(icComm, keyword, value, drawBoundingBoxesPtr, linenumber);
+         if (status != PV_SUCCESS) { break; }
+      }   
+      if (!strcmp(keyword,"boundingBoxThickness"))
+      {   
+         status = parseConfigParameter(icComm, keyword, value, boundingBoxThicknessPtr, linenumber);
+         if (status != PV_SUCCESS) { break; }
+      }   
+      if (!strcmp(keyword,"dbscanEps"))
+      {   
+         status = parseConfigParameter(icComm, keyword, value, dbscanEpsPtr, linenumber);
+         if (status != PV_SUCCESS) { break; }
+      }   
+      if (!strcmp(keyword,"dbscanDensity"))
+      {   
+         status = parseConfigParameter(icComm, keyword, value, dbscanDensityPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }   
       if (!strcmp(keyword,"heatMapMontageDir"))
@@ -521,7 +553,7 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
          if (icComm->commRank()==0) {
             printf("heatMapThreshold was not defined in %s; setting to same as highlightThreshold\n", CONFIG_FILE);
          }
-         *heatMapThresholdPtr = strdup(*heatMapThresholdPtr);
+         *heatMapThresholdPtr = strdup(*highlightThresholdPtr);
       }
       else
       {
@@ -541,6 +573,66 @@ int parseConfigFile(InterColComm * icComm, char ** imageLayerNamePtr, char ** re
       else
       {
          status = checkOctaveArgumentNumeric(*heatMapMaximumPtr, "heatMapMaximum");
+      }
+   }   
+   
+   if (status==PV_SUCCESS)
+   {
+      if (*drawBoundingBoxesPtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            printf("drawBoundingBoxes was not defined in %s; setting to 0 (False)\n", CONFIG_FILE);
+         }
+         *drawBoundingBoxesPtr = strdup("0.0");
+      }
+      else
+      {
+         status = checkOctaveArgumentNumeric(*drawBoundingBoxesPtr, "drawBoundingBoxes");
+      }
+   }   
+
+   if (status==PV_SUCCESS)
+   {
+      if (*boundingBoxThicknessPtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            printf("boundingBoxThickness was not defined in %s; setting to 5\n", CONFIG_FILE);
+         }
+         *boundingBoxThicknessPtr = strdup("5.0");
+      }
+      else
+      {
+         status = checkOctaveArgumentNumeric(*boundingBoxThicknessPtr, "boundingBoxThickness");
+      }
+   }   
+
+   if (status==PV_SUCCESS)
+   {
+      if (*dbscanEpsPtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            printf("dbscanEps was not defined in %s; dbscan will attempt to calculate it\n", CONFIG_FILE);
+         }
+         *dbscanEpsPtr = strdup("[]");
+      }
+      else
+      {
+         status = checkOctaveArgumentNumeric(*dbscanEpsPtr, "dbscanEps");
+      }
+   }   
+
+   if (status==PV_SUCCESS)
+   {
+      if (*dbscanDensityPtr==NULL)
+      {
+         if (icComm->commRank()==0) {
+            printf("dbscanDensity was not defined in %s; setting to 1\n", CONFIG_FILE);
+         }
+         *dbscanDensityPtr= strdup("1.0");
+      }
+      else
+      {
+         status = checkOctaveArgumentNumeric(*dbscanDensityPtr, "dbscanDensity");
       }
    }   
 

@@ -12,9 +12,13 @@ function outimage = heatMapMontage(...
     highlightThreshold,...
     heatMapThreshold,...
     heatMapMaximum,...
+    drawBoundingBoxes,...
+    boundingBoxThickness,...
+    dbscanEps,...
+    dbscanDensity,...
     montagePath,...
     displayCommand)
-% outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, confidenceTable, classNameFile, resultsTextFile, evalCategoryIndices, displayCategoryIndices, highlightThreshold, heatMapThreshold, heatMapMaximum, montagePath, displayCommand)
+% outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, confidenceTable, classNameFile, resultsTextFile, evalCategoryIndices, displayCategoryIndices, highlightThreshold, heatMapThreshold, heatMapMaximum, drawBoundingBoxes, boundingBoxThickness, dbscanEps, dbscanDensity, montagePath, displayCommand)
 % Takes frames from two input pvp files, imagePvpFile and resultPvpFile and creates a montage compositing
 % the image pvp file with each of the features of the result pvp file.
 %
@@ -47,6 +51,11 @@ function outimage = heatMapMontage(...
 %    If empty, use the same value as highlightThreshold.
 % heatMapMaximum: The confidence value corresponding to maximum value of the threshold.  If empty, use 1.0
 %    (on the assumption that confidences are between 0 and 1)
+% drawBoundingBoxes: Determines whether to calculate clusters based on heatmap confidences, and draw bounding boxes.
+%    If empty, defaults to 0 (Will not calculate or draw).
+% boundingBoxThickness: the Thickness of the box (in pixels).
+% dbscanEps: dbscan Eps parameter (neighborhood radius). If empty, dbscan will attempt to calculate this.
+% dbscanDensity: dbscan density parameter (minimal number of objects considered as a cluster). If empty, uses 1.
 % montagePath: The path to write the output image to.  The output image has the same dimensions as the frame of imagePvpFile.
 %    If resultPvpFile has different dimensions, it will be rescaled using upsamplefill.
 % displayCommand: If nonempty, run this command on montagePath after it has been written.  Uses the system command,
@@ -183,6 +192,39 @@ for k=1:numCategories
        tileImage(:,:,b) = imageBlendCoeff * imageData + (1-imageBlendCoeff) * tileImage(:,:,b);
     end%for
     if (size(tileImage,3)==1), tileImage=repmat(tileImage,[1 1 3]); end;
+
+    %%%%% Bounding Box Logic
+    if drawBoundingBoxes && any(resultUpsampled(:));
+       [yy xx]       = find(resultUpsampled);
+       nactive       = length(yy);
+       class_vector      = zeros(nactive,2);
+       class_vector(:,1) = xx; %class_vector must be [x y] coordinate pairs for dbscan
+       class_vector(:,2) = yy;
+
+       [cluster_vector, type_vector, dbscanEps] = dbscan(class_vector, dbscanDensity, dbscanEps); %dbscan clustering algorithm
+       max_class_vector = max(cluster_vector); % how many clusters
+
+       if max_class_vector < 0
+          disp(['No clusters were made by dbscan!'])
+       else
+          disp(['Number of clusters = ',num2str(max_class_vector)])
+          clusterpoints = cat(2,cluster_vector',class_vector);
+
+          for l=1:max_class_vector
+             classpoints = clusterpoints(clusterpoints(:,1)==l,2:3);
+             bbox{l}(1) = min(classpoints(:,2)); % min y
+             bbox{l}(2) = min(classpoints(:,1)); % min x
+             bbox{l}(3) = max(classpoints(:,2)); % max y
+             bbox{l}(4) = max(classpoints(:,1)); % max x
+             %% TODO: make sure this doesn't step outside the image (make boxes encompass max/min points)
+             tileImage(bbox{l}(1) : bbox{l}(1) + boundingBoxThickness, bbox{l}(2) :  bbox{l}(4), 1) = 1;
+             tileImage(bbox{l}(3) - boundingBoxThickness : bbox{l}(3), bbox{l}(2) :  bbox{l}(4), 1) = 1;
+             tileImage(bbox{l}(1) : bbox{l}(3), bbox{l}(2) : bbox{l}(2) + boundingBoxThickness, 1) = 1;
+             tileImage(bbox{l}(1) : bbox{l}(3), bbox{l}(4) - boundingBoxThickness : bbox{l}(4), 1) = 1;
+          end
+       end
+    end
+    %%%%%
 
     maxConfCategory = max(max(confData(:,:,category)));
     if any(winningFeature==category) && maxConfCategory >= highlightThreshold;
