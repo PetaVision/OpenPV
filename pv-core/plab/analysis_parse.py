@@ -225,7 +225,7 @@ recon_name = []
 ccx = conn_vars.index("channelCode")
 
 for c,i in enumerate(layer_names):
-    if layer_types[c] == "HyPerLCALayer":
+    if layer_types[c] == "HyPerLCALayer" or layer_types[c] == "ISTALayer":
         for pre,post,d in zip(pre_index,post_index,range(0, len(conn_names))):
             print(layer_names[pre] + " " + layer_names[post])
             if layer_names[pre] == i:
