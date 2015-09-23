@@ -33,8 +33,8 @@ HyPerCol "column" = {
     writeProgressToErr = true;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
     dtAdaptFlag = true;
-    dtScaleMax = 3.0;
-    dtScaleMin = 0.25;
+    dtScaleMax = 1.0;
+    dtScaleMin = 0.1;
     dtChangeMax = 0.01;
     dtChangeMin = -0.01;
 };

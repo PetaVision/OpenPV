@@ -29,13 +29,14 @@ end
 %Threshold each neuron
 for f = 1:numFrames
    active_ndx = data{f}.values(:, 1); %These indices are 0 indexed
-   for i = 1:length(active_ndx)
+   %Start from the back to remove values as needed
+   for i = length(active_ndx):-1:1
       featureIdx = mod(active_ndx(i), numFeatures);
       if(data{f}.values(i, 2) <= maxVals(featureIdx+1) * threshold) 
-         data{f}.values(i, 2) = 0;
+         data{f}.values(i, :) = [];
       end
    end
 end
       
-writepvpsparseactivityfile(outFile, data, nx, ny, numFeatures);
+writepvpsparsevaluesfile(outFile, data, nx, ny, numFeatures);
 

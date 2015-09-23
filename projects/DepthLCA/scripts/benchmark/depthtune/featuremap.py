@@ -8,10 +8,9 @@ from plotReconError import plotReconError
 #For plotting
 #import matplotlib.pyplot as plt
 
-baseDir = "/home/ec2-user/mountData/benchmark/featuremap/icaweights_LCA/"
-dataDirs = [baseDir + "paramsweep_" + str(i).zfill(3) + "/" for i in range(0, 512)]
+baseDir = "/home/ec2-user/mountData/benchmark/featuremap/norect/icaweights_LCA/"
 
-tuningFile = "/home/ec2-user/mountData/benchmark/featuremap/LCA_peakmean.txt"
+tuningFile = "/home/ec2-user/mountData/benchmark/featuremap/norect/LCA_peakmean.txt"
 
 tf = open(tuningFile, 'r')
 
@@ -35,11 +34,13 @@ layers = [
 
 print("Plotting reconstructions")
 
-#for i, dataDir in enumerate(dataDirs):
-#   suffixIdx = rank[i];
-#   plotRecon(layers, dataDir, skipFrames, 0, True, baseDir, "_"+str(suffixIdx))
+for i, r in enumerate(rank):
+   dataDir = baseDir + "paramsweep_" + str(r-1).zfill(3) + "/"
+   plotRecon(layers, dataDir, skipFrames, 0, True, baseDir, "_rank"+str(i+1).zfill(3)+"_neuron"+str(r).zfill(3))
 
-#One recon for all combined
+
+baseDir = "/home/ec2-user/mountData/benchmark/featuremap/norect/icaweights_LCA_all/"
+##One recon for all combined
 plotRecon(layers, baseDir, skipFrames, 0, True, baseDir, "_all")
 
 
