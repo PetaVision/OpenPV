@@ -204,6 +204,7 @@ int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal, bool 
    return -1;  // not found
 }
 
+#ifdef OBSOLETE // Marked obsolete Sep 23, 2015.  Only used in a function that was marked obsolete Jul 16, 2015.
 #define TIFF_FILE_TYPE    1
 #define BINARY_FILE_TYPE  2
 
@@ -217,6 +218,7 @@ static int filetype(const char * filename)
    if (strncmp(&filename[n-4], ".bin", 4) == 0) return BINARY_FILE_TYPE;
    return 0;
 }
+#endif // OBSOLETE // Marked obsolete Sep 23, 2015.  Only used in a function that was marked obsolete Jul 16, 2015.
 
 /**
  * @V
@@ -288,7 +290,7 @@ char * expandLeadingTilde(char const * path) {
    return newpath;
 }
 
-#ifdef OBSOLETE // Marked obsolete Jul 16, 2015.  Only probe that was using readFile was marked obsolete long
+#ifdef OBSOLETE // Marked obsolete Jul 16, 2015.  Only probe that was using readFile was marked obsolete long ago
 /**
  * @filename
  * @buf
