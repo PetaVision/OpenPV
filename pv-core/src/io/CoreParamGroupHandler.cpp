@@ -23,9 +23,6 @@
 #endif // OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
 #include "../layers/FilenameParsingGroundTruthLayer.hpp"
 #include "../layers/GapLayer.hpp"
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-#include "../layers/GenerativeLayer.hpp"
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/HyPerLCALayer.hpp"
 #include "../layers/ISTALayer.hpp"
 #include "../layers/Image.hpp"
@@ -41,9 +38,6 @@
 #include "../layers/LabelErrorLayer.hpp"
 #include "../layers/LabelLayer.hpp"
 #include "../layers/LeakyIntegrator.hpp"
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-#include "../layers/LogLatWTAGenLayer.hpp"
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/MaskLayer.hpp"
 #ifdef OBSOLETE //Marked obsolete April 6, 2015. Moved to auxlib/mlearning
 #include "../layers/MLPErrorLayer.hpp"
@@ -51,16 +45,9 @@
 #include "../layers/MLPOutputLayer.hpp"
 #include "../layers/MLPSigmoidLayer.hpp"
 #endif
-#ifdef OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
-#include "../layers/MatchingPursuitLayer.hpp"
-#include "../layers/MatchingPursuitResidual.hpp"
-#endif // OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
 #include "../layers/Movie.hpp"
 #include "../layers/MoviePvp.hpp"
 #include "../layers/Patterns.hpp"
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-#include "../layers/PoolingANNLayer.hpp"
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "../layers/PoolingIndexLayer.hpp"
 #include "../layers/PtwiseLinearTransferLayer.hpp"
 #include "../layers/PtwiseProductLayer.hpp"
@@ -69,13 +56,8 @@
 #include "../layers/Retina.hpp"
 #include "../layers/ShuffleLayer.hpp"
 #include "../layers/SigmoidLayer.hpp"
-// #include "../layers/TextStream.hpp" // Marked obsolete Mar 6, 2015
 //#include "../layers/TrainingLayer.hpp" //Obsolete June 17th 2015
 #include "../layers/WTALayer.hpp"
-#ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
-#include "../layers/NewCochlear.h"
-#include "../layers/SoundStream.hpp"
-#endif // OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
 #include "../connections/HyPerConn.hpp"
 #include "../connections/CloneConn.hpp"
 #include "../connections/CloneKernelConn.hpp"
@@ -98,10 +80,6 @@
 #include "../connections/TransposeConn.hpp"
 #include "../connections/TransposePoolingConn.hpp"
 
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-#include "../connections/BiLinearConn.hpp"
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-
 #include "ColumnEnergyProbe.hpp"
 #include "QuotientColProbe.hpp"
 #include "FirmThresholdCostFnProbe.hpp"
@@ -111,9 +89,6 @@
 #ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
 #include "LayerFunctionProbe.hpp"
 #endif // OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-#include "LogLatWTAProbe.hpp"
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
 #include "PointLIFProbe.hpp"
 #include "PointProbe.hpp"
 #include "RequireAllZeroActivityProbe.hpp"
@@ -121,7 +96,6 @@
 #include "SparsityLayerProbe.hpp"
 #endif // OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
 #include "StatsProbe.hpp"
-// #include "TextStreamProbe.hpp" // Marked obsolete Mar 6, 2015
 #include "KernelProbe.hpp"
 #include "../weightinit/InitWeights.hpp"
 #include "../weightinit/InitGauss2DWeights.hpp"
@@ -172,9 +146,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 #endif // Marked obsolete June 17, 2015.  Moved to obsolete/layers
          {"FilenameParsingGroundTruthLayer", LayerGroupType},
          {"GapLayer", LayerGroupType},
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-         {"GenerativeLayer", LayerGroupType},
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"HyPerLCALayer", LayerGroupType},
 	 {"ISTALayer", LayerGroupType},
          {"Image", LayerGroupType},
@@ -190,27 +161,17 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"LabelErrorLayer", LayerGroupType},
          {"LabelLayer", LayerGroupType},
          {"LeakyIntegrator", LayerGroupType},
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-         {"LogLatWTAGenLayer", LayerGroupType},
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"MaskLayer", LayerGroupType},
-#ifdef OBSOLETE // Marked obsolete 4/6/15.  MLP classes moved to auxlib/mlearning
+#ifdef OBSOLETE // Marked obsolete Apr 6, 2015.  MLP classes moved to auxlib/mlearning
          {"MLPErrorLayer", LayerGroupType},
          {"MLPForwardLayer", LayerGroupType},
          {"MLPOutputLayer", LayerGroupType},
          {"MLPSigmoidLayer", LayerGroupType},
-#endif // OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
-#ifdef OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
-         {"MatchingPursuitLayer", LayerGroupType},
-         {"MatchingPursuitResidual", LayerGroupType},
-#endif // OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
+#endif // OBSOLETE // Marked obsolete Apr 6, 2015.  MLP classes moved to auxlib/mlearning
          {"MaxPooling", LayerGroupType},
          {"Movie", LayerGroupType},
          {"MoviePvp", LayerGroupType},
          {"Patterns", LayerGroupType},
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-         {"PoolingANNLayer", LayerGroupType},
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"PoolingIndexLayer", LayerGroupType},
          {"PtwiseLinearTransferLayer", LayerGroupType},
          {"PtwiseProductLayer", LayerGroupType},
@@ -219,13 +180,8 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"Retina", LayerGroupType},
          {"ShuffleLayer", LayerGroupType},
          {"SigmoidLayer", LayerGroupType},
-//         {"TextStream", LayerGroupType}, // Marked obsolete Mar 6, 2015
 //         {"TrainingLayer", LayerGroupType}, //Marked obsolete June 17, 2015
          {"WTALayer", LayerGroupType},
-#ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
-         {"NewCochlearLayer", LayerGroupType},
-         {"SoundStream", LayerGroupType},
-#endif // OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
 
          // Connections
          {"HyPerConn", ConnectionGroupType},
@@ -267,9 +223,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 #ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
          {"LayerFunctionProbe", ProbeGroupType},
 #endif // OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-         {"LogLatWTAProbe", ProbeGroupType},
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
          {"PointLIFProbe", ProbeGroupType},
          {"PointProbe", ProbeGroupType},
          {"RequireAllZeroActivityProbe", ProbeGroupType},
@@ -277,7 +230,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"SparsityLayerProbe", ProbeGroupType},
 #endif // OBSOLETE // Marked obsolete Jul 28, 2015.  Moved to obsolete/io
          {"StatsProbe", ProbeGroupType},
-//         {"TextStreamProbe", ProbeGroupType}, // Marked obsolete Mar 6, 2015
 
          // // Connection probes
          {"KernelProbe", ProbeGroupType},
@@ -390,11 +342,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "GapLayer") ) {
       addedLayer = new GapLayer(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-   else if( !strcmp(keyword, "GenerativeLayer") ) {
-      addedLayer = new GenerativeLayer(name, hc);
-   }
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "HyPerLCALayer") ) {
       addedLayer = new HyPerLCALayer(name, hc);
    }
@@ -436,11 +383,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "LeakyIntegrator") ) {
       addedLayer = new LeakyIntegrator(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-   else if( !strcmp(keyword, "LogLatWTAGenLayer") ) {
-      addedLayer = new LogLatWTAGenLayer(name, hc);
-   }
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "MaskLayer") ) {
       addedLayer = new MaskLayer(name, hc);
    }
@@ -460,14 +402,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    }
 #endif
 
-#ifdef OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
-   else if( !strcmp(keyword, "MatchingPursuitLayer") ) {
-      addedLayer = new MatchingPursuitLayer(name, hc);
-   }
-   else if( !strcmp(keyword, "MatchingPursuitResidual") ) {
-      addedLayer = new MatchingPursuitResidual(name, hc);
-   }
-#endif // OBSOLETE // Marked obsolete Mar 18, 2015.  MatchingPursuit classes moved to auxlib/matchingpursuit
    else if( !strcmp(keyword, "MaxPooling") ) {
       // MaxPooling was marked obsolete Oct 30, 2014
       if (hc->columnId()==0) {
@@ -485,11 +419,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "Patterns") ) {
       addedLayer = new Patterns(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-   else if( !strcmp(keyword, "PoolingANNLayer") ) {
-      addedLayer = new PoolingANNLayer(name, hc);
-   }
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "PoolingIndexLayer") ) {
       addedLayer = new PoolingIndexLayer(name, hc);
    }
@@ -514,11 +443,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "SigmoidLayer") ) {
       addedLayer = new SigmoidLayer(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Mar 6, 2015
-   else if( !strcmp(keyword, "TextStream") ) {
-      addedLayer = new TextStream(name, hc);
-   }
-#endif // OBSOLETE
 #ifdef OBSOLETE // Marked obsolete June 17, 2015
    else if( !strcmp(keyword, "TrainingLayer") ) {
       addedLayer = new TrainingLayer(name, hc);
@@ -527,14 +451,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "WTALayer") ) {
       addedLayer = new WTALayer(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
-   else if( !strcmp(keyword, "NewCochlearLayer") ) {
-      addedLayer = new NewCochlearLayer(name, hc);
-   }
-   else if( !strcmp(keyword, "SoundStream") ) {
-      addedLayer = new SoundStream(name, hc);
-   }
-#endif // OBSOLETE // Marked obsolete Mar 16, 2015.  Sound-related classes moved to auxlib/pvsound
 
    if (addedLayer==NULL && getGroupType(keyword)==LayerGroupType) {
       if (hc->columnId()==0) {
@@ -676,11 +592,6 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
       addedProbe = new LayerFunctionProbe(name, hc);
    }
 #endif // OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
-#ifdef OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
-   else if( !strcmp(keyword, "LogLatWTAProbe") ) {
-      addedProbe = new LogLatWTAProbe(name, hc);
-   }
-#endif // OBSOLETE // Marked obsolete Mar 24, 2015.  Moved to inactivesandboxes/SymmetryBreakingGenerative
    else if( !strcmp(keyword, "PointLIFProbe") ) {
       addedProbe = new PointLIFProbe(name, hc);
    }
@@ -698,11 +609,6 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
    else if( !strcmp(keyword, "StatsProbe") ) {
       addedProbe = new StatsProbe(name, hc);
    }
-#ifdef OBSOLETE // Marked obsolete Mar 6, 2015
-   else if( !strcmp(keyword, "TextStreamProbe") ) {
-      addedProbe = new TextStreamProbe(name, hc);
-   }
-#endif // OBSOLETE
 
    // Connection probe keywords
    else if( !strcmp(keyword, "KernelProbe") ) {
