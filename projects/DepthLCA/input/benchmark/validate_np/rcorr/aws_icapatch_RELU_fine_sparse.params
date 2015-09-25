@@ -16,17 +16,17 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
+    stopTime = 93; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "/home/ec2-user/mountData/benchmark/train/aws_icaweights_RELU_sparse/";
+    outputPath = "/home/ec2-user/mountData/benchmark/validate/aws_icapatch_RELU_fine_sparse/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = false;
-    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/aws_icaweights_RELU_sparse/Checkpoints";
-    checkpointWriteStepInterval = 50;
+    //checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/benchmark/train/single_rcorr_LCA/Checkpoints";
+    checkpointWriteStepInterval = 10;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
     writeProgressToErr = true;
@@ -47,12 +47,12 @@ MoviePvp "RELU_V1" = {
     nxScale = .25;
     nyScale = .25;
     nf = 512;
-    inputPath = "~/mountData/benchmark/icaweights_RELU_sparse/a12_V1.pvp";
+    inputPath = "~/mountData/benchmark/icaweights_RELU_fine_sparse/a12_V1.pvp";
     writeFrameToTimestamp = true;
     writeStep = -1;
     sparseLayer = false;
     displayPeriod = 1;
-    start_frame_index = 1;
+    start_frame_index = 101;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
     mirrorBCflag = true;
@@ -74,14 +74,13 @@ Movie "DepthImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    readPvpFile = false; 
     inputPath = "/home/ec2-user/mountData/kitti/list/aws_disp_noc.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
     sparseLayer = false;
     displayPeriod = 1;
-    start_frame_index = 0;
+    start_frame_index = 100;
     skip_frame_index = 1;
     echoFramePathnameFlag = true;
     mirrorBCflag = false;
@@ -139,6 +138,40 @@ BinningLayer "DepthGT" = {
     originalLayerName = "DepthDownsample";
     phase = 2;
 };
+
+ANNLayer "RCorrBuf" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 128;
+    writeStep = -1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    phase = 5; //Same as other recons
+};
+
+WTALayer "RCorrRecon" = {
+    restart = 0;
+    nxScale = .25; 
+    nyScale = .25;
+    nf = 1; 
+    writeStep = 1.0;
+    initialWriteTime = 1.0;
+    mirrorBCflag = false;
+    writeSparseActivity = false;
+    delay = 0;
+    originalLayerName = "RCorrBuf";
+    phase = 6;
+};
+
 
 ////SLP layers
 //ANNLayer "SLP_Error" = {
@@ -232,10 +265,10 @@ PoolingConn "DepthImageToDepthDownsample" = {
 };
 
 //Reverse correlation connections
-MomentumConn "RELU_V1ToDepthGT" = {
+KernelConn "RELU_V1ToRCorrBuf" = {
     preLayerName = "RELU_V1";
-    postLayerName = "DepthGT";
-    channelCode = -1;
+    postLayerName = "RCorrBuf";
+    channelCode = 0;
     nxp = 33;
     nyp = 33;
     nfp = 128;
@@ -244,10 +277,10 @@ MomentumConn "RELU_V1ToDepthGT" = {
     numAxonalArbors = 1;
     initFromLastFlag = 0;
     //
-    //weightInitType = "FileWeight";
-    //initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToDepthGT_W.pvp";
-    weightInitType = "UniformWeight";
-    weightInit = 0;
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_icaweights_RELU_fine_sparse/Last/RELU_V1ToDepthGT_W.pvp";
+    //weightInitType = "UniformWeight";
+    //weightInit = 0;
     //
     strength = 1; //.25/2  
     normalizeMethod = "none";
@@ -265,17 +298,12 @@ MomentumConn "RELU_V1ToDepthGT" = {
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
 
-    plasticityFlag = true;
+    plasticityFlag = false;
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 1.0;
 
     initialWriteTime = 0.0;
     dWMax = 1; //1/numimages
-    momentumTau                         = 1;
-
-    momentumMethod                      = "viscosity";
-    momentumDecay                       = 0;
-
     selfFlag = false;
     shmget_flag = false;
     //
@@ -285,10 +313,6 @@ MomentumConn "RELU_V1ToDepthGT" = {
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
 
-    useMask = true;
-    maskLayerName = "DepthDownsample";
-
-    batchPeriod = 100;
     sharedWeights = true;
 };
 
