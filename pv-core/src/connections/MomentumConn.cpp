@@ -407,8 +407,7 @@ int MomentumConn::applyMomentum(int arbor_ID){
       }
    }
    else{
-      std::cout << "Momentum not implemented for non-shared weights\n";
-      exit(-1);
+      std::cout << "Warning: Momentum not implemented for non-shared weights, not implementing momentum\n";
    }
    return PV_SUCCESS;
 }
