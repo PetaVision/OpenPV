@@ -3188,7 +3188,7 @@ int HyPerCol::addBaseProbe(BaseProbe * p) {
 int HyPerCol::outputState(double time)
 {
    for( int n = 0; n < numColProbes; n++ ) {
-       colProbes[n]->outputState(time);
+       colProbes[n]->outputStateWrapper(time, deltaTimeBase);
    }
    return PV_SUCCESS;
 }
