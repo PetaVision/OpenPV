@@ -687,3 +687,9 @@ HyPerConn "BiasS2ToGroundTruthReconS2_4X3" = {
 //     nnzThreshold                        = 0;
 //     parentGenColProbe                   = NULL;
 // };
+
+HeatMapProbe "HeatMapProbe" = {
+    probeOutputFile                     = NULL;
+    reconLayer                          = "ImageReconS2";
+    outputPeriod                        = 10;
+};
