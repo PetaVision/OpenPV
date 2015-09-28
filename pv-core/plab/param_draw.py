@@ -239,7 +239,7 @@ class Param_Parser(Param_Reader):
     def make_original_layer_conns(self):
         for i in self.layer_dict.values():
             if 'originalLayerName' in i.params:
-                c = Conn(i.name,'OriginalLayerCopy')
+                c = Conn(i.name,'OriginalLayerCopy',i.nodraw)
                 c.post = i.name
                 c.pre = i['originalLayerName']
                 self.conn_dict[c.name] = c
@@ -247,7 +247,7 @@ class Param_Parser(Param_Reader):
     def make_pooling_layer_conns(self):
         for i in self.conn_dict.values():
             if 'postIndexLayerName' in i.params:
-                c = Conn((i['postIndexLayerName'] + '_conn'), 'IndexLayerCopy')
+                c = Conn((i['postIndexLayerName'] + '_conn'), 'IndexLayerCopy',i.nodraw)
                 c.post =  i.post
                 c.pre = i['postIndexLayerName']
                 self.conn_dict[c.name] = c
