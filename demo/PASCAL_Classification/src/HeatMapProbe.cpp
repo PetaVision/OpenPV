@@ -285,9 +285,11 @@ int HeatMapProbe::octaveProcess() {
          " --eval 'load CurrentModel/ConfidenceTables/confidenceTable.mat; heatMapMontage(" <<
          "\"" << imagePVPFilePath.str() << "\"" << ", " <<
          "\"" << resultPVPFilePath.str() << "\"" << ", " <<
+         "\"" << reconPVPFilePath.str() << "\"" << ", " <<
          "\"" << PV_DIR << "/mlab/util" << "\"" << ", " <<
          1/*imageFrameNumber*/ << ", " <<
          1/*resultFrameNumber*/ << ", " <<
+         1/*reconFrameNumber*/ << ", " <<
          "confidenceTable, " <<
          "\"" << classNames << "\"" << ", " <<
          "\"" << resultTextFile << "\"" << ", " <<
