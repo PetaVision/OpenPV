@@ -21,8 +21,8 @@ rectified = false;
 if(clobber)
    %Read all lines
    lines = 1;
-   leftImgs = cell(maxLineRead, 1);
-   rightImgs = cell(maxLineRead, 1);
+   leftImgs = {};
+   rightImgs = {};
 
    leftfid = fopen(leftlistpath);
    rightfid = fopen(rightlistpath);
@@ -36,8 +36,10 @@ if(clobber)
    fclose(leftfid);
    fclose(rightfid);
 
+   keyboard
+
    %Random frames within the numImages 
-   randIdxs = randperm(lines)(1:numImages);
+   randIdxs = randperm(lines-1)(1:numImages);
 
    patches = zeros(numExamples*numImages, patchSize*patchSize*2);
    exampleIdx = 1;
@@ -50,6 +52,12 @@ if(clobber)
 
       leftimg = imread(leftImgFile);
       rightimg = imread(rightImgFile);
+
+      assert(max(leftimg(:)) <= 255);
+      assert(max(rightimg(:)) <= 255);
+
+      leftimg = double(leftimg)/255;
+      rightimg = double(rightimg)/255;
 
       %Make b/w
       if(ndims(leftimg) == 3)
