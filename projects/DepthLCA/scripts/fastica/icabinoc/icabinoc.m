@@ -1,41 +1,67 @@
 addpath('../FastICA_25/')
 addpath('~/workspaceGit/OpenPV/pv-core/mlab/util');
 
-outputdir = 'outputRect/'
+outputdir = 'output/'
 savepath = [outputdir, 'icabinoc.mat'];
 clobber = true;
 
 leftlistpath = '/nh/compneuro/Data/KITTI/list/image_02.txt';
 rightlistpath = '/nh/compneuro/Data/KITTI/list/image_03.txt';
 
-leftfid = fopen(leftlistpath);
-rightfid = fopen(rightlistpath);
-
 patchSize = 66;
 numExamples = 10; %Num examples per image
 numImages = 5000;
+maxLineRead = 100000;
 numElements = 512;
 
-rectified = true;
+rectified = false;
+
+
 
 if(clobber)
+   %Read all lines
+   lines = 1;
+   leftImgs = cell(maxLineRead, 1);
+   rightImgs = cell(maxLineRead, 1);
+
+   leftfid = fopen(leftlistpath);
+   rightfid = fopen(rightlistpath);
+
+   disp('Reading file');
+   while ~feof(leftfid) && ~feof(rightfid) && lines <= maxLineRead 
+      leftImgs{lines} = fgetl(leftfid);
+      rightImgs{lines} = fgetl(rightfid);
+      lines += 1;
+   end
+   fclose(leftfid);
+   fclose(rightfid);
+
+   %Random frames within the numImages 
+   randIdxs = randperm(lines)(1:numImages);
+
    patches = zeros(numExamples*numImages, patchSize*patchSize*2);
    exampleIdx = 1;
-   for(j = 1:numImages)
-      leftImgFile = fgetl(leftfid);
-      rightImgFile = fgetl(rightfid);
+   for(i = 1:numImages)
+      j = randIdxs(i);
+      leftImgFile = leftImgs{j};
+      rightImgFile = rightImgs{j};
 
-      disp([num2str(j), ' out of ', num2str(numImages), ': ', leftImgFile]);
-      %printf('%d out of %d: %s\n', j, numImages, leftImgFile);
-      %fflush(stdout);
+      disp([num2str(i), ' out of ', num2str(numImages), ': ', leftImgFile]);
+
       leftimg = imread(leftImgFile);
       rightimg = imread(rightImgFile);
 
+      %Make b/w
+      if(ndims(leftimg) == 3)
+         leftimg = 0.21 * leftimg(:, :, 1) + 0.72 * leftimg(:, :, 2) + 0.07 * leftimg(:, :, 3);
+      end
+      if(ndims(rightimg) == 3)
+         rightimg = 0.21 * rightimg(:, :, 1) + 0.72 * rightimg(:, :, 2) + 0.07 * rightimg(:, :, 3);
+      end
+
+      %Downsample
       leftimg = leftimg(1:2:end, 1:2:end);
       rightimg = rightimg(1:2:end, 1:2:end);
-
-      %leftimg = imresize(leftimg, .5, 'bilinear');
-      %rightimg = imresize(rightimg, .5, 'bilinear');
 
       [ny, nx] = size(leftimg);
       [ny2, nx2] = size(rightimg);
@@ -55,7 +81,6 @@ if(clobber)
       end
    end
 
-   fclose(leftfid)
    if(rectified)
       assert(mod(numElements, 2) == 0);
       inNumElements = numElements/2;

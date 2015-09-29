@@ -1,4 +1,4 @@
-function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFile, sampleDim, numDepthBins, skipNum, numEpochs)
+function [outVals, kurtVals, peakMeanVals, peakAreaVals, activationFreq] = calcDepthTuning(v1ActFile, depthFile, sampleDim, numDepthBins, skipNum, numAreaPeak, numEpochs)
    addpath('~/workspace/PetaVision/mlab/util');
 
    %[left_w_data, left_hdr] = readpvpfile(dictPvpFiles{1});
@@ -39,7 +39,9 @@ function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFil
    %Data structure to hold stat values
    outVals = zeros(nf, numDepthBins - 1, sampleDim * sampleDim);
    peakMeanVals = zeros(nf, 1);
+   peakAreaVals= zeros(nf, 1);
    kurtVals = zeros(nf, 1);
+   activationFreq = zeros(nf, 1);
 
    for iepoch = 1:numEpochs
       startNf = ((iepoch - 1) * nfEpoch) + 1;
@@ -87,10 +89,14 @@ function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFil
 
       for(ni = 1:nfEpoch)
          currOutVals = zeros(numDepthBins - 1, sampleDim * sampleDim);
-         disp(['Calculating neuron ', num2str(ni+startNf), ' out of ' , num2str(nf)]);
+         disp(['Calculating neuron ', num2str(ni+startNf-1), ' out of ' , num2str(nf)]);
          %Take a slice and squeeze out singleton dimension
          v1_slice = reshape(v1_act(:, ni, :, :), numTimes, nx, ny);
          assert(size(v1_slice) == size(depth_act));
+
+         %Grab num activations for this neuron
+         activationFreq(startNf+ni-1) = nnz(v1_slice)/(numTimes * nx * ny);
+
          for(di = 2:numDepthBins)
             %Find locations of a given depth
             targetDepthIdx = find(depth_act == di);
@@ -136,59 +142,29 @@ function [outVals, kurtVals, peakMeanVals] = calcDepthTuning(v1ActFile, depthFil
          %Normalize peak to 1
          %outVals(ni, :, :) = currOutVals ./ max(currOutVals(:));
 
-         outVals(startNf+ni, :, :) = currOutVals;
+         outVals(startNf+ni-1, :, :) = currOutVals;
 
          %Calculate kurtosis, finding a kurtosis per sampleDim 
-         kurtVals(startNf+ni) = mean(kurtosis(currOutVals, 1, 1));
+         kurtVals(startNf+ni-1) = mean(kurtosis(currOutVals, 1, 1));
          %Calculate peak - mean
          meanPosVals = mean(currOutVals, 2);
          %Scale values
          normMeanPosVals = meanPosVals/max(meanPosVals);
-         peakMeanVals(startNf+ni) = 1-mean(normMeanPosVals);
+         peakMeanVals(startNf+ni-1) = 1-mean(normMeanPosVals);
+
+         %Calc area under peak vals
+         [drop, idx] = max(normMeanPosVals);
+         startIdx = idx - numAreaPeak;
+         endIdx = idx + numAreaPeak;
+         %Edge cases
+         if(startIdx < 1)
+            startIdx = 1;
+         end
+         if(endIdx > numDepthBins - 1)
+            endIdx = numDepthBins - 1;
+         end
+         peakAreaVals(startNf+ni-1) = mean(normMeanPosVals(startIdx:endIdx)) - mean(normMeanPosVals);
       end
    end
-
-
-   %%Return all useful variables
-   %%return [outVals, kurtVals, peakMeanVals]
-
-
-   %%%Kurtosis
-   %%Write mean and std of kurtosis in file
-   %kurtFile = fopen([plotOutDir, 'kurtosis.txt'], 'w');
-   %fprintf(kurtFile, 'kurtosis: %f +- %f\n', mean(kurtVals(:)), std(kurtVals(:)));
-   %[sortedKurt, sortedKurtIdxs] = sort(kurtVals, 'descend');
-
-   %%Write ranking by kurtosis
-   %for(ni = 1:nf)
-   %   fprintf(kurtFile, '%d: %f\n', sortedKurtIdxs(ni), sortedKurt(ni));
-   %end
-   %fclose(kurtFile);
-
-   %%Create histogram of kurtosis elements
-   %handle = figure;
-   %hist(kurtVals, [0:.5:10]);
-   %title('Hist of kurtosis values');
-   %print(handle, [plotOutDir, 'kurtHist.png']);
-
-   %%%PeakMean
-   %%Write mean and std of peak mean in file
-   %peakMeanFile = fopen([plotOutDir, 'peakmean.txt'], 'w');
-   %fprintf(peakMeanFile, 'peakmean: %f +- %f\n', mean(peakMeanVals(:)), std(peakMeanVals(:)));
-   %[sortedPeakMean , sortedPeakMeanIdxs] = sort(peakMeanVals, 'descend');
-
-   %%Write ranking by peakMean
-   %for(ni = 1:nf)
-   %   fprintf(peakMeanFile, '%d: %f\n', sortedPeakMeanIdxs(ni), sortedPeakMean(ni));
-   %end
-   %fclose(peakMeanFile);
-
-   %%Create histogram of peak mean elements
-   %handle = figure;
-   %%hist(peakMeanVals, [0:.5:10]);
-   %hist(peakMeanVals, [0.4:.05:.85]);
-   %title('Hist of peak mean values');
-   %print(handle, [plotOutDir, 'peakMeanHist.png']);
-
 end
 

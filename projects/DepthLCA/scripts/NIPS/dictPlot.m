@@ -4,19 +4,17 @@ close all;
 %setenv("GNUTERM","X11")
 
 workspace_path = "/home/slundquist/workspace";
-output_dir = "/nh/compneuro/Data/Depth/LCA/benchmark/validate/recons_run"
+output_dir = "/nh/compneuro/Data/Depth/NIPS/finetuned/validate/aws_icapatch_LCA_fine"
 %output_dir = "/nh/compneuro/Data/Depth/LCA/arbortest/"; 
 
-addpath([workspace_path, filesep, "/PetaVision/mlab/util"]);
-addpath([workspace_path, filesep, "/PetaVision/mlab/HyPerLCA"]);
-last_checkpoint_ndx = 200000;
+addpath([workspace_path, filesep, "/OpenPV/pv-core/mlab/util"]);
+addpath([workspace_path, filesep, "/OpenPV/pv-core/mlab/HyPerLCA"]);
 checkpoint_path = [output_dir, filesep, "Last/"];
 max_history = 100000000;
 numarbors = 1;
 
-max_patches = 144;
+max_patches = 512;
 
-plot_flag = 0;
 analyze_Sparse_flag = true;
 if analyze_Sparse_flag
     Sparse_list = ...
@@ -52,6 +50,7 @@ if analyze_Sparse_flag
 			     num_epochs);
 endif
 
+plot_flag = 0;
 %%keyboard;
 plot_weights = true;
 if plot_weights
@@ -63,8 +62,8 @@ if plot_weights
         };
    pre_list = ...
        { ...
-        ["LCA_V1_A"]; ...
-        ["LCA_V1_A"]; ...
+        ["V1_A"]; ...
+        ["V1_A"]; ...
         };
    sparse_ndx = ...
         [   ...

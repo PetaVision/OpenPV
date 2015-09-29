@@ -1,5 +1,5 @@
 import os, sys
-lib_path = os.path.abspath("/home/ec2-user/workspace/pv-core/plab/")
+lib_path = os.path.abspath("/home/slundquist/workspace/OpenPV/pv-core/plab/")
 sys.path.append(lib_path)
 from plotRecon import plotRecon
 from plotReconError import plotReconError
@@ -7,17 +7,15 @@ from plotReconError import plotReconError
 #For plotting
 #import matplotlib.pyplot as plt
 
-outputDir = "/home/ec2-user/mountData/benchmark/validate/aws_icapatch_LCA/"
+outputDir = "/nh/compneuro/Data/Depth/NIPS/tuneweighted/validate/aws_icapatch_LCA_tuneweighted/"
 skipFrames = 1 #Only print every 20th frame
 startFrames = 0
 doPlotRecon = True
 doPlotErr = False
 errShowPlots = False
 layers = [
-   "a1_LeftRecon",
-   "a2_RightRecon",
-   "a4_DepthDownsample",
-   "a7_RCorrRecon",
+   "a3_LeftRecon",
+   "a4_RightRecon",
    ]
 
 #Layers for constructing recon error
