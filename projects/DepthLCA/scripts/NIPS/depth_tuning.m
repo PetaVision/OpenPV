@@ -11,10 +11,10 @@ dataDir = '/nh/compneuro/Data/Depth/NIPS/finetuned/';
 loadData = false;
 
 LCA_v1ActFile = [dataDir, 'icaweights_LCA_fine/a12_V1.pvp'];
-RELU_v1ActFile = [dataDir, 'icaweights_RELU_fine/a12_V1.pvp'];
+RELU_v1ActFile = ['/nh/compneuro/Data/Depth/NIPS/sparse_control/icaweights_RELU_fine_sparse/a12_V1.pvp'];
 
 depthFile = [dataDir, '/train/aws_icaweights_LCA_fine/a4_DepthDownsample.pvp'];
-plotOutDir = [outDir, '/outplots/depthTuning/'];
+plotOutDir = [outDir, '/outplots_vssparse/depthTuning/'];
 
 dictPvpDir = [dataDir, '/train/aws_icaweights_LCA_fine/Last/'];
 dictPvpFiles = {[dictPvpDir, 'LCA_V1ToLeftRecon_W.pvp'];...
@@ -24,6 +24,7 @@ dictPvpFiles = {[dictPvpDir, 'LCA_V1ToLeftRecon_W.pvp'];...
 sampleDim = 5;
 numDepthBins = 64;
 numEpochs = 1; %Splitting up nf to save memory
+maxHistCutoffPercent = .10; %Cut off neurons that is 10% under the max activation frequency
 
 
 %targetNeurons = 1:512;
@@ -37,9 +38,9 @@ saveFilename = [outDir, 'tuningData.mat']
 if(loadData)
    load(saveFilename);
 else
-   [LCA_outVals, LCA_kurtVals, LCA_peakMean, LCA_peakArea] = calcDepthTuning(LCA_v1ActFile, depthFile, sampleDim, numDepthBins, 1, 5, numEpochs);
-   [RELU_outVals, RELU_kurtVals, RELU_peakMean, RELU_peakArea] = calcDepthTuning(RELU_v1ActFile, depthFile, sampleDim, numDepthBins, 1, 5, numEpochs);
-   save(saveFilename, 'LCA_outVals', 'LCA_kurtVals', 'LCA_peakMean', 'LCA_peakArea', 'RELU_outVals', 'RELU_kurtVals', 'RELU_peakMean', 'RELU_peakArea');
+   [LCA_outVals, LCA_kurtVals, LCA_peakMean, LCA_peakArea, LCA_activationFreq] = calcDepthTuning(LCA_v1ActFile, depthFile, sampleDim, numDepthBins, 1, 5, numEpochs);
+   [RELU_outVals, RELU_kurtVals, RELU_peakMean, RELU_peakArea, RELU_activationFreq] = calcDepthTuning(RELU_v1ActFile, depthFile, sampleDim, numDepthBins, 1, 5, numEpochs);
+   save(saveFilename, 'LCA_outVals', 'LCA_kurtVals', 'LCA_peakMean', 'LCA_peakArea', 'LCA_activationFreq', 'RELU_outVals', 'RELU_kurtVals', 'RELU_peakMean', 'RELU_peakArea', 'RELU_activationFreq');
 end
 
 disp('Loading done, reading dictionary pvpfiles');
@@ -88,10 +89,6 @@ targetNeurons = LCA_sortedPmIdxs;
 %1 figure per neuron
 for i = 1:length(targetNeurons);
    ni = targetNeurons(i);
-   %Saved neurons for some reason has neuron 513. Take out
-   if(ni == 513)
-      continue
-   end
    handle = figure;
    if(size(left_w_data{1}.values{1}, 3) == 1)
       colormap(gray);
@@ -135,7 +132,7 @@ for i = 1:length(targetNeurons);
 
    %ylabel('T(u)', 'FontSize', 16);
 
-   L = legend(hLCA, 'SCANN');
+   L = legend(hLCA, ['SCANN = ', num2str(LCA_activationFreq(i))]);
    set(L, 'FontSize', 24);
    legend left
    legend boxoff
@@ -155,7 +152,7 @@ for i = 1:length(targetNeurons);
    end
    hold off;
 
-   L = legend(hRELU, 'ReLU');
+   L = legend(hRELU, ['ReLU = ', num2str(RELU_activationFreq(i))]);
    set(L, 'FontSize', 24);
    legend left
    legend boxoff
@@ -168,7 +165,9 @@ for i = 1:length(targetNeurons);
    ax(2) -= .06;
    set(SRELU, 'Position', ax);
 
-   print(handle, [plotOutDir, 'rank', num2str(i), '_neuron', num2str(ni), '.png']);
+   outDir = sprintf('%s/rank%3.3d_neuron%3.3d.png', plotOutDir, i, ni)
+
+   print(handle, outDir);
    close(handle)
 end
 
@@ -234,9 +233,14 @@ set(0, ...
 'DefaultAxesFontName', 'Times New Roman', ...
 'DefaultLineLineWidth', 3)
 
-%Histogram of all peakMeans
-[RELUf, RELUx] = hist(RELU_peakMean,[.4: .05: .85], 'b', 'BarWidth', .9);
-[LCAf, LCAx] = hist(LCA_peakMean, [.4: .05: .85], 'r', 'BarWidth',.7);
+%Histogram of all peakMeans that's under the cutoff
+maxRELUFreq = max(RELU_activationFreq);
+maxLCAFreq = max(LCA_activationFreq);
+RELU_peakmeanIdx = find(RELU_activationFreq >= maxRELUFreq * maxHistCutoffPercent);
+LCA_peakmeanIdx = find(LCA_activationFreq >= maxLCAFreq * maxHistCutoffPercent);
+
+[RELUf, RELUx] = hist(RELU_peakMean(RELU_peakmeanIdx),[.4: .05: .85], 'b', 'BarWidth', .9);
+[LCAf, LCAx] = hist(LCA_peakMean(LCA_peakmeanIdx), [.4: .05: .85], 'r', 'BarWidth',.7);
 
 handle = figure;
 set(handle, 'Position', [1 1 1 .5])

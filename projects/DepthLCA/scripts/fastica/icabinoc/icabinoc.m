@@ -1,9 +1,9 @@
 addpath('../FastICA_25/')
-addpath('~/workspaceGit/OpenPV/pv-core/mlab/util');
+addpath('~/workspace/OpenPV/pv-core/mlab/util');
 
 outputdir = 'output/'
 savepath = [outputdir, 'icabinoc.mat'];
-clobber = true;
+clobber = false;
 
 leftlistpath = '/nh/compneuro/Data/KITTI/list/image_02.txt';
 rightlistpath = '/nh/compneuro/Data/KITTI/list/image_03.txt';
@@ -16,11 +16,9 @@ numElements = 512;
 
 rectified = false;
 
-
-
 if(clobber)
    %Read all lines
-   lines = 1;
+   l = 1;
    leftImgs = {};
    rightImgs = {};
 
@@ -28,18 +26,17 @@ if(clobber)
    rightfid = fopen(rightlistpath);
 
    disp('Reading file');
-   while ~feof(leftfid) && ~feof(rightfid) && lines <= maxLineRead 
-      leftImgs{lines} = fgetl(leftfid);
-      rightImgs{lines} = fgetl(rightfid);
-      lines += 1;
+   while ~feof(leftfid) && ~feof(rightfid) && l <= maxLineRead 
+      leftImgs{l} = fgetl(leftfid);
+      rightImgs{l} = fgetl(rightfid);
+      l = l + 1;
    end
    fclose(leftfid);
    fclose(rightfid);
 
-   keyboard
-
    %Random frames within the numImages 
-   randIdxs = randperm(lines-1)(1:numImages);
+   p = randperm(l-1);
+   randIdxs = p(1:numImages);
 
    patches = zeros(numExamples*numImages, patchSize*patchSize*2);
    exampleIdx = 1;
