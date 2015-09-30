@@ -30,5 +30,6 @@ Instructions for running the system tests:
     cd PVSystemTests
     ctest
 
-Our webpage is <http://petavision.github.io/>.  More detailed documentation is
-available at <http://petavision.github.io/doxygen>.
+Our webpage is <http://petavision.github.io/>.
+More detailed documentation is available at <http://petavision.github.io/doxygen>.
+For general questions and discussion, post to our Gitter page: <https://gitter.im/PetaVision/OpenPV>
