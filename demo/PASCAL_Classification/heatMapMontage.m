@@ -1,9 +1,11 @@
 function outimage = heatMapMontage(...
     imagePvpFile,...
     resultPvpFile,...
+    reconPvpFile,...
     pv_dir,...
     imageFrameNumber,...
     resultFrameNumber,...
+    reconFrameNumber,...
     confidenceTable,...
     classNameFile,...
     resultsTextFile,...
@@ -18,17 +20,20 @@ function outimage = heatMapMontage(...
     dbscanDensity,...
     montagePath,...
     displayCommand)
-% outimage = heatMapMontage(imagePvpFile, resultPvpFile, pv_dir, imageFrameNumber, resultFrameNumber, confidenceTable, classNameFile, resultsTextFile, evalCategoryIndices, displayCategoryIndices, highlightThreshold, heatMapThreshold, heatMapMaximum, drawBoundingBoxes, boundingBoxThickness, dbscanEps, dbscanDensity, montagePath, displayCommand)
+% outimage = heatMapMontage(imagePvpFile, resultPvpFile, reconPvpFile, pv_dir, imageFrameNumber, resultFrameNumber,
+% reconFrameNumber, confidenceTable, classNameFile, resultsTextFile, evalCategoryIndices, displayCategoryIndices, highlightThreshold, heatMapThreshold, heatMapMaximum, drawBoundingBoxes, boundingBoxThickness, dbscanEps, dbscanDensity, montagePath, displayCommand)
 % Takes frames from two input pvp files, imagePvpFile and resultPvpFile and creates a montage compositing
 % the image pvp file with each of the features of the result pvp file.
 %
 % imagePvpFile: the path to a pvp file containing the base image.
 % resultPvpFile: the path to a pvp file containing the results.
+% reconPvpFile: the path to a pvp file containing the image reconstruction.
 % pv_dir: the path containing the function m-file readpvpfile.m (usually in <PV_DIR>/mlab/util).
 %    If empty, readpvpfile must be a recognized command after initializing octave.
 %    If nonempty, readpvpfile must be a recognized command after calling addpath(pv_dir);
 % imageFrameNumber: the index of the specific frame from imagePvpFile to use.  The beginning frame has index 1.
 % resultFrameNumber: the index of the specific frame from resultPvpFile to use.
+% reconFrameNumber: the index of the specific frame from reconPvpFile to use.
 % confidenceTable: a matrix with nf+1 columns, where nf is the number of features in resultPvpFile.
 %    The last column should be an increasing vector where all values of the given frame of resultPvpFile
 %    lie between the first entry of the column and the last.
@@ -84,8 +89,8 @@ fprintf(1,'heatMapMontage: input image file \"%s\", frame %d\n', imagePvpFile, i
 if (imgHdr.filetype != 4)
    error("heatMapMontage:expectingnonsparse","heatMapMontage expects %s to be a nonsparse layer",imagePvpFile);
 end%if
-%imageData = permute(imagePvp{1}.values,[2 1 3]); % keep image as color
-imageData = mean(imagePvp{1}.values,3)'; % convert image to gray
+imageData = permute(imagePvp{1}.values,[2 1 3]);
+imageDataGrayscale = mean(imageData,3); % convert image to gray
 
 [resultPvp,resultHdr] = readpvpfile(resultPvpFile, [], resultFrameNumber, resultFrameNumber);
 if (resultHdr.filetype != 4)
@@ -101,8 +106,8 @@ numCategories=numel(displayCategoryIndices);
 
 numColumns = 1:numCategories;
 numRows = ceil(numCategories./numColumns);
-totalSizeY = (size(imageData,1)+64+10)*numRows;
-totalSizeX = (size(imageData,2)+64+10)*numColumns;
+totalSizeY = (size(imageDataGrayscale,1)+64+10)*numRows;
+totalSizeX = (size(imageDataGrayscale,2)+10)*(numColumns+2);
 aspectRatio = totalSizeX./totalSizeY;
 ldfgr = abs(log(aspectRatio) - log((1+sqrt(5))/2));
 numColumns = find(ldfgr==min(ldfgr),1);
@@ -113,6 +118,7 @@ end%while
 while (numRows-1)*numColumns >= numCategories
     numRows = numRows-1;
 end%while
+numRows = max(numRows, 2);
 assert(numRows*numColumns >= numCategories);
 
 if isempty(classNameFile)
@@ -142,8 +148,8 @@ if isempty(evalCategoryIndices)
    evalCategoryIndices=1:resultHdr.nf;
 end%if
 
-upsampleNx = size(imageData,2)/size(resultData,2);
-upsampleNy = size(imageData,1)/size(resultData,1);
+upsampleNx = size(imageDataGrayscale,2)/size(resultData,2);
+upsampleNy = size(imageDataGrayscale,1)/size(resultData,1);
 assert(upsampleNx==round(upsampleNx));
 assert(upsampleNy==round(upsampleNy));
 
@@ -152,8 +158,10 @@ maxConfColor = [0 1 0];
 imageBlendCoeff = 0.3;
 % heatmap image will be imageBlendCoeff * imagedata plus (1-imageBlendCoeff) * heatmap data, where
 % the heatmap is converted to color using thresholdConfColor and maxConfColor
-montageImage = zeros((size(imageData,1)+64+10)*numRows, (size(imageData,2)+10)*numColumns,3);
+montageImage = zeros((size(imageDataGrayscale,1)+64+10)*numRows, (size(imageDataGrayscale,2)+10)*(numColumns+2), 3);
+% The +64 in the y-dimension makes room for the category caption
 % The +10 creates a border around each tile in the montage
+% The two extra columns make room for the reconstructed image.
 
 confData = zeros(size(resultData));
 for k=1:resultHdr.nf
@@ -176,7 +184,7 @@ for k=1:numel(winningFeature)
    fprintf(1,'winning feature is %s, with confidence %.1f%%\n', classes{winningFeature(k)}, 100*maxConfidence);
 end%for
 
-imageDataBlend = imageBlendCoeff*imageData;
+imageDataBlend = imageBlendCoeff*imageDataGrayscale;
 for k=1:numCategories
     category = displayCategoryIndices(k);
     categorycolumn = mod(k-1,numColumns)+1;
@@ -186,10 +194,10 @@ for k=1:numCategories
     resultUpsampledY = upsamplefill(thresholdConfData(:,:,category),upsampleNx-1,'COPY');
     resultUpsampled = upsamplefill(resultUpsampledY',upsampleNy-1,'COPY')';
     %resultPngFilename = sprintf('tmp/result-frame%04d-category%02d.png',resultFrameNumber, category);
-    tileImage = zeros([size(imageData),3]);
+    tileImage = zeros([size(imageDataGrayscale),3]);
     for b=1:3
        tileImage(:,:,b) = thresholdConfColor(b) + (maxConfColor(b)-thresholdConfColor(b))*resultUpsampled;
-       tileImage(:,:,b) = imageBlendCoeff * imageData + (1-imageBlendCoeff) * tileImage(:,:,b);
+       tileImage(:,:,b) = imageBlendCoeff * imageDataGrayscale + (1-imageBlendCoeff) * tileImage(:,:,b);
     end%for
     if (size(tileImage,3)==1), tileImage=repmat(tileImage,[1 1 3]); end;
 
@@ -234,26 +242,68 @@ for k=1:numCategories
     end%if
 
     file = sprintf('tmp/label%s.png', classes{category});
-    makeLabelCommand = sprintf('convert -background white -fill %s -size %dx32 -pointsize 24 -gravity center label:%s %s', captionColor, size(imageData,2), classes{category}, file);
+    makeLabelCommand = sprintf('convert -background white -fill %s -size %dx32 -pointsize 24 -gravity center label:%s %s', captionColor, size(imageDataGrayscale,2), classes{category}, file);
     system(makeLabelCommand);
     img = readImageMagickFile(file);
     delete(file);
 
     valueFile = sprintf('tmp/value%s.png', classes{category});
-    makeValueCommand = sprintf('convert -background white -fill %s -size %dx32 -pointsize 24 -gravity center label:%.1f%% %s', captionColor, size(imageData,2), 100*maxConfCategory, valueFile);
+    makeValueCommand = sprintf('convert -background white -fill %s -size %dx32 -pointsize 24 -gravity center label:%.1f%% %s', captionColor, size(imageDataGrayscale,2), 100*maxConfCategory, valueFile);
     system(makeValueCommand);
     valueImage = readImageMagickFile(valueFile);
     delete(valueFile);
 
-    xstart = (size(imageData,2)+10)*(categorycolumn-1)+5;
-    ystart = (size(imageData,1)+64+10)*(categoryrow-1)+5;
+    xstart = (size(imageDataGrayscale,2)+10)*(categorycolumn-1)+5;
+    ystart = (size(imageDataGrayscale,1)+64+10)*(categoryrow-1)+5;
     % The +10 provides a 10-pixel border around each image.
     % The +5 places the tile in the middle of the region with 10-pixel border.
     % The +64 is because each tile includes the caption, which is 64 pixels high.
-    montageImage(ystart+(1:32),xstart+(1:size(imageData,2)),:) = img;
-    montageImage(ystart+(33:64),xstart+(1:size(imageData,2)),:) = valueImage;
-    montageImage(ystart+64+(1:size(imageData,1)),xstart+(1:size(imageData,2)),:) = tileImage;
+    montageImage(ystart+(1:32),xstart+(1:size(imageDataGrayscale,2)),:) = img;
+    montageImage(ystart+(33:64),xstart+(1:size(imageDataGrayscale,2)),:) = valueImage;
+    montageImage(ystart+64+(1:size(imageDataGrayscale,1)),xstart+(1:size(imageDataGrayscale,2)),:) = tileImage;
 end%for
+
+[reconPvp,reconHdr] = readpvpfile(reconPvpFile, [], reconFrameNumber, reconFrameNumber);
+if (reconHdr.filetype != 4)
+   error("heatMapMontage:expectingnonsparse","heatMapMontage expects %s to be a nonsparse layer",reconPvpFile);
+end%if
+reconData = permute(reconPvp{1}.values,[2 1 3]);
+reconMax = max(reconData(:));
+reconMin = min(reconData(:));
+reconData = (reconData-reconMin)/(reconMax-reconMin+(reconMax==reconMin));
+if size(reconData,3)==1
+   reconData = repmat(reconData,[1 1 3]);
+end%if
+
+
+xstart = floor((numColumns+0.5)*(size(reconData,2)+10));
+ystart = 5;
+if (size(imageData,3)==1)
+   montageImage(ystart+64+(1:size(imageData,1)), xstart+(1:size(imageData,2)), :) = repmat(imageData,[1 1 3]);
+else
+   montageImage(ystart+64+(1:size(imageData,1)), xstart+(1:size(imageData,2)), :) = imageData;
+end%if
+
+file = 'tmp/labelimage.png';
+makeLabelCommand = sprintf('convert -background black -fill %s -size %dx32 -pointsize 24 -gravity center label:%s %s', "white", size(reconData,2), "original image", file);
+system(makeLabelCommand);
+img = readImageMagickFile(file);
+montageImage(ystart+(33:64), xstart+(1:size(imageDataGrayscale,2)), :) = img;
+delete(file);
+
+
+%use the same xstart
+ystart = size(reconData,1)+64+10+5;
+montageImage(ystart+64+(1:size(reconData,1)), xstart+(1:size(reconData,2)), :) = reconData;
+
+file = 'tmp/labelrecon.png';
+makeLabelCommand = sprintf('convert -background black -fill %s -size %dx32 -pointsize 24 -gravity center label:%s %s', "white", size(reconData,2), "reconstruction", file);
+system(makeLabelCommand);
+img = readImageMagickFile(file);
+montageImage(ystart+(33:64),xstart+(1:size(imageDataGrayscale,2)),:) = img;
+delete(file);
+
+
 imwrite(montageImage, montagePath);
 
 if nargout>0

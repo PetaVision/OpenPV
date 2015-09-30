@@ -242,100 +242,9 @@ ANNLayer "S1ReconS2" = {
     clearGSynInterval                   = 0;
 };
 
-//ANNLayer "GroundTruthReconS2_16X12" = {
-//    nxScale                             = 0.0625;
-//    nyScale                             = 0.0625;
-//    nf                                  = 21;
-//    phase                               = 7;
-//    mirrorBCflag                        = false;
-//    valueBC                             = 0;
-//    InitVType                           = "ZeroV";
-//    triggerFlag                         = true;
-//    triggerLayerName                    = "Image";
-//    triggerOffset                       = 1;
-//    writeStep                           = 200;
-//    initialWriteTime                    = 200;
-//    sparseLayer                         = false;
-//    updateGpu                           = false;
-//    dataType                            = NULL;
-//    VThresh                             = -infinity;
-//    AMin                                = -infinity;
-//    AMax                                = infinity;
-//    AShift                              = 0;
-//    VWidth                              = 0;
-//    clearGSynInterval                   = 0;
-//};
-//
-//ConstantLayer "BiasS2_16X12" = {
-//    nxScale                             = 0.0625;
-//    nyScale                             = 0.0625;
-//    nf                                  = 1;
-//    phase                               = 0;
-//    mirrorBCflag                        = false;
-//    valueBC                             = 0;
-//    InitVType                           = "ConstantV";
-//    valueV                              = 1;
-//    writeStep                           = -1;
-//    sparseLayer                         = false;
-//    updateGpu                           = false;
-//    dataType                            = NULL;
-//    VThresh                             = -infinity;
-//    AMin                                = -infinity;
-//    AMax                                = infinity;
-//    AShift                              = 0;
-//    VWidth                              = 0;
-//    clearGSynInterval                   = 0;
-//};
-//
-//ANNLayer "S2MaxPooled_16X12" = {
-//    nxScale                             = 0.0625;
-//    nyScale                             = 0.0625;
-//    nf                                  = 1536;
-//    phase                               = 6;
-//    mirrorBCflag                        = false;
-//    valueBC                             = 0;
-//    InitVType                           = "ZeroV";
-//    triggerFlag                         = true;
-//    triggerLayerName                    = "Image";
-//    triggerOffset                       = 1;
-//    writeStep                           = -1;
-//    sparseLayer                         = false;
-//    updateGpu                           = false;
-//    dataType                            = NULL;
-//    VThresh                             = -infinity;
-//    AMin                                = -infinity;
-//    AMax                                = infinity;
-//    AShift                              = 0;
-//    VWidth                              = 0;
-//    clearGSynInterval                   = 0;
-//};
-//
-//ANNLayer "S2SumPooled_16X12" = {
-//    nxScale                             = 0.0625;
-//    nyScale                             = 0.0625;
-//    nf                                  = 1536;
-//    phase                               = 6;
-//    mirrorBCflag                        = false;
-//    valueBC                             = 0;
-//    InitVType                           = "ZeroV";
-//    triggerFlag                         = true;
-//    triggerLayerName                    = "Image";
-//    triggerOffset                       = 1;
-//    writeStep                           = -1;
-//    sparseLayer                         = false;
-//    updateGpu                           = false;
-//    dataType                            = NULL;
-//    VThresh                             = -infinity;
-//    AMin                                = -infinity;
-//    AMax                                = infinity;
-//    AShift                              = 0;
-//    VWidth                              = 0;
-//    clearGSynInterval                   = 0;
-//};
-
-ANNLayer "GroundTruthReconS2_4X3" = {
-    nxScale                             = 0.015625;
-    nyScale                             = 0.015625;
+ANNLayer "GroundTruthReconS2_16X12" = {
+    nxScale                             = 0.0625;
+    nyScale                             = 0.0625;
     nf                                  = 21;
     phase                               = 7;
     mirrorBCflag                        = false;
@@ -357,9 +266,9 @@ ANNLayer "GroundTruthReconS2_4X3" = {
     clearGSynInterval                   = 0;
 };
 
-ConstantLayer "BiasS2_4X3" = {
-    nxScale                             = 0.015625;
-    nyScale                             = 0.015625;
+ConstantLayer "BiasS2_16X12" = {
+    nxScale                             = 0.0625;
+    nyScale                             = 0.0625;
     nf                                  = 1;
     phase                               = 0;
     mirrorBCflag                        = false;
@@ -378,9 +287,9 @@ ConstantLayer "BiasS2_4X3" = {
     clearGSynInterval                   = 0;
 };
 
-ANNLayer "S2MaxPooled_4X3" = {
-    nxScale                             = 0.015625;
-    nyScale                             = 0.015625;
+ANNLayer "S2MaxPooled_16X12" = {
+    nxScale                             = 0.0625;
+    nyScale                             = 0.0625;
     nf                                  = 1536;
     phase                               = 6;
     mirrorBCflag                        = false;
@@ -401,9 +310,9 @@ ANNLayer "S2MaxPooled_4X3" = {
     clearGSynInterval                   = 0;
 };
 
-ANNLayer "S2SumPooled_4X3" = {
-    nxScale                             = 0.015625;
-    nyScale                             = 0.015625;
+ANNLayer "S2SumPooled_16X12" = {
+    nxScale                             = 0.0625;
+    nyScale                             = 0.0625;
     nf                                  = 1536;
     phase                               = 6;
     mirrorBCflag                        = false;
@@ -623,129 +532,9 @@ CloneConn "S1ReconS2ToImageReconS2" = {
     originalConnName                    = "S1ToImageReconS1Error";
 };
 
-//PoolingConn "S2ToS2MaxPooled_16X12" = {
-//    preLayerName                        = "S2";
-//    postLayerName                       = "S2MaxPooled_16X12";
-//    channelCode                         = 0;
-//    delay                               = [0.000000];
-//    numAxonalArbors                     = 1;
-//    convertRateToSpikeCount             = false;
-//    receiveGpu                          = false;
-//    sharedWeights                       = true;
-//    updateGSynFromPostPerspective       = false;
-//    pvpatchAccumulateType               = "maxpooling";
-//    writeStep                           = -1;
-//    writeCompressedCheckpoints          = false;
-//    selfFlag                            = false;
-//    nxp                                 = 3;
-//    nyp                                 = 3;
-//    nfp                                 = 1536;
-//    shrinkPatches                       = false;
-//    needPostIndexLayer                  = false;
-//};
-//
-//PoolingConn "S2ToS2SumPooled_16X12" = {
-//    preLayerName                        = "S2";
-//    postLayerName                       = "S2SumPooled_16X12";
-//    channelCode                         = 0;
-//    delay                               = [0.000000];
-//    numAxonalArbors                     = 1;
-//    convertRateToSpikeCount             = false;
-//    receiveGpu                          = false;
-//    sharedWeights                       = true;
-//    updateGSynFromPostPerspective       = false;
-//    pvpatchAccumulateType               = "sumpooling";
-//    writeStep                           = -1;
-//    writeCompressedCheckpoints          = false;
-//    selfFlag                            = false;
-//    nxp                                 = 3;
-//    nyp                                 = 3;
-//    nfp                                 = 1536;
-//    shrinkPatches                       = false;
-//    needPostIndexLayer                  = false;
-//};
-//
-//HyPerConn "S2MaxPooledToGroundTruthReconS2_16X12" = {
-//    preLayerName                        = "S2MaxPooled_16X12";
-//    postLayerName                       = "GroundTruthReconS2_16X12";
-//    channelCode                         = 0;
-//    delay                               = [0.000000];
-//    numAxonalArbors                     = 1;
-//    plasticityFlag                      = false;
-//    convertRateToSpikeCount             = false;
-//    receiveGpu                          = false;
-//    sharedWeights                       = true;
-//    weightInitType                      = "FileWeight";
-//    initWeightsFile                     = "CurrentModel/Classifiers/S2MaxPooledToGroundTruthReconS2Error_W.pvp";
-//    useListOfArborFiles                 = false;
-//    combineWeightFiles                  = false;
-//    updateGSynFromPostPerspective       = false;
-//    pvpatchAccumulateType               = "convolve";
-//    writeStep                           = -1;
-//    writeCompressedCheckpoints          = false;
-//    selfFlag                            = false;
-//    nxp                                 = 1;
-//    nyp                                 = 1;
-//    nfp                                 = 21;
-//    shrinkPatches                       = false;
-//    normalizeMethod                     = "none";
-//};
-//
-//HyPerConn "S2SumPooledToGroundTruthReconS2_16X12" = {
-//    preLayerName                        = "S2SumPooled_16X12";
-//    postLayerName                       = "GroundTruthReconS2_16X12";
-//    channelCode                         = 0;
-//    delay                               = [0.000000];
-//    numAxonalArbors                     = 1;
-//    plasticityFlag                      = false;
-//    convertRateToSpikeCount             = false;
-//    receiveGpu                          = false;
-//    sharedWeights                       = true;
-//    weightInitType                      = "FileWeight";
-//    initWeightsFile                     = "CurrentModel/Classifiers/S2SumPooledToGroundTruthReconS2Error_W.pvp";
-//    useListOfArborFiles                 = false;
-//    combineWeightFiles                  = false;
-//    updateGSynFromPostPerspective       = false;
-//    pvpatchAccumulateType               = "convolve";
-//    writeStep                           = -1;
-//    writeCompressedCheckpoints          = false;
-//    selfFlag                            = false;
-//    nxp                                 = 1;
-//    nyp                                 = 1;
-//    nfp                                 = 21;
-//    shrinkPatches                       = false;
-//    normalizeMethod                     = "none";
-//};
-//
-//HyPerConn "BiasS2ToGroundTruthReconS2_16X12" = {
-//    preLayerName                        = "BiasS2_16X12";
-//    postLayerName                       = "GroundTruthReconS2_16X12";
-//    channelCode                         = 0;
-//    delay                               = [0.000000];
-//    numAxonalArbors                     = 1;
-//    plasticityFlag                      = false;
-//    convertRateToSpikeCount             = false;
-//    receiveGpu                          = false;
-//    sharedWeights                       = true;
-//    weightInitType                      = "FileWeight";
-//    initWeightsFile                     = "CurrentModel/Classifiers/BiasS2ToGroundTruthReconS2Error_W.pvp";
-//    useListOfArborFiles                 = false;
-//    combineWeightFiles                  = false;
-//    updateGSynFromPostPerspective       = false;
-//    pvpatchAccumulateType               = "convolve";
-//    writeStep                           = -1;
-//    writeCompressedCheckpoints          = false;
-//    selfFlag                            = false;
-//    nxp                                 = 1;
-//    nyp                                 = 1;
-//    nfp                                 = 21;
-//    shrinkPatches                       = false;
-//    normalizeMethod                     = "none";
-//};
-
-PoolingConn "S2ToS2MaxPooled_4X3" = {
+PoolingConn "S2ToS2MaxPooled_16X12" = {
     preLayerName                        = "S2";
-    postLayerName                       = "S2MaxPooled_4X3";
+    postLayerName                       = "S2MaxPooled_16X12";
     channelCode                         = 0;
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
@@ -764,9 +553,9 @@ PoolingConn "S2ToS2MaxPooled_4X3" = {
     needPostIndexLayer                  = false;
 };
 
-PoolingConn "S2ToS2SumPooled_4X3" = {
+PoolingConn "S2ToS2SumPooled_16X12" = {
     preLayerName                        = "S2";
-    postLayerName                       = "S2SumPooled_4X3";
+    postLayerName                       = "S2SumPooled_16X12";
     channelCode                         = 0;
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
@@ -785,9 +574,9 @@ PoolingConn "S2ToS2SumPooled_4X3" = {
     needPostIndexLayer                  = false;
 };
 
-HyPerConn "S2MaxPooledToGroundTruthReconS2_4X3" = {
-    preLayerName                        = "S2MaxPooled_4X3";
-    postLayerName                       = "GroundTruthReconS2_4X3";
+HyPerConn "S2MaxPooledToGroundTruthReconS2_16X12" = {
+    preLayerName                        = "S2MaxPooled_16X12";
+    postLayerName                       = "GroundTruthReconS2_16X12";
     channelCode                         = 0;
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
@@ -796,7 +585,7 @@ HyPerConn "S2MaxPooledToGroundTruthReconS2_4X3" = {
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "CurrentModel/Classifiers/S2MaxPooledToGroundTruthReconS2Error_4X3_W.pvp";
+    initWeightsFile                     = "CurrentModel/Classifiers/S2MaxPooledToGroundTruthReconS2Error_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     updateGSynFromPostPerspective       = false;
@@ -811,9 +600,9 @@ HyPerConn "S2MaxPooledToGroundTruthReconS2_4X3" = {
     normalizeMethod                     = "none";
 };
 
-HyPerConn "S2SumPooledToGroundTruthReconS2_4X3" = {
-    preLayerName                        = "S2SumPooled_4X3";
-    postLayerName                       = "GroundTruthReconS2_4X3";
+HyPerConn "S2SumPooledToGroundTruthReconS2_16X12" = {
+    preLayerName                        = "S2SumPooled_16X12";
+    postLayerName                       = "GroundTruthReconS2_16X12";
     channelCode                         = 0;
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
@@ -822,7 +611,7 @@ HyPerConn "S2SumPooledToGroundTruthReconS2_4X3" = {
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "CurrentModel/Classifiers/S2SumPooledToGroundTruthReconS2Error_4X3_W.pvp";
+    initWeightsFile                     = "CurrentModel/Classifiers/S2SumPooledToGroundTruthReconS2Error_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     updateGSynFromPostPerspective       = false;
@@ -837,9 +626,9 @@ HyPerConn "S2SumPooledToGroundTruthReconS2_4X3" = {
     normalizeMethod                     = "none";
 };
 
-HyPerConn "BiasS2ToGroundTruthReconS2_4X3" = {
-    preLayerName                        = "BiasS2_4X3";
-    postLayerName                       = "GroundTruthReconS2_4X3";
+HyPerConn "BiasS2ToGroundTruthReconS2_16X12" = {
+    preLayerName                        = "BiasS2_16X12";
+    postLayerName                       = "GroundTruthReconS2_16X12";
     channelCode                         = 0;
     delay                               = [0.000000];
     numAxonalArbors                     = 1;
@@ -848,7 +637,7 @@ HyPerConn "BiasS2ToGroundTruthReconS2_4X3" = {
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "CurrentModel/Classifiers/BiasS2ToGroundTruthReconS2Error_4X3_W.pvp";
+    initWeightsFile                     = "CurrentModel/Classifiers/BiasS2ToGroundTruthReconS2Error_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     updateGSynFromPostPerspective       = false;
@@ -898,3 +687,9 @@ HyPerConn "BiasS2ToGroundTruthReconS2_4X3" = {
 //     nnzThreshold                        = 0;
 //     parentGenColProbe                   = NULL;
 // };
+
+HeatMapProbe "HeatMapProbe" = {
+    probeOutputFile                     = NULL;
+    reconLayer                          = "ImageReconS2";
+    outputPeriod                        = 10;
+};
