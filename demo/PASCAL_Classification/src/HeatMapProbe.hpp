@@ -40,6 +40,21 @@ public:
    char const * getHeatMapMontageDir() { return heatMapMontageDir; }
    char const * getDisplayCommand() { return displayCommand; }
 
+   /**
+    * sets the base of the output filename.  It takes the part of the string
+    * Everything before the last slash '/' is removed, and then everything
+    * from the last period '.' onward is removed.  For example, if the input
+    * argument is /home/user/Pictures/sample.images/image1.jpg
+    * then the output filename base will be set to image1
+    * If there is no slash in the input string, nothing is removed from the
+    * front of the string; if there is no period (except before a slash)
+    * nothing is discarded from the end.
+    * Note that the input argument itself is not modified, only the
+    * outputFilenameBase member variable.
+    */
+   int setOutputFilenameBase(char const * fn);
+   char const * getOutputFilenameBase() { return outputFilenameBase; }
+
 protected:
    HeatMapProbe();
    int initialize(const char * probeName, PV::HyPerCol * hc);
@@ -56,8 +71,8 @@ protected:
    int octaveProcess();
 
    // writeBufferFile and gatherActivity hackily copy code from HyPerLayer and gatherActivity until I debug the float const specialization of the templates.
-   static int writeBufferFile(char const * filename, PV::InterColComm * comm, double timevalue, pvadata_t const * A, PVLayerLoc const * loc);
-   static int gatherActivity(PV_Stream * pvstream, PV::Communicator * comm, int rootproc, pvadata_t const * buffer, const PVLayerLoc * layerLoc);
+   static int writeBufferFile(char const * filename, PV::InterColComm * comm, double timevalue, pvadata_t * A, PVLayerLoc const * loc);
+   static int gatherActivity(PV_Stream * pvstream, PV::Communicator * comm, int rootproc, pvadata_t * buffer, const PVLayerLoc * layerLoc);
 
 private:
    int initialize_base();
@@ -95,6 +110,8 @@ protected:
    double outputPeriod;
    double nextOutputTime; // Warning: this does not get checkpointed but it should.  Probes have no checkpointing infrastructure yet.
    pid_t octavePid;
+
+   char * outputFilenameBase;
 }; /* class HeatMapProbe */
 
 #endif /* HEATMAPPROBE_HPP_ */

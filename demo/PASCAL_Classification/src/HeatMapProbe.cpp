@@ -52,6 +52,8 @@ int HeatMapProbe::initialize_base() {
    resultLayer = NULL;
    reconLayerName = NULL;
    reconLayer = NULL;
+
+   outputFilenameBase = NULL;
    return PV_SUCCESS;
 }
 
@@ -167,6 +169,36 @@ int HeatMapProbe::communicateInitInfo() {
    return status;
 }
 
+int HeatMapProbe::setOutputFilenameBase(char const * fn) {
+   free(outputFilenameBase);
+   int status = PV_SUCCESS;
+   std::string fnString(fn);
+   size_t lastSlash = fnString.rfind("/");
+   if (lastSlash != std::string::npos) {
+      fnString.erase(0, lastSlash+1);
+   }
+   
+   size_t lastDot = fnString.rfind(".");
+   if (lastDot != std::string::npos) {
+      fnString.erase(lastDot);
+   }
+   if (fnString.empty()) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "HeatMapProbe::setOutputFilenameBase error: string \"%s\" is empty after removing directory and extension.\n", fn);
+      }
+      status = PV_FAILURE;
+      outputFilenameBase = NULL;
+   }
+   else {
+      outputFilenameBase = strdup(fnString.c_str());
+      if (outputFilenameBase==NULL) {
+         fprintf(stderr, "HeatMapProbe::setOutputFilenameBase failed with filename \"%s\": %s\n", fn, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+   }
+   return status;
+}
+
 bool HeatMapProbe::needUpdate(double timed, double dt) {
    bool updateNeeded = false;
    if (triggerLayer) {
@@ -206,27 +238,27 @@ int HeatMapProbe::outputState(double timevalue) {
    // operate on memory buffers?
 
    PV::InterColComm * icComm = parent->icCommunicator();
-   pvadata_t const * A = NULL;
+   pvadata_t * A = NULL;
    PVLayerLoc const * loc = NULL;
 
    imagePVPFilePath.str("");
    imagePVPFilePath.clear();
-   imagePVPFilePath << heatMapMontageDir <<  "/" << "image" << parent->getCurrentStep() << ".pvp";
-   A = imageLayer->getLayerData();
+   imagePVPFilePath << heatMapMontageDir <<  "/" << outputFilenameBase << "_image_" << parent->getCurrentStep() << ".pvp";
+   A = imageLayer->getActivity();
    loc = imageLayer->getLayerLoc();
    writeBufferFile(imagePVPFilePath.str().c_str(), icComm, timevalue, A, loc);
 
    resultPVPFilePath.str("");
    resultPVPFilePath.clear();
-   resultPVPFilePath << heatMapMontageDir << "/" << "result" << parent->getCurrentStep() << ".pvp";
-   A = resultLayer->getLayerData();
+   resultPVPFilePath << heatMapMontageDir << "/" << outputFilenameBase << "_result_" << parent->getCurrentStep() << ".pvp";
+   A = resultLayer->getActivity();
    loc = resultLayer->getLayerLoc();
    writeBufferFile(resultPVPFilePath.str().c_str(), icComm, timevalue, A, loc);
 
    reconPVPFilePath.str("");
    reconPVPFilePath.clear();
-   reconPVPFilePath << heatMapMontageDir << "/" << "recon" << parent->getCurrentStep() << ".pvp";
-   A = reconLayer->getLayerData();
+   reconPVPFilePath << heatMapMontageDir << "/" << outputFilenameBase << "_recon_" << parent->getCurrentStep() << ".pvp";
+   A = reconLayer->getActivity();
    loc = reconLayer->getLayerLoc();
    writeBufferFile(reconPVPFilePath.str().c_str(), icComm, timevalue, A, loc);
 
@@ -279,7 +311,9 @@ int HeatMapProbe::waitOctaveFinished() {
 
 int HeatMapProbe::octaveProcess() {
    std::stringstream heatMapMontagePath("");
-   heatMapMontagePath << heatMapMontageDir << "/heatMap" << parent->getCurrentStep() << ".png";
+   heatMapMontagePath << heatMapMontageDir << "/" << outputFilenameBase << "_" << parent->getCurrentStep();
+   if (parent->simulationTime() >= parent->getStopTime()) { heatMapMontagePath << "_final"; }
+   heatMapMontagePath << ".png";
    std::stringstream octavecommandstream("");
    octavecommandstream << octaveCommand <<
          " --eval 'load CurrentModel/ConfidenceTables/confidenceTable.mat; heatMapMontage(" <<
@@ -318,7 +352,7 @@ int HeatMapProbe::octaveProcess() {
    return systemstatus;
 }
 
-int HeatMapProbe::writeBufferFile(const char * filename, PV::InterColComm * comm, double timevalue, pvadata_t const * A, PVLayerLoc const * loc) {
+int HeatMapProbe::writeBufferFile(const char * filename, PV::InterColComm * comm, double timevalue, pvadata_t * A, PVLayerLoc const * loc) {
    PV_Stream * writeFile = pvp_open_write_file(filename, comm, /*append*/false);
    assert( (writeFile != NULL && comm->commRank() == 0) || (writeFile == NULL && comm->commRank() != 0) );
 
@@ -339,7 +373,7 @@ int HeatMapProbe::writeBufferFile(const char * filename, PV::InterColComm * comm
             abort();
          }
       }
-      pvadata_t const * bufferBatch;
+      pvadata_t * bufferBatch;
       bufferBatch = A + b * (loc->nx + loc->halo.rt + loc->halo.lt) * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
 
       status = gatherActivity(writeFile, comm, 0, bufferBatch, loc);
@@ -350,7 +384,7 @@ int HeatMapProbe::writeBufferFile(const char * filename, PV::InterColComm * comm
    return status;
 }
 
-int HeatMapProbe::gatherActivity(PV_Stream * pvstream, PV::Communicator * comm, int rootproc, pvadata_t const * buffer, const PVLayerLoc * layerLoc) {
+int HeatMapProbe::gatherActivity(PV_Stream * pvstream, PV::Communicator * comm, int rootproc, pvadata_t * buffer, const PVLayerLoc * layerLoc) {
    // In MPI when this process is called, all processes must call it.
    // Only the root process uses the file pointer.
    int status = PV_SUCCESS;
@@ -466,5 +500,6 @@ HeatMapProbe::~HeatMapProbe() {
    free(imageLayerName);
    free(resultLayerName);
    free(reconLayerName);
+   free(outputFilenameBase);
 }
 

@@ -61,8 +61,7 @@ function outimage = heatMapMontage(...
 % boundingBoxThickness: the Thickness of the box (in pixels).
 % dbscanEps: dbscan Eps parameter (neighborhood radius). If empty, dbscan will attempt to calculate this.
 % dbscanDensity: dbscan density parameter (minimal number of objects considered as a cluster). If empty, uses 1.
-% montagePath: The path to write the output image to.  The output image has the same dimensions as the frame of imagePvpFile.
-%    If resultPvpFile has different dimensions, it will be rescaled using upsamplefill.
+% montagePath: The path to write the output image to.
 % displayCommand: If nonempty, run this command on montagePath after it has been written.  Uses the system command,
 %    so control does not return to octave until the command completes.
 %
@@ -285,7 +284,7 @@ else
 end%if
 
 file = 'tmp/labelimage.png';
-makeLabelCommand = sprintf('convert -background black -fill %s -size %dx32 -pointsize 24 -gravity center label:%s %s', "white", size(reconData,2), "original image", file);
+makeLabelCommand = sprintf('convert -background black -fill %s -size %dx32 -pointsize 24 -gravity center label:%s %s', "white", size(reconData,2), "\"original image\"", file);
 system(makeLabelCommand);
 img = readImageMagickFile(file);
 montageImage(ystart+(33:64), xstart+(1:size(imageDataGrayscale,2)), :) = img;

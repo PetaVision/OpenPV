@@ -5,6 +5,7 @@
 #include <layers/ImageFromMemoryBuffer.hpp>
 #include "cMakeHeader.h"
 #include "PASCALCustomGroupHandler.hpp"
+#include "HeatMapProbe.hpp"
 
 char * getImageFileName(InterColComm * icComm);
 int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, ImageFromMemoryBuffer * imageLayer, uint8_t ** imageBufferPtr, size_t * imageBufferSizePtr);
@@ -28,25 +29,6 @@ int main(int argc, char* argv[])
    const int rank = hc->columnId();
    InterColComm * icComm = hc->icCommunicator();
 
-//   // These variables are only used by the root process, but must be defined here
-//   // since they need to persist from one if(rank==0) statement to the next.
-//   char * imageLayerName = NULL;
-//   char * resultLayerName = NULL;
-//   char * resultTextFile = NULL;
-//   char * octaveCommand = NULL;
-//   char * octaveLogFile = NULL;
-//   char * classNames = NULL;
-//   char * evalCategoryIndices = NULL;
-//   char * displayCategoryIndices = NULL;
-//   char * highlightThreshold = NULL;
-//   char * heatMapThreshold = NULL;
-//   char * heatMapMaximum = NULL;
-//   char * drawBoundingBoxes = NULL;
-//   char * boundingBoxThickness = NULL;
-//   char * dbscanEps = NULL;
-//   char * dbscanDensity = NULL;
-//   char * heatMapMontageDir = NULL;
-//   char * displayCommand = NULL;
    int layerNx, layerNy, layerNf;
    int imageNx, imageNy, imageNf;
    int bufferNx, bufferNy, bufferNf;
@@ -72,53 +54,46 @@ int main(int argc, char* argv[])
          }
       }
    }
-//
-//   BaseLayer * imageBaseLayer = hc->getLayerFromName(imageLayerName);
-//   if (imageBaseLayer==NULL)
-//   {
-//      if (rank==0) {
-//         fprintf(stderr, "%s error: no layer matches imageLayerName = \"%s\"\n", argv[0], imageLayerName);
-//      }
-//      status = PV_FAILURE;
-//   }
-//   ImageFromMemoryBuffer * imageLayer = dynamic_cast<ImageFromMemoryBuffer *>(imageBaseLayer);
-//   if (imageLayer==NULL)
-//   {
-//      if (rank==0) {
-//         fprintf(stderr, "%s error: imageLayerName = \"%s\" is not an ImageFromMemoryBuffer layer\n", argv[0], imageLayerName);
-//      }
-//      status = PV_FAILURE;
-//   }
-//
-//   BaseLayer * resultBaseLayer = hc->getLayerFromName(resultLayerName);
-//   if (resultBaseLayer==NULL)
-//   {
-//      if (rank==0) {
-//         fprintf(stderr, "%s error: no layer matches resultLayerName = \"%s\"\n", argv[0], resultLayerName);
-//      }
-//      status = PV_FAILURE;
-//   }
-//   HyPerLayer * resultLayer = dynamic_cast<HyPerLayer *>(resultBaseLayer);
-//   if (resultLayer==NULL)
-//   {
-//      if (rank==0) {
-//         fprintf(stderr, "%s error: resultLayerName = \"%s\" is not a HyPerLayer\n", argv[0], resultLayerName);
-//      }
-//      status = PV_FAILURE;
-//   }
+   HeatMapProbe * heatMapProbe = NULL;
+   for (int k=0; k < hc->numberOfBaseProbes(); k++)
+   {
+      PV::BaseProbe * p = hc->getBaseProbe(k);
+      HeatMapProbe * heat_map_probe = dynamic_cast<HeatMapProbe *>(p);
+      if (heat_map_probe) {
+         if (heatMapProbe != NULL) {
+            if (hc->columnId()==0) {
+               fprintf(stderr, "%s error: More than one HeatMapProbe (\"%s\" and \"%s\").\n",
+                     argv[0], heatMapProbe->getName(), heat_map_probe->getName());
+            }
+            MPI_Barrier(hc->icCommunicator()->communicator());
+            exit(EXIT_FAILURE);
+         }
+         else {
+            heatMapProbe = heat_map_probe;
+         }
+      }
+   }
+   if (imageLayer==NULL) {
+      if (hc->columnId()==0) {
+         fprintf(stderr, "%s error: params file must have exactly one ImageFromMemoryBuffer layer.\n",
+               argv[0]);
+         status = PV_FAILURE;
+      }
+   }
+   if (heatMapProbe==NULL) {
+      if (hc->columnId()==0) {
+         fprintf(stderr, "%s error: params file must have exactly one HeatMapProbe.\n",
+               argv[0]);
+         status = PV_FAILURE;
+      }
+   }
+   if (status != PV_SUCCESS) {
+      MPI_Barrier(hc->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
 
    if (rank==0) {
       if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
-
-//      // clobber octave logfile and result text file unless starting from a checkpoint
-//      if (hc->getCheckpointReadDir()==NULL) {
-//         FILE * octavefp = fopen(octaveLogFile, "w");
-//         fclose(octavefp);
-//         if (resultTextFile) {
-//            FILE * resultTextFP = fopen(resultTextFile, "w")
-//            fclose(resultTextFP);
-//         }
-//      }
 
       layerNx = imageLayer->getLayerLoc()->nxGlobal;
       layerNy = imageLayer->getLayerLoc()->nyGlobal;
@@ -135,24 +110,6 @@ int main(int argc, char* argv[])
       imageBufferSize = (size_t)bufferNx*(size_t)bufferNy*(size_t)bufferNf;
       imageBuffer = NULL;
       GDALAllRegister();
-//      struct stat heatMapMontageStat;
-//      status = stat(heatMapMontageDir, &heatMapMontageStat);
-//      if (status!=0 && errno==ENOENT) {
-//         status = mkdir(heatMapMontageDir, 0770);
-//         if (status!=0) {
-//            fprintf(stderr, "Error: Unable to make heat map montage directory \"%s\": %s\n", heatMapMontageDir, strerror(errno));
-//            exit(EXIT_FAILURE);
-//         }
-//         status = stat(heatMapMontageDir, &heatMapMontageStat);
-//      }
-//      if (status!=0) {
-//         fprintf(stderr, "Error: Unable to get status of heat map montage directory \"%s\": %s\n", heatMapMontageDir, strerror(errno));
-//         exit(EXIT_FAILURE);
-//      }
-//      if (!(heatMapMontageStat.st_mode & S_IFDIR)) {
-//         fprintf(stderr, "Error: Heat map montage \"%s\" is not a directory\n", heatMapMontageDir);
-//         exit(EXIT_FAILURE);
-//      }
    }
 
    // Main loop: get an image, load it into the image layer, do HyPerCol::run(), lather, rinse, repeat
@@ -161,117 +118,10 @@ int main(int argc, char* argv[])
    {
       startTime = hc->simulationTime();
       stopTime = startTime + displayPeriod;
+      heatMapProbe->setOutputFilenameBase(imageFile);
       setImageLayerMemoryBuffer(hc->icCommunicator(), imageFile, imageLayer, &imageBuffer, &imageBufferSize);
       hc->run(startTime, stopTime, dt);
 
-//      int numParams = 20;
-//      int params[numParams];
-//
-//      char const * imagePvpFile = rank ? 0 : imageLayer->getOutputStatePath();
-//      char const * resultPvpFile = rank ? 0 : resultLayer->getOutputStatePath();
-//      PV_Stream * imagePvpStream = NULL;
-//      PV_Stream * resultPvpStream = NULL;
-//
-//      if (rank==0) {
-//         imageLayer->flushOutputStateStream();
-//         imagePvpStream = PV_fopen(imagePvpFile, "r", false/*verifyWrites*/);
-//      }
-//      status = pvp_read_header(imagePvpStream, hc->icCommunicator(), params, &numParams);
-//      if (status!=PV_SUCCESS)
-//      {
-//         fprintf(stderr, "pvp_read_header for imageLayer \"%s\" outputfile \"%s\" failed.\n", imageLayer->getName(), imagePvpFile);
-//         exit(EXIT_FAILURE);
-//      }
-//      if (rank==0) { PV_fclose(imagePvpStream); }
-//      assert(numParams==20);
-//      int imageFrameNumber = params[INDEX_NBANDS];
-//
-//      if (rank==0) {
-//         resultLayer->flushOutputStateStream();
-//         resultPvpStream = PV_fopen(resultPvpFile, "r", false/*verifyWrites*/);
-//      }
-//      status = pvp_read_header(resultPvpStream, hc->icCommunicator(), params, &numParams);
-//      if (status!=PV_SUCCESS)
-//      {
-//         fprintf(stderr, "pvp_read_header for resultLayer \"%s\" outputfile \"%s\" failed.\n", resultLayer->getName(), resultPvpFile);
-//         exit(EXIT_FAILURE);
-//      }
-//      if (rank==0) { PV_fclose(resultPvpStream); }
-//      assert(numParams==20);
-
-//      if (rank==0) {
-//         int resultFrameNumber = params[INDEX_NBANDS];
-//         char * basename = strrchr(imageFile, '/');
-//         if (basename==NULL) { basename=imageFile; } else { basename++; }
-//         basename = strdup(basename);
-//         char * dot = strrchr(basename, '.');
-//         if (dot) { *dot = '\0'; } // delete extension
-//         std::stringstream montagePath("");
-//         montagePath << heatMapMontageDir << "/" << basename << ".png";
-//         free(basename);
-//         std::cout << "output file is " << montagePath.str() << std::endl;
-//
-//         if (octavepid>0)
-//         {
-//            int waitstatus;
-//            int waitprocess = waitpid(octavepid, &waitstatus, 0);
-//            if (waitprocess < 0 && errno != ECHILD)
-//            {
-//               fprintf(stderr, "waitpid failed returning %d: %s (%d)\n", waitprocess, strerror(errno), errno);
-//               exit(EXIT_FAILURE);
-//            }
-//            octavepid = 0;
-//         }
-//         fflush(stdout); // so that unflushed buffer isn't copied to child process
-//         octavepid = fork();
-//         if (octavepid < 0)
-//         {
-//            fprintf(stderr, "fork() error: %s\n", strerror(errno));
-//            exit(EXIT_FAILURE);
-//         }
-//         else if (octavepid==0) {
-//            /* child process */
-//            std::stringstream octavecommandstream("");
-//            octavecommandstream << octaveCommand <<
-//                  " --eval 'load CurrentModel/ConfidenceTables/confidenceTable.mat; heatMapMontage(" <<
-//                  "\"" << imagePvpFile << "\"" << ", " <<
-//                  "\"" << resultPvpFile << "\"" << ", " <<
-//                  "\"" << PV_DIR << "/mlab/util" << "\"" << ", " <<
-//                  imageFrameNumber << ", " <<
-//                  resultFrameNumber << ", " <<
-//                  "confidenceTable, " <<
-//                  "\"" << classNames << "\"" << ", " <<
-//                  "\"" << resultTextFile << "\"" << ", " <<
-//                  evalCategoryIndices << ", " <<
-//                  displayCategoryIndices << ", " <<
-//                  highlightThreshold << ", " <<
-//                  heatMapThreshold << ", " <<
-//                  heatMapMaximum << ", " <<
-//                  drawBoundingBoxes << ", " <<
-//                  boundingBoxThickness << ", " <<
-//                  dbscanEps << ", " <<
-//                  dbscanDensity << ", " <<
-//                  "\"" << montagePath.str() << "\"" << ", " <<
-//                  "\"" << displayCommand << "\"" <<
-//                  ");'" <<
-//                  " >> " << octaveLogFile << " 2>&1";
-//            std::ofstream octavelogstream;
-//            octavelogstream.open(octaveLogFile, std::fstream::out | std::fstream::app);
-//            octavelogstream << "Calling octave with the command\n";
-//            octavelogstream << octavecommandstream.str() << "\n";
-//            octavelogstream.close();
-//            int systemstatus = system(octavecommandstream.str().c_str()); // Analysis of the result of the current frame
-//            octavelogstream.open(octaveLogFile, std::fstream::out | std::fstream::app);
-//            octavelogstream << "Octave heatMapMontage command returned " << systemstatus << "\n";
-//            octavelogstream.close();
-//
-//            exit(EXIT_SUCCESS); /* child process exits */
-//         }
-//         else {
-//            /* parent process */
-//         }
-//      }
-//
       free(imageFile);
       imageFile = getImageFileName(hc->icCommunicator());
    }
