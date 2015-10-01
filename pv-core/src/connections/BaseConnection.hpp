@@ -460,8 +460,8 @@ protected:
    virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief receiveGpu: If true and PetaVision was compiled with GPU acceleration, the connection uses the GPU to update the postsynaptic layer's GSyn.
-    * If compiled without GPU acceleration, this flag is ignored.
+    * @brief receiveGpu: If PetaVision was compiled with GPU acceleration and this flag is set to true, the connection uses the GPU to update the postsynaptic layer's GSyn.
+    * If compiled without GPU acceleration, it is an error to set this flag to true.
     */
    virtual void ioParam_receiveGpu(enum ParamsIOFlag ioFlag);
 

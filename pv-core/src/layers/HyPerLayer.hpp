@@ -136,7 +136,7 @@ protected:
    
    /**
     * @brief updateGpu: When compiled using CUDA or OpenCL GPU acceleration, this flag tells whether this layer's updateState method should use the GPU.
-    * The flag is ignored if PetaVision was compiled without GPU acceleration.
+    * If PetaVision was compiled without GPU acceleration, it is an error to set this flag to true.
     */
    virtual void ioParam_updateGpu(enum ParamsIOFlag ioFlag);
 

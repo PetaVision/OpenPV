@@ -204,6 +204,7 @@ CloneKernelConn "postConn" = {
     delay = 0;
     preActivityIsNotRate = false;
     updateGSynFromPostPerspective = true;
+    receiveGpu = true;
     pvpatchAccumulateType = "convolve";
 };
 

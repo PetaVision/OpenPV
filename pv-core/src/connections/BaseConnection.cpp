@@ -382,11 +382,16 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    parent->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, false/*default*/, true/*warn if absent*/);
 #else
-   // If not using GPUs, we ignore this parameter.  But we don't want to send
-   // a "not been read" warning, so that the same param file can be used with
-   // or without GPUs.  So call ioParamValue with a dummy argument.
-   bool dummyFlag = false;
-   parent->ioParamValue(ioFlag, name, "receiveGpu", &dummyFlag, dummyFlag/*default*/, false/*warn if absent*/);
+   bool receiveGpu = false;
+   parent->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, receiveGpu/*default*/, false/*warn if absent*/);
+   if (ioFlag==PARAMS_IO_READ && receiveGpu) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: receiveGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
+               this->getKeyword(), this->getName());
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 }
 

@@ -287,6 +287,7 @@ HyPerConn "InputToScaledInput" = {
     shrinkPatches                   = false;
     convertRateToSpikeCount         = false;
     updateGSynFromPostPerspective   = true;
+    receiveGpu = true;
 };
 
 IdentConn "ScaledInputToRetina" = {
@@ -324,6 +325,7 @@ HyPerConn "RetinaToLIFTest" = {
     shrinkPatches                   = false;
     convertRateToSpikeCount         = false;
     updateGSynFromPostPerspective   = true;
+    receiveGpu = true;
 };
 
 IdentConn "LIFTestToLIFTestSpikeCounter" = {
@@ -373,6 +375,7 @@ GapConn "GapTestToLIFGapTest" = {
     // initialWriteTime             = 0;
 
     updateGSynFromPostPerspective   = true;
+    receiveGpu = true;
 };
 
 IdentConn "LIFGapTestToLIFGapTestSpikeCounter" = {

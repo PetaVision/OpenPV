@@ -752,7 +752,9 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_sparseLayer(ioFlag);
    ioParam_writeSparseValues(ioFlag);
 
-   // GPU-specific parameter.  If not using GPUs, we read it anyway, with warnIfAbsent set to false, to prevent unnecessary warnings from unread or missing parameters.
+   // GPU-specific parameter.  If not using GPUs, this flag
+   // can be set to false or left out, but it is an error
+   // to set updateGpu to true if compiling without GPUs.
    ioParam_updateGpu(ioFlag);
 
    ioParam_dataType(ioFlag);
@@ -780,18 +782,18 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
 
 void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-   parent->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu);
-#ifdef PV_USE_OPENCL
-   if(updateGpu){
-      std::cout << "Updating from gpu is not implemented with OpenCL yet\n";
+   parent->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu, true/*warnIfAbsent*/);
+#else // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   bool updateGpu = false;
+   parent->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu, false/*warnIfAbsent*/);
+   if (ioFlag==PARAMS_IO_READ && updateGpu) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
+               getKeyword(), getName());
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
    }
-#endif // PV_USE_OPENCL
-#else
-   // If not using GPUs, we ignore this parameter.  But we don't want to send
-   // a "not been read" warning, so that the same param file can be used with
-   // or without GPUs.  So call ioParamValue with a dummy argument.
-   bool dummyFlag = false;
-   parent->ioParamValue(ioFlag, name, "updateGpu", &dummyFlag, dummyFlag/*default*/, false/*warnIfAbsent*/);
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 }
 

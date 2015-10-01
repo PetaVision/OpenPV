@@ -133,10 +133,12 @@ add_subdirectory(ConvertToGrayscaleTest)
 add_subdirectory(CopyConnTest)
 add_subdirectory(DatastoreDelayTest)
 add_subdirectory(DelaysToFeaturesTest)
-#add_subdirectory(FourByFourGenerativeTest) # Moved to inactivesandboxes/SymmetryBreakingGenerative Apr 6, 2015
-#add_subdirectory(FourByFourTopDownTest) # Moved to inactivesandboxes/SymmetryBreakingGenerative Apr 6, 2015
 add_subdirectory(GenericSystemTest)
-add_subdirectory(GPUSystemTest)
+
+if (PV_USE_CUDA OR PV_USE_OPENCL)
+   add_subdirectory(GPUSystemTest)
+endif (PV_USE_CUDA OR PV_USE_OPENCL)
+
 add_subdirectory(GroupNormalizationTest)
 add_subdirectory(ImageSystemTest)
 add_subdirectory(ImageOffsetTest)
@@ -150,7 +152,6 @@ add_subdirectory(LayerRestartTest)
 add_subdirectory(LCATest)
 add_subdirectory(LIFTest)
 add_subdirectory(MarginWidthTest)
-# add_subdirectory(MatchingPursuitTest) # Moved to auxlib/matchingpursuit Mar 18, 2015
 add_subdirectory(MaskLayerTest)
 add_subdirectory(MaxPoolTest)
 add_subdirectory(MovieSystemTest)
@@ -347,13 +348,15 @@ set(testFlags -c checkpoints/Checkpoint6 --testall -t ${PV_SYSTEM_TEST_THREADS})
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
-set(testBaseName GPUSystemTest) #The base name of the test
-set(testParams preTest postTest postTestNoTranspose postTestOneToMany
-   postTest_linked postTestGpuGroup HyPerLCAGpuTest
-   postRecvBatch preRecvBatch) #Names of the parameter files in the input directory, leaving out .params
-set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
-set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+if (PV_USE_CUDA OR PV_USE_OPENCL)
+   set(testBaseName GPUSystemTest) #The base name of the test
+   set(testParams preTest postTest postTestNoTranspose postTestOneToMany
+      postTest_linked postTestGpuGroup HyPerLCAGpuTest
+      postRecvBatch preRecvBatch) #Names of the parameter files in the input directory, leaving out .params
+   set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+   set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
+   AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+endif (PV_USE_CUDA OR PV_USE_OPENCL)
 
 set(testBaseName GroupNormalizationTest) #The base name of the test
 set(testParams GroupNormalizationTest) #Names of the parameter files in the input directory, leaving out .params
@@ -422,7 +425,11 @@ set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName LIFTest) #The base name of the test
-set(testParams LIFTest) #Names of the parameter files in the input directory, leaving out .params
+if (PV_USE_CUDA OR PV_USE_OPENCL)
+   set(testParams LIFTest LIFTest_GPU) #Names of the parameter files in the input directory, leaving out .params
+else (PV_USE_CUDA OR PV_USE_OPENCL)
+   set(testParams LIFTest) #Names of the parameter files in the input directory, leaving out .params
+endif (PV_USE_CUDA OR PV_USE_OPENCL)
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
@@ -506,9 +513,15 @@ set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName ReceiveFromPostTest) #The base name of the test
-set(testParams postTest_margins postTestNoTranspose 
-   manyToOnePatchSizeTest oneToManyPatchSizeTest postTest_ManyToOne
-   postTest_OneToMany) #Names of the parameter files in the input directory, leaving out .params
+if (PV_USE_CUDA OR PV_USE_OPENCL)
+   set(testParams postTest_margins postTestNoTranspose postTestNoTranspose_GPU
+      manyToOnePatchSizeTest oneToManyPatchSizeTest postTest_ManyToOne
+      postTest_OneToMany) #Names of the parameter files in the input directory, leaving out .params
+else (PV_USE_CUDA OR PV_USE_OPENCL)
+   set(testParams postTest_margins postTestNoTranspose 
+      manyToOnePatchSizeTest oneToManyPatchSizeTest postTest_ManyToOne
+      postTest_OneToMany) #Names of the parameter files in the input directory, leaving out .params
+endif (PV_USE_CUDA OR PV_USE_OPENCL)
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
