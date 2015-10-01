@@ -84,6 +84,7 @@ public:
    BaseConnection  * getConnection(int which)  {return connections[which];}
    NormalizeBase * getNormalizer(int which) { return normalizers[which];}
    ColProbe * getColProbe(int which)      {return colProbes[which];}
+   BaseProbe * getBaseProbe(int which) {return baseProbes[which];}
 
    /**
     * The public get-method to query the value of verifyWrites
@@ -150,6 +151,7 @@ public:
    int numberOfConnections()              {return numConnections;}
    int numberOfNormalizers()              {return numNormalizers;}
    int numberOfProbes()                   {return numColProbes;}
+   int numberOfBaseProbes()               {return numBaseProbes;}
 
    /** returns the number of border regions, either an actual image border or a neighbor **/
    int numberOfBorderRegions()            {return MAX_NEIGHBORS;}
