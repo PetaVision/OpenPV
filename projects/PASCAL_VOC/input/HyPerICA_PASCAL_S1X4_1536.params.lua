@@ -1,7 +1,7 @@
 -- PetaVision params file for dictionary of experts: createded by garkenyon May  6 15:19:53 2015
 
 -- Load util module in PV trunk: NOTE this may need to change
-package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/PetaVision/parameterWrapper/PVModule.lua"
+package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/pv-core/parameterWrapper/PVModule.lua"
 local pv = require "PVModule"
 
 -- Global variable, for debug parsing
@@ -9,10 +9,11 @@ local pv = require "PVModule"
 debugParsing              = true
 
 --Image parameters
-local imageListPath = "/Users/gkenyon/workspace/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
-local GroundTruthPath = "/Users/gkenyon/workspace/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
+local imageListPath = "/home/ec2-user/mountData/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
+local GroundTruthPath = "/home/ec2-user/mountData/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
 local displayPeriod       = 1200
 local startFrame          = 1
+local numEpochs           = 4
 local stopTime            = 7958 * displayPeriod;
 
 -- User defined variables
@@ -20,13 +21,13 @@ local nxSize              = 256
 local nySize              = 192
 local experimentName      = "PASCAL_S1X4_1536_ICA"
 local runName             = "VOC2007_landscape"
-local runVersion          = 2
-local machinePath         = "/Volumes/mountData"
+local runVersion          = 10
+local machinePath         = "/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
-local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
+local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-2
 --local inputPath           = machinePath .. "/" .. databasePath .. "/" .. "PASCAL_S1_1536_ICA" .. "/" .. runName .. "9"
-local checkpointID         = "1080000" --stopTime
+local checkpointID         = stopTime*numEpochs
 local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false;
 
@@ -47,8 +48,8 @@ local S1_numFeatures        = patchSize * patchSize * 3 * 2; -- (patchSize/strid
 
 --Ground Truth parameters
 local numClasses            = 20
-local nxScale_GroundTruth   = 0.0625
-local nyScale_GroundTruth   = 0.0625
+local nxScale_GroundTruth   = 0.015625 --0.03125 --0.0625;
+local nyScale_GroundTruth   = 0.015625 --0.03125 --0.0625;
 
 
 -- Base table variable to store
@@ -63,7 +64,7 @@ local pvParams = {
       dtChangeMax                         = 0.01;
       dtChangeMin                         = -0.02;
       dtMinToleratedTimeScale             = 0.0001;
-      stopTime                            = stopTime; --3.1832e+06;
+      stopTime                            = stopTime*numEpochs;
       progressInterval                    = 1000;
       writeProgressToErr                  = true;
       verifyWrites                        = false;
@@ -72,8 +73,8 @@ local pvParams = {
       randomSeed                          = 1234567890;
       nx                                  = nxSize;
       ny                                  = nySize;
-      filenamesContainLayerNames          = true;
-      filenamesContainConnectionNames     = true;
+      filenamesContainLayerNames          = 2; --true;
+      filenamesContainConnectionNames     = 2; --true;
       initializeFromCheckpointDir         = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID;
       defaultInitializeFromCheckpointFlag = initializeFromCheckpointFlag;
       checkpointWrite                     = true;
@@ -87,160 +88,200 @@ local pvParams = {
    };
 } --End of pvParams
 
+   pv.addGroup(pvParams, "Image", 
+	       {
+		  groupType = "Movie";
+		  nxScale                             = 1;
+		  nyScale                             = 1;
+		  nf                                  = 3;
+		  phase                               = 0;
+		  mirrorBCflag                        = true;
+		  initializeFromCheckpointFlag        = false;
+		  writeStep                           = writePeriod;
+		  initialWriteTime                    = writePeriod;
+		  sparseLayer                         = false;
+		  writeSparseValues                   = false;
+		  updateGpu                           = false;
+		  dataType                            = nil;
+		  offsetAnchor                        = "tl";
+		  offsetX                             = 0;
+		  offsetY                             = 0;
+		  writeImages                         = 0;
+		  useImageBCflag                      = false;
+		  autoResizeFlag                      = false;
+		  inverseFlag                         = false;
+		  normalizeLuminanceFlag              = true;
+		  normalizeStdDev                     = true;
+		  jitterFlag                          = 0;
+		  padValue                            = 0;
+		  inputPath                            = imageListPath;
+		  displayPeriod                       = displayPeriod;
+		  echoFramePathnameFlag               = true;
+		  start_frame_index                   = 1;
+		  skip_frame_index                    = 0;
+		  writeFrameToTimestamp               = true;
+		  flipOnTimescaleError                = true;
+		  resetToStartOnLoop                  = false;
+	       }
+   )
 
-pv.addGroup(pvParams, "Image", 
-	    {
-	       groupType = "Movie";
-	       nxScale                             = 1;
-	       nyScale                             = 1;
-	       nf                                  = 3;
-	       phase                               = 0;
-	       mirrorBCflag                        = true;
-	       initializeFromCheckpointFlag        = false;
-	       writeStep                           = writePeriod;
-	       initialWriteTime                    = writePeriod;
-	       sparseLayer                         = false;
-	       writeSparseValues                   = false;
-	       updateGpu                           = false;
-	       dataType                            = nil;
-	       offsetAnchor                        = "tl";
-	       offsetX                             = 0;
-	       offsetY                             = 0;
-	       writeImages                         = 0;
-	       useImageBCflag                      = false;
-	       autoResizeFlag                      = false;
-	       inverseFlag                         = false;
-	       normalizeLuminanceFlag              = true;
-	       normalizeStdDev                     = true;
-	       jitterFlag                          = 0;
-	       padValue                            = 0;
-	       inputPath                            = imageListPath;
-	       displayPeriod                       = displayPeriod;
-	       echoFramePathnameFlag               = true;
-	       start_frame_index                   = 1;
-	       skip_frame_index                    = 0;
-	       writeFrameToTimestamp               = true;
-	       flipOnTimescaleError                = true;
-	       resetToStartOnLoop                  = false;
-	    }
-)
+   pv.addGroup(pvParams, "ImageReconS1Error",
+	       {
+		  groupType = "ANNNormalizedErrorLayer";
+		  nxScale                             = 1;
+		  nyScale                             = 1;	
+		  nf                                  = 3;
+		  phase                               = 1;
+		  mirrorBCflag                        = false;
+		  valueBC                             = 0;
+		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
+		  InitVType                           = "ZeroV";
+		  triggerLayerName                    = NULL;
+		  writeStep                           = writePeriod;
+		  initialWriteTime                    = writePeriod;
+		  sparseLayer                         = false;
+		  updateGpu                           = false;
+		  dataType                            = nil;
+		  VThresh                             = 0;
+		  AMin                                = 0;
+		  AMax                                = inf;
+		  AShift                              = 0;
+		  VWidth                              = 0;
+		  clearGSynInterval                   = 0;
+		  errScale                            = 1;
+	       }
+   ) 
 
-pv.addGroup(pvParams, "ImageReconS1Error",
-	    {
-	       groupType = "ANNNormalizedErrorLayer";
-	       nxScale                             = 1;
-	       nyScale                             = 1;	
-	       nf                                  = 3;
-	       phase                               = 1;
-	       mirrorBCflag                        = false;
-	       valueBC                             = 0;
-	       initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
-	       InitVType                           = "ZeroV";
-	       triggerLayerName                    = NULL;
-	       writeStep                           = writePeriod;
-	       initialWriteTime                    = writePeriod;
-	       sparseLayer                         = false;
-	       updateGpu                           = false;
-	       dataType                            = nil;
-	       VThresh                             = 0;
-	       AMin                                = 0;
-	       AMax                                = inf;
-	       AShift                              = 0;
-	       VWidth                              = 0;
-	       clearGSynInterval                   = 0;
-	       errScale                            = 1;
-	    }
-) 
+local S1_Movie = true
+if S1_Movie then
+   local S1MoviePath                                   = inputPath .. "/" .. "a10_S1.pvp"
+   pv.addGroup(pvParams, "ConstantS1",
+	       {
+		  groupType = "MoviePvp";
+		  nxScale                             = 1.0/stride;
+		  nyScale                             = 1.0/stride;
+		  nf                                  = S1_numFeatures;
+		  phase                               = 0;
+		  mirrorBCflag                        = false;
+		  initializeFromCheckpointFlag        = false;
+		  writeStep                           = -1;
+		  sparseLayer                         = true;
+		  writeSparseValues                   = true;
+		  updateGpu                           = false;
+		  dataType                            = nil;
+		  offsetAnchor                        = "tl";
+		  offsetX                             = 0;
+		  offsetY                             = 0;
+		  writeImages                         = 0;
+		  useImageBCflag                      = false;
+		  autoResizeFlag                      = false;
+		  inverseFlag                         = false;
+		  normalizeLuminanceFlag              = false;
+		  jitterFlag                          = 0;
+		  padValue                            = 0;
+		  inputPath                           = S1MoviePath;
+		  displayPeriod                       = displayPeriod;
+		  randomMovie                         = 0;
+		  readPvpFile                         = true;
+		  start_frame_index                   = 1;
+		  skip_frame_index                    = 0;
+		  writeFrameToTimestamp               = true;
+		  flipOnTimescaleError                = true;
+		  resetToStartOnLoop                  = false;
+	       }
+   )
+else
+   pv.addGroup(pvParams, "ConstantS1",
+	       {
+		  groupType = "ConstantLayer";
+		  nxScale                             = 1.0/stride;
+		  nyScale                             = 1.0/stride;
+		  nf                                  = S1_numFeatures;
+		  phase                               = 0;
+		  mirrorBCflag                        = false;
+		  valueBC                             = 0;
+		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
+		  InitVType                           = "ConstantV";
+		  valueV                              = VThresh;
+		  writeStep                           = -1;
+		  sparseLayer                         = false;
+		  updateGpu                           = false;
+		  dataType                            = nil;
+		  VThresh                             = -inf;
+		  AMin                                = -inf;
+		  AMax                                = inf;
+		  AShift                              = 0;
+		  VWidth                              = 0;
+		  clearGSynInterval                   = 0;
+	       }
+   )
+end
+   pv.addGroup(pvParams, "S1",
+	       {
+		  groupType = "HyPerLCALayer";
+		  nxScale                             = 1.0/stride;
+		  nyScale                             = 1.0/stride;
+		  nf                                  = S1_numFeatures;
+		  phase                               = 2;
+		  mirrorBCflag                        = false;
+		  valueBC                             = 0;
+		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
+		  --InitVType                           = "InitVFromFile";
+		  --Vfilename                           = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_V.pvp";
+		  InitVType                           = "UniformRandomV";
+		  minV                                = -1;
+		  maxV                                = 0.05;
+		  triggerLayerName                    = "Image";
+		  triggerBehavior                     = "resetStateOnTrigger";
+		  triggerResetLayerName               = "ConstantS1";
+		  triggerOffset                       = 0;
+		  writeStep                           = displayPeriod;
+		  initialWriteTime                    = displayPeriod;
+		  sparseLayer                         = true;
+		  writeSparseValues                   = true;
+		  updateGpu                           = false; --true;
+		  dataType                            = nil;
+		  VThresh                             = VThresh;
+		  AMin                                = 0;
+		  AMax                                = inf;
+		  AShift                              = 0;
+		  VWidth                              = 100;
+		  clearGSynInterval                   = 0;
+		  numChannels                         = 1;
+		  timeConstantTau                     = tau;
+		  numWindowX                          = 1;
+		  numWindowY                          = 1;
+		  selfInteract                        = true;
+	       }
+   )
 
-pv.addGroup(pvParams, "ConstantS1",
-	    {
-	       groupType = "ConstantLayer";
-	       nxScale                             = 1.0/stride;
-	       nyScale                             = 1.0/stride;
-	       nf                                  = S1_numFeatures;
-	       phase                               = 0;
-	       mirrorBCflag                        = false;
-	       valueBC                             = 0;
-	       initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
-	       InitVType                           = "ConstantV";
-	       valueV                              = VThresh;
-	       writeStep                           = -1;
-	       sparseLayer                         = false;
-	       updateGpu                           = false;
-	       dataType                            = nil;
-	       VThresh                             = -inf;
-	       AMin                                = -inf;
-	       AMax                                = inf;
-	       AShift                              = 0;
-	       VWidth                              = 0;
-	       clearGSynInterval                   = 0;
-	    }
-)
+   pv.addGroup(pvParams, "ImageReconS1",
+	       {
+		  groupType = "ANNLayer";
+		  nxScale                             = 1;
+		  nyScale                             = 1;
+		  nf                                  = 3;
+		  phase                               = 3;
+		  mirrorBCflag                        = false;
+		  valueBC                             = 0;
+		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
+		  InitVType                           = "ZeroV";
+		  triggerLayerName                    = NULL;
+		  writeStep                           = writePeriod;
+		  initialWriteTime                    = writePeriod;
+		  sparseLayer                         = false;
+		  updateGpu                           = false;
+		  dataType                            = nil;
+		  VThresh                             = -inf;
+		  AMin                                = -inf;
+		  AMax                                = inf;
+		  AShift                              = 0;
+		  VWidth                              = 0;
+		  clearGSynInterval                   = 0;
+	       }
+   )
 
-pv.addGroup(pvParams, "S1",
-	    {
-	       groupType = "HyPerLCALayer";
-	       nxScale                             = 1.0/stride;
-	       nyScale                             = 1.0/stride;
-	       nf                                  = S1_numFeatures;
-	       phase                               = 2;
-	       mirrorBCflag                        = false;
-	       valueBC                             = 0;
-	       initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
-	       --InitVType                           = "InitVFromFile";
-	       --Vfilename                           = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_V.pvp";
-	       InitVType                           = "UniformRandomV";
-	       minV                                = -1;
-	       maxV                                = 0.05;
-	       triggerLayerName                    = "Image";
-	       triggerBehavior                     = "resetStateOnTrigger";
-	       triggerResetLayerName               = "ConstantS1";
-	       triggerOffset                       = 0;
-	       writeStep                           = displayPeriod;
-	       initialWriteTime                    = displayPeriod;
-	       sparseLayer                         = true;
-	       writeSparseValues                   = true;
-	       updateGpu                           = false; --true;
-	       dataType                            = nil;
-	       VThresh                             = VThresh;
-	       AMin                                = 0;
-	       AMax                                = inf;
-	       AShift                              = 0;
-	       VWidth                              = 100;
-	       clearGSynInterval                   = 0;
-	       numChannels                         = 1;
-	       timeConstantTau                     = tau;
-	       numWindowX                          = 1;
-	       numWindowY                          = 1;
-	       selfInteract                        = true;
-	    }
-)
 
-pv.addGroup(pvParams, "ImageReconS1",
-	    {
-	       groupType = "ANNLayer";
-	       nxScale                             = 1;
-	       nyScale                             = 1;
-	       nf                                  = 3;
-	       phase                               = 3;
-	       mirrorBCflag                        = false;
-	       valueBC                             = 0;
-	       initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
-	       InitVType                           = "ZeroV";
-	       triggerLayerName                    = NULL;
-	       writeStep                           = writePeriod;
-	       initialWriteTime                    = writePeriod;
-	       sparseLayer                         = false;
-	       updateGpu                           = false;
-	       dataType                            = nil;
-	       VThresh                             = -inf;
-	       AMin                                = -inf;
-	       AMax                                = inf;
-	       AShift                              = 0;
-	       VWidth                              = 0;
-	       clearGSynInterval                   = 0;
-	    }
-)
 
 -- Ground Truth 
 
@@ -648,7 +689,7 @@ pv.addGroup(pvParams, "S1MaxPooledToGroundTruthReconS1Error",
 	       nyp                                 = 1;
 	       shrinkPatches                       = false;
 	       normalizeMethod                     = "none";
-	       dWMax                               = 0.5; --0.01;
+	       dWMax                               = 1.0; --0.5; --0.01;
 	       keepKernelsSynchronized             = true;
 	       useMask                             = false;
 	       momentumTau                         = 1;

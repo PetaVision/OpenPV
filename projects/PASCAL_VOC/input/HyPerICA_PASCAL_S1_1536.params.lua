@@ -1,7 +1,7 @@
 -- PetaVision params file for dictionary of experts: createded by garkenyon May  6 15:19:53 2015
 
 -- Load util module in PV trunk: NOTE this may need to change
-package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/PetaVision/parameterWrapper/PVModule.lua"
+package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/pv-core/parameterWrapper/PVModule.lua"
 local pv = require "PVModule"
 
 -- Global variable, for debug parsing
@@ -9,8 +9,8 @@ local pv = require "PVModule"
 debugParsing              = true
 
 --Image parameters
-local imageListPath = "/Users/gkenyon/workspace/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
-local GroundTruthPath = "/Users/gkenyon/workspace/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
+local imageListPath = "/home/ec2-user/mountData/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
+local GroundTruthPath = "/home/ec2-user/mountData/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
 local displayPeriod       = 1200
 local startFrame          = 1
 local stopTime            = 7958 * displayPeriod;
@@ -20,13 +20,13 @@ local nxSize              = 256
 local nySize              = 192
 local experimentName      = "PASCAL_S1_1536_ICA"
 local runName             = "VOC2007_landscape"
-local runVersion          = 9
-local machinePath         = "/Volumes/mountData"
+local runVersion          = 13
+local machinePath         = "/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
 local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
 --local inputPath           = machinePath .. "/" .. databasePath .. "/" . ."PASCAL_S1_1536_ICA" .. "/" .. runName .. "8"
-local checkpointID         = stopTime
+local checkpointID         = 9549600 --stopTime
 local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false;
 
@@ -47,8 +47,8 @@ local S1_numFeatures        = patchSize * patchSize * 3 * 2; -- (patchSize/strid
 
 --Ground Truth parameters
 local numClasses            = 20
-local nxScale_GroundTruth   = 0.0625;
-local nyScale_GroundTruth   = 0.0625;
+local nxScale_GroundTruth   = 0.03125; --0.0625
+local nyScale_GroundTruth   = 0.03125; --0.0625
 
 
 -- Base table variable to store
@@ -619,7 +619,7 @@ pv.addGroup(pvParams, "S1MaxPooledToGroundTruthReconS1Error",
 	       groupType = "MomentumConn";
 	       preLayerName                        = "S1MaxPooled";
 	       postLayerName                       = "GroundTruthReconS1Error";
-	       channelCode                         = 0;
+	       channelCode                         = -1;
 	       delay                               = {0.000000};
 	       numAxonalArbors                     = 1;
 	       plasticityFlag                      = true;
@@ -675,6 +675,15 @@ pv.addGroup(pvParams, "S1MaxPooledToGroundTruthReconS1",
 	       preLayerName                        = "S1MaxPooled";
 	       postLayerName                       = "GroundTruthReconS1";
 	       originalConnName                    = "S1MaxPooledToGroundTruthReconS1Error";
+	    }
+)
+
+pv.addGroup(pvParams, "BiasS1ToGroundTruthReconS1",
+	    pvParams.S1MaxPooledToGroundTruthReconS1,
+	    {
+	       preLayerName                        = "BiasS1";
+	       postLayerName                       = "GroundTruthReconS1";
+	       originalConnName                    = "BiasS1ToGroundTruthReconS1Error";
 	    }
 )
 

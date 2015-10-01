@@ -21,7 +21,6 @@
 --//
 
 -- Load util module in PV trunk: NOTE this may need to change
---package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/PetaVision/parameterWrapper/PVModule.lua"
 package.path = package.path .. ";" .. "/nh/compneuro/Data/openpv" .. "/pv-core/parameterWrapper/PVModule.lua"
 local pv = require "PVModule"
 
@@ -48,6 +47,7 @@ local runVersion          = 1
 local outputPathRoot      = "/nh/compneuro/Data/PASCAL_VOC/" .. experimentName .. "/" .. runName
 local outputPath          = outputPathRoot .. runVersion
 local startTime           = 0
+local numEpochs           = 1
 local stopTime            = numImages*displayPeriod
 local checkpointID        = stopTime
 local initializeFromCheckpointDir = NULL;
@@ -72,7 +72,8 @@ local patchSizeMultiplier   = 2
 local initLCAWeights        = NUL
 local tauMin                = 400
 local tauMultiplier         = 2
-local VThresh               = 0.003125
+local VThreshMin            = 0.003125
+local VThreshMultiplier     = 4;
 local VWidth                = 10.0
 local learningRate          = 0
 local dWMax                 = 10.0
@@ -80,7 +81,12 @@ local learningMomentumTau   = 400
 
 --Ground Truth parameters
 local numClasses            = 20 --20
+local nxScale_GroundTruth   = 0.03125; --0.0625
+local nyScale_GroundTruth   = 0.03125; --0.0625
 
+--  --  --   --  --  --  -- 
+--Default Layers--
+--  --  --  --  --  --  --
 local defaultANNLayer = {
     groupType = "ANNLayer";
     nxScale                             = 1;
@@ -91,7 +97,8 @@ local defaultANNLayer = {
     mirrorBCflag                        = false;
     valueBC                             = 0;
     initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
-    InitVType                           = "ZeroV";
+    InitVType                           = "ConstantV";
+    valueV                              = 0;
     writeStep                           = writePeriod;
     initialWriteTime                    = writePeriod;
     sparseLayer                         = false;
@@ -105,31 +112,40 @@ local defaultANNLayer = {
     clearGSynInterval                   = 0;
 }
 
-local defaultTriggeredANNLayer = pv.deepCopy(defaultANNLayer);
+local defaultTriggeredANNLayer            = pv.deepCopy(defaultANNLayer);
 defaultTriggeredANNLayer.triggerLayerName = "Image";
 defaultTriggeredANNLayer.triggerBehavior  = "updateOnlyOnTrigger";
-defaultTriggeredANNLayer.triggerOffset = 0;
+defaultTriggeredANNLayer.triggerOffset    = 0;
 
-local defaultANNErrorLayer = pv.deepCopy(defaultANNLayer);
+local defaultANNErrorLayer                 = pv.deepCopy(defaultANNLayer);
+defaultANNErrorLayer.groupType             = "ANNErrorLayer";
 defaultANNErrorLayer.errScale              = 1;
 defaultANNErrorLayer.useMask               = false;
-defaultANNErrorLayer.AMin                  = nil;
+defaultANNErrorLayer.VThresh               = 0;
+defaultANNErrorLayer.AMin                  = 0;
 defaultANNErrorLayer.AMax                  = nil;
 defaultANNErrorLayer.AShift                = nil;
-defaultANNErrorLayer.VWidth                = nil;
+defaultANNErrorLayer.VWidth                = nil; 
 
-local resetLCALayer                        = true
-local defaultHyPerLCALayer = pv.deepCopy(defaultANNLayer);
+local defaultConstantLayer                 = pv.deepCopy(defaultANNLayer);
+defaultConstantLayer.groupType             = "ConstantLayer";
+defaultConstantLayer.phase                 = 0;
+
+local resetLCAFlag                         = true
+local defaultHyPerLCALayer                 = pv.deepCopy(defaultANNLayer);
+defaultHyPerLCALayer.groupType             = "HyPerLCALayer";
 defaultHyPerLCALayer.AMin                  = 0;
 defaultHyPerLCALayer.VThresh               = VThresh;
 defaultHyPerLCALayer.VWidth                = VWidth;
-if (resetLCALayer) then
+if (resetLCAFlag) then
    defaultHyPerLCALayer.triggerLayerName      = "Image";
    defaultHyPerLCALayer.triggerBehavior       = "resetStateOnTrigger";
    defaultHyPerLCALayer.triggerResetLayerName = "Constant"; -- .. "S1"
    defaultHyPerLCALayer.triggerOffset         = 0.0;
+   defaultHyPerLCALayer.updateGpu             = false;
+else
+   defaultHyPerLCALayer.updateGpu             = true;
 end
-defaultHyPerLCALayer.updateGpu             = false;
 defaultHyPerLCALayer.timeConstantTau       = tauMin;
 defaultHyPerLCALayer.selfInteract          = true;
 defaultHyPerLCALayer.sparseLayer           = true;
@@ -140,7 +156,7 @@ if (initializeFromCheckpointFlag) then
    defaultHyPerLCALayer.InitVType          = "InitVFromFile";
    defaultHyPerLCALayer.Vfilename          =  inputPath .. "/Checkpoints/Checkpoint" .. checkpointID; -- .. "/S1_V.pvp"
 else
-   if (resetLCALayer) then
+   if (resetLCAFlag) then
       defaultHyPerLCALayer.InitVType          = "ConstantV";
       defaultHyPerLCALayer.valueV             =  VThresh;
    else
@@ -154,7 +170,7 @@ end
 -- Base table variable to store
 local pvParameters = {
 column = {
-    groupType = "HyPerCol"; --String values
+    groupType                           = "HyPerCol"; 
     startTime                           = 0;
     dt                                  = 1;
     dtAdaptFlag                         = true;
@@ -163,7 +179,7 @@ column = {
     dtChangeMax                         = 0.01;
     dtChangeMin                         = -0.02;
     dtMinToleratedTimeScale             = 0.0001;
-    stopTime                            = stopTime; 
+    stopTime                            = stopTime*numEpochs; 
     progressInterval                    = 1000;
     writeProgressToErr                  = true;
     verifyWrites                        = false;
@@ -174,10 +190,10 @@ column = {
     ny                                  = nySize;
     filenamesContainLayerNames          = true;
     filenamesContainConnectionNames     = true;
-    initializeFromCheckpointDir         = outputPath .. "/Checkpoints/Checkpoint" .. checkpointID;
-    defaultInitializeFromCheckpointFlag = false;
+    initializeFromCheckpointDir         = initializeFromCheckpointDir;
+    defaultInitializeFromCheckpointFlag = defaultInitializeFromCheckpointFlag;
     checkpointWrite                     = true;
-    checkpointWriteDir                  = outputPath .. "/Checkpoints";
+    checkpointWriteDir                  = outputPathRoot .. runVersion .. "/Checkpoints/Checkpoint" .. checkpointID;
     checkpointWriteTriggerMode          = "step";
     checkpointWriteStepInterval         = writePeriod;
     deleteOlderCheckpoints              = false;
@@ -185,80 +201,124 @@ column = {
     writeTimescales                     = true;
     errorOnNotANumber                   = false;
 };
-} --End of pvParameters
+} 
 
 local phase = 0
 pv.addGroup(pvParameters, "Image", 
-{
-    groupType = "Movie";
-    nxScale                             = 1;
-    nyScale                             = 1;
-    nf                                  = numColors;
-    phase                               = phase;
-    mirrorBCflag                        = true;
-    initializeFromCheckpointFlag        = false;
-    writeStep                           = writePeriod;
-    initialWriteTime                    = writePeriod;
-    sparseLayer                         = false;
-    writeSparseValues                   = false;
-    updateGpu                           = false;
-    dataType                            = nil;
-    offsetAnchor                        = "tl";
-    offsetX                             = 0;
-    offsetY                             = 0;
-    writeImages                         = 0;
-    useImageBCflag                      = false;
-    autoResizeFlag                      = false;
-    inverseFlag                         = false;
-    normalizeLuminanceFlag              = true;
-    normalizeStdDev                     = true;
-    jitterFlag                          = 0;
-    padValue                            = 0;
-    inputPath                           = imageListPath;
-    displayPeriod                       = displayPeriod;
-    echoFramePathnameFlag               = true;
-    start_frame_index                   = 0;
-    batchMethod                         = "bySpecified";
-    skip_frame_index                    = 0;
-    writeFrameToTimestamp               = true;
-    flipOnTimescaleError                = true;
-    resetToStartOnLoop                  = false;
- }
+	    {
+	       groupType = "Movie";
+	       nxScale                             = 1;
+	       nyScale                             = 1;
+	       nf                                  = numColors;
+	       phase                               = phase;
+	       mirrorBCflag                        = true;
+	       initializeFromCheckpointFlag        = false;
+	       writeStep                           = writePeriod;
+	       initialWriteTime                    = writePeriod;
+	       sparseLayer                         = false;
+	       writeSparseValues                   = false;
+	       updateGpu                           = false;
+	       dataType                            = nil;
+	       offsetAnchor                        = "tl";
+	       offsetX                             = 0;
+	       offsetY                             = 0;
+	       writeImages                         = 0;
+	       useImageBCflag                      = false;
+	       autoResizeFlag                      = false;
+	       inverseFlag                         = false;
+	       normalizeLuminanceFlag              = true;
+	       normalizeStdDev                     = true;
+	       jitterFlag                          = 0;
+	       padValue                            = 0;
+	       inputPath                           = imageListPath;
+	       displayPeriod                       = displayPeriod;
+	       echoFramePathnameFlag               = true;
+	       start_frame_index                   = 0;
+	       batchMethod                         = "bySpecified";
+	       skip_frame_index                    = 0;
+	       writeFrameToTimestamp               = true;
+	       flipOnTimescaleError                = true;
+	       resetToStartOnLoop                  = false;
+	    }
 )
 
+phase = phase + 1
+pv.addGroup(pvParameters, "ImageDeconError",
+	    pvParameters["defaultANNErrorLayer",
+			 {
+			    groupType = "ANNNormalizedErrorLayer";
+			    phase                               = phase;
+			 }
+)
 
-pv.addGroup(pvParameters, "ImageReconS1",
-{
-groupType = "ANNLayer";
-ANNNormalizedErrorLayer "ImageDeconError" = {
-    nxScale                             = 1;
-    nyScale                             = 1;
-    nf                                  = 3;
-    phase                               = 1;
-    mirrorBCflag                        = false;
-    valueBC                             = 0;
-    initializeFromCheckpointFlag        = false;
-    InitVType                           = "ZeroV";
-    triggerFlag                         = false;
-    writeStep                           = 4800;
-    initialWriteTime                    = 4800;
-    sparseLayer                         = false;
-    updateGpu                           = false;
-    dataType                            = NULL;
-    VThresh                             = 0;
-    AMin                                = 0;
-    AMax                                = 3.40282e+38;
-    AShift                              = 0;
-    VWidth                              = 0;
-    clearGSynInterval                   = 0;
-    errScale                            = 1;
-    )}
+--both "Image" and "ImageReconError" write on the last time step before flip
+pv.addGroup(pvParameters, "ImageReconError",
+	    pvParameters["defaultTriggeredANNLayer",
+			 {
+			    phase                               = phase;
+			 }
+)
+
+--begin loop over scales
+
+local stride                             = strideMin
+local numFeatures                        = numFeaturesMin
+local patchSize                          = patchSizeMin
+local tau                                = tauMin
+local VThresh                            = VThreshMin
+
+for i_scale = 1, numScales do
+
+   phase = phase + 1
+   pv.addGroup(pvParameters, "S" .. i_scale .. "DeconError", defaultANNErrorLayer, 
+	       {
+		  writeStep              = -1;
+		  initialWriteTime       = -1;
+		  phase                  = phase;
+	       }
+   )
+
+   pv.addGroup(pvParameters, "ConstantS" .. i_scale, defaultConstantLayer, 
+	       {
+		  nxScale                             = 1.0/stride;
+		  nyScale                             = 1.0/stride;
+		  nf                                  = numFeatures;
+		  valueV                              = VThresh;
+ 	       }
+   )
+
+   phase = phase + 1
+   pv.addGroup(pvParameters, "S" .. i_scale, defaultHyPerLCALayer, 
+	       {
+		  nxScale                             = 1.0/stride;
+		  nyScale                             = 1.0/stride;
+		  nf                                  = numFeatures;
+		  phase                               = phase;
+		  triggerResetLayerName               = defaultHyPerLCALayer.triggerResetLayerName .. i_scale;
+		  VThresh                             = VThresh;
+		  timeConstantTau                     = tau;
+	       }
+   )
+
+   for j_scale = 1, i_scale-1 do
+
+   end -- inner loop over lower levels
+   
+   stride            = stride * strideMultiplier
+   numFeatures       = numFeatures * numFeaturesMultiplier
+   patchSize         = patchSize * patchSizeMultiplier
+   tau               = tau * tauMultiplier
+   VThresh           = VThresh * VThreshMultiplier
+
+end -- loop over numScales
 
 
 
 
 
 
+
+----------------------------------------------------------------------------------------
 
 pv.addGroup(pvParameters, "ImageReconS1ExpertsError", pvParameters["ImageReconS1Error"])
 
@@ -343,9 +403,6 @@ pv.addGroup(pvParameters, "ImageRecon", defaultTriggeredANNLayer,
 }
 ) 
     
-
-
-
 --connections 
 pv.addGroup(pvParameters, "ImageToImageReconS1Error",
 {

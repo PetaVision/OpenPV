@@ -43,7 +43,7 @@ HyPerCol "column" = {
   startTime =  0; //2400000; //
   stopTime =   1591000; // 52 landscape //7955 landscape images // 883 portrait images//  * displayPeriod
   progressInterval = 1000;
-  outputPath = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape2";
+  outputPath = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape";
   filenamesContainLayerNames = true;
   filenamesContainConnectionNames = true;
   defaultInitializeFromCheckpointFlag = false;
@@ -52,11 +52,11 @@ HyPerCol "column" = {
   //checkpointReadDirIndex = 3987000;
   checkpointWrite = true;
   //checkpointWriteTriggerMode = "step";
-  checkpointWriteDir = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape2/Checkpoints";
+  checkpointWriteDir = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints";
   checkpointWriteStepInterval = 2000;
   deleteOlderCheckpoints = true;
     //suppressLastOutput = false;
-  initializeFromCheckpointDir = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000";
+  initializeFromCheckpointDir = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000";
   checkpointWriteTriggerMode = "step";
   writeProgressToErr = true;
   outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
@@ -119,7 +119,7 @@ ANNNormalizedErrorLayer "ImageReconS1Error" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/ImageReconS1Error_V.pvp";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/ImageReconS1Error_V.pvp";
     //
     VThresh = 0.0;
     AMax =  infinity;
@@ -151,8 +151,8 @@ HyPerLCALayer "S1" = {
     //minV = -1.0;
     //maxV = .1; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/S1_V.pvp";
-    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/S1_V.pvp";
+    Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/S1_V.pvp";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/S1_V.pvp";
     // 
     timeConstantTau = 100; //200; //100.0;
     //timeConstantTauMinimum = 10.0;
@@ -183,7 +183,7 @@ ANNLayer "ImageReconS1" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/ImageReconS1_V.pvp";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/ImageReconS1_V.pvp";
     //
     VThresh = -infinity;
     AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -213,7 +213,7 @@ ANNErrorLayer "S1ReconS2Error" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/S1ReconS2Error_V.pvp";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/S1ReconS2Error_V.pvp";
     //
     VThresh = 0.0;
     AMax =  infinity;
@@ -247,7 +247,7 @@ HyPerLCALayer "S2" = {
     //minV = -1.0;
     //maxV = .1; //0.05 above VThresh
     InitVType = "InitVFromFile";
-    Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/S2_V.pvp";
+    Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/S2_V.pvp";
     // 
     timeConstantTau = 100; 
     //timeConstantTauMinimum = 10.0;
@@ -260,7 +260,7 @@ HyPerLCALayer "S2" = {
     VWidth = 0.1; 
     selfInteract = true;   //
     triggerFlag = false;
-    updateGpu = true;     
+    updateGpu = false;     
     phase = 4;
 };
 
@@ -279,7 +279,7 @@ ANNLayer "S1ReconS2" = {
     //
     //InitVType = "ZeroV";
     InitVType = "InitVFromFile";
-    Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/S1ReconS2_V.pvp";
+    Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/S1ReconS2_V.pvp";
     //
     VThresh = -infinity;
     AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -309,7 +309,7 @@ ANNLayer "ImageReconS2" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/ImageReconS2_V.pvp";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/ImageReconS2_V.pvp";
     //
     VThresh = -infinity;
     AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -338,7 +338,7 @@ ANNLayer "ImageReconS2Error" = {
     //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
-    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/ImageReconS1Error_V.pvp";
+    //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/ImageReconS1Error_V.pvp";
     //
     VThresh = -infinity;
     AMax =  infinity;
@@ -415,7 +415,7 @@ ANNLayer "GroundTruth" = {
     //
     InitVType = "ZeroV";
   //InitVType = "InitVFromFile";
-  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/GroundTruth_V.pvp";
+  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/GroundTruth_V.pvp";
     //
     VThresh = -infinity;
     AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -447,7 +447,7 @@ ANNLayer "GroundTruthReconS2" = {
     //
     InitVType = "ZeroV";
   //InitVType = "InitVFromFile";
-  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/GroundTruthReconS2_V.pvp";
+  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/GroundTruthReconS2_V.pvp";
     //
     VThresh = -infinity;
     AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
@@ -481,7 +481,7 @@ LabelErrorLayer "GroundTruthError" = {
     //
     InitVType = "ZeroV";
   //InitVType = "InitVFromFile";
-  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/GroundTruthError_V.pvp";
+  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/GroundTruthError_V.pvp";
     //
     VThresh = -infinity;
     AMax =  infinity;
@@ -515,7 +515,7 @@ LabelErrorLayer "GroundTruthError" = {
 //    //
 //    InitVType = "ZeroV";
 //  //InitVType = "InitVFromFile";
-//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/GroundTruthS2ReconS1Error_V.pvp";
+//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/GroundTruthS2ReconS1Error_V.pvp";
 //    //
 //    VThresh = -infinity;
 //    AMax =  infinity;
@@ -574,7 +574,7 @@ LabelErrorLayer "GroundTruthError" = {
 //    //
 //    InitVType = "ZeroV";
 //  //InitVType = "InitVFromFile";
-//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/GroundTruthS2ReconS1Error_V.pvp";
+//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/GroundTruthS2ReconS1Error_V.pvp";
 //    //
 //    VThresh = -infinity;
 //    AMax =  infinity;
@@ -606,7 +606,7 @@ LabelErrorLayer "GroundTruthError" = {
 //    //
 //    InitVType = "ZeroV";
 //  //InitVType = "InitVFromFile";
-//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/GroundTruthS2ReconS1Error_V.pvp";
+//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/GroundTruthS2ReconS1Error_V.pvp";
 //    //
 //    VThresh = -infinity;
 //    AMax =  infinity;
@@ -666,7 +666,7 @@ LabelErrorLayer "GroundTruthError" = {
 //    //
 //    InitVType = "ZeroV";
 //  //InitVType = "InitVFromFile";
-//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/GroundTruthS2ReconS1Error_V.pvp";
+//  //Vfilename = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/GroundTruthS2ReconS1Error_V.pvp";
 //    //
 //    VThresh = -infinity;
 //    AMax =  infinity;
@@ -745,7 +745,7 @@ HyPerConn "S1ToImageReconS1Error" = {
     initializeFromCheckpointFlag = false;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/S1ToImageReconS1Error_W.pvp";
+    initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/S1ToImageReconS1Error_W.pvp";
     //initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_C1X4_task/Checkpoint3760000/S1ToError_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
@@ -875,7 +875,7 @@ HyPerConn "S2ToS1ReconS2Error" = {
     initializeFromCheckpointFlag = false;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/S2ToS1ReconS2Error_W.pvp";
+    initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/S2ToS1ReconS2Error_W.pvp";
     useListOfArborFiles = false;
     combineWeightFiles = false;
     //weightInitType = "UniformRandomWeight";
@@ -1181,7 +1181,7 @@ HyPerConn "S2ToGroundTruthError" = {
     //
     //normalizeMethod = "none"; //"normalizeL2";
     normalizeMethod = "normalizeL2";
-    strength = 10.0; //5.0;  
+    strength = 5.0;  
     minL2NormTolerated = 0;
     normalizeArborsIndividually = 0;
     normalize_cutoff = 0.0;
@@ -1206,7 +1206,7 @@ HyPerConn "S2ToGroundTruthError" = {
     triggerOffset = 1;
     triggerFlag = true;
     //initialWriteTime = 0.0;
-    dWMax = 1.0; //
+    dWMax = 0.001; //
     selfFlag = false;
     shmget_flag = false;
     //
@@ -1477,7 +1477,7 @@ HyPerConn "GroundTruthReconS2ToGroundTruthError" = {
 //    initializeFromCheckpointFlag = false;
 //    //
 //    //weightInitType = "FileWeight";
-//    //initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint176000/S1ToGroundTruthS2ReconS1Error_W.pvp";
+//    //initWeightsFile = "~/workspace/PASCAL_VOC/PASCAL_S1_96_S2_384_MLP/VOC2007_landscape/Checkpoints/Checkpoint506000/S1ToGroundTruthS2ReconS1Error_W.pvp";
 //    //useListOfArborFiles = false;
 //    //combineWeightFiles = false;
 //    weightInitType = "UniformRandomWeight";

@@ -1,330 +1,333 @@
-debugParsing = true;
+// PetaVision version something-point-something run at Fri Mar 27 02:49:28 2015
+// Compiled with MPI and run using 1 rows and 1 columns.
+// Compiled without OpenCL.
+// Compiled with CUDA.
+// Compiled with OpenMP parallel code and run using 8 threads.
 
 HyPerCol "column" = {
-  nx = 256; 
-  ny = 192; //256; // 
-  dt = 1.0;
-  dtAdaptFlag = true;
-  dtScaleMax = 5.0;
-  dtScaleMin = 0.25;
-  dtChangeMax = 0.05;
-  dtChangeMin = 0.0;
-  dtMinToleratedTimeScale = 1.0e-4;
-  randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
-  startTime =  0; //4774800; //; //2400000; //
-  stopTime =   4774800; //1591600; // 52 landscape //7958 landscape images // 883 portrait images//  * displayPeriod
-  progressInterval = 1000;
-  outputPath = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_64_32_16_M1_160/VOC2007_landscape";
-  filenamesContainLayerNames = true;
-  filenamesContainConnectionNames = true;
-  defaultInitializeFromCheckpointFlag = false;
-  checkpointWrite = true;
-  //checkpointWriteTriggerMode = "step";
-  checkpointWriteDir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_64_32_16_M1_160/VOC2007_landscape/Checkpoints";
-  checkpointWriteStepInterval = 50000;
-  deleteOlderCheckpoints = false; //true;
-    //suppressLastOutput = false;
-  initializeFromCheckpointDir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_64_32_16_M1_160/VOC2007_landscape/Checkpoints/Checkpoint1200000";
-  checkpointWriteTriggerMode = "step";
-  writeProgressToErr = true;
-  outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
-  suppressLastOutput = false;
-  printParamsFilename = "PASCAL_S1_128_64_32_16_M1_160_VOC2007_landscape.params";
-  writeTimescales = true;
-  verifyWrites = false; //true;
-  errorOnNotANumber = false;
+    startTime                           = 0;
+    dt                                  = 1;
+    dtAdaptFlag                         = true;
+    dtScaleMax                          = 8;
+    dtScaleMin                          = 1.0;
+    dtChangeMax                         = 0.025;
+    dtChangeMin                         = 0;
+    dtMinToleratedTimeScale             = 0.0001;
+    stopTime                            = 3.1832e+06;
+    progressInterval                    = 1500;
+    writeProgressToErr                  = true;
+    verifyWrites                        = false;
+    outputPath                          = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_M1_160/VOC2007_landscape";
+    printParamsFilename                 = "PASCAL_M1_160_VOC2007_landscape.params";
+    randomSeed                          = 1234567890;
+    nx                                  = 256;
+    ny                                  = 192;
+    filenamesContainLayerNames          = 1;
+    filenamesContainConnectionNames     = 1;
+    initializeFromCheckpointDir         = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_M1_160/VOC2007_landscape/Checkpoints/Checkpoint950000";
+    defaultInitializeFromCheckpointFlag = false;
+    checkpointWrite                     = true;
+    checkpointWriteDir                  = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_M1_160/VOC2007_landscape/Checkpoints";
+    checkpointWriteTriggerMode          = "step";
+    checkpointWriteStepInterval         = 10000;
+    deleteOlderCheckpoints              = false;
+    suppressNonplasticCheckpoints       = false;
+    writeTimescales                     = true;
+    errorOnNotANumber                   = false;
 };
-
-
-
-//
-// layers
-//
-
 
 Movie "Image" = {
-    nxScale = 1;
-    nyScale = 1;
-    imageListPath = "/Users/gkenyon/workspace/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
-    nf = 3;
-    initializeFromCheckpointFlag = false;
-    writeStep = 2000;
-    initialWriteTime = 2000;
-    sparseLayer = false;
-    displayPeriod = 200;
-    start_frame_index = 0; //2346; 
-    skip_frame_index = 0;
-    echoFramePathnameFlag = true;
-    writeFrameToTimestamp = true;
-    mirrorBCflag = true;
-    jitterFlag = 0;
-    useImageBCflag = false;
-    inverseFlag = false;
-    normalizeLuminanceFlag = true;
-    normalizeStdDev = true;
-    flipOnTimescaleError = true;
-    writeImages = false;
-    offsetX = 0; 
-    offsetY = 0; 
-    offsetAnchor = "tl";
-    randomMovie = 0;
-    autoResizeFlag = false;
-    readPvpFile = false;
-    updateGpu = false;
-    phase = 0;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 3;
+    phase                               = 0;
+    mirrorBCflag                        = true;
+    initializeFromCheckpointFlag        = false;
+    writeStep                           = 10000;
+    initialWriteTime                    = 10000;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    useImageBCflag                      = false;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = true;
+    normalizeStdDev                     = true;
+    jitterFlag                          = 0;
+    padValue                            = 0;
+    imageListPath                       = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
+    displayPeriod                       = 200;
+    randomMovie                         = 0;
+    readPvpFile                         = false;
+    echoFramePathnameFlag               = true;
+    start_frame_index                   = 1;
+    skip_frame_index                    = 0;
+    writeFrameToTimestamp               = true;
+    flipOnTimescaleError                = true;
+    resetToStartOnLoop                  = false;
 };
 
-// Ground Truth layers
-
-//The ground truth layer: sparse coded image planes with bounding box annotations in PetaVision format
-// nf == number of object categories
 Movie "GroundTruthRaw" = {
-#include "Image";
-  @nf = 20;
-  @readPvpFile = true;
-  @imageListPath = "/Users/gkenyon/workspace/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
-  @sparseLayer = true;
-  @mirrorBCflag = false; 
-  @normalizeLuminanceFlag = false; //true;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 20;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    writeStep                           = 10000;
+    initialWriteTime                    = 10000;
+    sparseLayer                         = true;
+    writeSparseValues                   = false;
+    updateGpu                           = false;
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    useImageBCflag                      = false;
+    autoResizeFlag                      = false;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    padValue                            = 0;
+    imageListPath                       = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
+    displayPeriod                       = 200;
+    randomMovie                         = 0;
+    readPvpFile                         = true;
+    start_frame_index                   = 1;
+    skip_frame_index                    = 0;
+    writeFrameToTimestamp               = true;
+    flipOnTimescaleError                = true;
+    resetToStartOnLoop                  = false;
 };
 
-// GroundTruth uses max pooling to match desired resolution of output tiling
-// * each output tile aquires the classIDs of any of the original bounding boxes that it overlapps 
 ANNLayer "GroundTruth" = {
-#include "ImageReconS1";
-  @nxScale = 0.06250; // 
-  @nyScale = 0.06250; // 
-  @nf = 20;
-  @phase = 1; 
-  @triggerFlag = true;
-  triggerLayerName = "GroundTruthRaw";
-  triggerOffset = 0;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 20;
+    phase                               = 1;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = true;
+    triggerLayerName                    = "GroundTruthRaw";
+    triggerOffset                       = 0;
+    writeStep                           = 10000;
+    initialWriteTime                    = 10001; //1000;;
+    sparseLayer                         = true;
+    writeSparseValues                   = false;
+    updateGpu                           = false;
+    VThresh                             = 0.1;
+    AMin                                = 0;
+    AMax                                = 1;
+    AShift                              = -0.9;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
 };
 
 ANNNormalizedErrorLayer "GroundTruthReconM1Error" = {
-  nxScale = 0.06250; // 
-  nyScale = 0.06250; // 
-  nf = 20;
-    initializeFromCheckpointFlag = false; //true;
-    initialWriteTime = 2000.0;
-    writeStep = 2000;
-    mirrorBCflag = 0;
-    valueBC = 0;
-    sparseLayer = false;
-    //
-    InitVType = "ZeroV";
-    VThresh = 0.0;
-    AMax =  infinity;
-    AMin = 0;
-    AShift = 0;
-    VWidth = 0;
-    errScale = 1.0;
-    //
-    triggerFlag = false;
-    updateGpu = false;
-    phase = 2;  
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 20;
+    phase                               = 2;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = false;
+    writeStep                           = 10000;
+    initialWriteTime                    = 10000;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    VThresh                             = 0;
+    AMin                                = 0;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
+    errScale                            = 1;
 };
-
 
 HyPerLCALayer "M1" = {
-  nxScale = 0.06250; // 
-  nyScale = 0.06250; // 
-  nf = 160; // 20*8 = 160; // 128*64 + 64*16 + 32*4 + 16 = 9360
-  initializeFromCheckpointFlag = false; //true;
-  numChannels = 1; // should be 1
-  numWindowX = 1;
-  numWindowY = 1;
-  initialWriteTime = 200.0;
-  writeStep = 200.0;
-  mirrorBCflag = 0;
-  valueBC = 0;
-  sparseLayer = true;
-  writeSparseValues = 1; 
-  InitVType = "UniformRandomV";
-  minV = -1.0;
-  maxV = .15; //0.05 above VThresh
-  //InitVType = "InitVFromFile";
-  //Vfilename = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_64_32_16/VOC2007_landscape/Checkpoints/Checkpoint1200000/S1Stride2_V.pvp";
-    // 
-  timeConstantTau = 100; //200; //100.0;
-    // 
-  VThresh = 0.1; //
-  AMax = infinity;
-  AMin = 0;
-  AShift = 0.0; //0.0; //0 -> hard threshold, 1 -> soft threshold
-  VWidth = 10.0; //0.05; //0.025; //0.025; //0.025; 
-  selfInteract = true;   //
-  triggerFlag = false;
-  updateGpu = true;    
-  phase = 3;
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 160;
+    phase                               = 3;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "UniformRandomV";
+    minV                                = -1;
+    maxV                                = 0.15;
+    triggerFlag                         = false;
+    writeStep                           = 200;
+    initialWriteTime                    = 200;
+    sparseLayer                         = true;
+    writeSparseValues                   = true;
+    updateGpu                           = true;
+    VThresh                             = 0.01;
+    AMin                                = 0;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 10;
+    clearGSynInterval                   = 0;
+    numChannels                         = 1;
+    timeConstantTau                     = 200; 
+    numWindowX                          = 1;
+    numWindowY                          = 1;
+    selfInteract                        = true;
 };
-
 
 ANNLayer "GroundTruthReconM1" = {
-  nxScale = 0.06250; // 
-  nyScale = 0.06250; // 
-  nf = 20;
-  initializeFromCheckpointFlag = false;
-  initialWriteTime = 2001.0;
-  writeStep = 2000.0;
-  mirrorBCflag = 0;
-  valueBC = 0;
-  sparseLayer = false;
-  //
-  InitVType = "ZeroV";
-  //
-  VThresh = -infinity;
-  AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-  AMin = -infinity; 
-  AShift = 0;
-  VWidth = 0.0; 
-  // 
-    //triggerLayerName = "Image";
-  triggerFlag = false; //true;
-  //triggerOffset = 0;
-  updateGpu = false;
-  phase = 4; 
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 20;
+    phase                               = 4;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    initializeFromCheckpointFlag        = false;
+    InitVType                           = "ZeroV";
+    triggerFlag                         = false;
+    writeStep                           = 10000;
+    initialWriteTime                    = 10000;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    VThresh                             = -3.40282e+38;
+    AMin                                = -3.40282e+38;
+    AMax                                = 3.40282e+38;
+    AShift                              = 0;
+    VWidth                              = 0;
+    clearGSynInterval                   = 0;
 };
 
-
-// 2nd Level LCA (task-based)
-
-// downsample ClassID to GroundTruth using max pooling
-HyPerConn "GroundTruthRawToGroundTruth" = {
-  preLayerName = "GroundTruthRaw";
-  postLayerName = "GroundTruth";
-  weightInitType = "MaxPoolingWeight"; 
-  normalizeMethod = "none";
-  pvpatchAccumulateType = "maxpooling";
-  channelCode = 0;
-  nxp = 1; 
-  nyp = 1; 
-  sharedWeights = true;
-  numAxonalArbors = 1;
-  initializeFromCheckpointFlag = false;
-  writeStep = -1;
-  writeCompressedCheckpoints = false;
-  shrinkPatches = false;
-  //writeCompressedWeights = 0.0;
-  plasticityFlag = 0;
-  pvpatchAccumulateType = "convolve";
-  updateGSynFromPostPerspective = false;     
-  
-  delay = 0;
-     
-  preActivityIsNotRate = false;
-  selfFlag = false;
+IdentConn "GroundTruthRawToGroundTruthCenter" = {
+    preLayerName                        = "GroundTruthRaw";
+    postLayerName                       = "GroundTruth";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    // initWeightsFile                     was set to (NULL);
+    writeStep                           = -1;
 };
 
+PoolingConn "GroundTruthRawToGroundTruthSurround" = {
+    preLayerName                        = "GroundTruthRaw";
+    postLayerName                       = "GroundTruth";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    initializeFromCheckpointFlag        = false;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "sumpooling";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    nxp                                 = 3;
+    nyp                                 = 3;
+    nfp                                 = 20;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "none";
+};
 
 IdentConn "GroundTruthToGroundTruthReconM1Error" = {
-    preLayerName = "GroundTruth";
-    postLayerName = "GroundTruthReconM1Error";
-    channelCode = 0;
-    delay = 0;
-    writeStep = -1;
+    preLayerName                        = "GroundTruth";
+    postLayerName                       = "GroundTruthReconM1Error";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    // initWeightsFile                     was set to (NULL);
+    writeStep                           = -1;
 };
 
-
 MomentumConn "M1ToGroundTruthReconM1Error" = {
-  preLayerName = "M1";
-  postLayerName = "GroundTruthReconM1Error";
-  nxp = 9;
-  nyp = 9;
-  channelCode = -1;
-  sharedWeights = true;
-  numAxonalArbors = 1;
-  initializeFromCheckpointFlag = false;
-  //
-  //weightInitType = "FileWeight";
-  //initWeightsFile = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_64_32_16/VOC2007_landscape/Checkpoints/Checkpoint1200000/S1Stride2ToImageReconS1Error_W.pvp";
-  //useListOfArborFiles = false;
-  //combineWeightFiles = false;
-  weightInitType = "UniformRandomWeight";
-  wMinInit = -1.0;
-  wMaxInit = 1.0;
-  sparseFraction = .90;
-  //
-  strength = 1.0;  
-  normalizeMethod = "normalizeL2";
-  normalizeOnInitialize = true;
-  normalizeOnWeightUpdate = true;
-  minL2NormTolerated = 0;
-  normalizeArborsIndividually = 0;
-  normalize_cutoff = 0.0;
-  normalizeFromPostPerspective = false;
-  symmetrizeWeights = false;
-  rMinX = 0.0;
-  rMinY = 0.0;
-  //
-  preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-  keepKernelsSynchronized = true; 
-  combine_dW_with_W_flag = false; 
-  //
-  writeStep = -1;
-  writeCompressedWeights = false;
-  writeCompressedCheckpoints = false;
-  plasticityFlag = true;
-  //weightUpdatePeriod = 200.0;
-  //initialWeightUpdateTime = 200.0;
-  triggerLayerName = "Image";
-  triggerFlag = true;
-  triggerOffset = 1;
-  //imprintTimeThresh = 20000.0;
-  //initialWriteTime = 0.0;
-  dWMax = 0.1;
-  momentumTau = 100.0;
-  momentumMethod = "viscosity";
-  //selfFlag = false;
-    //shmget_flag = false;
-    //
-  delay = 0;
-  //
-  pvpatchAccumulateType = "convolve";
-  shrinkPatches = false;
-  updateGSynFromPostPerspective = false;     
-  receiveGpu = false;
+    preLayerName                        = "M1";
+    postLayerName                       = "GroundTruthReconM1Error";
+    channelCode                         = -1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "UniformRandomWeight";
+    // initWeightsFile                     was set to (NULL);
+    wMinInit                            = -1;
+    wMaxInit                            = 1;
+    sparseFraction                      = 0;
+    initializeFromCheckpointFlag        = false;
+    triggerFlag                         = true;
+    triggerLayerName                    = "Image";
+    triggerOffset                       = 1;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    nxp                                 = 33;
+    nyp                                 = 33;
+    nfp                                 = 20;
+    shrinkPatches                       = false;
+    normalizeMethod                     = "normalizeL2";
+    strength                            = 1;
+    normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = 0;
+    normalizeFromPostPerspective        = false;
+    minL2NormTolerated                  = 0;
+    dWMax                               = 0.1;
+    keepKernelsSynchronized             = true;
+    useMask                             = false;
+    momentumTau                         = 100;
+    momentumMethod                      = "viscosity";
 };
 
 TransposeConn "GroundTruthReconM1ErrorToM1" = {
-  preLayerName = "GroundTruthReconM1Error";
-  postLayerName = "M1";
-  originalConnName = "M1ToGroundTruthReconM1Error";
-  channelCode = 0;
-  selfFlag = false;
-  preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-  writeStep = -1;
-  writeCompressedCheckpoints = false;
-  shmget_flag = false;
-  delay = 0;
-  pvpatchAccumulateType = "convolve";
-  updateGSynFromPostPerspective = true; 
-  receiveGpu = true;
+    preLayerName                        = "GroundTruthReconM1Error";
+    postLayerName                       = "M1";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = true;
+    updateGSynFromPostPerspective       = true;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    useMask                             = false;
+    gpuGroupIdx                         = -1;
+    originalConnName                    = "M1ToGroundTruthReconM1Error";
 };
 
 CloneConn "M1ToGroundTruthReconM1" = {
-  preLayerName = "M1";
-  postLayerName = "GroundTruthReconM1";
-  originalConnName = "M1ToGroundTruthReconM1Error";
-  channelCode = 0;
-  writeStep = -1;
-  selfFlag = false;
-  pvpatchAccumulateType = "convolve";
-  delay = 0;
-  preActivityIsNotRate = false;
-  writeCompressedCheckpoints = false;
-  updateGSynFromPostPerspective = false;     
-  receiveGpu = false;
+    preLayerName                        = "M1";
+    postLayerName                       = "GroundTruthReconM1";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    originalConnName                    = "M1ToGroundTruthReconM1Error";
 };
-
 
 IdentConn "GroundTruthReconM1ToGroundTruthReconM1Error" = {
-    preLayerName = "GroundTruthReconM1";
-    postLayerName = "GroundTruthReconM1Error";
-    channelCode = 1;
-    delay = 0;
-    writeStep = -1;
+    preLayerName                        = "GroundTruthReconM1";
+    postLayerName                       = "GroundTruthReconM1Error";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    // initWeightsFile                     was set to (NULL);
+    writeStep                           = -1;
 };
-
-
-

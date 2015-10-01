@@ -9,26 +9,35 @@ close all
 more off
 pkg load all
 setenv("GNUTERM","X11")
-addpath("/nh/compneuro/Data/openpv/pv-core/mlab/imgProc");
-addpath("/nh/compneuro/Data/openpv/pv-core/mlab/util");
-addpath("/nh/compneuro/Data/openpv/pv-core/mlab/HyPerLCA");
+addpath("~/openpv/pv-core/mlab/imgProc");
+addpath("~/openpv/pv-core/mlab/util");
+addpath("~/openpv/pv-core/mlab/HyPerLCA");
 
 plot_flag = true;
-
-run_type = "DCA";
-%%run_type = "MaxPool"
-%%run_type = "S1S2";
-if strcmp(run_type, "S1S2")
-  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536_SumMaxPooled_SLPX2/VOC2007_landscape25a";
-elseif strcmp(run_type, "DCA")
-  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3";
-elseif strcmp(run_type, "MaxPool")
-  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape9";
+%%run_type = "ICA";
+%%run_type = "ICAX4"
+%%run_type = "ICAX16"
+run_type = "S1S2"
+if strcmp(run_type, "ICA")
+  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape15";
+elseif strcmp(run_type, "ICAX4")
+  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape9";
+elseif strcmp(run_type, "ICAX16")
+  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape2";
+elseif strcmp(run_type, "S1S2")
+  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape28";
 endif
+  
 
 %%draw reconstructed image
 DoG_weights = [];
-if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA") || strcmp(run_type, "MaxPool")
+if strcmp(run_type, "ICA")
+  Recon_list = {["a4_"],  ["Image"]};
+elseif strcmp(run_type, "ICAX4")
+  Recon_list = {["a4_"],  ["Image"]};
+elseif strcmp(run_type, "ICAX16")
+  Recon_list = {["a4_"],  ["Image"]};
+elseif strcmp(run_type, "S1S2")
   Recon_list = {["a0_"],  ["Image"]};
 endif
 %% list of layers to unwhiten
@@ -44,12 +53,14 @@ Recon_LIFO_flag = true;
 drawnow;
 
 %% sparse activity
-if strcmp(run_type, "S1S2") 
-  Sparse_list ={["a7_"], ["GroundTruth"]; ["a8_"], ["GroundTruthX2"]; ["a9_"], ["GroundTruthX4"]}; 
-elseif strcmp(run_type, "DCA")
-  Sparse_list ={["a20_"], ["GroundTruth"]}; 
-elseif strcmp(run_type, "MaxPool")
-  Sparse_list ={["a25_"], ["GroundTruth"]}; 
+if strcmp(run_type, "ICA")
+  Sparse_list ={["a6_"], ["GroundTruth"]};
+elseif strcmp(run_type, "ICAX4")
+  Sparse_list ={["a6_"], ["GroundTruth"]};
+elseif strcmp(run_type, "ICAX16")
+  Sparse_list ={["a6_"], ["GroundTruth"]};
+elseif strcmp(run_type, "S1S2")
+  Sparse_list ={["a13_"], ["GroundTruth"]};
 endif
 fraction_Sparse_frames_read = 1;
 min_Sparse_skip = 1;
@@ -58,36 +69,63 @@ num_epochs = 1;
 num_procs = 1;
 Sparse_frames_list = [];
 load_Sparse_flag = false;
-[Sparse_hdr, Sparse_hist_rank_array, Sparse_times_array, Sparse_percent_active_array, Sparse_percent_change_array, Sparse_std_array, Sparse_struct_array] = analyzeSparseEpochsPVP2(Sparse_list, output_dir, load_Sparse_flag, plot_flag, fraction_Sparse_frames_read, min_Sparse_skip, fraction_Sparse_progress, Sparse_frames_list, num_procs, num_epochs);
+[Sparse_hdr, ...
+ Sparse_hist_rank_array, ...
+ Sparse_times_array, ...
+ Sparse_percent_active_array, ...
+ Sparse_percent_change_array, ...
+ Sparse_std_array, ...
+ Sparse_struct_array] = ...
+analyzeSparseEpochsPVP2(Sparse_list, ...
+			output_dir, ...
+			load_Sparse_flag, ...
+			plot_flag, ...
+			fraction_Sparse_frames_read, ...
+			min_Sparse_skip, ...
+			fraction_Sparse_progress, ...
+			Sparse_frames_list, ...
+			num_procs, num_epochs);
 drawnow;
 
 
 				%pause;
 
 %% Error vs time
-if strcmp(run_type, "S1S2") 
-  nonSparse_list = {["a13_"], ["GroundTruthReconS1Error"]; ["a14_"], ["GroundTruthReconS1ErrorX2"]; ["a15_"], ["GroundTruthReconS1ErrorX4"]; ["a28_"], ["GroundTruthReconS2Error"]; ["a29_"], ["GroundTruthReconS2ErrorX2"]; ["a30_"], ["GroundTruthReconS2ErrorX4"]}; 
-elseif strcmp(run_type, "DCA")
-  nonSparse_list = {["a29_"], ["GroundTruthReconS1Error"]; ["a25_"], ["GroundTruthReconS2Error"]; ["a21_"], ["GroundTruthReconS3Error"]; ["a33_"], ["GroundTruthReconS1S2S3Error"]}; 
-  Sparse_std_ndx = [1 1 1 1]; %% 
-elseif strcmp(run_type, "MaxPool")
-  nonSparse_list = {["a34_"], ["GroundTruthReconS1Error"]; ["a30_"], ["GroundTruthReconS2Error"]; ["a26_"], ["GroundTruthReconS3Error"]; ["a38_"], ["GroundTruthReconS1S2S3Error"]}; 
-  Sparse_std_ndx = [1 1 1 1]; %% 
+if strcmp(run_type, "ICA")
+  nonSparse_list = {["a11_"], ["GroundTruthReconS1Error"]};
+elseif strcmp(run_type, "ICAX4")
+  nonSparse_list = {["a11_"], ["GroundTruthReconS1Error"]};
+elseif strcmp(run_type, "ICAX16")
+  nonSparse_list = {["a11_"], ["GroundTruthReconS1Error"]};
+elseif strcmp(run_type, "S1S2")
+  nonSparse_list = {["a18_"], ["GroundTruthReconS1Error"]; ["a14_"], ["GroundTruthReconS2Error"]; ["a22_"], ["GroundTruthReconS1S2Error"]};
 endif
 num_nonSparse_list = size(nonSparse_list,1);
 nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-if strcmp(run_type, "S1S2") 
-  nonSparse_norm_list = {["a7_"], ["GroundTruth"]; ["a8_"], ["GroundTruthX2"]; ["a9_"], ["GroundTruthX4"]; ["a7_"], ["GroundTruth"]; ["a8_"], ["GroundTruthX2"]; ["a9_"], ["GroundTruthX4"]}; 
-elseif strcmp(run_type, "DCA")
-  nonSparse_norm_list = {["a20_"], ["GroundTruth"]; ["a20_"], ["GroundTruth"]; ["a20_"], ["GroundTruth"]; ["a20_"], ["GroundTruth"]}; 
-elseif strcmp(run_type, "MaxPool")
-  nonSparse_norm_list = {["a25_"], ["GroundTruth"]; ["a25_"], ["GroundTruth"]; ["a25_"], ["GroundTruth"]; ["a25_"], ["GroundTruth"]}; 
+if strcmp(run_type, "ICA")
+  nonSparse_norm_list = {["a6_"], ["GroundTruth"]};
+elseif strcmp(run_type, "ICAX4")
+  nonSparse_norm_list = {["a6_"], ["GroundTruth"]};
+elseif strcmp(run_type, "ICAX16")
+  nonSparse_norm_list = {["a6_"], ["GroundTruth"]};
+elseif strcmp(run_type, "S1S2")
+  nonSparse_norm_list = {["a13_"], ["GroundTruth"]; ["a13_"], ["GroundTruth"]; ["a13_"], ["GroundTruth"]};
 endif
 nonSparse_norm_strength = ones(num_nonSparse_list,1);
+%%Sparse_std_ndx = [1 2 3 1 2 3]; %% 
+Sparse_std_ndx = [1 1 1 1]; %% 
 fraction_nonSparse_frames_read = 1;
 min_nonSparse_skip = 1;
 fraction_nonSparse_progress = 10;
-[nonSparse_times_array, nonSparse_RMS_array, nonSparse_norm_RMS_array, nonSparse_RMS_fig] = analyzeNonSparsePVP(nonSparse_list, nonSparse_skip, nonSparse_norm_list, nonSparse_norm_strength, Sparse_times_array, Sparse_std_array, Sparse_std_ndx, output_dir, plot_flag, fraction_nonSparse_frames_read, min_nonSparse_skip, fraction_nonSparse_progress);
+[nonSparse_times_array, ...
+ nonSparse_RMS_array, ...
+ nonSparse_norm_RMS_array, ...
+ nonSparse_RMS_fig] = ...
+analyzeNonSparsePVP(nonSparse_list, ...
+		    nonSparse_skip, ...
+		    nonSparse_norm_list, ...
+		    nonSparse_norm_strength, ...
+		    Sparse_times_array, Sparse_std_array, Sparse_std_ndx, output_dir, plot_flag, fraction_nonSparse_frames_read, min_nonSparse_skip, fraction_nonSparse_progress);
 for i_nonSparse = 1 : num_nonSparse_list
   figure(nonSparse_RMS_fig(i_nonSparse));
   grid on
@@ -123,41 +161,36 @@ classes={...
 JIEDDO_class_ndx = [2:numel(classes)]; %%[2 6 7 14 15 19]+1;
 JIEDDO_classes = classes(JIEDDO_class_ndx)
 
-if strcmp(run_type, "DCA") || strcmp(run_type, "MaxPool")
-  i_scale_list = 1 : 4;
-endif
-for i_scale = i_scale_list 
-  if strcmp(run_type, "DCA")
-    gt_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/a20_GroundTruth.pvp")
-  elseif strcmp(run_type, "MaxPool")
-    gt_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape9/a25_GroundTruth.pvp")
+
+for i_scale = 1 : 1 +  2*strcmp(run_type, "S1S2")
+  if strcmp(run_type, "ICA")
+    gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape15/a6_GroundTruth.pvp")
+  elseif strcmp(run_type, "ICAX4")
+    gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape9/a6_GroundTruth.pvp")
+  elseif strcmp(run_type, "ICAX16")
+    gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape2/a6_GroundTruth.pvp")
+  elseif strcmp(run_type, "S1S2")
+    gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape28/a13_GroundTruth.pvp")
   endif
   if i_scale == 1
-    if strcmp(run_type, "DCA")
-      pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/a30_GroundTruthReconS1.pvp")
-    elseif strcmp(run_type, "MaxPool")
-      pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape9/a35_GroundTruthReconS1.pvp")
+    if strcmp(run_type, "ICA")
+      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape15/a8_GroundTruthReconS1.pvp")
+    elseif strcmp(run_type, "ICAX4")      
+      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape9/a8_GroundTruthReconS1.pvp")
+    elseif strcmp(run_type, "ICAX16")      
+      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape2/a8_GroundTruthReconS1.pvp")
+    elseif strcmp(run_type, "S1S2")      
+      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape28/a19_GroundTruthReconS1.pvp")
     endif
   elseif i_scale == 2
-    if strcmp(run_type, "DCA")
-      pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/a26_GroundTruthReconS2.pvp")
-    elseif strcmp(run_type, "MaxPool")
-      pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape9/a31_GroundTruthReconS2.pvp")
+    if strcmp(run_type, "S1S2")      
+      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape28/a15_GroundTruthReconS2.pvp")
     endif
   elseif i_scale == 3
-    if strcmp(run_type, "DCA")
-      pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/a22_GroundTruthReconS3.pvp")
-    elseif strcmp(run_type, "MaxPool")
-      pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape9/a27_GroundTruthReconS3.pvp")
-    endif
-  elseif i_scale == 4
-    if strcmp(run_type, "DCA")
-      pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/a34_GroundTruthReconS1S2S3.pvp")
-    elseif strcmp(run_type, "MaxPool")
-      pred_classID_file = fullfile("/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape9/a39_GroundTruthReconS1S2S3.pvp")
-    endif
+    if strcmp(run_type, "S1S2")      
+      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape28/a23_GroundTruthReconS1S2.pvp")
+    endif    
   endif
-
   pred_classID_fid = fopen(pred_classID_file);
   pred_classID_hdr = readpvpheader(pred_classID_fid);
   fclose(pred_classID_fid);
@@ -220,7 +253,7 @@ for i_scale = i_scale_list
 	gt_classID_band(:,:,3) = gt_classID_band(:,:,3) * gt_class_color(3)*255;
 	gt_classID_heatmap = gt_classID_heatmap + gt_classID_band .* repmat(squeeze(sum(gt_classID_heatmap,3)==0),[1,1,3]);
       endfor
-      gt_classID_heatmap = mod(gt_classID_heatmap, 256);
+      gt_classID_heatmap = floor(mod(gt_classID_heatmap, 256));
       if plot_flag
 	gt_fig = figure("name", ["Ground Truth: ", num2str(gt_time, "%i")]);
 	image(uint8(gt_classID_heatmap)); axis off; axis image, box off;
