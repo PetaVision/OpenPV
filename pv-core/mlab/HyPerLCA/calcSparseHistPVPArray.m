@@ -32,16 +32,11 @@ function ...
     full_vals = permute(full_vals, [2,1,3]);
   endif
 
-  hist_bin_size_bottom = (median_val - min_val) / (num_bins/2);
-  hist_bin_size_top = (max_val - median_val) / (num_bins/2);
-  hist_bins_bottom = [(min_val + hist_bin_size_bottom/2) : hist_bin_size_bottom : (median_val - hist_bin_size_bottom/2)];
-  hist_bins_top = [(median_val + hist_bin_size_top/2) : hist_bin_size_top : (max_val - hist_bin_size_top/2)];
-  hist_centers = [hist_bins_bottom, hist_bins_top];
-
-  %%hist_bin_size = (max_val - min_val) / num_bins;
-  %%hist_centers = [(min_val + hist_bin_size/2) : hist_bin_size : (max_val - hist_bin_size/2)];
-
+  halfstep_ratio = (max_val/median_val)^(1/(num_bins-3));
+  hist_centers = [0, min_val, median_val * halfstep_ratio.^([0:num_bins-3])];
+  
   %% need to map activity so that each column contains all the activations for a given feature within one GT output tile
+  %%keyboard;
   hist_pool = zeros(num_bins, nf_full, ny_GT, nx_GT);
   x_GT_size = floor(nx_full / nx_GT);
   y_GT_size = floor(ny_full / ny_GT);
@@ -49,6 +44,7 @@ function ...
     for i_xGT = 1 : nx_GT
       GT_vals3D = full_vals((j_yGT-1)*y_GT_size+1:j_yGT*y_GT_size, (i_xGT-1)*x_GT_size+1:i_xGT*x_GT_size, :);
       GT_vals2D = reshape(GT_vals3D, [y_GT_size*x_GT_size, nf_full]);
+      [i_row_nnz, j_col_nnz] = find(GT_vals2D);
       [GT_hist, GT_bins] = hist(GT_vals2D, hist_centers);
       hist_pool(:, :, j_yGT, i_xGT) = GT_hist;
     endfor
