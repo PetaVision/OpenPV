@@ -310,9 +310,10 @@ int HeatMapProbe::waitOctaveFinished() {
 }
 
 int HeatMapProbe::octaveProcess() {
+   bool isLastTimeStep = parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTimeBase()/2;
    std::stringstream heatMapMontagePath("");
    heatMapMontagePath << heatMapMontageDir << "/" << outputFilenameBase << "_" << parent->getCurrentStep();
-   if (parent->simulationTime() >= parent->getStopTime()) { heatMapMontagePath << "_final"; }
+   if (isLastTimeStep) { heatMapMontagePath << "_final"; }
    heatMapMontagePath << ".png";
    std::stringstream octavecommandstream("");
    octavecommandstream << octaveCommand <<
@@ -332,7 +333,7 @@ int HeatMapProbe::octaveProcess() {
          highlightThreshold << ", " <<
          heatMapThreshold << ", " <<
          heatMapMaximum << ", " <<
-         drawBoundingBoxes << ", " <<
+         (isLastTimeStep ? drawBoundingBoxes : "0") << ", " <<
          boundingBoxThickness << ", " <<
          dbscanEps << ", " <<
          dbscanDensity << ", " <<
