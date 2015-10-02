@@ -16,14 +16,14 @@ addpath("~/Desktop/liblinear-2.01/matlab");
 
 plot_flag = true;
 %%run_type = "ICA";
-%%run_type = "ICAX4"
+run_type = "ICAX4"
 %%run_type = "ICAX16"
-run_type = "S1S2"
+%%run_type = "S1S2"
 %%run_type = "scene"
 if strcmp(run_type, "ICA")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape15";
 elseif strcmp(run_type, "ICAX4")
-  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape9";
+  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape10";
 elseif strcmp(run_type, "ICAX16")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape2";
 elseif strcmp(run_type, "S1S2")
@@ -42,7 +42,7 @@ DoG_weights = [];
 if strcmp(run_type, "ICA")
   Recon_list = {["a4_"],  ["Image"]};
 elseif strcmp(run_type, "ICAX4")
-  Recon_list = {["a4_"],  ["Image"]};
+  Recon_list = {[""],  ["Image"]};
 elseif strcmp(run_type, "ICAX16")
   Recon_list = {["a4_"],  ["Image"]};
 elseif strcmp(run_type, "S1S2")
@@ -83,7 +83,7 @@ ny_GT = 1;
   if strcmp(run_type, "ICA")
     GT_list ={["a6_"], ["GroundTruth"]};
   elseif strcmp(run_type, "ICAX4")
-    GT_list ={["a6_"], ["GroundTruth"]};
+    GT_list ={[""], ["GroundTruth"]};
   elseif strcmp(run_type, "ICAX16")
     GT_list ={["a6_"], ["GroundTruth"]};
   elseif strcmp(run_type, "S1S2")
@@ -98,9 +98,12 @@ ny_GT = 1;
   num_GT_frames = GT_hdr.nbands;
   SVM_flag = true;
   fraction_GT_frames_read = 1;
+  num_slack = 24;
+  GT_slack = num_slack;
+  Sparse_slack = GT_slack;
+  num_GT_images = min(num_GT_images, num_GT_frames - GT_slack);
   numEpochs = floor(num_GT_frames/num_GT_images);
-  numSlack = 24;
-  min_GT_skip = max(1, num_GT_frames - num_GT_images*numEpochs + 1 - numSlack);
+  min_GT_skip = max(1, num_GT_frames - num_GT_images*numEpochs - GT_slack);
   min_Sparse_skip = min_GT_skip;
   fraction_GT_progress = 10;
   num_GT_epochs = 1;
@@ -138,7 +141,7 @@ if GT_flag
   if strcmp(run_type, "ICA")
     nonSparse_list = {["a11_"], ["GroundTruthReconS1Error"]};
   elseif strcmp(run_type, "ICAX4")
-    nonSparse_list = {["a11_"], ["GroundTruthReconS1Error"]};
+    nonSparse_list = {[""], ["GroundTruthReconS1Error"]};
   elseif strcmp(run_type, "ICAX16")
     nonSparse_list = {["a11_"], ["GroundTruthReconS1Error"]};
   elseif strcmp(run_type, "S1S2")
@@ -153,7 +156,7 @@ if GT_flag
   if strcmp(run_type, "ICA")
     nonSparse_norm_list = {["a6_"], ["GroundTruth"]};
   elseif strcmp(run_type, "ICAX4")
-    nonSparse_norm_list = {["a6_"], ["GroundTruth"]};
+    nonSparse_norm_list = {[""], ["GroundTruth"]};
   elseif strcmp(run_type, "ICAX16")
     nonSparse_norm_list = {["a6_"], ["GroundTruth"]};
   elseif strcmp(run_type, "S1S2")
@@ -188,7 +191,7 @@ load_SparseHistPool_flag = false
 if strcmp(run_type, "ICA")
   Sparse_list ={["a10_"], ["S1"]};
 elseif strcmp(run_type, "ICAX4")
-  Sparse_list ={["a10_"], ["S1"]};
+  Sparse_list ={[""], ["S1"]};
 elseif strcmp(run_type, "ICAX16")
   Sparse_list ={["a10_"], ["S1"]};
 elseif strcmp(run_type, "S1S2")
@@ -295,9 +298,8 @@ if GT_flag
     if ~exist("num_GT_images") || isempty(num_GT_images) || num_GT_images <= 0
       num_GT_images = num_GT_frames;
     endif
-    GT_slack = num_GT_frames - num_GT_images;
     last_GT_frame = num_GT_frames - floor(GT_slack/2);  
-    first_GT_frame = max(1, last_GT_frame - num_GT_images + 1);
+    first_GT_frame = last_GT_frame - num_GT_images + 1;
     training_label_vector_array = zeros(ny_GT, nx_GT, num_GT_images, num_target_classes);
     i_GT_image = 0;
     for i_GT_frame = first_GT_frame : last_GT_frame
@@ -357,7 +359,8 @@ if GT_flag
 	  reshape(training_label_vector_array(:,:,:,i_target_class), [ny_GT * nx_GT * num_GT_images, 1]);
 	  training_instance_matrix = zeros(num_Sparse_hist_pool_bins, nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
 	  for i_Sparse_frame = first_Sparse_frame_array(i_Sparse) : last_Sparse_frame_array(i_Sparse)
-	    training_instance_matrix(:, :, :, :, i_Sparse_frame) = ...
+	    j_Sparse_frame = i_Sparse_frame - first_Sparse_frame_array(i_Sparse) + 1;
+	    training_instance_matrix(:, :, :, :, j_Sparse_frame) = ...
 	    Sparse_hist_pool_array{i_Sparse}{i_Sparse_frame};
 	  endfor %% i_Sparse_frame
 	  training_instance_matrix = ...

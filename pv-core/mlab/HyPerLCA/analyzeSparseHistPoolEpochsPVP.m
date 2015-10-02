@@ -295,7 +295,7 @@ function [Sparse_hdr, Sparse_hist_pool_array, Sparse_times_array] = ...
 	  Sparse_hist_pool_axis(j_yGT,i_xGT) = subplot(ny_GT, nx_GT, k_subplot);
 	  hist_pool_tmp = squeeze(Sparse_hist_pool{num_Sparse_frames}(:,:,j_yGT,i_xGT));
 	  ranked_hist_pool = hist_pool_tmp(:, Sparse_rank);
-	  bar(ranked_hist_pool(2:num_Sparse_hist_pool_bins,10:4:nf_Sparse)', 'stacked');
+	  bar(ranked_hist_pool(2:num_Sparse_hist_pool_bins,2:ceil(nf_Sparse/48):nf_Sparse)', 'stacked');
 	  axis tight;
 	  axis off;
 	  box off;
