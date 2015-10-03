@@ -50,42 +50,11 @@ ImageFromMemoryBuffer "Image" = {
     offsetX                             = 0;
     offsetY                             = 0;
     writeImages                         = 0;
-    useImageBCflag                      = false;
-    autoResizeFlag                      = false;
-    inverseFlag                         = false;
-    normalizeLuminanceFlag              = false;
-    jitterFlag                          = 0;
-    padValue                            = 0;
-};
-
-Movie "UpdateTrigger" = {
-    nxScale                             = 1;
-    nyScale                             = 1;
-    nf                                  = 1;
-    phase                               = 0;
-    mirrorBCflag                        = false;
-    valueBC                             = 0;
-    triggerLayerName                    = NULL;
-    writeStep                           = 1;
-    initialWriteTime                    = 0;
-    sparseLayer                         = false;
-    updateGpu                           = false;
-    dataType                            = NULL;
-    inputPath                           = "UpdateTrigger.txt";
-    offsetAnchor                        = "tl";
-    offsetX                             = 0;
-    offsetY                             = 0;
-    writeImages                         = 0;
     inverseFlag                         = false;
     normalizeLuminanceFlag              = false;
     jitterFlag                          = 0;
     useImageBCflag                      = false;
     padValue                            = 0;
-    displayPeriod                       = 10;
-    batchMethod                         = "bySpecified";
-    writeFrameToTimestamp               = true;
-    flipOnTimescaleError                = true;
-    resetToStartOnLoop                  = false;
 };
 
 RescaleLayer "ImageRescaled" = {
@@ -171,6 +140,38 @@ ANNLayer "ImageReconS1" = {
     AShift                              = 0;
     VWidth                              = 0;
     clearGSynInterval                   = 0;
+};
+
+Movie "UpdateTrigger" = {
+    nxScale                             = 1;
+    nyScale                             = 1;
+    nf                                  = 1;
+    phase                               = 0;
+    mirrorBCflag                        = false;
+    valueBC                             = 0;
+    writeStep                           = -1;
+    sparseLayer                         = false;
+    updateGpu                           = false;
+    dataType                            = NULL;
+    inputPath                           = "UpdateTrigger.txt";
+    offsetAnchor                        = "tl";
+    offsetX                             = 0;
+    offsetY                             = 0;
+    writeImages                         = 0;
+    inverseFlag                         = false;
+    normalizeLuminanceFlag              = false;
+    jitterFlag                          = 0;
+    useImageBCflag                      = false;
+    padValue                            = 0;
+    autoResizeFlag                      = false;
+    displayPeriod                       = 10;
+    echoFramePathnameFlag               = true;
+    batchMethod                         = "bySpecified";
+    start_frame_index                   = 0;
+    skip_frame_index                    = 1;
+    writeFrameToTimestamp               = true;
+    flipOnTimescaleError                = true;
+    resetToStartOnLoop                  = false;
 };
 
 ANNLayer "ImageReconS2" = {
@@ -449,6 +450,7 @@ TransposeConn "ImageReconS1ErrorToS1" = {
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
+    gpuGroupIdx                         = -1;
     originalConnName                    = "S1ToImageReconS1Error";
 };
 
@@ -532,6 +534,7 @@ TransposeConn "S1ReconS2ErrorToS2" = {
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
+    gpuGroupIdx                         = -1;
     originalConnName                    = "S2ToS1ReconS2Error";
 };
 
