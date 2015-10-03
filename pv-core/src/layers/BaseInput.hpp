@@ -137,9 +137,9 @@ protected:
    virtual void ioParam_InitVType(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief triggerFlag: Image sets trigger flag to false, do not set
+    * @brief triggerLayerName: BaseInput and derived classes do not use triggering, and always set triggerLayerName to NULL.
     */
-   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
 
    //TODO this functionality should be in both pvp and image. Set here for now, as pvp does not support imageBC
    /**

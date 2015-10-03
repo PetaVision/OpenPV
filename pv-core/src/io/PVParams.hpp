@@ -244,7 +244,20 @@ public:
    void handleUnnecessaryParameter(const char * group_name, const char * param_name);
    template <typename T>
    void handleUnnecessaryParameter(const char * group_name, const char * param_name, T correct_value);
-   void handleUnnecessaryStringParameter(const char * group_name, const char * param_name, const char * correctValue=NULL, bool case_insensitive_flag=false);
+
+   /**
+    * If the given parameter group has a string parameter with the given parameter name,
+    * issue a warning that the string parameter is unnecessary, and mark string parameter as having been read.
+    */
+   void handleUnnecessaryStringParameter(const char * group_name, const char * param_name);
+
+   /**
+    * If the given parameter group has a string parameter with the given parameter name,
+    * issue a warning that the string parameter is unnecessary, and mark string parameter as having been read.
+    * Additionally, compare the value in params to the given correct value, and exit with an error if they
+    * are not equal.
+    */
+   void handleUnnecessaryStringParameter(const char * group_name, const char * param_name, const char * correctValue, bool case_insensitive_flag=false);
    int outputParams(FILE *);
    int setParameterSweepValues(int n);
    int setBatchSweepValues();

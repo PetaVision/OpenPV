@@ -3,7 +3,7 @@
  *
  *  Created on: Oct 31, 2014
  *      Author: Pete Schultz
- *  A subclass of Image that processes an image based on an existing memory
+ *  A subclass of BaseInput that processes an image based on an existing memory
  *  buffer instead of reading from a file.
  *
  *  Before using the image (typically after initializing the object but before

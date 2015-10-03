@@ -1742,8 +1742,8 @@ void PVParams::handleUnnecessaryParameter(const char * group_name, const char * 
    if (present(group_name, param_name)) {
       if (worldRank==0) {
          const char * class_name = groupKeywordFromName(group_name);
-         fprintf(stderr, "Group \"%s\" warning: class \"%s\" does not use parameter %s.\n",
-               group_name, class_name, param_name);
+         fprintf(stderr, "Warning: %s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
+               class_name, group_name, param_name);
       }
       value(group_name, param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
    }
@@ -1755,7 +1755,7 @@ void PVParams::handleUnnecessaryParameter(const char * group_name, const char * 
    if (present(group_name, param_name)) {
       if (worldRank==0) {
          const char * class_name = groupKeywordFromName(group_name);
-         fprintf(stderr, "Group \"%s\" warning: class \"%s\" does not read parameter %s but determines it from other param(s).\n",
+         fprintf(stderr, "Warning: %s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
                group_name, class_name, param_name);
       }
       T params_value = (T) value(group_name, param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
@@ -1776,28 +1776,44 @@ template void PVParams::handleUnnecessaryParameter<int>(const char * group_name,
 template void PVParams::handleUnnecessaryParameter<float>(const char * group_name, const char * param_name, float correct_value);
 template void PVParams::handleUnnecessaryParameter<double>(const char * group_name, const char * param_name, double correct_value);
 
+void PVParams::handleUnnecessaryStringParameter(const char * group_name, const char * param_name) {
+   int status = PV_SUCCESS;
+   const char * class_name = groupKeywordFromName(group_name);
+   if (stringPresent(group_name, param_name)) {
+      if (worldRank==0) {
+         fprintf(stderr, "Warning: %s \"%s\" does not use string parameter %s, but it is present in the parameters file.\n",
+               class_name, group_name, param_name);
+      }
+      const char * params_value = stringValue(group_name, param_name, false/*warnIfAbsent*/); // marks param as read so that presentAndNotBeenRead doesn't trip up
+      assert(params_value);
+   }
+   const char * params_value = stringValue(group_name, param_name, false/*warnIfAbsent*/); // marks param as read so that presentAndNotBeenRead doesn't trip up
+}
 void PVParams::handleUnnecessaryStringParameter(const char * group_name, const char * param_name, const char * correct_value, bool case_insensitive_flag) {
    int status = PV_SUCCESS;
    const char * class_name = groupKeywordFromName(group_name);
    if (stringPresent(group_name, param_name)) {
       if (worldRank==0) {
-         fprintf(stderr, "Group \"%s\" warning: class \"%s\" does not read string parameter %s but determines it from other param(s).\n",
-               group_name, class_name, param_name);
+         fprintf(stderr, "Warning: %s \"%s\" does not use string parameter %s, but it is present in the parameters file.\n",
+               class_name, group_name, param_name);
       }
       const char * params_value = stringValue(group_name, param_name, false/*warnIfAbsent*/); // marks param as read so that presentAndNotBeenRead doesn't trip up
-      assert(params_value);
-      if (correct_value != NULL) {
+      if (params_value != NULL && correct_value != NULL) {
          char * correct_value_i = strdup(correct_value); // need mutable strings for case-insensitive comparison
          char * params_value_i = strdup(params_value); // need mutable strings for case-insensitive comparison
          if (correct_value_i == NULL) {
-            fprintf(stderr, "%s \"%s\" error: Rank %d process unable to copy correct string value: %s.\n",
-                  groupKeywordFromName(group_name), group_name, worldRank, strerror(errno));
-            exit(EXIT_FAILURE);
+            status = PV_FAILURE;
+            if (worldRank==0) {
+               fprintf(stderr, "%s \"%s\" error: Rank %d process unable to copy correct string value: %s.\n",
+                     class_name, group_name, worldRank, strerror(errno));
+            }
          }
          if (params_value_i == NULL) {
-            fprintf(stderr, "%s \"%s\" error: Rank %d process unable to copy parameter string value: %s.\n",
-                  groupKeywordFromName(group_name), group_name, worldRank, strerror(errno));
-            exit(EXIT_FAILURE);
+            status = PV_FAILURE;
+            if (worldRank==0) {
+               fprintf(stderr, "%s \"%s\" error: Rank %d process unable to copy parameter string value: %s.\n",
+                     class_name, group_name, worldRank, strerror(errno));
+            }
          }
          if (case_insensitive_flag) {
             for (char * c = params_value_i; *c!='\0'; c++) {
@@ -1810,16 +1826,36 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
          if (strcmp(params_value_i, correct_value_i) != 0) {
             status = PV_FAILURE;
             if (worldRank==0) {
-               fprintf(stderr, "   Value \"%s\" is inconsistent with correct value \"%s\".  Exiting.\n",
-                     params_value, correct_value);
+               fprintf(stderr, "%s \"%s\" error: parameter string %s = \"%s\" is inconsistent with correct value \"%s\".  Exiting.\n",
+                     class_name, group_name, param_name, params_value, correct_value);
             }
          }
          free(correct_value_i);
          free(params_value_i);
       }
+      else if (params_value == NULL && correct_value != NULL) {
+         status = PV_FAILURE;
+         if (worldRank==0) {
+            fprintf(stderr, "%s \"%s\" error: parameter string %s = NULL is inconsistent with correct value \"%s\".  Exiting.\n",
+                  class_name, group_name, param_name, correct_value);
+         }
+      }
+      else if (params_value != NULL && correct_value == NULL) {
+         status = PV_FAILURE;
+         if (worldRank==0) {
+            fprintf(stderr, "%s \"%s\" error: parameter string %s = \"%s\" is inconsistent with correct value of NULL.  Exiting.\n",
+                  class_name, group_name, param_name, params_value);
+         }
+      }
+      else {
+         assert(params_value==NULL && correct_value == NULL);
+         assert(status==PV_SUCCESS);
+      }
    }
-   MPI_Barrier(icComm->globalCommunicator());
-   if (status != PV_SUCCESS) exit(EXIT_FAILURE);
+   if (status != PV_SUCCESS) {
+      MPI_Barrier(icComm->globalCommunicator());
+      exit(EXIT_FAILURE);
+   }
 }
 
 int PVParams::outputParams(FILE * fp) {

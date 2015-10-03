@@ -432,7 +432,7 @@ HyPerLayer::~HyPerLayer()
    
    free(triggerLayerName); triggerLayerName = NULL;
    free(triggerBehavior); triggerBehavior = NULL;
-   free(triggerResetLayerName); triggerLayerName = NULL;
+   free(triggerResetLayerName); triggerResetLayerName = NULL;
 
    if(thread_gSyn){
       for(int i = 0; i < parent->getNumThreads(); i++){

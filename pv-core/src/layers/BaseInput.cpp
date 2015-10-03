@@ -267,10 +267,11 @@ void BaseInput::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    return;
 }
 
-void BaseInput::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
+void BaseInput::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
+      triggerLayerName = NULL;
       triggerFlag = false;
-      parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", false/*correct value*/);
+      parent->parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName", NULL/*correct value*/);
    }
 }
 
