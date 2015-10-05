@@ -17,8 +17,8 @@ addpath("~/Desktop/liblinear-2.01/matlab");
 
 plot_flag = true;
 %%run_type = "ICA";
-%%run_type = "ICAX4"
-run_type = "ICAX16"
+run_type = "ICAX4"
+%%run_type = "ICAX16"
 %%run_type = "S1S2"
 %%run_type = "scene"
 if strcmp(run_type, "ICA")
@@ -482,7 +482,7 @@ if GT_flag
 	colormap(model_colormap);
 	title(taget_axis(i_target_class), target_classes{i_target_class});
 	axis(taget_axis(i_target_class), [0.5 num_pool+0.5 0.5 min(max_model*(1.1),1)]);
-	%%set(gca, 'xticklabels', pool_types);
+	set(gca, 'xticklabel', pool_types);
 	if i_target_class == num_target_classes
 	  [legend_handle, legend_object, legend_plot, legend_labels] = legend(model_handle, Sparse_list(:,2), 'location', 'northeast');
 	endif
