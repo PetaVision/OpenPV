@@ -124,7 +124,7 @@ function [Recon_hdr, ...
       Recon_vals_tmp = uint8(255*squeeze(Recon_vals_tmp));
       if plot_Recon_flag
 	set(Recon_fig(i_Recon, i_frame), "name", Recon_fig_name{i_Recon});
-	imagesc(flipud(Recon_vals_tmp)); 
+	imagesc(flipdim(Recon_vals_tmp,1)); 
 	if num_Recon_colors == 1
 	  colormap(gray); 
 	endif
