@@ -1,5 +1,4 @@
-liblinearPVP2
-if false
+
 %% Quick and dirty visualization harness for ground truth pvp files
 %% each classID is assigned a different color
 %% where bounding boxes overlapp, the color is a mixture
@@ -9,7 +8,8 @@ if false
 close all
 more off
 pkg load all
-setenv("GNUTERM","X11")
+%%setenv("GNUTERM","X11")
+setenv("GNUTERM","aqua")
 addpath("~/openpv/pv-core/mlab/imgProc");
 addpath("~/openpv/pv-core/mlab/util");
 addpath("~/openpv/pv-core/mlab/HyPerLCA");
@@ -18,15 +18,15 @@ addpath("~/Desktop/liblinear-2.01/matlab");
 plot_flag = true;
 %%run_type = "ICA";
 %%run_type = "ICAX4"
-run_type = "ICAX16"
-%%run_type = "S1S2"
+%%run_type = "ICAX16"
+run_type = "S1S2"
 %%run_type = "scene"
 if strcmp(run_type, "ICA")
-  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape15";
+  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape17";
 elseif strcmp(run_type, "ICAX4")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape10";
 elseif strcmp(run_type, "ICAX16")
-  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape5";
+  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape6";
 elseif strcmp(run_type, "S1S2")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29";
 elseif strcmp(run_type, "scene")
@@ -231,11 +231,14 @@ analyzeSparseEpochsPVP3(Sparse_list, ...
 			num_procs, ...
 			num_epochs);
 drawnow;
-num_Sparse_hist_pool_bins = 8+3;
+num_Sparse_hist_pool_bins = 4+3; %%6+3; %%8+3;
+save_Sparse_hist_pool_flag = false;
 [Sparse_hist_pool_hdr, ...
  Sparse_hist_pool_array, ...
- Sparse_hist_pool_times_array] = ...
-analyzeSparseHistPoolEpochsPVP(Sparse_list, ...
+ Sparse_hist_pool_times_array, ...
+ Sparse_max_pool_array, ...
+ Sparse_mean_pool_array] = ...
+analyzeSparseHistPoolEpochsPVP2(Sparse_list, ...
 			       output_dir, ...
 			       Sparse_hist_rank_array, ...
 			       load_Sparse_flag, ...
@@ -250,6 +253,7 @@ analyzeSparseHistPoolEpochsPVP(Sparse_list, ...
 			       Sparse_median_val_array, ...
 			       nx_GT, ny_GT, ...
 			       num_Sparse_hist_pool_bins, ...
+			       save_Sparse_hist_pool_flag, ...
 			       num_procs, ...
 			       num_epochs);
 
@@ -263,28 +267,7 @@ endif %% load_SparseHistPool_flag
 
 GT_flag = true;
 if GT_flag
-  VOC_classes={...
-		'background'
-		'aeroplane'
-		'bicycle'
-		'bird'
-		'boat'
-		'bottle'
-		'bus'
-		'car'
-		'cat'
-		'chair'
-		'cow'
-		'diningtable'
-		'dog'
-		'horse'
-		'motorbike'
-		'person'
-		'pottedplant'
-		'sheep'
-		'sofa'
-		'train'
-		'tvmonitor'};
+  VOC_classes={'background'; 'aeroplane'; 'bicycle'; 'bird'; 'boat'; 'bottle'; 'bus'; 'car'; 'cat'; 'chair'; 'cow'; 'diningtable'; 'dog'; 'horse'; 'motorbike'; 'person'; 'pottedplant'; 'sheep'; 'sofa'; 'train'; 'tvmonitor'};
   num_VOC_classes = length(VOC_classes);
 
   target_class_indices = [1 2 3 6 7 8 12 13 14 15 19 20]+1; %%[2:numel(VOC_classes)]; %%
@@ -292,6 +275,9 @@ if GT_flag
   num_target_classes = length(target_classes);
   SVM_flag = true;
   if SVM_flag
+    svm_dir = [output_dir, filesep, "svm"];
+    mkdir(svm_dir);
+    
     %% training label vector
     GT_progress_step = ceil(num_GT_frames / fraction_GT_progress);
     [GT_data, GT_hdr] = readpvpfile(GT_file, GT_progress_step, num_GT_frames, min_GT_skip, 1);
@@ -301,8 +287,8 @@ if GT_flag
     endif
     last_GT_frame = num_GT_frames - floor(GT_slack/2);  
     first_GT_frame = last_GT_frame - num_GT_images + 1;
-    training_label_vector_array = zeros(ny_GT, nx_GT, num_GT_images, num_target_classes);
     i_GT_image = 0;
+    training_label_vector_array = zeros(ny_GT, nx_GT, num_GT_images, num_target_classes);
     for i_GT_frame = first_GT_frame : last_GT_frame
       i_GT_image = i_GT_image + 1;
       active_indices = GT_data{i_GT_frame}.values(:,1);
@@ -317,16 +303,36 @@ if GT_flag
 	training_label_vector_array(:,:,i_GT_image, i_target_class) = GT_frame(:,:,i_VOC_class);
       endfor %% class_ndx
     endfor %% i_frame
+    training_label_pos = cell(num_target_classes,1);
+    training_label_neg = cell(num_target_classes,1);
+    pos_labels_ndx = cell(num_target_classes,1);
+    neg_labels_ndx = cell(num_target_classes,1);
+    neg_labels_rank = cell(num_target_classes,1);
+    for i_target_class = 1 : num_target_classes
+      training_label_vector = ...
+      reshape(training_label_vector_array(:,:,:,i_target_class), [ny_GT * nx_GT * num_GT_images, 1]);
+      pos_labels_ndx{i_target_class} = find(training_label_vector);
+      neg_labels_ndx{i_target_class} = find(~training_label_vector);
+      [neg_labels_sorted, neg_labels_rank{i_target_class}] = sort(rand(length(neg_labels_ndx{i_target_class}),1));
+      training_label_pos{i_target_class} = training_label_vector(pos_labels_ndx{i_target_class});
+      neg_pos_ratio = 1;
+      neg_pos_ratio = min(neg_pos_ratio, floor(length(neg_labels_ndx{i_target_class})/length(pos_labels_ndx{i_target_class})))
+      training_label_neg{i_target_class} = training_label_vector(neg_labels_ndx{i_target_class}(neg_labels_rank{i_target_class}(1:neg_pos_ratio*length(pos_labels_ndx{i_target_class}))));
+    endfor %% class_ndx
     
     %%traing_instance_matrix
     num_Sparse_list = size(Sparse_list,1);
-    training_instance_matrix_array = cell(num_Sparse_list + (num_Sparse_list>1),1);
+    training_hist_pool_matrix_array = cell(num_Sparse_list + (num_Sparse_list>1),1);
+    training_max_pool_matrix_array = cell(num_Sparse_list + (num_Sparse_list>1),1);
+    training_mean_pool_matrix_array = cell(num_Sparse_list + (num_Sparse_list>1),1);
     nf_Sparse_array = zeros(num_Sparse_list + (num_Sparse_list > 1),1);
     first_Sparse_frame_array = zeros(num_Sparse_list,1);
     last_Sparse_frame_array = zeros(num_Sparse_list,1);
     num_Sparse_frames_array = zeros(num_Sparse_list,1);
-    model_array = cell(num_Sparse_list + (num_Sparse_list > 1),1);
-    for i_Sparse = 1 : num_Sparse_list + (num_Sparse_list > 1);
+    model_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
+    model_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
+    model_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
+    for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
       if i_Sparse <= num_Sparse_list
 	nf_Sparse_array(i_Sparse) = Sparse_hist_pool_hdr{i_Sparse}.nf;
 	num_Sparse_frames_array(i_Sparse) = size(Sparse_hist_pool_array{i_Sparse},1);
@@ -350,73 +356,183 @@ if GT_flag
 	  last_Sparse_time = Sparse_hist_pool_times_array{i_Sparse}(last_Sparse_frame_array(i_Sparse));
 	endwhile
       else
-	nf_Sparse_array(num_Sparse_list+1) = prod(nf_Sparse_array(:));      
-      endif
+	nf_Sparse_array(num_Sparse_list+1) = prod(nf_Sparse_array(:));
+	Sparse_list{num_Sparse_list+1,1} = [];
+	Sparse_list{num_Sparse_list+1,2} = Sparse_list{1,2};
+	for j_Sparse = 2 : num_Sparse_list
+	  Sparse_list{num_Sparse_list+1,2} = [Sparse_list{num_Sparse_list+1,2},Sparse_list{j_Sparse,2}];
+	endfor %% j_Sparse
+      endif %% i_Sparse > 1
       %%keyboard;
       for i_target_class = 1 : num_target_classes
-	disp(["training model for target class = ", target_classes{i_target_class}]);
-	if i_Sparse <= num_Sparse_list
-	  training_label_vector = ...
-	  reshape(training_label_vector_array(:,:,:,i_target_class), [ny_GT * nx_GT * num_GT_images, 1]);
-	  training_instance_matrix = zeros(num_Sparse_hist_pool_bins, nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
+	disp(["training model for target class = ", target_classes{i_target_class}, " using ", Sparse_list{i_Sparse,2}]);
+	if i_Sparse <= num_Sparse_list	  
+	  training_hist_pool_matrix = zeros(num_Sparse_hist_pool_bins, nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
+	  training_max_pool_matrix = zeros(nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
+	  training_mean_pool_matrix = zeros(nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
 	  for i_Sparse_frame = first_Sparse_frame_array(i_Sparse) : last_Sparse_frame_array(i_Sparse)
 	    j_Sparse_frame = i_Sparse_frame - first_Sparse_frame_array(i_Sparse) + 1;
-	    training_instance_matrix(:, :, :, :, j_Sparse_frame) = ...
+	    training_hist_pool_matrix(:, :, :, :, j_Sparse_frame) = ...
 	    Sparse_hist_pool_array{i_Sparse}{i_Sparse_frame};
+	    training_max_pool_matrix(:, :, :, j_Sparse_frame) = ...
+	    Sparse_max_pool_array{i_Sparse}{i_Sparse_frame};
+	    training_mean_pool_matrix(:, :, :, j_Sparse_frame) = ...
+	    Sparse_mean_pool_array{i_Sparse}{i_Sparse_frame};
 	  endfor %% i_Sparse_frame
-	  training_instance_matrix = ...
-	  sparse(reshape(training_instance_matrix, ...
+	  training_hist_pool_matrix = ...
+	  sparse(reshape(training_hist_pool_matrix, ...
 			 [num_Sparse_hist_pool_bins *  nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
-	  pos_labels_ndx = find(training_label_vector);
-	  neg_labels_ndx = find(~training_label_vector);
-	  [neg_labels_sorted, neg_labels_rank] = sort(rand(length(neg_labels_ndx),1));
-	  training_label_pos = training_label_vector(pos_labels_ndx);
-	  neg_pos_ratio = 1;
-	  neg_pos_ratio = min(neg_pos_ratio, floor(length(neg_labels_ndx)/length(pos_labels_ndx)))
-	  training_label_neg = training_label_vector(neg_labels_ndx(neg_labels_rank(1:neg_pos_ratio*length(pos_labels_ndx))));
-	  training_instance_pos = training_instance_matrix(:,pos_labels_ndx);
-	  training_instance_neg = training_instance_matrix(:, neg_labels_ndx(neg_labels_rank(1:neg_pos_ratio*length(pos_labels_ndx))));
-	  model_array{i_Sparse} = ...
-	  train([training_label_pos; training_label_neg], ...
-		[training_instance_pos, training_instance_neg], ...
+	  training_max_pool_matrix = ...
+	  sparse(reshape(training_max_pool_matrix, ...
+			 [nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+	  training_mean_pool_matrix = ...
+	  sparse(reshape(training_mean_pool_matrix, ...
+			 [nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+	  training_hist_pool_pos = training_hist_pool_matrix(:,pos_labels_ndx{i_target_class});
+	  training_hist_pool_neg = training_hist_pool_matrix(:, neg_labels_ndx{i_target_class}(neg_labels_rank{i_target_class}(1:neg_pos_ratio*length(pos_labels_ndx{i_target_class}))));
+	  training_max_pool_pos = training_max_pool_matrix(:,pos_labels_ndx{i_target_class});
+	  training_max_pool_neg = training_max_pool_matrix(:, neg_labels_ndx{i_target_class}(neg_labels_rank{i_target_class}(1:neg_pos_ratio*length(pos_labels_ndx{i_target_class}))));
+	  training_mean_pool_pos = training_mean_pool_matrix(:,pos_labels_ndx{i_target_class});
+	  training_mean_pool_neg = training_mean_pool_matrix(:, neg_labels_ndx{i_target_class}(neg_labels_rank{i_target_class}(1:neg_pos_ratio*length(pos_labels_ndx{i_target_class}))));
+	  
+	  model_hist_pool_array{i_Sparse, i_target_class} = ...
+	  train([training_label_pos{i_target_class}; training_label_neg{i_target_class}], ...
+		[training_hist_pool_pos, training_hist_pool_neg], ...
 		['-s 0 -C'], 'col');
-	  %%train(training_label_vector, ...
-	  %%      training_instance_matrix, ...
-	  %%      ['-s 0 -C'], 'col');
-	  if num_Sparse_list>1
+	  model_max_pool_array{i_Sparse, i_target_class} = ...
+	  train([training_label_pos{i_target_class}; training_label_neg{i_target_class}], ...
+		[training_max_pool_pos, training_max_pool_neg], ...
+		['-s 0 -C'], 'col');
+	  model_mean_pool_array{i_Sparse, i_target_class} = ...
+	  train([training_label_pos{i_target_class}; training_label_neg{i_target_class}], ...
+		[training_mean_pool_pos, training_mean_pool_neg], ...
+		['-s 0 -C'], 'col');
+	  
+ 	  if num_Sparse_list>1
 	    if i_Sparse == 1
-	      training_instance_matrix_array{num_Sparse_list+1} = ...
-	      [training_instance_pos, training_instance_neg];
+	      training_hist_pool_matrix_array{num_Sparse_list+1, i_target_class} = ...
+	      [training_hist_pool_pos, training_hist_pool_neg];
+	      training_max_pool_matrix_array{num_Sparse_list+1, i_target_class} = ...
+	      [training_max_pool_pos, training_max_pool_neg];
+	      training_mean_pool_matrix_array{num_Sparse_list+1, i_target_class} = ...
+	      [training_mean_pool_pos, training_mean_pool_neg];
 	    else
-	      training_instance_matrix_array{num_Sparse_list+1} = ...
-	      [training_instance_matrix_array{num_Sparse_list+1}; ...
-	       [training_instance_pos, training_instance_neg]];
+	      training_hist_pool_matrix_array{num_Sparse_list+1, i_target_class} = ...
+	      [training_hist_pool_matrix_array{num_Sparse_list+1, i_target_class}; ...
+	       [training_hist_pool_pos, training_hist_pool_neg]];
+	      training_max_pool_matrix_array{num_Sparse_list+1, i_target_class} = ...
+	      [training_max_pool_matrix_array{num_Sparse_list+1, i_target_class}; ...
+	       [training_max_pool_pos, training_max_pool_neg]];
+	      training_mean_pool_matrix_array{num_Sparse_list+1, i_target_class} = ...
+	      [training_mean_pool_matrix_array{num_Sparse_list+1, i_target_class}; ...
+	       [training_mean_pool_pos, training_mean_pool_neg]];
 	    endif
 	  endif
 	else
-	  model_array{num_Sparse_list+1} = ...
-	  train([training_label_pos; training_label_neg], ...
-		training_instance_matrix_array{num_Sparse_list+1}, ...
+	  model_hist_pool_array{num_Sparse_list+1, i_target_class} = ...
+	  train([training_label_pos{i_target_class}; training_label_neg{i_target_class}], ...
+		training_hist_pool_matrix_array{num_Sparse_list+1, i_target_class}, ...
 		['-s 0 -C'], 'col');
-	endif
+	  model_max_pool_array{num_Sparse_list+1, i_target_class} = ...
+	  train([training_label_pos{i_target_class}; training_label_neg{i_target_class}], ...
+		training_max_pool_matrix_array{num_Sparse_list+1, i_target_class}, ...
+		['-s 0 -C'], 'col');
+	  model_mean_pool_array{num_Sparse_list+1, i_target_class} = ...
+	  train([training_label_pos{i_target_class}; training_label_neg{i_target_class}], ...
+		training_mean_pool_matrix_array{num_Sparse_list+1, i_target_class}, ...
+		['-s 0 -C'], 'col');
+	endif %% num_Sparse_list > 1
       endfor %% class_ndx
     endfor %% i_Sparse
     
-  endif
+    save([svm_dir, filesep, "svm.txt"], "target_classes", "model_hist_pool_array", "model_max_pool_array", "model_mean_pool_array");
+    if plot_flag
+      num_pool = 3;
+      pool_types = {"hist"; "max"; "mean"};
+      model_array = zeros(num_target_classes, num_Sparse_list + (num_Sparse_list>1), num_pool);
+      for i_pool = 1:num_pool
+	for i_target_class = 1 : num_target_classes
+	  for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
+	    if strcmp(pool_types{i_pool},"hist")
+	      model_array(i_target_class, i_Sparse, i_pool) = ...
+	      model_hist_pool_array{i_Sparse, i_target_class}(2);
+	    elseif strcmp(pool_types{i_pool},"max")
+	      model_array(i_target_class, i_Sparse, i_pool) = ...
+	      model_max_pool_array{i_Sparse, i_target_class}(2);
+	    elseif strcmp(pool_types{i_pool},"mean")
+	      model_array(i_target_class, i_Sparse, i_pool) = ...
+	      model_mean_pool_array{i_Sparse, i_target_class}(2);
+	    endif %% pool_types
+	  endfor %% i_Sparse
+	endfor  %% i_target_class
+      endfor %% i_pool
+      if true %%num_pool > 1  %% make a subplot of histgrams for each target class, a new figure for each i_Sparse in Sparse_list
+	max_model = max(model_array(:));
+	model_fig = zeros(num_Sparse_list + (num_Sparse_list>1),1);
+	num_model_rows = max(1,floor(sqrt(num_target_classes)));
+	num_model_cols = ceil(num_target_classes/num_model_rows);
+	for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
+	  model_fig(i_Sparse) = figure;
+	  target_axis = zeros(num_target_classes,1);
+	  model_fig_name = ["linearSVM_", Sparse_list{i_Sparse,2}];
+	  set(model_fig(i_Sparse), 'name', model_fig_name);
+	  for i_target_class = 1 : num_target_classes
+	    %%i_model_row = mod(i_target_class-1, num_model_cols) + 1;
+	    %%j_model_col = ceil(i_target_class / num_model_cols);
+	    taget_axis(i_target_class) = subplot(num_model_rows, num_model_cols, i_target_class);
+	    model_handle = bar(taget_axis(i_target_class), squeeze(model_array(i_target_class, i_Sparse, :)));
+	    model_colormap = colormap(prism(3));
+	    for i_pool = 1 : 3
+	      set(model_handle(i_pool), 'facecolor', model_colormap(mod(i_pool-1, num_pool)+1,:));
+	    endfor
+	    title(taget_axis(i_target_class), target_classes{i_target_class});
+	    axis(taget_axis(i_target_class), [0.5 num_pool+0.5 0.5 max_model]);
+	  endfor %% i_target_class
+	  saveas(model_fig(i_Sparse), [svm_dir, filesep, model_fig_name, ".png"]);
+	endfor %% i_Sparse
+      else
+	max_model = max(model_array(:));
+	num_model_rows = max(1,floor(sqrt(num_target_classes)));
+	num_model_cols = ceil(num_target_classes/num_model_rows);
+	model_fig = figure;
+	target_axis = zeros(num_target_classes,1);
+	model_fig_name = ["linearSVM", Sparse_list{num_Sparse_list+(num_Sparse_list>1),2}];
+	set(model_fig, 'name', model_fig_name);
+	for i_target_class = 1 : num_target_classes
+	  i_model_row = mod(i_target_class-1, num_model_cols) + 1;
+	  j_model_col = ceil(i_target_class / num_model_cols);
+	  taget_axis(i_target_class) = subplot(num_model_rows, num_model_cols, i_target_class);
+	  for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
+	    model_handle = bar(taget_axis(i_target_class), squeeze(model_array(i_target_class, :, :)));
+	    model_colormap = colormap(prism(length(model_handle)));
+	    for i_handle = 1 : length(model_handle)
+	      set(model_handle(i_handle), 'facecolor', model_colormap(mod(i_handle-1, length(model_handle))+1,:));
+	    endfor
+	    title(taget_axis(i_target_class), target_classes{i_target_class});
+	    axis(taget_axis(i_target_class), [0.5 num_pool+0.5 0.5 max_model]);
+	    legend(model_handle, Sparse_list(:,2))
+	  endfor %% i_Sparse	
+	  saveas(model_fig(i_Sparse), [svm_dir, filesep, model_fig_name, ".png"]);
+	endfor %% i_target_class
+      endif %% num_pool > 1
+    endif %% plot_flag
+  endif  %% svm_flag
 
 
 
 
 
-  SLP_flag = true;
+  SLP_flag = true 
   if SLP_flag
+    SLP_dir = [output_dir, filesep, "SLP"];
+    mkdir(SLP_dir);
     for i_scale = 1 : 1 +  2*strcmp(run_type, "S1S2")
       if strcmp(run_type, "ICA")
 	gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape17/GroundTruth.pvp")
       elseif strcmp(run_type, "ICAX4")
 	gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape10/GroundTruth.pvp")
       elseif strcmp(run_type, "ICAX16")
-	gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape5/GroundTruth.pvp")
+	gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape6/GroundTruth.pvp")
       elseif strcmp(run_type, "S1S2")
 	gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/GroundTruth.pvp")
       endif
@@ -426,7 +542,7 @@ if GT_flag
 	elseif strcmp(run_type, "ICAX4")      
 	  pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape10/GroundTruthReconS1.pvp")
 	elseif strcmp(run_type, "ICAX16")      
-	  pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape5/GroundTruthReconS1.pvp")
+	  pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape6/GroundTruthReconS1.pvp")
 	elseif strcmp(run_type, "S1S2")      
 	  pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/GroundTruthReconS1.pvp")
 	endif
@@ -466,7 +582,8 @@ if GT_flag
       classID_colormap = prism(length(target_class_indices)+0); %%hot(gt_hdr.nf+1); %%rainbow(length(target_class_indices)); %%prism(length(target_class_indices));
       use_false_positive_thresh = false; %%true; %%
       false_positive_thresh = .99;
-      for i_frame = 1 : min(pred_num_frames, gt_num_frames) 
+      display_frame = min(pred_num_frames, gt_num_frames);
+      for i_frame = 1 : display_frame
 	
 	%% ground truth layer is sparse
 	if mod(i_frame, ceil(gt_num_frames/10)) == 0
@@ -481,8 +598,9 @@ if GT_flag
 	gt_classID_cube = permute(gt_classID_cube, [3,2,1]);
 	
 	%% only display predictions for these frames
-	if any(gt_time == Recon_time{1})
+	if i_frame == display_frame 
 	  display(["i_frame = ", num2str(i_frame)]);
+	  display(["gt_time = ", num2str(gt_time)]);
 	  
 	  [gt_classID_val, gt_classID_ndx] = max(gt_classID_cube, [], 3);
 	  min_gt_classID = min(gt_classID_val(:))
@@ -507,8 +625,8 @@ if GT_flag
 	    image(uint8(gt_classID_heatmap)); axis off; axis image, box off;
 	    drawnow
 	  endif
-	  imwrite(uint8(gt_classID_heatmap), [output_dir, filesep, 'Recon', filesep, "gt_", num2str(gt_time, "%i"), "_", num2str(i_scale), '.png'], 'png');
-	endif %% gt_time == Recon_time
+	  imwrite(uint8(gt_classID_heatmap), [SLP_dir, filesep, "gt_", num2str(gt_time, "%i"), "_", num2str(i_scale), '.png'], 'png');
+	endif %% display_frame == i_frame
 
 	%% recon layer is not sparse
 	pred_time = pred_data{i_frame}.time;
@@ -529,7 +647,8 @@ if GT_flag
 	    pred_classID_hist(:,i_target_classID,2) = squeeze(pred_classID_hist(:,i_target_classID,2)) + hist(neg_pred_tmp(:), classID_hist_bins)';
 	  endif
 	endfor
-	if any(pred_time == Recon_time{1}) 
+	if i_frame == display_frame
+	  display(["pred_time = ", num2str(pred_time)]);
 	  pred_classID_cumsum = squeeze(cumsum(pred_classID_hist, 1));
 	  pred_classID_sum = squeeze(sum(pred_classID_hist, 1));
 	  pred_classID_norm = repmat(reshape(pred_classID_sum, [1,length(target_class_indices),2]), [num_classID_bins,1,1]);
@@ -625,7 +744,7 @@ if GT_flag
 	    drawnow
 	    %%get(th)
 	  endif %% plot_flag
-	  imwrite(uint8(pred_classID_heatmap), [output_dir, filesep, 'Recon', filesep, "pred_", num2str(pred_time, "%i"), "_", num2str(i_scale), '.png'], 'png');
+	  imwrite(uint8(pred_classID_heatmap), [SLP_dir, filesep, "pred_", num2str(pred_time, "%i"), "_", num2str(i_scale), '.png'], 'png');
 	  disp(target_confidences)
 		%disp([pred_classID_true_pos; pred_classID_false_pos])
 		%keyboard
@@ -660,12 +779,11 @@ if GT_flag
 	    set(lh, 'linewidth', 1.0)
 	    title(target_classes{i_target_classID});
 	  endfor
-	  saveas(hist_fig, [output_dir, filesep, 'Recon', filesep, "hist_", num2str(i_scale), "_", num2str(pred_time, "%i"), ".png"], "png");
+	  saveas(hist_fig, [SLP_dir, filesep, "hist_", num2str(i_scale), "_", num2str(pred_time, "%i"), ".png"], "png");
 	endif
 	
       endfor  %% i_frame
-      save([output_dir, filesep, 'Recon', filesep, "hist_", num2str(pred_time, "%i"), ".mat"], "classID_hist_bins", "pred_classID_hist", "pred_classID_norm", "pred_classID_cumprob", "pred_classID_cumsum")
+      save([SLP_dir, filesep, "hist_", num2str(pred_time, "%i"), ".mat"], "classID_hist_bins", "pred_classID_hist", "pred_classID_norm", "pred_classID_cumprob", "pred_classID_cumsum")
     endfor  %% i_scale
   endif %% SLP_flag
 endif %% GT_flag
-endif
