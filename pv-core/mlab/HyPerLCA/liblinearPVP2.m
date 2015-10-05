@@ -18,8 +18,8 @@ addpath("~/Desktop/liblinear-2.01/matlab");
 plot_flag = true;
 %%run_type = "ICA";
 %%run_type = "ICAX4"
-%%run_type = "ICAX16"
-run_type = "S1S2"
+run_type = "ICAX16"
+%%run_type = "S1S2"
 %%run_type = "scene"
 if strcmp(run_type, "ICA")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape17";
@@ -466,55 +466,28 @@ if GT_flag
 	  endfor %% i_Sparse
 	endfor  %% i_target_class
       endfor %% i_pool
-      if true %%num_pool > 1  %% make a subplot of histgrams for each target class, a new figure for each i_Sparse in Sparse_list
-	max_model = max(model_array(:));
-	model_fig = zeros(num_Sparse_list + (num_Sparse_list>1),1);
-	num_model_rows = max(1,floor(sqrt(num_target_classes)));
-	num_model_cols = ceil(num_target_classes/num_model_rows);
-	for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
-	  model_fig(i_Sparse) = figure;
-	  target_axis = zeros(num_target_classes,1);
-	  model_fig_name = ["linearSVM_", Sparse_list{i_Sparse,2}];
-	  set(model_fig(i_Sparse), 'name', model_fig_name);
-	  for i_target_class = 1 : num_target_classes
-	    %%i_model_row = mod(i_target_class-1, num_model_cols) + 1;
-	    %%j_model_col = ceil(i_target_class / num_model_cols);
-	    taget_axis(i_target_class) = subplot(num_model_rows, num_model_cols, i_target_class);
-	    model_handle = bar(taget_axis(i_target_class), squeeze(model_array(i_target_class, i_Sparse, :)));
-	    model_colormap = colormap(prism(3));
-	    for i_pool = 1 : 3
-	      set(model_handle(i_pool), 'facecolor', model_colormap(mod(i_pool-1, num_pool)+1,:));
-	    endfor
-	    title(taget_axis(i_target_class), target_classes{i_target_class});
-	    axis(taget_axis(i_target_class), [0.5 num_pool+0.5 0.5 max_model]);
-	  endfor %% i_target_class
-	  saveas(model_fig(i_Sparse), [svm_dir, filesep, model_fig_name, ".png"]);
-	endfor %% i_Sparse
-      else
-	max_model = max(model_array(:));
-	num_model_rows = max(1,floor(sqrt(num_target_classes)));
-	num_model_cols = ceil(num_target_classes/num_model_rows);
-	model_fig = figure;
-	target_axis = zeros(num_target_classes,1);
-	model_fig_name = ["linearSVM", Sparse_list{num_Sparse_list+(num_Sparse_list>1),2}];
-	set(model_fig, 'name', model_fig_name);
-	for i_target_class = 1 : num_target_classes
-	  i_model_row = mod(i_target_class-1, num_model_cols) + 1;
-	  j_model_col = ceil(i_target_class / num_model_cols);
-	  taget_axis(i_target_class) = subplot(num_model_rows, num_model_cols, i_target_class);
-	  for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
-	    model_handle = bar(taget_axis(i_target_class), squeeze(model_array(i_target_class, :, :)));
-	    model_colormap = colormap(prism(length(model_handle)));
-	    for i_handle = 1 : length(model_handle)
-	      set(model_handle(i_handle), 'facecolor', model_colormap(mod(i_handle-1, length(model_handle))+1,:));
-	    endfor
-	    title(taget_axis(i_target_class), target_classes{i_target_class});
-	    axis(taget_axis(i_target_class), [0.5 num_pool+0.5 0.5 max_model]);
-	    legend(model_handle, Sparse_list(:,2))
-	  endfor %% i_Sparse	
-	  saveas(model_fig(i_Sparse), [svm_dir, filesep, model_fig_name, ".png"]);
-	endfor %% i_target_class
-      endif %% num_pool > 1
+      max_model = max(model_array(:));
+      num_model_rows = max(1,floor(sqrt(num_target_classes)));
+      num_model_cols = ceil(num_target_classes/num_model_rows);
+      model_fig = figure;
+      target_axis = zeros(num_target_classes,1);
+      model_fig_name = ["linearSVM", Sparse_list{num_Sparse_list+(num_Sparse_list>1),2}];
+      set(model_fig, 'name', model_fig_name);
+      for i_target_class = 1 : num_target_classes
+	i_model_row = mod(i_target_class-1, num_model_cols) + 1;
+	j_model_col = ceil(i_target_class / num_model_cols);
+	taget_axis(i_target_class) = subplot(num_model_rows, num_model_cols, i_target_class);
+	model_handle = bar(taget_axis(i_target_class), squeeze(model_array(i_target_class, :, :)));
+	model_colormap = colormap(prism(length(model_handle)));
+	colormap(model_colormap);
+	title(taget_axis(i_target_class), target_classes{i_target_class});
+	axis(taget_axis(i_target_class), [0.5 num_pool+0.5 0.5 min(max_model*(1.1),1)]);
+	%%set(gca, 'xticklabels', pool_types);
+	if i_target_class == num_target_classes
+	  [legend_handle, legend_object, legend_plot, legend_labels] = legend(model_handle, Sparse_list(:,2), 'location', 'northeast');
+	endif
+      endfor %% i_target_class
+      saveas(model_fig, [svm_dir, filesep, model_fig_name, ".png"]);
     endif %% plot_flag
   endif  %% svm_flag
 
