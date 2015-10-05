@@ -8,18 +8,19 @@
 close all
 more off
 pkg load all
-%%setenv("GNUTERM","X11")
-setenv("GNUTERM","aqua")
+setenv("GNUTERM","X11")
+%%setenv("GNUTERM","aqua")
 addpath("~/openpv/pv-core/mlab/imgProc");
 addpath("~/openpv/pv-core/mlab/util");
 addpath("~/openpv/pv-core/mlab/HyPerLCA");
-addpath("~/Desktop/liblinear-2.01/matlab");
+addpath("/shared/liblinear-2.1/matlab");
 
 plot_flag = true;
 %%run_type = "ICA";
 %%run_type = "ICAX4"
-run_type = "ICAX16"
+%%run_type = "ICAX16"
 %%run_type = "S1S2"
+run_type = "DCA";
 %%run_type = "scene"
 if strcmp(run_type, "ICA")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape17";
@@ -29,6 +30,8 @@ elseif strcmp(run_type, "ICAX16")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape6";
 elseif strcmp(run_type, "S1S2")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29";
+elseif strcmp(run_type, "DCA")
+  output_dir = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape7";
 elseif strcmp(run_type, "scene")
   output_dir = "/Volumes/mountData/scene/scene_S1X4_1536_ICA/mount_rushmore1";
   %%output_dir = "/Volumes/mountData/scene/scene_S1X4_1536_ICA/half_dome_yosemite1";
@@ -37,7 +40,7 @@ endif
 
 
 %%draw reconstructed image
-Recon_flag = false;
+Recon_flag = true;
 if Recon_flag
 DoG_weights = [];
 if strcmp(run_type, "ICA")
@@ -48,6 +51,8 @@ elseif strcmp(run_type, "ICAX16")
   Recon_list = {[""],  ["Image"]};
 elseif strcmp(run_type, "S1S2")
   Recon_list = {[""],  ["Image"]};
+elseif strcmp(run_type, "DCA")
+  Recon_list = {[""],  ["Image"]; [""], ["ImageDeconS1"]; [""], ["ImageDeconS2"]; [""], ["ImageDeconS3"]; [""], ["ImageDecon"]; [""], ["ImageDeconError"] };
 elseif strcmp(run_type, "scene")
   Recon_list = {["a3_"],  ["Image"]; ["a0_"],  ["ImageReconS1"]};
 endif
@@ -76,42 +81,44 @@ drawnow;
 endif %% Recon_flag
 
 %% GT activity
-GT_flag = false; %%true;
+GT_flag = true;
 num_GT_images = 7958;
 displayPeriod = 1200;
 nx_GT = 1;
 ny_GT = 1;
-  if strcmp(run_type, "ICA")
-    GT_list ={[""], ["GroundTruth"]};
-  elseif strcmp(run_type, "ICAX4")
-    GT_list ={[""], ["GroundTruth"]};
-  elseif strcmp(run_type, "ICAX16")
-    GT_list ={[""], ["GroundTruth"]};
-  elseif strcmp(run_type, "S1S2")
-    GT_list ={[""], ["GroundTruth"]};
-  endif
-  GT_file = [output_dir, filesep, GT_list{1,1}, GT_list{1,2}, ".pvp"];
-  GT_fid = fopen(GT_file);
-  GT_hdr = readpvpheader(GT_fid);
-  fclose(GT_file);
-  nx_GT = GT_hdr.nx;
-  ny_GT = GT_hdr.ny;
-  num_GT_frames = GT_hdr.nbands;
-  SVM_flag = true;
-  fraction_GT_frames_read = 1;
-  num_slack = 24;
-  GT_slack = num_slack;
-  Sparse_slack = GT_slack;
-  num_GT_images = min(num_GT_images, num_GT_frames - GT_slack);
-  numEpochs = floor(num_GT_frames/num_GT_images);
-  min_GT_skip = max(1, num_GT_frames - num_GT_images*numEpochs - GT_slack);
-  min_Sparse_skip = min_GT_skip;
-  fraction_GT_progress = 10;
-  num_GT_epochs = 1;
-  num_GT_procs = 1;
-  num_epochs = num_GT_epochs;
-  num_procs = num_GT_procs;
-  GT_frames_list = [];
+if strcmp(run_type, "ICA")
+  GT_list ={[""], ["GroundTruth"]};
+elseif strcmp(run_type, "ICAX4")
+  GT_list ={[""], ["GroundTruth"]};
+elseif strcmp(run_type, "ICAX16")
+  GT_list ={[""], ["GroundTruth"]};
+elseif strcmp(run_type, "S1S2")
+  GT_list ={[""], ["GroundTruth"]};
+elseif strcmp(run_type, "DCA")
+  GT_list ={[""], ["GroundTruth"]};
+endif
+GT_file = [output_dir, filesep, GT_list{1,1}, GT_list{1,2}, ".pvp"];
+GT_fid = fopen(GT_file);
+GT_hdr = readpvpheader(GT_fid);
+fclose(GT_file);
+nx_GT = GT_hdr.nx;
+ny_GT = GT_hdr.ny;
+num_GT_frames = GT_hdr.nbands;
+SVM_flag = true;
+fraction_GT_frames_read = 1;
+num_slack = 24;
+GT_slack = num_slack;
+Sparse_slack = GT_slack;
+num_GT_images = min(num_GT_images, num_GT_frames - GT_slack);
+numEpochs = floor(num_GT_frames/num_GT_images);
+min_GT_skip = max(1, num_GT_frames - num_GT_images*numEpochs - GT_slack);
+min_Sparse_skip = min_GT_skip;
+fraction_GT_progress = 10;
+num_GT_epochs = 1;
+num_GT_procs = 1;
+num_epochs = num_GT_epochs;
+num_procs = num_GT_procs;
+GT_frames_list = [];
 if GT_flag
   load_GT_flag = false;
   [GT_hdr, ...
@@ -147,6 +154,8 @@ if GT_flag
     nonSparse_list = {[""], ["GroundTruthReconS1Error"]};
   elseif strcmp(run_type, "S1S2")
     nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS2Error"]; [""], ["GroundTruthReconS1S2Error"]};
+  elseif strcmp(run_type, "DCA")
+    nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS2Error"]; [""], ["GroundTruthReconS3Error"]};
   elseif strcmp(run_type, "scene")
     nonSparse_list = {["a0_"], ["ImageReconS1Error"]};
   endif
@@ -160,7 +169,7 @@ if GT_flag
     nonSparse_norm_list = {[""], ["GroundTruth"]};
   elseif strcmp(run_type, "ICAX16")
     nonSparse_norm_list = {[""], ["GroundTruth"]};
-  elseif strcmp(run_type, "S1S2")
+  elseif strcmp(run_type, "S1S2") || strcmp(run_type, "DCA")
     nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]};
   endif
   fraction_nonSparse_frames_read = 1;
@@ -197,6 +206,8 @@ elseif strcmp(run_type, "ICAX16")
   Sparse_list ={[""], ["S1"]};
 elseif strcmp(run_type, "S1S2")
   Sparse_list ={[""], ["S1"]; [""], ["S2"]};
+elseif strcmp(run_type, "DCa")
+  Sparse_list ={[""], ["S1"]; [""], ["S2"]; [""], ["S3"]};
 elseif strcmp(run_type, "scene")
   Sparse_list ={["a2_"], ["S1"]};
 endif
@@ -270,7 +281,7 @@ if GT_flag
   VOC_classes={'background'; 'aeroplane'; 'bicycle'; 'bird'; 'boat'; 'bottle'; 'bus'; 'car'; 'cat'; 'chair'; 'cow'; 'diningtable'; 'dog'; 'horse'; 'motorbike'; 'person'; 'pottedplant'; 'sheep'; 'sofa'; 'train'; 'tvmonitor'};
   num_VOC_classes = length(VOC_classes);
 
-  target_class_indices = [1 2 3 6 7 8 12 13 14 15 19 20]+1; %%[2:numel(VOC_classes)]; %%
+  target_class_indices = [0 1 2 3 6 7 8 12 13 14 15 19]+1; %%[2:numel(VOC_classes)]; %%
   target_classes = VOC_classes(target_class_indices)
   num_target_classes = length(target_classes);
   SVM_flag = true;
@@ -499,33 +510,37 @@ if GT_flag
   if SLP_flag
     SLP_dir = [output_dir, filesep, "SLP"];
     mkdir(SLP_dir);
-    for i_scale = 1 : 1 +  2*strcmp(run_type, "S1S2")
+    for i_scale = 1 : 1 +  2*(strcmp(run_type, "S1S2") || strcmp(run_type, "DCA"))
       if strcmp(run_type, "ICA")
-	gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape17/GroundTruth.pvp")
+	gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
       elseif strcmp(run_type, "ICAX4")
-	gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape10/GroundTruth.pvp")
+	gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
       elseif strcmp(run_type, "ICAX16")
-	gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape6/GroundTruth.pvp")
+	gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
       elseif strcmp(run_type, "S1S2")
-	gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/GroundTruth.pvp")
+	gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
+      elseif strcmp(run_type, "S1S2")
+	gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
       endif
       if i_scale == 1
 	if strcmp(run_type, "ICA")
-	  pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape17/GroundTruthReconS1.pvp")
+	  pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
 	elseif strcmp(run_type, "ICAX4")      
-	  pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape10/GroundTruthReconS1.pvp")
+	  pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
 	elseif strcmp(run_type, "ICAX16")      
-	  pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape6/GroundTruthReconS1.pvp")
-	elseif strcmp(run_type, "S1S2")      
-	  pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/GroundTruthReconS1.pvp")
+	  pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
+	elseif strcmp(run_type, "S1S2") || strcmp(run_type, "DCA")      
+	  pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
 	endif
       elseif i_scale == 2
-	if strcmp(run_type, "S1S2")      
-	  pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/GroundTruthReconS2.pvp")
+	if strcmp(run_type, "S1S2")  || strcmp(run_type, "DCA")
+	  pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS2.pvp"])
 	endif
       elseif i_scale == 3
 	if strcmp(run_type, "S1S2")      
-	  pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/GroundTruthReconS1S2.pvp")
+	  pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1S2.pvp"]);
+	else
+	  pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS3.pvp"]);											
 	endif    
       endif
       pred_classID_fid = fopen(pred_classID_file);
