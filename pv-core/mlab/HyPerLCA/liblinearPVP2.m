@@ -206,7 +206,7 @@ elseif strcmp(run_type, "ICAX16")
   Sparse_list ={[""], ["S1"]};
 elseif strcmp(run_type, "S1S2")
   Sparse_list ={[""], ["S1"]; [""], ["S2"]};
-elseif strcmp(run_type, "DCa")
+elseif strcmp(run_type, "DCA")
   Sparse_list ={[""], ["S1"]; [""], ["S2"]; [""], ["S3"]};
 elseif strcmp(run_type, "scene")
   Sparse_list ={["a2_"], ["S1"]};
@@ -488,11 +488,11 @@ if GT_flag
 	i_model_row = mod(i_target_class-1, num_model_cols) + 1;
 	j_model_col = ceil(i_target_class / num_model_cols);
 	taget_axis(i_target_class) = subplot(num_model_rows, num_model_cols, i_target_class);
-	model_handle = bar(taget_axis(i_target_class), squeeze(model_array(i_target_class, :, :)));
+	model_handle = bar(taget_axis(i_target_class), squeeze(model_array(i_target_class, :, :))');
 	model_colormap = colormap(prism(length(model_handle)));
 	colormap(model_colormap);
 	title(taget_axis(i_target_class), target_classes{i_target_class});
-	axis(taget_axis(i_target_class), [0.5 num_pool+0.5 0.5 min(max_model*(1.1),1)]);
+	axis(taget_axis(i_target_class), [0.5 (num_Sparse_list+(num_Sparse_list>1)+0.5) 0.5 min(max_model*(1.1),1)]);
 	set(gca, 'xticklabel', pool_types);
 	if i_target_class == num_target_classes
 	  [legend_handle, legend_object, legend_plot, legend_labels] = legend(model_handle, Sparse_list(:,2), 'location', 'northeast');
@@ -511,23 +511,13 @@ if GT_flag
     SLP_dir = [output_dir, filesep, "SLP"];
     mkdir(SLP_dir);
     for i_scale = 1 : 1 +  2*(strcmp(run_type, "S1S2") || strcmp(run_type, "DCA"))
-      if strcmp(run_type, "ICA")
+      if strcmp(run_type, "ICA") || strcmp(run_type, "ICAX4") || strcmp(run_type, "ICAX16")
 	gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
-      elseif strcmp(run_type, "ICAX4")
-	gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
-      elseif strcmp(run_type, "ICAX16")
-	gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
-      elseif strcmp(run_type, "S1S2")
-	gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
-      elseif strcmp(run_type, "S1S2")
+      elseif strcmp(run_type, "S1S2") || strcmp(run_type, "DCA")
 	gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
       endif
       if i_scale == 1
-	if strcmp(run_type, "ICA")
-	  pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
-	elseif strcmp(run_type, "ICAX4")      
-	  pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
-	elseif strcmp(run_type, "ICAX16")      
+	if strcmp(run_type, "ICA") || strcmp(run_type, "ICAX4") || strcmp(run_type, "ICAX16")
 	  pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
 	elseif strcmp(run_type, "S1S2") || strcmp(run_type, "DCA")      
 	  pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
