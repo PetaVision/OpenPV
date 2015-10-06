@@ -26,8 +26,8 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * dataS
 
 int main(int argc, char * argv[])
 {
-   PV_Init * initObj = new PV_Init(&argc, &argv);
-   initObj->initialize(argc, argv);
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   initObj->initialize();
    PVPatch ** postWeights;
 
    int status = 0;
@@ -35,7 +35,7 @@ int main(int argc, char * argv[])
    const char * l1name = "test_post_weights L1";
    const char * l2name = "test_post_weights L2";
    const char * l3name = "test_post_weights L3";
-   HyPerCol  * hc = new HyPerCol("column", argc, argv, initObj);
+   HyPerCol  * hc = new HyPerCol("column", initObj);
    Example   * l1 = new Example(l1name, hc); assert(l1);
    Example   * l2 = new Example(l2name, hc); assert(l2);
    Example   * l3 = new Example(l3name, hc); assert(l3);

@@ -15,7 +15,7 @@
 
 namespace PV {
 
-InterColComm::InterColComm(int argc, char** argv) : Communicator(argc, argv)
+InterColComm::InterColComm(PV_Arguments * argumentList) : Communicator(argumentList)
 {
    numPublishers = 0;
    publisherArraySize = INITIAL_PUBLISHER_ARRAY_SIZE;

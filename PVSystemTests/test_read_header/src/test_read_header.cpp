@@ -28,7 +28,7 @@ using namespace PV;
 
 int main(int argc, char* argv[])
 {
-   PV_Init* initObj = new PV_Init(&argc, &argv);
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
    int status = 0;
    PV_Stream * stream = NULL;
    double time, write_time = 33.3;
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
 
    // create the Communicator object for MPI
    //
-   Communicator * comm = new Communicator(argc, argv);
+   Communicator * comm = new Communicator(initObj->getArguments());
    int numRows = comm->numCommRows();
    int numCols = comm->numCommColumns();
    PVLayerLoc loc;

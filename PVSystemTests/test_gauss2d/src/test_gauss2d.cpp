@@ -21,8 +21,9 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre,
 
 int main(int argc, char * argv[])
 {
-   PV_Init* initObj = new PV_Init(&argc, &argv);
-   if (pv_getopt(argc, argv, "-p", NULL)==0) {
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   PV_Arguments * arguments = initObj->getArguments();
+   if (arguments->getParamsFile()==NULL) {
       int rank = 0;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       if (rank==0) {
@@ -32,25 +33,14 @@ int main(int argc, char * argv[])
       exit(EXIT_FAILURE);
    }
 
-   int const cl_argc = argc+2;
-   char ** cl_argv = (char **) calloc((size_t) (cl_argc+1), sizeof(char *));
-   assert(cl_argv);
-   int arg = 0;
-   for (arg=0; arg<argc; arg++) {
-      cl_argv[arg] = strdup(argv[arg]);
-      assert(cl_argv);
-   }
-   cl_argv[arg++] = strdup("-p");
-   cl_argv[arg++] = strdup("input/test_gauss2d.params");
-   assert(arg==cl_argc);
-   cl_argv[arg] = NULL;
+   arguments->setParamsFile("input/test_gauss2d.params");
    const char * pre_layer_name = "test_gauss2d pre";
    const char * post_layer_name = "test_gauss2d post";
    const char * pre2_layer_name = "test_gauss2d pre 2";
    const char * post2_layer_name = "test_gauss2d post 2";
 
-   initObj->initialize(cl_argc, cl_argv);
-   PV::HyPerCol * hc = new PV::HyPerCol("test_gauss2d column", cl_argc, cl_argv, initObj);
+   initObj->initialize();
+   PV::HyPerCol * hc = new PV::HyPerCol("test_gauss2d column", initObj);
    PV::Example * pre = new PV::Example(pre_layer_name, hc);
    assert(pre);
    PV::Example * post = new PV::Example(post_layer_name, hc);
@@ -118,10 +108,6 @@ int main(int argc, char * argv[])
    }
 
    delete hc;
-   for (int arg=0; arg<cl_argc; arg++) {
-      free(cl_argv[arg]);
-   }
-   free(cl_argv);
    delete initObj;
    return 0;
 }

@@ -56,7 +56,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 int main(int argc, char * argv[]) {
    int rank = 0;
    int size = 0;
-   PV_Init* initObj = new PV_Init(&argc, &argv);
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
 
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -69,39 +69,40 @@ int main(int argc, char * argv[]) {
    char const * paramFile1 = "input/timeBatch.params";
    char const * paramFile2 = "input/dimBatch.params";
    int status = PV_SUCCESS;
-   if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
+   PV_Arguments * arguments = initObj->getArguments();
+   if (arguments->getParamsFile()!=NULL) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the params file argument.\n", argv[0]);
+         fprintf(stderr, "%s should be run without the params file argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (pv_getopt_str(argc, argv, "-c", NULL, NULL)==0) {
+   if (arguments->getCheckpointReadDir()!=NULL) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the checkpoint directory argument.\n", argv[0]);
+         fprintf(stderr, "%s should be run without the checkpoint directory argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (pv_getopt(argc, argv, "-r", NULL)==0) {
+   if (arguments->getRestartFlag()) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the checkpoint directory argument.\n", argv[0]);
+         fprintf(stderr, "%s should be run without the restart flag.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (pv_getopt(argc, argv, "-rows", NULL)==0) {
+   if (arguments->getNumRows()!=0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the rows argument.\n", argv[0]);
+         fprintf(stderr, "%s should be run without the rows argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (pv_getopt(argc, argv, "-columns", NULL)==0) {
+   if (arguments->getNumColumns()!=0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the columns argument.\n", argv[0]);
+         fprintf(stderr, "%s should be run without the columns argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (pv_getopt(argc, argv, "-batchwidth", NULL)==0) {
+   if (arguments->getBatchWidth()!=0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the batchwidth argument.\n", argv[0]);
+         fprintf(stderr, "%s should be run without the batchwidth argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
@@ -125,50 +126,26 @@ int main(int argc, char * argv[]) {
 
    ParamGroupHandler * customGroupHandler = new CustomGroupHandler;
 
-   int pv_argc = 8 + argc; // command line arguments, plus "-p" plus paramFile1, -rows + num, -columns + num, -batchwidth + num
+   arguments->setParamsFile(paramFile1);
+   arguments->setNumRows(1);
+   arguments->setNumColumns(2);
+   arguments->setBatchWidth(1);
 
-   char ** pv_argv = (char **) calloc((pv_argc+1), sizeof(char *));
-   assert(pv_argv!=NULL);
-   int pv_arg=0;
-   for (pv_arg = 0; pv_arg < argc; pv_arg++) {
-      pv_argv[pv_arg] = strdup(argv[pv_arg]);
-      assert(pv_argv[pv_arg]);
-   }
-   assert(pv_arg==argc);
-   pv_argv[pv_arg++] = strdup("-p");
-   pv_argv[pv_arg++] = strdup(paramFile1);
-   pv_argv[pv_arg++] = strdup("-rows");
-   pv_argv[pv_arg++] = strdup("1");
-   pv_argv[pv_arg++] = strdup("-columns");
-   pv_argv[pv_arg++] = strdup("2");
-   pv_argv[pv_arg++] = strdup("-batchwidth");
-   pv_argv[pv_arg++] = strdup("1");
-
-   status = rebuildandrun((int) pv_argc, pv_argv, initObj, NULL, NULL, &customGroupHandler, 1);
+   status = rebuildandrun(initObj, NULL, NULL, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", pv_argv[0], rank, paramFile1, status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
       exit(status);
    }
 
-   free(pv_argv[argc+1]);
-   pv_argv[argc+1] = strdup(paramFile2);
-   free(pv_argv[argc+7]);
-   pv_argv[argc+7] = strdup("5");
+   arguments->setParamsFile(paramFile2);
+   arguments->setBatchWidth(5);
 
-   assert(pv_argv[argc+1]);
-   assert(pv_arg==argc+8);
-
-   status = rebuildandrun(pv_argc, pv_argv, initObj, NULL, &customexit, &customGroupHandler, 1);
+   status = rebuildandrun(initObj, NULL, &customexit, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", pv_argv[0], rank, paramFile2, status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
    }
 
    delete customGroupHandler;
-
-   for (size_t arg=0; arg<pv_argc; arg++) {
-       free(pv_argv[arg]);
-   }
-   free(pv_argv);
 
    delete initObj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

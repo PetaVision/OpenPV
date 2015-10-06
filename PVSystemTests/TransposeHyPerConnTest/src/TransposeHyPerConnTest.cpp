@@ -28,15 +28,25 @@ int testDataPatchEqual(pvdata_t * w1, pvdata_t * w2, int patchSize, const char *
 int dumpWeights(HyPerConn * conn, FILE * stream);
 
 int main(int argc, char * argv[]) {
-   PV_Init* initObj = new PV_Init(&argc, &argv);
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   InterColComm * icComm = new InterColComm(initObj->getArguments());
 
-   InterColComm * icComm = new InterColComm(argc, argv);
-   PVParams * params = new PVParams("input/TransposeHyPerConnTest.params", 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
+   PV_Arguments * arguments = initObj->getArguments();
+   if (arguments->getParamsFile() != NULL) {
+      int rank = icComm->globalCommRank();
+      if (rank==0) {
+         fprintf(stderr, "%s does not take -p as an option.  Instead the necessary params file is hard-coded.\n", arguments->getProgramName());
+      }
+      MPI_Barrier(MPI_COMM_WORLD);
+      exit(EXIT_FAILURE);
+   }
 
-   initObj->initialize(params, icComm);
+   arguments->setParamsFile("input/TransposeHyPerConnTest.params");
+
+   initObj->initialize();
 
    // Don't call buildandrun because it will delete hc before returning. (I could use the customexit hook)
-   HyPerCol * hc = build(argc, argv, initObj);
+   HyPerCol * hc = build(initObj);
    hc->run(); // Weight values are initialized when run calls allocateDataStructures
 
    int status = PV_SUCCESS;

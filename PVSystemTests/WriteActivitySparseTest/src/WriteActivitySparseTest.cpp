@@ -47,22 +47,17 @@ int checkProbesOnExit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    int rank = 0;
-   PV_Init * initObj = new PV_Init(&argc, &argv);
-   //rank = initObj->getWorldRank();
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    char const * paramFile1 = "input/GenerateOutput.params";
    char const * paramFile2 = "input/TestOutput.params";
    char const * outputDir1 = "outputGenerate";
    char const * outputDir2 = "outputTest";
    int status = PV_SUCCESS;
-   if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
+   PV_Arguments * arguments = initObj->getArguments();
+   if (arguments->getParamsFile()!=NULL) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the params file argument.\n", argv[0]);
-      }
-      status = PV_FAILURE;
-   }
-   if (status != PV_SUCCESS) {
-      if (rank==0) {
+         fprintf(stderr, "%s should be run without the params file argument.\n", arguments->getProgramName());
          fprintf(stderr, "This test uses two hard-coded params files, %s and %s. The first generates an output pvp file, and the second checks whether the output is consistent with the input.\n",
                paramFile1, paramFile2);
       }
@@ -81,42 +76,21 @@ int main(int argc, char * argv[]) {
 
    ParamGroupHandler * customGroupHandler = new CustomGroupHandler;
 
-   int pv_argc = 2 + argc; // command line arguments, plus "-p" plus paramFile1
-   char ** pv_argv = (char **) calloc((pv_argc+1), sizeof(char *));
-   assert(pv_argv!=NULL);
-   int pv_arg=0;
-   for (pv_arg = 0; pv_arg < argc; pv_arg++) {
-      pv_argv[pv_arg] = strdup(argv[pv_arg]);
-      assert(pv_argv[pv_arg]);
-   }
-   assert(pv_arg==argc);
-   pv_argv[pv_arg++] = strdup("-p");
-   pv_argv[pv_arg++] = strdup(paramFile1);
-   assert(pv_arg==pv_argc && pv_arg==argc+2);
-   assert(pv_argv[argc]!=NULL && pv_argv[argc+1]!=NULL && pv_argv[argc+2]==NULL);
-
-   status = rebuildandrun((int) pv_argc, pv_argv, initObj, NULL, NULL, &customGroupHandler, 1);
+   arguments->setParamsFile(paramFile1);
+   status = rebuildandrun(initObj, NULL, NULL, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", pv_argv[0], rank, paramFile1, status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
       exit(status);
    }
 
-   free(pv_argv[argc+1]);
-   pv_argv[argc+1] = strdup(paramFile2);
-   assert(pv_arg==pv_argc && pv_arg==argc+2);
-   assert(pv_argv[argc]!=NULL && pv_argv[argc+1]!=NULL && pv_argv[argc+2]==NULL);
+   arguments->setParamsFile(paramFile2);
 
-   status = rebuildandrun(pv_argc, pv_argv, initObj, NULL, &checkProbesOnExit, &customGroupHandler, 1);
+   status = rebuildandrun(initObj, NULL, &checkProbesOnExit, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", pv_argv[0], rank, paramFile2, status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
    }
 
    delete customGroupHandler;
-
-   for (size_t arg=0; arg<pv_argc; arg++) {
-       free(pv_argv[arg]);
-   }
-   free(pv_argv);
 
    delete initObj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

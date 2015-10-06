@@ -23,7 +23,7 @@ int Communicator::gcd ( int a, int b ){
    return b;
 }
 
-Communicator::Communicator(int argc, char** argv)
+Communicator::Communicator(PV_Arguments * argumentList)
 {
    float r;
 
@@ -33,9 +33,13 @@ Communicator::Communicator(int argc, char** argv)
    MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
    MPI_Comm_size(MPI_COMM_WORLD, &totalSize);
 
-   bool rowsDefined = pv_getopt_int(argc,  argv, "-rows", &numRows, NULL)==0;
-   bool colsDefined = pv_getopt_int(argc, argv, "-columns", &numCols, NULL)==0;
-   bool batchDefined = pv_getopt_int(argc, argv, "-batchwidth", &batchWidth, NULL)==0;
+   numRows = argumentList->getNumRows();
+   numCols = argumentList->getNumColumns();
+   batchWidth = argumentList->getBatchWidth();
+
+   bool rowsDefined = numRows!=0;
+   bool colsDefined = numCols!=0;
+   bool batchDefined = batchWidth!=0;
 
    bool inferingDim = !rowsDefined || !colsDefined || !batchDefined;
 

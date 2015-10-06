@@ -35,9 +35,10 @@ int main(int argc, char * argv[])
    int status = 0;
 
    int rank=0;
-   PV_Init* initObj = new PV_Init(&argc, &argv);
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
 
-   if (pv_getopt(argc, argv, "-p", NULL)==0) {
+   PV_Arguments * arguments = initObj->getArguments();
+   if (arguments->getParamsFile() != NULL) {
       if (rank==0) {
          fprintf(stderr, "%s does not take -p as an option.  Instead the necessary params file is hard-coded.\n", argv[0]);
       }
@@ -45,25 +46,10 @@ int main(int argc, char * argv[])
       exit(EXIT_FAILURE);
    }
 
-   int cl_argc = argc+2;
-   char ** cl_argv = (char **) calloc((size_t)(cl_argc+1),sizeof(char *));
-   assert(cl_argv);
-   for (int k=0; k<argc; k++) {
-      cl_argv[k] = strdup(argv[k]);
-      assert(cl_argv[k]);
-   }
-   cl_argv[argc] = strdup("-p");
-   int paramfile_argnum = argc+1;
-   cl_argv[paramfile_argnum] = strdup("input/test_border_activity.params");
-   cl_argv[paramfile_argnum+1] = NULL;
+   arguments->setParamsFile("input/test_border_activity.params");
 
-   initObj->initialize(cl_argc, cl_argv);
-   HyPerCol * hc = new HyPerCol("column", cl_argc, cl_argv, initObj);
-   for( int k=0; k<cl_argc; k++ )
-   {
-      free(cl_argv[k]);
-   }
-   free(cl_argv); cl_argv=NULL;
+   initObj->initialize();
+   HyPerCol * hc = new HyPerCol("column", initObj);
 
    const char * imageLayerName = "test_border_activity image";
    const char * retinaLayerName = "test_border_activity retina";

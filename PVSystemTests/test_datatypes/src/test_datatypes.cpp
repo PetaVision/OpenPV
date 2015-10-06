@@ -14,11 +14,11 @@ static int check_borders(pvdata_t * buf, PV::Communicator * comm, PVLayerLoc loc
 
 int main(int argc, char * argv[])
 {
-   PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv);
+   PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
    int err = 0;
    PVLayerLoc loc;
 
-   PV::Communicator * comm = new PV::Communicator(argc, argv);
+   PV::Communicator * comm = new PV::Communicator(initObj->getArguments());
 
    int nxProc = comm->numCommColumns();
    int nyProc = comm->numCommRows();

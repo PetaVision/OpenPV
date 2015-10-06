@@ -84,14 +84,14 @@ private:
    Communicator * comm;
 
    int            numRequests;
-   MPI_Request *    requests;
+   MPI_Request *  requests;
    MPI_Datatype * neighborDatatypes;
 };
 
 class InterColComm : public Communicator {
 
 public:
-   InterColComm(int argc, char ** argv);
+   InterColComm(PV_Arguments * argumentList);
    virtual ~InterColComm();
 
    int addPublisher(HyPerLayer * pub);

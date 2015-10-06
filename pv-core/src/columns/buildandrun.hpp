@@ -34,18 +34,17 @@ int buildandrun(int argc, char * argv[],
                 int (*custominit)(HyPerCol *, int, char **) = NULL,
                 int (*customexit)(HyPerCol *, int, char **) = NULL,
                 void * (*customgroups)(const char *, const char *, HyPerCol *) = NULL);
-int rebuildandrun(int argc, char * argv[], PV_Init * initObj,
+int rebuildandrun(PV_Init * initObj,
                 int (*custominit)(HyPerCol *, int, char **) = NULL,
                 int (*customexit)(HyPerCol *, int, char **) = NULL,
                 void * (*customgroups)(const char *, const char *, HyPerCol *) = NULL);
 
-int buildandrun1paramset(int argc, char * argv[], PV_Init* initObj,
+int buildandrun1paramset(PV_Init* initObj,
                          int (*custominit)(HyPerCol *, int, char **),
                          int (*customexit)(HyPerCol *, int, char **),
                          void * (*customgroups)(const char *, const char *, HyPerCol *));
 
-HyPerCol * build(int argc, char * argv[],
-      PV_Init* initObj,
+HyPerCol * build(PV_Init* initObj,
       void * (*customgroups)(const char *, const char *, HyPerCol *) = NULL);
 
 // The build, buildandrun1paramset, and buildandrun functions below are preferred to the versions above.
@@ -54,19 +53,17 @@ int buildandrun(int argc, char * argv[],
                 int (*customexit)(HyPerCol *, int, char **),
                 ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
 
-int rebuildandrun(int argc, char * argv[], PV_Init * initObj,
+int rebuildandrun(PV_Init * initObj,
                 int (*custominit)(HyPerCol *, int, char **),
                 int (*customexit)(HyPerCol *, int, char **),
                 ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
 
-int buildandrun1paramset(int argc, char * argv[],
-                         PV_Init* initObj,
+int buildandrun1paramset(PV_Init* initObj,
                          int (*custominit)(HyPerCol *, int, char **),
                          int (*customexit)(HyPerCol *, int, char **),
                          ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
 
-HyPerCol * build(int argc, char * argv[],
-                 PV_Init * initObj, 
+HyPerCol * build(PV_Init * initObj,
                  ParamGroupHandler ** groupHandlerList,
                  int numGroupHandlers);
 

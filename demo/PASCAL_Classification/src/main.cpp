@@ -14,12 +14,12 @@ int main(int argc, char* argv[])
 {
    int status = PV_SUCCESS;
 
-   PV::PV_Init * pv_init = new PV_Init(&argc, &argv);
-   pv_init -> initialize(argc, argv);
+   PV::PV_Init * pv_init = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   pv_init -> initialize();
    // Build the column from the params file
    PV::ParamGroupHandler * customGroupHandler[1];
    customGroupHandler[0] = new PASCALCustomGroupHandler();
-   PV::HyPerCol * hc = build(argc, argv, pv_init, customGroupHandler, 1);
+   PV::HyPerCol * hc = build(pv_init, customGroupHandler, 1);
    assert(hc->getStartTime()==hc->simulationTime());
 
    double startTime = hc->getStartTime();

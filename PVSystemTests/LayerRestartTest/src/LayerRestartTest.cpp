@@ -33,51 +33,37 @@ int checkComparisonNonzero(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    int status;
-   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
-   if( !paramfileabsent ) {
-      fprintf(stderr, "%s runs a number of params files in sequence.  Do not include a '-p' option when running this program.\n", argv[0]);
-      exit(EXIT_FAILURE);
-   }
-   PV_Init * initObj = new PV_Init(&argc, &argv);
-   //int rank = initObj->getWorldRank();
+   PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-
-   int num_cl_args;
-   char ** cl_args;
-   num_cl_args = argc + 2;
-   cl_args = (char **) malloc((num_cl_args+1)*sizeof(char *));
-   cl_args[0] = argv[0];
-   cl_args[1] = strdup("-p");
-   cl_args[2] = strdup("input/LayerRestartTest-Write.params");
-   for( int k=1; k<argc; k++) {
-      cl_args[k+2] = strdup(argv[k]);
-   }
-   cl_args[num_cl_args] = NULL;
-   if (rank==0) {
-      printf("*** %s: running params file %s\n", cl_args[0], cl_args[2]);
-   }
-   status = rebuildandrun(num_cl_args, cl_args, initObj);
-   if( status == PV_SUCCESS ) {
-      free(cl_args[2]);
-      cl_args[2] = strdup("input/LayerRestartTest-Check.params");
+   PV_Arguments * arguments = initObj->getArguments();
+   if (arguments->getParamsFile()!=NULL) {
       if (rank==0) {
-         printf("*** %s: running params file %s\n", cl_args[0], cl_args[2]);
+         fprintf(stderr, "%s runs a number of params files in sequence.  Do not include a '-p' option when running this program.\n", argv[0]);
       }
-      status = rebuildandrun(num_cl_args, cl_args, initObj, NULL, &checkComparisonNonzero);
+      MPI_Barrier(MPI_COMM_WORLD); /* Can't use `initObj->getComm()->communicator()` because initObj->initialize hasn't been called. */
+      exit(EXIT_FAILURE);
+   }
+
+   arguments->setParamsFile("input/LayerRestartTest-Write.params");
+   status = rebuildandrun(initObj);
+   if( status == PV_SUCCESS ) {
+      char const * checkParamsFile = "input/LayerRestartTest-Check.params";
+      if (rank==0) {
+         printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
+      }
+      arguments->setParamsFile("input/LayerRestartTest-Check.params");
+      status = rebuildandrun(initObj, NULL, &checkComparisonNonzero);
       if( status == PV_SUCCESS ) {
-         free(cl_args[2]);
-         cl_args[2] = strdup("input/LayerRestartTest-Read.params");
+         char const * readParamsFile = "input/LayerRestartTest-Read.params";
          if (rank==0) {
-            printf("*** %s: running params file %s\n", cl_args[0], cl_args[2]);
+            printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
          }
-         status = rebuildandrun(num_cl_args, cl_args, initObj, NULL, &checkComparisonZero);
+         arguments->setParamsFile(readParamsFile);
+         status = rebuildandrun(initObj, NULL, &checkComparisonZero);
       }
    }
-   free(cl_args[1]); cl_args[1] = NULL;
-   free(cl_args[2]); cl_args[2] = NULL;
-   free(cl_args); cl_args = NULL;
 
 #ifdef PV_USE_MPI
    // Output status from each process, but go through root process since we might be using MPI across several machines

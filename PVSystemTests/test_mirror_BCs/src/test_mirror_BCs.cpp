@@ -16,13 +16,12 @@
 
 int main(int argc, char * argv[])
 {
-   PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv);
-   initObj->initialize(argc, argv);
-   //char * cl_args[4];
+   PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   initObj->initialize();
    PVLayerLoc sLoc, bLoc;
    PVLayerCube * sCube, * bCube;
 
-   PV::HyPerCol * hc = new PV::HyPerCol("test_mirror_BCs column", argc, argv, initObj);
+   PV::HyPerCol * hc = new PV::HyPerCol("test_mirror_BCs column", initObj);
    PV::Example * l = new PV::Example("test_mirror_BCs layer", hc);
 
    //FILE * fd = stdout;

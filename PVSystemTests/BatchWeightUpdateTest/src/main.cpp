@@ -55,7 +55,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    int rank = 0;
-   PV_Init* initObj = new PV_Init(&argc, &argv);
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
    rank = initObj->getWorldRank();
    char const * paramFile1 = "input/timeBatch.params";
    char const * paramFile2 = "input/dimBatch.params";
@@ -98,41 +98,23 @@ int main(int argc, char * argv[]) {
 
    ParamGroupHandler * customGroupHandler = new CustomGroupHandler;
 
-   int pv_argc = 2 + argc; // command line arguments, plus "-p" plus paramFile1
+   PV_Arguments * arguments = initObj->getArguments();
+   arguments->setParamsFile(paramFile1);
 
-   char ** pv_argv = (char **) calloc((pv_argc+1), sizeof(char *));
-   assert(pv_argv!=NULL);
-   int pv_arg=0;
-   for (pv_arg = 0; pv_arg < argc; pv_arg++) {
-      pv_argv[pv_arg] = strdup(argv[pv_arg]);
-      assert(pv_argv[pv_arg]);
-   }
-   assert(pv_arg==argc);
-   pv_argv[pv_arg++] = strdup("-p");
-   pv_argv[pv_arg++] = strdup(paramFile1);
-
-   status = rebuildandrun((int) pv_argc, pv_argv, initObj, NULL, NULL, &customGroupHandler, 1);
+   status = rebuildandrun(initObj, NULL, NULL, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", pv_argv[0], rank, paramFile1, status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
       exit(status);
    }
 
-   free(pv_argv[argc+1]);
-   pv_argv[argc+1] = strdup(paramFile2);
-   assert(pv_argv[argc+1]);
-   assert(pv_arg==argc+2);
+   arguments->setParamsFile(paramFile2);
 
-   status = rebuildandrun(pv_argc, pv_argv, initObj, NULL, &customexit, &customGroupHandler, 1);
+   status = rebuildandrun(initObj, NULL, &customexit, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", pv_argv[0], rank, paramFile2, status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
    }
 
    delete customGroupHandler;
-
-   for (size_t arg=0; arg<pv_argc; arg++) {
-       free(pv_argv[arg]);
-   }
-   free(pv_argv);
 
    delete initObj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

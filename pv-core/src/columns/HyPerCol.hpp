@@ -51,8 +51,7 @@ class HyPerCol {
 
 public:
 
-   HyPerCol(const char * name, int argc, char * argv[], PV_Init* initObj);
-   // HyPerCol(const char* name, int argc, char* argv[], const char * path); // Not defined in .cpp file
+   HyPerCol(const char * name, PV_Init* initObj);
    virtual ~HyPerCol();
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -215,11 +214,11 @@ public:
 #endif
 
 private:
-   int initializeThreads(char* in_device);
+   int initializeThreads(char const * in_device);
    int getAutoGPUDevice();
 
    int initialize_base();
-   int initialize(const char * name, int argc, char ** argv, PV_Init* initObj);
+   int initialize(const char * name, PV_Init* initObj);
    int ioParams(enum ParamsIOFlag ioFlag);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
 
@@ -544,6 +543,8 @@ private:
    int nbatchGlobal;
    //int threadBatch;
 
+   PV_Init * pv_initObj;
+
    bool           ownsParams; // True if params was created from params file by initialize, false if params was passed in the constructor
    bool           ownsInterColComm; // True if icComm was created by initialize, false if passed in the constructor
    PVParams     * params; // manages input parameters
@@ -590,8 +591,6 @@ private:
 
    int origStdOut;
    int origStdErr;
-
-   char* log_file;
 
 }; // class HyPerCol
 

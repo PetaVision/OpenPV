@@ -38,12 +38,12 @@ int main(int argc, char* argv[])
 {
    int status = 0;
 
-   PV_Init* initObj = new PV_Init(&argc, &argv);
-   initObj->initialize(argc, argv);
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   initObj->initialize();
 
    // create the managing hypercolumn
    //
-   HyPerCol* hc = new HyPerCol("test_constant_input column", argc, argv, initObj);
+   HyPerCol* hc = new HyPerCol("test_constant_input column", initObj);
 
    // create the image
    //

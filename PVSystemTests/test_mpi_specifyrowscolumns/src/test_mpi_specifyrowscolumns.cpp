@@ -23,14 +23,14 @@ int main(int argc, char * argv[]) {
 #include <assert.h>
 #include <arch/mpi/mpi.h>
 
-int buildandverify(int argc, char * argv[], PV::PV_Init* initObj);
+int buildandverify(PV::PV_Init* initObj);
 int verifyLoc(PV::HyPerCol * loc, int rows, int columns);
 int dumpLoc(const PVLayerLoc * loc, int rank);
 
 using namespace PV;
 
 int main(int argc, char * argv[]) {
-   PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv);
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
    int status = PV_SUCCESS;
    int rank = 0;
    int numProcs = 0;
@@ -47,21 +47,22 @@ int main(int argc, char * argv[]) {
       exit(EXIT_FAILURE);
    }
    
-   if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
+   PV_Arguments * arguments = initObj->getArguments();
+   if (arguments->getParamsFile()!=NULL) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the params file argument.\n", argv[0]);
+         fprintf(stderr, "%s should be run without the params file argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (pv_getopt_int(argc, argv, "-rows", NULL, NULL)==0) {
+   if (arguments->getNumRows()!=0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the rows argument.\n", argv[0]);
+         fprintf(stderr, "%s should be run without the rows argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (pv_getopt_int(argc, argv, "-columns", NULL, NULL)==0) {
+   if (arguments->getNumColumns()!=0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the columns argument.\n", argv[0]);
+         fprintf(stderr, "%s should be run without the columns argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
@@ -73,47 +74,26 @@ int main(int argc, char * argv[]) {
       exit(EXIT_FAILURE);
    }
 
-   int pv_argc = argc+6;
-   char ** pv_argv = (char **) calloc((size_t) (pv_argc+1), sizeof(char *));
-   assert(pv_argv);
-   for (int k=0; k<argc; k++) {
-      pv_argv[k] = strdup(argv[k]);
-      assert(pv_argv[k]);
-   }
-   pv_argv[argc] = strdup("-p");
-   pv_argv[argc+1] = strdup("input/test_mpi_specifyrowscolumns.params");
-   pv_argv[argc+2] = strdup("-rows");
-   pv_argv[argc+3] = strdup("2");
-   pv_argv[argc+4] = strdup("-columns");
-   pv_argv[argc+5] = strdup("3");
-   buildandverify(pv_argc, pv_argv, initObj);
+   arguments->setParamsFile("input/test_mpi_specifyrowscolumns.params");
+   arguments->setNumRows(2);
+   arguments->setNumColumns(3);
+   buildandverify(initObj);
 
-   free(pv_argv[argc+3]);
-   pv_argv[argc+3] = strdup("3");
-   free(pv_argv[argc+5]);
-   pv_argv[argc+5] = strdup("2");
-   buildandverify(pv_argc, pv_argv, initObj);
+   arguments->setNumRows(3);
+   arguments->setNumColumns(2);
+   buildandverify(initObj);
 
-   for( int arg=1; arg<pv_argc; arg++ ) {
-      free(pv_argv[arg]);
-   }
-   free(pv_argv);
    delete initObj;
    return status;
 }
 
-int buildandverify(int argc, char * argv[], PV::PV_Init* initObj) {
-   for( int i=0; i<argc; i++ ) {
-      assert(argv[i] != NULL);
-   }
-   initObj->initialize(argc, argv);
-   PV::HyPerCol * hc = new PV::HyPerCol("column", argc, argv, initObj);
+int buildandverify(PV::PV_Init* initObj) {
+   initObj->initialize();
+   PV::HyPerCol * hc = new PV::HyPerCol("column", initObj);
    /* PV::ANNLayer * layer = */ new PV::ANNLayer("layer", hc);
-   int rows = -1;
-   int columns = -1;
-   pv_getopt_int(argc, argv, "-rows", &rows, NULL/*paramusage*/);
-   pv_getopt_int(argc, argv, "-columns", &columns, NULL/*paramusage*/);
-   assert(rows >= 0 && columns >= 0);
+   int rows = initObj->getArguments()->getNumRows();
+   int columns = initObj->getArguments()->getNumColumns();
+   assert(rows > 0 && columns > 0);
    int status = verifyLoc(hc, rows, columns);
    delete hc;
    return status;

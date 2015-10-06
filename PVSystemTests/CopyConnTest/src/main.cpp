@@ -9,27 +9,26 @@
 #include <connections/HyPerConn.hpp>
 #include <normalizers/NormalizeBase.hpp>
 
-int runparamsfile(int argc, char ** argv, PV_Init* initObj, char const * paramsfile);
+int runparamsfile(PV_Init* initObj, char const * paramsfile);
 
 int main(int argc, char * argv[]) {
    int rank = 0;
-   PV_Init* initObj = new PV_Init(&argc, &argv);
-
-   if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
-      if (rank==0) {
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   if (initObj->getArguments()->getParamsFile()) {
+      if(initObj->getWorldRank()==0) {
          fprintf(stderr, "%s should be run without the params file argument.\n", argv[0]);
          fprintf(stderr, "This test uses several hard-coded params files\n");
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
-    }
+   }
 
    int status = PV_SUCCESS;
 
-   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, initObj, "input/CopyConnInitializeTest.params"); }
-   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, initObj, "input/CopyConnInitializeNonsharedTest.params"); }
-   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, initObj, "input/CopyConnPlasticTest.params"); }
-   if (status == PV_SUCCESS) { status = runparamsfile(argc, argv, initObj, "input/CopyConnPlasticNonsharedTest.params"); }
+   if (status == PV_SUCCESS) { status = runparamsfile(initObj, "input/CopyConnInitializeTest.params"); }
+   if (status == PV_SUCCESS) { status = runparamsfile(initObj, "input/CopyConnInitializeNonsharedTest.params"); }
+   if (status == PV_SUCCESS) { status = runparamsfile(initObj, "input/CopyConnPlasticTest.params"); }
+   if (status == PV_SUCCESS) { status = runparamsfile(initObj, "input/CopyConnPlasticNonsharedTest.params"); }
 
    delete initObj;
    return status;
@@ -43,49 +42,28 @@ int main(int argc, char * argv[]) {
 // are within 1.0e-6 in absolute value.  This is reasonable if the weights and strengths are order-of-magnitude 1.0)
 // 
 // Note that this check makes assumptions on the normalization method, although normalizeSum, normalizeL2 and normalizeMax all satisfy them.
-int runparamsfile(int argc, char ** argv, PV_Init* initObj, char const * paramsfile) {
-   //
-   // argv should not contain a "-p" argument.  buildandrun is called with the argv arguments augmented by "-p" and paramsfile
-   //
-   assert(pv_getopt_str(argc, argv, "-p", NULL, NULL)==-1);
+int runparamsfile(PV_Init* initObj, char const * paramsfile) {
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   int pv_argc = 2+argc;
-   char ** pv_argv = (char **) malloc((pv_argc+1)*sizeof(char *));
-   assert(pv_argv!=NULL);
-   int pv_arg=0;
-   for (pv_arg = 0; pv_arg < argc; pv_arg++) {
-      pv_argv[pv_arg] = strdup(argv[pv_arg]);
-      assert(pv_argv[pv_arg]);
-   }
-   assert(pv_arg==argc);
-   pv_argv[pv_arg++] = strdup("-p");
-   pv_argv[pv_arg++] = strdup(paramsfile);
-   assert(pv_arg==pv_argc && pv_arg==argc+2);
-   assert(pv_argv[argc]!=NULL && pv_argv[argc+1]!=NULL);
-   pv_argv[pv_argc]=NULL;
+   char const * params_file = initObj->getArguments()->setParamsFile(paramsfile);
+   assert(params_file);
 
-
-   initObj->initialize(pv_argc, pv_argv);
+   initObj->initialize();
 
    int status = PV_SUCCESS;
-   HyPerCol * hc = build((int) pv_argc, pv_argv, initObj);
+   HyPerCol * hc = build(initObj);
    if (hc != NULL) {
       status = hc->run();
       if( status != PV_SUCCESS ) {
          if (rank==0) {
-            fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], paramsfile, status);
+            fprintf(stderr, "%s: running with params file %s returned error %d.\n",
+                  initObj->getArguments()->getProgramName(), paramsfile, status);
          }
       }
    }
    else {
       status = PV_FAILURE;
    }
-
-   for (int arg=0; arg<pv_argc; arg++) {
-       free(pv_argv[arg]);
-   }
-   free(pv_argv);
 
    if (status != PV_SUCCESS) {
       delete hc;

@@ -17,65 +17,47 @@ int main(int argc, char * argv[]) {
    const char * paramfile2 = "input/RandStateSystemTest2.params";
 
    int rank=0;
-   PV_Init* initObj = new PV_Init(&argc, &argv);
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank); /* Can't use `initObj->getComm()->communicator()` because initObj->initialize hasn't been called. */
 
-   if (pv_getopt(argc, argv, "-p", NULL)==0) {
+   PV_Arguments * arguments = initObj->getArguments();
+   if (arguments->getParamsFile() != NULL) {
       if (rank==0) {
-         fprintf(stderr, "%s does not take -p as an option.  Instead the necessary params files are hard-coded.\n", argv[0]);
+         fprintf(stderr, "%s does not take -p as an option.  Instead the necessary params files are hard-coded.\n", arguments->getProgramName());
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
    }
 
-   int cl_argc = argc + 2;
-   char ** cl_argv = (char **) calloc(cl_argc+1,sizeof(char *));
-   assert(cl_argv);
-   for (int k=0; k<argc; k++) {
-      cl_argv[k] = strdup(argv[k]);
-      assert(cl_argv[k]);
-   }
-   int paramfile_argnum = argc+1;
-   cl_argv[paramfile_argnum-1] = strdup("-p");
-   cl_argv[paramfile_argnum] = strdup(paramfile1);
-   cl_argv[paramfile_argnum+1] = NULL;
-
-   int status1 = rebuildandrun(cl_argc, cl_argv, initObj, NULL, NULL, NULL);
+   arguments->setParamsFile(paramfile1);
+   int status1 = rebuildandrun(initObj, NULL, NULL, NULL, 0);
    if (status1 != PV_SUCCESS) {
-      fprintf(stderr, "%s failed on param file %s with return code %d.\n", cl_argv[0], cl_argv[2], status1);
+      fprintf(stderr, "%s failed on param file %s with return code %d.\n", arguments->getProgramName(), paramfile1, status1);
       return EXIT_FAILURE;
    }
 
-   free(cl_argv[paramfile_argnum]);
-   cl_argv[paramfile_argnum] = strdup(paramfile2);
-   int status2 = rebuildandrun(cl_argc, cl_argv, initObj, NULL, &customexit, NULL);
+   arguments->setParamsFile(paramfile2);
+   int status2 = rebuildandrun(initObj, NULL, &customexit, NULL);
    if (status2 != PV_SUCCESS) {
-      fprintf(stderr, "%s failed on param file %s.\n", cl_argv[0], cl_argv[paramfile_argnum]);
+      fprintf(stderr, "%s failed on param file %s.\n", arguments->getProgramName(), paramfile2);
    }
    int status = status1==PV_SUCCESS && status2==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 
 #ifdef PV_USE_MPI
    if (status == EXIT_SUCCESS) {
-      printf("Test complete.  %s passed on process rank %d.\n", cl_argv[0], rank);
+      printf("Test complete.  %s passed on process rank %d.\n", arguments->getProgramName(), rank);
    }
    else {
-      fprintf(stderr, "Test complete.  %s FAILED on process rank %d.\n", cl_argv[0], rank);
+      fprintf(stderr, "Test complete.  %s FAILED on process rank %d.\n", arguments->getProgramName(), rank);
    }
 #else
    if (status == EXIT_SUCCESS) {
-      printf("Test complete.  %s passed.\n", cl_argv[0]);
+      printf("Test complete.  %s passed.\n", arguments->getProgramName());
    }
    else {
-      fprintf(stderr, "Test complete.  %s FAILED.\n", cl_argv[0]);
+      fprintf(stderr, "Test complete.  %s FAILED.\n", arguments->getProgramName());
    }
 #endif // PV_USE_MPI
-
-   for (int k=0; k<argc; k++) {
-      free(cl_argv[k]);
-   }
-   free(cl_argv[paramfile_argnum-1]);
-   free(cl_argv[paramfile_argnum]);
-   free(cl_argv);
 
    delete initObj;
 

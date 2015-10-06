@@ -15,26 +15,21 @@
 int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]);
 int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]);
 
-int generate(int argc, char * argv[], PV_Init* initObj, int rank);
-int testrun(int argc, char * argv[], PV_Init* initObj, int rank);
-int testcheckpoint(int argc, char * argv[], PV_Init* initObj, int rank);
-int testioparams(int argc, char * argv[], PV_Init* initObj, int rank);
+int generate(PV_Init* initObj, int rank);
+int testrun(PV_Init* initObj, int rank);
+int testcheckpoint(PV_Init* initObj, int rank);
+int testioparams(PV_Init* initObj, int rank);
 
 int main(int argc, char * argv[]) {
-   PV_Init* initObj = new PV_Init(&argc, &argv); 
+   PV_Init* initObj = new PV_Init(&argc, &argv, true/*allowUnrecognizedArguments*/);
+   // argv has to allow --generate, --testrun, etc.
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-   int pv_argc = 0;
    bool generateFlag = false; // Flag for whether to generate correct output for future tests; don't check the RequireAllZeroActivity probe
    bool testrunFlag = false;  // Flag for whether to run from params and then check the RequireAllZeroActivity probe
    bool testcheckpointFlag = false;  // Flag for whether to run from checkpoint and then check the RequireAllZeroActivity probe
    bool testioparamsFlag = false; // Flag for whether to run from the output pv.params and then check the RequireAllZeroActivity probe
-   char ** pv_argv = (char **) calloc((size_t) (argc+1), sizeof(char *));
-   if (pv_argv==NULL) {
-      fprintf(stderr, "Error allocating memory in rank %d process: %s\n", rank, strerror(errno));
-      abort();
-   }
 
    // Run through the command line arguments.  If an argument is any of
    // --generate
@@ -63,12 +58,9 @@ int main(int argc, char * argv[]) {
          testioparamsFlag = true;
       }
       else {
-         pv_argv[pv_argc] = argv[arg];
-         pv_argc++;
-         assert(pv_argc<=argc);
+         /* nothing to do here */
       }
    }
-   pv_argv[pv_argc]=NULL;
    if (generateFlag && (testrunFlag||testcheckpointFlag||testioparamsFlag)) {
       if (rank==0) {
          fprintf(stderr, "%s error: --generate option conflicts with the --test* options.\n", argv[0]);
@@ -87,67 +79,52 @@ int main(int argc, char * argv[]) {
 
    int status = PV_SUCCESS;
    if (status==PV_SUCCESS && generateFlag) {
-      if (generate(pv_argc, pv_argv, initObj, rank)!=PV_SUCCESS) {
+      if (generate(initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            fprintf(stderr, "%s: generate failed.\n", pv_argv[0]);
+            fprintf(stderr, "%s: generate failed.\n", initObj->getArguments()->getProgramName());
          }
       }
    }
    if (status==PV_SUCCESS && testrunFlag) {
-      if (testrun(pv_argc, pv_argv, initObj, rank)!=PV_SUCCESS) {
+      if (testrun(initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            fprintf(stderr, "%s: testrun failed.\n", pv_argv[0]);
+            fprintf(stderr, "%s: testrun failed.\n", initObj->getArguments()->getProgramName());
          }
       }
    }
    if (status==PV_SUCCESS && testcheckpointFlag) {
-      if (testcheckpoint(pv_argc, pv_argv, initObj, rank)!=PV_SUCCESS) {
+      if (testcheckpoint(initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            fprintf(stderr, "%s: testcheckpoint failed.\n", pv_argv[0]);
+            fprintf(stderr, "%s: testcheckpoint failed.\n", initObj->getArguments()->getProgramName());
          }
       }
    }
    if (status==PV_SUCCESS && testioparamsFlag) {
-      if (testioparams(pv_argc, pv_argv, initObj, rank)!=PV_SUCCESS) {
+      if (testioparams(initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            fprintf(stderr, "%s: testioparams failed.\n", pv_argv[0]);
+            fprintf(stderr, "%s: testioparams failed.\n", initObj->getArguments()->getProgramName());
          }
       }
    }
-   free(pv_argv); pv_argv = NULL;
 
    delete initObj;
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int generate(int argc, char * argv[], PV_Init* initObj, int rank) {
+int generate(PV_Init* initObj, int rank) {
+   PV_Arguments * arguments = initObj->getArguments();
+
    // Remove -r and -c
-   char ** pv_argv = (char **) calloc((size_t) (argc+1), sizeof(char *));
-   assert(pv_argv);
-   int pv_argc = 0;
-   for (int arg=0; arg<argc; arg++) {
-      if (!strcmp(argv[arg], "-c")) {
-         arg++; // skip the argument to -c
-      }
-      else if (!strcmp(argv[arg],"-r")) {
-         // -r has no arguments
-      }
-      else {
-         pv_argv[pv_argc] = argv[arg];
-         pv_argc++;
-      }
-   }
+   arguments->setRestartFlag(false);
+   arguments->setCheckpointReadDir(NULL);
    if (rank==0) {
-      printf("%s --generate running PetaVision with arguments\n", pv_argv[0]);
-      for (int i=1; i<pv_argc; i++) {
-         printf(" %s", pv_argv[i]);
-      }
-      printf("\n");
+      printf("%s --generate running PetaVision with arguments\n", arguments->getProgramName());
+      arguments->printState();
    }
    if (rank==0) {
       PV_Stream * emptyinfile = PV_fopen("input/correct.pvp", "w", false/*verifyWrites*/);
@@ -156,11 +133,11 @@ int generate(int argc, char * argv[], PV_Init* initObj, int rank) {
       int emptydata[] = {80, 20, 2, CORRECT_PVP_NX, CORRECT_PVP_NY, CORRECT_PVP_NF, 1, 0, 4, 2, 1, 1, CORRECT_PVP_NX, CORRECT_PVP_NY, 0, 0, 0, 1, 0, 0, 0, 0, 0};
       size_t numwritten = PV_fwrite(emptydata, 23, sizeof(int), emptyinfile);
       if (numwritten != 23) {
-         fprintf(stderr, "%s error writing placeholder data into input/correct.pvp file.\n", pv_argv[0]);
+         fprintf(stderr, "%s error writing placeholder data into input/correct.pvp file.\n", arguments->getProgramName());
       }
       PV_fclose(emptyinfile);
    }
-   int status = rebuildandrun(pv_argc, pv_argv, initObj, NULL, &copyCorrectOutput, NULL);
+   int status = rebuildandrun(initObj, NULL, &copyCorrectOutput, NULL, 0);
    return status;
 }
 
@@ -199,81 +176,48 @@ int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
    return status;
 }
 
-int testrun(int argc, char * argv[], PV_Init * initObj, int rank) {
-   // Ignore -r and -c switches
-   char ** pv_argv = (char **) calloc((size_t) (argc+1), sizeof(char *));
-   assert(pv_argv);
-   int pv_argc = 0;
-   for (int arg=0; arg<argc; arg++) {
-      if (!strcmp(argv[arg], "-c")) {
-         arg++; // skip the argument to -c
-      }
-      else if (!strcmp(argv[arg],"-r")) {
-         // -r has no arguments
-      }
-      else {
-         pv_argv[pv_argc] = argv[arg];
-         pv_argc++;
-      }
-   }
+int testrun(PV_Init * initObj, int rank) {
+   PV_Arguments * arguments = initObj->getArguments();
+   arguments->resetState();
+   // Ignore restart flag and checkpoint directory
+   arguments->setRestartFlag(false);
+   arguments->setCheckpointReadDir(NULL);
    if (rank==0) {
-      printf("%s --testrun running PetaVision with arguments\n", pv_argv[0]);
-      for (int i=1; i<pv_argc; i++) {
-         printf(" %s", pv_argv[i]);
-      }
-      printf("\n");
+      printf("%s --testrun running PetaVision with arguments\n", arguments->getProgramName());
+      arguments->printState();
    }
-   int status = rebuildandrun(pv_argc, pv_argv, initObj, NULL, &assertAllZeroes, NULL);
-   free(pv_argv); pv_argv = NULL;
+   int status = rebuildandrun(initObj, NULL, &assertAllZeroes, NULL, 0);
    return status;
 }
 
-int testcheckpoint(int argc, char * argv[], PV_Init * initObj, int rank) {
-   // Make sure there's either a -r or a -c switch
-   bool hasrestart = false;
-   for (int arg=0; arg<argc; arg++) {
-      if (!strcmp(argv[arg],"-r") || !strcmp(argv[arg],"-c")) {
-         hasrestart = true;
-         break;
-      }
-   }
+int testcheckpoint(PV_Init * initObj, int rank) {
+   PV_Arguments * arguments = initObj->getArguments();
+   arguments->resetState();
+   // Make sure either restartFlag or checkpointReadDir are set (both cannot be set or PV_Arguments will error out).
+   bool hasrestart = (arguments->getRestartFlag() || arguments->getCheckpointReadDir()!=NULL);
    if (!hasrestart) {
       if (rank==0) {
-         fprintf(stderr, "%s error: --testcheckpoint requires either -r or -c option.\n", argv[0]);
+         fprintf(stderr, "%s error: --testcheckpoint requires either the -r or the -c option.\n", arguments->getProgramName());
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
    }
    if (rank==0) {
-      printf("%s --testcheckpoint running PetaVision with arguments\n", argv[0]);
-      for (int i=1; i<argc; i++) {
-         printf(" %s", argv[i]);
-      }
-      printf("\n");
+      printf("%s --testcheckpoint running PetaVision with arguments\n", arguments->getProgramName());
+      arguments->printState();
    }
-   int status = rebuildandrun(argc, argv, initObj, NULL, &assertAllZeroes, NULL);
+   int status = rebuildandrun(initObj, NULL, &assertAllZeroes, NULL, 0);
    return status;
 }
 
-int testioparams(int argc, char * argv[], PV_Init* initObj, int rank) {
+int testioparams(PV_Init* initObj, int rank) {
+   PV_Arguments * arguments = initObj->getArguments();
+   arguments->resetState();
    // Ignore -r and -c switches
-   char ** pv_argv = (char **) calloc((size_t) (argc+1), sizeof(char *));
-   assert(pv_argv);
-   int pv_argc = 0;
-   for (int arg=0; arg<argc; arg++) {
-      if (!strcmp(argv[arg], "-c")) {
-         arg++; // skip the argument to -c
-      }
-      else if (!strcmp(argv[arg],"-r")) {
-         // -r has no arguments
-      }
-      else {
-         pv_argv[pv_argc] = argv[arg];
-         pv_argc++;
-      }
-   }
-   initObj->initialize(pv_argc, pv_argv);
-   HyPerCol * hc = build(pv_argc, pv_argv, initObj);
+   arguments->setRestartFlag(false);
+   arguments->setCheckpointReadDir(NULL);
+   initObj->initialize();
+   HyPerCol * hc = build(initObj, NULL, 0);
    if (hc == NULL) {
       fprintf(stderr, "testioparams error: unable to build HyPerCol.\n");
       exit(EXIT_FAILURE);
@@ -292,44 +236,12 @@ int testioparams(int argc, char * argv[], PV_Init* initObj, int rank) {
    }
    delete hc;
 
-   int arg; // arg will store the index where the new params file is stored in pv_argv.  Since we're using strdup, we have to free it.
-   for (arg=0; arg<pv_argc; arg++) {
-      if (!strcmp(pv_argv[arg], "-p")) {
-         arg++;
-         pv_argv[arg] = strdup(paramsfileString.c_str());
-         break;
-      }
-   }
-
-   bool usingdefaultparamsfile = false;
-   if (arg>=pv_argc) {
-      usingdefaultparamsfile = true;
-      char ** new_pv_argv = (char **) malloc((size_t) (pv_argc+3)*sizeof(char *));
-      assert(new_pv_argv);
-      for (int argn=0; argn<pv_argc; argn++) {
-         new_pv_argv[argn] = pv_argv[argn];
-      }
-      new_pv_argv[pv_argc] = strdup("-p");
-      new_pv_argv[pv_argc+1] = strdup(paramsfileString.c_str());
-      new_pv_argv[pv_argc+2] = NULL;
-      arg = pv_argc+1;
-      pv_argc += 2;
-      free(pv_argv);
-      pv_argv = new_pv_argv;
-   }
+   arguments->setParamsFile(paramsfileString.c_str());
    if (rank==0) {
-      printf("%s --testioparams running PetaVision with arguments\n", pv_argv[0]);
-      for (int i=1; i<pv_argc; i++) {
-         printf(" %s", pv_argv[i]);
-      }
-      printf("\n");
+      printf("%s --testioparams running PetaVision with arguments\n", arguments->getProgramName());
+      arguments->printState();
    }
-   status = rebuildandrun(pv_argc, pv_argv, initObj, NULL, &assertAllZeroes, NULL);
-   if (usingdefaultparamsfile) {
-      free(pv_argv[arg-1]); pv_argv[arg-1] = NULL;
-   }
-   free(pv_argv[arg]); pv_argv[arg] = NULL;
-   free(pv_argv); pv_argv = NULL;
+   status = rebuildandrun(initObj, NULL, &assertAllZeroes, NULL, 0);
    return status;
 }
 

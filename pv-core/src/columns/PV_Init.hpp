@@ -12,9 +12,9 @@
 #include "../arch/mpi/mpi.h"
 #include "../io/PVParams.hpp"
 #include "../io/io.h"
+#include "PV_Arguments.hpp"
 
 namespace PV {
-
 
 /**
  * PV_Init is an object that initializes MPI and parameters to pass to the HyPerCol
@@ -22,21 +22,22 @@ namespace PV {
 class PV_Init {
 public:
    /**
-    * The constructor does not call initialize. This does call MPI_Init
+    * The constructor creates a PV_Arguments object from the input arguments
+    * and if MPI has not already been initialized, calls MPI_Init.
+    * Note that it does not call initialize, so the PVParams and InterColComm
+    * objects are not initialized on instantiation.
     */
-   PV_Init(int* argc, char ** argv[]);
+   PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments);
    /**
     * Destructor calls MPI_Finalize
     */
    virtual ~PV_Init();
+
    /**
-    * Initialize allocates the PVParams and InterColComm objects
+    * initialize(void) creates the PVParams and InterColComm objects from
+    * the existing arguments.
     */
-   int initialize(int argc, char* argv[]);
-   /**
-    * Sets the previously allocated PVParams and InterColComm objects
-    */
-   int initialize(PVParams* inparams, InterColComm* incomm);
+   int initialize();
 
    PVParams * getParams(){return params;}
    InterColComm * getComm(){return icComm;}
@@ -63,6 +64,10 @@ public:
    int isExtraProc(){return icComm->isExtraProc();}
    int getInit(){return initialized;}
 
+   /**
+    * Returns the PV_Arguments object holding the parsed values of the command line arguments.
+    */
+   PV_Arguments * getArguments() { return arguments; }
 
 private:
    int initSignalHandler();
@@ -71,6 +76,7 @@ private:
    //int getNBatchValue(char* infile);
    PVParams * params;
    InterColComm * icComm;
+   PV_Arguments * arguments;
    int initialized;
 };
 

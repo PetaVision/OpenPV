@@ -8,8 +8,8 @@
 #include "IObjectDetector.hpp"
 
 int main(int argc, char * argv[]) {
-   PV_Init * pv_init = new PV_Init(&argc, &argv);
-   HyPerCol * hc = build(argc, argv, pv_init);
+   PV_Init * pv_init = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   HyPerCol * hc = build(pv_init);
    int rank = hc->columnId();
    vidint::Image vimage;
    vidint::Roi vroi;

@@ -9,25 +9,14 @@
 
 namespace PV {
 
-PV_Init::PV_Init(int* argc, char ** argv[]){
+PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
    //Initialize MPI
    initSignalHandler();
    commInit(argc, argv);
    params = NULL;
    icComm = NULL;
+   arguments = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
    initialized = false;
-
-//      if( rank == 0 ) {
-//         printf("Hit enter to begin! ");
-//         fflush(stdout);
-//         int charhit = -1;
-//         while(charhit != '\n') {
-//            charhit = getc(stdin);
-//         }
-//      }
-//      MPI_Barrier(icComm->globalCommunicator());
-
-
 }
 
 PV_Init::~PV_Init(){
@@ -47,7 +36,7 @@ int PV_Init::initSignalHandler()
    // When run() checks whether to call checkpointWrite, it looks at checkpointSignal, and writes a
    // checkpoint if checkpointWriteFlag is true, regardless of whether the next scheduled checkpoint time has arrived.
    //
-   // This needs to happen before MPI_Initialize; otherwise a thread created by MPI will not get the signal handler
+   // This routine must be called before MPI_Initialize; otherwise a thread created by MPI will not get the signal handler
    // but will get the signal and the job will terminate.
    sigset_t blockusr1;
    sigemptyset(&blockusr1);
@@ -56,45 +45,18 @@ int PV_Init::initSignalHandler()
    return 0;
 }
 
-int PV_Init::initialize(int argc, char* argv[]){
-   if(icComm){
-      delete icComm;
+int PV_Init::initialize() {
+   char const * params_file = arguments->getParamsFile();
+   if(!params_file){
+      std::cout << "PV_Init error: initialize called without having set a params file.\n";
+      exit(PV_FAILURE);
    }
-   if(params){
-      delete params;
-   }
-   //Parse param file
-   char * param_file = NULL;
-   pv_getopt_str(argc, argv, "-p", &param_file, NULL);
-
-   if(!param_file){
-      std::cout << "PV_Init setParams: initialize requires a -p parameter for a parameter file\n";
-      exit(-1);
-   }
-
-   //Set up communicator and parameters
-   icComm = new InterColComm(argc, argv);
-   params = new PVParams(param_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
-   if(param_file){
-      free(param_file);
-   }
+   if (icComm) { delete icComm; }
+   icComm = new InterColComm(arguments);
+   if (params) { delete params; }
+   params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
    initialized = true;
-   return 0;
-}
-
-int PV_Init::initialize(PVParams* inparams, InterColComm* incomm){
-   assert(inparams);
-   assert(incomm);
-   if(params){
-      delete params;
-   }
-   if(icComm){
-      delete icComm;
-   }
-   params = inparams;
-   icComm = incomm;
-   initialized = true;
-   return 0;
+   return PV_SUCCESS;
 }
 
 int PV_Init::commInit(int* argc, char*** argv)
@@ -124,7 +86,7 @@ int PV_Init::commFinalize()
    return 0;
 }
 
-}
+} // namespace PV
 
 
 

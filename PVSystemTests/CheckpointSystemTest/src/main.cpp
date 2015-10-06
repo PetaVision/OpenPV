@@ -56,7 +56,7 @@ public:
 int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
-   PV_Init* initObj = new PV_Init(&argc, &argv);
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
    int rank = initObj->getWorldRank();
    
    char const * paramFile1 = "input/CheckpointParameters1.params";
@@ -100,48 +100,24 @@ int main(int argc, char * argv[]) {
 
    ParamGroupHandler * customGroupHandler = new CustomGroupHandler;
 
-   int pv_argc1 = 2 + argc; // command line arguments, plus "-p" plus paramFile1
-   int pv_argc2 = 4 + argc; // pv_argc1 arguments with paramFile2 in place of paramFile1, plus "-c", plus checkpoint directory
-   assert(pv_argc1 < pv_argc2); // so we can allocate based on pv_argc2 and be sure it will hold pv_argc1 arguments.
-   char ** pv_argv = (char **) calloc((pv_argc2+1), sizeof(char *));
-   assert(pv_argv!=NULL);
-   int pv_arg=0;
-   for (pv_arg = 0; pv_arg < argc; pv_arg++) {
-      pv_argv[pv_arg] = strdup(argv[pv_arg]);
-      assert(pv_argv[pv_arg]);
-   }
-   assert(pv_arg==argc);
-   pv_argv[pv_arg++] = strdup("-p");
-   pv_argv[pv_arg++] = strdup(paramFile1);
-   assert(pv_arg==pv_argc1 && pv_arg==argc+2);
-   assert(pv_argv[argc]!=NULL && pv_argv[argc+1]!=NULL && pv_argv[argc+2]==NULL);
+   PV_Arguments * arguments = initObj->getArguments();
+   arguments->setParamsFile(paramFile1);
 
-   status = rebuildandrun((int) pv_argc1, pv_argv, initObj, NULL, NULL, &customGroupHandler, 1);
+   status = rebuildandrun(initObj, NULL, NULL, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", pv_argv[0], rank, paramFile1, status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
       exit(status);
    }
 
-   free(pv_argv[argc+1]);
-   pv_argv[argc+1] = strdup(paramFile2);
-   assert(pv_argv[argc+1]);
-   assert(pv_arg==argc+2);
-   pv_argv[pv_arg++] = strdup("-c");
-   pv_argv[pv_arg++] = strdup("checkpoints1/Checkpoint12");
-   assert(pv_arg==pv_argc2 && pv_arg==argc+4);
-   assert(pv_argv[argc+2]!=NULL && pv_argv[argc+3]!=NULL && pv_argv[argc+4]==NULL);
+   arguments->setParamsFile(paramFile2);
+   arguments->setCheckpointReadDir("checkpoints1/Checkpoint12");
 
-   status = rebuildandrun(pv_argc2, pv_argv, initObj, NULL, &customexit, &customGroupHandler, 1);
+   status = rebuildandrun(initObj, NULL, &customexit, &customGroupHandler, 1);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", pv_argv[0], rank, paramFile2, status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
    }
 
    delete customGroupHandler;
-
-   for (size_t arg=0; arg<pv_argc2; arg++) {
-       free(pv_argv[arg]);
-   }
-   free(pv_argv);
 
    delete initObj;
 

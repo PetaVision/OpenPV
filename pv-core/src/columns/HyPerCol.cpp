@@ -36,9 +36,9 @@
 
 namespace PV {
 
-HyPerCol::HyPerCol(const char * name, int argc, char * argv[], PV_Init * initObj) {
+HyPerCol::HyPerCol(const char * name, PV_Init * initObj) {
    initialize_base();
-   initialize(name, argc, argv, initObj);
+   initialize(name, initObj);
 }
 
 HyPerCol::~HyPerCol()
@@ -124,7 +124,7 @@ HyPerCol::~HyPerCol()
       timeScaleStream.close();
    }
 
-   if(log_file){
+   if(pv_initObj->getArguments()->getLogFile()){
       //Flush all buffers
       fflush(stdout);
       fflush(stderr);
@@ -208,7 +208,6 @@ int HyPerCol::initialize_base() {
    writeProgressToErr = false;
    origStdOut = -1;
    origStdErr = -1;
-   log_file = NULL;
 
 #ifdef PV_USE_OPENCL
    clDevice = NULL;
@@ -252,8 +251,8 @@ int HyPerCol::initialize_base() {
    // connProbes = NULL;
    filenamesContainLayerNames = 0;
    filenamesContainConnectionNames = 0;
-   random_seed = 0;
-   random_seed_obj = 0;
+   random_seed = 0U;
+   random_seed_obj = 0U;
    writeTimescales = true; //Defaults to true
    errorOnNotANumber = false;
    numThreads = 1;
@@ -263,35 +262,29 @@ int HyPerCol::initialize_base() {
    return PV_SUCCESS;
 }
 
-int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* initObj)
+int HyPerCol::initialize(const char * name, PV_Init* initObj)
 {
    if(!initObj->getInit()){
-      std::cout << "PV_Init object must call initialized before passing to HyPerCol\n";
+      std::cout << "PV_Init object's initialize method must be called before it is passed to HyPerCol\n";
       exit(-1);
    }
-   this->icComm = initObj->getComm();
-   this->params = initObj->getParams();
-   if(!this->params){
-      std::cout << "Parameter file (-p) must be specified to the HyPerCol\n";
-      exit(-1);
-   }
+   pv_initObj = initObj;
+   this->icComm = pv_initObj->getComm();
+   this->params = pv_initObj->getParams();
+   assert(this->params); // PV_Init should have set params already
 
    int rank = icComm->globalCommRank();
 
-   char* gpu_devices = NULL; 
-   char * working_dir = NULL;
-   int restart = 0;
-   int numthreads = 1; //Default to 1 thread
-   bool reqrtn = false; // Default to not require pressing return to continue
-   int numRows = 1;
-   int numColumns = 1;
-   int batchWidth = 1;
-   bool paramusage[argc]; // array to indicate whether parse_options recognized the argument.
-   // param_file is handled by PV_Init
-   parse_options(argc, argv, paramusage, &reqrtn, &outputPath, NULL, &log_file,
-                 &gpu_devices, &random_seed, &working_dir, &restart, &checkpointReadDir, &numthreads, &numRows, &numColumns, &batchWidth);
+   char const * gpu_devices = pv_initObj->getArguments()->getGPUDevices();
+   char const * working_dir = pv_initObj->getArguments()->getWorkingDir();
+   int restart = pv_initObj->getArguments()->getRestartFlag();
+   char const * checkpoint_read_dir = pv_initObj->getArguments()->getCheckpointReadDir();
+   if (checkpoint_read_dir) {
+      checkpointReadDir = strdup(pv_initObj->getArguments()->getCheckpointReadDir());
+   }
 
    //Set up log file if it exists
+   char const * log_file = pv_initObj->getArguments()->getLogFile();
    if(log_file){
       //Flush buffers before duplicating stdout
       fflush(stdout);
@@ -324,7 +317,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    }
 
 #ifdef PVP_DEBUG
-   if (reqrtn) {
+   if (pv_initObj->getArguments()->getRequireReturnFlag()) {
       if( rank == 0 ) {
          printf("Hit enter to begin! ");
          fflush(stdout);
@@ -336,22 +329,6 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
       MPI_Barrier(icComm->globalCommunicator());
    }
 #endif // PVP_DEBUG
-
-   if (rank ==0) {
-      bool anyunusedparams = false;
-      int arg;
-      for (arg=1; arg<argc; arg++) {
-         if (paramusage[arg]==false) {
-            fprintf(stderr, "%s: argument %d, \"%s\", is not recognized.\n",
-                  argv[0], arg, argv[arg]);
-            anyunusedparams = true;
-         }
-      }
-      if (anyunusedparams) {
-         fprintf(stderr, "Error creating HyPerCol\n");
-         exit(EXIT_FAILURE);
-      }
-   }
 
    this->name = strdup(name);
    this->runTimer = new Timer(name, "column", "run    ");
@@ -378,43 +355,41 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    printf("============================= srcPath is %s\n", srcPath);
 #endif
 
-   int threadstatus = PV_SUCCESS;
+   char const * programName = pv_initObj->getArguments()->getProgramName();
+
+   int thread_status = PV_SUCCESS;
+   int num_threads = pv_initObj->getArguments()->getNumThreads();
 #ifdef PV_USE_OPENMP_THREADS
-   int maxthreads = omp_get_max_threads();
-   if(pv_getopt(argc, argv, "-t", NULL)==0) {
-      if (numthreads == 0){
-         numthreads = maxthreads;
-      }
-      omp_set_num_threads(numthreads);
+   if (numThreads==0) {
+      thread_status = PV_FAILURE;
    }
    else {
-      threadstatus = PV_FAILURE;
+      omp_set_num_threads(num_threads);
    }
    if (globalRank()==0) {
-      printf("Maximum number of OpenMP threads is %d\n", maxthreads);
-      if(threadstatus == PV_SUCCESS) {
-         printf("Number of threads used is %d\n", numthreads);
+      printf("Maximum number of OpenMP threads is %d\n", omp_get_max_threads());
+      if (thread_status==PV_SUCCESS) {
+         printf("Number of threads used is %d\n", num_threads);
       }
       else {
          fflush(stdout);
-         fprintf(stderr, "%s was compiled with PV_USE_OPENMP_THREADS; therefore the \"-t\" argument is required.\n", argv[0]);
+         fprintf(stderr, "%s was compiled with PV_USE_OPENMP_THREADS; therefore the \"-t\" argument is required.\n", programName);
       }
    }
-   if (threadstatus !=PV_SUCCESS) {
+#else // PV_USE_OPENMP_THREADS
+   if(num_threads != 1){
+      thread_status = PV_FAILURE;
+      if (globalRank()==0) {
+         fprintf(stderr, "PetaVision must be compiled with OpenMP to run with threads\n");
+      }
+    }
+#endif // PV_USE_OPENMP_THREADS
+   if (thread_status !=PV_SUCCESS) {
       MPI_Barrier(icComm->globalCommunicator());
       exit(EXIT_FAILURE);
    }
-#else // PV_USE_OPENMP_THREADS
-   if(numthreads != 1){
-      if (columnId()==0) {
-         std::cout << "PetaVision must be compiled with OpenMP to run with threads" << "\n";
-      }
-      MPI_Barrier(icComm->globalCommunicator());
-      exit(PV_FAILURE);
-   }
-#endif // PV_USE_OPENMP_THREADS
-   //set numthreads to member variable
-   this->numThreads = numthreads;
+   //set num_threads to member variable
+   this->numThreads = num_threads;
 
 
    warmStart = (restart!=0);
@@ -426,9 +401,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
          exit(status);
       }
    }
-   if(working_dir){
-      free(working_dir);
-   }
+   working_dir = NULL;
 
 
 #ifdef PV_USE_MPI // Fail if there was a parsing error, but make sure nonroot processes don't kill the root process before the root process reaches the syntax error
@@ -445,6 +418,11 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
       exit(parsedStatus);
    }
 
+   if (pv_initObj->getArguments()->getOutputPath()) {
+      outputPath = strdup(pv_initObj->getArguments()->getOutputPath());
+      if (outputPath==NULL) {exit(13); /*Lucky 13 aka right now I'm too lazy to do error reporting right*/}
+   }
+   random_seed = pv_initObj->getArguments()->getRandomSeed();
    ioParams(PARAMS_IO_READ);
 
    checkpointSignal = 0;
@@ -497,7 +475,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    //warmStart is set if restart flag != 0
    if (warmStart && checkpointReadDir) {
       if (globalRank()==0) {
-         fprintf(stderr, "%s error: cannot set both -r and -c.\n", argv[0]);
+         fprintf(stderr, "%s error: cannot set both -r and -c.\n", programName);
       }
       MPI_Barrier(icComm->globalCommunicator());
       exit(EXIT_FAILURE);
@@ -507,7 +485,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
       assert(checkpointReadDir==NULL);
       checkpointReadDir = (char *) calloc(PV_PATH_MAX, sizeof(char));
       if(checkpointReadDir==NULL) {
-         fprintf(stderr, "%s error: unable to allocate memory for path to checkpoint read directory.\n", argv[0]);
+         fprintf(stderr, "%s error: unable to allocate memory for path to checkpoint read directory.\n", programName);
          exit(EXIT_FAILURE);
       }
       if (columnId()==0) {
@@ -520,12 +498,12 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
             if (statbuf.st_mode & S_IFDIR) {
                strncpy(checkpointReadDir, cpDirString.c_str(), PV_PATH_MAX);
                if (checkpointReadDir[PV_PATH_MAX-1]) {
-                  fprintf(stderr, "%s error: checkpoint read directory \"%s\" too long.\n", argv[0], cpDirString.c_str());
+                  fprintf(stderr, "%s error: checkpoint read directory \"%s\" too long.\n", programName, cpDirString.c_str());
                   exit(EXIT_FAILURE);
                }
             }
             else {
-               fprintf(stderr, "%s error: checkpoint read directory \"%s\" is not a directory.\n", argv[0], cpDirString.c_str());
+               fprintf(stderr, "%s error: checkpoint read directory \"%s\" is not a directory.\n", programName, cpDirString.c_str());
                exit(EXIT_FAILURE);
             }
          }
@@ -556,28 +534,28 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
                   }
                   if (!found) {
                      fprintf(stderr, "%s error: restarting but Last directory does not exist and checkpointWriteDir directory \"%s\" does not have any checkpoints\n",
-                           argv[0], checkpointWriteDir);
+                           programName, checkpointWriteDir);
                      exit(EXIT_FAILURE);
                   }
                   int pathlen=snprintf(checkpointReadDir, PV_PATH_MAX, "%sCheckpoint%ld", cpDirString.c_str(), cp_index);
                   if (pathlen>PV_PATH_MAX) {
-                     fprintf(stderr, "%s error: checkpoint read directory \"%s\" too long.\n", argv[0], cpDirString.c_str());
+                     fprintf(stderr, "%s error: checkpoint read directory \"%s\" too long.\n", programName, cpDirString.c_str());
                      exit(EXIT_FAILURE);
                   }
 
                }
                else {
-                  fprintf(stderr, "%s error: checkpoint read directory \"%s\" is not a directory.\n", argv[0], checkpointWriteDir);
+                  fprintf(stderr, "%s error: checkpoint read directory \"%s\" is not a directory.\n", programName, checkpointWriteDir);
                   exit(EXIT_FAILURE);
                }
             }
             else if (errno == ENOENT) {
-               fprintf(stderr, "%s error: restarting but neither Last nor checkpointWriteDir directory \"%s\" exists.\n", argv[0], checkpointWriteDir);
+               fprintf(stderr, "%s error: restarting but neither Last nor checkpointWriteDir directory \"%s\" exists.\n", programName, checkpointWriteDir);
                exit(EXIT_FAILURE);
             }
          }
          else {
-            fprintf(stderr, "%s error: restarting but Last directory does not exist and checkpointWriteDir is not defined (checkpointWrite=false)\n", argv[0]);
+            fprintf(stderr, "%s error: restarting but Last directory does not exist and checkpointWriteDir is not defined (checkpointWrite=false)\n", programName);
          }
 
       }
@@ -624,10 +602,7 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    //Default to auto assign gpus
    initializeThreads(gpu_devices);
 #endif
-
-   if(gpu_devices){
-      free(gpu_devices);
-   }
+   gpu_devices = NULL;
 
    //Only print rank for comm rank 0
    if(globalRank() == 0){
@@ -642,27 +617,27 @@ int HyPerCol::initialize(const char * name, int argc, char ** argv, PV_Init* ini
    //Allocate timescales for batches
    timeScale = (double*) malloc(sizeof(double) * nbatch);
    if(timeScale ==NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for timeScale buffer.\n", argv[0]);
+      fprintf(stderr, "%s error: unable to allocate memory for timeScale buffer.\n", programName);
       exit(EXIT_FAILURE);
    }
    timeScaleTrue = (double*) malloc(sizeof(double) * nbatch);
    if(timeScaleTrue ==NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for timeScaleTrue buffer.\n", argv[0]);
+      fprintf(stderr, "%s error: unable to allocate memory for timeScaleTrue buffer.\n", programName);
       exit(EXIT_FAILURE);
    }
    oldTimeScale = (double*) malloc(sizeof(double) * nbatch);
    if(oldTimeScale ==NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for oldTimeScale buffer.\n", argv[0]);
+      fprintf(stderr, "%s error: unable to allocate memory for oldTimeScale buffer.\n", programName);
       exit(EXIT_FAILURE);
    }
    oldTimeScaleTrue = (double*) malloc(sizeof(double) * nbatch);
    if(oldTimeScaleTrue ==NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for oldTimeScaleTrue buffer.\n", argv[0]);
+      fprintf(stderr, "%s error: unable to allocate memory for oldTimeScaleTrue buffer.\n", programName);
       exit(EXIT_FAILURE);
    }
    deltaTimeAdapt = (double*) malloc(sizeof(double) * nbatch);
    if(deltaTimeAdapt == NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for deltaTimeAdapt buffer.\n", argv[0]);
+      fprintf(stderr, "%s error: unable to allocate memory for deltaTimeAdapt buffer.\n", programName);
       exit(EXIT_FAILURE);
    }
    //Initialize timeScales to 1
@@ -3026,7 +3001,7 @@ int HyPerCol::getAutoGPUDevice(){
    return returnGpuIdx;
 }
 
-int HyPerCol::initializeThreads(char* in_device)
+int HyPerCol::initializeThreads(char const * in_device)
 {
    int numMpi = icComm->globalCommSize();
    int device;
