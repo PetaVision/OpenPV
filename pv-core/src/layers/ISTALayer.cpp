@@ -209,6 +209,8 @@ int ISTALayer::allocateUpdateKernel(){
    PVCuda::CudaBuffer* d_GSyn = getDeviceGSyn();
    PVCuda::CudaBuffer* d_activity = getDeviceActivity();
 
+   size_t size = parent->getNBatch() * sizeof(double);
+   d_dtAdapt = device->createBuffer(size);
 
    //Set arguments to kernel
    updateKernel->setArgs(
