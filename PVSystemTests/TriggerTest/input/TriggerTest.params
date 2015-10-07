@@ -70,7 +70,7 @@ TriggerTestLayer "notrigger" = {
 
     InitVType                        = "ZeroV";
 
-    triggerFlag                      = false;
+    triggerLayerName                 = NULL;
 };
 
 TriggerTestLayer "trigger0" = {
@@ -86,8 +86,7 @@ TriggerTestLayer "trigger0" = {
 
     InitVType                        = "ZeroV";
 
-    triggerFlag                      = true;
-    triggerLayerName                   = "input";
+    triggerLayerName                 = "input";
     triggerOffset                    = 0;
 };
 
@@ -104,8 +103,7 @@ TriggerTestLayer "trigger1" = {
 
     InitVType                        = "ZeroV";
 
-    triggerFlag                      = true;
-    triggerLayerName                   = "input";
+    triggerLayerName                 = "input";
     triggerOffset                    = 1;
 };
 
@@ -122,8 +120,7 @@ TriggerTestLayer "trigger2" = {
 
     InitVType                        = "ZeroV";
 
-    triggerFlag                      = true;
-    triggerLayerName                   = "input";
+    triggerLayerName                 = "input";
     triggerOffset                    = 2;
 };
 
@@ -158,7 +155,7 @@ TriggerTestConn "inputToNoTrigger" = {
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 
@@ -191,7 +188,6 @@ TriggerTestConn "inputToTrigger0" = {
     updateGSynFromPostPerspective = true; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
-    triggerFlag                      = true;
     triggerLayerName                 = "input";
     triggerOffset                    = 0;
 };
@@ -225,7 +221,6 @@ TriggerTestConn "inputToTrigger1" = {
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
-    triggerFlag                      = true;
     triggerLayerName                 = "input";
     triggerOffset                    = 1;
 };
@@ -259,7 +254,6 @@ TriggerTestConn "inputToTrigger2" = {
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
-    triggerFlag                      = true;
     triggerLayerName                 = "input";
     triggerOffset                    = 2;
 };
@@ -293,7 +287,7 @@ TriggerTestConn "inputToNoPeriod" = {
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 
@@ -326,7 +320,7 @@ TriggerTestConn "inputToPeriod0" = {
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
-    triggerFlag                      = false;
+    triggerLayerName                 = NULL;
 
     weightUpdatePeriod               = 5;
     initialWeightUpdateTime          = 1;
@@ -361,7 +355,7 @@ TriggerTestConn "inputToPeriod1" = {
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
-    triggerFlag                      = false;
+    triggerLayerName                 = NULL;
 
     weightUpdatePeriod               = 5;
     initialWeightUpdateTime          = 5;
@@ -396,7 +390,7 @@ TriggerTestConn "inputToPeriod2" = {
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 
     //Triggering
-    triggerFlag                      = false;
+    triggerLayerName                 = NULL;
 
     weightUpdatePeriod               = 5;
     initialWeightUpdateTime          = 4;
@@ -406,26 +400,23 @@ TriggerTestConn "inputToPeriod2" = {
 //Test for layer probes
 TriggerTestLayerProbe "notriggerlayerprobe" = {
     targetLayer = "input";
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 TriggerTestLayerProbe "trigger0layerprobe" = {
     targetLayer = "input";
-    triggerFlag                      = true;
     triggerLayerName                 = "input";
     triggerOffset                    = 0;
 };
 
 TriggerTestLayerProbe "trigger1layerprobe" = {
     targetLayer = "input";
-    triggerFlag                      = true;
     triggerLayerName                 = "input";
     triggerOffset                    = 1;
 };
 
 TriggerTestLayerProbe "trigger2layerprobe" = {
     targetLayer = "input";
-    triggerFlag                      = true;
     triggerLayerName                 = "input";
     triggerOffset                    = 2;
 };

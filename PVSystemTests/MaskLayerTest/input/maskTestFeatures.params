@@ -86,7 +86,7 @@ MaskLayer "maskOut" = {
     AMin = -infinity; 
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
     maskMethod = "maskFeatures";
     featureIdxs = [0, 2];
 };
@@ -108,7 +108,7 @@ MaskTestLayer "test" = {
     AMin = -infinity; 
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
     maskMethod = "maskFeatures";
 };
 

@@ -124,7 +124,7 @@ ANNLayer "Comparison" = {
     phase                               = 1;
     mirrorBCflag                        = true;
     InitVType                           = "ZeroV";
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
     writeStep                           = 1;
     initialWriteTime                    = 0;
     sparseLayer                         = false;
@@ -172,7 +172,7 @@ TestNotAlwaysAllZerosProbe "OriginalMovieProbe" = {
     targetLayer                         = "OriginalMovie";
     message                             = "OriginalMovie ";
     probeOutputFile                     = "OriginalMovieProbe.txt";
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
     nnzThreshold                        = 0;
 };
 
@@ -180,6 +180,6 @@ TestAllZerosProbe "ComparisonProbe" = {
     targetLayer                         = "Comparison";
     message                             = "Comparison    ";
     probeOutputFile                     = "ComparisonProbe.txt";
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
     nnzThreshold                        = 0;
 };

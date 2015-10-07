@@ -94,7 +94,7 @@ ANNLayer "output" = {
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
     sparseLayer = false;
-    triggerFlag = false;
+    triggerLayerName = NULL;
 
     InitVType = "ZeroV";
 

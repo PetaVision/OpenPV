@@ -95,7 +95,7 @@ ANNLayer "ganglion" = {
     mirrorBCflag                     = true;
     sparseLayer                      = false;
     updateGpu                        = false;
-    triggerFlag                      = false;
+    triggerLayerName                 = NULL;
 
     InitVType                        = "ZeroV";
 
@@ -150,7 +150,7 @@ ANNLayer "comparison" = {
     mirrorBCflag                     = true;
     sparseLayer                      = false;
     updateGpu                        = false;
-    triggerFlag                      = false;
+    triggerLayerName                 = NULL;
 
     InitVType                        = "ZeroV";
 
@@ -213,6 +213,6 @@ TestAllZerosProbe "comparison probe" = {
     targetLayer = "comparison";
     message = "comparison                    ";
     probeOutputFile = NULL;
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0;
 };

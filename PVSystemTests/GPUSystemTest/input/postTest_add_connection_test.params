@@ -42,7 +42,7 @@ ConstantLayer "input" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecv1_1" = {
@@ -62,7 +62,7 @@ ANNLayer "outputRecv1_1" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecv1_2" = {
@@ -82,7 +82,7 @@ ANNLayer "outputRecv1_2" = {
     AShift = 0;
     // 
     phase = 3; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecv2_1" = {
@@ -102,7 +102,7 @@ ANNLayer "outputRecv2_1" = {
     AShift = 0;
     // 
     phase = 4; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "Test1_1AndTest1_2" = {
@@ -122,7 +122,7 @@ ANNLayer "Test1_1AndTest1_2" = {
     AShift = 0;
     // 
     phase = 5; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "Test1_1AndTest2_1" = {
@@ -142,7 +142,7 @@ ANNLayer "Test1_1AndTest2_1" = {
     AShift = 0;
     // 
     phase = 5; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "Test1_2AndTest2_1" = {
@@ -162,7 +162,7 @@ ANNLayer "Test1_2AndTest2_1" = {
     AShift = 0;
     // 
     phase = 5; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 KernelConn "origConn_1" = {

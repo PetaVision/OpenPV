@@ -91,7 +91,6 @@ MomentumConn "plasticConn" = {
 
     initializeFromCheckpointFlag        = false;
 
-    //triggerFlag                        = true;
     //triggerLayerName                   = "pre";
     //triggerOffset                      = 0;
     initialWeightUpdateTime              = 2;

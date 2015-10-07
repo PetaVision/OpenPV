@@ -73,7 +73,7 @@ ANNLayer "Output" = {
     phase                               = 1;
     mirrorBCflag                        = true;
     InitVType                           = "ZeroV";
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
     writeStep                           = 1;
     initialWriteTime                    = 0;
     sparseLayer                         = true;
@@ -102,7 +102,7 @@ HyPerConn "InputToOutput" = {
     // initWeightsFile                     was set to (NULL);
     weightInit                          = 0;
     connectOnlySameFeatures             = false;
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
     weightUpdatePeriod                  = 1;
     initialWeightUpdateTime             = 0;
     updateGSynFromPostPerspective       = false;

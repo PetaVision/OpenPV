@@ -39,7 +39,7 @@ ConstantLayer "input" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ConstantLayer "input2" = {
@@ -62,7 +62,7 @@ ConstantLayer "input2" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecv" = {
@@ -82,7 +82,7 @@ ANNLayer "outputRecv" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecvGpu" = {
@@ -102,7 +102,7 @@ ANNLayer "outputRecvGpu" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputTest" = {
@@ -122,7 +122,7 @@ ANNLayer "outputTest" = {
     AShift = 0;
     // 
     phase = 3; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 //KernelConn "tempConn" = {

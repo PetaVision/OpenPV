@@ -29,7 +29,7 @@ TestImage "test_constant_input image" = {
     nf = 1;
     phase = 0;
     mirrorBCflag = true;
-    triggerFlag = false;
+    triggerLayerName = NULL;
     writeStep = -1;
     sparseLayer = false;
     
@@ -43,7 +43,7 @@ Retina "test_constant_input retina" = {
     phase = 0;
     mirrorBCflag = false;
     valueBC = 0.0;
-    triggerFlag = false;
+    triggerLayerName = NULL;
     writeStep = -1;
     sparseLayer = false;
     

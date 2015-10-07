@@ -43,7 +43,7 @@ InputLayer "input" = {
     clearGSynInterval = 0.0;
     // 
     phase = 0; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 MoviePvp "errInput" = {
@@ -97,7 +97,7 @@ ANNLayer "error" = {
     clearGSynInterval = 0.0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 TestLayer "recon" = {
@@ -120,7 +120,7 @@ TestLayer "recon" = {
     clearGSynInterval = 0.0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 IdentConn "errInputToError" = {
@@ -142,7 +142,7 @@ ImprintConn "imprintConnection" = {
     
     weightInitType = "UniformWeight";
     connectOnlySameFeatures = true;
-    triggerFlag = false;
+    triggerLayerName = NULL;
     weightInit = .5; //Shouldn't matter what we initialize it to
         
     normalizeMethod                     = "none";

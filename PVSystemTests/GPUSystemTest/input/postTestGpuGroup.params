@@ -39,7 +39,7 @@ ConstantLayer "input1" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecv1" = {
@@ -59,7 +59,7 @@ ANNLayer "outputRecv1" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecvGpu1" = {
@@ -79,7 +79,7 @@ ANNLayer "outputRecvGpu1" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputTest1" = {
@@ -99,7 +99,7 @@ ANNLayer "outputTest1" = {
     AShift = 0;
     // 
     phase = 3; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ConstantLayer "input2" = {
@@ -122,7 +122,7 @@ ConstantLayer "input2" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecv2" = {
@@ -142,7 +142,7 @@ ANNLayer "outputRecv2" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecvGpu2" = {
@@ -162,7 +162,7 @@ ANNLayer "outputRecvGpu2" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputTest2" = {
@@ -182,7 +182,7 @@ ANNLayer "outputTest2" = {
     AShift = 0;
     // 
     phase = 3; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 KernelConn "origConn1" = {

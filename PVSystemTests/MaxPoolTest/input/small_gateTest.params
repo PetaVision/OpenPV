@@ -67,7 +67,7 @@ ANNLayer "maxPoolPre" = {
     VWidth = 0.0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "maxPoolPost" = {
@@ -89,7 +89,7 @@ ANNLayer "maxPoolPost" = {
     VWidth = 0.0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 
@@ -112,7 +112,7 @@ PoolingIndexLayer "maxPoolIndexPre" = {
     VWidth = 0.0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 PoolingIndexLayer "maxPoolIndexPost" = {
@@ -134,7 +134,7 @@ PoolingIndexLayer "maxPoolIndexPost" = {
     VWidth = 0.0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "GatedMaxPoolPre" = {
@@ -156,7 +156,7 @@ ANNLayer "GatedMaxPoolPre" = {
     VWidth = 0.0;
     // 
     phase = 3; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "GatedMaxPoolPost" = {
@@ -178,7 +178,7 @@ ANNLayer "GatedMaxPoolPost" = {
     VWidth = 0.0;
     // 
     phase = 3; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 GatePoolTestLayer "GatePoolTestPre" = {
@@ -200,7 +200,7 @@ GatePoolTestLayer "GatePoolTestPre" = {
     VWidth = 0.0;
     // 
     phase = 4; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 GatePoolTestLayer "GatePoolTestPost" = {
@@ -222,7 +222,7 @@ GatePoolTestLayer "GatePoolTestPost" = {
     VWidth = 0.0;
     // 
     phase = 4; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 PoolingConn "input2maxPoolPre" = {

@@ -76,7 +76,7 @@ ANNLayer "output_noconversion" = {
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 1;
-    triggerFlag = false; // If true, layer updates in response to another layer updating.
+    triggerLayerName = NULL; // If set to another layer, this layer updates in response to the trigger layer updating.
     writeStep = -1;
     mirrorBCflag = 1;
     sparseLayer = false;
@@ -96,7 +96,7 @@ ANNLayer "output_withconversion" = {
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 1;
-    triggerFlag = false; // If true, layer updates in response to another layer updating.
+    triggerLayerName = NULL; // If set to another layer, this layer updates in response to the trigger layer updating.
     writeStep = -1;
     mirrorBCflag = 1;
     sparseLayer = false;
@@ -116,7 +116,7 @@ ANNLayer "comparison" = {
     nyScale = 1;
     nf = 8; // 8 outputs 
     phase = 1;
-    triggerFlag = false; // If true, layer updates in response to another layer updating.
+    triggerLayerName = NULL; // If set to another layer, this layer updates in response to the trigger layer updating.
     writeStep = -1;
     mirrorBCflag = 1;
     sparseLayer = false;
@@ -239,7 +239,7 @@ IdentConn "output_withconversion_to_comparison" = {
 
 RequireAllZeroActivityProbe "probe" = {
    targetLayer = "comparison";
-   triggerFlag = false;
+   triggerLayerName = NULL;
    nnzThreshold = 0;
 };
 

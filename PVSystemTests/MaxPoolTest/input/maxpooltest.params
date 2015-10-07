@@ -68,7 +68,7 @@ MaxPoolTestLayer "maxPoolPre" = {
     VWidth = 0.0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 MaxPoolTestLayer "maxPoolPost" = {
@@ -90,7 +90,7 @@ MaxPoolTestLayer "maxPoolPost" = {
     VWidth = 0.0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 PoolingConn "input2maxPoolPre" = {

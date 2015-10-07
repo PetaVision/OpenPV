@@ -59,7 +59,7 @@ BackgroundLayer "background" = {
     sparseLayer = 0;
     //
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
     originalLayerName = "input";
 };
 
@@ -108,7 +108,7 @@ ComparisonLayer "compare" = {
     clearGSynInterval = 0.0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 IdentConn "backgroundToCompare" = {

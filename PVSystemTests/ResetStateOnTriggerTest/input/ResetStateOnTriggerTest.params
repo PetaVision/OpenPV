@@ -188,5 +188,5 @@ ResetStateOnTriggerTestProbe "TestProbe" = {
     message                             = "TestProbe";
     textOutputFlag                      = true;
     probeOutputFile                     = "TestProbe.txt";
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
 };

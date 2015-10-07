@@ -45,7 +45,7 @@ InputLayer "input" = {
     clearGSynInterval = 0.0;
     // 
     phase = 0; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 SumPoolTestLayer "sumPoolPre" = {
@@ -68,7 +68,7 @@ SumPoolTestLayer "sumPoolPre" = {
     clearGSynInterval = 0.0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 SumPoolTestLayer "sumPoolPost" = {
@@ -91,7 +91,7 @@ SumPoolTestLayer "sumPoolPost" = {
     clearGSynInterval = 0.0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 GatePoolTestLayer "UnpoolTestPre" = {
@@ -114,7 +114,7 @@ GatePoolTestLayer "UnpoolTestPre" = {
     clearGSynInterval = 0.0;
     // 
     phase = 4; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 GatePoolTestLayer "UnpoolTestPost" = {
@@ -137,7 +137,7 @@ GatePoolTestLayer "UnpoolTestPost" = {
     clearGSynInterval = 0.0;
     // 
     phase = 4; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 

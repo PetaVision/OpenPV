@@ -60,7 +60,7 @@ ANNLayer "output" = {
     // nyScale set in parameter sweep
     nf = 1;
     phase = 1;
-    triggerFlag = false;
+    triggerLayerName = NULL;
     writeStep = -1;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -104,7 +104,7 @@ ANNLayer "compare" = {
     // nyScale set in parameter sweep
     nf = 1;
     phase = 2;
-    triggerFlag = false;
+    triggerLayerName = NULL;
     writeStep = -1;
     initialWriteTime = 0.0;
     mirrorBCflag = 1;
@@ -167,7 +167,7 @@ IdentConn "correct_to_compare" = {
 
 RequireAllZeroActivityProbe "check_output" = {
     targetName = "compare";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0.0;
 };
 

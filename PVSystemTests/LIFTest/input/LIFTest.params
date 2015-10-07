@@ -72,7 +72,7 @@ ANNLayer "ScaledInput" = {
     writeStep                       = -1;
     sparseLayer                     = false;
     phase                           = 0;
-    triggerFlag                     = false;
+    triggerLayerName                = NULL;
 
     InitVType                       = "ZeroV";
 
@@ -94,7 +94,7 @@ Retina "Retina" = {
     sparseLayer                     = true;
     writeSparseValues               = false;
     phase                           = 0;
-    triggerFlag                     = false;
+    triggerLayerName                = NULL;
     spikingFlag                     = true;
     foregroundRate                  = 200.0;
     backgroundRate                  = 0.0;
@@ -119,7 +119,7 @@ ANNLayer "RetinaSpikeCounter" = {
     writeStep                       = -1.0;
     sparseLayer                     = false;
     phase                           = 0;
-    triggerFlag                     = false;
+    triggerLayerName                = NULL;
 
     AMax                            = infinity;
     AShift                          = 0.0;
@@ -139,7 +139,7 @@ LIFGap "LIFTest" = {
     sparseLayer                     = true;
     writeSparseValues               = false;
     phase                           = 0;
-    triggerFlag                     = false;
+    triggerLayerName                = NULL;
     
     InitVType                       = "ConstantV";
     valueV                          = -70.0;
@@ -178,7 +178,7 @@ ANNLayer "LIFTestSpikeCounter" = {
 
     writeStep                       = -1.0;
     phase                           = 0;
-    triggerFlag                     = false;
+    triggerLayerName                = NULL;
 
     AMax                            = infinity;
     AShift                          = 0;
@@ -195,7 +195,7 @@ GapLayer "GapTest" = {
     nf                              = 1;
     mirrorBCflag                    = true;
     phase                           = 0;
-    triggerFlag                     = false;
+    triggerLayerName                = NULL;
 
     writeStep                       = -1;
     sparseLayer                     = false;
@@ -213,7 +213,7 @@ LIFGap "LIFGapTest" = {
     sparseLayer                     = true;
     writeSparseValues               = false;
     phase                           = 0;
-    triggerFlag                     = false;
+    triggerLayerName                = NULL;
     
     InitVType                       = "ConstantV";
     valueV                          = -70.0;
@@ -252,7 +252,7 @@ ANNLayer "LIFGapTestSpikeCounter" = {
     writeStep                       = -1;
     sparseLayer                     = false;
     phase                           = 0;
-    triggerFlag                     = false;
+    triggerLayerName                = NULL;
 
     AMax                            = infinity;
     AShift                          = 0;
@@ -386,7 +386,7 @@ LIFTestProbe "LIFGapTestSpikeCountProbe" = {
     targetLayer                     = "LIFGapTestSpikeCounter";
     probeOutputFile                 = "SpikeRates.txt";
     message                         = "Spike Rates File               ";
-    triggerFlag                     = false;
+    triggerLayerName                = NULL;
     
     buffer                          = "Activity";
     nnzThreshold                    = 0.0;

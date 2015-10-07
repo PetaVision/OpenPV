@@ -75,7 +75,7 @@ ANNLayer "Output" = {
     writeStep = 100;
     mirrorBCflag = 0;
     sparseLayer = 0;
-    triggerFlag = false;
+    triggerLayerName = NULL;
 
     InitVType = "ZeroV";
 
@@ -134,7 +134,7 @@ DelayTestProbe "Output Stats File" = {
     targetLayer = "Output";
     probeOutputFile = "Output_Stats.txt";
     message = "Output Stats File             ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     buffer = "Activity";
     nnzThreshold = 0.0;
 };

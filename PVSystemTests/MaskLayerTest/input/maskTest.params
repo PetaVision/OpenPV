@@ -85,7 +85,7 @@ MaskLayer "maskOut" = {
     AMin = -infinity; 
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
     maskMethod = "layer";
     maskLayerName = "mask";
 };
@@ -108,7 +108,7 @@ MaskTestLayer "test" = {
     // 
     phase = 2; 
     maskMethod = "layer";
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 IdentConn "inputToMaskOut" = {

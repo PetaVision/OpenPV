@@ -79,7 +79,7 @@ ANNLayer "Output" = {
 
     InitVType = "ZeroV";
     
-    triggerFlag = false;
+    triggerLayerName = NULL;
 
     VThresh = -infinity;   
     AMax = infinity;
@@ -124,7 +124,7 @@ StochasticReleaseTestProbe "OutputProbe" = {
     targetLayer = "Output";
     message = "output stats  ";
     probeOutputFile = "output_probe.txt";    
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0.0;
     
 };

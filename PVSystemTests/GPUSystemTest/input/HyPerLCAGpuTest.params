@@ -41,7 +41,7 @@ ConstantLayer "input" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ConstantLayer "input2" = {
@@ -64,7 +64,7 @@ ConstantLayer "input2" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 HyPerLCALayer "outputRecv" = {
@@ -87,7 +87,7 @@ HyPerLCALayer "outputRecv" = {
     AShift = 0.01;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
     updateGpu = false;
 };
 
@@ -111,7 +111,7 @@ HyPerLCALayer "outputRecvGpu" = {
     AShift = 0.01;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
     updateGpu = true;
 };
 
@@ -132,7 +132,7 @@ ANNLayer "outputTest" = {
     AShift = 0;
     // 
     phase = 3; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 //KernelConn "tempConn" = {

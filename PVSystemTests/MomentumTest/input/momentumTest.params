@@ -66,7 +66,7 @@ ConstantLayer "post" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 MomentumConn "preToPost" = {
@@ -101,7 +101,6 @@ MomentumConn "preToPost" = {
     //writeCompressedWeights = 0.0;
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    triggerFlag = true;
     triggerLayerName = "pre";
     pvpatchAccumulateType = "convolve";
 

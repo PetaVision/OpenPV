@@ -64,7 +64,7 @@ ConstantLayer "Retina" = {
 //    spikingFlag = false;
 //    sparseLayer = false;
 //    // GPUAccelerate = false;
-//    triggerFlag = false;
+//    triggerLayerName = NULL;
 //
 //    // refractoryPeriod
 //    // absRefractoryPeriod
@@ -91,7 +91,7 @@ ANNLayer "L0" = {
     mirrorBCflag = true;
     sparseLayer = false;
     // GPUAccelerate = false;
-    triggerFlag = false;
+    triggerLayerName = NULL;
 
     InitVType = "ZeroV";
 
@@ -115,7 +115,7 @@ ANNLayer "Lx1" = {
     mirrorBCflag = true;
     sparseLayer = false;
     // GPUAccelerate = false;
-    triggerFlag = false;
+    triggerLayerName = NULL;
 
     InitVType = "ZeroV";
 
@@ -139,7 +139,7 @@ ANNLayer "Lx2" = {
     mirrorBCflag = true;
     sparseLayer = false;
     // GPUAccelerate = false;
-    triggerFlag = false;
+    triggerLayerName = NULL;
 
     InitVType = "ZeroV";
 
@@ -164,7 +164,7 @@ ANNLayer "Lx4" = {
     valueBC = 0.0;
     sparseLayer = false;
     // GPUAccelerate = false;
-    triggerFlag = false;
+    triggerLayerName = NULL;
 
     InitVType = "ZeroV";
 
@@ -190,7 +190,7 @@ ANNLayer "Lx1_2" = {
     valueBC = 0.0;
     sparseLayer = false;
     // GPUAccelerate = false;
-    triggerFlag = false;
+    triggerLayerName = NULL;
 
     InitVType = "ZeroV";
 
@@ -216,7 +216,7 @@ ANNLayer "Lx1_4" = {
     valueBC = 0.0;
     sparseLayer = false;
     // GPUAccelerate = false;
-    triggerFlag = false;
+    triggerLayerName = NULL;
 
     InitVType = "ZeroV";
 
@@ -555,7 +555,7 @@ ArborTestForOnesProbe "Retina Stats File" = {
     targetLayer = "Retina";
     probeOutputFile = "Retina_Stats.txt";
     message = "Retina Stats File              ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     buffer = "Activity";
     nnzThreshold = 0;
 };
@@ -563,7 +563,7 @@ ArborTestForOnesProbe "L0 Stats File" = {
     targetLayer = "L0";
     probeOutputFile = "L0_Stats.txt";
     message = "L0 Stats File                 ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     buffer = "Activity";
     nnzThreshold = 0;
 };
@@ -571,79 +571,79 @@ ArborTestProbe "Lx1 Stats File" = {
     targetLayer = "Lx1";
     probeOutputFile = "Lx1_Stats.txt";
     message = "Lx1 Stats File                ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0;
 };
 ArborTestProbe "Lx2 Stats File" = {
     targetLayer = "Lx2";
     probeOutputFile = "Lx2_Stats.txt";
     message = "Lx2 Stats File                ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0;
 };
 ArborTestProbe "Lx4 Stats File" = {
     targetLayer = "Lx4";
     probeOutputFile = "Lx4_Stats.txt";
     message = "Lx4 Stats File                ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0;
 };
 ArborTestProbe "Lx1_2 Stats File" = {
     targetLayer = "Lx1_2";
     probeOutputFile = "Lx1_2_Stats.txt";
     message = "Lx1_2 Stats File              ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0;
 };
 ArborTestProbe "Lx1_4 Stats File" = {
     targetLayer = "Lx1_4";
     probeOutputFile = "Lx1_4_Stats.txt";
     message = "Lx1_4 Stats File              ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0;
 };
 
 ArborTestForOnesProbe "Retina Stats Screen" = {
     targetLayer = "Retina";
     message = "Retina Stats File             ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     buffer = "Activity";
     nnzThreshold = 0;
 };
 ArborTestForOnesProbe "L0 Stats Screen" = {
     targetLayer = "L0";
     message = "L0 Stats Screen               ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     buffer = "Activity";
     nnzThreshold = 0;
 };
 ArborTestProbe "Lx1 Stats Screen" = {
     targetLayer = "Lx1";
     message = "Lx1 Stats Screen              ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0;
 };
 ArborTestProbe "Lx2 Stats Screen" = {
     targetLayer = "Lx2";
     message = "Lx1 Stats Screen              ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0;
 };
 ArborTestProbe "Lx4 Stats Screen" = {
     targetLayer = "Lx4";
     message = "Lx4 Stats Screen              ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0;
 };
 ArborTestProbe "Lx1_2 Stats Screen" = {
     targetLayer = "Lx1_2";
     message = "Lx1_2 Stats Screen            ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0;
 };
 ArborTestProbe "Lx1_4 Stats Screen" = {
     targetLayer = "Lx1_4";
     message = "Lx1_4 Stats Screen            ";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 0;
 };

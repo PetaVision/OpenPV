@@ -44,7 +44,7 @@ ANNLayer "Layer A" = {
     
     InitVType                           = "ZeroV";
     
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
     sparseLayer                         = false;
 
     VThresh                             = -infinity;
@@ -69,7 +69,7 @@ ANNLayer "Layer B One to One" = {
     
     InitVType                           = "ZeroV";
 
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
     sparseLayer                         = false;
 
     VThresh                             = -infinity;
@@ -94,7 +94,7 @@ ANNLayer "Layer B Many to One" = {
     
     InitVType                           = "ZeroV";
 
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
     sparseLayer                         = false;
 
     VThresh                             = -infinity;
@@ -119,7 +119,7 @@ ANNLayer "Layer B One to Many" = {
     
     InitVType                           = "ZeroV";
 
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
     sparseLayer                         = false;
 
     VThresh                             = -infinity;

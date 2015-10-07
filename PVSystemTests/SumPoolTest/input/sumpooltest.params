@@ -45,7 +45,7 @@ InputLayer "input" = {
     clearGSynInterval = 0.0;
     // 
     phase = 0; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 SumPoolTestLayer "sumPoolPre" = {
@@ -68,7 +68,7 @@ SumPoolTestLayer "sumPoolPre" = {
     clearGSynInterval = 0.0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 SumPoolTestLayer "sumPoolPost" = {
@@ -91,7 +91,7 @@ SumPoolTestLayer "sumPoolPost" = {
     clearGSynInterval = 0.0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 PoolingConn "input2sumPoolPre" = {

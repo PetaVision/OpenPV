@@ -80,7 +80,7 @@ ANNLayer "unrescaledlayer" = {
    
    InitVType = "ZeroV";
    
-   triggerFlag = false;
+   triggerLayerName = NULL;
    
    VThresh = -infinity;
    AMax = infinity;
@@ -99,7 +99,7 @@ RescaleLayer "rescalemaxmin" = {
    sparseLayer = false;
    mirrorBCflag = false;
    valueBC = 0.0;
-   triggerFlag = false;
+   triggerLayerName = NULL;
       
    originalLayerName = "unrescaledlayer";
    rescaleMethod = "maxmin";
@@ -117,7 +117,7 @@ RescaleLayer "rescalemeanstd" = {
    sparseLayer = false;
    mirrorBCflag = false;
    valueBC = 0.0;
-   triggerFlag = false;
+   triggerLayerName = NULL;
       
    originalLayerName = "unrescaledlayer";
    rescaleMethod = "meanstd";
@@ -135,7 +135,7 @@ RescaleLayer "rescalel2" = {
    sparseLayer = false;
    mirrorBCflag = false;
    valueBC = 0.0;
-   triggerFlag = false;
+   triggerLayerName = NULL;
       
    originalLayerName = "unrescaledlayer";
    rescaleMethod = "l2";
@@ -152,7 +152,7 @@ RescaleLayer "rescalepointmeanstd" = {
    sparseLayer = false;
    mirrorBCflag = false;
    valueBC = 0.0;
-   triggerFlag = false;
+   triggerLayerName = NULL;
       
    originalLayerName = "unrescaledlayer";
    rescaleMethod = "pointmeanstd";
@@ -170,7 +170,7 @@ RescaleLayer "rescalezerotonegative" = {
    sparseLayer = false;
    mirrorBCflag = false;
    valueBC = 0.0;
-   triggerFlag = false;
+   triggerLayerName = NULL;
       
    originalLayerName = "unrescaledlayer";
    rescaleMethod = "zerotonegative";
@@ -195,7 +195,7 @@ IdentConn "input_to_unrescaledlayer" = {
 StatsProbe "unrescaledlayer_probe" = {
    targetLayer                         = "unrescaledlayer";
    probeOutputFile                     = "unrescaledlayer_probe.txt";
-   triggerFlag                         = false;
+   triggerLayerName                    = NULL;
    buffer                              = "Activity";
    nnzThreshold                        = 0;
 };
@@ -203,34 +203,34 @@ StatsProbe "unrescaledlayer_probe" = {
 RescaleLayerTestProbe "rescalemaxmin_probe" = {
    targetLayer                         = "rescalemaxmin";
    probeOutputFile                     = "rescalemaxmin_probe.txt";
-   triggerFlag                         = false;
+   triggerLayerName                    = NULL;
    nnzThreshold                        = 0;
 }; 
 
 RescaleLayerTestProbe "rescalemeanstd_probe" = {
    targetLayer                         = "rescalemeanstd";
    probeOutputFile                     = "rescalemeanstd_probe.txt";
-   triggerFlag                         = false;
+   triggerLayerName                    = NULL;
    nnzThreshold                        = 0;
 };
 
 RescaleLayerTestProbe "rescalel2_probe" = {
    targetLayer                         = "rescalel2";
    probeOutputFile                     = "rescalel2_probe.txt";
-   triggerFlag                         = false;
+   triggerLayerName                    = NULL;
    nnzThreshold                        = 0;
 };
 
 RescaleLayerTestProbe "rescalepointmeanstd_probe" = {
    targetLayer                         = "rescalepointmeanstd";
    probeOutputFile                     = "rescalepointmeanstd_probe.txt";
-   triggerFlag                         = false;
+   triggerLayerName                    = NULL;
    nnzThreshold                        = 0;
 };
 
 RescaleLayerTestProbe "rescalezerotonegative_probe" = {
    targetLayer                         = "rescalezerotonegative";
    probeOutputFile                     = "rescalezerotonegative_probe.txt";
-   triggerFlag                         = false;
+   triggerLayerName                    = NULL;
    nnzThreshold                        = 0;
 };

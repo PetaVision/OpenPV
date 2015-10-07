@@ -62,7 +62,7 @@ BackgroundLayer "background" = {
     repFeatureNum = 4; //Replicating each feature 4 times
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
     originalLayerName = "input";
 };
 
@@ -111,7 +111,7 @@ ComparisonLayer "compare" = {
     clearGSynInterval = 0.0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 IdentConn "backgroundToCompare" = {

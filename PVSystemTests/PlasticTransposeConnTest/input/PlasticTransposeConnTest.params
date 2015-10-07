@@ -95,7 +95,7 @@ ANNLayer "comparison" = {
     mirrorBCflag = false;
     valueBC = 0.0;
     InitVType = "ZeroV";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     writeStep = 1.0;
     initialWriteTime = 0.0;
     sparseLayer = false;
@@ -138,7 +138,7 @@ HyPerConn "original map" = {
 
     writeCompressedCheckpoints = false;
     plasticityFlag = true;
-    triggerFlag = false;
+    triggerLayerName = NULL;
     weightUpdatePeriod = 1.0;
     initialWeightUpdateTime = 0.0;
     writeCompressedWeights = false;
@@ -200,7 +200,7 @@ CloneConn "clone of original" = {
 
 TestAllZerosProbe "probe" = {
     targetLayer = "comparison";
-    triggerFlag = false;
+    triggerLayerName = NULL;
     nnzThreshold = 5.0e-4;
 };
 

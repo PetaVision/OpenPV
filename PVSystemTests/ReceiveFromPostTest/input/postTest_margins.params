@@ -39,7 +39,7 @@ ConstantLayer "originput" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "inputPre" = {
@@ -62,7 +62,7 @@ ANNLayer "inputPre" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "inputPost" = {
@@ -85,7 +85,7 @@ ANNLayer "inputPost" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "inputKnown" = {
@@ -108,7 +108,7 @@ ANNLayer "inputKnown" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecvPre" = {
@@ -128,7 +128,7 @@ ANNLayer "outputRecvPre" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecvPost" = {
@@ -148,7 +148,7 @@ ANNLayer "outputRecvPost" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecvKnown" = {
@@ -168,7 +168,7 @@ ANNLayer "outputRecvKnown" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputTestPrePost" = {
@@ -188,7 +188,7 @@ ANNLayer "outputTestPrePost" = {
     AShift = 0;
     // 
     phase = 3; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputTestPreKnown" = {
@@ -208,7 +208,7 @@ ANNLayer "outputTestPreKnown" = {
     AShift = 0;
     // 
     phase = 3; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputTestPostKnown" = {
@@ -228,7 +228,7 @@ ANNLayer "outputTestPostKnown" = {
     AShift = 0;
     // 
     phase = 3; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 IdentConn "OrigInputToInputPre" = {

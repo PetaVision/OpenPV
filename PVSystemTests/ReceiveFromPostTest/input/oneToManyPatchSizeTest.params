@@ -41,7 +41,7 @@ ConstantLayer "input" = {
     AShift = 0;
     // 
     phase = 1; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 //Image "input" = {
@@ -83,7 +83,7 @@ ANNLayer "outputRecvPre" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputRecvPost" = {
@@ -103,7 +103,7 @@ ANNLayer "outputRecvPost" = {
     AShift = 0;
     // 
     phase = 2; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 ANNLayer "outputTest" = {
@@ -123,7 +123,7 @@ ANNLayer "outputTest" = {
     AShift = 0;
     // 
     phase = 3; 
-    triggerFlag = false;
+    triggerLayerName = NULL;
 };
 
 HyPerConn "origConn" = {

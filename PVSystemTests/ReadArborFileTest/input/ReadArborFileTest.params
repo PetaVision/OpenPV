@@ -70,7 +70,7 @@ ANNLayer "Output1" = {
 
     InitVType = "ZeroV";
 
-    triggerFlag = false;
+    triggerLayerName = NULL;
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
@@ -91,7 +91,7 @@ ANNLayer "Output2" = {
 
     InitVType = "ZeroV";
 
-    triggerFlag = false;
+    triggerLayerName = NULL;
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
@@ -112,7 +112,7 @@ ANNLayer "Comparison" = {
 
     InitVType = "ZeroV";
 
-    triggerFlag = false;
+    triggerLayerName = NULL;
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
