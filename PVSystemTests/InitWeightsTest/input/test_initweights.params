@@ -337,8 +337,8 @@ HyPerConn "Retina to L1" = {
    writeCompressedCheckpoints = false;
 
    weightInitType = "CoCircWeight";
-   noPre=1;
-   noPost=8;
+   numOrientationsPre=1;
+   numOrientationsPost=8;
    sigmaCocirc=1.570796326794897;
    sigmaKurve=2;
    sigmaChord=0.5;
@@ -575,8 +575,8 @@ HyPerConn "Retina to L6" = {
    writeCompressedCheckpoints = false;
 
    weightInitType = "CoCircWeight";
-   noPre=1;
-   noPost=8;
+   numOrientationsPre=1;
+   numOrientationsPost=8;
    sigmaCocirc=1.570796326794897;
    sigmaKurve=2;
    sigmaChord=0.5;
@@ -800,8 +800,8 @@ HyPerConnDebugInitWeights "Retina to L1 check" = {
    writeCompressedCheckpoints = false;
 
    weightInitType = "CoCircWeight";
-   noPre=1;
-   noPost=8;
+   numOrientationsPre=1;
+   numOrientationsPost=8;
    sigmaCocirc=1.570796326794897;
    sigmaKurve=2;
    sigmaChord=0.5;
@@ -1030,8 +1030,8 @@ KernelConnDebugInitWeights "Retina to L6 check" = {
    writeCompressedCheckpoints = false;
 
    weightInitType = "CoCircWeight";
-   noPre=1;
-   noPost=8;
+   numOrientationsPre=1;
+   numOrientationsPost=8;
    sigmaCocirc=1.570796326794897;
    sigmaKurve=2;
    sigmaChord=0.5;
