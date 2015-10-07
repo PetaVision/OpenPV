@@ -854,14 +854,6 @@ void HyPerConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    if (plasticityFlag) {
       parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
       if (ioFlag==PARAMS_IO_READ) {
-         if (triggerLayerName && !strcmp(name, triggerLayerName)) {
-            if (parent->columnId()==0) {
-               fprintf(stderr, "%s \"%s\" error: triggerLayerName cannot be the same as the name of the layer itself.\n",
-                     this->getKeyword(), name);
-            }
-            MPI_Barrier(parent->icCommunicator()->communicator());
-            exit(EXIT_FAILURE);
-         }
          triggerFlag = (triggerLayerName!=NULL && triggerLayerName[0]!='\0');
       }
    }

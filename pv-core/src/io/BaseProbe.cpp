@@ -103,8 +103,8 @@ int BaseProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_message(ioFlag);
    ioParam_textOutputFlag(ioFlag);
    ioParam_probeOutputFile(ioFlag);
-   ioParam_triggerFlag(ioFlag);
    ioParam_triggerLayerName(ioFlag);
+   ioParam_triggerFlag(ioFlag);
    ioParam_triggerOffset(ioFlag);
    ioParam_energyProbe(ioFlag);
    ioParam_coefficient(ioFlag);
@@ -144,14 +144,43 @@ void BaseProbe::ioParam_probeOutputFile(enum ParamsIOFlag ioFlag) {
    }
 }
 
-void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "triggerFlag", &triggerFlag, triggerFlag);
+void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "triggerLayerName", &triggerLayerName, NULL, false/*warnIfAbsent*/);
+   if (ioFlag==PARAMS_IO_READ) {
+      triggerFlag = (triggerLayerName!=NULL && triggerLayerName[0]!='\0');
+   }
 }
 
-void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerFlag"));
-   if (triggerFlag) {
-      parent->ioParamStringRequired(ioFlag, name, "triggerLayerName", &triggerLayerName);
+// triggerFlag was deprecated Oct 7, 2015.
+// Setting triggerLayerName to a nonempty string has the effect of triggerFlag=true, and
+// setting triggerLayerName to NULL or "" has the effect of triggerFlag=false.
+// While triggerFlag is being deprecated, it is an error for triggerFlag to be false
+// and triggerLayerName to be a nonempty string.
+void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "Layer \"%s\" Warning: triggerFlag has been deprecated.\n", name);
+      }
+      bool flagFromParams = false;
+      parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
+      if (flagFromParams != triggerFlag) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "Layer \"%s\" Error: triggerLayerName=", name);
+            if (triggerLayerName) { fprintf(stderr, "\"%s\"", triggerLayerName); }
+            else { fprintf(stderr, "NULL"); }
+            fprintf(stderr, " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
+                  triggerFlag ? "true" : "false", flagFromParams ? "true" : "false");
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+      else {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "   If triggerLayerName is a nonempty string, triggering will be on;\n");
+            fprintf(stderr, "   if triggerLayerName is empty or null, triggering will be off.\n");
+         }
+      }
    }
 }
 
