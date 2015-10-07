@@ -226,10 +226,11 @@ ANNLayer "Comparison7x7" = {
     AShift=0.0;
 };
 
-KernelConn "InputToOutput" = {
+HyPerConn "InputToOutput" = {
     preLayerName = "Input";
     postLayerName = "Output";
     channelCode = 0;
+    sharedWeights = true;
     // nxp = 7;
     // nyp = 7;
     nfp = 1;
@@ -253,10 +254,11 @@ KernelConn "InputToOutput" = {
     convertRateToSpikeCount = false;
 };
 
-KernelConn "InputToOutput1x1" = {
+HyPerConn "InputToOutput1x1" = {
     preLayerName = "Input";
     postLayerName = "Output1x1";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 1;
     nyp = 1;
     nfp = 1;
@@ -280,10 +282,11 @@ KernelConn "InputToOutput1x1" = {
     convertRateToSpikeCount = false;
 };
 
-KernelConn "InputToOutput3x3" = {
+HyPerConn "InputToOutput3x3" = {
     preLayerName = "Input";
     postLayerName = "Output3x3";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 3;
     nyp = 3;
     nfp = 1;
@@ -307,10 +310,11 @@ KernelConn "InputToOutput3x3" = {
     convertRateToSpikeCount = false;
 };
 
-KernelConn "InputToOutput5x5" = {
+HyPerConn "InputToOutput5x5" = {
     preLayerName = "Input";
     postLayerName = "Output5x5";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 5;
     nyp = 5;
     nfp = 1;
@@ -334,10 +338,11 @@ KernelConn "InputToOutput5x5" = {
     convertRateToSpikeCount = false;
 };
 
-KernelConn "InputToOutput7x7" = {
+HyPerConn "InputToOutput7x7" = {
     preLayerName = "Input";
     postLayerName = "Output7x7";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 7;
     nyp = 7;
     nfp = 1;

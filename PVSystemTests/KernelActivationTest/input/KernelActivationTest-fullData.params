@@ -270,8 +270,9 @@ IdentConn "16x16ImagesToPre16x16Singleband" = {
     writeStep = -1;
 };
 
-KernelConn "16x16ImagesToPre16x16Multiband" = {
+HyPerConn "16x16ImagesToPre16x16Multiband" = {
     channelCode = 0;
+    sharedWeights = true;
     nxp = 1;
     nyp = 1;
     nfp = 3;
@@ -304,8 +305,9 @@ IdentConn "8x8ImagesToPost8x8Singleband" = {
     writeStep = -1;
 };
 
-KernelConn "8x8ImagesToPost8x8Multiband" = {
+HyPerConn "8x8ImagesToPost8x8Multiband" = {
     channelCode = 0;
+    sharedWeights = true;
     nxp = 1;
     nyp = 1;
     nfp = 4;
@@ -337,8 +339,9 @@ IdentConn "16x16ImagesToPost16x16Singleband" = {
     writeStep = -1;
 };
 
-KernelConn "16x16ImagesToPost16x16Multiband" = {
+HyPerConn "16x16ImagesToPost16x16Multiband" = {
     channelCode = 0;
+    sharedWeights = true;
     nxp = 1;
     nyp = 1;
     nfp = 4;
@@ -370,8 +373,9 @@ IdentConn "32x32ImagesToPost32x32Singleband" = {
     writeStep = -1;
 };
 
-KernelConn "32x32ImagesToPost32x32Multiband" = {
+HyPerConn "32x32ImagesToPost32x32Multiband" = {
     channelCode = 0;
+    sharedWeights = true;
     nxp = 1;
     nyp = 1;
     nfp = 4;
@@ -397,8 +401,9 @@ KernelConn "32x32ImagesToPost32x32Multiband" = {
     preActivityIsNotRate = false;
 };
 
-KernelConn "Pre16x16SinglebandToPost16x16Singleband" = {
+HyPerConn "Pre16x16SinglebandToPost16x16Singleband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 5;
     nyp = 5;
     nfp = 1;
@@ -427,8 +432,9 @@ KernelConn "Pre16x16SinglebandToPost16x16Singleband" = {
     weightUpdatePeriod = 1.0;
 };
 
-KernelConn "Pre16x16SinglebandToPost16x16Multiband" = {
+HyPerConn "Pre16x16SinglebandToPost16x16Multiband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 5;
     nyp = 5;
     nfp = 4;
@@ -457,8 +463,9 @@ KernelConn "Pre16x16SinglebandToPost16x16Multiband" = {
     preActivityIsNotRate = false;
 };
 
-KernelConn "Pre16x16MultibandToPost16x16Singleband" = {
+HyPerConn "Pre16x16MultibandToPost16x16Singleband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 5;
     nyp = 5;
     nfp = 1;
@@ -487,8 +494,9 @@ KernelConn "Pre16x16MultibandToPost16x16Singleband" = {
     preActivityIsNotRate = false;
 };
 
-KernelConn "Pre16x16MultibandToPost16x16Multiband" = {
+HyPerConn "Pre16x16MultibandToPost16x16Multiband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 5;
     nyp = 5;
     nfp = 4;
@@ -517,8 +525,9 @@ KernelConn "Pre16x16MultibandToPost16x16Multiband" = {
     preActivityIsNotRate = false;
 };
 
-KernelConn "Pre16x16SinglebandToPost8x8Singleband" = {
+HyPerConn "Pre16x16SinglebandToPost8x8Singleband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 5;
     nyp = 5;
     nfp = 1;
@@ -544,8 +553,9 @@ KernelConn "Pre16x16SinglebandToPost8x8Singleband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "Pre16x16SinglebandToPost8x8Multiband" = {
+HyPerConn "Pre16x16SinglebandToPost8x8Multiband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 5;
     nyp = 5;
     nfp = 4;
@@ -573,8 +583,9 @@ KernelConn "Pre16x16SinglebandToPost8x8Multiband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "Pre16x16MultibandToPost8x8Singleband" = {
+HyPerConn "Pre16x16MultibandToPost8x8Singleband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 5;
     nyp = 5;
     nfp = 1;
@@ -601,8 +612,9 @@ KernelConn "Pre16x16MultibandToPost8x8Singleband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "Pre16x16MultibandToPost8x8Multiband" = {
+HyPerConn "Pre16x16MultibandToPost8x8Multiband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 5;
     nyp = 5;
     nfp = 4;
@@ -628,8 +640,9 @@ KernelConn "Pre16x16MultibandToPost8x8Multiband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "Pre16x16SinglebandToPost32x32Singleband" = {
+HyPerConn "Pre16x16SinglebandToPost32x32Singleband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 10;
     nyp = 10;
     nfp = 1;
@@ -655,8 +668,9 @@ KernelConn "Pre16x16SinglebandToPost32x32Singleband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "Pre16x16SinglebandToPost32x32Multiband" = {
+HyPerConn "Pre16x16SinglebandToPost32x32Multiband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 10;
     nyp = 10;
     nfp = 4;
@@ -682,8 +696,9 @@ KernelConn "Pre16x16SinglebandToPost32x32Multiband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "Pre16x16MultibandToPost32x32Singleband" = {
+HyPerConn "Pre16x16MultibandToPost32x32Singleband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 10;
     nyp = 10;
     nfp = 1;
@@ -709,8 +724,9 @@ KernelConn "Pre16x16MultibandToPost32x32Singleband" = {
     combine_dW_with_W_flag = false;
 };
 
-KernelConn "Pre16x16MultibandToPost32x32Multiband" = {
+HyPerConn "Pre16x16MultibandToPost32x32Multiband" = {
     channelCode = -1;
+    sharedWeights = true;
     nxp = 10;
     nyp = 10;
     nfp = 4;

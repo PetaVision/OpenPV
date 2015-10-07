@@ -98,10 +98,11 @@ ANNLayer "outputTest" = {
     phase = 3; 
 };
 
-KernelConn "origConn" = {
+HyPerConn "origConn" = {
     preLayerName = "outputRecvPost";
     postLayerName = "input";
     channelCode = 2; //Inhib b, doing nothing to input
+    sharedWeights = true;
     nxp = 5; 
     nyp = 5; 
     nfp = 3;

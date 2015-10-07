@@ -199,10 +199,11 @@ ANNLayer "Lx1_4" = {
 
 //  connections: 
 
-KernelConn "Retina to L0" = {
+HyPerConn "Retina to L0" = {
     preLayerName = "Retina";
     postLayerName = "L0";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 1;
     nyp = 1;
     nfp = 4;
@@ -236,10 +237,11 @@ KernelConn "Retina to L0" = {
     updateGSynFromPostPerspective = false;
 };
 
-KernelConn "L0 to Lx1" = {
+HyPerConn "L0 to Lx1" = {
     preLayerName = "L0";
     postLayerName = "Lx1";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 5;
     nyp = 5;
     nfp = 4;
@@ -274,10 +276,11 @@ KernelConn "L0 to Lx1" = {
     updateGSynFromPostPerspective = false;
 };
 
-KernelConn "L0 to Lx2" = {
+HyPerConn "L0 to Lx2" = {
     preLayerName = "L0";
     postLayerName = "Lx2";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 10;
     nyp = 10;
     nfp = 8;
@@ -318,10 +321,11 @@ KernelConn "L0 to Lx2" = {
     updateGSynFromPostPerspective = false;
 };
 
-KernelConn "L0 to Lx4" = {
+HyPerConn "L0 to Lx4" = {
     preLayerName = "L0";
     postLayerName = "Lx4";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 20;
     nyp = 20;
     nfp = 16;
@@ -362,10 +366,11 @@ KernelConn "L0 to Lx4" = {
     updateGSynFromPostPerspective = false;
 };
 
-KernelConn "L0 to Lx1_2" = {
+HyPerConn "L0 to Lx1_2" = {
     preLayerName = "L0";
     postLayerName = "Lx1_2";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 3;
     nyp = 3;
     nfp = 2;
@@ -406,10 +411,11 @@ KernelConn "L0 to Lx1_2" = {
     updateGSynFromPostPerspective = false;
 };
 
-KernelConn "L0 to Lx1_4" = {
+HyPerConn "L0 to Lx1_4" = {
     preLayerName = "L0";
     postLayerName = "Lx1_4";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 1;
     nyp = 1;
     nfp = 1;

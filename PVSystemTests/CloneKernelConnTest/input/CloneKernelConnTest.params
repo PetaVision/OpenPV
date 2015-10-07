@@ -4,8 +4,8 @@
 // created by peteschultz: Feb 24, 2012
 //
 
-//  A params file for testing CloneKernelConn
-//  A KernelConn and its clone separately act on a sequence of images.
+//  A params file for testing CloneConn with shared weights.
+//  A HyPerConn and its clone separately act on a sequence of images.
 //  One acts on the excitatory channel of an ANNLayer, and the other
 //  on the inhibitory channel.  Since the two conns should be exactly
 //  the same, the resulting layer should be zero

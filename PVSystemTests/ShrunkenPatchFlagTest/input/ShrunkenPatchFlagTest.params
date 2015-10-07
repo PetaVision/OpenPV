@@ -116,10 +116,11 @@ ANNLayer "comparison" = {
     movieLayerName                   = "input";
 };
 
-KernelConn "inputToNoShrunkenFlag" = {
+HyPerConn "inputToNoShrunkenFlag" = {
     preLayerName                     = "input";
     postLayerName                    = "noShrunkenFlag";
     channelCode                      = 0;
+    sharedWeights                    = true;
 
     nxp                              = 5;
     nyp                              = 5;
@@ -156,10 +157,11 @@ KernelConn "inputToNoShrunkenFlag" = {
     preActivityIsNotRate             = false;
 };
 
-KernelConn "inputToShrunkenFlag" = {
+HyPerConn "inputToShrunkenFlag" = {
     preLayerName                     = "input";
     postLayerName                    = "ShrunkenFlag";
     channelCode                      = 0;
+    sharedWeights                    = true;
 
     nxp                              = 5;
     nyp                              = 5;

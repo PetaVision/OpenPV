@@ -183,10 +183,11 @@ ANNLayer "CheckSigmoid" = {
 
 //this is a layer for connection
 
-KernelConn "InputToOutput" = {
+HyPerConn "InputToOutput" = {
     preLayerName = "Input";
     postLayerName = "Output";
     channelCode = 0;
+    sharedWeights = true;
 
 // we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
 // the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
@@ -232,10 +233,11 @@ KernelConn "InputToOutput" = {
     updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
 };
 
-KernelConn "OutputToDuplicateSigmoid" = {
+HyPerConn "OutputToDuplicateSigmoid" = {
     preLayerName = "Output";
     postLayerName = "DuplicateSigmoid";
     channelCode = 0;
+    sharedWeights = true;
 
 // we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
 // the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images

@@ -102,10 +102,11 @@ ANNLayer "outputTest" = {
     triggerLayerName = NULL;
 };
 
-KernelConn "cpuConn" = {
+HyPerConn "cpuConn" = {
     preLayerName = "input";
     postLayerName = "outputRecv";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 5; 
     nyp = 5; 
     numAxonalArbors = 1;
@@ -148,10 +149,11 @@ KernelConn "cpuConn" = {
     keepKernelsSynchronized             = true;
 };
 
-KernelConn "gpuConn" = {
+HyPerConn "gpuConn" = {
     preLayerName = "input";
     postLayerName = "outputRecvGpu";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 5; 
     nyp = 5; 
     numAxonalArbors = 1;

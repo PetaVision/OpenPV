@@ -102,10 +102,11 @@ ANNLayer "outputTest" = {
     triggerLayerName = NULL;
 };
 
-KernelConn "preConn" = {
+HyPerConn "preConn" = {
     preLayerName = "input";
     postLayerName = "outputRecvPre";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 10; 
     nyp = 10; 
     numAxonalArbors = 1;
@@ -148,10 +149,11 @@ KernelConn "preConn" = {
     keepKernelsSynchronized             = true;
 };
 
-//KernelConn "postConn" = {
+//HyPerConn "postConn" = {
 //    preLayerName = "input";
 //    postLayerName = "outputRecvPost";
 //    channelCode = 0;
+//    sharedWeights = true;
 //    nxp = 7; 
 //    nyp = 7; 
 //    numAxonalArbors = 1;

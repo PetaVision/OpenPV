@@ -101,10 +101,11 @@ ANNLayer "outputTest" = {
     triggerLayerName = NULL;
 };
 
-KernelConn "origConn" = {
+HyPerConn "origConn" = {
     preLayerName = "outputRecvGpu";
     postLayerName = "input";
     channelCode = -1; //Inhib b, doing nothing to input
+    sharedWeights = true;
     nxp = 9; 
     nyp = 9; 
     numAxonalArbors = 1;

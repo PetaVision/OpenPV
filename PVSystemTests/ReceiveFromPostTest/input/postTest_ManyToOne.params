@@ -102,10 +102,11 @@ ANNLayer "outputTest" = {
     triggerLayerName = NULL;
 };
 
-KernelConn "origConn" = {
+HyPerConn "origConn" = {
     preLayerName = "outputRecvPost";
     postLayerName = "input";
     channelCode = -1; //Inhib b, doing nothing to input
+    sharedWeights = true;
     nxp = 6; 
     nyp = 6; 
     nfp = 3;

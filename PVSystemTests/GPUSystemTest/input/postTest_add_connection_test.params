@@ -165,10 +165,11 @@ ANNLayer "Test1_2AndTest2_1" = {
     triggerLayerName = NULL;
 };
 
-KernelConn "origConn_1" = {
+HyPerConn "origConn_1" = {
     preLayerName = "outputRecv1_2";
     postLayerName = "input";
     channelCode = -1; //Inhib b, doing nothing to input
+    sharedWeights = true;
     nxp = 18; 
     nyp = 18; 
     numAxonalArbors = 1;
@@ -241,7 +242,7 @@ TransposeConn "TransposeConn1_2" = {
     preDataLocal = false;
 };
 
-KernelConn "origConn_2" = {
+HyPerConn "origConn_2" = {
    #include "origConn_1";
    @preLayerName = "outputRecv2_1";
 };

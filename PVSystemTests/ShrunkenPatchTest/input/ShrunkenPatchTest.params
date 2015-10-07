@@ -173,10 +173,11 @@ ANNLayer "Lx4_with_shrunken_wide" = {
 //  connections: 
 
 
-KernelConn "L0toLx2unshrunken" = {
+HyPerConn "L0toLx2unshrunken" = {
     preLayerName = "L0";
     postLayerName = "Lx2_with_unshrunken";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 10;
     nyp = 10;
     nfp = 8;
@@ -218,10 +219,11 @@ KernelConn "L0toLx2unshrunken" = {
 };
 
 
-KernelConn "L0toLx4unshrunken" = {
+HyPerConn "L0toLx4unshrunken" = {
     preLayerName = "L0";
     postLayerName = "Lx4_with_unshrunken";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 20;
     nyp = 20;
     nfp = 16;
@@ -263,10 +265,11 @@ KernelConn "L0toLx4unshrunken" = {
 };
 
 
-KernelConn "L0toLx2shrunken" = {
+HyPerConn "L0toLx2shrunken" = {
     preLayerName = "L0";
     postLayerName = "Lx2_with_shrunken";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 10;
     nyp = 10;
     nxpShrunken = 8;
@@ -310,10 +313,11 @@ KernelConn "L0toLx2shrunken" = {
 };
 
 
-KernelConn "L0toLx4shrunken" = {
+HyPerConn "L0toLx4shrunken" = {
     preLayerName = "L0";
     postLayerName = "Lx4_with_shrunken";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 20;
     nyp = 20;
     nxpShrunken = 16;
@@ -356,10 +360,11 @@ KernelConn "L0toLx4shrunken" = {
     updateGSynFromPostPerspective = false;
 };
 
-KernelConn "L0toLx4shrunken_tall" = {
+HyPerConn "L0toLx4shrunken_tall" = {
     preLayerName = "L0";
     postLayerName = "Lx4_with_shrunken_tall";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 20;
     nyp = 20;
     nxpShrunken = 8;
@@ -402,10 +407,11 @@ KernelConn "L0toLx4shrunken_tall" = {
     updateGSynFromPostPerspective = false;
 };
 
-KernelConn "L0toLx4shrunken_wide" = {
+HyPerConn "L0toLx4shrunken_wide" = {
     preLayerName = "L0";
     postLayerName = "Lx4_with_shrunken_wide";
     channelCode = 0;
+    sharedWeights = true;
     nxp = 20;
     nyp = 20;
     nxpShrunken = 16;

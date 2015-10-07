@@ -11,7 +11,7 @@
 // One movie, "input" reads dot??.png files, where a single pixel is activated,
 // and the pixel moves over the 64 sites as the movie runs from frame to frame.
 //
-// This movie is passed through a 3x3 KernelConn with uniform weights of 1.
+// This movie is passed through a 3x3 connection with uniform weights of 1.
 // The output is therefore usually a 3x3 patch of active pixels, although the
 // picture is different at the edges.  The movie has mirror BCs on.
 //

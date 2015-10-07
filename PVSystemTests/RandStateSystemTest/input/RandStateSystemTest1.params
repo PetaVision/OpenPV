@@ -168,8 +168,9 @@ LIFGap "LIFLayer" = {
     method                      = "arma";
 };
 
-KernelConn "InputToDownsampled" = {
+HyPerConn "InputToDownsampled" = {
    channelCode                  = 0;
+   sharedWeights                = true;
    nxp                          = 1;
    nyp                          = 1;
    nfp                          = 1;
@@ -199,10 +200,11 @@ KernelConn "InputToDownsampled" = {
 };
 
 
-KernelConn "CenterOn" = {
+HyPerConn "CenterOn" = {
    preLayerName                 = "Downsampled";
    postLayerName                = "RetinaOn";
    channelCode                  = 0;
+   sharedWeights                = true;
    nxp                          = 1; 
    nyp                          = 1; 
    nfp                          = 1;
@@ -234,10 +236,11 @@ KernelConn "CenterOn" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "SurroundOn" = {
+HyPerConn "SurroundOn" = {
    preLayerName                 = "Downsampled";
    postLayerName                = "RetinaOn";
    channelCode                  = 1;
+   sharedWeights                = true;
    nxp                          = 3;
    nyp                          = 3;
    nfp                          = 1;
@@ -268,10 +271,11 @@ KernelConn "SurroundOn" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "CenterOff" = {
+HyPerConn "CenterOff" = {
    preLayerName                 = "Downsampled";
    postLayerName                = "RetinaOff";
    channelCode                  = 1;
+   sharedWeights                = true;
    nxp                          = 1; 
    nyp                          = 1; 
    nfp                          = 1;
@@ -303,10 +307,11 @@ KernelConn "CenterOff" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "surround off" = {
+HyPerConn "surround off" = {
    preLayerName                 = "Downsampled";
    postLayerName                = "RetinaOff";
    channelCode                  = 0;
+   sharedWeights                = true;
    nxp                          = 3;
    nyp                          = 3;
    nfp                          = 1;
@@ -337,8 +342,9 @@ KernelConn "surround off" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "RetinaOnToLIFLayer" = {
+HyPerConn "RetinaOnToLIFLayer" = {
    channelCode                 = 0;
+   sharedWeights               = true;
    nxp                         = 1;
    nyp                         = 1;
    nfp                         = 1;
@@ -360,8 +366,9 @@ KernelConn "RetinaOnToLIFLayer" = {
    updateGSynFromPostPerspective = false;
 };
 
-KernelConn "RetinaOffToLIFLayer" = {
+HyPerConn "RetinaOffToLIFLayer" = {
    channelCode                 = 0;
+   sharedWeights               = true;
    nxp                         = 1;
    nyp                         = 1;
    nfp                         = 1;

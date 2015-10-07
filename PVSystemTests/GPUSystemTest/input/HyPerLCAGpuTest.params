@@ -135,10 +135,11 @@ ANNLayer "outputTest" = {
     triggerLayerName = NULL;
 };
 
-//KernelConn "tempConn" = {
+//HyPerConn "tempConn" = {
 //    preLayerName = "input";
 //    postLayerName = "outputRecvGpu";
 //    channelCode = -1; //Inhib b, doing nothing to input
+//    sharedWeights = true;
 //    nxp = 13; 
 //    nyp = 13; 
 //    numAxonalArbors = 1;
@@ -180,10 +181,11 @@ ANNLayer "outputTest" = {
 //    keepKernelsSynchronized             = true;
 //};
 
-KernelConn "origConn" = {
+HyPerConn "origConn" = {
     preLayerName = "outputRecvGpu";
     postLayerName = "input";
     channelCode = -1; //Inhib b, doing nothing to input
+    sharedWeights = true;
     nxp = 18; 
     nyp = 18; 
     numAxonalArbors = 1;
@@ -257,7 +259,7 @@ TransposeConn "gpuTransposeConn" = {
     //numFLocal = 1;
 };
 
-KernelConn "origConn2" = {
+HyPerConn "origConn2" = {
     #include "origConn";
     @postLayerName = "input2";
 };

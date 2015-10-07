@@ -185,10 +185,11 @@ ANNLayer "outputTest2" = {
     triggerLayerName = NULL;
 };
 
-KernelConn "origConn1" = {
+HyPerConn "origConn1" = {
     preLayerName = "outputRecvGpu1";
     postLayerName = "input1";
     channelCode = -1; //Inhib b, doing nothing to input
+    sharedWeights = true;
     nxp = 18; 
     nyp = 18; 
     numAxonalArbors = 1;
@@ -280,10 +281,11 @@ IdentConn "RecvCpuTest1" = {
     writeStep = -1;
 };
 
-KernelConn "origConn2" = {
+HyPerConn "origConn2" = {
     preLayerName = "outputRecvGpu2";
     postLayerName = "input2";
     channelCode = -1; //Inhib b, doing nothing to input
+    sharedWeights = true;
     nxp = 18; 
     nyp = 18; 
     numAxonalArbors = 1;

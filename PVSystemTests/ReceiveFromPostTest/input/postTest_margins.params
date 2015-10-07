@@ -258,10 +258,11 @@ IdentConn "OrigInputToInputKnown" = {
    writeStep                           = -1;
 };
 
-KernelConn "origConnPrePost" = {
+HyPerConn "origConnPrePost" = {
     preLayerName = "outputRecvPost"; //Change this
     postLayerName = "inputPost";
     channelCode = -1; //Inhib b, doing nothing to input
+    sharedWeights = true;
     nxp = 6; 
     nyp = 6; 
     numAxonalArbors = 1;
@@ -329,10 +330,11 @@ TransposeConn "postTransposeConn" = {
     updateGSynFromPostPerspective = true;
 };
 
-KernelConn "origConnKnown" = {
+HyPerConn "origConnKnown" = {
     preLayerName = "outputRecvKnown"; //Change this
     postLayerName = "inputKnown";
     channelCode = -1; //Inhib b, doing nothing to input
+    sharedWeights = true;
     nxp = 6; 
     nyp = 6; 
     numAxonalArbors = 1;
@@ -388,10 +390,11 @@ TransposeConn "knownTransposeConn" = {
 };
 
 //Fake connection to make input2 margins bigger
-KernelConn "fakeConn" = {
+HyPerConn "fakeConn" = {
     preLayerName = "inputPost"; //Change this
     postLayerName = "originput";
     channelCode = -1; //Inhib b, doing nothing to input
+    sharedWeights = true;
     nxp = 9; 
     nyp = 9; 
     numAxonalArbors = 1;

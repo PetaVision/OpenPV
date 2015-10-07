@@ -132,11 +132,12 @@ IdentConn "delay4" = {
     writeStep = -1;
 };
 
-KernelConn "delayArbor" = {
+HyPerConn "delayArbor" = {
     preLayerName = "input";
     postLayerName = "outputArbor";
     
     channelCode = 0;
+    sharedWeights = true;
     nxp         = 1;
     nyp         = 1;
     nfp         = 1;

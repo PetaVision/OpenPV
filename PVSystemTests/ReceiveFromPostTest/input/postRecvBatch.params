@@ -121,12 +121,13 @@ ANNLayer "outputTest" = {
     triggerLayerName = NULL;
 };
 
-KernelConn "conn" = {
+HyPerConn "conn" = {
     preLayerName = "input";
     postLayerName = "outputRecv";
-    channelCode = 0; 
-    nxp = 9; 
-    nyp = 9; 
+    channelCode = 0;
+    sharedWeights = true;
+    nxp = 9;
+    nyp = 9;
     numAxonalArbors = 1;
     writeStep = -1;
     initialWriteTime = 0.0;
