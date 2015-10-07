@@ -12,7 +12,6 @@ HyPerCol "column" = {
    printParamsFilename = "pv.params";
    filenamesContainLayerNames = false;
    filenamesContainConnectionNames = false;
-   checkpointRead = false;
    checkpointWrite = false;
    suppressLastOutput = false;
 };

@@ -23,7 +23,6 @@ HyPerCol "column" = {
    filenamesContainConnectionNames = false;
    checkpointWrite = false;
    suppressLastOutput = false;
-   checkpointRead = false;
 };
 
 //

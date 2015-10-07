@@ -16,7 +16,6 @@ HyPerCol "column" = {
    outputPath                       = "output/";
    filenamesContainLayerNames       = 2;
    filenamesContainConnectionNames  = 2;
-   checkpointRead                   = false;
    checkpointWrite                  = false;
    // checkpointWriteDir               = "output/checkpoints";
    // checkpointWriteStepInterval      = 10000;

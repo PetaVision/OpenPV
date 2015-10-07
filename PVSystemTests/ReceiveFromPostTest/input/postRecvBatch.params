@@ -25,7 +25,6 @@ HyPerCol "column" = {
    outputPath = "output/";
    filenamesContainLayerNames = false;  
    filenamesContainConnectionNames = false;
-   checkpointRead = false;  
    checkpointWrite = false;
    suppressLastOutput = false; //Save the last output as checkpoint.
 };

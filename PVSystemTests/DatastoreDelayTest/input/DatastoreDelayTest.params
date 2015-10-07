@@ -21,7 +21,6 @@ HyPerCol "column" = {
    outputPath = "output/";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
-   checkpointRead = false;
    checkpointWrite = true;
    checkpointWriteDir = "checkpoints/";
    checkpointWriteStepInterval = 1;

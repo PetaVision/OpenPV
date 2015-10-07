@@ -21,7 +21,6 @@ HyPerCol "column" = {
    outputPath = "output/";
    filenamesContainLayerNames = true;
    filenamesContainConnectionNames = true;
-   checkpointRead = false;
    checkpointWrite = false;
    suppressLastOutput = false;
    nbatch = 2;

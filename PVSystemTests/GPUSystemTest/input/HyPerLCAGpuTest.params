@@ -12,7 +12,6 @@ HyPerCol "column" = {
     outputPath = "output/HyPerLCAGpuTest";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
-    checkpointRead = false;
     checkpointWrite = true;
     checkpointWriteDir = "output/checkpoints/";
     checkpointWriteStepInterval = 1;

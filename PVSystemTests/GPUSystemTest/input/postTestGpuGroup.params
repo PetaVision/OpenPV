@@ -12,7 +12,6 @@ HyPerCol "column" = {
     outputPath = "output/postTestGpuGroup/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
-    checkpointRead = false;
     checkpointWrite = false;
     // deleteOlderCheckpoints = false;
     suppressLastOutput = false;

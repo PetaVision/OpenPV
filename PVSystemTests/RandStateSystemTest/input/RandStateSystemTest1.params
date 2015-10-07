@@ -22,9 +22,6 @@ HyPerCol "column" = {
    printParamsFilename          = "pv.params";
    filenamesContainLayerNames   = 2;
    filenamesContainConnectionNames = 2;
-   checkpointRead               = false;
-   // checkpointReadDir
-   // checkpointReadDirIndex
    checkpointWrite              = true;
    checkpointWriteTriggerMode   = "step";
    checkpointWriteDir           = "checkpoints1";

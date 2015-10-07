@@ -18,7 +18,6 @@ HyPerCol "column" = {
     filenamesContainLayerNames          = 2;
     filenamesContainConnectionNames     = 2;
     initializeFromCheckpointDir         = "";
-    // checkpointReadDirIndex;
     checkpointWrite                     = false;
     // checkpointWriteDir;
     // checkpointWriteStepInterval;
