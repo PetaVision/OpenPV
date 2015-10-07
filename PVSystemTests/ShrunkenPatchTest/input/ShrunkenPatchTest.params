@@ -4,7 +4,7 @@
 // created by garkenyon: August 4, 2011
 //
 
-//  - input parameters for ShrunkenPatchTest for system level testing of nxpShrunken, nypShrunken
+//  - input parameters for ShrunkenPatchTest for system level testing of setting nxp,nyp to an even multiple of the nxScale,nyScale quotient
 //
 
 debugParsing = false;
@@ -269,10 +269,8 @@ HyPerConn "L0toLx2shrunken" = {
     postLayerName = "Lx2_with_shrunken";
     channelCode = 0;
     sharedWeights = true;
-    nxp = 10;
-    nyp = 10;
-    nxpShrunken = 8;
-    nypShrunken = 8;
+    nxp = 8;
+    nyp = 8;
     nfp = 8;
     numAxonalArbors = 1;
     writeStep = -1;
@@ -317,10 +315,8 @@ HyPerConn "L0toLx4shrunken" = {
     postLayerName = "Lx4_with_shrunken";
     channelCode = 0;
     sharedWeights = true;
-    nxp = 20;
-    nyp = 20;
-    nxpShrunken = 16;
-    nypShrunken = 16;
+    nxp = 16;
+    nyp = 16;
     nfp = 16;
     numAxonalArbors = 1;
     writeStep = -1;
@@ -364,10 +360,8 @@ HyPerConn "L0toLx4shrunken_tall" = {
     postLayerName = "Lx4_with_shrunken_tall";
     channelCode = 0;
     sharedWeights = true;
-    nxp = 20;
-    nyp = 20;
-    nxpShrunken = 8;
-    nypShrunken = 16;
+    nxp = 8;
+    nyp = 16;
     nfp = 16;
     numAxonalArbors = 1;
     writeStep = -1;
@@ -411,10 +405,8 @@ HyPerConn "L0toLx4shrunken_wide" = {
     postLayerName = "Lx4_with_shrunken_wide";
     channelCode = 0;
     sharedWeights = true;
-    nxp = 20;
-    nyp = 20;
-    nxpShrunken = 16;
-    nypShrunken = 8;
+    nxp = 16;
+    nyp = 8;
     nfp = 16;
     numAxonalArbors = 1;
     writeStep = -1;

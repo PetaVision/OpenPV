@@ -193,8 +193,6 @@ HyPerConn "InputToOutput" = {
 // and these vertexs are chosen from the nearest ones around the pixel
     nxp = 7;
     nyp = 7;
-    nxpShrunken = 7;
-    nypShrunken = 7;
     nfp = 8; 
     numAxonalArbors = 1;
     writeStep = -1;
@@ -243,8 +241,6 @@ HyPerConn "OutputToDuplicateSigmoid" = {
 // and these vertexs are chosen from the nearest ones around the pixel
     nxp = 1;
     nyp = 1;
-    nxpShrunken = 1;
-    nypShrunken = 1;
     nfp = 8; 
     numAxonalArbors = 1;
     writeStep = -1;
