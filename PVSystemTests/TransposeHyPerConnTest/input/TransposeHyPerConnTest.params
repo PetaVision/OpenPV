@@ -36,7 +36,7 @@ ANNLayer "Layer A" = {
     phase                               = 1;
     writeStep                           = -1;
     // initialWriteTime;
-    // writeSparseActivity;
+    // sparseLayer;
     mirrorBCflag                        = false;
     valueBC                             = 0.0;
     // GPUAccelerate;
@@ -61,7 +61,7 @@ ANNLayer "Layer B One to One" = {
     phase                               = 1;
     writeStep                           = -1;
     // initialWriteTime;
-    // writeSparseActivity;
+    // sparseLayer;
     mirrorBCflag                        = false;
     valueBC                             = 0.0;
     // GPUAccelerate;
@@ -86,7 +86,7 @@ ANNLayer "Layer B Many to One" = {
     phase                               = 1;
     writeStep                           = -1;
     // initialWriteTime;
-    // writeSparseActivity;
+    // sparseLayer;
     mirrorBCflag                        = false;
     valueBC                             = 0.0;
     // GPUAccelerate;
@@ -111,7 +111,7 @@ ANNLayer "Layer B One to Many" = {
     phase                               = 1;
     writeStep                           = -1;
     // initialWriteTime;
-    // writeSparseActivity;
+    // sparseLayer;
     mirrorBCflag                        = false;
     valueBC                             = 0.0;
     // GPUAccelerate;

@@ -90,7 +90,7 @@ PtwiseProductLayer "output squared" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;
@@ -110,7 +110,7 @@ PtwiseProductLayer "output cubed" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;
@@ -130,7 +130,7 @@ ANNLayer "normalizeL3 check" = {
    valueBC = 0.0;
    writeStep = 1;
    initialWriteTime = 0;
-   writeSparseActivity = false;
+   sparseLayer = false;
    InitVType = "ZeroV";
    
    AMax = infinity;
