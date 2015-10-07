@@ -8,29 +8,29 @@ HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
     dtAdaptFlag                         = true;
-    dtScaleMax                          = 1; //2;
-    dtScaleMin                          = 0.1; //0.25;
+    dtScaleMax                          = 10; //2;
+    dtScaleMin                          = 0.01; //0.25;
     dtChangeMax                         = 0.01; //0.02; //0.05;
-    dtChangeMin                         = -0.05; //-0.02; //0.0;
+    dtChangeMin                         = -0.02; //-0.02; //0.0;
     dtMinToleratedTimeScale             = 0.0001;
-    stopTime                            = 6366400; //3183200; //1591600;
-    progressInterval                    = 1000;
+    stopTime                            = 9549600; 
+    progressInterval                    = 1200;
     writeProgressToErr                  = true;
     verifyWrites                        = false;
-    outputPath                          = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape27";
-    printParamsFilename                 = "PASCAL_S1_96_S2_1536_VOC2007_landscape27.params";
+    outputPath                          = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape30";
+    printParamsFilename                 = "PASCAL_S1_96_S2_1536_VOC2007_landscape30.params";
     randomSeed                          = 1234567890;
     nx                                  = 256;
     ny                                  = 192;
-    filenamesContainLayerNames          = 1;
-    filenamesContainConnectionNames     = 1;
-    initializeFromCheckpointDir         = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape26/Checkpoints/Checkpoint6366400";
+    filenamesContainLayerNames          = 2;
+    filenamesContainConnectionNames     = 2;
+    initializeFromCheckpointDir         = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape28/Checkpoints/Checkpoint6366400";
     defaultInitializeFromCheckpointFlag = false;
     checkpointRead                      = false;
     checkpointWrite                     = true;
-    checkpointWriteDir                  = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape27/Checkpoints";
+    checkpointWriteDir                  = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape30/Checkpoints";
     checkpointWriteTriggerMode          = "step";
-    checkpointWriteStepInterval         = 80000;
+    checkpointWriteStepInterval         = 120000;
     deleteOlderCheckpoints              = false;
     suppressNonplasticCheckpoints       = false;
     writeTimescales                     = true;
@@ -44,8 +44,8 @@ Movie "Image" = {
     phase                               = 0;
     mirrorBCflag                        = true;
     initializeFromCheckpointFlag        = false;
-    writeStep                           = 400;
-    initialWriteTime                    = 400;
+    writeStep                           = 1200;
+    initialWriteTime                    = 1200;
     sparseLayer                         = false;
     updateGpu                           = false;
     offsetAnchor                        = "tl";
@@ -59,8 +59,8 @@ Movie "Image" = {
     normalizeStdDev                     = true;
     jitterFlag                          = 0;
     padValue                            = 0;
-    inputPath                           = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
-    displayPeriod                       = 400;
+    inputPath                           = "/home/nvidia/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
+    displayPeriod                       = 1200;
     echoFramePathnameFlag               = true;
     start_frame_index                   = 0;
     skip_frame_index                    = 0;
@@ -79,8 +79,8 @@ ANNNormalizedErrorLayer "ImageReconS1Error" = {
     initializeFromCheckpointFlag        = false;
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
-    writeStep                           = 400;
-    initialWriteTime                    = 400;
+    writeStep                           = 1200;
+    initialWriteTime                    = 1200;
     sparseLayer                         = false;
     updateGpu                           = false;
     VThresh                             = 0;
@@ -91,25 +91,25 @@ ANNNormalizedErrorLayer "ImageReconS1Error" = {
     errScale                            = 1;
 };
 
-ConstantLayer "ConstantS1" = {
-    nxScale                             = 0.5;
-    nyScale                             = 0.5;
-    nf                                  = 96;
-    phase                               = 0;
-    mirrorBCflag                        = false;
-    valueBC                             = 0;
-    initializeFromCheckpointFlag        = false;
-    InitVType                           = "ConstantV";
-    valueV                              = 0.025; 
-    writeStep                           = -1;
-    sparseLayer                         = false;
-    updateGpu                           = false;
-    VThresh                             = -3.40282e+38;
-    AMin                                = -3.40282e+38;
-    AMax                                = 3.40282e+38;
-    AShift                              = 0;
-    VWidth                              = 0;
-};
+//ConstantLayer "ConstantS1" = {
+//    nxScale                             = 0.5;
+//    nyScale                             = 0.5;
+//    nf                                  = 96;
+//    phase                               = 0;
+//    mirrorBCflag                        = false;
+//    valueBC                             = 0;
+//    initializeFromCheckpointFlag        = false;
+//    InitVType                           = "ConstantV";
+//    valueV                              = 0.025; 
+//    writeStep                           = -1;
+//    sparseLayer                         = false;
+//    updateGpu                           = false;
+//    VThresh                             = -3.40282e+38;
+//    AMin                                = -3.40282e+38;
+//    AMax                                = 3.40282e+38;
+//    AShift                              = 0;
+//    VWidth                              = 0;
+//};
 
 
 HyPerLCALayer "S1" = {
@@ -122,15 +122,15 @@ HyPerLCALayer "S1" = {
     initializeFromCheckpointFlag        = false;
     InitVType                           = "ConstantV";
     valueV                              = 0.025; 
-    triggerLayerName                    = "Image";
-    triggerBehavior                     = "resetStateOnTrigger";
-    triggerResetLayerName               = "ConstantS1";
-    triggerOffset                       = 0;
+    triggerLayerName                    = NULL; //"Image";
+    //triggerBehavior                     = "resetStateOnTrigger";
+    //triggerResetLayerName               = "ConstantS1";
+    //triggerOffset                       = 0;
     writeStep                           = 400;
     initialWriteTime                    = 400;
     sparseLayer                         = true;
     writeSparseValues                   = true;
-    updateGpu                           = false;
+    updateGpu                           = true;
     VThresh                             = 0.025;
     AMin                                = 0;
     AMax                                = 3.40282e+38;
@@ -153,8 +153,8 @@ ANNLayer "ImageReconS1" = {
     initializeFromCheckpointFlag        = false;
     InitVType                           = "ZeroV";
     triggerLayerName                    = NULL;
-    writeStep                           = 400;
-    initialWriteTime                    = 400;
+    writeStep                           = 1200;
+    initialWriteTime                    = 1200;
     sparseLayer                         = false;
     updateGpu                           = false;
     VThresh                             = -3.40282e+38;
@@ -188,13 +188,13 @@ ANNErrorLayer "S1ReconS2Error" = {
 
 
 
-ConstantLayer "ConstantS2" = {
-#include "ConstantS1";
-  @nxScale                             = 0.25;
-  @nyScale                             = 0.25;
-  @nf                                  = 1536;
-  @valueV                              = 0.0025; //;
-};
+//ConstantLayer "ConstantS2" = {
+//#include "ConstantS1";
+//  @nxScale                             = 0.25;
+//  @nyScale                             = 0.25;
+//  @nf                                  = 1536;
+//  @valueV                              = 0.0025; //;
+//};
 
 
 HyPerLCALayer "S2" = {
@@ -204,7 +204,8 @@ HyPerLCALayer "S2" = {
   @nf                                  = 1536;
   @phase                               = 4;
   @VThresh                             = 0.0025; //0.01;
-  @triggerResetLayerName               = "ConstantS2";
+  @valueV                              = 0.0025; 
+  //@triggerResetLayerName               = "ConstantS2";
 };
 
 ANNLayer "S1ReconS2" = {
@@ -244,7 +245,7 @@ MoviePvp "GroundTruthPixels" = {
     writeSparseValues                   = false;
     autoResizeFlag                      = false;
     normalizeLuminanceFlag              = false;
-    inputPath                       = "/nh/compneuro/Data/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
+    inputPath                       = "/home/nvidia/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
     readPvpFile                         = true;
     phase                               = 0;
     mirrorBCflag                        = true;
@@ -260,7 +261,7 @@ MoviePvp "GroundTruthPixels" = {
     normalizeStdDev                     = true;
     jitterFlag                          = 0;
     padValue                            = 0;
-    displayPeriod                       = 400;
+    displayPeriod                       = 1200;
     echoFramePathnameFlag               = true;
     start_frame_index                   = 0;
     skip_frame_index                    = 0;
@@ -271,8 +272,8 @@ MoviePvp "GroundTruthPixels" = {
 
 ANNLayer "GroundTruthNoBackground" = {
 #include "ImageReconS1";
-  @nxScale                             = 0.03125;
-  @nyScale                             = 0.03125;
+  @nxScale                             = 0.015625;
+  @nyScale                             = 0.015625;
   @nf                                  = 20;
   @phase                               = 1;
   @triggerLayerName                    = "GroundTruthPixels";
@@ -285,11 +286,11 @@ ANNLayer "GroundTruthNoBackground" = {
 };
 
 BackgroundLayer "GroundTruth" = {
-  nxScale                             = 0.03125;
-  nyScale                             = 0.03125;
+  nxScale                             = 0.015625;
+  nyScale                             = 0.015625;
   nf                                  = 21; //One more than input * rep
-  writeStep                           = 400;
-  initialWriteTime                    = 400;
+  writeStep                           = 1200;
+  initialWriteTime                    = 1200;
   mirrorBCflag                        = false;
   valueBC                             = 0.0;
   sparseLayer                         = true;
@@ -307,12 +308,12 @@ BackgroundLayer "GroundTruth" = {
 
 ANNErrorLayer "GroundTruthReconS2Error" = {
 #include "S1ReconS2Error";
-  @nxScale                             = 0.03125;
-  @nyScale                             = 0.03125;
+  @nxScale                             = 0.015625;
+  @nyScale                             = 0.015625;
   @nf                                  = 21;
   @phase                               = 10;
-  @writeStep                           = 400;
-  @initialWriteTime                    = 400;
+  @writeStep                           = 1200;
+  @initialWriteTime                    = 1200;
   @triggerLayerName                     = "GroundTruthPixels";
   triggerBehavior                     = "updateOnlyOnTrigger";
   triggerOffset                        = 1;
@@ -320,20 +321,20 @@ ANNErrorLayer "GroundTruthReconS2Error" = {
 
 ANNLayer "GroundTruthReconS2" = {
 #include "ImageReconS1";
-  @nxScale                             = 0.03125;
-  @nyScale                             = 0.03125;
+  @nxScale                             = 0.015625;
+  @nyScale                             = 0.015625;
   @nf                                  = 21;
   @phase                               = 9;
-  @writeStep                           = 400;
-  @initialWriteTime                    = 400;
+  @writeStep                           = 1200;
+  @initialWriteTime                    = 1200;
   @triggerLayerName                    = "GroundTruthPixels";
   triggerBehavior                      = "updateOnlyOnTrigger";
   triggerOffset                        = 1;
 };
 
 ConstantLayer "BiasS2" = {
-    nxScale                             = 0.03125;
-    nyScale                             = 0.03125;
+    nxScale                             = 0.015625;
+    nyScale                             = 0.015625;
     nf                                  = 1;
     phase                               = 0;
     mirrorBCflag                        = false;
@@ -432,7 +433,7 @@ MomentumConn "S1ToImageReconS1Error" = {
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape26/Checkpoints/Checkpoint6366400/S1ToImageReconS1Error_W.pvp";
+    initWeightsFile                     = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/Checkpoints/Checkpoint6366400/S1ToImageReconS1Error_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     initializeFromCheckpointFlag        = false;
@@ -459,7 +460,7 @@ MomentumConn "S1ToImageReconS1Error" = {
     normalize_cutoff                    = 0;
     normalizeFromPostPerspective        = false;
     minL2NormTolerated                  = 0;
-    dWMax                               = .01;
+    dWMax                               = 1;
     momentumMethod                      = "viscosity";
     momentumTau                         = 200.0;
     keepKernelsSynchronized             = true;
@@ -519,10 +520,10 @@ MomentumConn "S2ToS1ReconS2Error" = {
 #include "S1ToImageReconS1Error";
   @preLayerName                        = "S2";
   @postLayerName                       = "S1ReconS2Error";
-  @initWeightsFile                     = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape26/Checkpoints/Checkpoint6366400/S2ToS1ReconS2Error_W.pvp";
+  @initWeightsFile                     = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/Checkpoints/Checkpoint6366400/S2ToS1ReconS2Error_W.pvp";
   @nxp                                 = 10;
   @nyp                                 = 10;
-  @dWMax                               = 0.1;
+  //@dWMax                               = 0.1;
 };
 
 CloneConn "S2ToS1ReconS2" = {
@@ -638,79 +639,86 @@ PoolingConn "S1ToS1MaxPooled" = {
 };
 
 
-MomentumConn "S2MaxPooledToGroundTruthReconS2Error" = {
-#include "S2ToS1ReconS2Error";
-  @preLayerName                        = "S2MaxPooled";
-  @postLayerName                       = "GroundTruthReconS2Error";
-  //@channelCode                         = 0;
-  @nxp                                 = 1;
-  @nyp                                 = 1;
-  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/Checkpoints/Checkpoint240000/S2MaxPooledToGroundTruthReconS2Error_W.pvp";
-  @weightInitType                      = "UniformRandomWeight";
-  @initWeightsFile                     = NULL;
-  wMinInit                            = -0.0;
-  wMaxInit                            = 0.0;
-  @normalizeMethod                    = "none";
-  @dWMax                              = 0.5; //0.01;
-  @momentumMethod                     = "viscosity";
-  @momentumTau                        = 1;
-};
-
-MomentumConn "S1MaxPooledToGroundTruthReconS1Error" = {
-#include "S2MaxPooledToGroundTruthReconS2Error";
-  @preLayerName                        = "S1MaxPooled";
-  @postLayerName                       = "GroundTruthReconS1Error";
-  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/Checkpoints/Checkpoint240000/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
-};
-
-MomentumConn "S1MaxPooledToGroundTruthReconS1S2Error" = {
-#include "S2MaxPooledToGroundTruthReconS2Error";
-  @preLayerName                        = "S1MaxPooled";
-  @postLayerName                       = "GroundTruthReconS1S2Error";
-  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/Checkpoints/Checkpoint240000/S1MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
+HyPerConn "S2MaxPooledToGroundTruthReconS2Error" = {
+  preLayerName                        = "S2MaxPooled";
+  postLayerName                       = "GroundTruthReconS2Error";
+  nxp                                 = 1;
+  nyp                                 = 1;
+  initWeightsFile = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/Checkpoints/Checkpoint6366400/S2MaxPooledToGroundTruthReconS2Error_W.pvp";
   //@weightInitType                      = "UniformRandomWeight";
   //@initWeightsFile                     = NULL;
   //wMinInit                            = -0.0;
   //wMaxInit                            = 0.0;
+  normalizeMethod                    = "none";
+    channelCode                         = -1;
+    delay                               = [0.000000];
+    numAxonalArbors                     = 1;
+    plasticityFlag                      = true;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
+    sharedWeights                       = true;
+    weightInitType                      = "FileWeight";
+    useListOfArborFiles                 = false;
+    combineWeightFiles                  = false;
+    initializeFromCheckpointFlag        = false;
+    triggerFlag                         = true;
+    triggerLayerName                    = "Image";
+    triggerOffset                       = 1;
+    updateGSynFromPostPerspective       = false;
+    pvpatchAccumulateType               = "convolve";
+    writeStep                           = -1;
+    writeCompressedCheckpoints          = false;
+    selfFlag                            = false;
+    combine_dW_with_W_flag              = false;
+    shrinkPatches                       = false;
+    dWMax                               = 1;
+    momentumMethod                      = "viscosity";
+    momentumTau                         = 200.0;
+    keepKernelsSynchronized             = true;
+    useMask                             = false;
 };
 
-MomentumConn "S2MaxPooledToGroundTruthReconS1S2Error" = {
+HyPerConn "S1MaxPooledToGroundTruthReconS1Error" = {
+#include "S2MaxPooledToGroundTruthReconS2Error";
+  @preLayerName                        = "S1MaxPooled";
+  @postLayerName                       = "GroundTruthReconS1Error";
+  @initWeightsFile = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/Checkpoints/Checkpoint6366400/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
+};
+
+HyPerConn "S1MaxPooledToGroundTruthReconS1S2Error" = {
+#include "S2MaxPooledToGroundTruthReconS2Error";
+  @preLayerName                        = "S1MaxPooled";
+  @postLayerName                       = "GroundTruthReconS1S2Error";
+  @initWeightsFile = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/Checkpoints/Checkpoint6366400/S1MaxPooledToGroundTruthReconS1S2Error_W.pvp";
+};
+
+HyPerConn "S2MaxPooledToGroundTruthReconS1S2Error" = {
 #include "S1MaxPooledToGroundTruthReconS1S2Error";
   @preLayerName                        = "S2MaxPooled";
   @postLayerName                       = "GroundTruthReconS1S2Error";
-  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/Checkpoints/Checkpoint240000/S2MaxPooledToGroundTruthReconS1S2Error_W.pvp";
+  @initWeightsFile = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/Checkpoints/Checkpoint6366400/S2MaxPooledToGroundTruthReconS1S2Error_W.pvp";
 };
 
-MomentumConn "BiasS2ToGroundTruthReconS2Error" = {
+HyPerConn "BiasS2ToGroundTruthReconS2Error" = {
 #include "S2MaxPooledToGroundTruthReconS2Error";
   @preLayerName                        = "BiasS2";
   @postLayerName                       = "GroundTruthReconS2Error";
-  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/Checkpoints/Checkpoint240000/BiasS3ToGroundTruthReconS3Error_W.pvp";
-  //@weightInitType                      = "UniformRandomWeight";
-  //@initWeightsFile                     = NULL;
-  //wMinInit                            = -0.0;
-  //wMaxInit                            = 0.0;
+  @initWeightsFile = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/Checkpoints/Checkpoint6366400/BiasS2ToGroundTruthReconS2Error_W.pvp";
   @dWMax                              = 0.01;
-  //@momentumMethod                     = "viscosity";
-  //@momentumTau                        = 1;
 };
 
-MomentumConn "BiasS1ToGroundTruthReconS1Error" = {
+HyPerConn "BiasS1ToGroundTruthReconS1Error" = {
 #include "BiasS2ToGroundTruthReconS2Error";
   @preLayerName                        = "BiasS1";
   @postLayerName                       = "GroundTruthReconS1Error";
-  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/Checkpoints/Checkpoint240000/BiasS1ToGroundTruthReconS1Error_W.pvp";
+  @initWeightsFile = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/Checkpoints/Checkpoint6366400/BiasS1ToGroundTruthReconS1Error_W.pvp";
 };
 
-MomentumConn "BiasS1S2ToGroundTruthReconS1S2Error" = {
+HyPerConn "BiasS1S2ToGroundTruthReconS1S2Error" = {
 #include "BiasS2ToGroundTruthReconS2Error";
   @preLayerName                        = "BiasS1S2";
   @postLayerName                       = "GroundTruthReconS1S2Error";
-  //@initWeightsFile = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape3/Checkpoints/Checkpoint240000/BiasS1S2S3ToGroundTruthReconS1S2S3Error_W.pvp";
-  //@weightInitType                      = "UniformRandomWeight";
-  //@initWeightsFile                     = NULL;
-  //wMinInit                            = -0.0;
-  //wMaxInit                            = 0.0;
+  @initWeightsFile = "/home/nvidia/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape29/Checkpoints/Checkpoint6366400/BiasS1S2ToGroundTruthReconS1S2Error_W.pvp";
 };
 
 CloneConn "S2MaxPooledToGroundTruthReconS2" = {
@@ -787,6 +795,64 @@ IdentConn "GroundTruthReconS1S2ToGroundTruthReconS1S2Error" = {
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
     writeStep                           = -1;
+};
+
+
+// Energy probes
+
+
+ColumnEnergyProbe "S1EnergyProbe" = {
+    probeOutputFile                     = "S1EnergyProbe.txt";
+};
+
+ColumnEnergyProbe "S2EnergyProbe" = {
+    probeOutputFile                     = "S2EnergyProbe.txt";
+};
+
+L2NormProbe "ImageReconS1ErrorL2NormEnergyProbe" = {
+    targetLayer                         = "ImageReconS1Error";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "ImageReconS1ErrorL2NormEnergyProbe.txt";
+    triggerFlag                         = false;
+    energyProbe                         = "S1EnergyProbe";
+    coefficient                         = 0.5;
+    maskLayerName                       = NULL;
+    exponent                            = 2;
+};
+
+L1NormProbe "S1L1NormEnergyProbe" = {
+    targetLayer                         = "S1";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "S1EnergyProbe.txt";
+    triggerFlag                         = false;
+    energyProbe                         = "S1L1NormEnergyProbe";
+    coefficient                         = 0.025;
+    maskLayerName                       = NULL;
+};
+
+L2NormProbe "S1ReconS2ErrorL2NormEnergyProbe" = {
+    targetLayer                         = "S1ReconS2Error";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "S1ReconS2ErrorL2NormEnergyProbe.txt";
+    triggerFlag                         = false;
+    energyProbe                         = "S2EnergyProbe";
+    coefficient                         = 0.5;
+    maskLayerName                       = NULL;
+    exponent                            = 2;
+};
+
+L1NormProbe "S1L1NormEnergyProbe" = {
+    targetLayer                         = "S2";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "S2L1NormEnergyProbe.txt";
+    triggerFlag                         = false;
+    energyProbe                         = "S2EnergyProbe";
+    coefficient                         = 0.0025;
+    maskLayerName                       = NULL;
 };
 
 

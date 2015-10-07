@@ -13,14 +13,15 @@ setenv("GNUTERM","X11")
 addpath("~/openpv/pv-core/mlab/imgProc");
 addpath("~/openpv/pv-core/mlab/util");
 addpath("~/openpv/pv-core/mlab/HyPerLCA");
-addpath("/shared/liblinear-2.1/matlab");
+%%addpath("/shared/liblinear-2.1/matlab");
+addpath("~/Desktop/liblinear-2.01/matlab");
 
 plot_flag = true;
 %%run_type = "ICA";
-%%run_type = "ICAX4"
+run_type = "ICAX4"
 %%run_type = "ICAX16"
 %%run_type = "S1S2"
-run_type = "DCA";
+%%run_type = "DCA";
 %%run_type = "scene"
 if strcmp(run_type, "ICA")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape17";
