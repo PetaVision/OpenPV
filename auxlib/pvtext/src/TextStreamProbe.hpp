@@ -27,6 +27,8 @@ protected:
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
    void featureNumberToCharacter(int code, char ** cbufptr, char * bufstart, int buflen);
+   virtual int initNumValues();
+   virtual int calcValues(double timevalue);
 
 private:
    int initTextStreamProbe_base();
