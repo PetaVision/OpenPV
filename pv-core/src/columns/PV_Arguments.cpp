@@ -42,7 +42,6 @@ int PV_Arguments::initializeState() {
 }
 
 int PV_Arguments::initialize(int argc, char * argv[], bool allowUnrecognizedArguments) {
-   args = (char **) malloc((size_t) (argc+1) * sizeof(char *));
    numArgs = argc;
    args = copyArgs(argc, argv);
    return setStateFromCmdLineArgs(allowUnrecognizedArguments);

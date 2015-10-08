@@ -63,6 +63,9 @@ Movie::~Movie()
    if(batchPos){
       free(batchPos);
    }
+   if(frameNumbers){
+      free(frameNumbers);
+   }
 }
 
 

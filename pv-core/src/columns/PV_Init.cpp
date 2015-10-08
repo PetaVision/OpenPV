@@ -26,6 +26,7 @@ PV_Init::~PV_Init(){
    if(icComm){
       delete icComm;
    }
+   delete arguments;
    commFinalize();
 }
 

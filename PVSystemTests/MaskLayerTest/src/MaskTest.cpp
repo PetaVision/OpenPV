@@ -19,5 +19,6 @@ int main(int argc, char * argv[]) {
    int status = buildandrun(argc, argv, NULL, NULL, NULL, 0);
 #endif // MAIN_USES_CUSTOMGROUPS
 
+   delete customGroupHandler;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -13,7 +13,9 @@ int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    ParamGroupHandler * normalizeL3GroupHandler = new CustomGroupHandler();
-   return buildandrun(argc, argv, NULL, customexit, &normalizeL3GroupHandler, 1/*numGroupHandlers*/);
+   int status = buildandrun(argc, argv, NULL, customexit, &normalizeL3GroupHandler, 1/*numGroupHandlers*/);
+   delete normalizeL3GroupHandler;
+   return status;
 }
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {
