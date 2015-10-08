@@ -195,11 +195,10 @@ HyPerConn "preConn" = {
 //    keepKernelsSynchronized             = true;
 //};
 
-CloneKernelConn "postConn" = {
+CloneConn "postConn" = {
     preLayerName = "input";
     postLayerName = "outputRecvPost";
     channelCode = 0;
-    writeStep = -1;
     originalConnName = "preConn";
     selfFlag = false;
     delay = 0;
