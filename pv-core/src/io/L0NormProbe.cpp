@@ -62,9 +62,9 @@ double L0NormProbe::getValueInternal(double timevalue, int index) {
       if (maskHasSingleFeature()) {
          assert(getTargetLayer()->getNumNeurons()==nx*ny*nf);
          int nxy = nx*ny;
-         #ifdef PV_USE_OPENMP_THREADS
-         #pragma omp parallel for
-         #endif // PV_USE_OPENMP_THREADS
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : sum)
+#endif // PV_USE_OPENMP_THREADS
          for (int kxy=0; kxy<nxy; kxy++) {
             int kexMask = kIndexExtended(kxy, nx, ny, 1, maskLt, maskRt, maskDn, maskUp);
             if (maskLayerData[kexMask]) {
@@ -72,7 +72,7 @@ double L0NormProbe::getValueInternal(double timevalue, int index) {
                for (int f=0; f<nf; f++) {
                   int kex = kIndexExtended(featureBase++, nx, ny, nf, lt, rt, dn, up);
                   pvadata_t val = aBuffer[kex];
-                  sum += aBuffer[kex]>nnzThreshold || aBuffer[kex]<nnzThreshold;
+                  sum += (aBuffer[kex]>nnzThreshold || aBuffer[kex]<nnzThreshold);
                }
             }
          }         

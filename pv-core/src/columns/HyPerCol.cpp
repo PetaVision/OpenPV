@@ -1967,6 +1967,10 @@ int HyPerCol::initPublishers() {
 }
 
 double * HyPerCol::adaptTimeScale(){
+   for (int b=0; b<nbatch; b++) {
+      oldTimeScaleTrue[b] = timeScaleTrue[b];
+      oldTimeScale[b] = timeScale[b];
+   }
    calcTimeScaleTrue();
    for(int b = 0; b < nbatch; b++){
       //const double timeScaleMax = 5.0;             // maxiumum value of timeScale
@@ -2041,8 +2045,9 @@ int HyPerCol::calcTimeScaleTrue() {
       // on next time step based on current value of deltaTime
       // TODO: implement the method as a ColProbe subclass.
       for (int b=0; b<nbatch; b++) {
-	oldTimeScale[b] = timeScale[b];
-	oldTimeScaleTrue[b] = timeScaleTrue[b];
+         // copying of timeScale and timeScaleTrue was moved to adaptTimeScale, just before the call to calcTimeScaleTrue -- Oct. 8, 2015
+         oldTimeScale[b] = timeScale[b];
+         oldTimeScaleTrue[b] = timeScaleTrue[b];
          // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
          double minTimeScaleTmp = -1;
          for(int l = 0; l < numLayers; l++) {
