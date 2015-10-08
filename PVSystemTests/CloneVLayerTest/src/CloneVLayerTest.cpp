@@ -9,29 +9,15 @@
 int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
-   // If command line args specify the params file, use that file; otherwise use input/CloneVLayerTest.params
-   int paramfilestatus = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
-   int cl_argc = argc + (paramfilestatus!=0 ? 2 : 0);
-   char ** cl_argv = (char **) malloc((size_t) (cl_argc+1) * sizeof(char *));
-   assert(cl_argv!=NULL);
-   for (int a=0; a<argc; a++) {
-      cl_argv[a] = strdup(argv[a]);
-      assert(cl_argv[a]);
+   PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   PV_Arguments * arguments = initObj->getArguments();
+   if (arguments->getParamsFile() == NULL) {
+      arguments->setParamsFile("input/CloneVLayerTest.params");
    }
-   if (paramfilestatus!=0) {
-      cl_argv[argc] = strdup("-p");
-      assert(cl_argv[argc]);
-      cl_argv[argc+1] = strdup("input/CloneVLayerTest.params");
-      assert(cl_argv[argc+1]);
-   }
-   cl_argv[cl_argc] = NULL;
 
    int status;
-   status = buildandrun(cl_argc, cl_argv, NULL, &customexit, NULL);
-   for (int a=0; a<cl_argc; a++) {
-      free(cl_argv[a]);
-   }
-   free(cl_argv); cl_argv = NULL;
+   status = rebuildandrun(initObj, NULL, &customexit, NULL, 0);
+   delete initObj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

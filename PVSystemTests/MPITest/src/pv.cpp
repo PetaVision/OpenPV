@@ -17,7 +17,7 @@
 #include <assert.h>
 
 // use compiler directive in case MPITestLayer gets moved to PetaVision trunk
-#define MAIN_USES_CUSTOMGROUP
+#define MAIN_USES_CUSTOMGROUP // TODO: rewrite using subclass of ParamGroupHandler
 
 #ifdef MAIN_USES_CUSTOMGROUP
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc);
@@ -28,34 +28,17 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc);
 int main(int argc, char * argv[]) {
 
    int status;
-   // If params file was not specified, add input/MPI_test.params to command line arguments
-   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
-   int num_cl_args;
-   char ** cl_args;
-   if( paramfileabsent ) {
-      num_cl_args = argc + 2;
-      cl_args = (char **) malloc(num_cl_args*sizeof(char *));
-      cl_args[0] = argv[0];
-      cl_args[1] = strdup("-p");
-      cl_args[2] = strdup("input/MPI_test.params");
-      for( int k=1; k<argc; k++) {
-         cl_args[k+2] = strdup(argv[k]);
-      }
-   }
-   else {
-      num_cl_args = argc;
-      cl_args = argv;
+   PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   PV_Arguments * arguments = initObj->getArguments();
+   if (arguments->getParamsFile()==NULL) {
+      arguments->setParamsFile("input/MPI_test.params");
    }
 #ifdef MAIN_USES_CUSTOMGROUP
-   status = buildandrun(num_cl_args, cl_args, NULL, NULL, customgroup)==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   status = rebuildandrun(initObj, NULL, NULL, customgroup)==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 #else
-   status = buildandrun(argc, argv);
+   status = rebuildandrun(initObj);
 #endif // MAIN_USES_ADDCUSTOM
-   if( paramfileabsent ) {
-      free(cl_args[1]);
-      free(cl_args[2]);
-      free(cl_args);
-   }
+   delete initObj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

@@ -219,8 +219,12 @@ int buildandrun1paramset(PV_Init * initObj,
    if( hc == NULL ) return PV_FAILURE;  // build() prints error message
 
    int status = PV_SUCCESS;
-   int argc = initObj->getArguments()->getNumArgs();
+   int argc = 0;
    char ** argv = NULL;
+   if (custominit || customexit) {
+      argc = initObj->getArguments()->getNumArgs();
+      argv = initObj->getArguments()->getArgsCopy();
+   }
    if( custominit != NULL ) {
       status = (*custominit)(hc, argc, argv);
       if(status != PV_SUCCESS) {
@@ -240,7 +244,9 @@ int buildandrun1paramset(PV_Init * initObj,
          fprintf(stderr, "customexit function failed with return value %d\n", status);
       }
    }
-
+   if (custominit || customexit) {
+      initObj->getArguments()->freeArgs(argc, argv);
+   }
    delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
    return status;
 }

@@ -18,32 +18,14 @@
 int main(int argc, char * argv[]) {
 
    int status;
-   // If params file was not specified, add input/ShrunkenPatchTest.params to command line arguments
-   int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
-   int num_cl_args;
-   char ** cl_args;
-   if( paramfileabsent ) {
-      num_cl_args = argc + 2;
-      cl_args = (char **) malloc((num_cl_args+1)*sizeof(char *));
-      cl_args[0] = argv[0];
-      cl_args[1] = strdup("-p");
-      cl_args[2] = strdup("input/ShrunkenPatchTest.params");
-      for( int k=1; k<argc; k++) {
-         cl_args[k+2] = strdup(argv[k]);
-      }
-      cl_args[num_cl_args] = NULL;
-   }
-   else {
-      num_cl_args = argc;
-      cl_args = argv;
+   PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   PV_Arguments * arguments = initObj->getArguments();
+   if (arguments->getParamsFile() == NULL) {
+      arguments->setParamsFile("input/ShrunkenPatchTest.params");
    }
    ParamGroupHandler * customGroupHandler = new CustomGroupHandler;
-   status = buildandrun(num_cl_args, cl_args, NULL, NULL, &customGroupHandler, 1)==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   status = rebuildandrun(initObj, NULL, NULL, &customGroupHandler, 1)==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
    delete customGroupHandler;
-   if( paramfileabsent ) {
-      free(cl_args[1]);
-      free(cl_args[2]);
-      free(cl_args);
-   }
+   delete initObj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

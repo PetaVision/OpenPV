@@ -28,33 +28,17 @@ void * customgroup(const char * keyword, const char * name, HyPerCol * hc);
 int main(int argc, char * argv[]) {
 
     int status;
-#ifdef MAIN_USES_CUSTOMGROUP
-    int paramfileabsent = pv_getopt_str(argc, argv, "-p", NULL/*sVal*/, NULL/*paramusage*/);
-    int num_cl_args;
-    char ** cl_args;
-    if( paramfileabsent ) {
-       num_cl_args = argc + 2;
-       cl_args = (char **) malloc(num_cl_args*sizeof(char *));
-       cl_args[0] = argv[0];
-       cl_args[1] = strdup("-p");
-       cl_args[2] = strdup("input/DatastoreDelayTest.params");
-       for( int k=1; k<argc; k++) {
-          cl_args[k+2] = strdup(argv[k]);
-       }
+#ifdef MAIN_USES_CUSTOMGROUP // TODO: rewrite using subclass of ParamGroupHandler
+    PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+    PV_Arguments * arguments = initObj->getArguments();
+    if (arguments->getParamsFile()==NULL) {
+        arguments->setParamsFile("input/DatastoreDelayTest.params");
     }
-    else {
-       num_cl_args = argc;
-       cl_args = argv;
-    }
-    status = buildandrun(num_cl_args, cl_args, NULL, NULL, customgroup)==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
-    if( paramfileabsent ) {
-       free(cl_args[1]);
-       free(cl_args[2]);
-       free(cl_args);
-    }
+    status = rebuildandrun(initObj, NULL, NULL, customgroup);
 #else
     status = buildandrun(argc, argv);
 #endif // MAIN_USES_ADDCUSTOM
+    delete initObj;
     return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

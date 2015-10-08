@@ -254,9 +254,6 @@ int main(int argc, char * argv[])
 
    delete hc;
    delete initObj;
-   //free(cl_args[0]);
-   //free(cl_args[1]);
-   //free(cl_args[2]);
 
    return 0;
 }
