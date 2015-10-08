@@ -42,6 +42,11 @@ void TextStreamProbe::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
    getParent()->ioParamValue(ioFlag, getName(), "displayPeriod", &displayPeriod, 1.0);
 }
 
+// TextStreamProbe has not been rewritten to use the getValues() methods.
+int TextStreamProbe::initNumValues() {
+   return setNumValues(-1);
+}
+
 int TextStreamProbe::communicateInitInfo() {
    int status = LayerProbe::communicateInitInfo();
    int nf = getTargetLayer()->getLayerLoc()->nf;
@@ -58,6 +63,11 @@ int TextStreamProbe::communicateInitInfo() {
       break;
    }
    return status;
+}
+
+// calcValues() trivially implement pure virtual methods to compile; the class needs to be rewritten before the getValues() methods can be used.
+int TextStreamProbe::calcValues(double timevalue) {
+   return PV_SUCCESS;
 }
 
 int TextStreamProbe::outputState(double timef) {

@@ -23,6 +23,8 @@ public:
 protected:
    MatchingPursuitProbe();
    int initMatchingPursuitProbe(const char * name, HyPerCol * hc);
+   virtual int initNumValues();
+   virtual int calcValues(double timevalue);
 
 private:
    int initMatchingPursuitProbe_base();
