@@ -38,22 +38,34 @@ int MatchingPursuitProbe::initMatchingPursuitProbe(const char * name, HyPerCol *
    return PV_SUCCESS;
 }
 
-int MatchingPursuitProbe::outputState(double timed) {
+int MatchingPursuitProbe::initNumValues() {
+   return setNumValues(1); /* MatchingPursuitProbe has not been generalized for batches. */
+}
+
+int MatchingPursuitProbe::calcValues(double timevalue) {
    int status = PV_SUCCESS;
-   const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-   if (timed>0.0) {
+   pvdata_t maxrelerr = (pvdata_t) 0;
+   if (timevalue>0.0) {
+      const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
       for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
          int kGlobal = globalIndexFromLocal(k, *loc);
-         pvdata_t correctValue = nearbyint((double)kGlobal + timed)==256.0 ? (pvdata_t) kGlobal/255.0f : 0.0f;
+         pvdata_t correctValue = nearbyint((double)kGlobal + timevalue)==256.0 ? (pvdata_t) kGlobal/255.0f : 0.0f;
          int kExtended = kIndexExtended(k, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
          pvdata_t observed = getTargetLayer()->getLayerData()[kExtended];
          pvdata_t relerr = fabs(observed-correctValue)/correctValue;
+         if (maxrelerr<relerr) { maxrelerr = relerr; }
          if (relerr>1e-7) {
-            fprintf(stderr, "Time %f: Neuron %d (global index) has relative error %f (%f versus correct %f)\n", timed, kGlobal, relerr, observed, correctValue);
+            fprintf(stderr, "Time %f: Neuron %d (global index) has relative error %f (%f versus correct %f)\n", timevalue, kGlobal, relerr, observed, correctValue);
             status = PV_FAILURE;
          }
       }
    }
+   getValuesBuffer()[0] = maxrelerr;
+   return status;
+}
+
+int MatchingPursuitProbe::outputState(double timed) {
+   int status = calcValues(timed);
    assert(status==PV_SUCCESS);
    return status;
 }
