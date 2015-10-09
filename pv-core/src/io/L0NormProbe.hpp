@@ -34,18 +34,18 @@ protected:
     */
 
    /**
-    * Overrides AbstractNormProbe::setNormDescription() to set normDescription to "L0-norm".
-    * Return values and errno are set by a call to setNormDescriptionToString.
-    */
-   virtual int setNormDescription();
-
-   /**
     * @brief nnzThreshold: The threshold for computing the L0-norm.
     * getValue(t, index) returns the number of targetLayer neurons whose
     * absolute value is greater than nnzThreshold.
     */
    virtual void ioParam_nnzThreshold(enum ParamsIOFlag ioFlag);   
    /** @} */
+
+   /**
+    * Overrides AbstractNormProbe::setNormDescription() to set normDescription to "L0-norm".
+    * Return values and errno are set by a call to setNormDescriptionToString.
+    */
+   virtual int setNormDescription();
 
 private:
    int initL0NormProbe_base() {return PV_SUCCESS;}

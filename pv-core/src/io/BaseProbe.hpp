@@ -104,7 +104,17 @@ public:
     * change their owner to the layer or connection they attach to.
     */
    void const * getOwner() { return owner;}
+
+   /**
+    * Returns the name of the energy probe the probe is attached to (null if not attached to an energy probe)
+    */
+   char const * getEnergyProbe() { return energyProbe; }
    
+   /**
+    * Returns the coefficient if the energy probe is set.
+    */
+   double getCoefficient() { return coefficient; }
+
    /**
     * getValues(double timevalue, double * values) sets the buffer 'values' with the probe's calculated values.
     * It assumes that the values buffer is large enough to hold getNumValues()
