@@ -120,9 +120,9 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
          }         
       }
       else {
-         #ifdef PV_USE_OPENMP_THREADS
-         #pragma omp parallel for
-         #endif // PV_USE_OPENMP_THREADS
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : sum)
+#endif // PV_USE_OPENMP_THREADS
          for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
             int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
             pvadata_t a = fabsf(aBuffer[kex]);
@@ -139,9 +139,9 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
       }
    }
    else {
-      #ifdef PV_USE_OPENMP_THREADS
-      #pragma omp parallel for
-      #endif // PV_USE_OPENMP_THREADS
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : sum)
+#endif // PV_USE_OPENMP_THREADS
       for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {      
          int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
          pvadata_t a = fabsf(aBuffer[kex]);
@@ -155,27 +155,6 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
       }
    }
    
-   return sum;
-
-   
-   
-   
-   
-   
-   #ifdef PV_USE_OPENMP_THREADS
-   #pragma omp parallel for
-   #endif // PV_USE_OPENMP_THREADS
-   for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {      
-      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-      pvadata_t a = fabsf(aBuffer[kex]);
-      if (a==0) { continue; }
-      if (a>=VThreshPlusVWidth) {
-         sum += amax;
-      }
-      else {
-         sum += a*(1 - a2*a);
-      }
-   }
    return sum;
 }
 
