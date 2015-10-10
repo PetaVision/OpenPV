@@ -39,12 +39,6 @@
 #include "../layers/LabelLayer.hpp"
 #include "../layers/LeakyIntegrator.hpp"
 #include "../layers/MaskLayer.hpp"
-#ifdef OBSOLETE //Marked obsolete April 6, 2015. Moved to auxlib/mlearning
-#include "../layers/MLPErrorLayer.hpp"
-#include "../layers/MLPForwardLayer.hpp"
-#include "../layers/MLPOutputLayer.hpp"
-#include "../layers/MLPSigmoidLayer.hpp"
-#endif
 #include "../layers/Movie.hpp"
 #include "../layers/MoviePvp.hpp"
 #include "../layers/Patterns.hpp"
@@ -83,7 +77,9 @@
 #include "ColumnEnergyProbe.hpp"
 #include "QuotientColProbe.hpp"
 #include "FirmThresholdCostFnProbe.hpp"
+#include "L0NormLCAProbe.hpp"
 #include "L0NormProbe.hpp"
+#include "L1NormLCAProbe.hpp"
 #include "L1NormProbe.hpp"
 #include "L2NormProbe.hpp"
 #ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
@@ -162,12 +158,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"LabelLayer", LayerGroupType},
          {"LeakyIntegrator", LayerGroupType},
          {"MaskLayer", LayerGroupType},
-#ifdef OBSOLETE // Marked obsolete Apr 6, 2015.  MLP classes moved to auxlib/mlearning
-         {"MLPErrorLayer", LayerGroupType},
-         {"MLPForwardLayer", LayerGroupType},
-         {"MLPOutputLayer", LayerGroupType},
-         {"MLPSigmoidLayer", LayerGroupType},
-#endif // OBSOLETE // Marked obsolete Apr 6, 2015.  MLP classes moved to auxlib/mlearning
          {"MaxPooling", LayerGroupType},
          {"Movie", LayerGroupType},
          {"MoviePvp", LayerGroupType},
@@ -217,7 +207,9 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          // // Layer probes
          {"LayerProbe", ProbeGroupType},
          {"FirmThresholdCostFnProbe", ProbeGroupType},
+         {"L0NormLCAProbe", ProbeGroupType},
          {"L0NormProbe", ProbeGroupType},
+         {"L1NormLCAProbe", ProbeGroupType},
          {"L1NormProbe", ProbeGroupType},
          {"L2NormProbe", ProbeGroupType},
 #ifdef OBSOLETE // Marked obsolete Aug 12, 2015.  Functionality of LayerFunctionProbe being added to BaseProbe
@@ -385,30 +377,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    }
    else if( !strcmp(keyword, "MaskLayer") ) {
       addedLayer = new MaskLayer(name, hc);
-   }
-
-#ifdef OBSOLETE // Marked obsolete 4/6/15. Moved to auxlib/mlearning
-   else if( !strcmp(keyword, "MLPErrorLayer") ) {
-      addedLayer = new MLPErrorLayer(name, hc);
-   }
-   else if( !strcmp(keyword, "MLPForwardLayer") ) {
-      addedLayer = new MLPForwardLayer(name, hc);
-   }
-   else if( !strcmp(keyword, "MLPOutputLayer") ) {
-      addedLayer = new MLPOutputLayer(name, hc);
-   }
-   else if( !strcmp(keyword, "MLPSigmoidLayer") ) {
-      addedLayer = new MLPSigmoidLayer(name, hc);
-   }
-#endif
-
-   else if( !strcmp(keyword, "MaxPooling") ) {
-      // MaxPooling was marked obsolete Oct 30, 2014
-      if (hc->columnId()==0) {
-         fprintf(stderr, "Params group \"%s\": MaxPooling is obsolete.  Use a different layer type and set the connections going to \"%s\" to use pvpatchAccumulateType = \"maxpooling\".\n", name, name);
-      }
-      MPI_Barrier(hc->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
    }
    else if( !strcmp(keyword, "Movie") ) {
       addedLayer = new Movie(name, hc);
@@ -578,8 +546,14 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
    else if( !strcmp(keyword, "FirmThresholdCostFnProbe") ) {
       addedProbe = new FirmThresholdCostFnProbe(name, hc);
    }
+   else if( !strcmp(keyword, "L0NormLCAProbe") ) {
+      addedProbe = new L0NormLCAProbe(name, hc);
+   }
    else if( !strcmp(keyword, "L0NormProbe") ) {
       addedProbe = new L0NormProbe(name, hc);
+   }
+   else if( !strcmp(keyword, "L1NormLCAProbe") ) {
+      addedProbe = new L1NormLCAProbe(name, hc);
    }
    else if( !strcmp(keyword, "L1NormProbe") ) {
       addedProbe = new L1NormProbe(name, hc);
