@@ -34,7 +34,7 @@ function ...
       return;
     endif
     [sparse_row_ndx, sparse_col_ndx, sparse_values] = find(Sparse_struct.values(:));
-    keyboard;
+    %%keyboard;
     Sparse_struct.values = zeros(length(sparse_values(:)),2);
     Sparse_struct.values(:,1) = sparse_row_ndx-1;
     Sparse_struct.values(:,2) = sparse_values;
