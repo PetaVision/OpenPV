@@ -14,11 +14,6 @@ namespace PV {
 
 class BaseProbe;
 
-typedef struct energyterm_ {
-   BaseProbe * probe;
-   double coeff;
-} energyTerm;
-
 /**
  * ColumnEnergyProbe assembles several base probes each of which
  * contribute a term to an energy of the entire HyPerCol.
@@ -60,7 +55,7 @@ public:
     * All BaseProbes added to the ColumnEnergyProbe must have the same
     * getNumValues().
     */
-   int addTerm(BaseProbe * probe, double coefficient);
+   int addTerm(BaseProbe * probe);
    
    /**
     * Prints the energies to the output stream, formatted as a comma-separated value:
@@ -92,7 +87,7 @@ protected:
    virtual bool needRecalc(double timevalue);
 
    size_t numTerms;
-   energyTerm * terms;
+   BaseProbe ** terms;
 
 private:
    /**

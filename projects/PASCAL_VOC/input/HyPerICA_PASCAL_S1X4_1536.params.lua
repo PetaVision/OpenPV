@@ -739,5 +739,44 @@ pv.addGroup(pvParams, "GroundTruthReconS1ToGroundTruthReconS1Error",
 	    }
 )
 
+-- Energy probe
+
+pv.addGroup(pvParams, "S1EnergyProbe", 
+	    {
+	       groupType                           = "ColumnEnergyProbe";
+	       probeOutputFile                     = "S1EnergyProbe.txt";
+	    }
+)
+
+pv.addGroup(pvParams, "ImageReconS1ErrorL2NormEnergyProbe",
+	    {
+	       groupType                           = "L2NormProbe"
+	       targetLayer                         = "ImageReconS1Error";
+	       message                             = NULL;
+	       textOutputFlag                      = true;
+	       probeOutputFile                     = "ImageReconS1ErrorL2NormEnergyProbe.txt";
+	       triggerFlag                         = true;
+	       triggerLayerName                    = "Image";
+	       triggerOffset                       = 1;
+	       energyProbe                         = "S1EnergyProbe";
+	       coefficient                         = 0.5;
+	       maskLayerName                       = NULL;
+	       exponent                            = 2;
+	    }
+)
+
+L1NormProbe "S1L1NormEnergyProbe" = {
+    targetLayer                         = "S1";
+    message                             = NULL;
+    textOutputFlag                      = true;
+    probeOutputFile                     = "S1EnergyProbe.txt";
+    triggerFlag                         = false;
+    energyProbe                         = "S1L1NormEnergyProbe";
+    coefficient                         = 0.025;
+    maskLayerName                       = NULL;
+};
+
+
+
 -- Print out PetaVision approved parameter file to the console
 pv.printConsole(pvParams)

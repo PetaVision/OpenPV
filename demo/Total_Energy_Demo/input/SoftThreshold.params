@@ -8,7 +8,8 @@
 //  the total energy in S1.
 //
 //  For a soft-threshold model, LCA minimizes the
-//  energy \frac{1}{2}\| x-\Phi y\|_2^2 + \|y\|_1.
+//  energy \frac{1}{2}\| x-\Phi y\|_2^2 + \lambda |y\|_1,
+//  where lambda is VThresh of the HyPerLCA layer.
 
 debugParsing = false;
 
@@ -26,7 +27,7 @@ HyPerCol "column" = {
     progressInterval                    = 1000;
     writeProgressToErr                  = false;
     verifyWrites                        = true;
-    outputPath                          = "output-SoftThreshold/";
+    outputPath                          = "output-SoftThresholdLCA/";
     printParamsFilename                 = "pv.params";
     randomSeed                          = 1234567890;
     nx                                  = 32;
@@ -253,13 +254,12 @@ L2NormProbe "Reconstruction_Error_Probe" = {
     exponent                            = 2.0;
 };
 
-L1NormProbe "Cost_Function_Probe" = {
+L1NormLCAProbe "Cost_Function_Probe" = {
     targetLayer                         = "V1";
     message                             = NULL;
     probeOutputFile                     = "cost_function.txt";
     triggerFlag                         = false;
     energyProbe                         = "Total_Energy_Probe";
-    coefficient                         = 0.25;
 };
 
 L0NormProbe "Activation_Percentage" = {

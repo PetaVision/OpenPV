@@ -45,7 +45,7 @@ int ColumnEnergyProbe::outputHeader() {
    return PV_SUCCESS;
 }
 
-int ColumnEnergyProbe::addTerm(BaseProbe * probe, double coefficient) {
+int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
    if (probe==NULL) { return PV_FAILURE; }
    int status = PV_SUCCESS;
    if (numTerms==0) {
@@ -88,7 +88,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe, double coefficient) {
       MPI_Barrier(this->getParent()->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   energyTerm * newTermsArray = (energyTerm *) realloc(terms, (numTerms+(size_t) 1)*sizeof(energyTerm));
+   BaseProbe ** newTermsArray = (BaseProbe **) realloc(terms, (numTerms+(size_t) 1)*sizeof(BaseProbe *));
    if (newTermsArray==NULL) {
       fprintf(stderr, "%s \"%s\" error: unable to add term %zu (\"%s\"): %s\n",
          getKeyword(), getName(), numTerms+(size_t) 1, probe->getName(),
@@ -96,8 +96,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe, double coefficient) {
       exit(EXIT_FAILURE);
    }
    terms = newTermsArray;
-   terms[numTerms].probe = probe;
-   terms[numTerms].coeff = coefficient;
+   terms[numTerms] = probe;
    numTerms = newNumTerms;
    return PV_SUCCESS;
 }  // end ColumnEnergyProbe::addTerm(BaseProbe *, double)
@@ -112,10 +111,11 @@ int ColumnEnergyProbe::calcValues(double timevalue) {
    memset(valuesBuffer, 0, numValues*sizeof(*valuesBuffer));
    double energy1[numValues];
    for (int n=0; n<numTerms; n++) {
-      energyTerm * p = &terms[n];
-      p->probe->getValues(timevalue, energy1);
+      BaseProbe * p = terms[n];
+      p->getValues(timevalue, energy1);
+      double coeff = p->getCoefficient();
       for (int b=0; b<numValues; b++) {
-         valuesBuffer[b] += p->coeff * energy1[b];
+         valuesBuffer[b] += coeff * energy1[b];
       }
    }
    return PV_SUCCESS;

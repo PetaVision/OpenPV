@@ -9,10 +9,10 @@ Currently, the PetaVision library contains classes for implementing both spiking
 
 Installation Instructions:
 
-* [AWS Install](src/install_aws.md)
+* [AWS Install](https://github.com/PetaVision/OpenPV/wiki/AWS-Installation)
 
-* [OS X Install](src/install_osx.md)
+* [OS X Install](https://github.com/PetaVision/OpenPV/wiki/OS-X-Installation)
 
-* [Ubuntu Install](src/install_ubuntu.md)
+* [Ubuntu Install](https://github.com/PetaVision/OpenPV/wiki/Ubuntu-Installation)
 
 

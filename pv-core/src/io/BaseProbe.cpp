@@ -52,6 +52,7 @@ int BaseProbe::initialize_base() {
    triggerLayer = NULL;
    triggerOffset = 0;
    energyProbe = NULL;
+   coefficient = 1.0;
    numValues = 0;
    probeValues = NULL;
    lastUpdateTime = -DBL_MAX;
@@ -129,7 +130,7 @@ void BaseProbe::ioParam_energyProbe(enum ParamsIOFlag ioFlag) {
 void BaseProbe::ioParam_coefficient(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "energyProbe"));
    if (energyProbe && energyProbe[0]) {
-      parent->ioParamValue(ioFlag, name, "coefficient", &coefficient, 1.0/*default*/, true/*warnIfAbsent*/);
+      parent->ioParamValue(ioFlag, name, "coefficient", &coefficient, coefficient, true/*warnIfAbsent*/);
    }
 }
 
@@ -272,7 +273,7 @@ int BaseProbe::communicateInitInfo() {
          MPI_Barrier(getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
-      status = probe->addTerm(this, coefficient);
+      status = probe->addTerm(this);
    }
    return status;
 }
