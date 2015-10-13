@@ -350,8 +350,8 @@ model_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_
 model_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
 %%model_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
 predicted_label_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-predicted_label__max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-predicted_label__mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
+predicted_label_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
+predicted_label_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
 %%predicted_label_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
 accuracy_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
 accuracy_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
@@ -628,8 +628,8 @@ endfor %% i_Sparse
 save([svm_dir, filesep, "svm.txt"], "target_classes", "xval_model_hist_pool_array", "xval_model_max_pool_array", "xval_model_mean_pool_array", "model_hist_pool_array", "model_max_pool_array", "model_mean_pool_array", "predicted_label_hist_pool_array", "predicted_label_max_pool_array", "predicted_label_mean_pool_array", "accuracy_hist_pool_array", "accuracy_max_pool_array", "accuracy_mean_pool_array", "prob_values_hist_pool_array", "prob_values_max_pool_array", "prob_values_mean_pool_array");
 if plot_flag
   num_pool = 3;
-  pool_types = {"hist"; "max"; "mean"};
-  %%pool_types = {"hist"; "max"; "combo"};
+  pool_types = {"hist"; "max"; "mean"; "SLP"};
+  %%pool_types = {"hist"; "max"; "combo"; "SLP"};
   xval_model_array = zeros(num_target_classes, num_Sparse_list + (num_Sparse_list>1), num_pool);
   for i_pool = 1:num_pool
     for i_target_class = 1 : num_target_classes
@@ -747,7 +747,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	  image(uint8(gt_classID_heatmap)); axis off; axis image, box off;
 	  drawnow
 	endif
-	imwrite(uint8(gt_classID_heatmap), [svm_dir, filesep, "gt_", num2str(gt_time, "%i"), "_", Sparse_list{i_Sparse,2}, "_", pool_types{i_pool}, ".png"], "png");
+	imwrite(uint8(gt_classID_heatmap), [svm_dir, filesep, "gt_", num2str(gt_time, "%i"), ".png"], "png");
       endif %% display_frame == i_frame  && i_Sparse == 1
       
       if i_pool > num_pool
@@ -851,7 +851,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	endfor
 	if plot_flag
 	  pred_classID_heatmap = zeros(pred_hdr.ny, pred_hdr.nx, 3);
-	  pred_fig = figure("name", ["Predict: ", num2str(pred_time, "%i")]);
+	  pred_fig = figure("name", ["Predict: ", num2str(pred_time, "%i"), "_", Sparse_list{i_Sparse,2}, "_", pool_types{i_pool}]);
 	  image(uint8(pred_classID_heatmap)); axis off; axis image, box off;
 	  hold on
 	  for i_target_classID = 1 : num_target_classes
