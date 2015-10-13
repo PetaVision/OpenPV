@@ -7,6 +7,7 @@
 
 #include <cstdlib>
 #include <omp.h>
+#include <string.h>
 #include "PV_Arguments.hpp"
 #include "../io/io.h"
 
