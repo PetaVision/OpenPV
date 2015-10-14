@@ -25,7 +25,7 @@ HyPerCol "column" = {
     //checkpointReadDir = "/home/ec2-user/mountData/single_stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = true;
-    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/icaweights_bugged/cleanup_fine/Checkpoints";
+    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/icaweights_bugged/monoTest/cleanup_fine/Checkpoints";
     checkpointWriteStepInterval = 10000;
     deleteOlderCheckpoints = true;
     //suppressLastOutput = false;
@@ -195,31 +195,32 @@ ANNLayer "RightImage" = {
 //    triggerOffset = 0;
 //};
 
-ANNNormalizedErrorLayer "LeftError" = {
-    restart = 0;
-    nxScale = .5;
-    nyScale = .5;
-    nf = 1;
-    writeStep = 1000;
-    initialWriteTime = 1000.0;
-    mirrorBCflag = 0;
-    writeSparseActivity = 0;
-    //
-    InitVType = "ZeroV";
-    //InitVType = "InitVFromFile";
-    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
-    //
-    VThresh = 0; //Change this for efficiency
-    AMax =  infinity;
-    AMin = -infinity;
-    AShift = 0;
-    VWidth = 0;
-    valueBC = 0;
-    //
-    errScale = 1;
-    //
-    phase = 4;  
-};
+//
+//ANNNormalizedErrorLayer "LeftError" = {
+//    restart = 0;
+//    nxScale = .5;
+//    nyScale = .5;
+//    nf = 1;
+//    writeStep = 1000;
+//    initialWriteTime = 1000.0;
+//    mirrorBCflag = 0;
+//    writeSparseActivity = 0;
+//    //
+//    InitVType = "ZeroV";
+//    //InitVType = "InitVFromFile";
+//    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
+//    //
+//    VThresh = 0; //Change this for efficiency
+//    AMax =  infinity;
+//    AMin = -infinity;
+//    AShift = 0;
+//    VWidth = 0;
+//    valueBC = 0;
+//    //
+//    errScale = 1;
+//    //
+//    phase = 4;  
+//};
 
 // for visualization only, makes no output
 ANNLayer "LeftRecon" = {
@@ -274,8 +275,29 @@ ANNLayer "LeftRecon" = {
 //};
 
 ANNNormalizedErrorLayer "RightError" = {
-    #include "LeftError";
-    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V.pvp";
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 1;
+    writeStep = 1000;
+    initialWriteTime = 1000.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
+    //
+    VThresh = 0; //Change this for efficiency
+    AMax =  infinity;
+    AMin = -infinity;
+    AShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    //
+    errScale = 1;
+    //
+    phase = 4;  
 };
 
 // for visualization only, makes no output
@@ -310,7 +332,7 @@ HyPerLCALayer "V1" = {
     slopeErrorStd = 0.01;
     // 
     dVThresh = 0;
-    VThresh = 0.006;
+    VThresh = 0.002;
     AMax = infinity;
     AMin = 0;
     AShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
@@ -436,14 +458,14 @@ HyPerLCALayer "V1" = {
 //};
 //
 
-IdentConn "LeftImageToLeftError" = {
-   preLayerName                        = "LeftImage";
-   postLayerName                       = "LeftError";
-   channelCode                         = 0;
-   delay                               = [0.000000];
-   // initWeightsFile                     was set to (NULL);
-   writeStep                           = -1;
-};
+//IdentConn "LeftImageToLeftError" = {
+//   preLayerName                        = "LeftImage";
+//   postLayerName                       = "LeftError";
+//   channelCode                         = 0;
+//   delay                               = [0.000000];
+//   // initWeightsFile                     was set to (NULL);
+//   writeStep                           = -1;
+//};
 
 //
 //// Right eye connections
@@ -468,9 +490,12 @@ IdentConn "LeftImageToLeftError" = {
 //
 
 IdentConn "RightImageToRightError" = {
-    #include "LeftImageToLeftError";
-    @preLayerName = "RightImage";
-    @postLayerName = "RightError";
+   preLayerName                        = "RightImage";
+   postLayerName                       = "RightError";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
 };
 
 
@@ -478,8 +503,8 @@ IdentConn "RightImageToRightError" = {
 
 HyPerConn "V1ToLeftError" = {
     preLayerName = "V1";
-    postLayerName = "LeftError";
-    channelCode = 1;
+    postLayerName = "LeftRecon";
+    channelCode = -1;
     nxp = 66;
     nyp = 66;
     shrinkPatches = false;
@@ -529,21 +554,21 @@ HyPerConn "V1ToLeftError" = {
     pvpatchAccumulateType = "convolve";
 };
 
-TransposeConn "LeftErrorToV1" = {
-    preLayerName = "LeftError";
-    postLayerName = "V1";
-    channelCode = 0;
-    originalConnName = "V1ToLeftError";
-    selfFlag = false;
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    writeStep = -1;
-    writeCompressedCheckpoints = false;
-    shmget_flag = false;
-    delay = 0;
-    pvpatchAccumulateType = "convolve";
-    updateGSynFromPostPerspective = true;
-    receiveGpu = true;
-};
+//TransposeConn "LeftErrorToV1" = {
+//    preLayerName = "LeftError";
+//    postLayerName = "V1";
+//    channelCode = 0;
+//    originalConnName = "V1ToLeftError";
+//    selfFlag = false;
+//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    shmget_flag = false;
+//    delay = 0;
+//    pvpatchAccumulateType = "convolve";
+//    updateGSynFromPostPerspective = true;
+//    receiveGpu = true;
+//};
 
 CloneKernelConn "V1ToLeftRecon" = {
     preLayerName = "V1";
@@ -590,6 +615,7 @@ CloneKernelConn "recon_V1ToRightImage" = {
 //Right binocular connections
 HyPerConn "V1ToRightError" = {
     #include "V1ToLeftError";
+    @channelCode = 1;
     @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
     normalizeGroupName = "V1ToLeftError";
@@ -597,9 +623,19 @@ HyPerConn "V1ToRightError" = {
 };
 
 TransposeConn "RightErrorToV1" = {
-    #include "LeftErrorToV1";
-    @preLayerName = "RightError";
-    @originalConnName = "V1ToRightError";
+    preLayerName = "RightError";
+    postLayerName = "V1";
+    channelCode = 0;
+    originalConnName = "V1ToRightError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
+    receiveGpu = true;
 };
 
 CloneKernelConn "V1ToRightRecon" = {

@@ -1,26 +1,26 @@
 clear all; close all; dbstop error;
 
 %addpath('devkit/matlab/')
-addpath('~/workspaceGit/OpenPV/pv-core/mlab/util')
+addpath('~/workspace/pv-core/mlab/util')
 
 %outdir =  '/nh/compneuro/Data/Depth/LCA/benchmark/validate/plots/';
-outdir =  '/nh/compneuro/Data/Depth/NIPS/finetuned/outplots_vssparse/'
+outdir =  '~/mountData/outplots/ica_vs_lca/'
 
 mkdir(outdir);
 
-LCAdir =  '/nh/compneuro/Data/Depth/NIPS/finetuned/validate/aws_icapatch_LCA_fine/';
-RELUdir = '/nh/compneuro/Data/Depth/NIPS/sparse_control/validate/aws_icapatch_RELU_fine_sparse/';
+LCAdir =  '~/mountData/benchmark/icaweights_bugged/validate/aws_icapatch_LCA_fine/'
+RELUdir = '~/mountData/benchmark/validate/aws_icapatch_RELU/'
 
 %These should be equivelent for LCA or RELU
 timestamp = [LCAdir '/timestamps/DepthImage.txt'];
 gtPvpFile = [LCAdir 'a4_DepthDownsample.pvp'];
 
-%imageDir = 's3://kitti/stereo_flow/multiview/training/image_2/';
-imageDir = '/nh/compneuro/Data/KITTI/stereo_flow/multiview/training/image_2/'
+imageDir = 's3://kitti/stereo_flow/multiview/training/image_2/';
+%imageDir = '/nh/compneuro/Data/KITTI/stereo_flow/multiview/training/image_2/'
 
 %Estimate pvps
 LCAFilename = [LCAdir 'a7_RCorrRecon.pvp'];
-RELUFilename = [RELUdir 'a5_RCorrRecon.pvp'];
+RELUFilename = [RELUdir 'a7_RCorrRecon.pvp'];
 
 % error threshold for error calculation
 tau = 3;
@@ -72,8 +72,9 @@ end
 %[data_RELU, hdr_RELU] = readpvpfile(RELUFilename, 0, 10, 0, 0);
 
 numFrames = length(data_gt);
-assert(numFrames == length(data_LCA));
-assert(numFrames == length(data_RELU));
+numFrames = min(numFrames, length(data_LCA));
+numFrames = min(numFrames, length(data_RELU));
+numFrames
 
 %Build timestamp matrix
 time = zeros(numFrames, 1);
@@ -84,7 +85,7 @@ for(i = 1:numFrames)
    line = fgetl(timeFile);
    split = strsplit(line, ',');
    time(i, 1) = str2num(split{2});
-   frameName = strsplit(split{3}, '/'){end};
+   frameName = strsplit(split{end}, '/'){end};
    gtFilenames(i, 1) = frameName;
 end
 %time is the corresponding time of the run, gtFilenames contains the suffix filename of the actual image
@@ -115,10 +116,17 @@ for(i = 2:numFrames)
    %Image data
    targetTime = data_gt{i}.time;
    targetFrame = gtFilenames{i, 1};
+
+   
    imageFilename = [imageDir, targetFrame];
-   %system(['aws s3 cp ', imageFilename, ' tmpImg.png']);
-   %image = imread('tmpImg.png');
-   image = imread(imageFilename);
+
+   if(imageFilename(1:3) == 's3:')
+      system(['aws s3 cp ', imageFilename, ' tmpImg.png']);
+      image = imread('tmpImg.png');
+   else
+      image = imread(imageFilename);
+   end
+
 
    [imageNy, imageNx, nf] = size(image);
    assert(imageNy >= targetNy);

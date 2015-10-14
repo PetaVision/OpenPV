@@ -18,14 +18,14 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "/home/ec2-user/mountData2/benchmark/train/aws_icaweights_rect_1024_LCA/";
+    outputPath = "/home/ec2-user/mountData/benchmark/train/rcorr/aws_icaweights_LCA/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = false;
-    checkpointWriteDir = "/home/ec2-user/mountData2/benchmark/train/aws_icaweights_rect_1024_LCA/Checkpoints";
+    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/icaweights_LCA/Checkpoints";
     checkpointWriteStepInterval = 50;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
@@ -47,7 +47,7 @@ MoviePvp "LCA_V1" = {
     nxScale = .25;
     nyScale = .25;
     nf = 1024;
-    inputPath = "~/mountData2/benchmark/icaweights_rect_1024_LCA/a12_V1.pvp";
+    inputPath = "~/mountData/benchmark/icaweights_LCA/a12_V1.pvp";
     writeFrameToTimestamp = true;
     writeStep = -1;
     sparseLayer = true;
@@ -333,7 +333,7 @@ KernelConn "LCA_V1ToLeftRecon" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData2/benchmark/icaweights_rect_1024_LCA/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_LCA/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
 
     strength = 1; //.25/2  
     normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
@@ -371,7 +371,7 @@ KernelConn "LCA_V1ToLeftRecon" = {
 KernelConn "LCA_V1ToRightRecon" = {
    #include "LCA_V1ToLeftRecon";
    @postLayerName = "RightRecon";
-   @initWeightsFile = "/home/ec2-user/mountData2/benchmark/icaweights_rect_1024_LCA/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
+   @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_LCA/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
 };
 
 ////SLP Connections
