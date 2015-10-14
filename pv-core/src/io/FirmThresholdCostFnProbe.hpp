@@ -21,6 +21,10 @@ namespace PV {
  * with breaks where |V|=VThresh and |V|=VThresh+VWidth.
  * Also, as VWidth->0, the transfer function approaches the hard threshold case, and as
  * VWidth->infinity, the transfer function approaches the soft threshold case.
+ *
+ * The cost function for a layer with activities y_i is given by the sum of C(y_i),
+ * where C(y_i) = (VThresh+VWidth)/2 if |y_i|>=VThresh+VWidth, and
+ * C(y_i) = y_i*(1-y_i/(VThresh+VWidth)/2) if |y_i|<VThresh+VWidth.
  */
 class FirmThresholdCostFnProbe : public AbstractNormProbe {
 public:
@@ -42,14 +46,18 @@ protected:
     */
 
    /**
-    * @brief VThresh: The threshold where the transfer function returns 0 if |V|<VThresh.
-    * The default is zero.
+    * @brief VThresh: The threshold where the transfer function
+    * returns 0 if |V|<VThresh.  If the target layer is an ANNLayer or one
+    * of its subclasses, the default is the target layer's VThresh;
+    * otherwise, the default is zero.
     */
    virtual void ioParam_VThresh(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief VWidth: The width of the interval over which the transfer function
-    * changes from hard to soft threshold.  The default is zero.
+    * changes from hard to soft threshold.  If the target layer is an ANNLayer or
+    * one of its subclasses, the default is the target layer's VWidth; otherwise,
+    * the default is zero.
     */
    virtual void ioParam_VWidth(enum ParamsIOFlag ioFlag);
    /** @} */

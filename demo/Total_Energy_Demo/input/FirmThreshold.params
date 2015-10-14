@@ -50,7 +50,6 @@ Movie "input" = {
     phase                               = 0;
     mirrorBCflag                        = false;
     valueBC                             = 0;
-    triggerLayerName                    = NULL;
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;
@@ -249,28 +248,27 @@ L2NormProbe "Reconstruction_Error_Probe" = {
     targetLayer                         = "residual";
     message                             = NULL;
     probeOutputFile                     = "recon_error_l2norm.txt";
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
     energyProbe                         = "Total_Energy_Probe";
     coefficient                         = 0.5;
     exponent                            = 2.0;
 };
 
-FirmThresholdCostFnProbe "Cost_Function_Probe" = {
+FirmThresholdCostFnLCAProbe "Cost_Function_Probe" = {
     targetLayer                         = "V1";
     message                             = NULL;
     probeOutputFile                     = "cost_function.txt";
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
     energyProbe                         = "Total_Energy_Probe";
     // VThresh inherited from targetLayer
     // VWidth inherited from targetLayer
-    coefficient                         = 0.25;
 };
 
 L0NormProbe "Activation_Percentage" = {
     targetLayer                         = "V1";
     message                             = NULL;
     probeOutputFile                     = "activation_percentage.txt";
-    triggerFlag                         = false;
+    triggerLayerName                    = NULL;
 };
 
 ColumnEnergyProbe "Input_Energy" = {
@@ -281,7 +279,6 @@ L2NormProbe "Input_L2Norm" = {
     targetLayer                         = "input";
     message                             = NULL;
     probeOutputFile                     = "input_l2norm.txt";
-    triggerFlag                         = true;
     triggerLayerName                    = "input";
     exponent                            = 2;
     energyProbe                         = "Input_Energy";
