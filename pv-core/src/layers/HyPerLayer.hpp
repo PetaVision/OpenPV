@@ -156,11 +156,6 @@ protected:
    virtual void ioParam_nf(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief marginWidth: Deprecated
-    */
-   virtual void ioParam_marginWidth(enum ParamsIOFlag ioFlag);
-
-   /**
     * @brief phase: Defines the ordering in which each layer is updated
     */
    virtual void ioParam_phase(enum ParamsIOFlag ioFlag);
