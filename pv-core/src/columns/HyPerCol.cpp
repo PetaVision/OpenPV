@@ -360,7 +360,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    int thread_status = PV_SUCCESS;
    int num_threads = pv_initObj->getArguments()->getNumThreads();
 #ifdef PV_USE_OPENMP_THREADS
-   if (numThreads==0) {
+   if (num_threads==0) {
       thread_status = PV_FAILURE;
    }
    else {
