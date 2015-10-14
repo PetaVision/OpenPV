@@ -465,7 +465,7 @@ int TextStream::readFileToBuffer(int offset, const PVLayerLoc * loc, int * buf) 
       PV::PV_fseek(fileStream,-1 * numExtraReads,SEEK_CUR);
    }
 
-   delete tmpChar;
+   delete[] tmpChar;
    return status;
 }
 
