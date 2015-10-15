@@ -24,7 +24,7 @@ namespace PV {
  *
  * The cost function for a layer with activities y_i is given by the sum of C(y_i),
  * where C(y_i) = (VThresh+VWidth)/2 if |y_i|>=VThresh+VWidth, and
- * C(y_i) = y_i*(1-y_i/(VThresh+VWidth)/2) if |y_i|<VThresh+VWidth.
+ * C(y_i) = |y_i|*(1-|y_i|/(VThresh+VWidth)/2) if |y_i|<VThresh+VWidth.
  */
 class FirmThresholdCostFnProbe : public AbstractNormProbe {
 public:
