@@ -8,7 +8,8 @@
 //  the total energy in S1.
 //
 //  For a soft-threshold model, LCA minimizes the
-//  energy \frac{1}{2}\| x-\Phi y\|_2^2 + \|y\|_1.
+//  energy \frac{1}{2}\| x-\Phi y\|_2^2 + \lambda |y\|_1,
+//  where lambda is VThresh of the HyPerLCA layer.
 
 debugParsing = false;
 
@@ -17,7 +18,7 @@ HyPerCol "column" = {
     dt                                  = 1;
     dtAdaptFlag                         = true;
     dtAdaptController                   = "TimeScale";
-    dtScaleMax                          = 5;
+    dtScaleMax                          = 4;
     dtScaleMin                          = 0.125;
     dtChangeMax                         = 0.05;
     dtChangeMin                         = 0;
@@ -26,7 +27,7 @@ HyPerCol "column" = {
     progressInterval                    = 1000;
     writeProgressToErr                  = false;
     verifyWrites                        = true;
-    outputPath                          = "output-s/";
+    outputPath                          = "output-UsingQuotientColProbe/";
     printParamsFilename                 = "pv.params";
     randomSeed                          = 1234567890;
     nx                                  = 32;
@@ -74,7 +75,7 @@ Movie "input" = {
     resetToStartOnLoop                  = false;
 };
 
-ANNNormalizedErrorLayer "residual" = {
+ANNErrorLayer "residual" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -90,7 +91,6 @@ ANNNormalizedErrorLayer "residual" = {
     VThresh                             = -infinity;
     clearGSynInterval                   = 0;
     errScale                            = 1;
-    useMask                             = false;
 };
 
 HyPerLCALayer "V1" = {
@@ -229,7 +229,6 @@ CloneConn "V1_to_reconstruction" = {
     receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
     pvpatchAccumulateType               = "convolve";
-    writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     gpuGroupIdx                         = 0;
@@ -240,8 +239,8 @@ CloneConn "V1_to_reconstruction" = {
     originalConnName                    = "V1_to_residual";
 };
 
-ColumnEnergyProbe "Total_Energy_Probe" = {
-    probeOutputFile                     = "total_energy.txt";
+ColumnEnergyProbe "Recon_Error_ColumnProbe" = {
+    probeOutputFile                     = "recon_error_column_probe.txt";
 };
 
 L2NormProbe "Reconstruction_Error_Probe" = {
@@ -249,22 +248,13 @@ L2NormProbe "Reconstruction_Error_Probe" = {
     message                             = NULL;
     probeOutputFile                     = "recon_error_l2norm.txt";
     triggerFlag                         = false;
-    energyProbe                         = "Total_Energy_Probe";
-    coefficient                         = 0.5;
-    exponent                            = 2.0;
+    energyProbe                         = "Recon_Error_ColumnProbe";
+    coefficient                         = 1.0;
+    exponent                            = 1.0;
 };
 
-L1NormProbe "Cost_Function_Probe" = {
-    targetLayer                         = "V1";
-    message                             = NULL;
-    probeOutputFile                     = "cost_function.txt";
-    triggerFlag                         = false;
-    energyProbe                         = "Total_Energy_Probe";
-    coefficient                         = 0.25;
-};
-
-ColumnEnergyProbe "Input_Energy" = {
-    probeOutputFile                     = "input_energy.txt";
+ColumnEnergyProbe "Input_ColumnProbe" = {
+    probeOutputFile                     = "input_column_probe.txt";
 };
 
 L2NormProbe "Input_L2Norm" = {
@@ -273,13 +263,14 @@ L2NormProbe "Input_L2Norm" = {
     probeOutputFile                     = "input_l2norm.txt";
     triggerFlag                         = true;
     triggerLayerName                    = "input";
-    exponent                            = 2;
-    energyProbe                         = "Input_Energy";
-    coefficient                         = 0.5;
+    exponent                            = 1.0;
+    energyProbe                         = "Input_ColumnProbe";
+    coefficient                         = 1.0;
 };
 
 QuotientColProbe "TimeScale" = {
-    numerator                           = "Input_Energy";
-    denominator                         = "Total_Energy_Probe";
+    numerator                           = "Input_ColumnProbe";
+    denominator                         = "Recon_Error_ColumnProbe";
     probeOutputFile                     = "timescale.txt";
+    valueDescription                    = "TimeScale";
 };

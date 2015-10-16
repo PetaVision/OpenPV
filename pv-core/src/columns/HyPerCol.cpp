@@ -1973,9 +1973,6 @@ double * HyPerCol::adaptTimeScale(){
    }
    calcTimeScaleTrue();
    for(int b = 0; b < nbatch; b++){
-      //const double timeScaleMax = 5.0;             // maxiumum value of timeScale
-      //const double changeTimeScaleMax = 0.05;      // maximum change in timeScale from previous time step
-      //const double changeTimeScaleTrueMax = 0.05;  // if change in timeScaleTrue exceeds changeTimeScaleMax, timeScale does not increase;
       // forces timeScale to remain constant if Error is changing too rapidly
       // if change in timeScaleTrue is negative, revert to minimum timeScale
       // TODO?? add ability to revert all dynamical variables to previous values if Error increases?
@@ -2028,59 +2025,68 @@ double * HyPerCol::adaptTimeScale(){
 }
 
 int HyPerCol::calcTimeScaleTrue() {
+   // First, query all layers to check for barriers on how big the time scale can be.
+   // By default, HyPerLayer::getTimeScale returns -1
+   // (that is, the layer doesn't care how big the time scale is).
+   // Movie and MoviePvp return minTimeScale when expecting to load a new frame
+   // on next time step based on current value of deltaTime
+   for (int b=0; b<nbatch; b++) {
+      // copying of timeScale and timeScaleTrue was moved to adaptTimeScale, just before the call to calcTimeScaleTrue -- Oct. 8, 2015
+      // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
+      double minTimeScaleTmp = -1;
+      for(int l = 0; l < numLayers; l++) {
+         //Grab timescale
+         double timeScaleTmp = layers[l]->calcTimeScale(b);
+         if (timeScaleTmp > 0.0){
+            //Error if smaller than tolerated
+            if (timeScaleTmp < dtMinToleratedTimeScale) {
+               if (globalRank()==0) {
+                  if (nbatch==1) {
+                     fprintf(stderr, "Error: Layer \"%s\" returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
+                  }
+                  else {
+                     fprintf(stderr, "Error: Layer \"%s\", batch element %d, returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), b, timeScaleTmp, dtMinToleratedTimeScale);
+                  }
+               }
+               MPI_Barrier(icComm->globalCommunicator());
+               exit(EXIT_FAILURE);
+            }
+            //Grabbing lowest timeScaleTmp
+            if (minTimeScaleTmp > 0.0){
+               minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
+            }
+            //Initial set
+            else{
+               minTimeScaleTmp = timeScaleTmp;
+            }
+         }
+      }
+      timeScaleTrue[b] = minTimeScaleTmp;
+   }
+   // Next, if there is a dtAdaptController, get its value.
+   // If it returns a positive number and that number is less than the timeScaleTrue from above,
    if (dtAdaptControlProbe) {
       std::vector<double> colProbeValues;
       dtAdaptControlProbe->getValues(simTime, &colProbeValues);
       assert(colProbeValues.size()==nbatch); // Need to make sure dtAdaptControlProbe->vectorSize == nbatch
       for (int b=0; b<nbatch; b++) {
-         timeScaleTrue[b] = colProbeValues.at(b);
-      }
-   }
-   else {
-      // Implement the method that existed before dtAdaptControlProbe was added to the code.
-      // query all layers to determine minimum timeScale > 0
-      // by default, HyPerLayer::getTimeScale returns -1
-      // initialize timeScaleMin to first returned timeScale > 0
-      // Movie returns timeScale = 1 when expecting to load a new frame
-      // on next time step based on current value of deltaTime
-      // TODO: implement the method as a ColProbe subclass.
-      for (int b=0; b<nbatch; b++) {
-         // copying of timeScale and timeScaleTrue was moved to adaptTimeScale, just before the call to calcTimeScaleTrue -- Oct. 8, 2015
-         oldTimeScale[b] = timeScale[b];
-         oldTimeScaleTrue[b] = timeScaleTrue[b];
-         // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
-         double minTimeScaleTmp = -1;
-         for(int l = 0; l < numLayers; l++) {
-            //Grab timescale
-            double timeScaleTmp = layers[l]->calcTimeScale(b);
-            if (timeScaleTmp > 0.0){
-               //Error if smaller than tolerated
-               if (timeScaleTmp < dtMinToleratedTimeScale) {
-                  if (globalRank()==0) {
-                     if (nbatch==1) {
-                        fprintf(stderr, "Error: Layer \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
-                     }
-                     else {
-                        fprintf(stderr, "Error: Layer \"%s\", batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), b, timeScaleTmp, dtMinToleratedTimeScale);
-                     }
+         double timeScaleProbe = colProbeValues.at(b);
+         if ( timeScaleProbe > 0 && (timeScaleProbe < timeScaleTrue[b] || timeScaleTrue[b]<0) ) {
+            if (timeScaleProbe < dtMinToleratedTimeScale) {
+               if (globalRank()==0) {
+                  if (nbatch==1) {
+                     fprintf(stderr, "Error: Probe \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), timeScaleProbe, dtMinToleratedTimeScale);
                   }
-                  MPI_Barrier(icComm->globalCommunicator());
-                  exit(EXIT_FAILURE);
-               }
-               //Grabbing lowest timeScaleTmp
-               if (minTimeScaleTmp > 0.0){
-                  minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
-               }
-               //Initial set
-               else{
-                  minTimeScaleTmp = timeScaleTmp;
+                  else {
+                     fprintf(stderr, "Error: Layer \"%s\", batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), b, timeScaleProbe, dtMinToleratedTimeScale);
+                  }
                }
             }
+            timeScaleTrue[b] =  timeScaleProbe;
          }
-         timeScaleTrue[b] = minTimeScaleTmp;
       }
    }
-   return PV_SUCCESS;
+return PV_SUCCESS;
 }
 
 int HyPerCol::advanceTime(double sim_time)

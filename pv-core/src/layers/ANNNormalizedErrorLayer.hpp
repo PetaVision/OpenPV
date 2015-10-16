@@ -30,7 +30,6 @@ protected:
 private:
    int initialize_base();
    double* timeScale;
-   float inputMag;
    std::ofstream timeScaleStream;
 
    bool useMask;
