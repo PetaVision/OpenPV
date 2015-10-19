@@ -6,7 +6,7 @@ addpath('~/workspace/pv-core/mlab/util/');
 addpath('~/workspace/pv-core/mlab/HyPerLCA/');
 
 workspace_path = '~/workspace/';
-output_dir = '/home/ec2-user/mountData/dictLearn/aws_icapatch_rect_1024_batch_0/'
+output_dir = '/home/ec2-user/mountData/dictLearn/aws_icapatch_binoc_batch0/'
 checkpoint_dir = [output_dir, 'Checkpoints/'];
 
 max_history = 100000000;

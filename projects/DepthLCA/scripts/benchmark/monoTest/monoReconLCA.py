@@ -7,17 +7,17 @@ from plotReconError import plotReconError
 #For plotting
 #import matplotlib.pyplot as plt
 
-outputDir = "/home/ec2-user/mountData/benchmark/icaweights_bugged/monoTest/cleanup_fine/"
+outputDir = "/home/ec2-user/mountData/benchmark/monoTest/mono_recon_LCA/"
 skipFrames = 1 #Only print every 20th frame
 doPlotRecon = True
 doPlotErr = False
 errShowPlots = False
 
 layers = [
-   "a1_LeftImage",
-   "a2_RightImage",
-   "a3_LeftRecon",
-   "a5_RightRecon",
+   "a3_LeftRescale",
+   "a5_LeftRecon",
+   "a9_RightRescale",
+   "a10_RightRecon"
    ]
 
 #Layers for constructing recon error
