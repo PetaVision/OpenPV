@@ -65,26 +65,16 @@ if(PV_USE_CUDA)
     endif(PV_USE_CUDNN)
 endif(PV_USE_CUDA)
 
-# Sound-related classes moved to auxlib/pvsound Mar 16, 2015 
-# if (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
-#     find_package(LIBSNDFILE)
-# endif (LIB_SND_FILE AND NOT LIBSNDFILE_FOUND)
-# 
-# if(LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
-#    include_directories(${LIBSNDFILE_INCLUDE_DIR})
-#    add_definitions(-DPV_USE_SNDFILE)
-#    set(LIB_SND_FILE_FLAGS_ADDED TRUE)
-# endif (LIB_SND_FILE AND LIBSNDFILE_FOUND AND NOT DEFINED LIB_SND_FILE_FLAGS_ADDED)
-
 # The user may specify a non-standard compiler name for MPI
 #  For example, the user may type:
 #    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc DCMAKE_CXX_COMPILER=openmpic++
 #    
-
-if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
-    MESSAGE("-- Searching for MPI library ............")
-    find_package(MPI REQUIRED)
-endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+if (PV_USE_MPI)
+    if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+        MESSAGE("-- Searching for MPI library ............")
+        find_package(MPI REQUIRED)
+    endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+endif (PV_USE_MPI)
 
 
 # Adds the core PetaVision directory
