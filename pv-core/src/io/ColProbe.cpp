@@ -35,7 +35,6 @@ int ColProbe::initialize(const char * probeName, HyPerCol * hc) {
 
 int ColProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV::BaseProbe::ioParamsFillGroup(ioFlag);
-   ioParam_probeOutputFile(ioFlag);
    return status;
 }
 

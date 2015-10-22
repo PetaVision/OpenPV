@@ -349,9 +349,6 @@ private:
    pvwdata_t** wDataStart;  //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    pvwdata_t** dwDataStart; //now that data for all patches are allocated to one continuous block of memory, this pointer saves the starting address of that array
    //int defaultDelay; //added to save params file defined delay...
-   char* triggerLayerName;
-   double triggerOffset;
-   HyPerLayer* triggerLayer;
    bool strengthParamHasBeenWritten;
    int * patch2datalookuptable;
    
@@ -399,6 +396,9 @@ protected:
    bool sharedWeights; // Set to true for the old KernelConn behavior
    // bool plasticityFlag; // Moved to base class BaseConnection on Jan 26, 2015
    bool triggerFlag;
+   char* triggerLayerName;
+   double triggerOffset;
+   HyPerLayer* triggerLayer;
    bool combine_dW_with_W_flag; // indicates that dwDataStart should be set equal to wDataStart, useful for saving memory when weights are not being learned but not used
    bool selfFlag; // indicates that connection is from a layer to itself (even though pre and post may be separately instantiated)
    char * normalizeMethod;

@@ -3479,6 +3479,7 @@ int HyPerConn::deliver() {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
          if(getReceiveGpu()){
             status = this->deliverPostsynapticPerspectiveGPU(&cube, arbor);
+            //GSyn already living on GPU
             post->setUpdatedDeviceGSynFlag(false);
          }
          else
@@ -3486,7 +3487,8 @@ int HyPerConn::deliver() {
          {
             status = this->deliverPostsynapticPerspective(&cube, arbor);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
-            post->setUpdatedDeviceGSynFlag(false);
+            //CPU updated gsyn, need to update on GPU
+            post->setUpdatedDeviceGSynFlag(true);
 #endif
          }
       }

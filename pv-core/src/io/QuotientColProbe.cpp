@@ -137,11 +137,17 @@ BaseProbe * QuotientColProbe::findProbe(char const * probeName) {
 
 int QuotientColProbe::calcValues(double timeValue) {
    int numValues = this->getNumValues();
+   double * valuesBuffer = getValuesBuffer();
+   if (parent->simulationTime()==parent->getStartTime()) {
+      for (int b=0; b<numValues; b++) {
+         valuesBuffer[b] = parent->getTimeScaleMin();
+      }
+      return PV_SUCCESS;
+   }
    double n[numValues];
    numerProbe->getValues(timeValue, n);
    double d[numValues];
    denomProbe->getValues(timeValue, d);
-   double * valuesBuffer = getValuesBuffer();
    for (int b=0; b<numValues; b++) {
       valuesBuffer[b] = n[b]/d[b];
    }

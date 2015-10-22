@@ -8,14 +8,14 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/";
+    outputPath = "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = false;
-    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Checkpoints";
+    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine/Checkpoints";
     checkpointWriteStepInterval = 193;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
@@ -42,7 +42,7 @@ ConstantLayer "Ones" = {
    mirrorBCflag = 0; 
    writeSparseActivity = false;
    InitVType = "ConstantV";
-   valueV    = .0085290; //Average of RELU activity 
+   valueV    = .0035216; //Average of LCA activity 
    VThresh = -infinity;   
    phase = 0; 
 };
@@ -52,10 +52,10 @@ MoviePvp "LCA_V1" = {
     nxScale = .25;
     nyScale = .25;
     nf = 512;
-    inputPath = "~/mountData/benchmark/icaweights_bugged/icaweights_RELU_fine/a12_V1.pvp";
+    inputPath = "~/mountData/benchmark/icaweights_binoc_LCA/a12_V1.pvp";
     writeFrameToTimestamp = true;
     writeStep = -1;
-    sparseLayer = false;
+    sparseLayer = true;
     writeSparseValues = true;
     displayPeriod = 1;
     start_frame_index = 1; //Start at frame 1
@@ -75,33 +75,33 @@ MoviePvp "LCA_V1" = {
     //useParamsImage = true;
 };
 
-//ANNLayer "LeftRecon" = {
-//    restart = 0;
-//    nxScale = .5;
-//    nyScale = .5;
-//    nf = 1;
-//    writeStep = 1.0;
-//    initialWriteTime = 1.0; //1 + writestep
-//    mirrorBCflag = 0;
-//    writeSparseActivity = 0;
-//    //
-//    //movieLayerName = "LeftImage";
-//    InitVType = "ZeroV";
-//    //
-//    VThresh = -infinity;
-//    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
-//    AMin = -infinity; 
-//    AShift = 0;
-//    VWidth = 0;
-//    valueBC = 0;
-//    // 
-//    phase = 1;
-//    //
-//};
-//
-//ANNLayer "RightRecon" = {
-//   #include "LeftRecon";
-//};
+ANNLayer "LeftRecon" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 1;
+    writeStep = 1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    //movieLayerName = "LeftImage";
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    // 
+    phase = 1;
+    //
+};
+
+ANNLayer "RightRecon" = {
+   #include "LeftRecon";
+};
 
 //Depth ground truth layers
 Movie "DepthImage" = {
@@ -269,58 +269,58 @@ PoolingConn "DepthImageToDepthDownsample" = {
     keepKernelsSynchronized             = true;
 };
 
-//KernelConn "LCA_V1ToLeftRecon" = {
-//    preLayerName = "LCA_V1";
-//    postLayerName = "LeftRecon";
-//    channelCode = 0;
-//    nxp = 66;
-//    nyp = 66;
-//    shrinkPatches = false;
-//    //
-//    numAxonalArbors = 1;
-//    initFromLastFlag = 0;
-//    
-//    weightInitType = "FileWeight";
-//    initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_LCA_fine/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
-//
-//    strength = 1; //.25/2  
-//    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
-//    //normalizeMethod = "normalizeContrastZeroMean"; 
-//    //SET PARAMS TO NEW NORMALIZATION METHOD
-//    minL2NormTolerated = 0;
-//    normalizeArborsIndividually = 0;
-//    normalize_cutoff = 0.0;
-//    normalizeFromPostPerspective = false;
-//    symmetrizeWeights = false;
-//    //
-//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-//    keepKernelsSynchronized = true; 
-//    combine_dW_with_W_flag = false; 
-//    //
-//    writeStep = -1;
-//    writeCompressedWeights = false;
-//    writeCompressedCheckpoints = false;
-//    plasticityFlag = false;
-//    //triggerFlag = true;
-//    //triggerLayerName = "LeftImage";
-//    //triggerOffset = 1;
-//    initialWriteTime = 0.0;
-//    //dWMax = 5; // 200.0 used for initial training
-//    selfFlag = false;
-//    shmget_flag = false;
-//    //
-//    delay = 0;
-//    //
-//    useWindowPost = false;
-//    updateGSynFromPostPerspective = false;
-//    pvpatchAccumulateType = "convolve";
-//};
-//
-//KernelConn "LCA_V1ToRightRecon" = {
-//   #include "LCA_V1ToLeftRecon";
-//   @postLayerName = "RightRecon";
-//   @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_LCA_fine/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
-//};
+KernelConn "LCA_V1ToLeftRecon" = {
+    preLayerName = "LCA_V1";
+    postLayerName = "LeftRecon";
+    channelCode = 0;
+    nxp = 66;
+    nyp = 66;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
+
+    strength = 1; //.25/2  
+    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
+    //normalizeMethod = "normalizeContrastZeroMean"; 
+    //SET PARAMS TO NEW NORMALIZATION METHOD
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    //triggerFlag = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
+    initialWriteTime = 0.0;
+    //dWMax = 5; // 200.0 used for initial training
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "LCA_V1ToRightRecon" = {
+   #include "LCA_V1ToLeftRecon";
+   @postLayerName = "RightRecon";
+   @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
+};
 
 //SLP Connections
 MomentumConn "W1Plasticity" = {
@@ -375,8 +375,8 @@ CloneConn "W1" = {
     delay = 0;
     preActivityIsNotRate = false;
     useWindowPost = false;
-    updateGSynFromPostPerspective = true;
-    receiveGpu = true;
+    updateGSynFromPostPerspective = false;
+    receiveGpu = false;
     pvpatchAccumulateType = "convolve";
 };
 
@@ -390,7 +390,7 @@ MomentumConn "BiasPlasticity" = {
    plasticityFlag                      = true;
    convertRateToSpikeCount             = false;
    receiveGpu                          = false;
-   sharedWeights                       = false;
+   sharedWeights                       = true;
 
    weightInitType = "FileWeight";
    //initWeightsFile = "/home/ec2-user/mountData/geoint/slp_train/Last/BiasPlasticity_W.pvp";
@@ -452,43 +452,43 @@ IdentConn "SLP_Recon_BufferToSLP_Error" = {
    writeStep                           = -1;
 };
 
-//
+
 ////Running 100 times through
 ParameterSweep "column":outputPath = {
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/";
 };
 
 ParameterSweep "W1Plasticity":initWeightsFile = {
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/W1Plasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/W1Plasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/W1Plasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/W1Plasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/W1Plasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/W1Plasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/W1Plasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/W1Plasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/W1Plasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/W1Plasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/W1Plasticity_W.pvp";
 };
 
 ParameterSweep "BiasPlasticity":initWeightsFile = {
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/slp/aws_icapatch_RELU_fine_bias/Last/BiasPlasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/BiasPlasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/BiasPlasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/BiasPlasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/BiasPlasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/BiasPlasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/BiasPlasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/BiasPlasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/BiasPlasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/BiasPlasticity_W.pvp";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/Last/BiasPlasticity_W.pvp";
 };

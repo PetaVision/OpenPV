@@ -736,7 +736,6 @@ int HyPerLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_nxScale(ioFlag);
    ioParam_nyScale(ioFlag);
    ioParam_nf(ioFlag);
-   ioParam_marginWidth(ioFlag);
    ioParam_phase(ioFlag);
    ioParam_mirrorBCflag(ioFlag);
    ioParam_valueBC(ioFlag);
@@ -807,17 +806,6 @@ void HyPerLayer::ioParam_nyScale(enum ParamsIOFlag ioFlag) {
 
 void HyPerLayer::ioParam_nf(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "nf", &numFeatures, numFeatures);
-}
-
-void HyPerLayer::ioParam_marginWidth(enum ParamsIOFlag ioFlag) {
-   // marginWidth parameter was deprecated July 25, 2013.
-   // As of Aug 12, 2014, marginWidth parameter is no longer read.
-   // After enough time has passed, this function should be deleted.
-   if (ioFlag==PARAMS_IO_READ && parent->parameters()->present(name, "marginWidth")) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "HyPerLayer \"%s\": margins are adjusted automatically; parameter marginWidth is no longer read.\n", name);
-      }
-   }
 }
 
 void HyPerLayer::ioParam_phase(enum ParamsIOFlag ioFlag) {

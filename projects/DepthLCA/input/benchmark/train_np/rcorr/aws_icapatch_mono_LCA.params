@@ -18,14 +18,13 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "/home/ec2-user/mountData/benchmark/train/rcorr/aws_icaweights_LCA/";
+    outputPath = "/home/ec2-user/mountData/benchmark/train/rcorr/aws_icaweights_mono_LCA/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = false;
-    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/icaweights_LCA/Checkpoints";
     checkpointWriteStepInterval = 50;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
@@ -46,8 +45,8 @@ MoviePvp "LCA_V1" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 1024;
-    inputPath = "~/mountData/benchmark/icaweights_LCA/a12_V1.pvp";
+    nf = 512;
+    inputPath = "~/mountData/benchmark/icaweights_mono_LCA/a6_V1.pvp";
     writeFrameToTimestamp = true;
     writeStep = -1;
     sparseLayer = true;
@@ -94,9 +93,9 @@ ANNLayer "LeftRecon" = {
     //
 };
 
-ANNLayer "RightRecon" = {
-   #include "LeftRecon";
-};
+//ANNLayer "RightRecon" = {
+//   #include "LeftRecon";
+//};
 
 //Depth ground truth layers
 Movie "DepthImage" = {
@@ -333,7 +332,7 @@ KernelConn "LCA_V1ToLeftRecon" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_LCA/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_mono_LCA/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
 
     strength = 1; //.25/2  
     normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
@@ -368,12 +367,12 @@ KernelConn "LCA_V1ToLeftRecon" = {
     pvpatchAccumulateType = "convolve";
 };
 
-KernelConn "LCA_V1ToRightRecon" = {
-   #include "LCA_V1ToLeftRecon";
-   @postLayerName = "RightRecon";
-   @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_LCA/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
-};
-
+//KernelConn "LCA_V1ToRightRecon" = {
+//   #include "LCA_V1ToLeftRecon";
+//   @postLayerName = "RightRecon";
+//   @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_mono_LCA/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
+//};
+//
 ////SLP Connections
 //HyPerConn "ICA_V1ToSLP_Error" = {
 //   preLayerName                        = "ICA_V1";

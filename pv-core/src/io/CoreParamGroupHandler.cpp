@@ -76,6 +76,7 @@
 
 #include "ColumnEnergyProbe.hpp"
 #include "QuotientColProbe.hpp"
+#include "FirmThresholdCostFnLCAProbe.hpp"
 #include "FirmThresholdCostFnProbe.hpp"
 #include "L0NormLCAProbe.hpp"
 #include "L0NormProbe.hpp"
@@ -206,6 +207,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 
          // // Layer probes
          {"LayerProbe", ProbeGroupType},
+         {"FirmThresholdCostFnLCAProbe", ProbeGroupType},
          {"FirmThresholdCostFnProbe", ProbeGroupType},
          {"L0NormLCAProbe", ProbeGroupType},
          {"L0NormProbe", ProbeGroupType},
@@ -542,6 +544,9 @@ BaseProbe * CoreParamGroupHandler::createProbe(char const * keyword, char const 
    else if( !strcmp(keyword, "LayerProbe") ) {
       fprintf(stderr, "LayerProbe \"%s\": Abstract class LayerProbe cannot be instantiated.\n", name);
       addedProbe = NULL;
+   }
+   else if( !strcmp(keyword, "FirmThresholdCostFnLCAProbe") ) {
+      addedProbe = new FirmThresholdCostFnLCAProbe(name, hc);
    }
    else if( !strcmp(keyword, "FirmThresholdCostFnProbe") ) {
       addedProbe = new FirmThresholdCostFnProbe(name, hc);

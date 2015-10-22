@@ -1,7 +1,8 @@
 function [A,t] = loadHyPerCol_timescales(outputDir)
-% plotTimeScale(outputDir)
+% [A,t] = loadHyPerCol_timescales(outputDir)
 %
 % outputDir is a string giving a directory containing the HyPerCol_timescales.txt to load
+%
 % A is a two-column array.  The first column is the values of timeScaleTrue
 %    The second is the value of timeScale.
 %

@@ -139,10 +139,13 @@ void TransposePoolingConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
    // During the communication phase, plasticityFlag will be copied from originalConn
 }
 
-void TransposePoolingConn::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
+void TransposePoolingConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
-      triggerFlag = false; // make sure that TransposePoolingConn always checks if its originalConn has updated
+      // make sure that TransposePoolingConn always checks if its originalConn has updated
+      triggerFlag = false;
+      triggerLayerName = NULL;
       parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", triggerFlag);
+      parent->parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName", NULL);
    }
 }
 

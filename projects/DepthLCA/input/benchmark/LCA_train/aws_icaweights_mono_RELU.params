@@ -1,0 +1,503 @@
+// // HyPerHLCA.params
+//
+// created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
+//
+//
+// Implements the locally competitive algorithm described in
+// Rozell et al., "Sparse Coding via Thresholding and Local Cometition
+// in Neural Circuits," Neural Computation 20, 2526-2563 (2008).
+///////////////////////////
+
+debugParsing = true;
+
+HyPerCol "column" = {
+    nx = 1200; //1242;  // KITTI synced value
+    ny = 360;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0;
+    stopTime = 194;
+    progressStep = 5000;
+    outputPath = "/home/ec2-user/mountData/benchmark/icaweights_mono_RELU/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointRead = false; //true;
+    //checkpointReadDir = "/home/ec2-user/mountData/single_stack_ndepth/Checkpoints";
+    //checkpointReadDirIndex = ;
+    checkpointWrite = true;
+    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/icaweights_mono_RELU/Checkpoints";
+    checkpointWriteStepInterval = 50000;
+    deleteOlderCheckpoints = true;
+    //suppressLastOutput = false;
+    writeProgressToErr = true;
+    outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
+    dtAdaptFlag = true;
+    dtScaleMax = 5.0;
+    dtScaleMin = 0.25;
+    dtChangeMax = 0.05;
+    dtChangeMin = 0.0;
+};
+
+//
+// layers
+//
+
+// left eye layers
+
+Movie "LeftImage" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    readPvpFile = false;
+    inputPath = "/home/ec2-user/mountData/kitti/list/image_2_benchmark_aws_cluster_single.txt";
+    writeFrameToTimestamp = true;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 200;
+    writeSparseActivity = false;
+    displayPeriod = 1;
+    start_frame_index = 0;
+    skip_frame_index = 1;
+    echoFramePathnameFlag = false;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = true;
+    writeImages = false;
+    offsetAnchor = "br"; //Offset anchor from bottom left
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+ANNLayer "LeftBipolar" = {
+   nxScale                             = .5;
+   nyScale                             = .5;
+   nf                                  = 1;
+   phase                               = 1;
+   mirrorBCflag                        = true;
+   InitVType                           = "ZeroV";
+   //triggerFlag                         = true;
+   //triggerLayerName                    = "LeftImage";
+   triggerOffset                       = 0;
+   writeStep                           = -1;
+   sparseLayer                         = false;
+   updateGpu                           = false;
+   VThresh                             = -3.40282e+38;
+   AMin                                = -3.40282e+38;
+   AMax                                = 3.40282e+38;
+   AShift                              = 0;
+   VWidth                              = 0;
+};
+
+ANNLayer "LeftGanglion" = {
+   nxScale                             = .5;
+   nyScale                             = .5;
+   nf                                  = 1;
+   phase                               = 2;
+   mirrorBCflag                        = true;
+   InitVType                           = "ZeroV";
+   //triggerFlag                         = true;
+   //triggerLayerName                    = "LeftImage";
+   triggerOffset                       = 0;
+   writeStep                           = -1;
+   initialWriteTime                    = 200;
+   sparseLayer                         = false;
+   updateGpu                           = false;
+   VThresh                             = -3.40282e+38;
+   AMin                                = -3.40282e+38;
+   AMax                                = 3.40282e+38;
+   AShift                              = 0;
+   VWidth                              = 0;
+};
+
+RescaleLayer "LeftRescale" = {
+    restart                         = false;
+    originalLayerName               = "LeftGanglion";
+    nxScale                         = .5;
+    nyScale                         = .5;
+    nf                              = 1;
+    mirrorBCflag                    = true;
+    //
+    writeStep                       = 1;
+    initialWriteTime                = 1;
+    writeSparseActivity             = false;
+    //
+    rescaleMethod                   = "l2"; //Can be either meanstd or maxmin
+    patchSize                       = 4356; //66*66
+    valueBC = 0;
+    phase                           = 3;
+    //triggerFlag                         = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 0;
+};
+
+ANNErrorLayer "LeftError" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 1.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
+    //
+    VThresh = -infinity; //Change this for efficiency
+    AMax =  infinity;
+    AMin = -infinity;
+    AShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    //
+    errScale = 1;
+    //
+    phase = 4;  
+};
+
+// for visualization only, makes no output
+ANNLayer "LeftRecon" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 1;
+    writeStep = 1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    //
+    //movieLayerName = "LeftImage";
+    InitVType = "ZeroV";
+    //
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    // 
+    phase = 6;
+    //
+    //triggerFlag = 1;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
+};
+
+////
+//// Right eye layers
+////
+//
+//Movie "RightImage" = {
+//    #include "LeftImage";
+//    @inputPath = "/home/ec2-user/mountData/kitti/list/image_3_benchmark_aws_cluster_single.txt";
+//};
+//
+//ANNLayer "RightBipolar" = {
+//    #include "LeftBipolar";
+//    //@triggerLayerName = "RightImage";
+//};
+//
+//ANNLayer "RightGanglion" = {
+//    #include "LeftGanglion";
+//    //@triggerLayerName = "RightImage";
+//};
+//
+//RescaleLayer "RightRescale" = {
+//   #include "LeftRescale";
+//   @originalLayerName = "RightGanglion";
+//};
+//
+//ANNErrorLayer "RightError" = {
+//    #include "LeftError";
+//    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V.pvp";
+//};
+//
+//// for visualization only, makes no output
+//ANNLayer "RightRecon" = {
+//    #include "LeftRecon";
+//    //@triggerLayerName = "RightImage";
+//};
+
+// binoclular layers
+
+ANNLayer "V1" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 512;
+    writeStep = 1;
+    initialWriteTime = 1.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    //Positive only
+    VThresh = 0;
+    AMax =  infinity;
+    AMin = 0;
+    AShift = 0;
+    VWidth = 0;
+    phase = 5;  
+};
+
+// connections
+
+// Left eye connections
+
+KernelConn "LeftImageToLeftBipolarCenter" = {
+   preLayerName                        = "LeftImage";
+   postLayerName                       = "LeftBipolar";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   numAxonalArbors                     = 1;
+   plasticityFlag                      = false;
+   convertRateToSpikeCount             = false;
+   receiveGpu                          = false;
+   weightInitType                      = "Gauss2DWeight";
+   // initWeightsFile                     was set to (NULL);
+   aspect                              = 1;
+   sigma                               = .5;
+   rMax                                = 3;
+   rMin                                = 0;
+   strength                            = 1;
+   updateGSynFromPostPerspective       = false;
+   pvpatchAccumulateType               = "convolve";
+   writeStep                           = -1;
+   writeCompressedCheckpoints          = false;
+   selfFlag                            = false;
+   nxp                                 = 3;
+   nyp                                 = 3;
+   nfp                                 = 1;
+   shrinkPatches                       = false;
+   normalizeMethod                     = "normalizeSum";
+   normalizeArborsIndividually         = false;
+   normalizeOnInitialize               = true;
+   normalizeOnWeightUpdate             = true;
+   rMinX                               = 0;
+   rMinY                               = 0;
+   nonnegativeConstraintFlag           = false;
+   normalize_cutoff                    = 0;
+   normalizeFromPostPerspective        = true;
+   minSumTolerated                     = 0;
+};
+
+KernelConn "LeftBipolarToLeftGanglionCenter" = {
+   preLayerName                        = "LeftBipolar";
+   postLayerName                       = "LeftGanglion";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   numAxonalArbors                     = 1;
+   plasticityFlag                      = false;
+   convertRateToSpikeCount             = false;
+   receiveGpu                          = false;
+   weightInitType                      = "Gauss2DWeight";
+   // initWeightsFile                     was set to (NULL);
+   aspect                              = 1;
+   sigma                               = 1;
+   rMax                                = 3;
+   rMin                                = 0;
+   strength                            = 1;
+   updateGSynFromPostPerspective       = false;
+   pvpatchAccumulateType               = "convolve";
+   writeStep                           = -1;
+   writeCompressedCheckpoints          = false;
+   selfFlag                            = false;
+   nxp                                 = 1;
+   nyp                                 = 1;
+   nfp                                 = 1;
+   shrinkPatches                       = false;
+   normalizeMethod                     = "normalizeSum";
+   normalizeArborsIndividually         = false;
+   normalizeOnInitialize               = true;
+   normalizeOnWeightUpdate             = true;
+   rMinX                               = 0;
+   rMinY                               = 0;
+   nonnegativeConstraintFlag           = false;
+   normalize_cutoff                    = 0;
+   normalizeFromPostPerspective        = true;
+   minSumTolerated                     = 0;
+};
+
+KernelConn "LeftBipolarToLeftGanglionSurround" = {
+   preLayerName                        = "LeftBipolar";
+   postLayerName                       = "LeftGanglion";
+   channelCode                         = 1;
+   delay                               = [0.000000];
+   numAxonalArbors                     = 1;
+   plasticityFlag                      = false;
+   convertRateToSpikeCount             = false;
+   receiveGpu                          = false;
+   weightInitType                      = "Gauss2DWeight";
+   // initWeightsFile                     was set to (NULL);
+   aspect                              = 1;
+   sigma                               = 5.5;
+   rMax                                = 7.5;
+   rMin                                = 0.5;
+   strength                            = 1;
+   updateGSynFromPostPerspective       = false;
+   pvpatchAccumulateType               = "convolve";
+   writeStep                           = -1;
+   writeCompressedCheckpoints          = false;
+   selfFlag                            = false;
+   nxp                                 = 11;
+   nyp                                 = 11;
+   nfp                                 = 1;
+   shrinkPatches                       = false;
+   normalizeMethod                     = "normalizeSum";
+   normalizeArborsIndividually         = false;
+   normalizeOnInitialize               = true;
+   normalizeOnWeightUpdate             = true;
+   rMinX                               = 0;
+   rMinY                               = 0;
+   nonnegativeConstraintFlag           = false;
+   normalize_cutoff                    = 0;
+   normalizeFromPostPerspective        = true;
+   minSumTolerated                     = 0;
+};
+
+IdentConn "LeftRescaleToLeftError" = {
+   preLayerName                        = "LeftRescale";
+   postLayerName                       = "LeftError";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
+
+//// Right eye connections
+//
+//KernelConn "RightImageToRightBipolarCenter" = {
+//    #include "LeftImageToLeftBipolarCenter";
+//    @preLayerName = "RightImage";
+//    @postLayerName = "RightBipolar";
+//};
+//
+//KernelConn "RightBipolarToRightGanglionCenter" = {
+//    #include "LeftBipolarToLeftGanglionCenter";
+//    @preLayerName = "RightBipolar";
+//    @postLayerName = "RightGanglion";
+//};
+//
+//KernelConn "RightBipolarToRightGanglionSurround" = {
+//    #include "LeftBipolarToLeftGanglionSurround";
+//    @preLayerName = "RightBipolar";
+//    @postLayerName = "RightGanglion";
+//};
+//
+//IdentConn "RightRescaleToRightError" = {
+//    #include "LeftRescaleToLeftError";
+//    @preLayerName = "RightRescale";
+//    @postLayerName = "RightError";
+//};
+
+
+// binocular connections
+
+HyPerConn "V1ToLeftError" = {
+    preLayerName = "V1";
+    postLayerName = "LeftError";
+    channelCode = -1;
+    nxp = 66;
+    nyp = 66;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    sharedWeights = true;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/ec2-user/mountData/dictLearn/mono_output/leftDict.pvp";
+
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -1.0;
+    //wMaxInit = 1.0;
+    //sparseFraction = .90;
+    
+    strength = 1; //.25/2  
+    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
+    //normalizeMethod = "normalizeContrastZeroMean"; 
+    //SET PARAMS TO NEW NORMALIZATION METHOD
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    //triggerFlag = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
+    initialWriteTime = 0.0;
+    //dWMax = 5; // 200.0 used for initial training
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+TransposeConn "LeftErrorToV1" = {
+    preLayerName = "LeftError";
+    postLayerName = "V1";
+    channelCode = 0;
+    originalConnName = "V1ToLeftError";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
+    receiveGpu = true;
+};
+
+CloneKernelConn "V1ToLeftRecon" = {
+    preLayerName = "V1";
+    postLayerName = "LeftRecon";
+    channelCode = 0;
+    writeStep = -1;
+    originalConnName = "V1ToLeftError";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+////Right binocular connections
+//HyPerConn "V1ToRightError" = {
+//    #include "V1ToLeftError";
+//    @postLayerName = "RightError";
+//    @normalizeMethod = "normalizeGroup";
+//    normalizeGroupName = "V1ToLeftError";
+//    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/binoc_output/rightDict.pvp";
+//};
+//
+//TransposeConn "RightErrorToV1" = {
+//    #include "LeftErrorToV1";
+//    @preLayerName = "RightError";
+//    @originalConnName = "V1ToRightError";
+//};
+//
+//CloneKernelConn "V1ToRightRecon" = {
+//    #include "V1ToLeftRecon";
+//    @postLayerName = "RightRecon";
+//    @originalConnName = "V1ToRightError";
+//};

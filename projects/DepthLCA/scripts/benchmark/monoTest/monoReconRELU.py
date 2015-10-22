@@ -7,27 +7,30 @@ from plotReconError import plotReconError
 #For plotting
 #import matplotlib.pyplot as plt
 
-outputDir = "/home/ec2-user/mountData/benchmark/train/rcorr/aws_icaweights_binoc_RELU/"
+outputDir = "/home/ec2-user/mountData/benchmark/monoTest/mono_recon_RELU/"
 skipFrames = 1 #Only print every 20th frame
-startFrames = 0
 doPlotRecon = True
 doPlotErr = False
 errShowPlots = False
+
 layers = [
-   "a1_LeftRecon",
-   "a2_RightRecon",
-   "a4_DepthDownsample"
+   "a3_LeftRescale",
+   "a5_LeftRecon",
+   "a9_RightRescale",
+   "a10_RightRecon"
    ]
 
 #Layers for constructing recon error
 preErrLayers = [
-   "a1_LeftDownsample",
-   "a5_RightDownsample",
+   "a7_LeftReconAll",
+   "a7_LeftReconAll",
+   "a7_LeftReconAll",
 ]
 
 postErrLayers = [
-   "a3_LeftRecon",
-   "a7_RightRecon",
+   "a4_LeftReconS2",
+   "a5_LeftReconS4",
+   "a6_LeftReconS8",
 ]
 
 gtLayers = None
@@ -41,8 +44,9 @@ gtLayers = None
 #]
 
 preToPostScale = [
-   .007,
-   .007,
+   1,
+   1,
+   1,
 ]
 
 

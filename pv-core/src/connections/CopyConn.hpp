@@ -73,9 +73,9 @@ protected:
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief CopyConn inherits triggerFlag from the original connection, instead of reading it from parameters
+    * @brief CopyConn does not use trigger layers
     */
-   virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief weightUpdatePeriod is not used by CopyConn.
