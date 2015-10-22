@@ -127,6 +127,9 @@ if isempty(classNameFile)
    end%for
 else
    classnameFID = fopen(classNameFile,'r');
+   if (classnameFID<0)
+      error('heatMapMontage:badclassnamefile', 'Unable to open classNameFile "%s"', classNameFile);
+   end%if
    % TODO allow blank lines and comments
    for k=1:resultHdr.nf
        classes{k} = fgets(classnameFID);
