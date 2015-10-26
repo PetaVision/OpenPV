@@ -1,5 +1,8 @@
 function ...
-  [Sparse_time, hist_pool, max_pool, ave_pool] = ...
+  [Sparse_time, ...
+   hist_pool, ...
+   max_pool, ...
+   ave_pool] = ...
   calcSparseHistPVPArray2(Sparse_struct, ...
 			 nx_full, ny_full, nf_full, ...
 			 nx_GT, ny_GT, ...
@@ -32,12 +35,13 @@ function ...
     full_vals = permute(full_vals, [2,1,3]);
   endif
 
-  halfstep_ratio = (max_val/median_val)^(1/(num_bins-3));
-  hist_centers = [0, min_val, median_val * halfstep_ratio.^([0:num_bins-3])];
-  
   %% need to map activity so that each column contains all the activations for a given feature within one GT output tile
-  %%keyboard;
-  hist_pool = zeros(num_bins, nf_full, ny_GT, nx_GT);
+  hist_pool = [];
+  if num_bins > 3
+    halfstep_ratio = (max_val/median_val)^(1/(num_bins-3));
+    hist_centers = [0, min_val, median_val * halfstep_ratio.^([0:num_bins-3])];  
+    hist_pool = zeros(num_bins, nf_full, ny_GT, nx_GT);
+  endif
   max_pool = zeros(nf_full, ny_GT, nx_GT);
   ave_pool = zeros(nf_full, ny_GT, nx_GT);
   x_GT_size = floor(nx_full / nx_GT);
@@ -47,8 +51,10 @@ function ...
       GT_vals3D = full_vals((j_yGT-1)*y_GT_size+1:j_yGT*y_GT_size, (i_xGT-1)*x_GT_size+1:i_xGT*x_GT_size, :);
       GT_vals2D = reshape(GT_vals3D, [y_GT_size*x_GT_size, nf_full]);
       [i_row_nnz, j_col_nnz] = find(GT_vals2D);
-      [GT_hist, GT_bins] = hist(GT_vals2D, hist_centers);
-      hist_pool(:, :, j_yGT, i_xGT) = GT_hist;
+      if num_bins > 3
+	[GT_hist, GT_bins] = hist(GT_vals2D, hist_centers);
+	hist_pool(:, :, j_yGT, i_xGT) = GT_hist;
+      endif
       max_pool(:,j_yGT, i_xGT) = max(GT_vals2D);
       ave_pool(:,j_yGT, i_xGT) = mean(GT_vals2D);
     endfor
