@@ -7,7 +7,7 @@ from plotReconError import plotReconError
 #For plotting
 #import matplotlib.pyplot as plt
 
-outputDir = "/home/ec2-user/mountData/benchmark/icaweights_bugged/train/aws_icaweights_RELU/"
+outputDir = "/home/ec2-user/mountData/benchmark/train/rcorr/aws_icaweights_binoc_RELU/"
 skipFrames = 1 #Only print every 20th frame
 startFrames = 0
 doPlotRecon = True

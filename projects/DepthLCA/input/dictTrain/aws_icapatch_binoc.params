@@ -1,5 +1,4 @@
-// /
-/ HyPerHLCA.params
+// // HyPerHLCA.params
 //
 // created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
 //
@@ -17,27 +16,43 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime = 194000; 
-    progressStep = 1000;
-    outputPath = "/home/ec2-user/mountData/benchmark/monoTest/mono_recon_LCA/";
+    stopTime= 100000000;
+    progressStep = 5000;
+    outputPath = "/home/ec2-user/mountData/dictLearn/aws_icapatch_binoc/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/home/ec2-user/mountData/single_stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = true;
-    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/monoTest/mono_recon_LCA/Checkpoints";
-    checkpointWriteStepInterval = 10000;
-    deleteOlderCheckpoints = true;
+    checkpointWriteDir = "/home/ec2-user/mountData/dictLearn/aws_icapatch_binoc/Checkpoints";
+    checkpointWriteStepInterval = 50000;
+    deleteOlderCheckpoints = false;
     //suppressLastOutput = false;
     writeProgressToErr = true;
     outputNamesOfLayersAndConns = "LayerAndConnNames.txt";
     dtAdaptFlag = true;
-    dtScaleMax = 5.0;
-    dtScaleMin = 0.25;
-    dtChangeMax = 0.05;
-    dtChangeMin = 0.0;
+    dtScaleMax = 1.0;
+    dtScaleMin = 0.02;
+    dtChangeMax = 0.01;
+    dtChangeMin = -0.05;
+    nbatch = 4;
 };
+
+BatchSweep "column":outputPath = {
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_binoc_batch0/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_binoc_batch1/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_binoc_batch2/";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_binoc_batch3/";
+};
+
+BatchSweep "column":checkpointWriteDir = {
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_binoc_batch0/Checkpoints";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_binoc_batch1/Checkpoints";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_binoc_batch2/Checkpoints";
+    "/home/ec2-user/mountData/dictLearn/aws_icapatch_binoc_batch3/Checkpoints";
+};
+
 
 //
 // layers
@@ -50,15 +65,16 @@ Movie "LeftImage" = {
     nxScale = 1;
     nyScale = 1;
     readPvpFile = false;
-    inputPath = "/home/ec2-user/mountData/kitti/list/image_2_benchmark_aws_cluster_single.txt";
+    inputPath = "/home/ec2-user/mountData/kitti/list/image_02_aws.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
-    initialWriteTime = 1000;
+    initialWriteTime = 400;
     writeSparseActivity = false;
-    displayPeriod = 1000;
-    start_frame_index = 0;
-    skip_frame_index = 1;
+    displayPeriod = 400;
+    batchMethod = "byMovie";
+    start_frame_index = 1000;
+    //skip_frame_index = 1;
     echoFramePathnameFlag = false;
     mirrorBCflag = true;
     jitterFlag = 0;
@@ -106,7 +122,7 @@ ANNLayer "LeftGanglion" = {
    triggerLayerName                    = "LeftImage";
    triggerOffset                       = 0;
    writeStep                           = -1;
-   initialWriteTime                    = 200;
+   initialWriteTime                    = 400;
    sparseLayer                         = false;
    updateGpu                           = false;
    VThresh                             = -3.40282e+38;
@@ -124,8 +140,8 @@ RescaleLayer "LeftRescale" = {
     nf                              = 1;
     mirrorBCflag                    = true;
     //
-    writeStep                       = 1000;
-    initialWriteTime                = 1000;
+    writeStep                       = -1;
+    initialWriteTime                = 400;
     writeSparseActivity             = false;
     //
     rescaleMethod                   = "l2"; //Can be either meanstd or maxmin
@@ -134,7 +150,6 @@ RescaleLayer "LeftRescale" = {
     phase                           = 3;
     triggerFlag                         = true;
     triggerLayerName = "LeftImage";
-    triggerOffset = 0;
 };
 
 ANNNormalizedErrorLayer "LeftError" = {
@@ -142,8 +157,8 @@ ANNNormalizedErrorLayer "LeftError" = {
     nxScale = .5;
     nyScale = .5;
     nf = 1;
-    writeStep = 1000;
-    initialWriteTime = 1000.0;
+    writeStep = -1;
+    initialWriteTime = 400.0;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
@@ -151,9 +166,9 @@ ANNNormalizedErrorLayer "LeftError" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
     //
-    VThresh = 0; //Change this for efficiency
+    VThresh = 0.001; //Change this for efficiency
     AMax =  infinity;
-    AMin = -infinity;
+    AMin = 0;
     AShift = 0;
     VWidth = 0;
     valueBC = 0;
@@ -169,8 +184,8 @@ ANNLayer "LeftRecon" = {
     nxScale = .5;
     nyScale = .5;
     nf = 1;
-    writeStep = 1000.0;
-    initialWriteTime = 1000.0; //1 + writestep
+    writeStep = -1.0;
+    initialWriteTime = 400.0; //1 + writestep
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
@@ -197,7 +212,7 @@ ANNLayer "LeftRecon" = {
 
 Movie "RightImage" = {
     #include "LeftImage";
-    @inputPath = "/home/ec2-user/mountData/kitti/list/image_3_benchmark_aws_cluster_single.txt";
+    @inputPath = "/home/ec2-user/mountData/kitti/list/image_03_aws.txt";
 };
 
 ANNLayer "RightBipolar" = {
@@ -215,10 +230,10 @@ RescaleLayer "RightRescale" = {
    @originalLayerName = "RightGanglion";
 };
 
-//ANNNormalizedErrorLayer "RightError" = {
-//    #include "LeftError";
-//    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V.pvp";
-//};
+ANNNormalizedErrorLayer "RightError" = {
+    #include "LeftError";
+    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V.pvp";
+};
 
 // for visualization only, makes no output
 ANNLayer "RightRecon" = {
@@ -236,8 +251,8 @@ HyPerLCALayer "V1" = {
     numChannels = 1;
     numWindowX = 1;
     numWindowY = 1;
-    writeStep = 1000.0;
-    initialWriteTime = 1000.0;
+    writeStep = -1.0;
+    initialWriteTime = 400.0;
     mirrorBCflag = 0;
     writeSparseActivity = 1;
     writeSparseValues   = 1;
@@ -248,7 +263,7 @@ HyPerLCALayer "V1" = {
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2_V.pvp";
     // 
-    timeConstantTau = 500.0;
+    timeConstantTau = 400.0;
     slopeErrorStd = 0.01;
     // 
     dVThresh = 0;
@@ -406,16 +421,16 @@ KernelConn "RightBipolarToRightGanglionSurround" = {
     @postLayerName = "RightGanglion";
 };
 
-//IdentConn "RightRescaleToRightError" = {
-//    #include "LeftRescaleToLeftError";
-//    @preLayerName = "RightRescale";
-//    @postLayerName = "RightError";
-//};
+IdentConn "RightRescaleToRightError" = {
+    #include "LeftRescaleToLeftError";
+    @preLayerName = "RightRescale";
+    @postLayerName = "RightError";
+};
 
 
 // binocular connections
 
-HyPerConn "V1ToLeftError" = {
+MomentumConn "V1ToLeftError" = {
     preLayerName = "V1";
     postLayerName = "LeftError";
     channelCode = 1;
@@ -452,12 +467,16 @@ HyPerConn "V1ToLeftError" = {
     writeStep = -1;
     writeCompressedWeights = false;
     writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    //triggerFlag = true;
-    //triggerLayerName = "LeftImage";
-    //triggerOffset = 1;
+    plasticityFlag = true;
+    triggerFlag = true;
+    triggerLayerName = "LeftImage";
+    triggerOffset = 1;
     initialWriteTime = 0.0;
-    //dWMax = 5; // 200.0 used for initial training
+
+    dWMax = 5; // 200.0 used for initial training
+    momentumTau = 50;
+    momentumMethod = "viscosity";
+
     selfFlag = false;
     shmget_flag = false;
     //
@@ -499,23 +518,22 @@ CloneKernelConn "V1ToLeftRecon" = {
 };
 
 //Right binocular connections
-HyPerConn "V1ToRightRecon" = {
+MomentumConn "V1ToRightError" = {
     #include "V1ToLeftError";
-    @channelCode = 0;
-    @postLayerName = "RightRecon";
+    @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
     normalizeGroupName = "V1ToLeftError";
     @initWeightsFile = "/home/ec2-user/mountData/dictLearn/binoc_output/rightDict.pvp";
 };
 
-//TransposeConn "RightErrorToV1" = {
-//    #include "LeftErrorToV1";
-//    @preLayerName = "RightError";
-//    @originalConnName = "V1ToRightError";
-//};
-//
-//CloneKernelConn "V1ToRightRecon" = {
-//    #include "V1ToLeftRecon";
-//    @postLayerName = "RightRecon";
-//    @originalConnName = "V1ToRightError";
-//};
+TransposeConn "RightErrorToV1" = {
+    #include "LeftErrorToV1";
+    @preLayerName = "RightError";
+    @originalConnName = "V1ToRightError";
+};
+
+CloneKernelConn "V1ToRightRecon" = {
+    #include "V1ToLeftRecon";
+    @postLayerName = "RightRecon";
+    @originalConnName = "V1ToRightError";
+};

@@ -8,32 +8,48 @@ local pv = require "PVModule"
 -- Needed by printConsole
 debugParsing              = true
 
---Image parameters
-local imageListPath = "/home/ec2-user/mountData/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
-local GroundTruthPath = "/home/ec2-user/mountData/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
-local displayPeriod       = 1200
-local startFrame          = 1
-local numEpochs           = 4
-local stopTime            = 7958 * displayPeriod;
-
 -- User defined variables
+local stride              = 8
 local nxSize              = 256
 local nySize              = 192
-local experimentName      = "PASCAL_S1X4_1536_ICA"
+local experimentName      = "PASCAL_S1X" .. 16*16/(stride*stride) .. "_1536_ICA"
 local runName             = "VOC2007_landscape"
 local runVersion          = 10
 local machinePath         = "/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
-local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-2
---local inputPath           = machinePath .. "/" .. databasePath .. "/" .. "PASCAL_S1_1536_ICA" .. "/" .. runName .. "9"
-local checkpointID         = stopTime*numEpochs
+local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
+local numImages           = 7958
+local S1_Movie            = true
+if S1_Movie then
+   local plasticityFlag   = false;
+   local displayPeriod    = 1
+   local numEpochs        = 20
+   outputPath             = outputPath .. "_S1_Movie"
+   inputPath              = inputPath .. runVersion
+   local stopTime         = numImages * displayPeriod * numEpochs;
+   local checkpointID     = numImages*1200*4
+   local writePeriod      = 1
+   local initialWriteTime = numImages*(numEpochs-1)+1
+   local checkpointWriteStepInterval = numImages
+else
+   local plasticityFlag   = true;
+   local displayPeriod    = 1200
+   local numEpochs        = 4
+   inputPath              = inputPath .. runVersion-1
+   local stopTime         = numImages * displayPeriod * numEpochs;
+   local checkpointID     = stopTime
+   local writePeriod      = 100 * displayPeriod
+   local initialWriteTime = writePeriod
+   local checkpointWriteStepInterval = writePeriod
+end
 local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false;
 
-
 --i/o parameters
-local writePeriod         = 100 * displayPeriod;
+local imageListPath       = "/home/ec2-user/mountData/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt";
+local GroundTruthPath     = "/home/ec2-user/mountData/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp";
+local startFrame          = 0
 
 --HyPerLCA parameters
 local VThresh               = 0.025
@@ -42,7 +58,6 @@ local learningRate          = 0
 local dWMax                 = 10.0
 local learningMomentumTau   = 500
 local patchSize             = 16
-local stride                = 8 --16
 local tau                   = 400
 local S1_numFeatures        = patchSize * patchSize * 3 * 2; -- (patchSize/stride)^2 Xs overcomplete (i.e. complete for orthonormal ICA basis for stride == patchSize)
 
@@ -58,13 +73,15 @@ local pvParams = {
       groupType = "HyPerCol"; --String values
       startTime                           = 0;
       dt                                  = 1;
-      dtAdaptFlag                         = true;
-      dtScaleMax                          = 10;
-      dtScaleMin                          = 0.01;
-      dtChangeMax                         = 0.01;
-      dtChangeMin                         = -0.02;
-      dtMinToleratedTimeScale             = 0.0001;
-      stopTime                            = stopTime*numEpochs;
+      dtAdaptFlag                         = S1_Movie;
+      if not S1_Movie then
+	 dtScaleMax                          = 10;
+	 dtScaleMin                          = 0.01;
+	 dtChangeMax                         = 0.01;
+	 dtChangeMin                         = -0.02;
+	 dtMinToleratedTimeScale             = 0.0001;
+      end
+      stopTime                            = stopTime;
       progressInterval                    = 1000;
       writeProgressToErr                  = true;
       verifyWrites                        = false;
@@ -80,7 +97,7 @@ local pvParams = {
       checkpointWrite                     = true;
       checkpointWriteDir                  = outputPath .. "/Checkpoints";
       checkpointWriteTriggerMode          = "step";
-      checkpointWriteStepInterval         = 1*writePeriod;
+      checkpointWriteStepInterval         = checkpointWriteStepInterval;
       deleteOlderCheckpoints              = false;
       suppressNonplasticCheckpoints       = false;
       writeTimescales                     = true;
@@ -98,7 +115,7 @@ local pvParams = {
 		  mirrorBCflag                        = true;
 		  initializeFromCheckpointFlag        = false;
 		  writeStep                           = writePeriod;
-		  initialWriteTime                    = writePeriod;
+		  initialWriteTime                    = initialWriteTime;
 		  sparseLayer                         = false;
 		  writeSparseValues                   = false;
 		  updateGpu                           = false;
@@ -114,10 +131,10 @@ local pvParams = {
 		  normalizeStdDev                     = true;
 		  jitterFlag                          = 0;
 		  padValue                            = 0;
-		  inputPath                            = imageListPath;
+		  inputPath                           = imageListPath;
 		  displayPeriod                       = displayPeriod;
 		  echoFramePathnameFlag               = true;
-		  start_frame_index                   = 1;
+		  start_frame_index                   = startFrame;
 		  skip_frame_index                    = 0;
 		  writeFrameToTimestamp               = true;
 		  flipOnTimescaleError                = true;
@@ -125,37 +142,9 @@ local pvParams = {
 	       }
    )
 
-   pv.addGroup(pvParams, "ImageReconS1Error",
-	       {
-		  groupType = "ANNNormalizedErrorLayer";
-		  nxScale                             = 1;
-		  nyScale                             = 1;	
-		  nf                                  = 3;
-		  phase                               = 1;
-		  mirrorBCflag                        = false;
-		  valueBC                             = 0;
-		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
-		  InitVType                           = "ZeroV";
-		  triggerLayerName                    = NULL;
-		  writeStep                           = writePeriod;
-		  initialWriteTime                    = writePeriod;
-		  sparseLayer                         = false;
-		  updateGpu                           = false;
-		  dataType                            = nil;
-		  VThresh                             = 0;
-		  AMin                                = 0;
-		  AMax                                = inf;
-		  AShift                              = 0;
-		  VWidth                              = 0;
-		  clearGSynInterval                   = 0;
-		  errScale                            = 1;
-	       }
-   ) 
-
-local S1_Movie = true
 if S1_Movie then
-   local S1MoviePath                                   = inputPath .. "/" .. "a10_S1.pvp"
-   pv.addGroup(pvParams, "ConstantS1",
+   local S1MoviePath                                   = inputPath .. "/" .. "S1.pvp"
+   pv.addGroup(pvParams, "S1",
 	       {
 		  groupType = "MoviePvp";
 		  nxScale                             = 1.0/stride;
@@ -183,7 +172,7 @@ if S1_Movie then
 		  displayPeriod                       = displayPeriod;
 		  randomMovie                         = 0;
 		  readPvpFile                         = true;
-		  start_frame_index                   = 1;
+		  start_frame_index                   = startFrame;
 		  skip_frame_index                    = 0;
 		  writeFrameToTimestamp               = true;
 		  flipOnTimescaleError                = true;
@@ -191,31 +180,58 @@ if S1_Movie then
 	       }
    )
 else
-   pv.addGroup(pvParams, "ConstantS1",
+   -- pv.addGroup(pvParams, "ConstantS1",
+   -- 	       {
+   -- 		  groupType = "ConstantLayer";
+   -- 		  nxScale                             = 1.0/stride;
+   -- 		  nyScale                             = 1.0/stride;
+   -- 		  nf                                  = S1_numFeatures;
+   -- 		  phase                               = 0;
+   -- 		  mirrorBCflag                        = false;
+   -- 		  valueBC                             = 0;
+   -- 		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
+   -- 		  InitVType                           = "ConstantV";
+   -- 		  valueV                              = VThresh;
+   -- 		  writeStep                           = -1;
+   -- 		  sparseLayer                         = false;
+   -- 		  updateGpu                           = false;
+   -- 		  dataType                            = nil;
+   -- 		  VThresh                             = -inf;
+   -- 		  AMin                                = -inf;
+   -- 		  AMax                                = inf;
+   -- 		  AShift                              = 0;
+   -- 		  VWidth                              = 0;
+   -- 		  clearGSynInterval                   = 0;
+   -- 	       }
+   -- )
+
+   pv.addGroup(pvParams, "ImageReconS1Error",
 	       {
-		  groupType = "ConstantLayer";
-		  nxScale                             = 1.0/stride;
-		  nyScale                             = 1.0/stride;
-		  nf                                  = S1_numFeatures;
-		  phase                               = 0;
+		  groupType = "ANNNormalizedErrorLayer";
+		  nxScale                             = 1;
+		  nyScale                             = 1;	
+		  nf                                  = 3;
+		  phase                               = 1;
 		  mirrorBCflag                        = false;
 		  valueBC                             = 0;
 		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
-		  InitVType                           = "ConstantV";
-		  valueV                              = VThresh;
-		  writeStep                           = -1;
+		  InitVType                           = "ZeroV";
+		  triggerLayerName                    = NULL;
+		  writeStep                           = writePeriod;
+		  initialWriteTime                    = initialWriteTime;
 		  sparseLayer                         = false;
 		  updateGpu                           = false;
 		  dataType                            = nil;
-		  VThresh                             = -inf;
-		  AMin                                = -inf;
+		  VThresh                             = 0;
+		  AMin                                = 0;
 		  AMax                                = inf;
 		  AShift                              = 0;
 		  VWidth                              = 0;
 		  clearGSynInterval                   = 0;
+		  errScale                            = 1;
 	       }
-   )
-end
+   ) 
+
    pv.addGroup(pvParams, "S1",
 	       {
 		  groupType = "HyPerLCALayer";
@@ -226,11 +242,13 @@ end
 		  mirrorBCflag                        = false;
 		  valueBC                             = 0;
 		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
-		  --InitVType                           = "InitVFromFile";
-		  --Vfilename                           = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_V.pvp";
-		  InitVType                           = "UniformRandomV";
-		  minV                                = -1;
-		  maxV                                = 0.05;
+		  -- InitVType                           = "InitVFromFile";
+		  -- Vfilename                           = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_V.pvp";
+		  -- InitVType                           = "UniformRandomV";
+		  -- minV                                = -1;
+		  -- maxV                                = 0.05;
+		  InitVType                           = "UniformV";
+		  valueV                              = VThresh;
 		  triggerLayerName                    = "Image";
 		  triggerBehavior                     = "resetStateOnTrigger";
 		  triggerResetLayerName               = "ConstantS1";
@@ -282,6 +300,7 @@ end
    )
 
 
+end
 
 -- Ground Truth 
 
@@ -313,7 +332,7 @@ pv.addGroup(pvParams, "GroundTruthPixels",
 	       displayPeriod                       = displayPeriod;
 	       randomMovie                         = 0;
 	       readPvpFile                         = true;
-	       start_frame_index                   = 1;
+	       start_frame_index                   = startFrame;
 	       skip_frame_index                    = 0;
 	       writeFrameToTimestamp               = true;
 	       flipOnTimescaleError                = true;
@@ -473,140 +492,143 @@ pv.addGroup(pvParams, "S1MaxPooled",
 );
 
 
---connections 
-pv.addGroup(pvParams, "ImageToImageReconS1Error",
-	    {
-	       groupType = "HyPerConn";
-	       preLayerName                        = "Image";
-	       postLayerName                       = "ImageReconS1Error";
-	       channelCode                         = 0;
-	       delay                               = {0.000000};
-	       numAxonalArbors                     = 1;
-	       plasticityFlag                      = false;
-	       convertRateToSpikeCount             = false;
-	       receiveGpu                          = false;
-	       sharedWeights                       = true;
-	       weightInitType                      = "OneToOneWeights";
-	       initWeightsFile                     = nil;
-	       weightInit                          = 0.032075; --((1/patchSize)*(1/patchSize)*(1/3))^(1/2); --
-	       initializeFromCheckpointFlag        = false;
-	       updateGSynFromPostPerspective       = false;
-	       pvpatchAccumulateType               = "convolve";
-	       writeStep                           = -1;
-	       writeCompressedCheckpoints          = false;
-	       selfFlag                            = false;
-	       nxp                                 = 1;
-	       nyp                                 = 1;
-	       nfp                                 = 3;
-	       shrinkPatches                       = false;
-	       normalizeMethod                     = "none";
-	    }
-)
+--connections
 
-pv.addGroup(pvParams, "ImageReconS1ToImageReconS1Error",
-	    {
-	       groupType = "IdentConn";
-	       preLayerName                        = "ImageReconS1";
-	       postLayerName                       = "ImageReconS1Error";
-	       channelCode                         = 1;
-	       delay                               = {0.000000};
-	       initWeightsFile                     = nil;
-	       writeStep                           = -1;
-	    }
-)
+if not S1_Movie then
+   pv.addGroup(pvParams, "ImageToImageReconS1Error",
+	       {
+		  groupType = "HyPerConn";
+		  preLayerName                        = "Image";
+		  postLayerName                       = "ImageReconS1Error";
+		  channelCode                         = 0;
+		  delay                               = {0.000000};
+		  numAxonalArbors                     = 1;
+		  plasticityFlag                      = false;
+		  convertRateToSpikeCount             = false;
+		  receiveGpu                          = false;
+		  sharedWeights                       = true;
+		  weightInitType                      = "OneToOneWeights";
+		  initWeightsFile                     = nil;
+		  weightInit                          = 0.032075; --((1/patchSize)*(1/patchSize)*(1/3))^(1/2); --
+		  initializeFromCheckpointFlag        = false;
+		  updateGSynFromPostPerspective       = false;
+		  pvpatchAccumulateType               = "convolve";
+		  writeStep                           = -1;
+		  writeCompressedCheckpoints          = false;
+		  selfFlag                            = false;
+		  nxp                                 = 1;
+		  nyp                                 = 1;
+		  nfp                                 = 3;
+		  shrinkPatches                       = false;
+		  normalizeMethod                     = "none";
+	       }
+   )
+
+   pv.addGroup(pvParams, "ImageReconS1ToImageReconS1Error",
+	       {
+		  groupType = "IdentConn";
+		  preLayerName                        = "ImageReconS1";
+		  postLayerName                       = "ImageReconS1Error";
+		  channelCode                         = 1;
+		  delay                               = {0.000000};
+		  initWeightsFile                     = nil;
+		  writeStep                           = -1;
+	       }
+   )
 
 
-pv.addGroup(pvParams, "S1ToImageReconS1Error",
-	    {
-	       groupType = "MomentumConn";
-	       preLayerName                        = "S1";
-	       postLayerName                       = "ImageReconS1Error";
-	       channelCode                         = -1;
-	       delay                               = {0.000000};
-	       numAxonalArbors                     = 1;
-	       plasticityFlag                      = true;
-	       convertRateToSpikeCount             = false;
-	       receiveGpu                          = false;
-	       sharedWeights                       = true;
-	       weightInitType                      = "FileWeight";
-	       initWeightsFile                     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1ToImageReconS1Error_W.pvp";
-	       useListOfArborFiles                 = false;
-	       combineWeightFiles                  = false;    
-	       --weightInitType                      = "UniformRandomWeight";
-	       --initWeightsFile                     = nil;
-	       --wMinInit                            = -1;
-	       --wMaxInit                            = 1;
-	       --sparseFraction                      = 0.9;
-	       initializeFromCheckpointFlag        = false;
-	       triggerFlag                         = true;
-	       triggerLayerName                    = "Image";
-	       triggerOffset                       = 1;
-	       updateGSynFromPostPerspective       = true;
-	       pvpatchAccumulateType               = "convolve";
-	       writeStep                           = -1;
-	       writeCompressedCheckpoints          = false;
-	       selfFlag                            = false;
-	       combine_dW_with_W_flag              = false;
-	       nxp                                 = patchSize;
-	       nyp                                 = patchSize;
-	       shrinkPatches                       = false;
-	       normalizeMethod                     = "normalizeL2";
-	       strength                            = 1;
-	       normalizeArborsIndividually         = false;
-	       normalizeOnInitialize               = true;
-	       normalizeOnWeightUpdate             = true;
-	       rMinX                               = 0;
-	       rMinY                               = 0;
-	       nonnegativeConstraintFlag           = false;
-	       normalize_cutoff                    = 0;
-	       normalizeFromPostPerspective        = false;
-	       minL2NormTolerated                  = 0;
-	       dWMax                               = dWMax;
-	       keepKernelsSynchronized             = true;
-	       useMask                             = false;
-	       momentumTau                         = momentumTau;
-	       momentumMethod                      = "viscosity";
-	       momentumDecay                       = 0;
-	    }
-)
+   pv.addGroup(pvParams, "S1ToImageReconS1Error",
+	       {
+		  groupType = "MomentumConn";
+		  preLayerName                        = "S1";
+		  postLayerName                       = "ImageReconS1Error";
+		  channelCode                         = -1;
+		  delay                               = {0.000000};
+		  numAxonalArbors                     = 1;
+		  plasticityFlag                      = plasticityFlag;
+		  convertRateToSpikeCount             = false;
+		  receiveGpu                          = false;
+		  sharedWeights                       = true;
+		  weightInitType                      = "FileWeight";
+		  initWeightsFile                     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1ToImageReconS1Error_W.pvp";
+		  useListOfArborFiles                 = false;
+		  combineWeightFiles                  = false;    
+		  --weightInitType                      = "UniformRandomWeight";
+		  --initWeightsFile                     = nil;
+		  --wMinInit                            = -1;
+		  --wMaxInit                            = 1;
+		  --sparseFraction                      = 0.9;
+		  initializeFromCheckpointFlag        = false;
+		  triggerFlag                         = true;
+		  triggerLayerName                    = "Image";
+		  triggerOffset                       = 1;
+		  updateGSynFromPostPerspective       = true;
+		  pvpatchAccumulateType               = "convolve";
+		  writeStep                           = -1;
+		  writeCompressedCheckpoints          = false;
+		  selfFlag                            = false;
+		  combine_dW_with_W_flag              = false;
+		  nxp                                 = patchSize;
+		  nyp                                 = patchSize;
+		  shrinkPatches                       = false;
+		  normalizeMethod                     = "normalizeL2";
+		  strength                            = 1;
+		  normalizeArborsIndividually         = false;
+		  normalizeOnInitialize               = true;
+		  normalizeOnWeightUpdate             = true;
+		  rMinX                               = 0;
+		  rMinY                               = 0;
+		  nonnegativeConstraintFlag           = false;
+		  normalize_cutoff                    = 0;
+		  normalizeFromPostPerspective        = false;
+		  minL2NormTolerated                  = 0;
+		  dWMax                               = dWMax;
+		  keepKernelsSynchronized             = true;
+		  useMask                             = false;
+		  momentumTau                         = momentumTau;
+		  momentumMethod                      = "viscosity";
+		  momentumDecay                       = 0;
+	       }
+   )
 
-pv.addGroup(pvParams, "ImageReconS1ErrorToS1",
-	    {
-	       groupType = "TransposeConn";
-	       preLayerName                        = "ImageReconS1Error";
-	       postLayerName                       = "S1";
-	       channelCode                         = 0;
-	       delay                               = {0.000000};
-	       convertRateToSpikeCount             = false;
-	       receiveGpu                          = true;
-	       updateGSynFromPostPerspective       = true;
-	       pvpatchAccumulateType               = "convolve";
-	       writeStep                           = -1;
-	       writeCompressedCheckpoints          = false;
-	       selfFlag                            = false;
-	       gpuGroupIdx                         = -1;
-	       originalConnName                    = "S1ToImageReconS1Error";
-	    }
-)
+   pv.addGroup(pvParams, "ImageReconS1ErrorToS1",
+	       {
+		  groupType = "TransposeConn";
+		  preLayerName                        = "ImageReconS1Error";
+		  postLayerName                       = "S1";
+		  channelCode                         = 0;
+		  delay                               = {0.000000};
+		  convertRateToSpikeCount             = false;
+		  receiveGpu                          = true;
+		  updateGSynFromPostPerspective       = true;
+		  pvpatchAccumulateType               = "convolve";
+		  writeStep                           = -1;
+		  writeCompressedCheckpoints          = false;
+		  selfFlag                            = false;
+		  gpuGroupIdx                         = -1;
+		  originalConnName                    = "S1ToImageReconS1Error";
+	       }
+   )
 
-pv.addGroup(pvParams, "S1ToImageReconS1",
-	    {
-	       groupType = "CloneConn";
-	       preLayerName                        = "S1";
-	       postLayerName                       = "ImageReconS1";
-	       channelCode                         = 0;
-	       delay                               = {0.000000};
-	       convertRateToSpikeCount             = false;
-	       receiveGpu                          = false;
-	       updateGSynFromPostPerspective       = false;
-	       pvpatchAccumulateType               = "convolve";
-	       writeStep                           = -1;
-	       writeCompressedCheckpoints          = false;
-	       selfFlag                            = false;
-	       originalConnName                    = "S1ToImageReconS1Error";
-	    }
-)
+   pv.addGroup(pvParams, "S1ToImageReconS1",
+	       {
+		  groupType = "CloneConn";
+		  preLayerName                        = "S1";
+		  postLayerName                       = "ImageReconS1";
+		  channelCode                         = 0;
+		  delay                               = {0.000000};
+		  convertRateToSpikeCount             = false;
+		  receiveGpu                          = false;
+		  updateGSynFromPostPerspective       = false;
+		  pvpatchAccumulateType               = "convolve";
+		  writeStep                           = -1;
+		  writeCompressedCheckpoints          = false;
+		  selfFlag                            = false;
+		  originalConnName                    = "S1ToImageReconS1Error";
+	       }
+   )
 
+end
 
 -- Ground Truth connections
 
@@ -656,7 +678,7 @@ pv.addGroup(pvParams, "S1ToS1MaxPooled",
 
 pv.addGroup(pvParams, "S1MaxPooledToGroundTruthReconS1Error",
 	    {
-	       groupType = "MomentumConn";
+	       groupType = "HyPerConn";
 	       preLayerName                        = "S1MaxPooled";
 	       postLayerName                       = "GroundTruthReconS1Error";
 	       channelCode                         = -1;
@@ -664,22 +686,22 @@ pv.addGroup(pvParams, "S1MaxPooledToGroundTruthReconS1Error",
 	       numAxonalArbors                     = 1;
 	       plasticityFlag                      = true;
 	       convertRateToSpikeCount             = false;
-	       receiveGpu                          = false;
+	       receiveGpu                          = true; --false;
 	       sharedWeights                       = true;
-	       weightInitType                      = "FileWeight";
-	       initWeightsFile                     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
-	       useListOfArborFiles                 = false;
-	       combineWeightFiles                  = false;    
-	       --weightInitType                      = "UniformRandomWeight";
-	       --initWeightsFile                     = nil;
-	       --wMinInit                            = -0;
-	       --wMaxInit                            = 0;
+	       -- weightInitType                      = "FileWeight";
+	       -- initWeightsFile                     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
+	       -- useListOfArborFiles                 = false;
+	       -- combineWeightFiles                  = false;    
+	       weightInitType                      = "UniformRandomWeight";
+	       initWeightsFile                     = nil;
+	       wMinInit                            = -0;
+	       wMaxInit                            = 0;
 	       sparseFraction                      = 0;
 	       initializeFromCheckpointFlag        = false;
 	       triggerFlag                         = true;
 	       triggerLayerName                    = "Image";
-	       triggerOffset                       = 1;
-	       updateGSynFromPostPerspective       = false;
+	       triggerOffset                       = S1_Movie;
+	       updateGSynFromPostPerspective       = true; --false;
 	       pvpatchAccumulateType               = "convolve";
 	       writeStep                           = -1;
 	       writeCompressedCheckpoints          = false;
@@ -692,10 +714,10 @@ pv.addGroup(pvParams, "S1MaxPooledToGroundTruthReconS1Error",
 	       dWMax                               = 1.0; --0.5; --0.01;
 	       keepKernelsSynchronized             = true;
 	       useMask                             = false;
-	       momentumTau                         = 1;
-	       momentumMethod                      = "viscosity";
-	       momentumDecay                       = 0;
-	       batchPeriod                         = 1;
+	       -- momentumTau                         = 1;
+	       -- momentumMethod                      = "viscosity";
+	       -- momentumDecay                       = 0;
+	       Batchperiod                         = 1;
 	    }
 )
 
@@ -741,41 +763,42 @@ pv.addGroup(pvParams, "GroundTruthReconS1ToGroundTruthReconS1Error",
 
 -- Energy probe
 
-pv.addGroup(pvParams, "S1EnergyProbe", 
-	    {
-	       groupType                           = "ColumnEnergyProbe";
-	       probeOutputFile                     = "S1EnergyProbe.txt";
+if not S1_Movie then
+   pv.addGroup(pvParams, "S1EnergyProbe", 
+	       {
+		  groupType                           = "ColumnEnergyProbe";
+		  probeOutputFile                     = "S1EnergyProbe.txt";
+	       }
+   )
+   
+   pv.addGroup(pvParams, "ImageReconS1ErrorL2NormEnergyProbe",
+	       {
+		  groupType                           = "L2NormProbe"
+		  targetLayer                         = "ImageReconS1Error";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "ImageReconS1ErrorL2NormEnergyProbe.txt";
+		  triggerFlag                         = true;
+		  triggerLayerName                    = "Image";
+		  triggerOffset                       = 1;
+		  energyProbe                         = "S1EnergyProbe";
+		  coefficient                         = 0.5;
+		  maskLayerName                       = NULL;
+		  exponent                            = 2;
 	    }
 )
 
-pv.addGroup(pvParams, "ImageReconS1ErrorL2NormEnergyProbe",
-	    {
-	       groupType                           = "L2NormProbe"
-	       targetLayer                         = "ImageReconS1Error";
-	       message                             = NULL;
-	       textOutputFlag                      = true;
-	       probeOutputFile                     = "ImageReconS1ErrorL2NormEnergyProbe.txt";
-	       triggerFlag                         = true;
-	       triggerLayerName                    = "Image";
-	       triggerOffset                       = 1;
-	       energyProbe                         = "S1EnergyProbe";
-	       coefficient                         = 0.5;
-	       maskLayerName                       = NULL;
-	       exponent                            = 2;
-	    }
-)
-
-L1NormProbe "S1L1NormEnergyProbe" = {
-    targetLayer                         = "S1";
-    message                             = NULL;
-    textOutputFlag                      = true;
-    probeOutputFile                     = "S1EnergyProbe.txt";
-    triggerFlag                         = false;
-    energyProbe                         = "S1L1NormEnergyProbe";
-    coefficient                         = 0.025;
-    maskLayerName                       = NULL;
-};
-
+   L1NormProbe "S1L1NormEnergyProbe" = {
+      targetLayer                         = "S1";
+      message                             = NULL;
+      textOutputFlag                      = true;
+      probeOutputFile                     = "S1EnergyProbe.txt";
+      triggerFlag                         = false;
+      energyProbe                         = "S1L1NormEnergyProbe";
+      coefficient                         = 0.025;
+      maskLayerName                       = NULL;
+   };
+end
 
 
 -- Print out PetaVision approved parameter file to the console

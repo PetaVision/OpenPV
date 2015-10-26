@@ -7,7 +7,7 @@ from plotReconError import plotReconError
 #For plotting
 #import matplotlib.pyplot as plt
 
-outputDir = "/home/ec2-user/mountData/benchmark/icaweights_bugged/monoTest/mono_recon_RELU/"
+outputDir = "/home/ec2-user/mountData/benchmark/monoTest/mono_recon_RELU/"
 skipFrames = 1 #Only print every 20th frame
 doPlotRecon = True
 doPlotErr = False

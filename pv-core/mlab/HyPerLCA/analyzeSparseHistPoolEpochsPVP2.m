@@ -1,4 +1,8 @@
-function [Sparse_hdr, Sparse_hist_pool_array, Sparse_times_array, Sparse_max_pool_array, Sparse_mean_pool_array] = ...
+function [Sparse_hdr, ...
+	  Sparse_hist_pool_array, ...
+	  Sparse_times_array, ...
+	  Sparse_max_pool_array, ...
+	  Sparse_mean_pool_array] = ...
       analyzeSparseHistPoolEpochsPVP2(Sparse_list, ...
 				     output_dir, ...
 				     Sparse_hist_rank_array, ...
@@ -15,6 +19,9 @@ function [Sparse_hdr, Sparse_hist_pool_array, Sparse_times_array, Sparse_max_poo
 				     nx_GT, ny_GT, ...
 				     num_Sparse_hist_pool_bins, ...
 				     save_Sparse_hist_pool_flag, ...
+				     hist_pool_flag, ...
+				     max_pool_flag, ...
+				     mean_pool_flag, ...
 				     num_procs, ...
 				     num_epochs)
   %% analyze sparse activity pvp file.  
@@ -34,6 +41,15 @@ function [Sparse_hdr, Sparse_hist_pool_array, Sparse_times_array, Sparse_max_poo
   endif
   if ~exist("fraction_Sparse_progress") || isempty(fraction_Sparse_progress)
     fraction_Sparse_progress = 10;
+  endif
+  if ~exist("hist_pool_flag") || isempty(hist_pool_flag)
+    hist_pool_flag = true;
+  endif
+  if ~exist("max_pool_flag") || isempty(max_pool_flag)
+    max_pool_flag = true;
+  endif
+  if ~exist("mean_pool_flag") || isempty(mean_pool_flag)
+    mean_pool_flag = true;
   endif
   if ~exist("num_procs") || isempty(num_procs)
     num_procs = 1;
@@ -89,14 +105,14 @@ function [Sparse_hdr, Sparse_hist_pool_array, Sparse_times_array, Sparse_max_poo
       Sparse_std_val = mean(Sparse_std_val_array{i_Sparse}(:));
       Sparse_median_val = median(Sparse_median_val_array{i_Sparse}(:));
       
-      hist_bin_size_bottom = (Sparse_median_val - Sparse_min_val) / (num_Sparse_hist_pool_bins/2);
-      hist_bin_size_top = (Sparse_max_val - Sparse_median_val) / (num_Sparse_hist_pool_bins/2);
-      %%hist_bin_size = (Sparse_max_val - Sparse_min_val) / num_Sparse_hist_pool_bins;
-      %%hist_edges = [Sparse_min_val : hist_bin_size : Sparse_max_val];
-      %%Sparse_hist_pool_bins = [(Sparse_min_val + hist_bin_size/2) : hist_bin_size : (Sparse_max_val - hist_bin_size/2)];
-      Sparse_hist_pool_bins_bottom = [(Sparse_min_val + hist_bin_size_bottom/2) : hist_bin_size_bottom : (Sparse_median_val - hist_bin_size_bottom/2)];
-      Sparse_hist_pool_bins_top = [(Sparse_median_val + hist_bin_size_top/2) : hist_bin_size_top : (Sparse_max_val - hist_bin_size_top/2)];
-      Sparse_hist_pool_bins = [Sparse_hist_pool_bins_bottom, Sparse_hist_pool_bins_top];
+      %%hist_bin_size_bottom = (Sparse_median_val - Sparse_min_val) / (num_Sparse_hist_pool_bins/2);
+      %%hist_bin_size_top = (Sparse_max_val - Sparse_median_val) / (num_Sparse_hist_pool_bins/2);
+      %%%%hist_bin_size = (Sparse_max_val - Sparse_min_val) / num_Sparse_hist_pool_bins;
+      %%%%hist_edges = [Sparse_min_val : hist_bin_size : Sparse_max_val];
+      %%%%Sparse_hist_pool_bins = [(Sparse_min_val + hist_bin_size/2) : hist_bin_size : (Sparse_max_val - hist_bin_size/2)];
+      %%Sparse_hist_pool_bins_bottom = [(Sparse_min_val + hist_bin_size_bottom/2) : hist_bin_size_bottom : (Sparse_median_val - hist_bin_size_bottom/2)];
+      %%Sparse_hist_pool_bins_top = [(Sparse_median_val + hist_bin_size_top/2) : hist_bin_size_top : (Sparse_max_val - hist_bin_size_top/2)];
+      %%Sparse_hist_pool_bins = [Sparse_hist_pool_bins_bottom, Sparse_hist_pool_bins_top];
       
       nx_full_cell = cell(1);
       nx_full_cell{1} = nx_Sparse;
@@ -119,7 +135,7 @@ function [Sparse_hdr, Sparse_hist_pool_array, Sparse_times_array, Sparse_max_poo
       Sparse_median_val_cell = cell(1);
       Sparse_median_val_cell{1} = Sparse_median_val;
       num_Sparse_hist_pool_bins_cell = cell(1);
-      num_Sparse_hist_pool_bins_cell{1} = num_Sparse_hist_pool_bins;
+      num_Sparse_hist_pool_bins_cell{1} = num_Sparse_hist_pool_bins * hist_pool_flag;
       
 
       if num_epochs == 1
@@ -257,13 +273,23 @@ function [Sparse_hdr, Sparse_hist_pool_array, Sparse_times_array, Sparse_max_poo
 			    num2str(Sparse_times(num_Sparse_frames), "%08d")];
 
 
-      if save_Sparse_hist_pool_flag
-      save("-mat", ...
-	   [Sparse_dir, filesep, "Hist_", Sparse_filename_id, "_bins", ".mat"], ...
-	   "Sparse_hist_pool_bins");
-      save("-mat", ...
-	   [Sparse_dir, filesep, "Hist_", Sparse_filename_id, ".mat"], ...
-	   "Sparse_hist_pool", "Sparse_max_pool", "Sparse_mean_pool");
+      if save_Sparse_hist_pool_flag && hist_pool_flag
+	save("-mat", ...
+	     [Sparse_dir, filesep, "Hist_", Sparse_filename_id, "_bins", ".mat"], ...
+	     "Sparse_hist_pool_bins");
+	save("-mat", ...
+	     [Sparse_dir, filesep, "Hist_", Sparse_filename_id, ".mat"], ...
+	     "Sparse_hist_pool");
+      endif
+      if save_Sparse_hist_pool_flag && max_pool_flag
+	save("-mat", ...
+	     [Sparse_dir, filesep, "MAX_", Sparse_filename_id, ".mat"], ...
+	     "Sparse_max_pool");
+      endif
+      if save_Sparse_hist_pool_flag && mean_pool_flag
+	save("-mat", ...
+	     [Sparse_dir, filesep, "mean_", Sparse_filename_id, ".mat"], ...
+	     "Sparse_mean_pool");
       endif
 
     else  %% load Sparse data structures from file
@@ -303,72 +329,80 @@ function [Sparse_hdr, Sparse_hist_pool_array, Sparse_times_array, Sparse_max_poo
 	  Sparse_rank = 1:nf_Sparse;
 	endif
       endif
-      Sparse_hist_pool_fig = figure;
-      axis off; box off;
-      k_subplot = 0;
-      Sparse_hist_pool_hndl = zeros(ny_GT, nx_GT);
-      Sparse_hist_pool_axis = zeros(ny_GT, nx_GT);
-      for j_yGT = 1 : ny_GT
-	for i_xGT = 1 : nx_GT
-	  k_subplot = k_subplot + 1;
-	  Sparse_hist_pool_axis(j_yGT,i_xGT) = subplot(ny_GT, nx_GT, k_subplot);
-	  hist_pool_tmp = squeeze(Sparse_hist_pool{num_Sparse_frames}(:,:,j_yGT,i_xGT));
-	  ranked_hist_pool = hist_pool_tmp(:, Sparse_rank);
-	  bar(ranked_hist_pool(2:num_Sparse_hist_pool_bins,2:ceil(nf_Sparse/48):nf_Sparse)', 'stacked');
-	  axis tight;
-	  axis off;
-	  box off;
-	  colormap(prism(num_Sparse_hist_pool_bins))
-	endfor
-      endfor
-      set(Sparse_hist_pool_fig, "name", ["Hist_", Sparse_filename_id]);
-      saveas(Sparse_hist_pool_fig, ...
-	     [Sparse_dir, filesep, "Hist_", Sparse_filename_id], "png");
       
-      Sparse_max_pool_fig = figure;
-      axis off; box off;
-      k_subplot = 0;
-      Sparse_max_pool_hndl = zeros(ny_GT, nx_GT);
-      Sparse_max_pool_axis = zeros(ny_GT, nx_GT);
-      for j_yGT = 1 : ny_GT
-	for i_xGT = 1 : nx_GT
-	  k_subplot = k_subplot + 1;
-	  Sparse_max_pool_axis(j_yGT,i_xGT) = subplot(ny_GT, nx_GT, k_subplot);
-	  max_pool_tmp = squeeze(Sparse_max_pool{num_Sparse_frames}(:,j_yGT,i_xGT));
-	  ranked_max_pool = max_pool_tmp(Sparse_rank);
-	  bar(ranked_max_pool(1:ceil(nf_Sparse/48):nf_Sparse));
-	  axis tight;
-	  axis off;
-	  box off;
-	  colormap("default")
+      if hist_pool_flag
+	Sparse_hist_pool_fig = figure;
+	axis off; box off;
+	k_subplot = 0;
+	Sparse_hist_pool_hndl = zeros(ny_GT, nx_GT);
+	Sparse_hist_pool_axis = zeros(ny_GT, nx_GT);
+	for j_yGT = 1 : ny_GT
+	  for i_xGT = 1 : nx_GT
+	    k_subplot = k_subplot + 1;
+	    Sparse_hist_pool_axis(j_yGT,i_xGT) = subplot(ny_GT, nx_GT, k_subplot);
+	    hist_pool_tmp = squeeze(Sparse_hist_pool{num_Sparse_frames}(:,:,j_yGT,i_xGT));
+	    ranked_hist_pool = hist_pool_tmp(:, Sparse_rank);
+	    bar(ranked_hist_pool(2:num_Sparse_hist_pool_bins,2:ceil(nf_Sparse/48):nf_Sparse)', 'stacked');
+	    axis tight;
+	    axis off;
+	    box off;
+	    colormap(prism(num_Sparse_hist_pool_bins))
+	  endfor
 	endfor
-      endfor
-      set(Sparse_max_pool_fig, "name", ["Max_", Sparse_filename_id]);
-      saveas(Sparse_max_pool_fig, ...
-	     [Sparse_dir, filesep, "Max_", Sparse_filename_id], "png");
+	set(Sparse_hist_pool_fig, "name", ["Hist_", Sparse_filename_id]);
+	saveas(Sparse_hist_pool_fig, ...
+	       [Sparse_dir, filesep, "Hist_", Sparse_filename_id], "png");
+      endif
+      
+      if max_pool_flag
+	Sparse_max_pool_fig = figure;
+	axis off; box off;
+	k_subplot = 0;
+	Sparse_max_pool_hndl = zeros(ny_GT, nx_GT);
+	Sparse_max_pool_axis = zeros(ny_GT, nx_GT);
+	for j_yGT = 1 : ny_GT
+	  for i_xGT = 1 : nx_GT
+	    k_subplot = k_subplot + 1;
+	    Sparse_max_pool_axis(j_yGT,i_xGT) = subplot(ny_GT, nx_GT, k_subplot);
+	    max_pool_tmp = squeeze(Sparse_max_pool{num_Sparse_frames}(:,j_yGT,i_xGT));
+	    ranked_max_pool = max_pool_tmp(Sparse_rank);
+	    bar(ranked_max_pool(1:ceil(nf_Sparse/48):nf_Sparse));
+	    axis tight;
+	    axis off;
+	    box off;
+	    colormap("default")
+	  endfor
+	endfor
+	set(Sparse_max_pool_fig, "name", ["Max_", Sparse_filename_id]);
+	saveas(Sparse_max_pool_fig, ...
+	       [Sparse_dir, filesep, "Max_", Sparse_filename_id], "png");
+      endif
 
-      Sparse_mean_pool_fig = figure;
-      axis off; box off;
-      k_subplot = 0;
-      Sparse_mean_pool_hndl = zeros(ny_GT, nx_GT);
-      Sparse_mean_pool_axis = zeros(ny_GT, nx_GT);
-      for j_yGT = 1 : ny_GT
-	for i_xGT = 1 : nx_GT
-	  k_subplot = k_subplot + 1;
-	  Sparse_mean_pool_axis(j_yGT,i_xGT) = subplot(ny_GT, nx_GT, k_subplot);
-	  mean_pool_tmp = squeeze(Sparse_mean_pool{num_Sparse_frames}(:,j_yGT,i_xGT));
-	  ranked_mean_pool = mean_pool_tmp(Sparse_rank);
-	  bar(ranked_mean_pool(1:ceil(nf_Sparse/48):nf_Sparse));
-	  axis tight;
-	  axis off;
-	  box off;
-	  colormap("default")
+      if mean_pool_flag
+	Sparse_mean_pool_fig = figure;
+	axis off; box off;
+	k_subplot = 0;
+	Sparse_mean_pool_hndl = zeros(ny_GT, nx_GT);
+	Sparse_mean_pool_axis = zeros(ny_GT, nx_GT);
+	for j_yGT = 1 : ny_GT
+	  for i_xGT = 1 : nx_GT
+	    k_subplot = k_subplot + 1;
+	    Sparse_mean_pool_axis(j_yGT,i_xGT) = subplot(ny_GT, nx_GT, k_subplot);
+	    mean_pool_tmp = squeeze(Sparse_mean_pool{num_Sparse_frames}(:,j_yGT,i_xGT));
+	    ranked_mean_pool = mean_pool_tmp(Sparse_rank);
+	    bar(ranked_mean_pool(1:ceil(nf_Sparse/48):nf_Sparse));
+	    axis tight;
+	    axis off;
+	    box off;
+	    colormap("default")
+	  endfor
 	endfor
-      endfor
-      set(Sparse_mean_pool_fig, "name", ["Mean_", Sparse_filename_id]);
-      saveas(Sparse_mean_pool_fig, ...
-	     [Sparse_dir, filesep, "Mean_", Sparse_filename_id], "png");
-    endif  %% plot_Sparse_flag 
+	set(Sparse_mean_pool_fig, "name", ["Mean_", Sparse_filename_id]);
+	saveas(Sparse_mean_pool_fig, ...
+	       [Sparse_dir, filesep, "Mean_", Sparse_filename_id], "png");
+      endif
+	
+    endif  %% plot_Sparse_flag
     
     Sparse_hist_pool_array{i_Sparse} = Sparse_hist_pool;
     Sparse_times_array{i_Sparse} = Sparse_times;
