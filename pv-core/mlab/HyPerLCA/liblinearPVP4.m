@@ -30,7 +30,7 @@ elseif strcmp(run_type, "ICA_S1X4")
 elseif strcmp(run_type, "ICA_S1X16")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape6";
 elseif strcmp(run_type, "S1S2")
-  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCALX3_S1_96_S2_1536/VOC2007_landscape30";
+  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCALX3_S1_96_S2_1536/VOC2007_landscape31";
 elseif strcmp(run_type, "DCA")
   output_dir = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape7";
 elseif strcmp(run_type, "scene")
@@ -80,6 +80,7 @@ SVM_flag = true;  %% not currently used
 hist_pool_flag = false; %%true;
 max_pool_flag = true;
 mean_pool_flag = false; %%true;
+train_long_flag = true; %%false;  %% determines whether all out-of-class examples are used (in-class examples are replicated to match number of out of class examples)
 
 num_GT_images = 7958/1;
 displayPeriod = 1200;
@@ -177,7 +178,7 @@ drawnow;
 load_SparseHistPool_flag = false
 Sparse_list ={[""], ["S1"]};
 if strcmp(run_type, "S1S2")
-  Sparse_list ={[""], ["S1"]}; %%[""], ["S2"]};
+  Sparse_list ={[""], ["S1"]; [""], ["S2"]};
 elseif strcmp(run_type, "DCA")
   Sparse_list ={[""], ["S1"]; [""], ["S2"]; [""], ["S3"]};
 elseif strcmp(run_type, "scene")
@@ -366,7 +367,6 @@ prob_values_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_
 %%prob_values_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
 
 %% outer loop over sparse layers: one extra layer is used for the concatenation of all sparse layers
-train_long_flag = true; %%false;
 for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
   if i_Sparse <= num_Sparse_list
     nf_Sparse_array(i_Sparse) = Sparse_hist_pool_hdr{i_Sparse}.nf;
