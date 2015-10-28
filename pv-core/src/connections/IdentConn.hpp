@@ -40,8 +40,8 @@ protected:
    virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
    virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
    virtual void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
-   // virtual void ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag); // preActivityIsNotRate was replaced by convertRateToSpikeCount on Dec 31, 2014.
    virtual void ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag);
    virtual void ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag);
    virtual void ioParam_selfFlag(enum ParamsIOFlag ioFlag);

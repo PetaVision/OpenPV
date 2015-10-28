@@ -290,21 +290,49 @@ for i_GT_frame = first_GT_frame : last_GT_frame
     training_label_vector_array(:,:,i_GT_image, i_target_classID) = GT_frame(:,:,i_VOC_class);
   endfor %% class_ndx
 endfor %% i_frame
-training_label_vector = cell(num_target_classes,1);
-training_label_pos = cell(num_target_classes,1);
-training_label_neg = cell(num_target_classes,1);
-training_label_pos_long = cell(num_target_classes,1);
-training_label_neg_long = cell(num_target_classes,1);
-pos_labels_ndx = cell(num_target_classes,1);
-neg_labels_ndx = cell(num_target_classes,1);
-pos_labels_ndx_long = cell(num_target_classes,1);
-neg_labels_ndx_long = cell(num_target_classes,1);
+if strcmp(run_type, "CIFAR")
+  exclusive_flag = 1; %% all classes are mutually exclusive (e.g. CIFAR)
+endif
+if ~strcmp(run_type, "CIFAR") || ~exist(exclusive_flag) || isempty(exclusive_flag)
+%% if an explicit background class exists, then assume it is exclusive with respect to all other classes
+  i_background_classID = strfind(strcmp(target_classes, "background"));
+  if isempty(i_background_classID)
+    exclusive_flag = 0  %% categories are non-exclusive
+  else
+    exclusive_flag = 2  %% background is exclusive to all other classes
+  endif
+endif
+training_label_vector = cell(num_target_classes+(exclusive_flag==1),1);
+training_label_pos = cell(num_target_classes+(exclusive_flag==1),1);
+training_label_neg = cell(num_target_classes+(exclusive_flag==1),1);
+training_label_pos_long = cell(num_target_classes+(exclusive_flag==1),1);
+training_label_neg_long = cell(num_target_classes+(exclusive_flag==1),1);
+pos_labels_ndx = cell(num_target_classes+(exclusive_flag==1),1);
+neg_labels_ndx = cell(num_target_classes+(exclusive_flag==1),1);
+pos_labels_ndx_long = cell(num_target_classes+(exclusive_flag==1),1);
+neg_labels_ndx_long = cell(num_target_classes+(exclusive_flag==1),1);
 %%pos_labels_rank = cell(num_target_classes,1);
 %%neg_labels_rank = cell(num_target_classes,1);
-neg_pos_ratio = ones(num_target_classes,1);
+neg_pos_ratio = ones(num_target_classes+(exclusive_flag==1),1);
 for i_target_classID = 1 : num_target_classes
   training_label_vector{i_target_classID} = ...
   reshape(training_label_vector_array(:,:,:,i_target_classID), [ny_GT * nx_GT * num_GT_images, 1]);
+endfor %% i_target_classID
+if (exclusive_flag == 2)
+  background_ndx = find(training_label_vector{i_background_classID});
+elseif (exclusive_flag == 0)
+  training_label_vector{num_target_classes+1} = zeros(size(training_label_vector{1}));
+endif
+for i_target_classID = 1 : num_target_classes
+  if (exclusive_flag == 2) && (i_target_classID ~= i_background_classID)
+    %%target_ndx = find(training_label_vector{i_target_classID});
+    training_label_vector{i_target_classID}(training_label_vector{i_target_classID}~=0) = i_target_classID;
+    training_label_vector{i_target_classID}(background_ndx) = i_background_classID;
+  elseif (exclusive_flag == 1)
+    training_label_vector{num_target_classes+1} = ...
+    training_label_vector{num_target_classes+1} + ...
+    training_label_vector{i_target_classID} .* i_target_classID;
+  endif %% i_target_classID ~= i_background_classID  
   pos_labels_ndx{i_target_classID} = find(training_label_vector{i_target_classID});
   neg_labels_ndx_long{i_target_classID} = find(~training_label_vector{i_target_classID});
   neg_pos_ratio(i_target_classID) = length(neg_labels_ndx_long{i_target_classID})/length(pos_labels_ndx{i_target_classID});
@@ -345,26 +373,26 @@ nf_Sparse_array = zeros(num_Sparse_list + (num_Sparse_list > 1),1);
 first_Sparse_frame_array = zeros(num_Sparse_list,1);
 last_Sparse_frame_array = zeros(num_Sparse_list,1);
 num_Sparse_frames_array = zeros(num_Sparse_list,1);
-xval_model_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-xval_model_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-xval_model_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-%%xval_model_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-model_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-model_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-model_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-%%model_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-predicted_label_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-predicted_label_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-predicted_label_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-%%predicted_label_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-accuracy_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-accuracy_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-accuracy_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-%%accuracy_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-prob_values_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-prob_values_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-prob_values_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
-%%prob_values_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes);
+xval_model_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+xval_model_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+xval_model_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+%%xval_model_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+model_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+model_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+model_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+%%model_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+predicted_label_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+predicted_label_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+predicted_label_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+%%predicted_label_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+accuracy_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+accuracy_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+accuracy_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+%%accuracy_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+prob_values_hist_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+prob_values_max_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+prob_values_mean_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
+%%prob_values_combo_pool_array = cell(num_Sparse_list + (num_Sparse_list > 1), num_target_classes+(exclusive_flag==1));
 
 %% outer loop over sparse layers: one extra layer is used for the concatenation of all sparse layers
 for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
@@ -398,56 +426,136 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
       Sparse_list{num_Sparse_list+1,2} = [Sparse_list{num_Sparse_list+1,2},Sparse_list{j_Sparse,2}];
     endfor %% j_Sparse
   endif %% i_Sparse > 1
-  for i_target_classID = 1 : num_target_classes
+  if i_Sparse <= num_Sparse_list
+    if hist_pool_flag
+      training_hist_pool_matrix = zeros(num_Sparse_hist_pool_bins, nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
+    endif
+    if max_pool_flag
+      training_max_pool_matrix = zeros(nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
+    endif
+    if mean_pool_flag
+      training_mean_pool_matrix = zeros(nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
+    endif
+    %%training_combo_pool_matrix = zeros(num_Sparse_hist_pool_bins+1, nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
+    for i_Sparse_frame = first_Sparse_frame_array(i_Sparse) : last_Sparse_frame_array(i_Sparse)
+      j_Sparse_frame = i_Sparse_frame - first_Sparse_frame_array(i_Sparse) + 1;
+      if hist_pool_flag
+	training_hist_pool_matrix(:, :, :, :, j_Sparse_frame) = ...
+	Sparse_hist_pool_array{i_Sparse}{i_Sparse_frame};
+      endif
+      if max_pool_flag
+	training_max_pool_matrix(:, :, :, j_Sparse_frame) = ...
+	Sparse_max_pool_array{i_Sparse}{i_Sparse_frame};
+      endif
+      if mean_pool_flag
+	training_mean_pool_matrix(:, :, :, j_Sparse_frame) = ...
+	Sparse_mean_pool_array{i_Sparse}{i_Sparse_frame};
+      endif
+      %%training_combo_pool_matrix(1:num_Sparse_hist_pool_bins, :, :, :, j_Sparse_frame) = ...
+      %%Sparse_hist_pool_array{i_Sparse}{i_Sparse_frame};
+      %%training_combo_pool_matrix(num_Sparse_hist_pool_bins+1, :, :, :, j_Sparse_frame) = ...
+      %%Sparse_max_pool_array{i_Sparse}{i_Sparse_frame};
+    endfor %% i_Sparse_frame
+    if hist_pool_flag
+      training_hist_pool_matrix = ...
+      sparse(reshape(training_hist_pool_matrix, ...
+		     [num_Sparse_hist_pool_bins *  nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+    endif
+    if max_pool_flag
+      training_max_pool_matrix = ...
+      sparse(reshape(training_max_pool_matrix, ...
+		     [nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+    endif
+    if mean_pool_flag
+      training_mean_pool_matrix = ...
+      sparse(reshape(training_mean_pool_matrix, ...
+		     [nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+    endif
+    %%training_combo_pool_matrix = ...
+    %%sparse(reshape(training_combo_pool_matrix, ...
+    %%		 [(num_Sparse_hist_pool_bins+1) *  nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+  endif %% i_Sparse <= num_Sparse_list
+  
+  if i_Sparse <= num_Sparse_list
+
+    %% processes exclusive target case first
+    if exclusive_flag == 1
+      disp(["training model for all target classes using ", Sparse_list{i_Sparse,2}]);
+
+      %% determine optimal C value for num_classes exclusive targets using cross validation
+      if hist_pool_flag
+	xval_model_hist_pool_array{i_Sparse, num_target_classes+1} = ...
+	train(training_label_vector{num_target_classes+1}, ...
+	      training_hist_pool_matrix, ...
+	      liblinear_xval_options_str, 'col');
+      endif
+      if max_pool_flag
+	xval_model_max_pool_array{i_Sparse, num_target_classes+1} = ...
+	train(training_label_vector{num_target_classes+1}, ...
+	      training_max_pool_matrix, ...
+	      liblinear_xval_options_str, 'col');
+      endif
+      if mean_pool_flag
+	xval_model_mean_pool_array{i_Sparse, num_target_classes+1} = ...
+	train(training_label_vector{num_target_classes+1}, ...
+	      training_mean_pool_matrix, ...
+	      liblinear_xval_options_str, 'col');
+      endif
+
+      %% train model for num_classes exclusive targets using optimal C value
+      if hist_pool_flag
+	model_hist_pool_array{i_Sparse, num_target_classes+1} = ...
+	train(training_label_vector{num_target_classes+1}, ...
+	      training_hist_pool_matrix, ...
+	      ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1'], 'col');
+      endif
+      if max_pool_flag
+	model_max_pool_array{i_Sparse, num_target_classes+1} = ...
+	train(training_label_vector{num_target_classes+1}, ...
+	      training_max_pool_matrix, ...
+	      ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1'], 'col');
+      endif
+      if mean_pool_flag
+	model_mean_pool_array{i_Sparse, num_target_classes+1} = ...
+	train(training_label_vector{num_target_classes+1}, ...
+	      training_mean_pool_matrix, ...
+	      ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1'], 'col');
+      endif
+
+      %% apply model for num_classes exclusive targets using optimal C value
+      if hist_pool_flag
+	[predicted_label_hist_pool_array{i_Sparse, num_target_classes+1}, ...
+	 accuracy_hist_pool_array{i_Sparse, num_target_classes+1}, ...
+	 prob_values_hist_pool_array{i_Sparse, num_target_classes+1}] = ...
+	predict(training_label_vector{num_target_classes+1}, ...
+		training_hist_pool_matrix, ...
+		model_hist_pool_array{i_Sparse, num_target_classes+1}, ...
+		['-b 1'], 'col');
+      endif
+      if max_pool_flag
+	[predicted_label_max_pool_array{i_Sparse, num_target_classes+1}, ...
+	 accuracy_max_pool_array{i_Sparse, num_target_classes+1}, ...
+	 prob_values_max_pool_array{i_Sparse, num_target_classes+1}] = ...
+	predict(training_label_vector{num_target_classes+1}, ...
+		training_max_pool_matrix, ...
+		model_max_pool_array{i_Sparse, num_target_classes+1}, ...
+		['-b 1'], 'col');
+      endif
+      if mean_pool_flag
+	[predicted_label_mean_pool_array{i_Sparse, num_target_classes+1}, ...
+	 accuracy_mean_pool_array{i_Sparse, num_target_classes+1}, ...
+	 prob_values_mean_pool_array{i_Sparse, num_target_classes+1}] = ...
+	predict(training_label_vector{num_target_classes+1}, ...
+		training_mean_pool_matrix, ...
+		model_mean_pool_array{i_Sparse, num_target_classes+1}, ...
+		['-b 1'], 'col');
+      endif
+
+
+    endif  %% exclusive_flag == 1
+    
+    for i_target_classID = 1 : num_target_classes
     disp(["training model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
-    if i_Sparse <= num_Sparse_list
-      if hist_pool_flag
-	training_hist_pool_matrix = zeros(num_Sparse_hist_pool_bins, nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
-      endif
-      if max_pool_flag
-	training_max_pool_matrix = zeros(nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
-      endif
-      if mean_pool_flag
-	training_mean_pool_matrix = zeros(nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
-      endif
-      %%training_combo_pool_matrix = zeros(num_Sparse_hist_pool_bins+1, nf_Sparse_array(i_Sparse), ny_GT, nx_GT, num_GT_images);
-      for i_Sparse_frame = first_Sparse_frame_array(i_Sparse) : last_Sparse_frame_array(i_Sparse)
-	j_Sparse_frame = i_Sparse_frame - first_Sparse_frame_array(i_Sparse) + 1;
-	if hist_pool_flag
-	  training_hist_pool_matrix(:, :, :, :, j_Sparse_frame) = ...
-	  Sparse_hist_pool_array{i_Sparse}{i_Sparse_frame};
-	endif
-	if max_pool_flag
-	  training_max_pool_matrix(:, :, :, j_Sparse_frame) = ...
-	  Sparse_max_pool_array{i_Sparse}{i_Sparse_frame};
-	endif
-	if mean_pool_flag
-	  training_mean_pool_matrix(:, :, :, j_Sparse_frame) = ...
-	  Sparse_mean_pool_array{i_Sparse}{i_Sparse_frame};
-	endif
-	%%training_combo_pool_matrix(1:num_Sparse_hist_pool_bins, :, :, :, j_Sparse_frame) = ...
-	%%Sparse_hist_pool_array{i_Sparse}{i_Sparse_frame};
-	%%training_combo_pool_matrix(num_Sparse_hist_pool_bins+1, :, :, :, j_Sparse_frame) = ...
-	%%Sparse_max_pool_array{i_Sparse}{i_Sparse_frame};
-      endfor %% i_Sparse_frame
-      if hist_pool_flag
-	training_hist_pool_matrix = ...
-	sparse(reshape(training_hist_pool_matrix, ...
-		       [num_Sparse_hist_pool_bins *  nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
-      endif
-      if max_pool_flag
-	training_max_pool_matrix = ...
-	sparse(reshape(training_max_pool_matrix, ...
-		       [nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
-      endif
-      if mean_pool_flag
-	training_mean_pool_matrix = ...
-	sparse(reshape(training_mean_pool_matrix, ...
-		       [nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
-      endif
-      %%training_combo_pool_matrix = ...
-      %%sparse(reshape(training_combo_pool_matrix, ...
-      %%		 [(num_Sparse_hist_pool_bins+1) *  nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
       if hist_pool_flag
 	training_hist_pool_pos = training_hist_pool_matrix(:,pos_labels_ndx{i_target_classID});
 	training_hist_pool_neg = training_hist_pool_matrix(:, neg_labels_ndx{i_target_classID});
@@ -477,6 +585,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
       %%training_combo_pool_pos_long = training_combo_pool_matrix(:,pos_labels_ndx_long{i_target_classID});
       %%training_combo_pool_neg_long = training_combo_pool_matrix(:, neg_labels_ndx_long{i_target_classID});
 
+      %% cross-validation to determine optimal C value
       if train_long_flag
 	if hist_pool_flag
 	  xval_model_hist_pool_array{i_Sparse, i_target_classID} = ...
@@ -500,7 +609,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	%%train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 	%%	[training_combo_pool_pos_long, training_combo_pool_neg_long], ...
 	%%	liblinear_xval_options_str, 'col');
-      else
+      else  %% train_long_flag
 	if hist_pool_flag
 	  xval_model_hist_pool_array{i_Sparse, i_target_classID} = ...
 	  train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
@@ -524,7 +633,8 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	%%	[training_combo_pool_pos, training_combo_pool_neg], ...
 	%%	liblinear_xval_options_str, 'col');
       endif  %% train_long_flag
-      
+
+      %% use optimal C value to train model
       if train_long_flag
 	if hist_pool_flag
 	  model_hist_pool_array{i_Sparse, i_target_classID} = ...
@@ -548,7 +658,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	%%train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 	%%	[training_combo_pool_pos_long, training_combo_pool_neg_long], ...
 	%%	['-s 0', '-c ', num2str(xval_model_combo_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
-      else
+      else %% train_long_flag
 	if hist_pool_flag
 	  model_hist_pool_array{i_Sparse, i_target_classID} = ...
 	  train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
@@ -573,6 +683,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	%%	['-s 0', '-c ', num2str(xval_model_combo_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
       endif  %% train_long_flag
 
+      %% apply model to sparse representations
       if hist_pool_flag
 	[predicted_label_hist_pool_array{i_Sparse, i_target_classID}, ...
 	 accuracy_hist_pool_array{i_Sparse, i_target_classID}, ...
@@ -600,7 +711,8 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 		model_mean_pool_array{i_Sparse, i_target_classID}, ...
 		['-b 1'], 'col');
       endif
-      
+
+      %% build training matrix for concatented sparse representations for each class
       if num_Sparse_list>1
 	if i_Sparse == 1
 	  if hist_pool_flag
@@ -647,7 +759,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	  endif
 	  %%training_combo_pool_matrix_array_predict{num_Sparse_list+1, i_target_classID} = ...
 	  %%training_combo_pool_matrix;
-	else
+	else  %% i_Sparse == 1
 	  if hist_pool_flag
 	    training_hist_pool_matrix_array{num_Sparse_list+1, i_target_classID} = ...
 	    [training_hist_pool_matrix_array{num_Sparse_list+1, i_target_classID}; ...
@@ -704,9 +816,11 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	  %%training_combo_pool_matrix_array_predict{num_Sparse_list+1, i_target_classID} = ...
 	  %%[training_combo_pool_matrix_array_predict{num_Sparse_list+1, i_target_classID}; ...
 	  %% training_combo_pool_matrix];
-	endif
-      endif
-    else
+	endif  %% i_Sparse == 1
+      endif  %% num_Sparse_list > 1
+    else %% i_Sparse <= num_Sparse_list
+
+      %% cross validation for concatenated representations
       if train_long_flag
 	if hist_pool_flag
 	  xval_model_hist_pool_array{num_Sparse_list+1, i_target_classID} = ...
@@ -730,7 +844,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	%%train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 	%%	training_combo_pool_matrix_array_long{num_Sparse_list+1, i_target_classID}, ...
 	%%	liblinear_xval_options_str, 'col');
-      else
+      else %% train_long_flag
 	if hist_pool_flag
 	  xval_model_hist_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	  train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
@@ -754,6 +868,8 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	%%	training_combo_pool_matrix_array{num_Sparse_list+1, i_target_classID}, ...
 	%%	liblinear_xval_options_str, 'col');
       endif %% train_long_flag
+
+      %% train model for optimal C value for concatenated representations
       if train_long_flag
 	if hist_pool_flag
 	  model_hist_pool_array{num_Sparse_list+1, i_target_classID} = ...
@@ -773,7 +889,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 		training_mean_pool_matrix_array_long{num_Sparse_list+1, i_target_classID}, ...
 		['-s 0', '-c ', num2str(xval_model_mean_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1'], 'col');
 	endif
-      else
+      else %% train_long_flag
 	if hist_pool_flag
 	  model_hist_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	  train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
@@ -794,6 +910,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	endif
       endif %% train_long_flag
 
+      %% apply model to concatenated sparse representations
       if hist_pool_flag
 	[predicted_label_hist_pool_array{i_Sparse, i_target_classID}, ...
 	 accuracy_hist_pool_array{i_Sparse, i_target_classID}, ...
@@ -842,25 +959,40 @@ if plot_flag
     i_pool = i_pool + 1;
     pool_types{i_pool} = "mean";
   endif
-  xval_model_array = zeros(num_target_classes, num_Sparse_list + (num_Sparse_list>1), num_pool);
+  for i_exclusive = 1 : 1 + exclusive_flag==1
+  xval_model_array = zeros(num_target_classes, num_Sparse_list + (num_Sparse_list>1), num_pool, 1+(exclusive_flag==1));
   for i_pool = 1:num_pool
+    if i_exclusive == 1
     for i_target_classID = 1 : num_target_classes
       for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	if strcmp(pool_types{i_pool},"hist") && hist_pool_flag
-	  xval_model_array(i_target_classID, i_Sparse, i_pool) = ...
+	  xval_model_array(i_target_classID, i_Sparse, i_pool, 1) = ...
 	  xval_model_hist_pool_array{i_Sparse, i_target_classID}(2);
 	elseif strcmp(pool_types{i_pool},"max") && max_pool_flag
-	  xval_model_array(i_target_classID, i_Sparse, i_pool) = ...
+	  xval_model_array(i_target_classID, i_Sparse, i_pool, 1) = ...
 	  xval_model_max_pool_array{i_Sparse, i_target_classID}(2);
 	elseif strcmp(pool_types{i_pool},"mean") && mean_pool_flag
-	  xval_model_array(i_target_classID, i_Sparse, i_pool) = ...
+	  xval_model_array(i_target_classID, i_Sparse, i_pool, 1) = ...
 	  xval_model_mean_pool_array{i_Sparse, i_target_classID}(2);
-	  %%elseif strcmp(pool_types{i_pool},"combo")
-	  %%  xval_model_array(i_target_classID, i_Sparse, i_pool) = ...
-	  %%  xval_model_combo_pool_array{i_Sparse, i_target_classID}(2);
 	endif %% pool_types
       endfor %% i_Sparse
     endfor  %% i_target_classID
+    else %% i_exclusive == 1
+    for i_target_classID = 1 : num_target_classes
+      for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
+	if strcmp(pool_types{i_pool},"hist") && hist_pool_flag
+	  xval_model_array(i_target_classID, i_Sparse, i_pool, 2) = ...
+	  xval_model_hist_pool_array{i_Sparse, num_target_classes+1}(2, i_target_classID);
+	elseif strcmp(pool_types{i_pool},"max") && max_pool_flag
+	  xval_model_array(i_target_classID, i_Sparse, i_pool) = ...
+	  xval_model_max_pool_array{i_Sparse, num_target_classes+1}(2, i_target_classID));
+	elseif strcmp(pool_types{i_pool},"mean") && mean_pool_flag
+	  xval_model_array(i_target_classID, i_Sparse, i_pool) = ...
+	  xval_model_mean_pool_array{i_Sparse, num_target_classes+1}(2, i_target_classID));
+	endif %% pool_types
+      endfor %% i_Sparse
+    endfor  %% i_target_classID
+    endif %% i_exclusive == 1
   endfor %% i_pool
   max_model = max(xval_model_array(:));
   num_xval_model_rows = max(1,floor(sqrt(num_target_classes)));
@@ -873,7 +1005,7 @@ if plot_flag
     i_xval_model_row = mod(i_target_classID-1, num_xval_model_cols) + 1;
     j_xval_model_col = ceil(i_target_classID / num_xval_model_cols);
     target_axis(i_target_classID) = subplot(num_xval_model_rows, num_xval_model_cols, i_target_classID);
-    xval_model_handle = bar(target_axis(i_target_classID), squeeze(xval_model_array(i_target_classID, :, :))');
+    xval_model_handle = bar(target_axis(i_target_classID), squeeze(xval_model_array(i_target_classID, :, :, i_exclusive))');
     xval_model_colormap = colormap(prism(length(xval_model_handle)));
     colormap(xval_model_colormap);
     title(target_axis(i_target_classID), target_classes{i_target_classID});
@@ -888,6 +1020,7 @@ if plot_flag
     endif
   endfor %% i_target_classID
   saveas(xval_model_fig, [svm_dir, filesep, xval_model_fig_name, ".png"]);
+  endfor %% i_exclusive
 endif %% plot_flag
 
 

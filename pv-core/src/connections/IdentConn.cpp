@@ -93,14 +93,24 @@ void IdentConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "pvpatchAccumulateType", "convolve", true/*case insensitive*/);
    }
 }
-
-// preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
-// void IdentConn::ioParam_preActivityIsNotRate(enum ParamsIOFlag ioFlag) {
-//    if (ioFlag == PARAMS_IO_READ) {
-//       preActivityIsNotRate = false;
-//       parent->parameters()->handleUnnecessaryParameter(name, "preActivityIsNotRate", preActivityIsNotRate);
-//    }
-// }
+void IdentConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      if (parent->parameters()->present(name, "writeStep")) {
+         parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, -1.0/*default*/, false/*warnIfAbsent*/);
+         if (writeStep>=0) {
+            if (parent->columnId()==0) {
+               fprintf(stderr, "Error: %s \"%s\" does not use writeStep, but the parameters file sets it to %f.\n", getKeyword(), getName(), writeStep);
+            }
+            MPI_Barrier(parent->icCommunicator()->communicator());
+            exit(EXIT_FAILURE);
+         }
+      }
+      else {
+         writeStep = -1.0;
+         parent->parameters()->handleUnnecessaryParameter(name, "writeStep");
+      }
+   }
+}
 
 void IdentConn::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
