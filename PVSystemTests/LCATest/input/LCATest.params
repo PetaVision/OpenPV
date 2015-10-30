@@ -6,7 +6,7 @@
 
 //  A test of LCA in the GenericSystemTest paradigm
 //  An input->error<->V1 LCA module, using random initial weights
-//  and a correct-values movie being compared to the reconstruciton layer.
+//  and a correct-values movie being compared to the reconstruction layer.
 //
 
 debugParsing = false;
@@ -114,7 +114,6 @@ HyPerLCALayer "V1" = {
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0.025;
-    numChannels                         = 1;
     timeConstantTau                     = 100;
     timeConstantTauMinimum              = 10;
     numWindowX                          = 1;
