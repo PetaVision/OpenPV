@@ -70,7 +70,7 @@ int main(int argc, char * argv[]) {
    }
    if (!(generateFlag||testrunFlag||testcheckpointFlag||testioparamsFlag)) {
       if (rank==0) {
-         fprintf(stderr, "%s error: At least one of \"--generate\", \"--testrun\", \"--testcheckpoint\", \"testioparams\" must be selected.\n", argv[0]);
+         fprintf(stderr, "%s error: At least one of \"--generate\", \"--testrun\", \"--testcheckpoint\", \"--testioparams\" must be selected.\n", argv[0]);
       }
       MPI_Barrier(MPI_COMM_WORLD); // Make sure no child processes take down the MPI environment before root process prints error message.
       exit(EXIT_FAILURE);
@@ -248,6 +248,7 @@ int testioparams(PV_Init* initObj, int rank) {
 int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
    const char * targetLayerName = "comparison";
    HyPerLayer * layer = hc->getLayerFromName(targetLayerName);
+   assert(layer);
    LayerProbe * probe = NULL;
    int np = layer->getNumProbes();
    for (int p=0; p<np; p++) {
