@@ -62,4 +62,13 @@ filename=$(basename "$pfile")
 extension="${filename##*.}"
 filename="${filename%.*}"
 mv mermaid_input.png "$filename.png"
-open "$filename.png"
+case "$(uname -s)" in
+    Linux)
+        display $filename.png
+        ;;
+    Darwin)
+        open $filename.png
+        ;;
+    *)
+        echo "Unrecognized OS; output is in \"$filename.png\"."
+esac
