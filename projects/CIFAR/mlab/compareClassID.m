@@ -15,11 +15,11 @@ addpath("/nh/compneuro/Data/openpv/pv-core/mlab/HyPerLCA");
 
 plot_flag = true;
 
-output_dir = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4";
+output_dir = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7";
 
 %%draw reconstructed image
 DoG_weights = [];
-Recon_list = {["a0_"],  ["Image"]};
+Recon_list = {[""],  ["Image"]; [""], ["ImageDeconS1"]; [""], ["ImageDeconS2"]; [""], ["ImageDeconS3"]};
 %% list of layers to unwhiten
 num_Recon_list = size(Recon_list,1);
 Recon_unwhiten_list = zeros(num_Recon_list,1);
@@ -37,10 +37,10 @@ ground_truth = [output_dir, "/a19_GroundTruth.pvp"];
 				%pause;
 
 %% Error vs time
-nonSparse_list = {["a28_"], ["GroundTruthReconS1Error"]; ["a24_"], ["GroundTruthReconS2Error"]; ["a20_"], ["GroundTruthReconS3Error"]; ["a32_"], ["GroundTruthReconS1S2S3Error"]}; 
+nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS2Error"]; [""], ["GroundTruthReconS3Error"]; [""], ["GroundTruthReconS1S2S3Error"]}; 
 num_nonSparse_list = size(nonSparse_list,1);
 nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-nonSparse_norm_list = {["a19_"], ["GroundTruth"]; ["a19_"], ["GroundTruth"]; ["a19_"], ["GroundTruth"]; ["a19_"], ["GroundTruth"]}; 
+nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]}; 
 nonSparse_norm_strength = ones(num_nonSparse_list,1);
 fraction_nonSparse_frames_read = 1;
 min_nonSparse_skip = 1;
@@ -71,15 +71,15 @@ JIEDDO_classes = classes(JIEDDO_class_ndx)
 
 i_scale_list = 1 : 4;
 for i_scale = i_scale_list 
-    gt_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4/a19_GroundTruth.pvp")
+    gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
   if i_scale == 1
-      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4/a29_GroundTruthReconS1.pvp")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
   elseif i_scale == 2
-      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4/a25_GroundTruthReconS2.pvp")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS2.pvp"])
   elseif i_scale == 3
-      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4/a21_GroundTruthReconS3.pvp")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS3.pvp"])
   elseif i_scale == 4
-      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4/a33_GroundTruthReconS1S2S3.pvp")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1S2S3.pvp"])
   endif
 
   pred_classID_fid = fopen(pred_classID_file);
@@ -99,13 +99,9 @@ for i_scale = i_scale_list
   pred_num_frames = length(pred_data);
   gt_num_neurons = gt_hdr.nf * gt_hdr.nx * gt_hdr.ny;
   gt_num_frames = length(gt_data);
-  %%imageRecon_num_neurons = imageRecon_hdr.nf * imageRecon_hdr.nx * imageRecon_hdr.ny;
-  %%imageRecon_num_frames = length(imageRecon_data);
   classID_hist_bins = -0.25:0.01:2.0;
   num_classID_bins = length(classID_hist_bins);
   pred_classID_hist = zeros(num_classID_bins, length(JIEDDO_class_ndx),2);
-  %%pred_classID_sum = zeros(length(JIEDDO_class_ndx), 1);
-  %%pred_classID_sum2 = zeros(length(JIEDDO_class_ndx), 1);
   classID_colormap = prism(length(JIEDDO_class_ndx)+0); %%hot(gt_hdr.nf+1); %%rainbow(length(JIEDDO_class_ndx)); %%prism(length(JIEDDO_class_ndx));
   use_false_positive_thresh = false; %%true; %%
   false_positive_thresh = .99;

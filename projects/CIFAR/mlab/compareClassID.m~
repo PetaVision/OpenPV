@@ -15,7 +15,7 @@ addpath("/nh/compneuro/Data/openpv/pv-core/mlab/HyPerLCA");
 
 plot_flag = true;
 
-output_dir = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train3";
+output_dir = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4";
 
 %%draw reconstructed image
 DoG_weights = [];
@@ -71,15 +71,15 @@ JIEDDO_classes = classes(JIEDDO_class_ndx)
 
 i_scale_list = 1 : 4;
 for i_scale = i_scale_list 
-    gt_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train3/a19_GroundTruth.pvp")
+    gt_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4/a19_GroundTruth.pvp")
   if i_scale == 1
-      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train3/a29_GroundTruthReconS1.pvp")
+      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4/a29_GroundTruthReconS1.pvp")
   elseif i_scale == 2
-      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train3/a25_GroundTruthReconS2.pvp")
+      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4/a25_GroundTruthReconS2.pvp")
   elseif i_scale == 3
-      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train3/a21_GroundTruthReconS3.pvp")
+      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4/a21_GroundTruthReconS3.pvp")
   elseif i_scale == 4
-      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train3/a33_GroundTruthReconS1S2S3.pvp")
+      pred_classID_file = fullfile("/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train4/a33_GroundTruthReconS1S2S3.pvp")
   endif
 
   pred_classID_fid = fopen(pred_classID_file);

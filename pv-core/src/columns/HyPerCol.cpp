@@ -800,10 +800,18 @@ void HyPerCol::ioParamString(enum ParamsIOFlag ioFlag, const char * group_name, 
    const char * param_string = NULL;
    switch(ioFlag) {
    case PARAMS_IO_READ:
-      param_string = params->stringValue(group_name, param_name, warnIfAbsent);
-      if (param_string==NULL && defaultValue !=NULL) {
+      if ( params->stringPresent(group_name, param_name) ) {
+         param_string = params->stringValue(group_name, param_name, warnIfAbsent);
+      }
+      else {
+         // parameter was not set in params file; use the default.  But default might or might not be NULL.
          if (columnId()==0 && warnIfAbsent==true) {
-            fprintf(stderr, "Using default value \"%s\" for string parameter \"%s\" in group \"%s\"\n", defaultValue, param_name, group_name);
+            if (defaultValue != NULL) {
+               fprintf(stderr, "Using default value \"%s\" for string parameter \"%s\" in group \"%s\"\n", defaultValue, param_name, group_name);
+            }
+            else {
+               fprintf(stderr, "Using default value of NULL for string parameter \"%s\" in group \"%s\"\n", param_name, group_name);
+            }
          }
          param_string = defaultValue;
       }
@@ -2766,8 +2774,8 @@ int HyPerCol::outputParams(char const * path) {
       }
 
       //lua file output
-      fprintf(luaPrintParamsStream->fp, "// PetaVision, " PV_REVISION "\n");
-      fprintf(luaPrintParamsStream->fp, "// Run time %s", ctime(&t)); // newline is included in output of ctime
+      fprintf(luaPrintParamsStream->fp, "-- PetaVision, " PV_REVISION "\n");
+      fprintf(luaPrintParamsStream->fp, "-- Run time %s", ctime(&t)); // newline is included in output of ctime
 #ifdef PV_USE_MPI
       fprintf(luaPrintParamsStream->fp, "-- Compiled with MPI and run using %d rows and %d columns.\n", icComm->numCommRows(), icComm->numCommColumns());
 #else // PV_USE_MPI
@@ -2792,8 +2800,7 @@ int HyPerCol::outputParams(char const * path) {
          fprintf(luaPrintParamsStream->fp, "-- Started from checkpoint \"%s\"\n", checkpointReadDir);
       }
       //Load util module based on PVPath
-      fprintf(luaPrintParamsStream->fp, "-- Load util module in PV trunk: NOTE this may need to change\n"); 
-      fprintf(luaPrintParamsStream->fp, "package.path = package.path .. \";\" .. os.getenv(\"HOME\") .. \"/workspace/PetaVision/parameterWrapper/?.lua\"\n"); 
+      fprintf(luaPrintParamsStream->fp, "package.path = package.path .. \";\" .. \"" PV_DIR "/parameterWrapper/?.lua\"\n");
       fprintf(luaPrintParamsStream->fp, "local pv = require \"PVModule\"\n\n"); 
       
       fprintf(luaPrintParamsStream->fp, "-- Base table variable to store\n"); 

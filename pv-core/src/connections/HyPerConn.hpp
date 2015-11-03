@@ -1058,6 +1058,7 @@ private:
    int clearWeights(pvwdata_t* arborDataStart, int numPatches, int nx, int ny,
          int nf);
    int deleteWeights();
+   void unsetAccumulateType();
 
 // static member functions
 //

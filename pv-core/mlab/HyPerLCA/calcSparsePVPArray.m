@@ -29,7 +29,6 @@ function ...
       return;
     endif
     [sparse_row_ndx, sparse_col_ndx, sparse_values] = find(Sparse_struct.values(:));
-    keyboard;
     Sparse_struct.values = zeros(length(sparse_values(:)),2);
     Sparse_struct.values(:,1) = sparse_row_ndx-1;
     Sparse_struct.values(:,2) = sparse_values;
@@ -45,6 +44,9 @@ function ...
     Sparse_active_vals = ones(size(Sparse_active_ndx));
   endif
   %%Sparse_current = full(sparse(Sparse_active_ndx+1,1,Sparse_active_vals,n_Sparse,1,n_Sparse));
+  if max(Sparse_active_ndx(:) > n_Sparse)
+    keyboard;
+  endif
   Sparse_current = sparse(Sparse_active_ndx+1,1,Sparse_active_vals,n_Sparse,1,n_Sparse);
   Sparse_current_active = nnz(Sparse_current(:));
   Sparse_percent_active = Sparse_current_active / n_Sparse;

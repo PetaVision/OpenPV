@@ -207,6 +207,9 @@ function [Sparse_hdr, ...
       
       num_Sparse_frames = size(Sparse_times,1);      
       Sparse_hist = sum(Sparse_hist_frames,1);
+      if length(Sparse_hist) < nf_Sparse
+	keyboard;
+      endif
       Sparse_hist = Sparse_hist(1:nf_Sparse) / ((num_Sparse_frames) * nx_Sparse * ny_Sparse); 
       [Sparse_hist_sorted, Sparse_hist_rank] = sort(Sparse_hist(:), 1, "descend");
       
@@ -326,15 +329,17 @@ function [Sparse_hdr, ...
       saveas(Sparse_hist_fig, ...
 	     [Sparse_dir, filesep, "Hist_", Sparse_filename_id], "png");
       
-      Sparse_percent_change_fig = figure;
-      Sparse_percent_change_hndl = plot(Sparse_times, full(Sparse_percent_change)); 
-      set(Sparse_percent_change_hndl, "linewidth", 1.5);
-      axis([Sparse_times(1) Sparse_times(end) 0 1]); %%axis tight;
-      set(Sparse_percent_change_fig, ...
-	  "name", ["percent_change_", Sparse_filename_id]);
-      saveas(Sparse_percent_change_fig, ...
-	     [Sparse_dir, filesep, "percent_change_", Sparse_filename_id], "png");
-      
+      if Sparse_times(end) > Sparse_times(1)
+	Sparse_percent_change_fig = figure;
+	Sparse_percent_change_hndl = plot(Sparse_times, full(Sparse_percent_change)); 
+	set(Sparse_percent_change_hndl, "linewidth", 1.5);
+	axis([Sparse_times(1) Sparse_times(end) 0 1]); %%axis tight;
+	set(Sparse_percent_change_fig, ...
+	    "name", ["percent_change_", Sparse_filename_id]);
+	saveas(Sparse_percent_change_fig, ...
+	       [Sparse_dir, filesep, "percent_change_", Sparse_filename_id], "png");
+      endif
+
       Sparse_percent_active_fig = figure;
       Sparse_percent_active_hndl = plot(Sparse_times, Sparse_percent_active); axis tight;
       set(Sparse_percent_active_hndl, "linewidth", 1.5);
@@ -357,13 +362,14 @@ function [Sparse_hdr, ...
     Sparse_percent_active_array{i_Sparse} = Sparse_percent_active;
     Sparse_percent_change_array{i_Sparse} = Sparse_percent_change;
     Sparse_std_array{i_Sparse} = Sparse_std;
-
+    
     if num_Sparse_list > 10
       close(Sparse_hist_fig);
-      close(Sparse_percent_change_fig);
+      if exist("Sparse_percent_change_fig")
+	close(Sparse_percent_change_fig);
+      endif
       close(Sparse_percent_active_fig);
     endif
-    
   endfor  %% i_Sparse
   
 endfunction

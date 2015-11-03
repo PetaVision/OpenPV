@@ -50,8 +50,8 @@ public:
 
    /**
     * If there is a triggering layer, needUpdate returns true when the triggering layer's
-    * nextUpdateTime, modified by the probe's triggerOffset parameter, occurs.
-    * If there is not a triggering layer, needUpdate returns false.
+    * nextUpdateTime, modified by the probe's triggerOffset parameter, occurs; otherwise false.
+    * If there is not a triggering layer, needUpdate always returns true.
     * This behavior can be overridden if a probe uses some criterion other than triggering
     * to choose when output its state.
     */

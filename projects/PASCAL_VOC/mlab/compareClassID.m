@@ -9,36 +9,35 @@ close all
 more off
 pkg load all
 setenv("GNUTERM","X11")
-addpath("~/openpv/pv-core/mlab/imgProc");
-addpath("~/openpv/pv-core/mlab/util");
-addpath("~/openpv/pv-core/mlab/HyPerLCA");
+addpath("/nh/compneuro/Data/openpv/pv-core/mlab/imgProc");
+addpath("/nh/compneuro/Data/openpv/pv-core/mlab/util");
+addpath("/nh/compneuro/Data/openpv/pv-core/mlab/HyPerLCA");
 
 plot_flag = true;
-%%run_type = "ICA";
-%%run_type = "ICAX4"
-%%run_type = "ICAX16"
-run_type = "S1S2"
-if strcmp(run_type, "ICA")
-  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape15";
-elseif strcmp(run_type, "ICAX4")
-  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape9";
-elseif strcmp(run_type, "ICAX16")
-  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape2";
-elseif strcmp(run_type, "S1S2")
-  output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape28";
+
+run_type = "DCA";
+%%run_type = "DCA_Vine";
+%%run_type = "MaxPool"
+%%run_type = "S1S2";
+if strcmp(run_type, "S1S2")
+  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape27";
+elseif strcmp(run_type, "DCA")
+  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape8";
+elseif strcmp(run_type, "DCA_Vine")
+  %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/PASCAL_Vine1";
+  output_dir = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/PASCAL_Vine1";
+elseif strcmp(run_type, "MaxPool")
+  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape10";
 endif
-  
 
 %%draw reconstructed image
+Recon_flag = false
+if Recon_flag 
 DoG_weights = [];
-if strcmp(run_type, "ICA")
-  Recon_list = {["a4_"],  ["Image"]};
-elseif strcmp(run_type, "ICAX4")
-  Recon_list = {["a4_"],  ["Image"]};
-elseif strcmp(run_type, "ICAX16")
-  Recon_list = {["a4_"],  ["Image"]};
-elseif strcmp(run_type, "S1S2")
+if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "MaxPool")
   Recon_list = {["a0_"],  ["Image"]};
+else
+  Recon_list = {[""],  ["Image"]};
 endif
 %% list of layers to unwhiten
 num_Recon_list = size(Recon_list,1);
@@ -51,81 +50,47 @@ num_Recon_frames_per_layer = 1;
 Recon_LIFO_flag = true;
 [Recon_hdr, Recon_fig,  Recon_fig_name, Recon_vals,  Recon_time, Recon_mean,  Recon_std] = analyzeUnwhitenedReconPVP(Recon_list, num_Recon_frames_per_layer, output_dir, plot_flag, Recon_sum_list, Recon_LIFO_flag);
 drawnow;
+endif
 
 %% sparse activity
-if strcmp(run_type, "ICA")
-  Sparse_list ={["a6_"], ["GroundTruth"]};
-elseif strcmp(run_type, "ICAX4")
-  Sparse_list ={["a6_"], ["GroundTruth"]};
-elseif strcmp(run_type, "ICAX16")
-  Sparse_list ={["a6_"], ["GroundTruth"]};
-elseif strcmp(run_type, "S1S2")
-  Sparse_list ={["a13_"], ["GroundTruth"]};
+if strcmp(run_type, "S1S2") 
+  Sparse_list ={["a13_"], ["GroundTruth"]}; 
+elseif strcmp(run_type, "DCA")
+  Sparse_list ={[""], ["GroundTruth"]}; 
+%%elseif strcmp(run_type, "DCA_Vine")
+%%  Sparse_list ={["a16_"], ["GroundTruth"]}; 
+elseif strcmp(run_type, "MaxPool")
+  Sparse_list ={["a25_"], ["GroundTruth"]}; 
 endif
-fraction_Sparse_frames_read = 1;
-min_Sparse_skip = 1;
+fraction_Sparse_frames_read = 10;
+min_Sparse_skip = 7000000;
 fraction_Sparse_progress = 10;
 num_epochs = 1;
 num_procs = 1;
 Sparse_frames_list = [];
 load_Sparse_flag = false;
-[Sparse_hdr, ...
- Sparse_hist_rank_array, ...
- Sparse_times_array, ...
- Sparse_percent_active_array, ...
- Sparse_percent_change_array, ...
- Sparse_std_array, ...
- Sparse_struct_array] = ...
-analyzeSparseEpochsPVP2(Sparse_list, ...
-			output_dir, ...
-			load_Sparse_flag, ...
-			plot_flag, ...
-			fraction_Sparse_frames_read, ...
-			min_Sparse_skip, ...
-			fraction_Sparse_progress, ...
-			Sparse_frames_list, ...
-			num_procs, num_epochs);
-drawnow;
-
+if exist("Sparse_list") && ~isempty(Sparse_list)
+  [Sparse_hdr, Sparse_hist_rank_array, Sparse_times_array, Sparse_percent_active_array, Sparse_percent_change_array, Sparse_std_array, Sparse_struct_array] = analyzeSparseEpochsPVP2(Sparse_list, output_dir, load_Sparse_flag, plot_flag, fraction_Sparse_frames_read, min_Sparse_skip, fraction_Sparse_progress, Sparse_frames_list, num_procs, num_epochs);
+  drawnow;
+endif
 
 				%pause;
 
 %% Error vs time
-if strcmp(run_type, "ICA")
-  nonSparse_list = {["a11_"], ["GroundTruthReconS1Error"]};
-elseif strcmp(run_type, "ICAX4")
-  nonSparse_list = {["a11_"], ["GroundTruthReconS1Error"]};
-elseif strcmp(run_type, "ICAX16")
-  nonSparse_list = {["a11_"], ["GroundTruthReconS1Error"]};
-elseif strcmp(run_type, "S1S2")
-  nonSparse_list = {["a18_"], ["GroundTruthReconS1Error"]; ["a14_"], ["GroundTruthReconS2Error"]; ["a22_"], ["GroundTruthReconS1S2Error"]};
+if strcmp(run_type, "DCA")
+  nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS2Error"]; [""], ["GroundTruthReconS3Error"]; [""], ["GroundTruthReconS1S2S3Error"]}; 
+  Sparse_std_ndx = [1 1 1 1]; %% 
 endif
 num_nonSparse_list = size(nonSparse_list,1);
 nonSparse_skip = repmat(1, num_nonSparse_list, 1);
-if strcmp(run_type, "ICA")
-  nonSparse_norm_list = {["a6_"], ["GroundTruth"]};
-elseif strcmp(run_type, "ICAX4")
-  nonSparse_norm_list = {["a6_"], ["GroundTruth"]};
-elseif strcmp(run_type, "ICAX16")
-  nonSparse_norm_list = {["a6_"], ["GroundTruth"]};
-elseif strcmp(run_type, "S1S2")
-  nonSparse_norm_list = {["a13_"], ["GroundTruth"]; ["a13_"], ["GroundTruth"]; ["a13_"], ["GroundTruth"]};
+if strcmp(run_type, "DCA")
+  nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]}; 
 endif
 nonSparse_norm_strength = ones(num_nonSparse_list,1);
-%%Sparse_std_ndx = [1 2 3 1 2 3]; %% 
-Sparse_std_ndx = [1 1 1 1]; %% 
 fraction_nonSparse_frames_read = 1;
 min_nonSparse_skip = 1;
 fraction_nonSparse_progress = 10;
-[nonSparse_times_array, ...
- nonSparse_RMS_array, ...
- nonSparse_norm_RMS_array, ...
- nonSparse_RMS_fig] = ...
-analyzeNonSparsePVP(nonSparse_list, ...
-		    nonSparse_skip, ...
-		    nonSparse_norm_list, ...
-		    nonSparse_norm_strength, ...
-		    Sparse_times_array, Sparse_std_array, Sparse_std_ndx, output_dir, plot_flag, fraction_nonSparse_frames_read, min_nonSparse_skip, fraction_nonSparse_progress);
+[nonSparse_times_array, nonSparse_RMS_array, nonSparse_norm_RMS_array, nonSparse_RMS_fig] = analyzeNonSparsePVP(nonSparse_list, nonSparse_skip, nonSparse_norm_list, nonSparse_norm_strength, Sparse_times_array, Sparse_std_array, Sparse_std_ndx, output_dir, plot_flag, fraction_nonSparse_frames_read, min_nonSparse_skip, fraction_nonSparse_progress);
 for i_nonSparse = 1 : num_nonSparse_list
   figure(nonSparse_RMS_fig(i_nonSparse));
   grid on
@@ -134,8 +99,7 @@ endfor
 drawnow;
 				%pause;
 
-
-classes={...
+classes ={ ...
 	 'background'
          'aeroplane'
          'bicycle'
@@ -157,40 +121,59 @@ classes={...
          'sofa'
          'train'
          'tvmonitor'};
-
 JIEDDO_class_ndx = [2:numel(classes)]; %%[2 6 7 14 15 19]+1;
 JIEDDO_classes = classes(JIEDDO_class_ndx)
+if strcmp(run_type, "DCA_Vine")
+  classes = classes(2:numel(classes));
+  JIEDDO_classes = classes;
+  JIEDDO_class_ndx = [1:numel(JIEDDO_classes)];
+endif
 
 
-for i_scale = 1 : 1 +  2*strcmp(run_type, "S1S2")
-  if strcmp(run_type, "ICA")
-    gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape15/a6_GroundTruth.pvp")
-  elseif strcmp(run_type, "ICAX4")
-    gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape9/a6_GroundTruth.pvp")
-  elseif strcmp(run_type, "ICAX16")
-    gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape2/a6_GroundTruth.pvp")
-  elseif strcmp(run_type, "S1S2")
-    gt_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape28/a13_GroundTruth.pvp")
+if strcmp(run_type, "DCA") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "MaxPool")
+  i_scale_list = 1 : 4;
+elseif strcmp(run_type, "S1S2") 
+  i_scale_list = 1 : 3;
+endif
+
+for i_scale = i_scale_list 
+  if strcmp(run_type, "DCA")
+    gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
   endif
   if i_scale == 1
-    if strcmp(run_type, "ICA")
-      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_1536_ICA/VOC2007_landscape15/a8_GroundTruthReconS1.pvp")
-    elseif strcmp(run_type, "ICAX4")      
-      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICA/VOC2007_landscape9/a8_GroundTruthReconS1.pvp")
-    elseif strcmp(run_type, "ICAX16")      
-      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape2/a8_GroundTruthReconS1.pvp")
-    elseif strcmp(run_type, "S1S2")      
-      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape28/a19_GroundTruthReconS1.pvp")
+    if strcmp(run_type, "DCA")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
     endif
   elseif i_scale == 2
-    if strcmp(run_type, "S1S2")      
-      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape28/a15_GroundTruthReconS2.pvp")
+    if strcmp(run_type, "DCA")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS2.pvp"])
+    elseif strcmp(run_type, "DCA_Vine")
+      pred_classID_file = fullfile([output_dir, filesep, "a22_GroundTruthReconS2.pvp"])
+    elseif strcmp(run_type, "MaxPool")
+      pred_classID_file = fullfile([output_dir, filesep, "a31_GroundTruthReconS2.pvp"])
+    elseif strcmp(run_type, "S1S2")
+      pred_classID_file = fullfile([output_dir, filesep, "a15_GroundTruthReconS2.pvp"])
     endif
   elseif i_scale == 3
-    if strcmp(run_type, "S1S2")      
-      pred_classID_file = fullfile("/Volumes/mountData/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape28/a23_GroundTruthReconS1S2.pvp")
-    endif    
+    if strcmp(run_type, "DCA")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS3.pvp"])
+    elseif strcmp(run_type, "DCA_Vine")
+      pred_classID_file = fullfile([output_dir, filesep, "a18_GroundTruthReconS3.pvp"])
+    elseif strcmp(run_type, "MaxPool")
+      pred_classID_file = fullfile([output_dir, filesep, "a27_GroundTruthReconS3.pvp"])
+    elseif strcmp(run_type, "S1S2")
+      pred_classID_file = fullfile([output_dir, filesep, "a23_GroundTruthReconS1S2.pvp"])
+    endif
+  elseif i_scale == 4
+    if strcmp(run_type, "DCA")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1S2S3.pvp"])
+    elseif strcmp(run_type, "DCA_Vine")
+      pred_classID_file = fullfile([output_dir, filesep, "a30_GroundTruthReconS1S2S3.pvp"])
+    elseif strcmp(run_type, "MaxPool")
+      pred_classID_file = fullfile([output_dir, filesep, "a39_GroundTruthReconS1S2S3.pvp"])
+    endif
   endif
+
   pred_classID_fid = fopen(pred_classID_file);
   pred_classID_hdr = readpvpheader(pred_classID_fid);
   fclose(pred_classID_fid);
@@ -206,18 +189,17 @@ for i_scale = 1 : 1 +  2*strcmp(run_type, "S1S2")
 				%true_num_frames = length(true_data);
   pred_num_neurons = pred_hdr.nf * pred_hdr.nx * pred_hdr.ny;
   pred_num_frames = length(pred_data);
+  last_pred_time = pred_data{pred_num_frames}.time;
   gt_num_neurons = gt_hdr.nf * gt_hdr.nx * gt_hdr.ny;
   gt_num_frames = length(gt_data);
-  %%imageRecon_num_neurons = imageRecon_hdr.nf * imageRecon_hdr.nx * imageRecon_hdr.ny;
-  %%imageRecon_num_frames = length(imageRecon_data);
+  last_gt_time = gt_data{gt_num_frames}.time;
   classID_hist_bins = -0.25:0.01:2.0;
   num_classID_bins = length(classID_hist_bins);
   pred_classID_hist = zeros(num_classID_bins, length(JIEDDO_class_ndx),2);
-  %%pred_classID_sum = zeros(length(JIEDDO_class_ndx), 1);
-  %%pred_classID_sum2 = zeros(length(JIEDDO_class_ndx), 1);
   classID_colormap = prism(length(JIEDDO_class_ndx)+0); %%hot(gt_hdr.nf+1); %%rainbow(length(JIEDDO_class_ndx)); %%prism(length(JIEDDO_class_ndx));
   use_false_positive_thresh = false; %%true; %%
   false_positive_thresh = .99;
+  last_time = min(last_pred_time, last_gt_time)
   for i_frame = 1 : min(pred_num_frames, gt_num_frames) 
     
     %% ground truth layer is sparse
@@ -225,15 +207,20 @@ for i_scale = 1 : 1 +  2*strcmp(run_type, "S1S2")
       display(["i_frame = ", num2str(i_frame)])
     endif
     gt_time = gt_data{i_frame}.time;
-    gt_num_active = length(gt_data{i_frame}.values);
-    gt_active_ndx = gt_data{i_frame}.values+1;
-    gt_active_sparse = sparse(gt_active_ndx,1,1,gt_num_neurons,1,gt_num_active);
-    gt_classID_cube = full(gt_active_sparse);
-    gt_classID_cube = reshape(gt_classID_cube, [gt_hdr.nf, gt_hdr.nx, gt_hdr.ny]);
-    gt_classID_cube = permute(gt_classID_cube, [3,2,1]);
+    if strcmp(run_type, "DCA_Vine")
+      gt_classID_cube = gt_data{i_frame}.values;
+      gt_classID_cube = permute(gt_classID_cube, [2,1,3]);
+    else
+      gt_num_active = length(gt_data{i_frame}.values);
+      gt_active_ndx = gt_data{i_frame}.values+1;
+      gt_active_sparse = sparse(gt_active_ndx,1,1,gt_num_neurons,1,gt_num_active);
+      gt_classID_cube = full(gt_active_sparse);
+      gt_classID_cube = reshape(gt_classID_cube, [gt_hdr.nf, gt_hdr.nx, gt_hdr.ny]);
+      gt_classID_cube = permute(gt_classID_cube, [3,2,1]);
+    endif
     
     %% only display predictions for these frames
-    if any(gt_time == Recon_time{1})
+    if any(gt_time == last_time)
       display(["i_frame = ", num2str(i_frame)]);
       
       [gt_classID_val, gt_classID_ndx] = max(gt_classID_cube, [], 3);
@@ -253,7 +240,7 @@ for i_scale = 1 : 1 +  2*strcmp(run_type, "S1S2")
 	gt_classID_band(:,:,3) = gt_classID_band(:,:,3) * gt_class_color(3)*255;
 	gt_classID_heatmap = gt_classID_heatmap + gt_classID_band .* repmat(squeeze(sum(gt_classID_heatmap,3)==0),[1,1,3]);
       endfor
-      gt_classID_heatmap = floor(mod(gt_classID_heatmap, 256));
+      gt_classID_heatmap = mod(gt_classID_heatmap, 256);
       if plot_flag
 	gt_fig = figure("name", ["Ground Truth: ", num2str(gt_time, "%i")]);
 	image(uint8(gt_classID_heatmap)); axis off; axis image, box off;
@@ -281,7 +268,7 @@ for i_scale = 1 : 1 +  2*strcmp(run_type, "S1S2")
 	pred_classID_hist(:,i_JIEDDO_classID,2) = squeeze(pred_classID_hist(:,i_JIEDDO_classID,2)) + hist(neg_pred_tmp(:), classID_hist_bins)';
       endif
     endfor
-    if any(pred_time == Recon_time{1}) 
+    if any(pred_time == last_time) 
       pred_classID_cumsum = squeeze(cumsum(pred_classID_hist, 1));
       pred_classID_sum = squeeze(sum(pred_classID_hist, 1));
       pred_classID_norm = repmat(reshape(pred_classID_sum, [1,length(JIEDDO_class_ndx),2]), [num_classID_bins,1,1]);
@@ -326,24 +313,47 @@ for i_scale = 1 : 1 +  2*strcmp(run_type, "S1S2")
       pred_classID_thresh = reshape(pred_classID_thresh, [1,1, length(JIEDDO_class_ndx)]);
       pred_classID_mask = double(JIEDDO_classID_cube >= repmat(pred_classID_thresh, [pred_hdr.ny, pred_hdr.nx, 1]));
       pred_classID_confidences = cell(length(JIEDDO_class_ndx), 1);
-      pred_classID_max_confidence = squeeze(max(squeeze(max(JIEDDO_classID_cube, [], 2)), [], 1));
-      %% confidence is measured as a percentage relative to threshold
-      %%   scaled by the residual hit rate relative to the false alarm rate
-      pred_classID_max_percent_confidence = (pred_classID_max_confidence(:) - pred_classID_thresh(:)) ./ (pred_classID_thresh(:) + (pred_classID_thresh(:)==0));
-      pred_classID_relative_accuracy = ((pred_classID_true_pos(:) - (1-false_positive_thresh)) ./ (1-pred_classID_false_pos(:)));
-      pred_classID_max_confidence = pred_classID_max_percent_confidence;
-      %%pred_classID_max_confidence = ((pred_classID_true_pos(:) - (1-pred_classID_false_pos(:))) ./ (1-pred_classID_false_pos(:))) .* (pred_classID_max_confidence(:) - pred_classID_thresh(:)) ./ (pred_classID_max_confidence(:) + pred_classID_thresh(:));
-      [pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
-      JIEDDO_confidences = cell(length(JIEDDO_class_ndx),1);
-      i_JIEDDO_classID = 0;
-      for i_classID = JIEDDO_class_ndx %%1 : pred_hdr.nf
-	i_JIEDDO_classID = i_JIEDDO_classID + 1;
-	JIEDDO_confidences{i_JIEDDO_classID, 1} = [JIEDDO_classes{pred_classID_sorted_ndx(i_JIEDDO_classID)}, ...
-						   ', ', num2str(pred_classID_sorted_confidence(i_JIEDDO_classID)), ...
-						   ', ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
-						   ', ', num2str(pred_classID_accuracy(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
-						   ', ', num2str(pred_classID_true_pos(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
-						   ', ', num2str(pred_classID_false_pos(pred_classID_sorted_ndx(i_JIEDDO_classID)))];
+
+
+	
+	classID_bin_width = (classID_hist_bins(end) - classID_hist_bins(1)) / length(classID_hist_bins);
+	pred_classID_max_confidence = squeeze(max(squeeze(max(target_classID_cube, [], 2)), [], 1));
+	pred_classID_max_confidence_bin = ceil((pred_classID_max_confidence - classID_hist_bins(1)) ./ classID_bin_width);
+	pred_classID_max_confidence_bin = min(pred_classID_max_confidence_bin, classID_hist_bins(end));
+	pred_classID_max_confidence_bin = max(pred_classID_max_confidence_bin, classID_hist_bins(1));
+	pred_classID_max_confidence = ...
+	(1 - pred_classID_cumprob(pred_classID_max_confidence_bin,:,1)) ./ ...
+	((1 - pred_classID_cumprob(pred_classID_max_confidence_bin,:,1)) + (1 - pred_classID_cumprob(pred_classID_max_confidence_bin,:,2)));
+	
+	[pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
+	target_confidences = cell(length(target_class_indices),1);
+	for i_target_classID = 1 : length(JIEDDO_class_ndx)
+	  target_confidences{i_target_classID, 1} = [target_classes{pred_classID_sorted_ndx(i_target_classID)}, ...
+						     ', ', 'confidence = ', num2str(pred_classID_sorted_confidence(i_target_classID)), ...
+						     ', ', 'thresh = ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_target_classID))), ...
+						     ', ', 'accuracy = ', num2str(pred_classID_accuracy(pred_classID_sorted_ndx(i_target_classID))), ...
+						     ', ', 'true_pos = ', num2str(pred_classID_true_pos(pred_classID_sorted_ndx(i_target_classID))), ...
+						     ', ', 'true_neg = ', num2str(pred_classID_false_pos(pred_classID_sorted_ndx(i_target_classID)))];
+      
+      %%pred_classID_max_confidence = squeeze(max(squeeze(max(JIEDDO_classID_cube, [], 2)), [], 1));
+      %%%% confidence is measured as a percentage relative to threshold
+      %%%%   scaled by the residual hit rate relative to the false alarm rate
+      %%pred_classID_max_percent_confidence = (pred_classID_max_confidence(:) - pred_classID_thresh(:)) ./ (pred_classID_thresh(:) + (pred_classID_thresh(:)==0));
+      %%pred_classID_relative_accuracy = ((pred_classID_true_pos(:) - (1-false_positive_thresh)) ./ (1-pred_classID_false_pos(:)));
+      %%pred_classID_max_confidence = pred_classID_max_percent_confidence;
+      %%%%pred_classID_max_confidence = ((pred_classID_true_pos(:) - (1-pred_classID_false_pos(:))) ./ (1-pred_classID_false_pos(:))) .* (pred_classID_max_confidence(:) - pred_classID_thresh(:)) ./ (pred_classID_max_confidence(:) + pred_classID_thresh(:));
+      %%[pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
+      %%JIEDDO_confidences = cell(length(JIEDDO_class_ndx),1);
+      
+%%i_JIEDDO_classID = 0;
+%%for i_classID = JIEDDO_class_ndx %%1 : pred_hdr.nf
+%%	i_JIEDDO_classID = i_JIEDDO_classID + 1;
+%%	JIEDDO_confidences{i_JIEDDO_classID, 1} = [JIEDDO_classes{pred_classID_sorted_ndx(i_JIEDDO_classID)}, ...
+%%						   ', ', num2str(pred_classID_sorted_confidence(i_JIEDDO_classID)), ...
+%%						   ', ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+%%						   ', ', num2str(pred_classID_accuracy(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+%%						   ', ', num2str(pred_classID_true_pos(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+%%						   ', ', num2str(pred_classID_false_pos(pred_classID_sorted_ndx(i_JIEDDO_classID)))];
       endfor
       if plot_flag
 	pred_classID_heatmap = zeros(pred_hdr.ny, pred_hdr.nx, 3);

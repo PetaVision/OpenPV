@@ -961,6 +961,10 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 #endif // OBSOLETE // Marked obsolete April 10, 2015.  stochasticReleaseFlag no longer gives a warning, but an error.
    parent->ioParamString(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString, "convolve");
    if (ioFlag==PARAMS_IO_READ) {
+      if (pvpatchAccumulateTypeString==NULL) {
+         unsetAccumulateType();
+         return;
+      }
       // Convert string to lowercase so that capitalization doesn't matter.
       for (char * c = pvpatchAccumulateTypeString; *c!='\0'; c++) {
          *c = (char) tolower((int) *c);
@@ -984,28 +988,27 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
          pvpatchAccumulateType = ACCUMULATE_SUMPOOLING;
       }
       else {
-         if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType \"%s\" unrecognized.  Allowed values are \"convolve\", \"stochastic\", or \"maxpooling\"\n",
-                  this->getKeyword(), name, pvpatchAccumulateTypeString);
-         }
-         MPI_Barrier(parent->icCommunicator()->communicator());
-         exit(EXIT_FAILURE);
+         unsetAccumulateType();
       }
-//Case now handled in PoolingConn
-//      //Make sure weightInitType matches if max pooled
-//      if((pvpatchAccumulateType == ACCUMULATE_MAXPOOLING || pvpatchAccumulateType == ACCUMULATE_SUMPOOLING) && 
-//          !updateGSynFromPostPerspective){
-//         if(strcmp(weightInitTypeString, "MaxPoolingWeight") != 0){
-//            if (parent->columnId()==0) {
-//               fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType of maxpooling or sumpooling require a weightInitType of MaxPoolingWeight.\n",
-//                     this->getKeyword(), name);
-//            }
-//            MPI_Barrier(parent->icCommunicator()->communicator());
-//            exit(EXIT_FAILURE);
-//         }
-      //}
    }
 }
+
+void HyPerConn::unsetAccumulateType() {
+   if (parent->columnId()==0) {
+      if (pvpatchAccumulateTypeString) {
+         fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType \"%s\" is unrecognized.",
+               this->getKeyword(), name, pvpatchAccumulateTypeString);
+      }
+      else {
+         fprintf(stderr, "%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
+               this->getKeyword(), name);
+      }
+      fprintf(stderr, "  Allowed values are \"convolve\", \"stochastic\", or \"maxpooling\".\n");
+   }
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   exit(EXIT_FAILURE);
+}
+
 
 void HyPerConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, parent->getDeltaTime());

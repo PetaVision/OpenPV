@@ -1,3 +1,5 @@
 output
 *.log
 input/LCA_Cifar.generated.params
+cifar-10-matlab.tar.gz
+cifar-10-batches-mat/
