@@ -1,4 +1,4 @@
-%A script to make depth tuning curves
+% script to make depth tuning curves
 addpath('~/workspace/OpenPV/pv-core/mlab/util');
 
 %To avoid losing focus when plotting

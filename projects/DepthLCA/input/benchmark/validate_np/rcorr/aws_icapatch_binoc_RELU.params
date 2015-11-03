@@ -358,7 +358,7 @@ KernelConn "RELU_V1ToRCorrBuf" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_icaweights_binoc_RELU/Last/RELU_V1ToDepthGT_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/benchmark/train/rcorr/aws_icaweights_binoc_RELU/Last/RELU_V1ToDepthGT_W.pvp";
     //weightInitType = "UniformWeight";
     //weightInit = 0;
     //

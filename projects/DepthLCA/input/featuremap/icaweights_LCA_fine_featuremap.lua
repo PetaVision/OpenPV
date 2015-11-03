@@ -8,9 +8,9 @@ local pv = require "PVModule";
 local params = {};
 
 local numDictElements = 512;
-local leftDictFile = "/home/ec2-user/mountData/benchmark/icaweights_LCA_fine/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
-local rightDictFile = "/home/ec2-user/mountData/benchmark/icaweights_LCA_fine/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
-local V1File = "~/mountData/benchmark/icaweights_LCA_fine/a12_V1.pvp";
+local leftDictFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
+local rightDictFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
+local V1File = "~/mountData/benchmark/icaweights_binoc_LCA_fine/a12_V1.pvp";
 
 params["column"] = {
    groupType = "HyPerCol";
@@ -21,7 +21,7 @@ params["column"] = {
    startTime = 0;
    stopTime = 1; 
    progressStep = 10;
-   outputPath = "/home/ec2-user/mountData/benchmark/featuremap/icaweights_LCA_fine/";
+   outputPath = "/home/ec2-user/mountData/benchmark/featuremap/icaweights_binoc_LCA_fine/";
    filenamesContainLayerNames = 2;
    filenamesContainConnectionNames = 2;
    checkpointRead = false;

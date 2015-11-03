@@ -52,7 +52,7 @@ MoviePvp "LCA_V1" = {
     nxScale = .25;
     nyScale = .25;
     nf = 512;
-    inputPath = "~/mountData/benchmark/icaweights_LCA_fine/a12_V1.pvp";
+    inputPath = "~/mountData/benchmark/icaweights_binoc_LCA_fine/a12_V1.pvp";
     writeFrameToTimestamp = true;
     writeStep = -1;
     sparseLayer = true;
@@ -281,7 +281,7 @@ KernelConn "LCA_V1ToLeftRecon" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_LCA_fine/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
 
     strength = 1; //.25/2  
     normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
@@ -319,7 +319,7 @@ KernelConn "LCA_V1ToLeftRecon" = {
 KernelConn "LCA_V1ToRightRecon" = {
    #include "LCA_V1ToLeftRecon";
    @postLayerName = "RightRecon";
-   @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_LCA_fine/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
+   @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
 };
 
 //SLP Connections
@@ -333,10 +333,10 @@ MomentumConn "W1Plasticity" = {
     shrinkPatches = false;
     numAxonalArbors = 1;
     initFromLastFlag = 0;
-    //weightInitType = "FileWeight";
+    weightInitType = "FileWeight";
     //initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToDepthGT_W.pvp";
-    weightInitType = "UniformWeight";
-    weightInit = 0;
+    //weightInitType = "UniformWeight";
+    //weightInit = 0;
     strength = 1; //.25/2  
     normalizeMethod = "none";
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
@@ -392,10 +392,10 @@ MomentumConn "BiasPlasticity" = {
    receiveGpu                          = false;
    sharedWeights                       = false;
 
-   //weightInitType = "FileWeight";
+   weightInitType = "FileWeight";
    //initWeightsFile = "/home/ec2-user/mountData/geoint/slp_train/Last/BiasPlasticity_W.pvp";
-   weightInitType = "UniformWeight";
-   weightInit = 0;
+   //weightInitType = "UniformWeight";
+   //weightInit = 0;
 
    triggerFlag                         = false;
    weightUpdatePeriod                  = 1;
@@ -452,8 +452,7 @@ IdentConn "SLP_Recon_BufferToSLP_Error" = {
    writeStep                           = -1;
 };
 
-
-//Running 100 times through
+//55 times in all
 ParameterSweep "column":outputPath = {
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
@@ -465,6 +464,7 @@ ParameterSweep "column":outputPath = {
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias_10/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
@@ -475,6 +475,7 @@ ParameterSweep "column":outputPath = {
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias_20/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
@@ -485,6 +486,7 @@ ParameterSweep "column":outputPath = {
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias_30/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
@@ -495,6 +497,7 @@ ParameterSweep "column":outputPath = {
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias_40/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
@@ -505,56 +508,7 @@ ParameterSweep "column":outputPath = {
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/";
+    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias_50/";
 };
 
 ParameterSweep "W1Plasticity":initWeightsFile = {
@@ -613,99 +567,9 @@ ParameterSweep "W1Plasticity":initWeightsFile = {
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/W1Plasticity_W.pvp";
 };
 
 ParameterSweep "BiasPlasticity":initWeightsFile = {
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
-    "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
     "/home/ec2-user/mountData/benchmark/train/slp/aws_icapatch_LCA_fine_bias/Last/BiasPlasticity_W.pvp";
