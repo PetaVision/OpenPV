@@ -592,6 +592,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	
 	%% cross-validation to determine optimal C value
 	if exclusive_flag ~= 0
+	  
 	  if hist_pool_flag
 	      xval_model_hist_pool_array{i_Sparse, i_target_classID} = ...
 	      train(training_label_vector{i_target_classID}, ...
@@ -610,7 +611,9 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 		    training_mean_pool_matrix, ...
 		    liblinear_xval_options_str, 'col');
 	  endif
+	  
 	else %% exclusive_flag == 0
+	  
 	  if train_long_flag
 	    if hist_pool_flag
 	      xval_model_hist_pool_array{i_Sparse, i_target_classID} = ...
@@ -754,17 +757,17 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 
 	    if hist_pool_flag
 	      training_hist_pool_matrix_array{num_Sparse_list+1, i_target_classID} = ...
-	      [training_hist_pool_pos, training_hist_pool_neg];
+	      training_hist_pool_matrix;
 	    endif
 	    if max_pool_flag
 	      training_max_pool_matrix_array{num_Sparse_list+1, i_target_classID} = ...
-	      [training_max_pool_pos, training_max_pool_neg];
+	      training_max_pool_matrix;
 	    endif
 	    if mean_pool_flag
 	      training_mean_pool_matrix_array{num_Sparse_list+1, i_target_classID} = ...
-	      [training_mean_pool_pos, training_mean_pool_neg];
-	    endif
-	    if exclusive_flag == 0
+	      training_mean_pool_matrix;
+	    endif	    
+	    if exclusive_flag == 0	      
 	      if train_long_flag == 1
 		if hist_pool_flag
 		  training_hist_pool_matrix_array_long{num_Sparse_list+1, i_target_classID} = ...
@@ -777,7 +780,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 		if mean_pool_flag
 		  training_mean_pool_matrix_array_long{num_Sparse_list+1, i_target_classID} = ...
 		  [training_mean_pool_pos_long, training_mean_pool_neg_long];
-		endif
+		endif		
 	      else %% train_long_flag
 		if hist_pool_flag
 		  training_hist_pool_matrix_array_predict{num_Sparse_list+1, i_target_classID} = ...
@@ -799,17 +802,17 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	    if hist_pool_flag
 	      training_hist_pool_matrix_array{num_Sparse_list+1, i_target_classID} = ...
 	      [training_hist_pool_matrix_array{num_Sparse_list+1, i_target_classID}; ...
-	       [training_hist_pool_pos, training_hist_pool_neg]];
+	       training_hist_pool_matrix];
 	    endif
 	    if max_pool_flag
 	      training_max_pool_matrix_array{num_Sparse_list+1, i_target_classID} = ...
 	      [training_max_pool_matrix_array{num_Sparse_list+1, i_target_classID}; ...
-	       [training_max_pool_pos, training_max_pool_neg]];
+	       training_max_pool_matrix];
 	    endif
 	    if mean_pool_flag
 	      training_mean_pool_matrix_array{num_Sparse_list+1, i_target_classID} = ...
 	      [training_mean_pool_matrix_array{num_Sparse_list+1, i_target_classID}; ...
-	       [training_mean_pool_pos, training_mean_pool_neg]];
+	       training_mean_pool_matrix];
 	    endif
  	    if exclusive_flag == 0
 	      if train_long_flag == 1
@@ -926,19 +929,19 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	  
 	  if hist_pool_flag
 	    model_hist_pool_array{i_Sparse, i_target_classID} = ...
-	    train(training_label_vector{num_target_classes+1}, ...
+	    train(training_label_vector{i_target_classID}, ...
 		  training_hist_pool_matrix, ...
 		  ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
 	  endif
 	  if max_pool_flag
 	    model_max_pool_array{i_Sparse, i_target_classID} = ...
-	    train(training_label_vector{num_target_classes+1}, ...
+	    train(training_label_vector{i_target_classID}, ...
 		  training_max_pool_matrix, ...
 		  ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
 	  endif
 	  if mean_pool_flag
 	    model_mean_pool_array{i_Sparse, i_target_classID} = ...
-	    train(training_label_vector{num_target_classes+1}, ...
+	    train(training_label_vector{i_target_classID}, ...
 		  training_mean_pool_matrix, ...
 		  ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
 	  endif
