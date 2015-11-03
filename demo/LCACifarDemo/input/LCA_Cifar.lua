@@ -1,3 +1,9 @@
+ver=tonumber(string.sub(_VERSION, string.find(_VERSION, "%d+%.%d")));               
+if ver<5.2 then                                                                     
+    print("PVSubnets requires lua 5.2 or later, fatal error")                        
+    os.exit()                                                                       
+end                                                                                 
+
 --Load packages
 local thisscript = debug.getinfo(1, "S").source:sub(2); --path to this lua script
 local scriptdir = thisscript:match("(.*/)") or "./";
