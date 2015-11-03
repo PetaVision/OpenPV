@@ -1,7 +1,13 @@
 --Load packages
+local thisscript = debug.getinfo(1, "S").source:sub(2); --path to this lua script
+local scriptdir = thisscript:match("(.*/)") or "./";
+local pvrepo = scriptdir .. "../../../"; --directory of PV repository
+if string.sub(pvrepo, 1, 1) ~= "/" then
+    pvrepo = os.getenv("PWD") .. "/" .. pvrepo; --absolute path of PV repository
+end
+print(pvrepo)
 package.path = package.path .. ";" 
-            .. os.getenv("HOME") 
-            .. "/workspace/OpenPV/pv-core/parameterWrapper/?.lua";
+            .. pvrepo .. "pv-core/parameterWrapper/?.lua";
 local pv = require "PVModule";
 local subnets = require "PVSubnets";
 
@@ -21,8 +27,8 @@ local numImages = 50000; --Total number of images in dataset
 local numEpochs = 1; --Number of times to run through dataset
 local nbatch = 32; --Batch size of learning
 
-local cifarInputPath = "~/workspace/OpenPV/demo/LCACifarDemo/dataset/cifar-10-batches-mat/mixed_cifar.txt";
-local outputPath = "~/workspace/OpenPV/demo/LCACifarDemo/output/";
+local cifarInputPath = pvrepo .. "demo/LCACifarDemo/cifar-10-batches-mat/mixed_cifar.txt";
+local outputPath = pvrepo .. "demo/LCACifarDemo/output/";
 
 local numBasisVectors = 128; --Total number of basis vectors being learned
 local VThresh = .015; --The threshold, or lambda, of the network
