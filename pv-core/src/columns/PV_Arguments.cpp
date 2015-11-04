@@ -43,6 +43,10 @@ int PV_Arguments::initializeState() {
 }
 
 int PV_Arguments::initialize(int argc, char * argv[], bool allowUnrecognizedArguments) {
+   if (argc<=0) {
+      fprintf(stderr, "PV_Arguments error: argc must be positive (called with argc=%d)\n", argc);
+      exit(EXIT_FAILURE);
+   }
    numArgs = argc;
    args = copyArgs(argc, argv);
    return setStateFromCmdLineArgs(allowUnrecognizedArguments);
@@ -187,11 +191,13 @@ int PV_Arguments::clearState() {
 }
 
 int PV_Arguments::setStateFromCmdLineArgs(bool allowUnrecognizedArguments) {
-   bool * usedArgArray = (bool *) calloc((size_t) numArgs, sizeof(bool)); // Because, C++ expert, I'm *trying* to cause you pain.
+   assert(numArgs>0);
+   bool * usedArgArray = (bool *) calloc((size_t) numArgs, sizeof(bool));
    if (usedArgArray==NULL) {
       fprintf(stderr, "PV_Arguments::setStateFromCmdLineArgs unable to allocate memory for usedArgArray: %s\n", strerror(errno));
       exit(EXIT_FAILURE);
    }
+   usedArgArray[0] = true; // Always use the program name
 
    int restart = (int) restartFlag;
    int status = parse_options(numArgs, args,
