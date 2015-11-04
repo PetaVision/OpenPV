@@ -48,6 +48,8 @@ for li = 1:length(layers)
       pvpInName = sprintf('%s/paramsweep_%03d/%s.pvp', baseDir, ni-1, layers{li});
       [sliceData, sliceHdr] = readpvpfile(pvpInName);
       sliceImg = sliceData{1}.values';
+      %Scale sliceImg with mean of 0 and std of 1
+      sliceImg = (sliceImg - mean(sliceImg(:)))/std(sliceImg(:));
       %Scale slice to be between 0 and 1
       sliceImg = (sliceImg - min(sliceImg(:)))/(max(sliceImg(:))-min(sliceImg(:)));
       outImg = (1-sliceAlpha).*baseImg + sliceAlpha.*sliceImg;
