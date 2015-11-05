@@ -17,7 +17,7 @@ baseLayers = { ...
 
 numNeurons = 512;
 
-sliceAlpha = .7;
+sliceAlpha = .5;
 
 assert(length(layers) == length(baseLayers));
 tf = fopen(tuningFile, 'r');
@@ -38,8 +38,10 @@ for li = 1:length(layers)
    %Get baseline image
    [baseData, baseHdr] = readpvpfile(baseLayers{li});
    baseImg = baseData{1}.values';
-   %Scale image to be between 0 and 1
-   baseImg = (baseImg - min(baseImg(:)))/(max(baseImg(:)) - min(baseImg(:)));
+   %Scale image to have same std
+   normVal = max(abs(max(baseImg(:))),abs(min(baseImg(:))));
+   baseImg = ((baseImg/normVal)+.5)/2;
+   %baseImg = (baseImg - min(baseImg(:)))/(max(baseImg(:)) - min(baseImg(:)));
 
    %Make output image per neuron
    for ranki = 1:numNeurons
@@ -48,11 +50,13 @@ for li = 1:length(layers)
       pvpInName = sprintf('%s/paramsweep_%03d/%s.pvp', baseDir, ni-1, layers{li});
       [sliceData, sliceHdr] = readpvpfile(pvpInName);
       sliceImg = sliceData{1}.values';
+      normVal = max(abs(max(sliceImg(:))),abs(min(sliceImg(:))));
       %Scale sliceImg with mean of 0 and std of 1
-      sliceImg = (sliceImg - mean(sliceImg(:)))/std(sliceImg(:));
+      sliceImg = ((sliceImg/normVal)+.5)/2;
       %Scale slice to be between 0 and 1
-      sliceImg = (sliceImg - min(sliceImg(:)))/(max(sliceImg(:))-min(sliceImg(:)));
+      %sliceImg = (sliceImg - min(sliceImg(:)))/(max(sliceImg(:))-min(sliceImg(:)));
       outImg = (1-sliceAlpha).*baseImg + sliceAlpha.*sliceImg;
+
       imwrite(outImg, imgOutName);
    end
 end
