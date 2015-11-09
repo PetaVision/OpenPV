@@ -5,10 +5,10 @@
 %% which should point to a folder stored in VOCdevkit
 
 clear all
-addpath('~/openpv/projects/PASCAL_VOC/mlab/')
+addpath('/home/ec2-user/mountData/openpv/projects/PASCAL_VOC/mlab/')
 setImagePaths;
 
-imageNet_dir = "~/Desktop/imageNet"; %% folder containing imageNet tar.gz fliles, 1 tar file per object category
+imageNet_dir = "/home/ec2-user/mountData/openpv/projects/PASCAL_VOC/imageNet"; %% folder containing imageNet tar.gz fliles, 1 tar file per object category
 imageNet_annotation_path = [imageNet_dir, '/', 'Annotations'];  %% folder containing xml annotaion files packed as tar.gz files, 1 per object category
 imageNet_list = glob([imageNet_dir, '/', '*.tar']);
 %%imageNet_list = glob([imageNet_dir, '/', 'n03790512.tar']);

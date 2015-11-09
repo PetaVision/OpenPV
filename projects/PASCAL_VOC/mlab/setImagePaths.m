@@ -1,6 +1,6 @@
-addpath("~/openpv/pv-core/mlab/imgProc");
+addpath("/home/ec2-user/mountData/openpv/pv-core/mlab/imgProc");
 
-workspace_path = "~/openpv"
+workspace_path = "/home/ec2-user/mountData/openpv"
 projects_path = [workspace_path, filesep, "projects"]
 PASCAL_VOC_path = [projects_path, filesep, "PASCAL_VOC"];
 if ~exist(PASCAL_VOC_path, "dir")
