@@ -77,12 +77,15 @@ elseif isunix
     checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts";
     checkpoint_children = {"VOC2007_landscape2"}; %%
   elseif strcmp(run_type, "DCA")
-    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape8";
+    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape10";
     %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
-    %%checkpoint_children = {"VOC2007_landscape8"}; %%
-    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape8_xcorr";
-    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
-    checkpoint_children = {"VOC2007_landscape8_xcorr"}; %%
+    %%checkpoint_children = {"VOC2007_landscape10"}; %%
+    output_dir = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1";
+    checkpoint_parent = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA";
+    checkpoint_children = {"KITTI_train1"}; %%
+    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape8_xcorr";
+    %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
+    %%checkpoint_children = {"VOC2007_landscape8_xcorr"}; %%
   elseif strcmp(run_type, "MaxPool")
     output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape10";
     checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool";
@@ -198,11 +201,11 @@ if analyze_Recon
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glob generated list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Recon_glob_list = glob([output_dir, filesep, "Image*.pvp"]);
+    Recon_glob_list = glob([output_dir, filesep, "*Image*.pvp"]);
     num_Recon_list = length(Recon_glob_list);    
     Recon_list = cell(num_Recon_list,1);
     for i_Recon_list = 1 : num_Recon_list
-      [Recon_list_dir, Recon_list_name, Recon_list_ext, Recon_list_ver] = fileparts(Recon_glob_list{i_Recon_list});
+      [Recon_list_dir, Recon_list_name, Recon_list_ext, ~] = fileparts(Recon_glob_list{i_Recon_list});
       Recon_list{i_Recon_list,1} = "";
       Recon_list{i_Recon_list,2} = Recon_list_name;
     endfor
@@ -609,7 +612,7 @@ if analyze_Sparse_flag
     num_Sparse_list = length(Sparse_glob_list);    
     Sparse_list = cell(num_Sparse_list,1);
     for i_Sparse_list = 1 : num_Sparse_list
-      [Sparse_list_dir, Sparse_list_name, Sparse_list_ext, Sparse_list_ver] = fileparts(Sparse_glob_list{i_Sparse_list});
+      [Sparse_list_dir, Sparse_list_name, Sparse_list_ext, ~] = fileparts(Sparse_glob_list{i_Sparse_list});
       Sparse_list{i_Sparse_list,1} = "";
       Sparse_list{i_Sparse_list,2} = Sparse_list_name;
     endfor
@@ -618,7 +621,7 @@ if analyze_Sparse_flag
     num_Sparse_list2 = length(Sparse_glob_list2);    
     Sparse_list2 = cell(num_Sparse_list2,1);
     for i_Sparse_list2 = 1 : num_Sparse_list2
-      [Sparse_list_dir, Sparse_list_name2, Sparse_list_ext, Sparse_list_ver] = fileparts(Sparse_glob_list2{i_Sparse_list2});
+      [Sparse_list_dir, Sparse_list_name2, Sparse_list_ext, ~] = fileparts(Sparse_glob_list2{i_Sparse_list2});
       Sparse_list2{i_Sparse_list2,1} = "";
       Sparse_list2{i_Sparse_list2,2} = Sparse_list_name2;
       Sparse_list{num_Sparse_list+i_Sparse_list2,1} = "";
@@ -768,7 +771,7 @@ if analyze_nonSparse_flag
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glob generated list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    nonSparse_glob_list = glob([output_dir, filesep, "Image*Error*.pvp"]);
+    nonSparse_glob_list = glob([output_dir, filesep, "*Image*Error*.pvp"]);
     num_nonSparse_list = length(nonSparse_glob_list);    
     nonSparse_list = cell(num_nonSparse_list,1);
     for i_nonSparse_list = 1 : num_nonSparse_list
@@ -1382,7 +1385,7 @@ if analyze_weights
 	weights_glob_str = "S1ToImageReconS1Error*_W.pvp";
       elseif strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
 	%%xcorr_weights_list = {"S1ToImage"; "S2ToImage"; "S3ToImage"}; 
-	weights_glob_str = "S*ToImage*_W.pvp";
+	weights_glob_str = "S1*ToImage*econError_W.pvp";
       endif
       weights_glob_list = glob([checkpoints_list{1}, filesep, weights_glob_str]);
       num_weights_list = length(weights_glob_list);    
@@ -1966,7 +1969,7 @@ if analyze_weights0_2
       break;
     else
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-      weights1_2_glob_list = glob([checkpoints_list{1}, filesep, "S*ToS1*_W.pvp"]);
+      weights1_2_glob_list = glob([checkpoints_list{1}, filesep, "S2*ToS1*econError_W.pvp"]);
       num_weights1_2_list = length(weights1_2_glob_list);    
       weights1_2_list = cell(num_weights1_2_list,2);
       sparse_weights0_2_ndx = zeros(num_weights1_2_list,1);
@@ -2747,7 +2750,7 @@ if analyze_weightsN_Nplus1
     else
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
       weightsN_Nplus1_glob_list = ...
-	  glob([checkpoints_list{1}, filesep, "S3ToS2*_W.pvp"]);
+	  glob([checkpoints_list{1}, filesep, "S3ToS2*econError_W.pvp"]);
       num_weightsN_Nplus1_list = length(weightsN_Nplus1_glob_list);    
       weightsN_Nplus1_list = cell(num_weightsN_Nplus1_list,6);
       layersN_Nplus1_list = cell(num_weightsN_Nplus1_list,6);

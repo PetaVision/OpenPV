@@ -29,8 +29,8 @@ plot_flag = true;
 %%run_type = "ICA_S1X4"
 %%run_type = "ICA_S1X16"
 %%run_type = "S1S2"
-run_type = "DCA";
-%%run_type = "CIFAR";
+%%run_type = "DCA";
+run_type = "CIFAR";
 %%run_type = "scene"
 if strcmp(run_type, "ICAX2_S1X4")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICAX2/VOC2007_landscape1";
@@ -43,7 +43,7 @@ elseif strcmp(run_type, "S1S2")
 elseif strcmp(run_type, "DCA")
   output_dir = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape9";
 elseif strcmp(run_type, "CIFAR")
-  output_dir = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7";
+  output_dir = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8";
 elseif strcmp(run_type, "scene")
   output_dir = "/Volumes/mountData/scene/scene_S1X4_1536_ICA/mount_rushmore1";
   %%output_dir = "/Volumes/mountData/scene/scene_S1X4_1536_ICA/half_dome_yosemite1";
@@ -151,8 +151,8 @@ drawnow;
 nonSparse_list = {[""], ["GroundTruthReconS1Error"]};
 if strcmp(run_type, "S1S2")
   nonSparse_list = {}; %%{[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS2Error"]; [""], ["GroundTruthReconS1S2Error"]};
-elseif strcmp(run_type, "DCA")
-  nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS2Error"]; [""], ["GroundTruthReconS3Error"]};
+elseif strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
+  nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS2Error"]; [""], ["GroundTruthReconS3Error"]; [""], ["GroundTruthReconS1S2S3Error"]};
 elseif strcmp(run_type, "scene")
   nonSparse_list = {["a0_"], ["ImageReconS1Error"]};
 endif
@@ -161,7 +161,7 @@ nonSparse_skip = repmat(1, num_nonSparse_list, 1);
 nonSparse_norm_strength = ones(num_nonSparse_list,1);
 GT_std_ndx = ones(num_nonSparse_list,1);
 nonSparse_norm_list = {[""], ["GroundTruth"]};
-if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA")
+if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
   nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]};
 endif
 fraction_nonSparse_frames_read = 1;
@@ -193,7 +193,7 @@ Sparse_list ={[""], ["S1"]};
 if strcmp(run_type, "S1S2")
   %%  Sparse_list ={[""], ["S1"]; [""], ["S2"]};
   Sparse_list ={[""], ["S2"]};
-elseif strcmp(run_type, "DCA")
+elseif strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
   Sparse_list ={[""], ["S1"]; [""], ["S2"]; [""], ["S3"]};
 elseif strcmp(run_type, "scene")
   Sparse_list ={["a2_"], ["S1"]};
@@ -308,18 +308,20 @@ for i_GT_frame = first_GT_frame : last_GT_frame
     training_label_vector_array(:,:,i_GT_image, i_target_classID) = GT_frame(:,:,i_VOC_class);
   endfor %% class_ndx
 endfor %% i_frame
-if strcmp(run_type, "CIFAR")
+%%exclusive_flag = 0;
+if strcmp(run_type, "CIFAR") && (~exist("exclusive_flag") || isempty(exclusive_flag))
   exclusive_flag = 1; %% all classes are mutually exclusive (e.g. CIFAR)
 endif
-if ~strcmp(run_type, "CIFAR") || ~exist(exclusive_flag) || isempty(exclusive_flag)
+if ~strcmp(run_type, "CIFAR") && (~exist("exclusive_flag") || isempty(exclusive_flag))
   %% if an explicit background class exists, then assume it is exclusive with respect to all other classes
   i_background_classID = find(strcmp(target_classes, "background"));
   if isempty(i_background_classID)
-    exclusive_flag = 0  %% categories are non-exclusive
+    exclusive_flag = 0;  %% categories are non-exclusive
   else
-    exclusive_flag = 2  %% background is exclusive to all other classes
+    exclusive_flag = 2;  %% background is exclusive to all other classes
   endif
 endif
+disp(["exclusive_flag = ", num2str(exclusive_flag)])
 training_label_vector = cell(num_target_classes+(exclusive_flag==1),1);
 training_label_pos = cell(num_target_classes+(exclusive_flag==1),1);
 training_label_neg = cell(num_target_classes+(exclusive_flag==1),1);
@@ -334,11 +336,15 @@ neg_labels_ndx_long = cell(num_target_classes+(exclusive_flag==1),1);
 neg_pos_ratio = ones(num_target_classes+(exclusive_flag==1),1);
 for i_target_classID = 1 : num_target_classes
   training_label_vector{i_target_classID} = ...
-  reshape(training_label_vector_array(:,:,:,i_target_classID), [ny_GT * nx_GT * num_GT_images, 1]);
+      reshape(training_label_vector_array(:,:,:,i_target_classID), [ny_GT * nx_GT * num_GT_images, 1]);
+  if exclusive_flag == 1
+    training_label_vector{i_target_classID} = ...
+	training_label_vector{i_target_classID}(1:ny_GT*nx_GT:ny_GT*nx_GT*num_GT_images);
+  endif
 endfor %% i_target_classID
 if (exclusive_flag == 2)
   background_ndx = find(training_label_vector{i_background_classID});
-elseif (exclusive_flag == 0)
+elseif (exclusive_flag == 1)
   training_label_vector{num_target_classes+1} = zeros(size(training_label_vector{1}));
 endif
 for i_target_classID = 1 : num_target_classes
@@ -463,19 +469,37 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
       endif
     endfor %% i_Sparse_frame
     if hist_pool_flag
-      training_hist_pool_matrix = ...
-      sparse(reshape(training_hist_pool_matrix, ...
-		     [num_Sparse_hist_pool_bins *  nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+      if exclusive_flag == 1
+	training_hist_pool_matrix = ...
+	    sparse(reshape(training_hist_pool_matrix, ...
+			   [num_Sparse_hist_pool_bins *  nf_Sparse_array(i_Sparse) * ny_GT * nx_GT, num_GT_images]));
+      else
+	training_hist_pool_matrix = ...
+	    sparse(reshape(training_hist_pool_matrix, ...
+			   [num_Sparse_hist_pool_bins *  nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+      endif
     endif
     if max_pool_flag
-      training_max_pool_matrix = ...
-      sparse(reshape(training_max_pool_matrix, ...
-		     [nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+      if exclusive_flag == 1
+	training_max_pool_matrix = ...
+	    sparse(reshape(training_max_pool_matrix, ...
+			   [nf_Sparse_array(i_Sparse) * ny_GT * nx_GT, num_GT_images]));
+      else
+	training_max_pool_matrix = ...
+	    sparse(reshape(training_max_pool_matrix, ...
+			   [nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+      endif
     endif
     if mean_pool_flag
-      training_mean_pool_matrix = ...
-      sparse(reshape(training_mean_pool_matrix, ...
-		     [nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+      if exclusive_flag == 1
+	training_mean_pool_matrix = ...
+	    sparse(reshape(training_mean_pool_matrix, ...
+			   [nf_Sparse_array(i_Sparse) * ny_GT * nx_GT, num_GT_images]));
+      else
+	training_mean_pool_matrix = ...
+	    sparse(reshape(training_mean_pool_matrix, ...
+			   [nf_Sparse_array(i_Sparse), ny_GT * nx_GT * num_GT_images]));
+      endif
     endif
   endif %% i_Sparse <= num_Sparse_list
   
@@ -1041,36 +1065,35 @@ if plot_flag
     i_pool = i_pool + 1;
     pool_types{i_pool} = "mean";
   endif
-  for i_exclusive = 1 : (1 + (exclusive_flag==1))
     xval_model_array = zeros(num_target_classes, num_Sparse_list + (num_Sparse_list>1), num_pool, 1+(exclusive_flag==1));
     for i_pool = 1:num_pool
-      if i_exclusive == 1
+      if exclusive_flag == 1
 	for i_target_classID = 1 : num_target_classes
 	  for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	    if strcmp(pool_types{i_pool},"hist") && hist_pool_flag
 	      xval_model_array(i_target_classID, i_Sparse, i_pool, 1) = ...
-	      xval_model_hist_pool_array{i_Sparse, i_target_classID}(2);
+	      xval_model_hist_pool_array{i_Sparse, num_target_classes+1}(2);
 	    elseif strcmp(pool_types{i_pool},"max") && max_pool_flag
 	      xval_model_array(i_target_classID, i_Sparse, i_pool, 1) = ...
-	      xval_model_max_pool_array{i_Sparse, i_target_classID}(2);
+	      xval_model_max_pool_array{i_Sparse, num_target_classes+1}(2);
 	    elseif strcmp(pool_types{i_pool},"mean") && mean_pool_flag
 	      xval_model_array(i_target_classID, i_Sparse, i_pool, 1) = ...
-	      xval_model_mean_pool_array{i_Sparse, i_target_classID}(2);
+	      xval_model_mean_pool_array{i_Sparse, num_target_classes+1}(2);
 	    endif %% pool_types
 	  endfor %% i_Sparse
 	endfor  %% i_target_classID
-      else %% i_exclusive == 1
+      else %% exclusive ~= 1
 	for i_target_classID = 1 : num_target_classes
 	  for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	    if strcmp(pool_types{i_pool},"hist") && hist_pool_flag
 	      xval_model_array(i_target_classID, i_Sparse, i_pool, 2) = ...
-	      xval_model_hist_pool_array{i_Sparse, num_target_classes+1}(2, i_target_classID);
+	      xval_model_hist_pool_array{i_Sparse, i_target_classID}(2);
 	    elseif strcmp(pool_types{i_pool},"max") && max_pool_flag
 	      xval_model_array(i_target_classID, i_Sparse, i_pool) = ...
-	      xval_model_max_pool_array{i_Sparse, num_target_classes+1}(2, i_target_classID);
+	      xval_model_max_pool_array{i_Sparse, i_target_classID}(2);
 	    elseif strcmp(pool_types{i_pool},"mean") && mean_pool_flag
 	      xval_model_array(i_target_classID, i_Sparse, i_pool) = ...
-	      xval_model_mean_pool_array{i_Sparse, num_target_classes+1}(2, i_target_classID);
+	      xval_model_mean_pool_array{i_Sparse, i_target_classID}(2);
 	    endif %% pool_types
 	  endfor %% i_Sparse
 	endfor  %% i_target_classID
@@ -1116,7 +1139,6 @@ if plot_flag
       endif
     endfor %% i_target_classID
     saveas(xval_model_fig, [svm_dir, filesep, xval_model_fig_name, ".png"]);
-  endfor %% i_exclusive
 endif %% plot_flag
 
 
