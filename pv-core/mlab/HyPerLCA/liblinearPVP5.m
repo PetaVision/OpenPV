@@ -86,9 +86,9 @@ endif %% Recon_flag
 %% GT activity
 GT_flag = true;  %% not currently used
 SVM_flag = true;  %% not currently used
-hist_pool_flag = false; %%true;
+hist_pool_flag = true;
 max_pool_flag = true;
-mean_pool_flag = false; %%true;
+mean_pool_flag = true;
 train_long_flag = true; %%false;  %% determines whether all out-of-class examples are used (in-class examples are replicated to match number of out of class examples)
 
 if strcmp(run_type, "CIFAR")
@@ -229,7 +229,7 @@ if ~load_SparseHistPool_flag
 			  num_procs, ...
 			  num_epochs);
   drawnow;
-  num_Sparse_hist_pool_bins = 4+3; %%6+3; %%8+3;
+  num_Sparse_hist_pool_bins = 8+3;
   save_Sparse_hist_pool_flag = false;
   [Sparse_hist_pool_hdr, ...
    Sparse_hist_pool_array, ...
@@ -373,7 +373,7 @@ for i_target_classID = 1 : num_target_classes
 endfor %% class_ndx
 
 %%traing_instance_matrix
-liblinear_xval_options_str = ['-s 0 -C -B 1'];
+liblinear_xval_options_str = ['-s 0 -C -B 1']; %%['-s 0 -C -B 1'];
 
 %% set up data structures for storing liblinear svm results
 num_Sparse_list = size(Sparse_list,1);
@@ -507,20 +507,76 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
   if exclusive_flag == 1
     disp(["training model for all target classes using ", Sparse_list{i_Sparse,2}]);
     
+    %% build concatenated representations for exclusive targets
+    if num_Sparse_list>1
+      if i_Sparse == 1
+
+	if hist_pool_flag
+	  training_hist_pool_matrix_array{num_Sparse_list+1, num_target_classes+1} = ...
+	      training_hist_pool_matrix;
+	endif
+	if max_pool_flag
+	  training_max_pool_matrix_array{num_Sparse_list+1, num_target_classes+1} = ...
+	      training_max_pool_matrix;
+	endif
+	if mean_pool_flag
+	  training_mean_pool_matrix_array{num_Sparse_list+1, num_target_classes+1} = ...
+	      training_mean_pool_matrix;
+	endif
+
+      elseif i_Sparse <= num_Sparse_list
+
+	if hist_pool_flag
+	  training_hist_pool_matrix_array{num_Sparse_list+1, num_target_classes+1} = ...
+	      [training_hist_pool_matrix_array{num_Sparse_list+1, num_target_classes+1}; ...
+	       training_hist_pool_matrix];
+	endif
+	if max_pool_flag
+	  training_max_pool_matrix_array{num_Sparse_list+1, num_target_classes+1} = ...
+	      [training_max_pool_matrix_array{num_Sparse_list+1, num_target_classes+1}; ...
+	       training_max_pool_matrix];
+	endif
+	if mean_pool_flag
+	  training_mean_pool_matrix_array{num_Sparse_list+1, num_target_classes+1} = ...
+	      [training_mean_pool_matrix_array{num_Sparse_list+1, num_target_classes+1}; ...
+	       training_mean_pool_matrix];
+	endif
+
+      elseif i_Sparse == num_Sparse_list+1
+
+	if hist_pool_flag
+	  training_hist_pool_matrix = ...
+	      training_hist_pool_matrix_array{num_Sparse_list+1, num_target_classes+1};
+	endif
+	if max_pool_flag
+	  training_max_pool_matrix = ...
+	      training_max_pool_matrix_array{num_Sparse_list+1, num_target_classes+1};
+	endif
+	if mean_pool_flag
+	  training_mean_pool_matrix = ...
+	      training_mean_pool_matrix_array{num_Sparse_list+1, num_target_classes+1};
+	endif
+
+      endif%% i_Sparse
+    endif %% num_Sparse_list
+	    
     %% determine optimal C value for num_classes exclusive targets using cross validation
     if hist_pool_flag
+      disp(["cross-validation for hist pool"])
       xval_model_hist_pool_array{i_Sparse, num_target_classes+1} = ...
       train(training_label_vector{num_target_classes+1}, ...
 	    training_hist_pool_matrix, ...
 	    liblinear_xval_options_str, 'col');
     endif
     if max_pool_flag
+      disp(["cross-validation for max pool"])
       xval_model_max_pool_array{i_Sparse, num_target_classes+1} = ...
       train(training_label_vector{num_target_classes+1}, ...
 	    training_max_pool_matrix, ...
 	    liblinear_xval_options_str, 'col');
     endif
     if mean_pool_flag
+      disp(["cross-validation for mean pool"])
       xval_model_mean_pool_array{i_Sparse, num_target_classes+1} = ...
       train(training_label_vector{num_target_classes+1}, ...
 	    training_mean_pool_matrix, ...
@@ -529,18 +585,21 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 
     %% train model for num_classes exclusive targets using optimal C value
     if hist_pool_flag
+      disp(["train hist poolmodel"])
       model_hist_pool_array{i_Sparse, num_target_classes+1} = ...
       train(training_label_vector{num_target_classes+1}, ...
 	    training_hist_pool_matrix, ...
 	    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1'], 'col');
     endif
     if max_pool_flag
+      disp(["train max poolmodel"])
       model_max_pool_array{i_Sparse, num_target_classes+1} = ...
       train(training_label_vector{num_target_classes+1}, ...
 	    training_max_pool_matrix, ...
 	    ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1'], 'col');
     endif
     if mean_pool_flag
+      disp(["train mean poolmodel"])
       model_mean_pool_array{i_Sparse, num_target_classes+1} = ...
       train(training_label_vector{num_target_classes+1}, ...
 	    training_mean_pool_matrix, ...
@@ -549,6 +608,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 
     %% apply model for num_classes exclusive targets using optimal C value
     if hist_pool_flag
+      disp(["apply hist poolmodel"])
       [predicted_label_hist_pool_array{i_Sparse, num_target_classes+1}, ...
        accuracy_hist_pool_array{i_Sparse, num_target_classes+1}, ...
        prob_values_hist_pool_array{i_Sparse, num_target_classes+1}] = ...
@@ -558,6 +618,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	      ['-b 1'], 'col');
     endif
     if max_pool_flag
+      disp(["apply max poolmodel"])
       [predicted_label_max_pool_array{i_Sparse, num_target_classes+1}, ...
        accuracy_max_pool_array{i_Sparse, num_target_classes+1}, ...
        prob_values_max_pool_array{i_Sparse, num_target_classes+1}] = ...
@@ -567,6 +628,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	      ['-b 1'], 'col');
     endif
     if mean_pool_flag
+      disp(["apply mean poolmodel"])
       [predicted_label_mean_pool_array{i_Sparse, num_target_classes+1}, ...
        accuracy_mean_pool_array{i_Sparse, num_target_classes+1}, ...
        prob_values_mean_pool_array{i_Sparse, num_target_classes+1}] = ...
@@ -821,7 +883,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	      endif %% train_long_flag
 	    endif %% exclusive_flag == 0
 
-	  else  %% i_Sparse ~= 1
+	  else  %% i_Sparse > 1
 
 	    if hist_pool_flag
 	      training_hist_pool_matrix_array{num_Sparse_list+1, i_target_classID} = ...
@@ -1121,9 +1183,17 @@ if plot_flag
       colormap(xval_model_colormap);
       title(target_axis(i_target_classID), target_classes{i_target_classID});
       if num_Sparse_list > 1
-	axis(target_axis(i_target_classID), [0.5 (num_Sparse_list+(num_Sparse_list>1)+0.5) 0.5 min(max_model*(1.1),1)]);
+	if exclusive_flag ~= 1
+	  axis(target_axis(i_target_classID), [0.5 (num_Sparse_list+(num_Sparse_list>1)+0.5) 0.5 min(max_model*(1.1),1)]);
+	else
+	  axis(target_axis(i_target_classID), [0.5 (num_Sparse_list+(num_Sparse_list>1)+0.5) (1/num_target_classes) min(max_model*(1.1),1)]);
+	endif
       else
-	axis(target_axis(i_target_classID), [0.5 (num_pool+0.5) 0.5 min(max_model*(1.1),1)]);
+	if exclusive_flag ~= 1
+	  axis(target_axis(i_target_classID), [0.5 (num_pool+0.5) (1/num_target_classes) min(max_model*(1.1),1)]);
+	else
+	  axis(target_axis(i_target_classID), [0.5 (num_pool+0.5) 0.5 min(max_model*(1.1),1)]);
+	endif
       endif
       if num_pool > 1
 	set(gca, 'xticklabel', pool_types);
@@ -1146,7 +1216,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
   disp(["i_Sparse = ", num2str(i_Sparse)])
   pred_classID_file = fullfile([output_dir, filesep, "GroundTruthRecon", Sparse_list{i_Sparse,2}, ".pvp"])
   pred_data = [];
-  SLP_flag = false && exist(pred_classID_file);
+  SLP_flag = true && exist(pred_classID_file);
   if SLP_flag
     pool_types{num_pool+1} = "SLP"
   endif
@@ -1188,11 +1258,15 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
       endif
       gt_time = GT_data{i_frame+first_GT_frame-1}.time;
       gt_classID_cube = squeeze(training_label_vector_array(:, :, i_frame, :));
+      %%if exclusive_flag == 1
+	gt_target_ID = find(squeeze(gt_classID_cube(ny_GT/2,nx_GT/2,:)));
+      %%endif
       
       %% display Ground Truth only for display frame only once (same for all sparse layers, classifiers)
       if i_frame == display_frame && i_Sparse == 1 && i_pool == 1  
 	display(["i_frame = ", num2str(i_frame)]);
 	display(["gt_time = ", num2str(gt_time)]);
+	display(["target_classes(gt_target_ID) = ", num2str(target_classes(gt_target_ID(:)))]);
 	
 	[gt_classID_val, gt_classID_ndx] = max(gt_classID_cube, [], 3);
 	min_gt_classID = min(gt_classID_val(:))
@@ -1238,26 +1312,33 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	    elseif strcmp(pool_types{i_pool},"mean")
 	      target_classID_tmp = prob_values_mean_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1) * GT_hdr.nx * GT_hdr.ny : i_frame * GT_hdr.nx * GT_hdr.ny);
 	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
-	    elseif strcmp(pool_types{i_pool},"combo")
-	      target_classID_tmp = prob_values_combo_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1) * GT_hdr.nx * GT_hdr.ny : i_frame * GT_hdr.nx * GT_hdr.ny);
+	    endif %% pool_types
+	  elseif exclusive_flag == 1
+	    if strcmp(pool_types{i_pool},"hist")
+	      label_ndx =  find(model_hist_pool_array{i_Sparse, num_target_classes+1}.Label == i_target_classID);
+	      target_classID_tmp = prob_values_hist_pool_array{i_Sparse, num_target_classes+1}(1+(i_frame-1): i_frame, label_ndx);
+	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
+	    elseif strcmp(pool_types{i_pool},"max")
+	      label_ndx =  find(model_max_pool_array{i_Sparse, num_target_classes+1}.Label == i_target_classID);
+	      target_classID_tmp = prob_values_max_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1): i_frame, label_ndx);
+	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
+	    elseif strcmp(pool_types{i_pool},"mean")
+	      label_ndx =  find(model_mean_pool_array{i_Sparse, num_target_classes+1}.Label == i_target_classID);
+	      target_classID_tmp = prob_values_mean_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1): i_frame, label_ndx);
 	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
 	    endif %% pool_types
 	  else
 	    if strcmp(pool_types{i_pool},"hist")
 	      label_ndx =  find(model_hist_pool_array{i_Sparse, i_target_classID}.Label == i_target_classID);
-	      target_classID_tmp = prob_values_hist_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1) * GT_hdr.nx * GT_hdr.ny : i_frame * GT_hdr.nx * GT_hdr.ny);
+	      target_classID_tmp = prob_values_hist_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1) * GT_hdr.nx * GT_hdr.ny : i_frame * GT_hdr.nx * GT_hdr.ny, label_ndx);
 	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
 	    elseif strcmp(pool_types{i_pool},"max")
 	      label_ndx =  find(model_max_pool_array{i_Sparse, i_target_classID}.Label == i_target_classID);
-	      target_classID_tmp = prob_values_max_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1) * GT_hdr.nx * GT_hdr.ny : i_frame * GT_hdr.nx * GT_hdr.ny,label_ndx);
+	      target_classID_tmp = prob_values_max_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1) * GT_hdr.nx * GT_hdr.ny : i_frame * GT_hdr.nx * GT_hdr.ny, label_ndx);
 	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
 	    elseif strcmp(pool_types{i_pool},"mean")
 	      label_ndx =  find(model_mean_pool_array{i_Sparse, i_target_classID}.Label == i_target_classID);
-	      target_classID_tmp = prob_values_mean_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1) * GT_hdr.nx * GT_hdr.ny : i_frame * GT_hdr.nx * GT_hdr.ny,label_ndx);
-	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
-	    elseif strcmp(pool_types{i_pool},"combo")
-	      label_ndx =  find(model_combo_pool_array{i_Sparse, i_target_classID}.Label == i_target_classID);
-	      target_classID_tmp = prob_values_combo_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1) * GT_hdr.nx * GT_hdr.ny : i_frame * GT_hdr.nx * GT_hdr.ny,label_ndx);
+	      target_classID_tmp = prob_values_mean_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1) * GT_hdr.nx * GT_hdr.ny : i_frame * GT_hdr.nx * GT_hdr.ny, label_ndx);
 	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
 	    endif %% pool_types
 	  endif %% exclusive_flag
