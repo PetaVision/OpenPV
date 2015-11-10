@@ -194,6 +194,9 @@ int HyPerCol::initialize_base() {
    dtAdaptFlag = false;
    dtAdaptController = NULL;
    dtAdaptControlProbe = NULL;
+   dtAdaptTriggerLayerName = NULL;
+   dtAdaptTriggerLayer = NULL;
+   dtAdaptTriggerOffset = 0.0;
    deltaTimeBase = DELTA_T;
    timeScale = NULL;
    timeScaleTrue = NULL;
@@ -703,6 +706,8 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_dt(ioFlag);
    ioParam_dtAdaptFlag(ioFlag);
    ioParam_dtAdaptController(ioFlag);
+   ioParam_dtAdaptTriggerLayerName(ioFlag);
+   ioParam_dtAdaptTriggerOffset(ioFlag);
    ioParam_dtScaleMax(ioFlag);
    ioParam_dtScaleMin(ioFlag);
    ioParam_dtChangeMax(ioFlag);
@@ -901,6 +906,20 @@ void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
    ioParamString(ioFlag, name, "dtAdaptController", &dtAdaptController, NULL);
 }
 
+void HyPerCol::ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptController"));
+   if (dtAdaptController && dtAdaptController[0]) {
+      ioParamString(ioFlag, name, "dtAdaptTriggerLayerName", &dtAdaptTriggerLayerName, NULL);
+   }
+}
+
+void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptTriggerLayer"));
+   if (dtAdaptTriggerLayerName && dtAdaptTriggerLayerName[0]) {
+      ioParamValue(ioFlag, name, "dtAdaptTriggerOffset", &dtAdaptTriggerOffset, dtAdaptTriggerOffset);
+   }
+}
+
 void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
    if (dtAdaptFlag) {
@@ -939,7 +958,7 @@ void HyPerCol::ioParam_dtChangeMin(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && !params->present(name, "stopTime") && params->present(name, "numSteps")) {
       assert(!params->presentAndNotBeenRead(name, "startTime"));
-      assert(!params->presentAndNotBeenRead(name, "deltaTime"));
+      assert(!params->presentAndNotBeenRead(name, "dt"));
       long int numSteps = params->value(name, "numSteps");
       stopTime = startTime + numSteps * deltaTimeBase;
       if (globalRank()==0) {
@@ -1651,6 +1670,18 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
             MPI_Barrier(this->icCommunicator()->communicator());
             exit(EXIT_FAILURE);
          }
+
+         // add the dtAdaptTriggerLayer, if there is one.
+         if (dtAdaptTriggerLayerName && dtAdaptTriggerLayerName[0]) {
+            dtAdaptTriggerLayer = getLayerFromName(dtAdaptTriggerLayerName);
+            if (dtAdaptTriggerLayer==NULL) {
+               if (globalRank()==0) {
+                  fprintf(stderr, "HyPerCol \"%s\" error: dtAdaptTriggerLayerName \"%s\" does not refer to layer in the column.\n", this->getName(), dtAdaptTriggerLayerName);
+               }
+               MPI_Barrier(this->icCommunicator()->communicator());
+               exit(EXIT_FAILURE);
+            }
+         }
       }
 
       parameters()->warnUnread();
@@ -2033,68 +2064,82 @@ double * HyPerCol::adaptTimeScale(){
 }
 
 int HyPerCol::calcTimeScaleTrue() {
-   // First, query all layers to check for barriers on how big the time scale can be.
-   // By default, HyPerLayer::getTimeScale returns -1
-   // (that is, the layer doesn't care how big the time scale is).
-   // Movie and MoviePvp return minTimeScale when expecting to load a new frame
-   // on next time step based on current value of deltaTime
-   for (int b=0; b<nbatch; b++) {
-      // copying of timeScale and timeScaleTrue was moved to adaptTimeScale, just before the call to calcTimeScaleTrue -- Oct. 8, 2015
-      // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
-      double minTimeScaleTmp = -1;
-      for(int l = 0; l < numLayers; l++) {
-         //Grab timescale
-         double timeScaleTmp = layers[l]->calcTimeScale(b);
-         if (timeScaleTmp > 0.0){
-            //Error if smaller than tolerated
-            if (timeScaleTmp < dtMinToleratedTimeScale) {
-               if (globalRank()==0) {
-                  if (nbatch==1) {
-                     fprintf(stderr, "Error: Layer \"%s\" returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
+   if (!dtAdaptControlProbe) {
+      // If there is no probe controlling the adaptive timestep,
+      // query all layers to check for barriers on how big the time scale can be.
+      // By default, HyPerLayer::getTimeScale returns -1
+      // (that is, the layer doesn't care how big the time scale is).
+      // Movie and MoviePvp return minTimeScale when expecting to load a new frame
+      // on next time step based on current value of deltaTime.
+      // ANNNormalizeErrorLayer is the only other layer in pv-core that overrides getTimeScale
+      // but we want to deprecate it.
+      for (int b=0; b<nbatch; b++) {
+         // copying of timeScale and timeScaleTrue was moved to adaptTimeScale, just before the call to calcTimeScaleTrue -- Oct. 8, 2015
+         // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
+         double minTimeScaleTmp = -1;
+         for(int l = 0; l < numLayers; l++) {
+            //Grab timescale
+            double timeScaleTmp = layers[l]->calcTimeScale(b);
+            if (timeScaleTmp > 0.0){
+               //Error if smaller than tolerated
+               if (timeScaleTmp < dtMinToleratedTimeScale) {
+                  if (globalRank()==0) {
+                     if (nbatch==1) {
+                        fprintf(stderr, "Error: Layer \"%s\" returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
+                     }
+                     else {
+                        fprintf(stderr, "Error: Layer \"%s\", batch element %d, returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), b, timeScaleTmp, dtMinToleratedTimeScale);
+                     }
                   }
-                  else {
-                     fprintf(stderr, "Error: Layer \"%s\", batch element %d, returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), b, timeScaleTmp, dtMinToleratedTimeScale);
-                  }
+                  MPI_Barrier(icComm->globalCommunicator());
+                  exit(EXIT_FAILURE);
                }
-               MPI_Barrier(icComm->globalCommunicator());
-               exit(EXIT_FAILURE);
-            }
-            //Grabbing lowest timeScaleTmp
-            if (minTimeScaleTmp > 0.0){
-               minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
-            }
-            //Initial set
-            else{
-               minTimeScaleTmp = timeScaleTmp;
+               //Grabbing lowest timeScaleTmp
+               if (minTimeScaleTmp > 0.0){
+                  minTimeScaleTmp = timeScaleTmp < minTimeScaleTmp ? timeScaleTmp : minTimeScaleTmp;
+               }
+               //Initial set
+               else{
+                  minTimeScaleTmp = timeScaleTmp;
+               }
             }
          }
+         timeScaleTrue[b] = minTimeScaleTmp;
       }
-      timeScaleTrue[b] = minTimeScaleTmp;
    }
-   // Next, if there is a dtAdaptController, get its value.
-   // If it returns a positive number and that number is less than the timeScaleTrue from above,
-   if (dtAdaptControlProbe) {
+   else {
+      // If there is a probe controlling the adaptive timestep, use its value for timeScaleTrue.
       std::vector<double> colProbeValues;
-      dtAdaptControlProbe->getValues(simTime, &colProbeValues);
-      assert(colProbeValues.size()==nbatch); // Need to make sure dtAdaptControlProbe->vectorSize == nbatch
+      bool triggersNow = false;
+      if (dtAdaptTriggerLayer) {
+         double triggerTime = dtAdaptTriggerLayer->getNextUpdateTime() - dtAdaptTriggerOffset;
+         triggersNow = fabs(simTime - triggerTime) < (deltaTimeBase/2);
+      }
+      if (triggersNow) {
+         colProbeValues.assign(nbatch, -1.0);
+      }
+      else {
+         dtAdaptControlProbe->getValues(simTime, &colProbeValues);
+      }
+      assert(colProbeValues.size()==nbatch); // getValues sets dtAdaptControlProbe->vectorSize to be equal to nbatch
       for (int b=0; b<nbatch; b++) {
          double timeScaleProbe = colProbeValues.at(b);
-         if ( timeScaleProbe > 0 && (timeScaleProbe < timeScaleTrue[b] || timeScaleTrue[b]<0) ) {
-            if (timeScaleProbe < dtMinToleratedTimeScale) {
-               if (globalRank()==0) {
-                  if (nbatch==1) {
-                     fprintf(stderr, "Error: Probe \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), timeScaleProbe, dtMinToleratedTimeScale);
-                  }
-                  else {
-                     fprintf(stderr, "Error: Layer \"%s\", batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), b, timeScaleProbe, dtMinToleratedTimeScale);
-                  }
+         if (timeScaleProbe > 0 && timeScaleProbe < dtMinToleratedTimeScale) {
+            if (globalRank()==0) {
+               if (nbatch==1) {
+                  fprintf(stderr, "Error: Probe \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), timeScaleProbe, dtMinToleratedTimeScale);
+               }
+               else {
+                  fprintf(stderr, "Error: Layer \"%s\", batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), b, timeScaleProbe, dtMinToleratedTimeScale);
                }
             }
-            timeScaleTrue[b] =  timeScaleProbe;
+            MPI_Barrier(icComm->globalCommunicator());
+            exit(EXIT_FAILURE);
          }
+         timeScaleTrue[b] =  timeScaleProbe;
       }
    }
-return PV_SUCCESS;
+   return PV_SUCCESS;
 }
 
 int HyPerCol::advanceTime(double sim_time)
@@ -2111,11 +2156,15 @@ int HyPerCol::advanceTime(double sim_time)
 
    runTimer->start();
 
+   // make sure simTime is updated even if HyPerCol isn't running time loop
+   // triggerOffset might fail if simTime does not advance uniformly because
+   // simTime could skip over tigger event
+   // !!!TODO: fix trigger layer to compute timeScale so as not to allow bypassing trigger event
+   simTime = sim_time + deltaTimeBase;
+   currentStep++;
+
    deltaTime = deltaTimeBase;
-   //double deltaTimeAdapt = deltaTime;
    if (dtAdaptFlag){ // adapt deltaTime
-     //deltaTimeAdapt = adaptTimeScale();
-     //deltaTimeAdapt is now a member variable
      adaptTimeScale();
      if(writeTimescales && columnId() == 0) {
          timeScaleStream << "sim_time = " << sim_time << "\n";
@@ -2125,13 +2174,6 @@ int HyPerCol::advanceTime(double sim_time)
          timeScaleStream.flush();
      }
    } // dtAdaptFlag
-
-   // make sure simTime is updated even if HyPerCol isn't running time loop
-   // triggerOffset might fail if simTime does not advance uniformly because
-   // simTime could skip over tigger event
-   // !!!TODO: fix trigger layer to compute timeScale so as not to allow bypassing trigger event
-   simTime = sim_time + deltaTimeBase;
-   currentStep++;
 
    // At this point all activity from the previous time step has
    // been delivered to the data store.
