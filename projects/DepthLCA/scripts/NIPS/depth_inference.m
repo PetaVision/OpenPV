@@ -4,23 +4,23 @@ clear all; close all; dbstop error;
 addpath('~/workspace/pv-core/mlab/util')
 
 %outdir =  '/nh/compneuro/Data/Depth/LCA/benchmark/validate/plots/';
-outdir =  '~/mountData/outplots/binoc_vs_mono/'
+outdir =  '~/mountData/outplots/global_vs_noglobal/'
 
 mkdir(outdir);
 
-LCAdir =  '~/mountData/benchmark/train/slp/aws_icaweights_binoc_LCA/'
-RELUdir = '~/mountData/benchmark/train/slp/aws_icaweights_mono_LCA/'
+LCAdir = '~/mountData/benchmark/validate/rcorr/aws_icapatch_binoc_LCA_fine/'
+RELUdir =  '~/mountData/benchmark/validate/slp/aws_icapatch_LCA_fine_bias/'
 
 %These should be equivelent for LCA or RELU
 timestamp = [LCAdir '/timestamps/DepthImage.txt'];
-gtPvpFile = [LCAdir 'a5_DepthDownsample.pvp'];
+gtPvpFile = [LCAdir 'a4_DepthDownsample.pvp'];
 
 imageDir = 's3://kitti/stereo_flow/multiview/training/image_2/';
 %imageDir = '/nh/compneuro/Data/KITTI/stereo_flow/multiview/training/image_2/'
 
 %Estimate pvps
-LCAFilename = [LCAdir 'a8_SLP_Recon.pvp'];
-RELUFilename = [RELUdir 'a7_SLP_Recon.pvp'];
+LCAFilename = [LCAdir 'a7_RCorrRecon.pvp'];
+RELUFilename = [RELUdir 'a8_SLP_Recon.pvp'];
 
 % error threshold for error calculation
 tau = 3;

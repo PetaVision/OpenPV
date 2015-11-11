@@ -1,6 +1,6 @@
 addpath('~/workspace/pv-core/mlab/util');
 
-baseDir = "/home/ec2-user/mountData/benchmark/featuremap/fine/icaweights_binoc_LCA_fine/";
+baseDir = "/home/ec2-user/mountData/benchmark/featuremap/icaweights_binoc_LCA_fine/";
 tuningFile = "/home/ec2-user/mountData/benchmark/featuremap/fine/LCA_peakmean.txt";
 outDir = [baseDir, '/featuremaps/'];
 mkdir(outDir);
@@ -17,7 +17,7 @@ baseLayers = { ...
 
 numNeurons = 512;
 
-sliceAlpha = .5;
+sliceAlpha = .7;
 
 assert(length(layers) == length(baseLayers));
 tf = fopen(tuningFile, 'r');
