@@ -25,7 +25,6 @@ HyPerCol "column" = {
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = false;
-    checkpointWriteDir = "/nh/compneuro/Data/Depth/LCA/benchmark/train/single_rcorr_LCA/Checkpoints";
     checkpointWriteStepInterval = 10;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
@@ -151,14 +150,14 @@ BinningLayer "DepthGT" = {
     restart = 0;
     nxScale = .25; 
     nyScale = .25;
-    nf = 32;
+    nf = 128;
     writeStep = -1.0;
     initialWriteTime = 1.0;
     mirrorBCflag = false;
     writeSparseActivity = false;
-    binMax = .5; //taking only first 256 values
+    binMax = 1; //taking only first 256 values
     binMin = 0;
-    binSigma = 0;
+    binSigma = 3;
     InitVType = "ZeroV";
     zeroNeg = false; //Set negative gt values as -1
     zeroDCR = true; //Zero values from the buffer is set to 0
@@ -172,7 +171,7 @@ ANNLayer "RCorrBuf" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 32;
+    nf = 128;
     writeStep = -1.0;
     initialWriteTime = 1.0; //1 + writestep
     mirrorBCflag = 0;
@@ -198,7 +197,7 @@ WTALayer "RCorrRecon" = {
     writeSparseActivity = false;
     delay = 0;
     originalLayerName = "RCorrBuf";
-    binMax = .5;
+    binMax = 1;
     binMin = 0;
     phase = 6;
 };
@@ -308,7 +307,7 @@ KernelConn "LCA_V1ToRCorrBuf" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/benchmark/train/aws_icaweights_binoc_LCA_fine/Last/LCA_V1ToDepthGT_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/benchmark/train/rcorr/aws_icaweights_binoc_LCA_fine/Last/LCA_V1ToDepthGT_W.pvp";
     //weightInitType = "UniformWeight";
     //weightInit = 0;
     //
@@ -399,59 +398,3 @@ KernelConn "LCA_V1ToRightRecon" = {
    @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
 
 };
-
-////SLP Connections
-//HyPerConn "ICA_V1ToSLP_Error" = {
-//   preLayerName                        = "ICA_V1";
-//   postLayerName                       = "SLP_Error";
-//   channelCode                         = 1;
-//   delay                               = 0.000000;
-//   numAxonalArbors                     = 1;
-//   plasticityFlag                      = true;
-//   convertRateToSpikeCount             = false;
-//   receiveGpu                          = false;
-//   sharedWeights                       = false;
-//   weightInitType                      = "UniformRandomWeight";
-//   // initWeightsFile                     was set to (NULL);
-//   wMinInit                            = -0.01;
-//   wMaxInit                            = 0.01;
-//   sparseFraction                      = 0.9;
-//   triggerFlag                         = false;
-//   weightUpdatePeriod                  = 1;
-//   initialWeightUpdateTime             = 0;
-//   updateGSynFromPostPerspective       = false;
-//   pvpatchAccumulateType               = "convolve";
-//   writeStep                           = -1;
-//   writeCompressedCheckpoints          = false;
-//   selfFlag                            = false;
-//   combine_dW_with_W_flag              = false;
-//   nxp                                 = 66;
-//   nyp                                 = 66;
-//   shrinkPatches                       = false;
-//   normalizeMethod                     = "none";
-//   dWMax                               = 0.01;
-//   useMask                             = false;
-//};
-//
-//IdentConn "DepthGTToSLP_Error" = {
-//   preLayerName                        = "DepthGT";
-//   postLayerName                       = "SLP_Error";
-//   channelCode                         = 0;
-//   delay                               = [0.000000];
-//   // initWeightsFile                     was set to (NULL);
-//   writeStep                           = -1;
-//};
-//
-//CloneConn "ICA_V1ToSLP_Recon_Buffer" = {
-//    preLayerName = "ICA_V1";
-//    postLayerName = "SLP_Recon_Buffer";
-//    channelCode = 0;
-//    writeStep = -1;
-//    originalConnName = "ICA_V1ToSLP_Error";
-//    selfFlag = false;
-//    delay = 0;
-//    preActivityIsNotRate = false;
-//    useWindowPost = false;
-//    updateGSynFromPostPerspective = false;
-//    pvpatchAccumulateType = "convolve";
-//};

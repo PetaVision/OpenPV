@@ -4,11 +4,11 @@ clear all; close all; dbstop error;
 addpath('~/workspace/pv-core/mlab/util')
 
 %outdir =  '/nh/compneuro/Data/Depth/LCA/benchmark/validate/plots/';
-outdir =  '~/mountData/outplots/global_vs_noglobal/'
+outdir =  '~/mountData/outplots/temp/'
 
 mkdir(outdir);
 
-LCAdir = '~/mountData/benchmark/validate/rcorr/aws_icapatch_binoc_LCA_fine/'
+LCAdir = '~/mountData/benchmark/validate/rcorr/aws_icapatch_binoc_LCA/'
 RELUdir =  '~/mountData/benchmark/validate/slp/aws_icapatch_LCA_fine_bias/'
 
 %These should be equivelent for LCA or RELU
