@@ -8,8 +8,8 @@ outdir =  '~/mountData/outplots/temp/'
 
 mkdir(outdir);
 
-LCAdir = '~/mountData/benchmark/validate/rcorr/aws_icapatch_binoc_LCA/'
-RELUdir =  '~/mountData/benchmark/validate/slp/aws_icapatch_LCA_fine_bias/'
+LCAdir = '~/mountData/benchmark/validate/rcorr/aws_icapatch_binoc_LCA_fine/'
+RELUdir =  '~/mountData/benchmark/validate/rcorr/aws_icapatch_binoc_RELU_fine/'
 
 %These should be equivelent for LCA or RELU
 timestamp = [LCAdir '/timestamps/DepthImage.txt'];
@@ -20,12 +20,12 @@ imageDir = 's3://kitti/stereo_flow/multiview/training/image_2/';
 
 %Estimate pvps
 LCAFilename = [LCAdir 'a7_RCorrRecon.pvp'];
-RELUFilename = [RELUdir 'a8_SLP_Recon.pvp'];
+RELUFilename = [RELUdir 'a7_RCorrRecon.pvp'];
 
 % error threshold for error calculation
 tau = 3;
 
-scoreDir = [outdir 'slp_scores/'];
+scoreDir = [outdir 'fine_scores/'];
 mkdir(scoreDir);
 
 
