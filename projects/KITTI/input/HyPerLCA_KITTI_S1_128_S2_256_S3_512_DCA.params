@@ -41,25 +41,26 @@ HyPerCol "column" = {
     dt                                  = 1;
     dtAdaptFlag                         = true;
     dtScaleMax                          = 1; //8;
-    dtScaleMin                          = 0.02; //0.1;
+    dtScaleMin                          = 0.01; //0.1;
     dtChangeMax                         = 0.01; //0.025;
-    dtChangeMin                         = -0.02; //0;
+    dtChangeMin                         = 0.0; //0;
     dtMinToleratedTimeScale             = 0.0001;
     stopTime                            = 19060800; //15884*1200
     progressInterval                    = 1200;
     writeProgressToErr                  = true;
     verifyWrites                        = false;
-    outputPath                          = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1";
+    outputPath                          = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1";
     printParamsFilename                 = "KITTI_S1_128_S2_256_S3_512_DCA_KITTI_train1.params";
     randomSeed                          = 1234567890;
-    nx = 512; //1200; //1226, one pixel cropped from both sides;  // KITTI synced value
-    ny = 152; //360;  //370, two pixels cropped from the top;
+    // need dimensions to be divisible by 8*number of mpi rows or columns
+    nx                                  = 512; //1226; // original width
+    ny                                  = 152; //160 //370; // original height
     filenamesContainLayerNames          = 2;
     filenamesContainConnectionNames     = 2;
-    initializeFromCheckpointDir         = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint";
+    initializeFromCheckpointDir         = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint";
     defaultInitializeFromCheckpointFlag = false;
     checkpointWrite                     = true;
-    checkpointWriteDir                  = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints";
+    checkpointWriteDir                  = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints";
     checkpointWriteTriggerMode          = "step";
     checkpointWriteStepInterval         = 12000;
     deleteOlderCheckpoints              = false;
@@ -83,8 +84,8 @@ Movie "ImageLeft" = {
     updateGpu                           = false;
     dataType                            = NULL;
     offsetAnchor                        = "tl";
-  offsetX                             = 0; //3;
-  offsetY                             = 0; //10;
+    offsetX                             = 0; //3;
+    offsetY                             = 0; //10;
     writeImages                         = 0;
     useImageBCflag                      = false;
   autoResizeFlag                      = true; //false;
@@ -222,6 +223,14 @@ ANNErrorLayer "S1DeconError" = {
   errScale                            = 1;
 };
 
+ANNErrorLayer "S1LeftDeconError" = {
+#include "S1DeconError";
+};
+
+ANNErrorLayer "S1RightDeconError" = {
+#include "S1DeconError";
+};
+
 //ConstantLayer "ConstantS1" = {
 //    nxScale                             = 0.5;
 //    nyScale                             = 0.5;
@@ -252,7 +261,7 @@ HyPerLCALayer "S1" = {
   valueBC                             = 0;
   initializeFromCheckpointFlag        = false;
   //InitVType                           = "InitVFromFile";
-  //Vfilename                           = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1_V.pvp";
+  //Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1_V.pvp";
   //InitVType                           = "ConstantV";
   //valueV                              = 0.003125;
   InitVType                           = "UniformRandomV";
@@ -268,7 +277,7 @@ HyPerLCALayer "S1" = {
   writeSparseValues                   = true;
   updateGpu                           = true;
   dataType                            = NULL;
-  VThresh                             = 0.003125; //0.00625; //0.0125; //0.025; //
+  VThresh                             = 0.003125; // 0.00625; // 0.0125; //0.025; //
   AMin                                = 0;
   AMax                                = 3.40282e+38;
   AShift                              = 0;
@@ -281,14 +290,32 @@ HyPerLCALayer "S1" = {
   selfInteract                        = true;
 };
 
+HyPerLCALayer "S1Left" = {
+#include "S1";
+  //@Vfilename = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1Left_V.pvp";
+};
+
+HyPerLCALayer "S1Right" = {
+#include "S1";
+  //@Vfilename = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1Right_V.pvp";
+};
+
 ANNLayer "ImageLeftDeconS1" = {
 #include "ImageLeftDecon";
   @phase                               = 4; 
 };
 
+ANNLayer "ImageLeftDeconS1Left" = {
+#include "ImageLeftDeconS1";
+};
+
 ANNLayer "ImageRightDeconS1" = {
 #include "ImageRightDecon";
   @phase                               = 4; 
+};
+
+ANNLayer "ImageRightDeconS1Right" = {
+#include "ImageRightDeconS1";
 };
 
 //ANNLayer "ImageLeftReconS1" = {
@@ -312,6 +339,13 @@ ANNErrorLayer "S2DeconError" = {
   @phase                               = 4;
 };
 
+ANNErrorLayer "S2LeftDeconError" = {
+#include "S2DeconError";
+};
+
+ANNErrorLayer "S2RightDeconError" = {
+#include "S2DeconError";
+};
 
 //ConstantLayer "ConstantS2" = {
 //#include "ConstantS1";
@@ -328,13 +362,22 @@ HyPerLCALayer "S2" = {
   @nyScale                             = 0.25;
   @nf                                  = 256; 
   @timeConstantTau                     = 800; //400; 
-  //@Vfilename = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2_V.pvp";
+  //@Vfilename = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2_V.pvp";
   //@valueV                              = 0.0125;
-  @VThresh                             = 0.0125; //0.025; //
+  @VThresh                             =  0.0125; // 0.025; //
   @phase                               = 5;  
   //@triggerResetLayerName               = "ConstantS2";
 };
 
+HyPerLCALayer "S2Left" = {
+#include "S2";
+  //@Vfilename = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2Left_V.pvp";
+};
+
+HyPerLCALayer "S2Right" = {
+#include "S2";
+  //@Vfilename = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2Right_V.pvp";
+};
 
 //ANNLayer "S1ReconS2" = {
 //#include "ImageLeftDecon";
@@ -356,14 +399,38 @@ ANNLayer "S1DeconS2" = {
   @phase                               = 6;  
 };
 
+ANNLayer "S1LeftDeconS2" = {
+#include "S1DeconS2";
+};
+
+ANNLayer "S1RightDeconS2" = {
+#include "S1DeconS2";
+};
+
+ANNLayer "S1LeftDeconS2Left" = {
+#include "S1DeconS2";
+};
+
+ANNLayer "S1RightDeconS2Right" = {
+#include "S1DeconS2";
+};
+
 ANNLayer "ImageLeftDeconS2" = {
 #include "ImageLeftDecon";
   @phase                               = 7;  
 };
 
+ANNLayer "ImageLeftDeconS2Left" = {
+#include "ImageLeftDeconS2";
+};
+
 ANNLayer "ImageRightDeconS2" = {
 #include "ImageRightDecon";
   @phase                               = 7;  
+};
+
+ANNLayer "ImageRightDeconS2Right" = {
+#include "ImageRightDeconS2";
 };
 
 //ANNLayer "ImageLeftReconS2" = {
@@ -391,6 +458,13 @@ ANNErrorLayer "S3DeconError" = {
   @phase                               = 5;
 };
 
+ANNErrorLayer "S3LeftDeconError" = {
+#include "S3DeconError";
+};
+
+ANNErrorLayer "S3RightDeconError" = {
+#include "S3DeconError";
+};
 
 //ConstantLayer "ConstantS3" = {
 //#include "ConstantS2";
@@ -407,12 +481,23 @@ HyPerLCALayer "S3" = {
   @nyScale                             = 0.125;
   @nf                                  = 512; 
   @timeConstantTau                     = 1200; //400; 
-  //@Vfilename = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3_V.pvp";
+  //@Vfilename = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3_V.pvp";
   //@valueV                              = 0.05;
   @VThresh                             = 0.05; //0.025; //
   @phase                               = 7;  
   //@triggerResetLayerName               = "ConstantS3";
 };
+
+HyPerLCALayer "S3Left" = {
+#include "S3";
+  //@Vfilename = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3Left_V.pvp";
+};
+
+HyPerLCALayer "S3Right" = {
+#include "S3";
+  //@Vfilename = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3Right_V.pvp";
+};
+
 
 //ANNLayer "S2ReconS3" = {
 //#include "S1ReconS2";
@@ -430,6 +515,23 @@ ANNLayer "S2DeconS3" = {
   @phase                               = 8;  
 };
 
+ANNLayer "S2LeftDeconS3" = {
+#include "S2DeconS3";
+};
+
+ANNLayer "S2RightDeconS3" = {
+#include "S2DeconS3";
+};
+
+ANNLayer "S2LeftDeconS3Left" = {
+#include "S2DeconS3";
+};
+
+ANNLayer "S2RightDeconS3Right" = {
+#include "S2DeconS3";
+};
+
+
 //ANNLayer "S1ReconS3" = {
 //#include "S2ReconS3";
 //  @nxScale                             = 0.5;
@@ -446,6 +548,22 @@ ANNLayer "S1DeconS3" = {
   @phase                               = 9;  
 };
 
+ANNLayer "S1LeftDeconS3" = {
+#include "S1DeconS3";
+};
+
+ANNLayer "S1RightDeconS3" = {
+#include "S1DeconS3";
+};
+
+ANNLayer "S1LeftDeconS3Left" = {
+#include "S1DeconS3";
+};
+
+ANNLayer "S1RightDeconS3Right" = {
+#include "S1DeconS3";
+};
+
 //ANNLayer "ImageLeftReconS3" = {
 //#include "ImageLeftReconS2";
 //  @phase                               = 10;  
@@ -456,9 +574,21 @@ ANNLayer "ImageLeftDeconS3" = {
   @phase                               = 10;  
 };
 
+ANNLayer "ImageLeftDeconS3Left" = {
+#include "ImageLeftDeconS3";
+};
+
+//ANNLayer "ImageLeftDeconS3Left" = {
+//#include "ImageLeftDeconS3";
+//};
+//
 ANNLayer "ImageRightDeconS3" = {
 #include "ImageRightDeconS2";
   @phase                               = 10;  
+};
+
+ANNLayer "ImageRightDeconS3Right" = {
+#include "ImageRightDeconS3";
 };
 
 
@@ -718,7 +848,7 @@ MomentumConn "S1ToImageLeftDeconError" = {
     receiveGpu                          = false;
     sharedWeights                       = true;
     //weightInitType                      = "FileWeight";
-    //initWeightsFile                     = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1ToImageLeftDeconError_W.pvp";
+    //initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1ToImageLeftDeconError_W.pvp";
     //useListOfArborFiles                 = false;
     //combineWeightFiles                  = false;
     weightInitType                      = "UniformRandomWeight";
@@ -757,11 +887,26 @@ MomentumConn "S1ToImageLeftDeconError" = {
     momentumDecay                       = 0;
 };
 
+MomentumConn "S1LeftToImageLeftDeconError" = {
+#include "S1ToImageLeftDeconError";
+  @preLayerName                        = "S1Left";
+  @postLayerName                       = "ImageLeftDeconError";
+  //@initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1LeftToImageLeftDeconError_W.pvp";
+};
+
 MomentumConn "S1ToImageRightDeconError" = {
 #include  "S1ToImageLeftDeconError";
   @postLayerName                        = "ImageRightDeconError";
   @normalizeMethod                      = "normalizeGroup";
   normalizeGroupName                   = "S1ToImageLeftDeconError";
+  //@initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1ToImageRightDeconError_W.pvp";
+};
+
+MomentumConn "S1RightToImageRightDeconError" = {
+#include "S1ToImageRightDeconError";
+  @preLayerName                        = "S1Right";
+  @postLayerName                       = "ImageRightDeconError";
+  //@initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1RightToImageRightDeconError_W.pvp";
 };
 
 TransposeConn "ImageLeftDeconErrorToS1DeconError" = {
@@ -780,16 +925,43 @@ TransposeConn "ImageLeftDeconErrorToS1DeconError" = {
     originalConnName                    = "S1ToImageLeftDeconError";
 };
 
+TransposeConn "ImageLeftDeconErrorToS1LeftDeconError" = {
+#include "ImageLeftDeconErrorToS1DeconError";
+  @postLayerName                       = "S1LeftDeconError";
+  @originalConnName                    = "S1LeftToImageLeftDeconError";
+};
+
 TransposeConn "ImageRightDeconErrorToS1DeconError" = {
 #include "ImageLeftDeconErrorToS1DeconError";
   @preLayerName                        = "ImageRightDeconError";
   @originalConnName                    = "S1ToImageRightDeconError";
 };
 
+TransposeConn "ImageRightDeconErrorToS1RightDeconError" = {
+#include "ImageRightDeconErrorToS1DeconError";
+  @postLayerName                       = "S1RightDeconError";
+  @originalConnName                    = "S1RightToImageRightDeconError";
+};
 
 IdentConn "S1DeconErrorToS1" = {
     preLayerName                        = "S1DeconError";
     postLayerName                       = "S1";
+    channelCode                         = 0;
+    delay                               = 0;
+    writeStep                           = -1;
+};
+
+IdentConn "S1LeftDeconErrorToS1Left" = {
+    preLayerName                        = "S1LeftDeconError";
+    postLayerName                       = "S1Left";
+    channelCode                         = 0;
+    delay                               = 0;
+    writeStep                           = -1;
+};
+
+IdentConn "S1RightDeconErrorToS1Right" = {
+    preLayerName                        = "S1RightDeconError";
+    postLayerName                       = "S1Right";
     channelCode                         = 0;
     delay                               = 0;
     writeStep                           = -1;
@@ -810,10 +982,24 @@ CloneConn "S1ToImageLeftDeconS1" = {
     originalConnName                    = "S1ToImageLeftDeconError";
 };
 
+CloneConn "S1LeftToImageLeftDeconS1Left" = {
+#include "S1ToImageLeftDeconS1";
+  @preLayerName                        = "S1Left";
+  @postLayerName                       = "ImageLeftDeconS1Left";
+  @originalConnName                    = "S1LeftToImageLeftDeconError";
+};
+
 CloneConn "S1ToImageRightDeconS1" = {
 #include "S1ToImageLeftDeconS1";
   @postLayerName                       = "ImageRightDeconS1";
   @originalConnName                    = "S1ToImageRightDeconError";
+};
+
+CloneConn "S1RightToImageRightDeconS1Right" = {
+#include "S1ToImageRightDeconS1";
+  @preLayerName                        = "S1Right";
+  @postLayerName                       = "ImageRightDeconS1Right";
+  @originalConnName                    = "S1RightToImageRightDeconError";
 };
 
 //CloneConn "S1ToImageLeftReconS1" = {
@@ -829,8 +1015,24 @@ IdentConn "ImageLeftDeconS1ToImageLeftDecon" = {
     writeStep                           = -1;
 };
 
+IdentConn "ImageLeftDeconS1LeftToImageLeftDecon" = {
+    preLayerName                        = "ImageLeftDeconS1Left";
+    postLayerName                       = "ImageLeftDecon";
+    channelCode                         = 0;
+    delay                               = 0;
+    writeStep                           = -1;
+};
+
 IdentConn "ImageRightDeconS1ToImageRightDecon" = {
     preLayerName                        = "ImageRightDeconS1";
+    postLayerName                       = "ImageRightDecon";
+    channelCode                         = 0;
+    delay                               = 0;
+    writeStep                           = -1;
+};
+
+IdentConn "ImageRightDeconS1TRightoImageRightDecon" = {
+    preLayerName                        = "ImageRightDeconS1Right";
     postLayerName                       = "ImageRightDecon";
     channelCode                         = 0;
     delay                               = 0;
@@ -864,7 +1066,7 @@ IdentConn "ImageRightDeconS1ToImageRightDecon" = {
 //  @postLayerName                        = "S1ReconS2Error";
 //  @nxp                                  = 10;
 //  @nyp                                  = 10;
-//  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2ToS1ReconS2Error_W.pvp";
+//  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2ToS1ReconS2Error_W.pvp";
 //};
 
 
@@ -914,10 +1116,45 @@ MomentumConn "S2ToS1DeconError" = {
   @postLayerName                        = "S1DeconError";
   @nxp                                  = 10;
   @nyp                                  = 10;
-  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2ToS1DeconError_W.pvp";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2ToS1DeconError_W.pvp";
   //@dWMax                                = 1.0;
   //@normalizeMethod                      = "normalizeGroup";
   //normalizeGroupName                    = "S2ToS1ReconS2Error";
+};
+
+MomentumConn "S2ToS1LeftDeconError" = {
+#include "S2ToS1DeconError";
+  @preLayerName                         = "S2";
+  @postLayerName                        = "S1LeftDeconError";
+  @normalizeMethod                      = "normalizeGroup";
+  normalizeGroupName                    = "S2ToS1DeconError";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2ToS1LeftDeconError_W.pvp";
+};
+
+
+MomentumConn "S2ToS1RightDeconError" = {
+#include "S2ToS1DeconError";
+  @preLayerName                         = "S2";
+  @postLayerName                        = "S1RightDeconError";
+  @normalizeMethod                      = "normalizeGroup";
+  normalizeGroupName                    = "S2ToS1DeconError";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2ToS1RightDeconError_W.pvp";
+};
+
+
+MomentumConn "S2LeftToS1LeftDeconError" = {
+#include "S2ToS1DeconError";
+  @preLayerName                         = "S2Left";
+  @postLayerName                        = "S1LeftDeconError";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2LeftToS1LeftDeconError_W.pvp";
+};
+
+
+MomentumConn "S2RightToS1RightDeconError" = {
+#include "S2ToS1DeconError";
+  @preLayerName                         = "S2Right";
+  @postLayerName                        = "S1RightDeconError";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2RightToS1RightDeconError_W.pvp";
 };
 
 
@@ -928,9 +1165,53 @@ TransposeConn "S1DeconErrorToS2DeconError" = {
   @originalConnName                     = "S2ToS1DeconError";
 };
 
+TransposeConn "S1LeftDeconErrorToS2DeconError" = {
+#include "S1DeconErrorToS2DeconError";
+  @preLayerName                         = "S1LeftDeconError";
+  @postLayerName                        = "S2DeconError";
+  @originalConnName                     = "S2ToS1LeftDeconError";
+};
+
+TransposeConn "S1RightDeconErrorToS2DeconError" = {
+#include "S1DeconErrorToS2DeconError";
+  @preLayerName                         = "S1RightDeconError";
+  @postLayerName                        = "S2DeconError";
+  @originalConnName                     = "S2ToS1RightDeconError";
+};
+
+TransposeConn "S1LeftDeconErrorToS2LeftDeconError" = {
+#include "S1DeconErrorToS2DeconError";
+  @preLayerName                         = "S1LeftDeconError";
+  @postLayerName                        = "S2LeftDeconError";
+  @originalConnName                     = "S2LeftToS1LeftDeconError";
+};
+
+TransposeConn "S1RightDeconErrorToS2RightDeconError" = {
+#include "S1DeconErrorToS2DeconError";
+  @preLayerName                         = "S1RightDeconError";
+  @postLayerName                        = "S2RightDeconError";
+  @originalConnName                     = "S2RightToS1RightDeconError";
+};
+
 IdentConn "S2DeconErrorToS2" = {
   preLayerName                          = "S2DeconError";
   postLayerName                         = "S2";
+  channelCode                           = 0;
+  delay                                 = 0;
+  writeStep                             = -1;
+};
+
+IdentConn "S2LeftDeconErrorToS2Left" = {
+  preLayerName                          = "S2LeftDeconError";
+  postLayerName                         = "S2Left";
+  channelCode                           = 0;
+  delay                                 = 0;
+  writeStep                             = -1;
+};
+
+IdentConn "S2RightDeconErrorToS2Right" = {
+  preLayerName                          = "S2RightDeconError";
+  postLayerName                         = "S2Right";
   channelCode                           = 0;
   delay                                 = 0;
   writeStep                             = -1;
@@ -943,6 +1224,35 @@ CloneConn "S2ToS1DeconS2" = {
   @originalConnName                     = "S2ToS1DeconError";
 };
 
+CloneConn "S2ToS1LeftDeconS2" = {
+#include "S2ToS1DeconS2";
+  @preLayerName                         = "S2";
+  @postLayerName                        = "S1LeftDeconS2";
+  @originalConnName                     = "S2ToS1LeftDeconError";
+};
+
+CloneConn "S2ToS1RightDeconS2" = {
+#include "S2ToS1DeconS2";
+  @preLayerName                         = "S2";
+  @postLayerName                        = "S1RightDeconS2";
+  @originalConnName                     = "S2ToS1RightDeconError";
+};
+
+CloneConn "S2LeftToS1LeftDeconS2Left" = {
+#include "S2ToS1DeconS2";
+  @preLayerName                         = "S2Left";
+  @postLayerName                        = "S1LeftDeconS2Left";
+  @originalConnName                     = "S2LeftToS1LeftDeconError";
+};
+
+CloneConn "S2RightToS1RightDeconS2Right" = {
+#include "S2ToS1DeconS2";
+  @preLayerName                         = "S2Right";
+  @postLayerName                        = "S1RightDeconS2Right";
+  @originalConnName                     = "S2RightToS1RightDeconError";
+};
+
+
 CloneConn "S1DeconS2ToImageLeftDeconS2" = {
 #include "S1ToImageLeftDeconS1";
   @preLayerName                         = "S1DeconS2";
@@ -952,6 +1262,20 @@ CloneConn "S1DeconS2ToImageLeftDeconS2" = {
   @updateGSynFromPostPerspective       = true;
 };
 
+CloneConn "S1LeftDeconS2ToImageLeftDeconS2" = {
+#include "S1DeconS2ToImageLeftDeconS2";
+  @preLayerName                         = "S1LeftDeconS2";
+  @postLayerName                        = "ImageLeftDeconS2";
+  @originalConnName                     = "S1LeftToImageLeftDeconError";
+};
+
+CloneConn "S1LeftDeconS2LeftToImageLeftDeconS2Left" = {
+#include "S1DeconS2ToImageLeftDeconS2";
+  @preLayerName                         = "S1LeftDeconS2Left";
+  @postLayerName                        = "ImageLeftDeconS2Left";
+  @originalConnName                     = "S1LeftToImageLeftDeconError";
+};
+
 CloneConn "S1DeconS2ToImageRightDeconS2" = {
 #include "S1ToImageRightDeconS1";
   @preLayerName                         = "S1DeconS2";
@@ -959,6 +1283,20 @@ CloneConn "S1DeconS2ToImageRightDeconS2" = {
   @originalConnName                     = "S1ToImageRightDeconError";
   @receiveGpu                          = true;
   @updateGSynFromPostPerspective       = true;
+};
+
+CloneConn "S1RightDeconS2ToImageRightDeconS2" = {
+#include "S1DeconS2ToImageRightDeconS2";
+  @preLayerName                         = "S1RightDeconS2";
+  @postLayerName                        = "ImageRightDeconS2";
+  @originalConnName                     = "S1RightToImageRightDeconError";
+};
+
+CloneConn "S1RightDeconS2RightToImageRightDeconS2Right" = {
+#include "S1DeconS2ToImageRightDeconS2";
+  @preLayerName                         = "S1RightDeconS2Right";
+  @postLayerName                        = "ImageRightDeconS2Right";
+  @originalConnName                     = "S1RightToImageRightDeconError";
 };
 
 //TransposeConn "S1DeconS2ToImageLeftDeconS2" = {
@@ -977,8 +1315,25 @@ IdentConn "ImageLeftDeconS2ToImageLeftDecon" = {
 };
 
 
+IdentConn "ImageLeftDeconS2LeftToImageLeftDecon" = {
+    preLayerName                        = "ImageLeftDeconS2Left";
+    postLayerName                       = "ImageLeftDecon";
+    channelCode                         = 0;
+    delay                               = 0;
+    writeStep                           = -1;
+};
+
+
 IdentConn "ImageRightDeconS2ToImageRightDecon" = {
     preLayerName                        = "ImageRightDeconS2";
+    postLayerName                       = "ImageRightDecon";
+    channelCode                         = 0;
+    delay                               = 0;
+    writeStep                           = -1;
+};
+
+IdentConn "ImageRightDeconS2RightToImageRightDecon" = {
+    preLayerName                        = "ImageRightDeconS2Right";
     postLayerName                       = "ImageRightDecon";
     channelCode                         = 0;
     delay                               = 0;
@@ -1016,7 +1371,7 @@ IdentConn "ImageRightDeconS2ToImageRightDecon" = {
 //  @postLayerName                        = "S2ReconS3Error";
 //  @nxp                                  = 10;
 //  @nyp                                  = 10;
-//  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3ToS2ReconS3Error_W.pvp";
+//  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3ToS2ReconS3Error_W.pvp";
 //};
 
 //TransposeConn "S2ReconS3ErrorToS3" = {
@@ -1070,12 +1425,43 @@ MomentumConn "S3ToS2DeconError" = {
 #include "S2ToS1DeconError";
   @preLayerName                         = "S3";
   @postLayerName                        = "S2DeconError";
-  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3ToS2DeconError_W.pvp";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3ToS2DeconError_W.pvp";
   //@dWMax                                = 1.0;
   //@normalizeMethod                      = "normalizeGroup";
   //@normalizeGroupName                    = "S3ToS2ReconS3Error";
 };
 
+MomentumConn "S3ToS2LeftDeconError" = {
+#include "S3ToS2DeconError";
+  @preLayerName                         = "S3";
+  @postLayerName                        = "S2LeftDeconError";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3ToS2LeftDeconError_W.pvp";
+  @normalizeMethod                      = "normalizeGroup";
+  normalizeGroupName                    = "S3ToS2DeconError";
+};
+
+MomentumConn "S3ToS2RightDeconError" = {
+#include "S3ToS2DeconError";
+  @preLayerName                         = "S3";
+  @postLayerName                        = "S2RightDeconError";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3ToS2RightDeconError_W.pvp";
+  @normalizeMethod                      = "normalizeGroup";
+  normalizeGroupName                    = "S3ToS2DeconError";
+};
+
+MomentumConn "S3LeftToS2LeftDeconError" = {
+#include "S3ToS2DeconError";
+  @preLayerName                         = "S3Left";
+  @postLayerName                        = "S2LeftDeconError";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3LeftToS2LeftDeconError_W.pvp";
+};
+
+MomentumConn "S3RightToS2RightDeconError" = {
+#include "S3ToS2DeconError";
+  @preLayerName                         = "S3Right";
+  @postLayerName                        = "S2RightDeconError";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3RightToS2RightDeconError_W.pvp";
+};
 
 TransposeConn "S2DeconErrorToS3DeconError" = {
 #include "S1DeconErrorToS2DeconError";
@@ -1084,9 +1470,53 @@ TransposeConn "S2DeconErrorToS3DeconError" = {
   @originalConnName                     = "S3ToS2DeconError";
 };
 
+TransposeConn "S2LeftDeconErrorToS3DeconError" = {
+#include "S2DeconErrorToS3DeconError";
+  @preLayerName                         = "S2LeftDeconError";
+  @postLayerName                        = "S3DeconError";
+  @originalConnName                     = "S3ToS2LeftDeconError";  
+};
+
+TransposeConn "S2RightDeconErrorToS3DeconError" = {
+#include "S2DeconErrorToS3DeconError";
+  @preLayerName                         = "S2RightDeconError";
+  @postLayerName                        = "S3DeconError";
+  @originalConnName                     = "S3ToS2RightDeconError";  
+};
+
+TransposeConn "S2LeftDeconErrorToS3LeftDeconError" = {
+#include "S2DeconErrorToS3DeconError";
+  @preLayerName                         = "S2LeftDeconError";
+  @postLayerName                        = "S3LeftDeconError";
+  @originalConnName                     = "S3LeftToS2LeftDeconError";  
+};
+
+TransposeConn "S2RightDeconErrorToS3RightDeconError" = {
+#include "S2DeconErrorToS3DeconError";
+  @preLayerName                         = "S2RightDeconError";
+  @postLayerName                        = "S3RightDeconError";
+  @originalConnName                     = "S3RightToS2RightDeconError";  
+};
+
 IdentConn "S3DeconErrorToS3" = {
   preLayerName                          = "S3DeconError";
   postLayerName                         = "S3";
+  channelCode                           = 0;
+  delay                                 = 0;
+  writeStep                             = -1;
+};
+
+IdentConn "S3LeftDeconErrorToS3Left" = {
+  preLayerName                          = "S3LeftDeconError";
+  postLayerName                         = "S3Left";
+  channelCode                           = 0;
+  delay                                 = 0;
+  writeStep                             = -1;
+};
+
+IdentConn "S3RightDeconErrorToS3Right" = {
+  preLayerName                          = "S3RightDeconError";
+  postLayerName                         = "S3Right";
   channelCode                           = 0;
   delay                                 = 0;
   writeStep                             = -1;
@@ -1099,11 +1529,68 @@ CloneConn "S3ToS2DeconS3" = {
   @originalConnName                     = "S3ToS2DeconError";
 };
 
+CloneConn "S3ToS2LeftDeconS3" = {
+#include "S3ToS2DeconS3";
+  @preLayerName                         = "S3";
+  @postLayerName                        = "S2LeftDeconS3";
+  @originalConnName                     = "S3ToS2LeftDeconError";
+};
+
+CloneConn "S3ToS2RightDeconS3" = {
+#include "S3ToS2DeconS3";
+  @preLayerName                         = "S3";
+  @postLayerName                        = "S2RightDeconS3";
+  @originalConnName                     = "S3ToS2RightDeconError";
+};
+
+CloneConn "S3LeftToS2LeftDeconS3Left" = {
+#include "S3ToS2DeconS3";
+  @preLayerName                         = "S3Left";
+  @postLayerName                        = "S2LeftDeconS3Left";
+  @originalConnName                     = "S3LeftToS2LeftDeconError";
+};
+
+CloneConn "S3RightToS2RightDeconS3Right" = {
+#include "S3ToS2DeconS3";
+  @preLayerName                         = "S3Right";
+  @postLayerName                        = "S2RightDeconS3Right";
+  @originalConnName                     = "S3RightToS2RightDeconError";
+};
+
+
 CloneConn "S2DeconS3ToS1DeconS3" = {
 #include "S1DeconS2ToImageLeftDeconS2";
   @preLayerName                         = "S2DeconS3";
   @postLayerName                        = "S1DeconS3";
   @originalConnName                     = "S2ToS1DeconError";
+};
+
+CloneConn "S2LeftDeconS3ToS1LeftDeconS3" = {
+#include "S2DeconS3ToS1DeconS3";
+  @preLayerName                         = "S2LeftDeconS3";
+  @postLayerName                        = "S1LeftDeconS3";
+  @originalConnName                     = "S2LeftToS1LeftDeconError";
+};
+
+CloneConn "S2RightDeconS3ToS1RightDeconS3" = {
+#include "S2DeconS3ToS1DeconS3";
+  @preLayerName                         = "S2RightDeconS3";
+  @postLayerName                        = "S1RightDeconS3";
+  @originalConnName                     = "S2RightToS1RightDeconError";
+};
+
+CloneConn "S2LeftDeconS3LeftToS1LeftDeconS3Left" = {
+#include "S2DeconS3ToS1DeconS3";
+  @preLayerName                         = "S2LeftDeconS3Left";
+  @postLayerName                        = "S1LeftDeconS3Left";
+  @originalConnName                     = "S2LeftToS1LeftDeconError";
+};
+
+CloneConn "S2RightDeconS3RightToS1RightDeconS3Right" = {
+#include "S2DeconS3ToS1DeconS3";
+  @preLayerName                         = "S2RightDeconS3Right";
+  @postLayerName                        = "S1RightDeconS3Right";
+  @originalConnName                     = "S2RightToS1RightDeconError";
 };
 
 //TransposeConn "S2DeconS3ToS1DeconS3" = {
@@ -1120,11 +1607,39 @@ CloneConn "S1DeconS3ToImageLeftDeconS3" = {
   @originalConnName                     = "S1ToImageLeftDeconError";
 };
 
+CloneConn "S1LeftDeconS3ToImageLeftDeconS3" = {
+#include "S1DeconS3ToImageLeftDeconS3";
+  @preLayerName                         = "S1LeftDeconS3";
+  @postLayerName                        = "ImageLeftDeconS3";
+  @originalConnName                     = "S1LeftToImageLeftDeconError";
+};
+
+CloneConn "S1LeftDeconS3LeftToImageLeftDeconS3Left" = {
+#include "S1DeconS3ToImageLeftDeconS3";
+  @preLayerName                         = "S1LeftDeconS3Left";
+  @postLayerName                        = "ImageLeftDeconS3Left";
+  @originalConnName                     = "S1LeftToImageLeftDeconError";
+};
+
 CloneConn "S1DeconS3ToImageRightDeconS3" = {
 #include "S1DeconS2ToImageRightDeconS2";
   @preLayerName                         = "S1DeconS3";
   @postLayerName                        = "ImageRightDeconS3";
   @originalConnName                     = "S1ToImageRightDeconError";
+};
+
+CloneConn "S1RightDeconS3ToImageRightDeconS3" = {
+#include "S1DeconS3ToImageRightDeconS3";
+  @preLayerName                         = "S1RightDeconS3";
+  @postLayerName                        = "ImageRightDeconS3";
+  @originalConnName                     = "S1RightToImageRightDeconError";
+};
+
+CloneConn "S1RightDeconS3RightToImageRightDeconS3Right" = {
+#include "S1DeconS3ToImageRightDeconS3";
+  @preLayerName                         = "S1RightDeconS3Right";
+  @postLayerName                        = "ImageRightDeconS3Right";
+  @originalConnName                     = "S1RightToImageRightDeconError";
 };
 
 //TransposeConn "S1DeconS3ToImageLeftDeconS3" = {
@@ -1142,9 +1657,25 @@ IdentConn "ImageLeftDeconS3ToImageLeftDecon" = {
     writeStep                           = -1;
 };
 
+IdentConn "ImageLeftDeconS3LeftToImageLeftDecon" = {
+    preLayerName                        = "ImageLeftDeconS3Left";
+    postLayerName                       = "ImageLeftDecon";
+    channelCode                         = 0;
+    delay                               = 0;
+    writeStep                           = -1;
+};
+
 
 IdentConn "ImageRightDeconS3ToImageRightDecon" = {
     preLayerName                        = "ImageRightDeconS3";
+    postLayerName                       = "ImageRightDecon";
+    channelCode                         = 0;
+    delay                               = 0;
+    writeStep                           = -1;
+};
+
+IdentConn "ImageRightDeconS3RightToImageRightDecon" = {
+    preLayerName                        = "ImageRightDeconS3Right";
     postLayerName                       = "ImageRightDecon";
     channelCode                         = 0;
     delay                               = 0;
@@ -1251,7 +1782,7 @@ HyPerConn "S3MaxPooledToGroundTruthReconS3Error" = {
   nxp                                 = 1;
   nyp                                 = 1;
   //weightInitType                      = "FileWeight";
-  //initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3MaxPooledToGroundTruthReconS3Error_W.pvp";
+  //initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3MaxPooledToGroundTruthReconS3Error_W.pvp";
   weightInitType                      = "UniformRandomWeight";
   initWeightsFile                     = NULL;
   wMinInit                            = -0.0;
@@ -1286,21 +1817,21 @@ HyPerConn "S2MaxPooledToGroundTruthReconS2Error" = {
 #include "S3MaxPooledToGroundTruthReconS3Error";
   @preLayerName                        = "S2MaxPooled";
   @postLayerName                       = "GroundTruthReconS2Error";
-  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2MaxPooledToGroundTruthReconS2Error_W.pvp";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2MaxPooledToGroundTruthReconS2Error_W.pvp";
 };
 
 HyPerConn "S1MaxPooledToGroundTruthReconS1Error" = {
 #include "S3MaxPooledToGroundTruthReconS3Error";
   @preLayerName                        = "S1MaxPooled";
   @postLayerName                       = "GroundTruthReconS1Error";
-  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
 };
 
 HyPerConn "S1MaxPooledToGroundTruthReconS1S2S3Error" = {
 #include "S3MaxPooledToGroundTruthReconS3Error";
   @preLayerName                        = "S1MaxPooled";
   @postLayerName                       = "GroundTruthReconS1S2S3Error";
-  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S1MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
   //@weightInitType                      = "UniformRandomWeight";
   //@initWeightsFile                     = NULL;
   //wMinInit                            = -0.0;
@@ -1311,21 +1842,21 @@ HyPerConn "S2MaxPooledToGroundTruthReconS1S2S3Error" = {
 #include "S1MaxPooledToGroundTruthReconS1S2S3Error";
   @preLayerName                        = "S2MaxPooled";
   @postLayerName                       = "GroundTruthReconS1S2S3Error";
-  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S2MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
 };
 
 HyPerConn "S3MaxPooledToGroundTruthReconS1S2S3Error" = {
 #include "S1MaxPooledToGroundTruthReconS1S2S3Error";
   @preLayerName                        = "S3MaxPooled";
   @postLayerName                       = "GroundTruthReconS1S2S3Error";
-  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/S3MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
 };
 
 HyPerConn "BiasS3ToGroundTruthReconS3Error" = {
 #include "S3MaxPooledToGroundTruthReconS3Error";
   @preLayerName                        = "BiasS3";
   @postLayerName                       = "GroundTruthReconS3Error";
-  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/BiasS3ToGroundTruthReconS3Error_W.pvp";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/BiasS3ToGroundTruthReconS3Error_W.pvp";
   //@weightInitType                      = "UniformRandomWeight";
   //@initWeightsFile                     = NULL;
   //wMinInit                            = -0.0;
@@ -1339,21 +1870,21 @@ HyPerConn "BiasS2ToGroundTruthReconS2Error" = {
 #include "BiasS3ToGroundTruthReconS3Error";
   @preLayerName                        = "BiasS2";
   @postLayerName                       = "GroundTruthReconS2Error";
-  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/BiasS2ToGroundTruthReconS2Error_W.pvp";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/BiasS2ToGroundTruthReconS2Error_W.pvp";
 };
 
 HyPerConn "BiasS1ToGroundTruthReconS1Error" = {
 #include "BiasS3ToGroundTruthReconS3Error";
   @preLayerName                        = "BiasS1";
   @postLayerName                       = "GroundTruthReconS1Error";
-  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/BiasS1ToGroundTruthReconS1Error_W.pvp";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/BiasS1ToGroundTruthReconS1Error_W.pvp";
 };
 
 HyPerConn "BiasS1S2S3ToGroundTruthReconS1S2S3Error" = {
 #include "BiasS3ToGroundTruthReconS3Error";
   @preLayerName                        = "BiasS1S2S3";
   @postLayerName                       = "GroundTruthReconS1S2S3Error";
-  //@initWeightsFile = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/BiasS1S2S3ToGroundTruthReconS1S2S3Error_W.pvp";
+  //@initWeightsFile = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint9549600/BiasS1S2S3ToGroundTruthReconS1S2S3Error_W.pvp";
   //@weightInitType                      = "UniformRandomWeight";
   //@initWeightsFile                     = NULL;
   //wMinInit                            = -0.0;
