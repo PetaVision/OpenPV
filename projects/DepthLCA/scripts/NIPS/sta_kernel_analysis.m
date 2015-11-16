@@ -1,19 +1,21 @@
 clear all; close all; dbstop error;
 
 %addpath('devkit/matlab/')
-addpath('~/workspaceGit/OpenPV/pv-core/mlab/util')
-outdir =  '~/NIPS/icapatch/'
-LCAdir =  '~/NIPS/icapatch/data/validate/aws_icapatch_LCA/';
-RELUdir = '~/NIPS/icapatch/data/validate/aws_icapatch_RELU/';
+addpath('~/workspace/pv-core/mlab/util')
+outdir =  '~/mountData/outplots/'
+LCAdir =  '~/mountData/benchmark/train/rcorr/aws_icaweights_binoc_LCA_fine/';
+RELUdir = '~/mountData/benchmark/train/rcorr/aws_icaweights_binoc_RELU_fine/';
 
 %For rcorr patches
-targetNeurons = [164, 25, 126]; %1 indexed
-LCADictFilename = [LCAdir, 'Last/LCA_V1ToRCorrBuf_W.pvp'];
-RELUDictFilename = [RELUdir, 'Last/RELU_V1ToRCorrBuf_W.pvp'];
+targetNeurons = [199, 279]; %1 indexed
+LCADictFilename = [LCAdir, 'Last/LCA_V1ToDepthGT_W.pvp'];
+RELUDictFilename = [RELUdir, 'Last/RELU_V1ToDepthGT_W.pvp'];
 %For rcorr patch plots
 ySampleSkip = 6;
 whiteRange = [0, .75];
 borderWidth = 1;
+
+heatmapVals = 1:64;
 
 patchDir = [outdir 'patches/'];
 mkdir(patchDir);
@@ -186,7 +188,10 @@ for ni = 1:length(targetNeurons)
    %PV axis, goes x, y, f, kernel
    plot_LCA = squeeze(sum(LCA_targetPatch, 1));
    plot_RELU= squeeze(sum(RELU_targetPatch, 1));
-   
+
+   plot_LCA = plot_LCA(:, heatmapVals);
+   plot_RELU = plot_RELU(:, heatmapVals);
+
    %maxVal = -inf;
    %minVal = inf;
 

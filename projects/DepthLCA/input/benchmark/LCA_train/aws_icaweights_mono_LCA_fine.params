@@ -1,4 +1,5 @@
-// // HyPerHLCA.params
+// /
+/ HyPerHLCA.params
 //
 // created by peteschultz: Sept 27, 2012, modified garkenyon, 1/20/13
 //
@@ -16,17 +17,17 @@ HyPerCol "column" = {
     dt = 1.0;
     randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
     startTime = 0;
-    stopTime = 194;
-    progressStep = 5000;
-    outputPath = "/home/ec2-user/mountData/benchmark/icaweights_binoc_RELU_fine/";
+    stopTime = 194000; 
+    progressStep = 1000;
+    outputPath = "/home/ec2-user/mountData/benchmark/icaweights_mono_LCA_fine/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/home/ec2-user/mountData/single_stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = true;
-    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/icaweights_binoc_RELU_fine/Checkpoints";
-    checkpointWriteStepInterval = 50000;
+    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/icaweights_mono_LCA_fine/Checkpoints";
+    checkpointWriteStepInterval = 10000;
     deleteOlderCheckpoints = true;
     //suppressLastOutput = false;
     writeProgressToErr = true;
@@ -53,9 +54,9 @@ Movie "LeftImage" = {
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
-    initialWriteTime = 1;
+    initialWriteTime = 1000;
     writeSparseActivity = false;
-    displayPeriod = 1;
+    displayPeriod = 1000;
     start_frame_index = 0;
     skip_frame_index = 1;
     echoFramePathnameFlag = false;
@@ -81,8 +82,8 @@ ANNLayer "LeftBipolar" = {
    phase                               = 1;
    mirrorBCflag                        = true;
    InitVType                           = "ZeroV";
-   //triggerFlag                         = true;
-   //triggerLayerName                    = "LeftImage";
+   triggerFlag                         = true;
+   triggerLayerName                    = "LeftImage";
    triggerOffset                       = 0;
    writeStep                           = -1;
    sparseLayer                         = false;
@@ -101,8 +102,8 @@ ANNLayer "LeftGanglion" = {
    phase                               = 2;
    mirrorBCflag                        = true;
    InitVType                           = "ZeroV";
-   //triggerFlag                         = true;
-   //triggerLayerName                    = "LeftImage";
+   triggerFlag                         = true;
+   triggerLayerName                    = "LeftImage";
    triggerOffset                       = 0;
    writeStep                           = -1;
    initialWriteTime                    = 200;
@@ -123,33 +124,34 @@ RescaleLayer "LeftRescale" = {
     nf                              = 1;
     mirrorBCflag                    = true;
     //
-    writeStep                       = -1;
-    initialWriteTime                = 1;
+    writeStep                       = 1000;
+    initialWriteTime                = 1000;
     writeSparseActivity             = false;
     //
     rescaleMethod                   = "l2"; //Can be either meanstd or maxmin
     patchSize                       = 4356; //66*66
     valueBC = 0;
     phase                           = 3;
-    //triggerFlag                         = true;
-    //triggerLayerName = "LeftImage";
-    //triggerOffset = 0;
+    triggerFlag                         = true;
+    triggerLayerName = "LeftImage";
+    triggerOffset = 0;
 };
 
-ANNErrorLayer "LeftError" = {
+ANNNormalizedErrorLayer "LeftError" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
     nf = 1;
-    writeStep = 1;
-    initialWriteTime = 1.0;
+    writeStep = 1000;
+    initialWriteTime = 1000.0;
     mirrorBCflag = 0;
     writeSparseActivity = 0;
+    //
     InitVType = "ZeroV";
     //InitVType = "InitVFromFile";
     //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/LeftError_V_grow_1224x368y.pvp";
     //
-    VThresh = -infinity; //Change this for efficiency
+    VThresh = 0; //Change this for efficiency
     AMax =  infinity;
     AMin = -infinity;
     AShift = 0;
@@ -167,8 +169,8 @@ ANNLayer "LeftRecon" = {
     nxScale = .5;
     nyScale = .5;
     nf = 1;
-    writeStep = -1.0;
-    initialWriteTime = 200.0; //1 + writestep
+    writeStep = 1000.0;
+    initialWriteTime = 1000.0; //1 + writestep
     mirrorBCflag = 0;
     writeSparseActivity = 0;
     //
@@ -184,65 +186,80 @@ ANNLayer "LeftRecon" = {
     // 
     phase = 6;
     //
-    //triggerFlag = 1;
-    //triggerLayerName = "LeftImage";
-    //triggerOffset = 1;
+    triggerFlag = 1;
+    triggerLayerName = "LeftImage";
+    triggerOffset = 1;
 };
 
+////
+//// Right eye layers
+////
 //
-// Right eye layers
+//Movie "RightImage" = {
+//    #include "LeftImage";
+//    @inputPath = "/home/ec2-user/mountData/kitti/list/image_3_benchmark_aws_cluster_single.txt";
+//};
 //
-
-Movie "RightImage" = {
-    #include "LeftImage";
-    @inputPath = "/home/ec2-user/mountData/kitti/list/image_3_benchmark_aws_cluster_single.txt";
-};
-
-ANNLayer "RightBipolar" = {
-    #include "LeftBipolar";
-    //@triggerLayerName = "RightImage";
-};
-
-ANNLayer "RightGanglion" = {
-    #include "LeftGanglion";
-    //@triggerLayerName = "RightImage";
-};
-
-RescaleLayer "RightRescale" = {
-   #include "LeftRescale";
-   @originalLayerName = "RightGanglion";
-};
-
-ANNErrorLayer "RightError" = {
-    #include "LeftError";
-    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V.pvp";
-};
-
-// for visualization only, makes no output
-ANNLayer "RightRecon" = {
-    #include "LeftRecon";
-    //@triggerLayerName = "RightImage";
-};
+//ANNLayer "RightBipolar" = {
+//    #include "LeftBipolar";
+//    @triggerLayerName = "RightImage";
+//};
+//
+//ANNLayer "RightGanglion" = {
+//    #include "LeftGanglion";
+//    @triggerLayerName = "RightImage";
+//};
+//
+//RescaleLayer "RightRescale" = {
+//   #include "LeftRescale";
+//   @originalLayerName = "RightGanglion";
+//};
+//
+//ANNNormalizedErrorLayer "RightError" = {
+//    #include "LeftError";
+//    //@Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/RightError_V.pvp";
+//};
+//
+//// for visualization only, makes no output
+//ANNLayer "RightRecon" = {
+//    #include "LeftRecon";
+//    @triggerLayerName = "RightImage";
+//};
 
 // binoclular layers
 
-ANNLayer "V1" = {
+HyPerLCALayer "V1" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
-    nf = 512;
-    writeStep = 1;
-    initialWriteTime = 1.0;
+    nf = 512; //2048 or 4096;
+    numChannels = 1;
+    numWindowX = 1;
+    numWindowY = 1;
+    writeStep = 1000.0;
+    initialWriteTime = 1000.0;
     mirrorBCflag = 0;
-    writeSparseActivity = 0;
-    InitVType = "ZeroV";
-    //Positive only
-    VThresh = 0;
-    AMax =  infinity;
+    writeSparseActivity = 1;
+    writeSparseValues   = 1;
+    //
+    InitVType = "UniformRandomV";
+    minV = -1.0;
+    maxV = .02; //0.05 above VThresh
+    //InitVType = "InitVFromFile";
+    //Vfilename = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2_V.pvp";
+    // 
+    timeConstantTau = 500.0;
+    slopeErrorStd = 0.01;
+    // 
+    dVThresh = 0;
+    VThresh = 0.006;
+    AMax = infinity;
     AMin = 0;
-    AShift = 0;
-    VWidth = 0;
-    phase = 5;  
+    AShift = 0.0;  // 0 -> hard threshold, 1 -> soft threshold
+    VWidth = 0.05; //Same as VThresh
+    updateGpu = true;
+    //
+    phase = 5;
 };
 
 // connections
@@ -369,31 +386,31 @@ IdentConn "LeftRescaleToLeftError" = {
    writeStep                           = -1;
 };
 
-// Right eye connections
-
-KernelConn "RightImageToRightBipolarCenter" = {
-    #include "LeftImageToLeftBipolarCenter";
-    @preLayerName = "RightImage";
-    @postLayerName = "RightBipolar";
-};
-
-KernelConn "RightBipolarToRightGanglionCenter" = {
-    #include "LeftBipolarToLeftGanglionCenter";
-    @preLayerName = "RightBipolar";
-    @postLayerName = "RightGanglion";
-};
-
-KernelConn "RightBipolarToRightGanglionSurround" = {
-    #include "LeftBipolarToLeftGanglionSurround";
-    @preLayerName = "RightBipolar";
-    @postLayerName = "RightGanglion";
-};
-
-IdentConn "RightRescaleToRightError" = {
-    #include "LeftRescaleToLeftError";
-    @preLayerName = "RightRescale";
-    @postLayerName = "RightError";
-};
+//// Right eye connections
+//
+//KernelConn "RightImageToRightBipolarCenter" = {
+//    #include "LeftImageToLeftBipolarCenter";
+//    @preLayerName = "RightImage";
+//    @postLayerName = "RightBipolar";
+//};
+//
+//KernelConn "RightBipolarToRightGanglionCenter" = {
+//    #include "LeftBipolarToLeftGanglionCenter";
+//    @preLayerName = "RightBipolar";
+//    @postLayerName = "RightGanglion";
+//};
+//
+//KernelConn "RightBipolarToRightGanglionSurround" = {
+//    #include "LeftBipolarToLeftGanglionSurround";
+//    @preLayerName = "RightBipolar";
+//    @postLayerName = "RightGanglion";
+//};
+//
+//IdentConn "RightRescaleToRightError" = {
+//    #include "LeftRescaleToLeftError";
+//    @preLayerName = "RightRescale";
+//    @postLayerName = "RightError";
+//};
 
 
 // binocular connections
@@ -401,7 +418,7 @@ IdentConn "RightRescaleToRightError" = {
 HyPerConn "V1ToLeftError" = {
     preLayerName = "V1";
     postLayerName = "LeftError";
-    channelCode = -1;
+    channelCode = 1;
     nxp = 66;
     nyp = 66;
     shrinkPatches = false;
@@ -411,7 +428,7 @@ HyPerConn "V1ToLeftError" = {
     sharedWeights = true;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/dictLearn/saved_finetune_binoc_1.6e6/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/dictLearn/saved_finetune_mono_600000/V1ToLeftError_W.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
@@ -481,23 +498,23 @@ CloneKernelConn "V1ToLeftRecon" = {
     pvpatchAccumulateType = "convolve";
 };
 
-//Right binocular connections
-HyPerConn "V1ToRightError" = {
-    #include "V1ToLeftError";
-    @postLayerName = "RightError";
-    @normalizeMethod = "normalizeGroup";
-    normalizeGroupName = "V1ToLeftError";
-    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/saved_finetune_binoc_1.6e6/V1ToRightError_W.pvp";
-};
-
-TransposeConn "RightErrorToV1" = {
-    #include "LeftErrorToV1";
-    @preLayerName = "RightError";
-    @originalConnName = "V1ToRightError";
-};
-
-CloneKernelConn "V1ToRightRecon" = {
-    #include "V1ToLeftRecon";
-    @postLayerName = "RightRecon";
-    @originalConnName = "V1ToRightError";
-};
+////Right binocular connections
+//HyPerConn "V1ToRightError" = {
+//    #include "V1ToLeftError";
+//    @postLayerName = "RightError";
+//    @normalizeMethod = "normalizeGroup";
+//    normalizeGroupName = "V1ToLeftError";
+//    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/binoc_output/rightDict.pvp";
+//};
+//
+//TransposeConn "RightErrorToV1" = {
+//    #include "LeftErrorToV1";
+//    @preLayerName = "RightError";
+//    @originalConnName = "V1ToRightError";
+//};
+//
+//CloneKernelConn "V1ToRightRecon" = {
+//    #include "V1ToLeftRecon";
+//    @postLayerName = "RightRecon";
+//    @originalConnName = "V1ToRightError";
+//};

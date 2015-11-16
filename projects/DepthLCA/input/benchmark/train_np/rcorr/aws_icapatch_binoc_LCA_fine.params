@@ -18,14 +18,13 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime = 100; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "/home/ec2-user/mountData/benchmark/train/aws_icaweights_binoc_LCA_fine/";
+    outputPath = "/home/ec2-user/mountData/benchmark/train/rcorr/aws_icaweights_binoc_LCA_fine/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
     //checkpointReadDir = "/nh/compneuro/Data/Depth/LCA/stack_ndepth/Checkpoints";
     //checkpointReadDirIndex = ;
     checkpointWrite = false;
-    checkpointWriteDir = "/home/ec2-user/mountData/benchmark/train/aws_icaweights_LCA/Checkpoints";
     checkpointWriteStepInterval = 50;
     deleteOlderCheckpoints = false;
     suppressLastOutput = false;
@@ -103,7 +102,6 @@ Movie "DepthImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    readPvpFile = false; 
     inputPath = "/home/ec2-user/mountData/kitti/list/aws_disp_noc.txt";
     writeFrameToTimestamp = true;
     nf = 1;
@@ -152,12 +150,12 @@ BinningLayer "DepthGT" = {
     restart = 0;
     nxScale = .25; 
     nyScale = .25;
-    nf = 128; //3 pixel error allowed, we may need to change this 
+    nf = 128;
     writeStep = -1.0;
     initialWriteTime = 1.0;
     mirrorBCflag = false;
     writeSparseActivity = false;
-    binMax = 1;
+    binMax = 1; //taking only first 256 values
     binMin = 0;
     binSigma = 3;
     InitVType = "ZeroV";
@@ -212,7 +210,6 @@ MomentumConn "LCA_V1ToDepthGT" = {
     channelCode = -1;
     nxp = 33;
     nyp = 33;
-    nfp = 128;
     shrinkPatches = false;
     //
     numAxonalArbors = 1;
@@ -319,58 +316,3 @@ KernelConn "LCA_V1ToRightRecon" = {
    @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
 };
 
-////SLP Connections
-//HyPerConn "ICA_V1ToSLP_Error" = {
-//   preLayerName                        = "ICA_V1";
-//   postLayerName                       = "SLP_Error";
-//   channelCode                         = 1;
-//   delay                               = 0.000000;
-//   numAxonalArbors                     = 1;
-//   plasticityFlag                      = true;
-//   convertRateToSpikeCount             = false;
-//   receiveGpu                          = false;
-//   sharedWeights                       = false;
-//   weightInitType                      = "UniformRandomWeight";
-//   // initWeightsFile                     was set to (NULL);
-//   wMinInit                            = -0.01;
-//   wMaxInit                            = 0.01;
-//   sparseFraction                      = 0.9;
-//   triggerFlag                         = false;
-//   weightUpdatePeriod                  = 1;
-//   initialWeightUpdateTime             = 0;
-//   updateGSynFromPostPerspective       = false;
-//   pvpatchAccumulateType               = "convolve";
-//   writeStep                           = -1;
-//   writeCompressedCheckpoints          = false;
-//   selfFlag                            = false;
-//   combine_dW_with_W_flag              = false;
-//   nxp                                 = 66;
-//   nyp                                 = 66;
-//   shrinkPatches                       = false;
-//   normalizeMethod                     = "none";
-//   dWMax                               = 0.01;
-//   useMask                             = false;
-//};
-//
-//IdentConn "DepthGTToSLP_Error" = {
-//   preLayerName                        = "DepthGT";
-//   postLayerName                       = "SLP_Error";
-//   channelCode                         = 0;
-//   delay                               = [0.000000];
-//   // initWeightsFile                     was set to (NULL);
-//   writeStep                           = -1;
-//};
-//
-//CloneConn "ICA_V1ToSLP_Recon_Buffer" = {
-//    preLayerName = "ICA_V1";
-//    postLayerName = "SLP_Recon_Buffer";
-//    channelCode = 0;
-//    writeStep = -1;
-//    originalConnName = "ICA_V1ToSLP_Error";
-//    selfFlag = false;
-//    delay = 0;
-//    preActivityIsNotRate = false;
-//    useWindowPost = false;
-//    updateGSynFromPostPerspective = false;
-//    pvpatchAccumulateType = "convolve";
-//};
