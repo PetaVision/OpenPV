@@ -8,8 +8,8 @@
 close all
 more off
 pkg load all
-%%setenv("GNUTERM","X11")
-setenv("GNUTERM","aqua")
+setenv("GNUTERM","X11")
+%%setenv("GNUTERM","aqua")
 if exist("/shared/liblinear-2.1/matlab")
   addpath("/shared/liblinear-2.1/matlab");
   mlab_dir = "~/openpv/pv-core/mlab";
