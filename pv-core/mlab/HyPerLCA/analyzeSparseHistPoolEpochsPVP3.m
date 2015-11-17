@@ -455,13 +455,13 @@ function [Sparse_hdr, ...
 	Sparse_max2X2_pool_fig = figure;
 	axis off; box off;
 	k_subplot = 0;
-	Sparse_max2X2_pool_hndl = zeros(ny_GT, nx_GT);
-	Sparse_max2X2_pool_axis = zeros(ny_GT, nx_GT);
-	for j_yGT = 1 : ny_GT
-	  for i_xGT = 1 : nx_GT
+	Sparse_max2X2_pool_hndl = zeros(ny_GT*2, nx_GT*2);
+	Sparse_max2X2_pool_axis = zeros(ny_GT*2, nx_GT*2);
+	for j_yGT = 1 : ny_GT*2
+	  for i_xGT = 1 : nx_GT*2
 	    k_subplot = k_subplot + 1;
-	    Sparse_max2X2_pool_axis(j_yGT,i_xGT) = subplot(ny_GT, nx_GT, k_subplot);
-	    max2X2_pool_tmp = squeeze(Sparse_max2X2_pool{num_Sparse_frames}(:,j_yGT,i_xGT));
+	    Sparse_max2X2_pool_axis(j_yGT,i_xGT) = subplot(ny_GT*2, nx_GT*2, k_subplot);
+	    max2X2_pool_tmp = squeeze(Sparse_max2X2_pool{num_Sparse_frames}(mod(j_yGT,2), mod(i_xGT,2), :, j_yGT, i_xGT));
 	    ranked_max2X2_pool = max2X2_pool_tmp(Sparse_rank);
 	    bar(ranked_max2X2_pool(1:ceil(nf_Sparse/48):nf_Sparse));
 	    axis tight;
@@ -479,13 +479,13 @@ function [Sparse_hdr, ...
 	Sparse_mean2X2_pool_fig = figure;
 	axis off; box off;
 	k_subplot = 0;
-	Sparse_mean2X2_pool_hndl = zeros(ny_GT, nx_GT);
-	Sparse_mean2X2_pool_axis = zeros(ny_GT, nx_GT);
-	for j_yGT = 1 : ny_GT
-	  for i_xGT = 1 : nx_GT
+	Sparse_mean2X2_pool_hndl = zeros(ny_GT*2, nx_GT*2);
+	Sparse_mean2X2_pool_axis = zeros(ny_GT*2, nx_GT*2);
+	for j_yGT = 1 : ny_GT*2
+	  for i_xGT = 1 : nx_GT*2
 	    k_subplot = k_subplot + 1;
-	    Sparse_mean2X2_pool_axis(j_yGT,i_xGT) = subplot(ny_GT, nx_GT, k_subplot);
-	    mean2X2_pool_tmp = squeeze(Sparse_mean2X2_pool{num_Sparse_frames}(:,j_yGT,i_xGT));
+	    Sparse_mean2X2_pool_axis(j_yGT,i_xGT) = subplot(ny_GT*2, nx_GT*2, k_subplot);
+	    mean2X2_pool_tmp = squeeze(Sparse_mean2X2_pool{num_Sparse_frames}(mod(j_yGT,2), mod(i_xGT,2), :, j_yGT, i_xGT));
 	    ranked_mean2X2_pool = mean2X2_pool_tmp(Sparse_rank);
 	    bar(ranked_mean2X2_pool(1:ceil(nf_Sparse/48):nf_Sparse));
 	    axis tight;

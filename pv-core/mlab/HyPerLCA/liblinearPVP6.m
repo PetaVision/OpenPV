@@ -8,8 +8,8 @@
 close all
 more off
 pkg load all
-setenv("GNUTERM","X11")
-%%setenv("GNUTERM","aqua")
+%%setenv("GNUTERM","X11")
+setenv("GNUTERM","aqua")
 if exist("/shared/liblinear-2.1/matlab")
   addpath("/shared/liblinear-2.1/matlab");
   mlab_dir = "~/openpv/pv-core/mlab";
@@ -25,8 +25,8 @@ addpath([mlab_dir, "/util"]);
 addpath([mlab_dir, "/HyPerLCA"]);
 
 plot_flag = true;
-%%run_type = "ICA"
-run_type = "S1S2"
+run_type = "ICA"
+%%run_type = "S1S2"
 %%run_type = "DCA";
 %%run_type = "CIFAR";
 %%run_type = "scene"

@@ -64,7 +64,7 @@ function ...
       mean_pool(:,j_yGT, i_xGT) = mean(GT_vals2D);
       for i_sub_row = 1 : 2
 	for i_sub_col = 1 : 2
-	  GT_vals2D_2X2 = reshape(squeeze(GT_vals2D_2X2(:, i_sub_row, :, i_sub_col, :), [((y_GT_size/2) * (x_GT_size/2)), nf_full]);
+	  GT_vals2D_2X2 = reshape(squeeze(GT_vals3D_2X2(:, i_sub_row, :, i_sub_col, :)), [((y_GT_size/2) * (x_GT_size/2)), nf_full]);
 	  max_pool2X2(i_sub_row, i_sub_col, :, j_yGT, i_xGT) = max(GT_vals2D_2X2);
 	  mean_pool2X2(i_sub_row, i_sub_col, :, j_yGT, i_xGT) = mean(GT_vals2D_2X2);
 	endfor
