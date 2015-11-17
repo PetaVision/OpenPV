@@ -1252,7 +1252,6 @@ CloneConn "S2RightToS1RightDeconS2Right" = {
   @originalConnName                     = "S2RightToS1RightDeconError";
 };
 
-
 CloneConn "S1DeconS2ToImageLeftDeconS2" = {
 #include "S1ToImageLeftDeconS1";
   @preLayerName                         = "S1DeconS2";
@@ -1557,7 +1556,6 @@ CloneConn "S3RightToS2RightDeconS3Right" = {
   @originalConnName                     = "S3RightToS2RightDeconError";
 };
 
-
 CloneConn "S2DeconS3ToS1DeconS3" = {
 #include "S1DeconS2ToImageLeftDeconS2";
   @preLayerName                         = "S2DeconS3";
@@ -1579,6 +1577,7 @@ CloneConn "S2RightDeconS3ToS1RightDeconS3" = {
   @originalConnName                     = "S2RightToS1RightDeconError";
 };
 
+>>>>>>> e50be798b9673c9e9f0dfa8a97f6d4cc8d8e5984
 CloneConn "S2LeftDeconS3LeftToS1LeftDeconS3Left" = {
 #include "S2DeconS3ToS1DeconS3";
   @preLayerName                         = "S2LeftDeconS3Left";
