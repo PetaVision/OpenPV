@@ -485,7 +485,7 @@ function [Sparse_hdr, ...
 	  for i_xGT = 1 : nx_GT*2
 	    k_subplot = k_subplot + 1;
 	    Sparse_mean2X2_pool_axis(j_yGT,i_xGT) = subplot(ny_GT*2, nx_GT*2, k_subplot);
-	    mean2X2_pool_tmp = squeeze(Sparse_mean2X2_pool{num_Sparse_frames}(1+mod(j_yGT,2), 1+mod(i_xGT,2), :, ceil(j_yGT/2), ceil(i_xGT/2)));
+	    mean2X2_pool_tmp = squeeze(Sparse_mean2X2_pool{num_Sparse_frames}(1+mod(j_yGT,2), 1+mod(i_xGT,2), :, ceil(j_yGT/1), ceil(i_xGT/2)));
 	    ranked_mean2X2_pool = mean2X2_pool_tmp(Sparse_rank);
 	    bar(ranked_mean2X2_pool(1:ceil(nf_Sparse/48):nf_Sparse));
 	    axis tight;
