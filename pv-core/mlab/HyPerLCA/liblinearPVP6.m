@@ -26,9 +26,9 @@ addpath([mlab_dir, "/HyPerLCA"]);
 
 plot_flag = true;
 %%run_type = "ICA"
-run_type = "S1S2"
+%%run_type = "S1S2"
 %%run_type = "DCA";
-%%run_type = "CIFAR";
+run_type = "CIFAR";
 %%run_type = "scene"
 if strcmp(run_type, "ICA")
   %%output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICAX2/VOC2007_landscape1";
@@ -1650,11 +1650,17 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
       endif
       gt_time = GT_data{i_frame+first_GT_frame-1}.time;
       gt_classID_cube = squeeze(training_label_vector_array(:, :, i_frame, :));
+      if exclusive_flag == 1
+	gt_classID_cube = gt_classID_cube(ceil(GT_hdr.ny/2), ceil(GT_hdr.nx/2), :);
+      endif
       
       %% display Ground Truth only for display frame only once (same for all sparse layers, classifiers)
       if i_frame == display_frame && i_Sparse == 1 && i_pool == 1  
 	display(["i_frame = ", num2str(i_frame)]);
-	display(["gt_time = ", num2str(gt_time)]);	
+	display(["gt_time = ", num2str(gt_time)]);
+	[gt_row, gt_col, gt_class_ndx] = ind2sub(size(gt_classID_cube), find(gt_classID_cube(:)))
+	display(["target_classes(gt_target_ID) = ", target_classes{gt_class_ndx}]);
+	
 	[gt_classID_val, gt_classID_ndx] = max(gt_classID_cube, [], 3);
 	min_gt_classID = min(gt_classID_val(:))
 	gt_classID_heatmap = zeros(GT_hdr.ny, GT_hdr.nx, 3);
@@ -1710,23 +1716,15 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	    if strcmp(pool_types{i_pool},"hist")
 	      label_ndx =  find(model_hist_pool_array{i_Sparse, num_target_classes+1}.Label == i_target_classID);
 	      target_classID_tmp = prob_values_hist_pool_array{i_Sparse, num_target_classes+1}(1+(i_frame-1): i_frame, label_ndx);
-	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
+	      target_classID_cube(:,:,i_target_classID) = target_classID_tmp;
 	    elseif strcmp(pool_types{i_pool},"max")
 	      label_ndx =  find(model_max_pool_array{i_Sparse, num_target_classes+1}.Label == i_target_classID);
 	      target_classID_tmp = prob_values_max_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1): i_frame, label_ndx);
-	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
+	      target_classID_cube(:,:,i_target_classID) = target_classID_tmp;
 	    elseif strcmp(pool_types{i_pool},"mean")
 	      label_ndx =  find(model_mean_pool_array{i_Sparse, num_target_classes+1}.Label == i_target_classID);
 	      target_classID_tmp = prob_values_mean_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1): i_frame, label_ndx);
-	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
-	    elseif strcmp(pool_types{i_pool},"max2X2")
-	      label_ndx =  find(model_max2X2_pool_array{i_Sparse, num_target_classes+1}.Label == i_target_classID);
-	      target_classID_tmp = prob_values_max2X2_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1): i_frame, label_ndx);
-	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
-	    elseif strcmp(pool_types{i_pool},"mean2X2")
-	      label_ndx =  find(model_mean2X2_pool_array{i_Sparse, num_target_classes+1}.Label == i_target_classID);
-	      target_classID_tmp = prob_values_mean2X2_pool_array{i_Sparse, i_target_classID}(1+(i_frame-1): i_frame, label_ndx);
-	      target_classID_cube(:,:,i_target_classID) = reshape(target_classID_tmp, GT_hdr.ny, GT_hdr.nx );
+	      target_classID_cube(:,:,i_target_classID) = target_classID_tmp;
 	    endif %% pool_types
 	  else
 	    if strcmp(pool_types{i_pool},"hist")
