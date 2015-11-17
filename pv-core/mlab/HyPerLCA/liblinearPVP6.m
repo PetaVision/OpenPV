@@ -503,11 +503,11 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	Sparse_mean_pool_array{i_Sparse}{i_Sparse_frame};
       endif
       if max2X2_pool_flag
-	training_max2X2_pool_matrix(:, :, :, j_Sparse_frame) = ...
+	training_max2X2_pool_matrix(:, :, :, :, :, j_Sparse_frame) = ...
 	Sparse_max2X2_pool_array{i_Sparse}{i_Sparse_frame};
       endif
       if mean2X2_pool_flag
-	training_mean_pool_matrix(:, :, :, j_Sparse_frame) = ...
+	training_mean_pool_matrix(:, :, :, :, :, j_Sparse_frame) = ...
 	Sparse_mean2X2_pool_array{i_Sparse}{i_Sparse_frame};
       endif
     endfor %% i_Sparse_frame
