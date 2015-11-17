@@ -20,6 +20,7 @@ HeatMapProbe::HeatMapProbe() {
 }
 
 int HeatMapProbe::initialize_base() {
+   confidenceTable = NULL;
    imageLayerName = NULL;
    resultLayerName = NULL;
    reconLayerName = NULL;
@@ -61,20 +62,40 @@ int HeatMapProbe::initialize(const char * probeName, PV::HyPerCol * hc) {
    outputPeriod = hc->getDeltaTimeBase(); // default outputPeriod is every timestep
    int status = PV::ColProbe::initialize(probeName, hc);
    PV::InterColComm * icComm = parent->icCommunicator();
-   status = parseConfigFile(icComm, &imageLayerName, &resultLayerName, &resultTextFile, &octaveCommand, &octaveLogFile, &classNames, &evalCategoryIndices, &displayCategoryIndices, &highlightThreshold, &heatMapThreshold, &heatMapMaximum, &drawBoundingBoxes, &boundingBoxThickness, &dbscanEps, &dbscanDensity, &heatMapMontageDir, &displayCommand);
+   status = parseConfigFile(icComm, &resultTextFile, &octaveCommand, &octaveLogFile, &evalCategoryIndices, &displayCategoryIndices, &highlightThreshold, &heatMapThreshold, &heatMapMaximum, &drawBoundingBoxes, &boundingBoxThickness, &dbscanEps, &dbscanDensity, &heatMapMontageDir, &displayCommand);
    if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
    return status;
 }
 
 int HeatMapProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV::ColProbe::ioParamsFillGroup(ioFlag);
+   ioParam_confidenceTable(ioFlag);
+   ioParam_imageLayer(ioFlag);
+   ioParam_resultLayer(ioFlag);
    ioParam_reconLayer(ioFlag);
+   ioParam_classNames(ioFlag);
    ioParam_outputPeriod(ioFlag);
    return status;
 }
 
+void HeatMapProbe::ioParam_confidenceTable(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "confidenceTable", &confidenceTable);
+}
+
+void HeatMapProbe::ioParam_imageLayer(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "imageLayer", &imageLayerName);
+}
+
+void HeatMapProbe::ioParam_resultLayer(enum ParamsIOFlag ioFlag) {
+   parent->ioParamStringRequired(ioFlag, name, "resultLayer", &resultLayerName);
+}
+
 void HeatMapProbe::ioParam_reconLayer(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "reconLayer", &reconLayerName);
+}
+
+void HeatMapProbe::ioParam_classNames(enum ParamsIOFlag ioFlag) {
+   parent->ioParamString(ioFlag, name, "classNames", &classNames, "{}");
 }
 
 void HeatMapProbe::ioParam_outputPeriod(enum ParamsIOFlag ioFlag) {
@@ -120,6 +141,16 @@ int HeatMapProbe::communicateInitInfo() {
    }
 
    if (parent->columnId()==0) {
+      // Check Parameters in HeatMapProbe that are to be passed to Octave.
+      FILE * confidenceTableFP = fopen(confidenceTable, "r");
+      if (confidenceTableFP == NULL) {
+         fprintf(stderr, "%s \"%s\": unable to open confidence table .mat file \"%s\": %s\n",
+               getKeyword(), getName(), confidenceTable, strerror(errno));
+         status = PV_FAILURE;
+      }
+      else {
+         fclose(confidenceTableFP); // The probe doesn't do anything with the confidence table except check that it exists.
+      }
       // clobber octave logfile and result text file unless starting from a checkpoint
       if (parent->getCheckpointReadDir()==NULL) {
          FILE * octaveFP = fopen(octaveLogFile, "w");
@@ -129,7 +160,7 @@ int HeatMapProbe::communicateInitInfo() {
             status = PV_FAILURE;
          }
          else {
-            fclose(octaveFP); // The octave command will write to the octave log file; the probe won't do so directly.
+            fclose(octaveFP); // Octave will write to the octave log file; the probe won't do so directly.
          }
          if (resultTextFile) {
             FILE * resultTextFP = fopen(resultTextFile, "w");
@@ -139,9 +170,24 @@ int HeatMapProbe::communicateInitInfo() {
                status = PV_FAILURE;
             }
             else {
-               fclose(resultTextFP); // The octave command will write to the octave log file; the probe won't do so directly.
+               fclose(resultTextFP); // Octave will write to the result text file; the probe won't do so directly.
             }
          }
+      }
+
+      if (strcmp(classNames,"{}")) {
+         FILE * classNamesFP = fopen(classNames, "r");
+         if (classNamesFP == NULL) {
+            fprintf(stderr, "%s \"%s\": unable to open classNames text file \"%s\": %s\n",
+                  getKeyword(), getName(), classNames, strerror(errno));
+            status = PV_FAILURE;
+         }
+         else {
+            fclose(classNamesFP); // Octave will read the class names file; the probe won't do so directly.
+         }
+      }
+      else {
+         printf("classNames was not set in params file; Class names will be feature indices.\n");
       }
 
       // Make the heatmap montage directory if it doesn't already exist.
@@ -317,7 +363,7 @@ int HeatMapProbe::octaveProcess() {
    heatMapMontagePath << ".png";
    std::stringstream octavecommandstream("");
    octavecommandstream << octaveCommand <<
-         " --eval 'load CurrentModel/ConfidenceTables/confidenceTable.mat; heatMapMontage(" <<
+         " --eval 'heatMapMontage(" <<
          "\"" << imagePVPFilePath.str() << "\"" << ", " <<
          "\"" << resultPVPFilePath.str() << "\"" << ", " <<
          "\"" << reconPVPFilePath.str() << "\"" << ", " <<
@@ -325,7 +371,7 @@ int HeatMapProbe::octaveProcess() {
          1/*imageFrameNumber*/ << ", " <<
          1/*resultFrameNumber*/ << ", " <<
          1/*reconFrameNumber*/ << ", " <<
-         "confidenceTable, " <<
+         "\"" << confidenceTable << "\"" << ", " <<
          "\"" << classNames << "\"" << ", " <<
          "\"" << resultTextFile << "\"" << ", " <<
          evalCategoryIndices << ", " <<
@@ -498,9 +544,25 @@ int HeatMapProbe::gatherActivity(PV_Stream * pvstream, PV::Communicator * comm, 
 }
 
 HeatMapProbe::~HeatMapProbe() {
+   free(confidenceTable);
    free(imageLayerName);
    free(resultLayerName);
    free(reconLayerName);
+   free(resultTextFile);
+   free(octaveCommand);
+   free(octaveLogFile);
+   free(classNames);
+   free(evalCategoryIndices);
+   free(displayCategoryIndices);
+   free(highlightThreshold);
+   free(heatMapThreshold);
+   free(heatMapMaximum);
+   free(drawBoundingBoxes);
+   free(boundingBoxThickness);
+   free(dbscanEps);
+   free(dbscanDensity);
+   free(heatMapMontageDir);
+   free(displayCommand);
    free(outputFilenameBase);
 }
 

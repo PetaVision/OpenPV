@@ -67,7 +67,7 @@ function outimage = heatMapMontage(...
 %
 % outimage: a 3-dimensional array giving the output heat map montage as a color image.
 %
-
+load(confidenceTable);
 if exist('pv_dir', 'var') && ~isempty(pv_dir)
    addpath(pv_dir);
 end%if
