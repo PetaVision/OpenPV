@@ -49,8 +49,8 @@ HyPerCol "column" = {
     progressInterval                    = 1000;
     writeProgressToErr                  = true;
     verifyWrites                        = false;
-    outputPath                          = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8";
-    printParamsFilename                 = "CIFAR_S1_48_S2_96_S3_48_DCA_CIFAR10_train8.params";
+    outputPath                          = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train9";
+    printParamsFilename                 = "CIFAR_S1_48_S2_96_S3_48_DCA_CIFAR10_train9.params";
     randomSeed                          = 1234567890;
     nx                                  = 32;
     ny                                  = 32;
@@ -59,7 +59,7 @@ HyPerCol "column" = {
     initializeFromCheckpointDir         = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train6/Checkpoints/Checkpoint59520000";
     defaultInitializeFromCheckpointFlag = true;
     checkpointWrite                     = true;
-    checkpointWriteDir                  = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints";
+    checkpointWriteDir                  = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train9/Checkpoints";
     checkpointWriteTriggerMode          = "step";
     checkpointWriteStepInterval         = 480000;
     deleteOlderCheckpoints              = false;
@@ -245,7 +245,7 @@ HyPerLCALayer "S1" = {
   valueBC                             = 0;
   initializeFromCheckpointFlag        = false;
   InitVType                           = "InitVFromFile";
-  Vfilename = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S1_V.pvp";
+  Vfilename = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S1_V.pvp";
   //InitVType                           = "ConstantV";
   //valueV                              = 0.003125;
   //minV                                = -1.0;
@@ -315,7 +315,7 @@ HyPerLCALayer "S2" = {
   @nyScale                             = 0.5; //0.25;
   @nf                                  = 96; //256; 
   @timeConstantTau                     = 800; //400; 
-  @Vfilename = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S2_V.pvp";
+  @Vfilename = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S2_V.pvp";
   //@valueV                              = 0.00625;
   //@triggerResetLayerName               = "ConstantS2";
   @VThresh                             = 0.00625; //
@@ -389,7 +389,7 @@ HyPerLCALayer "S3" = {
   @nyScale                             = 0.25; //0.125;
   @nf                                  = 48; //512; 
   @timeConstantTau                     = 1200; //400; 
-  @Vfilename = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S3_V.pvp";
+  @Vfilename = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S3_V.pvp";
   //@valueV                              = 0.0125;
   //@triggerResetLayerName               = "ConstantS3";
   @VThresh                             = 0.0125; //0.00625; //
@@ -657,7 +657,7 @@ MomentumConn "S1ToImageDeconError" = {
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S1ToImageDeconError_W.pvp";
+    initWeightsFile                     = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S1ToImageDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     //weightInitType                      = "UniformRandomWeight";
@@ -776,7 +776,7 @@ IdentConn "ImageDeconS1ToImageDecon" = {
 //  @postLayerName                        = "S1ReconS2Error";
 //  @nxp                                  = 10;
 //  @nyp                                  = 10;
-//  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S2ToS1ReconS2Error_W.pvp";
+//  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S2ToS1ReconS2Error_W.pvp";
 //};
 
 
@@ -826,7 +826,7 @@ MomentumConn "S2ToS1DeconError" = {
   @postLayerName                        = "S1DeconError";
   @nxp                                  = 6;
   @nyp                                  = 6;
-  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S2ToS1DeconError_W.pvp";
+  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S2ToS1DeconError_W.pvp";
   //@dWMax                                = 1.0;
   //@normalizeMethod                      = "normalizeGroup";
   //normalizeGroupName                    = "S2ToS1ReconS2Error";
@@ -910,7 +910,7 @@ IdentConn "ImageDeconS2ToImageDecon" = {
 //  @postLayerName                        = "S2ReconS3Error";
 //  @nxp                                  = 10;
 //  @nyp                                  = 10;
-//  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S3ToS2ReconS3Error_W.pvp";
+//  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S3ToS2ReconS3Error_W.pvp";
 //};
 
 //TransposeConn "S2ReconS3ErrorToS3" = {
@@ -964,7 +964,7 @@ MomentumConn "S3ToS2DeconError" = {
 #include "S2ToS1DeconError";
   @preLayerName                         = "S3";
   @postLayerName                        = "S2DeconError";
-  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S3ToS2DeconError_W.pvp";
+  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S3ToS2DeconError_W.pvp";
   //@dWMax                                = 1.0;
   //@normalizeMethod                      = "normalizeGroup";
   //@normalizeGroupName                    = "S3ToS2ReconS3Error";
@@ -1129,7 +1129,7 @@ HyPerConn "S3MaxPooledToGroundTruthReconS3Error" = {
   postLayerName                       = "GroundTruthReconS3Error";
   nxp                                 = 1;
   nyp                                 = 1;
-  initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S3MaxPooledToGroundTruthReconS3Error_W.pvp";
+  initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S3MaxPooledToGroundTruthReconS3Error_W.pvp";
   normalizeMethod                    = "none";
   dWMax                              = 1.0; //0.5; //0.01;
     channelCode                         = -1;
@@ -1165,21 +1165,21 @@ HyPerConn "S2MaxPooledToGroundTruthReconS2Error" = {
 #include "S3MaxPooledToGroundTruthReconS3Error";
   @preLayerName                        = "S2MaxPooled";
   @postLayerName                       = "GroundTruthReconS2Error";
-  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S2MaxPooledToGroundTruthReconS2Error_W.pvp";
+  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S2MaxPooledToGroundTruthReconS2Error_W.pvp";
 };
 
 HyPerConn "S1MaxPooledToGroundTruthReconS1Error" = {
 #include "S3MaxPooledToGroundTruthReconS3Error";
   @preLayerName                        = "S1MaxPooled";
   @postLayerName                       = "GroundTruthReconS1Error";
-  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
+  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
 };
 
 HyPerConn "S1MaxPooledToGroundTruthReconS1S2S3Error" = {
 #include "S3MaxPooledToGroundTruthReconS3Error";
   @preLayerName                        = "S1MaxPooled";
   @postLayerName                       = "GroundTruthReconS1S2S3Error";
-  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S1MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
+  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S1MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
   //@weightInitType                      = "UniformRandomWeight";
   //@initWeightsFile                     = NULL;
   //wMinInit                            = -0.0;
@@ -1190,21 +1190,21 @@ HyPerConn "S2MaxPooledToGroundTruthReconS1S2S3Error" = {
 #include "S1MaxPooledToGroundTruthReconS1S2S3Error";
   @preLayerName                        = "S2MaxPooled";
   @postLayerName                       = "GroundTruthReconS1S2S3Error";
-  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S2MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
+  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S2MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
 };
 
 HyPerConn "S3MaxPooledToGroundTruthReconS1S2S3Error" = {
 #include "S1MaxPooledToGroundTruthReconS1S2S3Error";
   @preLayerName                        = "S3MaxPooled";
   @postLayerName                       = "GroundTruthReconS1S2S3Error";
-  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/S3MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
+  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S3MaxPooledToGroundTruthReconS1S2S3Error_W.pvp";
 };
 
 HyPerConn "BiasS3ToGroundTruthReconS3Error" = {
 #include "S3MaxPooledToGroundTruthReconS3Error";
   @preLayerName                        = "BiasS3";
   @postLayerName                       = "GroundTruthReconS3Error";
-  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/BiasS3ToGroundTruthReconS3Error_W.pvp";
+  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/BiasS3ToGroundTruthReconS3Error_W.pvp";
   @dWMax                              = 0.01;
 };
 
@@ -1212,21 +1212,21 @@ HyPerConn "BiasS2ToGroundTruthReconS2Error" = {
 #include "BiasS3ToGroundTruthReconS3Error";
   @preLayerName                        = "BiasS2";
   @postLayerName                       = "GroundTruthReconS2Error";
-  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/BiasS2ToGroundTruthReconS2Error_W.pvp";
+  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/BiasS2ToGroundTruthReconS2Error_W.pvp";
 };
 
 HyPerConn "BiasS1ToGroundTruthReconS1Error" = {
 #include "BiasS3ToGroundTruthReconS3Error";
   @preLayerName                        = "BiasS1";
   @postLayerName                       = "GroundTruthReconS1Error";
-  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/BiasS1ToGroundTruthReconS1Error_W.pvp";
+  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/BiasS1ToGroundTruthReconS1Error_W.pvp";
 };
 
 HyPerConn "BiasS1S2S3ToGroundTruthReconS1S2S3Error" = {
 #include "BiasS3ToGroundTruthReconS3Error";
   @preLayerName                        = "BiasS1S2S3";
   @postLayerName                       = "GroundTruthReconS1S2S3Error";
-  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train7/Checkpoints/Checkpoint59520000/BiasS1S2S3ToGroundTruthReconS1S2S3Error_W.pvp";
+  @initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/BiasS1S2S3ToGroundTruthReconS1S2S3Error_W.pvp";
 };
 
 CloneConn "S3MaxPooledToGroundTruthReconS3" = {
