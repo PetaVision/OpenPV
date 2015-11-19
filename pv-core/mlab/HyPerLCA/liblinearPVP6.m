@@ -84,9 +84,9 @@ GT_flag = true;  %% not currently used
 SVM_flag = true;  %% not currently used
 hist_pool_flag = true;
 max_pool_flag = true;
-mean_pool_flag = true;
+mean_pool_flag = false; %% true;
 max2X2_pool_flag = true;
-mean2X2_pool_flag = true;
+mean2X2_pool_flag = false; %% true;
 train_long_flag = true; %%false;  %% determines whether all out-of-class examples are used (in-class examples are replicated to match number of out of class examples)
 
 if strcmp(run_type, "CIFAR")
@@ -1566,18 +1566,28 @@ if plot_flag
       else
 	j_target_classID = 1;
       endif
-      tot_hit = sum(training_label_vector{i_target_classID}(:) == j_target_classID);
-      tot_false = sum(training_label_vector{i_target_classID}(:) ~= j_target_classID);
+      k_target_classID = i_target_classID;
+      if exclusive_flag == 1
+	k_target_classID = num_target_classes+1;
+      endif
+      tot_hit = sum(training_label_vector{k_target_classID}(:) == j_target_classID);
+      tot_false = sum(training_label_vector{k_target_classID}(:) ~= j_target_classID);
       for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	if strcmp(pool_types{i_pool},"hist") && hist_pool_flag
-	  num_hit = sum((predicted_label_hist_pool_array{i_Sparse, i_target_classID}(:) == j_target_classID) & (training_label_vector{i_target_classID}(:) == j_target_classID));
-	  num_false = sum((predicted_label_hist_pool_array{i_Sparse, i_target_classID}(:) == j_target_classID) & (training_label_vector{i_target_classID}(:) ~= j_target_classID));
+	  num_hit = sum((predicted_label_hist_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) == j_target_classID));
+	  num_false = sum((predicted_label_hist_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) ~= j_target_classID));
 	elseif strcmp(pool_types{i_pool},"max") && max_pool_flag
-	  num_hit = sum((predicted_label_max_pool_array{i_Sparse, i_target_classID}(:) == i_target_classID) & (training_label_vector{i_target_classID}(:) == j_target_classID));
-	  num_false = sum((predicted_label_max_pool_array{i_Sparse, i_target_classID}(:) == i_target_classID) & (training_label_vector{i_target_classID}(:) ~= j_target_classID));
+	  num_hit = sum((predicted_label_max_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) == j_target_classID));
+	  num_false = sum((predicted_label_max_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) ~= j_target_classID));
 	elseif strcmp(pool_types{i_pool},"mean") && mean_pool_flag
-	  num_hit = sum((predicted_label_mean_pool_array{i_Sparse, i_target_classID}(:) == i_target_classID) & (training_label_vector{i_target_classID}(:) == j_target_classID));
-	  num_false = sum((predicted_label_mean_pool_array{i_Sparse, i_target_classID}(:) == i_target_classID) & (training_label_vector{i_target_classID}(:) ~= j_target_classID));
+	  num_hit = sum((predicted_label_mean_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) == j_target_classID));
+	  num_false = sum((predicted_label_mean_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) ~= j_target_classID));
+	elseif strcmp(pool_types{i_pool},"max2X2") && max2X2_pool_flag
+	  num_hit = sum((predicted_label_max2X2_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) == j_target_classID));
+	  num_false = sum((predicted_label_max2X2_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) ~= j_target_classID));
+	elseif strcmp(pool_types{i_pool},"mean2X2") && mean2X2_pool_flag
+	  num_hit = sum((predicted_label_mean2X2_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) == j_target_classID));
+	  num_false = sum((predicted_label_mean2X2_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) ~= j_target_classID));
 	endif %% pool_types
 	hit_rate = num_hit / tot_hit;
 	hit_rate_corrected = (num_hit - num_false) / tot_hit;
@@ -1597,36 +1607,17 @@ if plot_flag
     i_xval_model_row = mod(i_target_classID-1, num_xval_model_cols) + 1;
     j_xval_model_col = ceil(i_target_classID / num_xval_model_cols);
     target_axis(i_target_classID) = subplot(num_xval_model_rows, num_xval_model_cols, i_target_classID);
-    if num_pool > 1
-      hit_rate_tmp = squeeze(xval_model_array(i_target_classID, :, :, 1))';
-      bar_handle = bar(hit_rate_tmp, "facecolor", "g");
-      hold on
-      hit_rate_tmp2 = squeeze(xval_model_array(i_target_classID, :, :, 2))';
-      bar_handle2 = bar(hit_rate_tmp2, "facecolor", "r");      
-    else
-      hit_rate_tmp = squeeze(xval_model_array(i_target_classID, :, :, 1))';
-      bar_handle = bar(hit_rate_tmp, "facecolor", "g");
-      hold on
-      hit_rate_tmp2 = squeeze(xval_model_array(i_target_classID, :, :, 2))';
-      bar_handle2 = bar(hit_rate_tmp2, "facecolor", "r");      
-    endif
-    %%bar_model_colormap = colormap(prism(length(bar_handle)));
-    %%colormap(bar_model_colormap);
+    hit_rate_tmp = squeeze(xval_model_array(i_target_classID, :, :, 1))';
+    bar_handle = bar(hit_rate_tmp, "facecolor", "g");
+    hold on
+    hit_rate_tmp2 = squeeze(xval_model_array(i_target_classID, :, :, 2))';
+    bar_handle2 = bar(hit_rate_tmp2, "facecolor", "r");      
     title(target_axis(i_target_classID), target_classes{i_target_classID});
-%%    if num_Sparse_list > 1
-%%      if exclusive_flag ~= 1
-%%	axis(target_axis(i_target_classID), [0.5 (num_Sparse_list+(num_Sparse_list>1)+0.5) 0.5 min(max_model*(1.1),1)]);
-%%      else
-%%	axis(target_axis(i_target_classID), [0.5 (num_Sparse_list+(num_Sparse_list>1)+0.5) (1/num_target_classes) min(max_model*(1.1),1)]);
-%%      endif
-%%    else
-%%      axis(target_axis(i_target_classID), [0.5 (num_pool+0.5) (1/num_target_classes) min(max_model*(1.1),1)]);
-%%    endif
     if num_pool > 1
-      set(gca, 'xticklabel', pool_types);
+      set(gca, 'xtick', [1:num_pool], 'xticklabel', pool_types);
     else
-      set(gca, 'xticklabel', Sparse_list(:,2));
-      endif
+      set(gca, 'xtick', [1:(num_Sparse_list + (num_Sparse_list > 1))] 'xticklabel', Sparse_list(:,2));
+    endif
     if i_target_classID == num_target_classes
       if num_pool > 1
 	[legend_handle, legend_object, legend_plot, legend_labels] = legend(target_axis(i_target_classID), Sparse_list(:,2), 'location', 'northeast');

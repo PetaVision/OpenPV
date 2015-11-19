@@ -712,6 +712,10 @@ HyPerConn "BiasS2ToGroundTruthReconS2_4X3" = {
 
 HeatMapProbe "HeatMapProbe" = {
     probeOutputFile                     = NULL;
+    confidenceTable                     = "CurrentModel/ConfidenceTables/confidenceTable.mat";
+    imageLayer                          = "Image";
+    resultLayer                         = "GroundTruthReconS2_4X3";
     reconLayer                          = "ImageReconS2";
+    classNames                          = "classNames.txt";
     outputPeriod                        = 10;
 };

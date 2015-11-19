@@ -45,11 +45,11 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
       if(${PV_USE_MPI} AND ${inMpi})
          #Two processes
          add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
-            mpirun -np 2 Debug/${BaseName} ${inFlags} -l 
+            ${MPIEXEC} -np 2 Debug/${BaseName} ${inFlags} -l 
             ${testName}_2.log)
          #Four processes
          add_test(${testName}_4 ${CMAKE_COMMAND} -E chdir ${BaseName}
-            mpirun -np 4 Debug/${BaseName} ${inFlags} -l 
+            ${MPIEXEC} -np 4 Debug/${BaseName} ${inFlags} -l 
             ${testName}_4.log)
          #Add dependencies
          set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
@@ -71,12 +71,12 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
          if(${PV_USE_MPI} AND ${inMpi})
             #Two processes
             add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
-               mpirun -np 2 Debug/${BaseName} -p input/${param}.params
+               ${MPIEXEC} -np 2 Debug/${BaseName} -p input/${param}.params
                ${inFlags} -l
                ${testName}_2.log)
             #Four processes
             add_test(${testName}_4 ${CMAKE_COMMAND} -E chdir ${BaseName}
-               mpirun -np 4 Debug/${BaseName} -p input/${param}.params
+               ${MPIEXEC} -np 4 Debug/${BaseName} -p input/${param}.params
                ${inFlags} -l
                ${testName}_4.log)
             #Add dependencies
@@ -243,13 +243,13 @@ set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
 if (${PV_USE_MPI})
     #This addtest is hard coded because this test requires a run with 2, 4, and 8 mpi processes
     add_test(${testBaseName}_2 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-       mpirun -np 2 Debug/${testBaseName} ${testFlags} -l
+       ${MPIEXEC} -np 2 Debug/${testBaseName} ${testFlags} -l
        ${testBaseName}_2.log)
     add_test(${testBaseName}_4 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-       mpirun -np 4 Debug/${testBaseName} ${testFlags} -l
+       ${MPIEXEC} -np 4 Debug/${testBaseName} ${testFlags} -l
        ${testBaseName}_4.log)
     add_test(${testBaseName}_8 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-       mpirun -np 8 Debug/${testBaseName} ${testFlags} -l
+       ${MPIEXEC} -np 8 Debug/${testBaseName} ${testFlags} -l
        ${testBaseName}_8.log)
     #Add dependencies
     set_tests_properties(${testBaseName}_4 PROPERTIES DEPENDS ${testBaseName}_2)
@@ -263,7 +263,7 @@ set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
 if (${PV_USE_MPI})
    #This addtest is hard coded because this test requires a run with exactly 4 mpi processes
    add_test(${testBaseName}_4 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-      mpirun -np 4 Debug/${testBaseName} ${testFlags} -p input/BatchSweepTest.params -l
+      ${MPIEXEC} -np 4 Debug/${testBaseName} ${testFlags} -p input/BatchSweepTest.params -l
       ${testBaseName}_4.log)
 endif (${PV_USE_MPI})
 
@@ -280,7 +280,7 @@ if (${PV_USE_MPI})
    set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
    #This addtest is hard coded because this test requires a run with exactly 10 mpi processes
    add_test(${testBaseName}_10 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-      mpirun -np 10 Debug/${testBaseName} ${testFlags} -l
+      ${MPIEXEC} -np 10 Debug/${testBaseName} ${testFlags} -l
       ${testBaseName}_10.log)
 endif (${PV_USE_MPI})
 
@@ -637,7 +637,7 @@ set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 if (${PV_USE_MPI})
     #This addtest is hard coded because this test requires a run with exactly 6 mpi processes
     add_test(${testBaseName}_6 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-       mpirun -np 6 Debug/${testBaseName} ${testFlags} -l
+       ${MPIEXEC} -np 6 Debug/${testBaseName} ${testFlags} -l
        ${testBaseName}_6.log)
 endif (${PV_USE_MPI})
 
