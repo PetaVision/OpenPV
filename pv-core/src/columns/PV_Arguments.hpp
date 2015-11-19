@@ -154,6 +154,11 @@ public:
    char const * getCheckpointReadDir() { return checkpointReadDir; }
 
    /**
+    * Returns the useDefaultNumThreads flag.
+    */
+   bool getUseDefaultNumThreads() { return useDefaultNumThreads; }
+
+   /**
     * Returns the number of threads.
     */
    int getNumThreads() { return numThreads; }
@@ -243,8 +248,16 @@ public:
    char const * setCheckpointReadDir(char const * val);
 
    /**
+    * Sets the useDefaultNumThreads flag to the given argument.  The old value is discarded.
+    * The return value is the new useDefaultNumThreads flag.
+    * If the argument is true, numThreads is set to zero.
+    */
+   bool setUseDefaultNumThreads(bool val);
+
+   /**
     * Sets the number of threads to the input argument.  The old value is discarded.
     * The return value is the new number of threads.
+    * Additionally, the useDefaultNumThreads flag is set to false.
     */
    int setNumThreads(int val);
 
@@ -357,6 +370,7 @@ private:
    char * workingDir;
    bool restartFlag;
    char * checkpointReadDir;
+   bool useDefaultNumThreads;
    int numThreads;
    int numRows;
    int numColumns;
