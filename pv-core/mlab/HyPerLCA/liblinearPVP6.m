@@ -8,9 +8,12 @@
 close all
 more off
 pkg load all
-setenv("GNUTERM","X11")
+%%setenv("GNUTERM","X11")
 %%setenv("GNUTERM","aqua")
-if exist("/shared/liblinear-2.1/matlab")
+if exist("/nh/compneuro/Data/liblinear-multicore-2.1-2/matlab")
+  addpath("/nh/compneuro/Data/liblinear-multicore-2.1-2/matlab");
+  mlab_dir = "/nh/compneuro/Data/openpv/pv-core/mlab";
+elseif exist("/shared/liblinear-2.1/matlab")
   addpath("/shared/liblinear-2.1/matlab");
   mlab_dir = "~/openpv/pv-core/mlab";
 elseif exist("~/Desktop/liblinear-2.01/matlab")
@@ -25,10 +28,10 @@ addpath([mlab_dir, "/util"]);
 addpath([mlab_dir, "/HyPerLCA"]);
 
 plot_flag = true;
-%%run_type = "ICA"
+run_type = "ICA"
 %%run_type = "S1S2"
 %%run_type = "DCA";
-run_type = "CIFAR";
+%%run_type = "CIFAR";
 %%run_type = "scene"
 if strcmp(run_type, "ICA")
   %%output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X4_1536_ICAX2/VOC2007_landscape1";
@@ -84,9 +87,9 @@ GT_flag = true;  %% not currently used
 SVM_flag = true;  %% not currently used
 hist_pool_flag = true;
 max_pool_flag = true;
-mean_pool_flag = true;
+mean_pool_flag = false; %% true;
 max2X2_pool_flag = true;
-mean2X2_pool_flag = true;
+mean2X2_pool_flag = false; %% true;
 train_long_flag = true; %%false;  %% determines whether all out-of-class examples are used (in-class examples are replicated to match number of out of class examples)
 
 if strcmp(run_type, "CIFAR")
@@ -116,7 +119,7 @@ min_GT_skip = max(1, num_GT_frames - num_GT_images*numEpochs - GT_slack);
 min_Sparse_skip = min_GT_skip;
 fraction_GT_progress = 10;
 num_GT_epochs = 1;
-num_GT_procs = 1;
+num_GT_procs = 4;
 num_epochs = num_GT_epochs;
 num_procs = num_GT_procs;
 GT_frames_list = [];
@@ -387,7 +390,7 @@ for i_target_classID = 1 : num_target_classes
 endfor %% class_ndx
 
 %%traing_instance_matrix
-liblinear_xval_options_str = ['-s 0 -C -B 1']; %%['-s 0 -C -B 1'];
+liblinear_xval_options_str = ['-s 0 -C -B 1 -n ', num2str(num_GT_procs)]; %%['-s 0 -C -B 1'];
 
 %% set up data structures for storing liblinear svm results
 num_Sparse_list = size(Sparse_list,1);
@@ -507,7 +510,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	Sparse_max2X2_pool_array{i_Sparse}{i_Sparse_frame};
       endif
       if mean2X2_pool_flag
-	training_mean_pool_matrix(:, :, :, :, :, j_Sparse_frame) = ...
+	training_mean2X2_pool_matrix(:, :, :, :, :, j_Sparse_frame) = ...
 	Sparse_mean2X2_pool_array{i_Sparse}{i_Sparse_frame};
       endif
     endfor %% i_Sparse_frame
@@ -694,35 +697,35 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
       model_hist_pool_array{i_Sparse, num_target_classes+1} = ...
       train(training_label_vector{num_target_classes+1}, ...
 	    training_hist_pool_matrix, ...
-	    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1'], 'col');
+	    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
     endif
     if max_pool_flag
       disp(["train max pool model", " using ", Sparse_list{i_Sparse,2}])
       model_max_pool_array{i_Sparse, num_target_classes+1} = ...
       train(training_label_vector{num_target_classes+1}, ...
 	    training_max_pool_matrix, ...
-	    ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1'], 'col');
+	    ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
     endif
     if mean_pool_flag
       disp(["train mean pool model", " using ", Sparse_list{i_Sparse,2}])
       model_mean_pool_array{i_Sparse, num_target_classes+1} = ...
       train(training_label_vector{num_target_classes+1}, ...
 	    training_mean_pool_matrix, ...
-	    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1'], 'col');
+	    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
     endif
     if max2X2_pool_flag
       disp(["train max2X2 pool model", " using ", Sparse_list{i_Sparse,2}])
       model_max2X2_pool_array{i_Sparse, num_target_classes+1} = ...
       train(training_label_vector{num_target_classes+1}, ...
 	    training_max2X2_pool_matrix, ...
-	    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1'], 'col');
+	    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
     endif
     if mean2X2_pool_flag
-      disp(["train mean2X2 poolm odel", " using ", Sparse_list{i_Sparse,2}])
+      disp(["train mean2X2 pool model", " using ", Sparse_list{i_Sparse,2}])
       model_mean2X2_pool_array{i_Sparse, num_target_classes+1} = ...
       train(training_label_vector{num_target_classes+1}, ...
 	    training_mean2X2_pool_matrix, ...
-	    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1'], 'col');
+	    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{i_Sparse, num_target_classes+1}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
     endif
 
     %% apply model for num_classes exclusive targets using optimal C value
@@ -834,30 +837,35 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	if exclusive_flag == 2
 	  
 	  if hist_pool_flag
+	disp(["cross-validation for hist model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_hist_pool_array{i_Sparse, i_target_classID} = ...
 	      train(training_label_vector{i_target_classID}, ...
 		    training_hist_pool_matrix, ...
 		    liblinear_xval_options_str, 'col');
 	  endif
 	  if max_pool_flag
+	disp(["cross-validation for max model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_max_pool_array{i_Sparse, i_target_classID} = ...
 	      train(training_label_vector{i_target_classID}, ...
 		    training_max_pool_matrix, ...
 		    liblinear_xval_options_str, 'col');
 	  endif
 	  if mean_pool_flag
+	disp(["cross-validation for mean model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_mean_pool_array{i_Sparse, i_target_classID} = ...
 	      train(training_label_vector{i_target_classID}, ...
 		    training_mean_pool_matrix, ...
 		    liblinear_xval_options_str, 'col');
 	  endif
 	  if max2X2_pool_flag
+	disp(["cross-validation for max2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_max2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train(training_label_vector{i_target_classID}, ...
 		    training_max2X2_pool_matrix, ...
 		    liblinear_xval_options_str, 'col');
 	  endif
 	  if mean2X2_pool_flag
+	disp(["cross-validation for mean2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_mean2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train(training_label_vector{i_target_classID}, ...
 		    training_mean2X2_pool_matrix, ...
@@ -868,61 +876,71 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	  
 	  if train_long_flag
 	    if hist_pool_flag
+	disp(["cross-validation for hist model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_hist_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    [training_hist_pool_pos_long, training_hist_pool_neg_long], ...
 		    liblinear_xval_options_str, 'col');
 	    endif
 	    if max_pool_flag
+	disp(["cross-validation for max model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_max_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    [training_max_pool_pos_long, training_max_pool_neg_long], ...
 		    liblinear_xval_options_str, 'col');
 	    endif
 	    if mean_pool_flag
+	disp(["cross-validation for mean model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_mean_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    [training_mean_pool_pos_long, training_mean_pool_neg_long], ...
 		    liblinear_xval_options_str, 'col');
 	    endif
 	    if max2X2_pool_flag
+	disp(["cross-validation for max2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_max2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    [training_max2X2_pool_pos_long, training_max2X2_pool_neg_long], ...
 		    liblinear_xval_options_str, 'col');
 	    endif
 	    if mean2X2_pool_flag
+	disp(["cross-validation for mean2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_mean2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    [training_mean2X2_pool_pos_long, training_mean2X2_pool_neg_long], ...
 		    liblinear_xval_options_str, 'col');
 	    endif
-	  else  %% train_long_flag
+	  else  %% ~train_long_flag
 	    if hist_pool_flag
+	disp(["cross-validation for hist model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_hist_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    [training_hist_pool_pos, training_hist_pool_neg], ...
 		    liblinear_xval_options_str, 'col');
 	    endif
 	    if max_pool_flag
+	disp(["cross-validation for max model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_max_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    [training_max_pool_pos, training_max_pool_neg], ...
 		    liblinear_xval_options_str, 'col');
 	    endif
 	    if mean_pool_flag
+	disp(["cross-validation for mean model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_mean_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    [training_mean_pool_pos, training_mean_pool_neg], ...
 		    liblinear_xval_options_str, 'col');
 	    endif
 	    if max2X2_pool_flag
+	disp(["cross-validation for max2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_max2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    [training_max2X2_pool_pos, training_max2X2_pool_neg], ...
 		    liblinear_xval_options_str, 'col');
 	    endif
 	    if mean2X2_pool_flag
+	disp(["cross-validation for mean2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      xval_model_mean2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    [training_mean2X2_pool_pos, training_mean2X2_pool_neg], ...
@@ -936,99 +954,114 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	if exclusive_flag == 2
 	  
 	  if hist_pool_flag
+	disp(["training hist model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_hist_pool_array{i_Sparse, i_target_classID} = ...
 	      train(training_label_vector{i_target_classID}, ...
 		    training_hist_pool_matrix, ...
-		    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	  endif
 	  if max_pool_flag
+	disp(["training max model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_max_pool_array{i_Sparse, i_target_classID} = ...
 	      train(training_label_vector{i_target_classID}, ...
 		    training_max_pool_matrix, ...
-		    ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	  endif
 	  if mean_pool_flag
+	disp(["training mean model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_mean_pool_array{i_Sparse, i_target_classID} = ...
 	      train(training_label_vector{i_target_classID}, ...
 		    training_mean_pool_matrix, ...
-		    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	  endif
 	  if max2X2_pool_flag
+	disp(["training max2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_max2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train(training_label_vector{i_target_classID}, ...
 		    training_max2X2_pool_matrix, ...
-		    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	  endif
 	  if mean2X2_pool_flag
+	disp(["training mean2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_mean2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train(training_label_vector{i_target_classID}, ...
 		    training_mean2X2_pool_matrix, ...
-		    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	  endif
 
 	else  %% exclusive_flag ~= 2
 	  
 	  if train_long_flag
 	    if hist_pool_flag
+	disp(["training hist model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_hist_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    [training_hist_pool_pos_long, training_hist_pool_neg_long], ...
-		    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if max_pool_flag
+	disp(["training max model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_max_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    [training_max_pool_pos_long, training_max_pool_neg_long], ...
-		    ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if mean_pool_flag
+	disp(["training mean model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_mean_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    [training_mean_pool_pos_long, training_mean_pool_neg_long], ...
-		    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if max2X2_pool_flag
+	disp(["training max2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_max2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    [training_max2X2_pool_pos_long, training_max2X2_pool_neg_long], ...
-		    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if mean2X2_pool_flag
+	disp(["training mean2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_mean2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    [training_mean2X2_pool_pos_long, training_mean2X2_pool_neg_long], ...
-		    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	  else %% train_long_flag
 	    if hist_pool_flag
+	disp(["training hist model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_hist_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    [training_hist_pool_pos, training_hist_pool_neg], ...
-		    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if max_pool_flag
+	disp(["training max model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_max_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    [training_max_pool_pos, training_max_pool_neg], ...
-		    ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if mean_pool_flag
+	disp(["training mean model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_mean_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    [training_mean_pool_pos, training_mean_pool_neg], ...
-		    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if max2X2_pool_flag
+	disp(["training mean2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_max2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    [training_max2X2_pool_pos, training_max2X2_pool_neg], ...
-		    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if mean2X2_pool_flag
+	disp(["training mean2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	      model_mean2X2_pool_array{i_Sparse, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    [training_mean2X2_pool_pos, training_mean2X2_pool_neg], ...
-		    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	  endif  %% train_long_flag
 	endif %% exclusive_flag
@@ -1036,6 +1069,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	  
 	%% apply model to sparse representations
 	if hist_pool_flag
+	disp(["spply hist model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	  [predicted_label_hist_pool_array{i_Sparse, i_target_classID}, ...
 	   accuracy_hist_pool_array{i_Sparse, i_target_classID}, ...
 	   prob_values_hist_pool_array{i_Sparse, i_target_classID}] = ...
@@ -1045,6 +1079,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 		  ['-b 1'], 'col');
 	endif
 	if max_pool_flag
+	disp(["spply max model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	  [predicted_label_max_pool_array{i_Sparse, i_target_classID}, ...
 	   accuracy_max_pool_array{i_Sparse, i_target_classID}, ...
 	   prob_values_max_pool_array{i_Sparse, i_target_classID}] = ...
@@ -1054,6 +1089,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 		  ['-b 1'], 'col');
 	endif
 	if mean_pool_flag
+	disp(["spply mean model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	  [predicted_label_mean_pool_array{i_Sparse, i_target_classID}, ...
 	   accuracy_mean_pool_array{i_Sparse, i_target_classID}, ...
 	   prob_values_mean_pool_array{i_Sparse, i_target_classID}] = ...
@@ -1063,6 +1099,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 		  ['-b 1'], 'col');
 	endif
 	if max2X2_pool_flag
+	disp(["spply max2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	  [predicted_label_max2X2_pool_array{i_Sparse, i_target_classID}, ...
 	   accuracy_max2X2_pool_array{i_Sparse, i_target_classID}, ...
 	   prob_values_max2X2_pool_array{i_Sparse, i_target_classID}] = ...
@@ -1072,6 +1109,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 		  ['-b 1'], 'col');
 	endif
 	if mean2X2_pool_flag
+	disp(["spply mean2X2 model for target class = ", target_classes{i_target_classID}, " using ", Sparse_list{i_Sparse,2}, ": neg_pos_ratio = ", num2str(neg_pos_ratio(i_target_classID))]);
 	  [predicted_label_mean2X2_pool_array{i_Sparse, i_target_classID}, ...
 	   accuracy_mean2X2_pool_array{i_Sparse, i_target_classID}, ...
 	   prob_values_mean2X2_pool_array{i_Sparse, i_target_classID}] = ...
@@ -1352,31 +1390,31 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	    model_hist_pool_array{i_Sparse, i_target_classID} = ...
 	    train(training_label_vector{i_target_classID}, ...
 		  training_hist_pool_matrix, ...
-		  ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		  ['-s 0', '-c ', num2str(xval_model_hist_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	  endif
 	  if max_pool_flag
 	    model_max_pool_array{i_Sparse, i_target_classID} = ...
 	    train(training_label_vector{i_target_classID}, ...
 		  training_max_pool_matrix, ...
-		  ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		  ['-s 0', '-c ', num2str(xval_model_max_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	  endif
 	  if mean_pool_flag
 	    model_mean_pool_array{i_Sparse, i_target_classID} = ...
 	    train(training_label_vector{i_target_classID}, ...
 		  training_mean_pool_matrix, ...
-		  ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		  ['-s 0', '-c ', num2str(xval_model_mean_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	  endif
 	  if max2X2_pool_flag
 	    model_max2X2_pool_array{i_Sparse, i_target_classID} = ...
 	    train(training_label_vector{i_target_classID}, ...
 		  training_max2X2_pool_matrix, ...
-		  ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		  ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	  endif
 	  if mean2X2_pool_flag
 	    model_mean2X2_pool_array{i_Sparse, i_target_classID} = ...
 	    train(training_label_vector{i_target_classID}, ...
 		  training_mean2X2_pool_matrix, ...
-		  ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1'], 'col');
+		  ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{i_Sparse, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	  endif
 
 	else %% exclusive_flag ~= 2
@@ -1386,62 +1424,62 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	      model_hist_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    training_hist_pool_matrix_array_long{num_Sparse_list+1, i_target_classID}, ...
-		    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if max_pool_flag
 	      model_max_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    training_max_pool_matrix_array_long{num_Sparse_list+1, i_target_classID}, ...
-		    ['-s 0', '-c ', num2str(xval_model_max_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_max_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if mean_pool_flag
 	      model_mean_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    training_mean_pool_matrix_array_long{num_Sparse_list+1, i_target_classID}, ...
-		    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if max2X2_pool_flag
 	      model_max2X2_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    training_max2X2_pool_matrix_array_long{num_Sparse_list+1, i_target_classID}, ...
-		    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if mean2X2_pool_flag
 	      model_mean2X2_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	      train([training_label_pos_long{i_target_classID}; training_label_neg_long{i_target_classID}], ...
 		    training_mean2X2_pool_matrix_array_long{num_Sparse_list+1, i_target_classID}, ...
-		    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	  else %% train_long_flag
 	    if hist_pool_flag
 	      model_hist_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    training_hist_pool_matrix_array{num_Sparse_list+1, i_target_classID}, ...
-		    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_hist_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if max_pool_flag
 	      model_max_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    training_max_pool_matrix_array{num_Sparse_list+1, i_target_classID}, ...
-		    ['-s 0', '-c ', num2str(xval_model_max_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_max_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if mean_pool_flag
 	      model_mean_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    training_mean_pool_matrix_array{num_Sparse_list+1, i_target_classID}, ...
-		    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_mean_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if max2X2_pool_flag
 	      model_max2X2_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    training_max2X2_pool_matrix_array{num_Sparse_list+1, i_target_classID}, ...
-		    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_max2X2_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	    if mean2X2_pool_flag
 	      model_mean2X2_pool_array{num_Sparse_list+1, i_target_classID} = ...
 	      train([training_label_pos{i_target_classID}; training_label_neg{i_target_classID}], ...
 		    training_mean2X2_pool_matrix_array{num_Sparse_list+1, i_target_classID}, ...
-		    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1'], 'col');
+		    ['-s 0', '-c ', num2str(xval_model_mean2X2_pool_array{num_Sparse_list+1, i_target_classID}(1)), '-B 1', '-n ', num2str(num_GT_procs)], 'col');
 	    endif
 	  endif %% train_long_flag
 
@@ -1531,18 +1569,28 @@ if plot_flag
       else
 	j_target_classID = 1;
       endif
-      tot_hit = sum(training_label_vector{i_target_classID}(:) == j_target_classID);
-      tot_false = sum(training_label_vector{i_target_classID}(:) ~= j_target_classID);
+      k_target_classID = i_target_classID;
+      if exclusive_flag == 1
+	k_target_classID = num_target_classes+1;
+      endif
+      tot_hit = sum(training_label_vector{k_target_classID}(:) == j_target_classID);
+      tot_false = sum(training_label_vector{k_target_classID}(:) ~= j_target_classID);
       for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	if strcmp(pool_types{i_pool},"hist") && hist_pool_flag
-	  num_hit = sum((predicted_label_hist_pool_array{i_Sparse, i_target_classID}(:) == j_target_classID) & (training_label_vector{i_target_classID}(:) == j_target_classID));
-	  num_false = sum((predicted_label_hist_pool_array{i_Sparse, i_target_classID}(:) == j_target_classID) & (training_label_vector{i_target_classID}(:) ~= j_target_classID));
+	  num_hit = sum((predicted_label_hist_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) == j_target_classID));
+	  num_false = sum((predicted_label_hist_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) ~= j_target_classID));
 	elseif strcmp(pool_types{i_pool},"max") && max_pool_flag
-	  num_hit = sum((predicted_label_max_pool_array{i_Sparse, i_target_classID}(:) == i_target_classID) & (training_label_vector{i_target_classID}(:) == j_target_classID));
-	  num_false = sum((predicted_label_max_pool_array{i_Sparse, i_target_classID}(:) == i_target_classID) & (training_label_vector{i_target_classID}(:) ~= j_target_classID));
+	  num_hit = sum((predicted_label_max_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) == j_target_classID));
+	  num_false = sum((predicted_label_max_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) ~= j_target_classID));
 	elseif strcmp(pool_types{i_pool},"mean") && mean_pool_flag
-	  num_hit = sum((predicted_label_mean_pool_array{i_Sparse, i_target_classID}(:) == i_target_classID) & (training_label_vector{i_target_classID}(:) == j_target_classID));
-	  num_false = sum((predicted_label_mean_pool_array{i_Sparse, i_target_classID}(:) == i_target_classID) & (training_label_vector{i_target_classID}(:) ~= j_target_classID));
+	  num_hit = sum((predicted_label_mean_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) == j_target_classID));
+	  num_false = sum((predicted_label_mean_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) ~= j_target_classID));
+	elseif strcmp(pool_types{i_pool},"max2X2") && max2X2_pool_flag
+	  num_hit = sum((predicted_label_max2X2_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) == j_target_classID));
+	  num_false = sum((predicted_label_max2X2_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) ~= j_target_classID));
+	elseif strcmp(pool_types{i_pool},"mean2X2") && mean2X2_pool_flag
+	  num_hit = sum((predicted_label_mean2X2_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) == j_target_classID));
+	  num_false = sum((predicted_label_mean2X2_pool_array{i_Sparse, k_target_classID}(:) == j_target_classID) & (training_label_vector{k_target_classID}(:) ~= j_target_classID));
 	endif %% pool_types
 	hit_rate = num_hit / tot_hit;
 	hit_rate_corrected = (num_hit - num_false) / tot_hit;
@@ -1562,36 +1610,17 @@ if plot_flag
     i_xval_model_row = mod(i_target_classID-1, num_xval_model_cols) + 1;
     j_xval_model_col = ceil(i_target_classID / num_xval_model_cols);
     target_axis(i_target_classID) = subplot(num_xval_model_rows, num_xval_model_cols, i_target_classID);
-    if num_pool > 1
-      hit_rate_tmp = squeeze(xval_model_array(i_target_classID, :, :, 1))';
-      bar_handle = bar(hit_rate_tmp, "facecolor", "g");
-      hold on
-      hit_rate_tmp2 = squeeze(xval_model_array(i_target_classID, :, :, 2))';
-      bar_handle2 = bar(hit_rate_tmp2, "facecolor", "r");      
-    else
-      hit_rate_tmp = squeeze(xval_model_array(i_target_classID, :, :, 1))';
-      bar_handle = bar(hit_rate_tmp, "facecolor", "g");
-      hold on
-      hit_rate_tmp2 = squeeze(xval_model_array(i_target_classID, :, :, 2))';
-      bar_handle2 = bar(hit_rate_tmp2, "facecolor", "r");      
-    endif
-    %%bar_model_colormap = colormap(prism(length(bar_handle)));
-    %%colormap(bar_model_colormap);
+    hit_rate_tmp = squeeze(xval_model_array(i_target_classID, :, :, 1))';
+    bar_handle = bar(hit_rate_tmp, "facecolor", "g");
+    hold on
+    hit_rate_tmp2 = squeeze(xval_model_array(i_target_classID, :, :, 2))';
+    bar_handle2 = bar(hit_rate_tmp2, "facecolor", "r");      
     title(target_axis(i_target_classID), target_classes{i_target_classID});
-%%    if num_Sparse_list > 1
-%%      if exclusive_flag ~= 1
-%%	axis(target_axis(i_target_classID), [0.5 (num_Sparse_list+(num_Sparse_list>1)+0.5) 0.5 min(max_model*(1.1),1)]);
-%%      else
-%%	axis(target_axis(i_target_classID), [0.5 (num_Sparse_list+(num_Sparse_list>1)+0.5) (1/num_target_classes) min(max_model*(1.1),1)]);
-%%      endif
-%%    else
-%%      axis(target_axis(i_target_classID), [0.5 (num_pool+0.5) (1/num_target_classes) min(max_model*(1.1),1)]);
-%%    endif
     if num_pool > 1
-      set(gca, 'xticklabel', pool_types);
+      set(gca, 'xtick', [1:num_pool], 'xticklabel', pool_types);
     else
-      set(gca, 'xticklabel', Sparse_list(:,2));
-      endif
+      set(gca, 'xtick', [1:(num_Sparse_list + (num_Sparse_list > 1))], 'xticklabel', Sparse_list(:,2));
+    endif
     if i_target_classID == num_target_classes
       if num_pool > 1
 	[legend_handle, legend_object, legend_plot, legend_labels] = legend(target_axis(i_target_classID), Sparse_list(:,2), 'location', 'northeast');
@@ -1808,31 +1837,28 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	std_pred_classID = std(pred_classID_val(:))
 	pred_classID_thresh = reshape(pred_classID_thresh, [1,1, length(target_class_indices)]);
 	pred_classID_mask = double(target_classID_cube >= repmat(pred_classID_thresh, [pred_hdr.ny, pred_hdr.nx, 1]));
-	pred_classID_confidences = cell(length(target_class_indices), 1);
-	
+
 	classID_bin_width = (classID_hist_bins(end) - classID_hist_bins(1)) / (length(classID_hist_bins)-1);
-	pred_classID_max_confidence = squeeze(max(squeeze(max(target_classID_cube, [], 2)), [], 1));
-	pred_classID_max_confidence_bin = 1+floor((pred_classID_max_confidence - classID_hist_bins(1)) ./ classID_bin_width);
-	pred_classID_max_confidence_bin(find(pred_classID_max_confidence_bin(:) > num_classID_bins)) = num_classID_bins;
-	pred_classID_max_confidence_bin(pred_classID_max_confidence_bin(:) < 1) =  1;
-	
-	%%pred_classID_max_percent_confidence = (pred_classID_max_confidence(:) - pred_classID_thresh(:)) ./ (pred_classID_thresh(:) + (pred_classID_thresh(:)==0));
-	%%pred_classID_relative_accuracy = ((pred_classID_true_pos(:) - (1-false_positive_thresh)) ./ (1-pred_classID_false_pos(:)));
-	%%pred_classID_max_confidence = pred_classID_max_percent_confidence;
-	
-	[pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
 	target_confidences = cell(length(target_class_indices),1);
+	pred_classID_confidences = cell(length(target_class_indices), 1);	
 	for i_target_classID = 1 : num_target_classes
-	  pred_classID_max_confidence(i_target_classID) = ...
-	  (1 - pred_classID_cumprob(pred_classID_max_confidence_bin(i_target_classID),i_target_classID,1)) ./ ...
-	  ((1 - pred_classID_cumprob(pred_classID_max_confidence_bin(i_target_classID),i_target_classID,1)) + ...
-	   (1 - pred_classID_cumprob(pred_classID_max_confidence_bin(i_target_classID),i_target_classID,2)));
-	  target_confidences{i_target_classID, 1} = [target_classes{pred_classID_sorted_ndx(i_target_classID)}, ...
-						     ', ', 'confidence = ', num2str(pred_classID_sorted_confidence(i_target_classID)), ...
-						     ', ', 'thresh = ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_target_classID))), ...
-						     ', ', 'accuracy = ', num2str(pred_classID_accuracy(pred_classID_sorted_ndx(i_target_classID))), ...
-						     ', ', 'true_pos = ', num2str(pred_classID_true_pos(pred_classID_sorted_ndx(i_target_classID))), ...
-						     ', ', 'true_neg = ', num2str(pred_classID_false_pos(pred_classID_sorted_ndx(i_target_classID)))];
+
+	  pred_classID_confidence_bins = 1+floor((target_classID_cube(:,:,i_target_classID) - classID_hist_bins(1)) ./ classID_bin_width);
+	  pred_classID_confidence_bins(find(pred_classID_confidence_bins(:) > num_classID_bins)) = num_classID_bins;
+	  pred_classID_confidence_bins(pred_classID_confidence_bins(:) < 1) =  1;
+	  pred_classID_cumprob_pos = squeeze(pred_classID_cumprob(:,i_target_classID,1));
+	  pred_classID_cumprob_neg = squeeze(pred_classID_cumprob(:,i_target_classID,2));
+	  pred_classID_confidences{i_target_classID} = ...
+	  (1 - pred_classID_cumprob_pos(pred_classID_confidence_bins)) ./ ...
+	  ((1 - pred_classID_cumprob_pos(pred_classID_confidence_bins)) + ...
+	   (1 - pred_classID_cumprob_neg(pred_classID_confidence_bins)));
+	  pred_classID_max_confidence(i_target_classID) = max(pred_classID_confidences{i_target_classID}(:));
+	  target_confidences{i_target_classID, 1} = [target_classes{i_target_classID}, ...
+						     ', ', 'confidence = ', num2str(pred_classID_max_confidence(i_target_classID)), ...
+						     ', ', 'thresh = ', num2str(pred_classID_thresh(i_target_classID)), ...
+						     ', ', 'accuracy = ', num2str(pred_classID_accuracy(i_target_classID)), ...
+						     ', ', 'true_pos = ', num2str(pred_classID_true_pos(i_target_classID)), ...
+						     ', ', 'true_neg = ', num2str(pred_classID_false_pos(i_target_classID))];
 	endfor
 	if plot_flag
 	  pred_classID_heatmap = zeros(pred_hdr.ny, pred_hdr.nx, 3);
