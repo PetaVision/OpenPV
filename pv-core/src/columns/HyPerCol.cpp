@@ -280,7 +280,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
 
    char const * gpu_devices = pv_initObj->getArguments()->getGPUDevices();
    char const * working_dir = pv_initObj->getArguments()->getWorkingDir();
-   int restart = pv_initObj->getArguments()->getRestartFlag();
+   warmStart = pv_initObj->getArguments()->getRestartFlag();
    char const * checkpoint_read_dir = pv_initObj->getArguments()->getCheckpointReadDir();
    if (checkpoint_read_dir) {
       checkpointReadDir = strdup(pv_initObj->getArguments()->getCheckpointReadDir());
@@ -360,42 +360,79 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
 
    char const * programName = pv_initObj->getArguments()->getProgramName();
 
+   // determine number of threads
    int thread_status = PV_SUCCESS;
-   int num_threads = pv_initObj->getArguments()->getNumThreads();
+   int num_threads = 0;
 #ifdef PV_USE_OPENMP_THREADS
-   if (num_threads==0) {
-      thread_status = PV_FAILURE;
+   int max_threads = omp_get_max_threads();
+   int comm_size = icComm->globalCommSize();
+   if (globalRank()==0) {
+      printf("Maximum number of OpenMP threads%s is %d\nNumber of MPI processes is %d.\n",
+            comm_size==1 ? "" : " (over all processes)", max_threads, comm_size);
+   }
+   if (pv_initObj->getArguments()->getUseDefaultNumThreads()) {
+      num_threads = omp_get_max_threads()/icComm->globalCommSize(); // integer arithmetic
+      if (num_threads == 0) {
+         num_threads = 1;
+         if (globalRank()==0) {
+            fprintf(stderr, "Warning: more MPI processes than available threads.  Processors may be oversubscribed.\n");
+         }
+      }
    }
    else {
-      omp_set_num_threads(num_threads);
+      num_threads = pv_initObj->getArguments()->getNumThreads();
    }
-   if (globalRank()==0) {
-      printf("Maximum number of OpenMP threads is %d\n", omp_get_max_threads());
-      if (thread_status==PV_SUCCESS) {
+   if (num_threads>0) {
+      omp_set_num_threads(num_threads);
+      if (globalRank()==0) {
          printf("Number of threads used is %d\n", num_threads);
       }
-      else {
+   }
+   else if (num_threads==0) {
+      thread_status = PV_FAILURE;
+      if (globalRank()==0) {
+         fflush(stdout);
+         fprintf(stderr, "%s error: number of threads must be positive (was set to zero)\n", programName);
+      }
+   }
+   else {
+      assert(num_threads==-1);
+      // If the -t argument is followed by an argument beginning with a
+      // hyphen, it is interpreted as the next option, not as a negative
+      // number.  Therefore, the only way pv_initObj->arguments->numThreads
+      // can be negative is if it was set to -1 because there was no -t option
+      // set on the command line.
+      thread_status = PV_FAILURE;
+      if (globalRank()==0) {
          fflush(stdout);
          fprintf(stderr, "%s was compiled with PV_USE_OPENMP_THREADS; therefore the \"-t\" argument is required.\n", programName);
       }
    }
 #else // PV_USE_OPENMP_THREADS
-   if(num_threads != 1){
-      thread_status = PV_FAILURE;
-      if (globalRank()==0) {
-         fprintf(stderr, "PetaVision must be compiled with OpenMP to run with threads\n");
+   if (pv_initObj->getArguments()->getUseDefaultNumThreads()) {
+      num_threads = 1;
+   }
+   else {
+      num_threads = pv_initObj->getArguments()->getNumThreads();
+      if (num_threads < 0) { num_threads = 1; }
+      if (num_threads != 1) { thread_status = PV_FAILURE; }
+   }
+   if (globalRank()==0) {
+      if (thread_status!=PV_SUCCESS) {
+         fflush(stdout);
+         fprintf(stderr, "%s error: PetaVision must be compiled with OpenMP to run with threads.\n", programName);
       }
-    }
+   }
 #endif // PV_USE_OPENMP_THREADS
+
+   MPI_Barrier(icComm->globalCommunicator());
    if (thread_status !=PV_SUCCESS) {
-      MPI_Barrier(icComm->globalCommunicator());
       exit(EXIT_FAILURE);
    }
    //set num_threads to member variable
    this->numThreads = num_threads;
 
 
-   warmStart = (restart!=0);
    if(working_dir && columnId()==0) {
       int status = chdir(working_dir);
       if(status) {
@@ -475,14 +512,8 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       }
    }
 
-   //warmStart is set if restart flag != 0
-   if (warmStart && checkpointReadDir) {
-      if (globalRank()==0) {
-         fprintf(stderr, "%s error: cannot set both -r and -c.\n", programName);
-      }
-      MPI_Barrier(icComm->globalCommunicator());
-      exit(EXIT_FAILURE);
-   }
+   //warmStart is set if command line sets the -r option.  PV_Arguments should prevent -r and -c from being both set.
+   assert(!warmStart || !checkpointReadDir);
    if (warmStart) {
       // parse_options() and ioParams() must have both been called at this point, so that we have the correct outputPath and checkpointWriteFlag
       assert(checkpointReadDir==NULL);

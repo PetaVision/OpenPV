@@ -47,7 +47,8 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
                   char ** output_path, char ** param_file, char ** log_file, char ** gpu_devices,
                   unsigned int * random_seed, char ** working_dir,
                   int * restart, char ** checkpointReadDir,
-                  int * numthreads, int * num_rows, int * num_columns, int* batch_width)
+                  bool * useDefaultNumThreads, int * numthreads,
+                  int * num_rows, int * num_columns, int* batch_width)
 {
    if (argc < 2) {
       usage();
@@ -71,7 +72,7 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
    *require_return = reqrtn;
 
    pv_getopt_str(argc, argv, "-d", gpu_devices, paramusage);
-   pv_getoptionalopt_int(argc, argv, "-t", numthreads, 0, paramusage);
+   pv_getoptionalopt_int(argc, argv, "-t", numthreads, useDefaultNumThreads, paramusage);
    pv_getopt_str(argc, argv, "-o", output_path, paramusage);
    pv_getopt_str(argc, argv, "-p", param_file, paramusage);
    pv_getopt_str(argc, argv, "-l", log_file, paramusage);
@@ -121,23 +122,27 @@ int pv_getopt_int(int argc, char * argv[], const char * opt, int * iVal, bool * 
    return -1;  // not found
 }
 
-int pv_getoptionalopt_int(int argc, char * argv[], const char * opt, int * iVal, int defaultVal, bool * paramusage)
+int pv_getoptionalopt_int(int argc, char * argv[], const char * opt, int * iVal, bool * useDefaultVal, bool * paramusage)
 {
    int i;
    for (i = 1; i < argc; i += 1) {
       if(strcmp(argv[i], opt) == 0){
          //Default parameter
          if (i+1 >= argc || argv[i+1][0] == '-') {
-            if( iVal != NULL) *iVal = defaultVal;
+            if (iVal != NULL) { *iVal = -1; }
+            if (useDefaultVal != NULL) { *useDefaultVal = true;}
             if (paramusage) { paramusage[i] = true; }
          }
          else{
-            if( iVal != NULL ) *iVal = atoi(argv[i+1]);
+            if (iVal != NULL) { *iVal = atoi(argv[i+1]); }
+            if (useDefaultVal != NULL) { *useDefaultVal = false; }
             if (paramusage) { paramusage[i] = true; paramusage[i+1] = true; }
          }
          return 0;
       }
    }
+   if (iVal != NULL) { *iVal = -1; }
+   if (useDefaultVal != NULL) { *useDefaultVal = false; }
    return -1;  // not found
 }
 
