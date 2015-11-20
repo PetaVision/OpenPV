@@ -587,6 +587,59 @@ ConstantLayer "BiasS1S2S3" = {
 #include "BiasS3";
 };
 
+// max2X2 SLP
+
+ANNErrorLayer "GroundTruthReconS3Error2X2" = {
+#include "GroundTruthReconS3Error";
+};
+
+ANNLayer "GroundTruthReconS32X2" = {
+#include "GroundTruthReconS3";
+};
+
+ANNLayer "S3MaxPooled2X2" = {
+#include "S3MaxPooled";
+  @nxScale                             = 0.125;
+  @nyScale                             = 0.125;
+};
+
+ANNErrorLayer "GroundTruthReconS2Error2X2" = {
+#include "GroundTruthReconS2Error";
+};
+
+ANNLayer "GroundTruthReconS22X2" = {
+#include "GroundTruthReconS2";
+};
+
+ANNLayer "S2MaxPooled2X2" = {
+#include "S2MaxPooled";
+  @nxScale                             = 0.125;
+  @nyScale                             = 0.125;
+};
+
+ANNErrorLayer "GroundTruthReconS1Error2X2" = {
+#include "GroundTruthReconS1Error";
+};
+
+ANNLayer "GroundTruthReconS12X2" = {
+#include "GroundTruthReconS1";
+};
+
+ANNLayer "S1MaxPooled2X2" = {
+#include "S1MaxPooled";
+  @nxScale                             = 0.125;
+  @nyScale                             = 0.125;
+};
+
+ANNErrorLayer "GroundTruthReconS1S2S3Error2X2" = {
+#include "GroundTruthReconS1S2S3Error";
+};
+
+ANNLayer "GroundTruthReconS1S2S32X2" = {
+#include "GroundTruthReconS1S2S3";
+};
+
+
 
 
 
@@ -1329,6 +1382,286 @@ IdentConn "GroundTruthReconS1ToGroundTruthReconS1Error" = {
 IdentConn "GroundTruthReconS1S2S3ToGroundTruthReconS1S2S3Error" = {
     preLayerName                        = "GroundTruthReconS1S2S3";
     postLayerName                       = "GroundTruthReconS1S2S3Error";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+};
+
+
+
+
+
+// 2X2 SLP
+
+IdentConn "GroundTruthToGroundTruthReconS3Error2X2" = {
+    preLayerName                        = "GroundTruth";
+    postLayerName                       = "GroundTruthReconS3Error2X2";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+};
+
+IdentConn "GroundTruthToGroundTruthReconS2Error2X2" = {
+    preLayerName                        = "GroundTruth";
+    postLayerName                       = "GroundTruthReconS2Error2X2";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+};
+
+IdentConn "GroundTruthToGroundTruthReconS1Error2X2" = {
+    preLayerName                        = "GroundTruth";
+    postLayerName                       = "GroundTruthReconS1Error2X2";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+};
+
+IdentConn "GroundTruthToGroundTruthReconS1S2S3Error2X2" = {
+    preLayerName                        = "GroundTruth";
+    postLayerName                       = "GroundTruthReconS1S2S3Error2X2";
+    channelCode                         = 0;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+};
+
+PoolingConn "S3ToS3MaxPooled2X2" = {
+#include "S3ToS3MaxPooled";
+  @postLayerName                       = "S3MaxPooled2X2";
+};
+
+PoolingConn "S2ToS2MaxPooled2X2" = {
+#include "S2ToS2MaxPooled";
+  @postLayerName                       = "S2MaxPooled2X2";
+};
+
+PoolingConn "S1ToS1MaxPooled2X2" = {
+#include "S1ToS1MaxPooled";
+  @postLayerName                       = "S1MaxPooled2X2";
+};
+
+
+HyPerConn "S3MaxPooled2X2ToGroundTruthReconS3Error2X2" = {
+#include "S3MaxPooledToGroundTruthReconS3Error";
+  @preLayerName                        = "S3MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS3Error2X2";
+  //@weightInitType                      = "FileWeight";
+  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S3MaxPooled2X2ToGroundTruthReconS3Error2X2_W.pvp";
+  @initWeightsFile                    = NULL;
+  @weightInitType                     = "UniformRandomWeight";
+  wMinInit                            = -0.0;
+  wMaxInit                            = 0.0;
+  sparseFraction                      = .90;
+};
+
+HyPerConn "S2MaxPooled2X2ToGroundTruthReconS2Error2X2" = {
+#include "S2MaxPooledToGroundTruthReconS2Error";
+  @preLayerName                        = "S2MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS2Error2X2";
+  //@weightInitType                      = "FileWeight";
+  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S2MaxPooled2X2ToGroundTruthReconS2Error2X2_W.pvp";
+  @initWeightsFile                    = NULL;
+  @weightInitType                     = "UniformRandomWeight";
+  wMinInit                            = -0.0;
+  wMaxInit                            = 0.0;
+  sparseFraction                      = .90;
+};
+
+HyPerConn "S1MaxPooled2X2ToGroundTruthReconS1Error2X2" = {
+#include "S1MaxPooledToGroundTruthReconS1Error";
+  @preLayerName                        = "S1MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS1Error2X2";
+  //@weightInitType                      = "FileWeight";
+  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S1MaxPooled2X2ToGroundTruthReconS1Error2X2_W.pvp";
+  @initWeightsFile                    = NULL;
+  @weightInitType                     = "UniformRandomWeight";
+  wMinInit                            = -0.0;
+  wMaxInit                            = 0.0;
+  sparseFraction                      = .90;
+};
+
+HyPerConn "S1MaxPooled2X2ToGroundTruthReconS1S2S3Error2X2" = {
+#include "S1MaxPooledToGroundTruthReconS1S2S3Error";
+  @preLayerName                        = "S1MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS1S2S3Error2X2";
+  //@weightInitType                      = "FileWeight";
+  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S1MaxPooled2X2ToGroundTruthReconS1S2S3Error2X2_W.pvp";
+  @initWeightsFile                     = NULL;
+  @weightInitType                      = "UniformRandomWeight";
+  wMinInit                             = -0.0;
+  wMaxInit                             = 0.0;
+};
+
+HyPerConn "S2MaxPooled2X2ToGroundTruthReconS1S2S3Error2X2" = {
+#include "S2MaxPooledToGroundTruthReconS1S2S3Error";
+  @preLayerName                        = "S2MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS1S2S3Error2X2";
+  //@weightInitType                      = "FileWeight";
+  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S2MaxPooled2X2ToGroundTruthReconS1S2S3Error2X2_W.pvp";
+  @initWeightsFile                     = NULL;
+  @weightInitType                      = "UniformRandomWeight";
+  wMinInit                             = -0.0;
+  wMaxInit                             = 0.0;
+};
+
+HyPerConn "S3MaxPooled2X2ToGroundTruthReconS1S2S3Error2X2" = {
+#include "S3MaxPooledToGroundTruthReconS1S2S3Error";
+  @preLayerName                        = "S3MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS1S2S3Error2X2";
+  //@weightInitType                      = "FileWeight";
+  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/S3MaxPooled2X2ToGroundTruthReconS1S2S3Error2X2_W.pvp";
+  @initWeightsFile                     = NULL;
+  @weightInitType                      = "UniformRandomWeight";
+  wMinInit                             = -0.0;
+  wMaxInit                             = 0.0;
+};
+
+HyPerConn "BiasS3ToGroundTruthReconS3Error2X2" = {
+#include "BiasS3ToGroundTruthReconS3Error";
+  @postLayerName                       = "GroundTruthReconS3Error2X2";
+  //@weightInitType                      = "FileWeight";
+  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/BiasS3ToGroundTruthReconS3Error2X2_W.pvp";
+  @initWeightsFile                     = NULL;
+  @weightInitType                      = "UniformRandomWeight";
+  wMinInit                             = -0.0;
+  wMaxInit                             = 0.0;
+};
+
+HyPerConn "BiasS2ToGroundTruthReconS2Error2X2" = {
+#include "BiasS2ToGroundTruthReconS2Error";
+  @postLayerName                       = "GroundTruthReconS2Error2X2";
+  //@weightInitType                      = "FileWeight";
+  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/BiasS2ToGroundTruthReconS2Error2X2_W.pvp";
+  @initWeightsFile                     = NULL;
+  @weightInitType                      = "UniformRandomWeight";
+  wMinInit                             = -0.0;
+  wMaxInit                             = 0.0;
+};
+
+HyPerConn "BiasS1ToGroundTruthReconS1Error2X2" = {
+#include "BiasS1ToGroundTruthReconS1Error";
+  @postLayerName                       = "GroundTruthReconS1Error2X2";
+  //@weightInitType                      = "FileWeight";
+  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/BiasS1ToGroundTruthReconS1Error2X2_W.pvp";
+  @initWeightsFile                     = NULL;
+  @weightInitType                      = "UniformRandomWeight";
+  wMinInit                             = -0.0;
+  wMaxInit                             = 0.0;
+};
+
+HyPerConn "BiasS1S2S3ToGroundTruthReconS1S2S3Error2X2" = {
+#include "BiasS1S2S3ToGroundTruthReconS1S2S3Error";
+  @postLayerName                       = "GroundTruthReconS1S2S3Error2X2";
+  //@weightInitType                      = "FileWeight";
+  //@initWeightsFile = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8/Checkpoints/Checkpoint59520000/BiasS1S2S3ToGroundTruthReconS1S2S3Error2X2_W.pvp";
+  @initWeightsFile                     = NULL;
+  @weightInitType                      = "UniformRandomWeight";
+  wMinInit                             = -0.0;
+  wMaxInit                             = 0.0;
+};
+
+CloneConn "S3MaxPooled2X2ToGroundTruthReconS32X2" = {
+#include "S3MaxPooledToGroundTruthReconS3";
+  @preLayerName                        = "S3MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS32X2";
+  @originalConnName                    = "S3MaxPooled2X2ToGroundTruthReconS3Error2X2";
+};
+
+CloneConn "S2MaxPooled2X2ToGroundTruthReconS22X2" = {
+#include "S2MaxPooledToGroundTruthReconS2";
+  @preLayerName                        = "S2MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS22X2";
+  @originalConnName                    = "S2MaxPooled2X2ToGroundTruthReconS2Error2X2";
+};
+
+CloneConn "S1MaxPooled2X2ToGroundTruthReconS12X2" = {
+#include "S1MaxPooledToGroundTruthReconS1";
+  @preLayerName                        = "S1MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS12X2";
+  @originalConnName                    = "S1MaxPooled2X2ToGroundTruthReconS1Error2X2";
+};
+
+CloneConn "S1MaxPooled2X2ToGroundTruthReconS1S2S32X2" = {
+#include "S1MaxPooledToGroundTruthReconS1S2S3";
+  @preLayerName                        = "S1MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS1S2S32X2";
+  @originalConnName                    = "S1MaxPooled2X2ToGroundTruthReconS1S2S3Error2X2";
+};
+
+CloneConn "S2MaxPooled2X2ToGroundTruthReconS1S2S32X2" = {
+#include "S2MaxPooledToGroundTruthReconS1S2S3";
+  @preLayerName                        = "S2MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS1S2S32X2";
+  @originalConnName                    = "S2MaxPooled2X2ToGroundTruthReconS1S2S3Error2X2";
+};
+
+CloneConn "S3MaxPooled2X2ToGroundTruthReconS1S2S32X2" = {
+#include "S3MaxPooledToGroundTruthReconS1S2S3";
+  @preLayerName                        = "S3MaxPooled2X2";
+  @postLayerName                       = "GroundTruthReconS1S2S32X2";
+  @originalConnName                    = "S3MaxPooled2X2ToGroundTruthReconS1S2S3Error2X2";
+};
+
+CloneConn "BiasS3ToGroundTruthReconS32X2" = {
+#include "BiasS3ToGroundTruthReconS3";
+  @postLayerName                       = "GroundTruthReconS32X2";
+  @originalConnName                    = "BiasS3ToGroundTruthReconS3Error2X2";
+};
+
+CloneConn "BiasS2ToGroundTruthReconS22X2" = {
+#include "BiasS2ToGroundTruthReconS2";
+  @preLayerName                        = "BiasS2";
+  @postLayerName                       = "GroundTruthReconS22X2";
+  @originalConnName                    = "BiasS2ToGroundTruthReconS2Error2X2";
+};
+
+CloneConn "BiasS1ToGroundTruthReconS12X2" = {
+#include "BiasS1ToGroundTruthReconS1";
+  @postLayerName                       = "GroundTruthReconS12X2";
+  @originalConnName                    = "BiasS1ToGroundTruthReconS1Error2X2";
+};
+
+CloneConn "BiasS1S2S3ToGroundTruthReconS1S2S32X2" = {
+#include "BiasS1S2S3ToGroundTruthReconS1S2S3";
+  @postLayerName                       = "GroundTruthReconS1S2S32X2";
+  @originalConnName                    = "BiasS1S2S3ToGroundTruthReconS1S2S3Error2X2";
+};
+
+IdentConn "GroundTruthReconS32X2ToGroundTruthReconS3Error2X2" = {
+    preLayerName                        = "GroundTruthReconS32X2";
+    postLayerName                       = "GroundTruthReconS3Error2X2";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+};
+
+IdentConn "GroundTruthReconS22X2ToGroundTruthReconS2Error2X2" = {
+    preLayerName                        = "GroundTruthReconS22X2";
+    postLayerName                       = "GroundTruthReconS2Error2X2";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+};
+
+IdentConn "GroundTruthReconS12X2ToGroundTruthReconS1Error2X2" = {
+    preLayerName                        = "GroundTruthReconS12X2";
+    postLayerName                       = "GroundTruthReconS1Error2X2";
+    channelCode                         = 1;
+    delay                               = [0.000000];
+    initWeightsFile                     = NULL;
+    writeStep                           = -1;
+};
+
+IdentConn "GroundTruthReconS1S2S32X2ToGroundTruthReconS1S2S3Error2X2" = {
+    preLayerName                        = "GroundTruthReconS1S2S32X2";
+    postLayerName                       = "GroundTruthReconS1S2S3Error2X2";
     channelCode                         = 1;
     delay                               = [0.000000];
     initWeightsFile                     = NULL;
