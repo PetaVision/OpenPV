@@ -149,12 +149,12 @@ BinningLayer "DepthGT" = {
     restart = 0;
     nxScale = .25; 
     nyScale = .25;
-    nf = 128; //3 pixel error allowed, we may need to change this 
+    nf = 128;
     writeStep = -1.0;
     initialWriteTime = 1.0;
     mirrorBCflag = false;
     writeSparseActivity = false;
-    binMax = 1;
+    binMax = 1; //taking only first 256 values
     binMin = 0;
     binSigma = 3;
     InitVType = "ZeroV";
@@ -165,61 +165,6 @@ BinningLayer "DepthGT" = {
     originalLayerName = "DepthDownsample";
     phase = 2;
 };
-
-////SLP layers
-//ANNLayer "SLP_Error" = {
-//    nxScale                             = 0.5;
-//    nyScale                             = 0.5;
-//    nf                                  = 128;
-//    phase                               = 3;
-//    mirrorBCflag                        = false;
-//    valueBC                             = 0;
-//    InitVType                           = "ZeroV";
-//    triggerFlag                         = false;
-//    writeStep                           = 1;
-//    initialWriteTime                    = 1;
-//    sparseLayer                         = false;
-//    updateGpu                           = false;
-//    VThresh                             = -3.40282e+38;
-//    AMin                                = -3.40282e+38;
-//    AMax                                = 3.40282e+38;
-//    AShift                              = 0;
-//    VWidth                              = 0;
-//};
-//
-//ANNLayer "SLP_Recon_Buffer" = {
-//    nxScale                             = 0.5;
-//    nyScale                             = 0.5;
-//    nf                                  = 128;
-//    phase                               = 4;
-//    mirrorBCflag                        = false;
-//    valueBC                             = 0;
-//    InitVType                           = "ZeroV";
-//    triggerFlag                         = false;
-//    writeStep                           = -1;
-//    initialWriteTime                    = -1;
-//    sparseLayer                         = false;
-//    updateGpu                           = false;
-//    VThresh                             = -3.40282e+38;
-//    AMin                                = -3.40282e+38;
-//    AMax                                = 3.40282e+38;
-//    AShift                              = 0;
-//    VWidth                              = 0;
-//};
-//
-//WTALayer "SLP_Recon" = {
-//    restart = 0;
-//    nxScale = .5; 
-//    nyScale = .5;
-//    nf = 1; 
-//    writeStep = 1.0;
-//    initialWriteTime = 1.0;
-//    mirrorBCflag = false;
-//    writeSparseActivity = false;
-//    delay = 0;
-//    originalLayerName = "SLP_Recon_Buffer";
-//    phase = 5;
-//};
 
 KernelConn "RELU_V1ToLeftRecon" = {
     preLayerName = "RELU_V1";
@@ -264,7 +209,8 @@ KernelConn "RELU_V1ToLeftRecon" = {
     delay = 0;
     //
     useWindowPost = false;
-    updateGSynFromPostPerspective = false;
+    updateGSynFromPostPerspective = true;
+    receiveGpu                    = true;
     pvpatchAccumulateType = "convolve";
 };
 
@@ -317,7 +263,6 @@ MomentumConn "RELU_V1ToDepthGT" = {
     channelCode = -1;
     nxp = 33;
     nyp = 33;
-    nfp = 128;
     shrinkPatches = false;
     //
     numAxonalArbors = 1;
@@ -361,6 +306,7 @@ MomentumConn "RELU_V1ToDepthGT" = {
     delay = 0;
     //
     useWindowPost = false;
+    receiveGpu                    = false;
     updateGSynFromPostPerspective = false;
     pvpatchAccumulateType = "convolve";
 
@@ -370,60 +316,4 @@ MomentumConn "RELU_V1ToDepthGT" = {
     batchPeriod = 100;
     sharedWeights = true;
 };
-
-////SLP Connections
-//HyPerConn "ICA_V1ToSLP_Error" = {
-//   preLayerName                        = "ICA_V1";
-//   postLayerName                       = "SLP_Error";
-//   channelCode                         = 1;
-//   delay                               = 0.000000;
-//   numAxonalArbors                     = 1;
-//   plasticityFlag                      = true;
-//   convertRateToSpikeCount             = false;
-//   receiveGpu                          = false;
-//   sharedWeights                       = false;
-//   weightInitType                      = "UniformRandomWeight";
-//   // initWeightsFile                     was set to (NULL);
-//   wMinInit                            = -0.01;
-//   wMaxInit                            = 0.01;
-//   sparseFraction                      = 0.9;
-//   triggerFlag                         = false;
-//   weightUpdatePeriod                  = 1;
-//   initialWeightUpdateTime             = 0;
-//   updateGSynFromPostPerspective       = false;
-//   pvpatchAccumulateType               = "convolve";
-//   writeStep                           = -1;
-//   writeCompressedCheckpoints          = false;
-//   selfFlag                            = false;
-//   combine_dW_with_W_flag              = false;
-//   nxp                                 = 66;
-//   nyp                                 = 66;
-//   shrinkPatches                       = false;
-//   normalizeMethod                     = "none";
-//   dWMax                               = 0.01;
-//   useMask                             = false;
-//};
-//
-//IdentConn "DepthGTToSLP_Error" = {
-//   preLayerName                        = "DepthGT";
-//   postLayerName                       = "SLP_Error";
-//   channelCode                         = 0;
-//   delay                               = [0.000000];
-//   // initWeightsFile                     was set to (NULL);
-//   writeStep                           = -1;
-//};
-//
-//CloneConn "ICA_V1ToSLP_Recon_Buffer" = {
-//    preLayerName = "ICA_V1";
-//    postLayerName = "SLP_Recon_Buffer";
-//    channelCode = 0;
-//    writeStep = -1;
-//    originalConnName = "ICA_V1ToSLP_Error";
-//    selfFlag = false;
-//    delay = 0;
-//    preActivityIsNotRate = false;
-//    useWindowPost = false;
-//    updateGSynFromPostPerspective = false;
-//    pvpatchAccumulateType = "convolve";
-//};
 

@@ -203,7 +203,7 @@ function [Recon_hdr, ...
 	box off; axis off; axis image;
 	saveas(Recon_fig(i_Recon, i_frame), ...
 	       [Recon_dir, filesep, Recon_fig_name{i_Recon}, ".png"], "png");
-	if num_Recon_list > 10
+	if num_Recon_list > 20
 	  close(Recon_fig(i_Recon, i_frame));
 	endif
       else

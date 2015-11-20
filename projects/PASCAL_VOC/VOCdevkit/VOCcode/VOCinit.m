@@ -22,7 +22,16 @@ endif
 % get current directory with forward slashes
 
 %cwd=cd;
-cwd = '/Users/garkenyon/workspace/PASCAL_VOC';
+%cwd = '/Users/garkenyon/workspace/PASCAL_VOC';
+if ~exist('VOCdevkit_path') || ~exist(VOCdevkit_path) 
+  cwd = pwd;
+else
+  current_dir = pwd;
+  chdir(VOCdevkit_path);
+  cd ..
+  cwd = pwd;
+endif
+
 cwd(cwd=='\')='/';
 
 % change this path to point to your copy of the PASCAL VOC data

@@ -133,6 +133,7 @@ add_subdirectory(ConvertToGrayscaleTest)
 add_subdirectory(CopyConnTest)
 add_subdirectory(DatastoreDelayTest)
 add_subdirectory(DelaysToFeaturesTest)
+add_subdirectory(DtAdaptControllerTest)
 add_subdirectory(GenericSystemTest)
 
 if (PV_USE_CUDA OR PV_USE_OPENCL)
@@ -191,6 +192,7 @@ add_subdirectory(test_patch_head)
 add_subdirectory(test_post_weights)
 add_subdirectory(test_read_header)
 add_subdirectory(test_sign)
+add_subdirectory(TotalEnergyTest)
 add_subdirectory(TransposeConnTest)
 add_subdirectory(TransposeHyPerConnTest)
 add_subdirectory(TriggerTest)
@@ -338,6 +340,12 @@ AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName DelaysToFeaturesTest) #The base name of the test
 set(testParams test_delays) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+
+set(testBaseName DtAdaptControllerTest) #The base name of the test
+set(testParams ) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
@@ -661,6 +669,12 @@ AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 set(testBaseName TriggerTest) #The base name of the test
 set(testParams TriggerTest) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+
+set(testBaseName TotalEnergyTest) #The base name of the test
+set(testParams TotalEnergyTest) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -c checkpoints/Checkpoint6 --testall -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 

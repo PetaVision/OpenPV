@@ -545,10 +545,11 @@ double Movie::getDeltaUpdateTime(){
    return displayPeriod;
 }
 
-  // ensure that timeScale == 1 if new frame being loaded on NEXT time step
+  // ensure that timeScale == 1 if new frame being loaded on current time step
+  // (note: this used to add getDeltaTime to simulationTime, but calcTimeScale is now called after simulationTime is incremented. -pfs 2015-11-05)
   
 double Movie::calcTimeScale(int batchIdx){
-    if(needUpdate(parent->simulationTime() + parent->getDeltaTime(), parent->getDeltaTime())){
+    if(needUpdate(parent->simulationTime(), parent->getDeltaTime())){
       return parent->getTimeScaleMin(); 
     }
     else{

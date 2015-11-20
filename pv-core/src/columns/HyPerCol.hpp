@@ -250,6 +250,18 @@ private:
     * The ColProbe's vectorSize (returned by getVectorSize()) must be the same as the HyPerCol's nBatch parameter.
     */
    virtual void ioParam_dtAdaptController(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerLayer: The name of a HyPerLayer that resets the adaptive time step scheme when it triggers.
+    */
+   virtual void ioParam_dtAdaptTriggerLayerName(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief triggerOffset: If triggerLayer is set, triggers <triggerOffset> timesteps before target trigger
+    * @details Defaults to 0
+    */
+   virtual void ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag);
+
    /**
     * @brief dtScaleMax: If dtAdaptFlag is set, specifies the maximum timescale allowed
     */
@@ -493,6 +505,10 @@ private:
    bool   dtAdaptFlag;      // turns adaptive time step on/off
    char * dtAdaptController;       // If nonblank, the name of a ColProbe whose getValues() method is called to control timeScale
    ColProbe * dtAdaptControlProbe; // If dtAdaptFlag is on, dtAdaptControlProbe->getValues() is used to control timeScale.  If blank, use the original method
+   char * dtAdaptTriggerLayerName;
+   HyPerLayer * dtAdaptTriggerLayer;
+   double dtAdaptTriggerOffset;
+   
    double deltaTimeBase;    // base time step interval if dtAdaptFlag == true, timeScale is applied to this value
    double * timeScale;        // scale factor for deltaTimeBase, deltaTime = timeScale*deltaTimeBase
    double * timeScaleTrue;    // true timeScale returned by min(HyPerLayer::getTimeScale) before MIN/MAX/CHANGE constraints applied
