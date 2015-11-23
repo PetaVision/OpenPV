@@ -8,62 +8,76 @@
 close all
 more off
 pkg load all
-setenv("GNUTERM","X11")
-addpath("/nh/compneuro/Data/openpv/pv-core/mlab/imgProc");
-addpath("/nh/compneuro/Data/openpv/pv-core/mlab/util");
-addpath("/nh/compneuro/Data/openpv/pv-core/mlab/HyPerLCA");
+%%setenv("GNUTERM","X11")
+if exist("/Users/gkenyon/openpv/pv-core/mlab")
+  mlab_path = "/Users/gkenyon/openpv/pv-core/mlab";
+elseif exist("/nh/compneuro/Data/openpv/pv-core/mlab")
+  mlab_path = "/nh/compneuro/Data/openpv/pv-core/mlab";
+elseif exist("/home/ec2-user/mountData/openpv/pv-core/mlab")
+  mlab_path = "/nh/compneuro/Data/openpv/pv-core/mlab";
+endif
+addpath([mlab_path, filesep, "imgProc"]);
+addpath([mlab_path, filesep, "util"]);
+addpath([mlab_path, filesep, "HyPerLCA"]);
 
 plot_flag = true;
 
-run_type = "DCA";
+if exist("/Volumes/mountData")
+  data_path = "/Volumes/mountData";
+elseif exist("/nh/compneuro/Data")
+  data_path = "/nh/compneuro/Data";
+elseif exist("/home/ec2-user/mountData")
+  data_path = "/home/ec2-user/mountData";
+endif
+
+%%run_type = "DCA";
+run_type = "ICA"
 %%run_type = "DCA_Vine";
 %%run_type = "MaxPool"
 %%run_type = "S1S2";
 if strcmp(run_type, "S1S2")
-  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape27";
+  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape27"];
+elseif strcmp(run_type, "ICA")
+  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape7_S1_Movie2"];
 elseif strcmp(run_type, "DCA")
-  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape8";
+  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape8"];
 elseif strcmp(run_type, "DCA_Vine")
-  %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/PASCAL_Vine1";
-  output_dir = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/PASCAL_Vine1";
+  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/PASCAL_Vine1"];
 elseif strcmp(run_type, "MaxPool")
-  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape10";
+  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape10"];
 endif
 
 %%draw reconstructed image
-Recon_flag = false
+mkdir([output_dir, filesep, "Recon"])
+Recon_flag = true && any(glob([output_dir, filesep, "Image.pvp"]))
 if Recon_flag 
-DoG_weights = [];
-if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "MaxPool")
-  Recon_list = {["a0_"],  ["Image"]};
-else
-  Recon_list = {[""],  ["Image"]};
-endif
-%% list of layers to unwhiten
-num_Recon_list = size(Recon_list,1);
-Recon_unwhiten_list = zeros(num_Recon_list,1);
-%% list of layers to use as a normalization reference for unwhitening
-Recon_normalize_list = 1:num_Recon_list;
-%% list of (previous) layers to sum with current layer
-Recon_sum_list = cell(num_Recon_list,1);
-num_Recon_frames_per_layer = 1;
-Recon_LIFO_flag = true;
-[Recon_hdr, Recon_fig,  Recon_fig_name, Recon_vals,  Recon_time, Recon_mean,  Recon_std] = analyzeUnwhitenedReconPVP(Recon_list, num_Recon_frames_per_layer, output_dir, plot_flag, Recon_sum_list, Recon_LIFO_flag);
-drawnow;
+  DoG_weights = [];
+  if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "MaxPool") || strcmp(run_type, "ICA") || strcmp(run_type, "DCA")
+    Recon_list = {[""],  ["Image"]};
+  else
+    Recon_list = {[""],  ["Image"]};
+  endif
+  %% list of layers to unwhiten
+  num_Recon_list = size(Recon_list,1);
+  Recon_unwhiten_list = zeros(num_Recon_list,1);
+  %% list of layers to use as a normalization reference for unwhitening
+  Recon_normalize_list = 1:num_Recon_list;
+  %% list of (previous) layers to sum with current layer
+  Recon_sum_list = cell(num_Recon_list,1);
+  num_Recon_frames_per_layer = 1;
+  Recon_LIFO_flag = true;
+  [Recon_hdr, Recon_fig,  Recon_fig_name, Recon_vals,  Recon_time, Recon_mean,  Recon_std] = analyzeUnwhitenedReconPVP(Recon_list, num_Recon_frames_per_layer, output_dir, plot_flag, Recon_sum_list, Recon_LIFO_flag);
+  drawnow;
 endif
 
 %% sparse activity
-if strcmp(run_type, "S1S2") 
-  Sparse_list ={["a13_"], ["GroundTruth"]}; 
-elseif strcmp(run_type, "DCA")
+if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "MaxPool") || strcmp(run_type, "ICA") || strcmp(run_type, "DCA")
   Sparse_list ={[""], ["GroundTruth"]}; 
-%%elseif strcmp(run_type, "DCA_Vine")
-%%  Sparse_list ={["a16_"], ["GroundTruth"]}; 
-elseif strcmp(run_type, "MaxPool")
-  Sparse_list ={["a25_"], ["GroundTruth"]}; 
+else
+  Sparse_list ={[""], ["GroundTruth"]}; 
 endif
 fraction_Sparse_frames_read = 10;
-min_Sparse_skip = 7000000;
+min_Sparse_skip = 79580-7958;
 fraction_Sparse_progress = 10;
 num_epochs = 1;
 num_procs = 1;
@@ -79,12 +93,22 @@ endif
 %% Error vs time
 if strcmp(run_type, "DCA")
   nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS2Error"]; [""], ["GroundTruthReconS3Error"]; [""], ["GroundTruthReconS1S2S3Error"]}; 
-  Sparse_std_ndx = [1 1 1 1]; %% 
+  Sparse_std_ndx = [1 1 1 1]; %%
+elseif strcmp(run_type, "ICA")
+  nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS1Error2X2"]; [""], ["GroundTruthReconS1Error4X4"]};
+  Sparse_std_ndx = [1 1]; %%
+else
+  nonSparse_list = {[""], ["GroundTruthReconS1Error"]};
+  Sparse_std_ndx = [1]; %%
 endif
 num_nonSparse_list = size(nonSparse_list,1);
 nonSparse_skip = repmat(1, num_nonSparse_list, 1);
 if strcmp(run_type, "DCA")
-  nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]}; 
+  nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]};
+elseif strcmp(run_type, "ICA")
+  nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]};
+else
+  nonSparse_norm_list = {[""], ["GroundTruth"]};
 endif
 nonSparse_norm_strength = ones(num_nonSparse_list,1);
 fraction_nonSparse_frames_read = 1;
@@ -100,28 +124,28 @@ drawnow;
 				%pause;
 
 classes ={ ...
-	 'background'
-         'aeroplane'
-         'bicycle'
-         'bird'
-         'boat'
-         'bottle'
-         'bus'
-         'car'
-         'cat'
-         'chair'
-         'cow'
-         'diningtable'
-         'dog'
-         'horse'
-         'motorbike'
-         'person'
-         'pottedplant'
-         'sheep'
-         'sofa'
-         'train'
-         'tvmonitor'};
-JIEDDO_class_ndx = [2:numel(classes)]; %%[2 6 7 14 15 19]+1;
+	   'background'
+           'aeroplane'
+           'bicycle'
+           'bird'
+           'boat'
+           'bottle'
+           'bus'
+           'car'
+           'cat'
+           'chair'
+           'cow'
+           'diningtable'
+           'dog'
+           'horse'
+           'motorbike'
+           'person'
+           'pottedplant'
+           'sheep'
+           'sofa'
+           'train'
+           'tvmonitor'};
+JIEDDO_class_ndx = [1:numel(classes)]; %%[2 6 7 14 15 19]+1;
 JIEDDO_classes = classes(JIEDDO_class_ndx)
 if strcmp(run_type, "DCA_Vine")
   classes = classes(2:numel(classes));
@@ -134,35 +158,47 @@ if strcmp(run_type, "DCA") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "
   i_scale_list = 1 : 4;
 elseif strcmp(run_type, "S1S2") 
   i_scale_list = 1 : 3;
+elseif strcmp(run_type, "ICA") 
+  i_scale_list = 1 : 3;
+else
+  i_scale_list = 1;
 endif
 
 for i_scale = i_scale_list 
   if strcmp(run_type, "DCA")
     gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
+  else
+    gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
   endif
   if i_scale == 1
     if strcmp(run_type, "DCA")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
+    else
       pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
     endif
   elseif i_scale == 2
     if strcmp(run_type, "DCA")
       pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS2.pvp"])
+    elseif strcmp(run_type, "ICA")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS12X2.pvp"])
     elseif strcmp(run_type, "DCA_Vine")
       pred_classID_file = fullfile([output_dir, filesep, "a22_GroundTruthReconS2.pvp"])
     elseif strcmp(run_type, "MaxPool")
       pred_classID_file = fullfile([output_dir, filesep, "a31_GroundTruthReconS2.pvp"])
     elseif strcmp(run_type, "S1S2")
-      pred_classID_file = fullfile([output_dir, filesep, "a15_GroundTruthReconS2.pvp"])
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS2.pvp"])
     endif
   elseif i_scale == 3
     if strcmp(run_type, "DCA")
       pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS3.pvp"])
+    elseif strcmp(run_type, "ICA")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS14X4.pvp"])
     elseif strcmp(run_type, "DCA_Vine")
       pred_classID_file = fullfile([output_dir, filesep, "a18_GroundTruthReconS3.pvp"])
     elseif strcmp(run_type, "MaxPool")
       pred_classID_file = fullfile([output_dir, filesep, "a27_GroundTruthReconS3.pvp"])
     elseif strcmp(run_type, "S1S2")
-      pred_classID_file = fullfile([output_dir, filesep, "a23_GroundTruthReconS1S2.pvp"])
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1S2.pvp"])
     endif
   elseif i_scale == 4
     if strcmp(run_type, "DCA")
@@ -185,8 +221,8 @@ for i_scale = i_scale_list
   tot_gt_classID_frames = gt_classID_hdr.nbands;
   [gt_data,gt_hdr] = readpvpfile(gt_classID_file, ceil(tot_gt_classID_frames/1), tot_gt_classID_frames, 1, 1); 
   %%[imageRecon_data,imageRecon_hdr] = readpvpfile(imageRecon_file); 
-				%true_num_neurons = true_hdr.nf * true_hdr.nx * true_hdr.ny;
-				%true_num_frames = length(true_data);
+  %true_num_neurons = true_hdr.nf * true_hdr.nx * true_hdr.ny;
+  %true_num_frames = length(true_data);
   pred_num_neurons = pred_hdr.nf * pred_hdr.nx * pred_hdr.ny;
   pred_num_frames = length(pred_data);
   last_pred_time = pred_data{pred_num_frames}.time;
@@ -233,6 +269,7 @@ for i_scale = i_scale_list
 	if ~any(any(gt_classID_cube(:,:,i_classID)))
 	  continue;
 	endif
+    disp(["ground truth objects include ", JIEDDO_classes{i_classID}]);
 	gt_class_color = classID_colormap(i_JIEDDO_classID, :); %%getClassColor(gt_class_color_code);
 	gt_classID_band = repmat(gt_classID_cube(:,:,i_classID), [1,1,3]);
 	gt_classID_band(:,:,1) = gt_classID_band(:,:,1) * gt_class_color(1)*255;
@@ -312,48 +349,31 @@ for i_scale = i_scale_list
       std_pred_classID = std(pred_classID_val(:))
       pred_classID_thresh = reshape(pred_classID_thresh, [1,1, length(JIEDDO_class_ndx)]);
       pred_classID_mask = double(JIEDDO_classID_cube >= repmat(pred_classID_thresh, [pred_hdr.ny, pred_hdr.nx, 1]));
-      pred_classID_confidences = cell(length(JIEDDO_class_ndx), 1);
-
-
-	
-	classID_bin_width = (classID_hist_bins(end) - classID_hist_bins(1)) / length(classID_hist_bins);
-	pred_classID_max_confidence = squeeze(max(squeeze(max(target_classID_cube, [], 2)), [], 1));
-	pred_classID_max_confidence_bin = ceil((pred_classID_max_confidence - classID_hist_bins(1)) ./ classID_bin_width);
-	pred_classID_max_confidence_bin = min(pred_classID_max_confidence_bin, classID_hist_bins(end));
-	pred_classID_max_confidence_bin = max(pred_classID_max_confidence_bin, classID_hist_bins(1));
-	pred_classID_max_confidence = ...
-	(1 - pred_classID_cumprob(pred_classID_max_confidence_bin,:,1)) ./ ...
-	((1 - pred_classID_cumprob(pred_classID_max_confidence_bin,:,1)) + (1 - pred_classID_cumprob(pred_classID_max_confidence_bin,:,2)));
-	
-	[pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
-	target_confidences = cell(length(target_class_indices),1);
-	for i_target_classID = 1 : length(JIEDDO_class_ndx)
-	  target_confidences{i_target_classID, 1} = [target_classes{pred_classID_sorted_ndx(i_target_classID)}, ...
-						     ', ', 'confidence = ', num2str(pred_classID_sorted_confidence(i_target_classID)), ...
-						     ', ', 'thresh = ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_target_classID))), ...
-						     ', ', 'accuracy = ', num2str(pred_classID_accuracy(pred_classID_sorted_ndx(i_target_classID))), ...
-						     ', ', 'true_pos = ', num2str(pred_classID_true_pos(pred_classID_sorted_ndx(i_target_classID))), ...
-						     ', ', 'true_neg = ', num2str(pred_classID_false_pos(pred_classID_sorted_ndx(i_target_classID)))];
+      %%pred_classID_confidences = cell(length(JIEDDO_class_ndx), 1);
       
-      %%pred_classID_max_confidence = squeeze(max(squeeze(max(JIEDDO_classID_cube, [], 2)), [], 1));
-      %%%% confidence is measured as a percentage relative to threshold
-      %%%%   scaled by the residual hit rate relative to the false alarm rate
-      %%pred_classID_max_percent_confidence = (pred_classID_max_confidence(:) - pred_classID_thresh(:)) ./ (pred_classID_thresh(:) + (pred_classID_thresh(:)==0));
-      %%pred_classID_relative_accuracy = ((pred_classID_true_pos(:) - (1-false_positive_thresh)) ./ (1-pred_classID_false_pos(:)));
-      %%pred_classID_max_confidence = pred_classID_max_percent_confidence;
-      %%%%pred_classID_max_confidence = ((pred_classID_true_pos(:) - (1-pred_classID_false_pos(:))) ./ (1-pred_classID_false_pos(:))) .* (pred_classID_max_confidence(:) - pred_classID_thresh(:)) ./ (pred_classID_max_confidence(:) + pred_classID_thresh(:));
-      %%[pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
-      %%JIEDDO_confidences = cell(length(JIEDDO_class_ndx),1);
+      classID_bin_width = (classID_hist_bins(end) - classID_hist_bins(1)) / length(classID_hist_bins);
+      pred_classID_max = squeeze(max(squeeze(max(pred_classID_cube, [], 2)), [], 1));
+      pred_classID_max_bin = ceil((pred_classID_max - classID_hist_bins(1)) ./ classID_bin_width);
+      pred_classID_max_bin = min(pred_classID_max_bin, num_classID_bins);
+      pred_classID_max_bin = max(pred_classID_max_bin, 1);
+      pred_classID_max_confidence = zeros(size(pred_classID_max));
+      for i_JIEDDO_classID = 1 : length(JIEDDO_class_ndx)
+      pred_classID_max_confidence(i_JIEDDO_classID) = ...
+      (1 - pred_classID_cumprob(pred_classID_max_bin(i_JIEDDO_classID), i_JIEDDO_classID,1)) ./ ...
+      ((1 - pred_classID_cumprob(pred_classID_max_bin(i_JIEDDO_classID), i_JIEDDO_classID,1)) + ...
+      (1 - pred_classID_cumprob(pred_classID_max_bin(i_JIEDDO_classID), i_JIEDDO_classID,2)));
+      endfor
       
-%%i_JIEDDO_classID = 0;
-%%for i_classID = JIEDDO_class_ndx %%1 : pred_hdr.nf
-%%	i_JIEDDO_classID = i_JIEDDO_classID + 1;
-%%	JIEDDO_confidences{i_JIEDDO_classID, 1} = [JIEDDO_classes{pred_classID_sorted_ndx(i_JIEDDO_classID)}, ...
-%%						   ', ', num2str(pred_classID_sorted_confidence(i_JIEDDO_classID)), ...
-%%						   ', ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
-%%						   ', ', num2str(pred_classID_accuracy(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
-%%						   ', ', num2str(pred_classID_true_pos(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
-%%						   ', ', num2str(pred_classID_false_pos(pred_classID_sorted_ndx(i_JIEDDO_classID)))];
+      [pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
+      JIEDDO_confidences = cell(length(JIEDDO_class_ndx),1);
+      for i_JIEDDO_classID = 1 : length(JIEDDO_class_ndx)
+	JIEDDO_confidences{i_JIEDDO_classID, 1} = [JIEDDO_classes{pred_classID_sorted_ndx(i_JIEDDO_classID)}, ...
+						   ', ', 'confidence = ', num2str(pred_classID_sorted_confidence(i_JIEDDO_classID)), ...
+						   ', ', 'thresh = ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+						   ', ', 'accuracy = ', num2str(pred_classID_accuracy(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+						   ', ', 'true_pos = ', num2str(pred_classID_true_pos(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+						   ', ', 'true_neg = ', num2str(pred_classID_false_pos(pred_classID_sorted_ndx(i_JIEDDO_classID)))];
+	
       endfor
       if plot_flag
 	pred_classID_heatmap = zeros(pred_hdr.ny, pred_hdr.nx, 3);
@@ -366,6 +386,7 @@ for i_scale = i_scale_list
 	  if ~any(pred_classID_mask(:,:,i_JIEDDO_classID))
 	    continue;
 	  endif
+    disp(["predicted objects include ", JIEDDO_classes{i_classID}]);
 	  if i_JIEDDO_classID ~= pred_classID_sorted_ndx(1)
 	    %%continue;
 	  endif
@@ -389,8 +410,8 @@ for i_scale = i_scale_list
       endif %% plot_flag
       imwrite(uint8(pred_classID_heatmap), [output_dir, filesep, 'Recon', filesep, "pred_", num2str(pred_time, "%i"), "_", num2str(i_scale), '.png'], 'png');
       disp(JIEDDO_confidences)
-				%disp([pred_classID_true_pos; pred_classID_false_pos])
-				%keyboard
+		%disp([pred_classID_true_pos; pred_classID_false_pos])
+		%keyboard
     endif  %% pred_time == Recon_time
 
     if plot_flag && i_frame == min(pred_num_frames, gt_num_frames)
