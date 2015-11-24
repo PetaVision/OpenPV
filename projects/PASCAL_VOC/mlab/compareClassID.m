@@ -96,7 +96,7 @@ if strcmp(run_type, "DCA")
   Sparse_std_ndx = [1 1 1 1]; %%
 elseif strcmp(run_type, "ICA")
   nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS1Error2X2"]; [""], ["GroundTruthReconS1Error4X4"]};
-  Sparse_std_ndx = [1 1]; %%
+  Sparse_std_ndx = [1 1 1]; %%
 else
   nonSparse_list = {[""], ["GroundTruthReconS1Error"]};
   Sparse_std_ndx = [1]; %%
