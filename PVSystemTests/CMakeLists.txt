@@ -91,11 +91,11 @@ endmacro(AddPVTest)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
 
-if(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
+if("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
    #Do nothing, correct
-else(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
-   message(FATAL_ERROR "PV_SYSTEM_TEST_THREADS must be a positive integer")
-endif(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
+else("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
+   message(FATAL_ERROR "PV_SYSTEM_TEST_THREADS must be either a positive integer or the empty string")
+endif("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
 
 IF(PV_USE_CUDA AND PV_USE_OPENCL)
    message(FATAL_ERROR "PV_USE_CUDA and PV_USE_OPENCL cannot both be true")

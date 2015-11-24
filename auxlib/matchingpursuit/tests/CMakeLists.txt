@@ -80,11 +80,11 @@ set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
 set(PV_OPENMP_COMPILER_FLAG "-fopenmp" CACHE STRING "Compiler flag for compiling with OpenMP")
 
 
-if(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
+if("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
    #Do nothing, correct
-else(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
+else("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
    message(FATAL_ERROR "PV_SYSTEM_TEST_THREADS must be a positive integer")
-endif(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
+endif("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
 
 IF(PV_USE_CUDA AND PV_USE_OPENCL)
    message(FATAL_ERROR "PV_USE_CUDA and PV_USE_OPENCL cannot both be true")

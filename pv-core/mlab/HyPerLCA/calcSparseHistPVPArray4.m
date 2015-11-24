@@ -1,0 +1,86 @@
+function ...
+  [Sparse_time, ...
+   hist_pool, ...
+   max_pool, ...
+   mean_pool, ...
+   max_pool2X2, ...
+   mean_pool2X2, ...
+   max_pool4X4, ...
+   mean_pool4X4] = ...
+  calcSparseHistPVPArray4(Sparse_struct, ...
+			 nx_full, ny_full, nf_full, ...
+			 nx_GT, ny_GT, ...
+			 min_val, max_val, mean_val, std_val, median_val, num_bins)
+  
+  if isempty(Sparse_struct.values) 
+    hist_pool = nan;
+    return;
+  endif
+  
+  Sparse_time = squeeze(Sparse_struct.time);
+  size_values = size(Sparse_struct.values);
+  n_sparse = nx_full * ny_full * nf_full;
+  full_vals = squeeze(Sparse_struct.values);
+  if numel(size_values) <= 2  %% convert to full
+    Sparse_active_ndx = full_vals(:,1);
+    num_active = numel(Sparse_active_ndx);
+    if columns(full_vals) == 2
+      Sparse_active_vals = full_vals(:,2);
+    else
+      Sparse_active_vals = ones(size(Sparse_active_ndx),1);
+    endif
+    f_index_active = mod(Sparse_active_ndx, nf_full) + 1;
+    x_index_active = mod(floor(Sparse_active_ndx / nf_full), nx_full) + 1;
+    y_index_active = mod(floor(Sparse_active_ndx / (nf_full*nx_full)), ny_full) + 1;
+    full_vals = zeros(ny_full, nx_full, nf_full);
+    linear_active = sub2ind([ny_full, nx_full, nf_full], y_index_active(:), x_index_active(:), f_index_active(:));
+    full_vals(linear_active(:)) = Sparse_active_vals(:);
+  else
+    full_vals = permute(full_vals, [2,1,3]);
+  endif
+
+  %% need to map activity so that each column contains all the activations for a given feature within one GT output tile
+  hist_pool = [];
+  if num_bins > 3
+    halfstep_ratio = (max_val/median_val)^(1/(num_bins-3));
+    hist_centers = [0, min_val, median_val * halfstep_ratio.^([0:num_bins-3])];  
+    hist_pool = zeros(num_bins, nf_full, ny_GT, nx_GT);
+  endif
+  max_pool = zeros(nf_full, ny_GT, nx_GT);
+  mean_pool = zeros(nf_full, ny_GT, nx_GT);
+  max_pool2X2 = zeros(2, 2, nf_full, ny_GT, nx_GT);
+  mean_pool2X2 = zeros(2, 2, nf_full, ny_GT, nx_GT);
+  max_pool4X4 = zeros(4, 4, nf_full, ny_GT, nx_GT);
+  mean_pool4X4 = zeros(4, 4, nf_full, ny_GT, nx_GT);
+  x_GT_size = floor(nx_full / nx_GT);
+  y_GT_size = floor(ny_full / ny_GT);
+  for j_yGT = 1 : ny_GT
+    for i_xGT = 1 : nx_GT
+      GT_vals3D = full_vals((j_yGT-1)*y_GT_size+1:j_yGT*y_GT_size, (i_xGT-1)*x_GT_size+1:i_xGT*x_GT_size, :);
+      GT_vals3D_2X2 = reshape(GT_vals3D, [y_GT_size/2, 2, x_GT_size/2, 2, nf_full]);
+      GT_vals3D_4X4 = reshape(GT_vals3D, [y_GT_size/4, 4, x_GT_size/4, 4, nf_full]);
+      GT_vals2D = reshape(GT_vals3D, [y_GT_size*x_GT_size, nf_full]);
+      [i_row_nnz, j_col_nnz] = find(GT_vals2D);
+      if num_bins > 3
+	[GT_hist, GT_bins] = hist(GT_vals2D, hist_centers);
+	hist_pool(:, :, j_yGT, i_xGT) = GT_hist;
+      endif
+      max_pool(:,j_yGT, i_xGT) = max(GT_vals2D);
+      mean_pool(:,j_yGT, i_xGT) = mean(GT_vals2D);
+      for i_sub_row = 1 : 2
+	for i_sub_col = 1 : 2
+	  GT_vals2D_2X2 = reshape(squeeze(GT_vals3D_2X2(:, i_sub_row, :, i_sub_col, :)), [((y_GT_size/2) * (x_GT_size/2)), nf_full]);
+	  max_pool2X2(i_sub_row, i_sub_col, :, j_yGT, i_xGT) = max(GT_vals2D_2X2);
+	  mean_pool2X2(i_sub_row, i_sub_col, :, j_yGT, i_xGT) = mean(GT_vals2D_2X2);
+	endfor
+      endfor
+      for i_sub_row = 1 : 4
+	for i_sub_col = 1 : 4
+	  GT_vals2D_4X4 = reshape(squeeze(GT_vals3D_4X4(:, i_sub_row, :, i_sub_col, :)), [((y_GT_size/4) * (x_GT_size/4)), nf_full]);
+	  max_pool4X4(i_sub_row, i_sub_col, :, j_yGT, i_xGT) = max(GT_vals2D_4X4);
+	  mean_pool4X4(i_sub_row, i_sub_col, :, j_yGT, i_xGT) = mean(GT_vals2D_4X4);
+	endfor
+      endfor
+    endfor
+  endfor
+endfunction

@@ -9,12 +9,6 @@
 #include <include/cMakeHeader.h>
 #include "cMakeHeader.h"
 
-int parseConfigFile(PV::InterColComm * icComm, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** drawBoundingBoxesPtr, char ** boundingBoxThicknessPtr, char ** dbscanEpsPtr, char ** dbscanDensityPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
-int parseConfigParameter(PV::InterColComm * icComm, char const * inputLine, char const * configParameter, char ** parameterPtr, unsigned int lineNumber);
-int checkOctaveArgumentString(char const * argString, char const * argName);
-int checkOctaveArgumentNumeric(char const * argString, char const * argName);
-int checkOctaveArgumentVector(char const * argString, char const * argName);
-
 
 int parseConfigFile(PV::InterColComm * icComm, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** drawBoundingBoxesPtr, char ** boundingBoxThicknessPtr, char ** dbscanEpsPtr, char ** dbscanDensityPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
 {
