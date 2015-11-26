@@ -75,50 +75,24 @@ if isempty(which('readpvpfile'))
    error("heatMapMontage:readpvpfilemissing","heatMapMontage error: missing command readpvpfile");
 end%if
 
-if ~exist('tmp','dir')
-    mkdir tmp
-    ownstmpdir = 1;
-else
-   ownstmpdir = 0;
-end%if
-
-fprintf(1,'heatMapMontage: input image file \"%s\", frame %d\n', imagePvpFile, imageFrameNumber);
-
-[imagePvp,imgHdr] = readpvpfile(imagePvpFile, [], imageFrameNumber, imageFrameNumber);
-if (imgHdr.filetype != 4)
-   error("heatMapMontage:expectingnonsparse","heatMapMontage expects %s to be a nonsparse layer",imagePvpFile);
-end%if
-imageData = permute(imagePvp{1}.values,[2 1 3]);
-imageDataGrayscale = mean(imageData,3); % convert image to gray
-
 [resultPvp,resultHdr] = readpvpfile(resultPvpFile, [], resultFrameNumber, resultFrameNumber);
 if (resultHdr.filetype != 4)
    error("heatMapMontage:expectingnonsparse","heatMapMontage expects %s to be a nonsparse layer",resultPvpFile);
 end%if
 resultData = permute(resultPvp{1}.values,[2 1 3]);
 
-if isempty(displayCategoryIndices)
-   displayCategoryIndices=1:resultHdr.nf
+if isempty(evalCategoryIndices)
+   evalCategoryIndices=1:resultHdr.nf;
 end%if
 
-numCategories=numel(displayCategoryIndices);
+confData = zeros(size(resultData));
+for k=1:resultHdr.nf
+    if any(evalCategoryIndices==k)
+       confData(:,:,k) = interp1(confidenceTable(:,end), confidenceTable(:,k), resultData(:,:,k), "extrap");
+    end%if
+end%for
 
-numColumns = 1:numCategories;
-numRows = ceil(numCategories./numColumns);
-totalSizeY = (size(imageDataGrayscale,1)+64+10)*numRows;
-totalSizeX = (size(imageDataGrayscale,2)+10)*(numColumns+2);
-aspectRatio = totalSizeX./totalSizeY;
-ldfgr = abs(log(aspectRatio) - log((1+sqrt(5))/2));
-numColumns = find(ldfgr==min(ldfgr),1);
-numRows = numRows(numColumns);
-while (numColumns-1)*numRows >= numCategories
-    numColumns = numColumns-1;
-end%while
-while (numRows-1)*numColumns >= numCategories
-    numRows = numRows-1;
-end%while
-numRows = max(numRows, 2);
-assert(numRows*numColumns >= numCategories);
+if isempty(highlightThreshold), highlightThreshold = 0.0; end
 
 if isempty(classNameFile)
    classes=cell(resultHdr.nf,1)
@@ -146,9 +120,63 @@ if numel(classes)!=resultHdr.nf
    error("heatMapMontage:wrongnf","number of classes is %d but %s has %d features.",numel(classes),resultPvpFile,resultHdr.nf);
 end%if
 
-if isempty(evalCategoryIndices)
-   evalCategoryIndices=1:resultHdr.nf;
+% Print confidences to resultsTextFile, if that file was defined
+if ~isempty(resultsTextFile)
+    printResultsToFile(confData, sprintf('Image %s, frame %d', imagePvpFile, resultFrameNumber), resultsTextFile, classes, evalCategoryIndices, eps, 1.0, true);
 end%if
+
+if isempty(heatMapThreshold), heatMapThreshold = highlightThreshold; end
+maxConfidence = max(confData(:));
+scaledConfData = (confData-heatMapThreshold)/(heatMapMaximum-heatMapThreshold);
+thresholdConfData = max(min(scaledConfData,1.0),0.0);
+winningIndex = find(confData==maxConfidence);
+[~,~,winningFeature] = ind2sub(size(confData),winningIndex);
+for k=1:numel(winningFeature)
+   fprintf(1,'winning feature is %s, with confidence %.1f%%\n', classes{winningFeature(k)}, 100*maxConfidence);
+end%for
+
+if isempty(montagePath)
+    return;
+end%if
+
+if ~exist('tmp','dir')
+    mkdir tmp;
+    ownstmpdir = 1;
+else
+   ownstmpdir = 0;
+end%if
+
+fprintf(1,'heatMapMontage: input image file \"%s\", frame %d\n', imagePvpFile, imageFrameNumber);
+
+[imagePvp,imgHdr] = readpvpfile(imagePvpFile, [], imageFrameNumber, imageFrameNumber);
+if (imgHdr.filetype != 4)
+   error("heatMapMontage:expectingnonsparse","heatMapMontage expects %s to be a nonsparse layer",imagePvpFile);
+end%if
+imageData = permute(imagePvp{1}.values,[2 1 3]);
+imageDataGrayscale = mean(imageData,3); % convert image to gray
+
+if isempty(displayCategoryIndices)
+   displayCategoryIndices=1:resultHdr.nf
+end%if
+
+numCategories=numel(displayCategoryIndices);
+
+numColumns = 1:numCategories;
+numRows = ceil(numCategories./numColumns);
+totalSizeY = (size(imageDataGrayscale,1)+64+10)*numRows;
+totalSizeX = (size(imageDataGrayscale,2)+10)*(numColumns+2);
+aspectRatio = totalSizeX./totalSizeY;
+ldfgr = abs(log(aspectRatio) - log((1+sqrt(5))/2));
+numColumns = find(ldfgr==min(ldfgr),1);
+numRows = numRows(numColumns);
+while (numColumns-1)*numRows >= numCategories
+    numColumns = numColumns-1;
+end%while
+while (numRows-1)*numColumns >= numCategories
+    numRows = numRows-1;
+end%while
+numRows = max(numRows, 2);
+assert(numRows*numColumns >= numCategories);
 
 upsampleNx = size(imageDataGrayscale,2)/size(resultData,2);
 upsampleNy = size(imageDataGrayscale,1)/size(resultData,1);
@@ -164,27 +192,6 @@ montageImage = zeros((size(imageDataGrayscale,1)+64+10)*numRows, (size(imageData
 % The +64 in the y-dimension makes room for the category caption
 % The +10 creates a border around each tile in the montage
 % The two extra columns make room for the reconstructed image.
-
-confData = zeros(size(resultData));
-for k=1:resultHdr.nf
-    if any(evalCategoryIndices==k)
-       confData(:,:,k) = interp1(confidenceTable(:,end), confidenceTable(:,k), resultData(:,:,k), "extrap");
-    end%if
-end%for
-
-% Print confidences to resultsTextFile, if that file was defined
-if ~isempty(resultsTextFile)
-    printResultsToFile(confData, sprintf('Image %d', resultFrameNumber), resultsTextFile, classes, evalCategoryIndices, eps, 1.0, true);
-end%if
-
-maxConfidence = max(confData(:));
-scaledConfData = (confData-heatMapThreshold)/(heatMapMaximum-heatMapThreshold);
-thresholdConfData = max(min(scaledConfData,1.0),0.0);
-winningIndex = find(confData==maxConfidence);
-[~,~,winningFeature] = ind2sub(size(confData),winningIndex);
-for k=1:numel(winningFeature)
-   fprintf(1,'winning feature is %s, with confidence %.1f%%\n', classes{winningFeature(k)}, 100*maxConfidence);
-end%for
 
 imageDataBlend = imageBlendCoeff*imageDataGrayscale;
 for k=1:numCategories
