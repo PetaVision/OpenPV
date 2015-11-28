@@ -42,7 +42,7 @@ ConstantLayer "Ones" = {
    mirrorBCflag = 0; 
    writeSparseActivity = false;
    InitVType = "ConstantV";
-   valueV    = .0035216; //Average of LCA activity 
+   valueV    = .01;
    VThresh = -infinity;   
    phase = 0; 
 };
@@ -336,7 +336,7 @@ MomentumConn "W1Plasticity" = {
     weightInitType = "FileWeight";
     //initWeightsFile = "/nh/compneuro/Data/Depth/LCA/Checkpoints/saved_stack_slp/V1S2ToDepthGT_W.pvp";
     //weightInitType = "UniformWeight";
-    //weightInit = 0;
+    //weightInit = 0.001;
     strength = 1; //.25/2  
     normalizeMethod = "none";
     preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
@@ -395,7 +395,7 @@ MomentumConn "BiasPlasticity" = {
    weightInitType = "FileWeight";
    //initWeightsFile = "/home/ec2-user/mountData/geoint/slp_train/Last/BiasPlasticity_W.pvp";
    //weightInitType = "UniformWeight";
-   //weightInit = 0;
+   //weightInit = 0.001;
 
    triggerFlag                         = false;
    weightUpdatePeriod                  = 1;

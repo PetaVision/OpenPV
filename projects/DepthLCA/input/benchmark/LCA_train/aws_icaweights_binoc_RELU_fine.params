@@ -411,7 +411,7 @@ HyPerConn "V1ToLeftError" = {
     sharedWeights = true;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/dictLearn/saved_finetune_600000/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/ec2-user/mountData/dictLearn/saved_finetune_binoc_1.6e6/V1ToLeftError_W.pvp";
 
     //weightInitType = "UniformRandomWeight";
     //wMinInit = -1.0;
@@ -487,7 +487,7 @@ HyPerConn "V1ToRightError" = {
     @postLayerName = "RightError";
     @normalizeMethod = "normalizeGroup";
     normalizeGroupName = "V1ToLeftError";
-    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/saved_finetune_600000/V1ToRightError_W.pvp";
+    @initWeightsFile = "/home/ec2-user/mountData/dictLearn/saved_finetune_binoc_1.6e6/V1ToRightError_W.pvp";
 };
 
 TransposeConn "RightErrorToV1" = {

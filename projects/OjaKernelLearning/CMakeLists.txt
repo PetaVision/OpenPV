@@ -35,8 +35,10 @@ endif (PV_USE_MPI)
 # Header files
 include_directories(${PV_SOURCE_DIR})
 include_directories(${GDAL_INCLUDE_DIR})
-include_directories(${MPI_C_INCLUDE_PATH})
-include_directories(${MPI_CXX_INCLUDE_PATH})
+if (PV_USE_MPI)
+   include_directories(${MPI_C_INCLUDE_PATH})
+   include_directories(${MPI_CXX_INCLUDE_PATH})
+endif (PV_USE_MPI)
 
 # Link to binary files
 link_directories(${PV_BINARY_DIR})

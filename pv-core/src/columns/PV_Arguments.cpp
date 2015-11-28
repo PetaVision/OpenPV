@@ -35,6 +35,7 @@ int PV_Arguments::initializeState() {
    workingDir = NULL;
    restartFlag = false;
    checkpointReadDir = NULL;
+   useDefaultNumThreads = false;
    numThreads = 0;
    numRows = 0;
    numColumns = 0;
@@ -43,6 +44,10 @@ int PV_Arguments::initializeState() {
 }
 
 int PV_Arguments::initialize(int argc, char * argv[], bool allowUnrecognizedArguments) {
+   if (argc<=0) {
+      fprintf(stderr, "PV_Arguments error: argc must be positive (called with argc=%d)\n", argc);
+      exit(EXIT_FAILURE);
+   }
    numArgs = argc;
    args = copyArgs(argc, argv);
    return setStateFromCmdLineArgs(allowUnrecognizedArguments);
@@ -114,8 +119,14 @@ bool PV_Arguments::setRestartFlag(bool val) {
 char const * PV_Arguments::setCheckpointReadDir(char const * val) {
    return setString(&checkpointReadDir, val, "checkpointRead directory");
 }
+bool PV_Arguments::setUseDefaultNumThreads(bool val) {
+   useDefaultNumThreads = val;
+   if(val) numThreads = 0;
+   return useDefaultNumThreads;
+}
 int PV_Arguments::setNumThreads(int val) {
    numThreads = val;
+   useDefaultNumThreads = false;
    return numThreads;
 }
 int PV_Arguments::setNumRows(int val) {
@@ -187,30 +198,23 @@ int PV_Arguments::clearState() {
 }
 
 int PV_Arguments::setStateFromCmdLineArgs(bool allowUnrecognizedArguments) {
-   bool * usedArgArray = (bool *) calloc((size_t) numArgs, sizeof(bool)); // Because, C++ expert, I'm *trying* to cause you pain.
+   assert(numArgs>0);
+   bool * usedArgArray = (bool *) calloc((size_t) numArgs, sizeof(bool));
    if (usedArgArray==NULL) {
       fprintf(stderr, "PV_Arguments::setStateFromCmdLineArgs unable to allocate memory for usedArgArray: %s\n", strerror(errno));
       exit(EXIT_FAILURE);
    }
+   usedArgArray[0] = true; // Always use the program name
 
    int restart = (int) restartFlag;
    int status = parse_options(numArgs, args,
          usedArgArray, &requireReturnFlag, &outputPath, &paramsFile, &logFile,
          &gpuDevices, &randomSeed, &workingDir,
-         &restart, &checkpointReadDir, &numThreads,
+         &restart, &checkpointReadDir, &useDefaultNumThreads, &numThreads,
          &numRows, &numColumns, &batchWidth);
    restartFlag = restart!=0;
 
-#ifdef PV_USE_OPENMP_THREADS
-   // If "-t" appeared as the last argument, set threads to the max possible.
-   if (numThreads==0 && pv_getopt(numArgs, args, "-t", usedArgArray)==0) {
-      numThreads = omp_get_max_threads();
-   }
-#else // PV_USE_OPENMP_THREADS
-   numThreads = 1;
-#endif // PV_USE_OPENMP_THREADS
-
-   // Error out if both -r and -c are used.
+   // Error out if both -r and -c are used
    if (errorChecking()) {
       exit(EXIT_FAILURE);
    }

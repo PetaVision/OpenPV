@@ -59,7 +59,11 @@ protected:
    HeatMapProbe();
    int initialize(const char * probeName, PV::HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_confidenceTable(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_imageLayer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_resultLayer(enum ParamsIOFlag ioFlag);
    virtual void ioParam_reconLayer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_classNames(enum ParamsIOFlag ioFlag);
    virtual void ioParam_outputPeriod(enum ParamsIOFlag ioFlag);
    virtual int communicateInitInfo();
    virtual int initNumValues();
@@ -80,6 +84,7 @@ private:
 // Member variables
 protected:
    // config file parameters
+   char * confidenceTable;
    char * imageLayerName;
    char * resultLayerName;
    char * reconLayerName;

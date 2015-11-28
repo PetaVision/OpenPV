@@ -9,14 +9,8 @@
 #include <include/cMakeHeader.h>
 #include "cMakeHeader.h"
 
-int parseConfigFile(PV::InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** drawBoundingBoxesPtr, char ** boundingBoxThicknessPtr, char ** dbscanEpsPtr, char ** dbscanDensityPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr);
-int parseConfigParameter(PV::InterColComm * icComm, char const * inputLine, char const * configParameter, char ** parameterPtr, unsigned int lineNumber);
-int checkOctaveArgumentString(char const * argString, char const * argName);
-int checkOctaveArgumentNumeric(char const * argString, char const * argName);
-int checkOctaveArgumentVector(char const * argString, char const * argName);
 
-
-int parseConfigFile(PV::InterColComm * icComm, char ** imageLayerNamePtr, char ** resultLayerNamePtr, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** classNamesPtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** drawBoundingBoxesPtr, char ** boundingBoxThicknessPtr, char ** dbscanEpsPtr, char ** dbscanDensityPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
+int parseConfigFile(PV::InterColComm * icComm, char ** resultTextFilePtr, char ** octaveCommandPtr, char ** octaveLogFilePtr, char ** evalCategoryIndicesPtr, char ** displayCategoryIndicesPtr, char ** highlightThresholdPtr, char ** heatMapThresholdPtr, char ** heatMapMaximumPtr, char ** drawBoundingBoxesPtr, char ** boundingBoxThicknessPtr, char ** dbscanEpsPtr, char ** dbscanDensityPtr, char ** heatMapMontageDirPtr, char ** displayCommandPtr)
 {
    // Under MPI, all processes must call this function in parallel, but only the root process does I/O
    int status = PV_SUCCESS;
@@ -29,12 +23,9 @@ int parseConfigFile(PV::InterColComm * icComm, char ** imageLayerNamePtr, char *
          return PV_FAILURE;
       }
    }
-   *imageLayerNamePtr = NULL;
-   *resultLayerNamePtr = NULL;
    *resultTextFilePtr = NULL;
    *octaveCommandPtr = NULL;
    *octaveLogFilePtr = NULL;
-   *classNamesPtr = NULL;
    *evalCategoryIndicesPtr = NULL;
    *displayCategoryIndicesPtr = NULL;
    *highlightThresholdPtr = NULL;
@@ -72,16 +63,6 @@ int parseConfigFile(PV::InterColComm * icComm, char ** imageLayerNamePtr, char *
       char * keyword = line.contents;
       char * value = &openquote[1];
 
-      if (!strcmp(keyword,"imageLayer"))
-      {
-         status = parseConfigParameter(icComm, keyword, value, imageLayerNamePtr, linenumber);
-         if (status != PV_SUCCESS) { break; }
-      }
-      if (!strcmp(keyword,"resultLayer"))
-      {
-         status = parseConfigParameter(icComm, keyword, value, resultLayerNamePtr, linenumber);
-         if (status != PV_SUCCESS) { break; }
-      }
       if (!strcmp(keyword,"resultTextFile"))
       {
          status = parseConfigParameter(icComm, keyword, value, resultTextFilePtr, linenumber);
@@ -95,11 +76,6 @@ int parseConfigFile(PV::InterColComm * icComm, char ** imageLayerNamePtr, char *
       if (!strcmp(keyword,"octaveLogFile"))
       {
          status = parseConfigParameter(icComm, keyword, value, octaveLogFilePtr, linenumber);
-         if (status != PV_SUCCESS) { break; }
-      }
-      if (!strcmp(keyword,"classNames"))
-      {
-         status = parseConfigParameter(icComm, keyword, value, classNamesPtr, linenumber);
          if (status != PV_SUCCESS) { break; }
       }
       if (!strcmp(keyword,"evalCategoryIndices"))
@@ -161,32 +137,6 @@ int parseConfigFile(PV::InterColComm * icComm, char ** imageLayerNamePtr, char *
 
    if (status==PV_SUCCESS)
    {
-      if (*imageLayerNamePtr==NULL)
-      {
-         fprintf(stderr, "imageLayer was not defined in %s.\n", CONFIG_FILE);
-         status = PV_FAILURE;
-      }
-      else
-      {
-         status = checkOctaveArgumentString(*imageLayerNamePtr, "imageLayer");
-      }
-   }
-
-   if (status==PV_SUCCESS)
-   {
-      if (*resultLayerNamePtr==NULL)
-      {
-         fprintf(stderr, "resultLayer was not defined in %s.\n", CONFIG_FILE);
-         status = PV_FAILURE;
-      }
-      else
-      {
-         status = checkOctaveArgumentString(*resultLayerNamePtr, "resultLayer");
-      }
-   }
-
-   if (status==PV_SUCCESS)
-   {
       if (*resultTextFilePtr==NULL)
       {
          if (icComm->commRank()==0) {
@@ -223,21 +173,6 @@ int parseConfigFile(PV::InterColComm * icComm, char ** imageLayerNamePtr, char *
       else
       {
          status = checkOctaveArgumentString(*octaveLogFilePtr, "octaveLogFile");
-      }
-   }
-
-   if (status==PV_SUCCESS)
-   {
-      if (*classNamesPtr==NULL)
-      {
-         if (icComm->commRank()==0) {
-            fprintf(stderr, "classNames was not defined in %s; setting class names to feature indices.\n", CONFIG_FILE);
-         }
-         *classNamesPtr = strdup("{}");
-      }
-      else
-      {
-         status = checkOctaveArgumentString(*classNamesPtr, "classNames");
       }
    }
 

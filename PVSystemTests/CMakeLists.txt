@@ -24,7 +24,7 @@ set(PV_USE_OPENCL FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
 set(PV_USE_CUDA FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 set(PV_USE_CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
-set(PV_SYSTEM_TEST_THREADS 1 CACHE STRING "Defines the number of threads to use for system tests")
+set(PV_SYSTEM_TEST_THREADS "" CACHE STRING "Defines the number of threads to use for system tests (empty string for max)")
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
 set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
 set(PV_OPENMP_COMPILER_FLAG "-fopenmp" CACHE STRING "Compiler flag for compiling with OpenMP")
@@ -45,11 +45,11 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
       if(${PV_USE_MPI} AND ${inMpi})
          #Two processes
          add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
-            mpirun -np 2 Debug/${BaseName} ${inFlags} -l 
+            ${MPIEXEC} -np 2 Debug/${BaseName} ${inFlags} -l 
             ${testName}_2.log)
          #Four processes
          add_test(${testName}_4 ${CMAKE_COMMAND} -E chdir ${BaseName}
-            mpirun -np 4 Debug/${BaseName} ${inFlags} -l 
+            ${MPIEXEC} -np 4 Debug/${BaseName} ${inFlags} -l 
             ${testName}_4.log)
          #Add dependencies
          set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
@@ -71,12 +71,12 @@ macro(AddPVTest BaseName ParamNames inFlags inMpi)
          if(${PV_USE_MPI} AND ${inMpi})
             #Two processes
             add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
-               mpirun -np 2 Debug/${BaseName} -p input/${param}.params
+               ${MPIEXEC} -np 2 Debug/${BaseName} -p input/${param}.params
                ${inFlags} -l
                ${testName}_2.log)
             #Four processes
             add_test(${testName}_4 ${CMAKE_COMMAND} -E chdir ${BaseName}
-               mpirun -np 4 Debug/${BaseName} -p input/${param}.params
+               ${MPIEXEC} -np 4 Debug/${BaseName} -p input/${param}.params
                ${inFlags} -l
                ${testName}_4.log)
             #Add dependencies
@@ -91,11 +91,11 @@ endmacro(AddPVTest)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
 
 
-if(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
+if("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
    #Do nothing, correct
-else(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
-   message(FATAL_ERROR "PV_SYSTEM_TEST_THREADS must be a positive integer")
-endif(${PV_SYSTEM_TEST_THREADS} MATCHES "^([0-9]+)")
+else("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
+   message(FATAL_ERROR "PV_SYSTEM_TEST_THREADS must be either a positive integer or the empty string")
+endif("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
 
 IF(PV_USE_CUDA AND PV_USE_OPENCL)
    message(FATAL_ERROR "PV_USE_CUDA and PV_USE_OPENCL cannot both be true")
@@ -133,6 +133,7 @@ add_subdirectory(ConvertToGrayscaleTest)
 add_subdirectory(CopyConnTest)
 add_subdirectory(DatastoreDelayTest)
 add_subdirectory(DelaysToFeaturesTest)
+add_subdirectory(DtAdaptControllerTest)
 add_subdirectory(GenericSystemTest)
 
 if (PV_USE_CUDA OR PV_USE_OPENCL)
@@ -191,6 +192,7 @@ add_subdirectory(test_patch_head)
 add_subdirectory(test_post_weights)
 add_subdirectory(test_read_header)
 add_subdirectory(test_sign)
+add_subdirectory(TotalEnergyTest)
 add_subdirectory(TransposeConnTest)
 add_subdirectory(TransposeHyPerConnTest)
 add_subdirectory(TriggerTest)
@@ -241,13 +243,13 @@ set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
 if (${PV_USE_MPI})
     #This addtest is hard coded because this test requires a run with 2, 4, and 8 mpi processes
     add_test(${testBaseName}_2 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-       mpirun -np 2 Debug/${testBaseName} ${testFlags} -l
+       ${MPIEXEC} -np 2 Debug/${testBaseName} ${testFlags} -l
        ${testBaseName}_2.log)
     add_test(${testBaseName}_4 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-       mpirun -np 4 Debug/${testBaseName} ${testFlags} -l
+       ${MPIEXEC} -np 4 Debug/${testBaseName} ${testFlags} -l
        ${testBaseName}_4.log)
     add_test(${testBaseName}_8 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-       mpirun -np 8 Debug/${testBaseName} ${testFlags} -l
+       ${MPIEXEC} -np 8 Debug/${testBaseName} ${testFlags} -l
        ${testBaseName}_8.log)
     #Add dependencies
     set_tests_properties(${testBaseName}_4 PROPERTIES DEPENDS ${testBaseName}_2)
@@ -261,7 +263,7 @@ set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
 if (${PV_USE_MPI})
    #This addtest is hard coded because this test requires a run with exactly 4 mpi processes
    add_test(${testBaseName}_4 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-      mpirun -np 4 Debug/${testBaseName} ${testFlags} -p input/BatchSweepTest.params -l
+      ${MPIEXEC} -np 4 Debug/${testBaseName} ${testFlags} -p input/BatchSweepTest.params -l
       ${testBaseName}_4.log)
 endif (${PV_USE_MPI})
 
@@ -278,7 +280,7 @@ if (${PV_USE_MPI})
    set(testMpi FALSE) #Whether to call inside mpiexec with multiple processes
    #This addtest is hard coded because this test requires a run with exactly 10 mpi processes
    add_test(${testBaseName}_10 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-      mpirun -np 10 Debug/${testBaseName} ${testFlags} -l
+      ${MPIEXEC} -np 10 Debug/${testBaseName} ${testFlags} -l
       ${testBaseName}_10.log)
 endif (${PV_USE_MPI})
 
@@ -338,6 +340,12 @@ AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName DelaysToFeaturesTest) #The base name of the test
 set(testParams test_delays) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+
+set(testBaseName DtAdaptControllerTest) #The base name of the test
+set(testParams ) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
@@ -629,7 +637,7 @@ set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 if (${PV_USE_MPI})
     #This addtest is hard coded because this test requires a run with exactly 6 mpi processes
     add_test(${testBaseName}_6 ${CMAKE_COMMAND} -E chdir ${testBaseName}
-       mpirun -np 6 Debug/${testBaseName} ${testFlags} -l
+       ${MPIEXEC} -np 6 Debug/${testBaseName} ${testFlags} -l
        ${testBaseName}_6.log)
 endif (${PV_USE_MPI})
 
@@ -661,6 +669,12 @@ AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 set(testBaseName TriggerTest) #The base name of the test
 set(testParams TriggerTest) #Names of the parameter files in the input directory, leaving out .params
 set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
+AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+
+set(testBaseName TotalEnergyTest) #The base name of the test
+set(testParams TotalEnergyTest) #Names of the parameter files in the input directory, leaving out .params
+set(testFlags -c checkpoints/Checkpoint6 --testall -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
 set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
 AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 

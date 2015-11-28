@@ -7,7 +7,7 @@
 %% all resized images whose original dimensions are consistent with the
 %% specified orientation_type.
 %% if a specific orientation type is specified,
-%% mages are resized so that the "shorest"
+%% images are resized so that the "shorest"
 %% resized dimension, measured as a fraction of the target ratio,
 %% exactly matches the specified dimension, with the other
 %% "longer" dimension cropped symmetrically so as to match the
@@ -123,8 +123,6 @@ class_ID_list = (1:VOCopts.nclasses) * color_sep;
 
 %% save labels as sparse PVP file with nf = # object classess
 num_classes = VOCopts.nclasses;
-util_path = [workspace_path, filesep, "PetaVision", filesep, "mlab", filesep, "util"];
-addpath(util_path);
 if ~exist("classID_data") || isempty(classID_data)
   classID_data = cell(); 
   resized_filepathnames = cell();

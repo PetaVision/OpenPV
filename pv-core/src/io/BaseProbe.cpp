@@ -250,7 +250,8 @@ int BaseProbe::setNumValues(int n) {
 int BaseProbe::communicateInitInfo() {
    //Set up output stream
    int status = initOutputStream(probeOutputFilename);
-   //communicate here only sets up triggering
+
+   // Set up triggering.
    if(triggerFlag){
       triggerLayer = parent->getLayerFromName(triggerLayerName);
       if (triggerLayer==NULL) {
@@ -262,6 +263,8 @@ int BaseProbe::communicateInitInfo() {
          exit(EXIT_FAILURE);
       }
    }
+
+   // Add the probe to the ColumnEnergyProbe, if there is one.
    if (energyProbe && energyProbe[0]) {
       ColProbe * colprobe = getParent()->getColProbeFromName(energyProbe);
       ColumnEnergyProbe * probe = dynamic_cast<ColumnEnergyProbe *>(colprobe);
