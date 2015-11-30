@@ -20,8 +20,8 @@ local subnets = require "PVSubnets";
 --Parameters
 local nxSize = 32; --Cifar is 32 x 32
 local nySize = 32;
-local xPatchSize = 6; --Patch size of basis vectors
-local yPatchSize = 6;
+local xPatchSize = 12; --Patch size of basis vectors
+local yPatchSize = 12;
 local displayPeriod = 1000; --Number of timesteps to find sparse approximation
 
 local basisVectorFile = nil; --nil for initial weights, otherwise, specifies the weights file to load for dictionaries
@@ -61,7 +61,8 @@ params['column'] = {
   dtAdaptFlag = true; --If we are adapting the timestep for faster LCA convergence
   dtChangeMin = -0.05; --Adaptive timestep parameters
   dtChangeMax =  0.01;
-  dtScaleMin  =  0.001;
+  dtScaleMin  =  0.01;
+  dtScaleMax  =  1.0;
   dtMinToleratedTimeScale = 0.0001;
   filenamesContainLayerNames = 2; --Filenames will only contain layer and connection name
   progressInterval = (10 * displayPeriod) / nbatch; --How often to print out a progress report

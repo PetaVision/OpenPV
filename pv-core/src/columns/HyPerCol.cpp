@@ -2094,6 +2094,42 @@ double * HyPerCol::adaptTimeScale(){
    return deltaTimeAdapt;
 }
 
+  // demonstration of time scale adaption using model of E(dt) ~= E(0) * exp(-dt/tau_eff)
+  // with tau_effective estimated by: dt / tau_eff ~= (E(dt) - E(0)) / (E(dt) + E(0))
+  // to 2nd order in a Taylor series expansion:  optim_dt ~= tau_eff -> argmin E'(optim_dt)
+  // where E' is the Tayler series expansion of E(dt) to 2nd order in dt
+double * HyPerCol::adaptTimeScaleNew(){
+   for (int b=0; b<nbatch; b++) {
+      oldTimeScaleTrue[b] = timeScaleTrue[b];
+      oldTimeScale[b] = timeScale[b];
+   }
+   calcTimeScaleTrue(); // sets timeScaleTrue[b] to sqrt(Energy(t+dt)/|I - I'|^2))^-1
+   for(int b = 0; b < nbatch; b++){
+      // if change in timeScaleTrue is negative, revert to minimum timeScale
+
+      //Set timeScaleTrue to new minTimeScale
+      double E_t_plus_dt = 1/timeScaleTrue[b];
+      double E_t = 1/oldtimeScaleTrue[b];
+      double dE_over_E = 2.0 * (E_t - E_t_plus_dt) / (E_t + E_t_plus_dt);
+      // tau_eff == dt / dE_over_E
+      //          = deltaTimeAdapt[b] / dE_over_E
+      // dt := timeScaleMax * tau_eff
+      timeScale[b] = dE_over_E > 0 ? timeScaleMax * deltaTimeAdapt[b] / dE_over_E : deltaTimeBase * timeScaleMin;
+      timeScale[b] /= deltaTimeBase;
+
+      if(timeScale[b] > 0 && timeScaleTrue[b] > 0 && timeScale[b] > timeScaleTrue[b]){
+         std::cout << "timeScale is bigger than timeScaleTrue\n";
+         std::cout << "minTimeScaleTmp: " << minTimeScaleTmp << "\n";
+         std::cout << "oldTimeScaleTrue " << oldTimeScaleTrue[b] << "\n";
+         exit(EXIT_FAILURE);
+      }
+
+      // deltaTimeAdapt is only used internally to set scale of each update step
+      deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
+   }
+   return deltaTimeAdapt;
+}
+
 int HyPerCol::calcTimeScaleTrue() {
    if (!dtAdaptControlProbe) {
       // If there is no probe controlling the adaptive timestep,
