@@ -455,6 +455,7 @@ private:
    int outputParams(char const * path);
 
    double* adaptTimeScale();
+   double* adaptTimeScaleNew();
    int calcTimeScaleTrue();
 
    long int currentStep;

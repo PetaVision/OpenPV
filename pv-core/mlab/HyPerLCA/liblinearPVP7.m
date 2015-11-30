@@ -218,7 +218,7 @@ fraction_Sparse_progress = 10;
 num_epochs = num_GT_epochs;
 num_procs = num_GT_procs;
 Sparse_frames_list = [];
-load_Sparse_flag = true; %%false;
+load_Sparse_flag = false;
 [Sparse_hdr_array, ...
  Sparse_hist_rank_array, ...
  Sparse_times_array, ...
@@ -1994,7 +1994,7 @@ if ~load_svm_flag
 else %% load svn from file
 
   svm_load_str = [svm_dir, filesep, "svm.txt"];
-  load svm_load_str
+  load(svm_load_str)
   
 endif %% load_svm_flag
 
