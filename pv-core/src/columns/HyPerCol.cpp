@@ -2109,20 +2109,13 @@ double * HyPerCol::adaptTimeScaleNew(){
 
       //Set timeScaleTrue to new minTimeScale
       double E_t_plus_dt = 1/timeScaleTrue[b];
-      double E_t = 1/oldtimeScaleTrue[b];
+      double E_t = 1/oldTimeScaleTrue[b];
       double dE_over_E = 2.0 * (E_t - E_t_plus_dt) / (E_t + E_t_plus_dt);
       // tau_eff == dt / dE_over_E
       //          = deltaTimeAdapt[b] / dE_over_E
       // dt := timeScaleMax * tau_eff
       timeScale[b] = dE_over_E > 0 ? timeScaleMax * deltaTimeAdapt[b] / dE_over_E : deltaTimeBase * timeScaleMin;
       timeScale[b] /= deltaTimeBase;
-
-      if(timeScale[b] > 0 && timeScaleTrue[b] > 0 && timeScale[b] > timeScaleTrue[b]){
-         std::cout << "timeScale is bigger than timeScaleTrue\n";
-         std::cout << "minTimeScaleTmp: " << minTimeScaleTmp << "\n";
-         std::cout << "oldTimeScaleTrue " << oldTimeScaleTrue[b] << "\n";
-         exit(EXIT_FAILURE);
-      }
 
       // deltaTimeAdapt is only used internally to set scale of each update step
       deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
