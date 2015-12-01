@@ -36,7 +36,6 @@ int PointProbe::initPointProbe_base() {
    yLoc = 0;
    fLoc = 0;
    batchLoc = 0;
-   msg = NULL;
    return PV_SUCCESS;
 }
 
@@ -209,7 +208,7 @@ int PointProbe::writeState(double timef) {
    if(parent->columnId()==0){
       assert(outputstream && outputstream->fp);
 
-      fprintf(outputstream->fp, "%s t=%.1f V=%6.5f a=%.5f\n", msg, timef, getV(), getA());
+      fprintf(outputstream->fp, "%s t=%.1f V=%6.5f a=%.5f\n", getMessage(), timef, getV(), getA());
       fflush(outputstream->fp);
    }
    return PV_SUCCESS;

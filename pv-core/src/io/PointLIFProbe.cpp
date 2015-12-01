@@ -145,7 +145,7 @@ int PointLIFProbe::writeState(double timed)
       PVLayerLoc const * loc = getTargetLayer()->getLayerLoc();
       const int k = kIndex(xLoc, yLoc, fLoc, loc->nxGlobal, loc->nyGlobal, loc->nf);
       double * valuesBuffer = getValuesBuffer();
-      fprintf(outputstream->fp, "%s t=%.1f %d", msg, timed, k);
+      fprintf(outputstream->fp, "%s t=%.1f %d", getMessage(), timed, k);
       fprintf(outputstream->fp, " G_E=" CONDUCTANCE_PRINT_FORMAT, valuesBuffer[0]);
       fprintf(outputstream->fp, " G_I=" CONDUCTANCE_PRINT_FORMAT, valuesBuffer[1]);
       fprintf(outputstream->fp, " G_IB=" CONDUCTANCE_PRINT_FORMAT, valuesBuffer[2]);
