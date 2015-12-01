@@ -12,6 +12,12 @@ cmake_minimum_required(VERSION 2.8.10)
 # the core library's source directory)
 set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pv-core CACHE PATH "The core PetaVision directory")
 
+# Default OpenMP compiler flag is platform dependent
+if(APPLE)
+   set(PV_OPENMP_COMPILER_FLAG_DEFAULT "-fopenmp=libiomp5")
+else(APPLE)
+   set(PV_OPENMP_COMPILER_FLAG_DEFAULT "-fopenmp")
+endif(APPLE)
 
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH "${PV_DIR}/docs/cmake/Modules/")
@@ -21,7 +27,7 @@ set(PV_USE_OPENMP_THREADS TRUE CACHE BOOL "Defines if PetaVision uses OpenMP thr
 set(PV_USE_OPENCL FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
 set(PV_USE_CUDA FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
-set(PV_OPENMP_COMPILER_FLAG "-fopenmp" CACHE STRING "Compiler flag for compiling with OpenMP")
+set(PV_OPENMP_COMPILER_FLAG ${PV_OPENMP_COMPILER_FLAG_DEFAULT} CACHE STRING "Compiler flag for compiling with OpenMP")
 
 set(PV_USE_CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/ CACHE PATH "Location of cuDNN libraries")

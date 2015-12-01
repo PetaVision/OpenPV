@@ -27,7 +27,7 @@ set(PV_USE_CUDNN FALSE CACHE BOOL "Defines whether PetaVision uses CUDA's cuDNN 
 set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/ CACHE PATH "Location of cuDNN libraries")
 set(PV_BUILD_SHARED FALSE CACHE BOOL "Defines whether the pv object is built as a shared object")
 set(CLANG_OMP TRUE CACHE BOOL "Defines whether we're compiling with Clang + omp support")
-set(PV_OPENMP_COMPILER_FLAG "-fopenmp" CACHE STRING "Compiler flag for compiling with OpenMP")
+set(PV_OPENMP_COMPILER_FLAG ${PV_OPENMP_COMPILER_FLAG_DEFAULT} CACHE STRING "Compiler flag for compiling with OpenMP")
 
 
 if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
