@@ -28,12 +28,12 @@ addpath([mlab_dir, "/util"]);
 addpath([mlab_dir, "/HyPerLCA"]);
 
 plot_flag = true;
-%%run_type = "ICA"
+run_type = "ICA"
 %%run_type = "S1S2"
 %%run_type = "DCA";
 %%run_type = "CIFAR";
 %%run_type = "scene"
-run_type = "JIEDDO"
+%%run_type = "JIEDDO"
 if strcmp(run_type, "ICA")
   output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape7";
 elseif strcmp(run_type, "JIEDDO")
@@ -218,7 +218,7 @@ fraction_Sparse_progress = 10;
 num_epochs = num_GT_epochs;
 num_procs = num_GT_procs;
 Sparse_frames_list = [];
-load_Sparse_flag = true; %%false;
+load_Sparse_flag = false;
 [Sparse_hdr_array, ...
  Sparse_hist_rank_array, ...
  Sparse_times_array, ...
@@ -388,69 +388,72 @@ endif
 disp(["exclusive_flag = ", num2str(exclusive_flag)])
 one_vs_all_flag = exclusive_flag ~= 1;  %% if objects can overlapp, must do one-vs-all or few-vs-all (i.e. dog, background, not-dog)
 
-load_svm_flag = true;
+training_label_vector = cell(num_target_classes+(exclusive_flag==1),1);
+training_label_pos = cell(num_target_classes+(exclusive_flag==1),1);
+training_label_neg = cell(num_target_classes+(exclusive_flag==1),1);
+training_label_pos_long = cell(num_target_classes+(exclusive_flag==1),1);
+training_label_neg_long = cell(num_target_classes+(exclusive_flag==1),1);
+pos_labels_ndx = cell(num_target_classes+(exclusive_flag==1),1);
+neg_labels_ndx = cell(num_target_classes+(exclusive_flag==1),1);
+pos_labels_ndx_long = cell(num_target_classes+(exclusive_flag==1),1);
+neg_labels_ndx_long = cell(num_target_classes+(exclusive_flag==1),1);
+%%pos_labels_rank = cell(num_target_classes,1);
+%%neg_labels_rank = cell(num_target_classes,1);
+neg_pos_ratio = ones(num_target_classes+(exclusive_flag==1),1);
+for i_target_classID = 1 : num_target_classes
+  training_label_vector{i_target_classID} = ...
+      reshape(training_label_vector_array(:,:,:,i_target_classID), [ny_GT * nx_GT * num_GT_images, 1]);
+  if exclusive_flag == 1
+    training_label_vector{i_target_classID} = ...
+	training_label_vector{i_target_classID}(1:ny_GT*nx_GT:ny_GT*nx_GT*num_GT_images);
+  endif
+endfor %% i_target_classID
+if (exclusive_flag == 2)
+  background_ndx = find(training_label_vector{i_background_classID});
+elseif (exclusive_flag == 1)
+  training_label_vector{num_target_classes+1} = zeros(size(training_label_vector{1}));
+endif
+for i_target_classID = 1 : num_target_classes
+  if (one_vs_all_flag || (exclusive_flag == 0))
+    pos_labels_ndx{i_target_classID} = find(training_label_vector{i_target_classID});
+    neg_labels_ndx_long{i_target_classID} = find(~training_label_vector{i_target_classID});
+    neg_pos_ratio(i_target_classID) = length(neg_labels_ndx_long{i_target_classID})/length(pos_labels_ndx{i_target_classID});
+    %% we can either select a random subset of the negative labels or else replicate the positive labels
+    %% the latter is likely more accurate but more computationally expensive
+    if train_long_flag
+      pos_labels_ndx_long{i_target_classID} = repmat(pos_labels_ndx{i_target_classID}, ceil(neg_pos_ratio(i_target_classID)), 1);;
+      pos_labels_ndx_long{i_target_classID} = pos_labels_ndx_long{i_target_classID}(1:length(neg_labels_ndx_long{i_target_classID}));
+      [neg_labels_sorted, neg_labels_rank] = sort(rand(length(neg_labels_ndx_long{i_target_classID}),1));
+      neg_labels_ndx{i_target_classID} = neg_labels_ndx_long{i_target_classID}(neg_labels_rank(1:length(pos_labels_ndx{i_target_classID})));
+      training_label_pos_long{i_target_classID} = training_label_vector{i_target_classID}(pos_labels_ndx_long{i_target_classID});
+      training_label_neg_long{i_target_classID} = training_label_vector{i_target_classID}(neg_labels_ndx_long{i_target_classID});
+    else
+      training_label_pos{i_target_classID} = training_label_vector{i_target_classID}(pos_labels_ndx{i_target_classID});
+      training_label_neg{i_target_classID} = training_label_vector{i_target_classID}(neg_labels_ndx{i_target_classID});
+    endif
+  endif  %% one_vs_all_flag
+  if (exclusive_flag == 1)
+    training_label_vector{num_target_classes+1} = ...
+	training_label_vector{num_target_classes+1} + ...
+	training_label_vector{i_target_classID} .* i_target_classID;
+  endif
+  if (exclusive_flag == 2)
+    training_label_vector{i_target_classID}(training_label_vector{i_target_classID}~=0) = i_target_classID;
+    if (i_target_classID ~= i_background_classID)
+      training_label_vector{i_target_classID}(background_ndx) = i_background_classID;
+    endif
+  endif
+endfor %% class_ndx
+
+load_svm_flag = false; %%true;
 if ~load_svm_flag
   
-  training_label_vector = cell(num_target_classes+(exclusive_flag==1),1);
-  training_label_pos = cell(num_target_classes+(exclusive_flag==1),1);
-  training_label_neg = cell(num_target_classes+(exclusive_flag==1),1);
-  training_label_pos_long = cell(num_target_classes+(exclusive_flag==1),1);
-  training_label_neg_long = cell(num_target_classes+(exclusive_flag==1),1);
-  pos_labels_ndx = cell(num_target_classes+(exclusive_flag==1),1);
-  neg_labels_ndx = cell(num_target_classes+(exclusive_flag==1),1);
-  pos_labels_ndx_long = cell(num_target_classes+(exclusive_flag==1),1);
-  neg_labels_ndx_long = cell(num_target_classes+(exclusive_flag==1),1);
-  %%pos_labels_rank = cell(num_target_classes,1);
-  %%neg_labels_rank = cell(num_target_classes,1);
-  neg_pos_ratio = ones(num_target_classes+(exclusive_flag==1),1);
-  for i_target_classID = 1 : num_target_classes
-    training_label_vector{i_target_classID} = ...
-    reshape(training_label_vector_array(:,:,:,i_target_classID), [ny_GT * nx_GT * num_GT_images, 1]);
-    if exclusive_flag == 1
-      training_label_vector{i_target_classID} = ...
-      training_label_vector{i_target_classID}(1:ny_GT*nx_GT:ny_GT*nx_GT*num_GT_images);
-    endif
-  endfor %% i_target_classID
-  if (exclusive_flag == 2)
-    background_ndx = find(training_label_vector{i_background_classID});
-  elseif (exclusive_flag == 1)
-    training_label_vector{num_target_classes+1} = zeros(size(training_label_vector{1}));
-  endif
-  for i_target_classID = 1 : num_target_classes
-    if (one_vs_all_flag || (exclusive_flag == 0))
-      pos_labels_ndx{i_target_classID} = find(training_label_vector{i_target_classID});
-      neg_labels_ndx_long{i_target_classID} = find(~training_label_vector{i_target_classID});
-      neg_pos_ratio(i_target_classID) = length(neg_labels_ndx_long{i_target_classID})/length(pos_labels_ndx{i_target_classID});
-      %% we can either select a random subset of the negative labels or else replicate the positive labels
-      %% the latter is likely more accurate but more computationally expensive
-      if train_long_flag
-	pos_labels_ndx_long{i_target_classID} = repmat(pos_labels_ndx{i_target_classID}, ceil(neg_pos_ratio(i_target_classID)), 1);;
-	pos_labels_ndx_long{i_target_classID} = pos_labels_ndx_long{i_target_classID}(1:length(neg_labels_ndx_long{i_target_classID}));
-	[neg_labels_sorted, neg_labels_rank] = sort(rand(length(neg_labels_ndx_long{i_target_classID}),1));
-	neg_labels_ndx{i_target_classID} = neg_labels_ndx_long{i_target_classID}(neg_labels_rank(1:length(pos_labels_ndx{i_target_classID})));
-	training_label_pos_long{i_target_classID} = training_label_vector{i_target_classID}(pos_labels_ndx_long{i_target_classID});
-	training_label_neg_long{i_target_classID} = training_label_vector{i_target_classID}(neg_labels_ndx_long{i_target_classID});
-      else
-	training_label_pos{i_target_classID} = training_label_vector{i_target_classID}(pos_labels_ndx{i_target_classID});
-	training_label_neg{i_target_classID} = training_label_vector{i_target_classID}(neg_labels_ndx{i_target_classID});
-      endif
-    endif  %% one_vs_all_flag
-    if (exclusive_flag == 1)
-      training_label_vector{num_target_classes+1} = ...
-      training_label_vector{num_target_classes+1} + ...
-      training_label_vector{i_target_classID} .* i_target_classID;
-    endif
-    if (exclusive_flag == 2)
-      training_label_vector{i_target_classID}(training_label_vector{i_target_classID}~=0) = i_target_classID;
-      if (i_target_classID ~= i_background_classID)
-	training_label_vector{i_target_classID}(background_ndx) = i_background_classID;
-      endif
-    endif
-  endfor %% class_ndx
-
   %%traing_instance_matrix
-  %%num_procs_str = '-n ', num2str(num_GT_procs)';
-  num_procs_str = "";
+  if num_GT_procs > 1
+    num_procs_str = '-n ', num2str(num_GT_procs)';
+  else
+    num_procs_str = "";
+  endif
   %%liblinear_xval_options_str = ['-s 0 -C -B 1 -n ', num2str(num_GT_procs)]; %%['-s 0 -C -B 1'];
   liblinear_xval_options_str = ['-s 0 -C -B 1']; %%['-s 0 -C -B 1'];
 
@@ -1994,7 +1997,7 @@ if ~load_svm_flag
 else %% load svn from file
 
   svm_load_str = [svm_dir, filesep, "svm.txt"];
-  load svm_load_str
+  load(svm_load_str)
   
 endif %% load_svm_flag
 
@@ -2342,7 +2345,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	    pred_classID_accuracy(i_target_classID) = (pred_classID_true_pos(i_target_classID) + pred_classID_false_pos(i_target_classID)) / 2;
 	  else
 	    pred_classID_thresh(i_target_classID) = classID_hist_bins(end);
-	    pred_classID_confidence_thresh{i_target_classID} = 0.0;
+	    pred_classID_confidence_thresh(i_target_classID) = 0.0;
 	    pred_classID_true_pos(i_target_classID) = 0.0;
 	    pred_classID_false_pos(i_target_classID) = 0.0;
 	    pred_classID_accuracy(i_target_classID) = 0.0;
@@ -2361,7 +2364,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	  pred_classID_confidence_bins(pred_classID_confidence_bins(:) < 1) =  1;
 	  pred_classID_cumprob_pos = squeeze(pred_classID_cumprob(:,i_target_classID,1));
 	  pred_classID_cumprob_neg = squeeze(pred_classID_cumprob(:,i_target_classID,2));
-	  pred_classID_confidences{i_target_classID} = ...
+	  pred_classID_confidences(i_target_classID) = ...
 	  (1 - pred_classID_cumprob_pos(pred_classID_confidence_bins)) ./ ...
 	  ((1 - pred_classID_cumprob_pos(pred_classID_confidence_bins)) + ...
 	   (1 - pred_classID_cumprob_neg(pred_classID_confidence_bins)));
