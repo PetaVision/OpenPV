@@ -25,7 +25,7 @@ if(APPLE)
 endif(APPLE)
 
 #Set CMAKE_MODULE_PATH
-set(CMAKE_MODULE_PATH "${PV_DIR}/docs/cmake/Modules/")
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 set(PV_USE_MPI TRUE CACHE BOOL "Defines whether PetaVision uses MPI")
 set(PV_USE_OPENMP_THREADS TRUE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
