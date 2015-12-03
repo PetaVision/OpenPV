@@ -104,7 +104,7 @@ target_link_libraries(${PV_PROJECT_NAME} matchingpursuit)
 target_link_libraries(${PV_PROJECT_NAME} ${GDAL_LIBRARY})
 
 ## target_link_libraries command no longer needed because the libraries are included in libpv.so
-#IF(PV_USE_CUDNN)
+#IF(PV_USE_CUDA)
 #   target_link_libraries(${PV_PROJECT_NAME} ${CUDNN_PATH}/libcudnn.so)
-#ENDIF(PV_USE_CUDNN)
+#ENDIF(PV_USE_CUDA)
 #

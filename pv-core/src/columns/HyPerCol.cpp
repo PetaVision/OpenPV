@@ -2094,6 +2094,36 @@ double * HyPerCol::adaptTimeScale(){
    return deltaTimeAdapt;
 }
 
+  // demonstration of time scale adaption using model of E(dt) ~= E(0) * exp(-dt/tau_eff)
+  // with tau_effective estimated by: dt / tau_eff ~= (E(dt) - E(0)) / (E(dt) + E(0))
+  // to 2nd order in a Taylor series expansion:  optim_dt ~= tau_eff -> argmin E'(optim_dt)
+  // where E' is the Tayler series expansion of E(dt) to 2nd order in dt
+double * HyPerCol::adaptTimeScaleNew(){
+   for (int b=0; b<nbatch; b++) {
+      oldTimeScaleTrue[b] = timeScaleTrue[b];
+      oldTimeScale[b] = timeScale[b];
+   }
+   calcTimeScaleTrue(); // sets timeScaleTrue[b] to sqrt(Energy(t+dt)/|I|^2))^-1
+   for(int b = 0; b < nbatch; b++){
+      // if change in timeScaleTrue is negative, revert to minimum timeScale
+
+      //Set timeScaleTrue to new minTimeScale
+     double E_t_plus_dt = timeScaleTrue[b]; // set to -1 if image flip
+     double E_t = oldTimeScaleTrue[b];
+     double dE_over_E = (E_t_plus_dt > 0) ? 2.0 * (E_t - E_t_plus_dt) / (E_t + E_t_plus_dt) : -1;
+     // tau_eff == dt / dE_over_E
+     //          = deltaTimeAdapt[b] / dE_over_E
+     // dt := timeScaleMax * tau_eff
+     timeScale[b] = (dE_over_E > dtMinToleratedTimeScale) ? changeTimeScaleMax * deltaTimeAdapt[b] / dE_over_E : deltaTimeBase * timeScaleMin;
+     timeScale[b] /= deltaTimeBase;
+     timeScale[b] = (timeScale[b] <= timeScaleMax) ? timeScale[b] : timeScaleMax;
+     
+     // deltaTimeAdapt is only used internally to set scale of each update step
+     deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
+   }
+   return deltaTimeAdapt;
+}
+
 int HyPerCol::calcTimeScaleTrue() {
    if (!dtAdaptControlProbe) {
       // If there is no probe controlling the adaptive timestep,
@@ -2196,7 +2226,12 @@ int HyPerCol::advanceTime(double sim_time)
 
    deltaTime = deltaTimeBase;
    if (dtAdaptFlag){ // adapt deltaTime
-     adaptTimeScale();
+     // hack code to test new adapt time scale method using exponential approx to energy
+     bool use_adaptTimeScaleNew = false;
+     if (use_adaptTimeScaleNew){
+       adaptTimeScaleNew();}
+     else{
+       adaptTimeScale();}
      if(writeTimescales && columnId() == 0) {
          timeScaleStream << "sim_time = " << sim_time << "\n";
          for(int b = 0; b < nbatch; b++){
