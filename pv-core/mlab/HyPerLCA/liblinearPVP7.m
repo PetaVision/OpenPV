@@ -1,5 +1,5 @@
 
-%% applies liblinear to sparse coded layers, assumes ground truth is provided as a sparse PVP file (ground truth could also be full, I think)
+%% Applies liblinear to sparse coded layers, assumes ground truth is provided as a sparse PVP file (ground truth could also be full, I think)
 %% breaks the sparse output into the same number of tiles as are specified in the ground truth pvp file
 %% if more than one sparse layer is specified, liblinear is also applied to the concatenation of all sparse layers
 %% once a linear SVM has been trained and applied to the sparse representations of all images
@@ -28,12 +28,12 @@ addpath([mlab_dir, "/util"]);
 addpath([mlab_dir, "/HyPerLCA"]);
 
 plot_flag = true;
-%%run_type = "ICA"
+run_type = "ICA"
 %%run_type = "S1S2"
 %%run_type = "DCA";
 %%run_type = "CIFAR";
 %%run_type = "scene"
-run_type = "JIEDDO"
+%%run_type = "JIEDDO"
 if strcmp(run_type, "ICA")
   output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape7";
 elseif strcmp(run_type, "JIEDDO")
@@ -455,7 +455,7 @@ if ~load_svm_flag
     num_procs_str = "";
   endif
   %%liblinear_xval_options_str = ['-s 0 -C -B 1 -n ', num2str(num_GT_procs)]; %%['-s 0 -C -B 1'];
-  liblinear_xval_options_str = ['-s 0 -C -B 1']; %%['-s 0 -C -B 1'];
+  liblinear_xval_options_str = ['-s 0 -C -B 1 ', num_procs_str]; %%['-s 0 -C -B 1'];
 
 
   %% set up data structures for storing liblinear svm results
