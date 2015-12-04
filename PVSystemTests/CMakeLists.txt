@@ -8,92 +8,51 @@ enable_testing()
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.8.10)
 
+# Include the AddPVTest macro
+include(AddPVTest)
 
+# START DELETE
+#
+# There is no PetaVision directory and PV_DIR is set and placed
+# into the cache in the top level CMakeLists.txt
 # Set variable for current working directory (workspace directory)
+if(FALSE)
 set(PV_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../PetaVision CACHE PATH "The base petavision directory")
 
 IF(NOT EXISTS "${PV_DIR}")
    message(FATAL_ERROR "PV_DIR \"${PV_DIR}\" does not exist. Please set PV_DIR to the path containing the PetaVision lib and src
 directories.")
 ENDIF(NOT EXISTS "${PV_DIR}")
+ENDIF(FALSE)
+# END DELETE
 
+# START DELETED
+# 
+# This is already handled in the top level CMakeLists.txt
 # Note: It would be preferable to parse ${PV_DIR}/src/include/cMakeHeader.h for these values.
-set(PV_USE_MPI TRUE CACHE BOOL "Defines whether the MPI environment is present")
-set(PV_USE_OPENMP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
-set(PV_USE_OPENCL FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
-set(PV_USE_CUDA FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
-set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
+#set(PV_USE_MPI TRUE CACHE BOOL "Defines whether the MPI environment is present")
+#set(PV_USE_OPENMP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
+#set(PV_USE_OPENCL FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
+#set(PV_USE_CUDA FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
+#set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
 #set(PV_USE_CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
-set(PV_SYSTEM_TEST_THREADS "" CACHE STRING "Defines the number of threads to use for system tests (empty string for max)")
-set(CUDNN_PATH ${CUDNN_PATH_DEFAULT} CACHE PATH "Location of cuDNN libraries")
-set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
-set(PV_OPENMP_COMPILER_FLAG ${PV_OPENMP_COMPILER_FLAG_DEFAULT} CACHE STRING "Compiler flag for compiling with OpenMP")
+#set(PV_SYSTEM_TEST_THREADS "" CACHE STRING "Defines the number of threads to use for system tests (empty string for max)")
+#set(CUDNN_PATH ${CUDNN_PATH_DEFAULT} CACHE PATH "Location of cuDNN libraries")
+#set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
+#set(PV_OPENMP_COMPILER_FLAG ${PV_OPENMP_COMPILER_FLAG_DEFAULT} CACHE STRING "Compiler flag for compiling with OpenMP")
 
 # If CUDA is being used, the PV_USE_CUDNN needs to be set
-if(PV_USE_CUDA)
-   set(PV_USE_CUDNN TRUE)
-endif(PV_USE_CUDA)
+#if(PV_USE_CUDA)
+#   set(PV_USE_CUDNN TRUE)
+#endif(PV_USE_CUDA)
+# 
+# END DELETED
 
-#Define function for adding a test to the test harness
-macro(AddPVTest BaseName ParamNames inFlags inMpi)
-   #Case based on size of paramNames
-   list(LENGTH ${ParamNames} numParams)
-   #No params case
-   if(${numParams} EQUAL 0)
-      set(testName ${BaseName})
-      #One process
-      add_test(${testName}_1 ${CMAKE_COMMAND} -E chdir ${BaseName}
-         Debug/${BaseName} ${inFlags} -l
-         ${testName}_1.log)
-      if(${PV_USE_MPI} AND ${inMpi})
-         #Two processes
-         add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
-            ${MPIEXEC} -np 2 Debug/${BaseName} ${inFlags} -l 
-            ${testName}_2.log)
-         #Four processes
-         add_test(${testName}_4 ${CMAKE_COMMAND} -E chdir ${BaseName}
-            ${MPIEXEC} -np 4 Debug/${BaseName} ${inFlags} -l 
-            ${testName}_4.log)
-         #Add dependencies
-         set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
-         set_tests_properties(${testName}_4 PROPERTIES DEPENDS ${testName}_2)
-      endif(${PV_USE_MPI} AND ${inMpi})
-   else(${numParams} EQUAL 0)
-      #Multiple params here
-      foreach(param IN LISTS ${ParamNames})
-         #Set test name based on number of parameters
-         if(${numParams} GREATER 1)
-            set(testName ${BaseName}_${param})
-         else(${numParams} GREATER 1)
-            set(testName ${BaseName})
-         endif(${numParams} GREATER 1)
-         #One process
-         add_test(${testName}_1 ${CMAKE_COMMAND} -E chdir ${BaseName}
-            Debug/${BaseName} -p input/${param}.params ${inFlags} -l
-            ${testName}_1.log)
-         if(${PV_USE_MPI} AND ${inMpi})
-            #Two processes
-            add_test(${testName}_2 ${CMAKE_COMMAND} -E chdir ${BaseName}
-               ${MPIEXEC} -np 2 Debug/${BaseName} -p input/${param}.params
-               ${inFlags} -l
-               ${testName}_2.log)
-            #Four processes
-            add_test(${testName}_4 ${CMAKE_COMMAND} -E chdir ${BaseName}
-               ${MPIEXEC} -np 4 Debug/${BaseName} -p input/${param}.params
-               ${inFlags} -l
-               ${testName}_4.log)
-            #Add dependencies
-            set_tests_properties(${testName}_2 PROPERTIES DEPENDS ${testName}_1)
-            set_tests_properties(${testName}_4 PROPERTIES DEPENDS ${testName}_2)
-         endif(${PV_USE_MPI} AND ${inMpi})
-      endforeach(param)
-   endif(${numParams} EQUAL 0)
-endmacro(AddPVTest)
-
-#Set CMAKE_MODULE_PATH
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PV_DIR}/docs/cmake/Modules/")
-
-
+# START MAYBE MOVE TO TOPLEVEL
+#
+# The variables referenced by these checks are defined at the top level
+# and the results look like they are needed in all subdirectories at
+# this level. Move it to the toplevel?
 if("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
    #Do nothing, correct
 else("${PV_SYSTEM_TEST_THREADS}" MATCHES "^([0-9]+|)$")
@@ -115,6 +74,7 @@ if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PV_OPENMP_COMPILER_FLAG}")
    set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)
 endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
+# START MAYBE MOVE TO TOPLEVEL
 
 
 add_subdirectory(AdjustAxonalArborsTest)

@@ -15,7 +15,10 @@ if (NOT CMAKE_BUILD_TYPE)        #To use a different CMAKE_BUILD_TYPE, use the o
 endif (NOT CMAKE_BUILD_TYPE)
 
 
+# START DELETE ME
 # Variables to set on the command line
+# This is set in the top level CMakeLists.txt
+if(FALSE)
 set(PV_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "The base PetaVision directory")
 set(PV_USE_MPI TRUE CACHE BOOL "Defines whether PetaVision uses MPI")
 set(PV_USE_OPENMP_THREADS FALSE CACHE BOOL "Defines whether PetaVision uses OpenMP threads")
@@ -28,7 +31,6 @@ set(CUDNN_PATH ${CUDNN_PATH_DEFAULT} CACHE PATH "Location of cuDNN libraries")
 set(PV_BUILD_SHARED FALSE CACHE BOOL "Defines whether the pv object is built as a shared object")
 set(CLANG_OMP TRUE CACHE BOOL "Defines whether we're compiling with Clang + omp support")
 set(PV_OPENMP_COMPILER_FLAG ${PV_OPENMP_COMPILER_FLAG_DEFAULT} CACHE STRING "Compiler flag for compiling with OpenMP")
-
 
 if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
    if(APPLE AND CLANG_OMP)
@@ -53,13 +55,10 @@ if(PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
    ENDIF(APPLE)
    set(PV_USE_OPENCL_FLAGS_ADDED)
 endif (PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
+endif(FALSE)
 
 
-set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
-set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
-set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
-set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
-
+if(FALSE)
 # If CUDA is being used, the PV_USE_CUDNN needs to be set
 if(PV_USE_CUDA)
    set(PV_USE_CUDNN TRUE)
@@ -84,6 +83,13 @@ if(PV_USE_CUDA)
        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${CUDNN_INCLUDE_PATH}")
 #    endif(PV_USE_CUDNN)
 endif(PV_USE_CUDA)
+endif(FALSE)
+# END DELETE ME
+
+set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
+set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
 
 # File which denotes compile-ready folders
 set(PV_SRC_LIST PV_FOLDER_LIST.txt)
@@ -213,29 +219,42 @@ configure_file (
    "${PV_SOURCE_DIR}/include/cMakeHeader.h"
 )
 
+# START DELETE ME
+if(FALSE)
+# Handled in top level CMakeLists.txt
 # Add external libraries 
 if (NOT GDAL_FOUND)
     MESSAGE("-- Searching for GDAL library ...........")
     find_package(GDAL REQUIRED)
 endif (NOT GDAL_FOUND)
 include_directories(${GDAL_INCLUDE_DIR})
+endif(FALSE)
+# END DELETE ME
 
+# 
 # The user may specify a non-standard compiler name for MPI
 #  For example, the user may type:
 #    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
 #
 
+# START MAYBE DELETE / MOVE TO TOPLEVEL
 if (PV_USE_MPI)
     if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
         MESSAGE("-- Searching for MPI library ............")
         find_package(MPI REQUIRED)
     endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
 
+    # Can this be moved to the top level CMakeListst.txt? If so,
+    # then this entire if block can be removed
     set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
     set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
 endif (PV_USE_MPI)
+# END MAYBE DELETE
 
-
+# START MAYBE MOVE TO TOPLEVEL
+# Could this find package be moved to the top level so that 
+# this does not need to be repeated for parallel directories
+# that need CUDA?
 if (PV_USE_CUDA)
     MESSAGE("-- Searching for CUDA library ............")
     find_package(CUDA)
@@ -252,14 +271,16 @@ if(PV_USE_CUDA)
 else(PV_USE_CUDA)
    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -arch=sm_20;)
 endif(PV_USE_CUDA)
+# END MAYBE MOVE TO TOPLEVEL
 
-
+# START MAYBE MOVE TO TOPLEVEL
 if(CUDA_RELEASE)
    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -O;)
 else(CUDA_RELEASE)
    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -Xptxas; -v; -keep; -lineinfo; -g; -G;)
 endif(CUDA_RELEASE)
 #cuda_compile(CUDA_O ${PVLibSrcCu}) 
+# END MAYBE MOVE TO TOPLEVEL
 
 # Add PetaVision
 if(PV_USE_CUDA)
@@ -279,6 +300,9 @@ endif(PV_USE_CUDA)
 # Link executable to external libraries
 target_link_libraries(pv ${GDAL_LIBRARY})
 
+# START MAYBE DELETE
+# Could this be moved to the top level so that parallel directories
+# that need cudnn don't have to repeat this 
 IF(PV_USE_CUDA)
    IF(APPLE)
       set(CUDNN_LIB_NAME "libcudnn.dylib")
@@ -292,4 +316,5 @@ IF(PV_USE_CUDA)
    endif (NOT "${LENGTH_CUDNN_LIBRARY}" EQUAL 1)
    target_link_libraries(pv ${CUDNN_LIBRARY})
 ENDIF(PV_USE_CUDA)
+# END MAYBE DELETE
 
