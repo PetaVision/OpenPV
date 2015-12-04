@@ -8,6 +8,7 @@ cmake_minimum_required(VERSION 2.8.10)
 
 # Include the AddPVTest macro
 include(AddPVTest)
+include(AddPVTest1)
 
 set(PV_SYSTEM_TEST_THREADS "" CACHE STRING "Defines the number of threads to use for system tests (empty string for max)")
 
@@ -110,11 +111,11 @@ add_subdirectory(WriteSparseFileTest)
 
 #Add tests here
 
-set(testBaseName BasicSystemTest) #The base name of the test
-set(testParams BasicSystemTest) #Names of the parameter files in the input directory, leaving out .params
-set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
-set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
-AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
+#set(testBaseName BasicSystemTest) #The base name of the test
+#set(testParams BasicSystemTest) #Names of the parameter files in the input directory, leaving out .params
+#set(testFlags -t ${PV_SYSTEM_TEST_THREADS}) #Extra flags to pass to PetaVision test
+#set(testMpi TRUE) #Whether to call inside mpiexec with multiple processes
+#AddPVTest(${testBaseName} testParams "${testFlags}" ${testMpi})
 
 set(testBaseName AdjustAxonalArborsTest) #The base name of the test
 set(testParams AdjustAxonalArborsTest) #Names of the parameter files in the input directory, leaving out .params
