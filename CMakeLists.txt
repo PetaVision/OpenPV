@@ -93,6 +93,11 @@ if (PV_USE_MPI)
     endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
 endif (PV_USE_MPI)
 
+if (NOT GDAL_FOUND)
+    MESSAGE("-- Searching for GDAL library ...........")
+    find_package(GDAL REQUIRED)
+endif (NOT GDAL_FOUND)
+include_directories(${GDAL_INCLUDE_DIR})
 
 # Adds the core PetaVision directory
 add_subdirectory(${PV_DIR})
