@@ -62,10 +62,10 @@ local startFrame          = 0
 local dtAdaptFlag              = not S1_Movie
 local dtAdaptController        = "S1EnergyProbe";
 local dtAdaptTriggerLayerName  = "Image";
-local dtScaleMax               = 1.0   --1.0     -- maxium time scale, regardless of tau_eff
-local dtScaleMin               = 0.01  --0.01     -- default time scale to use after image flips and when something is wacky
+local dtScaleMax               = 1.0   --1.0     -- maximum time scale, regardless of tau_eff
+local dtScaleMin               = 0.01  --0.01     -- default time scale to use after image flips or when something is wacky
 local dtChangeMax              = 0.1   --0.1    -- determines fraction of tau_effective to which to set the time step, can be small as tau_eff can be huge
-local dtChangeMin              = 0.01   -- 0.0      -- the maximum allowed time scale increases in this proportion wheneven the time scale equals the current maximum
+local dtChangeMin              = 0.01   -- 0.0      -- the maximum allowed time scale increases in this proportion whenever the time scale equals the current maximum
 local dtMinToleratedTimeScale  = 0.0001
 
 --HyPerLCA parameters

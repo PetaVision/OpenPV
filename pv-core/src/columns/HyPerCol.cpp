@@ -2148,17 +2148,17 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
        // deltaTimeAdapt is only used internally to set scale of each update step
        deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
 
-       std::cout << "simTime: " << simTime << "\n";
-       std::cout << "oldTimeScaleTrue: " << oldTimeScaleTrue[b] << "\n";
-       std::cout << "oldTimeScale: " << oldTimeScale[b] << "\n";
-       std::cout << "E_dt: " << E_dt << "\n";
-       std::cout << "E_0: " << E_0 << "\n";
-       std::cout << "dE_dt: " << dE_dt << "\n";
-       std::cout << "tau_eff: " << tau_eff << "\n";
-       std::cout << "timeScale: " << timeScale[b] << "\n";
-       std::cout << "timeScaleMax: " << timeScaleMax[b] << "\n";
-       std::cout << "deltaTimeAdapt: " << deltaTimeAdapt[b] << "\n";
-       std::cout <<  "\n";
+       //std::cout << "simTime: " << simTime << "\n";
+       //std::cout << "oldTimeScaleTrue: " << oldTimeScaleTrue[b] << "\n";
+       //std::cout << "oldTimeScale: " << oldTimeScale[b] << "\n";
+       //std::cout << "E_dt: " << E_dt << "\n";
+       //std::cout << "E_0: " << E_0 << "\n";
+       //std::cout << "dE_dt: " << dE_dt << "\n";
+       //std::cout << "tau_eff: " << tau_eff << "\n";
+       //std::cout << "timeScale: " << timeScale[b] << "\n";
+       //std::cout << "timeScaleMax: " << timeScaleMax[b] << "\n";
+       //std::cout << "deltaTimeAdapt: " << deltaTimeAdapt[b] << "\n";
+       //std::cout <<  "\n";
        
      }
    }
