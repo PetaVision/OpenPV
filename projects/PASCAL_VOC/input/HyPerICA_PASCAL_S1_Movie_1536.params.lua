@@ -19,7 +19,7 @@ local runName             = "VOC2007_landscape"
 local runVersion          = 8
 local machinePath         = "/Volumes/mountData" --"/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
-local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion .. "_original"
+local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion .. "b"
 local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
 local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
 local numImages           = 7958
@@ -59,13 +59,13 @@ local GroundTruthPath     = machinePath .. "/PASCAL_VOC/VOC2007/VOC2007_landscap
 local startFrame          = 0
 
 --HyPerCol parameters
-local dtAdaptFlag           = not S1_Movie
-local dtAdaptController     = NULL --"S1EnergyProbe";
-local dtAdaptTriggerLayerName = NULL --"Image";
-local dtScaleMax               = 10.0   --2.0; --1.0; --0.1;
-local dtScaleMin               = 0.01
-local dtChangeMax              = 0.01  --0.1; --0.01;
-local dtChangeMin              = -0.02 --0.0;
+local dtAdaptFlag              = not S1_Movie
+local dtAdaptController        = "S1EnergyProbe";
+local dtAdaptTriggerLayerName  = "Image";
+local dtScaleMax               = 1.0   --1.0     -- maxium time scale, regardless of tau_eff
+local dtScaleMin               = 0.01  --0.01     -- default time scale to use after image flips and when something is wacky
+local dtChangeMax              = 0.1   --0.1    -- determines fraction of tau_effective to which to set the time step, can be small as tau_eff can be huge
+local dtChangeMin              = 0.01   -- 0.0      -- the maximum allowed time scale increases in this proportion wheneven the time scale equals the current maximum
 local dtMinToleratedTimeScale  = 0.0001
 
 --HyPerLCA parameters
@@ -313,13 +313,13 @@ else
 		  mirrorBCflag                        = false;
 		  valueBC                             = 0;
 		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
-		  InitVType                           = "InitVFromFile";
-		  Vfilename                           = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_V.pvp";
+		  --InitVType                           = "InitVFromFile";
+		  --Vfilename                           = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_V.pvp";
 		  -- InitVType                           = "UniformRandomV";
 		  -- minV                                = -1;
 		  -- maxV                                = 0.05;
-		  --InitVType                           = "UniformV";
-		  --valueV                              = VThresh;
+		  InitVType                           = "ConstantV";
+		  valueV                              = VThresh;
 		  --triggerLayerName                    = "Image";
 		  --triggerBehavior                     = "resetStateOnTrigger";
 		  --triggerResetLayerName               = "ConstantS1";
@@ -328,7 +328,7 @@ else
 		  initialWriteTime                    = displayPeriod;
 		  sparseLayer                         = true;
 		  writeSparseValues                   = true;
-		  updateGpu                           = false; --true;
+		  updateGpu                           = true;
 		  dataType                            = nil;
 		  VThresh                             = VThresh;
 		  AMin                                = 0;

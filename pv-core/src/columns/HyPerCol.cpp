@@ -142,6 +142,9 @@ HyPerCol::~HyPerCol()
    if(timeScale){
       free(timeScale);
    }
+   if(timeScaleMax){
+      free(timeScaleMax);
+   }
    if(timeScaleTrue){
       free(timeScaleTrue);
    }
@@ -199,9 +202,12 @@ int HyPerCol::initialize_base() {
    dtAdaptTriggerOffset = 0.0;
    deltaTimeBase = DELTA_T;
    timeScale = NULL;
+   timeScaleMax = NULL;
    timeScaleTrue = NULL;
+   oldTimeScale = NULL;
+   oldTimeScaleTrue = NULL;
    deltaTimeAdapt = NULL;
-   timeScaleMax = 1.0;
+   timeScaleMaxBase = 1.0;
    timeScaleMin = 1.0;
    changeTimeScaleMax = 0.0;
    changeTimeScaleMin = 0.0;
@@ -654,6 +660,11 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       fprintf(stderr, "%s error: unable to allocate memory for timeScale buffer.\n", programName);
       exit(EXIT_FAILURE);
    }
+   timeScaleMax = (double*) malloc(sizeof(double) * nbatch);
+   if(timeScaleMax ==NULL) {
+      fprintf(stderr, "%s error: unable to allocate memory for timeScaleMax buffer.\n", programName);
+      exit(EXIT_FAILURE);
+   }
    timeScaleTrue = (double*) malloc(sizeof(double) * nbatch);
    if(timeScaleTrue ==NULL) {
       fprintf(stderr, "%s error: unable to allocate memory for timeScaleTrue buffer.\n", programName);
@@ -676,11 +687,12 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    }
    //Initialize timeScales to 1
    for(int b = 0; b < nbatch; b++){
-      timeScale[b] = 1;
-      timeScaleTrue[b] = 1;
-      oldTimeScale[b] = 1;
-      oldTimeScaleTrue[b] = 1;
-      deltaTimeAdapt[b] = 1;
+      timeScaleTrue[b]       = -1;
+      oldTimeScaleTrue[b]    = -1;
+      timeScale[b]           = 1;
+      timeScaleMax[b]        = 1;
+      oldTimeScale[b]        = 1;
+      deltaTimeAdapt[b]      = DELTA_T;
    }
 
    ////Here, we decide if we thread over batches (ideal) or over neurons, depending on the number of threads and number of batches
@@ -954,7 +966,7 @@ void HyPerCol::ioParam_dtAdaptTriggerOffset(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
    if (dtAdaptFlag) {
-     ioParamValue(ioFlag, name, "dtScaleMax", &timeScaleMax, timeScaleMax);
+     ioParamValue(ioFlag, name, "dtScaleMax", &timeScaleMaxBase, timeScaleMaxBase);
    }
 }
 
@@ -2050,8 +2062,8 @@ double * HyPerCol::adaptTimeScale(){
       //Set timeScaleTrue to new minTimeScale
       double minTimeScaleTmp = timeScaleTrue[b];
 
-      // force the minTimeScaleTmp to be <= timeScaleMax
-      minTimeScaleTmp = minTimeScaleTmp < timeScaleMax ? minTimeScaleTmp : timeScaleMax;
+      // force the minTimeScaleTmp to be <= timeScaleMaxBase
+      minTimeScaleTmp = minTimeScaleTmp < timeScaleMaxBase ? minTimeScaleTmp : timeScaleMaxBase;
 
       // set the timeScale to minTimeScaleTmp iff minTimeScaleTmp > 0, otherwise default to timeScaleMin
       timeScale[b] = minTimeScaleTmp > 0.0 ? minTimeScaleTmp : timeScaleMin;
@@ -2094,32 +2106,61 @@ double * HyPerCol::adaptTimeScale(){
    return deltaTimeAdapt;
 }
 
-  // demonstration of time scale adaption using model of E(dt) ~= E(0) * exp(-dt/tau_eff)
-  // with tau_effective estimated by: dt / tau_eff ~= (E(dt) - E(0)) / (E(dt) + E(0))
+  // time scale adaptation using model of E(dt) ~= E_0 * exp(-dt/tau_eff) + E_inf
+  // to first order:
+  //   E(0)  = E_0 + E_inf
+  //   E(dt) = E_0 * (1 - dt/tau_eff) + E_inf
+  // solving for tau_eff yields
+  //   tau_eff = dt * E_0 / |dE| <= dt * E(0) / |dE|
+  // where
+  //   dE = E(0) - E(dt)
   // to 2nd order in a Taylor series expansion:  optim_dt ~= tau_eff -> argmin E'(optim_dt)
   // where E' is the Tayler series expansion of E(dt) to 2nd order in dt
-double * HyPerCol::adaptTimeScaleNew(){
+double * HyPerCol::adaptTimeScaleExp1stOrder(){
    for (int b=0; b<nbatch; b++) {
-      oldTimeScaleTrue[b] = timeScaleTrue[b];
-      oldTimeScale[b] = timeScale[b];
+     oldTimeScaleTrue[b]    = timeScaleTrue[b];
+     oldTimeScale[b]        = timeScale[b];
    }
    calcTimeScaleTrue(); // sets timeScaleTrue[b] to sqrt(Energy(t+dt)/|I|^2))^-1
    for(int b = 0; b < nbatch; b++){
-      // if change in timeScaleTrue is negative, revert to minimum timeScale
-
-      //Set timeScaleTrue to new minTimeScale
-     double E_t_plus_dt = timeScaleTrue[b]; // set to -1 if image flip
-     double E_t = oldTimeScaleTrue[b];
-     double dE_over_E = (E_t_plus_dt > 0) ? 2.0 * (E_t - E_t_plus_dt) / (E_t + E_t_plus_dt) : -1;
-     // tau_eff == dt / dE_over_E
-     //          = deltaTimeAdapt[b] / dE_over_E
-     // dt := timeScaleMax * tau_eff
-     timeScale[b] = (dE_over_E > dtMinToleratedTimeScale) ? changeTimeScaleMax * deltaTimeAdapt[b] / dE_over_E : deltaTimeBase * timeScaleMin;
-     timeScale[b] /= deltaTimeBase;
-     timeScale[b] = (timeScale[b] <= timeScaleMax) ? timeScale[b] : timeScaleMax;
      
-     // deltaTimeAdapt is only used internally to set scale of each update step
-     deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
+     double E_dt  =  timeScaleTrue[b]; 
+     double E_0   =  oldTimeScaleTrue[b];
+     double dE_dt  = (E_0 - E_dt)  /  deltaTimeAdapt[b];
+
+     if ( (dE_dt <= 0.0) || (E_0 <= 0) || (E_dt <= 0) ) {
+       timeScale[b] = timeScaleMin;
+       deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
+       timeScaleMax[b]   = timeScaleMaxBase;
+     }
+     else {
+       double tau_eff = E_0 / dE_dt;
+
+       // dt := timeScaleMaxBase * tau_eff
+       timeScale[b] = changeTimeScaleMax * tau_eff / deltaTimeBase;
+       timeScale[b] = (timeScale[b] <= timeScaleMax[b]) ? timeScale[b] : timeScaleMax[b];
+       timeScale[b] = (timeScale[b] <  timeScaleMin) ? timeScaleMin : timeScale[b];
+
+       if (timeScale[b] == timeScaleMax[b]) {
+	 timeScaleMax[b] = (1 + changeTimeScaleMin) * timeScaleMax[b];
+       }
+       
+       // deltaTimeAdapt is only used internally to set scale of each update step
+       deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
+
+       std::cout << "simTime: " << simTime << "\n";
+       std::cout << "oldTimeScaleTrue: " << oldTimeScaleTrue[b] << "\n";
+       std::cout << "oldTimeScale: " << oldTimeScale[b] << "\n";
+       std::cout << "E_dt: " << E_dt << "\n";
+       std::cout << "E_0: " << E_0 << "\n";
+       std::cout << "dE_dt: " << dE_dt << "\n";
+       std::cout << "tau_eff: " << tau_eff << "\n";
+       std::cout << "timeScale: " << timeScale[b] << "\n";
+       std::cout << "timeScaleMax: " << timeScaleMax[b] << "\n";
+       std::cout << "deltaTimeAdapt: " << deltaTimeAdapt[b] << "\n";
+       std::cout <<  "\n";
+       
+     }
    }
    return deltaTimeAdapt;
 }
@@ -2227,9 +2268,9 @@ int HyPerCol::advanceTime(double sim_time)
    deltaTime = deltaTimeBase;
    if (dtAdaptFlag){ // adapt deltaTime
      // hack code to test new adapt time scale method using exponential approx to energy
-     bool use_adaptTimeScaleNew = false;
-     if (use_adaptTimeScaleNew){
-       adaptTimeScaleNew();}
+     bool use_adaptTimeScaleExp1stOrder = false; //true;
+     if (use_adaptTimeScaleExp1stOrder){
+       adaptTimeScaleExp1stOrder();}
      else{
        adaptTimeScale();}
      if(writeTimescales && columnId() == 0) {

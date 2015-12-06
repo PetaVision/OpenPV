@@ -119,7 +119,9 @@ public:
    double getDeltaTimeBase()              {return deltaTimeBase;}
    double* getTimeScale()                 {return timeScale;}
    double getTimeScale(int batch)         {assert(batch >= 0 && batch < nbatch); return timeScale[batch];}
-   double getTimeScaleMax()               {return timeScaleMax;}
+   double* getTimeScaleMaxPtr()           {return timeScaleMax;}
+   double getTimeScaleMax(int batch)      {assert(batch >= 0 && batch < nbatch); return timeScaleMax[batch];}
+   double getTimeScaleMax()               {return timeScaleMaxBase;}
    double getTimeScaleMin()               {return timeScaleMin;}
    double getChangeTimeScaleMax()         {return changeTimeScaleMax;}
    double getChangeTimeScaleMin()         {return changeTimeScaleMin;}
@@ -455,7 +457,7 @@ private:
    int outputParams(char const * path);
 
    double* adaptTimeScale();
-   double* adaptTimeScaleNew();
+   double* adaptTimeScaleExp1stOrder();
    int calcTimeScaleTrue();
 
    long int currentStep;
@@ -516,7 +518,8 @@ private:
    double * oldTimeScale;        // old value of timeScale
    double * oldTimeScaleTrue;    // old value of timeScaleTrue
    double * deltaTimeAdapt;    // Actual deltaTimeAdapt buffer passed to updateState
-   double timeScaleMax;     // maximum value of timeScale (prevents deltaTime from growing too large)
+   double * timeScaleMax;     // maximum value of timeScale (prevents deltaTime from growing too large)
+   double timeScaleMaxBase;     // default value of maximum value of timeScale (prevents deltaTime from growing too large)
    double timeScaleMin;     // minimum value of timeScale (not really a minimum, actually sets starting/iniital value of deltaTime)
    double changeTimeScaleMax;     // maximum change in value of timeScale (prevents deltaTime from growing too quickly)
    double changeTimeScaleMin;     // typically 0 or negative, maximum DECREASE in timeScale allowed before resetting timeScale -> timeScaleMin
