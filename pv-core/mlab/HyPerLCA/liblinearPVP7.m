@@ -28,9 +28,9 @@ addpath([mlab_dir, "/util"]);
 addpath([mlab_dir, "/HyPerLCA"]);
 
 plot_flag = true;
-run_type = "ICA"
+%%run_type = "ICA"
 %%run_type = "S1S2"
-%%run_type = "DCA";
+run_type = "DCA";
 %%run_type = "CIFAR";
 %%run_type = "scene"
 %%run_type = "JIEDDO"
@@ -41,7 +41,7 @@ elseif strcmp(run_type, "JIEDDO")
 elseif strcmp(run_type, "S1S2")
   output_dir = "/Volumes/mountData/PASCAL_VOC/PASCALX3_S1_96_S2_1536/VOC2007_landscape31";
 elseif strcmp(run_type, "DCA")
-  output_dir = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape9";
+  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape11";
 elseif strcmp(run_type, "CIFAR")
   output_dir = "/nh/compneuro/Data/CIFAR/CIFAR_S1_48_S2_96_S3_48_DCA/CIFAR10_train8";
 elseif strcmp(run_type, "scene")
@@ -130,7 +130,7 @@ num_GT_epochs = 1;
 if ismac
   num_GT_procs = 1;
 elseif isunix
-  num_GT_procs = 8;
+  num_GT_procs = 12;
 else
   num_GT_procs = 1;
 endif
@@ -329,7 +329,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
   if i_Sparse <= num_Sparse_list
     nf_Sparse_array(i_Sparse) = Sparse_hist_pool_hdr{i_Sparse}.nf;
   else %% i_Sparse > num_Sparse_list
-    nf_Sparse_array(i_Sparse) = prod(nf_Sparse_array(1:num_Sparse_list));
+    nf_Sparse_array(i_Sparse) = sum(nf_Sparse_array(1:num_Sparse_list));
   endif
   %% can only use max_GT_images to stay within sizemax octave constraint on maximum array size
   if max4X4_pool_flag || mean4X4_pool_flag
@@ -356,6 +356,7 @@ num_GT_frames = length(GT_data);
 if ~exist("num_GT_images") || isempty(num_GT_images) || num_GT_images <= 0
   num_GT_images = num_GT_frames;
 endif
+
 last_GT_frame = num_GT_frames - floor(GT_slack/2);  
 first_GT_frame = last_GT_frame - num_GT_images + 1;
 i_GT_image = 0;
@@ -445,17 +446,17 @@ for i_target_classID = 1 : num_target_classes
   endif
 endfor %% class_ndx
 
-load_svm_flag = false; %%true;
+load_svm_flag = false;
 if ~load_svm_flag
   
   %%traing_instance_matrix
   if num_GT_procs > 1
-    num_procs_str = '-n ', num2str(num_GT_procs)';
+    num_procs_str = [' -n ', num2str(num_GT_procs)];
   else
     num_procs_str = "";
   endif
   %%liblinear_xval_options_str = ['-s 0 -C -B 1 -n ', num2str(num_GT_procs)]; %%['-s 0 -C -B 1'];
-  liblinear_xval_options_str = ['-s 0 -C -B 1']; %%['-s 0 -C -B 1'];
+  liblinear_xval_options_str = ['-s 0 -C -B 1', num_procs_str]; %%['-s 0 -C -B 1'];
 
 
   %% set up data structures for storing liblinear svm results
@@ -2364,11 +2365,11 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	  pred_classID_confidence_bins(pred_classID_confidence_bins(:) < 1) =  1;
 	  pred_classID_cumprob_pos = squeeze(pred_classID_cumprob(:,i_target_classID,1));
 	  pred_classID_cumprob_neg = squeeze(pred_classID_cumprob(:,i_target_classID,2));
-	  pred_classID_confidences(i_target_classID) = ...
+	  pred_classID_confidences(:, :, i_target_classID) = ...
 	  (1 - pred_classID_cumprob_pos(pred_classID_confidence_bins)) ./ ...
 	  ((1 - pred_classID_cumprob_pos(pred_classID_confidence_bins)) + ...
 	   (1 - pred_classID_cumprob_neg(pred_classID_confidence_bins)));
-	  pred_classID_max_confidence(i_target_classID) = max(pred_classID_confidences{i_target_classID}(:));
+	  pred_classID_max_confidence(i_target_classID) = max(max(pred_classID_confidences(:,:,i_target_classID)));
 	endfor
 	[pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
 	for i_target_classID = 1 : num_target_classes
