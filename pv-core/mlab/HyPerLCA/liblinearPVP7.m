@@ -1,5 +1,5 @@
 
-%% applies liblinear to sparse coded layers, assumes ground truth is provided as a sparse PVP file (ground truth could also be full, I think)
+%% Applies liblinear to sparse coded layers, assumes ground truth is provided as a sparse PVP file (ground truth could also be full, I think)
 %% breaks the sparse output into the same number of tiles as are specified in the ground truth pvp file
 %% if more than one sparse layer is specified, liblinear is also applied to the concatenation of all sparse layers
 %% once a linear SVM has been trained and applied to the sparse representations of all images
@@ -218,7 +218,7 @@ fraction_Sparse_progress = 10;
 num_epochs = num_GT_epochs;
 num_procs = num_GT_procs;
 Sparse_frames_list = [];
-load_Sparse_flag = false;
+load_Sparse_flag = true; %%false;
 [Sparse_hdr_array, ...
  Sparse_hist_rank_array, ...
  Sparse_times_array, ...
@@ -249,7 +249,7 @@ else
   num_Sparse_hist_pool_bins = 0;
 endif
 save_Sparse_hist_pool_flag = hist_pool_flag && false;
-load_Sparse_flag = false;
+load_Sparse_flag = true; %%false;
 [Sparse_hist_pool_hdr, ...
  Sparse_hist_pool_array, ...
  Sparse_hist_pool_times_array, ...
@@ -403,10 +403,10 @@ neg_labels_ndx_long = cell(num_target_classes+(exclusive_flag==1),1);
 neg_pos_ratio = ones(num_target_classes+(exclusive_flag==1),1);
 for i_target_classID = 1 : num_target_classes
   training_label_vector{i_target_classID} = ...
-      reshape(training_label_vector_array(:,:,:,i_target_classID), [ny_GT * nx_GT * num_GT_images, 1]);
+  reshape(training_label_vector_array(:,:,:,i_target_classID), [ny_GT * nx_GT * num_GT_images, 1]);
   if exclusive_flag == 1
     training_label_vector{i_target_classID} = ...
-	training_label_vector{i_target_classID}(1:ny_GT*nx_GT:ny_GT*nx_GT*num_GT_images);
+    training_label_vector{i_target_classID}(1:ny_GT*nx_GT:ny_GT*nx_GT*num_GT_images);
   endif
 endfor %% i_target_classID
 if (exclusive_flag == 2)
@@ -435,8 +435,8 @@ for i_target_classID = 1 : num_target_classes
   endif  %% one_vs_all_flag
   if (exclusive_flag == 1)
     training_label_vector{num_target_classes+1} = ...
-	training_label_vector{num_target_classes+1} + ...
-	training_label_vector{i_target_classID} .* i_target_classID;
+    training_label_vector{num_target_classes+1} + ...
+    training_label_vector{i_target_classID} .* i_target_classID;
   endif
   if (exclusive_flag == 2)
     training_label_vector{i_target_classID}(training_label_vector{i_target_classID}~=0) = i_target_classID;
@@ -456,7 +456,7 @@ if ~load_svm_flag
     num_procs_str = "";
   endif
   %%liblinear_xval_options_str = ['-s 0 -C -B 1 -n ', num2str(num_GT_procs)]; %%['-s 0 -C -B 1'];
-  liblinear_xval_options_str = ['-s 0 -C -B 1', num_procs_str]; %%['-s 0 -C -B 1'];
+  liblinear_xval_options_str = ['-s 0 -C -B 1 ', num_procs_str]; %%['-s 0 -C -B 1'];
 
 
   %% set up data structures for storing liblinear svm results
@@ -2327,8 +2327,8 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
 	pred_classID_false_pos = zeros(length(target_class_indices),1);
 	pred_classID_accuracy = zeros(length(target_class_indices),1);
 	for i_target_classID = 1 : num_target_classes
-	  pos_hist_tmp = squeeze(pred_classID_hist(:,i_target_classID,1)) ./ squeeze(pred_classID_norm(:,i_target_classID,1));
-	  neg_hist_tmp = squeeze(pred_classID_hist(:,i_target_classID,2)) ./ squeeze(pred_classID_norm(:,i_target_classID,2));
+	  %%pos_hist_tmp = squeeze(pred_classID_hist(:,i_target_classID,1)) ./ squeeze(pred_classID_norm(:,i_target_classID,1));
+	  %%neg_hist_tmp = squeeze(pred_classID_hist(:,i_target_classID,2)) ./ squeeze(pred_classID_norm(:,i_target_classID,2));
 	  if use_false_positive_thresh
 	    pred_classID_bin_tmp = find( pred_classID_cumprob(:,i_target_classID,2)>false_positive_thresh, 1, "first");
 	  else

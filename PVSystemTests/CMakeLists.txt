@@ -23,13 +23,16 @@ set(PV_USE_OPENMP_THREADS FALSE CACHE BOOL "Defines if PetaVision uses OpenMP th
 set(PV_USE_OPENCL FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
 set(PV_USE_CUDA FALSE CACHE BOOL "Defines if PetaVision uses CUDA GPU")
 set(CUDA_RELEASE FALSE CACHE BOOL "Defines if Cuda compiles with optimization")
-set(PV_USE_CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
+#set(PV_USE_CUDNN FALSE CACHE BOOL "Defines if PetaVision uses Cuda's CUDNN library")
 set(PV_SYSTEM_TEST_THREADS "" CACHE STRING "Defines the number of threads to use for system tests (empty string for max)")
-set(CUDNN_PATH /nh/compneuro/Data/cuDNN/cudnn-6.5-linux-R1/ CACHE PATH "Location of cuDNN libraries")
+set(CUDNN_PATH ${CUDNN_PATH_DEFAULT} CACHE PATH "Location of cuDNN libraries")
 set(OpenCL_dir /usr/local/cuda-6.5/ CACHE PATH "Location of opencl headers")
-set(PV_OPENMP_COMPILER_FLAG "-fopenmp" CACHE STRING "Compiler flag for compiling with OpenMP")
+set(PV_OPENMP_COMPILER_FLAG ${PV_OPENMP_COMPILER_FLAG_DEFAULT} CACHE STRING "Compiler flag for compiling with OpenMP")
 
-
+# If CUDA is being used, the PV_USE_CUDNN needs to be set
+if(PV_USE_CUDA)
+   set(PV_USE_CUDNN TRUE)
+endif(PV_USE_CUDA)
 
 #Define function for adding a test to the test harness
 macro(AddPVTest BaseName ParamNames inFlags inMpi)

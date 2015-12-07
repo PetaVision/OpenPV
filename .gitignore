@@ -10,3 +10,4 @@ _site/
 subdirectories.txt
 
 .DS_Store
+*.pyc

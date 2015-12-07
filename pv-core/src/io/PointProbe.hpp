@@ -26,7 +26,6 @@ protected:
    int yLoc;
    int fLoc;
    int batchLoc;
-   char * msg;
 
    PointProbe();
    int initialize(const char * probeName, HyPerCol * hc);
