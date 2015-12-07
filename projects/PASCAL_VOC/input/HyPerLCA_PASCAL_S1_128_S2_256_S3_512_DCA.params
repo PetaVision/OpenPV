@@ -40,13 +40,16 @@ HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
     dtAdaptFlag                         = true;
-    dtScaleMax                          = 1; //8;
-    dtScaleMin                          = 0.02; //0.1;
-    dtChangeMax                         = 0.01; //0.025;
-    dtChangeMin                         = -0.02; //0;
+    useAdaptMethodExp1stOrder           = true;
+    dtAdaptController                   = "EnergyProbe";
+    dtAdaptTriggerLayerName             = "Image";
+    dtScaleMax                          = 1;    // base value for maximum time scale, actual maximum can increase
+    dtScaleMin                          = 0.01; // default time scale
+    dtChangeMax                         = 0.1;  // percentage of tau effective used to set time scale
+    dtChangeMin                         = 0.01; // rate at which maximum time scale increases whenever time scale reaches the current maximum value 
     dtMinToleratedTimeScale             = 0.0001;
     stopTime                            = 9549600; //3.1832e+06;
-    progressInterval                    = 1000;
+    progressInterval                    = 1200;
     writeProgressToErr                  = true;
     verifyWrites                        = false;
     outputPath                          = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape11";
@@ -134,7 +137,7 @@ ANNLayer "ImageDecon" = {
 //  @phase                               = 11;
 //};
 
-ANNNormalizedErrorLayer "ImageDeconError" = {
+ANNErrorLayer "ImageDeconError" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -1370,4 +1373,40 @@ IdentConn "GroundTruthReconS1S2S3ToGroundTruthReconS1S2S3Error" = {
     writeStep                           = -1;
 };
 
+
+// energy probe
+
+ColumnEnergyProbe "EnergyProbe" = {
+    probeOutputFile = "EnergyProbe.txt";
+};
+
+L2NormProbe "ImageDeconErrorL2NormEnergyProbe" = {
+    textOutputFlag = true;
+    targetLayer = "ImageDeconError";
+    probeOutputFile = "ImageDeconErrorL2NormEnergyProbe.txt";
+    coefficient = 0.5;
+    energyProbe = "EnergyProbe";
+    exponent = 2;
+};
+
+FirmThresholdCostFnLCAProbe "S1FirmThresholdCostFnLCAProbe" = {
+    textOutputFlag = true;
+    targetLayer = "S1";
+    probeOutputFile = "S1FirmThresholdCostFnLCAProbe.txt";
+    energyProbe = "EnergyProbe";
+};
+
+FirmThresholdCostFnLCAProbe "S2FirmThresholdCostFnLCAProbe" = {
+    textOutputFlag = true;
+    targetLayer = "S2";
+    probeOutputFile = "S2FirmThresholdCostFnLCAProbe.txt";
+    energyProbe = "EnergyProbe";
+};
+
+FirmThresholdCostFnLCAProbe "S3FirmThresholdCostFnLCAProbe" = {
+    textOutputFlag = true;
+    targetLayer = "S3";
+    probeOutputFile = "S3FirmThresholdCostFnLCAProbe.txt";
+    energyProbe = "EnergyProbe";
+};
 

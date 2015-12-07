@@ -192,8 +192,8 @@ if analyze_Recon
 	Recon_list{i_Recon_list,1} = "";
 	Recon_list{i_Recon_list,2} = Recon_list_name;
       else
-      Recon_list{i_Recon_list,1} = Recon_list_name(1:Recon_underscore_ndx(1));
-      Recon_list{i_Recon_list,2} = Recon_list_name(Recon_underscore_ndx(1)+1:length(Recon_list_name));
+	Recon_list{i_Recon_list,1} = Recon_list_name(1:Recon_underscore_ndx(1));
+	Recon_list{i_Recon_list,2} = Recon_list_name(Recon_underscore_ndx(1)+1:length(Recon_list_name));
       endif
     endfor
     num_Recon_list = size(Recon_list,1);
