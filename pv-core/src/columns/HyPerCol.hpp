@@ -116,6 +116,7 @@ public:
 
    double getDeltaTime()                  {return deltaTime;}
    bool  getDtAdaptFlag()                 {return dtAdaptFlag;}
+   bool getUseAdaptMethodExp1stOrder()    {return useAdaptMethodExp1stOrder;}
    double getDeltaTimeBase()              {return deltaTimeBase;}
    double* getTimeScale()                 {return timeScale;}
    double getTimeScale(int batch)         {assert(batch >= 0 && batch < nbatch); return timeScale[batch];}
@@ -247,6 +248,10 @@ private:
     * @brief dtAdaptFlag: A flag to determine if the run is using an adaptive timestep
     */
    virtual void ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag);
+   /**
+    * @brief : determines whether a time step adaptation method based on an expotential approximation of the energy is used, requires a dtAdaptController
+    */
+   virtual void ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag);
    /**
     * @brief dtAdaptController: The name of a ColProbe to use for controlling the adaptive timestep.
     * The ColProbe's vectorSize (returned by getVectorSize()) must be the same as the HyPerCol's nBatch parameter.
@@ -506,6 +511,7 @@ private:
    double stopTime;         // time to stop time
    double deltaTime;        // time step interval
    bool   dtAdaptFlag;      // turns adaptive time step on/off
+   bool useAdaptMethodExp1stOrder; // specifies whether exponential approximation to energy function decay is used to adapt time scale, requires dtAdaptControlProbe != NULL
    char * dtAdaptController;       // If nonblank, the name of a ColProbe whose getValues() method is called to control timeScale
    ColProbe * dtAdaptControlProbe; // If dtAdaptFlag is on, dtAdaptControlProbe->getValues() is used to control timeScale.  If blank, use the original method
    char * dtAdaptTriggerLayerName;

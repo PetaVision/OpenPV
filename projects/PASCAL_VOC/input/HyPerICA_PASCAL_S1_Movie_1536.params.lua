@@ -23,7 +23,7 @@ local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experim
 local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
 local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
 local numImages           = 7958
-local displayPeriod       = 1200
+local displayPeriod       = 120
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs
 local checkpointID        = stopTime
@@ -60,12 +60,13 @@ local startFrame          = 0
 
 --HyPerCol parameters
 local dtAdaptFlag              = not S1_Movie
-local dtAdaptController        = "S1EnergyProbe";
+local useAdaptMethodExp1stOrder = true
+local dtAdaptController        = "S1EnergyProbe"
 local dtAdaptTriggerLayerName  = "Image";
-local dtScaleMax               = 1.0   --1.0     -- maximum time scale, regardless of tau_eff
-local dtScaleMin               = 0.01  --0.01     -- default time scale to use after image flips or when something is wacky
-local dtChangeMax              = 0.1   --0.1    -- determines fraction of tau_effective to which to set the time step, can be small as tau_eff can be huge
-local dtChangeMin              = 0.01   -- 0.0      -- the maximum allowed time scale increases in this proportion whenever the time scale equals the current maximum
+local dtScaleMax               = 1.0   --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
+local dtScaleMin               = 0.01  --0.01    -- default time scale to use after image flips or when something is wacky
+local dtChangeMax              = 0.1   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
+local dtChangeMin              = 0.01  --0.01    -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
 local dtMinToleratedTimeScale  = 0.0001
 
 --HyPerLCA parameters

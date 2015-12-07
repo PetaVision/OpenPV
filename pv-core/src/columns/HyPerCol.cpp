@@ -195,6 +195,7 @@ int HyPerCol::initialize_base() {
    stopTime = 0.0;
    deltaTime = DELTA_T;
    dtAdaptFlag = false;
+   useAdaptMethodExp1stOrder = false;
    dtAdaptController = NULL;
    dtAdaptControlProbe = NULL;
    dtAdaptTriggerLayerName = NULL;
@@ -209,7 +210,7 @@ int HyPerCol::initialize_base() {
    deltaTimeAdapt = NULL;
    timeScaleMaxBase = 1.0;
    timeScaleMin = 1.0;
-   changeTimeScaleMax = 0.0;
+   changeTimeScaleMax = 1.0;
    changeTimeScaleMin = 0.0;
    dtMinToleratedTimeScale = 1.0e-4;
    // progressStep = 1L; // deprecated Dec 18, 2013
@@ -689,10 +690,10 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    for(int b = 0; b < nbatch; b++){
       timeScaleTrue[b]       = -1;
       oldTimeScaleTrue[b]    = -1;
-      timeScale[b]           = 1;
-      timeScaleMax[b]        = 1;
-      oldTimeScale[b]        = 1;
-      deltaTimeAdapt[b]      = DELTA_T;
+      timeScale[b]           = timeScaleMin;
+      timeScaleMax[b]        = timeScaleMaxBase;
+      oldTimeScale[b]        = timeScaleMin;
+      deltaTimeAdapt[b]      = deltaTimeBase;
    }
 
    ////Here, we decide if we thread over batches (ideal) or over neurons, depending on the number of threads and number of batches
@@ -748,6 +749,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_startTime(ioFlag);
    ioParam_dt(ioFlag);
    ioParam_dtAdaptFlag(ioFlag);
+   ioParam_useAdaptMethodExp1stOrder(ioFlag);
    ioParam_dtAdaptController(ioFlag);
    ioParam_dtAdaptTriggerLayerName(ioFlag);
    ioParam_dtAdaptTriggerOffset(ioFlag);
@@ -943,6 +945,13 @@ void HyPerCol::ioParam_dt(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "dtAdaptFlag", &dtAdaptFlag, dtAdaptFlag);
+}
+
+void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
+   if (dtAdaptFlag) {
+     ioParamValue(ioFlag, name, "useAdaptMethodExp1stOrder", &useAdaptMethodExp1stOrder, useAdaptMethodExp1stOrder);
+   }
 }
 
 void HyPerCol::ioParam_dtAdaptController(enum ParamsIOFlag ioFlag) {
@@ -2095,6 +2104,8 @@ double * HyPerCol::adaptTimeScale(){
 
       if(timeScale[b] > 0 && timeScaleTrue[b] > 0 && timeScale[b] > timeScaleTrue[b]){
          std::cout << "timeScale is bigger than timeScaleTrue\n";
+         std::cout << "timeScale: " << timeScale[b] << "\n";
+         std::cout << "timeScaleTrue: " << timeScaleTrue[b] << "\n";
          std::cout << "minTimeScaleTmp: " << minTimeScaleTmp << "\n";
          std::cout << "oldTimeScaleTrue " << oldTimeScaleTrue[b] << "\n";
          exit(EXIT_FAILURE);
@@ -2268,15 +2279,21 @@ int HyPerCol::advanceTime(double sim_time)
    deltaTime = deltaTimeBase;
    if (dtAdaptFlag){ // adapt deltaTime
      // hack code to test new adapt time scale method using exponential approx to energy
-     bool use_adaptTimeScaleExp1stOrder = false; //true;
-     if (use_adaptTimeScaleExp1stOrder){
+     //bool useAdaptMethodExp1stOrder = false; //true;
+     if (useAdaptMethodExp1stOrder){
        adaptTimeScaleExp1stOrder();}
      else{
        adaptTimeScale();}
      if(writeTimescales && columnId() == 0) {
          timeScaleStream << "sim_time = " << sim_time << "\n";
          for(int b = 0; b < nbatch; b++){
-            timeScaleStream << "\tbatch = " << b << ", timeScale = " << timeScale[b] << ", " << "timeScaleTrue = " << timeScaleTrue[b] << std::endl;
+	   timeScaleStream << "\tbatch = " << b << ", timeScale = " << timeScale[b] << ", " << "timeScaleTrue = " << timeScaleTrue[b];
+	   if (useAdaptMethodExp1stOrder) {
+	     timeScaleStream << ", " << "timeScaleMax = " << timeScaleMax[b] << std::endl;
+	   }
+	   else {
+	     timeScaleStream << std::endl;
+	   }
          }
          timeScaleStream.flush();
      }
@@ -2601,18 +2618,39 @@ int HyPerCol::checkpointRead() {
    }
 
    if (dtAdaptFlag == true) {
-      struct timescale_struct {
-         double timeScale; // timeScale factor for increasing/decreasing dt
-         double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScale() before applications of constraints
-      };
-      struct timescale_struct timescale[nbatch];
-      //Default values
-      for(int b = 0; b < nbatch; b++){
-         timescale[b].timeScale = 1;
-         timescale[b].timeScaleTrue = 1;
-      }
+       struct timescalemax_struct {
+	 double timeScale; // timeScale factor for increasing/decreasing dt
+	 double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScaleTrue() typically computed by an adaptTimeScaleController (ColProbe)
+	 double timeScaleMax; //  current maximum allowed value of timeScale as returned by HyPerLayer::getTimeScaleMaxPtr() 
+       };
+       struct timescale_struct {
+	 double timeScale; // timeScale factor for increasing/decreasing dt
+	 double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScaleTrue() typically computed by an adaptTimeScaleController (ColProbe)
+       };
+       struct timescalemax_struct timescalemax[nbatch];
+       struct timescale_struct timescale[nbatch];
+       if (useAdaptMethodExp1stOrder) {
+	 for(int b = 0; b < nbatch; b++){
+	   timescalemax[b].timeScale = 1;
+	   timescalemax[b].timeScaleTrue = 1;
+	   timescalemax[b].timeScaleMax = 1;
+	 }
+       }
+       else {
+	 //Default values
+	 for(int b = 0; b < nbatch; b++){
+	   timescale[b].timeScale = 1;
+	   timescale[b].timeScaleTrue = 1;
+	 }
+       }
       size_t timescale_size = sizeof(struct timescale_struct);
-      assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
+      size_t timescalemax_size = sizeof(struct timescalemax_struct);
+      if (useAdaptMethodExp1stOrder) {
+	assert(sizeof(struct timescalemax_struct) == sizeof(double) + sizeof(double) + sizeof(double));
+      }
+      else {
+	assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
+      }
       // read timeScale info
       if(columnId()==0 ) {
          char timescalepath[PV_PATH_MAX];
@@ -2624,23 +2662,41 @@ int HyPerCol::checkpointRead() {
          PV_Stream * timescalefile = PV_fopen(timescalepath,"r",false/*verifyWrites*/);
          if (timescalefile == NULL) {
             fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
-            fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", 1.0, 1.0);
+	    if (useAdaptMethodExp1stOrder) {
+	      fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f, timeScaleMax=%f\n", 1.0, 1.0, 1.0);
+	    }
+	    else {
+	      fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", 1.0, 1.0);
+	    }
          }
          else {
             for(int b = 0; b < nbatch; b++){
                long int startpos = getPV_StreamFilepos(timescalefile);
-               PV_fread(&timescale[b],1,timescale_size,timescalefile);
+	       if (useAdaptMethodExp1stOrder) {
+		 PV_fread(&timescalemax[b],1,timescalemax_size,timescalefile);
+	       }
+	       else {
+		 PV_fread(&timescale[b],1,timescale_size,timescalefile);
+	       }
                long int endpos = getPV_StreamFilepos(timescalefile);
                assert(endpos-startpos==(int)sizeof(struct timescale_struct));
             }
             PV_fclose(timescalefile);
          }
       }
-      MPI_Bcast(&timescale,(int) timescale_size*nbatch,MPI_CHAR,0,icCommunicator()->communicator());
+      if (useAdaptMethodExp1stOrder) {
+	MPI_Bcast(&timescalemax,(int) timescalemax_size*nbatch,MPI_CHAR,0,icCommunicator()->communicator());
+      }
+      else {
+	MPI_Bcast(&timescale,(int) timescale_size*nbatch,MPI_CHAR,0,icCommunicator()->communicator());
+      }
       //Grab only the necessary part based on comm batch id
       for(int b = 0; b < nbatch; b++){
-         timeScale[b] = timescale[b].timeScale;
-         timeScaleTrue[b] = timescale[b].timeScaleTrue;
+	timeScale[b] = (useAdaptMethodExp1stOrder) ?  timescalemax[b].timeScale : timescale[b].timeScale;
+	timeScaleTrue[b] = (useAdaptMethodExp1stOrder) ? timescalemax[b].timeScaleTrue : timescale[b].timeScaleTrue;
+	 if (useAdaptMethodExp1stOrder) {
+	   timeScaleMax[b] = timescalemax[b].timeScaleMax;
+	 }
       }
    }
 
@@ -2764,6 +2820,12 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
             fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleTrue to %s\n", timescalefile->name);
             exit(EXIT_FAILURE);
          }
+	 if (useAdaptMethodExp1stOrder) {
+	   if (PV_fwrite(&timeScaleMax[b],1,sizeof(double),timescalefile) != sizeof(double)) {
+	     fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleMax to %s\n", timescalefile->name);
+	     exit(EXIT_FAILURE);
+         }
+	 }
       }
       PV_fclose(timescalefile);
       chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.txt", cpDir);
