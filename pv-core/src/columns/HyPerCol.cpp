@@ -2679,7 +2679,12 @@ int HyPerCol::checkpointRead() {
 		 PV_fread(&timescale[b],1,timescale_size,timescalefile);
 	       }
                long int endpos = getPV_StreamFilepos(timescalefile);
-               assert(endpos-startpos==(int)sizeof(struct timescale_struct));
+	       if (useAdaptMethodExp1stOrder) {
+		 assert(endpos-startpos==(int)sizeof(struct timescalemax_struct));
+	       }
+	       else {
+		 assert(endpos-startpos==(int)sizeof(struct timescale_struct));
+	       }
             }
             PV_fclose(timescalefile);
          }
