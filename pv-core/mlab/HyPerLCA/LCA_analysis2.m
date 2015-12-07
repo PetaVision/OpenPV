@@ -92,12 +92,12 @@ elseif isunix
     checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts";
     checkpoint_children = {"VOC2007_landscape2"}; %%
   elseif strcmp(run_type, "DCA")
-    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape10";
-    %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
-    %%checkpoint_children = {"VOC2007_landscape10"}; %%
-    output_dir = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1";
-    checkpoint_parent = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA";
-    checkpoint_children = {"KITTI_train1"}; %%
+    output_dir = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape11";
+    checkpoint_parent = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
+    checkpoint_children = {"VOC2007_landscape11"}; %%
+    %%output_dir = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1";
+    %%checkpoint_parent = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA";
+    %%checkpoint_children = {"KITTI_train1"}; %%
     %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape8_xcorr";
     %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
     %%checkpoint_children = {"VOC2007_landscape8_xcorr"}; %%
@@ -178,7 +178,7 @@ checkpoint_weights_movie = true; %% make movie of weights over time using list o
 %% plot Reconstructions
 analyze_Recon = true;
 if analyze_Recon
-  if  strcmp(run_type, "default") || strcmp(run_type, "ICA") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "CIFAR") || strcmp(run_type, "JIEDDO") 
+  if  strcmp(run_type, "default") || strcmp(run_type, "ICA") || strcmp(run_type, "DCA") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "CIFAR") || strcmp(run_type, "JIEDDO") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glob generated list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
