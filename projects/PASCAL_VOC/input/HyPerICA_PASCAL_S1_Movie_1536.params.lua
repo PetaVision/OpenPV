@@ -19,7 +19,7 @@ local runName             = "VOC2007_landscape"
 local runVersion          = 8
 local machinePath         = "/Volumes/mountData" --"/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
-local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion .. "b"
+local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
 local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
 local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
 local numImages           = 7958
@@ -48,7 +48,7 @@ if S1_Movie then
 else
    inputPath               = inputPath .. runVersion-1
    inputPathSLP            = inputPath .. "_S1_Movie3"
-   checkpointID            = numImages*displayPeriod*numEpochs
+   checkpointID            = numImages*displayPeriod*numEpochs*10
 end
 local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false
@@ -92,6 +92,7 @@ local pvParams = {
       startTime                           = 0;
       dt                                  = 1;
       dtAdaptFlag                         = dtAdaptFlag;
+      useAdaptMethodExp1stOrder           = useAdaptMethodExp1stOrder;
       dtAdaptController                   = dtAdaptController;
       dtAdaptTriggerLayerName             = dtAdaptTriggerLayerName;
       dtScaleMax                          = dtScaleMax;    
