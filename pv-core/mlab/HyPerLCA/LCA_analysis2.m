@@ -97,9 +97,9 @@ elseif isunix
     checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts";
     checkpoint_children = {"VOC2007_landscape2"}; %%
   elseif strcmp(run_type, "DCA")
-    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape10";
-    %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
-    %%checkpoint_children = {"VOC2007_landscape10"}; %%
+    %%output_dir = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape11";
+    %%checkpoint_parent = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
+    %%checkpoint_children = {"VOC2007_landscape11"}; %%
     output_dir = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1";
     checkpoint_parent = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA";
     checkpoint_children = {"KITTI_train1"}; %%
@@ -201,8 +201,8 @@ if analyze_Recon
 	Recon_list{i_Recon_list,1} = "";
 	Recon_list{i_Recon_list,2} = Recon_list_name;
       else
-      Recon_list{i_Recon_list,1} = Recon_list_name(1:Recon_underscore_ndx(1));
-      Recon_list{i_Recon_list,2} = Recon_list_name(Recon_underscore_ndx(1)+1:length(Recon_list_name));
+	Recon_list{i_Recon_list,1} = Recon_list_name(1:Recon_underscore_ndx(1));
+	Recon_list{i_Recon_list,2} = Recon_list_name(Recon_underscore_ndx(1)+1:length(Recon_list_name));
       endif
     endfor
     num_Recon_list = size(Recon_list,1);

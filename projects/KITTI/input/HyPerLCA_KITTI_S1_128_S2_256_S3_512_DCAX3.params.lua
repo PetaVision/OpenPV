@@ -1,7 +1,8 @@
 
 
 -- Sun Nov 15 13:39:49 2015
-package.path = package.path .. ";" .. "/home/gkenyon/openpv/pv-core/parameterWrapper/?.lua"
+--package.path = package.path .. ";" .. "/home/gkenyon/openpv/pv-core/parameterWrapper/?.lua"
+package.path = package.path .. ";" .. "/Users/gkenyon/openpv/pv-core/parameterWrapper/?.lua"
 local pv = require "PVModule"
 
 -- Base table variable to store
