@@ -182,7 +182,7 @@ int PointProbe::calcValues(double timevalue) {
       }
       //If not in root process, send to root process
       if(parent->columnId()!=0){
-         MPI_Send(&valuesBuffer, 2, MPI_DOUBLE, 0, 0, parent->icCommunicator()->communicator());
+         MPI_Send(valuesBuffer, 2, MPI_DOUBLE, 0, 0, parent->icCommunicator()->communicator());
       }
    }
 
@@ -197,7 +197,7 @@ int PointProbe::calcValues(double timevalue) {
 
       //If srcRank is not root process, MPI_Recv from that rank
       if(srcRank != 0){
-         MPI_Recv(&valuesBuffer, 2, MPI_DOUBLE, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+         MPI_Recv(valuesBuffer, 2, MPI_DOUBLE, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
       }
    }
    return PV_SUCCESS;

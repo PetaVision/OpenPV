@@ -105,7 +105,7 @@ int PointLIFProbe::calcValues(double timevalue) {
       valuesBuffer[5] = activity[kex + nbatchLocal * getTargetLayer()->getNumExtended()];
       //If not in root process, send to root process
       if(parent->columnId()!=0){
-         MPI_Send(&valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, 0, 0, parent->icCommunicator()->communicator());
+         MPI_Send(valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, 0, 0, parent->icCommunicator()->communicator());
       }
    }
 
@@ -120,7 +120,7 @@ int PointLIFProbe::calcValues(double timevalue) {
 
       //If srcRank is not root process, MPI_Recv from that rank
       if(srcRank != 0){
-         MPI_Recv(&valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+         MPI_Recv(valuesBuffer, NUMBER_OF_VALUES, MPI_DOUBLE, srcRank, 0, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
       }
    }
    return PV_SUCCESS;
