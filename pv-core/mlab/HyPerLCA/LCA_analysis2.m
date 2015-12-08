@@ -19,11 +19,12 @@ if ismac
   %%run_type = "Grains";
   %%run_type = "ICA";
   %%ICA_subtype = "ICAX4";
-  run_type = "JIEDDO";
-  JIEDDO_subtype = "CARS";
+  %%run_type = "JIEDDO";
+  %%JIEDDO_subtype = "CARS";
   %%run_type = "experts";
   %%run_type = "MaxPool";
   %%run_type = "DCA";
+  run_type = "KITTI"
   if strcmp(run_type, "Grains")
     output_dir = "/Volumes/mountData/Grains/Grains_S1_128/test3"; %%
     checkpoint_parent = "/Volumes/mountData/Grains/Grains_S1_128"; %%
@@ -63,6 +64,10 @@ if ismac
     output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN/VOC2007_landscape12";
     checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCNN";
     checkpoint_children = {"VOC2007_landscape12"}; %%
+  elseif strcmp(run_type, "KITTI")
+    output_dir = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1"
+    checkpoint_parent = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA"
+    checkpoint_children = {"KITTI_train1"}; %%
   elseif strcmp(run_type, "MaxPool")
     output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape6";
     checkpoint_parent = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool";
@@ -92,15 +97,19 @@ elseif isunix
     checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts";
     checkpoint_children = {"VOC2007_landscape2"}; %%
   elseif strcmp(run_type, "DCA")
-    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape10";
-    %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
-    %%checkpoint_children = {"VOC2007_landscape10"}; %%
-    output_dir = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1";
-    checkpoint_parent = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA";
+    %%output_dir = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape11";
+    %%checkpoint_parent = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
+    %%checkpoint_children = {"VOC2007_landscape11"}; %%
+    output_dir = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1";
+    checkpoint_parent = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA";
     checkpoint_children = {"KITTI_train1"}; %%
     %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape8_xcorr";
     %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
     %%checkpoint_children = {"VOC2007_landscape8_xcorr"}; %%
+  elseif strcmp(run_type, "KITTI")
+    output_dir = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1"
+    checkpoint_parent = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA"
+    checkpoint_children = {"KITTI_train1"}; %%
   elseif strcmp(run_type, "MaxPool")
     output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool/VOC2007_landscape10";
     checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_MaxPool";
@@ -178,7 +187,7 @@ checkpoint_weights_movie = true; %% make movie of weights over time using list o
 %% plot Reconstructions
 analyze_Recon = true;
 if analyze_Recon
-  if  strcmp(run_type, "default") || strcmp(run_type, "ICA") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "CIFAR") || strcmp(run_type, "JIEDDO") 
+  if  strcmp(run_type, "default") || strcmp(run_type, "ICA") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "CIFAR") || strcmp(run_type, "JIEDDO") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glob generated list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -265,7 +274,7 @@ endif  %% plot_StatsProbe_vs_time
 analyze_Sparse_flag = true;
 if analyze_Sparse_flag
   Sparse_frames_list = [];
-  if strcmp(run_type, "default") || strcmp(run_type, "DCA") 
+  if strcmp(run_type, "default") || strcmp(run_type, "DCA")  || strcmp(run_type, "KITTI") 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% DCA list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -369,7 +378,7 @@ endif
 
 analyze_nonSparse_flag = true;
 if analyze_nonSparse_flag
-  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "DCA")
+  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI")
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glob generated list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -395,7 +404,7 @@ if analyze_nonSparse_flag
     num_nonSparse_list2 = length(nonSparse_glob_list2);    
     nonSparse_list2 = cell(num_nonSparse_list2,1);
     for i_nonSparse_list2 = 1 : num_nonSparse_list2
-      [nonSparse_list_dir, nonSparse_list_name2, nonSparse_list_ext, nonSparse_list_ver] = fileparts(nonSparse_glob_list2{i_nonSparse_list2});
+      [nonSparse_list_dir, nonSparse_list_name2, nonSparse_list_ext, ~] = fileparts(nonSparse_glob_list2{i_nonSparse_list2});
       nonSparse_list2{i_nonSparse_list2,1} = "";
       nonSparse_list2{i_nonSparse_list2,2} = nonSparse_list_name2;
       nonSparse_list2{num_nonSparse_list+i_nonSparse_list2,1} = "";
@@ -479,7 +488,7 @@ plot_weights = plot_flag;
 if analyze_weights
   weights_list = {};
   labelWeights_list = {};
-  if strcmp(run_type, "default")  || strcmp(run_type, "ICA") || strcmp(run_type, "experts")  || strcmp(run_type, "MaxPool")  || strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR") 
+  if strcmp(run_type, "default")  || strcmp(run_type, "ICA") || strcmp(run_type, "experts")  || strcmp(run_type, "MaxPool")  || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "CIFAR") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% ICA; experts list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -495,16 +504,16 @@ if analyze_weights
 	weights_glob_str = "S*ToImageRecon*Error*_W.pvp";
       elseif strcmp(run_type, "MaxPool") 
 	weights_glob_str = "S1ToImageReconS1Error*_W.pvp";
-      elseif strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
+      elseif strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "CIFAR")
 	%%xcorr_weights_list = {"S1ToImage"; "S2ToImage"; "S3ToImage"}; 
-	weights_glob_str = "S1*ToImage*econError_W.pvp";
+	weights_glob_str = "S1*To*Image*econError_W.pvp";
       endif
       weights_glob_list = glob([checkpoints_list{1}, filesep, weights_glob_str]);
       num_weights_list = length(weights_glob_list);    
       weights_list = cell(num_weights_list,1);
       sparse_weights_ndx = zeros(num_weights_list,1);
       for i_weights_list = 1 : num_weights_list
-	[weights_list_dir, weights_list_name, weights_list_ext, weights_list_ver] = fileparts(weights_glob_list{i_weights_list});
+	[weights_list_dir, weights_list_name, weights_list_ext, ~] = fileparts(weights_glob_list{i_weights_list});
 	weights_underscore_ndx = strfind(weights_list_name, "_W");
 	weights_list{i_weights_list,1} = weights_list_name(1:weights_underscore_ndx(1)-1);
 	weights_list{i_weights_list,2} = weights_list_name(weights_underscore_ndx(1):length(weights_list_name));
@@ -930,7 +939,7 @@ plot_weights0_2_flag = plot_flag;
 plot_labelWeights_flag = true;
 if analyze_weights0_2
   weights1_2_list = {};
-  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
+  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "CIFAR")
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MaxPool
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -939,7 +948,7 @@ if analyze_weights0_2
       break;
     else
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
-      weights1_2_glob_list = glob([checkpoints_list{1}, filesep, "S2*ToS1*econError_W.pvp"]);
+      weights1_2_glob_list = glob([checkpoints_list{1}, filesep, "*S2*To*S1*econError_W.pvp"]);
       num_weights1_2_list = length(weights1_2_glob_list);    
       weights1_2_list = cell(num_weights1_2_list,2);
       sparse_weights0_2_ndx = zeros(num_weights1_2_list,1);
@@ -1710,7 +1719,7 @@ if analyze_weightsN_Nplus1
   
   weightsN_Nplus1_list = {};
   layersN_Nplus1_list = {};
-  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
+  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "CIFAR")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MaxPool
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1720,7 +1729,7 @@ if analyze_weightsN_Nplus1
     else
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
       weightsN_Nplus1_glob_list = ...
-	  glob([checkpoints_list{1}, filesep, "S3ToS2*econError_W.pvp"]);
+	  glob([checkpoints_list{1}, filesep, "*S3To*S2*econError_W.pvp"]);
       num_weightsN_Nplus1_list = length(weightsN_Nplus1_glob_list);    
       weightsN_Nplus1_list = cell(num_weightsN_Nplus1_list,6);
       layersN_Nplus1_list = cell(num_weightsN_Nplus1_list,6);
