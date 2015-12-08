@@ -2,7 +2,8 @@
 
 -- Load util module in PV trunk: NOTE this may need to change
 --package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/pv-core/parameterWrapper/PVModule.lua"
-package.path = package.path .. ";" .. os.getenv("HOME") .. "/openpv/pv-core/parameterWrapper/PVModule.lua"
+--package.path = package.path .. ";" .. os.getenv("HOME") .. "/openpv/pv-core/parameterWrapper/PVModule.lua"
+package.path = package.path .. ";" .. "/nh/compneuro/Data/openpv/pv-core/parameterWrapper/PVModule.lua"
 local pv = require "PVModule"
 
 -- Global variable, for debug parsing
