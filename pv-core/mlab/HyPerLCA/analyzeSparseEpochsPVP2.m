@@ -208,7 +208,7 @@ function [Sparse_hdr, ...
       num_Sparse_frames = size(Sparse_times,1);      
       Sparse_hist = sum(Sparse_hist_frames,1);
       if length(Sparse_hist) < nf_Sparse
-	keyboard;
+	continue; %%keyboard;
       endif
       Sparse_hist = Sparse_hist(1:nf_Sparse) / ((num_Sparse_frames) * nx_Sparse * ny_Sparse); 
       [Sparse_hist_sorted, Sparse_hist_rank] = sort(Sparse_hist(:), 1, "descend");
