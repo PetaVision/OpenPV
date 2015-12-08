@@ -132,8 +132,9 @@ add_subdirectory(${PV_DIR})
 # following it are ignored.  Leading and trailing whitespace is then
 # stripped  If the resulting line is nonempty, its contents are interpreted
 # as a directory and and passed to the CMake add_subdirectory command.
-if (EXISTS subdirectories.txt)
-    set(PV_SUBDIR_LIST subdirectories.txt)
+set(SUBDIR_TXT "${CMAKE_CURRENT_BINARY_DIR}/subdirectories.txt")
+if (EXISTS ${SUBDIR_TXT})
+    set(PV_SUBDIR_LIST ${SUBDIR_TXT})
     file(READ "${PV_SUBDIR_LIST}" contents)
     string(REGEX REPLACE "\n" ";" contents "${contents}")
     
@@ -149,14 +150,14 @@ if (EXISTS subdirectories.txt)
         endif (NOT ("${LIN}" STREQUAL "") )
     endforeach(LIN ${contents})
     
-    # Create a text file called subdirectories.txt in the same directory as
+    # Create a text file called ${SUBDIR_TXT} in the same directory as
     # this CMakeLists.txt file.  That file should contain a list of
     # the projects to include.
-    # subdirectories.txt is in the .gitignore file so that it won't be
+    # ${SUBDIR_TXT} is in the .gitignore file so that it won't be
     # (and shouldn't be) committed to the repository.
-    # The sample-subdirectories.txt file illustrates the format.
-    # Note that every time you modify subdirectories.txt you will need to
+    # The sample-${SUBDIR_TXT} file illustrates the format.
+    # Note that every time you modify ${SUBDIR_TXT} you will need to
     # rerun cmake.
-else (EXISTS subdirectories.txt)
-   message("Only building the core PV library.  Create a subdirectories.txt file to build additional projects linking to it.")
-endif (EXISTS subdirectories.txt)
+else (EXISTS ${SUBDIR_TXT})
+   message("Only building the core PV library.  Create a ${SUBDIR_TXT} file to build additional projects linking to it.")
+endif (EXISTS ${SUBDIR_TXT})
