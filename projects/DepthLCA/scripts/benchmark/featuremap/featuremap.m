@@ -1,7 +1,8 @@
 addpath('~/workspace/pv-core/mlab/util');
+addpath('~/workspace/OpenPV/pv-core/mlab/util');
 
 doRank = false;
-baseDir = "/home/ec2-user/mountData/benchmark/featuremap/fine/icaweights_binoc_RELU_fine/";
+baseDir = "/home/sheng/mountData/benchmark/featuremap/icaweights_binoc_RELU_fine_sparse/";
 tuningFile = "/home/ec2-user/mountData/benchmark/featuremap/fine/LCA_peakmean.txt";
 outDir = [baseDir, '/featuremaps/'];
 weightsOutDir = [outDir, '/weights/'];
@@ -14,8 +15,8 @@ layers = { ...
    };
 
 baseLayers = { ...
-   [baseDir, '/LeftRecon_slice.pvp']; ...
-   [baseDir, '/RightRecon_slice.pvp']; ...
+   ['/home/sheng/mountData/benchmark/featuremap/icaweights_binoc_LCA_fine/LeftRecon_slice.pvp']; ...
+   ['/home/sheng/mountData/benchmark/featuremap/icaweights_binoc_LCA_fine/RightRecon_slice.pvp']; ...
 };
 
 dictElements = { ...
@@ -26,7 +27,7 @@ dictElements = { ...
 numNeurons = 512;
 
 sliceWeight = .9;
-baseWeight = .4
+baseWeight = .8;
 
 assert(length(layers) == length(baseLayers));
 
@@ -129,7 +130,9 @@ for li = 1:length(layers)
    baseImg = baseData{1}.values';
    %Scale image to have same std
    normVal = max(abs(max(baseImg(:))),abs(min(baseImg(:))));
-   baseImg = ((baseImg/normVal)+1)/2;
+   if(normVal != 0)
+      baseImg = ((baseImg/normVal)+1)/2;
+   end
    [ny, nx] = size(baseImg);
    colorBaseImg = zeros(ny, nx, 3);
    colorBaseImg(:, :, 1) = baseImg;
@@ -152,11 +155,17 @@ for li = 1:length(layers)
       [sliceData, sliceHdr] = readpvpfile(pvpInName);
       sliceImg = sliceData{1}.values';
       normVal = max(abs(max(sliceImg(:))),abs(min(sliceImg(:))));
-      sliceImg = ((sliceImg/normVal)+1)/2;
+      if(normVal != 0)
+         sliceImg = ((sliceImg/normVal)+1)/2;
+      end
       cmap = zeros(128, 3);
       cmap(1:64, 1) = 1:-1/(64-1):0;
       cmap(65:end, 3) = 0:1/(64-1):1;
-      colorSliceImg = grs2rgb(sliceImg, cmap);
+      try
+         colorSliceImg = grs2rgb(sliceImg, cmap);
+      catch e
+         keyboard
+      end
 
       outImg = baseWeight.*colorBaseImg+ sliceWeight.*colorSliceImg;
       outImg(find(outImg(:) > 1)) = 1;
@@ -167,6 +176,5 @@ for li = 1:length(layers)
       weightOut = squeeze(weightOut)';
       weightOut = (weightOut - min(weightOut(:)))/(max(weightOut(:)) - min(weightOut(:)));
       imwrite(weightOut, weightOutName);
-
    end
 end

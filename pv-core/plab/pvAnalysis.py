@@ -160,6 +160,11 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
     #
     #  hdr is a struct containing the file's header
 
+    #Overloading fileStream parameter to be either a stream or a filename
+    if(type(fileStream) == str):
+       filename = fileStream
+       fileStream = open(filename, 'rb')
+
     if skipFrames < 1:
         skipFrames = 1
 
@@ -270,7 +275,6 @@ def get_pvp_data(fileStream,progressPeriod=0,lastFrame=-1,startFrame=0,skipFrame
                 #to convert to dense, you would do np.ravel(sparseMat.todense()).reshape(hdr["ny"],hdr["nx"],hdr["nf"])
                 data[frameIdx] = sparseMat
                 frameIdx+=1
-
     outStruct = {}
     outStruct["time"]   = timeStamps
     outStruct["values"] = data

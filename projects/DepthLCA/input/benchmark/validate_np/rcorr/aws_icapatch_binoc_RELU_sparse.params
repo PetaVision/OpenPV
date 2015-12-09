@@ -18,7 +18,7 @@ HyPerCol "column" = {
     startTime = 0;
     stopTime = 93; //193 total testing, splitting into 100 training, 93 testing
     progressStep = 1;
-    outputPath = "/home/ec2-user/mountData/benchmark/validate/rcorr/aws_icapatch_binoc_RELU_fine/";
+    outputPath = "/home/sheng/mountData/benchmark/validate/rcorr/aws_icapatch_binoc_RELU_sparse/";
     filenamesContainLayerNames = true;
     filenamesContainConnectionNames = true;
     checkpointRead = false; //true;
@@ -41,12 +41,12 @@ HyPerCol "column" = {
 // layers
 //
 
-MoviePvp "RELU_V1" = {
+MoviePvp "V1" = {
     restart = 0;
     nxScale = .25;
     nyScale = .25;
     nf = 512;
-    inputPath = "~/mountData/benchmark/icaweights_binoc_RELU_fine/a12_V1.pvp";
+    inputPath = "~/mountData/benchmark/icaweights_binoc_RELU/a12_V1.pvp";
     writeFrameToTimestamp = true;
     writeStep = -1;
     sparseLayer = false;
@@ -66,6 +66,28 @@ MoviePvp "RELU_V1" = {
     randomMovie = 0;
     phase = 0;
     //useParamsImage = true;
+};
+
+ANNLayer "SparseV1" = {
+    restart = 0;
+    nxScale = .25;
+    nyScale = .25;
+    nf = 512;
+    writeStep = 1.0;
+    initialWriteTime = 1.0; //1 + writestep
+    mirrorBCflag = 0;
+    sparseLayer = true;
+    //movieLayerName = "LeftImage";
+    InitVType = "ZeroV";
+    VThresh = .21; //Threshold for matching sparsity values
+    AMax = infinity;
+    AMin = 0; //If less than VThresh, set to 0
+    AShift = 0;
+    VWidth = 0;
+    valueBC = 0;
+    // 
+    phase = 1;
+    //
 };
 
 ANNLayer "LeftRecon" = {
@@ -88,7 +110,7 @@ ANNLayer "LeftRecon" = {
     VWidth = 0;
     valueBC = 0;
     // 
-    phase = 1;
+    phase = 2;
     //
 };
 
@@ -101,7 +123,7 @@ Movie "DepthImage" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    inputPath = "/home/ec2-user/mountData/kitti/list/aws_disp_noc.txt";
+    inputPath = "/home/sheng/mountData/datasets/kitti/list/benchmark_depth_disp_noc.txt";
     writeFrameToTimestamp = true;
     nf = 1;
     writeStep = -1;
@@ -201,10 +223,17 @@ WTALayer "RCorrRecon" = {
     phase = 6;
 };
 
+IdentConn "V1ToSparseV1" = {
+   preLayerName                        = "V1";
+   postLayerName                       = "SparseV1";
+   channelCode                         = 0;
+   delay                               = [0.000000];
+   // initWeightsFile                     was set to (NULL);
+   writeStep                           = -1;
+};
 
-
-KernelConn "RELU_V1ToLeftRecon" = {
-    preLayerName = "RELU_V1";
+KernelConn "SparseV1ToLeftRecon" = {
+    preLayerName = "SparseV1";
     postLayerName = "LeftRecon";
     channelCode = 0;
     nxp = 66;
@@ -215,7 +244,7 @@ KernelConn "RELU_V1ToLeftRecon" = {
     initFromLastFlag = 0;
     
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
+    initWeightsFile = "/home/sheng/mountData/benchmark/icaweights_binoc_LCA/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
 
     strength = 1; //.25/2  
     normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
@@ -246,15 +275,15 @@ KernelConn "RELU_V1ToLeftRecon" = {
     delay = 0;
     //
     useWindowPost = false;
-    updateGSynFromPostPerspective = true;
-    receiveGpu = true;
+    updateGSynFromPostPerspective = false;
+    receiveGpu = false;
     pvpatchAccumulateType = "convolve";
 };
 
-KernelConn "RELU_V1ToRightRecon" = {
-   #include "RELU_V1ToLeftRecon";
+KernelConn "SparseV1ToRightRecon" = {
+   #include "SparseV1ToLeftRecon";
    @postLayerName = "RightRecon";
-   @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
+   @initWeightsFile = "/home/sheng/mountData/benchmark/icaweights_binoc_LCA/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
 };
 
 PoolingConn "DepthImageToDepthDownsample" = {
@@ -288,15 +317,14 @@ PoolingConn "DepthImageToDepthDownsample" = {
     selfFlag = false;
 
     updateGSynFromPostPerspective = false;
-    
     useWindowPost = false;
 
     keepKernelsSynchronized             = true;
 };
 
 //Reverse correlation connections
-KernelConn "RELU_V1ToRCorrBuf" = {
-    preLayerName = "RELU_V1";
+MomentumConn "SparseV1ToRCorrBuf" = {
+    preLayerName = "SparseV1";
     postLayerName = "RCorrBuf";
     channelCode = 0;
     nxp = 33;
@@ -307,7 +335,7 @@ KernelConn "RELU_V1ToRCorrBuf" = {
     initFromLastFlag = 0;
     //
     weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/benchmark/train/rcorr/aws_icaweights_binoc_RELU_fine/Last/RELU_V1ToDepthGT_W.pvp";
+    initWeightsFile = "/home/sheng/mountData/benchmark/train/rcorr/aws_icaweights_binoc_RELU_sparse/Last/SparseV1ToDepthGT_W.pvp";
     //weightInitType = "UniformWeight";
     //weightInit = 0;
     //
