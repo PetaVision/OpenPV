@@ -25,8 +25,9 @@ if(APPLE)
 endif(APPLE)
 
 #Set CMAKE_MODULE_PATH
-set(CMAKE_MODULE_PATH "${PV_DIR}/docs/cmake/Modules/")
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
+# Note: It would be preferable to parse ${PV_DIR}/src/include/cMakeHeader.h for these values.
 set(PV_USE_MPI TRUE CACHE BOOL "Defines whether PetaVision uses MPI")
 set(PV_USE_OPENMP_THREADS TRUE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
 set(PV_USE_OPENCL FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
@@ -53,6 +54,16 @@ if(PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
    set(PV_USE_OPENMP_THREADS_FLAGS_ADDED TRUE)
 endif (PV_USE_OPENMP_THREADS AND NOT DEFINED PV_USE_OPENMP_THREADS_FLAGS_ADDED)
 
+set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
+set(CMAKE_CXX_FLAGS_DEBUG "-g3 -O0")
+set(CMAKE_C_FLAGS_RELEASE "-g0 -O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
+
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug) #Can be: None, Debug, Release, RelWithDebInfo, MinSizeRel
+endif (NOT CMAKE_BUILD_TYPE)
+
+
 if(PV_USE_OPENCL AND NOT DEFINED PV_USE_OPENCL_FLAGS_ADDED)
    IF(APPLE)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -framework opencl")
@@ -77,7 +88,7 @@ if(PV_USE_CUDA)
        file(GLOB_RECURSE CUDNN_HEADER "${CUDNN_PATH}*/cudnn.h")
        string(REGEX REPLACE "/[^/]+$" "" CUDNN_INCLUDE_PATH "${CUDNN_HEADER}")
        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${CUDNN_INCLUDE_PATH}")
-       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${CUDNN_PATH}")
+       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${CUDNN_INCLUDE_PATH}")
     endif(PV_USE_CUDNN)
 endif(PV_USE_CUDA)
 
@@ -90,8 +101,28 @@ if (PV_USE_MPI)
         MESSAGE("-- Searching for MPI library ............")
         find_package(MPI REQUIRED)
     endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+
+   # The user may specify a non-standard compiler name for MPI
+   #  For example, the user may type:
+   #    cmake CMakeLists.txt -DCMAKE_C_COMPILER=openmpicc -DCMAKE_CXX_COMPILER=openmpic++
+   #
+
+   set(MPI_C_COMPILER_NAME "${CMAKE_C_COMPILER}")
+   set(MPI_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}")
+
+   if (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+       find_package(MPI REQUIRED)
+   endif (NOT DEFINED MPI_C_COMPILER OR NOT DEFINED MPI_CXX_COMPILER)
+   set(CMAKE_C_COMPILER "${MPI_C_COMPILER}")
+   set(CMAKE_CXX_COMPILER "${MPI_CXX_COMPILER}")
+
 endif (PV_USE_MPI)
 
+if (NOT GDAL_FOUND)
+    MESSAGE("-- Searching for GDAL library ...........")
+    find_package(GDAL REQUIRED)
+endif (NOT GDAL_FOUND)
+include_directories(${GDAL_INCLUDE_DIR})
 
 # Adds the core PetaVision directory
 add_subdirectory(${PV_DIR})
@@ -106,8 +137,9 @@ add_subdirectory(${PV_DIR})
 # following it are ignored.  Leading and trailing whitespace is then
 # stripped  If the resulting line is nonempty, its contents are interpreted
 # as a directory and and passed to the CMake add_subdirectory command.
-if (EXISTS subdirectories.txt)
-    set(PV_SUBDIR_LIST subdirectories.txt)
+set(SUBDIR_TXT "${CMAKE_CURRENT_BINARY_DIR}/subdirectories.txt")
+if (EXISTS ${SUBDIR_TXT})
+    set(PV_SUBDIR_LIST ${SUBDIR_TXT})
     file(READ "${PV_SUBDIR_LIST}" contents)
     string(REGEX REPLACE "\n" ";" contents "${contents}")
     
@@ -123,14 +155,14 @@ if (EXISTS subdirectories.txt)
         endif (NOT ("${LIN}" STREQUAL "") )
     endforeach(LIN ${contents})
     
-    # Create a text file called subdirectories.txt in the same directory as
+    # Create a text file called ${SUBDIR_TXT} in the same directory as
     # this CMakeLists.txt file.  That file should contain a list of
     # the projects to include.
-    # subdirectories.txt is in the .gitignore file so that it won't be
+    # ${SUBDIR_TXT} is in the .gitignore file so that it won't be
     # (and shouldn't be) committed to the repository.
-    # The sample-subdirectories.txt file illustrates the format.
-    # Note that every time you modify subdirectories.txt you will need to
+    # The sample-${SUBDIR_TXT} file illustrates the format.
+    # Note that every time you modify ${SUBDIR_TXT} you will need to
     # rerun cmake.
-else (EXISTS subdirectories.txt)
-   message("Only building the core PV library.  Create a subdirectories.txt file to build additional projects linking to it.")
-endif (EXISTS subdirectories.txt)
+else (EXISTS ${SUBDIR_TXT})
+   message("Only building the core PV library.  Create a ${SUBDIR_TXT} file to build additional projects linking to it.")
+endif (EXISTS ${SUBDIR_TXT})

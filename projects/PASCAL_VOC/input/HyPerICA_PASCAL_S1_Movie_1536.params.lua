@@ -19,11 +19,11 @@ local runName             = "VOC2007_landscape"
 local runVersion          = 8
 local machinePath         = "/Volumes/mountData" --"/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
-local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion .. "_original"
+local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
 local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
 local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
 local numImages           = 7958
-local displayPeriod       = 1200
+local displayPeriod       = 120
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs
 local checkpointID        = stopTime
@@ -48,7 +48,7 @@ if S1_Movie then
 else
    inputPath               = inputPath .. runVersion-1
    inputPathSLP            = inputPath .. "_S1_Movie3"
-   checkpointID            = numImages*displayPeriod*numEpochs
+   checkpointID            = numImages*displayPeriod*numEpochs*10
 end
 local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false
@@ -59,13 +59,14 @@ local GroundTruthPath     = machinePath .. "/PASCAL_VOC/VOC2007/VOC2007_landscap
 local startFrame          = 0
 
 --HyPerCol parameters
-local dtAdaptFlag           = not S1_Movie
-local dtAdaptController     = NULL --"S1EnergyProbe";
-local dtAdaptTriggerLayerName = NULL --"Image";
-local dtScaleMax               = 10.0   --2.0; --1.0; --0.1;
-local dtScaleMin               = 0.01
-local dtChangeMax              = 0.01  --0.1; --0.01;
-local dtChangeMin              = -0.02 --0.0;
+local dtAdaptFlag              = not S1_Movie
+local useAdaptMethodExp1stOrder = true
+local dtAdaptController        = "S1EnergyProbe"
+local dtAdaptTriggerLayerName  = "Image";
+local dtScaleMax               = 1.0   --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
+local dtScaleMin               = 0.01  --0.01    -- default time scale to use after image flips or when something is wacky
+local dtChangeMax              = 0.1   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
+local dtChangeMin              = 0.01  --0.01    -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
 local dtMinToleratedTimeScale  = 0.0001
 
 --HyPerLCA parameters
@@ -91,6 +92,7 @@ local pvParams = {
       startTime                           = 0;
       dt                                  = 1;
       dtAdaptFlag                         = dtAdaptFlag;
+      useAdaptMethodExp1stOrder           = useAdaptMethodExp1stOrder;
       dtAdaptController                   = dtAdaptController;
       dtAdaptTriggerLayerName             = dtAdaptTriggerLayerName;
       dtScaleMax                          = dtScaleMax;    
@@ -313,13 +315,13 @@ else
 		  mirrorBCflag                        = false;
 		  valueBC                             = 0;
 		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
-		  InitVType                           = "InitVFromFile";
-		  Vfilename                           = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_V.pvp";
+		  --InitVType                           = "InitVFromFile";
+		  --Vfilename                           = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_V.pvp";
 		  -- InitVType                           = "UniformRandomV";
 		  -- minV                                = -1;
 		  -- maxV                                = 0.05;
-		  --InitVType                           = "UniformV";
-		  --valueV                              = VThresh;
+		  InitVType                           = "ConstantV";
+		  valueV                              = VThresh;
 		  --triggerLayerName                    = "Image";
 		  --triggerBehavior                     = "resetStateOnTrigger";
 		  --triggerResetLayerName               = "ConstantS1";
@@ -328,7 +330,7 @@ else
 		  initialWriteTime                    = displayPeriod;
 		  sparseLayer                         = true;
 		  writeSparseValues                   = true;
-		  updateGpu                           = false; --true;
+		  updateGpu                           = true;
 		  dataType                            = nil;
 		  VThresh                             = VThresh;
 		  AMin                                = 0;

@@ -58,7 +58,7 @@ class Param_Reader(object):
             return
         if not official_layers or not type in official_layers:
             if re.search('Layer',type) or re.search('Movie',type):
-                self.layer_dict[name] = Layer(name,type)
+                self.layer_dict[name] = Layer(name,type,self.nodraw_flag)
                 self.current_object = self.layer_dict[name]
                 self.layers_in_order.append(name)
                 if official_layers:
@@ -66,7 +66,7 @@ class Param_Reader(object):
                 return
         if not official_conns or not type in official_conns:
             if re.search('Conn',type):
-                self.conn_dict[name] = Conn(name,type)
+                self.conn_dict[name] = Conn(name,type,self.nodraw_flag)
                 self.current_object = self.conn_dict[name]
                 self.conns_in_order.append(name)
                 if official_conns:
@@ -165,7 +165,7 @@ class Param_Parser(Param_Reader):
                 print(i.name + ' inferred as preLayer of ' + conn_name)
                 return i.name
         print('Could not infer prelayer of ' + conn_name)
-
+        
     def infer_post_from_name(self,conn_name):
         found = False
         for i in self.layer_dict.values():
@@ -176,6 +176,7 @@ class Param_Parser(Param_Reader):
         print('Could not infer postlayer of ' + conn_name)
             
     def relate_objects(self):
+        remove_list = []
         for i in self.conn_dict.values():
             if 'preLayerName' in i.params:
                 if not i['preLayerName'] in self.layer_dict:
@@ -195,6 +196,14 @@ class Param_Parser(Param_Reader):
                 print('Warning: ' + i.name + ' does not specify a postLayer')
                 i.post = self.infer_post_from_name(i.name)
 
+            if not i.pre and not i.post:
+                remove_list.append(i.name)
+                
+        for i in remove_list:
+            print('Deleting ' + i)
+            del self.conn_dict[i]
+            del self.conns_in_order[self.conns_in_order.index(i)]
+            
     def original_conn_label(self,conn):
         parent = self.conn_dict[conn.params['originalConnName']]
         if parent.label:
