@@ -107,7 +107,7 @@ def readpvpfile(filename,
                     if progressPeriod:
                         if not frame % progressPeriod and frame:
                             print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
-            return data
+            return (data,header)
 
         # KERNEL WEIGHT FILE
         elif header['filetype'] == 5:
@@ -135,7 +135,7 @@ def readpvpfile(filename,
                         if progressPeriod:
                             if not frame % progressPeriod and frame:
                                 print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
-                    return data
+                    return (data,header)
                 
         # SPARSE ACTIVITY FILE
         elif header['filetype'] == 6:
@@ -158,4 +158,4 @@ def readpvpfile(filename,
                     if progressPeriod:
                         if not frame % progressPeriod and frame:
                             print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
-            return data
+            return (data,header)
