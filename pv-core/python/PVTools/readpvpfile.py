@@ -1,46 +1,14 @@
+from readpvpheader import readpvpheader,extendedHeaderPattern
+from pv_object import PV_Object
 import numpy as np
+import os
 
-class DataFrame:
-    def __init__(self,time,values):
+class DataFrame(tuple):
+    def __new__ (cls, time, values):
+        return super(DataFrame, cls).__new__(cls, tuple([time,values]))
+    def __init__(self, time, values):
         self.time = time
         self.values = values
-
-headerPattern = [('headersize', np.int32),
-                 ('numparams', np.int32),
-                 ('filetype', np.int32),
-                 ('nx', np.int32),
-                 ('ny', np.int32),
-                 ('nf', np.int32),
-                 ('numrecords', np.int32),
-                 ('recordsize', np.int32),
-                 ('datasize', np.int32),
-                 ('datatype', np.int32),
-                 ('nxprocs', np.int32),
-                 ('nyprocs', np.int32),
-                 ('nxGlobal', np.int32),
-                 ('nyGlobal', np.int32),
-                 ('kx0', np.int32),
-                 ('ky0', np.int32),
-                 ('nbatch', np.int32),
-                 ('nbands', np.int32),
-                 ('time', np.float64)]
-
-headerPattern_ext = headerPattern + [('nxp', np.int32),
-                                     ('nyp', np.int32),
-                                     ('nfp', np.int32),
-                                     ('wMin', np.float32),
-                                     ('wMax', np.float32),
-                                     ('numpatches', np.int32)]
-
-headerPattern = np.dtype(headerPattern)
-headerPattern_ext = np.dtype(headerPattern_ext)
-
-def readpvpheader(fileStream):
-    header = np.fromfile(fileStream,headerPattern,1)
-    if header['numparams'] == 26:
-        fileStream.seek(0)
-        header = np.fromfile(fileStream,headerPattern_ext,1)
-    return zip(header.dtype.names,header[0])
 
 def readpvpfile(filename,
                 progressPeriod=0,
@@ -107,7 +75,7 @@ def readpvpfile(filename,
                     if progressPeriod:
                         if not frame % progressPeriod and frame:
                             print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
-            return (data,header)
+            return data,header
 
         # KERNEL WEIGHT FILE
         elif header['filetype'] == 5:
@@ -124,7 +92,7 @@ def readpvpfile(filename,
             for frame in range(startFrame, lastFrame):
                 if not frame % skipFrames:
                     stream.seek(frame*frameSize)
-                    time = np.fromfile(stream,headerPattern_ext,1)['time'][0]
+                    time = np.fromfile(stream,extendedHeaderPattern,1)['time'][0]
                     data.append(DataFrame(time,[]))
                     for arbor in range(header['nbands']):
                         currentData = np.fromfile(stream,
@@ -135,7 +103,7 @@ def readpvpfile(filename,
                         if progressPeriod:
                             if not frame % progressPeriod and frame:
                                 print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
-                    return (data,header)
+                    return data,header
                 
         # SPARSE ACTIVITY FILE
         elif header['filetype'] == 6:
@@ -158,4 +126,4 @@ def readpvpfile(filename,
                     if progressPeriod:
                         if not frame % progressPeriod and frame:
                             print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
-            return (data,header)
+            return data,header
