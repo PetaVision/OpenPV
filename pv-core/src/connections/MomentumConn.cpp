@@ -217,12 +217,7 @@ void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
 int MomentumConn::calc_dW() {
    assert(plasticityFlag);
    int status;
-   if(timeBatchIdx % timeBatchPeriod == 0){
-      timeBatchIdx = 0;
-   }
-   else{
-      timeBatchIdx++;
-   }
+   timeBatchIdx = (timeBatchIdx + 1) % timeBatchPeriod;
 
    //Clear at time 0, update at time timeBatchPeriod - 1
    bool need_update_w = false;
