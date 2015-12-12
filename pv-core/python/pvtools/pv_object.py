@@ -8,3 +8,10 @@ class PV_Object(list):
         for frame in self:
             actList.append(np.count_nonzero(frame.values))
         return actList
+
+    def getPercentActive(self):
+        actList = []
+        total = self.header['nx'] * self.header['ny'] * self.header['nf']
+        for frame in self:
+            actList.append(np.count_nonzero(frame.values) / total)
+                

@@ -28,8 +28,16 @@ extendedHeaderPattern = headerPattern + [('nxp', np.int32),
                                          ('numpatches', np.int32)]
 
 def readpvpheader(fileStream):
+    stringFlag = False
+    if type(fileStream) == str:
+        stringFlag = True
+        fileStream = open(fileStream,'rb')
+
     header = np.fromfile(fileStream,np.dtype(headerPattern),1)
     if header['numparams'] == 26:
         fileStream.seek(0)
         header = np.fromfile(fileStream,np.dtype(extendedHeaderPattern),1)
+
+    if stringFlag:
+        fileStream.close()
     return zip(header.dtype.names,header[0])

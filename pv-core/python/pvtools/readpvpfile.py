@@ -36,7 +36,7 @@ def readpvpfile(filename,
         if header['filetype'] == 1:
             from oct2py import octave
             import re
-            octave.addpath(re.match('(.*)(plab)',__file__).group(0) + '/mlab/util')
+            octave.addpath(re.match('(.*)(python)',__file__).group(0) + '/mlab/util')
             raw_data = octave.readpvpfile(filename)
             return raw_data
 
@@ -44,7 +44,7 @@ def readpvpfile(filename,
         if header['filetype'] == 2:
             from oct2py import octave
             import re
-            octave.addpath(re.match('(.*)(plab)',__file__).group(0) + '/mlab/util')
+            octave.addpath(re.match('(.*)(python)',__file__).group(0) + '/mlab/util')
             raw_data = octave.readpvpfile(filename)
             return raw_data
 
@@ -52,7 +52,7 @@ def readpvpfile(filename,
         elif header['filetype'] == 3:
             from oct2py import octave
             import re
-            octave.addpath(re.match('(.*)(plab)',__file__).group(0) + '/mlab/util')
+            octave.addpath(re.match('(.*)(python)',__file__).group(0) + '/mlab/util')
             raw_data = octave.readpvpfile(filename)
             return raw_data
 
