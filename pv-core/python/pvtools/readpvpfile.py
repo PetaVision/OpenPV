@@ -26,7 +26,7 @@ def readpvpfile(filename,
                       3: np.float32,
                       4: np.int32}
     with open(filename,'rb') as stream:
-        header = dict(readpvpheader(stream))
+        header = readpvpheader(stream)
         dataType = dataTypeSwitch[header['datatype']]
         lastFrame = min(lastFrame, header['nbands'])
 
@@ -75,7 +75,7 @@ def readpvpfile(filename,
                     if progressPeriod:
                         if not frame % progressPeriod and frame:
                             print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
-            return data,header
+            return PV_Object(data,header)
 
         # KERNEL WEIGHT FILE
         elif header['filetype'] == 5:
@@ -103,7 +103,7 @@ def readpvpfile(filename,
                         if progressPeriod:
                             if not frame % progressPeriod and frame:
                                 print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
-                    return data,header
+                    return PV_Object(data,header)
                 
         # SPARSE ACTIVITY FILE
         elif header['filetype'] == 6:
@@ -118,12 +118,12 @@ def readpvpfile(filename,
                                 os.SEEK_CUR)
                     continue
                 else:
-                    time = np.fromfile(stream,np.float64,1)
+                    time = np.fromfile(stream,np.float64,1)[0]
                     numActive = np.fromfile(stream,np.uint32,1)
                     currentData = np.fromfile(stream,entryPattern,numActive)
-                    data.append(DataFrame(time,np.array([currentData['index'],
-                                                         currentData['activation']]).T))
+                    data.append(DataFrame(time,zip(currentData['index'],
+                                                   currentData['activation'])))
                     if progressPeriod:
                         if not frame % progressPeriod and frame:
                             print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
-            return data,header
+            return PV_Object(data,header)
