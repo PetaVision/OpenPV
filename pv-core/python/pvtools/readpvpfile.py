@@ -58,7 +58,7 @@ def readpvpfile(filename,
 
 # Newer filetypes, fully implemented in python
 
-        # NON-SPIKING ACTIVITY FILE
+        # DENSE, NON-SPIKING ACTIVITY FILE
         elif header['filetype'] == 4:
             lastFrame = min(lastFrame, header['nbands'])
             shape = (header['ny'], header['nx'], header['nf'])
