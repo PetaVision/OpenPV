@@ -23,8 +23,8 @@ if ismac
   %%JIEDDO_subtype = "CARS";
   %%run_type = "experts";
   %%run_type = "MaxPool";
-  %%run_type = "DCA";
-  run_type = "KITTI"
+  run_type = "DCA";
+  %%run_type = "KITTI"
   if strcmp(run_type, "Grains")
     output_dir = "/Volumes/mountData/Grains/Grains_S1_128/test3"; %%
     checkpoint_parent = "/Volumes/mountData/Grains/Grains_S1_128"; %%
@@ -92,20 +92,28 @@ elseif isunix
   %%run_type = "DCNNX3";
   %%run_type = "DBN";
   %%run_type = "experts";
+  %%run_type = "ICA";
   if strcmp(run_type, "experts") 
     output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts/VOC2007_landscape2";
     checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts";
     checkpoint_children = {"VOC2007_landscape2"}; %%
   elseif strcmp(run_type, "DCA")
-    %%output_dir = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape11";
-    %%checkpoint_parent = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
-    %%checkpoint_children = {"VOC2007_landscape11"}; %%
-    output_dir = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1";
-    checkpoint_parent = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA";
-    checkpoint_children = {"KITTI_train1"}; %%
+    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape12";
+    %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
+    %%checkpoint_children = {"VOC2007_landscape12"}; %%
+    output_dir = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train7";
+    checkpoint_parent = "/nh/compneuro/Data/KITTI/KITTI_S1_128_S2_256_S3_512_DCA";
+    checkpoint_children = {"KITTI_train7"}; %%
     %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape8_xcorr";
     %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
     %%checkpoint_children = {"VOC2007_landscape8_xcorr"}; %%
+  elseif strcmp(run_type, "ICA")
+    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape2";
+    %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X4_6144_ICA";
+    %%checkpoint_children = {"VOC2007_landscape2"}; %%
+    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape9";
+    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA";
+    checkpoint_children = {"VOC2007_landscape9"}; %%
   elseif strcmp(run_type, "KITTI")
     output_dir = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1"
     checkpoint_parent = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA"
@@ -274,7 +282,7 @@ endif  %% plot_StatsProbe_vs_time
 analyze_Sparse_flag = true;
 if analyze_Sparse_flag
   Sparse_frames_list = [];
-  if strcmp(run_type, "default") || strcmp(run_type, "DCA")  || strcmp(run_type, "KITTI") 
+  if strcmp(run_type, "default") || strcmp(run_type, "DCA")  || strcmp(run_type, "KITTI")   || strcmp(run_type, "ICA")
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% DCA list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -378,7 +386,7 @@ endif
 
 analyze_nonSparse_flag = true;
 if analyze_nonSparse_flag
-  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI")
+  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "ICA")
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glob generated list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -939,7 +947,7 @@ plot_weights0_2_flag = plot_flag;
 plot_labelWeights_flag = true;
 if analyze_weights0_2
   weights1_2_list = {};
-  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "CIFAR")
+  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "KITTI") || strcmp(run_type, "CIFAR") %%  || strcmp(run_type, "DCA")
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MaxPool
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -981,7 +989,74 @@ if analyze_weights0_2
     labelWeights_list = {}; %%...
     num_checkpoints = size(checkpoints_list,1);
     weights1_2_pad_size = [0];
+    keyboard
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DCA")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% KITTI DCA list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layer2 to layer1
+    if ~checkpoint_weights_movie
+      checkpoints_list = {output_dir};
+      break;
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+weights1_2_list = cell(6,2);
+  weights1_2_list{1,1} = "S2LeftToS1LeftDeconError"; 
+  weights1_2_list{2,1} = "S2RightToS1RightDeconError"; 
+  weights1_2_list{3,1} = "S2ToS1DeconError"; 
+  weights1_2_list{4,1} = "S2ToS1DeconError"; 
+  weights1_2_list{5,1} = "S2ToS1LeftDeconError"; 
+  weights1_2_list{6,1} = "S2ToS1RightDeconError"; 
+  weights1_2_list{1,2} = "_W"; 
+  weights1_2_list{2,2} = "_W"; 
+  weights1_2_list{3,2} = "_W"; 
+  weights1_2_list{4,2} = "_W"; 
+  weights1_2_list{5,2} = "_W"; 
+  weights1_2_list{6,2} = "_W";
+
+  post1_2_list = ...
+      {["S1Left"], ["_A"]; 
+       ["S1Right"], ["_A"]; 
+       ["S1"], ["_A"]; 
+       ["S1"], ["_A"]; 
+       ["S1Left"], ["_A"]; 
+       ["S1Right"], ["_A"]};
+  %% list of weights from layer1 to image
+weights0_1_list = cell(6,2);
+  weights0_1_list{1,1} = "S1LeftToImageLeftDeconError";
+  weights0_1_list{2,1} = "S1RightToImageRightDeconError";
+  weights0_1_list{3,1} = "S1ToImageLeftDeconError";
+  weights0_1_list{4,1} = "S1ToImageRightDeconError";
+  weights0_1_list{5,1} = "S1LeftToImageLeftDeconError";
+  weights0_1_list{6,1} = "S1RightToImageRightDeconError";
+  weights0_1_list{1,2} = "_W";
+  weights0_1_list{2,2} = "_W";
+  weights0_1_list{3,2} = "_W";
+  weights0_1_list{4,2} = "_W";
+  weights0_1_list{5,2} = "_W";
+  weights0_1_list{6,2} = "_W";
+
+image_list = cell(6,2);
+  image_list{1,1} = "ImageLeft";
+  image_list{2,1} = "ImageRight";
+  image_list{3,1} = "ImageLeft";
+  image_list{4,1} = "ImageRight";
+  image_list{5,1} = "ImageLeft";
+  image_list{6,1} = "ImageRight";
+  image_list{1,2} = "_A";
+  image_list{2,2} = "_A";
+  image_list{3,2} = "_A";
+  image_list{4,2} = "_A";
+  image_list{5,2} = "_A";
+  image_list{6,2} = "_A";
+%%      labelWeights_list = ...
+%%	  {["V2ToLabelError"], ["_W"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_weights0_2_ndx = [5 6 4 4 4 4];
+    num_checkpoints = size(checkpoints_list,1);
+    weights1_2_pad_size = [0 0 0 0 0 0];
   elseif strcmp(run_type, "SLP")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% PASCAL_SLP list
@@ -1719,7 +1794,7 @@ if analyze_weightsN_Nplus1
   
   weightsN_Nplus1_list = {};
   layersN_Nplus1_list = {};
-  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "CIFAR")
+  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "KITTI") || strcmp(run_type, "CIFAR") %%  || strcmp(run_type, "DCA")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% MaxPool
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1761,6 +1836,41 @@ if analyze_weightsN_Nplus1
         {["S3"], ["_A"], ["S2"], ["_A"], ["S1"], ["_A"], ["Image"], ["_A"]};
     labelWeights_list = {[], []}; %%...
     num_checkpoints = size(checkpoints_list,1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  elseif strcmp(run_type, "DCA")
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% DCA KITTI list
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% list of weights from layerN to layer0 (Image)
+    if ~checkpoint_weights_movie
+    else
+      checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
+      weightsN_Nplus1_list = ...
+          {["S3ToS2DeconError"],           ["_W"], ["S2ToS1DeconError"],           ["_W"], ["S1ToImageLeftDeconError"],        ["_W"];
+	   ["S3ToS2DeconError"],           ["_W"], ["S2ToS1DeconError"],           ["_W"], ["S1ToImageRightDeconError"],       ["_W"];
+	   ["S3ToS2DeconError"],           ["_W"], ["S2ToS1LeftDeconError"],       ["_W"], ["S1LeftToImageLeftDeconError"],    ["_W"];
+	   ["S3ToS2DeconError"],           ["_W"], ["S2ToS1RightDeconError"],      ["_W"], ["S1RightToImageRightDeconError"],  ["_W"];
+	   ["S3ToS2LeftDeconError"],       ["_W"], ["S2LeftToS1LeftDeconError"],   ["_W"], ["S1LeftToImageLeftDeconError"],    ["_W"];
+	   ["S3ToS2RightDeconError"],      ["_W"], ["S2RightToS1RightDeconError"], ["_W"], ["S1RightToImageRightDeconError"],  ["_W"];
+	   ["S3LeftToS2LeftDeconError"],   ["_W"], ["S2LeftToS1LeftDeconError"],   ["_W"], ["S1LeftToImageLeftDeconError"],    ["_W"];
+	   ["S3RightToS2RightDeconError"], ["_W"], ["S2RightToS1RightDeconError"], ["_W"], ["S1RightToImageRightDeconError"],  ["_W"]};
+      layersN_Nplus1_list = ...
+          {["S3"],      ["_A"], ["S2"],      ["_A"], ["S1"],      ["_A"], ["ImageLeft"],  ["_A"];
+	   ["S3"],      ["_A"], ["S2"],      ["_A"], ["S1"],      ["_A"], ["ImageRight"], ["_A"];
+	   ["S3"],      ["_A"], ["S2"],      ["_A"], ["S1Left"],  ["_A"], ["ImageLeft"],  ["_A"];
+	   ["S3"],      ["_A"], ["S2"],      ["_A"], ["S1Right"], ["_A"], ["ImageRight"], ["_A"];
+	   ["S3"],      ["_A"], ["S2Left"],  ["_A"], ["S1Left"],  ["_A"], ["ImageLeft"],  ["_A"];
+	   ["S3"],      ["_A"], ["S2Right"], ["_A"], ["S1Right"], ["_A"], ["ImageRight"], ["_A"];
+	   ["S3Left"],  ["_A"], ["S2Left"],  ["_A"], ["S1Left"],  ["_A"], ["ImageLeft"],  ["_A"];
+	   ["S3Right"], ["_A"], ["S2Right"], ["_A"], ["S1Right"], ["_A"], ["ImageRight"], ["_A"]};
+      labelWeights_list = ...
+	  {[], []}; %%{["S3ToGroundTruthError"], ["_W"]};
+    endif %% checkpoint_weights_movie
+    %% list of indices for reading rank order of presynaptic neuron as function of activation frequency
+    sparse_weightsN_Nplus1_ndx = [7 7 7 7 7 7 8 9];
+    num_checkpoints = size(checkpoints_list,1);
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(run_type, "DCNN")
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

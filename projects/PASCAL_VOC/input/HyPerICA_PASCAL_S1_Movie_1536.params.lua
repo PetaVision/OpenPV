@@ -66,8 +66,8 @@ local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false
 
 --i/o parameters
-local imageListPath       = machinePath .. "/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt"
-local GroundTruthPath     = machinePath .. "/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp"
+local imageListPath       = machinePath .. "/VOC2007/VOC2007_landscape_192X256_list.txt"
+local GroundTruthPath     = machinePath .. "/VOC2007/VOC2007_landscape_192X256.pvp"
 local startFrame          = 0
 
 --HyPerCol parameters
@@ -260,7 +260,7 @@ else
 		  dataType                            = nil;
 		  offsetAnchor                        = "tl";
 		  offsetX                             = 0;
-		  offsetY                             = 0;
+		  offsetY                             = ;
 		  writeImages                         = 0;
 		  useImageBCflag                      = false;
 		  autoResizeFlag                      = false;

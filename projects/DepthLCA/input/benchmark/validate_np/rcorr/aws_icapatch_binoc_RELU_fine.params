@@ -202,60 +202,6 @@ WTALayer "RCorrRecon" = {
 };
 
 
-////SLP layers
-//ANNLayer "SLP_Error" = {
-//    nxScale                             = 0.5;
-//    nyScale                             = 0.5;
-//    nf                                  = 128;
-//    phase                               = 3;
-//    mirrorBCflag                        = false;
-//    valueBC                             = 0;
-//    InitVType                           = "ZeroV";
-//    triggerFlag                         = false;
-//    writeStep                           = 1;
-//    initialWriteTime                    = 1;
-//    sparseLayer                         = false;
-//    updateGpu                           = false;
-//    VThresh                             = -3.40282e+38;
-//    AMin                                = -3.40282e+38;
-//    AMax                                = 3.40282e+38;
-//    AShift                              = 0;
-//    VWidth                              = 0;
-//};
-//
-//ANNLayer "SLP_Recon_Buffer" = {
-//    nxScale                             = 0.5;
-//    nyScale                             = 0.5;
-//    nf                                  = 128;
-//    phase                               = 4;
-//    mirrorBCflag                        = false;
-//    valueBC                             = 0;
-//    InitVType                           = "ZeroV";
-//    triggerFlag                         = false;
-//    writeStep                           = -1;
-//    initialWriteTime                    = -1;
-//    sparseLayer                         = false;
-//    updateGpu                           = false;
-//    VThresh                             = -3.40282e+38;
-//    AMin                                = -3.40282e+38;
-//    AMax                                = 3.40282e+38;
-//    AShift                              = 0;
-//    VWidth                              = 0;
-//};
-//
-//WTALayer "SLP_Recon" = {
-//    restart = 0;
-//    nxScale = .5; 
-//    nyScale = .5;
-//    nf = 1; 
-//    writeStep = 1.0;
-//    initialWriteTime = 1.0;
-//    mirrorBCflag = false;
-//    writeSparseActivity = false;
-//    delay = 0;
-//    originalLayerName = "SLP_Recon_Buffer";
-//    phase = 5;
-//};
 
 KernelConn "RELU_V1ToLeftRecon" = {
     preLayerName = "RELU_V1";

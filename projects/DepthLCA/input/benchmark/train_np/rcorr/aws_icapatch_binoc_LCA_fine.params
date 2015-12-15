@@ -167,6 +167,58 @@ BinningLayer "DepthGT" = {
     phase = 2;
 };
 
+KernelConn "LCA_V1ToLeftRecon" = {
+    preLayerName = "LCA_V1";
+    postLayerName = "LeftRecon";
+    channelCode = 0;
+    nxp = 66;
+    nyp = 66;
+    shrinkPatches = false;
+    //
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
+
+    strength = 1; //.25/2  
+    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
+    //normalizeMethod = "normalizeContrastZeroMean"; 
+    //SET PARAMS TO NEW NORMALIZATION METHOD
+    minL2NormTolerated = 0;
+    normalizeArborsIndividually = 0;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    //
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    keepKernelsSynchronized = true; 
+    combine_dW_with_W_flag = false; 
+    //
+    writeStep = -1;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    //triggerFlag = true;
+    //triggerLayerName = "LeftImage";
+    //triggerOffset = 1;
+    initialWriteTime = 0.0;
+    //dWMax = 5; // 200.0 used for initial training
+    selfFlag = false;
+    shmget_flag = false;
+    //
+    delay = 0;
+    //
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "LCA_V1ToRightRecon" = {
+   #include "LCA_V1ToLeftRecon";
+   @postLayerName = "RightRecon";
+   @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
+};
 PoolingConn "DepthImageToDepthDownsample" = {
     preLayerName = "DepthImage";
     postLayerName = "DepthDownsample";
@@ -261,58 +313,5 @@ MomentumConn "LCA_V1ToDepthGT" = {
 
     batchPeriod = 100;
     sharedWeights = true;
-};
-
-KernelConn "LCA_V1ToLeftRecon" = {
-    preLayerName = "LCA_V1";
-    postLayerName = "LeftRecon";
-    channelCode = 0;
-    nxp = 66;
-    nyp = 66;
-    shrinkPatches = false;
-    //
-    numAxonalArbors = 1;
-    initFromLastFlag = 0;
-    
-    weightInitType = "FileWeight";
-    initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToLeftError_W.pvp";
-
-    strength = 1; //.25/2  
-    normalizeMethod = "normalizeL2"; //Switch to normalizecontrastzeromean
-    //normalizeMethod = "normalizeContrastZeroMean"; 
-    //SET PARAMS TO NEW NORMALIZATION METHOD
-    minL2NormTolerated = 0;
-    normalizeArborsIndividually = 0;
-    normalize_cutoff = 0.0;
-    normalizeFromPostPerspective = false;
-    symmetrizeWeights = false;
-    //
-    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
-    keepKernelsSynchronized = true; 
-    combine_dW_with_W_flag = false; 
-    //
-    writeStep = -1;
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
-    plasticityFlag = false;
-    //triggerFlag = true;
-    //triggerLayerName = "LeftImage";
-    //triggerOffset = 1;
-    initialWriteTime = 0.0;
-    //dWMax = 5; // 200.0 used for initial training
-    selfFlag = false;
-    shmget_flag = false;
-    //
-    delay = 0;
-    //
-    useWindowPost = false;
-    updateGSynFromPostPerspective = false;
-    pvpatchAccumulateType = "convolve";
-};
-
-KernelConn "LCA_V1ToRightRecon" = {
-   #include "LCA_V1ToLeftRecon";
-   @postLayerName = "RightRecon";
-   @initWeightsFile = "/home/ec2-user/mountData/benchmark/icaweights_binoc_LCA_fine/Checkpoints/Checkpoint194000/V1ToRightError_W.pvp";
 };
 

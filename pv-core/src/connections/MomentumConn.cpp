@@ -217,12 +217,7 @@ void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
 int MomentumConn::calc_dW() {
    assert(plasticityFlag);
    int status;
-   if(timeBatchIdx >= timeBatchPeriod){
-      timeBatchIdx = 0;
-   }
-   else{
-      timeBatchIdx++;
-   }
+   timeBatchIdx = (timeBatchIdx + 1) % timeBatchPeriod;
 
    //Clear at time 0, update at time timeBatchPeriod - 1
    bool need_update_w = false;
@@ -230,7 +225,9 @@ int MomentumConn::calc_dW() {
    if(timeBatchIdx == 0){
       need_clear_dw = true;
    }
-   if(timeBatchIdx == timeBatchPeriod - 1){
+
+   //If updating next timestep, update weights here
+   if((timeBatchIdx + 1) % timeBatchPeriod == 0){
       need_update_w = true;
    }
 
