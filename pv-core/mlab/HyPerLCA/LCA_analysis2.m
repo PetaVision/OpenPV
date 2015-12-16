@@ -88,11 +88,11 @@ elseif isunix
   %%run_type = "DCNN";
   %%run_type = "CIFAR";
   %%run_type = "MaxPool";
-  run_type = "DCA";
+  %%run_type = "DCA";
   %%run_type = "DCNNX3";
   %%run_type = "DBN";
   %%run_type = "experts";
-  %%run_type = "ICA";
+  run_type = "ICA";
   if strcmp(run_type, "experts") 
     output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts/VOC2007_landscape2";
     checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts";
@@ -108,12 +108,12 @@ elseif isunix
     %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
     %%checkpoint_children = {"VOC2007_landscape8_xcorr"}; %%
   elseif strcmp(run_type, "ICA")
-    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape2";
-    %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X4_6144_ICA";
-    %%checkpoint_children = {"VOC2007_landscape2"}; %%
-    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape9";
-    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA";
-    checkpoint_children = {"VOC2007_landscape9"}; %%
+    output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape2";
+    checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X4_6144_ICA";
+    checkpoint_children = {"VOC2007_landscape2"}; %%
+    %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape9";
+    %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA";
+    %%checkpoint_children = {"VOC2007_landscape9"}; %%
   elseif strcmp(run_type, "KITTI")
     output_dir = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1"
     checkpoint_parent = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA"
