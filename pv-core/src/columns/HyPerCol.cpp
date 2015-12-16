@@ -95,12 +95,12 @@ HyPerCol::~HyPerCol()
 
    free(dtAdaptController);
 
-   // colProbes do not have to be deleted because their owner is the HyPerCol and
-   // they are still in baseProbes, so they will be deleted when baseProbes is deleted.
+   // colProbes[i] should not be deleted; it points to an entry in baseProbes and will
+   // be deleted when baseProbes is deleted, below.
    free(colProbes);
 
    for (int k=0; k<numBaseProbes; k++) {
-      if (baseProbes[k] && baseProbes[k]->getOwner()==(void *) this) { delete baseProbes[k]; }
+      delete baseProbes[k];
    }
    free(baseProbes);
 
@@ -1699,15 +1699,14 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       for (int i=0; i<numBaseProbes; i++) {
          BaseProbe * p = baseProbes[i];
          int pstatus = p->communicateInitInfo();
-         if (p->getOwner() != this) {
-            baseProbes[i] = NULL; // don't need to maintain probes whose ownership has been handed off.
-         }
          if (pstatus==PV_SUCCESS) {
             if (globalRank()==0) printf("Probe \"%s\" communicateInitInfo completed.\n", p->getName());
          }
          else {
             assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-            exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
+            // A more detailed error message should be printed by probe's communicateInitInfo function.
+            fprintf(stderr, "Probe \"%s\" communicateInitInfo failed.  Exiting.\n", p->getName());
+            exit(EXIT_FAILURE);
          }
       }
       
@@ -1755,7 +1754,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       // do allocation stage for probes
       for (int i=0; i<numBaseProbes; i++) {
          BaseProbe * p = baseProbes[i];
-         if (p==NULL) continue;
          int pstatus = p->allocateDataStructures();
          if (pstatus==PV_SUCCESS) {
             if (globalRank()==0) printf("Probe \"%s\" allocateDataStructures completed.\n", p->getName());
@@ -3378,9 +3376,10 @@ int HyPerCol::insertProbe(ColProbe * p)
    return ++numColProbes;
 }
 
-// BaseProbes include layer probes, connection probes, and not column probes.
+// BaseProbes include layer probes, connection probes, and column probes.
 int HyPerCol::addBaseProbe(BaseProbe * p) {
    BaseProbe ** newprobes;
+   // Instead of mallocing a new buffer and freeing the old buffer, this could be a realloc.
    newprobes = (BaseProbe **) malloc( ((size_t) (numBaseProbes + 1)) * sizeof(BaseProbe *) );
    assert(newprobes != NULL);
 

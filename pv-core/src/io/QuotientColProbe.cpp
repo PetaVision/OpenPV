@@ -110,28 +110,11 @@ int QuotientColProbe::communicateInitInfo() {
 }
 
 BaseProbe * QuotientColProbe::findProbe(char const * probeName) {
-   // Search the ColProbes
-   for (int p=0; p<parent->numberOfProbes(); p++) {
-      BaseProbe * probe = parent->getColProbe(p);
+   for (int p=0; p<parent->numberOfBaseProbes(); p++) {
+      BaseProbe * probe = parent->getBaseProbe(p);
       if (!strcmp(probe->getName(), probeName)) { return probe; }
    }
-   // Search the layer probes
-   for (int l=0; l<parent->numberOfLayers(); l++) {
-      HyPerLayer * layer = parent->getLayer(l);
-      for (int p=0; p < layer->getNumProbes(); p++) {
-         BaseProbe * probe = layer->getProbe(p);
-         if (!strcmp(probe->getName(), probeName)) { return probe; }
-      }
-   }
-   // Search the connection probes
-   for (int c=0; c<parent->numberOfLayers(); c++) {
-      BaseConnection * conn = parent->getConnection(c);
-      for (int p=0; p < conn->getNumProbes(); p++) {
-         BaseProbe * probe = (BaseProbe *) conn->getProbe(p);
-         if (!strcmp(probe->getName(), probeName)) { return probe; }
-      }
-   }
-   // If you reach here, no such probe was found.
+   // If you reach here, no probe with the given name was found.
    return NULL;
 }
 

@@ -57,7 +57,6 @@ int LayerProbe::communicateInitInfo() {
    BaseProbe::communicateInitInfo();
    //Set target layer
    int status = setTargetLayer(targetName);
-   owner = targetName;
    //Add to layer
    if (status == PV_SUCCESS) {
       targetLayer->insertProbe(this);

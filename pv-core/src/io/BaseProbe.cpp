@@ -40,7 +40,6 @@ BaseProbe::~BaseProbe()
 int BaseProbe::initialize_base() {
    name = NULL;
    parent = NULL;
-   owner = NULL;
    outputstream = NULL;
    targetName = NULL;
    msgparams = NULL;
@@ -71,7 +70,6 @@ int BaseProbe::initialize(const char * probeName, HyPerCol * hc)
    ioParams(PARAMS_IO_READ);
    //Add probe to list of probes
    parent->addBaseProbe(this); // Adds probe to HyPerCol.  If needed, probe will be attached to layer or connection during communicateInitInfo
-   owner = (void *) parent;
    status = initNumValues();
    return status;
 }

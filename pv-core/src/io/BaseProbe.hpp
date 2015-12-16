@@ -96,14 +96,6 @@ public:
     * BaseConnectionProbe uses it to specify the connection to attach to.
     */
    const char * getTargetName() {return targetName;}
-   
-   /**
-    * Specifies the object responsible calling the probe's destructor.
-    * BaseProbe sets owner to the parent HyPerCol during initialization.
-    * During the communicateInitInfo stage, layer probes and connection probes
-    * change their owner to the layer or connection they attach to.
-    */
-   void const * getOwner() { return owner;}
 
    /**
     * Returns the name of the energy probe the probe is attached to (null if not attached to an energy probe)
@@ -303,7 +295,6 @@ protected:
    HyPerLayer * triggerLayer;
    double triggerOffset;
    HyPerCol * parent;
-   void * owner; // the object responsible for calling the probe's destructor
    char * name;
    char * targetName;
    char * energyProbe; // the name of the ColumnEnergyProbe to attach to, if any.
