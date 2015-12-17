@@ -3457,6 +3457,22 @@ ColProbe * HyPerCol::getColProbeFromName(const char * probeName) {
    return p;
 }
 
+BaseProbe * HyPerCol::getBaseProbeFromName(const char * probeName) {
+   if (probeName == NULL) { return NULL; }
+   BaseProbe * p = NULL;
+   int n = numberOfBaseProbes();
+   for (int i=0; i<n; i++) {
+      BaseProbe * curBaseProbe = getBaseProbe(i);
+      const char * curName = curBaseProbe->getName();
+      assert(curName);
+      if (!strcmp(curName, probeName)) {
+         p = curBaseProbe;
+         break;
+      }
+   }
+   return p;
+}
+
 unsigned int HyPerCol::getRandomSeed() {
    unsigned long t = 0UL;
    int rootproc = 0;

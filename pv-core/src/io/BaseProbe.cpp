@@ -264,8 +264,8 @@ int BaseProbe::communicateInitInfo() {
 
    // Add the probe to the ColumnEnergyProbe, if there is one.
    if (energyProbe && energyProbe[0]) {
-      ColProbe * colprobe = getParent()->getColProbeFromName(energyProbe);
-      ColumnEnergyProbe * probe = dynamic_cast<ColumnEnergyProbe *>(colprobe);
+      BaseProbe * baseprobe = getParent()->getBaseProbeFromName(energyProbe);
+      ColumnEnergyProbe * probe = dynamic_cast<ColumnEnergyProbe *>(baseprobe);
       if (probe==NULL) {
          if (getParent()->columnId()==0) {
             fprintf(stderr, "%s \"%s\" error: energyProbe \"%s\" is not a ColumnEnergyProbe in the column.\n",
