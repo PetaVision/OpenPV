@@ -63,7 +63,7 @@ int MomentumConn::allocateDataStructures(){
       assert(prev_dwDataStart[arborId] != NULL);
    } // loop over arbors
 
-   assert(clones.size() == 0);
+   //assert(clones.size() == 0);
 
    return PV_SUCCESS;
 }

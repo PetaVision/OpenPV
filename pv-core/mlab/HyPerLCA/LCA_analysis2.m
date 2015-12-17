@@ -23,7 +23,8 @@ if ismac
   %%JIEDDO_subtype = "CARS";
   %%run_type = "experts";
   %%run_type = "MaxPool";
-  run_type = "DCA";
+  %%run_type = "DCA";
+  run_type = "VID";
   %%run_type = "KITTI"
   if strcmp(run_type, "Grains")
     output_dir = "/Volumes/mountData/Grains/Grains_S1_128/test3"; %%
@@ -42,6 +43,10 @@ if ismac
       checkpoint_children = ...
       {"VOC2007_landscape1"};
     endif
+  elseif strcmp(run_type, "VID")
+    output_dir = "/Volumes/mountData/VID/imageNetVid/VID_ILSVRC2015_S1X1_1536_ICA/n02958343_landscape1";
+    checkpoint_parent = "/Volumes/mountData/VID/imageNetVid/VID_ILSVRC2015_S1X1_1536_ICA";
+    checkpoint_children = {"n02958343_landscape1"}; %%
   elseif strcmp(run_type, "JIEDDO") 
     if ~exist("JIEDDO_subtype", "var") || strcmp(JIEDDO_subtype, "CARS")
       output_dir = "/Volumes/mountData/JIEDDO/JIEDDO_S1X4_1536/car_n02958343_2";
@@ -92,7 +97,7 @@ elseif isunix
   %%run_type = "DCNNX3";
   %%run_type = "DBN";
   %%run_type = "experts";
-  run_type = "ICA";
+  %%run_type = "ICA";
   if strcmp(run_type, "experts") 
     output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts/VOC2007_landscape2";
     checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts";
@@ -195,17 +200,19 @@ checkpoint_weights_movie = true; %% make movie of weights over time using list o
 %% plot Reconstructions
 analyze_Recon = true;
 if analyze_Recon
-  if  strcmp(run_type, "default") || strcmp(run_type, "ICA") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "CIFAR") || strcmp(run_type, "JIEDDO") 
+  if  strcmp(run_type, "default") || strcmp(run_type, "ICA") || strcmp(run_type, "VID") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "experts") || strcmp(run_type, "MaxPool") || strcmp(run_type, "CIFAR") || strcmp(run_type, "JIEDDO") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glob generated list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     Recon_glob_list = glob([output_dir, filesep, "*Image*.pvp"]);
+    Recon_glob_list2 = glob([output_dir, filesep, "*Frame*.pvp"]);
+    Recon_glob_list = [Recon_glob_list; Recon_glob_list2];
     num_Recon_list = length(Recon_glob_list);    
     Recon_list = cell(num_Recon_list,1);
     for i_Recon_list = 1 : num_Recon_list
       [Recon_list_dir, Recon_list_name, Recon_list_ext, ~] = fileparts(Recon_glob_list{i_Recon_list});
-      Recon_underscore_ndx = strfind(Recon_list_name, "_");
-      if isempty(Recon_underscore_ndx)
+      Recon_underscore_ndx = strfind(Recon_list_name, "a*_");
+      if isempty(Recon_underscore_ndx) || Recon_underscore_ndx > 4
 	Recon_list{i_Recon_list,1} = "";
 	Recon_list{i_Recon_list,2} = Recon_list_name;
       else
@@ -282,7 +289,7 @@ endif  %% plot_StatsProbe_vs_time
 analyze_Sparse_flag = true;
 if analyze_Sparse_flag
   Sparse_frames_list = [];
-  if strcmp(run_type, "default") || strcmp(run_type, "DCA")  || strcmp(run_type, "KITTI")   || strcmp(run_type, "ICA")
+  if strcmp(run_type, "default") || strcmp(run_type, "DCA")  || strcmp(run_type, "KITTI")  || strcmp(run_type, "ICA") || strcmp(run_type, "VID")
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% DCA list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -386,11 +393,13 @@ endif
 
 analyze_nonSparse_flag = true;
 if analyze_nonSparse_flag
-  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "ICA")
+  if strcmp(run_type, "default") || strcmp(run_type, "experts") || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "ICA") || strcmp(run_type, "VID")
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glob generated list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     nonSparse_glob_list = glob([output_dir, filesep, "*Image*Error*.pvp"]);
+    nonSparse_glob_list2 = glob([output_dir, filesep, "*Frame*Error*.pvp"]);
+    nonSparse_glob_list = [nonSparse_glob_list; nonSparse_glob_list2];
     num_nonSparse_list = length(nonSparse_glob_list);    
     nonSparse_list = cell(num_nonSparse_list,1);
     for i_nonSparse_list = 1 : num_nonSparse_list
@@ -402,10 +411,14 @@ if analyze_nonSparse_flag
     nonSparse_norm_list = cell(num_nonSparse_list, 2);
     for i_nonSparse_norm_list = 1 : num_nonSparse_list
       nonSparse_norm_list{i_nonSparse_norm_list,1} = ""; %%
-      nonSparse_norm_list{i_nonSparse_norm_list,2} = "Image";
+      if i_nonSparse_norm_list <= length(nonSparse_glob_list)
+	nonSparse_norm_list{i_nonSparse_norm_list,2} = "Image";
+      elseif i_nonSparse_norm_list <= length(nonSparse_glob_list2)
+	nonSparse_norm_list{i_nonSparse_norm_list,2} = "Frame";
+      endif
     endfor
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
-    nonSparse_norm_strength = nonSparse_norm_strength./sqrt(18*18*3);
+    nonSparse_norm_strength = nonSparse_norm_strength./sqrt(16*16*3);
     Sparse_std_ndx = zeros(num_nonSparse_list,1); 
 
     nonSparse_glob_list2 = glob([output_dir, filesep, "GroundTruth*Error*.pvp"]);
@@ -496,7 +509,7 @@ plot_weights = plot_flag;
 if analyze_weights
   weights_list = {};
   labelWeights_list = {};
-  if strcmp(run_type, "default")  || strcmp(run_type, "ICA") || strcmp(run_type, "experts")  || strcmp(run_type, "MaxPool")  || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "CIFAR") 
+  if strcmp(run_type, "default")  || strcmp(run_type, "ICA")  || strcmp(run_type, "VID") || strcmp(run_type, "experts")  || strcmp(run_type, "MaxPool")  || strcmp(run_type, "DCA") || strcmp(run_type, "KITTI") || strcmp(run_type, "CIFAR") 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% ICA; experts list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -508,6 +521,8 @@ if analyze_weights
       checkpoints_list = getCheckpointList(checkpoint_parent, checkpoint_children);
       if strcmp(run_type, "ICA")
 	weights_glob_str = "S?ToImage*econ*Error*_W.pvp";
+      elseif strcmp(run_type, "VID")
+	weights_glob_str = "S1_*ToFrame*Recon*Error*_W.pvp";
       elseif strcmp(run_type, "experts")
 	weights_glob_str = "S*ToImageRecon*Error*_W.pvp";
       elseif strcmp(run_type, "MaxPool") 
