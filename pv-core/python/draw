@@ -1,6 +1,6 @@
 #!/bin/bash
 FILEWRITE=false
-while getopts ":plf" opt; do
+while getopts ":plfa" opt; do
     case $opt in
         p)
             PHASE=true
@@ -11,6 +11,8 @@ while getopts ":plf" opt; do
 	f)
 	    FILEWRITE=true
 	    ;;
+	a)
+	    ALPHABET=true
     esac
 done
 shift $((OPTIND - 1))
@@ -42,15 +44,31 @@ cd $olddir
 parentdir="$(dirname "$plabdir")"
 if [ "$PHASE" = true ] ; then
     if [ "$LEGEND" = true ] ; then
-	python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile -p --legend
+	if [ "$ALPHABET" = true ] ; then
+	    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile -p --legend --alphabet
+	else
+	    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile -p --legend
+	fi
     else
-	python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile -p
+	if [ "$ALPHABET" = true ] ; then
+	    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile -p --alphabet
+	else
+	    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile -p
+	fi
     fi
 else
     if [ "$LEGEND" = true ] ; then
-        python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile --legend
+	if [ "$ALPHABET" = true ] ; then
+	    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile --legend --alphabet
+	else
+	    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile --legend
+	fi
     else
-	python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile
+	if [ "$ALPHABET" = true ] ; then
+	    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile --alphabet
+	else
+	    python $plabdir/param_draw.py -l $parentdir/src/layers -c $parentdir/src/connections $pfile
+	fi
     fi
 fi
 
