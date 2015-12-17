@@ -126,7 +126,7 @@ class Param_Reader(object):
         self.column = Col()
         self.current_object = None
         self.read()
-
+        
 class Param_Parser(Param_Reader):
 
     def official_lists(self,layer_dir,conn_dir):
@@ -302,6 +302,9 @@ class Param_Parser(Param_Reader):
         self.column = Col()
         self.current_object = None
         self.read()
+        if kwargs['alph']:
+            self.layers_in_order = sorted(self.layers_in_order)
+            self.conns_in_order = sorted(self.conns_in_order)
 
 def mermaid_writeout(parser_output, colorby, legend):
     layer_dict = parser_output[0]
@@ -463,18 +466,13 @@ if __name__ == '__main__':
     parser.add_argument('-l', help = 'path to directory with layers')
     parser.add_argument('-c', help = 'path to directory with conns')
     parser.add_argument('-p','--phase', help='layers colored by phase (default is scale)', action='store_true')
+    parser.add_argument('--alphabet', help='order params file layers alphabetically', action='store_true')
     parser.add_argument('--legend', help='display simple legend on image', action='store_true')
     args = parser.parse_args()
 
-    reader = Param_Parser(args.paramfile, layers = args.l, conns = args.c)
+    reader = Param_Parser(args.paramfile, layers = args.l, conns = args.c, alph = args.alphabet)
 
     if args.phase:
-        if args.legend:
-            mermaid_writeout(reader.parse(), 'phase', True)
-        else:
-            mermaid_writeout(reader.parse(), 'phase', False)
+            mermaid_writeout(reader.parse(), 'phase', args.legend)
     else:
-        if args.legend:
-            mermaid_writeout(reader.parse(), 'scale', True)
-        else:
-            mermaid_writeout(reader.parse(), 'scale', False)
+            mermaid_writeout(reader.parse(), 'scale', args.legend)
