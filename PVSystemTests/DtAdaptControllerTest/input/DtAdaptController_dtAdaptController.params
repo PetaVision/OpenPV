@@ -237,6 +237,13 @@ CloneConn "V1ToReconstruction" = {
 
 // QuotientColProbe to reproduce what ANNNormalizeErrorLayer does.
 
+QuotientColProbe "TimeScale" = {
+    numerator                           = "InputEnergyColProbe";
+    denominator                         = "ReconstructionErrorColProbe";
+    probeOutputFile                     = "timescale.txt";
+    valueDescription                    = "TimeScale";
+};
+
 ColumnEnergyProbe "InputEnergyColProbe" = {
     probeOutputFile                     = "input_energy.txt";
 };
@@ -263,11 +270,4 @@ L2NormProbe "ReconstructionErrorProbe" = {
     energyProbe                         = "ReconstructionErrorColProbe";
     coefficient                         = 1.0;
     exponent                            = 1.0;
-};
-
-QuotientColProbe "TimeScale" = {
-    numerator                           = "InputEnergyColProbe";
-    denominator                         = "ReconstructionErrorColProbe";
-    probeOutputFile                     = "timescale.txt";
-    valueDescription                    = "TimeScale";
 };
