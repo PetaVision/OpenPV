@@ -23,7 +23,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O3")
 set(PV_SRC_LIST PV_FOLDER_LIST.txt)
 
 set(PV_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(PV_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+set(PV_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
 ######################################################################################
 ######################################################################################
