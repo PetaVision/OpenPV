@@ -21,44 +21,45 @@ local tau                   = 400
 local S1_numFeatures        = patchSize * patchSize * 3 * 2 -- (patchSize/stride)^2 Xs overcomplete (i.e. complete for orthonormal ICA basis for stride == patchSize)
 
 -- User defined variables
-local plasticityFlag      = true --false
+local plasticityFlag      = false --true
 local stride              = patchSize/4
-local nxSize              = 256
-local nySize              = 192
+local nxSize              = 192 --256
+local nySize              = 256 --192
 local experimentName      = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_ICA"
-local runName             = "VOC2007_landscape"
+local runName             = "VOC2007_portrait" --
+local runNameTmp          = "VOC2007_landscape"
 local runVersion          = 9
 local machinePath         = "/nh/compneuro/Data" --"/Volumes/mountData" --"/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
-local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
-local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
-local numImages           = 7958
+local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runNameTmp 
+local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runNameTmp 
+local numImages           = 1751 --7958
 local displayPeriod       = 240
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs
-local checkpointID        = stopTime
-local checkpointIDSLP     = stopTime
+local checkpointID        = 7958 * displayPeriod --stopTime
+local checkpointIDSLP     = 7958 * 10 --stopTime
 local writePeriod         = 100 * displayPeriod
 local initialWriteTime    = writePeriod
 local checkpointWriteStepInterval = writePeriod
 local S1_Movie            = false
-local movieVersion        = 3
+local movieVersion        = 1
 if S1_Movie then
    outputPath              = outputPath .. "_S1_Movie" .. movieVersion
-   inputPath               = inputPath .. "_S1_Movie" .. movieVersion - 1
-   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. movieVersion - 1
+   inputPath               = inputPath .. runVersion --.. "_S1_Movie" .. movieVersion - 1
+   inputPathSLP            = inputPathSLP .. runVersion -- .. "_S1_Movie" .. movieVersion - 1
    displayPeriod           = 1
-   --numEpochs               = 10
+   numEpochs               = 10
    stopTime                = numImages * displayPeriod * numEpochs
-   checkpointID            = stopTime
-   checkpointIDSLP         = stopTime
+   --checkpointID            = stopTime
+   --checkpointIDSLP         = stopTime
    writePeriod             = 1
    initialWriteTime = numImages*(numEpochs-1)+1
    checkpointWriteStepInterval = numImages
 else -- not used if run version == 1
-   inputPath               = inputPath .. runVersion-1
-   inputPathSLP            = inputPath -- .. "_S1_Movie" .. movieVersion
+   inputPath               = inputPath .. runVersion
+   inputPathSLP            = inputPath .. "_S1_Movie" .. movieVersion
    --checkpointID            = numImages * displayPeriod * 5
    --checkpointIDSLP         = numImages * 10
 end
@@ -66,8 +67,8 @@ local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false
 
 --i/o parameters
-local imageListPath       = machinePath .. "/VOC2007/VOC2007_landscape_192X256_list.txt"
-local GroundTruthPath     = machinePath .. "/VOC2007/VOC2007_landscape_192X256.pvp"
+local imageListPath       = machinePath .. "/" .. databasePath .. "/" .. "VOC2007" .. "/" .. "VOC2007_" .. "portrait_256X192_list.txt" -- landscape_192X256_list.txt"
+local GroundTruthPath     = machinePath .. "/" .. databasePath .. "/" .. "VOC2007" .. "/" .. "VOC2007_" .. "portrait_256X192.pvp" -- landscape_192X256.pvp"
 local startFrame          = 0
 
 --HyPerCol parameters
@@ -127,6 +128,8 @@ local pvParams = {
 } --End of pvParams
 if S1_Movie then
    pvParams.column.dtAdaptFlag                         = false;
+   pvParams.column.dtAdaptController                   = nil;
+   pvParams.column.dtAdaptTriggerLayerName             = nil;
    pvParams.column.dtScaleMax                          = nil;
    pvParams.column.dtScaleMin                          = nil;
    pvParams.column.dtChangeMax                         = nil;
@@ -236,13 +239,6 @@ else
    -- 	       }
    -- )
 
-   pv.addGroup(pvParams, "S1EnergyProbe", 
-	       {
-		  groupType                           = "ColumnEnergyProbe";
-		  probeOutputFile                     = "S1EnergyProbe.txt";
-	       }
-   )
-   
    pv.addGroup(pvParams, "Image", 
 	       {
 		  groupType = "Movie";
@@ -260,7 +256,7 @@ else
 		  dataType                            = nil;
 		  offsetAnchor                        = "tl";
 		  offsetX                             = 0;
-		  offsetY                             = ;
+		  offsetY                             = 0;
 		  writeImages                         = 0;
 		  useImageBCflag                      = false;
 		  autoResizeFlag                      = false;
@@ -670,7 +666,7 @@ if not S1_Movie then
 		  triggerFlag                         = true;
 		  triggerLayerName                    = "Image";
 		  triggerOffset                       = 1;
-		  updateGSynFromPostPerspective       = false; //true; //
+		  updateGSynFromPostPerspective       = false; 
 		  pvpatchAccumulateType               = "convolve";
 		  writeStep                           = -1;
 		  writeCompressedCheckpoints          = false;
@@ -1093,6 +1089,13 @@ if not S1_Movie then
    --)
 
 
+   pv.addGroup(pvParams, "S1EnergyProbe", 
+	       {
+		  groupType                           = "ColumnEnergyProbe";
+		  probeOutputFile                     = "S1EnergyProbe.txt";
+	       }
+   )
+   
    pv.addGroup(pvParams, "ImageReconS1ErrorL2NormEnergyProbe",
 	       {
 		  groupType                           = "L2NormProbe";
