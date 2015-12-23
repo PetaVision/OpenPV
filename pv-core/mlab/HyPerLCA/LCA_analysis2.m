@@ -44,8 +44,8 @@ if ismac
       {"VOC2007_landscape1"};
     endif
   elseif strcmp(run_type, "VID")
-    output_dir = "/Volumes/mountData/VID/imageNetVid/VID_ILSVRC2015_S1X1_1536_ICA/n02958343_landscape1";
-    checkpoint_parent = "/Volumes/mountData/VID/imageNetVid/VID_ILSVRC2015_S1X1_1536_ICA";
+    output_dir = "/Volumes/mountData/VID/imageNetVid/VID_ILSVRC2015_S1X1_3072_8frames_ICA/n02958343_landscape1";
+    checkpoint_parent = "/Volumes/mountData/VID/imageNetVid/VID_ILSVRC2015_S1X1_3072_8frames_ICA";
     checkpoint_children = {"n02958343_landscape1"}; %%
   elseif strcmp(run_type, "JIEDDO") 
     if ~exist("JIEDDO_subtype", "var") || strcmp(JIEDDO_subtype, "CARS")
