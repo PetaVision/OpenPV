@@ -35,8 +35,8 @@ run_type = "ICA"
 %%run_type = "scene"
 %%run_type = "JIEDDO"
 if strcmp(run_type, "ICA")
-  %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape9";
-  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape2";
+  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape9";
+  %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape2";
   %%output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape9";
 elseif strcmp(run_type, "JIEDDO")
   output_dir = "/Volumes/mountData/JIEDDO/JIEDDO_S1X4_1536/FiveObjects_2";
@@ -91,9 +91,9 @@ SVM_flag = true;  %% not currently used
 hist_pool_flag = false; %%true; %%
 max_pool_flag = true;
 mean_pool_flag = false; %% true;
-max2X2_pool_flag = false; %%false; %% 
+max2X2_pool_flag = true; %%false; %% 
 mean2X2_pool_flag = false; %%false; %% 
-max4X4_pool_flag = false; %% false; %% 
+max4X4_pool_flag = true; %% false; %% 
 mean4X4_pool_flag = false; %% 
 train_long_flag = false;  %% determines whether all out-of-class examples are used (in-class examples are replicated to match number of out of class examples)
 if hist_pool_flag
@@ -160,7 +160,7 @@ for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
     nf_Sparse_array(i_Sparse) = sum(nf_Sparse_array(1:num_Sparse_list));
   endif
   %% can only use max_GT_images to stay within sizemax octave constraint on maximum array size
-  sizemax_scale = 8.0;
+  sizemax_scale = 2.0; %%6.0;
   if max4X4_pool_flag || mean4X4_pool_flag
     max_GT_images = min(max_GT_images, floor((sizemax/sizemax_scale)/(nx_GT*ny_GT*4*4*nf_Sparse_array(i_Sparse)))-1);
   elseif max2X2_pool_flag || mean2X2_pool_flag
@@ -207,7 +207,7 @@ analyzeSparseEpochsPVP3(GT_list, ...
 			load_GT_flag, ...
 			plot_flag, ...
 			fraction_GT_frames_read, ...
-			min_GT_skip, ...
+			1, ... %%min_GT_skip, ...
 			fraction_GT_progress, ...
 			GT_frames_list, ...
 			num_procs, ...
