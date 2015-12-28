@@ -23,8 +23,8 @@ if ismac
   %%JIEDDO_subtype = "CARS";
   %%run_type = "experts";
   %%run_type = "MaxPool";
-  run_type = "DCA";
-  %%run_type = "VID";
+  %%run_type = "DCA";
+  run_type = "VID";
   %%run_type = "KITTI"
   if strcmp(run_type, "Grains")
     output_dir = "/Volumes/mountData/Grains/Grains_S1_128/test3"; %%
@@ -44,9 +44,9 @@ if ismac
       {"VOC2007_landscape1"};
     endif
   elseif strcmp(run_type, "VID")
-    output_dir = "/Volumes/mountData/VID/imageNetVid/VID_ILSVRC2015_S1X1_3072_8frames_ICA/n02958343_landscape1";
+    output_dir = "/Volumes/mountData/VID/imageNetVid/VID_ILSVRC2015_S1X1_3072_8frames_ICA/n02958343_landscape2";
     checkpoint_parent = "/Volumes/mountData/VID/imageNetVid/VID_ILSVRC2015_S1X1_3072_8frames_ICA";
-    checkpoint_children = {"n02958343_landscape1"}; %%
+    checkpoint_children = {"n02958343_landscape2"}; %%
   elseif strcmp(run_type, "JIEDDO") 
     if ~exist("JIEDDO_subtype", "var") || strcmp(JIEDDO_subtype, "CARS")
       output_dir = "/Volumes/mountData/JIEDDO/JIEDDO_S1X4_1536/car_n02958343_2";

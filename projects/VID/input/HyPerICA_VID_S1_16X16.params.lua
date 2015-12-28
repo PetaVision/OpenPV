@@ -22,7 +22,7 @@ local nf_Image              = 3
 local S1_numFeatures        = patchSize * patchSize * nf_Image * 2 -- (patchSize/stride)^2 Xs overcomplete (i.e. complete for orthonormal ICA basis for stride == patchSize)
 local z                     = 0  -- z = 0,1,2, ... to obtain overcompleteness of 1,4,16, ...
 local overcompleteness      = math.pow(math.pow(2,z),2)
-local temporalKernelSize    = 2
+local temporalKernelSize    = 4 --2
 local numFrames             = temporalKernelSize * 2
 
 -- User defined variables
@@ -30,7 +30,7 @@ local plasticityFlag      = true --false
 local stride              = patchSize/math.pow(2,z) -- divide patchSize by 2^z to obtain dictionaries that are (2^z)^2 Xs overcomplete
 local nxSize              = 256 -- (1280/4)*4/5
 local nySize              = 144 -- (720/4)*4/5
-local experimentName      = "VID_ILSVRC2015_S1X" .. overcompleteness .. "_" .. S1_numFeatures .. "_ICA"
+local experimentName      = "VID_ILSVRC2015_S1X" .. overcompleteness .. "_" .. S1_numFeatures .. "_" .. numFrames .. "frames" .. "_ICA"
 local runName             = "n02958343_landscape"
 local runVersion          = 1
 local machinePath         = "/Volumes/mountData" --"/home/ec2-user/mountData"
