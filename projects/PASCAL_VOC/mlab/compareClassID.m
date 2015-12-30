@@ -32,15 +32,18 @@ endif
 
 %%run_type = "DCA";
 run_type = "ICA"
+run_type = "Deep"
 %%run_type = "DCA_Vine";
 %%run_type = "MaxPool"
 %%run_type = "S1S2";
 if strcmp(run_type, "S1S2")
   output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1_96_S2_1536/VOC2007_landscape27"];
 elseif strcmp(run_type, "ICA")
-  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_6144_ICA/VOC2007_landscape1"];
+  %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_6144_ICA/VOC2007_landscape1"];
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape4"];
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_portrait9"];
+elseif strcmp(run_type, "Deep")
+  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_Deep_ICA/VOC2007_landscape1_S1_Movie1"];
 elseif strcmp(run_type, "DCA")
   output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape12"];
 elseif strcmp(run_type, "DCA_Vine")
