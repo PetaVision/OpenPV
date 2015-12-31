@@ -2,14 +2,14 @@ clear all; close all; dbstop error;
 
 %addpath('devkit/matlab/')
 addpath('~/workspace/pv-core/mlab/util')
-outdir =  '~/mountData/outplots/'
+outdir =  '~/mountData/outplots_sparse/'
 LCAdir =  '~/mountData/benchmark/train/rcorr/aws_icaweights_binoc_LCA_fine/';
-RELUdir = '~/mountData/benchmark/train/rcorr/aws_icaweights_binoc_RELU_fine/';
+RELUdir = '~/mountData/benchmark/train/rcorr/aws_icaweights_binoc_RELU_fine_sparse/';
 
 %For rcorr patches
 targetNeurons = [199, 279]; %1 indexed
 LCADictFilename = [LCAdir, 'Last/LCA_V1ToDepthGT_W.pvp'];
-RELUDictFilename = [RELUdir, 'Last/RELU_V1ToDepthGT_W.pvp'];
+RELUDictFilename = [RELUdir, 'Last/SparseV1ToDepthGT_W.pvp'];
 %For rcorr patch plots
 ySampleSkip = 6;
 whiteRange = [0, .75];

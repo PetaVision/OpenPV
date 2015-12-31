@@ -580,10 +580,8 @@ BaseConnection::~BaseConnection() {
    free(this->postLayerName);
    free(fDelayArray);
    free(delays);
-   for (int i_probe = 0; i_probe < this->numProbes; i_probe++){
-      delete probes[i_probe];
-   }
-   free(this->probes);
+   free(this->probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be deleted, only the array itself.
+
 }
 
 }  // end namespace PV

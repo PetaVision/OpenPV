@@ -1,31 +1,32 @@
 clear all; close all; dbstop error;
 
 %addpath('devkit/matlab/')
-addpath('~/workspace/pv-core/mlab/util')
+addpath('~/workspace/OpenPV/pv-core/mlab/util')
 
 %outdir =  '/nh/compneuro/Data/Depth/LCA/benchmark/validate/plots/';
-outdir =  '~/mountData/outplots/temp/'
+outdir =  '~/mountData/outplots/LCA_vs_RELU_sparse/'
 
 mkdir(outdir);
 
-LCAdir = '~/mountData/benchmark/validate/rcorr/aws_icapatch_binoc_LCA_fine/'
-RELUdir =  '~/mountData/benchmark/validate/rcorr/aws_icapatch_binoc_RELU_fine/'
+LCAdir = '~/mountData/benchmark/validate/rcorr/aws_icaweights_binoc_LCA/'
+RELUdir =  '~/mountData/benchmark/validate/rcorr/aws_icapatch_binoc_RELU_sparse/'
 
 %These should be equivelent for LCA or RELU
 timestamp = [LCAdir '/timestamps/DepthImage.txt'];
 gtPvpFile = [LCAdir 'a4_DepthDownsample.pvp'];
 
-imageDir = 's3://kitti/stereo_flow/multiview/training/image_2/';
+%imageDir = 's3://kitti/stereo_flow/multiview/training/image_2/';
 %imageDir = '/nh/compneuro/Data/KITTI/stereo_flow/multiview/training/image_2/'
+imageDir = '/home/sheng/mountData/datasets/kitti/stereo_flow/multiview/training/image_2/'
 
 %Estimate pvps
 LCAFilename = [LCAdir 'a7_RCorrRecon.pvp'];
-RELUFilename = [RELUdir 'a7_RCorrRecon.pvp'];
+RELUFilename = [RELUdir 'a8_RCorrRecon.pvp'];
 
 % error threshold for error calculation
 tau = 3;
 
-scoreDir = [outdir 'fine_scores/'];
+scoreDir = [outdir];
 mkdir(scoreDir);
 
 

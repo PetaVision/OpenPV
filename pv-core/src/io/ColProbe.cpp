@@ -55,8 +55,6 @@ int ColProbe::initOutputStream(const char * filename) {
 int ColProbe::communicateInitInfo() {
    int status = BaseProbe::communicateInitInfo();
    if (status==PV_SUCCESS) {
-      //Set target layer  
-      owner = this->getParent();
       this->getParent()->insertProbe(this);
    }
    return status;

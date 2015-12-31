@@ -7,6 +7,7 @@
 
 #include "UpdateFromCloneTestGroupHandler.hpp"
 #include "TestConnProbe.hpp"
+#include "MomentumTestConnProbe.hpp"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -24,6 +25,9 @@ ParamGroupType UpdateFromCloneTestGroupHandler::getGroupType(char const * keywor
    if (!strcmp(keyword, "TestConnProbe")) {
       result = ProbeGroupType;
    }
+   else if (!strcmp(keyword, "MomentumTestConnProbe")) {
+      result = ProbeGroupType;
+   }
    else {
       result = UnrecognizedGroupType;
    }
@@ -39,6 +43,13 @@ BaseProbe * UpdateFromCloneTestGroupHandler::createProbe(char const * keyword, c
    }
    else if( !strcmp(keyword, "TestConnProbe") ) {
       addedGroup = new TestConnProbe(name, hc);
+      if( !addedGroup ) {
+         fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
+         errorFound = true;
+      }
+   }
+   else if( !strcmp(keyword, "MomentumTestConnProbe") ) {
+      addedGroup = new MomentumTestConnProbe(name, hc);
       if( !addedGroup ) {
          fprintf(stderr, "Group \"%s\": Unable to create probe\n", name);
          errorFound = true;

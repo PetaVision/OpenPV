@@ -28,14 +28,16 @@ addpath([mlab_dir, "/util"]);
 addpath([mlab_dir, "/HyPerLCA"]);
 
 plot_flag = true;
-%%run_type = "ICA"
+run_type = "ICA"
 %%run_type = "S1S2"
-run_type = "DCA";
+%%run_type = "DCA";
 %%run_type = "CIFAR";
 %%run_type = "scene"
 %%run_type = "JIEDDO"
 if strcmp(run_type, "ICA")
-  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape7";
+  output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape9";
+  %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape2";
+  %%output_dir = "/Volumes/mountData/PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_landscape9";
 elseif strcmp(run_type, "JIEDDO")
   output_dir = "/Volumes/mountData/JIEDDO/JIEDDO_S1X4_1536/FiveObjects_2";
 elseif strcmp(run_type, "S1S2")
@@ -58,8 +60,8 @@ if Recon_flag
   Recon_list = {[""],  ["Image"]};
   if strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
     Recon_list = {[""],  ["Image"]; [""], ["ImageDeconS1"]; [""], ["ImageDeconS2"]; [""], ["ImageDeconS3"]; [""], ["ImageDecon"]; [""], ["ImageDeconError"] };
-  elseif strcmp(run_type, "scene")
-    Recon_list = {["a3_"],  ["Image"]; ["a0_"],  ["ImageReconS1"]};
+  elseif strcmp(run_type, "scene") || strcmp(run_type, "ICA")
+    Recon_list = {[""],  ["Image"]; [""],  ["ImageReconS1"]};
   endif
   num_Recon_list = size(Recon_list,1);
   Recon_unwhiten_list = zeros(num_Recon_list,1);
@@ -86,14 +88,19 @@ endif %% Recon_flag
 %% GT activity
 GT_flag = true;  %% not currently used
 SVM_flag = true;  %% not currently used
-hist_pool_flag = false; %%true;
+hist_pool_flag = false; %%true; %%
 max_pool_flag = true;
 mean_pool_flag = false; %% true;
-max2X2_pool_flag = true;
-mean2X2_pool_flag = false; %% true;
-max4X4_pool_flag = true;
-mean4X4_pool_flag = false; %% true;
-train_long_flag = true; %%false;  %% determines whether all out-of-class examples are used (in-class examples are replicated to match number of out of class examples)
+max2X2_pool_flag = true; %%false; %% 
+mean2X2_pool_flag = false; %%false; %% 
+max4X4_pool_flag = true; %% false; %% 
+mean4X4_pool_flag = false; %% 
+train_long_flag = false;  %% determines whether all out-of-class examples are used (in-class examples are replicated to match number of out of class examples)
+if hist_pool_flag
+  num_Sparse_hist_pool_bins = 6+3;
+else
+  num_Sparse_hist_pool_bins = 0;
+endif
 
 if strcmp(run_type, "CIFAR")
   num_GT_images = 50000;
@@ -102,7 +109,7 @@ elseif strcmp(run_type, "DCA") || strcmp(run_type, "ICA") || strcmp(run_type, "S
 elseif strcmp(run_type, "JIEDDO")
   num_GT_images = 7831;
 endif
-displayPeriod = 1200;
+displayPeriod = 240; %%
 
 
 nx_GT = 1;
@@ -127,10 +134,55 @@ min_Sparse_skip = min_GT_skip;
 fraction_GT_progress = 10;
 num_GT_epochs = 1;
 
+%% list of sparse layers to analyze
+Sparse_list ={[""], ["S1"]};
+if strcmp(run_type, "S1S2")
+  %%  Sparse_list ={[""], ["S1"]; [""], ["S2"]};
+  Sparse_list ={[""], ["S2"]};
+elseif strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
+  Sparse_list ={[""], ["S1"]; [""], ["S2"]; [""], ["S3"]};
+elseif strcmp(run_type, "scene")
+  Sparse_list ={["a2_"], ["S1"]};
+endif
+
+%% determine maximum number of images that will fit in memory
+num_Sparse_list = size(Sparse_list,1);
+nf_Sparse_array = zeros(num_Sparse_list + (num_Sparse_list > 1),1);
+for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
+  max_GT_images = num_GT_images;
+  if i_Sparse <= num_Sparse_list
+    Sparse_fid = fopen([output_dir, filesep, Sparse_list{i_Sparse,2}, ".pvp"]);
+    pos = 0;
+    Sparse_hdr_tmp = readpvpheader(Sparse_fid,pos);
+    fclose(Sparse_fid);
+    nf_Sparse_array(i_Sparse) = Sparse_hdr_tmp.nf;
+  else %% i_Sparse > num_Sparse_list
+    nf_Sparse_array(i_Sparse) = sum(nf_Sparse_array(1:num_Sparse_list));
+  endif
+  %% can only use max_GT_images to stay within sizemax octave constraint on maximum array size
+  sizemax_scale = 2.0; %%6.0;
+  if max4X4_pool_flag || mean4X4_pool_flag
+    max_GT_images = min(max_GT_images, floor((sizemax/sizemax_scale)/(nx_GT*ny_GT*4*4*nf_Sparse_array(i_Sparse)))-1);
+  elseif max2X2_pool_flag || mean2X2_pool_flag
+    max_GT_images = min(max_GT_images, floor((sizemax/sizemax_scale)/(nx_GT*ny_GT*2*2*nf_Sparse_array(i_Sparse)))-1);
+  elseif max_pool_flag || mean_pool_flag
+    max_GT_images = min(max_GT_images, floor((sizemax/sizemax_scale)/(nx_GT*ny_GT*1*1*nf_Sparse_array(i_Sparse)))-1);
+  endif
+  if hist_pool_flag
+    max_GT_images = min(max_GT_images, floor((sizemax/sizemax_scale)/(nx_GT*ny_GT*num_Sparse_hist_pool_bins*nf_Sparse_array(i_Sparse)))-1);
+  endif
+endfor %% i_Sparse
+diff_GT_images = num_GT_images - max_GT_images;
+min_GT_skip = min_GT_skip + diff_GT_images;
+min_Sparse_skip = min_GT_skip;
+num_GT_images = max_GT_images;
+disp(["num_GT_images = ", num2str(num_GT_images)])
+
+
 if ismac
   num_GT_procs = 1;
 elseif isunix
-  num_GT_procs = 12;
+  num_GT_procs = 16;
 else
   num_GT_procs = 1;
 endif
@@ -155,7 +207,7 @@ analyzeSparseEpochsPVP3(GT_list, ...
 			load_GT_flag, ...
 			plot_flag, ...
 			fraction_GT_frames_read, ...
-			min_GT_skip, ...
+			1, ... %%min_GT_skip, ...
 			fraction_GT_progress, ...
 			GT_frames_list, ...
 			num_procs, ...
@@ -168,19 +220,25 @@ if strcmp(run_type, "S1S2")
   nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS2Error"]; [""], ["GroundTruthReconS1S2Error"]};
 elseif strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
   nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS2Error"]; [""], ["GroundTruthReconS3Error"]; [""], ["GroundTruthReconS1S2S3Error"]};
-elseif strcmp(run_type, "scene")
-  nonSparse_list = {["a0_"], ["ImageReconS1Error"]};
+elseif strcmp(run_type, "scene") || strcmp(run_type, "ICA")
+  nonSparse_list = {[""], ["ImageReconS1Error"]; [""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS1Error2X2"]; [""], ["GroundTruthReconS1Error4X4"]};
+  %%nonSparse_list = {[""], ["ImageReconS1Error"]; [""], ["GroundTruthReconS1Error"]};
 endif
 num_nonSparse_list = size(nonSparse_list,1);
 nonSparse_skip = repmat(1, num_nonSparse_list, 1);
 nonSparse_norm_strength = ones(num_nonSparse_list,1);
-GT_std_ndx = ones(num_nonSparse_list,1);
+nonSparse_norm_strength(1) = sqrt((1/16)*(1/16)*(1/3));
+GT_std_ndx = 1*ones(num_nonSparse_list,1);
+GT_std_ndx(1) = 0;
 nonSparse_norm_list = {[""], ["GroundTruth"]};
 if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
   nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]};
+elseif strcmp(run_type, "scene") || strcmp(run_type, "ICA")
+  nonSparse_norm_list = {[""], ["Image"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]};
+  %%nonSparse_norm_list = {[""], ["Image"]; [""], ["GroundTruth"]};
 endif
 fraction_nonSparse_frames_read = 1;
-min_nonSparse_skip = min_GT_skip;
+min_nonSparse_skip = 1; %%min_GT_skip;
 fraction_nonSparse_progress = 10;
 [nonSparse_times_array, ...
  nonSparse_RMS_array, ...
@@ -203,22 +261,13 @@ drawnow;
 
 
 %% Sparse activity
-Sparse_list ={[""], ["S1"]};
-if strcmp(run_type, "S1S2")
-  %%  Sparse_list ={[""], ["S1"]; [""], ["S2"]};
-  Sparse_list ={[""], ["S2"]};
-elseif strcmp(run_type, "DCA") || strcmp(run_type, "CIFAR")
-  Sparse_list ={[""], ["S1"]; [""], ["S2"]; [""], ["S3"]};
-elseif strcmp(run_type, "scene")
-  Sparse_list ={["a2_"], ["S1"]};
-endif
 fraction_Sparse_frames_read = 1;
 min_Sparse_skip = min_GT_skip;
 fraction_Sparse_progress = 10;
 num_epochs = num_GT_epochs;
 num_procs = num_GT_procs;
 Sparse_frames_list = [];
-load_Sparse_flag = true; %%false;
+load_Sparse_flag = false;
 [Sparse_hdr_array, ...
  Sparse_hist_rank_array, ...
  Sparse_times_array, ...
@@ -243,13 +292,8 @@ analyzeSparseEpochsPVP3(Sparse_list, ...
 			num_epochs);
 drawnow;
 
-if hist_pool_flag
-  num_Sparse_hist_pool_bins = 6+3;
-else
-  num_Sparse_hist_pool_bins = 0;
-endif
 save_Sparse_hist_pool_flag = hist_pool_flag && false;
-load_Sparse_flag = true; %%false;
+load_Sparse_flag = false;
 [Sparse_hist_pool_hdr, ...
  Sparse_hist_pool_array, ...
  Sparse_hist_pool_times_array, ...
@@ -321,27 +365,6 @@ elseif strcmp(run_type, "JIEDDO")
   target_class_indices = [0:5,7:23]+1;
 endif
 
-%% determine maximum number of images that will fit in memory
-num_Sparse_list = size(Sparse_list,1);
-nf_Sparse_array = zeros(num_Sparse_list + (num_Sparse_list > 1),1);
-for i_Sparse = 1 : (num_Sparse_list + (num_Sparse_list > 1))
-  max_GT_images = num_GT_images;
-  if i_Sparse <= num_Sparse_list
-    nf_Sparse_array(i_Sparse) = Sparse_hist_pool_hdr{i_Sparse}.nf;
-  else %% i_Sparse > num_Sparse_list
-    nf_Sparse_array(i_Sparse) = sum(nf_Sparse_array(1:num_Sparse_list));
-  endif
-  %% can only use max_GT_images to stay within sizemax octave constraint on maximum array size
-  if max4X4_pool_flag || mean4X4_pool_flag
-    max_GT_images = min(max_GT_images, floor((sizemax/1.5)/(nx_GT*ny_GT*4*4*nf_Sparse_array(i_Sparse)))-1);
-  elseif max2X2_pool_flag || mean2X2_pool_flag
-    max_GT_images = min(max_GT_images, floor((sizemax/1.5)/(nx_GT*ny_GT*2*2*nf_Sparse_array(i_Sparse)))-1);
-  endif
-  if hist_pool_flag
-    max_GT_images = min(max_GT_images, floor((sizemax/1.5)/(nx_GT*ny_GT*num_Sparse_hist_pool_bins*nf_Sparse_array(i_Sparse)))-1);
-  endif
-endfor %% i_Sparse
-num_GT_images = max_GT_images;
 
 num_VOC_classes = length(VOC_classes);
 target_classes = VOC_classes(target_class_indices)
@@ -419,13 +442,13 @@ for i_target_classID = 1 : num_target_classes
     pos_labels_ndx{i_target_classID} = find(training_label_vector{i_target_classID});
     neg_labels_ndx_long{i_target_classID} = find(~training_label_vector{i_target_classID});
     neg_pos_ratio(i_target_classID) = length(neg_labels_ndx_long{i_target_classID})/length(pos_labels_ndx{i_target_classID});
+    [neg_labels_sorted, neg_labels_rank] = sort(rand(length(neg_labels_ndx_long{i_target_classID}),1));
+    neg_labels_ndx{i_target_classID} = neg_labels_ndx_long{i_target_classID}(neg_labels_rank(1:length(pos_labels_ndx{i_target_classID})));
     %% we can either select a random subset of the negative labels or else replicate the positive labels
     %% the latter is likely more accurate but more computationally expensive
     if train_long_flag
       pos_labels_ndx_long{i_target_classID} = repmat(pos_labels_ndx{i_target_classID}, ceil(neg_pos_ratio(i_target_classID)), 1);;
       pos_labels_ndx_long{i_target_classID} = pos_labels_ndx_long{i_target_classID}(1:length(neg_labels_ndx_long{i_target_classID}));
-      [neg_labels_sorted, neg_labels_rank] = sort(rand(length(neg_labels_ndx_long{i_target_classID}),1));
-      neg_labels_ndx{i_target_classID} = neg_labels_ndx_long{i_target_classID}(neg_labels_rank(1:length(pos_labels_ndx{i_target_classID})));
       training_label_pos_long{i_target_classID} = training_label_vector{i_target_classID}(pos_labels_ndx_long{i_target_classID});
       training_label_neg_long{i_target_classID} = training_label_vector{i_target_classID}(neg_labels_ndx_long{i_target_classID});
     else

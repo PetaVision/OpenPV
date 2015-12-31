@@ -212,7 +212,7 @@ function [Sparse_hdr, ...
       endif
       Sparse_hist = Sparse_hist(1:nf_Sparse) / ((num_Sparse_frames) * nx_Sparse * ny_Sparse); 
       [Sparse_hist_sorted, Sparse_hist_rank] = sort(Sparse_hist(:), 1, "descend");
-      
+
       Sparse_filename_id = [Sparse_list{i_Sparse,2}, "_", ...
 			    num2str(Sparse_times(num_Sparse_frames), "%08d")];
 

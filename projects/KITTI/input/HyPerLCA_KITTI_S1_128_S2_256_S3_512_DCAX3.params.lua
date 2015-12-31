@@ -1,9 +1,19 @@
 
-
 -- Sun Nov 15 13:39:49 2015
---package.path = package.path .. ";" .. "/home/gkenyon/openpv/pv-core/parameterWrapper/?.lua"
-package.path = package.path .. ";" .. "/Users/gkenyon/openpv/pv-core/parameterWrapper/?.lua"
+package.path = package.path .. ";" .. "/home/gkenyon/openpv/pv-core/parameterWrapper/?.lua"
+--package.path = package.path .. ";" .. "/Users/gkenyon/openpv/pv-core/parameterWrapper/?.lua"
 local pv = require "PVModule"
+
+--HyPerCol parameters
+local dtAdaptFlag              = not S1_Movie
+local useAdaptMethodExp1stOrder = true
+local dtAdaptController        = "EnergyProbe"
+local dtAdaptTriggerLayerName  = "ImageLeft";
+local dtScaleMax               = 0.05    --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
+local dtScaleMin               = 0.0005  --0.01    -- default time scale to use after image flips or when something is wacky
+local dtChangeMax              = 0.005   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
+local dtChangeMin              = 0.0005  --0.01    -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
+local dtMinToleratedTimeScale  = 0.00001
 
 -- Base table variable to store
 local pvParameters = {
@@ -11,29 +21,31 @@ column = {
 groupType = "HyPerCol";
     startTime                           = 0;
     dt                                  = 1;
-    dtAdaptFlag                         = true;
-    dtAdaptController                   = nil;
-    dtScaleMax                          = 1;
-    dtScaleMin                          = 0.01;
-    dtChangeMax                         = 0.01;
-    dtChangeMin                         = 0;
-    dtMinToleratedTimeScale             = 0.0001;
+      dtAdaptFlag                         = dtAdaptFlag;
+      useAdaptMethodExp1stOrder           = useAdaptMethodExp1stOrder;
+      dtAdaptController                   = dtAdaptController;
+      dtAdaptTriggerLayerName             = dtAdaptTriggerLayerName;
+      dtScaleMax                          = dtScaleMax;    
+      dtScaleMin                          = dtScaleMin;
+      dtChangeMax                         = dtChangeMax;
+      dtChangeMin                         = dtChangeMin;
+      dtMinToleratedTimeScale             = dtMinToleratedTimeScale;
     stopTime                            = 1.90608e+07;
     progressInterval                    = 1200;
     writeProgressToErr                  = true;
     verifyWrites                        = false;
-    outputPath                          = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train2";
-    printParamsFilename                 = "KITTI_S1_128_S2_256_S3_512_DCA_KITTI_train2.params";
+    outputPath                          = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train7";
+    printParamsFilename                 = "KITTI_S1_128_S2_256_S3_512_DCA_train7.params";
     randomSeed                          = 1234567890;
     nx                                  = 512;
     ny                                  = 152;
     nbatch                              = 1;
     filenamesContainLayerNames          = 2;
     filenamesContainConnectionNames     = 2;
-    initializeFromCheckpointDir         = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train2/Checkpoints/Checkpoint";
+    initializeFromCheckpointDir         = ""; --"/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train7/Checkpoints/Checkpoint";
     defaultInitializeFromCheckpointFlag = false;
     checkpointWrite                     = true;
-    checkpointWriteDir                  = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train2/Checkpoints";
+    checkpointWriteDir                  = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train7/Checkpoints";
     checkpointWriteTriggerMode          = "step";
     checkpointWriteStepInterval         = 12000;
     deleteOlderCheckpoints              = false;
@@ -161,7 +173,7 @@ groupType = "ANNLayer";
 };
 
 ImageLeftDeconError = {
-groupType = "ANNNormalizedErrorLayer";
+groupType = "ANNErrorLayer";
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -183,7 +195,7 @@ groupType = "ANNNormalizedErrorLayer";
 };
 
 ImageRightDeconError = {
-groupType = "ANNNormalizedErrorLayer";
+groupType = "ANNErrorLayer";
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 3;
@@ -274,7 +286,7 @@ groupType = "HyPerLCALayer";
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     InitVType                           = "InitVFromFile";
-    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S1_V.pvp";
+    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S1_V.pvp";
     --InitVType                           = "UniformRandomV";
     --minV                                = -1;
     --maxV                                = 0.05;
@@ -305,7 +317,7 @@ groupType = "HyPerLCALayer";
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     InitVType                           = "InitVFromFile";
-    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S1Left_V.pvp";
+    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S1Left_V.pvp";
     --InitVType                           = "UniformRandomV";
     --minV                                = -1;
     --maxV                                = 0.05;
@@ -336,7 +348,7 @@ groupType = "HyPerLCALayer";
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     InitVType                           = "InitVFromFile";
-    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S1Right_V.pvp";
+    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S1Right_V.pvp";
     --InitVType                           = "UniformRandomV";
     --minV                                = -1;
     --maxV                                = 0.05;
@@ -523,7 +535,7 @@ groupType = "HyPerLCALayer";
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     InitVType                           = "InitVFromFile";
-    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S2_V.pvp";
+    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S2_V.pvp";
     --InitVType                           = "UniformRandomV";
     --minV                                = -1;
     --maxV                                = 0.05;
@@ -534,7 +546,7 @@ groupType = "HyPerLCALayer";
     writeSparseValues                   = true;
     updateGpu                           = true;
     dataType                            = nil;
-    VThresh                             = 0.0125;
+VThresh                             = 0.00625; --0.009375;
     AMin                                = 0;
     AMax                                = 3.40282e+38;
     AShift                              = 0;
@@ -554,7 +566,7 @@ groupType = "HyPerLCALayer";
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     InitVType                           = "InitVFromFile";
-    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S2Left_V.pvp";
+    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S2Left_V.pvp";
     --InitVType                           = "UniformRandomV";
     --minV                                = -1;
     --maxV                                = 0.05;
@@ -565,7 +577,7 @@ groupType = "HyPerLCALayer";
     writeSparseValues                   = true;
     updateGpu                           = true;
     dataType                            = nil;
-    VThresh                             = 0.0125;
+VThresh                             = 0.00625; --0.009375;
     AMin                                = 0;
     AMax                                = 3.40282e+38;
     AShift                              = 0;
@@ -585,7 +597,7 @@ groupType = "HyPerLCALayer";
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     InitVType                           = "InitVFromFile";
-    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S2Right_V.pvp";
+    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S2Right_V.pvp";
     --InitVType                           = "UniformRandomV";
     --minV                                = -1;
     --maxV                                = 0.05;
@@ -596,7 +608,7 @@ groupType = "HyPerLCALayer";
     writeSparseValues                   = true;
     updateGpu                           = true;
     dataType                            = nil;
-    VThresh                             = 0.0125;
+VThresh                             = 0.00625; --0.009375;
     AMin                                = 0;
     AMax                                = 3.40282e+38;
     AShift                              = 0;
@@ -887,7 +899,7 @@ groupType = "HyPerLCALayer";
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     InitVType                           = "InitVFromFile";
-    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S3_V.pvp";
+    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S3_V.pvp";
     --InitVType                           = "UniformRandomV";
     --minV                                = -1;
     --maxV                                = 0.05;
@@ -898,7 +910,7 @@ groupType = "HyPerLCALayer";
     writeSparseValues                   = true;
     updateGpu                           = true;
     dataType                            = nil;
-    VThresh                             = 0.025;
+VThresh                             = 0.00625; --0.0125; --0.025;
     AMin                                = 0;
     AMax                                = 3.40282e+38;
     AShift                              = 0;
@@ -918,7 +930,7 @@ groupType = "HyPerLCALayer";
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     InitVType                           = "InitVFromFile";
-    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S3Left_V.pvp";
+    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S3Left_V.pvp";
     --InitVType                           = "UniformRandomV";
     --minV                                = -1;
     --maxV                                = 0.05;
@@ -929,7 +941,7 @@ groupType = "HyPerLCALayer";
     writeSparseValues                   = true;
     updateGpu                           = true;
     dataType                            = nil;
-    VThresh                             = 0.025;
+VThresh                             = 0.00625; --0.0125; --0.025;
     AMin                                = 0;
     AMax                                = 3.40282e+38;
     AShift                              = 0;
@@ -949,7 +961,7 @@ groupType = "HyPerLCALayer";
     valueBC                             = 0;
     initializeFromCheckpointFlag        = false;
     InitVType                           = "InitVFromFile";
-    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S3Right_V.pvp";
+    Vfilename                           = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S3Right_V.pvp";
     --InitVType                           = "UniformRandomV";
     --minV                                = -1;
     --maxV                                = 0.05;
@@ -960,7 +972,7 @@ groupType = "HyPerLCALayer";
     writeSparseValues                   = true;
     updateGpu                           = true;
     dataType                            = nil;
-    VThresh                             = 0.025;
+VThresh                             = 0.00625; --0.0125; --0.025;
     AMin                                = 0;
     AMax                                = 3.40282e+38;
     AShift                              = 0;
@@ -1833,7 +1845,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S1ToImageLeftDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S1ToImageLeftDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -1886,7 +1898,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S1LeftToImageLeftDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S1LeftToImageLeftDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -1939,7 +1951,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S1ToImageRightDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S1ToImageRightDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -1983,7 +1995,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S1RightToImageRightDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S1RightToImageRightDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -2227,7 +2239,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S2ToS1DeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S2ToS1DeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -2280,7 +2292,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S2ToS1LeftDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S2ToS1LeftDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -2324,7 +2336,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S2ToS1RightDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S2ToS1RightDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -2368,7 +2380,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S2LeftToS1LeftDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S2LeftToS1LeftDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -2421,7 +2433,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S2RightToS1RightDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S2RightToS1RightDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -2793,7 +2805,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S3ToS2DeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S3ToS2DeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -2846,7 +2858,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S3ToS2LeftDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S3ToS2LeftDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -2890,7 +2902,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S3ToS2RightDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S3ToS2RightDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -2934,7 +2946,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S3LeftToS2LeftDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S3LeftToS2LeftDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -2987,7 +2999,7 @@ groupType = "MomentumConn";
     receiveGpu                          = false;
     sharedWeights                       = true;
     weightInitType                      = "FileWeight";
-    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1/Checkpoints/Checkpoint252000/S3RightToS2RightDeconError_W.pvp";
+    initWeightsFile                     = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train6/Checkpoints/Checkpoint72000/S3RightToS2RightDeconError_W.pvp";
     useListOfArborFiles                 = false;
     combineWeightFiles                  = false;
     --weightInitType                      = "UniformRandomWeight";
@@ -4092,6 +4104,165 @@ groupType = "IdentConn";
 };
 
 } --End of pvParameters
+
+
+   pv.addGroup(pvParameters, "EnergyProbe", 
+	       {
+		  groupType                           = "ColumnEnergyProbe";
+		  probeOutputFile                     = "S1EnergyProbe.txt";
+	       }
+   )
+   
+   pv.addGroup(pvParameters, "ImageLeftDeconErrorL2NormEnergyProbe",
+	       {
+		  groupType                           = "L2NormProbe";
+		  targetLayer                         = "ImageLeftDeconError";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "ImageLeftDeconErrorL2NormEnergyProbe.txt";
+		  triggerLayerName                    = NULL; --"Image";
+		  --triggerOffset                       = 1;
+		  energyProbe                         = "EnergyProbe";
+		  coefficient                         = 0.5;
+		  maskLayerName                       = NULL;
+		  exponent                            = 2;
+	       }
+   )
+
+   pv.addGroup(pvParameters, "ImageRightDeconErrorL2NormEnergyProbe",
+	       {
+		  groupType                           = "L2NormProbe";
+		  targetLayer                         = "ImageRightDeconError";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "ImageRightDeconErrorL2NormEnergyProbe.txt";
+		  triggerLayerName                    = NULL; --"Image";
+		  --triggerOffset                       = 1;
+		  energyProbe                         = "EnergyProbe";
+		  coefficient                         = 0.5;
+		  maskLayerName                       = NULL;
+		  exponent                            = 2;
+	       }
+   )
+
+   pv.addGroup(pvParameters, "S1FirmThresholdCostFnLCAProbe",
+	       {
+		  groupType                           = "FirmThresholdCostFnLCAProbe";
+		  targetLayer                         = "S1";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "S1FirmThresholdCostFnLCAProbe.txt";
+		  triggerLayerName                    = NULL;
+		  energyProbe                         = "EnergyProbe";
+		  maskLayerName                       = NULL;
+	       }
+   )
+
+   pv.addGroup(pvParameters, "S1LeftFirmThresholdCostFnLCAProbe",
+	       {
+		  groupType                           = "FirmThresholdCostFnLCAProbe";
+		  targetLayer                         = "S1Left";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "S1LeftFirmThresholdCostFnLCAProbe.txt";
+		  triggerLayerName                    = NULL;
+		  energyProbe                         = "EnergyProbe";
+		  maskLayerName                       = NULL;
+	       }
+   )
+
+   pv.addGroup(pvParameters, "S1RightFirmThresholdCostFnLCAProbe",
+	       {
+		  groupType                           = "FirmThresholdCostFnLCAProbe";
+		  targetLayer                         = "S1Right";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "S1RightFirmThresholdCostFnLCAProbe.txt";
+		  triggerLayerName                    = NULL;
+		  energyProbe                         = "EnergyProbe";
+		  maskLayerName                       = NULL;
+	       }
+   )
+
+   pv.addGroup(pvParameters, "S2FirmThresholdCostFnLCAProbe",
+	       {
+		  groupType                           = "FirmThresholdCostFnLCAProbe";
+		  targetLayer                         = "S2";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "S2FirmThresholdCostFnLCAProbe.txt";
+		  triggerLayerName                    = NULL;
+		  energyProbe                         = "EnergyProbe";
+		  maskLayerName                       = NULL;
+	       }
+   )
+
+   pv.addGroup(pvParameters, "S2LeftFirmThresholdCostFnLCAProbe",
+	       {
+		  groupType                           = "FirmThresholdCostFnLCAProbe";
+		  targetLayer                         = "S2Left";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "S2LeftFirmThresholdCostFnLCAProbe.txt";
+		  triggerLayerName                    = NULL;
+		  energyProbe                         = "EnergyProbe";
+		  maskLayerName                       = NULL;
+	       }
+   )
+
+   pv.addGroup(pvParameters, "S2RightFirmThresholdCostFnLCAProbe",
+	       {
+		  groupType                           = "FirmThresholdCostFnLCAProbe";
+		  targetLayer                         = "S2Right";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "S2RightFirmThresholdCostFnLCAProbe.txt";
+		  triggerLayerName                    = NULL;
+		  energyProbe                         = "EnergyProbe";
+		  maskLayerName                       = NULL;
+	       }
+   )
+
+   pv.addGroup(pvParameters, "S3FirmThresholdCostFnLCAProbe",
+	       {
+		  groupType                           = "FirmThresholdCostFnLCAProbe";
+		  targetLayer                         = "S3";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "S3FirmThresholdCostFnLCAProbe.txt";
+		  triggerLayerName                    = NULL;
+		  energyProbe                         = "EnergyProbe";
+		  maskLayerName                       = NULL;
+	       }
+   )
+
+   pv.addGroup(pvParameters, "S3LeftFirmThresholdCostFnLCAProbe",
+	       {
+		  groupType                           = "FirmThresholdCostFnLCAProbe";
+		  targetLayer                         = "S3Left";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "S3LeftFirmThresholdCostFnLCAProbe.txt";
+		  triggerLayerName                    = NULL;
+		  energyProbe                         = "EnergyProbe";
+		  maskLayerName                       = NULL;
+	       }
+   )
+
+   pv.addGroup(pvParameters, "S3RightFirmThresholdCostFnLCAProbe",
+	       {
+		  groupType                           = "FirmThresholdCostFnLCAProbe";
+		  targetLayer                         = "S3Right";
+		  message                             = NULL;
+		  textOutputFlag                      = true;
+		  probeOutputFile                     = "S3RightFirmThresholdCostFnLCAProbe.txt";
+		  triggerLayerName                    = NULL;
+		  energyProbe                         = "EnergyProbe";
+		  maskLayerName                       = NULL;
+	       }
+   )
+
+
 
 -- Print out PetaVision approved parameter file to the console
 pv.printConsole(pvParameters)

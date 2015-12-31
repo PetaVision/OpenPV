@@ -120,7 +120,7 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
          exit(EXIT_FAILURE);
       }
    }
-   if (weightParams->getFilename() != NULL) {
+   if (weightParams->getFilename() != NULL && weightParams->getFilename()[0]) {
       readWeights(patches, dataStart, numPatches, weightParams->getFilename(), timef);
    } else {
       initRNGs(patches==NULL);

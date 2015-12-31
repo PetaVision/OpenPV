@@ -78,6 +78,7 @@ public:
    BaseConnection * getConnFromName(const char * connectionName);
    NormalizeBase * getNormalizerFromName(const char * normalizerName);
    ColProbe * getColProbeFromName(const char * probeName);
+   BaseProbe * getBaseProbeFromName(const char * probeName);
 
    HyPerLayer * getLayer(int which)       {return layers[which];}
    BaseConnection  * getConnection(int which)  {return connections[which];}

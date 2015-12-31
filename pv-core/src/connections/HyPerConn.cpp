@@ -1686,20 +1686,6 @@ int HyPerConn::allocateDataStructures() {
    //   }
    //}
 
-   // do allocation stage for probes
-   for (int i=0; i<numProbes; i++) {
-      BaseConnectionProbe * p = probes[i];
-      if (p==NULL) continue;
-      int pstatus = p->allocateDataStructures();
-      if (pstatus==PV_SUCCESS) {
-         if (parent->columnId()==0) printf("Probe \"%s\" allocateDataStructures completed.\n", p->getName());
-      }
-      else {
-         assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-         exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
-      }
-   }
-
    allocatePostConn();
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -2888,6 +2874,7 @@ int HyPerConn::insertProbe(BaseConnectionProbe * p)
    }
 
    BaseConnectionProbe ** tmp;
+   // malloc'ing a new buffer, copying data over, and freeing the old buffer could be replaced by malloc
    tmp = (BaseConnectionProbe **) malloc((numProbes + 1) * sizeof(BaseConnectionProbe *));
    assert(tmp != NULL);
 

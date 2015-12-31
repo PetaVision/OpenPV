@@ -423,10 +423,7 @@ HyPerLayer::~HyPerLayer()
 
    //free(labels); labels = NULL;
    free(marginIndices); marginIndices = NULL;
-   for (int i_probe = 0; i_probe < this->numProbes; i_probe++){
-      delete probes[i_probe];
-   }
-   free(probes);
+   free(probes); // All probes are deleted by the HyPerCol, so probes[i] doesn't need to be deleted, only the array itself.
 
    free(synchronizedMarginWidthLayers);
    
@@ -1434,19 +1431,6 @@ int HyPerLayer::allocateDataStructures()
       }
    }
 
-   // do allocation stage for probes
-   for (int i=0; i<numProbes; i++) {
-      LayerProbe * p = probes[i];
-      if (p==NULL) continue;
-      int pstatus = p->allocateDataStructures();
-      if (pstatus==PV_SUCCESS) {
-         if (parent->columnId()==0) printf("Probe \"%s\" allocateDataStructures completed.\n", p->getName());
-      }
-      else {
-         assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-         exit(EXIT_FAILURE); // Any error message should be printed by probe's communicateInitInfo function
-      }
-   }
    return status;
 }
 
@@ -2052,6 +2036,7 @@ int HyPerLayer::insertProbe(LayerProbe * p)
       }
    }
 
+   // malloc'ing a new buffer, copying data over, and freeing the old buffer could be replaced by malloc
    LayerProbe ** tmp;
    tmp = (LayerProbe **) malloc((numProbes + 1) * sizeof(LayerProbe *));
    assert(tmp != NULL);

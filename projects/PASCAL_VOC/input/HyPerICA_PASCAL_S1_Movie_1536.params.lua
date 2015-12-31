@@ -1,61 +1,74 @@
--- PetaVision params file for dictionary of experts: createded by garkenyon May  6 15:19:53 2015
+-- PetaVision params file for dictionary of binary neurons for DWave: createded by garkenyon Dec 10
 
 -- Load util module in PV trunk: NOTE this may need to change
 --package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/pv-core/parameterWrapper/PVModule.lua"
-package.path = package.path .. ";" .. os.getenv("HOME") .. "/openpv/pv-core/parameterWrapper/PVModule.lua"
+--package.path = package.path .. ";" .. os.getenv("HOME") .. "/openpv/pv-core/parameterWrapper/PVModule.lua"
+package.path = package.path .. ";" .. "/nh/compneuro/Data" .. "/openpv/pv-core/parameterWrapper/PVModule.lua"
 local pv = require "PVModule"
 
 -- Global variable, for debug parsing
 -- Needed by printConsole
 debugParsing              = true
 
+--HyPerLCA parameters
+local VThresh               = 0.025
+local VWidth                = infinity
+local learningRate          = 0
+local dWMax                 = 10.0
+local learningMomentumTau   = 500
+local patchSize             = 16
+local tau                   = 400
+local S1_numFeatures        = patchSize * patchSize * 3 * 2 -- (patchSize/stride)^2 Xs overcomplete (i.e. complete for orthonormal ICA basis for stride == patchSize)
+
 -- User defined variables
-local plasticityFlag      = true --false
-local stride              = 4
-local nxSize              = 256
-local nySize              = 192
-local experimentName      = "PASCAL_S1X" .. math.floor(16*16/(stride*stride)) .. "_1536_ICA"
-local runName             = "VOC2007_landscape"
-local runVersion          = 8
-local machinePath         = "/Volumes/mountData" --"/home/ec2-user/mountData"
+local plasticityFlag      = false --true
+local stride              = patchSize/4
+local nxSize              = 192 --256
+local nySize              = 256 --192
+local experimentName      = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_ICA"
+local runName             = "VOC2007_portrait" --
+local runNameTmp          = "VOC2007_landscape"
+local runVersion          = 9
+local machinePath         = "/nh/compneuro/Data" --"/Volumes/mountData" --"/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
-local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion .. "b"
-local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
-local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
-local numImages           = 7958
-local displayPeriod       = 120
+local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
+local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runNameTmp 
+local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runNameTmp 
+local numImages           = 1751 --7958
+local displayPeriod       = 240
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs
-local checkpointID        = stopTime
-local checkpointIDSLP     = numImages*10 --stopTime
+local checkpointID        = 7958 * displayPeriod --stopTime
+local checkpointIDSLP     = 7958 * 10 --stopTime
 local writePeriod         = 100 * displayPeriod
 local initialWriteTime    = writePeriod
 local checkpointWriteStepInterval = writePeriod
 local S1_Movie            = false
-local movieVersion        = 3
+local movieVersion        = 1
 if S1_Movie then
    outputPath              = outputPath .. "_S1_Movie" .. movieVersion
-   inputPath               = inputPath .. "_S1_Movie" .. movieVersion - 1
-   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. movieVersion - 1
+   inputPath               = inputPath .. runVersion --.. "_S1_Movie" .. movieVersion - 1
+   inputPathSLP            = inputPathSLP .. runVersion -- .. "_S1_Movie" .. movieVersion - 1
    displayPeriod           = 1
-   --numEpochs               = 10
+   numEpochs               = 10
    stopTime                = numImages * displayPeriod * numEpochs
-   checkpointID            = stopTime
-   checkpointIDSLP         = stopTime
+   --checkpointID            = stopTime
+   --checkpointIDSLP         = stopTime
    writePeriod             = 1
    initialWriteTime = numImages*(numEpochs-1)+1
    checkpointWriteStepInterval = numImages
-else
-   inputPath               = inputPath .. runVersion-1
-   inputPathSLP            = inputPath .. "_S1_Movie3"
-   checkpointID            = numImages*displayPeriod*numEpochs
+else -- not used if run version == 1
+   inputPath               = inputPath .. runVersion
+   inputPathSLP            = inputPath .. "_S1_Movie" .. movieVersion
+   --checkpointID            = numImages * displayPeriod * 5
+   --checkpointIDSLP         = numImages * 10
 end
 local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false
 
 --i/o parameters
-local imageListPath       = machinePath .. "/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256_list.txt"
-local GroundTruthPath     = machinePath .. "/PASCAL_VOC/VOC2007/VOC2007_landscape_192X256.pvp"
+local imageListPath       = machinePath .. "/" .. databasePath .. "/" .. "VOC2007" .. "/" .. "VOC2007_" .. "portrait_256X192_list.txt" -- landscape_192X256_list.txt"
+local GroundTruthPath     = machinePath .. "/" .. databasePath .. "/" .. "VOC2007" .. "/" .. "VOC2007_" .. "portrait_256X192.pvp" -- landscape_192X256.pvp"
 local startFrame          = 0
 
 --HyPerCol parameters
@@ -68,16 +81,6 @@ local dtScaleMin               = 0.01  --0.01    -- default time scale to use af
 local dtChangeMax              = 0.1   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
 local dtChangeMin              = 0.01  --0.01    -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
 local dtMinToleratedTimeScale  = 0.0001
-
---HyPerLCA parameters
-local VThresh               = 0.025
-local VWidth                = infinity
-local learningRate          = 0
-local dWMax                 = 10.0
-local learningMomentumTau   = 500
-local patchSize             = 16
-local tau                   = 400
-local S1_numFeatures        = patchSize * patchSize * 3 * 2 -- (patchSize/stride)^2 Xs overcomplete (i.e. complete for orthonormal ICA basis for stride == patchSize)
 
 --Ground Truth parameters
 local numClasses            = 20
@@ -92,6 +95,7 @@ local pvParams = {
       startTime                           = 0;
       dt                                  = 1;
       dtAdaptFlag                         = dtAdaptFlag;
+      useAdaptMethodExp1stOrder           = useAdaptMethodExp1stOrder;
       dtAdaptController                   = dtAdaptController;
       dtAdaptTriggerLayerName             = dtAdaptTriggerLayerName;
       dtScaleMax                          = dtScaleMax;    
@@ -124,6 +128,8 @@ local pvParams = {
 } --End of pvParams
 if S1_Movie then
    pvParams.column.dtAdaptFlag                         = false;
+   pvParams.column.dtAdaptController                   = nil;
+   pvParams.column.dtAdaptTriggerLayerName             = nil;
    pvParams.column.dtScaleMax                          = nil;
    pvParams.column.dtScaleMin                          = nil;
    pvParams.column.dtChangeMax                         = nil;
@@ -233,13 +239,6 @@ else
    -- 	       }
    -- )
 
-   pv.addGroup(pvParams, "S1EnergyProbe", 
-	       {
-		  groupType                           = "ColumnEnergyProbe";
-		  probeOutputFile                     = "S1EnergyProbe.txt";
-	       }
-   )
-   
    pv.addGroup(pvParams, "Image", 
 	       {
 		  groupType = "Movie";
@@ -614,7 +613,7 @@ if not S1_Movie then
 		  sharedWeights                       = true;
 		  weightInitType                      = "OneToOneWeights";
 		  initWeightsFile                     = nil;
-		  weightInit                          = 0.032075; --((1/patchSize)*(1/patchSize)*(1/3))^(1/2); --
+		  weightInit                          = math.sqrt((1/patchSize)*(1/patchSize)*(1/3)); --
 		  initializeFromCheckpointFlag        = false;
 		  updateGSynFromPostPerspective       = false;
 		  pvpatchAccumulateType               = "convolve";
@@ -667,7 +666,7 @@ if not S1_Movie then
 		  triggerFlag                         = true;
 		  triggerLayerName                    = "Image";
 		  triggerOffset                       = 1;
-		  updateGSynFromPostPerspective       = true;
+		  updateGSynFromPostPerspective       = false; 
 		  pvpatchAccumulateType               = "convolve";
 		  writeStep                           = -1;
 		  writeCompressedCheckpoints          = false;
@@ -1090,6 +1089,13 @@ if not S1_Movie then
    --)
 
 
+   pv.addGroup(pvParams, "S1EnergyProbe", 
+	       {
+		  groupType                           = "ColumnEnergyProbe";
+		  probeOutputFile                     = "S1EnergyProbe.txt";
+	       }
+   )
+   
    pv.addGroup(pvParams, "ImageReconS1ErrorL2NormEnergyProbe",
 	       {
 		  groupType                           = "L2NormProbe";
