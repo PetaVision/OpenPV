@@ -100,9 +100,9 @@ elseif isunix
     %%output_dir = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape11";
     %%checkpoint_parent = "/home/gkenyon/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
     %%checkpoint_children = {"VOC2007_landscape11"}; %%
-    output_dir = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train1";
+    output_dir = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA/KITTI_train7";
     checkpoint_parent = "/home/gkenyon/KITTI/KITTI_S1_128_S2_256_S3_512_DCA";
-    checkpoint_children = {"KITTI_train1"}; %%
+    checkpoint_children = {"KITTI_train7"}; %%
     %%output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape8_xcorr";
     %%checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA";
     %%checkpoint_children = {"VOC2007_landscape8_xcorr"}; %%
