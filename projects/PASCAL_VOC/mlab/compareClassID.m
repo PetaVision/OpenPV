@@ -43,7 +43,7 @@ elseif strcmp(run_type, "ICA")
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape4"];
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_portrait9"];
 elseif strcmp(run_type, "Deep")
-  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_Deep_ICA/VOC2007_landscape1_S1_Movie1"];
+  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_Deep_ICA/VOC2007_landscape2_S1_Movie2"];
 elseif strcmp(run_type, "DCA")
   output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape12"];
 elseif strcmp(run_type, "DCA_Vine")
@@ -440,9 +440,12 @@ for i_scale = i_scale_list
 	box off
 	hold on
 	neg_hist = squeeze(pred_classID_hist(:,i_JIEDDO_classID,2)) ./ squeeze(pred_classID_norm(:,i_JIEDDO_classID,2));
-	bh_neg = bar(classID_hist_bins(bins_tmp_fixed), neg_hist(bins_tmp_fixed), "stacked", "facecolor", "r", "edgecolor", "r");
+	zero_hist_bin = find(classID_hist_bins == 0);
+	neg_hist_nozero = neg_hist;
+	neg_hist_nozero(zero_hist_bin) = 0;
+	bh_neg = bar(classID_hist_bins(bins_tmp_fixed), neg_hist_nozero(bins_tmp_fixed), "stacked", "facecolor", "r", "edgecolor", "r");
 	max_pos_hist = max(pos_hist(:));
-	max_neg_hist = max(neg_hist(:));
+	max_neg_hist = max(neg_hist_nozero(:));
 	lh = line([pred_classID_thresh(i_JIEDDO_classID) pred_classID_thresh(i_JIEDDO_classID)], [0 max(max_pos_hist,max_neg_hist)]);
 	set(lh, 'color', [0 0 1])
 	set(lh, 'linewidth', 1.0)

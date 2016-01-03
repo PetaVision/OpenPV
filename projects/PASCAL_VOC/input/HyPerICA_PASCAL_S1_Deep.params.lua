@@ -28,13 +28,13 @@ local nySize              = 256 --192
 local experimentName      = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_Deep" .. "_ICA"
 local experimentNameTmp   = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_ICA"
 local runName             = "VOC2007_landscape" -- "VOC2007_portrait" --
-local runVersion          = 1
+local runVersion          = 2
 local runVersionTmp       = 7
 local machinePath         = "/Volumes/mountData" --"/nh/compneuro/Data" --"/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
-local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentNameTmp .. "/" .. runName .. runVersionTmp 
-local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentNameTmp .. "/" .. runName .. runVersionTmp 
+local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentNameTmp .. "/" .. runName .. runVersionTmp
+local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion 
 local numImages           = 7958 --1751 --
 local displayPeriod       = 240
 local numEpochs           = 1
@@ -45,16 +45,16 @@ local writePeriod         = 100 * displayPeriod
 local initialWriteTime    = writePeriod
 local checkpointWriteStepInterval = writePeriod
 local S1_Movie            = true --false
-local movieVersion        = 3
+local movieVersion        = 2
 if S1_Movie then
-   outputPath              = outputPath .. "_S1_Movie" .. 1
+   outputPath              = outputPath .. "_S1_Movie" .. movieVersion
    inputPath               = inputPath -- .. "_S1_Movie" .. movieVersion
-   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. movieVersion
+   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. movieVersion-1
    displayPeriod           = 1
-   numEpochs               = 10
+   numEpochs               = 1
    stopTime                = numImages * displayPeriod * numEpochs
    --checkpointID            = stopTime
-   checkpointIDSLP         = numImages * numEpochs
+   checkpointIDSLP         = numImages * numEpochs * 10
    writePeriod             = 1
    initialWriteTime        = numImages*(numEpochs-1)+1
    checkpointWriteStepInterval = numImages
@@ -583,7 +583,7 @@ pv.addGroup(pvParams, "S1MaxPooledIndex2X2", pvParams.S1MaxPooledIndex1X1,
 	       phase                               = 6;
 	    }
 )
-pv.addGroup(pvParams, "S1Hidden2X2", pvParams.S1MaxPooled2X2,
+pv.addGroup(pvParams, "S1Hidden2X2", pvParams.S1MaxPooled1X1,
 	    {
 	       nxScale                             = nxScale_GroundTruth*2;
 	       nyScale                             = nyScale_GroundTruth*2;
@@ -953,7 +953,7 @@ pv.addGroup(pvParams, "S1MaxPooled1X1ToGroundTruthReconS1Error",
 	       receiveGpu                          = true; --false;
 	       sharedWeights                       = true;
 	       weightInitType                      = "FileWeight";
-	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
+	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooled1X1ToGroundTruthReconS1Error_W.pvp";
 	       useListOfArborFiles                 = false;
 	       combineWeightFiles                  = false;    
 	       --weightInitType                      = "UniformRandomWeight";
@@ -1105,8 +1105,8 @@ pv.addGroup(pvParams, "S1MaxPooled2X2ToS1Error2X2",
 	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooled2X2ToS1Error2X2_W.pvp";
 	    }
 )
-local identityFlag  = true
-if identityFlag then
+local identityFlag2X2  = false --true
+if identityFlag2X2 then
    pvParams.S1MaxPooled2X2ToS1Error2X2.plasticityFlag     = false;
    pvParams.S1MaxPooled2X2ToS1Error2X2.triggerLayerName   = NULL;
    pvParams.S1MaxPooled2X2ToS1Error2X2.triggerOffset      = nil;
@@ -1148,7 +1148,8 @@ pv.addGroup(pvParams, "S1MaxPooled4X4ToS1Error4X4",
 	       postLayerName                       = "S1Error4X4";
 	    }
 )
-if identityFlag then
+local identityFlag4X4  = true
+if identityFlag4X4 then
    pvParams.S1MaxPooled4X4ToS1Error4X4.plasticityFlag     = false;
    pvParams.S1MaxPooled4X4ToS1Error4X4.triggerLayerName   = NULL;
    pvParams.S1MaxPooled4X4ToS1Error4X4.triggerOffset      = nil;
