@@ -33,7 +33,7 @@ local strideX             = patchSizeX/math.pow(2,z) -- divide patchSize by 2^z 
 local strideY             = patchSizeY/math.pow(2,z) -- 
 local nxSize              = 512
 local nySize              = 152
-local experimentName      = "KITTI_S1X" .. overcompleteness .. "_" .. S1_numFeatures .. "_" .. numFrames .. "frames" .. "_SpatioTemporal"
+local experimentName      = "KITTI_S1X" .. overcompleteness .. "_" .. patchSizeX .. "X" .. patchSizeY  .. "_" .. temporalKernelSize .. "X" .. numFrames .. "frames"
 local runName             = "2011_09_26_train1"
 local runVersion          = 1
 local machinePath         = "/home/gkenyon" --"/nh/compneuro/Data"
@@ -776,33 +776,33 @@ if not S1_Movie then
 			}
 	    )
 
-	    pv.addGroup(pvParams, "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error" .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1Error",
+	    pv.addGroup(pvParams, "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error" .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error",
 			{
 			   groupType                           = "IdentConn";
 			   preLayerName                        = "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error";
-			   postLayerName                       = "FrameLeft" .. i_frame-1 .. "Recon" .. "S1Error";
+			   postLayerName                       = "FrameLeft" .. i_frame-1 .. "ReconS1Error";
 			   channelCode                         = 0;
 			   delay                               = {0.000000};
 			   initWeightsFile                     = nil;
 			   writeStep                           = -1;
 			}
 	    )
-	    pv.addGroup(pvParams, "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error" .. "To" .. "FrameRight" .. i_frame-1 .. "Recon" .. "S1Error",
-			pvParams["FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error" .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1Error"],
+	    pv.addGroup(pvParams, "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error" .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error",
+			pvParams["FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error" .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"],
 			{
 			   preLayerName                        = "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error";
-			   postLayerName                       = "FrameRight" .. i_frame-1 .. "Recon" .. "S1Error";
+			   postLayerName                       = "FrameRight" .. i_frame-1 .. "ReconS1Error";
 			}
 	    )
 
 
 	    if i_delay == 1 then -- the first delay layer stores the original connections
 
-	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error",
+	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error",
 			   {
 			      groupType                           = "MomentumConn";
 			      preLayerName                        = "S1_" .. i_delay-1;
-			      postLayerName                       = "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error";
+			      postLayerName                       = "FrameLeft" .. i_frame-1 .. "ReconS1Error";
 			      channelCode                         = -1;
 			      delay                               = {0.000000};
 			      numAxonalArbors                     = 1;
@@ -848,77 +848,74 @@ if not S1_Movie then
 
 			   }
 	       )
-	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error",
-			   pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"],
+	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error",
+			   pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"],
 			   {
-			      postLayerName                       = "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error";
+			      postLayerName                       = "FrameRight" .. i_frame-1 .. "ReconS1Error";
 			   }
 	       )
-	       pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].normalizeMethod
+	       pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].normalizeMethod
 		  = "normalizeGroup";
-	       pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].normalizeGroupName                 
-		  = "S1_" .. 0 .. "To" .. "FrameLeft" .. 0 .. "Recon" .. "S1_" .. 0 .. "Error";
-		  
+	       pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].normalizeGroupName                 
+		  = "S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "ReconS1Error";
 	       if i_frame > 1 then -- set normalizationGroup
-	       
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].normalizeMethod
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].normalizeMethod
 		     = "normalizeGroup";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].normalizeGroupName                 
-		     = "S1_" .. 0 .. "To" .. "FrameLeft" .. 0 .. "Recon" .. "S1_" .. 0 .. "Error";
-	       
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].normalizeGroupName                 
+		     = "S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "ReconS1Error";
 	       end -- i_frame == 1 (for defining normalization group)
 
 	       if not plasticityFlag then
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].triggerLayerName    = NULL;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].triggerOffset       = nil;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].triggerLayerName    = NULL;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].triggerOffset       = nil;
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].triggerLayerName    = NULL;
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].triggerOffset       = nil;
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].triggerLayerName    = NULL;
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].triggerOffset       = nil;
 	       end
 	       if checkpointID then
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].weightInitType      = "FileWeight";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].initWeightsFile
-		     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_" .. i_delay-1 .. "ToFrameLeft" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error_W.pvp";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].useListOfArborFiles = false;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].combineWeightFiles  = false;    
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].weightInitType      = "FileWeight";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].initWeightsFile
-		     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_" .. i_delay-1 .. "ToFrameRight" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error_W.pvp";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].useListOfArborFiles = false;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"].combineWeightFiles  = false;    
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].weightInitType      = "FileWeight";
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].initWeightsFile
+		     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/" .. "S1_" .. i_delay-1 .. "ToFrameLeft" .. i_frame-1 .. "ReconS1Error_W.pvp";
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].useListOfArborFiles = false;
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].combineWeightFiles  = false;    
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].weightInitType      = "FileWeight";
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].initWeightsFile
+		     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_" .. i_delay-1 .. "ToFrameRight" .. i_frame-1 .. "ReconS1Error_W.pvp";
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].useListOfArborFiles = false;
+		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].combineWeightFiles  = false;    
 	       end -- checkpointID	       
 	       
 	    else -- use a plasticCloneConn
 	       
-	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error",
+	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error",
 
 			   {
 			      groupType                           = "PlasticCloneConn";
 			      preLayerName                        = "S1_" .. i_delay-1;
-			      postLayerName                       = "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error";
+			      postLayerName                       = "FrameLeft" .. i_frame-1 .. "ReconS1Error";
 			      channelCode                         = -1;
 			      delay                               = {0.000000};
 			      selfFlag                            = false;
 			      preActivityIsNotRate                = false;
 			      updateGSynFromPostPerspective       = false;
 			      pvpatchAccumulateType               = "convolve";
-			      originalConnName                    = "S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "Recon" .. "S1_" .. 0 .. "Error";
+			      originalConnName                    = "S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "ReconS1Error";
 			   }
 	       )
-	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error",
-			   pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error"],
+	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error",
+			   pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"],
 
 			   {
-			      postLayerName                       = "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "Error";
-			      originalConnName                    = "S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "Recon" .. "S1_" .. 0 .. "Error";
+			      postLayerName                       = "FrameRight" .. i_frame-1 .. "ReconS1Error";
+			      originalConnName                    = "S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error";
 			   }
 	       )
 
 	    end -- i_delay == 1
 
-	    pv.addGroup(pvParams, "FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "ErrorToS1_" .. i_delay-1,
+	    pv.addGroup(pvParams, "FrameLeft" .. i_frame-1 .. "ReconS1ErrorToS1_" .. i_delay-1,
 			{
 			   groupType                           = "TransposeConn";
-			   preLayerName                        = "FrameLeft" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error";
+			   preLayerName                        = "FrameLeft" .. i_frame-1 .. "ReconS1Error";
 			   postLayerName                       = "S1_" .. i_delay-1;
 			   channelCode                         = 0;
 			   delay                               = {0.000000};
@@ -930,14 +927,14 @@ if not S1_Movie then
 			   writeCompressedCheckpoints          = false;
 			   selfFlag                            = false;
 			   gpuGroupIdx                         = -1;
-			   originalConnName                    = "S1_" .. i_delay-1 .. "ToFrameLeft" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error";
+			   originalConnName                    = "S1_" .. 0 .. "ToFrameLeft" .. delta_frame .. "ReconS1Error";
 			}
 	    )
-	    pv.addGroup(pvParams, "FrameRight" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "ErrorToS1_" .. i_delay-1,
-			pvParams["FrameLeft" .. i_frame-1 .. "Recon" .. "S1_" .. i_delay-1 .. "ErrorToS1_" .. i_delay-1],
+	    pv.addGroup(pvParams, "FrameRight" .. i_frame-1 .. "ReconS1ErrorToS1_" .. i_delay-1,
+			pvParams["FrameLeft" .. i_frame-1 .. "ReconS1ErrorToS1_" .. i_delay-1],
 			{
-			   preLayerName                        = "FrameRight" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error";
-			   originalConnName                    = "S1_" .. i_delay-1 .. "ToFrameRight" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error";
+			   preLayerName                        = "FrameRight" .. i_frame-1 .. "ReconS1Error";
+			   originalConnName                    = "S1_" .. 0 .. "ToFrameRight" .. delta_frame .. "ReconS1Error";
 			}
 	    )
 	    
@@ -967,14 +964,14 @@ if not S1_Movie then
 			   writeStep                           = -1;
 			   writeCompressedCheckpoints          = false;
 			   selfFlag                            = false;
-			   originalConnName                    = "S1_" .. 0 .. "ToFrameLeft" .. delta_frame .. "ReconS1_" .. 0 .. "Error";
+			   originalConnName                    = "S1_" .. 0 .. "ToFrameLeft" .. delta_frame .. "ReconS1Error";
 			}
 	    )
 	    pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "ToFrameRight" .. i_frame-1 .. "ReconS1_" .. i_delay-1,
 			pvParams["S1_" .. i_delay-1 .. "ToFrameLeft" .. i_frame-1 .. "ReconS1_" .. i_delay-1],
 			{
 			   postLayerName                       = "FrameRight" .. i_frame-1 .. "ReconS1_" .. i_delay-1;
-			   originalConnName                    = "S1_" .. 0 .. "ToFrameRight" .. delta_frame .. "ReconS1_" .. 0 .. "Error";
+			   originalConnName                    = "S1_" .. 0 .. "ToFrameRight" .. delta_frame .. "ReconS1Error";
 			}
 	    )
 	    
