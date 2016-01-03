@@ -841,7 +841,7 @@ if not S1_Movie then
 			   writeCompressedCheckpoints          = false;
 			   selfFlag                            = false;
 			   gpuGroupIdx                         = -1;
-			   originalConnName                    = "S1_" .. 0 .. "ToFrame" .. delta_frame .. "ReconS1Error";
+			   originalConnName                    = "S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error";
 			}
 	    )
 	    
