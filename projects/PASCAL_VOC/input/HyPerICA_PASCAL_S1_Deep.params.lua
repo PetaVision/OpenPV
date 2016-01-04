@@ -34,10 +34,10 @@ local machinePath         = "/Volumes/mountData" --"/nh/compneuro/Data" --"/home
 local databasePath        = "PASCAL_VOC"
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
 local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentNameTmp .. "/" .. runName .. runVersionTmp
-local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion 
+local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1 
 local numImages           = 7958 --1751 --
 local displayPeriod       = 240
-local numEpochs           = 1
+local numEpochs           = 10
 local stopTime            = numImages * displayPeriod * numEpochs
 local checkpointID        = stopTime
 local checkpointIDSLP     = stopTime
@@ -45,16 +45,16 @@ local writePeriod         = 100 * displayPeriod
 local initialWriteTime    = writePeriod
 local checkpointWriteStepInterval = writePeriod
 local S1_Movie            = true --false
-local movieVersion        = 2
+local movieVersion        = 1
 if S1_Movie then
    outputPath              = outputPath .. "_S1_Movie" .. movieVersion
    inputPath               = inputPath -- .. "_S1_Movie" .. movieVersion
-   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. movieVersion-1
+   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. movieVersion
    displayPeriod           = 1
    numEpochs               = 1
    stopTime                = numImages * displayPeriod * numEpochs
    --checkpointID            = stopTime
-   checkpointIDSLP         = numImages * numEpochs * 10
+   --checkpointIDSLP         = numImages * numEpochs
    writePeriod             = 1
    initialWriteTime        = numImages*(numEpochs-1)+1
    checkpointWriteStepInterval = numImages
@@ -550,6 +550,7 @@ pv.addGroup(pvParams, "S1Mask1X1", pvParams.S1MaxPooled1X1,
 	       phase                               =  8;
 	    }
 )
+pvParams.S1Mask1X1.groupType                       = "PtwiseLinearTransferLayer";
 pvParams.S1Mask1X1.VThresh                         = nil;
 pvParams.S1Mask1X1.AMin                            = nil;
 pvParams.S1Mask1X1.AMax                            = nil;
