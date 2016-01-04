@@ -31,7 +31,7 @@ elseif exist("/home/ec2-user/mountData")
 endif
 
 %%run_type = "DCA";
-run_type = "ICA"
+%%run_type = "ICA"
 run_type = "Deep"
 %%run_type = "DCA_Vine";
 %%run_type = "MaxPool"
