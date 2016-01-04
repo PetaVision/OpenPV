@@ -838,7 +838,7 @@ if not S1_Movie then
 		  = "normalizeGroup";
 	       pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].normalizeGroupName                 
 		  = "S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "ReconS1Error";
-	       if i_frame > 1 then -- set normalizationGroup
+	       if i_delay > 1 then -- set normalizationGroup
 		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].normalizeMethod
 		     = "normalizeGroup";
 		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].normalizeGroupName                 
