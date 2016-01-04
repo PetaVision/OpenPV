@@ -34,7 +34,7 @@ local strideY             = patchSizeY/math.pow(2,z) --
 local nxSize              = 512
 local nySize              = 152
 local experimentName      = "KITTI_S1X" .. overcompleteness .. "_" .. patchSizeX .. "X" .. patchSizeY  .. "_" .. temporalKernelSize .. "X" .. numFrames .. "frames"
-local runName             = "2011_09_26_train1"
+local runName             = "2011_09_26_train"
 local runVersion          = 1
 local machinePath         = "/home/gkenyon" --"/nh/compneuro/Data"
 local databasePath        = "KITTI" 
@@ -797,7 +797,7 @@ if not S1_Movie then
 			      sparseFraction                      = 0.9;
 			      initializeFromCheckpointFlag        = false;
 			      triggerFlag                         = true;
-			      triggerLayerName                    = "Frame" .. i_frame-1;
+			      triggerLayerName                    = "FrameLeft" .. i_frame-1;
 			      triggerOffset                       = 1;
 			      updateGSynFromPostPerspective       = true;
 			      pvpatchAccumulateType               = "convolve";
@@ -886,7 +886,7 @@ if not S1_Movie then
 
 			   {
 			      postLayerName                       = "FrameRight" .. i_frame-1 .. "ReconS1Error";
-			      originalConnName                    = "S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error";
+			      originalConnName                    = "S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "ReconS1Error";
 			   }
 	       )
 
@@ -914,7 +914,7 @@ if not S1_Movie then
 			pvParams["FrameLeft" .. i_frame-1 .. "ReconS1Error" .. "To" .. "S1_" .. i_delay-1],
 			{
 			   preLayerName                        = "FrameRight" .. i_frame-1 .. "ReconS1Error";
-			   originalConnName                    = "S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error";
+			   originalConnName                    = "S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "ReconS1Error";
 			}
 	    )
 	    
