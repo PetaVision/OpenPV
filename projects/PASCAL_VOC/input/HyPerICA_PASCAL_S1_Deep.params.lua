@@ -34,28 +34,28 @@ local machinePath         = "/Volumes/mountData" --"/nh/compneuro/Data" --"/home
 local databasePath        = "PASCAL_VOC"
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
 local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentNameTmp .. "/" .. runName .. runVersionTmp
-local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion 
+local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
 local numImages           = 7958 --1751 --
 local displayPeriod       = 240
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs
 local checkpointID        = stopTime
 local checkpointIDSLP     = stopTime
-local writePeriod         = 100 * displayPeriod
-local initialWriteTime    = writePeriod
-local checkpointWriteStepInterval = writePeriod
+local writeStep           = 100 * displayPeriod
+local initialWriteTime    = writeStep
+local checkpointWriteStepInterval = writeStep
 local S1_Movie            = true --false
-local movieVersion        = 2
+local movieVersion        = 1
 if S1_Movie then
    outputPath              = outputPath .. "_S1_Movie" .. movieVersion
    inputPath               = inputPath -- .. "_S1_Movie" .. movieVersion
-   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. movieVersion-1
+   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. movieVersion
    displayPeriod           = 1
-   numEpochs               = 1
+   numEpochs               = 10
    stopTime                = numImages * displayPeriod * numEpochs
    --checkpointID            = stopTime
-   checkpointIDSLP         = numImages * numEpochs * 10
-   writePeriod             = 1
+   checkpointIDSLP         = numImages * numEpochs --stopTime
+   writeStep               = 1
    initialWriteTime        = numImages*(numEpochs-1)+1
    checkpointWriteStepInterval = numImages
 else -- not used if run version == 1
@@ -148,8 +148,8 @@ if S1_Movie then
 		  phase                               = 0;
 		  mirrorBCflag                        = true;
 		  initializeFromCheckpointFlag        = false;
-		  writeStep                           = displayPeriod;
-		  initialWriteTime                    = displayPeriod;
+		  writeStep                           = writeStep;
+		  initialWriteTime                    = initialWriteTime;
 		  sparseLayer                         = true;
 		  writeSparseValues                   = false;
 		  updateGpu                           = false;
@@ -247,7 +247,7 @@ else
 		  phase                               = 0;
 		  mirrorBCflag                        = true;
 		  initializeFromCheckpointFlag        = false;
-		  writeStep                           = writePeriod;
+		  writeStep                           = writeStep;
 		  initialWriteTime                    = initialWriteTime;
 		  sparseLayer                         = false;
 		  writeSparseValues                   = false;
@@ -287,7 +287,7 @@ else
 		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
 		  InitVType                           = "ZeroV";
 		  triggerLayerName                    = NULL;
-		  writeStep                           = writePeriod;
+		  writeStep                           = writeStep;
 		  initialWriteTime                    = initialWriteTime;
 		  sparseLayer                         = false;
 		  updateGpu                           = false;
@@ -355,8 +355,8 @@ else
 		  initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
 		  InitVType                           = "ZeroV";
 		  triggerLayerName                    = NULL;
-		  writeStep                           = writePeriod;
-		  initialWriteTime                    = writePeriod;
+		  writeStep                           = writeStep;
+		  initialWriteTime                    = initialWriteTime;
 		  sparseLayer                         = false;
 		  updateGpu                           = false;
 		  dataType                            = nil;
@@ -465,8 +465,8 @@ pv.addGroup(pvParams, "GroundTruthReconS1Error",
 	       triggerLayerName                    = "GroundTruthPixels";
 	       triggerBehavior                     = "updateOnlyOnTrigger";
 	       triggerOffset                       = 1;
-	       writeStep                           = displayPeriod;
-	       initialWriteTime                    = displayPeriod;
+	       writeStep                           = writeStep;
+	       initialWriteTime                    = initialWriteTime;
 	       sparseLayer                         = false;
 	       updateGpu                           = false;
 	       dataType                            = nil;
@@ -497,8 +497,8 @@ pv.addGroup(pvParams, "GroundTruthReconS1",
 	       triggerLayerName                    = "GroundTruthPixels";
 	       triggerBehavior                     = "updateOnlyOnTrigger";
 	       triggerOffset                       = 1;
-	       writeStep                           = displayPeriod;
-	       initialWriteTime                    = displayPeriod;
+	       writeStep                           = writeStep;
+	       initialWriteTime                    = initialWriteTime;
 	       sparseLayer                         = false;
 	       updateGpu                           = false;
 	       dataType                            = nil;
@@ -550,6 +550,7 @@ pv.addGroup(pvParams, "S1Mask1X1", pvParams.S1MaxPooled1X1,
 	       phase                               =  8;
 	    }
 )
+pvParams.S1Mask1X1.groupType                       = "PtwiseLinearTransferLayer";
 pvParams.S1Mask1X1.VThresh                         = nil;
 pvParams.S1Mask1X1.AMin                            = nil;
 pvParams.S1Mask1X1.AMax                            = nil;
@@ -597,11 +598,18 @@ pv.addGroup(pvParams, "S1Mask2X2", pvParams.S1Mask1X1,
 	       phase                               = 6;
 	    }
 )
-pv.addGroup(pvParams, "S1Error2X2", pvParams.S1Error1X1,
+pv.addGroup(pvParams, "S1UnPooled2X2", pvParams.S1Error1X1,
 	    {
 	       nxScale                             = nxScale_GroundTruth*2;
 	       nyScale                             = nyScale_GroundTruth*2;
 	       phase                               = 11;
+	    }
+)
+pv.addGroup(pvParams, "S1Error2X2", pvParams.S1Error1X1,
+	    {
+	       nxScale                             = nxScale_GroundTruth*2;
+	       nyScale                             = nyScale_GroundTruth*2;
+	       phase                               = 12;
 	    }
 )
 
@@ -634,11 +642,18 @@ pv.addGroup(pvParams, "S1Mask4X4", pvParams.S1Mask2X2,
 	       phase                               = 4;
 	    }
 )
+pv.addGroup(pvParams, "S1UnPooled4X4", pvParams.S1UnPooled2X2,
+	    {
+	       nxScale                             = nxScale_GroundTruth*4;
+	       nyScale                             = nyScale_GroundTruth*4;
+	       phase                               = 13;
+	    }
+)
 pv.addGroup(pvParams, "S1Error4X4", pvParams.S1Error2X2,
 	    {
 	       nxScale                             = nxScale_GroundTruth*4;
 	       nyScale                             = nyScale_GroundTruth*4;
-	       phase                               = 12;
+	       phase                               = 14;
 	    }
 )
 
@@ -928,6 +943,14 @@ pv.addGroup(pvParams, "S1MaxPooled1X1ToGroundTruthReconS1", pvParams.S1MaxPooled
 	    }
 )
 
+pv.addGroup(pvParams, "BiasS1ToGroundTruthReconS1", pvParams.S1MaxPooled4X4ToS1Hidden4X4,
+	    {
+	       preLayerName                        = "BiasS1";
+	       postLayerName                       = "GroundTruthReconS1";
+	       originalConnName                    = "BiasS1ToGroundTruthReconS1Error";
+	    }
+)
+
 pv.addGroup(pvParams, "GroundTruthReconS1ToGroundTruthReconS1Error", 
 	    {
 	       groupType                           = "IdentConn";
@@ -954,6 +977,7 @@ pv.addGroup(pvParams, "S1MaxPooled1X1ToGroundTruthReconS1Error",
 	       sharedWeights                       = true;
 	       weightInitType                      = "FileWeight";
 	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooled1X1ToGroundTruthReconS1Error_W.pvp";
+	       --initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
 	       useListOfArborFiles                 = false;
 	       combineWeightFiles                  = false;    
 	       --weightInitType                      = "UniformRandomWeight";
@@ -1057,11 +1081,11 @@ pv.addGroup(pvParams, "S1MaxPooled1X1ToS1Mask1X1",
 	    }
 )
 
-pv.addGroup(pvParams, "S1Error1X1ToS1Error2X2",
+pv.addGroup(pvParams, "S1Error1X1ToS1UnPooled2X2",
 	    {
 	       groupType                           = "TransposePoolingConn";
 	       preLayerName                        = "S1Error1X1";
-	       postLayerName                       = "S1Error2X2";
+	       postLayerName                       = "S1UnPooled2X2";
 	       channelCode                         = 0;
 	       updateGSynFromPostPerspective       = false;
 	       pvpatchAccumulateType               = "maxpooling";
@@ -1070,6 +1094,15 @@ pv.addGroup(pvParams, "S1Error1X1ToS1Error2X2",
 	       selfFlag                            = false;
 	       delay                               = 0;
 	       originalConnName                    = "S1Hidden2X2ToS1MaxPooled1X1";
+	    }
+)
+
+pv.addGroup(pvParams, "S1UnPooled2X2ToS1Error2X2",
+	    pvParams.GroundTruthReconS1ErrorToS1Error1X1,
+	    {
+	       preLayerName                        = "S1UnPooled2X2";
+	       postLayerName                       = "S1Error2X2";
+	       originalConnName                    = "S1MaxPooled2X2ToS1Error2X2";
 	    }
 )
 
@@ -1117,13 +1150,21 @@ if identityFlag2X2 then
    pvParams.S1MaxPooled2X2ToS1Error2X2.initWeightsFile    = NULL;
 end
 
-pvParams.S1MaxPooled2X2ToS1Error2X2.weightInit    = 1.0;
-
-pv.addGroup(pvParams, "S1Error2X2ToS1Error4X4", pvParams.S1Error1X1ToS1Error2X2,
+pv.addGroup(pvParams, "S1Error2X2ToS1UnPooled4X4",
+	    pvParams.S1Error1X1ToS1UnPooled2X2,
 	    {
 	       preLayerName                        = "S1Error2X2";
-	       postLayerName                       = "S1Error4X4";
+	       postLayerName                       = "S1UnPooled4X4";
 	       originalConnName                    = "S1Hidden4X4ToS1MaxPooled2X2";
+	    }
+)
+
+pv.addGroup(pvParams, "S1UnPooled4X4ToS1Error4X4",
+	    pvParams.S1UnPooled2X2ToS1Error2X2,
+	    {
+	       preLayerName                        = "S1UnPooled4X4";
+	       postLayerName                       = "S1Error4X4";
+	       originalConnName                    = "S1MaxPooled4X4ToS1Error4X4";
 	    }
 )
 
@@ -1146,6 +1187,7 @@ pv.addGroup(pvParams, "S1MaxPooled4X4ToS1Error4X4",
 	    {
 	       preLayerName                        = "S1MaxPooled4X4";
 	       postLayerName                       = "S1Error4X4";
+	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooled4X4ToS1Error4X4_W.pvp";
 	    }
 )
 local identityFlag4X4  = true

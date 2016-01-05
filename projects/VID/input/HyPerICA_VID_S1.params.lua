@@ -787,7 +787,7 @@ if not S1_Movie then
 			   }
 	       )
 		  
-	       if i_frame > 1 then -- set normalizationGroup
+	       if i_delay > 1 then -- set normalizationGroup
 		  pvParams["S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error"].normalizeMethod
 		     = "normalizeGroup";
 		  pvParams["S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error"].normalizeGroupName                 
@@ -1342,7 +1342,7 @@ if not S1_Movie then
       )
    end -- i_frame
 
-   for i_delay = 1, numFrames - temporalKernelSize + 1+1 do
+   for i_delay = 1, numFrames - temporalKernelSize + 1 do
       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "SparsityProbe",
 		  {
 		     groupType                           = "FirmThresholdCostFnLCAProbe";
