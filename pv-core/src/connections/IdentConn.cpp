@@ -279,6 +279,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
    assert(post->getChannel(getChannel()));
 
    float dt_factor = getConvertToRateDeltaTimeFactor();
+   assert(dt_factor==1.0);
 
    const PVLayerLoc * preLoc = preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * postLoc = postSynapticLayer()->getLayerLoc();
@@ -325,7 +326,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 #endif
          for (int kRestricted = 0; kRestricted < numRestricted; kRestricted++) {
             int kExtended = kIndexExtended(kRestricted, loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-            float a = activityBatch[kExtended] * dt_factor;
+            float a = activityBatch[kExtended];
             if (a == 0.0f) continue;
             gSynPatchHeadBatch[kRestricted] += a;
          }
