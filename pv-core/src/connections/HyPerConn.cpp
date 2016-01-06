@@ -260,6 +260,9 @@ int HyPerConn::initialize_base()
    this->triggerLayer = NULL;
    this->triggerLayerName = NULL;
    this->triggerOffset = 0;
+   this->weightUpdatePeriod = 0;
+   this->initialWeightUpdateTime = 0;
+   this->weightUpdateTime = 0;
 
    this->clones.clear();
 
@@ -921,10 +924,12 @@ void HyPerConn::ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag) {
 
 void HyPerConn::ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-   initialWeightUpdateTime = parent->getStartTime();
-   if (plasticityFlag && !triggerLayerName) {
-      parent->ioParamValue(ioFlag, name, "initialWeightUpdateTime", &initialWeightUpdateTime, initialWeightUpdateTime, true/*warnIfAbsent*/);
+   if (plasticityFlag) {
+      assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+      initialWeightUpdateTime = parent->getStartTime();
+      if (!triggerLayerName) {
+         parent->ioParamValue(ioFlag, name, "initialWeightUpdateTime", &initialWeightUpdateTime, initialWeightUpdateTime, true/*warnIfAbsent*/);
+      }
    }
    if (ioFlag==PARAMS_IO_READ) {
       weightUpdateTime=initialWeightUpdateTime;
@@ -2718,9 +2723,9 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
 
    status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
    assert(status == PV_SUCCESS);
-   status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
-   assert(status == PV_SUCCESS);
    if (this->plasticityFlag &&  weightUpdateTime<parent->simulationTime()) {
+      status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
+      assert(status == PV_SUCCESS);
       // simulationTime() may have been changed by HyPerCol::checkpoint, so this repeats the sanity check on weightUpdateTime in allocateDataStructures
       while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
       if (parent->columnId()==0) {
@@ -2751,7 +2756,9 @@ int HyPerConn::checkpointWrite(const char * cpDir) {
    assert(status==PV_SUCCESS);
    status = parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
    assert(status==PV_SUCCESS);
-   status = parent->writeScalarToFile(cpDir, getName(), "weightUpdateTime", weightUpdateTime);
+   if (plasticityFlag && !triggerLayerName) {
+      status = parent->writeScalarToFile(cpDir, getName(), "weightUpdateTime", weightUpdateTime);
+   }
    assert(status==PV_SUCCESS);
    return status;
 }
