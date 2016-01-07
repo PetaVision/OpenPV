@@ -304,7 +304,7 @@ HyPerConn "CenterOff" = {
    updateGSynFromPostPerspective = false;
 };
 
-HyPerConn "surround off" = {
+HyPerConn "SurroundOff" = {
    preLayerName                 = "Downsampled";
    postLayerName                = "RetinaOff";
    channelCode                  = 0;
