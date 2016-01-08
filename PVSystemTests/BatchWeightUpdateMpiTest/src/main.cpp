@@ -183,11 +183,11 @@ int compareFiles(const char* file1, const char* file2){
          break;
       }
       if(check1 != 1){
-         std::cout << "Value returned from fread is " << check1 << " as opposed to 1\n";
+         std::cout << "Value returned from fread of file \"" << file1 << "\" is " << check1 << " as opposed to 1\n";
          exit(-1);
       }
       if(check2 != 1){
-         std::cout << "Value returned from fread is " << check2 << " as opposed to 1\n";
+         std::cout << "Value returned from fread of file \"" << file2 << "\" is " << check2 << " as opposed to 1\n";
          exit(-1);
       }
       //Floating piont comparison
