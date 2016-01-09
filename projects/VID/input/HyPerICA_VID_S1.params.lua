@@ -89,8 +89,8 @@ local dtMinToleratedTimeScale  = 0.00001
 
 --Ground Truth parameters
 local numClasses            = 4
-local nxScale_GroundTruth   = 0.015625 --0.03125 --0.0625;
-local nyScale_GroundTruth   = 0.015625 --0.03125 --0.0625;
+local nxScale_GroundTruth   = 0.03125 --0.0625;
+local nyScale_GroundTruth   = 0.0625;
 
 
 -- Base table variable to store
@@ -449,7 +449,7 @@ if GroundTruthPath then
 		     displayPeriod                       = displayPeriod;
 		     randomMovie                         = 0;
 		     readPvpFile                         = true;
-		     start_frame_index                   = i_frame-1;
+		     start_frame_index                   = startFrame + i_frame-1;
 		     skip_frame_index                    = skipFrame;
 		     writeFrameToTimestamp               = true;
 		     flipOnTimescaleError                = true;
@@ -716,7 +716,6 @@ if not S1_Movie then
       )
       
       for i_delay = 1, numFrames - temporalKernelSize + 1 do
-	 --for i_delay = 1, numFrames do
 
 	 local delta_frame = i_frame - i_delay
 	 if (delta_frame >= 0 and delta_frame < temporalKernelSize) then
@@ -736,11 +735,11 @@ if not S1_Movie then
 
 	    if i_delay == 1 then -- the first delay layer stores the original connections
 
-	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error",
+	       pv.addGroup(pvParams, "S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error",
 			   {
 			      groupType                           = "MomentumConn";
-			      preLayerName                        = "S1_" .. i_delay-1;
-			      postLayerName                       = "Frame" .. i_frame-1 .. "ReconS1Error";
+			      preLayerName                        = "S1_" .. 0;
+			      postLayerName                       = "Frame" .. delta_frame .. "ReconS1Error";
 			      channelCode                         = -1;
 			      delay                               = {0.000000};
 			      numAxonalArbors                     = 1;
@@ -755,7 +754,7 @@ if not S1_Movie then
 			      sparseFraction                      = 0.9;
 			      initializeFromCheckpointFlag        = false;
 			      triggerFlag                         = true;
-			      triggerLayerName                    = "Frame" .. i_frame-1;
+			      triggerLayerName                    = "Frame" .. delta_frame;
 			      triggerOffset                       = 1;
 			      updateGSynFromPostPerspective       = true;
 			      pvpatchAccumulateType               = "convolve";
@@ -786,24 +785,16 @@ if not S1_Movie then
 
 			   }
 	       )
-		  
-	       if i_delay > 1 then -- set normalizationGroup
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error"].normalizeMethod
-		     = "normalizeGroup";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error"].normalizeGroupName                 
-		     = "S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error";
-	       end -- i_frame == 1 (for defining normalization group)
-
 	       if not plasticityFlag then
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error"].triggerLayerName    = NULL;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error"].triggerOffset       = nil;
+		  pvParams["S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error"].triggerLayerName    = NULL;
+		  pvParams["S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error"].triggerOffset       = nil;
 	       end
 	       if checkpointID then
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error"].weightInitType      = "FileWeight";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error"].initWeightsFile
-		     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/" .. "S1_" .. i_delay-1 .. "ToFrame" .. i_frame-1 .. "ReconS1Error_W.pvp";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error"].useListOfArborFiles = false;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error"].combineWeightFiles  = false;    
+		  pvParams["S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error"].weightInitType      = "FileWeight";
+		  pvParams["S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error"].initWeightsFile
+		     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/" .. "S1_" .. 0 .. "ToFrame" .. delta_frame .. "ReconS1Error_W.pvp";
+		  pvParams["S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error"].useListOfArborFiles = false;
+		  pvParams["S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error"].combineWeightFiles  = false;    
 	       end -- checkpointID	       
 	       
 	    else -- use a plasticCloneConn

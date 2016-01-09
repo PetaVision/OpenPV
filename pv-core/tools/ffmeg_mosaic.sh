@@ -11,3 +11,7 @@ ffmpeg -i ./output_2013_01_24_how2catchSquirrel_12x12x128_lambda_05X2_deep/Recon
 ffmpeg -i DCA_ImageDecon.mp4 -i DCA_ImageDeconS1.mp4 -i DCA_ImageDeconS2.mp4 -i DCA_ImageDeconS3.mp4  -filter_complex "nullsrc=size=512x394 [base]; [0:v] setpts=PTS-STARTPTS, scale=256x192 [topleft]; [1:v] setpts=PTS-STARTPTS, scale=256x192 [bottomleft]; [2:v] setpts=PTS-STARTPTS, scale=256x192 [topright]; [3:v] setpts=PTS-STARTPTS, scale=256x192 [bottomright]; [base][topleft] overlay=shortest=1 [tmp1]; [tmp1][bottomleft] overlay=shortest=1:y=192 [tmp2]; [tmp2][topright] overlay=shortest=1:x=256 [tmp3]; [tmp3][bottomright] overlay=shortest=1:x=256:y=192" -c:v libx264 mosaic_ImageDeconDCA.mp4
 
 ffmpeg -i ImageReconS1_dtMax_2.mp4 -i ImageReconS2_dtMax_2.mp4 -filter_complex "nullsrc=size=512x192 [base]; [0:v] setpts=PTS-STARTPTS, scale=256x192 [left]; [1:v] setpts=PTS-STARTPTS, scale=256x192 [right]; [base][left] overlay=shortest=1 [tmp1]; [tmp1][right] overlay=shortest=1:x=256" -c:v libx264 mosaic_1X2_ImageReconS1S2_dtMax_2.mp4
+
+
+# make video from individual frames
+ffmpeg -framerate 4 -pattern_type glob -i 'S1_0ToFrame*ReconS1Error_W_01320000_4.png' -c:v libx264 -pix_fmt yuv420p S1_0ToFrameReconS1Error_4.mp4

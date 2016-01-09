@@ -43,7 +43,7 @@ elseif strcmp(run_type, "ICA")
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape4"];
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_portrait9"];
 elseif strcmp(run_type, "Deep")
-  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_Deep_ICA/VOC2007_landscape1_S1_Movie2"];
+  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_Deep_ICA/VOC2007_landscape2_S1_Movie6"];
 elseif strcmp(run_type, "DCA")
   output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape12"];
 elseif strcmp(run_type, "DCA_Vine")
@@ -54,7 +54,7 @@ endif
 
 %%draw reconstructed image
 mkdir([output_dir, filesep, "Recon"])
-Recon_flag = true && any(glob([output_dir, filesep, "Image.pvp"]))
+Recon_flag = true && ~isempty(glob([output_dir, filesep, "Image.pvp"]))
 if Recon_flag 
   DoG_weights = [];
   if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "MaxPool") || strcmp(run_type, "ICA") || strcmp(run_type, "DCA")
@@ -116,7 +116,7 @@ else
   nonSparse_norm_list = {[""], ["GroundTruth"]};
 endif
 nonSparse_norm_strength = ones(num_nonSparse_list,1);
-fraction_nonSparse_frames_read = 1;
+fraction_nonSparse_frames_read = 10;
 min_nonSparse_skip = 1;
 fraction_nonSparse_progress = 10;
 [nonSparse_times_array, nonSparse_RMS_array, nonSparse_norm_RMS_array, nonSparse_RMS_fig] = analyzeNonSparsePVP(nonSparse_list, nonSparse_skip, nonSparse_norm_list, nonSparse_norm_strength, Sparse_times_array, Sparse_std_array, Sparse_std_ndx, output_dir, plot_flag, fraction_nonSparse_frames_read, min_nonSparse_skip, fraction_nonSparse_progress);
