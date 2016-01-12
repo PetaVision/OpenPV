@@ -190,6 +190,7 @@ int HyPerCol::initialize_base() {
    defaultInitializeFromCheckpointFlag = false;
    suppressLastOutput = false;
    suppressNonplasticCheckpoints = false;
+   checkpointIndexWidth = -1; // defaults to automatically determine index width
    simTime = 0.0;
    startTime = 0.0;
    stopTime = 0.0;
@@ -783,6 +784,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_deleteOlderCheckpoints(ioFlag);
    ioParam_suppressLastOutput(ioFlag);
    ioParam_suppressNonplasticCheckpoints(ioFlag);
+   ioParam_checkpointIndexWidth(ioFlag);
    ioParam_writeTimescales(ioFlag);
    ioParam_errorOnNotANumber(ioFlag);
    return PV_SUCCESS;
@@ -1337,6 +1339,13 @@ void HyPerCol::ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void HyPerCol::ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "checkpointWrite"));
+   if (checkpointWriteFlag) {
+      ioParamValue(ioFlag, name, "checkpointIndexWidth", &checkpointIndexWidth, checkpointIndexWidth);
+   }
+}
+
 void HyPerCol::ioParam_writeTimescales(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
    if (dtAdaptFlag) {
@@ -1848,7 +1857,14 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          // the order should be advanceCPWriteTime() || checkpointSignal so that advanceCPWriteTime() is called even if checkpointSignal is true.
          // that way advanceCPWriteTime's calculation of the next checkpoint time won't be thrown off.
          char cpDir[PV_PATH_MAX];
-         int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%ld", checkpointWriteDir, currentStep);
+         int stepFieldWidth;
+         if (checkpointIndexWidth >= 0) {
+            stepFieldWidth = checkpointIndexWidth;
+         }
+         else {
+            stepFieldWidth = (int) floor(log10((stopTime - startTime)/deltaTime))+1;
+         }
+         int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%0*ld", checkpointWriteDir, stepFieldWidth, currentStep);
          if(chars_printed >= PV_PATH_MAX) {
             if (globalRank()==0) {
                fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
