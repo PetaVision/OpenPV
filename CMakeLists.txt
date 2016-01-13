@@ -21,7 +21,7 @@ if(APPLE)
    set(CUDNN_PATH_DEFAULT "/usr/local/cudnn-7.0/")
  else(APPLE)
    set(PV_OPENMP_COMPILER_FLAG_DEFAULT "-fopenmp")
-   set(CUDNN_PATH_DEFAULT "/nh/compneuro/Data/cuDNN/cudnn-6.5-linux-x64-R2-rc1/")
+   set(CUDNN_PATH_DEFAULT "/nh/compneuro/Data/cuDNN/cudnn-7.0-linux-x64-v4/")
 endif(APPLE)
 
 #Set CMAKE_MODULE_PATH
@@ -85,10 +85,14 @@ if(PV_USE_CUDA)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${CUDA_TOOLKIT_INCLUDE}")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${CUDA_TOOLKIT_INCLUDE}")
     if(PV_USE_CUDNN)
-       file(GLOB_RECURSE CUDNN_HEADER "${CUDNN_PATH}*/cudnn.h")
-       string(REGEX REPLACE "/[^/]+$" "" CUDNN_INCLUDE_PATH "${CUDNN_HEADER}")
-       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${CUDNN_INCLUDE_PATH}")
-       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${CUDNN_INCLUDE_PATH}")
+        set(CUDNN_HEADER_SEARCH_PATH 
+            ${CUDNN_PATH}
+            ${CUDNN_PATH}/include
+        )
+
+        find_path(CUDNN_INCLUDE_PATH "cudnn.h" ${CUDNN_HEADER_SEARCH_PATH})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I ${CUDNN_INCLUDE_PATH}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I ${CUDNN_INCLUDE_PATH}")
     endif(PV_USE_CUDNN)
 endif(PV_USE_CUDA)
 
