@@ -641,7 +641,17 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
 #pragma omp parallel for
          for(int ni = 0; ni < numNeurons; ni++){
             if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
-               gSynPatchHead[ni] += thread_gSyn[0][ni];
+               //Grab maxumum magnitude of thread_gSyn and set that value
+               float maxMag = -INFINITY;
+               int maxMagIdx = -1;
+               for(int ti = 0; ti < parent->getNumThreads(); ti++){
+                  if(maxMag < fabs(thread_gSyn[ti][ni])){
+                     maxMag = fabs(thread_gSyn[ti][ni]);
+                     maxMagIdx = ti;
+                  }
+               }
+               assert(maxMagIdx >= 0);
+               gSynPatchHead[ni] = thread_gSyn[maxMagIdx][ni];
             }
             else{
                for(int ti = 0; ti < parent->getNumThreads(); ti++){
