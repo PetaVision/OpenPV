@@ -505,7 +505,8 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
 #pragma omp parallel for
          for(int ni = 0; ni < numNeurons; ni++){
             //Different for maxpooling
-            //TODO, move this to PoolingConn
+            //Reset gSynPatchHead
+            gSynPatchHead[ni] = -INFINITY;
             if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
                for(int ti = 0; ti < parent->getNumThreads(); ti++){
                   if(gSynPatchHead[ni] < thread_gSyn[ti][ni]){
