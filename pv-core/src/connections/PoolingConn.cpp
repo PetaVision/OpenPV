@@ -355,7 +355,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for(int i = 0; i < post->getNumNeurons(); i++){
+      for(int i = 0; i < post->getNumNeuronsAllBatches(); i++){
          gSyn[i] = resetVal;
       }
       
@@ -410,8 +410,6 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
       }
 #endif // PV_USE_OPENMP_THREADS
       
-
-
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
@@ -505,7 +503,6 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
 #pragma omp parallel for
          for(int ni = 0; ni < numNeurons; ni++){
             //Different for maxpooling
-            //TODO, move this to PoolingConn
             if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
                for(int ti = 0; ti < parent->getNumThreads(); ti++){
                   if(gSynPatchHead[ni] < thread_gSyn[ti][ni]){
@@ -581,6 +578,13 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
       std::cout << "HyPerLayer::recvFromPost error getting preToPostActivity from connection. Is shrink_patches on?\n";
       exit(EXIT_FAILURE);
    }
+
+   float resetVal = 0;
+   if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+      resetVal = -INFINITY;
+   }
+
+
    for(int b = 0; b < parent->getNBatch(); b++){
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
@@ -598,7 +602,7 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
          //Calculate target's start of gsyn
          pvdata_t * gSynPatchPos = gSynPatchHeadBatch + kTargetRes;
          //Initialize patch as a huge negative number
-         *gSynPatchPos = -INFINITY;
+         *gSynPatchPos = resetVal;
 
          int* gatePatchPos = NULL;
          if(needPostIndexLayer){

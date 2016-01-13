@@ -607,7 +607,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
             }
 
             const int kPostLocalRes = kIndex(kxPostLocalRes, kyPostLocalRes, kfPost, postLoc->nx, postLoc->ny, postLoc->nf);
-            gSynPatchHeadBatch[kPostLocalRes] = a;
+            gSynPatchHead[kPostLocalRes] = a;
          }
          else{
             PVPatch * weights = getWeights(kPreExt, arborID);
@@ -640,13 +640,21 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
          //Looping over neurons first to be thread safe
 #pragma omp parallel for
          for(int ni = 0; ni < numNeurons; ni++){
-            for(int ti = 0; ti < parent->getNumThreads(); ti++){
-               if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
-                  if(gSynPatchHead[ni] < fabs(thread_gSyn[ti][ni])){
-                     gSynPatchHead[ni] = thread_gSyn[ti][ni];
+            if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+               //Grab maxumum magnitude of thread_gSyn and set that value
+               float maxMag = -INFINITY;
+               int maxMagIdx = -1;
+               for(int ti = 0; ti < parent->getNumThreads(); ti++){
+                  if(maxMag < fabs(thread_gSyn[ti][ni])){
+                     maxMag = fabs(thread_gSyn[ti][ni]);
+                     maxMagIdx = ti;
                   }
                }
-               else{
+               assert(maxMagIdx >= 0);
+               gSynPatchHead[ni] = thread_gSyn[maxMagIdx][ni];
+            }
+            else{
+               for(int ti = 0; ti < parent->getNumThreads(); ti++){
                   gSynPatchHead[ni] += thread_gSyn[ti][ni];
                }
             }

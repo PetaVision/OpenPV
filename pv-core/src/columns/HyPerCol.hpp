@@ -411,7 +411,7 @@ private:
    virtual void ioParam_checkpointWriteClockInterval(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies the amount of clock time between checkpoints.  The units are specified using the parameter checkpointWriteClockUnit
+    * @brief checkpointWriteClockInteval: If checkpointWrite on clock, specifies the units used in checkpointWriteClockInterval.
     */
    virtual void ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag);
 
@@ -429,6 +429,15 @@ private:
     * If checkpointWriteFlag is true and this flag is true, connections' checkpointWrite method will only be called for connections with plasticityFlag=false.
     */
    virtual void ioParam_suppressNonplasticCheckpoints(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief If checkpointWriteFlag is true, checkpointIndexWidth specifies the minimum width for the step number appearing in the checkpoint directory.
+    * @details If the step number needs fewer digits than checkpointIndexWidth, it is padded with zeroes.  If the step number needs more, the full
+    * step number is still printed.  Hence, setting checkpointWriteFlag to zero means that there are never any padded zeroes.
+    * If set to a negative number, the width will be inferred from startTime, stopTime and dt.
+    * The default value is -1 (infer the width).
+    */
+   virtual void ioParam_checkpointIndexWidth(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief writeTimescales: If dtAdaptFlag, specifies if the timescales should be written
@@ -484,7 +493,7 @@ private:
    bool checkpointWriteFlag;   // whether to write from a checkpoint directory
    int checkpointSignal;      // whether the process should checkpoint in response to an external signal
    char * checkpointReadDir;   // name of the directory to read an initializing checkpoint from
-   char * checkpointReadDirBase;   // name of the directory containing che checkpoint read from (used by deprecated params-based method for loading from checkpoint)
+   char * checkpointReadDirBase;   // name of the directory containing checkpoint read from (used by deprecated params-based method for loading from checkpoint)
    long int cpReadDirIndex;  // checkpoint number within checkpointReadDir to read
    char * checkpointWriteDir; // name of the directory to write checkpoints to
    enum CheckpointWriteTriggerMode checkpointWriteTriggerMode;
@@ -496,6 +505,7 @@ private:
    double cpWriteClockInterval; // If checkpoint mode is clock, the clock time between checkpoints, in the units specified by checkpointWriteClockUnit
    time_t cpWriteClockSeconds; // If checkpoint mode is clock, the clock time between checkpoints, in seconds
    char * cpWriteClockUnitString; // If checkpoint mode is clock, the string that specifies the units.  "seconds", "minutes", "hours", or "days".
+   int checkpointIndexWidth; // minimum width of the step number field in the name of a checkpoint directory; if needed the step number is padded with zeros.
 
    time_t nextCPWriteClock;
    bool deleteOlderCheckpoints; // If true, whenever a checkpoint other than the first is written, the preceding checkpoint is deleted. Default is false.
