@@ -355,7 +355,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif
-      for(int i = 0; i < post->getNumNeurons(); i++){
+      for(int i = 0; i < post->getNumNeuronsAllBatches(); i++){
          gSyn[i] = resetVal;
       }
       
@@ -410,8 +410,6 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
       }
 #endif // PV_USE_OPENMP_THREADS
       
-
-
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
@@ -505,8 +503,6 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
 #pragma omp parallel for
          for(int ni = 0; ni < numNeurons; ni++){
             //Different for maxpooling
-            //Reset gSynPatchHead
-            gSynPatchHead[ni] = -INFINITY;
             if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
                for(int ti = 0; ti < parent->getNumThreads(); ti++){
                   if(gSynPatchHead[ni] < thread_gSyn[ti][ni]){

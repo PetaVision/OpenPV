@@ -35,11 +35,12 @@ int GatePoolTestLayer::updateState(double timef, double dt){
          }
       }
       
-      //Make sure all activity isn't 0
-      if(numActive == 0){
-         std::cout << "Num active is 0 at timestep " << timef << " for batch " << b << "\n";
+      //Must be 25% active
+      float percentActive = (float)numActive/getNumNeurons();
+      if(percentActive != .25){
+         std::cout << "Percent active for " << name << " is " << percentActive << ", where expected is .25 at timestep " << timef << " for batch " << b << "\n";
       }
-      assert(numActive != 0);
+      assert(percentActive == .25);
    }
 
    if(!isCorrect){
