@@ -561,32 +561,11 @@ protected:
     * - @link InitSmartWeights SmartWeight@endlink:
     *   TODO
     *
-    * - @link InitDistributedWeightsParams DistributedWeight@endlink:
-    *   TODO
-    *
-    * - @link InitByArborWeights ArborWeight@endlink:
-    *   Initializes different weights in different arbors
-    *
-    * - @link InitBIDSLateralParams BIDSLateral@endlink:
-    *   TODO
-    *
     * - @link InitUniformRandomWeightsParams UniformRandomWeight@endlink:
     *   Initializes weights with a uniform distribution
     *
     * - @link InitGaussianRandomWeightsParams GaussianRandomWeight@endlink:
     *   Initializes individual weights with a gaussian distribution
-    *
-    * - @link InitGaborWeightsParams GaborWeight@endlink:
-    *   TODO
-    *
-    * - @link InitPoolWeightsParams PoolWeight@endlink:
-    *   TODO
-    *
-    * - @link InitRuleWeightsParams RuleWeight@endlink:
-    *   TODO
-    *
-    * - @link InitSubUnitWeightsParams SubUnitWeight@endlink:
-    *   TODO
     *
     * - @link InitIdentWeightsParams IdentWeight@endlink:
     *   Initializes weights for ident conn (one to one with a strength to 1)
@@ -599,15 +578,6 @@ protected:
     *
     * - @link InitSpreadOverArborsWeightsParams SpreadOverArborsWeight@endlink:
     *   Initializes weights where different part of the weights over different arbors
-    *
-    * - @link Init3DGaussWeightsParams Gauss3DWeight@endlink:
-    *   Initializes weights with a gaussian distribution in x, y, and f
-    *
-    * - @link InitWindowed3DGaussWeightsParams Windowed3DGaussWeights@endlink:
-    *   Initializes weights with a gaussian distribution in x, y, and f over windows
-    *
-    * - @link InitMTWeightsParams MTWeight@endlink:
-    *   TODO
     *
     * - @link InitWeightsParams FileWeight@endlink:
     *   Initializes weights from a specified pvp file.
