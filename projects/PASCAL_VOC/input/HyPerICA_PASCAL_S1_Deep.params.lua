@@ -15,10 +15,10 @@ local VThresh               = 0.025
 local VWidth                = infinity
 local learningRate          = 0
 local dWMax                 = 10.0
-local dWMaxBias             = 0.01
-local dWMax1X1              = 1.0
-local dWMax2X2              = 1.0
-local dWMax4X4              = 1.0
+local dWMaxBias             = 0.01 --0.01
+local dWMax1X1              = 0.01 -- 0.0001
+local dWMax2X2              = 0.01 -- 0.0001
+local dWMax4X4              = 0.01
 local learningMomentumTau   = 500
 local patchSize             = 16
 local tau                   = 400
@@ -27,20 +27,20 @@ local S1_numFeatures        = patchSize * patchSize * 3 * 2 -- (patchSize/stride
 -- User defined variables
 local plasticityFlag      = true
 local plasticityFlag2X2   = true
-local plasticityFlag4X4   = false
+local plasticityFlag4X4   = true
 local stride              = patchSize/4
 local nxSize              = 192 --256
 local nySize              = 256 --192
 local experimentName      = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_Deep" .. "_ICA"
 local experimentNameTmp   = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_ICA"
 local runName             = "VOC2007_landscape" -- "VOC2007_portrait" --
-local runVersion          = 2
+local runVersion          = 3
 local runVersionTmp       = 7
 local machinePath         = "/Volumes/mountData" --"/nh/compneuro/Data" --"/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
 local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentNameTmp .. "/" .. runName .. runVersionTmp
-local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
+local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
 local numImages           = 7958 --1751 --
 local displayPeriod       = 240
 local numEpochs           = 1
@@ -51,25 +51,26 @@ local writeStep           = 100 * displayPeriod
 local initialWriteTime    = writeStep
 local checkpointWriteStepInterval = writeStep
 local S1_Movie            = true --false
-local movieVersion        = 6
+local movieVersion        = 1
 if arg[1] then
    movieVersion           = arg[1]
 end
 if S1_Movie then
    outputPath              = outputPath .. "_S1_Movie" .. movieVersion
    inputPath               = inputPath -- .. "_S1_Movie" .. movieVersion
-   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. movieVersion-1
+   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. 2 --movieVersion-1
    displayPeriod           = 1
    numEpochs               = 10
    stopTime                = numImages * displayPeriod * numEpochs
    --checkpointID            = stopTime
-   checkpointIDSLP         = numImages * numEpochs --stopTime
+   checkpointIDSLP         = stopTime
    writeStep               = 1
+   writeStepDebug          = -1
    initialWriteTime        = numImages*(numEpochs-1)+1
    checkpointWriteStepInterval = numImages
 else -- not used if run version == 1
-   inputPath               = inputPath .. runVersion
-   inputPathSLP            = inputPath .. "_S1_Movie" .. movieVersion
+   --inputPath               = inputPath .. runVersion
+   --inputPathSLP            = inputPath .. "_S1_Movie" .. movieVersion
    --checkpointID            = numImages * displayPeriod * 5
    --checkpointIDSLP         = numImages * 10
 end
@@ -344,7 +345,6 @@ else
 		  AShift                              = 0;
 		  VWidth                              = 100;
 		  clearGSynInterval                   = 0;
-		  numChannels                         = 1;
 		  timeConstantTau                     = tau;
 		  numWindowX                          = 1;
 		  numWindowY                          = 1;
@@ -470,7 +470,6 @@ pv.addGroup(pvParams, "GroundTruthReconS1Error",
 	       valueBC                             = 0;
 	       initializeFromCheckpointFlag        = false;
 	       InitVType                           = "ZeroV";
-	       triggerFlag                         = true;
 	       triggerLayerName                    = "GroundTruthPixels";
 	       triggerBehavior                     = "updateOnlyOnTrigger";
 	       triggerOffset                       = 1;
@@ -488,8 +487,9 @@ pv.addGroup(pvParams, "GroundTruthReconS1Error",
 	    }
 )
 if S1_Movie then
-   pvParams.GroundTruthReconS1Error.triggerLayerName  = "GroundTruth";
-   pvParams.GroundTruthReconS1Error.triggerOffset  = 0;
+   pvParams.GroundTruthReconS1Error.triggerLayerName  = nil; --"GroundTruth";
+   pvParams.GroundTruthReconS1Error.triggerOffset     = nil; --0;
+   pvParams.GroundTruthReconS1Error.triggerBehavior   = nil; --0;
 end
 
 pv.addGroup(pvParams, "GroundTruthReconS1",
@@ -520,14 +520,15 @@ pv.addGroup(pvParams, "GroundTruthReconS1",
 	    }
 )
 if S1_Movie then
-   pvParams.GroundTruthReconS1.triggerLayerName  = "GroundTruth";
-   pvParams.GroundTruthReconS1.triggerOffset  = 0;
+   pvParams.GroundTruthReconS1.triggerLayerName  = nil; --"GroundTruth";
+   pvParams.GroundTruthReconS1.triggerOffset     = nil; --0;
+   pvParams.GroundTruthReconS1.triggerBehavior     = nil; --0;
 end
 
 pv.addGroup(pvParams, "S1MaxPooled1X1", pvParams.GroundTruthReconS1,
 	    {
 	       nf                                  = S1_numFeatures;
-	       writeStep                           = -1;
+	       writeStep                           = writeStepDebug;
 	       VThresh                             = 0.0;
 	       AMin                                = 0.0;
 	       phase                               = 7;
@@ -539,10 +540,10 @@ pv.addGroup(pvParams, "S1MaxPooledIndex1X1",
 	       nxScale                             = nxScale_GroundTruth;
 	       nyScale                             = nyScale_GroundTruth;
 	       nf                                  = S1_numFeatures;
-	       triggerLayerName                    = "GroundTruthPixels";
-	       triggerBehavior                     = "updateOnlyOnTrigger";
-	       triggerOffset                       = 1;
-	       writeStep                           = -1;
+	       triggerLayerName                    = nil; --"GroundTruthPixels";
+	       triggerBehavior                     = nil; --"updateOnlyOnTrigger";
+	       triggerOffset                       = nil; --1;
+	       writeStep                           = writeStepDebug;
 	       sparseLayer                         = false;
 	       dataType                            = nil;
 	       clearGSynInterval                   = 0;
@@ -550,8 +551,8 @@ pv.addGroup(pvParams, "S1MaxPooledIndex1X1",
 	    }
 )
 if S1_Movie then
-   pvParams.S1MaxPooledIndex1X1.triggerLayerName  = "GroundTruth";
-   pvParams.S1MaxPooledIndex1X1.triggerOffset  = 0;
+   --pvParams.S1MaxPooledIndex1X1.triggerLayerName  = nil; --"GroundTruth";
+   --pvParams.S1MaxPooledIndex1X1.triggerOffset     = nil; --0;
 end
 pv.addGroup(pvParams, "S1MaxPooled2X2", pvParams.S1MaxPooled1X1,
 	    {
@@ -608,6 +609,7 @@ pv.addGroup(pvParams, "S1Error2X2", pvParams.S1Error1X1,
 	       nxScale                             = nxScale_GroundTruth*2;
 	       nyScale                             = nyScale_GroundTruth*2;
 	       phase                               = 12;
+	       writeStep                           = writeStep;
 	    }
 )
 pv.addGroup(pvParams, "S1Error4X4", pvParams.S1Error2X2,
@@ -642,10 +644,12 @@ if plasticityFlag2X2 then
 		  phase                               = 7;
 	       }
    )
-   pv.addGroup(pvParams, "S1UnPooled2X2", pvParams.S1Error1X1,
+   pv.addGroup(pvParams, "S1UnPooled2X2", pvParams.S1MaxPooled1X1,
 	       {
 		  nxScale                             = nxScale_GroundTruth*2;
 		  nyScale                             = nyScale_GroundTruth*2;
+		  VThresh                             = -inf;
+		  AMin                                = -inf;
 		  phase                               = 11;
 	       }
    )
@@ -764,7 +768,6 @@ if not S1_Movie then
 		  --wMaxInit                            = 1;
 		  --sparseFraction                      = 0.9;
 		  initializeFromCheckpointFlag        = false;
-		  triggerFlag                         = true;
 		  triggerLayerName                    = "Image";
 		  triggerOffset                       = 1;
 		  updateGSynFromPostPerspective       = false; 
@@ -977,7 +980,7 @@ pv.addGroup(pvParams, "GroundTruthReconS1ToGroundTruthReconS1Error",
 
 pv.addGroup(pvParams, "S1MaxPooled1X1ToGroundTruthReconS1Error",
 	    {
-	       groupType                           = "HyPerConn";
+	       groupType                           = "HyPerConn";  --"MomentumConn"; --
 	       preLayerName                        = "S1MaxPooled1X1";
 	       postLayerName                       = "GroundTruthReconS1Error";
 	       channelCode                         = -1;
@@ -985,7 +988,7 @@ pv.addGroup(pvParams, "S1MaxPooled1X1ToGroundTruthReconS1Error",
 	       numAxonalArbors                     = 1;
 	       plasticityFlag                      = plasticityFlag;
 	       convertRateToSpikeCount             = false;
-	       receiveGpu                          = true; --false;
+	       receiveGpu                          = false;
 	       sharedWeights                       = true;
 	       weightInitType                      = "FileWeight";
 	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooled1X1ToGroundTruthReconS1Error_W.pvp";
@@ -1014,15 +1017,16 @@ pv.addGroup(pvParams, "S1MaxPooled1X1ToGroundTruthReconS1Error",
 	       dWMax                               = dWMax1X1;
 	       keepKernelsSynchronized             = true;
 	       useMask                             = false;
-	       -- momentumTau                         = 1;
-	       -- momentumMethod                      = "viscosity";
+	       momentumTau                         = 200;
+	       momentumMethod                      = "viscosity";
 	       -- momentumDecay                       = 0;
 	       Batchperiod                         = 1;
 	    }
 )
 if S1_Movie then
-   pvParams.S1MaxPooled1X1ToGroundTruthReconS1Error.triggerLayerName  = "GroundTruth";
-   pvParams.S1MaxPooled1X1ToGroundTruthReconS1Error.triggerOffset     = 0;
+   pvParams.S1MaxPooled1X1ToGroundTruthReconS1Error.triggerLayerName  = nil; --"GroundTruth";
+   pvParams.S1MaxPooled1X1ToGroundTruthReconS1Error.triggerOffset     = nil; --0;
+   pvParams.S1MaxPooled1X1ToGroundTruthReconS1Error.triggerBehavior   = nil; --0;
 end
 
 pv.addGroup(pvParams, "BiasS1ToGroundTruthReconS1Error",
@@ -1037,6 +1041,25 @@ if plasticityFlag then
    pvParams.BiasS1ToGroundTruthReconS1Error.dWMax = dWMaxBias;
 end
 
+pv.addGroup(pvParams, "S1MaxPooled2X2ToS1Error2X2",
+	    pvParams.S1MaxPooled1X1ToGroundTruthReconS1Error,
+	    {
+	       preLayerName                        = "S1MaxPooled2X2";
+	       postLayerName                       = "S1Error2X2";
+	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooled2X2ToS1Error2X2_W.pvp";
+	       dWMax                               = dWMax2X2;
+	    }
+)
+pv.addGroup(pvParams, "S1MaxPooled4X4ToS1Error4X4",
+	    pvParams.S1MaxPooled2X2ToS1Error2X2,
+	    {
+	       preLayerName                        = "S1MaxPooled4X4";
+	       postLayerName                       = "S1Error4X4";
+	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooled4X4ToS1Error4X4_W.pvp";
+	       dWMax                               = dWMax4X4;
+	    }
+)
+
 if not plasticityFlag then
    pvParams.S1MaxPooled1X1ToGroundTruthReconS1Error.plasticityFlag     = false;
    pvParams.S1MaxPooled1X1ToGroundTruthReconS1Error.triggerLayerName   = NULL;
@@ -1050,15 +1073,6 @@ if not plasticityFlag then
    pvParams.BiasS1ToGroundTruthReconS1Error.dWMax                      = nil;
 end
 
-pv.addGroup(pvParams, "S1MaxPooled2X2ToS1Error2X2",
-	    pvParams.S1MaxPooled1X1ToGroundTruthReconS1Error,
-	    {
-	       preLayerName                        = "S1MaxPooled2X2";
-	       postLayerName                       = "S1Error2X2";
-	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooled2X2ToS1Error2X2_W.pvp";
-	       dWMax                               = dWMax2X2;
-	    }
-)
 if not plasticityFlag2X2 then
    pvParams.S1MaxPooled2X2ToS1Error2X2.plasticityFlag     = false;
    pvParams.S1MaxPooled2X2ToS1Error2X2.triggerLayerName   = NULL;
@@ -1070,15 +1084,6 @@ if not plasticityFlag2X2 then
    pvParams.S1MaxPooled2X2ToS1Error2X2.initWeightsFile    = NULL;
 end
 
-pv.addGroup(pvParams, "S1MaxPooled4X4ToS1Error4X4",
-	    pvParams.S1MaxPooled2X2ToS1Error2X2,
-	    {
-	       preLayerName                        = "S1MaxPooled4X4";
-	       postLayerName                       = "S1Error4X4";
-	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooled4X4ToS1Error4X4_W.pvp";
-	       dWMax                               = dWMax4X4;
-	    }
-)
 if not plasticityFlag4X4 then
    pvParams.S1MaxPooled4X4ToS1Error4X4.plasticityFlag     = false;
    pvParams.S1MaxPooled4X4ToS1Error4X4.triggerLayerName   = NULL;
@@ -1210,9 +1215,9 @@ if plasticityFlag2X2 then
 		  }
       )
 
-      pv.addGroup(pvParams, "S1Hidden4X4ToS1Mask4X4", pvParams.S1MaxPooled2X2ToS1Mask2X2, 
+      pv.addGroup(pvParams, "S1Hidden4X4ToS1Mask4X4", pvParams.S1Hidden2X2ToS1Mask2X2, 
 		  {
-		     preLayerName                        = "S1MaxPooled4X4";
+		     preLayerName                        = "S1Hidden4X4";
 		     postLayerName                       = "S1Mask4X4";
 		  }
       )

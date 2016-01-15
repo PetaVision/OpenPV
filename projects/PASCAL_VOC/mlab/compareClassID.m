@@ -43,7 +43,7 @@ elseif strcmp(run_type, "ICA")
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape4"];
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_portrait9"];
 elseif strcmp(run_type, "Deep")
-  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_Deep_ICA/VOC2007_landscape2_S1_Movie6"];
+  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_Deep_ICA/VOC2007_landscape1_S1_Movie3"];
 elseif strcmp(run_type, "DCA")
   output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape12"];
 elseif strcmp(run_type, "DCA_Vine")
@@ -81,7 +81,7 @@ if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, 
 else
   Sparse_list ={[""], ["GroundTruth"]}; 
 endif
-fraction_Sparse_frames_read = 10;
+fraction_Sparse_frames_read = 1;
 min_Sparse_skip = 1; %%79580-7958;
 fraction_Sparse_progress = 10;
 num_epochs = 1;
@@ -102,9 +102,9 @@ if strcmp(run_type, "DCA")
 elseif strcmp(run_type, "ICA")
   nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS1Error2X2"]; [""], ["GroundTruthReconS1Error4X4"]};
   Sparse_std_ndx = [1 1 1]; %%
-else
-  nonSparse_list = {[""], ["GroundTruthReconS1Error"]};
-  Sparse_std_ndx = [1]; %%
+elseif strcmp(run_type, "Deep")
+  nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["S1Error2X2"]};
+  Sparse_std_ndx = [1,1]; %%
 endif
 num_nonSparse_list = size(nonSparse_list,1);
 nonSparse_skip = repmat(1, num_nonSparse_list, 1);
@@ -112,11 +112,11 @@ if strcmp(run_type, "DCA")
   nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]};
 elseif strcmp(run_type, "ICA")
   nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]};
-else
-  nonSparse_norm_list = {[""], ["GroundTruth"]};
+elseif strcmp(run_type, "Deep")
+  nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]};
 endif
 nonSparse_norm_strength = ones(num_nonSparse_list,1);
-fraction_nonSparse_frames_read = 10;
+fraction_nonSparse_frames_read = 1;
 min_nonSparse_skip = 1;
 fraction_nonSparse_progress = 10;
 [nonSparse_times_array, nonSparse_RMS_array, nonSparse_norm_RMS_array, nonSparse_RMS_fig] = analyzeNonSparsePVP(nonSparse_list, nonSparse_skip, nonSparse_norm_list, nonSparse_norm_strength, Sparse_times_array, Sparse_std_array, Sparse_std_ndx, output_dir, plot_flag, fraction_nonSparse_frames_read, min_nonSparse_skip, fraction_nonSparse_progress);

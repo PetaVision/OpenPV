@@ -207,8 +207,9 @@ function [Recon_hdr, ...
 	  close(Recon_fig(i_Recon, i_frame));
 	endif
       else
-	imwrite(Recon_vals_tmp, [Recon_dir, filesep, Recon_fig_name{i_Recon}, ".png"], "png");
+	%%imwrite(Recon_vals_tmp, [Recon_dir, filesep, Recon_fig_name{i_Recon}, ".png"], "png");
       endif
+      imwrite(Recon_vals_tmp, [Recon_dir, filesep, Recon_fig_name{i_Recon}, ".png"], "png");
 
 
       %%  unwhitening block
