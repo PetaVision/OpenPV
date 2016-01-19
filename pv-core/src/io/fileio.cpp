@@ -2192,7 +2192,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
    return status;
 }
 
-int writeRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc, bool isExtended, bool verifyWrites) {
+int writeRandState(const char * filename, Communicator * comm, taus_uint4 * randState, const PVLayerLoc * loc, bool isExtended, bool verifyWrites) {
    int status = PV_SUCCESS;
    int rootproc = 0;
    int rank = comm->commRank();
@@ -2207,7 +2207,7 @@ int writeRandState(const char * filename, Communicator * comm, uint4 * randState
    }
 
    for(int b = 0; b < loc->nbatch; b++){
-      uint4 * randStateBatch;
+      taus_uint4 * randStateBatch;
       if(isExtended){
          randStateBatch = randState + b * (loc->nx + loc->halo.rt + loc->halo.lt) * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
       }
@@ -2222,7 +2222,7 @@ int writeRandState(const char * filename, Communicator * comm, uint4 * randState
    return status;
 }
 
-int readRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc, bool isExtended) {
+int readRandState(const char * filename, Communicator * comm, taus_uint4 * randState, const PVLayerLoc * loc, bool isExtended) {
    int status = PV_SUCCESS;
    int rootproc = 0;
    int rank = comm->commRank();
@@ -2236,7 +2236,7 @@ int readRandState(const char * filename, Communicator * comm, uint4 * randState,
       }
    }
    for(int b = 0; b < loc->nbatch; b++){
-      uint4 * randStateBatch;
+      taus_uint4 * randStateBatch;
       if(isExtended){
          randStateBatch = randState + b * (loc->nx + loc->halo.rt + loc->halo.lt) * (loc->ny + loc->halo.up + loc->halo.dn) * loc->nf;
       }
@@ -2376,7 +2376,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
 // Declare the instantiations of gatherActivity that occur in other .cpp files; otherwise you may get linker errors.
 template int gatherActivity<unsigned char>(PV_Stream * pvstream, Communicator * comm, int rootproc, unsigned char * buffer, const PVLayerLoc * layerLoc, bool extended);
 template int gatherActivity<pvdata_t>(PV_Stream * pvstream, Communicator * comm, int rootproc, pvdata_t * buffer, const PVLayerLoc * layerLoc, bool extended);
-template int gatherActivity<uint4>(PV_Stream * pvstream, Communicator * comm, int rootproc, uint4 * buffer, const PVLayerLoc * layerLoc, bool extended);
+template int gatherActivity<taus_uint4>(PV_Stream * pvstream, Communicator * comm, int rootproc, taus_uint4 * buffer, const PVLayerLoc * layerLoc, bool extended);
 
 template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY, int filetype, int numActive) {
    // In MPI when this process is called, all processes must call it.
@@ -2649,6 +2649,6 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
 // Declare the instantiations of scatterActivity that occur in other .cpp files; otherwise you may get linker errors.
 template int scatterActivity<float>(PV_Stream * pvstream, Communicator * icComm, int rootproc, float * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY, int filetype, int numActive);
 // template int scatterActivity<pvdata_t>(PV_Stream * pvstream, Communicator * icComm, int rootproc, pvdata_t * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY); // duplicates float since pvdata_t is currently float, but this may in principle change
-template int scatterActivity<uint4>(PV_Stream * pvstream, Communicator * icComm, int rootproc, uint4 * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY, int filetype, int numActive);
+template int scatterActivity<taus_uint4>(PV_Stream * pvstream, Communicator * icComm, int rootproc, taus_uint4 * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc, int offsetX, int offsetY, int filetype, int numActive);
 
 } // namespace PV

@@ -73,7 +73,7 @@ protected:
    Random * randState;
 //#ifdef PV_USE_OPENCL
 //   //TODO-Rasmussen-2014.5.24 - need to figure out interaction between Random class and rand_state
-//   uint4 * rand_state;  // state for random numbers
+//   taus_uint4 * rand_state;  // state for random numbers
 //#endif
 
    pvdata_t * Vth;      // threshold potential

@@ -34,24 +34,15 @@
 static inline unsigned int taus_get (taus_state_t *vstate);
 static void taus_set (taus_state_t *state, unsigned int s);
 
-uint4 cl_random_get(uint4 state)
+taus_uint4 cl_random_get(taus_uint4 state)
 {
    state.s0 = taus_get(&state.state);
    return state;
 }
 
-// double cl_random_prob(uint4 * state) {
-//    *state = cl_random_get(*state);
-//    return (double) state->s0/(((double) UINT_MAX)+1);
-// }
-
-int cl_random_init(uint4 * state, size_t count, unsigned int seed)
+int cl_random_init(taus_uint4 * state, size_t count, unsigned int seed)
 {
    int i;
-
-   // Commented out Nov 29, 2012
-   // uint4 * state = (uint4 *) malloc(count * sizeof(uint4));
-   // assert(state != NULL);
 
    // a zero seed can cause problems (see taus_set)
    seed = (seed == 0) ? 1 : seed;

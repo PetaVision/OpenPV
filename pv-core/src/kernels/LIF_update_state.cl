@@ -62,7 +62,7 @@ void LIF_update_state_original(
     const int up,
 
     CL_MEM_CONST LIF_params * params,
-    CL_MEM_GLOBAL uint4 * rnd,
+    CL_MEM_GLOBAL taus_uint4 * rnd,
     CL_MEM_GLOBAL float * V,
     CL_MEM_GLOBAL float * Vth,
     CL_MEM_GLOBAL float * G_E,
@@ -101,7 +101,7 @@ for (k = 0; k < nx*ny*nf*nbatch; k++) {
    // local variables
    float l_activ;
 
-   uint4 l_rnd = rnd[k];
+   taus_uint4 l_rnd = rnd[k];
 
    float l_V   = V[k];
    float l_Vth = Vth[k];
@@ -233,7 +233,7 @@ void LIF_update_state_beginning(
     const int up,
 
     CL_MEM_CONST LIF_params * params,
-    CL_MEM_GLOBAL uint4 * rnd,
+    CL_MEM_GLOBAL taus_uint4 * rnd,
     CL_MEM_GLOBAL float * V,
     CL_MEM_GLOBAL float * Vth,
     CL_MEM_GLOBAL float * G_E,
@@ -275,7 +275,7 @@ for (k = 0; k < nx*ny*nf*nbatch; k++) {
    // local variables
    float l_activ;
 
-   uint4 l_rnd = rnd[k];
+   taus_uint4 l_rnd = rnd[k];
 
    float l_V   = V[k];
    float l_Vth = Vth[k];
@@ -410,7 +410,7 @@ void LIF_update_state_arma(
     const int up,
 
     CL_MEM_CONST LIF_params * params,
-    CL_MEM_GLOBAL uint4 * rnd,
+    CL_MEM_GLOBAL taus_uint4 * rnd,
     CL_MEM_GLOBAL float * V,
     CL_MEM_GLOBAL float * Vth,
     CL_MEM_GLOBAL float * G_E,
@@ -450,7 +450,7 @@ void LIF_update_state_arma(
       // local variables
       float l_activ;
 
-      uint4 l_rnd = rnd[k];
+      taus_uint4 l_rnd = rnd[k];
 
       float l_V   = V[k];
       float l_Vth = Vth[k];

@@ -42,7 +42,8 @@ protected:
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
    virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
    //virtual void deliverOnePreNeuronActivity(int kPreExt, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
-   //virtual void deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, uint4 * rngPtr);
+   //virtual void deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t*
+   //gSynPatchPos, float dt_factor, taus_uint4 * rngPtr);
    void clearGateIdxBuffer();
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)

@@ -65,7 +65,7 @@ int pvpatch_accumulate2(int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT 
 
 int pvpatch_accumulate_stochastic(int kPreExt, int nk, float* RESTRICT v, float a, pvwdata_t* RESTRICT w, void * auxPtr, int sf)
 {
-   uint4 * rng = (uint4 *) auxPtr;
+   taus_uint4 * rng = (taus_uint4 *) auxPtr;
    long along = (long) (a*cl_random_max());
    int err = 0;
    int k;
@@ -83,7 +83,7 @@ int pvpatch_accumulate_stochastic(int kPreExt, int nk, float* RESTRICT v, float 
 
 int pvpatch_accumulate_stochastic_from_post(int kPreExt, int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
    int status = 0;
-   uint4 * rng = (uint4 *) auxPtr;
+   taus_uint4 * rng = (taus_uint4 *) auxPtr;
    int k;
    float dv = 0.0f;
    for (k = 0; k < nk; k+=sf) {

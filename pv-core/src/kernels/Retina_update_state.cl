@@ -79,7 +79,7 @@ float calcBurstStatus(double timed, CL_MEM_CONST Retina_params * params) {
 
 static inline
 int spike(float timed, float dt,
-          float prev, float stimFactor, uint4 * rnd_state, float burst_status, CL_MEM_CONST Retina_params * params)
+          float prev, float stimFactor, taus_uint4 * rnd_state, float burst_status, CL_MEM_CONST Retina_params * params)
 {
    float probSpike;
 
@@ -132,7 +132,7 @@ void Retina_spiking_update_state (
     const int up,
 
     CL_MEM_CONST Retina_params * params,
-    CL_MEM_GLOBAL uint4 * rnd,
+    CL_MEM_GLOBAL taus_uint4 * rnd,
     CL_MEM_GLOBAL float * GSynHead,
     CL_MEM_GLOBAL float * activity,
     CL_MEM_GLOBAL float * prevTime)
@@ -141,7 +141,7 @@ void Retina_spiking_update_state (
    CL_MEM_GLOBAL float * phiExc = &GSynHead[CHANNEL_EXC*nbatch*numNeurons];
    CL_MEM_GLOBAL float * phiInh = &GSynHead[CHANNEL_INH*nbatch*numNeurons];
    for(int b = 0; b < nbatch; b++){
-      CL_MEM_GLOBAL uint4* rndBatch = rnd + b * nx*ny*nf;
+      CL_MEM_GLOBAL taus_uint4* rndBatch = rnd + b * nx*ny*nf;
       CL_MEM_GLOBAL float* phiExcBatch = phiExc + b*nx*ny*nf;
       CL_MEM_GLOBAL float* phiInhBatch = phiInh + b*nx*ny*nf;
       CL_MEM_GLOBAL float* prevTimeBatch = prevTime + b * (nx+lt+rt)*(ny+up+dn)*nf;
@@ -164,7 +164,7 @@ void Retina_spiking_update_state (
       
       // load local variables from global memory
       //
-      uint4 l_rnd = rndBatch[k]; 
+      taus_uint4 l_rnd = rndBatch[k]; 
       float l_phiExc = phiExcBatch[k];
       float l_phiInh = phiInhBatch[k];
       float l_prev   = prevTimeBatch[kex];

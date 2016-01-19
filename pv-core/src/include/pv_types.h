@@ -120,4 +120,15 @@ typedef struct PVLayer_ {
 
 } PVLayer;
 
+typedef struct
+  {
+    unsigned int s1, s2, s3;
+  }
+taus_state_t;
+
+typedef struct taus_uint4_ {
+   unsigned int s0;
+   taus_state_t state;
+} taus_uint4;
+
 #endif /* PV_TYPES_H_ */
