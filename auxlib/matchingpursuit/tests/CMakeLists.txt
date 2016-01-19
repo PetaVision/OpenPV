@@ -1,8 +1,6 @@
 # This CMakeLists.txt file can be used to generate makefiles for several projects at once.
 # It should be put in the directory containing the projects.
 
-project(PetaVision)
-
 enable_testing()
 
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
