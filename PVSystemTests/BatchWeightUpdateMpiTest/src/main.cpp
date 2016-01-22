@@ -158,14 +158,24 @@ int compareFiles(const char* file1, const char* file2){
    }
 
    FILE * fp1 = fopen(file1, "r");
-   FILE * fp2 = fopen(file2, "r");
    if(!fp1){
-      std::cout << "Unable to open file " << file1 << "\n";
-      exit(-1);
+      std::cout << "Unable to open file " << file1 << ": " << strerror(errno) << ". Retrying.\n";
+      fp1 = fopen(file1, "r");
+      if (!fp1) {
+         sleep(1U);
+         std::cout << "Still unable to open file " << file1 << ": " << strerror(errno) << ". Test failed.\n";
+      }
    }
+   FILE * fp2 = fopen(file2, "r");
    if(!fp2){
-      std::cout << "Unable to open file " << file2 << "\n";
-      exit(-1);
+      std::cout << "Unable to open file " << file2 << ": " << strerror(errno) << ". Retrying.\n";
+      if (!fp2) {
+         sleep(1U);
+         std::cout << "Still unable to open file " << file2 << ": " << strerror(errno) << ". Test failed.\n";
+      }
+   }
+   if (!fp1 || !fp2) {
+      exit(EXIT_FAILURE);
    }
 #define NUM_WGT_PARAMS (NUM_BIN_PARAMS + NUM_WGT_EXTRA_PARAMS)
    //Seek past the header
