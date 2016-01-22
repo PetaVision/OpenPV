@@ -2723,7 +2723,7 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
 
    status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
    assert(status == PV_SUCCESS);
-   if (this->plasticityFlag &&  weightUpdateTime<parent->simulationTime()) {
+   if (this->plasticityFlag && !triggerLayerName && weightUpdateTime<parent->simulationTime()) {
       status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
       assert(status == PV_SUCCESS);
       // simulationTime() may have been changed by HyPerCol::checkpoint, so this repeats the sanity check on weightUpdateTime in allocateDataStructures
