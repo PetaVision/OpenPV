@@ -12,10 +12,10 @@ namespace PVCuda{
 //Reshapes the matrix if manyScale > 1 to map different "many" kernels into feature dimension
 //Coallessed in input
 __global__
-void CudaPermutePVToCudnn(float* dest, float* src, int outFeatures, int ny, int nx, int inFeatures, int manyScaleX, int manyScaleY){
+void CudaPermutePVToCudnn(float* dest, float* src, int outFeatures, int ny, int nx, int inFeatures, int manyScaleX, int manyScaleY, int cropX, int cropY){
    //parameter dimensions are in source PV format
-   int destNx = nx/manyScaleX;
-   int destNy = ny/manyScaleY;
+   int destNx = (nx-2*cropX)/manyScaleX;
+   int destNy = (ny-2*cropY)/manyScaleY;
    int destInFeatures = inFeatures*manyScaleX*manyScaleY;
 
    int kSrc = (blockIdx.x * blockDim.x) + threadIdx.x;
@@ -24,6 +24,20 @@ void CudaPermutePVToCudnn(float* dest, float* src, int outFeatures, int ny, int 
       int kY  = (kSrc % (ny*nx*inFeatures))/(nx*inFeatures);
       int kX  = (kSrc % (nx*inFeatures))/inFeatures;
       int kIF = (kSrc % inFeatures);
+
+      //check if in bounds
+      if(kX < cropX || kX >= nx-cropX){ 
+         return;
+      }
+      else{
+         kX = kX - cropX;
+      }
+      if(kY < cropY || kY >= ny-cropY){
+         return;
+      }
+      else{
+         kY = kY - cropY;
+      }
 
       //Recalculate x, y, and f based on manyScale
       kIF = kIF + inFeatures * (kX % manyScaleX + (kY % manyScaleY) * manyScaleX);
@@ -416,9 +430,12 @@ void CudaRecvPost::setArgs(
       actualYBorder = (params.nyp-params.preToPostScaleY)/2;
    }
 
-   int diffX = actualXBorder - params.preNblt;
-   int diffY = actualYBorder - params.preNbup;
+   //params.diffX = actualXBorder - params.preNblt;
+   //params.diffY = actualYBorder - params.preNbup;
 
+   //diffX is positive value of cropping
+   params.diffX = params.preNblt - actualXBorder;
+   params.diffY = params.preNbup - actualYBorder;
 
    //assert(diffX <= 0 && diffY <= 0);
 
@@ -430,8 +447,8 @@ void CudaRecvPost::setArgs(
    status = cudnnSetTensor4dDescriptor(inputDescriptor, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT,
       nbatch, //Number of images
       params.preNf, //Number of feature maps per image
-      params.preNy + params.preNbup + params.preNbdn, //Height of each feature map
-      params.preNx + params.preNblt + params.preNbrt); //Width of each feature map
+      params.preNy + params.preNbup + params.preNbdn - 2*params.diffY, //Height of each feature map
+      params.preNx + params.preNblt + params.preNbrt - 2*params.diffX); //Width of each feature map
    if(status != CUDNN_STATUS_SUCCESS){
       switch(status){
          case CUDNN_STATUS_BAD_PARAM:
@@ -457,7 +474,6 @@ void CudaRecvPost::setArgs(
    cudnnHandleError(status, "Set filter tensor descriptor");
    params.v_filterDescriptor = (void*)filterDescriptor;
 
-
    //Set convolution descriptor
    cudnnConvolutionDescriptor_t convDescriptor;
    status = cudnnCreateConvolutionDescriptor(&convDescriptor);
@@ -465,8 +481,8 @@ void CudaRecvPost::setArgs(
    status = cudnnSetConvolution2dDescriptor(convDescriptor,
       //params.nyp-params.preToPostScaleY-1,
       //params.nxp-params.preToPostScaleX-1,  //zero-padding height and width
-      diffY,
-      diffX,  //zero-padding height and width
+      0,
+      0,  //zero-padding height and width
       strideY, //Vertical filter stride
       strideX, //Horizontal filter stride
       1, 1, //upscale the input in x/y direction
@@ -564,7 +580,7 @@ void CudaRecvPost::permuteDatastorePVToCudnn(){
 
    //Call function
    //Datastore will never get reshaped, so manyScale will always be 1
-   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_preData, params.preData, nbatch, ny, nx, nf, 1, 1);
+   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_preData, params.preData, nbatch, ny, nx, nf, 1, 1, params.diffX, params.diffY);
    handleCallError("Permute PV to CUDNN");
 }
 
@@ -583,7 +599,7 @@ void CudaRecvPost::permuteGSynPVToCudnn(int channel){
    //Ceil to get all weights
    int gridSize = ceil((float)numNeurons/blockSize);
    //Call function
-   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_gSyn, gSynPatchHead, nbatch, ny, nx, nf, params.manyScaleX, params.manyScaleY);
+   CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_gSyn, gSynPatchHead, nbatch, ny, nx, nf, params.manyScaleX, params.manyScaleY, 0, 0);
    handleCallError("Permute GSyn PV to CUDNN");
 }
 
