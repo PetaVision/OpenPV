@@ -3,6 +3,7 @@
 
 -- Load util module in PV trunk: NOTE this may need to change
 --package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/pv-core/parameterWrapper/PVModule.lua"
+--package.path = package.path .. ";" .. os.getenv("HOME") .. "/mountData/openpv/pv-core/parameterWrapper/PVModule.lua"
 package.path = package.path .. ";" .. os.getenv("HOME") .. "/openpv/pv-core/parameterWrapper/PVModule.lua"
 local pv = require "PVModule"
 
@@ -21,34 +22,35 @@ local patchSizeY            = 16
 local tau                   = 400
 local nf_Image              = 3 -- 3 for RGB, 1 for gray
 local S1_numFeatures        = patchSizeX * patchSizeY * nf_Image * 2 -- (patchSize/stride)^2 Xs overcomplete (i.e. complete for orthonormal ICA basis for stride == patchSize)
-local z                     = 0  -- z = 0,1,2, ... to obtain overcompleteness of 1,4,16, ...
-local overcompleteness      = math.pow(math.pow(2,z),2)
+local zX                    = 3  -- zX = 0 1 2 
+local zY                    = 2  -- zY = 0 1 2 
+local overcompleteness      = math.pow(2,zX) * math.pow(2,zY)--math.pow(math.pow(2,z),2) --(2^z)^2
 local overcompletenessTmp   = overcompleteness
-local temporalKernelSize    = 2 -- 4 -- 
-local numFrames             = 1*(-1 + temporalKernelSize * 2)
+local temporalKernelSize    = 4 -- 
+local numFrames             = 2*(-1 + temporalKernelSize * 2)
 
 -- User defined variables
 local plasticityFlag      = true --false
-local strideX             = patchSizeX/math.pow(2,z) -- divide patchSize by 2^z to obtain dictionaries that are (2^z)^2 Xs overcomplete
-local strideY             = patchSizeY/math.pow(2,z) -- 
+local strideX             = patchSizeX/math.pow(2,zX) -- divide patchSize by 2^z to obtain dictionaries that are (2^z)^2 Xs overcomplete
+local strideY             = patchSizeY/math.pow(2,zY) -- 
 local nxSize              = 256 -- (1280/4)*4/5
 local nySize              = 144 -- (720/4)*4/5
 local experimentName      = "ImageNetVid_S1X" .. overcompleteness .. "_" .. patchSizeX .. "X" .. patchSizeY .. "_" .. temporalKernelSize .. "X" .. numFrames .. "frames"
 --local experimentNameTmp   = experimentName --"VID_ILSVRC2015_S1X" .. overcompletenessTmp .. "_" .. S1_numFeatures .. "_" .. numFrames .. "frames" .. "_ICA"
 local runName             = "train" --"n02958343_landscape"
-local runVersion          = 1
-local machinePath         = "/home/ec2-user/mountData"
-local databasePath        = "PASCAL_VOC/imageNetVID" 
+local runVersion          = 2
+local machinePath         = "/home/ec2-user/mountData" --"/Volumes/mountData" --
+local databasePath        = "VID" --"PASCAL_VOC/imageNetVID" 
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
-local inputPath           = nil --machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
+local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion - 1
 local inputPathSLP        = nil --machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
 local numImages           = 8211
 local displayPeriod       = 1200
-local numEpochs           = 4
+local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs
-local checkpointID        = nil --stopTime-- 
+local checkpointID        = "0300599" --"00256026" --stopTime-- 
 local checkpointID_SLP    = nil --stopTime--
-local writePeriod         = 100 * displayPeriod
+local writePeriod         = 10 * displayPeriod
 local initialWriteTime    = writePeriod
 local checkpointWriteStepInterval = writePeriod
 local S1_Movie            = false
@@ -62,8 +64,8 @@ if S1_Movie then
    initialWriteTime        = numImages*(numEpochs-1)+1
    checkpointWriteStepInterval = numImages
 else -- not used if run version == 1
-   inputPath               = nil --inputPath .. runVersion-1
-   inputPathSLP            = nil --inputPath .. "S1_Movie"
+   --inputPath               = nil --inputPath .. runVersion-1
+   --inputPathSLP            = nil --inputPath .. "S1_Movie"
 end
 local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false
@@ -81,8 +83,8 @@ local dtAdaptFlag              = not S1_Movie
 local useAdaptMethodExp1stOrder = true
 local dtAdaptController        = "S1EnergyProbe"
 local dtAdaptTriggerLayerName  = "Frame0";
-local dtScaleMax               = 0.005   --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
-local dtScaleMin               = 0.001  --0.01    -- default time scale to use after image flips or when something is wacky
+local dtScaleMax               = 0.05   --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
+local dtScaleMin               = 0.01  --0.01    -- default time scale to use after image flips or when something is wacky
 local dtChangeMax              = 0.1   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
 local dtChangeMin              = 0.01  --0.01    -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
 local dtMinToleratedTimeScale  = 0.00001
@@ -144,20 +146,63 @@ if S1_Movie then
 
 
    if GroundTruthPath then
-      local GroundTruthMoviePath                         = inputPath .. "/" .. "GroundTruth.pvp"
-      pv.addGroup(pvParams, "GroundTruth",
+      for i_frame = 1, numFrames do
+	 
+	 local GroundTruthMoviePath                         = inputPath .. "/" .. "GroundTruth" .. i_frame-1 .. ".pvp"
+	 pv.addGroup(pvParams, "GroundTruth" .. i_frame-1,
+		     {
+			groupType = "MoviePvp";
+			nxScale                             = nxScale_GroundTruth;
+			nyScale                             = nyScale_GroundTruth;
+			nf                                  = numClasses + 1;
+			phase                               = 0;
+			mirrorBCflag                        = true;
+			initializeFromCheckpointFlag        = false;
+			writeStep                           = displayPeriod;
+			initialWriteTime                    = displayPeriod;
+			sparseLayer                         = true;
+			writeSparseValues                   = false;
+			updateGpu                           = false;
+			dataType                            = nil;
+			offsetAnchor                        = "tl";
+			offsetX                             = 0;
+			offsetY                             = 0;
+			writeImages                         = 0;
+			useImageBCflag                      = false;
+			autoResizeFlag                      = false;
+			inverseFlag                         = false;
+			normalizeLuminanceFlag              = false;
+			jitterFlag                          = 0;
+			padValue                            = 0;
+			inputPath                           = GroundTruthMoviePath;
+			displayPeriod                       = displayPeriod;
+			randomMovie                         = 0;
+			readPvpFile                         = true;
+			start_frame_index                   = startFrame;
+			skip_frame_index                    = 0; --skipFrame;
+			writeFrameToTimestamp               = true;
+			flipOnTimescaleError                = true;
+			resetToStartOnLoop                  = false;
+		     }
+	 )
+      end -- i_frame
+   end -- if GroundTruthPath
+
+
+   for i_delay = 1, numFrames - temporalKernelSize + 1 do
+      local S1MoviePath                                   = inputPath .. "/" .. "S1.pvp"
+      pv.addGroup(pvParams, "S1" .. i_delay-1,
 		  {
 		     groupType = "MoviePvp";
-		     nxScale                             = nxScale_GroundTruth;
-		     nyScale                             = nyScale_GroundTruth;
-		     nf                                  = numClasses + 1;
+		     nxScale                             = 1.0/strideX;
+		     nyScale                             = 1.0/strideY;
+		     nf                                  = S1_numFeatures;
 		     phase                               = 0;
-		     mirrorBCflag                        = true;
+		     mirrorBCflag                        = false;
 		     initializeFromCheckpointFlag        = false;
-		     writeStep                           = displayPeriod;
-		     initialWriteTime                    = displayPeriod;
+		     writeStep                           = -1;
 		     sparseLayer                         = true;
-		     writeSparseValues                   = false;
+		     writeSparseValues                   = true;
 		     updateGpu                           = false;
 		     dataType                            = nil;
 		     offsetAnchor                        = "tl";
@@ -170,56 +215,18 @@ if S1_Movie then
 		     normalizeLuminanceFlag              = false;
 		     jitterFlag                          = 0;
 		     padValue                            = 0;
-		     inputPath                           = GroundTruthMoviePath;
+		     inputPath                           = S1MoviePath;
 		     displayPeriod                       = displayPeriod;
 		     randomMovie                         = 0;
 		     readPvpFile                         = true;
 		     start_frame_index                   = startFrame;
-		     skip_frame_index                    = skipFrame;
+		     skip_frame_index                    = 0;
 		     writeFrameToTimestamp               = true;
 		     flipOnTimescaleError                = true;
 		     resetToStartOnLoop                  = false;
 		  }
       )
-   end -- if GroundTruthPath
-
-
-   local S1MoviePath                                   = inputPath .. "/" .. "S1.pvp"
-   pv.addGroup(pvParams, "S1",
-	       {
-		  groupType = "MoviePvp";
-		  nxScale                             = 1.0/strideX;
-		  nyScale                             = 1.0/strideY;
-		  nf                                  = S1_numFeatures;
-		  phase                               = 0;
-		  mirrorBCflag                        = false;
-		  initializeFromCheckpointFlag        = false;
-		  writeStep                           = -1;
-		  sparseLayer                         = true;
-		  writeSparseValues                   = true;
-		  updateGpu                           = false;
-		  dataType                            = nil;
-		  offsetAnchor                        = "tl";
-		  offsetX                             = 0;
-		  offsetY                             = 0;
-		  writeImages                         = 0;
-		  useImageBCflag                      = false;
-		  autoResizeFlag                      = false;
-		  inverseFlag                         = false;
-		  normalizeLuminanceFlag              = false;
-		  jitterFlag                          = 0;
-		  padValue                            = 0;
-		  inputPath                           = S1MoviePath;
-		  displayPeriod                       = displayPeriod;
-		  randomMovie                         = 0;
-		  readPvpFile                         = true;
-		  start_frame_index                   = startFrame;
-		  skip_frame_index                    = 0;
-		  writeFrameToTimestamp               = true;
-		  flipOnTimescaleError                = true;
-		  resetToStartOnLoop                  = false;
-	       }
-   )
+   end -- i_delay
 else -- not S1_Movie
    
    -- pv.addGroup(pvParams, "ConstantS1",
@@ -321,7 +328,7 @@ else -- not S1_Movie
    end -- i_frame
    
    for i_delay = 1, numFrames - temporalKernelSize + 1 do
-   --for i_delay = 1, numFrames do
+      --for i_delay = 1, numFrames do
       pv.addGroup(pvParams, "S1_" .. i_delay-1,
 		  {
 		     groupType = "HyPerLCALayer";
@@ -365,7 +372,7 @@ else -- not S1_Movie
    end -- i_delay
 
    for i_frame = 1, numFrames do  
-   --for i_frame = 1, numFrames+temporalKernelSize-1 do  
+      --for i_frame = 1, numFrames+temporalKernelSize-1 do  
 
       pv.addGroup(pvParams, "Frame" .. i_frame-1 .. "ReconS1",
 		  {
@@ -398,7 +405,7 @@ else -- not S1_Movie
       end
 
       for i_delay = 1, numFrames - temporalKernelSize + 1 do
-      --for i_delay = 1, numFrames do
+	 --for i_delay = 1, numFrames do
 
 	 local delta_frame = i_frame - i_delay
 	 if (delta_frame >= 0 and delta_frame < temporalKernelSize) then
@@ -418,93 +425,98 @@ end -- S1_Movie
 
 -- Ground Truth 
 
-if GroundTruthPath then
-   for i_frame = 1, numFrames do
-      
-      pv.addGroup(pvParams, "GroundTruthPixels" .. i_frame-1,
-		  {
-		     groupType = "MoviePvp";
-		     nxScale                             = 1;
-		     nyScale                             = 1;
-		     nf                                  = numClasses;
-		     phase                               = 0;
-		     mirrorBCflag                        = true;
-		     initializeFromCheckpointFlag        = false;
-		     writeStep                           = -1;
-		     sparseLayer                         = true;
-		     writeSparseValues                   = false;
-		     updateGpu                           = false;
-		     dataType                            = nil;
-		     offsetAnchor                        = "tl";
-		     offsetX                             = 0;
-		     offsetY                             = 0;
-		     writeImages                         = 0;
-		     useImageBCflag                      = false;
-		     autoResizeFlag                      = false;
-		     inverseFlag                         = false;
-		     normalizeLuminanceFlag              = false;
-		     jitterFlag                          = 0;
-		     padValue                            = 0;
-		     inputPath                           = GroundTruthPath;
-		     displayPeriod                       = displayPeriod;
-		     randomMovie                         = 0;
-		     readPvpFile                         = true;
-		     start_frame_index                   = startFrame + i_frame-1;
-		     skip_frame_index                    = skipFrame;
-		     writeFrameToTimestamp               = true;
-		     flipOnTimescaleError                = true;
-		     resetToStartOnLoop                  = false;
-		  }
-      )
-      
-      pv.addGroup(pvParams, "GroundTruthNoBackground" .. i_frame-1,
-		  pvParams["Frame" .. i_frame-1 .. "ReconS1"],
-		  {
-		     nxScale                             = nxScale_GroundTruth;
-		     nyScale                             = nyScale_GroundTruth;
-		     nf                                  = numClasses;
-		     phase                               = 1;
-		     writeStep                           = -1;
-		     sparseLayer                         = true;
-		  }
-      )
-      pvParams["GroundTruthNoBackground" .. i_frame-1].triggerLayerName  = "GroundTruthPixels" .. i_frame-1;
-      pvParams["GroundTruthNoBackground" .. i_frame-1].triggerBehavior   = "updateOnlyOnTrigger";
-      pvParams["GroundTruthNoBackground" .. i_frame-1].triggerOffset     = 0;
-      pvParams["GroundTruthNoBackground" .. i_frame-1].writeSparseValues = false;
-      
-      pv.addGroup(pvParams, "GroundTruth" .. i_frame-1,
-		  {
-		     groupType = "BackgroundLayer";
-		     nxScale                             = nxScale_GroundTruth;
-		     nyScale                             = nyScale_GroundTruth;
-		     nf                                  = numClasses + 1;
-		     phase                               = 2;
-		     mirrorBCflag                        = false;
-		     valueBC                             = 0;
-		     initializeFromCheckpointFlag        = false;
-		     triggerLayerName                    = "GroundTruthPixels" .. i_frame-1;
-		     triggerBehavior                     = "updateOnlyOnTrigger";
-		     triggerOffset                       = 0;
-		     writeStep                           = displayPeriod;
-		     initialWriteTime                    = displayPeriod;
-		     sparseLayer                         = true;
-		     writeSparseValues                   = false;
-		     updateGpu                           = false;
-		     dataType                            = nil;
-		     originalLayerName                   = "GroundTruthNoBackground" .. i_frame-1;
-		     repFeatureNum                       = 1;
-		  }
-      )
-      
-   end -- i_frame
+if not S1_Movie then
+   if GroundTruthPath then
+      for i_frame = 1, numFrames do
+	 
+	 pv.addGroup(pvParams, "GroundTruthPixels" .. i_frame-1,
+		     {
+			groupType = "MoviePvp";
+			nxScale                             = 1;
+			nyScale                             = 1;
+			nf                                  = numClasses;
+			phase                               = 0;
+			mirrorBCflag                        = true;
+			initializeFromCheckpointFlag        = false;
+			writeStep                           = -1;
+			sparseLayer                         = true;
+			writeSparseValues                   = false;
+			updateGpu                           = false;
+			dataType                            = nil;
+			offsetAnchor                        = "tl";
+			offsetX                             = 0;
+			offsetY                             = 0;
+			writeImages                         = 0;
+			useImageBCflag                      = false;
+			autoResizeFlag                      = false;
+			inverseFlag                         = false;
+			normalizeLuminanceFlag              = false;
+			jitterFlag                          = 0;
+			padValue                            = 0;
+			inputPath                           = GroundTruthPath;
+			displayPeriod                       = displayPeriod;
+			randomMovie                         = 0;
+			readPvpFile                         = true;
+			start_frame_index                   = startFrame + i_frame-1;
+			skip_frame_index                    = skipFrame;
+			writeFrameToTimestamp               = true;
+			flipOnTimescaleError                = true;
+			resetToStartOnLoop                  = false;
+		     }
+	 )
+	 
+	 pv.addGroup(pvParams, "GroundTruthNoBackground" .. i_frame-1,
+		     pvParams["Frame" .. i_frame-1 .. "ReconS1"],
+		     {
+			nxScale                             = nxScale_GroundTruth;
+			nyScale                             = nyScale_GroundTruth;
+			nf                                  = numClasses;
+			phase                               = 1;
+			writeStep                           = -1;
+			sparseLayer                         = true;
+		     }
+	 )
+	 pvParams["GroundTruthNoBackground" .. i_frame-1].triggerLayerName  = "GroundTruthPixels" .. i_frame-1;
+	 pvParams["GroundTruthNoBackground" .. i_frame-1].triggerBehavior   = "updateOnlyOnTrigger";
+	 pvParams["GroundTruthNoBackground" .. i_frame-1].triggerOffset     = 0;
+	 pvParams["GroundTruthNoBackground" .. i_frame-1].writeSparseValues = false;
+	 
+	 pv.addGroup(pvParams, "GroundTruth" .. i_frame-1,
+		     {
+			groupType                           = "BackgroundLayer";
+			nxScale                             = nxScale_GroundTruth;
+			nyScale                             = nyScale_GroundTruth;
+			nf                                  = numClasses + 1;
+			phase                               = 2;
+			mirrorBCflag                        = false;
+			valueBC                             = 0;
+			initializeFromCheckpointFlag        = false;
+			triggerLayerName                    = "GroundTruthPixels" .. i_frame-1;
+			triggerBehavior                     = "updateOnlyOnTrigger";
+			triggerOffset                       = 0;
+			writeStep                           = displayPeriod;
+			initialWriteTime                    = displayPeriod;
+			sparseLayer                         = true;
+			writeSparseValues                   = false;
+			updateGpu                           = false;
+			dataType                            = nil;
+			originalLayerName                   = "GroundTruthNoBackground" .. i_frame-1;
+			repFeatureNum                       = 1;
+		     }
+	 )
+	 
+      end -- i_frame
 
+   end -- GroundTruthPath
+end -- not S1_Movie
+
+if GroundTruthPath then
 
    for i_frame = 1, numFrames do  
 
       pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1Error",
 		  {
-		     groupType = "ANNLayer";
+		     groupType                           = "ANNLayer";
 		     nxScale                             = nxScale_GroundTruth;
 		     nyScale                             = nyScale_GroundTruth;
 		     nf                                  = numClasses + 1;
@@ -535,9 +547,6 @@ if GroundTruthPath then
 	 pvParams["GroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerLayerName  = "GroundTruth" .. i_frame-1;
 	 pvParams["GroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerOffset  = 0;
       end
-      
-      --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1Error2X2", pvParams["GroundTruth" .. i_frame-1 .. "ReconS1Error"])
-      --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1Error4X4", pvParams["GroundTruth" .. i_frame-1 .. "ReconS1Error"])
       
       pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1",
 		  {
@@ -572,9 +581,6 @@ if GroundTruthPath then
 	 pvParams["GroundTruth" .. i_frame-1 .. "ReconS1"].triggerOffset  = 0;
       end
       
-      --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS12X2", pvParams["GroundTruth" .. i_frame-1 .. "ReconS1"])
-      --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS14X4", pvParams["GroundTruth" .. i_frame-1 .. "ReconS1"])
-      
       for i_delay = 1, numFrames - temporalKernelSize + 1 do
 	 
 	 local delta_frame = i_frame - i_delay
@@ -586,9 +592,7 @@ if GroundTruthPath then
 			   phase                               = 9;
 			}
 	    )
-	    --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "2X2", pvParams["GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1])
-	    --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "4X4", pvParams["GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1])
-	    
+
 	 end -- delta_frame >= 0
       end -- i_delay
    end -- i_frame
@@ -651,18 +655,6 @@ if GroundTruthPath then
 	 pvParams["S1_" .. i_delay-1 .. "MaxPooled"].triggerOffset     = 0;
       end
       
-      --pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "MaxPooled2X2", pvParams["S1_" .. i_delay-1 .. "MaxPooled"],
-      --		  {
-      --		     nxScale                             = nxScale_GroundTruth * 2;
-      --		     nyScale                             = nyScale_GroundTruth * 2;
-      --		  }
-      --)
-      --pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "MaxPooled4X4", pvParams["S1_" .. i_delay-1 .. "MaxPooled"],
-      --		  {
-      --		     nxScale                             = nxScale_GroundTruth * 4;
-      --		     nyScale                             = nyScale_GroundTruth * 4;
-      --		  }
-      --)
    end -- i_delay
    
 end -- GroundTruthPath
@@ -674,7 +666,8 @@ end -- GroundTruthPath
 if not S1_Movie then
    for i_frame = 1, numFrames do  
 
-      pv.addGroup(pvParams, "Frame" .. i_frame-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error",
+      pv.addGroup(pvParams,
+		  "Frame" .. i_frame-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error",
 		  {
 		     groupType                           = "HyPerConn";
 		     preLayerName                        = "Frame" .. i_frame-1;
@@ -703,7 +696,8 @@ if not S1_Movie then
 		  }
       )
 
-      pv.addGroup(pvParams, "Frame" .. i_frame-1 .. "ReconS1" .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error",
+      pv.addGroup(pvParams,
+		  "Frame" .. i_frame-1 .. "ReconS1" .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error",
 		  {
 		     groupType                           = "IdentConn";
 		     preLayerName                        = "Frame" .. i_frame-1 .. "ReconS1";
@@ -720,7 +714,8 @@ if not S1_Movie then
 	 local delta_frame = i_frame - i_delay
 	 if (delta_frame >= 0 and delta_frame < temporalKernelSize) then
 	    
-	    pv.addGroup(pvParams, "Frame" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1",
+	    pv.addGroup(pvParams,
+			"Frame" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1",
 			{
 			   groupType                           = "IdentConn";
 			   preLayerName                        = "Frame" .. i_frame-1 .. "ReconS1_" .. i_delay-1;
@@ -788,6 +783,8 @@ if not S1_Movie then
 	       if not plasticityFlag then
 		  pvParams["S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error"].triggerLayerName    = NULL;
 		  pvParams["S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error"].triggerOffset       = nil;
+		  pvParams["S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error"].triggerBehavior      = nil;
+		  pvParams["S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error"].dWMax               = nil;
 	       end
 	       if checkpointID then
 		  pvParams["S1_" .. 0 .. "To" .. "Frame" .. delta_frame .. "ReconS1Error"].weightInitType      = "FileWeight";
@@ -799,7 +796,8 @@ if not S1_Movie then
 	       
 	    else -- use a plasticCloneConn
 	       
-	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error",
+	       pv.addGroup(pvParams,
+			   "S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1Error",
 
 			   {
 			      groupType                           = "PlasticCloneConn";
@@ -817,7 +815,8 @@ if not S1_Movie then
 
 	    end -- i_delay == 1
 
-	    pv.addGroup(pvParams, "Frame" .. i_frame-1 .. "ReconS1Error" .. "To" .. "S1_" .. i_delay-1,
+	    pv.addGroup(pvParams,
+			"Frame" .. i_frame-1 .. "ReconS1Error" .. "To" .. "S1_" .. i_delay-1,
 			{
 			   groupType                           = "TransposeConn";
 			   preLayerName                        = "Frame" .. i_frame-1 .. "ReconS1Error";
@@ -843,12 +842,13 @@ if not S1_Movie then
    --for i_frame = 1, numFrames+temporalKernelSize-1 do  
    for i_frame = 1, numFrames do  
       for i_delay = 1, numFrames - temporalKernelSize + 1 do
-      --for i_delay = 1, numFrames do
+	 --for i_delay = 1, numFrames do
 
 	 local delta_frame = i_frame - i_delay
 	 if (delta_frame >= 0 and delta_frame < temporalKernelSize) then
 	    
-	    pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1_" .. i_delay-1,
+	    pv.addGroup(pvParams,
+			"S1_" .. i_delay-1 .. "To" .. "Frame" .. i_frame-1 .. "ReconS1_" .. i_delay-1,
 			{
 			   groupType                           = "CloneConn";
 			   preLayerName                        = "S1_" .. i_delay-1;
@@ -905,126 +905,9 @@ end -- S1_Movie
 -- Ground Truth connections
 if GroundTruthPath then
 
-   for i_frame = 1, numFrames do  
-      for i_delay = 1, numFrames - temporalKernelSize + 1 do
-
-	 local delta_frame = i_frame - i_delay
-	 if (delta_frame >= 0 and delta_frame < temporalKernelSize) then
-	    
-	    pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error",
-			{
-			   groupType                           = "IdentConn";
-			   preLayerName                        = "GroundTruth" .. i_frame-1;
-			   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error";
-			   channelCode                         = 0;
-			   delay                               = {0.000000};
-			   initWeightsFile                     = nil;
-			   writeStep                           = -1;
-			}
-	    )
-
-	    --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2",
-	    --		{
-	    --		   groupType                           = "IdentConn";
-	    --		   preLayerName                        = "GroundTruth" .. i_frame-1;
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2";
-	    --		   channelCode                         = 0;
-	    --		   delay                               = {0.000000};
-	    --		   initWeightsFile                     = nil;
-	    --		   writeStep                           = -1;
-	    --		}
-	    --)
-	    --
-	    --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .."Error4X4",
-	    --		{
-	    --		   groupType                           = "IdentConn";
-	    --		   preLayerName                        = "GroundTruth" .. i_frame-1;
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4";
-	    --		   channelCode                         = 0;
-	    --		   delay                               = {0.000000};
-	    --		   initWeightsFile                     = nil;
-	    --		   writeStep                           = -1;
-	    --		}
-	    --)
-	    
-	    pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1",
-			{
-			   groupType                           = "IdentConn";
-			   preLayerName                        = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1;
-			   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1";
-			   channelCode                         = 0;
-			   delay                               = {0.000000};
-			   initWeightsFile                     = nil;
-			   writeStep                           = -1;
-			}
-	    )
-
-	    --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error2X2",
-	    --		{
-	    --		   groupType                           = "IdentConn";
-	    --		   preLayerName                        = "GroundTruth" .. i_frame-1;
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1Error2X2";
-	    --		   channelCode                         = 0;
-	    --		   delay                               = {0.000000};
-	    --		   initWeightsFile                     = nil;
-	    --		   writeStep                           = -1;
-	    --		}
-	    --)
-
-	    --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error4X4",
-	    --		{
-	    --		   groupType                           = "IdentConn";
-	    --		   preLayerName                        = "GroundTruth" .. i_frame-1;
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1Error4X4";
-	    --		   channelCode                         = 0;
-	    --		   delay                               = {0.000000};
-	    --		   initWeightsFile                     = nil;
-	    --		   writeStep                           = -1;
-	    --		}
-	    --)
-
-	    pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1",
-			{
-			   groupType                           = "IdentConn";
-			   preLayerName                        = "GroundTruth" .. i_frame-1;
-			   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1";
-			   channelCode                         = 0;
-			   delay                               = {0.000000};
-			   initWeightsFile                     = nil;
-			   writeStep                           = -1;
-			}
-	    )
-
-	    --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "2X2To" .. "GroundTruth" .. i_frame-1 .. "ReconS12X2",
-	    --		{
-	    --		   groupType                           = "IdentConn";
-	    --		   preLayerName                        = "GroundTruth" .. i_frame-1;
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS12X2";
-	    --		   channelCode                         = 0;
-	    --		   delay                               = {0.000000};
-	    --		   initWeightsFile                     = nil;
-	    --		   writeStep                           = -1;
-	    --		}
-	    --)
-
-	    --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "4X4To" .. "GroundTruth" .. i_frame-1 .. "ReconS14X4",
-	    --		{
-	    --		   groupType                           = "IdentConn";
-	    --		   preLayerName                        = "GroundTruth" .. i_frame-1;
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS14X4";
-	    --		   channelCode                         = 0;
-	    --		   delay                               = {0.000000};
-	    --		   initWeightsFile                     = nil;
-	    --		   writeStep                           = -1;
-	    --		}
-	    --)
-
-	 end -- delta_frame >= 0
-      end -- i_delay
-   end -- i_frame
-   
    for i_delay = 1, numFrames - temporalKernelSize + 1 do
-      pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "ToS1_" .. i_delay-1 .. "MaxPooled",
+      pv.addGroup(pvParams,
+		  "S1_" .. i_delay-1 .. "ToS1_" .. i_delay-1 .. "MaxPooled",
 		  {
 		     groupType                           = "PoolingConn";
 		     preLayerName                        = "S1_" .. i_delay-1;
@@ -1048,153 +931,172 @@ if GroundTruthPath then
 		  }
       )
       
-      --pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "ToS1_" .. i_delay-1 .. "MaxPooled2X2",
-      --		  pvParams["S1_" .. i_delay-1 .. "ToS1_" .. i_delay-1 .. "MaxPooled"],
-      --		  {
-      --		     postLayerName                       = "S1_" .. i_delay-1 .. "MaxPooled2X2";
-      --		  }
-      --)
-      --
-      --pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "ToS1_" .. i_delay-1 .. "MaxPooled4X4",
-      --		  pvParams["S1_" .. i_delay-1 .. "ToS1_" .. i_delay-1 .. "MaxPooled"],
-      --		  {
-      --		     postLayerName                       = "S1_" .. i_delay-1 .. "MaxPooled4X4";
-      --		  }
-      --)
    end -- i_delay
    
 
    for i_frame = 1, numFrames do  
+
+      pv.addGroup(pvParams,
+		  "GroundTruth" .. i_frame-1 .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error",
+		  {
+		     groupType                           = "IdentConn";
+		     preLayerName                        = "GroundTruth" .. i_frame-1;
+		     postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1Error";
+		     channelCode                         = 0;
+		     delay                               = {0.000000};
+		     initWeightsFile                     = nil;
+		     writeStep                           = -1;
+		  }
+      )
+
+
+      pv.addGroup(pvParams,
+		  "GroundTruth" .. i_frame-1 .. "ReconS1" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error",
+		  {
+		     groupType                           = "IdentConn";
+		     preLayerName                        = "GroundTruth" .. i_frame-1;
+		     postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1Error";
+		     channelCode                         = 1;
+		     delay                               = {0.000000};
+		     initWeightsFile                     = nil;
+		     writeStep                           = -1;
+		  }
+      )
+
+
       for i_delay = 1, numFrames - temporalKernelSize + 1 do
 
 	 local delta_frame = i_frame - i_delay
 	 if (delta_frame >= 0 and delta_frame < temporalKernelSize) then
+
 	    
-	    pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error",
+	    pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1",
 			{
-			   groupType                           = "HyPerConn";
-			   preLayerName                        = "S1_" .. i_delay-1 .. "MaxPooled";
-			   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error";
-			   channelCode                         = -1;
+			   groupType                           = "IdentConn";
+			   preLayerName                        = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1;
+			   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1";
+			   channelCode                         = 0;
 			   delay                               = {0.000000};
-			   numAxonalArbors                     = 1;
-			   plasticityFlag                      = plasticityFlag;
-			   convertRateToSpikeCount             = false;
-			   receiveGpu                          = false;
-			   sharedWeights                       = true;
-			   weightInitType                      = "UniformRandomWeight";
 			   initWeightsFile                     = nil;
-			   wMinInit                            = -0;
-			   wMaxInit                            = 0;
-			   sparseFraction                      = 0;
-			   initializeFromCheckpointFlag        = false;
-			   triggerLayerName                    = "Frame" .. i_frame-1;
-			   triggerBehavior                     = "updateOnlyOnTrigger";
-			   triggerOffset                       = 1;
-			   updateGSynFromPostPerspective       = false;
-			   pvpatchAccumulateType               = "convolve";
 			   writeStep                           = -1;
-			   writeCompressedCheckpoints          = false;
-			   selfFlag                            = false;
-			   combine_dW_with_W_flag              = false;
-			   nxp                                 = 1;
-			   nyp                                 = 1;
-			   shrinkPatches                       = false;
-			   normalizeMethod                     = "none";
-			   dWMax                               = 1.0; --0.5; --0.01;
-			   keepKernelsSynchronized             = true;
-			   useMask                             = false;
 			}
 	    )
-	    if S1_Movie then
-	       pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].triggerLayerName = "GroundTruth" .. i_frame-1;
-	       pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].triggerOffset = 0;
-	    end
-	    if checkpointID_SLP then
-	       pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].weightInitType       = "FileWeight";
-	       pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].initWeightsFile
-		  = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error_W.pvp";
-	       pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].useListOfArborFiles  = false;
-	       pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].combineWeightFiles   = false;
-	    end -- checkpointID_SLP
+	    
+	    if i_delay == 1 then -- the first delay layer stores the original connections
+	       
+	       pv.addGroup(pvParams, "S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error",
+			   {
+			      groupType                           = "HyPerConn";
+			      preLayerName                        = "S1_" .. 0 .. "MaxPooled";
+			      postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error";
+			      channelCode                         = -1;
+			      delay                               = {0.000000};
+			      numAxonalArbors                     = 1;
+			      plasticityFlag                      = plasticityFlag;
+			      convertRateToSpikeCount             = false;
+			      receiveGpu                          = false;
+			      sharedWeights                       = true;
+			      weightInitType                      = "UniformRandomWeight";
+			      initWeightsFile                     = nil;
+			      wMinInit                            = -0;
+			      wMaxInit                            = 0;
+			      sparseFraction                      = 0;
+			      initializeFromCheckpointFlag        = false;
+			      triggerLayerName                    = "Frame" .. i_frame-1;
+			      triggerBehavior                     = "updateOnlyOnTrigger";
+			      triggerOffset                       = 1;
+			      updateGSynFromPostPerspective       = false;
+			      pvpatchAccumulateType               = "convolve";
+			      writeStep                           = -1;
+			      writeCompressedCheckpoints          = false;
+			      selfFlag                            = false;
+			      combine_dW_with_W_flag              = false;
+			      nxp                                 = 1;
+			      nyp                                 = 1;
+			      shrinkPatches                       = false;
+			      normalizeMethod                     = "none";
+			      dWMax                               = 1.0; --0.5; --0.01;
+			      keepKernelsSynchronized             = true;
+			      useMask                             = false;
+			   }
+	       )
+	       if S1_Movie then
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerLayerName = "GroundTruth" .. i_frame-1;
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerOffset = 0;
+	       end
+	       if checkpointID_SLP then
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"].weightInitType       = "FileWeight";
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"].initWeightsFile
+		     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error_W.pvp";
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"].useListOfArborFiles  = false;
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"].combineWeightFiles   = false;
+	       end -- checkpointID_SLP
 
-	    pv.addGroup(pvParams, "BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error",
-			pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"],
-			{
-			   preLayerName                        = "BiasS1";
-			   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error";
-			}
-	    )
-	    if plasticityFlag then
-	       pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].dWMax = 0.01;
-	    end
-	    if checkpointID_SLP then
-	       pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].initWeightsFile
-		  = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error_W.pvp";
-	    end -- checkpointID_SLP
-	    if not plasticityFlag then
-	       pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].plasticityFlag = false;
-	       pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].triggerLayerName = NULL;
-	       pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].triggerOffset = nil;
-	       pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].triggerBehavior = nil;
-	       pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].dWMax = nil;
-	       pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].plasticityFlag = false;
-	       pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].triggerLayerName = NULL;
-	       pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].triggerOffset = nil;
-	       pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].triggerBehavior = nil;
-	       pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"].dWMax = nil;
-	    end
-	    
-	    --pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "MaxPooled2X2ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2",
-	    --		pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"],
-	    --		{
-	    --		   preLayerName                        = "S1_" .. i_delay-1 .. "MaxPooled2X2";
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2";
-	    --		}
-	    --)
-	    --if checkpointID_SLP then
-	    --   pvParams["S1_" .. i_delay-1 .. "MaxPooled2X2ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2"].initWeightsFile
-	    --	  = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/S1_" .. i_delay-1 .. "MaxPooled2X2ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2_W.pvp";
-	    --end -- checkpointID_SLP
-	    --
-	    --pv.addGroup(pvParams, "BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2",
-	    --		pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"], 
-	    --		{
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2";
-	    --		   initWeightsFile
-	    --		      = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2_W.pvp";
-	    --		}
-	    --)
-	    --if checkpointID_SLP then
-	    --   pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2"].initWeightsFile
-	    --	  = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2_W.pvp";
-	    --end -- checkpointID_SLP
-	    --
+	       if not plasticityFlag then
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"].plasticityFlag = false;
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerLayerName = NULL;
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerOffset = nil;
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerBehavior = nil;
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"].dWMax = nil;
+	       end -- not plasticityFlag
 
-	    --pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "MaxPooled4X4ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4",
-	    --		pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"],
-	    --		{
-	    --		   preLayerName                        = "S1_" .. i_delay-1 .. "MaxPooled4X4";
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4";
-	    --		}
-	    --)
-	    --if checkpointID_SLP then
-	    --   pvParams["S1_" .. i_delay-1 .. "MaxPooled4X4ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4"].initWeightsFile
-	    --	  = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/S1_" .. i_delay-1 .. "MaxPooled4X4ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4_W.pvp";
-	    --end -- checkpointID_SLP
-	    --pv.addGroup(pvParams, "BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4",
-	    --		pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error"], 
-	    --		{
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4";
-	    --		}
-	    --)
-	    --if checkpointID_SLP then
-	    --   pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4"].initWeightsFile  =
-	    --	  inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4_W.pvp";
-	    --end -- checkpointID_SLP
-	    
-	    
-	    pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1,
+	    else -- i_delay > 1
+
+	       pv.addGroup(pvParams,
+			   "S1_" .. i_delay-1 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error",
+
+			   {
+			      groupType                           = "PlasticCloneConn";
+			      preLayerName                        = "S1_" .. i_delay-1 .. "MaxPooled";
+			      postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1Error";
+			      channelCode                         = -1;
+			      delay                               = {0.000000};
+			      selfFlag                            = false;
+			      preActivityIsNotRate                = false;
+			      updateGSynFromPostPerspective       = false;
+			      pvpatchAccumulateType               = "convolve";
+			      originalConnName                    = "S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. delta_frame .. "ReconS1Error";
+			   }
+	       )
+
+	    end -- i_delay == 1
+	 end -- delta_frame >= 0
+      end -- i_delay 
+   end --i_frame
+
+   for i_frame = 1, numFrames do
+      pv.addGroup(pvParams, "BiasS1" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error",
+		  pvParams["S1_" .. 0 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error"],
+		  {
+		     preLayerName                        = "BiasS1";
+		     dWMax                               = 0.01;
+		  }
+      )
+      if not plasticityFlag then
+	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerLayerName    = NULL;
+	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerOffset       = nil;
+	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerBehavior      = nil;
+	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].dWMax               = nil;
+      end
+      if checkpointID_SLP then
+	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].weightInitType      = "FileWeight";
+	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].initWeightsFile
+	    = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error_W.pvp";
+	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].useListOfArborFiles = false;
+	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].combineWeightFiles  = false;    
+      end -- checkpointID_SLP
+
+   end -- i_frame
+   
+
+   for i_frame = 1, numFrames do 
+      for i_delay = 1, numFrames - temporalKernelSize + 1 do
+	 local delta_frame = i_frame - i_delay
+	 if (delta_frame >= 0 and delta_frame < temporalKernelSize) then        
+
+
+	    pv.addGroup(pvParams,
+			"S1_" .. i_delay-1 .. "MaxPooled" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1,
 			{
 			   groupType                           = "CloneConn";
 			   preLayerName                        = "S1_" .. i_delay-1 .. "MaxPooled";
@@ -1212,87 +1114,8 @@ if GroundTruthPath then
 			}
 	    )
 	    
-	    --pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "MaxPooled2X2ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "2X2",
-	    --		pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1],
-	    --		{
-	    --		   preLayerName                        = "S1_" .. i_delay-1 .. "MaxPooled2X2";
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "2X2";
-	    --		   originalConnName                    = "S1_" .. i_delay-1 .. "MaxPooled2X2ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2";
-	    --		}
-	    --)
-	    --
-
-	    --pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "MaxPooled4X4ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "4X4",
-	    --		pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1],
-	    --			 {
-	    --			    preLayerName                        = "S1_" .. i_delay-1 .. "MaxPooled4X4";
-	    --			    postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "4X4";
-	    --			    originalConnName                    = "S1_" .. i_delay-1 .. "MaxPooled4X4ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4";
-	    --			 }
-	    --)
 	    
 
-	    pv.addGroup(pvParams, "BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1,
-			pvParams["S1_" .. i_delay-1 .. "MaxPooledToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1],
-				 {
-				    preLayerName                        = "BiasS1";
-				    postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1;
-				    originalConnName                    = "BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error";
-				 }
-	    )
-	    
-	    --pv.addGroup(pvParams, "BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "2X2",
-	    --		pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1],
-	    --			 {
-	    --			    postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "2X2";
-	    --			    originalConnName                    = "BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2";
-	    --			 }
-	    --)
-	    
-	    --pv.addGroup(pvParams, "BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "4X4",
-	    --		pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1],
-	    --			 {
-	    --			    postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "4X4";
-	    --			    originalConnName                    = "BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4";
-	    --			 }
-	    --)
-	    
-	    
-	    pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error",
-			{
-			   groupType                           = "IdentConn";
-			   preLayerName                        = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1;
-			   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error";
-			   channelCode                         = 1;
-			   delay                               = {0.000000};
-			   initWeightsFile                     = nil;
-			   writeStep                           = -1;
-			}
-	    )
-	    
-	    --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "2X2ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2",
-	    --		{
-	    --		   groupType                           = "IdentConn";
-	    --		   preLayerName                        = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "2X2";
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error2X2";
-	    --		   channelCode                         = 1;
-	    --		   delay                               = {0.000000};
-	    --		   initWeightsFile                     = nil;
-	    --		   writeStep                           = -1;
-	    --		}
-	    --)
-	    
-	    --pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "4X4ToGroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4",
-	    --		{
-	    --		   groupType                           = "IdentConn";
-	    --		   preLayerName                        = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "4X4";
-	    --		   postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1 .. "Error4X4";
-	    --		   channelCode                         = 1;
-	    --		   delay                               = {0.000000};
-	    --		   initWeightsFile                     = nil;
-	    --		   writeStep                           = -1;
-	    --		}
-	    --)
 	    
 	    
 	 end -- delta_frame >= 0
