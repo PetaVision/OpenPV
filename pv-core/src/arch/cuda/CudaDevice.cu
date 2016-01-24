@@ -75,20 +75,21 @@ int CudaDevice::initialize(int device)
    if(cudnnStatus != CUDNN_STATUS_SUCCESS){
       switch(cudnnStatus){
          case CUDNN_STATUS_NOT_INITIALIZED:
-            printf("cuDNN Runtime API initialization failed\n");
+            fprintf(stderr, "cuDNN Runtime API initialization failed\n");
             break;
          case CUDNN_STATUS_ALLOC_FAILED:
-            printf("cuDNN resources could not be allocated\n");
+            fprintf(stderr, "cuDNN resources could not be allocated\n");
             break;
          default:
-            printf("cuDNN unknown error (cudnnCreate returned %d)\n", cudnnStatus);
+            fprintf(stderr, "cudnnCreate error: %s\n", cudnnGetErrorString(cudnnStatus));
+            break;
       }
-      exit(-1);
+      exit(EXIT_FAILURE);
    }
    cudnnStatus = cudnnSetStream(tmpHandle, stream);
    if(cudnnStatus != CUDNN_STATUS_SUCCESS){
-      printf("CUDNN Stream set error\n");
-      exit(-1);
+      fprintf(stderr, "cudnnSetStream error: %s\n", cudnnGetErrorStream(cudnnStatus));
+      exit(EXIT_FAILURE);
    }
 
    this->handle = (void*) tmpHandle;
