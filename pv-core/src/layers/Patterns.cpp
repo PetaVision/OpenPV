@@ -487,11 +487,11 @@ int Patterns::communicateInitInfo() {
    patternRandState = new Random(parent, 1);
 #ifndef NDEBUG
    // This should put the RNG into the same state across MPI, but let's check.
-   uint4 * state = patternRandState->getRNG(0);
-   uint4 checkState;
-   memcpy(&checkState, state, sizeof(uint4));
-   MPI_Bcast(&checkState, sizeof(uint4), MPI_CHAR, 0, parent->icCommunicator()->communicator());
-   assert(!memcmp(state, &checkState, sizeof(uint4)));
+   taus_uint4 * state = patternRandState->getRNG(0);
+   taus_uint4 checkState;
+   memcpy(&checkState, state, sizeof(taus_uint4));
+   MPI_Bcast(&checkState, sizeof(taus_uint4), MPI_CHAR, 0, parent->icCommunicator()->communicator());
+   assert(!memcmp(state, &checkState, sizeof(taus_uint4)));
 #endif // NDEBUG
 
    const PVLayerLoc * loc = getLayerLoc();
@@ -786,7 +786,7 @@ int Patterns::drawDrops() {
    // to jitter() should be moved to updatePattern.
    if (jitterFlag) {
       jitter();
-      // Because the Patterns layer has its own uint4 random state, and all MPI processes seeded it the same way,
+      // Because the Patterns layer has its own taus_uint4 random state, and all MPI processes seeded it the same way,
       // all MPI processes have the same offset and bias, without needing to do an MPI call.
    }
 
@@ -1058,7 +1058,7 @@ int Patterns::readPatternStateFromCheckpoint(const char * cpDir) {
       PV_Stream * pvstream = PV_fopen(filename, "r", false/*verifyWrites*/);
       if( pvstream != NULL ) {
          status = PV_fread(&type, sizeof(PatternType), 1, pvstream) == 1 ? status : PV_FAILURE;
-         status = PV_fread(&patternRandState, sizeof(uint4), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fread(&patternRandState, sizeof(taus_uint4), 1, pvstream) == 1 ? status : PV_FAILURE;
          status = PV_fread(&orientation, sizeof(OrientationMode), 1, pvstream) == 1 ? status : PV_FAILURE;
          status = PV_fread(&position, sizeof(float), 1, pvstream) ? status : PV_FAILURE;
          //status = PV_fread(&nextDisplayTime, sizeof(double), 1, pvstream) ? status : PV_FAILURE;
@@ -1087,21 +1087,21 @@ int Patterns::readPatternStateFromCheckpoint(const char * cpDir) {
    // This will get bad if the number of member variables that need to be saved keeps increasing.
 #ifdef PV_USE_MPI
    if (parent->icCommunicator()->commSize()>1) {
-      int bufsize = (int) (sizeof(PatternType) + sizeof(uint4) + sizeof(OrientationMode) + 1*sizeof(float) + 2*sizeof(double) + 4*sizeof(int) + vDrops.size()*sizeof(Drop));
+      int bufsize = (int) (sizeof(PatternType) + sizeof(taus_uint4) + sizeof(OrientationMode) + 1*sizeof(float) + 2*sizeof(double) + 4*sizeof(int) + vDrops.size()*sizeof(Drop));
       //Communicate buffer size to rest of processes
       MPI_Bcast(&bufsize, 1, MPI_INT, 0, parent->icCommunicator()->communicator());
       char tempbuf[bufsize];
       PatternType * savedtype = (PatternType *) (tempbuf+0);
-      uint4 * rstate = (uint4 *) (tempbuf+sizeof(PatternType));
-      OrientationMode * om = (OrientationMode *) (tempbuf+sizeof(PatternType)+sizeof(uint4));
-      float * floats = (float *) (tempbuf+sizeof(PatternType)+sizeof(uint4)+sizeof(OrientationMode));
-      double * doubles = (double *) (tempbuf+sizeof(PatternType)+sizeof(uint4)+sizeof(OrientationMode)+sizeof(float));
-      int * ints = (int *) (tempbuf+sizeof(PatternType)+sizeof(uint4)+sizeof(OrientationMode)+sizeof(float)+3*sizeof(double));
-      Drop * drops = (Drop *) (tempbuf+sizeof(PatternType)+sizeof(uint4)+sizeof(OrientationMode)+sizeof(float)+3*sizeof(double)+4*sizeof(int));
+      taus_uint4 * rstate = (taus_uint4 *) (tempbuf+sizeof(PatternType));
+      OrientationMode * om = (OrientationMode *) (tempbuf+sizeof(PatternType)+sizeof(taus_uint4));
+      float * floats = (float *) (tempbuf+sizeof(PatternType)+sizeof(taus_uint4)+sizeof(OrientationMode));
+      double * doubles = (double *) (tempbuf+sizeof(PatternType)+sizeof(taus_uint4)+sizeof(OrientationMode)+sizeof(float));
+      int * ints = (int *) (tempbuf+sizeof(PatternType)+sizeof(taus_uint4)+sizeof(OrientationMode)+sizeof(float)+3*sizeof(double));
+      Drop * drops = (Drop *) (tempbuf+sizeof(PatternType)+sizeof(taus_uint4)+sizeof(OrientationMode)+sizeof(float)+3*sizeof(double)+4*sizeof(int));
       int numdrops;
       if (parent->columnId()==0) {
          *savedtype = type;
-         memcpy(rstate, patternRandState->getRNG(0), sizeof(uint4));
+         memcpy(rstate, patternRandState->getRNG(0), sizeof(taus_uint4));
          *om = orientation;
          floats[0] = position;
          //doubles[0] = nextDisplayTime;
@@ -1120,7 +1120,7 @@ int Patterns::readPatternStateFromCheckpoint(const char * cpDir) {
       else {
          MPI_Bcast(tempbuf, bufsize, MPI_CHAR, 0, parent->icCommunicator()->communicator());
          type = *savedtype;
-         memcpy(patternRandState->getRNG(0), rstate, sizeof(uint4));
+         memcpy(patternRandState->getRNG(0), rstate, sizeof(taus_uint4));
          orientation = *om;
          position = floats[0];
          //nextDisplayTime = doubles[0];
@@ -1157,7 +1157,7 @@ int Patterns::checkpointWrite(const char * cpDir) {
       int size = vDrops.size();
       if( pvstream != NULL ) {
          status = PV_fwrite(&type, sizeof(PatternType), 1, pvstream) == 1 ? status : PV_FAILURE;
-         status = PV_fwrite(&patternRandState, sizeof(uint4), 1, pvstream) == 1 ? status : PV_FAILURE;
+         status = PV_fwrite(&patternRandState, sizeof(taus_uint4), 1, pvstream) == 1 ? status : PV_FAILURE;
          // This should only write the variables used by PatternType type.
          // For example, DROP doesn't use orientation and BARS doesn't use nextDropFrame
          status = PV_fwrite(&orientation, sizeof(OrientationMode), 1, pvstream) == 1 ? status : PV_FAILURE;
@@ -1224,7 +1224,7 @@ int Patterns::checkpointWrite(const char * cpDir) {
          fprintf(pvstream->fp, "Type = %d (DROP)\n", type);
          break;
       }
-      uint4 * rng = patternRandState->getRNG(0);
+      taus_uint4 * rng = patternRandState->getRNG(0);
       fprintf(pvstream->fp, "Random state = %u, %u, %u, %u\n", rng->s0, rng->state.s1, rng->state.s2, rng->state.s3);
       fprintf(pvstream->fp, "Position = %f\n", position);
       //fprintf(pvstream->fp, "nextDisplayTime = %f\n", nextDisplayTime);

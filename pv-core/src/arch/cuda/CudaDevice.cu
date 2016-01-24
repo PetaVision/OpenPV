@@ -81,7 +81,7 @@ int CudaDevice::initialize(int device)
             printf("cuDNN resources could not be allocated\n");
             break;
          default:
-            printf("cuDNN unknown error\n");
+            printf("cuDNN unknown error (cudnnCreate returned %d)\n", cudnnStatus);
       }
       exit(-1);
    }

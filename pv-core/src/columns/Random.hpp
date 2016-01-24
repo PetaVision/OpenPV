@@ -26,19 +26,13 @@ namespace PV {
 
 class Random {
 public:
-   //Random(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex);
    Random(HyPerCol * hc, int count);
    Random(HyPerCol * hc, const PVLayerLoc * locptr, bool isExtended);
    virtual ~Random();
 
    HyPerCol * getParentHyPerCol() {return parentHyPerCol;}
-   //unsigned int getNumBlocks() {return numBlocks;}
-   //unsigned int getBlockLength() {return blockLength;}
-   //unsigned int getNumGlobalBlocks() {return numGlobalBlocks;}
-   //unsigned int getGlobalBlockLength() {return globalBlockLength;}
-   //unsigned int getStartIndex() {return startIndex;}
    size_t getRNGArraySize() {return rngArraySize;}
-   uint4 * getRNG(int index) {return &rngArray[index];}
+   taus_uint4 * getRNG(int index) {return &rngArray[index];}
    float uniformRandom(int localIndex=0);
    float uniformRandom(int localIndex, float min, float max) {return min+uniformRandom(localIndex)*(max-min);}
    void uniformRandom(float * values, int localIndex, int count=1) {for (int k=0; k<count; k++) values[k] = uniformRandom(localIndex+k);}
@@ -50,8 +44,6 @@ public:
 
 protected:
    Random();
-   //int defineBlocksFromPVLayerLoc(PVLayerLoc const * loc, bool isExtended, unsigned int * numBlocks, unsigned int * blockLength, unsigned int * numGlobalBlocks, unsigned int * globalBlockLength, unsigned int * startIndex);
-   //int initialize(HyPerCol * hc, unsigned int numBlocks, unsigned int blockLength, unsigned int numGlobalBlocks, unsigned int globalBlockLength, unsigned int startIndex);
    int initializeFromCount(HyPerCol * hc, int count);
    int initializeFromLoc(HyPerCol* hc, const PVLayerLoc* locptr, bool isExtended);
 
@@ -61,12 +53,7 @@ private:
 // Member variables
 protected:
    HyPerCol * parentHyPerCol;
-   //unsigned int numBlocks;
-   //unsigned int blockLength;
-   //unsigned int numGlobalBlocks;
-   //unsigned int globalBlockLength;
-   //unsigned int startIndex;
-   uint4 * rngArray;
+   taus_uint4 * rngArray;
    size_t rngArraySize;
 };
 

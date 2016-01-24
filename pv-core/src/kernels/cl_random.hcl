@@ -24,7 +24,7 @@
  * The following adapted from rng/taus.c by Craig Rasmussen, 12/27/2010
  * for OpenCL.  Also converted (hopefully) to use 32 bit integers.
  *
- * It uses a uint4 to store state and a result:
+ * It uses a taus_uint4 to store state and a result:
  *    state.s0 => random number
  *    state.s1 => state s1 value
  *    state.s2 => state s2 value
@@ -33,10 +33,10 @@
 
 #define cl_random_get(s) (cl_taus_get(s))
 
-static inline uint4
-cl_taus_get(uint4 state)
+static inline taus_uint4
+cl_taus_get(taus_uint4 state)
 {
-   uint4 result;
+   taus_uint4 result;
 
 #define TAUSWORTHE(s,a,b,c,d) (((s &c) <<d)) ^ ((((s <<a))^s) >>b)
 
@@ -49,7 +49,7 @@ cl_taus_get(uint4 state)
   return result;
 }
 
-static inline float cl_random_prob(uint4 state)
+static inline float cl_random_prob(taus_uint4 state)
 {
    // changed (double) cast to (float) cast
    // hopefully this works, it is (partially) tested in tests/test_cl_random

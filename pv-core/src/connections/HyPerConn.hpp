@@ -98,7 +98,7 @@ public:
     */
    virtual int deliver();
    virtual void deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
-   virtual void deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, uint4 * rngPtr);
+   virtual void deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, taus_uint4 * rngPtr);
     
    GSynAccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
    int (*accumulateFunctionPointer)(int kPreRes, int nk, float* v, float a, pvwdata_t* w, void* auxPtr, int sf);
@@ -302,8 +302,7 @@ public:
 
    bool getUpdateGSynFromPostPerspective(){return updateGSynFromPostPerspective;}
 
-   // uint4 * getRnd_state(int index) { return pvpatchAccumulateType==ACCUMULATE_STOCHASTIC ? &rnd_state[index] : NULL; }
-   uint4 * getRandState(int index);
+   taus_uint4 * getRandState(int index);
 
    int sumWeights(int nx, int ny, int offset, pvwdata_t* dataStart, double* sum,
          double* sum2, float* maxVal);
@@ -439,7 +438,7 @@ protected:
    bool keepKernelsSynchronized_flag;
 
    // unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
-   // uint4 * rnd_state; // An array of RNGs.
+   // taus_uint4 * rnd_state; // An array of RNGs.
    Random * randState;
 
 
@@ -562,32 +561,11 @@ protected:
     * - @link InitSmartWeights SmartWeight@endlink:
     *   TODO
     *
-    * - @link InitDistributedWeightsParams DistributedWeight@endlink:
-    *   TODO
-    *
-    * - @link InitByArborWeights ArborWeight@endlink:
-    *   Initializes different weights in different arbors
-    *
-    * - @link InitBIDSLateralParams BIDSLateral@endlink:
-    *   TODO
-    *
     * - @link InitUniformRandomWeightsParams UniformRandomWeight@endlink:
     *   Initializes weights with a uniform distribution
     *
     * - @link InitGaussianRandomWeightsParams GaussianRandomWeight@endlink:
     *   Initializes individual weights with a gaussian distribution
-    *
-    * - @link InitGaborWeightsParams GaborWeight@endlink:
-    *   TODO
-    *
-    * - @link InitPoolWeightsParams PoolWeight@endlink:
-    *   TODO
-    *
-    * - @link InitRuleWeightsParams RuleWeight@endlink:
-    *   TODO
-    *
-    * - @link InitSubUnitWeightsParams SubUnitWeight@endlink:
-    *   TODO
     *
     * - @link InitIdentWeightsParams IdentWeight@endlink:
     *   Initializes weights for ident conn (one to one with a strength to 1)
@@ -600,15 +578,6 @@ protected:
     *
     * - @link InitSpreadOverArborsWeightsParams SpreadOverArborsWeight@endlink:
     *   Initializes weights where different part of the weights over different arbors
-    *
-    * - @link Init3DGaussWeightsParams Gauss3DWeight@endlink:
-    *   Initializes weights with a gaussian distribution in x, y, and f
-    *
-    * - @link InitWindowed3DGaussWeightsParams Windowed3DGaussWeights@endlink:
-    *   Initializes weights with a gaussian distribution in x, y, and f over windows
-    *
-    * - @link InitMTWeightsParams MTWeight@endlink:
-    *   TODO
     *
     * - @link InitWeightsParams FileWeight@endlink:
     *   Initializes weights from a specified pvp file.

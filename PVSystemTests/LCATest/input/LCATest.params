@@ -39,6 +39,7 @@ HyPerCol "column" = {
    checkpointWriteStepInterval = 1;
    deleteOlderCheckpoints = false;
    // suppressLastOutput = false;
+   checkpointIndexWidth = -1;
 };
 
 //

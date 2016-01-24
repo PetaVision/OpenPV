@@ -12,7 +12,7 @@
 #include "../kernels/Retina_params.h"
 #include "../io/fileio.hpp"
 #include "../arch/opencl/pv_opencl.h"
-#include "../arch/opencl/pv_uint4.h"
+#include "../include/pv_types.h"
 
 #ifdef PV_USE_OPENCL
 #include "../arch/opencl/CLBuffer.hpp"
@@ -90,7 +90,7 @@ protected:
    Random * randState;
 //#ifdef PV_USE_OPENCL
 //   //TODO-Rasmussen-2014.5.24 - need to figure out interaction between Random class and rand_state
-//   uint4 * rand_state[NUM_NEIGHBORHOOD];      // state for random numbers // rand_state[0] for the restricted region; rand_state[1] for northwest corner for background activity, etc.
+//   taus_uint4 * rand_state[NUM_NEIGHBORHOOD];      // state for random numbers // rand_state[0] for the restricted region; rand_state[1] for northwest corner for background activity, etc.
 //#endif
    //size_t rand_state_size[NUM_NEIGHBORHOOD]; // Size of each rand_state pointer.  rand_state_size[0]=numNeurons (local); rand_state_size[NORTHWEST]=nb*nb*nf if the column is in the northwest corner, etc.
    //int * border_indices[NUM_NEIGHBORHOOD];

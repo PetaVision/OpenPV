@@ -38,7 +38,7 @@ void LIFGap_update_state_original(
     const int up,
 
     LIF_params * params,
-    uint4 * rnd,
+    taus_uint4 * rnd,
 
     float * V,
     float * Vth,
@@ -66,7 +66,7 @@ void LIFGap_update_state_beginning(
     const int up,
 
     LIF_params * params,
-    uint4 * rnd,
+    taus_uint4 * rnd,
 
     float * V,
     float * Vth,
@@ -94,7 +94,7 @@ void LIFGap_update_state_arma(
     const int up,
 
     LIF_params * params,
-    uint4 * rnd,
+    taus_uint4 * rnd,
 
     float * V,
     float * Vth,

@@ -1756,8 +1756,8 @@ void HyPerConn::initPatchToDataLUT() {
    }
 }
 
-uint4 * HyPerConn::getRandState(int index) {
-   uint4 * state = NULL;
+taus_uint4 * HyPerConn::getRandState(int index) {
+   taus_uint4 * state = NULL;
    if (pvpatchAccumulateType==ACCUMULATE_STOCHASTIC) {
       state = randState->getRNG(index);
    }
@@ -2723,7 +2723,7 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
 
    status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
    assert(status == PV_SUCCESS);
-   if (this->plasticityFlag &&  weightUpdateTime<parent->simulationTime()) {
+   if (this->plasticityFlag && !triggerLayerName && weightUpdateTime<parent->simulationTime()) {
       status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
       assert(status == PV_SUCCESS);
       // simulationTime() may have been changed by HyPerCol::checkpoint, so this repeats the sanity check on weightUpdateTime in allocateDataStructures
@@ -3683,7 +3683,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
          //Calculate target's start of gsyn
          pvdata_t * gSynPatchPos = gSynPatchHeadBatch + kTargetRes;
 
-         uint4 * rngPtr = getRandState(kTargetRes);
+         taus_uint4 * rngPtr = getRandState(kTargetRes);
          float* activityStartBuf = &(activityBatch[startSourceExt]); 
 
          deliverOnePostNeuronActivity(arborID, kTargetExt, sy, activityStartBuf, gSynPatchPos, dt_factor, rngPtr);
@@ -3998,7 +3998,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
 
-void HyPerConn::deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, uint4 * rngPtr){
+void HyPerConn::deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, taus_uint4 * rngPtr){
 
    //get source layer's patch y stride
    int syp = postConn->yPatchStride();

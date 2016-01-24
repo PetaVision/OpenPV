@@ -38,7 +38,7 @@ void LIF_update_state_arma(
     const int up,
 
     LIF_params * params,
-    uint4 * rnd,
+    taus_uint4 * rnd,
 
     float * V,
     float * Vth,
@@ -63,7 +63,7 @@ void LIF_update_state_beginning(
     const int up,
 
     LIF_params * params,
-    uint4 * rnd,
+    taus_uint4 * rnd,
 
     float * V,
     float * Vth,
@@ -88,7 +88,7 @@ void LIF_update_state_original(
     const int up,
 
     LIF_params * params,
-    uint4 * rnd,
+    taus_uint4 * rnd,
 
     float * V,
     float * Vth,
@@ -220,13 +220,12 @@ int LIF::initialize(const char * name, HyPerCol * hc, const char * kernel_name) 
 //   // these buffers are shared between host and device
 //   //
 //
-//   // TODO - use constant memory --done.  did I do it correctly?
 //   clParams = device->createBuffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(lParams), &lParams);
 ////   clParams->copyToDevice(&evUpdate);
 ////   status |= clWaitForEvents(1, &evUpdate);
 ////   clReleaseEvent(evUpdate);
 //
-//   clRand = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), rand_state);
+//   clRand = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(taus_uint4), rand_state);
 //   clVth  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, Vth);
 //   clG_E  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_E);
 //   clG_I  = device->createBuffer(CL_MEM_COPY_HOST_PTR, size, G_I);

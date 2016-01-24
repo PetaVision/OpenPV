@@ -14,7 +14,6 @@
 #include "../include/PVLayerLoc.h"
 #include "../columns/Communicator.hpp"
 #include "../columns/DataStore.hpp"
-#include "../arch/opencl/pv_uint4.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -92,9 +91,9 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
 
 int pvp_check_file_header(Communicator * comm, const PVLayerLoc * loc, int params[], int numParams);
 
-int writeRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc, bool isExtended, bool verifyWrites);
+int writeRandState(const char * filename, Communicator * comm, taus_uint4 * randState, const PVLayerLoc * loc, bool isExtended, bool verifyWrites);
 
-int readRandState(const char * filename, Communicator * comm, uint4 * randState, const PVLayerLoc * loc, bool isExtended);
+int readRandState(const char * filename, Communicator * comm, taus_uint4 * randState, const PVLayerLoc * loc, bool isExtended);
 
 template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended);
 template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * comm, int rootproc, T * buffer, const PVLayerLoc * layerLoc, bool extended, const PVLayerLoc * fileLoc=NULL, int offsetX=0, int offsetY=0, int filetype=PVP_NONSPIKING_ACT_FILE_TYPE, int numActive=0);

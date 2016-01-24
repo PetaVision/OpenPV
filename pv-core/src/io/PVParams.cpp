@@ -13,6 +13,7 @@
 #include <string.h>
 #include <iostream>
 #include <cmath> // nearbyint()
+#include <climits> // INT_MIN
 
 #define PARAMETERARRAY_INITIALSIZE 8
 #define PARAMETERARRAYSTACK_INITIALCOUNT 5

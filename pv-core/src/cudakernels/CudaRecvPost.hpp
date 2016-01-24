@@ -83,6 +83,8 @@ namespace PVCuda{
       size_t * workspaceSize;
       int manyScaleX;
       int manyScaleY;
+      int diffY;
+      int diffX;
 #endif
    };
 

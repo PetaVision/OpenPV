@@ -33,7 +33,7 @@ void Retina_spiking_update_state (
     const int dn,
     const int up,
     Retina_params * params,
-    uint4 * rnd,
+    taus_uint4 * rnd,
     float * GSynHead,
 //    float * phiExc,
 //    float * phiInh,
@@ -164,14 +164,13 @@ int Retina::initialize(const char * name, HyPerCol * hc) {
 //
 //   CLDevice * device = parent->getCLDevice();
 //
-//   // TODO - use constant memory --done!
 //   clParams = device->createBuffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(rParams), &rParams);
 ////   clParams->copyToDevice(&evUpdate);
 ////   status |= clWaitForEvents(1, &evUpdate);
 ////   clReleaseEvent(evUpdate);
 //
 //   if (spikingFlag) {
-//      clRand   = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(uint4), *rand_state);
+//      clRand   = device->createBuffer(CL_MEM_COPY_HOST_PTR, getNumNeurons()*sizeof(taus_uint4), *rand_state);
 ////      clRand->copyToDevice(&evUpdate);
 ////      status |= clWaitForEvents(1, &evUpdate);
 ////      clReleaseEvent(evUpdate);
@@ -250,7 +249,7 @@ int Retina::allocateDataStructures() {
       //unsigned int seed = parent->getObjectSeed(numGlobalRNGs);
       const PVLayerLoc * loc = getLayerLoc();
       //Allocate extended loc
-      randState = new Random(parent, loc, true); // (uint4 *) malloc(count * sizeof(uint4));
+      randState = new Random(parent, loc, true); // (taus_uint4 *) malloc(count * sizeof(taus_uint4));
 
       //unsigned int columnOffset = (unsigned int) kIndex(loc->kx0,loc->ky0,0,loc->nxGlobal,loc->nyGlobal,loc->nf);
       //allocateRandStateRestricted(loc->nx, loc->ny, loc->nf, seed+columnOffset, loc->nxGlobal * loc->nf);
@@ -297,7 +296,7 @@ int Retina::allocateDataStructures() {
 //   assert(randState[neighbor]==NULL);
 //   size_t count = xCount * yCount * fCount;
 //   rand_state_size[neighbor] = count;
-//   randState[neighbor] = new Random(parent, count); // (uint4 *) malloc(count * sizeof(uint4));
+//   randState[neighbor] = new Random(parent, count); // (taus_uint4 *) malloc(count * sizeof(taus_uint4));
 //   if (randState[neighbor]==NULL) {
 //      fprintf(stderr, "Retina::allocateRandState error in rank %d.  Layer \"%s\" unable to create object of class Random.\n", parent->columnId(), getName());
 //      exit(EXIT_FAILURE);

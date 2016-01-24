@@ -82,7 +82,7 @@ int Random::initializeFromLoc(HyPerCol* hc, const PVLayerLoc* locptr, bool isExt
    int nbatchGlobal = locptr->nbatchGlobal;
    int numTotalSeeds = nxGlobalExt * nyGlobalExt * nf * nbatchGlobal;
    //Allocate buffer to store rngArraySize
-   rngArray = (uint4 *) malloc(rngArraySize*sizeof(uint4));
+   rngArray = (taus_uint4 *) malloc(rngArraySize*sizeof(taus_uint4));
    if (rngArray==NULL) {
       fprintf(stderr, "Random::initialize error: rank %d process unable to allocate memory for %lu RNGs.\n", hc->columnId(), rngArraySize);
       status = PV_FAILURE;
@@ -120,7 +120,7 @@ int Random::initializeFromCount(HyPerCol* hc, int count){
    //this->globalBlockLength = count;
    //this->startIndex = startIndex;
    rngArraySize = count;
-   rngArray = (uint4 *) malloc(count*sizeof(uint4));
+   rngArray = (taus_uint4 *) malloc(count*sizeof(taus_uint4));
    if (rngArray==NULL) {
       fprintf(stderr, "Random::initialize error: rank %d process unable to allocate memory for %lu RNGs.\n", hc->columnId(), rngArraySize);
       status = PV_FAILURE;

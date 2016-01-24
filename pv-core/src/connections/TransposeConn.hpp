@@ -74,6 +74,7 @@ protected:
     virtual void ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag);
     virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
     virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {/* triggerFlag is deprecated as of Aug 17, 2015.  See HyPerConn::ioParam_triggerFlag for details*/}
     virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
     virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
     virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
