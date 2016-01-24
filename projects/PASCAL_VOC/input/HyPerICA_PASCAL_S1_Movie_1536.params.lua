@@ -2,8 +2,8 @@
 
 -- Load util module in PV trunk: NOTE this may need to change
 --package.path = package.path .. ";" .. os.getenv("HOME") .. "/workspace/pv-core/parameterWrapper/PVModule.lua"
---package.path = package.path .. ";" .. os.getenv("HOME") .. "/openpv/pv-core/parameterWrapper/PVModule.lua"
-package.path = package.path .. ";" .. "/nh/compneuro/Data" .. "/openpv/pv-core/parameterWrapper/PVModule.lua"
+package.path = package.path .. ";" .. os.getenv("HOME") .. "/openpv/pv-core/parameterWrapper/PVModule.lua"
+--package.path = package.path .. ";" .. "/nh/compneuro/Data" .. "/openpv/pv-core/parameterWrapper/PVModule.lua"
 local pv = require "PVModule"
 
 -- Global variable, for debug parsing
@@ -21,45 +21,45 @@ local tau                   = 400
 local S1_numFeatures        = patchSize * patchSize * 3 * 2 -- (patchSize/stride)^2 Xs overcomplete (i.e. complete for orthonormal ICA basis for stride == patchSize)
 
 -- User defined variables
-local plasticityFlag      = false --true
+local plasticityFlag      = true
 local stride              = patchSize/4
-local nxSize              = 192 --256
-local nySize              = 256 --192
+local nxSize              = 256 --192 --
+local nySize              = 192 --256 --
 local experimentName      = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_ICA"
-local runName             = "VOC2007_portrait" --
+local runName             = "VOC2007_landscape" -- "VOC2007_portrait" --
 local runNameTmp          = "VOC2007_landscape"
-local runVersion          = 9
-local machinePath         = "/nh/compneuro/Data" --"/Volumes/mountData" --"/home/ec2-user/mountData"
+local runVersion          = 10
+local machinePath         = "/home/gkenyon" -- "/nh/compneuro/Data" --"/Volumes/mountData" --"/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
-local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runNameTmp 
-local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runNameTmp 
-local numImages           = 1751 --7958
+local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
+local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
+local numImages           = 7958 --1751 --
 local displayPeriod       = 240
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs
-local checkpointID        = 7958 * displayPeriod --stopTime
-local checkpointIDSLP     = 7958 * 10 --stopTime
+local checkpointID        = stopTime
+local checkpointIDSLP     = stopTime
 local writePeriod         = 100 * displayPeriod
 local initialWriteTime    = writePeriod
 local checkpointWriteStepInterval = writePeriod
-local S1_Movie            = false
-local movieVersion        = 1
+local S1_Movie            = true -- false
+local movieVersion        = 2
 if S1_Movie then
    outputPath              = outputPath .. "_S1_Movie" .. movieVersion
-   inputPath               = inputPath .. runVersion --.. "_S1_Movie" .. movieVersion - 1
-   inputPathSLP            = inputPathSLP .. runVersion -- .. "_S1_Movie" .. movieVersion - 1
+   --inputPath               = inputPath  .. "_S1_Movie" .. movieVersion - 1
+   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. movieVersion - 1
    displayPeriod           = 1
    numEpochs               = 10
    stopTime                = numImages * displayPeriod * numEpochs
-   --checkpointID            = stopTime
-   --checkpointIDSLP         = stopTime
+   checkpointID            = stopTime
+   checkpointIDSLP         = stopTime
    writePeriod             = 1
    initialWriteTime = numImages*(numEpochs-1)+1
    checkpointWriteStepInterval = numImages
 else -- not used if run version == 1
-   inputPath               = inputPath .. runVersion
-   inputPathSLP            = inputPath .. "_S1_Movie" .. movieVersion
+   --inputPath               = inputPath .. runVersion
+   --inputPathSLP            = inputPath .. "_S1_Movie" .. movieVersion
    --checkpointID            = numImages * displayPeriod * 5
    --checkpointIDSLP         = numImages * 10
 end
@@ -67,8 +67,8 @@ local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false
 
 --i/o parameters
-local imageListPath       = machinePath .. "/" .. databasePath .. "/" .. "VOC2007" .. "/" .. "VOC2007_" .. "portrait_256X192_list.txt" -- landscape_192X256_list.txt"
-local GroundTruthPath     = machinePath .. "/" .. databasePath .. "/" .. "VOC2007" .. "/" .. "VOC2007_" .. "portrait_256X192.pvp" -- landscape_192X256.pvp"
+local imageListPath       = machinePath .. "/" .. databasePath .. "/" .. "VOC2007" .. "/" .. "VOC2007_" .. "landscape_192X256_list.txt" -- "portrait_256X192_list.txt" -- 
+local GroundTruthPath     = machinePath .. "/" .. databasePath .. "/" .. "VOC2007" .. "/" .. "VOC2007_" .. "landscape_192X256.pvp" -- "portrait_256X192.pvp" -- 
 local startFrame          = 0
 
 --HyPerCol parameters
@@ -840,13 +840,13 @@ pv.addGroup(pvParams, "S1ToS1MaxPooled4X4", pvParams.S1ToS1MaxPooled,
 
 pv.addGroup(pvParams, "S1MaxPooledToGroundTruthReconS1Error",
 	    {
-	       groupType = "HyPerConn";
+	       groupType                           = "HyPerConn";
 	       preLayerName                        = "S1MaxPooled";
 	       postLayerName                       = "GroundTruthReconS1Error";
 	       channelCode                         = -1;
 	       delay                               = {0.000000};
 	       numAxonalArbors                     = 1;
-	       plasticityFlag                      = plasticityFlag;
+	       plasticityFlag                      = true; --plasticityFlag;
 	       convertRateToSpikeCount             = false;
 	       receiveGpu                          = false;
 	       sharedWeights                       = true;
@@ -873,7 +873,7 @@ pv.addGroup(pvParams, "S1MaxPooledToGroundTruthReconS1Error",
 	       nyp                                 = 1;
 	       shrinkPatches                       = false;
 	       normalizeMethod                     = "none";
-	       dWMax                               = 1.0; --0.5; --0.01;
+	       dWMax                               = 0.01; 
 	       keepKernelsSynchronized             = true;
 	       useMask                             = false;
 	       -- momentumTau                         = 1;

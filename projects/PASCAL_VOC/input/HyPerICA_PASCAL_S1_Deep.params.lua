@@ -15,50 +15,66 @@ local VThresh               = 0.025
 local VWidth                = infinity
 local learningRate          = 0
 local dWMax                 = 10.0
-local dWMaxBias             = 0.01 --0.01
-local dWMax1X1              = 0.01 -- 0.0001
-local dWMax2X2              = 0.01 -- 0.0001
-local dWMax4X4              = 0.01
+local dWMaxBias             = 0.01 
+local dWMax1X1              = 1.0 
+local dWMax2X2              = 1.0 
+local dWMax4X4              = 1.0
 local learningMomentumTau   = 500
 local patchSize             = 16
 local tau                   = 400
 local S1_numFeatures        = patchSize * patchSize * 3 * 2 -- (patchSize/stride)^2 Xs overcomplete (i.e. complete for orthonormal ICA basis for stride == patchSize)
 
 -- User defined variables
-local plasticityFlag      = true
-local plasticityFlag2X2   = true
-local plasticityFlag4X4   = true
+local portraitFlag        = false
+local plasticityFlag      = true and not portraitFlag
+local plasticityFlag2X2   = false and not portraitFlag
+local plasticityFlag4X4   = false and not portraitFlag
 local stride              = patchSize/4
-local nxSize              = 192 --256
-local nySize              = 256 --192
+local nxSize              = 256
+local nySize              = 192
+if portraitFlag then
+  nxSize              = 192
+  nySize              = 256
+end
 local experimentName      = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_Deep" .. "_ICA"
 local experimentNameTmp   = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_ICA"
-local runName             = "VOC2007_landscape" -- "VOC2007_portrait" --
-local runVersion          = 3
+local runName             = "VOC2007_landscape"
+local runNameTmp          = runName
+if portraitFlag then
+ runNameTmp = "VOC2007_portrait"
+end
+local runVersion          = 10
 local runVersionTmp       = 7
-local machinePath         = "/Volumes/mountData" --"/nh/compneuro/Data" --"/home/ec2-user/mountData"
+if portraitFlag then
+  runVersionTmp = 10
+end
+local machinePath         = "/home/gkenyon" --"/Volumes/mountData" --"/nh/compneuro/Data" --"/home/ec2-user/mountData"
 local databasePath        = "PASCAL_VOC"
-local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
-local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentNameTmp .. "/" .. runName .. runVersionTmp
-local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
-local numImages           = 7958 --1751 --
-local displayPeriod       = 240
+local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName    .. "/" .. runNameTmp .. runVersion
+local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentNameTmp .. "/" .. runName    .. runVersionTmp
+local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentNameTmp .. "/" .. runName    .. runVersionTmp
+local numImages           = 7958 
+if portraitFlag then
+   numImages = 1751
+end
+local displayPeriod       = 2*240
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs
-local checkpointID        = stopTime
-local checkpointIDSLP     = stopTime
+local checkpointID        = 1200*numImages --stopTime
+local checkpointIDSLP     = 1200*numImages --stopTime
 local writeStep           = 100 * displayPeriod
+local writeStepDebug      = -1
 local initialWriteTime    = writeStep
 local checkpointWriteStepInterval = writeStep
-local S1_Movie            = true --false
+local S1_Movie            = false
 local movieVersion        = 1
 if arg[1] then
    movieVersion           = arg[1]
 end
 if S1_Movie then
-   outputPath              = outputPath .. "_S1_Movie" .. movieVersion
-   inputPath               = inputPath -- .. "_S1_Movie" .. movieVersion
-   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. 2 --movieVersion-1
+   outputPath              = outputPath   .. "_S1_Movie" .. movieVersion
+   inputPath               = inputPath 
+   inputPathSLP            = inputPathSLP .. "_S1_Movie" .. movieVersion-1
    displayPeriod           = 1
    numEpochs               = 10
    stopTime                = numImages * displayPeriod * numEpochs
@@ -88,7 +104,7 @@ local useAdaptMethodExp1stOrder = true
 local dtAdaptController        = "S1EnergyProbe"
 local dtAdaptTriggerLayerName  = "Image";
 local dtScaleMax               = 0.25   --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
-local dtScaleMin               = 0.01  --0.01    -- default time scale to use after image flips or when something is wacky
+local dtScaleMin               = 0.1  --0.01    -- default time scale to use after image flips or when something is wacky
 local dtChangeMax              = 0.1   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
 local dtChangeMin              = 0.01  --0.01    -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
 local dtMinToleratedTimeScale  = 0.0001
@@ -991,8 +1007,8 @@ pv.addGroup(pvParams, "S1MaxPooled1X1ToGroundTruthReconS1Error",
 	       receiveGpu                          = false;
 	       sharedWeights                       = true;
 	       weightInitType                      = "FileWeight";
-	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooled1X1ToGroundTruthReconS1Error_W.pvp";
-	       --initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
+	       --initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooled1X1ToGroundTruthReconS1Error_W.pvp";
+	       initWeightsFile                     = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointIDSLP .. "/S1MaxPooledToGroundTruthReconS1Error_W.pvp";
 	       useListOfArborFiles                 = false;
 	       combineWeightFiles                  = false;    
 	       --weightInitType                      = "UniformRandomWeight";
