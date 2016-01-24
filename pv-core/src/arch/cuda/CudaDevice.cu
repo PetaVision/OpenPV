@@ -88,7 +88,7 @@ int CudaDevice::initialize(int device)
    }
    cudnnStatus = cudnnSetStream(tmpHandle, stream);
    if(cudnnStatus != CUDNN_STATUS_SUCCESS){
-      fprintf(stderr, "cudnnSetStream error: %s\n", cudnnGetErrorStream(cudnnStatus));
+      fprintf(stderr, "cudnnSetStream error: %s\n", cudnnGetErrorString(cudnnStatus));
       exit(EXIT_FAILURE);
    }
 
