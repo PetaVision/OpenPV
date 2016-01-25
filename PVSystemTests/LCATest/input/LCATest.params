@@ -6,7 +6,7 @@
 
 //  A test of LCA in the GenericSystemTest paradigm
 //  An input->error<->V1 LCA module, using random initial weights
-//  and a correct-values movie being compared to the reconstruction layer.
+//  and a correct-values movie being compared to the Reconstruction layer.
 //
 
 debugParsing = false;
@@ -14,8 +14,11 @@ debugParsing = false;
 HyPerCol "column" = {
    nx = 60;
    ny = 60;
+   nbatch = 1;
    dt = 1.0;
    dtAdaptFlag = true;
+   useAdaptMethodExp1stOrder = false;
+   dtAdaptController = NULL;
    dtScaleMax = 5;
    dtScaleMin = 0.125;
    dtChangeMax = 0.05;
@@ -28,6 +31,7 @@ HyPerCol "column" = {
    progressInterval = 1.0;
    errorOnNotANumber = false;
    writeProgressToErr = false;  
+   verifyWrites = true;
    outputPath = "output/";
    printParamsFilename = "pv.params";
    filenamesContainLayerNames = true;  
@@ -38,6 +42,7 @@ HyPerCol "column" = {
    checkpointWriteTriggerMode = "step";
    checkpointWriteStepInterval = 1;
    deleteOlderCheckpoints = false;
+   suppressNonplasticCheckpoints = false;
    // suppressLastOutput = false;
    checkpointIndexWidth = -1;
 };
@@ -46,7 +51,7 @@ HyPerCol "column" = {
 // layers
 //
 
-Image "input" = {
+Image "Input" = {
     nxScale = 1;
     nyScale = 1;
     inputPath = "input/FD404DD0-7F94-4F59-84F2-E694FBB3D9E2-5807-00000415624C9C17_1.0-0003.png";
@@ -54,27 +59,22 @@ Image "input" = {
     phase = 0;
     writeStep = -1;
     sparseLayer = false;
+    updateGpu = false;
     mirrorBCflag = false;
     valueBC = 0.0;
     useImageBCflag = false;
     inverseFlag = false; 
     normalizeLuminanceFlag = false;
+    padValue = 0.0;
     autoResizeFlag = false;
     writeImages = false;
+    offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
     jitterFlag = false;
-
-    displayPeriod = 1;
-    randomMovie = false;
-    readPvpFile = false;
-    echoFramePathnameFlag = true;
-    start_frame_index = 0;
-    skip_frame_index = 0;
-    writeFrameToTimestamp = true;
 };
 
-ANNNormalizedErrorLayer "residual" = {
+ANNNormalizedErrorLayer "Residual" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 1;
@@ -82,17 +82,17 @@ ANNNormalizedErrorLayer "residual" = {
     mirrorBCflag = true;
     triggerLayerName = NULL;
     writeStep = 1;
+    initialWriteTime = 0;
     sparseLayer = false;
+    updateGpu = false;
 
     InitVType = "ZeroV";
 
     VThresh = -infinity;   
-    AMax = infinity;
-    AMin = -infinity;
-    AShift = 0.0;
-    VWidth = 0.0;
+    clearGSynInterval = 0;
     
     errScale = 1.0;
+    useMask = false;
 };
 
 HyPerLCALayer "V1" = {
@@ -110,21 +110,18 @@ HyPerLCALayer "V1" = {
     initialWriteTime                    = 0; // 1.44e+06;
     sparseLayer                         = true;
     writeSparseValues                   = true;
+    updateGpu                           = false;
     VThresh                             = 0.025;
     AMin                                = 0;
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0.025;
+    clearGSynInterval                   = 0;
     timeConstantTau                     = 100;
-    timeConstantTauMinimum              = 10;
-    numWindowX                          = 1;
-    numWindowY                          = 1;
-    slopeErrorStd                       = 0.01;
     selfInteract                        = true;
-    dVThresh                            = 0;
 };
 
-ANNLayer "reconstruction" = {
+ANNLayer "Reconstruction" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -136,26 +133,28 @@ ANNLayer "reconstruction" = {
     writeStep                           = 1.0;
     initialWriteTime                    = 1.0;
     sparseLayer                         = false;
+    updateGpu                           = false;
     VThresh                             = -infinity;
     AMin                                = -infinity;
     AMax                                = infinity;
     AShift                              = 0;
     VWidth                              = 0;
+    clearGSynInterval                   = 0;
 };
 
 // connections
 
-IdentConn "input_to_residual" = {
-    preLayerName = "input";
-    postLayerName = "residual";
+IdentConn "InputToResidual" = {
+    preLayerName = "Input";
+    postLayerName = "Residual";
     channelCode = 0;
     delay = 0;
     writeStep = -1;
 };
 
-HyPerConn "V1_to_residual" = {
+HyPerConn "V1ToResidual" = {
     preLayerName                        = "V1";
-    postLayerName                       = "residual";
+    postLayerName                       = "Residual";
     channelCode                         = 1;
     sharedWeights                       = true;
     weightInitType                      = "UniformRandomWeight";
@@ -165,12 +164,14 @@ HyPerConn "V1_to_residual" = {
     sparseFraction                      = 0.9;
     numAxonalArbors                     = 1;
     plasticityFlag                      = false;
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
     writeStep                           = 1;
+    initialWriteTime                    = 0;
+    writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
-    combine_dW_with_W_flag              = false;
     delay                               = [0.0];
     nxp                                 = 18;
     nyp                                 = 18;
@@ -179,49 +180,49 @@ HyPerConn "V1_to_residual" = {
     updateGSynFromPostPerspective       = false;
     normalizeMethod                     = "normalizeL2";
     strength                            = 1;
-    rMinX                               = 0;
-    rMinY                               = 0;
-    normalize_cutoff                    = 0;
-    symmetrizeWeights                   = false;
     normalizeFromPostPerspective        = false;
     normalizeArborsIndividually         = false;
+    normalizeOnInitialize               = true;
+    normalizeOnWeightUpdate             = true;
+    rMinX                               = 0;
+    rMinY                               = 0;
+    nonnegativeConstraintFlag           = false;
+    normalize_cutoff                    = 0;
     minL2NormTolerated                  = 0;
-    dWMax                               = 10.0;
-    keepKernelsSynchronized             = true;
 };
 
-TransposeConn "residual_to_V1" = {
-    preLayerName                        = "residual";
+TransposeConn "ResidualToV1" = {
+    preLayerName                        = "Residual";
     postLayerName                       = "V1";
     channelCode                         = 0;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
     writeStep                           = -1;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     delay                               = [0.0];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
     updateGSynFromPostPerspective       = true;
-    originalConnName                    = "V1_to_residual";
+    originalConnName                    = "V1ToResidual";
 };
 
-CloneConn "V1_to_reconstruction" = {
+CloneConn "V1ToReconstruction" = {
     preLayerName                        = "V1";
-    postLayerName                       = "reconstruction";
+    postLayerName                       = "Reconstruction";
     channelCode                         = 0;
     pvpatchAccumulateType               = "convolve";
-    preActivityIsNotRate                = false;
-    writeStep                           = -1;
-    writeCompressedCheckpoints          = false;
     selfFlag                            = false;
     delay                               = [0.0];
+    convertRateToSpikeCount             = false;
+    receiveGpu                          = false;
     updateGSynFromPostPerspective       = false;
-    originalConnName                    = "V1_to_residual";
+    originalConnName                    = "V1ToResidual";
 
 };
 
-// Compare reconstruction to what it should be
+// Compare Reconstruction to what it should be
 
-MoviePvp "correct" = {
+MoviePvp "Correct" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -231,25 +232,30 @@ MoviePvp "correct" = {
     writeStep = 1.0;
     initialWriteTime = 1.0;
     sparseLayer = false;
+    updateGpu = false;
 
     inputPath = "input/correct.pvp";
+    offsetAnchor = "tl";
     offsetX = 0;
     offsetY = 0;
     writeImages = false;
     useImageBCflag = false;
-    autoResizeFlag = false;
+    padValue = 0;
+    // autoResizeFlag = false;
     inverseFlag = false;
     normalizeLuminanceFlag = false;
     jitterFlag = false;
+    resetToStartOnLoop = false;
 
     displayPeriod = 1;
+    batchMethod = "bySpecified";
     start_frame_index = 0;
     skip_frame_index = 1;
     writeFrameToTimestamp = true;
     flipOnTimescaleError = true;
 };
 
-ANNLayer "comparison" = {
+ANNLayer "Comparison" = {
     nxScale = 1;
     nyScale = 1;
     nf = 1;
@@ -259,6 +265,7 @@ ANNLayer "comparison" = {
     writeStep = 1.0;
     initialWriteTime = 1.0;
     sparseLayer = false;
+    updateGpu = false;
 
     InitVType = "ZeroV";
 
@@ -267,28 +274,30 @@ ANNLayer "comparison" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0;
 };
 
-IdentConn "reconstruction_to_comparison" = {
-    preLayerName = "reconstruction";
-    postLayerName = "comparison";
+IdentConn "ReconstructionToComparison" = {
+    preLayerName = "Reconstruction";
+    postLayerName = "Comparison";
     channelCode = 0;
     writeStep = -1;
     delay = 0;
 };
 
-IdentConn "correct_to_comparison" = {
-    preLayerName = "correct";
-    postLayerName = "comparison";
+IdentConn "CorrectToComparison" = {
+    preLayerName = "Correct";
+    postLayerName = "Comparison";
     channelCode = 1;
     writeStep = -1;
     delay = 0;
 };
 
-// Probe.  Sets a flag if activity in "comparison" is ever nonzero.
+// Probe.  Sets a flag if activity in "Comparison" is ever nonzero.
 
-RequireAllZeroActivityProbe "comparison_test" = {
-    targetLayer = "comparison";
-    probeOutputFile = "comparison_test.txt";
+RequireAllZeroActivityProbe "ComparisonTest" = {
+    targetLayer = "Comparison";
+    textOutputFlag = true;
+    probeOutputFile = "ComparisonTest.txt";
     nnzThreshold = 1e-6;
 };

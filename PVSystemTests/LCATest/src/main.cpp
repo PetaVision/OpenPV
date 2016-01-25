@@ -246,13 +246,13 @@ int testioparams(PV_Init* initObj, int rank) {
 }
 
 int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]) {
-   const char * targetLayerName = "comparison";
+   const char * targetLayerName = "Comparison";
    HyPerLayer * layer = hc->getLayerFromName(targetLayerName);
    assert(layer);
    LayerProbe * probe = NULL;
    int np = layer->getNumProbes();
    for (int p=0; p<np; p++) {
-      if (!strcmp(layer->getProbe(p)->getName(), "comparison_test")) {
+      if (!strcmp(layer->getProbe(p)->getName(), "ComparisonTest")) {
          probe = layer->getProbe(p);
          break;
       }
