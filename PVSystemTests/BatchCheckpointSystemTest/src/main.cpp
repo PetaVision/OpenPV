@@ -135,16 +135,10 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
          fprintf(stderr, "%s: unable to allocate memory for names of checkpoint directories", argv[0]);
          exit(EXIT_FAILURE);
       }
-      char * shellcommand;
-      char c;
+      const int max_buf_len = 1024;
+      char shellcommand[max_buf_len];
       const char * fmtstr = "diff -r -q -x timers.txt -x pv.params -x pv.params.lua %s/Checkpoint%d %s/Checkpoint%d";
-      int len = snprintf(&c, 1, fmtstr, cpdir1, index, cpdir2, index);
-      shellcommand = (char *) malloc(len+1);
-      if( shellcommand == NULL) {
-         fprintf(stderr, "%s: unable to allocate memory for shell diff command.\n", argv[0]);
-         status = PV_FAILURE;
-      }
-      assert( snprintf(shellcommand, len+1, fmtstr, cpdir1, index, cpdir2, index) == len );
+      snprintf(shellcommand, max_buf_len, fmtstr, cpdir1, index, cpdir2, index);
       status = system(shellcommand);
       if( status != 0 ) {
          fprintf(stderr, "system(\"%s\") returned %d\n", shellcommand, status);
@@ -155,7 +149,6 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
          // going on.
          status = PV_FAILURE;
       }
-      free(shellcommand); shellcommand = NULL;
    }
    MPI_Bcast(&status, 1, MPI_INT, rootproc, hc->icCommunicator()->communicator());
    return status;
