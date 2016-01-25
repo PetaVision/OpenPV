@@ -165,6 +165,22 @@ void CloneConn::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFlag) {
    // CloneConn does not checkpoint, so we don't need initializeFromCheckpointFlag
 }
 
+void CloneConn::ioParam_writeCompressedWeights(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      initializeFromCheckpointFlag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedWeights");
+   }
+   // CloneConn does not write during outputState, so we don't need writeCompressedWeights
+}
+
+void CloneConn::ioParam_writeCompressedCheckpoints(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      initializeFromCheckpointFlag = false;
+      parent->parameters()->handleUnnecessaryParameter(name, "writeCompressedWeights");
+   }
+   // CloneConn does not checkpoint, so we don't need writeCompressedCheckpoints
+}
+
 int CloneConn::communicateInitInfo() {
    // Need to set originalConn before calling HyPerConn::communicate, since HyPerConn::communicate calls setPatchSize, which needs originalConn.
    BaseConnection * originalConnBase = parent->getConnFromName(originalConnName);
