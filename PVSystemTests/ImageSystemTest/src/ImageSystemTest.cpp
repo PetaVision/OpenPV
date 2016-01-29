@@ -35,14 +35,16 @@ int main(int argc, char * argv[]) {
 #ifdef MAIN_USES_CUSTOMGROUPS
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
+#ifdef PV_USE_GDAL
    if (strcmp(keyword, "ImageTestLayer") == 0){
       addedGroup = new ImageTestLayer(name, hc);
    }
-   if (strcmp(keyword, "ImagePvpTestLayer") == 0){
-      addedGroup = new ImagePvpTestLayer(name, hc);
-   }
    if (strcmp(keyword, "MovieTestLayer") == 0){
       addedGroup = new MovieTestLayer(name, hc);
+   }
+#endif // PV_USE_GDAL
+   if (strcmp(keyword, "ImagePvpTestLayer") == 0){
+      addedGroup = new ImagePvpTestLayer(name, hc);
    }
    if (strcmp(keyword, "MoviePvpTestLayer") == 0){
       addedGroup = new MoviePvpTestLayer(name, hc);

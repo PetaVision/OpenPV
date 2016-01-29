@@ -7,6 +7,7 @@
  * PV_USE_OPENMP_THREADS, PV_OPENCL, PV_CUDA, PV_CUDNN
  * were moved into cMakeHeader.h on Mar 25, 2015.
  * PV_USE_MPI was moved into cMakeHeader.h on Sept 1, 2015.
+ * PV_USE_GDAL was moved into cMakeHeader.h on Jan 29, 2016.
  */
 
 /* define this for 64 bit architectures */
@@ -14,9 +15,6 @@
 
 /* define this if using OpenGL library for online graphics */
 #undef PV_USE_OPENGL
-
-/* define this if using GDAL library to read/write images */
-#define PV_USE_GDAL
 
 /* maximum length of a path */
 #define PV_PATH_MAX 256 // 127  // imageNet uses long folder names

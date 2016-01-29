@@ -8,7 +8,6 @@
 #include "../columns/HyPerCol.hpp"
 #include "../columns/Random.hpp"
 #include "../io/imageio.hpp"
-#include <gdal.h>
 
 
 namespace PV {

@@ -27,7 +27,9 @@ endif(APPLE)
 #Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-# Note: It would be preferable to parse ${PV_DIR}/src/include/cMakeHeader.h for these values.
+# sets the main configuration variables: whether we're using MPI, OpenMP, CUDA, etc.
+# These really belong in pv-core/CMakeLists.txt or in a module, not at the "TOP LEVEL" (there isn't always a top level).
+set(PV_USE_GDAL TRUE CACHE BOOL "Defines whether PetaVision uses GDAL")
 set(PV_USE_MPI TRUE CACHE BOOL "Defines whether PetaVision uses MPI")
 set(PV_USE_OPENMP_THREADS TRUE CACHE BOOL "Defines if PetaVision uses OpenMP threads")
 set(PV_USE_OPENCL FALSE CACHE BOOL "Defines if PetaVision uses OpenCL GPU")
@@ -122,11 +124,13 @@ if (PV_USE_MPI)
 
 endif (PV_USE_MPI)
 
-if (NOT GDAL_FOUND)
-    MESSAGE("-- Searching for GDAL library ...........")
-    find_package(GDAL REQUIRED)
-endif (NOT GDAL_FOUND)
-include_directories(${GDAL_INCLUDE_DIR})
+if (PV_USE_GDAL)
+    if (NOT GDAL_FOUND)
+        MESSAGE("-- Searching for GDAL library ...........")
+        find_package(GDAL REQUIRED)
+    endif (NOT GDAL_FOUND)
+    include_directories(${GDAL_INCLUDE_DIR})
+endif (PV_USE_GDAL)
 
 # Adds the core PetaVision directory
 add_subdirectory(${PV_DIR})
