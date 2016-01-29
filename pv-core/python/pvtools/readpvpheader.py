@@ -1,5 +1,4 @@
 import numpy as np
-
 headerPattern = [('headersize', np.int32),
                  ('numparams', np.int32),
                  ('filetype', np.int32),
