@@ -1,5 +1,5 @@
-from readpvpfile import readpvpfile
-from pv_object import PV_Object
+from .readpvpfile import readpvpfile
+from .pv_object import PV_Object
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np

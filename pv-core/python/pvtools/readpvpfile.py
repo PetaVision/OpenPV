@@ -1,5 +1,5 @@
-from readpvpheader import readpvpheader,extendedHeaderPattern
-from pv_object import PV_Object
+from .readpvpheader import readpvpheader,extendedHeaderPattern
+from .pv_object import PV_Object
 import numpy as np
 import os
 
