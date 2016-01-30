@@ -43,11 +43,8 @@
 #include "GTLayer.hpp"
 
 int main(int argc, char * argv[]) {
-   int rank;
-#ifdef PV_USE_MPI
-   MPI_Init(&argc, &argv);
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif // PV_USE_MPI
+   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   int rank = initObj->getWorldRank();
 
    if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
       if (rank==0) {
@@ -57,94 +54,54 @@ int main(int argc, char * argv[]) {
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
    }
-   int pv_argc = argc+2; // input arguments, plus "-p", plus params file argument
-   char ** pv_argv = (char **) malloc((pv_argc+1)*sizeof(char *));
-   assert(pv_argv);
-   int pv_arg=0;
-   for (pv_arg = 0; pv_arg < argc; pv_arg++) {
-      pv_argv[pv_arg] = strdup(argv[pv_arg]);
-      assert(pv_argv[pv_arg]);
-   }
-   assert(pv_arg==argc);
-   pv_argv[pv_arg] = strdup("-p");
-   assert(pv_argv[pv_arg]!=NULL);
-   int paramFileArgIndex = pv_arg+1;
-   pv_argv[paramFileArgIndex] = NULL; // this will hold params filename
-   pv_argv[pv_argc]=NULL;
 
    PV::ParamGroupHandler * customGroupHandlers[2];
    customGroupHandlers[0] = new PVMLearning::MLearningGroupHandler;
    customGroupHandlers[1] = new PVMLearning::CustomGroupHandler;
 
+   PV_Arguments * arguments = initObj->getArguments();
+
    int status = PV_SUCCESS;
 
-   //free(pv_argv[paramFileArgIndex]);
-   //pv_argv[paramFileArgIndex] = strdup("input/GradientCheck_small.params");
-   //assert(pv_argv[paramFileArgIndex]);
-   //status = buildandrun(pv_argc, pv_argv, NULL, NULL, customGroupHandlers, 2);
-   //if( status != PV_SUCCESS ) {
-   //   fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
-   //}
-   // 
-
-   //exit(1);
-
-   free(pv_argv[paramFileArgIndex]);
-   pv_argv[paramFileArgIndex] = strdup("input/GradientCheckW1.params");
-   assert(pv_argv[paramFileArgIndex]);
-   status = buildandrun(pv_argc, pv_argv, NULL, NULL, customGroupHandlers, 2);
+   const char* paramsFile = "input/GradientCheckW1.params";
+   arguments->setParamsFile(paramsFile);
+   status = rebuildandrun(initObj, NULL, NULL, customGroupHandlers, 2);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", argv[0], paramsFile, status);
    }
 
-   free(pv_argv[paramFileArgIndex]);
-   pv_argv[paramFileArgIndex] = strdup("input/GradientCheckW2.params");
-   assert(pv_argv[paramFileArgIndex]);
-   status = buildandrun(pv_argc, pv_argv, NULL, NULL, customGroupHandlers, 2);
+   paramsFile = "input/GradientCheckW2.params";
+   arguments->setParamsFile(paramsFile);
+   status = rebuildandrun(initObj, NULL, NULL, customGroupHandlers, 2);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", argv[0], paramsFile, status);
    }
 
-   free(pv_argv[paramFileArgIndex]);
-   pv_argv[paramFileArgIndex] = strdup("input/MLPTrain.params");
-   assert(pv_argv[paramFileArgIndex]);
-   status = buildandrun(pv_argc, pv_argv, NULL, NULL, customGroupHandlers, 2);
+   paramsFile = "input/MLPTrain.params";
+   status = rebuildandrun(initObj, NULL, NULL, customGroupHandlers, 2);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", argv[0], paramsFile, status);
    }
 
-   free(pv_argv[paramFileArgIndex]);
-   pv_argv[paramFileArgIndex] = strdup("input/MLPTest.params");
-   assert(pv_argv[paramFileArgIndex]);
-   status = buildandrun(pv_argc, pv_argv, NULL, NULL, customGroupHandlers, 2);
+   paramsFile = "input/MLPTest.params";
+   status = rebuildandrun(initObj, NULL, NULL, customGroupHandlers, 2);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", argv[0], paramsFile, status);
       exit(status);
    }
 
-   free(pv_argv[paramFileArgIndex]);
-   pv_argv[paramFileArgIndex] = strdup("input/AlexTrain.params");
-   assert(pv_argv[paramFileArgIndex]);
-   status = buildandrun(pv_argc, pv_argv, NULL, NULL, customGroupHandlers, 2);
+   paramsFile = "input/AlexTrain.params";
+   status = rebuildandrun(initObj, NULL, NULL, customGroupHandlers, 2);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", argv[0], paramsFile, status);
    }
 
-   free(pv_argv[paramFileArgIndex]);
-   pv_argv[paramFileArgIndex] = strdup("input/AlexTest.params");
-   assert(pv_argv[paramFileArgIndex]);
-   status = buildandrun(pv_argc, pv_argv, NULL, NULL, customGroupHandlers, 2);
+   paramsFile = "input/AlexTest.params";
+   status = rebuildandrun(initObj, NULL, NULL, customGroupHandlers, 2);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: running with params file %s returned error %d.\n", pv_argv[0], pv_argv[2], status);
+      fprintf(stderr, "%s: running with params file %s returned error %d.\n", argv[0], paramsFile, status);
    }
 
-#ifdef PV_USE_MPI
-   MPI_Finalize();
-#endif
-
-   for (int i=0; i<pv_argc; i++) {
-      free(pv_argv[i]);
-   }
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
