@@ -1732,9 +1732,14 @@ int HyPerConn::allocateDataStructures() {
 
    //Allocate batchSkip buffer
    batchSkip = (bool*) malloc(parent->getNBatch() * sizeof(bool));
+   
    if(!batchSkip){
       fprintf(stderr, "HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for batchSkip: %s\n", name, parent->columnId(), sizeof(bool) * parent->getNBatch(), strerror(errno));
       exit(EXIT_FAILURE);
+   }
+
+   for(int i = 0; i < parent->getNBatch(); i++){
+      batchSkip[i] = false;
    }
 
    return status;
