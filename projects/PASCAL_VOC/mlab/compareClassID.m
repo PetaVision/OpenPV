@@ -32,16 +32,19 @@ endif
 
 %%run_type = "DCA";
 %%run_type = "ICA"
-run_type = "Deep"
+%%run_type = "Deep"
 %%run_type = "DCA_Vine";
 %%run_type = "MaxPool"
 %%run_type = "S1S2";
+run_type = "VID";
 if strcmp(run_type, "S1S2")
   output_dir = [data_path, filesep, "PASCAL_VOC/PASCALX3_S1_96_S2_1536/VOC2007_landscape32"];
 elseif strcmp(run_type, "ICA")
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_6144_ICA/VOC2007_landscape1"];
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape4"];
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_portrait9"];
+elseif strcmp(run_type, "VID")
+  output_dir = [data_path, filesep, "VID/ImageNetVid_S1X32_32X16_4X14frames/train4"];
 elseif strcmp(run_type, "Deep")
   output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_Deep_ICA/VOC2007_landscape3_S1_Movie2"];
 elseif strcmp(run_type, "DCA")
@@ -77,7 +80,9 @@ endif
 
 %% sparse activity
 if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "MaxPool") || strcmp(run_type, "ICA") || strcmp(run_type, "DCA")
-  Sparse_list ={[""], ["GroundTruth"]}; 
+  Sparse_list ={[""], ["GroundTruth"]};
+elseif strcmp(run_type, "VID")
+  Sparse_list = {[""], ["
 else
   Sparse_list ={[""], ["GroundTruth"]}; 
 endif
@@ -127,7 +132,7 @@ for i_nonSparse = 1 : num_nonSparse_list
 endfor
 drawnow;
 				%pause;
-
+if ~VID
 classes ={ ...
 	   'background'
            'aeroplane'
@@ -156,6 +161,7 @@ if strcmp(run_type, "DCA_Vine")
   classes = classes(2:numel(classes));
   JIEDDO_classes = classes;
   JIEDDO_class_ndx = [1:numel(JIEDDO_classes)];
+  num_JIEDDO_classes = length(JIEDDO_class_ndx);
 endif
 
 
@@ -311,20 +317,21 @@ for i_scale = i_scale_list
       endif
     endfor
     if any(pred_time == last_time) 
-      pred_classID_cumsum = squeeze(cumsum(pred_classID_hist, 1));
-      pred_classID_sum = squeeze(sum(pred_classID_hist, 1));
-      pred_classID_norm = repmat(reshape(pred_classID_sum, [1,length(JIEDDO_class_ndx),2]), [num_classID_bins,1,1]);
-      pred_classID_cumprob = pred_classID_cumsum ./ (pred_classID_norm + (pred_classID_norm==0));
-      pred_classID_thresh_bin = zeros(length(JIEDDO_class_ndx),1);
-      pred_classID_thresh = zeros(length(JIEDDO_class_ndx),1);
-      pred_classID_true_pos = zeros(length(JIEDDO_class_ndx),1);
-      pred_classID_false_pos = zeros(length(JIEDDO_class_ndx),1);
-      pred_classID_accuracy = zeros(length(JIEDDO_class_ndx),1);
+      pred_classID_cumsum            = squeeze(cumsum(pred_classID_hist, 1));
+      pred_classID_sum               = squeeze(sum(pred_classID_hist, 1));
+      pred_classID_norm              = repmat(reshape(pred_classID_sum, [1,length(JIEDDO_class_ndx),2]), [num_classID_bins,1,1]);
+      pred_classID_cumprob           = pred_classID_cumsum ./ (pred_classID_norm + (pred_classID_norm==0));
+      pred_classID_thresh_bin        = zeros(length(JIEDDO_class_ndx),1);
+      pred_classID_thresh            = zeros(length(JIEDDO_class_ndx),1);
+      pred_classID_confidence_thresh = zeros(length(JIEDDO_class_ndx),1);
+      pred_classID_true_pos          = zeros(length(JIEDDO_class_ndx),1);
+      pred_classID_false_pos         = zeros(length(JIEDDO_class_ndx),1);
+      pred_classID_accuracy          = zeros(length(JIEDDO_class_ndx),1);
       i_JIEDDO_classID = 0;
       for i_classID = JIEDDO_class_ndx %%1 : pred_hdr.nf
 	i_JIEDDO_classID = i_JIEDDO_classID + 1;
-	pos_hist_tmp = squeeze(pred_classID_hist(:,i_JIEDDO_classID,1)) ./ squeeze(pred_classID_norm(:,i_JIEDDO_classID,1));
-	neg_hist_tmp = squeeze(pred_classID_hist(:,i_JIEDDO_classID,2)) ./ squeeze(pred_classID_norm(:,i_JIEDDO_classID,2));
+	%%pos_hist_tmp = squeeze(pred_classID_hist(:,i_JIEDDO_classID,1)) ./ squeeze(pred_classID_norm(:,i_JIEDDO_classID,1));
+	%%neg_hist_tmp = squeeze(pred_classID_hist(:,i_JIEDDO_classID,2)) ./ squeeze(pred_classID_norm(:,i_JIEDDO_classID,2));
 	if use_false_positive_thresh
 	  pred_classID_bin_tmp = find( pred_classID_cumprob(:,i_JIEDDO_classID,2)>false_positive_thresh, 1, "first");
 	else
@@ -334,52 +341,86 @@ for i_scale = i_scale_list
 	  pred_classID_bin_tmp = find((diff_hist>0).*(classID_hist_bins(:)>0), 1, "first");
 	endif
 	if ~isempty(pred_classID_bin_tmp)
-	  pred_classID_thresh_bin(i_JIEDDO_classID) = pred_classID_bin_tmp;
-	  pred_classID_thresh(i_JIEDDO_classID) = classID_hist_bins(pred_classID_bin_tmp);
-	  pred_classID_true_pos(i_JIEDDO_classID) = (1 - pred_classID_cumprob(pred_classID_bin_tmp,i_JIEDDO_classID,1));
-	  pred_classID_false_pos(i_JIEDDO_classID) = (pred_classID_cumprob(pred_classID_bin_tmp,i_JIEDDO_classID,2));
-	  pred_classID_accuracy(i_JIEDDO_classID) = (pred_classID_true_pos(i_JIEDDO_classID) + pred_classID_false_pos(i_JIEDDO_classID)) / 2;
+	  pred_classID_thresh_bin(i_JIEDDO_classID)        = pred_classID_bin_tmp;
+	  pred_classID_thresh(i_JIEDDO_classID)            = classID_hist_bins(pred_classID_bin_tmp);
+	  pred_classID_true_pos(i_JIEDDO_classID)          = (1 - pred_classID_cumprob(pred_classID_bin_tmp,i_JIEDDO_classID,1));
+	  pred_classID_false_pos(i_JIEDDO_classID)         = (pred_classID_cumprob(pred_classID_bin_tmp,i_JIEDDO_classID,2));
+	  pred_classID_confidence_thresh(i_target_classID) = pred_classID_true_pos(i_JIEDDO_classID) ./ (pred_classID_true_pos(i_JIEDDO_classID) + (1 - pred_classID_false_pos(i_JIEDDO_classID)));
+	  pred_classID_accuracy(i_JIEDDO_classID)          = (pred_classID_true_pos(i_JIEDDO_classID) + pred_classID_false_pos(i_JIEDDO_classID)) / 2;
 	else
 	  pred_classID_thresh(i_JIEDDO_classID) = classID_hist_bins(end);
+	  pred_classID_confidence_thresh(i_JIEDDO_classID) = 0.0;
 	  pred_classID_true_pos(i_JIEDDO_classID) = 0.0;
 	  pred_classID_false_pos(i_JIEDDO_classID) = 0.0;
 	  pred_classID_accuracy(i_JIEDDO_classID) = 0.0;
 	endif
       endfor
-      [pred_classID_val, pred_classID_ndx] = max(pred_classID_cube, [], 3);
-      min_pred_classID = min(pred_classID_val(:))
-      [max_pred_classID, max_pred_classID_ndx] = max(pred_classID_val(:))
-      disp(classes{pred_classID_ndx(max_pred_classID_ndx)});
-      mean_pred_classID = mean(pred_classID_val(:))
-      std_pred_classID = std(pred_classID_val(:))
+      %%[pred_classID_val, pred_classID_ndx] = max(pred_classID_cube, [], 3);
+      %%min_pred_classID = min(pred_classID_val(:))
+      %%[max_pred_classID, max_pred_classID_ndx] = max(pred_classID_val(:))
+      %%disp(classes{pred_classID_ndx(max_pred_classID_ndx)});
+      %%mean_pred_classID = mean(pred_classID_val(:))
+      %%std_pred_classID = std(pred_classID_val(:))
+      
       pred_classID_thresh = reshape(pred_classID_thresh, [1,1, length(JIEDDO_class_ndx)]);
       pred_classID_mask = double(JIEDDO_classID_cube >= repmat(pred_classID_thresh, [pred_hdr.ny, pred_hdr.nx, 1]));
       %%pred_classID_confidences = cell(length(JIEDDO_class_ndx), 1);
       
       classID_bin_width = (classID_hist_bins(end) - classID_hist_bins(1)) / length(classID_hist_bins);
-      pred_classID_max = squeeze(max(squeeze(max(pred_classID_cube, [], 2)), [], 1));
-      pred_classID_max_bin = ceil((pred_classID_max - classID_hist_bins(1)) ./ classID_bin_width);
-      pred_classID_max_bin = min(pred_classID_max_bin, num_classID_bins);
-      pred_classID_max_bin = max(pred_classID_max_bin, 1);
-      pred_classID_max_confidence = zeros(size(pred_classID_max));
-      for i_JIEDDO_classID = 1 : length(JIEDDO_class_ndx)
-      pred_classID_max_confidence(i_JIEDDO_classID) = ...
-      (1 - pred_classID_cumprob(pred_classID_max_bin(i_JIEDDO_classID), i_JIEDDO_classID,1)) ./ ...
-      ((1 - pred_classID_cumprob(pred_classID_max_bin(i_JIEDDO_classID), i_JIEDDO_classID,1)) + ...
-      (1 - pred_classID_cumprob(pred_classID_max_bin(i_JIEDDO_classID), i_JIEDDO_classID,2)));
-      endfor
-      
-      [pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
+
       JIEDDO_confidences = cell(length(JIEDDO_class_ndx),1);
+      pred_classID_confidences = zeros(size(pred_classID_cube));	
       for i_JIEDDO_classID = 1 : length(JIEDDO_class_ndx)
-	JIEDDO_confidences{i_JIEDDO_classID, 1} = [JIEDDO_classes{pred_classID_sorted_ndx(i_JIEDDO_classID)}, ...
-						   ', ', 'confidence = ', num2str(pred_classID_sorted_confidence(i_JIEDDO_classID)), ...
-						   ', ', 'thresh = ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
-						   ', ', 'accuracy = ', num2str(pred_classID_accuracy(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
-						   ', ', 'true_pos = ', num2str(pred_classID_true_pos(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
-						   ', ', 'true_neg = ', num2str(pred_classID_false_pos(pred_classID_sorted_ndx(i_JIEDDO_classID)))];
 	
+	pred_classID_confidence_bins = 1+floor((target_classID_cube(:,:,i_JIEDDO_classID) - classID_hist_bins(1)) ./ classID_bin_width);
+	pred_classID_confidence_bins(find(pred_classID_confidence_bins(:) > num_classID_bins)) = num_classID_bins;
+	pred_classID_confidence_bins(pred_classID_confidence_bins(:) < 1) =  1;
+	pred_classID_cumprob_pos = squeeze(pred_classID_cumprob(:,i_JIEDDO_classID,1));
+	pred_classID_cumprob_neg = squeeze(pred_classID_cumprob(:,i_JIEDDO_classID,2));
+	pred_classID_confidences(:, :, i_JIEDDO_classID) = ...
+	(1 - pred_classID_cumprob_pos(pred_classID_confidence_bins)) ./ ...
+	((1 - pred_classID_cumprob_pos(pred_classID_confidence_bins)) + ...
+	 (1 - pred_classID_cumprob_neg(pred_classID_confidence_bins)));
+	pred_classID_max_confidence(i_JIEDDO_classID) = max(max(pred_classID_confidences(:,:,i_JIEDDO_classID)));
       endfor
+      [pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
+      for i_JIEDDO_classID = 1 : num_JIEDDO_classes
+	JIEDDO_confidences{pred_classID_sorted_ndx(i_JIEDDO_classID), 1} = [JIEDDO_classes{pred_classID_sorted_ndx(i_JIEDDO_classID)}, ...
+									    ', ', 'confidence = ', num2str(pred_classID_max_confidence(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+									    ', ', 'confidence_thresh = ', num2str(pred_classID_confidence_thresh(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+									    ', ', 'thresh = ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+									    ', ', 'accuracy = ', num2str(pred_classID_accuracy(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+									    ', ', 'true_pos = ', num2str(pred_classID_true_pos(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+									    ', ', 'true_neg = ', num2str(pred_classID_false_pos(pred_classID_sorted_ndx(i_JIEDDO_classID)))];
+	endfor
+      
+      
+
+
+
+      ## pred_classID_max = squeeze(max(squeeze(max(pred_classID_cube, [], 2)), [], 1));
+      ## pred_classID_max_bin = ceil((pred_classID_max - classID_hist_bins(1)) ./ classID_bin_width);
+      ## pred_classID_max_bin = min(pred_classID_max_bin, num_classID_bins);
+      ## pred_classID_max_bin = max(pred_classID_max_bin, 1);
+      ## pred_classID_max_confidence = zeros(size(pred_classID_max));
+      ## for i_JIEDDO_classID = 1 : length(JIEDDO_class_ndx)
+      ## pred_classID_max_confidence(i_JIEDDO_classID) = ...
+      ## (1 - pred_classID_cumprob(pred_classID_max_bin(i_JIEDDO_classID), i_JIEDDO_classID,1)) ./ ...
+      ## ((1 - pred_classID_cumprob(pred_classID_max_bin(i_JIEDDO_classID), i_JIEDDO_classID,1)) + ...
+      ## (1 - pred_classID_cumprob(pred_classID_max_bin(i_JIEDDO_classID), i_JIEDDO_classID,2)));
+      ## endfor
+      
+      ## [pred_classID_sorted_confidence, pred_classID_sorted_ndx] = sort(pred_classID_max_confidence, 'descend');
+      ## JIEDDO_confidences = cell(length(JIEDDO_class_ndx),1);
+      ## for i_JIEDDO_classID = 1 : length(JIEDDO_class_ndx)
+      ## 	JIEDDO_confidences{i_JIEDDO_classID, 1} = [JIEDDO_classes{pred_classID_sorted_ndx(i_JIEDDO_classID)}, ...
+      ## 						   ', ', 'confidence = ', num2str(pred_classID_sorted_confidence(i_JIEDDO_classID)), ...
+      ## 						   ', ', 'thresh = ', num2str(pred_classID_thresh(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+      ## 						   ', ', 'accuracy = ', num2str(pred_classID_accuracy(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+      ## 						   ', ', 'true_pos = ', num2str(pred_classID_true_pos(pred_classID_sorted_ndx(i_JIEDDO_classID))), ...
+      ## 						   ', ', 'true_neg = ', num2str(pred_classID_false_pos(pred_classID_sorted_ndx(i_JIEDDO_classID)))];
+	
+      ## endfor
       if plot_flag
 	pred_classID_heatmap = zeros(pred_hdr.ny, pred_hdr.nx, 3);
 	pred_fig = figure("name", ["Predict: ", num2str(pred_time, "%i")]);
