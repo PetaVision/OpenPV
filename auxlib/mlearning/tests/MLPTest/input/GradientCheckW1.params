@@ -39,7 +39,7 @@ ConstantLayer "onesLayer" = {
     writeStep = -1;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
-    writeSparseActivity = false;
+    //writeSparseActivity = false;
     InitVType = "ConstantV";
     valueV    = 1;
     VThresh = -infinity;   
@@ -80,8 +80,10 @@ ANNLayer "HiddenLayer1" = {
     phase = 1;
     //rectified
     VThresh = 0;
-    VMax = infinity;
-    VMin = 0;
+    //VThresh = -infinity;
+    AMax = infinity;
+    AMin = 0;
+    //AMin = -infinity;
 };
 
 ANNLayer "FinalLayer" = {
@@ -92,7 +94,7 @@ ANNLayer "FinalLayer" = {
     writeStep = -1; //Change based on display period
     initialWriteTime = 0.0; //Change based on display period 
     mirrorBCflag = 0;
-    writeSparseActivity = 0;
+    //writeSparseActivity = 0;
     InitVType = "ZeroV";
     phase = 3;
     ////rectified
@@ -109,7 +111,7 @@ GTLayer "gt" = {
     writeStep = -1;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
-    writeSparseActivity = false;
+    //writeSparseActivity = false;
     InitVType = "ZeroV";
     inFilename = "input/train/gt.txt";
     phase = 0;
@@ -140,11 +142,22 @@ ANNLayer "FinalError" = {
    nf = 1;
    writeStep = -1;
    mirrorBCflag = 0;
-   writeSparseActivity = 0;
+   //writeSparseActivity = 0;
    InitVType = "ZeroV";
    VThresh = -infinity;
    phase = 3;
 };
+
+//ANNLayer "Error1" = {
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 4;
+//    writeStep = -1; //Change based on display period
+//    mirrorBCflag = 0;
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    phase = 4;
+//};
 
 MaskLayer "Error1" = {
     restart = 0;
@@ -153,7 +166,7 @@ MaskLayer "Error1" = {
     nf = 4;
     writeStep = -1; //Change based on display period
     mirrorBCflag = 0;
-    writeSparseActivity = 0;
+    //writeSparseActivity = 0;
     InitVType = "ZeroV";
     VThresh = -infinity;
     phase = 4;
