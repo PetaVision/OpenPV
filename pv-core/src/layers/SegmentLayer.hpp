@@ -2,6 +2,7 @@
 #define SEGMENTLAYER_HPP_
 
 #include "HyPerLayer.hpp"
+#include <map>
 
 namespace PV {
 
