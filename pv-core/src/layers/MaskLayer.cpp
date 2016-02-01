@@ -164,11 +164,11 @@ int MaskLayer::updateState(double time, double dt)
       for(int ni = 0; ni < num_neurons; ni++){
          int kThisRes = ni;
          int kThisExt = kIndexExtended(ni, nx, ny, nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up);
-         int maskVal;
+         float maskVal = 1;
          if(strcmp(maskMethod, "layer") == 0){
             const PVLayerLoc * maskLoc = maskLayer->getLayerLoc();
             pvdata_t * maskActivity = maskLayer->getActivity();
-            pvdata_t * maskActivityBatch = maskActivity + b * getNumExtended();
+            pvdata_t * maskActivityBatch = maskActivity + b * maskLayer->getNumExtended();
             int kMaskRes;
             if(maskLoc->nf == 1){
                kMaskRes = ni/nf;
@@ -176,7 +176,7 @@ int MaskLayer::updateState(double time, double dt)
             else{
                kMaskRes = ni;
             }
-            int kMaskExt = kIndexExtended(ni, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
+            int kMaskExt = kIndexExtended(kMaskRes, nx, ny, maskLoc->nf, maskLoc->halo.lt, maskLoc->halo.rt, maskLoc->halo.dn, maskLoc->halo.up);
             maskVal = maskActivityBatch[kMaskExt];
          }
          else if(strcmp(maskMethod, "maskFeatures") == 0){
