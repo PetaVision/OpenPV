@@ -2192,14 +2192,19 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
 
 int HyPerCol::calcTimeScaleTrue() {
    if (!dtAdaptControlProbe) {
+      // Using dtAdaptFlag w/o dtAdaptControlProbe was deprecated Feb 1, 2016.
+      if (columnId()==0) {
+         fflush(stdout);
+         fprintf(stderr, "\n\nWARNING: Setting dtAdaptFlag without defining a dtAdaptControlProbe is deprecated.\n\n\n");
+      }
       // If there is no probe controlling the adaptive timestep,
       // query all layers to check for barriers on how big the time scale can be.
       // By default, HyPerLayer::getTimeScale returns -1
       // (that is, the layer doesn't care how big the time scale is).
       // Movie and MoviePvp return minTimeScale when expecting to load a new frame
       // on next time step based on current value of deltaTime.
-      // ANNNormalizeErrorLayer is the only other layer in pv-core that overrides getTimeScale
-      // but we want to deprecate it.
+      // ANNNormalizeErrorLayer (deprecated) is the only other layer in pv-core
+      // that overrides getTimeScale.
       for (int b=0; b<nbatch; b++) {
          // copying of timeScale and timeScaleTrue was moved to adaptTimeScale, just before the call to calcTimeScaleTrue -- Oct. 8, 2015
          // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
