@@ -102,7 +102,7 @@ int main(int argc, char * argv[])
       }
    }
 
-   delete datatypes;
+   comm->freeDatatypes(datatypes);
    delete comm;
 
    delete initObj;
