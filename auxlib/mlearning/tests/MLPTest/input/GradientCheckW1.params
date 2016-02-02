@@ -19,7 +19,7 @@ HyPerCol "column" = {
    stopTime = 10.0; //Number of total parameters in the network (weights + biases)
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
-   outputPath = "alexOutput/";
+   outputPath = "w1output/";
    filenamesContainLayerNames = true;  
    filenamesContainConnectionNames = true;
    checkpointRead = false;  
@@ -56,7 +56,7 @@ InputLayer "train" = {
     writeStep = -1;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
-    writeSparseActivity = false;
+    //writeSparseActivity = false;
     InitVType = "ZeroV";
     inFilename = "input/train/input.txt";
     phase = 0;
@@ -75,7 +75,7 @@ ANNLayer "HiddenLayer1" = {
     writeStep = -1; //Change based on display period
     initialWriteTime = 0.0; //Change based on display period 
     mirrorBCflag = 0;
-    writeSparseActivity = 0;
+    //writeSparseActivity = 0;
     InitVType = "ZeroV";
     phase = 1;
     //rectified
@@ -192,6 +192,7 @@ GradientCheckConn "W1Plasticity" = {
     strength = 1.0;  
     normalizeMethod = "none";
     sharedWeights = true;
+    normalizeDw = false;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
@@ -230,6 +231,7 @@ KernelConn "B1Plasticity" = {
         
     strength = 1.0;  
     normalizeMethod = "none";
+    normalizeDw = false;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
@@ -292,6 +294,7 @@ HyPerConn "W2Plasticity" = {
     strength = 1.0;  
     normalizeMethod = "none";
     sharedWeights = true;
+    normalizeDw = false;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;

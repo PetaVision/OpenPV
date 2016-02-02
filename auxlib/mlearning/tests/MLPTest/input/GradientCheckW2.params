@@ -19,7 +19,7 @@ HyPerCol "column" = {
    stopTime = 6.0; //Number of total parameters in the network (weights + biases)
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
-   outputPath = "alexOutput/";
+   outputPath = "w2output/";
    filenamesContainLayerNames = true;  
    filenamesContainConnectionNames = true;
    checkpointRead = false;  
@@ -192,6 +192,7 @@ KernelConn "W1Plasticity" = {
     strength = 1.0;  
     normalizeMethod = "none";
     sharedWeights = true;
+    normalizeDw = false;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
@@ -227,6 +228,7 @@ KernelConn "B1Plasticity" = {
         
     strength = 1.0;  
     normalizeMethod = "none";
+    normalizeDw = false;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
@@ -289,6 +291,7 @@ GradientCheckConn "W2Plasticity" = {
     strength = 1.0;  
     normalizeMethod = "none";
     sharedWeights = true;
+    normalizeDw = false;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;

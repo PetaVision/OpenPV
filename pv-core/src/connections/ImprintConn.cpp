@@ -112,7 +112,11 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt){
 
 
    pvwdata_t * dwdata = get_dwData(arbor_ID, kExt);
-   long * activations = get_activations(arbor_ID, kExt);
+   long * activations = NULL;
+   if(normalizeDwFlag){
+      activations = get_activations(arbor_ID, kExt);
+   }
+   
    int lineoffsetw = 0;
    int lineoffseta = 0;
    int lineoffsetm = 0;
@@ -134,7 +138,9 @@ int ImprintConn::imprintFeature(int arbor_ID, int batch_ID, int kExt){
          if (maskVal != 0){
             assert(sharedWeights);
             //Offset in the case of a shrunken patch, where dwdata is applying when calling get_dwData
-            activations[lineoffsetw + k]++;
+            if(normalizeDwFlag){
+               activations[lineoffsetw + k]++;
+            }
             //Set actual values to dwData. The imprinted buffer will tell updateWeights to update this kernel by setting to dwWeight
             dwdata[lineoffsetw + k] += aPost;
          }

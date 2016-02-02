@@ -365,6 +365,8 @@ protected:
    HyPerLayer* mask;
    bool* batchSkip;
 
+   bool normalizeDwFlag;
+
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
    int sxp, syp, sfp; // stride in x,y,features
@@ -748,6 +750,11 @@ protected:
     */
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    
+   /**
+    * @brief normalizeDw: Specifies if this connection is averaging gradients (true) or summing them (false)
+    */
+   virtual void ioParam_normalizeDw(enum ParamsIOFlag ioFlag);
+
    /**
     * @brief useMask: Specifies if this connection is using a post mask for learning
     */
