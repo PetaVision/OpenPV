@@ -48,15 +48,35 @@ def readpvpfile(filename,
             raw_data = octave.readpvpfile(filename)
             return raw_data
 
+# Newer filetypes, fully implemented in python
+
         # NON-KERNEL WEIGHT FILE
         elif header['filetype'] == 3:
-            from oct2py import octave
-            import re
-            octave.addpath(re.match('(.*)(python)',__file__).group(0) + '/mlab/util')
-            raw_data = octave.readpvpfile(filename)
-            return raw_data
-
-# Newer filetypes, fully implemented in python
+            fileSize = os.path.getsize(filename)
+            frameSize = header['recordsize'] * header['nbands'] + header['headersize']
+            lastFrame = min(lastFrame,fileSize/frameSize)
+            shape = (header['nxp'], header['nyp'], header['nfp'])
+            patchPattern = np.dtype([('nx', np.uint16),
+                                     ('ny', np.uint16),
+                                     ('offset', np.uint32),
+                                     ('values', dataType, shape)])
+            data = []
+            stream.seek(0)
+            for frame in range(startFrame, lastFrame):
+                if not frame % skipFrames:
+                    stream.seek(frame*frameSize)
+                    time = np.fromfile(stream,extendedHeaderPattern,1)['time'][0]
+                    data.append(DataFrame(time,[]))
+                    for arbor in range(header['nbands']):
+                        currentData = np.fromfile(stream,
+                                                  patchPattern,
+                                                  header['numpatches'])['values']
+                        data[frame].values.append(np.squeeze(np.transpose(currentData,
+                                                                          [2,1,3,0])))
+                        if progressPeriod:
+                            if not frame % progressPeriod and frame:
+                                print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
+                    return PV_Object(data,header)
 
         # DENSE, NON-SPIKING ACTIVITY FILE
         elif header['filetype'] == 4:
