@@ -30,7 +30,7 @@ def readpvpfile(filename,
         dataType = dataTypeSwitch[header['datatype']]
         lastFrame = min(lastFrame, header['nbands'])
 
-# Older filetypes, not fully implemented in python (require oct2py):
+# Deprecated filetype not implemented in python (requires oct2py):
 
         # PVP FILE (deprecated)
         if header['filetype'] == 1:
@@ -40,15 +40,27 @@ def readpvpfile(filename,
             raw_data = octave.readpvpfile(filename)
             return raw_data
 
+# Supported older filetypes, not fully tested in Python 2
+
         # SPIKING ACTIVITY FILE
         if header['filetype'] == 2:
-            from oct2py import octave
-            import re
-            octave.addpath(re.match('(.*)(python)',__file__).group(0) + '/mlab/util')
-            raw_data = octave.readpvpfile(filename)
-            return raw_data
-
-# Newer filetypes, fully implemented in python
+            lastFrame = min(lastFrame, header['nbands'])
+            data = []
+            for frame in range(lastFrame):
+                if frame < startFrame or (frame % skipFrames):
+                    numActive = np.fromfile(stream,np.uint32,3)[-1]
+                    stream.seek(np.dtype(np.uint32).itemsize * numActive,
+                                os.SEEK_CUR)
+                    continue
+                else:
+                    time = np.fromfile(stream,np.float64,1)[0]
+                    numActive = np.fromfile(stream,np.uint32,1)
+                    currentData = np.fromfile(stream,np.uint32,numActive)
+                    data.append(DataFrame(time, currentData)
+                    if progressPeriod:
+                        if not frame % progressPeriod and frame:
+                            print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
+            return PV_Object(data,header)
 
         # NON-KERNEL WEIGHT FILE
         elif header['filetype'] == 3:
@@ -77,6 +89,8 @@ def readpvpfile(filename,
                             if not frame % progressPeriod and frame:
                                 print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
                     return PV_Object(data,header)
+
+# Supported newer filetypes, fully implemented in python and tested as of 2/2/2016
 
         # DENSE, NON-SPIKING ACTIVITY FILE
         elif header['filetype'] == 4:
