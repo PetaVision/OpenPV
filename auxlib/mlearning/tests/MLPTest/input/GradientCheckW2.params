@@ -11,8 +11,8 @@
 debugParsing = false;    // Debug the reading of this parameter file.
 
 HyPerCol "column" = {
-   nx = 2;
-   ny = 2;
+   nx = 64;
+   ny = 64;
    dt = 1.0;  //time step in ms.	     
    randomSeed = 2394853940;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
@@ -50,8 +50,8 @@ ConstantLayer "onesLayer" = {
 //Note that the layer name matches train.txt
 InputLayer "train" = {
     restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
+    nxScale = 2; 
+    nyScale = 2;
     nf = 2;
     writeStep = -1;
     initialWriteTime = 0.0;
@@ -80,10 +80,10 @@ ANNLayer "HiddenLayer1" = {
     phase = 1;
     //rectified
     //VThresh = 0;
-    VThresh = -infinity;
-    AMax = infinity;
     //AMin = 0;
+    VThresh = -infinity;
     AMin = -infinity;
+    AMax = infinity;
 };
 
 ANNLayer "FinalLayer" = {
@@ -179,8 +179,8 @@ KernelConn "W1Plasticity" = {
     preLayerName = "train";
     postLayerName = "Error1";
     channelCode = -1; //Does not update on this channel
-    nxp = 1; 
-    nyp = 1; 
+    nxp = 13; 
+    nyp = 13; 
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
