@@ -15,37 +15,40 @@ local VThresh               = 0.025
 local VWidth                = infinity
 local learningRate          = 0
 local dWMax                 = 10.0
-local learningMomentumTau   = 500
+local momentumTau           = 500
 local patchSizeX            = 32 --16
 local patchSizeY            = 16
 local tau                   = 400
 local nf_Image              = 3 -- 3 for RGB, 1 for gray
 local S1_numFeatures        = patchSizeX * patchSizeY * nf_Image * 2 -- (patchSize/stride)^2 Xs overcomplete (i.e. complete for orthonormal ICA basis for stride == patchSize)
-local z                     = 0  -- z = 0,1,2, ... to obtain overcompleteness of 1,4,16, ...
-local overcompleteness      = math.pow(math.pow(2,z),2)
-local overcompletenessTmp   = overcompleteness
+local z                     = 2  -- z = 0,1,2, ... to obtain overcompleteness of 1,4,16, ...
+local overcompleteness      = 2*math.pow(math.pow(2,z),2)
+local overcompletenessTmp   = 4 --overcompleteness
 local temporalKernelSize    = 2 -- 4 -- 
-local numFrames             = temporalKernelSize * 2 - 1
+local numFrames             = 2*(temporalKernelSize * 2 - 1)
+local numFramesTmp          = 4*(temporalKernelSize * 2 - 1)
 
 -- User defined variables
 local plasticityFlag      = true --false
-local strideX             = patchSizeX/math.pow(2,z) -- divide patchSize by 2^z to obtain dictionaries that are (2^z)^2 Xs overcomplete
+local strideX             = patchSizeX/(math.pow(2,z)*2) -- divide patchSize by 2^z to obtain dictionaries that are (2^z)^2 Xs overcomplete
 local strideY             = patchSizeY/math.pow(2,z) -- 
 local nxSize              = 512
 local nySize              = 144
-local experimentName      = "KITTI_S1X" .. overcompleteness .. "_" .. patchSizeX .. "X" .. patchSizeY  .. "_" .. temporalKernelSize .. "X" .. numFrames .. "frames"
+local experimentName      = "KITTI_S1X" .. overcompleteness    .. "_" .. patchSizeX .. "X" .. patchSizeY  .. "_" .. temporalKernelSize .. "X" .. numFrames    .. "frames"
+local experimentNameTmp   = "KITTI_S1X" .. overcompletenessTmp .. "_" .. patchSizeX .. "X" .. patchSizeY  .. "_" .. temporalKernelSize .. "X" .. numFramesTmp .. "frames"
 local runName             = "2011_09_26_train"
-local runVersion          = 1
+local runVersion          = 3
+local runVersionTmp       = 1
 local machinePath         = "/home/gkenyon" --"/nh/compneuro/Data"
 local databasePath        = "KITTI" 
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
-local inputPath           = nil --machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
+local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
 local inputPathSLP        = nil --machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
 local numImages           = 15884
 local displayPeriod       = 1200
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs
-local checkpointID        = nil --stopTime-- 
+local checkpointID        = "00600000" --stopTime-- 
 local checkpointID_SLP    = nil --stopTime--
 local writePeriod         = 100 * displayPeriod
 local initialWriteTime    = writePeriod
@@ -61,8 +64,8 @@ if S1_Movie then
    initialWriteTime        = numImages*(numEpochs-1)+1
    checkpointWriteStepInterval = numImages
 else -- not used if run version == 1
-   inputPath               = nil -- inputPath .. runVersion-1
-   inputPathSLP            = nil --inputPath .. "S1_Movie"
+   --inputPath               = nil -- inputPath .. runVersion-1
+   --inputPathSLP            = nil --inputPath .. "S1_Movie"
 end
 local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false
@@ -72,6 +75,7 @@ local imageListPathLeft   = "/nh/compneuro/Data/KITTI/list/image_02.txt"
 local imageListPathRight  = "/nh/compneuro/Data/KITTI/list/image_03.txt"
 local GroundTruthPath     = nil -- "/nh/compneuro/Data/KITTI/list/depth.txt"
 local startFrame          = 0
+local skipFrame           = numFrames
 local offsetX             = 0
 local offsetY             = 0
 
@@ -80,11 +84,11 @@ local dtAdaptFlag              = not S1_Movie
 local useAdaptMethodExp1stOrder = true
 local dtAdaptController        = "S1EnergyProbe"
 local dtAdaptTriggerLayerName  = "FrameLeft0";
-local dtScaleMax               = 0.000055   --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
-local dtScaleMin               = 0.00005  --0.01    -- default time scale to use after image flips or when something is wacky
-local dtChangeMax              = 0.1   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
-local dtChangeMin              = 0.01  --0.01    -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
-local dtMinToleratedTimeScale  = 0.00001
+local dtScaleMax               = 0.01025 --0.0015 --0.000051   --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
+local dtScaleMin               = 0.01 --0.001  --0.00005  --0.01    -- default time scale to use after image flips or when something is wacky
+local dtChangeMax              = 0.05   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
+local dtChangeMin              = 0.025  --0.01    -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
+local dtMinToleratedTimeScale  = 0.000000001
 
 --Ground Truth parameters
 local numClasses            = 32
@@ -278,8 +282,8 @@ else -- not S1_Movie
 		     inputPath                           = imageListPathLeft;
 		     displayPeriod                       = displayPeriod;
 		     echoFramePathnameFlag               = true;
-		     start_frame_index                   = i_frame-1;
-		     skip_frame_index                    = 0;
+		     start_frame_index                   = startFrame + i_frame-1;
+		     skip_frame_index                    = skipFrame;
 		     writeFrameToTimestamp               = true;
 		     flipOnTimescaleError                = true;
 		     resetToStartOnLoop                  = false;
@@ -337,14 +341,14 @@ else -- not S1_Movie
 		     phase                               = 2;
 		     mirrorBCflag                        = false;
 		     valueBC                             = 0;
-		     initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
+		     initializeFromCheckpointFlag        = true; --initializeFromCheckpointFlag;
 		     --InitVType                           = "InitVFromFile";
 		     --Vfilename                           = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_V.pvp";
-		     -- InitVType                           = "UniformRandomV";
-		     -- minV                                = -1;
-		     -- maxV                                = 0.05;
-		     InitVType                           = "ConstantV";
-		     valueV                              = VThresh;
+		     InitVType                           = "UniformRandomV";
+		     minV                                = -VThresh;
+		     maxV                                = 2*VThresh;
+		     --InitVType                           = "ConstantV";
+		     --valueV                              = VThresh;
 		     --triggerLayerName                    = "Frame" .. i_frame-1;
 		     --triggerBehavior                     = "resetStateOnTrigger";
 		     --triggerResetLayerName               = "ConstantS1";
@@ -368,6 +372,10 @@ else -- not S1_Movie
 		     selfInteract                        = true;
 		  }
       )
+   if false then --checkpointID then
+      pvParams["S1_" .. i_delay-1].InitVType             = "InitVFromFile";
+      pvParams["S1_" .. i_delay-1].Vfilename             = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/S1_" .. i_delay-1 .. "V.pvp";
+   end   
    end -- i_delay
 
    for i_frame = 1, numFrames do  
@@ -457,8 +465,8 @@ if GroundTruthPath then
 		     displayPeriod                       = displayPeriod;
 		     randomMovie                         = 0;
 		     readPvpFile                         = true;
-		     start_frame_index                   = i_frame-1;
-		     skip_frame_index                    = 0;
+		     start_frame_index                   = startFrame + i_frame-1;
+		     skip_frame_index                    = skipFrame;
 		     writeFrameToTimestamp               = true;
 		     flipOnTimescaleError                = true;
 		     resetToStartOnLoop                  = false;
@@ -778,11 +786,11 @@ if not S1_Movie then
 
 	    if i_delay == 1 then -- the first delay layer stores the original connections
 
-	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error",
+	       pv.addGroup(pvParams, "S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "ReconS1Error",
 			   {
 			      groupType                           = "MomentumConn";
-			      preLayerName                        = "S1_" .. i_delay-1;
-			      postLayerName                       = "FrameLeft" .. i_frame-1 .. "ReconS1Error";
+			      preLayerName                        = "S1_" .. 0;
+			      postLayerName                       = "FrameLeft" .. delta_frame .. "ReconS1Error";
 			      channelCode                         = -1;
 			      delay                               = {0.000000};
 			      numAxonalArbors                     = 1;
@@ -797,7 +805,7 @@ if not S1_Movie then
 			      sparseFraction                      = 0.9;
 			      initializeFromCheckpointFlag        = false;
 			      triggerFlag                         = true;
-			      triggerLayerName                    = "FrameLeft" .. i_frame-1;
+			      triggerLayerName                    = "FrameLeft" .. delta_frame;
 			      triggerOffset                       = 1;
 			      updateGSynFromPostPerspective       = true;
 			      pvpatchAccumulateType               = "convolve";
@@ -828,40 +836,33 @@ if not S1_Movie then
 
 			   }
 	       )
-	       pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error",
-			   pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"],
+	       pv.addGroup(pvParams, "S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error",
+			   pvParams["S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "ReconS1Error"],
 			   {
-			      postLayerName                       = "FrameRight" .. i_frame-1 .. "ReconS1Error";
+			      postLayerName                       = "FrameRight" .. delta_frame .. "ReconS1Error";
 			   }
 	       )
-	       pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].normalizeMethod
+	       pvParams["S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error"].normalizeMethod
 		  = "normalizeGroup";
-	       pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].normalizeGroupName                 
+	       pvParams["S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error"].normalizeGroupName                 
 		  = "S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "ReconS1Error";
-	       if i_delay > 1 then -- set normalizationGroup
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].normalizeMethod
-		     = "normalizeGroup";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].normalizeGroupName                 
-		     = "S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "ReconS1Error";
-	       end -- i_frame == 1 (for defining normalization group)
-
 	       if not plasticityFlag then
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].triggerLayerName    = NULL;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].triggerOffset       = nil;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].triggerLayerName    = NULL;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].triggerOffset       = nil;
+		  pvParams["S1_" .. 0 .. "To" .. "FrameLeft"  .. delta_frame .. "ReconS1Error"].triggerLayerName    = NULL;
+		  pvParams["S1_" .. 0 .. "To" .. "FrameLeft"  .. delta_frame .. "ReconS1Error"].triggerOffset       = nil;
+		  pvParams["S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error"].triggerLayerName    = NULL;
+		  pvParams["S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error"].triggerOffset       = nil;
 	       end
 	       if checkpointID then
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].weightInitType      = "FileWeight";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].initWeightsFile
-		     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/" .. "S1_" .. i_delay-1 .. "ToFrameLeft" .. i_frame-1 .. "ReconS1Error_W.pvp";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].useListOfArborFiles = false;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameLeft" .. i_frame-1 .. "ReconS1Error"].combineWeightFiles  = false;    
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].weightInitType      = "FileWeight";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].initWeightsFile
-		     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/" .. "S1_" .. i_delay-1 .. "ToFrameRight" .. i_frame-1 .. "ReconS1Error_W.pvp";
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].useListOfArborFiles = false;
-		  pvParams["S1_" .. i_delay-1 .. "To" .. "FrameRight" .. i_frame-1 .. "ReconS1Error"].combineWeightFiles  = false;    
+		  pvParams["S1_" .. 0 .. "To" .. "FrameLeft"  .. delta_frame .. "ReconS1Error"].weightInitType      = "FileWeight";
+		  pvParams["S1_" .. 0 .. "To" .. "FrameLeft"  .. delta_frame .. "ReconS1Error"].initWeightsFile
+		     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/" .. "S1_" .. 0 .. "ToFrameLeft" .. delta_frame .. "ReconS1Error_W.pvp";
+		  pvParams["S1_" .. 0 .. "To" .. "FrameLeft"  .. delta_frame .. "ReconS1Error"].useListOfArborFiles = false;
+		  pvParams["S1_" .. 0 .. "To" .. "FrameLeft"  .. delta_frame .. "ReconS1Error"].combineWeightFiles  = false;    
+		  pvParams["S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error"].weightInitType      = "FileWeight";
+		  pvParams["S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error"].initWeightsFile
+		     = inputPath .. "/Checkpoints/Checkpoint" .. checkpointID .. "/" .. "S1_" .. 0 .. "ToFrameRight" .. delta_frame .. "ReconS1Error_W.pvp";
+		  pvParams["S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error"].useListOfArborFiles = false;
+		  pvParams["S1_" .. 0 .. "To" .. "FrameRight" .. delta_frame .. "ReconS1Error"].combineWeightFiles  = false;    
 	       end -- checkpointID	       
 	       
 	    else -- use a plasticCloneConn
@@ -906,7 +907,7 @@ if not S1_Movie then
 			   writeStep                           = -1;
 			   writeCompressedCheckpoints          = false;
 			   selfFlag                            = false;
-			   gpuGroupIdx                         = -1;
+			   gpuGroupIdx                         = delta_frame;
 			   originalConnName                    = "S1_" .. 0 .. "To" .. "FrameLeft" .. delta_frame .. "ReconS1Error";
 			}
 	    )
