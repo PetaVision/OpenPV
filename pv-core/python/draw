@@ -1,4 +1,11 @@
 #!/bin/bash
+# Written by Max Theiler, max.theiler@gmail.com
+# 2/5/2016
+
+# Pathing to this script in your .bash_profile allows
+# using the 'draw' command from anywhere, which is the
+# the recommendended way of accessing param_draw.py.
+
 FILEWRITE=false
 while getopts ":plfa" opt; do
     case $opt in
