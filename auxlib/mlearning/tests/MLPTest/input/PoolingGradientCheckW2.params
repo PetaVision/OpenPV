@@ -123,7 +123,7 @@ PoolingIndexLayer "MaxPoolIndex" = {
     restart = 0;
     nxScale = .5;
     nyScale = .5;
-    nf = 1;
+    nf = 4;
     writeStep = -1.0;
     initialWriteTime = 0.0;
     mirrorBCflag = false;
@@ -137,7 +137,7 @@ PoolingIndexLayer "MaxPoolIndex" = {
     AShift = 0.0;
     VWidth = 0.0;
     // 
-    phase = 2; 
+    phase = 3; 
     triggerLayerName = NULL;
 };
 
@@ -200,7 +200,7 @@ ANNLayer "FinalError" = {
    //writeSparseActivity = 0;
    InitVType = "ZeroV";
    VThresh = -infinity;
-   phase = 3;
+   phase = 4;
 };
 
 ANNLayer "Error1" = {
@@ -211,7 +211,7 @@ ANNLayer "Error1" = {
     mirrorBCflag = 0;
     InitVType = "ZeroV";
     VThresh = -infinity;
-    phase = 4;
+    phase = 5;
 };
 
 //MaskLayer "GatedError1" = {
@@ -237,7 +237,7 @@ ANNLayer "GatedError1" = {
     mirrorBCflag = 0;
     InitVType = "ZeroV";
     VThresh = -infinity;
-    phase = 5;
+    phase = 6;
 };
 
 //Connections
