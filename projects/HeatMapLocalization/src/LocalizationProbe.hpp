@@ -23,8 +23,6 @@ public:
 
    char const * getImageLayerName() { return imageLayerName; }
    char const * getReconLayerName() { return reconLayerName; }
-   char const * getOctaveCommand() { return octaveCommand; }
-   char const * getOctaveLogFile() { return octaveLogFile; }
    char const * getClassNamesFile() { return classNamesFile; }
    char const * getClassName(int k);
    char const * getHeatMapMontageDir() { return heatMapMontageDir; }
@@ -63,8 +61,6 @@ protected:
    virtual void ioParam_classNamesFile(enum ParamsIOFlag ioFlag);
    virtual void ioParam_outputPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_drawMontage(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_octaveCommand(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_octaveLogFile(enum ParamsIOFlag ioFlag);
    virtual void ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag);
    virtual void ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag);
    virtual void ioParam_heatMapMontageDir(enum ParamsIOFlag ioFlag);
@@ -73,7 +69,7 @@ protected:
    virtual int initNumValues();
    int makeDisplayCategoryIndicesString();
    virtual bool needUpdate(double timed, double dt);
-   virtual int calcValues(double timevalue); // Currently, those values are computed by octave, so not convenient to retrieve.
+   virtual int calcValues(double timevalue);
    virtual int outputState(double timevalue);
 
    int makeMontage();
@@ -91,8 +87,6 @@ protected:
    char * imageLayerName;
    char * reconLayerName;
    bool drawMontage;
-   char * octaveCommand;
-   char * octaveLogFile;
    char * classNamesFile;
    char ** classNames;
    int displayCategoryIndexStart;
@@ -109,7 +103,6 @@ protected:
 
    double outputPeriod;
    double nextOutputTime; // Warning: this does not get checkpointed but it should.  Probes have no checkpointing infrastructure yet.
-   pid_t octavePid;
 
    char * outputFilenameBase;
    float detectionThreshold; // Should become an array

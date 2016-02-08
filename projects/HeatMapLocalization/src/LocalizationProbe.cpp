@@ -24,8 +24,6 @@ LocalizationProbe::LocalizationProbe() {
 int LocalizationProbe::initialize_base() {
    imageLayerName = NULL;
    reconLayerName = NULL;
-   octaveCommand = NULL;
-   octaveLogFile = NULL;
    classNamesFile = NULL;
    classNames = NULL;
    displayCategoryIndexStart = -1;
@@ -38,7 +36,6 @@ int LocalizationProbe::initialize_base() {
 
    outputPeriod = 1.0;
    nextOutputTime = 0.0; // Warning: this does not get checkpointed but it should.  Probes have no checkpointing infrastructure yet.
-   octavePid = (pid_t) 0;
    imageLayerName = NULL;
    imageLayer = NULL;
    reconLayerName = NULL;
@@ -81,8 +78,6 @@ int LocalizationProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_classNamesFile(ioFlag);
    ioParam_outputPeriod(ioFlag);
    ioParam_drawMontage(ioFlag);
-   ioParam_octaveCommand(ioFlag);
-   ioParam_octaveLogFile(ioFlag);
    ioParam_displayCategoryIndexStart(ioFlag);
    ioParam_displayCategoryIndexEnd(ioFlag);
    ioParam_heatMapMontageDir(ioFlag);
@@ -120,20 +115,6 @@ void LocalizationProbe::ioParam_outputPeriod(enum ParamsIOFlag ioFlag) {
 
 void LocalizationProbe::ioParam_drawMontage(enum ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "drawMontage", &drawMontage, drawMontage, true/*warnIfAbsent*/);
-}
-
-void LocalizationProbe::ioParam_octaveCommand(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
-   if (drawMontage) {
-      this->getParent()->ioParamStringRequired(ioFlag, this->getName(), "octaveCommand", &octaveCommand);
-   }
-}
-
-void LocalizationProbe::ioParam_octaveLogFile(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
-   if (drawMontage) {
-      this->getParent()->ioParamStringRequired(ioFlag, this->getName(), "octaveLogFile", &octaveLogFile);
-   }
 }
 
 void LocalizationProbe::ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag) {
@@ -221,19 +202,6 @@ int LocalizationProbe::communicateInitInfo() {
 
    // Check Parameters in LocalizationProbe that are to be passed to Octave.
    if (parent->columnId()==0 && drawMontage) {
-      // clobber octave logfile and result text file unless starting from a checkpoint
-      if (parent->getCheckpointReadDir()==NULL) {
-         FILE * octaveFP = fopen(octaveLogFile, "w");
-         if (octaveFP == NULL) {
-            fprintf(stderr, "%s \"%s\": unable to open octave log file \"%s\": %s\n",
-                  getKeyword(), getName(), octaveLogFile, strerror(errno));
-            status = PV_FAILURE;
-         }
-         else {
-            fclose(octaveFP); // Octave will write to the octave log file; the probe won't do so directly.
-         }
-      }
-
       featurefieldwidth = (int) ceilf(log10f((float) (nf+1)));
       classNames = (char **) malloc(nf * sizeof(char *));
       if (classNames == NULL) {
@@ -913,8 +881,6 @@ int LocalizationProbe::makeMontage() {
 LocalizationProbe::~LocalizationProbe() {
    free(imageLayerName);
    free(reconLayerName);
-   free(octaveCommand);
-   free(octaveLogFile);
    free(classNamesFile);
    free(heatMapMontageDir);
    free(displayCommand);
