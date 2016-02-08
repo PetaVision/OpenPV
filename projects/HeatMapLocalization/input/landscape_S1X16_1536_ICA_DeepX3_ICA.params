@@ -216,7 +216,7 @@ ConvertFromTable "ConfidencesS1" = {
     updateGpu                           = false;
     dataType                            = NULL;
     originalLayerName                   = "GroundTruthReconS1";
-    dataFile                            = "input/initializionFiles/pvpFiles/confidenceTableS1.bin";
+    dataFile                            = "input/initializationFiles/pvpFiles/confidenceTableS1.bin";
 };
 
 CloneConn "S1ToImageReconS1" = {
