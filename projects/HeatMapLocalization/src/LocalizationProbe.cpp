@@ -329,8 +329,6 @@ int LocalizationProbe::communicateInitInfo() {
             }
             status = makeMontageLabelfile(labelFilename, "white", "blue", classNames[f]);
             if (status != 0) {
-               fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error creating label file \"%s\": ImageMagick convert returned %d.\n", getKeyword(), name, labelFilename, status);
                exit(EXIT_FAILURE);
             }
          }
@@ -444,7 +442,7 @@ int LocalizationProbe::allocateDataStructures() {
 int LocalizationProbe::makeMontageLabelfile(char const * labelFilename, char const * backgroundColor, char const * textColor, char const * labelText) {
    int const nx = imageLayer->getLayerLoc()->nx;
    std::stringstream convertCmd("");
-   convertCmd << "convert -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << nx << "x32 -pointsize 24 -gravity center label:\"" << labelText << "\" \"" << heatMapMontageDir << "/labels/" << labelFilename << "\"";
+   convertCmd << "convert -depth 8 -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << nx << "x32 -pointsize 24 -gravity center label:\"" << labelText << "\" \"" << heatMapMontageDir << "/labels/" << labelFilename << "\"";
    int status = system(convertCmd.str().c_str());
    if (status != 0) {
       fflush(stdout);
@@ -777,7 +775,7 @@ int LocalizationProbe::makeMontage() {
       int const kExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
       pvadata_t a = imageLayer->getLayerData()[kExt];
       minValue = a < minValue ? a : minValue;
-      maxValue = a > minValue ? a : maxValue;
+      maxValue = a > maxValue ? a : maxValue;
    }
    if (minValue==maxValue) {
       for (int y=0; y<ny; y++) {
@@ -813,7 +811,7 @@ int LocalizationProbe::makeMontage() {
          int const kExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
          pvadata_t a = reconLayer->getLayerData()[kExt];
          minValue = a < minValue ? a : minValue;
-         maxValue = a > minValue ? a : maxValue;
+         maxValue = a > maxValue ? a : maxValue;
       }
       if (minValue==maxValue) {
          for (int y=0; y<ny; y++) {
