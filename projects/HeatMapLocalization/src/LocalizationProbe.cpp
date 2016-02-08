@@ -752,7 +752,7 @@ int LocalizationProbe::makeMontage() {
       char const * confFile = "confidenceLabel.tif";
       if (f==winningFeature) {
          char labelFilename[PV_PATH_MAX];
-         int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, f);
+         int slen = snprintf(labelFilename, PV_PATH_MAX, "blue%0*d.tif", featurefieldwidth, f);
          assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
          insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage-64, nx, 32);
          
@@ -872,7 +872,7 @@ int LocalizationProbe::makeMontage() {
       int xStartInMontage = montageColumn * (nx+10) + 5;
       int yStartInMontage = montageRow * (ny+64+10) + 5;
       char labelFilename[PV_PATH_MAX];
-      int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, winningFeature);
+      int slen = snprintf(labelFilename, PV_PATH_MAX, "gray%0*d.tif", featurefieldwidth, winningFeature);
       assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
       insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage, nx, 32);
    }
