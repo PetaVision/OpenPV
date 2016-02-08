@@ -866,14 +866,16 @@ int LocalizationProbe::makeMontage() {
    GDALClose(dataset);
 
    // Restore the winning feature's gray label
-   int montageColumn = kxPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
-   int montageRow = kyPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
-   int xStartInMontage = montageColumn * (nx+10) + 5;
-   int yStartInMontage = montageRow * (ny+64+10) + 5;
-   char labelFilename[PV_PATH_MAX];
-   int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, winningFeature);
-   assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
-   insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage, nx, 32);
+   if (winningFeature >= 0) {
+      int montageColumn = kxPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
+      int montageRow = kyPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
+      int xStartInMontage = montageColumn * (nx+10) + 5;
+      int yStartInMontage = montageRow * (ny+64+10) + 5;
+      char labelFilename[PV_PATH_MAX];
+      int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, winningFeature);
+      assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
+      insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage, nx, 32);
+   }
 
    return PV_SUCCESS;
 }
