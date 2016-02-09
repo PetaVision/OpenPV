@@ -17,14 +17,6 @@ if isempty(which('readpvpfile'))
    error('createThreeTables:missingreadpvpfile','createThreeTables error: no readpvpfile in either the path or the pv_dir variable');
 end%if
 
-if ~exist('binfiles', 'dir')
-    mkdir binfiles;
-end%if
-
-if ~exist('binfiles', 'dir')
-    error('createThreeTables:no_binfiles', 'createThreeTables error: unable to create binfiles directory');
-end%if
-
 pvpraw = readpvpfile('pvpFiles/GroundTruth.pvp');
 N = numel(pvpraw);
 GroundTruth = zeros(4,3,numfeatures,N);
