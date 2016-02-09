@@ -1457,7 +1457,7 @@ int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
 
 
 static inline int _mkdir(const char *dir) {
-   mode_t dirmode = S_IRWXU | S_IRGRP | S_IXGRP;
+   mode_t dirmode = S_IRWXU | S_IRWXG | S_IRWXO;
    char tmp[PV_PATH_MAX];
    char *p = NULL;
    int status = 0;
@@ -1495,7 +1495,6 @@ int HyPerCol::ensureDirExists(const char * dirname) {
    int rank = columnId();
    struct stat pathstat;
    int resultcode = checkDirExists(dirname, &pathstat);
-   int numAttempts = 5;
    if( resultcode == 0 ) { // outputPath exists; now check if it's a directory.
       if( !(pathstat.st_mode & S_IFDIR ) ) {
          if( rank == 0 ) {
@@ -1509,15 +1508,8 @@ int HyPerCol::ensureDirExists(const char * dirname) {
       if( rank == 0 ) {
          printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
 
-         //char targetString[PV_PATH_MAX];
-         //int num_chars_needed = snprintf(targetString,PV_PATH_MAX,"mkdir -p %s",dirname);
-         //if (num_chars_needed > PV_PATH_MAX) {
-         //   fflush(stdout);
-         //   fprintf(stderr,"Path \"%s\" is too long.",dirname);
-         //   exit(EXIT_FAILURE);
-         //}
-
-         //Try again until it works
+         //Try up to 5 times until it works
+         int const numAttempts = 5;
          for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
             int mkdirstatus = _mkdir(dirname);
             if( mkdirstatus != 0 ) {
