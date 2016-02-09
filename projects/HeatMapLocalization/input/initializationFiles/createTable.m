@@ -14,7 +14,7 @@ if isempty(which('readpvpfile'))
    addpath(pv_dir);
 end%if
 if isempty(which('readpvpfile'))
-   error('createThreeTables:missingreadpvpfile','createThreeTables error: no readpvpfile in either the path or the pv_dir variable');
+   error('createThreeTables:missingreadpvpfile','createThreeTables error: no readpvpfile in either the path or the pv_dir input argument');
 end%if
 
 pvpraw = readpvpfile('pvpFiles/GroundTruth.pvp');
