@@ -644,7 +644,7 @@ int LocalizationProbe::outputState(double timevalue) {
 }
 
 int LocalizationProbe::makeMontage() {
-   if (!drawMontage) { return PV_SUCCESS; }
+   assert(drawMontage);
    assert(numMontageRows > 0 && numMontageColumns > 0);
    assert(grayScaleImage);
    assert(montageImage);
