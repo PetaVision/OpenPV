@@ -483,6 +483,7 @@ int LocalizationProbe::insertLabelIntoMontage(char const * labelname, int xOffse
    // same xStart.
    int offsetIdx = kIndex(xOffset, yOffset, 0, montageDimX, montageDimY, 3);
    dataset->RasterIO(GF_Read, 0, 0, xLabelSize, yLabelSize, &montageImage[offsetIdx], xLabelSize, yLabelSize, GDT_Byte, 3/*number of bands*/, NULL, 3/*x-stride*/, 3*montageDimX/*y-stride*/, 1/*band stride*/);
+   GDALClose(dataset);
    return PV_SUCCESS;
 }
 
