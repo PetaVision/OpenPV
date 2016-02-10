@@ -124,6 +124,7 @@ int ConvertFromTable::loadConversionTable() {
                getKeyword(), getName(), dataFile, numValues, numRead);
          exit(EXIT_FAILURE);
       }
+      fclose(conversionTableFP);
    }
    MPI_Bcast(&convTable, sizeof(convTableStruct), MPI_CHAR, 0, parent->icCommunicator()->communicator());
    assert(convTable.numFeatures == getLayerLoc()->nf);
