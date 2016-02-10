@@ -1,16 +1,14 @@
 The .pvp files in the pvpFiles/ directory were copied from
-/nh/compneuro/PASCAL_VOC/PASCAL_S1X16_1536_DeepX0_ICA
-as follows:
+/nh/compneuro/PASCAL_VOC/ as follows:
 
-From VOC2007_landscape11_S1_Movie1/
+From PASCAL_S1X16_1536_DeepX3_ICA/VOC2007_landscape11_S1_Movie1/
     GroundTruth.pvp
     GroundTruthReconS1.pvp
 
-From VOC2007_landscape11/Checkpoints/Checkpoint4774800/
+From PASCAL_S1X16_1536_DeepX0_ICA/VOC2007_landscape11/Checkpoints/Checkpoint4774800/
     S1ToImageReconS1Error_W.pvp
 
-From
-VOC2007_landscape11_S1_Movie1/Checkpoints/Checkpoint79580/
+From PASCAL_S1X16_1536_DeepX3_ICA/VOC2007_landscape11_S1_Movie1/Checkpoints/Checkpoint79580/
     S1MaxPooled1X1ToGroundTruthReconS1Error_W.pvp
     S1_Movie1/Checkpoints/Checkpoint79580/S1MaxPooled2X2ToS1Error2X2_W.pvp
     S1_Movie1/Checkpoints/Checkpoint79580/S1MaxPooled4X4ToS1Error4X4_W.pvp
