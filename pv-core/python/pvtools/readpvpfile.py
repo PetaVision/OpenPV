@@ -56,7 +56,7 @@ def readpvpfile(filename,
                     time = np.fromfile(stream,np.float64,1)[0]
                     numActive = np.fromfile(stream,np.uint32,1)
                     currentData = np.fromfile(stream,np.uint32,numActive)
-                    data.append(DataFrame(time, currentData)
+                    data.append(DataFrame(time, currentData))
                     if progressPeriod:
                         if not frame % progressPeriod and frame:
                             print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
@@ -138,7 +138,7 @@ def readpvpfile(filename,
                             if not frame % progressPeriod and frame:
                                 print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
                     return PV_Object(data,header)
-                
+
         # SPARSE ACTIVITY FILE
         elif header['filetype'] == 6:
             lastFrame = min(lastFrame, header['nbands'])
