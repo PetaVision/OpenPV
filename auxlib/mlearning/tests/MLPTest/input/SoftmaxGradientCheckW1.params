@@ -11,8 +11,8 @@
 debugParsing = false;    // Debug the reading of this parameter file.
 
 HyPerCol "column" = {
-   nx = 2;
-   ny = 2;
+   nx = 1;
+   ny = 1;
    dt = 1.0;  //time step in ms.	     
    randomSeed = 2394853940;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
@@ -90,7 +90,7 @@ ANNLayer "FinalLayer" = {
     restart = 0;
     nxScale = 1;
     nyScale = 1;
-    nf = 1;
+    nf = 3;
     writeStep = -1; //Change based on display period
     initialWriteTime = 0.0; //Change based on display period 
     mirrorBCflag = 0;
@@ -106,7 +106,7 @@ ANNLayer "FinalLayer" = {
 RescaleLayer "Softmax" = {
   nxScale = 1;
   nyScale = 1;
-  nf = 1;
+  nf = 3;
   writeStep = -1;
   initialWriteTime = 0.0;
   mirrorBCflag = 0;
@@ -115,24 +115,38 @@ RescaleLayer "Softmax" = {
   phase = 3; 
 };
 
-GTLayer "gt" = {
-    restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
-    nf = 1;
-    writeStep = -1;
-    initialWriteTime = 0.0;
-    mirrorBCflag = 0;
-    //writeSparseActivity = false;
-    InitVType = "ZeroV";
-    inFilename = "input/train/gt.txt";
-    phase = 0;
-    ////rectified
-    //VThresh = 0;
-    //VMax = infinity;
-    //VMin = 0;
-    constantValue = true;
+MoviePvp "gt" = {
+   nxScale = 1; 
+   nyScale = 1;
+   nf = 3;
+   phase = 0;
+   mirrorBCflag = 0;
+   writeStep = -1;
+   initialWriteTime = 0.0;
+   inputPath = "input/train/gtOneHot.pvp";
+   displayPeriod = 1;
+   randomMovie  = 0;
+   //readPvpFile                         = true;
 };
+
+//GTLayer "gt" = {
+//    restart = 0;
+//    nxScale = 1; 
+//    nyScale = 1;
+//    nf = 1;
+//    writeStep = -1;
+//    initialWriteTime = 0.0;
+//    mirrorBCflag = 0;
+//    //writeSparseActivity = false;
+//    InitVType = "ZeroV";
+//    inFilename = "input/train/gt.txt";
+//    phase = 0;
+//    ////rectified
+//    //VThresh = 0;
+//    //VMax = infinity;
+//    //VMin = 0;
+//    constantValue = true;
+//};
 
 //ComparisonLayer "comparison" = {
 //    restart = 0;
@@ -151,7 +165,7 @@ GTLayer "gt" = {
 ANNLayer "FinalError" = {
    nxScale = 1;
    nyScale = 1;
-   nf = 1;
+   nf = 3;
    writeStep = -1;
    mirrorBCflag = 0;
    //writeSparseActivity = 0;
