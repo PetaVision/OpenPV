@@ -51,9 +51,18 @@ void PlasticCloneConn::ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag)
    // During the communication phase, shrinkPatches_flag will be copied from originalConn
 }
 
+void PlasticCloneConn::ioParam_normalizeDw(enum ParamsIOFlag ioFlag) {
+   if (ioFlag == PARAMS_IO_READ) {
+      parent->parameters()->handleUnnecessaryParameter(name, "normalizeDw");
+   }
+   // During the communication phase, normalizeDw will be copied from originalConn
+}
+
 int PlasticCloneConn::communicateInitInfo() {
    int status = CloneConn::communicateInitInfo();
    originalConn->addClone(this);
+   normalizeDwFlag = originalConn->getNormalizeDwFlag();
+
 
    return status;
 }

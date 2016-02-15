@@ -286,6 +286,10 @@ public:
       return normalizer;
    }
 
+   bool getNormalizeDwFlag() {
+      return normalizeDwFlag;
+   }
+
    PVPatch*** convertPreSynapticWeights(double time);
    PVPatch**** point2PreSynapticWeights();
    //PVPatch**** point2PreSynapticWeights2();
