@@ -26,7 +26,6 @@ local overcompleteness      = 2*math.pow(math.pow(2,z),2)
 local overcompletenessTmp   = 4 --overcompleteness
 local temporalKernelSize    = 2 -- 4 -- 
 local numFrames             = 2*(temporalKernelSize * 2 - 1)
-local numFramesTmp          = 4*(temporalKernelSize * 2 - 1)
 
 --i/o parameters
 local imageListPathLeft   = "/nh/compneuro/Data/KITTI/list/image_02.txt"
@@ -44,10 +43,8 @@ local strideY             = patchSizeY/math.pow(2,z) --
 local nxSize              = 512
 local nySize              = 144
 local experimentName      = "KITTI_S1X" .. overcompleteness    .. "_" .. patchSizeX .. "X" .. patchSizeY  .. "_" .. temporalKernelSize .. "X" .. numFrames    .. "frames"
-local experimentNameTmp   = "KITTI_S1X" .. overcompletenessTmp .. "_" .. patchSizeX .. "X" .. patchSizeY  .. "_" .. temporalKernelSize .. "X" .. numFramesTmp .. "frames"
 local runName             = "2011_09_26_train"
-local runVersion          = 4
-local runVersionTmp       = 1
+local runVersion          = 5
 local machinePath         = "/home/gkenyon" --"/nh/compneuro/Data"
 local databasePath        = "KITTI" 
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
@@ -152,14 +149,15 @@ if S1_Movie then
 	 local GroundTruthMoviePath                         = inputPath .. "/" .. "GroundTruth" .. i_frame-1 .. ".pvp"
 	 pv.addGroup(pvParams, "GroundTruth" .. i_frame-1,
 		     {
-			groupType                        = "MoviePvp";
-			nxScale                          = nxScale_GroundTruth;
-			nyScale                          = nyScale_GroundTruth;
-			nf                               = numClasses;
+			groupType                           = "MoviePvp";
+			nxScale                             = nxScale_GroundTruth;
+			nyScale                             = nyScale_GroundTruth;
+			nf                                  = numClasses;
 			phase                               = 0;
-			mirrorBCflag                        = false;
+			mirrorBCflag                        = true;
 			initializeFromCheckpointFlag        = false;
-			writeStep                           = -1;
+			writeStep                           = displayPeriod;
+			initialWriteTime                    = displayPeriod;
 			sparseLayer                         = true;
 			writeSparseValues                   = false;
 			updateGpu                           = false;
@@ -451,37 +449,38 @@ if not S1_Movie then
 	 
 	 pv.addGroup(pvParams, "GroundTruthPixels" .. i_frame-1,
 		     {
-			groupType                           = "MoviePvp";
-			nxScale                             = 1;
-			nyScale                             = 1;
-			nf                                  = numClasses;
-			phase                               = 0;
-			mirrorBCflag                        = true;
-			initializeFromCheckpointFlag        = false;
-			writeStep                           = -1;
-			sparseLayer                         = true;
-			writeSparseValues                   = false;
-			updateGpu                           = false;
-			dataType                            = nil;
-			offsetAnchor                        = "tl";
-			offsetX                             = 0;
-			offsetY                             = 0;
-			writeImages                         = 0;
-			useImageBCflag                      = false;
-			autoResizeFlag                      = false;
-			inverseFlag                         = false;
-			normalizeLuminanceFlag              = false;
-			jitterFlag                          = 0;
-			padValue                            = 0;
-			inputPath                           = GroundTruthPath;
-			displayPeriod                       = displayPeriod;
-			randomMovie                         = 0;
-			readPvpFile                         = true;
-			start_frame_index                   = startFrame + i_frame-1;
-			skip_frame_index                    = skipFrame;
-			writeFrameToTimestamp               = true;
-			flipOnTimescaleError                = true;
-			resetToStartOnLoop                  = false;
+		     groupType = "Movie";
+		     nxScale                             = 1;
+		     nyScale                             = 1;
+		     nf                                  = numClasses;
+		     phase                               = 0;
+		     mirrorBCflag                        = false;
+		     initializeFromCheckpointFlag        = false;
+		     writeStep                           = writePeriod;
+		     initialWriteTime                    = initialWriteTime;
+		     sparseLayer                         = false;
+		     writeSparseValues                   = false;
+		     updateGpu                           = false;
+		     dataType                            = nil;
+		     offsetAnchor                        = "tl";
+		     offsetX                             = offsetX;
+		     offsetY                             = offsetY;
+		     writeImages                         = 0;
+		     useImageBCflag                      = false;
+		     autoResizeFlag                      = true;
+		     inverseFlag                         = false;
+		     normalizeLuminanceFlag              = true;
+		     normalizeStdDev                     = true;
+		     jitterFlag                          = 0;
+		     padValue                            = 0;
+		     inputPath                           = GroundTruthPath;
+		     displayPeriod                       = displayPeriod;
+		     echoFramePathnameFlag               = true;
+		     start_frame_index                   = startFrame + i_frame-1;
+		     skip_frame_index                    = skipFrame;
+		     writeFrameToTimestamp               = true;
+		     flipOnTimescaleError                = true;
+		     resetToStartOnLoop                  = false;
 		     }
 	 )
 	 
@@ -493,6 +492,7 @@ if not S1_Movie then
 			nf                                  = numClasses;
 			phase                               = 1;
 			writeStep                           = displayPeriod;
+			initialWriteTime                    = displayPeriod;
 			sparseLayer                         = true;
 		     }
 	 )
@@ -1118,29 +1118,31 @@ if GroundTruthPath then
 			dWMax                               = 0.01;
 		     }
 	 )
+
+      if not plasticityFlag then
+	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].triggerLayerName    = NULL;
+	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].triggerOffset       = nil;
+	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].triggerBehavior     = nil;
+	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].dWMax               = nil;
+      end
+      if checkpointID_SLP then
+	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].weightInitType      = "FileWeight";
+	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].initWeightsFile
+	    = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/BiasS1ToGroundTruth" .. 0 .. "ReconS1Error_W.pvp";
+	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].useListOfArborFiles = false;
+	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].combineWeightFiles  = false;    
+      end -- checkpointID_SLP
+      
       else
 	 pv.addGroup(pvParams, "BiasS1" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error",
 		     pvParams["S1_" .. 1 .. "To" .. "GroundTruth" .. 1 .. "ReconS1Error"],
 		     {
 			preLayerName                        = "BiasS1";
+			postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1Error";
 			originalConnName                    = "BiasS1ToGroundTruth" .. 0 .. "ReconS1Error";
 		     }
 	 )
       end
-      if not plasticityFlag then
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerLayerName    = NULL;
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerOffset       = nil;
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerBehavior      = nil;
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].dWMax               = nil;
-      end
-      if checkpointID_SLP then
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].weightInitType      = "FileWeight";
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].initWeightsFile
-	    = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error_W.pvp";
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].useListOfArborFiles = false;
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].combineWeightFiles  = false;    
-      end -- checkpointID_SLP
-      
    end -- i_frame
    
    
