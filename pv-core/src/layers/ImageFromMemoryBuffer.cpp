@@ -22,11 +22,31 @@ ImageFromMemoryBuffer::ImageFromMemoryBuffer() {
 
 int ImageFromMemoryBuffer::initialize_base() {
    buffer = NULL;
+   bufferSize = -1;
+   hasNewImageFlag = false;
+   autoResizeFlag = false;
    return PV_SUCCESS;
 }
 
 int ImageFromMemoryBuffer::initialize(char const * name, HyPerCol * hc) {
    return BaseInput::initialize(name, hc);
+   if (useImageBCflag && autoResizeFlag) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n", getKeyword(), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+}
+
+int ImageFromMemoryBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = BaseInput::ioParamsFillGroup(ioFlag);
+   ioParam_autoResizeFlag(ioFlag);
+   return status;
+}
+
+void ImageFromMemoryBuffer::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "autoResizeFlag", &autoResizeFlag, autoResizeFlag);
 }
 
 template <typename pixeltype>
@@ -37,34 +57,66 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
       }
       return PV_FAILURE;
    }
-   imageLoc.nx = width;
-   imageLoc.ny = height;
+
+   int resizedWidth, resizedHeight;
+   if (autoResizeFlag) {
+      float xRatio = (float) getLayerLoc()->nx/(float) width;
+      float yRatio = (float) getLayerLoc()->ny/(float) height;
+      float resizeFactor = xRatio < yRatio ? yRatio : xRatio;
+      // resizeFactor * width should be >= getLayerLoc()->nx; resizeFactor * height should be >= getLayerLoc()->ny,
+      // and one of these >= should be == (up to floating-point roundoff).
+      resizedWidth = (int) (resizeFactor * width);
+      resizedHeight = (int) (resizeFactor * height);
+   }
+   else {
+      resizedWidth = width;
+      resizedHeight = height;
+   }
+
+   imageLoc.nbatch = 1;
+   imageLoc.nx = resizedWidth;
+   imageLoc.ny = resizedHeight;
    imageLoc.nf = numbands;
-   imageLoc.nxGlobal = width;
-   imageLoc.nyGlobal = height;
+   imageLoc.nbatchGlobal = 1;
+   imageLoc.nxGlobal = resizedWidth;
+   imageLoc.nyGlobal = resizedHeight;
+   imageLoc.kb0 = 0;
    imageLoc.kx0 = 0;
    imageLoc.ky0 = 0;
    memset(&imageLoc.halo, 0, sizeof(PVHalo));
 
    if (parent->columnId()==0) {
-      free(buffer);
-      int buffersize = height*width*numbands;
-      buffer = (pvadata_t *) malloc((size_t) buffersize * sizeof(pvadata_t));
-      if (buffer==NULL) {
-         fprintf(stderr, "%s \"%s\": unable to allocate buffer for %d values of %zu chars each: %s\n",
-               getKeyword(), name, buffersize, sizeof(pvadata_t), strerror(errno));
-         exit(EXIT_FAILURE);
+      int newBufferSize = resizedWidth * resizedHeight * numbands;
+      if (newBufferSize != bufferSize) {
+         free(buffer);
+         bufferSize = newBufferSize;
+         buffer = (pvadata_t *) malloc((size_t) bufferSize * sizeof(pvadata_t));
+         if (buffer==NULL) {
+            fprintf(stderr, "%s \"%s\": unable to allocate buffer for %d values of %zu chars each: %s\n",
+                  getKeyword(), name, bufferSize, sizeof(pvadata_t), strerror(errno));
+            exit(EXIT_FAILURE);
+         }
       }
-      for (int k=0; k<buffersize; k++) {
-         int x=kxPos(k,width,height,numbands);
-         int y=kyPos(k,width,height,numbands);
-         int f=featureIndex(k,width,height,numbands);
-         int externalIndex = f*bandstride + x*xstride + y*ystride;
-         pixeltype q = externalBuffer[externalIndex];
-         buffer[k] = pixelTypeConvert(q, zeroval, oneval);
+      if (autoResizeFlag) {
+         int const nxExtern = imageLoc.nxGlobal;
+         int const nyExtern = imageLoc.nyGlobal;
+         bicubicinterp(externalBuffer, height, width, numbands, xstride, ystride, bandstride, resizedHeight, resizedWidth, zeroval, oneval);
+      }
+      else {
+         #ifdef PV_USE_OPENMP_THREADS
+         #pragma omp parallel for
+         #endif // PV_USE_OPENMP_THREADS
+         for (int k=0; k<bufferSize; k++) {
+            int x=kxPos(k,width,height,numbands);
+            int y=kyPos(k,width,height,numbands);
+            int f=featureIndex(k,width,height,numbands);
+            int externalIndex = f*bandstride + x*xstride + y*ystride;
+            pixeltype q = externalBuffer[externalIndex];
+            buffer[k] = pixelTypeConvert(q, zeroval, oneval);
+         }
       }
 
-      // Fix this code starting with the line immediately below this one!  Code duplication from Image::readImage
+      // Code duplication from Image::readImage
       // if normalizeLuminanceFlag == true and normalizeStdDev == true, then force average luminance to be 0, std. dev.=1
       // if normalizeLuminanceFlag == true and normalizeStdDev == false, then force min=0, max=1.
       bool normalize_standard_dev = normalizeStdDev;
@@ -72,25 +124,34 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
          if (normalize_standard_dev){
             double image_sum = 0.0f;
             double image_sum2 = 0.0f;
-            for (int k=0; k<buffersize; k++) {
+            for (int k=0; k<bufferSize; k++) {
                image_sum += buffer[k];
                image_sum2 += buffer[k]*buffer[k];
             }
-            double image_ave = image_sum / buffersize;
-            double image_ave2 = image_sum2 / buffersize;
+            double image_ave = image_sum / bufferSize;
+            double image_ave2 = image_sum2 / bufferSize;
             // set mean to zero
-            for (int k=0; k<buffersize; k++) {
+            #ifdef PV_USE_OPENMP
+            #pragma omp parallel for
+            #endif // PV_USE_OPENMP
+            for (int k=0; k<bufferSize; k++) {
                buffer[k] -= image_ave;
             }
             // set std dev to 1
             double image_std = sqrt(image_ave2 - image_ave*image_ave);
             if(image_std == 0){
-               for (int k=0; k<buffersize; k++) {
+               #ifdef PV_USE_OPENMP
+               #pragma omp parallel for
+               #endif // PV_USE_OPENMP
+               for (int k=0; k<bufferSize; k++) {
                   buffer[k] = .5;
                }
             }
             else{
-               for (int k=0; k<buffersize; k++) {
+               #ifdef PV_USE_OPENMP
+               #pragma omp parallel for
+               #endif // PV_USE_OPENMP
+               for (int k=0; k<bufferSize; k++) {
                   buffer[k] /= image_std;
                }
             }
@@ -98,20 +159,26 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
          else{
             float image_max = -FLT_MAX;
             float image_min = FLT_MAX;
-            for (int k=0; k<buffersize; k++) {
+            for (int k=0; k<bufferSize; k++) {
                image_max = buffer[k] > image_max ? buffer[k] : image_max;
                image_min = buffer[k] < image_min ? buffer[k] : image_min;
             }
             if (image_max > image_min){
                float image_stretch = 1.0f / (image_max - image_min);
-               for (int k=0; k<buffersize; k++) {
+               #ifdef PV_USE_OPENMP
+               #pragma omp parallel for
+               #endif // PV_USE_OPENMP
+               for (int k=0; k<bufferSize; k++) {
                   buffer[k] -= image_min;
                   buffer[k] *= image_stretch;
                }
             }
             else{ // image_max == image_min, set to gray
                //float image_shift = 0.5f - image_ave;
-               for (int k=0; k<buffersize; k++) {
+               #ifdef PV_USE_OPENMP
+               #pragma omp parallel for
+               #endif // PV_USE_OPENMP
+               for (int k=0; k<bufferSize; k++) {
                   buffer[k] = 0.5f; //image_shift;
                }
             }
@@ -119,11 +186,14 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
       } // normalizeLuminanceFlag
 
       if( inverseFlag ) {
-         for (int k=0; k<buffersize; k++) {
+         #ifdef PV_USE_OPENMP
+         #pragma omp parallel for
+         #endif // PV_USE_OPENMP
+         for (int k=0; k<bufferSize; k++) {
             buffer[k] = 1 - buffer[k];
          }
       }
-      // Fix this code up to the line immediately above this one!  Code duplication from Image::readImage
+      // Code duplication from Image::readImage
 
    }
    
@@ -132,9 +202,6 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
    return PV_SUCCESS;
 }
 template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, uint8_t zeroval, uint8_t oneval);
-/*
-
- */
 
 template <typename pixeltype>
 int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval, int offsetX, int offsetY, char const * offsetAnchor) {
@@ -157,6 +224,59 @@ template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buf
 template <typename pixeltype>
 pvadata_t ImageFromMemoryBuffer::pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval) {
    return ((pvadata_t) (q-zeroval))/((pvadata_t) (oneval-zeroval));
+}
+
+template <typename pixeltype> int ImageFromMemoryBuffer::bicubicinterp(pixeltype const * bufferIn, int heightIn, int widthIn, int numBands, int xStrideIn, int yStrideIn, int bandStrideIn, int heightOut, int widthOut, pixeltype zeroval, pixeltype oneval) {
+   /* Interpolation using bicubic convolution with a=-1 (following Octave image toolbox's imremap function -- change this?). */
+   float xinterp[widthOut];
+   int xinteger[widthOut];
+   float xfrac[widthOut];
+   float dx = (float) (widthIn-1)/(float) (widthOut-1);
+   for (int kx=0; kx<widthOut; kx++) {
+      float x = dx * (float) kx;
+      xinterp[kx] = x;
+      float xfloor = floorf(x);
+      xinteger[kx] = (int) xfloor;
+      xfrac[kx] = x-xfloor;
+   }
+
+   float yinterp[heightOut];
+   int yinteger[heightOut];
+   float yfrac[heightOut];
+   float dy = (float) (heightIn-1)/(float) (heightOut-1);
+   for (int ky=0; ky<heightOut; ky++) {
+      float y = dy * (float) ky;
+      yinterp[ky] = y;
+      float yfloor = floorf(y);
+      yinteger[ky] = (int) yfloor;
+      yfrac[ky] = y-yfloor;
+   }
+
+   memset(buffer, 0, sizeof(*buffer)*bufferSize);
+   for (int xOff = 2; xOff > -2; xOff--) {
+      for (int yOff = 2; yOff > -2; yOff--) {
+         for (int ky=0; ky<heightOut; ky++) {
+            float ycoeff = bicubic(yfrac[ky]-(float) yOff);
+            int yfetch = yinteger[ky]+yOff;
+            if (yfetch < 0) yfetch = -yfetch;
+            if (yfetch >= heightIn) yfetch = heightIn - (yfetch - heightIn) - 1;
+            for (int kx=0; kx<widthOut; kx++) {
+               float xcoeff = bicubic(xfrac[kx]-(float) xOff);
+               int xfetch = xinteger[kx]+xOff;
+               if (xfetch < 0) xfetch = -xfetch;
+               if (xfetch >= widthIn) xfetch = widthIn - (xfetch - widthIn) - 1;
+               assert(xfetch >= 0 && xfetch < widthIn && yfetch >= 0 && yfetch < heightIn);
+               for (int f=0; f<numBands; f++) {
+                  int fetchIdx = yfetch * yStrideIn + xfetch * xStrideIn + f * bandStrideIn;
+                  pvadata_t p = pixelTypeConvert(bufferIn[fetchIdx], zeroval, oneval);
+                  int outputIdx = kIndex(kx, ky, f, widthOut, heightOut, numBands);
+                  buffer[outputIdx] += xcoeff * ycoeff * p;
+               }
+            }
+         }
+      }
+   }
+   return PV_SUCCESS;
 }
 
 int ImageFromMemoryBuffer::initializeActivity(double time, double dt) {
@@ -183,7 +303,7 @@ int ImageFromMemoryBuffer::copyBuffer() {
    Communicator * icComm = parent->icCommunicator();
    if (parent->columnId()==0) {
       if (buffer == NULL) {
-         fprintf(stderr, "%s \"%s\" error: moveBufferToData called without having called setMemoryBuffer.\n",
+         fprintf(stderr, "%s \"%s\" error: copyBuffer called without having called setMemoryBuffer.\n",
                getKeyword(), name);
          exit(PV_FAILURE); // return PV_FAILURE;
       }
@@ -203,11 +323,6 @@ int ImageFromMemoryBuffer::copyBuffer() {
 }
 
 int ImageFromMemoryBuffer::moveBufferToData(int rank) {
-   //AutoResizeFlag is in Image, as currently autoResizeFlag only works on reading images with gdal
-   //if (autoResizeFlag) {
-   //   fprintf(stderr, "autoResizeFlag not implemented for ImageFromMemoryBuffer yet :-(\n");
-   //   exit(EXIT_FAILURE);
-   //}
    assert(parent->columnId()==0);
    assert(buffer != NULL);
    
@@ -224,7 +339,7 @@ int ImageFromMemoryBuffer::moveBufferToData(int rank) {
    int startxbuffer = getOffsetX(this->offsetAnchor, this->offsets[0]) + column * getLayerLoc()->nx;
    int startxdata = getLayerLoc()->halo.lt;
    int row = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
-   int startybuffer = getOffsetY(this->offsetAnchor, this->offsets[0]) + row * getLayerLoc()->ny;
+   int startybuffer = getOffsetY(this->offsetAnchor, this->offsets[1]) + row * getLayerLoc()->ny;
    int startydata = getLayerLoc()->halo.up;
    int xsize = getLayerLoc()->nx;
    int ysize = getLayerLoc()->ny;

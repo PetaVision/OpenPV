@@ -73,6 +73,8 @@ protected:
    
    int initialize(char const * name, HyPerCol * hc);
    
+   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+
    /** 
     * List of parameters needed from the ImageFromMemoryBuffer class
     * @name Image Parameters
@@ -85,6 +87,15 @@ protected:
     */
    virtual void ioParam_inputPath(enum ParamsIOFlag ioFlag) { return; }
    
+   /**
+    * @brief autoResizeFlag: resize image before cropping to the layer
+    * @details If set to true, image will be resized to the
+    * smallest size with the same aspect ratio that completely covers the
+    * layer size, and then cropped according to the offsets and offsetAnchor
+    * parameters inherited from BaseInput.
+    */
+   virtual void ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag);
+
    /**
     * Called by HyPerLayer::setActivity() during setInitialValues stage; calls copyBuffer()
     */
@@ -112,10 +123,38 @@ private:
    
    template <typename pixeltype> pvadata_t pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval);
 
+   /**
+    * Used by setMemoryBuffer when autoResizeFlag is set.
+    * Performs band-by-band bicubic interpolation of the input buffer,
+    * placing the result in the buffer member variable.
+    * Inputs:
+    *    bufferIn    A pointer to the beffer containing the image.
+    *                Under MPI, only the root process uses buffer and the root process scatters the image to the other processes.
+    *    heightIn    The height in pixels of the entire image
+    *    widthIn     The width in pixels of the entire image
+    *    numbands    The number of bands in the image: i.e., grayscale=1, RGB=3, etc.
+    *    xStrideIn   The difference between the memory locations, as pointers of type pixeltype, between two pixels adjacent in the x-direction, with the same y-coordinate and band number.
+    *    yStrideIn   The difference between the memory locations, as pointers of type pixeltype, between two pixels adjacent in the y-direction, with the same x-coordinate and band number.
+    *    bandStrideIn The difference between the memory locations, as pointers of type pixeltype, between two pixels from adjacent bands, with the same x- and y-coordinates.
+    *    zeroval     The value that should be converted to 0.0f internally.
+    *    oneval      The value that should be converted to 1.0f internally.  Values other than zeroval and oneval are converted to floats using a linear transformation.
+    */
+   template <typename pixeltype> int bicubicinterp(pixeltype const * bufferIn, int heightIn, int widthIn, int numBands, int xStrideIn, int yStrideIn, int bandStdrideIn, int heightOut, int widthOut, pixeltype zeroval, pixeltype oneval);
+
+   // Bicubic convolution kernel with a=-1
+   inline static pvadata_t bicubic(pvadata_t x) {
+      pvadata_t const absx = fabsf(x); // assumes pvadata_t is float ; ideally should generalize
+      return absx < 1 ? 1 + absx*absx*(-2 + absx) : absx < 2 ? 4 + absx*(-8 + absx*(5-absx)) : 0;
+
+   }
+
+
 // Member variables
 protected:
    pvadata_t * buffer;
+   int bufferSize;
    bool hasNewImageFlag; // set to true by setMemoryBuffer; cleared to false by initializeActivity();
+   bool autoResizeFlag;
 }; // class ImageFromMemoryBuffer
 
 }  // namespace PV
