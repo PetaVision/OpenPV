@@ -18,6 +18,7 @@ public:
    virtual ~CustomGroupHandler();
    virtual ParamGroupType getGroupType(char const * keyword);
    virtual HyPerLayer * createLayer(char const * keyword, char const * name, HyPerCol * hc);
+   virtual BaseProbe * createProbe(char const * keyword, char const * name, HyPerCol * hc); 
 };
 
 } /* namespace PV */

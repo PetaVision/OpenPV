@@ -44,9 +44,12 @@ if ismac
       {"VOC2007_landscape1"};
     endif
   elseif strcmp(run_type, "VID")
-    output_dir = "/Volumes/mountData/VID/ImageNetVid_S1X32_32X16_4X14frames/train4"
-    checkpoint_parent = "/Volumes/mountData/VID/ImageNetVid_S1X32_32X16_4X14frames"
-    checkpoint_children = {"train4"}; %%
+    %%output_dir = "/Volumes/mountData/VID/ImageNetVid_S1X32_32X16_4X14frames/train6"
+    %%checkpoint_parent = "/Volumes/mountData/VID/ImageNetVid_S1X32_32X16_4X14frames"
+    %%checkpoint_children = {"train6"}; %%
+    output_dir = "/Volumes/mountData/KITTI/KITTI_S1X32_32X16_2X6frames/2011_09_26_train4";
+    checkpoint_parent = "/Volumes/mountData/KITTI/KITTI_S1X32_32X16_2X6frames";
+    checkpoint_children = {"2011_09_26_train4"}; %%
   elseif strcmp(run_type, "JIEDDO") 
     if ~exist("JIEDDO_subtype", "var") || strcmp(JIEDDO_subtype, "CARS")
       output_dir = "/Volumes/mountData/JIEDDO/JIEDDO_S1X4_1536/car_n02958343_2";
@@ -400,9 +403,9 @@ if analyze_nonSparse_flag
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glob generated list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    nonSparse_glob_list = glob([output_dir, filesep, "*Image*Error*.pvp"]);
+    nonSparse_glob_list1 = glob([output_dir, filesep, "*Image*Error*.pvp"]);
     nonSparse_glob_list2 = glob([output_dir, filesep, "*Frame*Error*.pvp"]);
-    nonSparse_glob_list = [nonSparse_glob_list; nonSparse_glob_list2];
+    nonSparse_glob_list = [nonSparse_glob_list1; nonSparse_glob_list2];
     num_nonSparse_list = length(nonSparse_glob_list);    
     nonSparse_list = cell(num_nonSparse_list,1);
     for i_nonSparse_list = 1 : num_nonSparse_list
@@ -414,10 +417,10 @@ if analyze_nonSparse_flag
     nonSparse_norm_list = cell(num_nonSparse_list, 2);
     for i_nonSparse_norm_list = 1 : num_nonSparse_list
       nonSparse_norm_list{i_nonSparse_norm_list,1} = ""; %%
-      if i_nonSparse_norm_list <= length(nonSparse_glob_list)
+      if i_nonSparse_norm_list <= length(nonSparse_glob_list1)
 	nonSparse_norm_list{i_nonSparse_norm_list,2} = "Image";
       elseif i_nonSparse_norm_list <= length(nonSparse_glob_list2)
-	nonSparse_norm_list{i_nonSparse_norm_list,2} = "Frame";
+	nonSparse_norm_list{i_nonSparse_norm_list,2} = "Frame0";
       endif
     endfor
     nonSparse_norm_strength = ones(num_nonSparse_list,1);

@@ -91,8 +91,8 @@ local dtMinToleratedTimeScale  = 0.00001
 
 --Ground Truth parameters
 local numClasses            = 4
-local nxScale_GroundTruth   = 0.03125 --0.0625;
-local nyScale_GroundTruth   = 0.0625;
+local nxScale_GroundTruth   = 1 / patchSizeX 
+local nyScale_GroundTruth   = 1 / patchSizeY 
 
 
 -- Base table variable to store

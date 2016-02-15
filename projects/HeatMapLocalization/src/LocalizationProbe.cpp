@@ -329,8 +329,6 @@ int LocalizationProbe::communicateInitInfo() {
             }
             status = makeMontageLabelfile(labelFilename, "white", "blue", classNames[f]);
             if (status != 0) {
-               fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error creating label file \"%s\": ImageMagick convert returned %d.\n", getKeyword(), name, labelFilename, status);
                exit(EXIT_FAILURE);
             }
          }
@@ -444,7 +442,7 @@ int LocalizationProbe::allocateDataStructures() {
 int LocalizationProbe::makeMontageLabelfile(char const * labelFilename, char const * backgroundColor, char const * textColor, char const * labelText) {
    int const nx = imageLayer->getLayerLoc()->nx;
    std::stringstream convertCmd("");
-   convertCmd << "convert -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << nx << "x32 -pointsize 24 -gravity center label:\"" << labelText << "\" \"" << heatMapMontageDir << "/labels/" << labelFilename << "\"";
+   convertCmd << "convert -depth 8 -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << nx << "x32 -pointsize 24 -gravity center label:\"" << labelText << "\" \"" << heatMapMontageDir << "/labels/" << labelFilename << "\"";
    int status = system(convertCmd.str().c_str());
    if (status != 0) {
       fflush(stdout);
@@ -485,6 +483,7 @@ int LocalizationProbe::insertLabelIntoMontage(char const * labelname, int xOffse
    // same xStart.
    int offsetIdx = kIndex(xOffset, yOffset, 0, montageDimX, montageDimY, 3);
    dataset->RasterIO(GF_Read, 0, 0, xLabelSize, yLabelSize, &montageImage[offsetIdx], xLabelSize, yLabelSize, GDT_Byte, 3/*number of bands*/, NULL, 3/*x-stride*/, 3*montageDimX/*y-stride*/, 1/*band stride*/);
+   GDALClose(dataset);
    return PV_SUCCESS;
 }
 
@@ -646,7 +645,7 @@ int LocalizationProbe::outputState(double timevalue) {
 }
 
 int LocalizationProbe::makeMontage() {
-   if (!drawMontage) { return PV_SUCCESS; }
+   assert(drawMontage);
    assert(numMontageRows > 0 && numMontageColumns > 0);
    assert(grayScaleImage);
    assert(montageImage);
@@ -752,7 +751,7 @@ int LocalizationProbe::makeMontage() {
       char const * confFile = "confidenceLabel.tif";
       if (f==winningFeature) {
          char labelFilename[PV_PATH_MAX];
-         int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, f);
+         int slen = snprintf(labelFilename, PV_PATH_MAX, "blue%0*d.tif", featurefieldwidth, f);
          assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
          insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage-64, nx, 32);
          
@@ -777,7 +776,7 @@ int LocalizationProbe::makeMontage() {
       int const kExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
       pvadata_t a = imageLayer->getLayerData()[kExt];
       minValue = a < minValue ? a : minValue;
-      maxValue = a > minValue ? a : maxValue;
+      maxValue = a > maxValue ? a : maxValue;
    }
    if (minValue==maxValue) {
       for (int y=0; y<ny; y++) {
@@ -813,7 +812,7 @@ int LocalizationProbe::makeMontage() {
          int const kExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
          pvadata_t a = reconLayer->getLayerData()[kExt];
          minValue = a < minValue ? a : minValue;
-         maxValue = a > minValue ? a : maxValue;
+         maxValue = a > maxValue ? a : maxValue;
       }
       if (minValue==maxValue) {
          for (int y=0; y<ny; y++) {
@@ -872,7 +871,7 @@ int LocalizationProbe::makeMontage() {
       int xStartInMontage = montageColumn * (nx+10) + 5;
       int yStartInMontage = montageRow * (ny+64+10) + 5;
       char labelFilename[PV_PATH_MAX];
-      int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, winningFeature);
+      int slen = snprintf(labelFilename, PV_PATH_MAX, "gray%0*d.tif", featurefieldwidth, winningFeature);
       assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
       insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage, nx, 32);
    }

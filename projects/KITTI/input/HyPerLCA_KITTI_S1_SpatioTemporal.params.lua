@@ -28,6 +28,15 @@ local temporalKernelSize    = 2 -- 4 --
 local numFrames             = 2*(temporalKernelSize * 2 - 1)
 local numFramesTmp          = 4*(temporalKernelSize * 2 - 1)
 
+--i/o parameters
+local imageListPathLeft   = "/nh/compneuro/Data/KITTI/list/image_02.txt"
+local imageListPathRight  = "/nh/compneuro/Data/KITTI/list/image_03.txt"
+local GroundTruthPath     = "/nh/compneuro/Data/KITTI/list/depth.txt"
+local startFrame          = 0
+local skipFrame           = numFrames
+local offsetX             = 0
+local offsetY             = 0
+
 -- User defined variables
 local plasticityFlag      = true --false
 local strideX             = patchSizeX/(math.pow(2,z)*2) -- divide patchSize by 2^z to obtain dictionaries that are (2^z)^2 Xs overcomplete
@@ -37,19 +46,19 @@ local nySize              = 144
 local experimentName      = "KITTI_S1X" .. overcompleteness    .. "_" .. patchSizeX .. "X" .. patchSizeY  .. "_" .. temporalKernelSize .. "X" .. numFrames    .. "frames"
 local experimentNameTmp   = "KITTI_S1X" .. overcompletenessTmp .. "_" .. patchSizeX .. "X" .. patchSizeY  .. "_" .. temporalKernelSize .. "X" .. numFramesTmp .. "frames"
 local runName             = "2011_09_26_train"
-local runVersion          = 3
+local runVersion          = 4
 local runVersionTmp       = 1
 local machinePath         = "/home/gkenyon" --"/nh/compneuro/Data"
 local databasePath        = "KITTI" 
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
 local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
-local inputPathSLP        = nil --machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName 
+local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
 local numImages           = 15884
-local displayPeriod       = 1200
+local displayPeriod       = 900 --1200
 local numEpochs           = 1
-local stopTime            = numImages * displayPeriod * numEpochs
+local stopTime            = numImages * displayPeriod * numEpochs / numFrames
 local checkpointID        = "00600000" --stopTime-- 
-local checkpointID_SLP    = nil --stopTime--
+local checkpointID_SLP    = "00600000" --stopTime--
 local writePeriod         = 100 * displayPeriod
 local initialWriteTime    = writePeriod
 local checkpointWriteStepInterval = writePeriod
@@ -70,23 +79,14 @@ end
 local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false
 
---i/o parameters
-local imageListPathLeft   = "/nh/compneuro/Data/KITTI/list/image_02.txt"
-local imageListPathRight  = "/nh/compneuro/Data/KITTI/list/image_03.txt"
-local GroundTruthPath     = nil -- "/nh/compneuro/Data/KITTI/list/depth.txt"
-local startFrame          = 0
-local skipFrame           = numFrames
-local offsetX             = 0
-local offsetY             = 0
-
 --HyPerCol parameters
 local dtAdaptFlag              = not S1_Movie
 local useAdaptMethodExp1stOrder = true
 local dtAdaptController        = "S1EnergyProbe"
 local dtAdaptTriggerLayerName  = "FrameLeft0";
-local dtScaleMax               = 0.01025 --0.0015 --0.000051   --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
-local dtScaleMin               = 0.01 --0.001  --0.00005  --0.01    -- default time scale to use after image flips or when something is wacky
-local dtChangeMax              = 0.05   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
+local dtScaleMax               = 0.05025 --0.0015 --0.000051   --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
+local dtScaleMin               = 0.05 --0.001  --0.00005  --0.01    -- default time scale to use after image flips or when something is wacky
+local dtChangeMax              = 0.005   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
 local dtChangeMin              = 0.025  --0.01    -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
 local dtMinToleratedTimeScale  = 0.000000001
 
@@ -148,19 +148,18 @@ if S1_Movie then
 
    if GroundTruthPath then
       for i_frame = 1, numFrames do
-	 
+
 	 local GroundTruthMoviePath                         = inputPath .. "/" .. "GroundTruth" .. i_frame-1 .. ".pvp"
 	 pv.addGroup(pvParams, "GroundTruth" .. i_frame-1,
 		     {
-			groupType = "MoviePvp";
-			nxScale                             = nxScale_GroundTruth;
-			nyScale                             = nyScale_GroundTruth;
-			nf                                  = numClasses;
+			groupType                        = "MoviePvp";
+			nxScale                          = nxScale_GroundTruth;
+			nyScale                          = nyScale_GroundTruth;
+			nf                               = numClasses;
 			phase                               = 0;
-			mirrorBCflag                        = true;
+			mirrorBCflag                        = false;
 			initializeFromCheckpointFlag        = false;
-			writeStep                           = displayPeriod;
-			initialWriteTime                    = displayPeriod;
+			writeStep                           = -1;
 			sparseLayer                         = true;
 			writeSparseValues                   = false;
 			updateGpu                           = false;
@@ -180,7 +179,7 @@ if S1_Movie then
 			randomMovie                         = 0;
 			readPvpFile                         = true;
 			start_frame_index                   = startFrame;
-			skip_frame_index                    = 0; --skipFrame;
+			skip_frame_index                    = 0;
 			writeFrameToTimestamp               = true;
 			flipOnTimescaleError                = true;
 			resetToStartOnLoop                  = false;
@@ -258,9 +257,10 @@ else -- not S1_Movie
    --for i_frame = 1, numFrames+temporalKernelSize-1 do
    for i_frame = 1, numFrames do
       
-      pv.addGroup(pvParams, "FrameLeft" .. i_frame-1, 
+      pv.addGroup(pvParams,
+		  "FrameLeft" .. i_frame-1, 
 		  {
-		     groupType = "Movie";
+		     groupType                           = "Movie";
 		     nxScale                             = 1;
 		     nyScale                             = 1;
 		     nf                                  = nf_Image;
@@ -294,7 +294,8 @@ else -- not S1_Movie
 		     resetToStartOnLoop                  = false;
 		  }
       )
-      pv.addGroup(pvParams, "FrameRight" .. i_frame-1, pvParams["FrameLeft" .. i_frame-1],
+      pv.addGroup(pvParams,
+		  "FrameRight" .. i_frame-1, pvParams["FrameLeft" .. i_frame-1],
 		  {
 		     inputPath                           = imageListPathRight;
 		  }
@@ -304,7 +305,8 @@ else -- not S1_Movie
 
    for i_frame = 1, numFrames do  
 
-      pv.addGroup(pvParams, "FrameLeft" .. i_frame-1 .. "ReconS1Error",
+      pv.addGroup(pvParams,
+		  "FrameLeft" .. i_frame-1 .. "ReconS1Error",
 		  {
 		     groupType                           = "ANNLayer";
 		     nxScale                             = 1;
@@ -330,14 +332,16 @@ else -- not S1_Movie
 		     errScale                            = 1;
 		  }
       )
-      pv.addGroup(pvParams, "FrameRight" .. i_frame-1 .. "ReconS1Error",
+      pv.addGroup(pvParams,
+		  "FrameRight" .. i_frame-1 .. "ReconS1Error",
 		  pvParams["FrameLeft" .. i_frame-1 .. "ReconS1Error"])
       
    end -- i_frame
    
    for i_delay = 1, numFrames - temporalKernelSize + 1 do
    --for i_delay = 1, numFrames do
-      pv.addGroup(pvParams, "S1_" .. i_delay-1,
+      pv.addGroup(pvParams,
+		  "S1_" .. i_delay-1,
 		  {
 		     groupType = "HyPerLCALayer";
 		     nxScale                             = 1.0/strideX;
@@ -354,7 +358,7 @@ else -- not S1_Movie
 		     maxV                                = 2*VThresh;
 		     --InitVType                           = "ConstantV";
 		     --valueV                              = VThresh;
-		     --triggerLayerName                    = "Frame" .. i_frame-1;
+		     --triggerLayerName                    = "FrameLeft" .. i_frame-1;
 		     --triggerBehavior                     = "resetStateOnTrigger";
 		     --triggerResetLayerName               = "ConstantS1";
 		     --triggerOffset                       = 0;
@@ -411,8 +415,8 @@ else -- not S1_Movie
 		  }
       )
       if i_frame > numFrames then
-	 pvParams["Frame" .. i_frame-1 .. "ReconS1"].triggerLayerName = "Frame" .. i_frame-1;
-	 pvParams["Frame" .. i_frame-1 .. "ReconS1"].triggerOffset     = 1;
+	 pvParams["FrameLeft" .. i_frame-1 .. "ReconS1"].triggerLayerName = "FrameLeft" .. i_frame-1;
+	 pvParams["FrameLeft" .. i_frame-1 .. "ReconS1"].triggerOffset     = 1;
       end
       pv.addGroup(pvParams, "FrameRight" .. i_frame-1 .. "ReconS1",
 		  pvParams["FrameLeft" .. i_frame-1 .. "ReconS1"])
@@ -447,7 +451,7 @@ if not S1_Movie then
 	 
 	 pv.addGroup(pvParams, "GroundTruthPixels" .. i_frame-1,
 		     {
-			groupType = "MoviePvp";
+			groupType                           = "MoviePvp";
 			nxScale                             = 1;
 			nyScale                             = 1;
 			nf                                  = numClasses;
@@ -482,13 +486,13 @@ if not S1_Movie then
 	 )
 	 
 	 pv.addGroup(pvParams, "GroundTruth" .. i_frame-1,
-		     pvParams["Frame" .. i_frame-1 .. "ReconS1"],
+		     pvParams["FrameLeft" .. i_frame-1 .. "ReconS1"],
 		     {
 			nxScale                             = nxScale_GroundTruth;
 			nyScale                             = nyScale_GroundTruth;
 			nf                                  = numClasses;
 			phase                               = 1;
-			writeStep                           = -1;
+			writeStep                           = displayPeriod;
 			sparseLayer                         = true;
 		     }
 	 )
@@ -508,7 +512,7 @@ if GroundTruthPath then
       
       pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1Error",
 		  {
-		     groupType = "ANNLayer";
+		     groupType                           = "MaskLayer";
 		     nxScale                             = nxScale_GroundTruth;
 		     nyScale                             = nyScale_GroundTruth;
 		     nf                                  = numClasses;
@@ -517,7 +521,6 @@ if GroundTruthPath then
 		     valueBC                             = 0;
 		     initializeFromCheckpointFlag        = false;
 		     InitVType                           = "ZeroV";
-		     triggerFlag                         = true;
 		     triggerLayerName                    = "GroundTruthPixels" .. i_frame-1;
 		     triggerBehavior                     = "updateOnlyOnTrigger";
 		     triggerOffset                       = 1;
@@ -532,7 +535,8 @@ if GroundTruthPath then
 		     AShift                              = 0;
 		     VWidth                              = 0;
 		     clearGSynInterval                   = 0;
-		     errScale                            = 1;
+		     maskMethod                          = "layer";
+		     maskLayerName                       = "GroundTruth" .. i_frame-1
 		  }
       )
       if S1_Movie then
@@ -553,7 +557,6 @@ if GroundTruthPath then
 		     valueBC                             = 0;
 		     initializeFromCheckpointFlag        = false;
 		     InitVType                           = "ZeroV";
-		     triggerFlag                         = true;
 		     triggerLayerName                    = "GroundTruthPixels" .. i_frame-1;
 		     triggerBehavior                     = "updateOnlyOnTrigger";
 		     triggerOffset                       = 1;
@@ -619,7 +622,8 @@ if GroundTruthPath then
    )
    
    for i_delay = 1, numFrames - temporalKernelSize + 1 do
-      pv.addGroup(pvParams, "S1_" .. i_delay-1 .. "MaxPooled",
+      pv.addGroup(pvParams,
+		  "S1_" .. i_delay-1 .. "MaxPooled",
 		  {
 		     groupType = "ANNLayer";
 		     nxScale                             = nxScale_GroundTruth;
@@ -772,7 +776,6 @@ if not S1_Movie then
 			      wMaxInit                            = 1;
 			      sparseFraction                      = 0.9;
 			      initializeFromCheckpointFlag        = false;
-			      triggerFlag                         = true;
 			      triggerLayerName                    = "FrameLeft" .. delta_frame;
 			      triggerOffset                       = 1;
 			      updateGSynFromPostPerspective       = true;
@@ -796,6 +799,7 @@ if not S1_Movie then
 			      normalizeFromPostPerspective        = false;
 			      minL2NormTolerated                  = 0;
 			      dWMax                               = dWMax;
+			      normalizeDw                         = true;
 			      keepKernelsSynchronized             = true;
 			      useMask                             = false;
 			      momentumTau                         = momentumTau;
@@ -994,7 +998,7 @@ if GroundTruthPath then
 		  "GroundTruth" .. i_frame-1 .. "ReconS1" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error",
 		  {
 		     groupType                           = "IdentConn";
-		     preLayerName                        = "GroundTruth" .. i_frame-1;
+		     preLayerName                        = "GroundTruth" .. i_frame-1 .. "ReconS1";
 		     postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1Error";
 		     channelCode                         = 1;
 		     delay                               = {0.000000};
@@ -1044,7 +1048,7 @@ if GroundTruthPath then
 			      wMaxInit                            = 0;
 			      sparseFraction                      = 0;
 			      initializeFromCheckpointFlag        = false;
-			      triggerLayerName                    = "Frame" .. i_frame-1;
+			      triggerLayerName                    = "FrameLeft" .. i_frame-1;
 			      triggerBehavior                     = "updateOnlyOnTrigger";
 			      triggerOffset                       = 1;
 			      updateGSynFromPostPerspective       = false;
@@ -1058,6 +1062,7 @@ if GroundTruthPath then
 			      shrinkPatches                       = false;
 			      normalizeMethod                     = "none";
 			      dWMax                               = 1.0; --0.5; --0.01;
+			      normalizeDw                         = false;
 			      keepKernelsSynchronized             = true;
 			      useMask                             = false;
 			   }
@@ -1200,7 +1205,7 @@ if not S1_Movie then
 		     message                             = NULL;
 		     textOutputFlag                      = true;
 		     probeOutputFile                     = "FrameLeft" .. i_frame-1 .. "ReconS1ErrorEnergyProbe.txt";
-		     triggerLayerName                    = NULL; --"Frame";
+		     triggerLayerName                    = NULL; --"FrameLeft0";
 		     --triggerOffset                       = 1;
 		     energyProbe                         = "S1EnergyProbe";
 		     coefficient                         = 0.5;

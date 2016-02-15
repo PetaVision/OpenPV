@@ -32,11 +32,11 @@ endif
 
 %%run_type = "DCA";
 %%run_type = "ICA"
-%%run_type = "Deep"
+run_type = "Deep"
 %%run_type = "DCA_Vine";
 %%run_type = "MaxPool"
 %%run_type = "S1S2";
-run_type = "VID";
+%%run_type = "VID";
 if strcmp(run_type, "S1S2")
   output_dir = [data_path, filesep, "PASCAL_VOC/PASCALX3_S1_96_S2_1536/VOC2007_landscape32"];
 elseif strcmp(run_type, "ICA")
@@ -46,7 +46,7 @@ elseif strcmp(run_type, "ICA")
 elseif strcmp(run_type, "VID")
   output_dir = [data_path, filesep, "VID/ImageNetVid_S1X32_32X16_4X14frames/train4"];
 elseif strcmp(run_type, "Deep")
-  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_Deep_ICA/VOC2007_landscape3_S1_Movie2"];
+  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_6144_DeepX1_ICA/VOC2007_landscape4_S1_Movie3"];
 elseif strcmp(run_type, "DCA")
   output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape12"];
 elseif strcmp(run_type, "DCA_Vine")
@@ -82,7 +82,7 @@ endif
 if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "MaxPool") || strcmp(run_type, "ICA") || strcmp(run_type, "DCA")
   Sparse_list ={[""], ["GroundTruth"]};
 elseif strcmp(run_type, "VID")
-  Sparse_list = {[""], ["
+  Sparse_list = {[""], ["GroundTruth0"]};
 else
   Sparse_list ={[""], ["GroundTruth"]}; 
 endif
@@ -108,8 +108,10 @@ elseif strcmp(run_type, "ICA")
   nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["GroundTruthReconS1Error2X2"]; [""], ["GroundTruthReconS1Error4X4"]};
   Sparse_std_ndx = [1 1 1]; %%
 elseif strcmp(run_type, "Deep")
-  nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["S1Error2X2"]};
+  nonSparse_list = {[""], ["GroundTruthReconS1Error"]}; %% [""], ["S1Error2X2"]};
   Sparse_std_ndx = [1,1]; %%
+elseif strcmp(run_type, "VID")
+  nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["S1Error2X2"]};
 endif
 num_nonSparse_list = size(nonSparse_list,1);
 nonSparse_skip = repmat(1, num_nonSparse_list, 1);
@@ -118,7 +120,7 @@ if strcmp(run_type, "DCA")
 elseif strcmp(run_type, "ICA")
   nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]};
 elseif strcmp(run_type, "Deep")
-  nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]};
+  nonSparse_norm_list = {[""], ["GroundTruth"]}; %% [""], ["GroundTruth"]};
 endif
 nonSparse_norm_strength = ones(num_nonSparse_list,1);
 fraction_nonSparse_frames_read = 1;
@@ -132,7 +134,7 @@ for i_nonSparse = 1 : num_nonSparse_list
 endfor
 drawnow;
 				%pause;
-if ~VID
+if ~strcmp(run_type, "VID")
 classes ={ ...
 	   'background'
            'aeroplane'
@@ -155,14 +157,22 @@ classes ={ ...
            'sofa'
            'train'
            'tvmonitor'};
+else
+  classes = { ...
+	      'background'
+	      'motorbike'
+	      'car'
+	      'bicycle'
+	      'bus'};
+endif
 JIEDDO_class_ndx = [1:numel(classes)]; %%[2 6 7 14 15 19]+1;
 JIEDDO_classes = classes(JIEDDO_class_ndx)
 if strcmp(run_type, "DCA_Vine")
   classes = classes(2:numel(classes));
   JIEDDO_classes = classes;
   JIEDDO_class_ndx = [1:numel(JIEDDO_classes)];
-  num_JIEDDO_classes = length(JIEDDO_class_ndx);
 endif
+num_JIEDDO_classes = length(JIEDDO_class_ndx);
 
 
 if strcmp(run_type, "DCA") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "MaxPool")
@@ -345,7 +355,7 @@ for i_scale = i_scale_list
 	  pred_classID_thresh(i_JIEDDO_classID)            = classID_hist_bins(pred_classID_bin_tmp);
 	  pred_classID_true_pos(i_JIEDDO_classID)          = (1 - pred_classID_cumprob(pred_classID_bin_tmp,i_JIEDDO_classID,1));
 	  pred_classID_false_pos(i_JIEDDO_classID)         = (pred_classID_cumprob(pred_classID_bin_tmp,i_JIEDDO_classID,2));
-	  pred_classID_confidence_thresh(i_target_classID) = pred_classID_true_pos(i_JIEDDO_classID) ./ (pred_classID_true_pos(i_JIEDDO_classID) + (1 - pred_classID_false_pos(i_JIEDDO_classID)));
+	  pred_classID_confidence_thresh(i_JIEDDO_classID) = pred_classID_true_pos(i_JIEDDO_classID) ./ (pred_classID_true_pos(i_JIEDDO_classID) + (1 - pred_classID_false_pos(i_JIEDDO_classID)));
 	  pred_classID_accuracy(i_JIEDDO_classID)          = (pred_classID_true_pos(i_JIEDDO_classID) + pred_classID_false_pos(i_JIEDDO_classID)) / 2;
 	else
 	  pred_classID_thresh(i_JIEDDO_classID) = classID_hist_bins(end);
@@ -372,7 +382,7 @@ for i_scale = i_scale_list
       pred_classID_confidences = zeros(size(pred_classID_cube));	
       for i_JIEDDO_classID = 1 : length(JIEDDO_class_ndx)
 	
-	pred_classID_confidence_bins = 1+floor((target_classID_cube(:,:,i_JIEDDO_classID) - classID_hist_bins(1)) ./ classID_bin_width);
+	pred_classID_confidence_bins = 1+floor((JIEDDO_classID_cube(:,:,i_JIEDDO_classID) - classID_hist_bins(1)) ./ classID_bin_width);
 	pred_classID_confidence_bins(find(pred_classID_confidence_bins(:) > num_classID_bins)) = num_classID_bins;
 	pred_classID_confidence_bins(pred_classID_confidence_bins(:) < 1) =  1;
 	pred_classID_cumprob_pos = squeeze(pred_classID_cumprob(:,i_JIEDDO_classID,1));
