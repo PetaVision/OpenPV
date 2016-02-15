@@ -327,7 +327,6 @@ else -- not S1_Movie
 		     AShift                              = 0;
 		     VWidth                              = 0;
 		     clearGSynInterval                   = 0;
-		     errScale                            = 1;
 		  }
       )
       pv.addGroup(pvParams,
@@ -337,7 +336,7 @@ else -- not S1_Movie
    end -- i_frame
    
    for i_delay = 1, numFrames - temporalKernelSize + 1 do
-   --for i_delay = 1, numFrames do
+      --for i_delay = 1, numFrames do
       pv.addGroup(pvParams,
 		  "S1_" .. i_delay-1,
 		  {
@@ -385,7 +384,7 @@ else -- not S1_Movie
    end -- i_delay
 
    for i_frame = 1, numFrames do  
-   --for i_frame = 1, numFrames+temporalKernelSize-1 do  
+      --for i_frame = 1, numFrames+temporalKernelSize-1 do  
 
       pv.addGroup(pvParams, "FrameLeft" .. i_frame-1 .. "ReconS1",
 		  {
@@ -420,7 +419,7 @@ else -- not S1_Movie
 		  pvParams["FrameLeft" .. i_frame-1 .. "ReconS1"])
 
       for i_delay = 1, numFrames - temporalKernelSize + 1 do
-      --for i_delay = 1, numFrames do
+	 --for i_delay = 1, numFrames do
 
 	 local delta_frame = i_frame - i_delay
 	 if (delta_frame >= 0 and delta_frame < temporalKernelSize) then
@@ -447,60 +446,88 @@ if not S1_Movie then
    if GroundTruthPath then
       for i_frame = 1, numFrames do
 	 
-	 pv.addGroup(pvParams, "GroundTruthPixels" .. i_frame-1,
+	 pv.addGroup(pvParams,
+		     "GroundTruthPixels" .. i_frame-1,
 		     {
-		     groupType = "Movie";
-		     nxScale                             = 1;
-		     nyScale                             = 1;
-		     nf                                  = numClasses;
-		     phase                               = 0;
-		     mirrorBCflag                        = false;
-		     initializeFromCheckpointFlag        = false;
-		     writeStep                           = writePeriod;
-		     initialWriteTime                    = initialWriteTime;
-		     sparseLayer                         = false;
-		     writeSparseValues                   = false;
-		     updateGpu                           = false;
-		     dataType                            = nil;
-		     offsetAnchor                        = "tl";
-		     offsetX                             = offsetX;
-		     offsetY                             = offsetY;
-		     writeImages                         = 0;
-		     useImageBCflag                      = false;
-		     autoResizeFlag                      = true;
-		     inverseFlag                         = false;
-		     normalizeLuminanceFlag              = true;
-		     normalizeStdDev                     = true;
-		     jitterFlag                          = 0;
-		     padValue                            = 0;
-		     inputPath                           = GroundTruthPath;
-		     displayPeriod                       = displayPeriod;
-		     echoFramePathnameFlag               = true;
-		     start_frame_index                   = startFrame + i_frame-1;
-		     skip_frame_index                    = skipFrame;
-		     writeFrameToTimestamp               = true;
-		     flipOnTimescaleError                = true;
-		     resetToStartOnLoop                  = false;
+			groupType                           = "Movie";
+			nxScale                             = 1;
+			nyScale                             = 1;
+			nf                                  = 1;
+			phase                               = 0;
+			mirrorBCflag                        = false;
+			initializeFromCheckpointFlag        = false;
+			writeStep                           = writePeriod;
+			initialWriteTime                    = initialWriteTime;
+			sparseLayer                         = false;
+			writeSparseValues                   = false;
+			updateGpu                           = false;
+			dataType                            = nil;
+			offsetAnchor                        = "tl";
+			offsetX                             = offsetX;
+			offsetY                             = offsetY;
+			writeImages                         = 0;
+			useImageBCflag                      = false;
+			autoResizeFlag                      = true;
+			inverseFlag                         = false;
+			normalizeLuminanceFlag              = false;
+			jitterFlag                          = 0;
+			padValue                            = 0;
+			inputPath                           = GroundTruthPath;
+			displayPeriod                       = displayPeriod;
+			echoFramePathnameFlag               = true;
+			start_frame_index                   = startFrame + i_frame-1;
+			skip_frame_index                    = skipFrame;
+			writeFrameToTimestamp               = true;
+			flipOnTimescaleError                = true;
+			resetToStartOnLoop                  = false;
 		     }
 	 )
-	 
-	 pv.addGroup(pvParams, "GroundTruth" .. i_frame-1,
+
+	 pv.addGroup(pvParams,
+		     "GroundTruthDownsample" .. i_frame-1,
 		     pvParams["FrameLeft" .. i_frame-1 .. "ReconS1"],
 		     {
 			nxScale                             = nxScale_GroundTruth;
 			nyScale                             = nyScale_GroundTruth;
-			nf                                  = numClasses;
+			nf                                  = 1;
 			phase                               = 1;
+			writeStep                           = -1;
+		     }
+	 )
+	 pvParams["GroundTruthDownsample" .. i_frame-1].triggerLayerName  = "GroundTruthPixels" .. i_frame-1;
+	 pvParams["GroundTruthDownsample" .. i_frame-1].triggerBehavior   = "updateOnlyOnTrigger";
+	 pvParams["GroundTruthDownsample" .. i_frame-1].triggerOffset     = 0;
+	 
+	 pv.addGroup(pvParams,
+		     "GroundTruth" .. i_frame-1,
+		     {
+			groupType                           = "BinningLayer";
+			nxScale                             = nxScale_GroundTruth;
+			nyScale                             = nyScale_GroundTruth;	
+			nf                                  = numClasses;
+			phase                               = 2;
+			mirrorBCflag                        = false;
+			initializeFromCheckpointFlag        = initializeFromCheckpointFlag;
+			InitVType                           = "ZeroV";
+			triggerLayerName                    = NULL;
 			writeStep                           = displayPeriod;
 			initialWriteTime                    = displayPeriod;
 			sparseLayer                         = true;
-		     }
-	 )
-	 pvParams["GroundTruth" .. i_frame-1].triggerLayerName  = "GroundTruthPixels" .. i_frame-1;
-	 pvParams["GroundTruth" .. i_frame-1].triggerBehavior   = "updateOnlyOnTrigger";
-	 pvParams["GroundTruth" .. i_frame-1].triggerOffset     = 0;
-	 pvParams["GroundTruth" .. i_frame-1].writeSparseValues = false;
-	 
+			writeSparseValues                   = false;
+			updateGpu                           = false;
+			dataType                            = nil;
+			clearGSynInterval                   = 0;
+			binMax                              = 1;
+			binMin                              = 0;
+			binSigma                            = 1;
+			zeroNeg                             = false; //Set negative gt values as -1
+			zeroDCR                             = true; //Zero values from the buffer is set to 0
+			normalDist                          = false; //Max value will always be 1 as opposed to normal distribution
+			delay                               = 0;
+			originalLayerName                    = "GroundTruthDownsample" .. i_frame-1;
+		     };
+
+
       end -- i_frame
       
    end -- GroundTruthPath
@@ -544,7 +571,7 @@ if GroundTruthPath then
 	    "GroundTruth" .. i_frame-1;
 	 pvParams["GroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerOffset  = 0;
       end
-            
+      
       pv.addGroup(pvParams,
 		  "GroundTruth" .. i_frame-1 .. "ReconS1",
 		  {
@@ -578,12 +605,12 @@ if GroundTruthPath then
 	    "GroundTruth" .. i_frame-1;
 	 pvParams["GroundTruth" .. i_frame-1 .. "ReconS1"].triggerOffset  = 0;
       end
-            
+      
       for i_delay = 1, numFrames - temporalKernelSize + 1 do
 	 
 	 local delta_frame = i_frame - i_delay
 	 if (delta_frame >= 0 and delta_frame < temporalKernelSize) then
-	    	    
+	    
 	    pv.addGroup(pvParams, "GroundTruth" .. i_frame-1 .. "ReconS1_" .. i_delay-1,
 			pvParams[ "GroundTruth" .. i_frame-1 .. "ReconS1"],
 			{
@@ -906,7 +933,7 @@ if not S1_Movie then
    --for i_frame = 1, numFrames+temporalKernelSize-1 do  
    for i_frame = 1, numFrames do  
       for i_delay = 1, numFrames - temporalKernelSize + 1 do
-      --for i_delay = 1, numFrames do
+	 --for i_delay = 1, numFrames do
 
 	 local delta_frame = i_frame - i_delay
 	 if (delta_frame >= 0 and delta_frame < temporalKernelSize) then
@@ -1119,20 +1146,20 @@ if GroundTruthPath then
 		     }
 	 )
 
-      if not plasticityFlag then
-	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].triggerLayerName    = NULL;
-	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].triggerOffset       = nil;
-	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].triggerBehavior     = nil;
-	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].dWMax               = nil;
-      end
-      if checkpointID_SLP then
-	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].weightInitType      = "FileWeight";
-	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].initWeightsFile
-	    = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/BiasS1ToGroundTruth" .. 0 .. "ReconS1Error_W.pvp";
-	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].useListOfArborFiles = false;
-	 pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].combineWeightFiles  = false;    
-      end -- checkpointID_SLP
-      
+	 if not plasticityFlag then
+	    pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].triggerLayerName    = NULL;
+	    pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].triggerOffset       = nil;
+	    pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].triggerBehavior     = nil;
+	    pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].dWMax               = nil;
+	 end
+	 if checkpointID_SLP then
+	    pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].weightInitType      = "FileWeight";
+	    pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].initWeightsFile
+	       = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/BiasS1ToGroundTruth" .. 0 .. "ReconS1Error_W.pvp";
+	    pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].useListOfArborFiles = false;
+	    pvParams["BiasS1ToGroundTruth" .. 0 .. "ReconS1Error"].combineWeightFiles  = false;    
+	 end -- checkpointID_SLP
+	 
       else
 	 pv.addGroup(pvParams, "BiasS1" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error",
 		     pvParams["S1_" .. 1 .. "To" .. "GroundTruth" .. 1 .. "ReconS1Error"],
@@ -1169,7 +1196,7 @@ if GroundTruthPath then
 			   selfFlag                            = false;
 			}
 	    )
-	    	    
+	    
 	 end -- delta_frame >= 0
       end -- i_delay
 
@@ -1184,7 +1211,7 @@ if GroundTruthPath then
       )
       
    end -- i_frame
-      
+   
 end -- GroundTruthPath
 
 -- Energy probe

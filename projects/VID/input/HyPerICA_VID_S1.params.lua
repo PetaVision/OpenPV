@@ -29,6 +29,14 @@ local overcompletenessTmp   = overcompleteness
 local temporalKernelSize    = 4 -- 
 local numFrames             = 2*(-1 + temporalKernelSize * 2)
 
+--i/o parameters
+local imageListPath       = machinePath .. "/" .. databasePath .. "/imageNetVID_landscape_II_list.txt" --imageNetVID_n02958343_landscape_list.txt"
+local GroundTruthPath     = machinePath .. "/" .. databasePath .. "/imageNetVID_landscape_II.pvp"
+local startFrame          = 0
+local skipFrame           = numFrames --temporalKernelSize
+local offsetX             = 0
+local offsetY             = 0
+
 -- User defined variables
 local plasticityFlag      = true --false
 local strideX             = patchSizeX/math.pow(2,zX) -- divide patchSize by 2^z to obtain dictionaries that are (2^z)^2 Xs overcomplete
@@ -47,7 +55,7 @@ local inputPathSLP        = nil --machinePath .. "/" .. databasePath .. "/" .. e
 local numImages           = 10036 --8211--
 local displayPeriod       = 800 --1200
 local numEpochs           = 1
-local stopTime            = numImages * displayPeriod * numEpochs
+local stopTime            = numImages * displayPeriod * numEpochs / numFrames
 local checkpointID        = "0556800" --stopTime-- 
 local checkpointID_SLP    = nil --"0048000" --stopTime--
 local writePeriod         = 10 * displayPeriod
@@ -69,14 +77,6 @@ else -- not used if run version == 1
 end
 local inf                 = 3.40282e+38
 local initializeFromCheckpointFlag = false
-
---i/o parameters
-local imageListPath       = machinePath .. "/" .. databasePath .. "/imageNetVID_landscape_II_list.txt" --imageNetVID_n02958343_landscape_list.txt"
-local GroundTruthPath     = machinePath .. "/" .. databasePath .. "/imageNetVID_landscape_II.pvp"
-local startFrame          = 0
-local skipFrame           = numFrames --temporalKernelSize
-local offsetX             = 0
-local offsetY             = 0
 
 --HyPerCol parameters
 local dtAdaptFlag              = not S1_Movie
@@ -1088,29 +1088,30 @@ if GroundTruthPath then
 			dWMax                               = 0.01;
 		     }
 	 )
+	 if not plasticityFlag then
+	    pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerLayerName    = NULL;
+	    pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerOffset       = nil;
+	    pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerBehavior      = nil;
+	    pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].dWMax               = nil;
+	 end
+	 if checkpointID_SLP then
+	    pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].weightInitType      = "FileWeight";
+	    pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].initWeightsFile
+	       = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error_W.pvp";
+	    pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].useListOfArborFiles = false;
+	    pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].combineWeightFiles  = false;    
+	 end -- checkpointID_SLP
+      
       else
 	 pv.addGroup(pvParams, "BiasS1" .. "To" .. "GroundTruth" .. i_frame-1 .. "ReconS1Error",
 		     pvParams["S1_" .. 1 .. "MaxPooled" .. "To" .. "GroundTruth" .. 1 .. "ReconS1Error"],
 		     {
 			preLayerName                        = "BiasS1";
+			postLayerName                       = "GroundTruth" .. i_frame-1 .. "ReconS1Error";
 			originalConnName                    = "BiasS1ToGroundTruth" .. 0 .. "ReconS1Error";
 		     }
 	 )
       end
-      if not plasticityFlag then
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerLayerName    = NULL;
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerOffset       = nil;
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].triggerBehavior      = nil;
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].dWMax               = nil;
-      end
-      if checkpointID_SLP then
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].weightInitType      = "FileWeight";
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].initWeightsFile
-	    = inputPathSLP .. "/Checkpoints/Checkpoint" .. checkpointID_SLP .. "/BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error_W.pvp";
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].useListOfArborFiles = false;
-	 pvParams["BiasS1ToGroundTruth" .. i_frame-1 .. "ReconS1Error"].combineWeightFiles  = false;    
-      end -- checkpointID_SLP
-      
    end -- i_frame
    
    
