@@ -132,9 +132,7 @@ ImageFromMemoryBuffer "Image" = {
     jitterFlag                          = 0;
     useImageBCflag                      = false;
     padValue                            = 0;
-    writeFrameToTimestamp               = true;
-    flipOnTimescaleError                = true;
-    resetToStartOnLoop                  = false;
+    autoResizeFlag                      = true;
 };
 
 ANNLayer "S1MaxPooled2X2" = {
