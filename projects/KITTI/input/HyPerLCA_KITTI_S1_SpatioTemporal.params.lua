@@ -51,7 +51,7 @@ local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experim
 local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
 local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
 local numImages           = 15884
-local displayPeriod       = 900 --1200
+local displayPeriod       = 1200
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs / numFrames
 local checkpointID        = "00600000" --stopTime-- 
@@ -81,9 +81,9 @@ local dtAdaptFlag              = not S1_Movie
 local useAdaptMethodExp1stOrder = true
 local dtAdaptController        = "S1EnergyProbe"
 local dtAdaptTriggerLayerName  = "FrameLeft0";
-local dtScaleMax               = 0.05025 --0.0015 --0.000051   --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
-local dtScaleMin               = 0.05 --0.001  --0.00005  --0.01    -- default time scale to use after image flips or when something is wacky
-local dtChangeMax              = 0.005   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
+local dtScaleMax               = 0.1025 --0.0015 --0.000051   --1.0     -- minimum value for the maximum time scale, regardless of tau_eff
+local dtScaleMin               = 0.1 --0.001  --0.00005  --0.01    -- default time scale to use after image flips or when something is wacky
+local dtChangeMax              = 0.025   --0.1     -- determines fraction of tau_effective to which to set the time step, can be a small percentage as tau_eff can be huge
 local dtChangeMin              = 0.025  --0.01    -- percentage increase in the maximum allowed time scale whenever the time scale equals the current maximum
 local dtMinToleratedTimeScale  = 0.000000001
 
@@ -520,13 +520,13 @@ if not S1_Movie then
 			binMax                              = 1;
 			binMin                              = 0;
 			binSigma                            = 1;
-			zeroNeg                             = false; //Set negative gt values as -1
-			zeroDCR                             = true; //Zero values from the buffer is set to 0
-			normalDist                          = false; //Max value will always be 1 as opposed to normal distribution
+			zeroNeg                             = false; --Set negative gt values as -1
+			zeroDCR                             = true;  --Zero values from the buffer is set to 0
+			normalDist                          = false; --Max value will always be 1 as opposed to normal distribution
 			delay                               = 0;
 			originalLayerName                    = "GroundTruthDownsample" .. i_frame-1;
-		     };
-
+		     }
+		     )	
 
       end -- i_frame
       
