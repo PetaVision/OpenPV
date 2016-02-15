@@ -974,11 +974,11 @@ if not S1_Movie then
       
       for i_frame = 1, numFrames do  
 	 pv.addGroup(pvParams,
-		     "GroundTruthPixels" .. i_frame-1 .. "ToGroundTruth" .. i_frame-1,
+		     "GroundTruthPixels" .. i_frame-1 .. "ToGroundTruthDownsample" .. i_frame-1,
 		     {
 			groupType                           = "PoolingConn";
 			preLayerName                        = "GroundTruthPixels" .. i_frame-1;
-			postLayerName                       = "GroundTruth" .. i_frame-1;
+			postLayerName                       = "GroundTruthDownsample" .. i_frame-1;
 			channelCode                         = 0;
 			delay                               = {0.000000};
 			numAxonalArbors                     = 1;
