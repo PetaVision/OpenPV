@@ -44,18 +44,18 @@ local nxSize              = 512
 local nySize              = 144
 local experimentName      = "KITTI_S1X" .. overcompleteness    .. "_" .. patchSizeX .. "X" .. patchSizeY  .. "_" .. temporalKernelSize .. "X" .. numFrames    .. "frames"
 local runName             = "2011_09_26_train"
-local runVersion          = 5
+local runVersion          = 6
 local machinePath         = "/home/gkenyon" --"/nh/compneuro/Data"
 local databasePath        = "KITTI" 
 local outputPath          = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion
 local inputPath           = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
-local inputPathSLP        = nil --machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
+local inputPathSLP        = machinePath .. "/" .. databasePath .. "/" .. experimentName .. "/" .. runName .. runVersion-1
 local numImages           = 15884
 local displayPeriod       = 1200
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs / numFrames
 local checkpointID        = "00600000" --stopTime-- 
-local checkpointID_SLP    = nil --"00600000" --stopTime--
+local checkpointID_SLP    = "00600000" --stopTime--
 local writePeriod         = 10 * displayPeriod
 local initialWriteTime    = writePeriod
 local checkpointWriteStepInterval = writePeriod
@@ -456,8 +456,8 @@ if not S1_Movie then
 			phase                               = 0;
 			mirrorBCflag                        = false;
 			initializeFromCheckpointFlag        = false;
-			writeStep                           = writePeriod;
-			initialWriteTime                    = initialWriteTime;
+			writeStep                           = displayPeriod; --writePeriod;
+			initialWriteTime                    = displayPeriod; --initialWriteTime;
 			sparseLayer                         = false;
 			writeSparseValues                   = false;
 			updateGpu                           = false;
@@ -605,6 +605,26 @@ if GroundTruthPath then
 	    "GroundTruth" .. i_frame-1;
 	 pvParams["GroundTruth" .. i_frame-1 .. "ReconS1"].triggerOffset  = 0;
       end
+
+
+      pv.addGroup(pvParams,
+		  "GroundTruth" .. i_frame-1 .. "WTA",
+		  {
+		     groupType                          = "WTALayer";
+		     nxScale                            = nxScale_GroundTruth; 
+		     nyScale                            = nyScale_GroundTruth;
+		     nf                                 = 1; 
+		     writeStep                          = displayPeriod;
+		     initialWriteTime                   = displayPeriod;
+		     mirrorBCflag                       = false;
+		     writeSparseActivity                = false;
+		     delay                              = 0;
+		     originalLayerName                  = "GroundTruth" .. i_frame-1;
+		     phase                              = 11;
+		     }
+      )
+
+
       
       for i_delay = 1, numFrames - temporalKernelSize + 1 do
 	 
