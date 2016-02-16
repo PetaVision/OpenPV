@@ -68,6 +68,13 @@ public:
     */
    virtual int outputState(double time, bool last=false);
 
+   /**
+    * Returns the factor by which the image was resized when setMemoryBuffer is called:
+    * If autoResizeFlag is true, this factor is the larger of (layer's nx/memory buffer's nx) and (layer's ny/memory buffer's ny).
+    * If autoResizeFlag is false, this factor is always 1.
+    */
+   inline float getResizeFactor() const { return resizeFactor; }
+
 protected:
    ImageFromMemoryBuffer();
    
@@ -155,6 +162,7 @@ protected:
    int bufferSize;
    bool hasNewImageFlag; // set to true by setMemoryBuffer; cleared to false by initializeActivity();
    bool autoResizeFlag;
+   float resizeFactor;
 }; // class ImageFromMemoryBuffer
 
 }  // namespace PV

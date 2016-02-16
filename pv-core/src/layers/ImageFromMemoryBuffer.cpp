@@ -25,6 +25,7 @@ int ImageFromMemoryBuffer::initialize_base() {
    bufferSize = -1;
    hasNewImageFlag = false;
    autoResizeFlag = false;
+   resizeFactor = 1.0f;
    return PV_SUCCESS;
 }
 
@@ -60,13 +61,16 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
 
    int resizedWidth, resizedHeight;
    if (autoResizeFlag) {
-      float xRatio = (float) getLayerLoc()->nx/(float) width;
-      float yRatio = (float) getLayerLoc()->ny/(float) height;
-      float resizeFactor = xRatio < yRatio ? yRatio : xRatio;
+      float xRatio = (float) getLayerLoc()->nxGlobal/(float) width;
+      float yRatio = (float) getLayerLoc()->nyGlobal/(float) height;
+      resizeFactor = xRatio < yRatio ? yRatio : xRatio;
       // resizeFactor * width should be >= getLayerLoc()->nx; resizeFactor * height should be >= getLayerLoc()->ny,
       // and one of these >= should be == (up to floating-point roundoff).
-      resizedWidth = (int) (resizeFactor * width);
-      resizedHeight = (int) (resizeFactor * height);
+      resizedWidth = (int) nearbyintf(resizeFactor * width);
+      resizedHeight = (int) nearbyintf(resizeFactor * height);
+      assert(resizedWidth >= width);
+      assert(resizedHeight >= height);
+      assert(resizedWidth == getLayerLoc()->nxGlobal || resizedHeight == getLayerLoc()->nyGlobal);
    }
    else {
       resizedWidth = width;
