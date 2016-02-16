@@ -227,7 +227,16 @@ public:
 
    int getOffsetX(const char* offsetAnchor, int offsetX);
    int getOffsetY(const char* offsetAnchor, int offsetY);
-   //const int * getOffsets() { return offsets; }
+
+   /**
+    * getImageStartX() returns the x-coordinate in the original input corresponding to x=0 in layer coordinates.
+    */
+   int getImageStartX() { return getOffsetX(offsetAnchor, offsets[0]); }
+
+   /**
+    * getImageStartY() returns the y-coordinate in the original input corresponding to y=0 in the layer coordinates.
+    */
+   int getImageStartY() { return getOffsetX(offsetAnchor, offsets[0]); }
    
    int getBiasX() { return biases[0]; }
    int getBiasY() { return biases[1]; }
