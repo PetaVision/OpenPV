@@ -68,8 +68,8 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
       // and one of these >= should be == (up to floating-point roundoff).
       resizedWidth = (int) nearbyintf(resizeFactor * width);
       resizedHeight = (int) nearbyintf(resizeFactor * height);
-      assert(resizedWidth >= width);
-      assert(resizedHeight >= height);
+      assert(resizedWidth >= getLayerLoc()->nxGlobal);
+      assert(resizedHeight >= getLayerLoc()->nyGlobal);
       assert(resizedWidth == getLayerLoc()->nxGlobal || resizedHeight == getLayerLoc()->nyGlobal);
    }
    else {
