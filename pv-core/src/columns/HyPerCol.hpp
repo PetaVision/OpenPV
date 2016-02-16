@@ -60,6 +60,7 @@ public:
 
    int run()  {return run(startTime, stopTime, deltaTimeBase);}
    int run(double startTime, double stopTime, double dt);
+   int processParams(char const * path);
 
    int advanceTime(double time);
    int exitRunLoop(bool exitOnFinish);
@@ -517,6 +518,7 @@ private:
    bool suppressNonplasticCheckpoints; // If suppressNonplasticCheckpoints is true, only weights with plasticityFlag true will be checkpointed.  If false, all weights will be checkpointed.
 
    bool readyFlag;          // Initially false; set to true when communicateInitInfo, allocateDataStructures, and setInitialValues stages are completed
+   bool paramsProcessedFlag; // Initially false; set to true when processParams is called.
    double startTime;
    double simTime;          // current time in milliseconds
    double stopTime;         // time to stop time

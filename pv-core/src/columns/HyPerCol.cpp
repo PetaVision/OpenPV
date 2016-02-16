@@ -30,6 +30,7 @@
 #include <time.h>
 #include <csignal>
 #include <limits>
+#include <libgen.h>
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 #include <map>
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -165,6 +166,7 @@ int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their actual values in initialize()
    warmStart = false;
    readyFlag = false;
+   paramsProcessedFlag = false;
    currentStep = 0;
    layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    numLayers = 0;
@@ -479,21 +481,12 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    ensureDirExists(srcPath);
 #endif
 
-   ensureDirExists(outputPath);
 
    simTime = startTime;
    initialStep = (long int) nearbyint(startTime/deltaTimeBase);
    currentStep = initialStep;
    finalStep = (long int) nearbyint(stopTime/deltaTimeBase);
    nextProgressTime = startTime + progressInterval;
-   if (columnId()==0 && dtAdaptFlag && writeTimescales){
-      size_t timeScaleFileNameLen = strlen(outputPath) + strlen("/HyPerCol_timescales.txt");
-      char timeScaleFileName[timeScaleFileNameLen+1];
-      int charsneeded = snprintf(timeScaleFileName, timeScaleFileNameLen+1, "%s/HyPerCol_timescales.txt", outputPath);
-      assert(charsneeded<=timeScaleFileNameLen);
-      timeScaleStream.open(timeScaleFileName);
-      timeScaleStream.precision(17);
-   }
 
    if(checkpointWriteFlag) {
       switch (checkpointWriteTriggerMode) {
@@ -1079,7 +1072,13 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
    ioParamString(ioFlag, name, "printParamsFilename", &printParamsFilename, "pv.params");
-   assert(printParamsFilename);
+   if (printParamsFilename==NULL || printParamsFilename[0]=='\0') {
+      if (columnId()==0) {
+         fprintf(stderr, "Error: printParamsFilename cannot be null or the empty string.\n");
+      }
+      MPI_Barrier(icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
 }
 
 void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
@@ -1677,75 +1676,35 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    stopTime = stop_time;
    deltaTime = dt;
 
+   int status = PV_SUCCESS;
    if (!readyFlag) {
-      layerStatus = (int *) calloc((size_t) numLayers, sizeof(int));
-      if (layerStatus==NULL) {
-         fprintf(stderr, "Global rank %d process unable to allocate memory for status of %zu layers: %s\n", globalRank(), (size_t) numLayers, strerror(errno));
+      ensureDirExists(outputPath);
+      if (columnId()==0 && dtAdaptFlag && writeTimescales){
+         size_t timeScaleFileNameLen = strlen(outputPath) + strlen("/HyPerCol_timescales.txt");
+         char timeScaleFileName[timeScaleFileNameLen+1];
+         int charsneeded = snprintf(timeScaleFileName, timeScaleFileNameLen+1, "%s/HyPerCol_timescales.txt", outputPath);
+         assert(charsneeded<=timeScaleFileNameLen);
+         timeScaleStream.open(timeScaleFileName);
+         timeScaleStream.precision(17);
       }
-      connectionStatus = (int *) calloc((size_t) numConnections, sizeof(int));
-      if (connectionStatus==NULL) {
-         fprintf(stderr, "Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), (size_t) numConnections, strerror(errno));
+      assert(printParamsFilename && printParamsFilename[0]);
+      std::string printParamsFileString("");
+      if (printParamsFilename[0] != '/') {
+         printParamsFileString += outputPath;
+         printParamsFileString += "/";
+      }
+      printParamsFileString += printParamsFilename;
+
+      // do communicateInitInfo stage, set up adaptive time step, and print params
+      status = processParams(printParamsFileString.c_str());
+      MPI_Barrier(icCommunicator()->communicator());
+      if (status != PV_SUCCESS) {
+         fprintf(stderr, "HyPerCol \"%s\" failed to run.\n", name);
+         exit(EXIT_FAILURE);
       }
 
       int (HyPerCol::*layerInitializationStage)(int) = NULL;
       int (HyPerCol::*connInitializationStage)(int) = NULL;
-
-      // communicateInitInfo stage
-      layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
-      connInitializationStage = &HyPerCol::connCommunicateInitInfo;
-      doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
-
-      // do communication step for probes
-      // This is where probes are added to their respective target layers and connections
-      for (int i=0; i<numBaseProbes; i++) {
-         BaseProbe * p = baseProbes[i];
-         int pstatus = p->communicateInitInfo();
-         if (pstatus==PV_SUCCESS) {
-            if (globalRank()==0) printf("Probe \"%s\" communicateInitInfo completed.\n", p->getName());
-         }
-         else {
-            assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-            // A more detailed error message should be printed by probe's communicateInitInfo function.
-            fprintf(stderr, "Probe \"%s\" communicateInitInfo failed.  Exiting.\n", p->getName());
-            exit(EXIT_FAILURE);
-         }
-      }
-      
-      // add the dtAdaptController, if there is one.
-      if (dtAdaptController && dtAdaptController[0]) {
-         dtAdaptControlProbe = getColProbeFromName(dtAdaptController);
-         if (dtAdaptControlProbe==NULL) {
-            if (globalRank()==0) {
-               fprintf(stderr, "HyPerCol \"%s\" error: dtAdaptController \"%s\" does not refer to a ColProbe in the HyPerCol.\n",
-                     this->getName(), dtAdaptController);
-            }
-            MPI_Barrier(this->icCommunicator()->communicator());
-            exit(EXIT_FAILURE);
-         }
-
-         // add the dtAdaptTriggerLayer, if there is one.
-         if (dtAdaptTriggerLayerName && dtAdaptTriggerLayerName[0]) {
-            dtAdaptTriggerLayer = getLayerFromName(dtAdaptTriggerLayerName);
-            if (dtAdaptTriggerLayer==NULL) {
-               if (globalRank()==0) {
-                  fprintf(stderr, "HyPerCol \"%s\" error: dtAdaptTriggerLayerName \"%s\" does not refer to layer in the column.\n", this->getName(), dtAdaptTriggerLayerName);
-               }
-               MPI_Barrier(this->icCommunicator()->communicator());
-               exit(EXIT_FAILURE);
-            }
-         }
-      }
-
-      parameters()->warnUnread();
-      std::string printParamsPath = "";
-      if (printParamsFilename!=NULL && printParamsFilename[0] != '\0') {
-         if (printParamsFilename[0] != '/') {
-            printParamsPath += outputPath;
-            printParamsPath += "/";
-         }
-         printParamsPath += printParamsFilename;
-      }
-      outputParams(printParamsPath.c_str());
 
       // allocateDataStructures stage
       layerInitializationStage = &HyPerCol::layerAllocateDataStructures;
@@ -1840,7 +1799,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    // time loop
    //
    long int step = 0;
-   int status = PV_SUCCESS;
+   assert(status == PV_SUCCESS);
    while (simTime < stopTime - deltaTime/2.0 && status != PV_EXIT_NORMALLY) {
       // Should we move the if statement below into advanceTime()?
       // That way, the routine that polls for SIGUSR1 and sets checkpointSignal is the same
@@ -1903,6 +1862,80 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    stop_clock();
 #endif
 
+   return status;
+}
+
+int HyPerCol::processParams(char const * path) {
+   if (!paramsProcessedFlag) {
+      layerStatus = (int *) calloc((size_t) numLayers, sizeof(int));
+      if (layerStatus==NULL) {
+         fprintf(stderr, "Global rank %d process unable to allocate memory for status of %zu layers: %s\n", globalRank(), (size_t) numLayers, strerror(errno));
+      }
+      connectionStatus = (int *) calloc((size_t) numConnections, sizeof(int));
+      if (connectionStatus==NULL) {
+         fprintf(stderr, "Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), (size_t) numConnections, strerror(errno));
+      }
+   
+      int (HyPerCol::*layerInitializationStage)(int) = NULL;
+      int (HyPerCol::*connInitializationStage)(int) = NULL;
+   
+      // do communication step for layers and connections
+      layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
+      connInitializationStage = &HyPerCol::connCommunicateInitInfo;
+      doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
+   
+      // do communication step for probes
+      // This is where probes are added to their respective target layers and connections
+      for (int i=0; i<numBaseProbes; i++) {
+         BaseProbe * p = baseProbes[i];
+         int pstatus = p->communicateInitInfo();
+         if (pstatus==PV_SUCCESS) {
+            if (globalRank()==0) printf("Probe \"%s\" communicateInitInfo completed.\n", p->getName());
+         }
+         else {
+            assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
+            // A more detailed error message should be printed by probe's communicateInitInfo function.
+            fprintf(stderr, "Probe \"%s\" communicateInitInfo failed.\n", p->getName());
+            return PV_FAILURE;
+         }
+      }
+   
+      // add the dtAdaptController, if there is one.
+      if (dtAdaptController && dtAdaptController[0]) {
+         dtAdaptControlProbe = getColProbeFromName(dtAdaptController);
+         if (dtAdaptControlProbe==NULL) {
+            if (globalRank()==0) {
+               fprintf(stderr, "HyPerCol \"%s\" error: dtAdaptController \"%s\" does not refer to a ColProbe in the HyPerCol.\n",
+                     this->getName(), dtAdaptController);
+            }
+            return PV_FAILURE;
+         }
+   
+         // add the dtAdaptTriggerLayer, if there is one.
+         if (dtAdaptTriggerLayerName && dtAdaptTriggerLayerName[0]) {
+            dtAdaptTriggerLayer = getLayerFromName(dtAdaptTriggerLayerName);
+            if (dtAdaptTriggerLayer==NULL) {
+               if (globalRank()==0) {
+                  fprintf(stderr, "HyPerCol \"%s\" error: dtAdaptTriggerLayerName \"%s\" does not refer to layer in the column.\n", this->getName(), dtAdaptTriggerLayerName);
+               }
+               return PV_FAILURE;
+            }
+         }
+      }
+   }
+
+   // Print a cleaned up version of params to the file given by printParamsFilename
+   parameters()->warnUnread();
+   std::string printParamsPath = "";
+   if (path!=NULL && path[0] != '\0') {
+      outputParams(path);
+   }
+   else {
+      if (globalRank()==0) {
+         printf("HyPerCol \"%s\": path for printing parameters file was empty or null.\n", name);
+      }
+   }
+   paramsProcessedFlag = true;
    return PV_SUCCESS;
 }
 
@@ -2942,12 +2975,26 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
 }
 
 int HyPerCol::outputParams(char const * path) {
+   assert(path!=NULL && path[0]!='\0');
    int status = PV_SUCCESS;
    int rank=icComm->commRank();
    assert(printParamsStream==NULL);
    char printParamsPath[PV_PATH_MAX];
+   char * tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
+   if (tmp==NULL) {
+      fflush(stdout);
+      fprintf(stderr, "HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+   char * containingdir = dirname(tmp);
+   status = ensureDirExists(containingdir); // must be called by all processes, even though only rank 0 creates the directory
+   if (status != PV_SUCCESS) {
+      fflush(stdout);
+      fprintf(stderr, "HyPerCol::outputParams unable to create directory \"%s\"\n", containingdir);
+   }
+   free(tmp);
    if(rank == 0){
-      if( strlen(path+4) >= (size_t) PV_PATH_MAX ) {
+      if( strlen(path)+4/*allow room for .lua at end, and string terminator*/ > (size_t) PV_PATH_MAX ) {
          fprintf(stderr, "outputParams called with too long a filename.  Parameters will not be printed.\n");
          status = ENAMETOOLONG;
       }

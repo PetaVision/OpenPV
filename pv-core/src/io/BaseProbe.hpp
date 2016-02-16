@@ -43,8 +43,9 @@ public:
 
    /**
     * Called during HyPerCol::run, during the allocateDataStructures stage.
-    * BaseProbe::allocateDataStructures returns immediately, but derived classes that
-    * need to allocate storage should override this method.
+    * BaseProbe::allocateDataStructures sets up the output stream.
+    * Derived classes that override this method should make sure to
+    * call this method in their own allocateDataStructures methods.
     */
    virtual int allocateDataStructures();
 

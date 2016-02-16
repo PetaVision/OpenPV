@@ -63,6 +63,8 @@ int buildandrun1paramset(PV_Init* initObj,
                          int (*customexit)(HyPerCol *, int, char **),
                          ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
 
+int outputParams(int argc, char * argv[], char const * path, ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
+
 HyPerCol * build(PV_Init * initObj,
                  ParamGroupHandler ** groupHandlerList,
                  int numGroupHandlers);
