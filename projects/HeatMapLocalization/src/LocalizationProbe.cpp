@@ -712,7 +712,7 @@ int LocalizationProbe::makeMontage() {
             int targetIdx = kIndex(xTarget, yTarget, f, targetLoc->nx, targetLoc->ny, targetLoc->nf);
             int targetIdxExt = kIndexExtended(targetIdx, targetLoc->nx, targetLoc->ny, targetLoc->nf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
             pvadata_t heatMapLevel = targetLayer->getLayerData()[targetIdxExt];
-            heatMapLevel = (heatMapLevel - detectionThreshold)/heatMapMaximum;
+            heatMapLevel = (heatMapLevel - detectionThreshold)/(heatMapMaximum-detectionThreshold);
             heatMapLevel = heatMapLevel < (pvadata_t) 0 ? (pvadata_t) 0 : heatMapLevel > (pvadata_t) 1 ? (pvadata_t) 1 : heatMapLevel;
             int montageIdx = kIndex(xStartInMontage + x, yStartInMontage + y, 0, montageDimX, montageDimY, 3);
             for(int rgb=0; rgb<3; rgb++) { 
