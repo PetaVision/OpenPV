@@ -23,21 +23,27 @@ float SegmentifyTest::getTargetVal(int yi, int xi, int fi){
    int newYi = yi / 3; 
    int newXi = xi / 3;
    int segmentLabel = newYi * 3 + newXi + 1;
+   int returnLabel = -1;
    if(strcmp(inputMethod, "sum") == 0){
       //Account for edge cases
       if(segmentLabel == 3 || segmentLabel == 6 || segmentLabel == 7 || segmentLabel == 8){
-         return segmentLabel * 6;
+         returnLabel = segmentLabel * 6;
       }
       else if(segmentLabel == 9){
-         return segmentLabel * 4;
+         returnLabel = segmentLabel * 4;
       }
       else{
-         return segmentLabel * 9;
+         returnLabel = segmentLabel * 9;
       }
    }
    else if(strcmp(inputMethod, "average") == 0 || strcmp(inputMethod, "max") == 0){
-      return segmentLabel;
+      returnLabel = segmentLabel;
    }
+   else{
+      //Should never get here
+      assert(0);
+   }
+   return returnLabel;
 }
 
 int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, float actualVal){
@@ -78,6 +84,7 @@ int SegmentifyTest::checkOutputVals(int yi, int xi, int fi, float targetVal, flo
    else if(strcmp(outputMethod, "fill") == 0){
       assert(actualVal == targetVal);
    }
+   return PV_SUCCESS;
 }
 
 int SegmentifyTest::updateState(double timef, double dt){
@@ -97,8 +104,7 @@ int SegmentifyTest::updateState(double timef, double dt){
                float targetVal = getTargetVal(yi+loc->ky0, xi+loc->kx0, fi);
                checkOutputVals(yi+loc->ky0, xi+loc->kx0, fi, targetVal, actualVal);
 
-               //s
-               //td::cout << "Idx: (" << bi << "," << yi << "," << xi << "," << fi << ") Val: " << actualVal << " Target: " << targetVal << "\n";
+               //std::cout << "Idx: (" << bi << "," << yi << "," << xi << "," << fi << ") Val: " << actualVal << " Target: " << targetVal << "\n";
             }
          }
       }
