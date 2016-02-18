@@ -536,13 +536,21 @@ int LocalizationProbe::calcValues(double timevalue) {
       assert(xLocation >= 0 && yLocation >= 0);
       values[0] = (double) winningFeature;
       values[1] = maxActivity;
-      int boundingBox[4];
-      findBoundingBox(winningFeature, xLocation, yLocation, boundingBox);
       double * boundingBoxDbl = &values[2];
-      boundingBoxDbl[0] = (double) boundingBox[0] * imageDilationX;
-      boundingBoxDbl[1] = (double) boundingBox[1] * imageDilationX;
-      boundingBoxDbl[2] = (double) boundingBox[2] * imageDilationY;
-      boundingBoxDbl[3] = (double) boundingBox[3] * imageDilationY;
+      if (maxActivity>=detectionThreshold) {
+         int boundingBox[4];
+         findBoundingBox(winningFeature, xLocation, yLocation, boundingBox);
+         boundingBoxDbl[0] = (double) boundingBox[0] * imageDilationX;
+         boundingBoxDbl[1] = (double) boundingBox[1] * imageDilationX;
+         boundingBoxDbl[2] = (double) boundingBox[2] * imageDilationY;
+         boundingBoxDbl[3] = (double) boundingBox[3] * imageDilationY;
+      }
+      else {
+         values[2] = -1.0;
+         values[3] = -1.0;
+         values[4] = -1.0;
+         values[5] = -1.0;
+      }
    }
    else {
       assert(xLocation < 0 && yLocation < 0);
@@ -571,7 +579,7 @@ int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, in
       }
    }
    // Need to MPI reduce here
-   if (maxLocation>=0 && maxVal>=detectionThreshold) {
+   if (maxLocation>=0) {
       *winningFeature = featureIndex(maxLocation, loc->nx, loc->ny, loc->nf);
       *xLocation = kxPos(maxLocation, loc->nx, loc->ny, loc->nf);
       *yLocation = kyPos(maxLocation, loc->nx, loc->ny, loc->nf);
@@ -621,15 +629,21 @@ int LocalizationProbe::outputState(double timevalue) {
    getValues(timevalue);
    double * values = getValuesBuffer();
    int winningFeature = (int) values[0];
+   double maxActivity = values[1];
    if (winningFeature >= 0) {
-      fprintf(outputstream->fp, "Time %f, activity %f, bounding box x=[%d,%d), y=[%d,%d): detected %s\n",
-            timevalue,
-            values[1],
-            (int) values[2],
-            (int) values[3],
-            (int) values[4],
-            (int) values[5],
-            getClassName(winningFeature));
+      if (maxActivity >= detectionThreshold) {
+         fprintf(outputstream->fp, "Time %f, activity %f, bounding box x=[%d,%d), y=[%d,%d): detected %s\n",
+               timevalue,
+               maxActivity,
+               (int) values[2],
+               (int) values[3],
+               (int) values[4],
+               (int) values[5],
+               getClassName(winningFeature));
+      }
+      else {
+         fprintf(outputstream->fp, "Time %f, no features detected above threshold %f (highest was %s at %f)\n", timevalue, detectionThreshold, getClassName(winningFeature), maxActivity);
+      }
    }
    else {
       fprintf(outputstream->fp, "Time %f, no features detected.\n", timevalue);
@@ -745,8 +759,6 @@ int LocalizationProbe::makeMontage() {
          fprintf(stderr, "Formatted text for confidence %f of %d is too long.\n", maxConfInCategory, f);
          exit(EXIT_FAILURE);
       }
-      char const * blue = "blue";
-      char const * gray = "gray";
       char const * textColor = NULL;
       char const * confFile = "confidenceLabel.tif";
       if (f==winningFeature) {
@@ -865,7 +877,7 @@ int LocalizationProbe::makeMontage() {
    GDALClose(dataset);
 
    // Restore the winning feature's gray label
-   if (winningFeature >= 0) {
+   if (winningFeature >= displayCategoryIndexStart-1 && winningFeature <= displayCategoryIndexEnd-1) {
       int montageColumn = kxPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
       int montageRow = kyPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
       int xStartInMontage = montageColumn * (nx+10) + 5;

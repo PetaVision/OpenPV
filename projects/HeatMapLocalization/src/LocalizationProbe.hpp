@@ -30,6 +30,7 @@ public:
    char const * getDisplayCommand() { return displayCommand; }
    double getImageDilationX() { return imageDilationX; }
    double getImageDilationY() { return imageDilationY; }
+   inline float getDetectionThreshold() const { return detectionThreshold; }
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
 
