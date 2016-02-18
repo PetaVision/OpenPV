@@ -39,4 +39,5 @@ def readpvpheader(fileStream):
 
     if stringFlag:
         fileStream.close()
+
     return dict(zip(header.dtype.names,header[0]))
