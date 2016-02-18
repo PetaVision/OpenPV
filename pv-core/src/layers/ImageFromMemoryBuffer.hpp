@@ -74,6 +74,10 @@ public:
     * If autoResizeFlag is false, this factor is always 1.
     */
    inline float getResizeFactor() const { return resizeFactor; }
+   inline int getImageLeft() const { return imageLeft; }
+   inline int getImageRight() const { return imageRight; }
+   inline int getImageTop() const { return imageTop; }
+   inline int getImageBottom() const { return imageBottom; }
 
 protected:
    ImageFromMemoryBuffer();
@@ -102,6 +106,15 @@ protected:
     * parameters inherited from BaseInput.
     */
    virtual void ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief aspectRatioAdjustment: either "crop" or "pad"
+    * @details If autoResizeFlag is true * and the input buffer's aspect ratio
+    * is different from the layer's, this parameter controls whether to
+    * resize the image so that it completely covers the layer and then crop;
+    * or to resize the image to completely fit inside the layer and then pad.
+    */
+   virtual void ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag);
 
    /**
     * Called by HyPerLayer::setActivity() during setInitialValues stage; calls copyBuffer()
@@ -162,7 +175,12 @@ protected:
    int bufferSize;
    bool hasNewImageFlag; // set to true by setMemoryBuffer; cleared to false by initializeActivity();
    bool autoResizeFlag;
+   char * aspectRatioAdjustment;
    float resizeFactor;
+   int imageLeft; // image{Left,Right,Top,Bottom} are in local layer coordinates.
+   int imageRight;// They show what part of the local layer is occupied by the image.
+   int imageTop;
+   int imageBottom;
 }; // class ImageFromMemoryBuffer
 
 }  // namespace PV

@@ -25,7 +25,12 @@ int ImageFromMemoryBuffer::initialize_base() {
    bufferSize = -1;
    hasNewImageFlag = false;
    autoResizeFlag = false;
+   aspectRatioAdjustment = NULL;
    resizeFactor = 1.0f;
+   imageLeft = 0;
+   imageRight = 0;
+   imageTop = 0;
+   imageBottom = 0;
    return PV_SUCCESS;
 }
 
@@ -43,11 +48,31 @@ int ImageFromMemoryBuffer::initialize(char const * name, HyPerCol * hc) {
 int ImageFromMemoryBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseInput::ioParamsFillGroup(ioFlag);
    ioParam_autoResizeFlag(ioFlag);
+   ioParam_aspectRatioAdjustment(ioFlag);
    return status;
 }
 
 void ImageFromMemoryBuffer::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "autoResizeFlag", &autoResizeFlag, autoResizeFlag);
+}
+
+void ImageFromMemoryBuffer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
+   if (autoResizeFlag) {
+      parent->ioParamString(ioFlag, name, "aspectRatioAdjustment", &aspectRatioAdjustment, "crop"/*default*/);
+      if (ioFlag == PARAMS_IO_READ) {
+         assert(aspectRatioAdjustment);
+         for (char * c = aspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
+      }
+      if (strcmp(aspectRatioAdjustment, "crop") && strcmp(aspectRatioAdjustment, "pad")) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
+                  getKeyword(), name);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
 }
 
 template <typename pixeltype>
@@ -63,14 +88,29 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
    if (autoResizeFlag) {
       float xRatio = (float) getLayerLoc()->nxGlobal/(float) width;
       float yRatio = (float) getLayerLoc()->nyGlobal/(float) height;
-      resizeFactor = xRatio < yRatio ? yRatio : xRatio;
-      // resizeFactor * width should be >= getLayerLoc()->nx; resizeFactor * height should be >= getLayerLoc()->ny,
-      // and one of these >= should be == (up to floating-point roundoff).
-      resizedWidth = (int) nearbyintf(resizeFactor * width);
-      resizedHeight = (int) nearbyintf(resizeFactor * height);
-      assert(resizedWidth >= getLayerLoc()->nxGlobal);
-      assert(resizedHeight >= getLayerLoc()->nyGlobal);
-      assert(resizedWidth == getLayerLoc()->nxGlobal || resizedHeight == getLayerLoc()->nyGlobal);
+      if (!strcmp(aspectRatioAdjustment, "crop")) {
+         resizeFactor = xRatio < yRatio ? yRatio : xRatio;
+         // resizeFactor * width should be >= getLayerLoc()->nx; resizeFactor * height should be >= getLayerLoc()->ny,
+         // and one of these relations should be == (up to floating-point roundoff).
+         resizedWidth = (int) nearbyintf(resizeFactor * width);
+         resizedHeight = (int) nearbyintf(resizeFactor * height);
+         assert(resizedWidth >= getLayerLoc()->nxGlobal);
+         assert(resizedHeight >= getLayerLoc()->nyGlobal);
+         assert(resizedWidth == getLayerLoc()->nxGlobal || resizedHeight == getLayerLoc()->nyGlobal);
+      }
+      else if (!strcmp(aspectRatioAdjustment, "pad")) {
+         resizeFactor = xRatio < yRatio ? xRatio : yRatio;
+         // resizeFactor * width should be <= getLayerLoc()->nx; resizeFactor * height should be <= getLayerLoc()->ny,
+         // and one of these relations should be == (up to floating-point roundoff).
+         resizedWidth = (int) nearbyintf(resizeFactor * width);
+         resizedHeight = (int) nearbyintf(resizeFactor * height);
+         assert(resizedWidth <= getLayerLoc()->nxGlobal);
+         assert(resizedHeight <= getLayerLoc()->nyGlobal);
+         assert(resizedWidth == getLayerLoc()->nxGlobal || resizedHeight == getLayerLoc()->nxGlobal);
+      }
+      else {
+         assert(0);
+      }
    }
    else {
       resizedWidth = width;
@@ -329,6 +369,10 @@ int ImageFromMemoryBuffer::copyBuffer() {
 int ImageFromMemoryBuffer::moveBufferToData(int rank) {
    assert(parent->columnId()==0);
    assert(buffer != NULL);
+   imageLeft = 0;
+   imageRight = getLayerLoc()->nx;
+   imageTop = 0;
+   imageBottom = getLayerLoc()->ny;
    
    // The part of the buffer with x in [processcolumnnumber * nx, processcolumnnumber * (nx + 1) - 1]
    // and y in [processcolumnnumber * nx, processcolumnnumber * (nx + 1) - 1]
@@ -387,8 +431,13 @@ int ImageFromMemoryBuffer::moveBufferToData(int rank) {
          ysize += movedown;
       }   
    }
+   if (startxbuffer < 0) { imageLeft = -startxbuffer; startxdata += imageLeft; startxbuffer = 0; }
+   if (startxbuffer+xsize > imageLoc.nxGlobal) { xsize = imageLoc.nxGlobal - startxbuffer; imageRight = imageLeft + xsize; }
+   if (startybuffer < 0) { imageTop = -startybuffer; startydata += imageTop; startybuffer = 0; }
+   if (startybuffer+ysize > imageLoc.nyGlobal) { ysize = imageLoc.nyGlobal - startybuffer; imageBottom = imageTop + ysize; }
    assert(startxbuffer >= 0 && startxbuffer + xsize <= imageLoc.nxGlobal);
    assert(startybuffer >= 0 && startybuffer + ysize <= imageLoc.nyGlobal);
+
    if (fsize != 1 && imageLoc.nf != 1 && fsize != imageLoc.nf) {
       fprintf(stderr, "%s \"%s\": If nf and the number of bands in the image are both greater than 1, they must be equal.\n", getKeyword(), name);
       exit(EXIT_FAILURE);
@@ -441,6 +490,7 @@ int ImageFromMemoryBuffer::outputState(double time, bool last) {
 
 ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {
    free(buffer);
+   free(aspectRatioAdjustment);
 }
 
 }  // namespace PV
