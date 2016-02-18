@@ -34,7 +34,7 @@ int MaskFromMemoryBuffer::initialize_base(){
 }
 
 int MaskFromMemoryBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   int status = MaskLayer::ioParamsFillGroup(ioFlag);
+   int status = ANNLayer::ioParamsFillGroup(ioFlag);
    ioParam_imageLayerName(ioFlag);
    return status;
 }
@@ -44,7 +44,7 @@ void MaskFromMemoryBuffer::ioParam_imageLayerName(enum ParamsIOFlag ioFlag) {
 }
 
 int MaskFromMemoryBuffer::communicateInitInfo() {
-   int status = MaskLayer::communicateInitInfo();
+   int status = ANNLayer::communicateInitInfo();
    HyPerLayer * hyperLayer = parent->getLayerFromName(imageLayerName);
    if (hyperLayer==NULL) {
       if (parent->columnId()==0) {
