@@ -207,22 +207,6 @@ MaskFromMemoryBuffer "ImageMask" = {
     imageLayerName                      = "Image";
 };
 
-PoolingIndexLayer "S1MaxPooledIndex1X1" = {
-    nxScale                             = 0.015625;
-    nyScale                             = 0.015625;
-    nf                                  = 1536;
-    phase                               = 9;
-    mirrorBCflag                        = false;
-    valueBC                             = 0;
-    InitVType                           = "ConstantV";
-    valueV                              = -70;
-    triggerLayerName                    = NULL;
-    writeStep                           = 900;
-    initialWriteTime                    = 900;
-    sparseLayer                         = false;
-    updateGpu                           = false;
-};
-
 ConstantLayer "BiasS1" = {
     nxScale                             = 0.015625;
     nyScale                             = 0.015625;
@@ -294,22 +278,6 @@ ANNLayer "GroundTruthReconS1" = {
     clearGSynInterval                   = 0;
 };
 
-PoolingIndexLayer "S1MaxPooledIndex2X2" = {
-    nxScale                             = 0.03125;
-    nyScale                             = 0.03125;
-    nf                                  = 1536;
-    phase                               = 7;
-    mirrorBCflag                        = false;
-    valueBC                             = 0;
-    InitVType                           = "ConstantV";
-    valueV                              = -70;
-    triggerLayerName                    = NULL;
-    writeStep                           = 900;
-    initialWriteTime                    = 900;
-    sparseLayer                         = false;
-    updateGpu                           = false;
-};
-
 ANNLayer "ImageReconS1Error" = {
     nxScale                             = 1;
     nyScale                             = 1;
@@ -354,22 +322,6 @@ ANNLayer "S1MaxPooled4X4" = {
     AShift                              = 0;
     VWidth                              = 0;
     clearGSynInterval                   = 0;
-};
-
-PoolingIndexLayer "S1MaxPooledIndex4X4" = {
-    nxScale                             = 0.0625;
-    nyScale                             = 0.0625;
-    nf                                  = 1536;
-    phase                               = 5;
-    mirrorBCflag                        = false;
-    valueBC                             = 0;
-    InitVType                           = "ConstantV";
-    valueV                              = -70;
-    triggerLayerName                    = NULL;
-    writeStep                           = 900;
-    initialWriteTime                    = 900;
-    sparseLayer                         = false;
-    updateGpu                           = false;
 };
 
 ConvertFromTable "ConfidencesS1" = {
@@ -425,8 +377,7 @@ PoolingConn "S1Hidden2X2ToS1MaxPooled1X1" = {
     nyp                                 = 1;
     nfp                                 = 1536;
     shrinkPatches                       = false;
-    needPostIndexLayer                  = true;
-    postIndexLayerName                  = "S1MaxPooledIndex1X1";
+    needPostIndexLayer                  = false;
 };
 
 HyPerConn "S1MaxPooled1X1ToGroundTruthReconS1" = {
@@ -568,8 +519,7 @@ PoolingConn "S1Hidden4X4ToS1MaxPooled2X2" = {
     nyp                                 = 1;
     nfp                                 = 1536;
     shrinkPatches                       = false;
-    needPostIndexLayer                  = true;
-    postIndexLayerName                  = "S1MaxPooledIndex2X2";
+    needPostIndexLayer                  = false;
 };
 
 PoolingConn "S1ToS1MaxPooled4X4" = {
@@ -590,8 +540,7 @@ PoolingConn "S1ToS1MaxPooled4X4" = {
     nyp                                 = 1;
     nfp                                 = 1536;
     shrinkPatches                       = false;
-    needPostIndexLayer                  = true;
-    postIndexLayerName                  = "S1MaxPooledIndex4X4";
+    needPostIndexLayer                  = false;
 };
 
 HyPerConn "BiasS1ToGroundTruthReconS1" = {
