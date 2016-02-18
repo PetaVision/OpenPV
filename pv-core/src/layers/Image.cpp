@@ -494,16 +494,21 @@ int Image::updateState(double time, double dt)
    return 0;
 }
 
-int Image::outputState(double time, bool last)
-{
-   //io_timer->start();
-   // this could probably use Marion's update time interval
-   // for some classes
-   //
-   //io_timer->stop();
-
-   return 0;
+void Image::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
+   //Default to -1 in Image
+   parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, -1.0);
 }
+
+//int Image::outputState(double time, bool last)
+//{
+//   //io_timer->start();
+//   // this could probably use Marion's update time interval
+//   // for some classes
+//   //
+//   //io_timer->stop();
+//
+//   return 0;
+//}
 
 int Image::readImage(const char * filename, int targetBatchIdx, int offsetX, int offsetY, const char* anchor)
 {

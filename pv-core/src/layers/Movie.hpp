@@ -105,6 +105,8 @@ protected:
     */
    virtual void ioParam_batchMethod(enum ParamsIOFlag ioFlag);
 
+   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+
    /** @} */
 
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);

@@ -37,6 +37,8 @@ protected:
     */
    virtual void ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag);
 
+   virtual void ioParam_writeStep(enum ParamsIOFlag ioFlag);
+
    /** @} */
    
 protected:
@@ -55,7 +57,7 @@ public:
    virtual double getDeltaUpdateTime();
    //virtual bool needUpdate(double time, double dt);
    virtual int updateState(double time, double dt);
-   virtual int outputState(double time, bool last=false);
+   //virtual int outputState(double time, bool last=false);
 
    //const char * getFilename() { return imageFilename; }
 

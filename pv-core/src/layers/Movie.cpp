@@ -279,6 +279,11 @@ int Movie::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 //void Movie::ioParam_imageListPath(enum ParamsIOFlag ioFlag) {
 //   parent->ioParamStringRequired(ioFlag, name, "imageListPath", &fileOfFileNames);
 //}
+//
+void Movie::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
+   //Do not use Image's ioParam_writeStep
+   BaseInput::ioParam_writeStep(ioFlag);
+}
 
 void Movie::ioParam_flipOnTimescaleError(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "flipOnTimescaleError", &flipOnTimescaleError, flipOnTimescaleError);
