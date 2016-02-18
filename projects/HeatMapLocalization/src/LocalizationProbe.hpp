@@ -48,7 +48,7 @@ public:
 //  * Note that the input argument itself is not modified, only the
 //  * outputFilenameBase member variable.
 //  */
-// int setOutputFilenameBase(char const * fn);
+   int setOutputFilenameBase(char const * fn);
    char const * getOutputFilenameBase() { return outputFilenameBase; }
 
 protected:

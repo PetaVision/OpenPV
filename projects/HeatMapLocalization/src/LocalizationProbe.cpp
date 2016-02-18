@@ -487,28 +487,35 @@ int LocalizationProbe::insertLabelIntoMontage(char const * labelname, int xOffse
    return PV_SUCCESS;
 }
 
-//    }
-//    
-//    size_t lastDot = fnString.rfind(".");
-//    if (lastDot != std::string::npos) {
-//       fnString.erase(lastDot);
-//    }
-//    if (fnString.empty()) {
-//       if (parent->columnId()==0) {
-//          fprintf(stderr, "LocalizationProbe::setOutputFilenameBase error: string \"%s\" is empty after removing directory and extension.\n", fn);
-//       }
-//       status = PV_FAILURE;
-//       outputFilenameBase = NULL;
-//    }
-//    else {
-//       outputFilenameBase = strdup(fnString.c_str());
-//       if (outputFilenameBase==NULL) {
-//          fprintf(stderr, "LocalizationProbe::setOutputFilenameBase failed with filename \"%s\": %s\n", fn, strerror(errno));
-//          exit(EXIT_FAILURE);
-//       }
-//    }
-//    return status;
-// }
+int LocalizationProbe::setOutputFilenameBase(char const * fn) {
+   free(outputFilenameBase);
+   int status = PV_SUCCESS;
+   std::string fnString(fn);
+   size_t lastSlash = fnString.rfind("/");
+   if (lastSlash != std::string::npos) {
+      fnString.erase(0, lastSlash+1);
+   }
+
+   size_t lastDot = fnString.rfind(".");
+   if (lastDot != std::string::npos) {
+      fnString.erase(lastDot);
+   }
+   if (fnString.empty()) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "LocalizationProbe::setOutputFilenameBase error: string \"%s\" is empty after removing directory and extension.\n", fn);
+      }
+      status = PV_FAILURE;
+      outputFilenameBase = NULL;
+   }
+   else {
+      outputFilenameBase = strdup(fnString.c_str());
+      if (outputFilenameBase==NULL) {
+         fprintf(stderr, "LocalizationProbe::setOutputFilenameBase failed with filename \"%s\": %s\n", fn, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+   }
+   return status;
+}
 
 bool LocalizationProbe::needUpdate(double timed, double dt) {
    bool updateNeeded = false;
@@ -851,7 +858,7 @@ int LocalizationProbe::makeMontage() {
 
    // write out montageImage
    std::stringstream montagePathSStream("");
-   montagePathSStream << heatMapMontageDir << "/" << "out_" << parent->getCurrentStep();
+   montagePathSStream << heatMapMontageDir << "/" << outputFilenameBase << "_" << parent->getCurrentStep();
    bool isLastTimeStep = parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTimeBase()/2;
    if (isLastTimeStep) { montagePathSStream << "_final"; }
    montagePathSStream << ".tif";
