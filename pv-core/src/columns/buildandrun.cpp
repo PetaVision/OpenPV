@@ -6,7 +6,7 @@
  * It deletes the PV_Init and HyPerCol objects that it creates.
  * Often, the main() function consists only of a call to buildandrun.
  *
- * outputParams(groupHandlerList, numGroupHandlersargc, argv, path) builds the
+ * outputParams(argc, argv, path, groupHandlerList, numGroupHandlersargc) builds the
  * layers, connections, etc. and then calls the hypercol's processParams
  * method, which fills in default parameters, ignores unnecessary parameters
  * and sends the parameters to the file specified in the path argument.
