@@ -4,12 +4,26 @@ import numpy as np
 import os
 import pdb
 
-#class DataFrame(tuple):
-#    def __new__ (cls, time, values):
-#        return super(DataFrame, cls).__new__(cls, tuple([time,values]))
-#    def __init__(self, time, values):
-#        self.time = time
-#        self.values = values
+"""
+readpvpfile reads pvp files from the output of OpenPV
+filename: Filename of the pvp file.
+progressPeriod: How often to print out progress. 0 means do not print progress (default).
+lastFrame: The last frame to read in the pvp file
+startFrame: The first frame to read in the pvp file
+skipFrames: Skips frames between start and last frame
+
+Returns a dictionary with 3 keys: values, time, header
+Values can be:
+   4D dense numpy array of size [numFrames, ny, nx, nf] for reading dense activity files
+   6D dense numpy array of size [numFrames, numArbors, numKernels, ny, nx, nf] for reading weights
+   2D coo_sparse array of size [numFrames, ny*nx*nf] for reading sparse activity files
+Time is a 1D numpy array of size [numFrame] that correspond to the simulation time of the frame
+Header is a dictionary of key value pairs corresponding to the header of the pvp file.
+
+For a detailed explanation of pvp files as well as what is contained in the header, please see the wiki on the github page
+https://github.com/PetaVision/OpenPV/wiki/PetaVision-Output-(PVP)-file-specifications
+"""
+
 
 def readpvpfile(filename,
                 progressPeriod=0,
