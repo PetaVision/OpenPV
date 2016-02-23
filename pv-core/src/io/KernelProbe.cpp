@@ -84,7 +84,7 @@ int KernelProbe::communicateInitInfo() {
 }
 
 int KernelProbe::allocateDataStructures() {
-   int status = PV_SUCCESS;
+   int status = BaseHyPerConnProbe::allocateDataStructures();
    assert(getTargetConn());
    if (getKernelIndex()<0 || getKernelIndex()>=getTargetHyPerConn()->getNumDataPatches()) {
       fprintf(stderr, "KernelProbe \"%s\": kernelIndex %d is out of bounds.  (min 0, max %d)\n", name, getKernelIndex(), getTargetHyPerConn()->getNumDataPatches()-1);

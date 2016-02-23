@@ -8,10 +8,10 @@
 #ifndef MASKFROMMEMORYBUFFER_HPP_
 #define MASKFROMMEMORYBUFFER_HPP_
 
-#include <layers/MaskLayer.hpp>
+#include <layers/ANNLayer.hpp>
 #include <layers/ImageFromMemoryBuffer.hpp>
 
-class MaskFromMemoryBuffer: public PV::MaskLayer {
+class MaskFromMemoryBuffer: public PV::ANNLayer {
 public:
    MaskFromMemoryBuffer(const char * name, PV::HyPerCol * hc);
    MaskFromMemoryBuffer();

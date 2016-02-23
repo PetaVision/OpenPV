@@ -3,6 +3,16 @@
  *
  * buildandrun()  builds the layers, connections, and
  * (to a limited extent) probes from the params file and then calls the hypercol's run method.
+ * It deletes the PV_Init and HyPerCol objects that it creates.
+ * Often, the main() function consists only of a call to buildandrun.
+ *
+ * outputParams(argc, argv, path, groupHandlerList, numGroupHandlersargc) builds the
+ * layers, connections, etc. and then calls the hypercol's processParams
+ * method, which fills in default parameters, ignores unnecessary parameters
+ * and sends the parameters to the file specified in the path argument.
+ * Relative paths are relative to the params file outputParams deletes the
+ * PV_Init and HyPerCol objects that it creates; it is written to be a
+ * stand-alone function to create a cleaned-up params file.
  *
  * build() builds the hypercol but does not run it.  That way additional objects
  * can be created and added by hand if they are not yet supported by build().
@@ -249,6 +259,19 @@ int buildandrun1paramset(PV_Init * initObj,
    }
    delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
    return status;
+}
+
+int outputParams(int argc, char * argv[], char const * path, ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
+   PV::PV_Init * initObj = new PV::PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   initObj->initialize();
+   if (initObj->isExtraProc()) { return EXIT_SUCCESS; }
+   PV::HyPerCol * hc = build(initObj, groupHandlerList, numGroupHandlers);
+
+   int status = hc->processParams(path);
+
+   delete hc;
+   delete initObj;
+   return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 HyPerCol * build(PV_Init* initObj, ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
