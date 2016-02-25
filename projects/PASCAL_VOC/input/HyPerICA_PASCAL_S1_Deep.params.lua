@@ -20,7 +20,7 @@ local dWMax1X1              = 0.001
 local dWMax2X2              = 0.001 
 local dWMax4X4              = 0.001
 local learningMomentumTau   = 500
-local patchSize             = 16
+local patchSize             = 32
 local tau                   = 400
 local S1_numFeatures        = patchSize * patchSize * 3 * 2 -- (patchSize/stride)^2 Xs overcomplete (i.e. complete for orthonormal ICA basis for stride == patchSize)
 
@@ -39,15 +39,15 @@ end
 local num_deep            = 3
 local identFlag2X2        = num_deep < 2
 local identFlag4X4        = num_deep < 3
-local experimentName      = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_Deep" .. "X" .. num_deep .. "_ICA"
-local experimentNameMLP   = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_Deep" .. "X" .. num_deep .. "_ICA"
-local experimentNameIn    = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_Deep" .. "X" .. num_deep .. "_ICA"
+local experimentName      = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_Deep" .. "X" .. num_deep   .. "_ICA"
+local experimentNameMLP   = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_Deep" .. "X" .. num_deep-1 .. "_ICA"
+local experimentNameIn    = "PASCAL_S1X" .. math.floor(patchSize*patchSize/(stride*stride)) .. "_" .. S1_numFeatures .. "_Deep" .. "X" .. 1          .. "_ICA"
 local runName             = "VOC2007_landscape"
 local runNameTmp          = runName
 if portraitFlag then
  runNameTmp = "VOC2007_portrait"
 end
-local runVersion          = 12
+local runVersion          = 4
 if portraitFlag then
   runVersionTmp = runVersion
 end
@@ -62,7 +62,7 @@ local numImages           = numLandscapeImages
 if portraitFlag then
    numImages              = numPortraitImages 
 end
-local displayPeriod       = 7.5*120 --2*240
+local displayPeriod       = 2*240 --7.5*120 --
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs
 local checkpointID        = stopTime
@@ -80,9 +80,9 @@ local movieVersionMLP     = 1 --movieVersion-1
 if S1_Movie then
    outputPath              = outputPath   .. "_S1_Movie" .. movieVersion
    inputPath               = inputPath 
-   inputPathMLP            = inputPathMLP --.. "_S1_Movie" .. movieVersionMLP
+   inputPathMLP            = inputPathMLP .. "_S1_Movie" .. movieVersionMLP
    displayPeriod           = 1
-   numEpochs               = 1
+   numEpochs               = 10
    stopTime                = numImages * displayPeriod * numEpochs
    --checkpointID            = stopTime
    checkpointIDMLP         = stopTime
