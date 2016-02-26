@@ -408,6 +408,7 @@ int BaseInput::postProcess(double timef, double dt){
    // if normalizeLuminanceFlag == true:
    //     if normalizeStdDev is true, then scale so that average luminance to be 0 and std. dev. of luminance to be 1.
    //     if normalizeStdDev is false, then scale so that minimum is 0 and maximum is 1
+   // if normalizeLuminanceFlag == true and the image in buffer is completely flat, force all values to zero
    for(int b = 0; b < parent->getNBatch(); b++){
       float* buf = data + b * numExtended;
       if(normalizeLuminanceFlag){
@@ -434,7 +435,7 @@ int BaseInput::postProcess(double timef, double dt){
             double image_std = sqrt(image_ave2 - image_ave*image_ave); // std = 1/N * sum((x[i]-sum(x[i])^2) ~ 1/N * sum(x[i]^2) - (sum(x[i])/N)^2 | Note: this permits running std w/o needing to first calc avg (although we already have avg)
             if(image_std == 0){
                for (int k=0; k<numExtended; k++) {
-                  buf[k] = .5;
+                  buf[k] = 0.0;
                }
             }
             else{
@@ -460,16 +461,15 @@ int BaseInput::postProcess(double timef, double dt){
                }
             }
             else{ // image_max == image_min, set to gray
-               //float image_shift = 0.5f - image_ave;
                for (int k=0; k<numExtended; k++) {
-                  buf[k] = 0.5f; //image_shift;
+                  buf[k] = 0.0f;
                }
             }
          }
       } // normalizeLuminanceFlag
       if( inverseFlag ) {
          for (int k=0; k<numExtended; k++) {
-            buf[k] = 1 - buf[k];
+            buf[k] = 1 - buf[k]; // If normalizeLuminanceFlag is true, should the effect of inverseFlag be buf[k] = -buf[k]?
          }
       }
    }

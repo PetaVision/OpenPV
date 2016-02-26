@@ -170,6 +170,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
       // Code duplication from Image::readImage
       // if normalizeLuminanceFlag == true and normalizeStdDev == true, then force average luminance to be 0, std. dev.=1
       // if normalizeLuminanceFlag == true and normalizeStdDev == false, then force min=0, max=1.
+      // if normalizeLuminanceFlag == true and the image in buffer is completely flat, force all values to zero
       bool normalize_standard_dev = normalizeStdDev;
       if(normalizeLuminanceFlag){
          if (normalize_standard_dev){
@@ -195,7 +196,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
                #pragma omp parallel for
                #endif // PV_USE_OPENMP
                for (int k=0; k<bufferSize; k++) {
-                  buffer[k] = .5;
+                  buffer[k] = 0.0f;
                }
             }
             else{
@@ -224,13 +225,12 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
                   buffer[k] *= image_stretch;
                }
             }
-            else{ // image_max == image_min, set to gray
-               //float image_shift = 0.5f - image_ave;
+            else{
                #ifdef PV_USE_OPENMP
                #pragma omp parallel for
                #endif // PV_USE_OPENMP
                for (int k=0; k<bufferSize; k++) {
-                  buffer[k] = 0.5f; //image_shift;
+                  buffer[k] = 0.0f;
                }
             }
          }
