@@ -378,6 +378,12 @@ char const * LocalizationProbe::getClassName(int k) {
 }
 
 int LocalizationProbe::allocateDataStructures() {
+   int status = PV::LayerProbe::allocateDataStructures();
+   if (status != PV_SUCCESS) {
+      fflush(stdout);
+      fprintf(stderr, "%s \"%s\": LocalizationProbe::allocateDataStructures failed.\n", getKeyword(), name);
+      exit(EXIT_FAILURE);
+   }
    if (drawMontage) {
       assert(imageLayer);
       PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
@@ -398,7 +404,7 @@ int LocalizationProbe::allocateDataStructures() {
 
       int xStart = (2*numMontageColumns+1)*(nx+10)/2; // Integer division
       int yStart = 32+5;
-      int status = insertLabelIntoMontage("original.tif", xStart, yStart, nx, 32/*yExpectedSize*/);
+      status = insertLabelIntoMontage("original.tif", xStart, yStart, nx, 32/*yExpectedSize*/);
       if (status != PV_SUCCESS) {
          fflush(stdout);
          fprintf(stderr, "%s \"%s\" error placing the \"original image\" label.\n", getKeyword(), name);

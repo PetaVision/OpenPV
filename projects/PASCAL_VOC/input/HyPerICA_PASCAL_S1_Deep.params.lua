@@ -20,7 +20,7 @@ local dWMax1X1              = 0.00001
 local dWMax2X2              = 0.00001 
 local dWMax4X4              = 0.00001
 local learningMomentumTau   = 500
-local patchSize             = 16
+local patchSize             = 32
 local tau                   = 400
 local S1_numFeatures        = patchSize * patchSize * 3 * 2 -- (patchSize/stride)^2 Xs overcomplete (i.e. complete for orthonormal ICA basis for stride == patchSize)
 
@@ -47,7 +47,7 @@ local runNameTmp          = runName
 if portraitFlag then
  runNameTmp = "VOC2007_portrait"
 end
-local runVersion          = 12
+local runVersion          = 4
 if portraitFlag then
   runVersionTmp = runVersion
 end
@@ -62,7 +62,7 @@ local numImages           = numLandscapeImages
 if portraitFlag then
    numImages              = numPortraitImages 
 end
-local displayPeriod       = 7.5*120 --2*240
+local displayPeriod       = 2*240 --7.5*120 --
 local numEpochs           = 1
 local stopTime            = numImages * displayPeriod * numEpochs
 local checkpointID        = stopTime

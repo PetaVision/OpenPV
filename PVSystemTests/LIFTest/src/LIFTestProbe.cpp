@@ -89,7 +89,13 @@ LIFTestProbe::~LIFTestProbe() {
 
 int LIFTestProbe::communicateInitInfo() {
    int status = StatsProbe::communicateInitInfo();
-   if (getParent()->columnId()==0) {
+   return status;
+}
+
+int LIFTestProbe::allocateDataStructures() {
+   int status = StatsProbe::allocateDataStructures();
+   if (status == PV_SUCCESS && getParent()->columnId()==0) {
+      assert(outputstream);
       fprintf(outputstream->fp, "%s Correct: ", getMessage());
       for (int k=0; k<LIFTESTPROBE_BINS; k++) {
          fprintf(outputstream->fp, " %f", targetrates[k]);

@@ -279,8 +279,6 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 
    layerId = parent->addLayer(this);
 
-   status = openOutputStateFile();
-
    lastUpdateTime = parent->simulationTime();
    nextUpdateTime = lastUpdateTime + parent->getDeltaTime();
    // nextTriggerTime will be initialized in communicateInitInfo(), as it depends on triggerLayer
@@ -1429,6 +1427,10 @@ int HyPerLayer::allocateDataStructures()
          recvGpu = true;
 #endif
       }
+   }
+
+   if (status == PV_SUCCESS) {
+      status = openOutputStateFile();
    }
 
    return status;
