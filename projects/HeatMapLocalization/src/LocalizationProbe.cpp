@@ -22,8 +22,6 @@ LocalizationProbe::LocalizationProbe() {
 }
 
 int LocalizationProbe::initialize_base() {
-   imageLayerName = NULL;
-   reconLayerName = NULL;
    classNamesFile = NULL;
    classNames = NULL;
    displayCategoryIndexStart = -1;
@@ -49,6 +47,8 @@ int LocalizationProbe::initialize_base() {
    montageDimY = -1;
    grayScaleImage = NULL;
    montageImage = NULL;
+   montageImageLocal = NULL;
+   montageImageComm = NULL;
    imageBlendCoeff = 0.3;
 
    outputFilenameBase = NULL; // Not used by harness since we don't have a filename to use for the base
@@ -56,11 +56,6 @@ int LocalizationProbe::initialize_base() {
 }
 
 int LocalizationProbe::initialize(const char * probeName, PV::HyPerCol * hc) {
-   if (hc->icCommunicator()->globalCommSize()!=1) {
-      fflush(stdout);
-      fprintf(stderr, "LocalizationProbe is not yet MPI capable. Exiting.");
-      exit(EXIT_FAILURE);
-   }
    outputPeriod = hc->getDeltaTimeBase(); // default outputPeriod is every timestep
    int status = PV::LayerProbe::initialize(probeName, hc);
    PV::InterColComm * icComm = parent->icCommunicator();
@@ -177,6 +172,14 @@ int LocalizationProbe::communicateInitInfo() {
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+   if (drawMontage && imageLayer->getLayerLoc()->nf != 3) {
+      if (parent->columnId()!=0) {
+         fprintf(stderr, "%s \"%s\" error: drawMontage requires the image layer have exactly three features.\n", getKeyword(), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+
    if (displayCategoryIndexStart <= 0) {
       displayCategoryIndexStart = 1;
    }
@@ -199,10 +202,16 @@ int LocalizationProbe::communicateInitInfo() {
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
+   if (drawMontage && reconLayer->getLayerLoc()->nf != 3) {
+      if (parent->columnId()!=0) {
+         fprintf(stderr, "%s \"%s\" error: drawMontage requires the recon layer have exactly three features.\n", getKeyword(), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
 
-   // Check Parameters in LocalizationProbe that are to be passed to Octave.
-   if (parent->columnId()==0 && drawMontage) {
-      featurefieldwidth = (int) ceilf(log10f((float) (nf+1)));
+   // Get the names labeling each feature from the class names file.  Only the root process stores these values.
+   if (parent->columnId()==0) {
       classNames = (char **) malloc(nf * sizeof(char *));
       if (classNames == NULL) {
          fprintf(stderr, "%s \"%s\" unable to allocate classNames: %s\n", getKeyword(), name, strerror(errno));
@@ -234,60 +243,37 @@ int LocalizationProbe::communicateInitInfo() {
             }
          }
       }
+   }
 
-      if (drawMontage) {
-         // Make the heatmap montage directory if it doesn't already exist.
-         struct stat heatMapMontageStat;
-         status = stat(heatMapMontageDir, &heatMapMontageStat);
-         if (status!=0 && errno==ENOENT) {
-            status = mkdir(heatMapMontageDir, 0775);
-            if (status!=0) {
-               fflush(stdout);
-               fprintf(stderr, "Error: Unable to make heat map montage directory \"%s\": %s\n", heatMapMontageDir, strerror(errno));
-               exit(EXIT_FAILURE);
-            }
-            status = stat(heatMapMontageDir, &heatMapMontageStat);
-         }
-         if (status!=0) {
-            fflush(stdout);
-            fprintf(stderr, "Error: Unable to get status of heat map montage directory \"%s\": %s\n", heatMapMontageDir, strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-         if (!(heatMapMontageStat.st_mode & S_IFDIR)) {
-            fflush(stdout);
-            fprintf(stderr, "Error: Heat map montage \"%s\" is not a directory\n", heatMapMontageDir);
-            exit(EXIT_FAILURE);
-         }
-         // Make the labels directory in heatMapMontageDir if it doesn't already exist
-         std::stringstream labelsdirss("");
-         labelsdirss << heatMapMontageDir << "/labels";
-         char * labelsDir = strdup(labelsdirss.str().c_str());
-         if (labelsDir==NULL) {
-            fflush(stdout);
-            fprintf(stderr, "Errror creating path to heat map montage labels directory: %s\n", strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-         struct stat labelsDirStat;
-         status = stat(labelsDir, &labelsDirStat);
-         if (status!=0) {
-            if (errno==ENOENT) {
-               errno = 0;
-               status = mkdir(labelsDir, 0775);
-            }
-            if (status!=0) {
-               fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error: Unable to verify that labels directory \"%s\" exists: %s\n", getKeyword(), name, labelsDir, strerror(errno));
-               exit(EXIT_FAILURE);
-            }
-         }
-         else {
-            if (!(labelsDirStat.st_mode & S_IFDIR)) {
-               fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error: path \"%s\" for the labels is not a directory.\n", getKeyword(), name, labelsDir);
-               exit(EXIT_FAILURE);
-            }
-         }
-         // make the labels
+   // If drawing montages, create montage directory and label files.
+   // Under MPI, all process must call HyPerCol::ensureDirExists() even though
+   // only the root process interacts with the filesystem.
+   if (drawMontage) {
+      featurefieldwidth = (int) ceilf(log10f((float) (nf+1)));
+
+      // Make the heat map montage directory if it doesn't already exist
+      status = parent->ensureDirExists(heatMapMontageDir);
+      if (status!=PV_SUCCESS) {
+         fflush(stdout);
+         fprintf(stderr, "Error: Unable to make heat map montage directory \"%s\": %s\n", heatMapMontageDir, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+
+      // Make the labels directory in heatMapMontageDir if it doesn't already exist
+      std::stringstream labelsdirss("");
+      labelsdirss << heatMapMontageDir << "/labels";
+      // It seems ensureDirExists(labelsdirss.str().c_str()) should work, but it didn't
+      char * labelsDir = strdup(labelsdirss.str().c_str());
+      status = parent->ensureDirExists(labelsDir);
+      if (status!=PV_SUCCESS) {
+         fflush(stdout);
+         fprintf(stderr, "Error: Unable to make heat map montage labels directory: %s\n", strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      free(labelsDir);
+
+      // make the labels
+      if (parent->columnId()==0) {
          char const * originalLabelName = "original.tif";
          status = makeMontageLabelfile(originalLabelName, "black", "white", "original image");
          if (status != 0) {
@@ -304,7 +290,6 @@ int LocalizationProbe::communicateInitInfo() {
             exit(EXIT_FAILURE);
          }
 
-         int const nf = targetLayer->getLayerLoc()->nf;
          char labelFilename[PV_PATH_MAX]; // this size is overkill for this situation
          for (int f=0; f<nf; f++) {
             int slen;
@@ -332,7 +317,7 @@ int LocalizationProbe::communicateInitInfo() {
                exit(EXIT_FAILURE);
             }
          }
-      }
+      } 
    }
 
    return status;
@@ -351,8 +336,8 @@ int LocalizationProbe::setOptimalMontage() {
    for (int numCol=1; numCol <= numCategories ; numCol++) {
       int idx = numCol-1;
       numRows[idx] = (int) ceil((float) numCategories/(float) numCol);
-      totalSizeX[idx] = numCol * (imageLayer->getLayerLoc()->nx + 10); // +10 for spacing between images.
-      totalSizeY[idx] = numRows[idx] * (imageLayer->getLayerLoc()->ny + 64 + 10); // +64 for category label
+      totalSizeX[idx] = numCol * (imageLayer->getLayerLoc()->nxGlobal + 10); // +10 for spacing between images.
+      totalSizeY[idx] = numRows[idx] * (imageLayer->getLayerLoc()->nyGlobal + 64 + 10); // +64 for category label
       aspectRatio[idx] = (float) totalSizeX[idx]/(float) totalSizeY[idx];
       ldfgr[idx] = fabsf(log(aspectRatio[idx]) - loggoldenratio);
    }
@@ -373,7 +358,7 @@ int LocalizationProbe::setOptimalMontage() {
 }
 
 char const * LocalizationProbe::getClassName(int k) {
-    if (k<0 || k >= targetLayer->getLayerLoc()->nf) { return NULL; }
+    if (parent->columnId()!=0 || k<0 || k >= targetLayer->getLayerLoc()->nf) { return NULL; }
     else { return classNames[k]; }
 }
 
@@ -387,58 +372,75 @@ int LocalizationProbe::allocateDataStructures() {
    if (drawMontage) {
       assert(imageLayer);
       PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
-      int const nx = imageLoc->nx;
-      int const ny = imageLoc->ny;
+      int const nx= imageLoc->nx;
+      int const ny= imageLoc->ny;
       grayScaleImage = (pvadata_t *) calloc(nx*ny, sizeof(pvadata_t));
       if (grayScaleImage==NULL) {
          fprintf(stderr, "%s \"%s\" error allocating for montage background image: %s\n", getKeyword(), name, strerror(errno));
          exit(EXIT_FAILURE);
       }
-      montageDimX = (nx + 10) * (numMontageColumns + 2);
-      montageDimY = (ny + 64 + 10) * numMontageRows;
-      montageImage = (unsigned char *) calloc((montageDimX) * montageDimY * 3, sizeof(unsigned char));
-      if (montageImage==NULL) {
-         fprintf(stderr, "%s \"%s\" error allocating for heat map montage image: %s\n", getKeyword(), name, strerror(errno));
+
+      montageImageLocal = (unsigned char *) calloc(nx*ny*3, sizeof(unsigned char));
+      if (montageImageLocal==NULL) {
+         fprintf(stderr, "%s \"%s\" error allocating for montage background image: %s\n", getKeyword(), name, strerror(errno));
          exit(EXIT_FAILURE);
       }
 
-      int xStart = (2*numMontageColumns+1)*(nx+10)/2; // Integer division
-      int yStart = 32+5;
-      status = insertLabelIntoMontage("original.tif", xStart, yStart, nx, 32/*yExpectedSize*/);
-      if (status != PV_SUCCESS) {
-         fflush(stdout);
-         fprintf(stderr, "%s \"%s\" error placing the \"original image\" label.\n", getKeyword(), name);
-         exit(EXIT_FAILURE);
-      }
-
-      // same xStart.
-      yStart += ny+64+10; // yStart moves down one panel.
-      status = insertLabelIntoMontage("reconstruction.tif", xStart, yStart, nx, 32/*yExpectedSize*/);
-      if (status != PV_SUCCESS) {
-         fflush(stdout);
-         fprintf(stderr, "%s \"%s\" error placing the \"reconstruction\" label.\n", getKeyword(), name);
-         exit(EXIT_FAILURE);
-      }
-
-      for (int f=displayCategoryIndexStart-1; f<displayCategoryIndexEnd; f++) {
-         int fDisplayed = f-displayCategoryIndexStart+1;
-         int montageCol=kxPos(fDisplayed, numMontageColumns, numMontageRows, 1);
-         int montageRow=kyPos(fDisplayed, numMontageColumns, numMontageRows, 1);
-         int xStart = montageCol * (nx+10) + 5;
-         int yStart = montageRow * (ny+64+10) + 5;
-         char filename[16]; // Should be enough for the labels produced during communicateInitInfo.
-         int slen = snprintf(filename, 16, "gray%0*d.tif", featurefieldwidth, f);
-         if (slen >= 16) {
-            fflush(stdout);
-            fprintf(stderr, "%s \"%s\" allocateDataStructures error: featurefieldwidth of %d is too large.\n",
-                  getKeyword(), name, featurefieldwidth);
+      if (parent->columnId()==0) {
+         montageImageComm = (unsigned char *) calloc(nx * ny * 3, sizeof(unsigned char));
+         if (montageImageComm==NULL) {
+            fprintf(stderr, "%s \"%s\" error allocating for MPI communication of heat map montage image: %s\n", getKeyword(), name, strerror(errno));
             exit(EXIT_FAILURE);
          }
-         status = insertLabelIntoMontage(filename, xStart, yStart, nx, 32/*yExpectedSize*/);
+
+         int const nxGlobal = imageLoc->nxGlobal;
+         int const nyGlobal = imageLoc->nyGlobal;
+         montageDimX = (nxGlobal + 10) * (numMontageColumns + 2);
+         montageDimY = (nyGlobal + 64 + 10) * numMontageRows;
+         montageImage = (unsigned char *) calloc(montageDimX * montageDimY * 3, sizeof(unsigned char));
+         if (montageImage==NULL) {
+            fprintf(stderr, "%s \"%s\" error allocating for heat map montage image: %s\n", getKeyword(), name, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+   
+         int xStart = (2*numMontageColumns+1)*(nxGlobal+10)/2; // Integer division
+         int yStart = 32+5;
+         status = insertLabelIntoMontage("original.tif", xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
          if (status != PV_SUCCESS) {
             fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error placing the label for feature %d.\n", getKeyword(), name, f);
+            fprintf(stderr, "%s \"%s\" error placing the \"original image\" label.\n", getKeyword(), name);
             exit(EXIT_FAILURE);
+         }
+   
+         // same xStart.
+         yStart += nyGlobal+64+10; // yStart moves down one panel.
+         status = insertLabelIntoMontage("reconstruction.tif", xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
+         if (status != PV_SUCCESS) {
+            fflush(stdout);
+            fprintf(stderr, "%s \"%s\" error placing the \"reconstruction\" label.\n", getKeyword(), name);
+            exit(EXIT_FAILURE);
+         }
+   
+         for (int f=displayCategoryIndexStart-1; f<displayCategoryIndexEnd; f++) {
+            int fDisplayed = f-displayCategoryIndexStart+1;
+            int montageCol=kxPos(fDisplayed, numMontageColumns, numMontageRows, 1);
+            int montageRow=kyPos(fDisplayed, numMontageColumns, numMontageRows, 1);
+            int xStart = montageCol * (nxGlobal+10) + 5;
+            int yStart = montageRow * (nyGlobal+64+10) + 5;
+            char filename[16]; // Should be enough for the labels produced during communicateInitInfo.
+            int slen = snprintf(filename, 16, "gray%0*d.tif", featurefieldwidth, f);
+            if (slen >= 16) {
+               fflush(stdout);
+               fprintf(stderr, "%s \"%s\" allocateDataStructures error: featurefieldwidth of %d is too large.\n",
+                     getKeyword(), name, featurefieldwidth);
+               exit(EXIT_FAILURE);
+            }
+            status = insertLabelIntoMontage(filename, xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
+            if (status != PV_SUCCESS) {
+               fflush(stdout);
+               fprintf(stderr, "%s \"%s\" error placing the label for feature %d.\n", getKeyword(), name, f);
+               exit(EXIT_FAILURE);
+            }
          }
       }
    }
@@ -446,13 +448,13 @@ int LocalizationProbe::allocateDataStructures() {
 }
 
 int LocalizationProbe::makeMontageLabelfile(char const * labelFilename, char const * backgroundColor, char const * textColor, char const * labelText) {
-   int const nx = imageLayer->getLayerLoc()->nx;
+   int const nx = imageLayer->getLayerLoc()->nxGlobal;
    std::stringstream convertCmd("");
    convertCmd << "convert -depth 8 -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << nx << "x32 -pointsize 24 -gravity center label:\"" << labelText << "\" \"" << heatMapMontageDir << "/labels/" << labelFilename << "\"";
    int status = system(convertCmd.str().c_str());
    if (status != 0) {
       fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error creating label file \"%s\": ImageMagick convert returned %d.\n", getKeyword(), name, labelFilename, status);
+      fprintf(stderr, "%s \"%s\" error creating label file \"%s\": ImageMagick convert returned %d.\n", getKeyword(), name, labelFilename, WEXITSTATUS(status));
       exit(EXIT_FAILURE);
    }
    return status;
@@ -490,6 +492,77 @@ int LocalizationProbe::insertLabelIntoMontage(char const * labelname, int xOffse
    int offsetIdx = kIndex(xOffset, yOffset, 0, montageDimX, montageDimY, 3);
    dataset->RasterIO(GF_Read, 0, 0, xLabelSize, yLabelSize, &montageImage[offsetIdx], xLabelSize, yLabelSize, GDT_Byte, 3/*number of bands*/, NULL, 3/*x-stride*/, 3*montageDimX/*y-stride*/, 1/*band stride*/);
    GDALClose(dataset);
+   free(labelFilename);
+   return PV_SUCCESS;
+}
+
+int LocalizationProbe::insertImageIntoMontage(int xStart, int yStart, pvadata_t const * sourceData, PVLayerLoc const * loc, bool extended) {
+   pvadata_t minValue = std::numeric_limits<pvadata_t>::infinity();
+   pvadata_t maxValue = -std::numeric_limits<pvadata_t>::infinity();
+   int const nx = loc->nx;
+   int const ny = loc->ny;
+   int const nf = loc->nf;
+   PVHalo const * halo = &loc->halo;
+   int const numImageNeurons = nx*ny*nf;
+   if (extended) {
+      for (int k=0; k<numImageNeurons; k++) {
+         int const kExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+         pvadata_t a = sourceData[kExt];
+         minValue = a < minValue ? a : minValue;
+         maxValue = a > maxValue ? a : maxValue;
+      }
+   }
+   else {
+      for (int k=0; k<numImageNeurons; k++) {
+         pvadata_t a = sourceData[k];
+         minValue = a < minValue ? a : minValue;
+         maxValue = a > maxValue ? a : maxValue;
+      }
+   }
+   MPI_Allreduce(MPI_IN_PLACE, &minValue, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &maxValue, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
+   if (minValue==maxValue) {
+      for (int y=0; y<ny; y++) {
+         int lineStart = kIndex(0, y, 0, nx, ny, nf);
+         memset(&montageImageLocal[lineStart], 127, (size_t) (nx*nf));
+      }
+   }
+   else {
+      pvadata_t scale = (pvadata_t) 1/(maxValue-minValue);
+      pvadata_t shift = minValue;
+      for (int k=0; k<numImageNeurons; k++) {
+         int const kx = kxPos(k, nx, ny, nf);
+         int const ky = kyPos(k, nx, ny, nf);
+         int const kf = featureIndex(k, nx, ny, nf);
+         int const kImageExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+         pvadata_t a = sourceData[kImageExt];
+         a = nearbyintf(255*(a-shift)*scale);
+         unsigned char aChar = (unsigned char) (int) a;
+         montageImageLocal[k] = aChar;
+      }
+   }
+   if (parent->columnId()!=0) {
+      MPI_Send(montageImageLocal, nx*ny*3, MPI_UNSIGNED_CHAR, 0, 111, parent->icCommunicator()->communicator());
+   }
+   else {
+      for (int rank=0; rank<parent->numberOfColumns(); rank++) {
+         if (rank!=0) {
+            MPI_Recv(montageImageComm, nx*ny*3, MPI_UNSIGNED_CHAR, rank, 111, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+         }
+         else {
+            memcpy(montageImageComm, montageImageLocal, nx*ny*3);
+         }
+         int const numCommRows = parent->icCommunicator()->numCommRows();
+         int const numCommCols = parent->icCommunicator()->numCommColumns();
+         int const commRow = rowFromRank(rank, numCommRows, numCommCols);
+         int const commCol = columnFromRank(rank, numCommRows, numCommCols);
+         for (int y=0; y<ny; y++) {
+            int destIdx = kIndex(xStart+commCol*nx, yStart+commRow*ny+y, 0, montageDimX, montageDimY, 3);
+            int srcIdx = kIndex(0, y, 0, nx, ny, 3);
+            memcpy(&montageImage[destIdx], &montageImageComm[srcIdx], nx*3);
+         }
+      }
+   }
    return PV_SUCCESS;
 }
 
@@ -544,6 +617,7 @@ int LocalizationProbe::calcValues(double timevalue) {
    int winningFeature, xLocation, yLocation;
    pvadata_t maxActivity;
    findMaxLocation(&winningFeature, &xLocation, &yLocation, &maxActivity);
+   // the values returned by findMaxLocation are for the global restricted targetLayer
    double * values = getValuesBuffer();
    if (winningFeature >= 0) {
       assert(xLocation >= 0 && yLocation >= 0);
@@ -591,30 +665,44 @@ int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, in
          maxLocation = n;
       }
    }
-   // Need to MPI reduce here
-   if (maxLocation>=0) {
-      *winningFeature = featureIndex(maxLocation, loc->nx, loc->ny, loc->nf);
-      *xLocation = kxPos(maxLocation, loc->nx, loc->ny, loc->nf);
-      *yLocation = kyPos(maxLocation, loc->nx, loc->ny, loc->nf);
+
+   MPI_Comm comm = parent->icCommunicator()->communicator();
+
+   pvadata_t maxValGlobal;
+   MPI_Allreduce(&maxVal, &maxValGlobal, 1, MPI_FLOAT, MPI_MAX, comm);
+
+   int maxLocGlobal;
+   if (maxValGlobal==maxVal) {
+       maxLocGlobal = globalIndexFromLocal(maxLocation, *loc);
+   }
+   else {
+       maxLocGlobal = targetLayer->getNumGlobalNeurons();
+   }
+   MPI_Allreduce(MPI_IN_PLACE, &maxLocGlobal, 1, MPI_INT, MPI_MIN, comm);
+   if (maxLocGlobal>=0) {
+      *winningFeature = featureIndex(maxLocGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf);
+      *xLocation = kxPos(maxLocGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf);
+      *yLocation = kyPos(maxLocGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf);
    }
    else {
       *winningFeature = -1;
       *xLocation = -1;
       *yLocation = -1;
    }
-   *maxActivity = maxVal;
+   *maxActivity = maxValGlobal;
    return PV_SUCCESS;
 }
 
 int LocalizationProbe::findBoundingBox(int winningFeature, int xLocation, int yLocation, int * boundingBox) {
    if (winningFeature>=0 && xLocation>=0 && yLocation>=0) {
-      int lt = xLocation;
-      int rt = xLocation;
-      int up = yLocation;
-      int dn = yLocation;
-      int const N = targetLayer->getNumNeurons();
       PVLayerLoc const * loc = targetLayer->getLayerLoc();
       PVHalo const * halo = &loc->halo;
+      bool locationThisProcess = (xLocation>=loc->kx0 && xLocation<loc->kx0+loc->nx && yLocation>=loc->ky0 && yLocation<loc->ky0+loc->ny);
+      int lt = xLocation - loc->kx0;
+      int rt = xLocation - loc->kx0;
+      int dn = yLocation - loc->ky0;
+      int up = yLocation - loc->ky0;
+      int const N = targetLayer->getNumNeurons();
       for (int n=winningFeature; n<N; n+=loc->nf) {
          int nExt = kIndexExtended(n, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
          pvadata_t const a = targetLayer->getLayerData()[nExt];
@@ -627,10 +715,24 @@ int LocalizationProbe::findBoundingBox(int winningFeature, int xLocation, int yL
             if (y>dn) { dn = y; }
          }
       }
-      boundingBox[0] = lt;
+
+      // Convert back to global coordinates
+      lt += loc->kx0;
+      rt += loc->kx0;
+      up += loc->ky0;
+      dn += loc->ky0;
+      
+      // Now we need the maximum of the rt and dn over all processes,
+      // and the minimum of the lt and up over all processes.
+      // Change the sign of lt and up, then do MPI_MAX, then change the sign back.
+      boundingBox[0] = -lt;
       boundingBox[1] = rt+1;
-      boundingBox[2] = up;
+      boundingBox[2] = -up;
       boundingBox[3] = dn+1;
+      MPI_Comm comm = parent->icCommunicator()->communicator();
+      MPI_Allreduce(MPI_IN_PLACE, boundingBox, 4, MPI_INT, MPI_MAX, comm);
+      boundingBox[0] = -boundingBox[0];
+      boundingBox[2] = -boundingBox[2];
    }
    else {
       for (int k=0; k<4; k++) { boundingBox[k] = -1; }
@@ -639,32 +741,33 @@ int LocalizationProbe::findBoundingBox(int winningFeature, int xLocation, int yL
 }
 
 int LocalizationProbe::outputState(double timevalue) {
-   getValues(timevalue);
+   int status = getValues(timevalue); // all processes must call getValues is parallel,
    double * values = getValuesBuffer();
    int winningFeature = (int) values[0];
    double maxActivity = values[1];
-   if (winningFeature >= 0) {
-      if (maxActivity >= detectionThreshold) {
-         fprintf(outputstream->fp, "Time %f, activity %f, bounding box x=[%d,%d), y=[%d,%d): detected %s\n",
-               timevalue,
-               maxActivity,
-               (int) values[2],
-               (int) values[3],
-               (int) values[4],
-               (int) values[5],
-               getClassName(winningFeature));
+   if (parent->columnId() == 0) {
+      if (winningFeature >= 0) {
+         if (maxActivity >= detectionThreshold) {
+            fprintf(outputstream->fp, "Time %f, activity %f, bounding box x=[%d,%d), y=[%d,%d): detected %s\n",
+                  timevalue,
+                  maxActivity,
+                  (int) values[2],
+                  (int) values[3],
+                  (int) values[4],
+                  (int) values[5],
+                  getClassName(winningFeature));
+         }
+         else {
+            fprintf(outputstream->fp, "Time %f, no features detected above threshold %f (highest was %s at %f)\n", timevalue, detectionThreshold, getClassName(winningFeature), maxActivity);
+         }
       }
       else {
-         fprintf(outputstream->fp, "Time %f, no features detected above threshold %f (highest was %s at %f)\n", timevalue, detectionThreshold, getClassName(winningFeature), maxActivity);
+         fprintf(outputstream->fp, "Time %f, no features detected.\n", timevalue);
+         // no activity above threshold
       }
+      fflush(outputstream->fp);
    }
-   else {
-      fprintf(outputstream->fp, "Time %f, no features detected.\n", timevalue);
-      // no activity above threshold
-   }
-   fflush(outputstream->fp);
 
-   int status = PV_SUCCESS;
    if (drawMontage) {
       status = makeMontage();
    }     
@@ -675,7 +778,7 @@ int LocalizationProbe::makeMontage() {
    assert(drawMontage);
    assert(numMontageRows > 0 && numMontageColumns > 0);
    assert(grayScaleImage);
-   assert(montageImage);
+   assert((parent->columnId()==0) == (montageImage!=NULL));
 
    // create grayscale version of image layer for background of heat maps.
    PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
@@ -701,6 +804,8 @@ int LocalizationProbe::makeMontage() {
       if (a < minValue) { minValue = a; }
       if (a > maxValue) { maxValue = a; }
    }
+   MPI_Allreduce(MPI_IN_PLACE, &minValue, 1, MPI_FLOAT, MPI_MIN, parent->icCommunicator()->communicator());
+   MPI_Allreduce(MPI_IN_PLACE, &maxValue, 1, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
    // Scale grayScaleImage to be between 0 and 1.
    // If maxValue==minValue, make grayScaleImage have a constant 0.5.
    if (maxValue==minValue) {
@@ -726,11 +831,17 @@ int LocalizationProbe::makeMontage() {
    PVHalo const * targetHalo = &targetLoc->halo;
    int winningFeature = (int) getValuesBuffer()[0];
    double maxConfidence = getValuesBuffer()[1];
+   pvadata_t maxConfByCategory[targetLoc->nf];
+   for (int f=0; f<targetLoc->nf; f++) { maxConfByCategory[f] = -std::numeric_limits<pvadata_t>::infinity(); }
+   for (int k=0; k<targetLayer->getNumNeurons(); k++) {
+      int kExt = kIndexExtended(k, targetLoc->nx, targetLoc->ny, targetLoc->nf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
+      pvadata_t a = targetLayer->getLayerData()[kExt];
+      int f = featureIndex(k, targetLoc->nx, targetLoc->ny, targetLoc->nf);
+      pvadata_t m = maxConfByCategory[f];
+      maxConfByCategory[f] = a > m ? a : m;
+   }
+   MPI_Allreduce(MPI_IN_PLACE, maxConfByCategory, targetLoc->nf, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
    for (int f=displayCategoryIndexStart-1; f<displayCategoryIndexEnd; f++) {
-      int montageCol = (f-displayCategoryIndexStart+1) % numMontageColumns;
-      int montageRow = (f-displayCategoryIndexStart+1 - montageCol) / numMontageColumns; // Integer arithmetic
-      int xStartInMontage = (nx + 10)*montageCol + 5;
-      int yStartInMontage = (ny + 64 + 10)*montageRow + 64 + 5;
       for (int y=0; y<ny; y++) {
          for (int x=0; x<nx; x++) {
             pvadata_t backgroundLevel = grayScaleImage[x + nx * y];
@@ -741,126 +852,82 @@ int LocalizationProbe::makeMontage() {
             pvadata_t heatMapLevel = targetLayer->getLayerData()[targetIdxExt];
             heatMapLevel = (heatMapLevel - detectionThreshold)/(heatMapMaximum-detectionThreshold);
             heatMapLevel = heatMapLevel < (pvadata_t) 0 ? (pvadata_t) 0 : heatMapLevel > (pvadata_t) 1 ? (pvadata_t) 1 : heatMapLevel;
-            int montageIdx = kIndex(xStartInMontage + x, yStartInMontage + y, 0, montageDimX, montageDimY, 3);
+            int montageIdx = kIndex(x, y, 0, nx, ny, 3);
             for(int rgb=0; rgb<3; rgb++) { 
                pvadata_t h = heatMapLevel * heatMapColor[rgb] + (1-heatMapLevel) * thresholdColor[rgb];
                pvadata_t g = imageBlendCoeff * backgroundLevel + (1-imageBlendCoeff) * h;
                assert(g>=(pvadata_t) -0.001 && g <= (pvadata_t) 1.001);
                g = nearbyintf(255*g);
                unsigned char gchar = (unsigned char) g; // (g<0.0f ? 0.0f : g>255.0f ? 255.0f : g);
-               assert(montageIdx>=0 && montageIdx+rgb<montageDimX*montageDimY*3);
-               montageImage[montageIdx + rgb] = gchar;
+               assert(montageIdx>=0 && montageIdx+rgb<nx*ny*3);
+               montageImageLocal[montageIdx + rgb] = gchar;
             }
          }
       }
-
-      // Draw labels and confidences
-      pvadata_t maxConfInCategory = -std::numeric_limits<pvadata_t>::infinity();
-      PVLayerLoc const * targetLoc = targetLayer->getLayerLoc();
-      PVHalo const * targetHalo = &targetLoc->halo;
-      int const numNeurons = targetLayer->getNumNeurons();
-      int const numFeatures = targetLoc->nf;
-      for (int k=f; k<numNeurons; k+=numFeatures) {
-         int kExt = kIndexExtended(k, targetLoc->nx, targetLoc->ny, numFeatures, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-         pvadata_t a = targetLayer->getLayerData()[kExt];
-         maxConfInCategory = a > maxConfInCategory ? a : maxConfInCategory;
-      }
-      char confidenceText[32];
-      int slen = snprintf(confidenceText, 32, "%.1f%%", 100*maxConfInCategory);
-      if (slen >= 32) {
-         fflush(stdout);
-         fprintf(stderr, "Formatted text for confidence %f of %d is too long.\n", maxConfInCategory, f);
-         exit(EXIT_FAILURE);
-      }
-      char const * textColor = NULL;
-      char const * confFile = "confidenceLabel.tif";
-      if (f==winningFeature) {
-         char labelFilename[PV_PATH_MAX];
-         int slen = snprintf(labelFilename, PV_PATH_MAX, "blue%0*d.tif", featurefieldwidth, f);
-         assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
-         insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage-64, nx, 32);
-         
-         textColor = "blue";
+      if (parent->columnId()!=0) {
+         MPI_Send(montageImageLocal, nx*ny*3, MPI_UNSIGNED_CHAR, 0, 111, parent->icCommunicator()->communicator());
       }
       else {
-         textColor = "gray";
+         int montageCol = (f-displayCategoryIndexStart+1) % numMontageColumns;
+         int montageRow = (f-displayCategoryIndexStart+1 - montageCol) / numMontageColumns; // Integer arithmetic
+         int xStartInMontage = (imageLoc->nxGlobal + 10)*montageCol + 5;
+         int yStartInMontage = (imageLoc->nyGlobal + 64 + 10)*montageRow + 64 + 5;
+         int const numCommRows = parent->icCommunicator()->numCommRows();
+         int const numCommCols = parent->icCommunicator()->numCommColumns();
+         for (int rank=0; rank<parent->numberOfColumns(); rank++) {
+            if (rank==0) {
+               memcpy(montageImageComm, montageImageLocal, nx*ny*3);
+            }
+            else {
+               MPI_Recv(montageImageComm, nx*ny*3, MPI_UNSIGNED_CHAR, rank, 111, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+            }
+            int const commRow = rowFromRank(rank, numCommRows, numCommCols);
+            int const commCol = columnFromRank(rank, numCommRows, numCommCols);
+            for (int y=0; y<ny; y++) {
+               int destIdx = kIndex(xStartInMontage+commCol*nx, yStartInMontage+commRow*ny+y, 0, montageDimX, montageDimY, 3);
+               int srcIdx = kIndex(0, y, 0, nx, ny, 3);
+               memcpy(&montageImage[destIdx], &montageImageComm[srcIdx], nx*3);
+            }
+         }
+
+         // Draw labels and confidences
+         char confidenceText[32];
+         int slen = snprintf(confidenceText, 32, "%.1f%%", 100*maxConfByCategory[f]);
+         if (slen >= 32) {
+            fflush(stdout);
+            fprintf(stderr, "Formatted text for confidence %f of %d is too long.\n", maxConfByCategory[f], f);
+            exit(EXIT_FAILURE);
+         }
+         char const * textColor = NULL;
+         char const * confFile = "confidenceLabel.tif";
+         if (f==winningFeature) {
+            char labelFilename[PV_PATH_MAX];
+            int slen = snprintf(labelFilename, PV_PATH_MAX, "blue%0*d.tif", featurefieldwidth, f);
+            assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
+            insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage-64, imageLoc->nxGlobal, 32);
+            
+            textColor = "blue";
+         }
+         else {
+            textColor = "gray";
+         }
+         makeMontageLabelfile(confFile, "white", textColor, confidenceText);
+         insertLabelIntoMontage(confFile, xStartInMontage, yStartInMontage-32, imageLoc->nxGlobal, 32);
       }
-      makeMontageLabelfile(confFile, "white", textColor, confidenceText);
-      insertLabelIntoMontage(confFile, xStartInMontage, yStartInMontage-32, nx, 32);
    }
 
    // Draw original image
-   assert(nf==3); // I've been assuming the image layer has three features.  What if it doesn't?
-   int xStart = 5+(2*numMontageColumns+1)*(nx+10)/2;
+   int xStart = 5+(2*numMontageColumns+1)*(imageLoc->nxGlobal+10)/2;
    int yStart = 5+64;
-
-   minValue = std::numeric_limits<pvadata_t>::infinity();
-   maxValue = -std::numeric_limits<pvadata_t>::infinity();
-   int const numImageNeurons = imageLayer->getNumNeurons();
-   for (int k=0; k<numImageNeurons; k++) {
-      int const kExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-      pvadata_t a = imageLayer->getLayerData()[kExt];
-      minValue = a < minValue ? a : minValue;
-      maxValue = a > maxValue ? a : maxValue;
-   }
-   if (minValue==maxValue) {
-      for (int y=0; y<ny; y++) {
-         int lineStart = kIndex(xStart, yStart+y, 0, montageDimX, montageDimY, nf);
-         memset(&montageImage[lineStart], 127, (size_t) (nx*nf));
-      }
-   }
-   else {
-      pvadata_t scale = (pvadata_t) 1/(maxValue-minValue);
-      pvadata_t shift = minValue;
-      for (int k=0; k<numImageNeurons; k++) {
-         int const kx = kxPos(k, nx, ny, nf);
-         int const ky = kyPos(k, nx, ny, nf);
-         int const kf = featureIndex(k, nx, ny, nf);
-         int const kImageExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-         pvadata_t a = imageLayer->getLayerData()[kImageExt];
-         a = nearbyintf(255*(a-shift)*scale);
-         unsigned char aChar = (unsigned char) (int) a;
-         int const kMontage = kIndex(xStart+kx, yStart+ky, kf, montageDimX, montageDimY, nf);
-         montageImage[kMontage] = aChar;
-      }
-   }
+   insertImageIntoMontage(xStart, yStart, imageLayer->getLayerData(), imageLoc, true/*extended*/);
 
    // Draw reconstructed image
-   if (reconLayer) {
-      // same xStart, yStart is down one row.
-      // I should check that reconLayer and imageLayer have the same dimensions
-      yStart += ny + 64 + 10;
+   // same xStart, yStart is down one row.
+   // I should check that reconLayer and imageLayer have the same dimensions
+   yStart += imageLoc->nyGlobal + 64 + 10;
+   insertImageIntoMontage(xStart, yStart, reconLayer->getLayerData(), reconLayer->getLayerLoc(), true/*extended*/);
 
-      minValue = std::numeric_limits<pvadata_t>::infinity();
-      maxValue = -std::numeric_limits<pvadata_t>::infinity();
-      for (int k=0; k<numImageNeurons; k++) {
-         int const kExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-         pvadata_t a = reconLayer->getLayerData()[kExt];
-         minValue = a < minValue ? a : minValue;
-         maxValue = a > maxValue ? a : maxValue;
-      }
-      if (minValue==maxValue) {
-         for (int y=0; y<ny; y++) {
-            int lineStart = kIndex(xStart, yStart+y, 0, montageDimX, montageDimY, nf);
-            memset(&montageImage[lineStart], 127, (size_t) (nx*nf));
-         }
-      }
-      else {
-         pvadata_t scale = (pvadata_t) 1/(maxValue-minValue);
-         pvadata_t shift = minValue;
-         for (int k=0; k<numImageNeurons; k++) {
-            int const kx = kxPos(k, nx, ny, nf);
-            int const ky = kyPos(k, nx, ny, nf);
-            int const kf = featureIndex(k, nx, ny, nf);
-            int const kImageExt = kIndexExtended(k, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-            pvadata_t a = reconLayer->getLayerData()[kImageExt];
-            a = nearbyintf(255*(a-shift)*scale);
-            unsigned char aChar = (unsigned char) (int) a;
-            int const kMontage = kIndex(xStart+kx, yStart+ky, kf, montageDimX, montageDimY, nf);
-            montageImage[kMontage] = aChar;
-         }
-      }
-   }
+   if (parent->columnId()!=0) { return PV_SUCCESS; }
 
    // write out montageImage
    std::stringstream montagePathSStream("");
@@ -893,12 +960,12 @@ int LocalizationProbe::makeMontage() {
    if (winningFeature >= displayCategoryIndexStart-1 && winningFeature <= displayCategoryIndexEnd-1) {
       int montageColumn = kxPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
       int montageRow = kyPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
-      int xStartInMontage = montageColumn * (nx+10) + 5;
-      int yStartInMontage = montageRow * (ny+64+10) + 5;
+      int xStartInMontage = montageColumn * (imageLoc->nxGlobal+10) + 5;
+      int yStartInMontage = montageRow * (imageLoc->nyGlobal+64+10) + 5;
       char labelFilename[PV_PATH_MAX];
       int slen = snprintf(labelFilename, PV_PATH_MAX, "gray%0*d.tif", featurefieldwidth, winningFeature);
       assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
-      insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage, nx, 32);
+      insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage, imageLoc->nxGlobal, 32);
    }
 
    return PV_SUCCESS;
@@ -913,5 +980,7 @@ LocalizationProbe::~LocalizationProbe() {
    free(outputFilenameBase);
    free(grayScaleImage);
    free(montageImage);
+   free(montageImageLocal);
+   free(montageImageComm);
 }
 

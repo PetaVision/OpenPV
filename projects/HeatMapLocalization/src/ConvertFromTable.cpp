@@ -136,7 +136,7 @@ int ConvertFromTable::loadConversionTable() {
                getKeyword(), getName(), dataFile, strerror(errno));
       }
    }
-   MPI_Bcast(&convData, numValues, MPI_FLOAT, 0, parent->icCommunicator()->communicator());
+   MPI_Bcast(convData, numValues, MPI_FLOAT, 0, parent->icCommunicator()->communicator());
    return status;
 }
 
