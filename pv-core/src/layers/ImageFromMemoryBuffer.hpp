@@ -26,7 +26,9 @@ public:
    virtual ~ImageFromMemoryBuffer();
    
    /**
-    * Sets the image.
+    * Sets the image.  Under MPI, nonroot processes ignore the externalBuffer
+    * argument; all other arguments must be the same across all processes.
+    *
     * Inputs:
     *    buffer      A pointer to the beffer containing the image.
     *                Under MPI, only the root process uses buffer and the root process scatters the image to the other processes.
@@ -135,6 +137,14 @@ protected:
     * 
     */
    int moveBufferToData(int rank);
+
+   /**
+    * Calculates the dimensions in local extended (n.b. check this) coordinates for the given rank.
+    * of the region occupied by the layer.
+    * Each process calls this method with its own rank to calculate imageLeft, imageRight, etc.
+    * The root process calls it for all ranks to determine what part of the image to scatter to the other processes.
+    */
+   int calcLocalBox(int rank, int * dataLeft, int * dataTop, int * imageLeft, int * imageTop, int * width, int * height);
 
    int retrieveData(double timef, double dt);
       

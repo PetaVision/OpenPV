@@ -20,6 +20,7 @@ typedef void * voidptr;
 #define MPI_COMM_WORLD     ((voidptr) 1)
 #define MPI_BYTE           1
 #define MPI_CHAR           1
+#define MPI_UNSIGNED_CHAR  1
 #define MPI_INT            (sizeof(int))
 #define MPI_UNSIGNED       (sizeof(unsigned int))
 #define MPI_LONG           (sizeof(long))
