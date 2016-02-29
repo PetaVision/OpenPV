@@ -357,7 +357,7 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
 
       pvpFileTime = timed;
       //This is being printed twice: track down
-      std::cout << "Rank " << rank << " Reading pvpFileTime " << pvpFileTime << " at timestep " << parent->simulationTime() << " with offset (" << xOffset << "," << yOffset << ")\n";
+      //std::cout << "Rank " << rank << " Reading pvpFileTime " << pvpFileTime << " at timestep " << parent->simulationTime() << " with offset (" << xOffset << "," << yOffset << ")\n";
 
       scatterActivity(pvstream, comm, rootproc, buf, loc, false, &fileloc, xOffset, yOffset, params[INDEX_FILE_TYPE], length);
       // buf is a nonextended layer.  Image layers copy the extended buffer data into buf by calling Image::copyToInteriorBuffer
