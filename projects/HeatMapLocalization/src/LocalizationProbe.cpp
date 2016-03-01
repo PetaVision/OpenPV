@@ -1007,7 +1007,7 @@ int LocalizationProbe::makeMontage() {
       int xStartInMontage = montageColumn * (imageLoc->nxGlobal+10) + 5;
       int yStartInMontage = montageRow * (imageLoc->nyGlobal+64+10) + 5;
       char labelFilename[PV_PATH_MAX];
-      int slen = snprintf(labelFilename, PV_PATH_MAX, "gray%0*d.tif", featurefieldwidth, winningFeature);
+      int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, winningFeature);
       assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
       insertFileIntoMontage(labelFilename, xStartInMontage, yStartInMontage, imageLoc->nxGlobal, 32);
    }
