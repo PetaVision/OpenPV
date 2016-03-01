@@ -1,0 +1,68 @@
+set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/AbstractNormProbe.cpp
+   ${SUBDIR}/BaseConnectionProbe.cpp
+   ${SUBDIR}/BaseHyPerConnProbe.cpp
+   ${SUBDIR}/BaseProbe.cpp
+   ${SUBDIR}/ColProbe.cpp
+   ${SUBDIR}/ColumnEnergyProbe.cpp
+   ${SUBDIR}/CoreParamGroupHandler.cpp
+   ${SUBDIR}/fileio.cpp
+   ${SUBDIR}/FirmThresholdCostFnLCAProbe.cpp
+   ${SUBDIR}/FirmThresholdCostFnProbe.cpp
+   ${SUBDIR}/imageio.cpp
+   ${SUBDIR}/KernelProbe.cpp
+   ${SUBDIR}/L0NormLCAProbe.cpp
+   ${SUBDIR}/L0NormProbe.cpp
+   ${SUBDIR}/L1NormLCAProbe.cpp
+   ${SUBDIR}/L1NormProbe.cpp
+   ${SUBDIR}/L2ConnProbe.cpp
+   ${SUBDIR}/L2NormProbe.cpp
+   ${SUBDIR}/LayerProbe.cpp
+   ${SUBDIR}/ParamGroupHandler.cpp
+   ${SUBDIR}/PointLIFProbe.cpp
+   ${SUBDIR}/PointProbe.cpp
+   ${SUBDIR}/PVParams.cpp
+   ${SUBDIR}/QuotientColProbe.cpp
+   ${SUBDIR}/RequireAllZeroActivityProbe.cpp
+   ${SUBDIR}/StatsProbe.cpp
+)
+
+set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/AbstractNormProbe.hpp
+   ${SUBDIR}/BaseConnectionProbe.hpp
+   ${SUBDIR}/BaseHyPerConnProbe.hpp
+   ${SUBDIR}/BaseProbe.hpp
+   ${SUBDIR}/ColProbe.hpp
+   ${SUBDIR}/ColumnEnergyProbe.hpp
+   ${SUBDIR}/CoreParamGroupHandler.hpp
+   ${SUBDIR}/fileio.hpp
+   ${SUBDIR}/FirmThresholdCostFnLCAProbe.hpp
+   ${SUBDIR}/FirmThresholdCostFnProbe.hpp
+   ${SUBDIR}/imageio.hpp
+   ${SUBDIR}/KernelProbe.hpp
+   ${SUBDIR}/L0NormLCAProbe.hpp
+   ${SUBDIR}/L0NormProbe.hpp
+   ${SUBDIR}/L1NormLCAProbe.hpp
+   ${SUBDIR}/L1NormProbe.hpp
+   ${SUBDIR}/L2ConnProbe.hpp
+   ${SUBDIR}/L2NormProbe.hpp
+   ${SUBDIR}/LayerProbe.hpp
+   ${SUBDIR}/ParamGroupHandler.hpp
+   ${SUBDIR}/PointLIFProbe.hpp
+   ${SUBDIR}/PointProbe.hpp
+   ${SUBDIR}/PVParams.hpp
+   ${SUBDIR}/QuotientColProbe.hpp
+   ${SUBDIR}/RequireAllZeroActivityProbe.hpp
+   ${SUBDIR}/StatsProbe.hpp
+)
+
+set (PVLibSrcC ${PVLibSrcC}
+   ${SUBDIR}/clock.c
+   ${SUBDIR}/io.c
+)
+
+set (PVLibSrcH ${PVLibSrcH}
+   ${SUBDIR}/clock.h
+   ${SUBDIR}/io.h
+)
+
