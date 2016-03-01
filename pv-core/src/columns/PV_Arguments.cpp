@@ -6,7 +6,9 @@
  */
 
 #include <cstdlib>
+#ifdef PV_USE_OPENMP_THREADS
 #include <omp.h>
+#endif
 #include <string.h>
 #include "PV_Arguments.hpp"
 #include "../io/io.h"
