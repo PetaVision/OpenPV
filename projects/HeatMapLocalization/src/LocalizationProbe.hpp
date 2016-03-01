@@ -85,8 +85,9 @@ private:
    int setOptimalMontage();
    int findMaxLocation(int * winningFeature, int * xLocation, int * yLocation, pvadata_t * maxActivity);
    int findBoundingBox(int winningFeature, int xLocation, int yLocation, int * boundingBox);
-   int makeMontageLabelfile(char const * labelName, char const * backgroundColor, char const * textColor, char const * labelText);
-   int insertLabelIntoMontage(char const * labelname, int xOffset, int yOffset, int xExpectedSize, int yExpectedSize);
+   int drawTextOnMontage(char const * backgroundColor, char const * textColor, char const * labelText, int xOffset, int yOffset, int width, int height);
+   int drawTextIntoFile(char const * labelName, char const * backgroundColor, char const * textColor, char const * labelText, int width, int height=32);
+   int insertFileIntoMontage(char const * labelname, int xOffset, int yOffset, int xExpectedSize, int yExpectedSize);
    int insertImageIntoMontage(int xStart, int yStart, pvadata_t const * sourceData, PVLayerLoc const * loc, bool extended);
 
 // Member variables

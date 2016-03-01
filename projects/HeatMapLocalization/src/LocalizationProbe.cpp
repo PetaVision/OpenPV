@@ -274,45 +274,50 @@ int LocalizationProbe::communicateInitInfo() {
 
       // make the labels
       if (parent->columnId()==0) {
-         char const * originalLabelName = "original.tif";
-         status = makeMontageLabelfile(originalLabelName, "black", "white", "original image");
+         int nxGlobal = imageLayer->getLayerLoc()->nxGlobal;
+         std::string originalLabelString("");
+         originalLabelString += heatMapMontageDir;
+         originalLabelString += "/labels/original.tif";
+         status = drawTextIntoFile(originalLabelString.c_str(), "black", "white", "original image", nxGlobal);
          if (status != 0) {
             fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, originalLabelName);
+            fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, originalLabelString.c_str());
             exit(EXIT_FAILURE);
          }
 
-         char const * reconLabelName = "reconstruction.tif";
-         status = makeMontageLabelfile(reconLabelName, "black", "white", "reconstruction");
+         std::string reconLabelString("");
+         reconLabelString += heatMapMontageDir;
+         reconLabelString += "/labels/reconstruction.tif";
+         status = drawTextIntoFile(reconLabelString.c_str(), "black", "white", "reconstruction", nxGlobal);
          if (status != 0) {
             fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, reconLabelName);
+            fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, reconLabelString.c_str());
             exit(EXIT_FAILURE);
          }
 
-         char labelFilename[PV_PATH_MAX]; // this size is overkill for this situation
          for (int f=0; f<nf; f++) {
+            char labelFilename[PV_PATH_MAX];
             int slen;
-            slen = snprintf(labelFilename, PV_PATH_MAX, "gray%0*d.tif", featurefieldwidth, f);
+            slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, f);
             if (slen>=PV_PATH_MAX) {
                fflush(stdout);
                fprintf(stderr, "%s \"%s\" error: file name for label %d is too long (%d characters versus %d).\n", getKeyword(), name, f, slen, PV_PATH_MAX);
                exit(EXIT_FAILURE);
             }
-            status = makeMontageLabelfile(labelFilename, "white", "gray", classNames[f]);
+            status = drawTextIntoFile(labelFilename, "white", "gray", classNames[f], nxGlobal);
             if (status != 0) {
                fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, reconLabelName);
+               fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, labelFilename);
                exit(EXIT_FAILURE);
             }
 
-            slen = snprintf(labelFilename, PV_PATH_MAX, "blue%0*d.tif", featurefieldwidth, f);
+            slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, f);
             if (slen>=PV_PATH_MAX) {
                fflush(stdout);
                fprintf(stderr, "%s \"%s\" error: file name for label %d is too long (%d characters versus %d).\n", getKeyword(), name, f, slen, PV_PATH_MAX);
                exit(EXIT_FAILURE);
             }
-            status = makeMontageLabelfile(labelFilename, "white", "blue", classNames[f]);
+            status = drawTextIntoFile(labelFilename, "white", "blue", classNames[f], nxGlobal);
             if (status != 0) {
                exit(EXIT_FAILURE);
             }
@@ -396,7 +401,7 @@ int LocalizationProbe::allocateDataStructures() {
          int const nxGlobal = imageLoc->nxGlobal;
          int const nyGlobal = imageLoc->nyGlobal;
          montageDimX = (nxGlobal + 10) * (numMontageColumns + 2);
-         montageDimY = (nyGlobal + 64 + 10) * numMontageRows;
+         montageDimY = (nyGlobal + 64 + 10) * numMontageRows + 32;
          montageImage = (unsigned char *) calloc(montageDimX * montageDimY * 3, sizeof(unsigned char));
          if (montageImage==NULL) {
             fprintf(stderr, "%s \"%s\" error allocating for heat map montage image: %s\n", getKeyword(), name, strerror(errno));
@@ -405,7 +410,10 @@ int LocalizationProbe::allocateDataStructures() {
    
          int xStart = (2*numMontageColumns+1)*(nxGlobal+10)/2; // Integer division
          int yStart = 32+5;
-         status = insertLabelIntoMontage("original.tif", xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
+         std::string originalFileName("");
+         originalFileName += heatMapMontageDir;
+         originalFileName += "/labels/original.tif";
+         status = insertFileIntoMontage(originalFileName.c_str(), xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
          if (status != PV_SUCCESS) {
             fflush(stdout);
             fprintf(stderr, "%s \"%s\" error placing the \"original image\" label.\n", getKeyword(), name);
@@ -414,7 +422,10 @@ int LocalizationProbe::allocateDataStructures() {
    
          // same xStart.
          yStart += nyGlobal+64+10; // yStart moves down one panel.
-         status = insertLabelIntoMontage("reconstruction.tif", xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
+         std::string reconFileName("");
+         reconFileName += heatMapMontageDir;
+         reconFileName += "/labels/reconstruction.tif";
+         status = insertFileIntoMontage(reconFileName.c_str(), xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
          if (status != PV_SUCCESS) {
             fflush(stdout);
             fprintf(stderr, "%s \"%s\" error placing the \"reconstruction\" label.\n", getKeyword(), name);
@@ -427,15 +438,15 @@ int LocalizationProbe::allocateDataStructures() {
             int montageRow=kyPos(fDisplayed, numMontageColumns, numMontageRows, 1);
             int xStart = montageCol * (nxGlobal+10) + 5;
             int yStart = montageRow * (nyGlobal+64+10) + 5;
-            char filename[16]; // Should be enough for the labels produced during communicateInitInfo.
-            int slen = snprintf(filename, 16, "gray%0*d.tif", featurefieldwidth, f);
-            if (slen >= 16) {
+            char filename[PV_PATH_MAX];
+            int slen = snprintf(filename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, f);
+            if (slen >= PV_PATH_MAX) {
                fflush(stdout);
-               fprintf(stderr, "%s \"%s\" allocateDataStructures error: featurefieldwidth of %d is too large.\n",
-                     getKeyword(), name, featurefieldwidth);
+               fprintf(stderr, "%s \"%s\" allocateDataStructures error: path to label file for label %d is too large.\n",
+                     getKeyword(), name, f);
                exit(EXIT_FAILURE);
             }
-            status = insertLabelIntoMontage(filename, xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
+            status = insertFileIntoMontage(filename, xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
             if (status != PV_SUCCESS) {
                fflush(stdout);
                fprintf(stderr, "%s \"%s\" error placing the label for feature %d.\n", getKeyword(), name, f);
@@ -447,10 +458,40 @@ int LocalizationProbe::allocateDataStructures() {
    return PV_SUCCESS;
 }
 
-int LocalizationProbe::makeMontageLabelfile(char const * labelFilename, char const * backgroundColor, char const * textColor, char const * labelText) {
-   int const nx = imageLayer->getLayerLoc()->nxGlobal;
+int LocalizationProbe::drawTextOnMontage(char const * backgroundColor, char const * textColor, char const * labelText, int xOffset, int yOffset, int width, int height) {
+   assert(parent->columnId()==0);
+   char * tempfile = strdup("/tmp/Localization_XXXXXX.tif");
+   if (tempfile == NULL) {
+      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to create temporary file for text\n", getKeyword(), name);
+      exit(EXIT_FAILURE);
+   }
+   int tempfd = mkstemps(tempfile, 4/*suffixlen*/);
+   if (tempfd < 0) {
+      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to create temporary file for writing\n", getKeyword(), name);
+      exit(EXIT_FAILURE);
+   }
+   int status = close(tempfd); //mkstemps opens the file to avoid race between finding unused filename and opening it, but we don't need the file descriptor.
+   if (status != 0) {
+      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to close temporory file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+   status = drawTextIntoFile(tempfile, backgroundColor, textColor, labelText, width, height);
+   if (status == 0) {
+      status = insertFileIntoMontage(tempfile, xOffset, yOffset, width, height);
+   }
+   status = unlink(tempfile);
+   if (status != 0) {
+      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to delete temporary file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+   free(tempfile);
+   return status;
+}
+
+int LocalizationProbe::drawTextIntoFile(char const * labelFilename, char const * backgroundColor, char const * textColor, char const * labelText, int width, int height) {
+   assert(parent->columnId()==0);
    std::stringstream convertCmd("");
-   convertCmd << "convert -depth 8 -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << nx << "x32 -pointsize 24 -gravity center label:\"" << labelText << "\" \"" << heatMapMontageDir << "/labels/" << labelFilename << "\"";
+   convertCmd << "convert -depth 8 -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << width << "x" << height << " -pointsize 24 -gravity center label:\"" << labelText << "\" \"" << labelFilename << "\"";
    int status = system(convertCmd.str().c_str());
    if (status != 0) {
       fflush(stdout);
@@ -460,19 +501,12 @@ int LocalizationProbe::makeMontageLabelfile(char const * labelFilename, char con
    return status;
 }
 
-int LocalizationProbe::insertLabelIntoMontage(char const * labelname, int xOffset, int yOffset, int xExpectedSize, int yExpectedSize) {
+int LocalizationProbe::insertFileIntoMontage(char const * labelFilename, int xOffset, int yOffset, int xExpectedSize, int yExpectedSize) {
+   assert(parent->columnId()==0);
    PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
    int const nx = imageLoc->nx;
    int const ny = imageLoc->ny;
    int const nf = imageLoc->nf;
-   std::stringstream labelFilenamesstr("");
-   labelFilenamesstr << heatMapMontageDir << "/labels/" << labelname;
-   char * labelFilename = strdup(labelFilenamesstr.str().c_str());
-   if (labelFilename==NULL) {
-      fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error creating path for reading reconstruction label.\n", getKeyword(), name);
-      return PV_FAILURE;
-   }
    GDALDataset * dataset = (GDALDataset *) GDALOpen(labelFilename, GA_ReadOnly);
    if (dataset==NULL) {
       fflush(stdout);
@@ -492,7 +526,6 @@ int LocalizationProbe::insertLabelIntoMontage(char const * labelname, int xOffse
    int offsetIdx = kIndex(xOffset, yOffset, 0, montageDimX, montageDimY, 3);
    dataset->RasterIO(GF_Read, 0, 0, xLabelSize, yLabelSize, &montageImage[offsetIdx], xLabelSize, yLabelSize, GDT_Byte, 3/*number of bands*/, NULL, 3/*x-stride*/, 3*montageDimX/*y-stride*/, 1/*band stride*/);
    GDALClose(dataset);
-   free(labelFilename);
    return PV_SUCCESS;
 }
 
@@ -891,28 +924,26 @@ int LocalizationProbe::makeMontage() {
          }
 
          // Draw labels and confidences
-         char confidenceText[32];
-         int slen = snprintf(confidenceText, 32, "%.1f%%", 100*maxConfByCategory[f]);
-         if (slen >= 32) {
+         char confidenceText[16];
+         int slen = snprintf(confidenceText, 16, "%.1f%%", 100*maxConfByCategory[f]);
+         if (slen >= 16) {
             fflush(stdout);
             fprintf(stderr, "Formatted text for confidence %f of %d is too long.\n", maxConfByCategory[f], f);
             exit(EXIT_FAILURE);
          }
          char const * textColor = NULL;
-         char const * confFile = "confidenceLabel.tif";
          if (f==winningFeature) {
             char labelFilename[PV_PATH_MAX];
-            int slen = snprintf(labelFilename, PV_PATH_MAX, "blue%0*d.tif", featurefieldwidth, f);
+            int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, f);
             assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
-            insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage-64, imageLoc->nxGlobal, 32);
+            insertFileIntoMontage(labelFilename, xStartInMontage, yStartInMontage-64, imageLoc->nxGlobal, 32);
             
             textColor = "blue";
          }
          else {
             textColor = "gray";
          }
-         makeMontageLabelfile(confFile, "white", textColor, confidenceText);
-         insertLabelIntoMontage(confFile, xStartInMontage, yStartInMontage-32, imageLoc->nxGlobal, 32);
+         drawTextOnMontage("white", textColor, confidenceText, xStartInMontage, yStartInMontage-32, imageLoc->nxGlobal, 32);
       }
    }
 
@@ -929,10 +960,23 @@ int LocalizationProbe::makeMontage() {
 
    if (parent->columnId()!=0) { return PV_SUCCESS; }
 
+   // Add progress information to bottom 32 pixels
+   std::stringstream progress("");
+   double elapsed = parent->simulationTime() - parent->getStartTime();
+   double finishTime = parent->getStopTime() - parent->getStartTime();
+   bool isLastTimeStep = elapsed >= finishTime - parent->getDeltaTimeBase()/2;
+   if (!isLastTimeStep) {
+      int percentage = (int) nearbyintf(100.0 * elapsed / finishTime);
+      progress << "t = " << elapsed << ", finish time = " << finishTime << " (" << percentage << "%%)";
+   }
+   else {
+      progress << "t = " << elapsed << ", completed";
+   }
+   drawTextOnMontage("black", "white", progress.str().c_str(), 0, montageDimY-32, montageDimX, 32);
+
    // write out montageImage
    std::stringstream montagePathSStream("");
    montagePathSStream << heatMapMontageDir << "/" << outputFilenameBase << "_" << parent->getCurrentStep();
-   bool isLastTimeStep = parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTimeBase()/2;
    if (isLastTimeStep) { montagePathSStream << "_final"; }
    montagePathSStream << ".tif";
    char * montagePath = strdup(montagePathSStream.str().c_str()); // not sure why I have to strdup this
@@ -965,7 +1009,7 @@ int LocalizationProbe::makeMontage() {
       char labelFilename[PV_PATH_MAX];
       int slen = snprintf(labelFilename, PV_PATH_MAX, "gray%0*d.tif", featurefieldwidth, winningFeature);
       assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
-      insertLabelIntoMontage(labelFilename, xStartInMontage, yStartInMontage, imageLoc->nxGlobal, 32);
+      insertFileIntoMontage(labelFilename, xStartInMontage, yStartInMontage, imageLoc->nxGlobal, 32);
    }
 
    return PV_SUCCESS;
