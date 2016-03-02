@@ -4,6 +4,7 @@
 #
 # Exepcted in scope variables to be set:
 #
+# PV_CONFIG_FILE_DIR
 # PV_INCLUDE_DIR: path to OpenPV include files
 # PV_LIBRARIES: full path to libpv.a, libpv.so or libpv.dylib
 #
