@@ -39,7 +39,7 @@ macro(pv_config_project)
   set(CUDA_DEBUG_FLAGS "${CUDA_BASE_FLAGS};-Xptxas;-v;-keep;-lineinfo;-g;-G")
   
   # CUDNN path hints
-  set(APPLE_CUDNN_PATH_HINT "/usr/local/cudnn-7.0")
+  set(APPLE_CUDNN_PATH_HINT "/usr/local/cudnn-7.0" "/usr/local/cudnn")
   set(LINUX_CUDNN_PATH_HINT "/nh/compneuro/Data/cuDNN/cudnn-7.0-linux-x64-v4/" "/cuDNN/cudnn-7.0-linux-x64-v4" "/usr/local/cudnn")
   
   # Help strings
