@@ -226,11 +226,11 @@ def readpvpfile(filename,
                                 os.SEEK_CUR)
                     continue
 
-                    #data.append(DataFrame(time,zip(currentData['index'],
-                    #                               currentData['activation'])))
-                    if progressPeriod:
-                        if not frame % progressPeriod and frame:
-                            print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
+                #data.append(DataFrame(time,zip(currentData['index'],
+                #                               currentData['activation'])))
+                if progressPeriod:
+                    if not frame % progressPeriod and frame:
+                        print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
 
             #Make coosparsematrix
             data["time"] = np.array(timeList)
