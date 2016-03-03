@@ -32,11 +32,11 @@ endif
 
 %%run_type = "DCA";
 %%run_type = "ICA"
-run_type = "Deep"
+%%run_type = "Deep"
 %%run_type = "DCA_Vine";
 %%run_type = "MaxPool"
 %%run_type = "S1S2";
-%%run_type = "VID";
+run_type = "VID";
 if strcmp(run_type, "S1S2")
   output_dir = [data_path, filesep, "PASCAL_VOC/PASCALX3_S1_96_S2_1536/VOC2007_landscape32"];
 elseif strcmp(run_type, "ICA")
@@ -44,9 +44,9 @@ elseif strcmp(run_type, "ICA")
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X4_6144_ICA/VOC2007_landscape4"];
   %%output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_1536_ICA/VOC2007_portrait9"];
 elseif strcmp(run_type, "VID")
-  output_dir = [data_path, filesep, "VID/ImageNetVid_S1X32_32X16_4X14frames/train4"];
+  output_dir = [data_path, filesep, "VID/ImageNetVid_S1X32_32X16_4X14frames/train6"];
 elseif strcmp(run_type, "Deep")
-  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_6144_DeepX1_ICA/VOC2007_landscape4_S1_Movie3"];
+  output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1X16_6144_DeepX2_ICA/VOC2007_landscape4_S1_Movie1"];
 elseif strcmp(run_type, "DCA")
   output_dir = [data_path, filesep, "PASCAL_VOC/PASCAL_S1_128_S2_256_S3_512_DCA/VOC2007_landscape12"];
 elseif strcmp(run_type, "DCA_Vine")
@@ -62,6 +62,8 @@ if Recon_flag
   DoG_weights = [];
   if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "MaxPool") || strcmp(run_type, "ICA") || strcmp(run_type, "DCA")
     Recon_list = {[""],  ["Image"]};
+  elseif strcmp(run_type, "VID")
+    Recon_list = {[""],  ["Frame0"]};
   else
     Recon_list = {[""],  ["Image"]};
   endif
@@ -82,7 +84,7 @@ endif
 if strcmp(run_type, "S1S2") || strcmp(run_type, "DCA_Vine") || strcmp(run_type, "MaxPool") || strcmp(run_type, "ICA") || strcmp(run_type, "DCA")
   Sparse_list ={[""], ["GroundTruth"]};
 elseif strcmp(run_type, "VID")
-  Sparse_list = {[""], ["GroundTruth0"]};
+  Sparse_list = {[""], ["GroundTruth11"]};
 else
   Sparse_list ={[""], ["GroundTruth"]}; 
 endif
@@ -111,7 +113,8 @@ elseif strcmp(run_type, "Deep")
   nonSparse_list = {[""], ["GroundTruthReconS1Error"]}; %% [""], ["S1Error2X2"]};
   Sparse_std_ndx = [1,1]; %%
 elseif strcmp(run_type, "VID")
-  nonSparse_list = {[""], ["GroundTruthReconS1Error"]; [""], ["S1Error2X2"]};
+  nonSparse_list = {[""], ["GroundTruth11ReconS1Error"]};
+  Sparse_std_ndx = [1]; %%
 endif
 num_nonSparse_list = size(nonSparse_list,1);
 nonSparse_skip = repmat(1, num_nonSparse_list, 1);
@@ -121,6 +124,8 @@ elseif strcmp(run_type, "ICA")
   nonSparse_norm_list = {[""], ["GroundTruth"]; [""], ["GroundTruth"]; [""], ["GroundTruth"]};
 elseif strcmp(run_type, "Deep")
   nonSparse_norm_list = {[""], ["GroundTruth"]}; %% [""], ["GroundTruth"]};
+elseif strcmp(run_type, "VID")
+  nonSparse_norm_list = {[""], ["GroundTruth11"]}; %% [""], ["GroundTruth"]};
 endif
 nonSparse_norm_strength = ones(num_nonSparse_list,1);
 fraction_nonSparse_frames_read = 1;
@@ -188,12 +193,16 @@ endif
 for i_scale = i_scale_list 
   if strcmp(run_type, "DCA")
     gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
+  elseif strcmp(run_type, "VID")
+    gt_classID_file = fullfile([output_dir, filesep, "GroundTruth11.pvp"])
   else
     gt_classID_file = fullfile([output_dir, filesep, "GroundTruth.pvp"])
   endif
   if i_scale == 1
     if strcmp(run_type, "DCA")
       pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
+    elseif strcmp(run_type, "VID")
+      pred_classID_file = fullfile([output_dir, filesep, "GroundTruth11ReconS1.pvp"])
     else
       pred_classID_file = fullfile([output_dir, filesep, "GroundTruthReconS1.pvp"])
     endif

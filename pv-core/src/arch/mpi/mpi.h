@@ -1,4 +1,5 @@
-#include "../../include/cMakeHeader.h"
+//#include "../../include/cMakeHeader.h"
+#include <cMakeHeader.h>
 
 #ifdef PV_USE_MPI
 #include <mpi.h>
@@ -20,6 +21,7 @@ typedef void * voidptr;
 #define MPI_COMM_WORLD     ((voidptr) 1)
 #define MPI_BYTE           1
 #define MPI_CHAR           1
+#define MPI_UNSIGNED_CHAR  1
 #define MPI_INT            (sizeof(int))
 #define MPI_UNSIGNED       (sizeof(unsigned int))
 #define MPI_LONG           (sizeof(long))

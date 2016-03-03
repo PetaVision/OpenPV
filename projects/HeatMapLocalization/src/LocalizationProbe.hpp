@@ -24,6 +24,11 @@ public:
    char const * getImageLayerName() { return imageLayerName; }
    char const * getReconLayerName() { return reconLayerName; }
    char const * getClassNamesFile() { return classNamesFile; }
+
+   /**
+    * The root process returns the name of the class corresponding to feature k (zero-indexed).
+    * If k is out of bounds or a nonroot process calls this method, NULL is returned.
+    */
    char const * getClassName(int k);
    char const * getHeatMapMontageDir() { return heatMapMontageDir; }
    bool getDrawMontage() { return drawMontage; }
@@ -80,8 +85,10 @@ private:
    int setOptimalMontage();
    int findMaxLocation(int * winningFeature, int * xLocation, int * yLocation, pvadata_t * maxActivity);
    int findBoundingBox(int winningFeature, int xLocation, int yLocation, int * boundingBox);
-   int makeMontageLabelfile(char const * labelName, char const * backgroundColor, char const * textColor, char const * labelText);
-   int insertLabelIntoMontage(char const * labelname, int xOffset, int yOffset, int xExpectedSize, int yExpectedSize);
+   int drawTextOnMontage(char const * backgroundColor, char const * textColor, char const * labelText, int xOffset, int yOffset, int width, int height);
+   int drawTextIntoFile(char const * labelName, char const * backgroundColor, char const * textColor, char const * labelText, int width, int height=32);
+   int insertFileIntoMontage(char const * labelname, int xOffset, int yOffset, int xExpectedSize, int yExpectedSize);
+   int insertImageIntoMontage(int xStart, int yStart, pvadata_t const * sourceData, PVLayerLoc const * loc, bool extended);
 
 // Member variables
 protected:
@@ -89,7 +96,7 @@ protected:
    char * reconLayerName;
    bool drawMontage;
    char * classNamesFile;
-   char ** classNames;
+   char ** classNames; // The array of strings giving the names of each category.  Only the root process creates or uses this array.
    int displayCategoryIndexStart;
    int displayCategoryIndexEnd;
    char * heatMapMontageDir;
@@ -116,8 +123,10 @@ protected:
    int montageDimY;
    pvadata_t * grayScaleImage;
    unsigned char * montageImage;
+   unsigned char * montageImageLocal;
+   unsigned char * montageImageComm;
    pvadata_t imageBlendCoeff; // heatmap image will be imageBlendCoeff * imagedata plus (1-imageBlendCoeff) * heatmap data
-   int featurefieldwidth; // how many digits it takes to print the features (e.g. if nf was 100, the last feature is 99, which needs 2 digits)  Set in communicateInitInfo.
+   int featurefieldwidth; // how many digits it takes to print the features (e.g. if nf was 100, the last feature is 99, which needs 2 digits)  Set in communicateInitInfo.  All processes compute this, although only the root process uses it
 }; /* class LocalizationProbe */
 
 #endif /* LOCALIZATIONPROBE_HPP_ */

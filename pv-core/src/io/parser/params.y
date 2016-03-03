@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
-#include "../PVParams.hpp"
+#include <io/PVParams.hpp>
 
 PV::PVParams* handler;
 
