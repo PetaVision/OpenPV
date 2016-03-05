@@ -63,7 +63,7 @@ def readpvpfile(filename,
 # Supported older filetypes, not fully tested in Python 2
 
         # SPIKING ACTIVITY FILE
-        #TODO
+        #TODO filetype 6 has fixed the frame indexing. It's probably broken here.
         if header['filetype'] == 2:
             lastFrame = min(lastFrame, header['nbands'])
 
@@ -206,14 +206,10 @@ def readpvpfile(filename,
             idxList = []
             timeList = []
 
+            validFrames = range(startFrame, lastFrame, skipFrames)
             frameNum = 0
             for frame in range(lastFrame):
-                if frame < startFrame or (frame % skipFrames):
-                    numActive = np.fromfile(stream,np.uint32,3)[-1]
-                    stream.seek(entryPattern.itemsize * numActive,
-                                os.SEEK_CUR)
-                    continue
-                else:
+                if frame in validFrames:
                     time = np.fromfile(stream,np.float64,1)[0]
                     timeList.append(time)
                     numActive = np.fromfile(stream,np.uint32,1)
@@ -224,12 +220,17 @@ def readpvpfile(filename,
                     valuesList.extend(dataValues)
                     framesList.extend(np.ones((len(dataIdx)))*frameNum)
                     frameNum += 1
+                else:
+                    numActive = np.fromfile(stream,np.uint32,3)[-1]
+                    stream.seek(entryPattern.itemsize * numActive,
+                                os.SEEK_CUR)
+                    continue
 
-                    #data.append(DataFrame(time,zip(currentData['index'],
-                    #                               currentData['activation'])))
-                    if progressPeriod:
-                        if not frame % progressPeriod and frame:
-                            print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
+                #data.append(DataFrame(time,zip(currentData['index'],
+                #                               currentData['activation'])))
+                if progressPeriod:
+                    if not frame % progressPeriod and frame:
+                        print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
 
             #Make coosparsematrix
             data["time"] = np.array(timeList)

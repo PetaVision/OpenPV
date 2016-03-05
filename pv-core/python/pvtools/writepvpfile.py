@@ -47,6 +47,10 @@ def checkData(data):
     data["values"] = data["values"].astype(np.float32)
     data["time"] = data["time"].astype(np.float64)
 
+    #Dense values must be c-contiguous
+    if(not sp.issparse(data["values"]) and not data["values"].flags["C_CONTIGUOUS"]):
+       data["values"] = data["values"].copy(order='C')
+
 
 def generateHeader(data, inShape):
     #data["values"] can be one of 3 shapes: dense 4d mat for activity, dense 6d mat for weights
@@ -147,6 +151,7 @@ def writepvpfile(filename, data, shape=None, useExistingHeader=False):
 
     #Check data structure
     checkData(data)
+
 
     if not 'header' in data.keys():
         if useExistingHeader:

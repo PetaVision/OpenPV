@@ -1,0 +1,15 @@
+add_subdirectory(
+   arch
+   bindings
+   columns
+   connections
+   cudakernels
+   include
+   io
+   kernels
+   layers
+   normalizers
+   obsolete
+   utils
+   weightinit
+)

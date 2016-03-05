@@ -129,6 +129,13 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
    imageLoc.ky0 = 0;
    memset(&imageLoc.halo, 0, sizeof(PVHalo));
 
+   int dataLeft, dataTop, bufferLeft, bufferTop, localWidth, localHeight;
+   calcLocalBox(parent->columnId(), &dataLeft, &dataTop, &bufferLeft, &bufferTop, &localWidth, &localHeight);
+   imageLeft = dataLeft;
+   imageRight = dataLeft + localWidth;
+   imageTop = dataTop;
+   imageBottom = dataTop + localHeight;
+
    if (parent->columnId()==0) {
       int newBufferSize = resizedWidth * resizedHeight * numbands;
       if (newBufferSize != bufferSize) {
@@ -163,6 +170,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
       // Code duplication from Image::readImage
       // if normalizeLuminanceFlag == true and normalizeStdDev == true, then force average luminance to be 0, std. dev.=1
       // if normalizeLuminanceFlag == true and normalizeStdDev == false, then force min=0, max=1.
+      // if normalizeLuminanceFlag == true and the image in buffer is completely flat, force all values to zero
       bool normalize_standard_dev = normalizeStdDev;
       if(normalizeLuminanceFlag){
          if (normalize_standard_dev){
@@ -188,7 +196,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
                #pragma omp parallel for
                #endif // PV_USE_OPENMP
                for (int k=0; k<bufferSize; k++) {
-                  buffer[k] = .5;
+                  buffer[k] = 0.0f;
                }
             }
             else{
@@ -217,13 +225,12 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
                   buffer[k] *= image_stretch;
                }
             }
-            else{ // image_max == image_min, set to gray
-               //float image_shift = 0.5f - image_ave;
+            else{
                #ifdef PV_USE_OPENMP
                #pragma omp parallel for
                #endif // PV_USE_OPENMP
                for (int k=0; k<bufferSize; k++) {
-                  buffer[k] = 0.5f; //image_shift;
+                  buffer[k] = 0.0f;
                }
             }
          }
@@ -369,19 +376,64 @@ int ImageFromMemoryBuffer::copyBuffer() {
 int ImageFromMemoryBuffer::moveBufferToData(int rank) {
    assert(parent->columnId()==0);
    assert(buffer != NULL);
-   imageLeft = 0;
-   imageRight = getLayerLoc()->nx;
-   imageTop = 0;
-   imageBottom = getLayerLoc()->ny;
+
+   int startxdata, startydata, startxbuffer, startybuffer, xsize, ysize;
+   calcLocalBox(rank, &startxdata, &startydata, &startxbuffer, &startybuffer, &xsize, &ysize);
+   PVLayerLoc const * layerLoc = getLayerLoc();
+   PVHalo const * halo = &layerLoc->halo;
+   int fsize = layerLoc->nf;
    
-   // The part of the buffer with x in [processcolumnnumber * nx, processcolumnnumber * (nx + 1) - 1]
-   // and y in [processcolumnnumber * nx, processcolumnnumber * (nx + 1) - 1]
-   // gets copied to the restricted space of the given rank.
-   // If useImageBCflag is set, we also have to copy as much of the surrounding region as
-   // will fit in both the halo and the image.
-   // Are we also supposed to mirror any gap between the edge of the image and the edge of the halo?
-   // The code doesn't do that at this point.
-   // The code below assumes that all processes have the same getLayerLoc().
+   if (fsize != 1 && imageLoc.nf != 1 && fsize != imageLoc.nf) {
+      fprintf(stderr, "%s \"%s\": If nf and the number of bands in the image are both greater than 1, they must be equal.\n", getKeyword(), name);
+      exit(EXIT_FAILURE);
+   }
+
+   // begin by setting entire data buffer to padValue, then load the needed section of the image
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif // PV_USE_OPENMP_THREADS
+   for (int kExt=0; kExt<getNumExtended(); kExt++) {
+      data[kExt] = padValue;
+   }
+
+   if (fsize == 1 && imageLoc.nf > 1) {
+      // layer has one feature; convert memory buffer to grayscale
+      for (int y=0; y<ysize; y++) {
+         for (int x=0; x<xsize; x++) {
+            int indexdata = kIndex(startxdata+x,startydata+y,0,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,1);
+            int indexbuffer = kIndex(startxdata+x,startydata+y,0,imageLoc.nx,imageLoc.ny,imageLoc.nf);
+            pvdata_t val = (pvadata_t) 0;
+            for (int f=0; f<imageLoc.nf; f++) {
+               val += buffer[indexbuffer+f];
+            }
+            data[indexdata] = val/(pvadata_t) imageLoc.nf;
+         }
+      }
+   }
+   else if (fsize > 1 && imageLoc.nf == 1) {
+      // image is grayscale; replicate over all color bands of layer
+      for (int y=0; y<ysize; y++) {
+         for (int x=0; x<xsize; x++) {
+            for (int f=0; f<fsize; f++) {
+               int indexdata = kIndex(startxdata+x,startydata+y,f,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,getLayerLoc()->nf);
+               int indexbuffer = kIndex(startxdata+x,startydata+y,0,imageLoc.nx,imageLoc.ny,imageLoc.nf);
+               data[indexdata] = buffer[indexbuffer];
+            }
+         }
+      }
+   }
+   else {
+      assert(fsize == imageLoc.nf); // layer and memory buffer have the same number of features
+      for (int y=0; y<ysize; y++) {
+         int linestartdata = kIndex(startxdata,startydata+y,0,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,fsize);
+         int linestartbuffer = kIndex(startxbuffer,startybuffer+y,0,imageLoc.nx,imageLoc.ny,fsize);
+         memcpy(&data[linestartdata], &buffer[linestartbuffer], sizeof(pvadata_t) * xsize * fsize);
+      }
+   }
+   return PV_SUCCESS;
+}
+
+int ImageFromMemoryBuffer::calcLocalBox(int rank, int * dataLeft, int * dataTop, int * imageLeft, int * imageTop, int * width, int * height) {
    Communicator * icComm = parent->icCommunicator();
    int column = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
    int startxbuffer = getOffsetX(this->offsetAnchor, this->offsets[0]) + column * getLayerLoc()->nx;
@@ -431,51 +483,59 @@ int ImageFromMemoryBuffer::moveBufferToData(int rank) {
          ysize += movedown;
       }   
    }
-   if (startxbuffer < 0) { imageLeft = -startxbuffer; startxdata += imageLeft; startxbuffer = 0; }
-   if (startxbuffer+xsize > imageLoc.nxGlobal) { xsize = imageLoc.nxGlobal - startxbuffer; imageRight = imageLeft + xsize; }
-   if (startybuffer < 0) { imageTop = -startybuffer; startydata += imageTop; startybuffer = 0; }
-   if (startybuffer+ysize > imageLoc.nyGlobal) { ysize = imageLoc.nyGlobal - startybuffer; imageBottom = imageTop + ysize; }
-   assert(startxbuffer >= 0 && startxbuffer + xsize <= imageLoc.nxGlobal);
-   assert(startybuffer >= 0 && startybuffer + ysize <= imageLoc.nyGlobal);
 
-   if (fsize != 1 && imageLoc.nf != 1 && fsize != imageLoc.nf) {
-      fprintf(stderr, "%s \"%s\": If nf and the number of bands in the image are both greater than 1, they must be equal.\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
+   if (startxbuffer < 0) {
+      int discrepancy = -startxbuffer;
+      startxdata += discrepancy;
+      startxbuffer = 0;
+      xsize -= discrepancy;
    }
-   if (fsize == 1 && imageLoc.nf > 1) {
-      // layer has one feature; convert memory buffer to grayscale
-      for (int y=0; y<ysize; y++) {
-         for (int x=0; x<xsize; x++) {
-            int indexdata = kIndex(startxdata+x,startydata+y,0,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,1);
-            int indexbuffer = kIndex(startxdata+x,startydata+y,0,imageLoc.nx,imageLoc.ny,imageLoc.nf);
-            pvdata_t val = (pvadata_t) 0;
-            for (int f=0; f<imageLoc.nf; f++) {
-               val += buffer[indexbuffer+f];
-            }
-            data[indexdata] = val/(pvadata_t) imageLoc.nf;
-         }
-      }
+   if (startxdata < 0) {
+      int discrepancy = -startxdata;
+      startxdata = 0;
+      startxbuffer += discrepancy;
+      xsize -= discrepancy;
    }
-   else if (fsize > 1 && imageLoc.nf == 1) {
-      // image is grayscale; replicate over all color bands of layer
-      for (int y=0; y<ysize; y++) {
-         for (int x=0; x<xsize; x++) {
-            for (int f=0; f<fsize; f++) {
-               int indexdata = kIndex(startxdata+x,startydata+y,f,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,getLayerLoc()->nf);
-               int indexbuffer = kIndex(startxdata+x,startydata+y,0,imageLoc.nx,imageLoc.ny,imageLoc.nf);
-               data[indexdata] = buffer[indexbuffer];
-            }
-         }
-      }
+
+   if (startxbuffer+xsize > imageLoc.nxGlobal) {
+      xsize = imageLoc.nxGlobal - startxbuffer;
    }
-   else {
-      assert(fsize == imageLoc.nf); // layer and memory buffer have the same number of features
-      for (int y=0; y<ysize; y++) {
-         int linestartdata = kIndex(startxdata,startydata+y,0,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,fsize);
-         int linestartbuffer = kIndex(startxbuffer,startybuffer+y,0,imageLoc.nx,imageLoc.ny,fsize);
-         memcpy(&data[linestartdata], &buffer[linestartbuffer], sizeof(pvadata_t) * xsize * fsize);
-      }
+   if (startxdata+xsize > getLayerLoc()->nx) {
+      xsize = getLayerLoc()->nx - startxdata;
    }
+
+   if (startybuffer < 0) {
+      int discrepancy = -startybuffer;
+      startydata += discrepancy;
+      startybuffer = 0;
+      ysize -= discrepancy;
+   }
+   if (startydata < 0) {
+      int discrepancy = -startydata;
+      startydata = 0;
+      startybuffer += discrepancy;
+      ysize -= discrepancy;
+   }
+
+   if (startybuffer+ysize > imageLoc.nyGlobal) {
+      ysize = imageLoc.nyGlobal - startybuffer;
+   }
+   if (startydata+ysize > getLayerLoc()->ny) {
+      ysize = getLayerLoc()->ny - startydata;
+   }
+
+   assert(startxbuffer >= 0 && startxbuffer + xsize <= imageLoc.nxGlobal);
+   assert(startxdata >= 0 && startxdata + xsize <= getLayerLoc()->nxGlobal);
+   assert(startybuffer >= 0 && startybuffer + ysize <= imageLoc.nyGlobal);
+   assert(startydata >= 0 && startydata + ysize <= getLayerLoc()->nyGlobal);
+
+   *dataLeft = startxdata;
+   *dataTop = startydata;
+   *imageLeft = startxbuffer;
+   *imageTop = startybuffer;
+   *width = xsize;
+   *height = ysize;
+
    return PV_SUCCESS;
 }
 

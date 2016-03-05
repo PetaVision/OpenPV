@@ -6,9 +6,9 @@ enable_testing()
 # See http://www.cmake.org/Wiki/CMake_Useful_Variables for more variables to set
 cmake_minimum_required(VERSION 2.8.10)
 
-# Include the AddPVTest macro
-include(AddPVTest)
-include(PVSystemsTest)
+# Include the pv_add_test macro
+include(PVAddTest)
+include(PVAddExecutable)
 
 set(PV_SYSTEM_TEST_THREADS "" CACHE STRING "Defines the number of threads to use for system tests (empty string for max)")
 
