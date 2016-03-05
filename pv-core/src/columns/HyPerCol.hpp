@@ -125,6 +125,9 @@ public:
    double* getTimeScaleMaxPtr()           {return timeScaleMax;}
    double getTimeScaleMax(int batch)      {assert(batch >= 0 && batch < nbatch); return timeScaleMax[batch];}
    double getTimeScaleMax()               {return timeScaleMaxBase;}
+   double* getTimeScaleMax2Ptr()          {return timeScaleMax2;}
+   double getTimeScaleMax2(int batch)     {assert(batch >= 0 && batch < nbatch); return timeScaleMax2[batch];}
+   double getTimeScaleMax2()              {return timeScaleMax2Base;}
    double getTimeScaleMin()               {return timeScaleMin;}
    double getChangeTimeScaleMax()         {return changeTimeScaleMax;}
    double getChangeTimeScaleMin()         {return changeTimeScaleMin;}
@@ -275,7 +278,13 @@ private:
     * @brief dtScaleMax: If dtAdaptFlag is set, specifies the maximum timescale allowed
     */
    virtual void ioParam_dtScaleMax(enum ParamsIOFlag ioFlag);
+
    /**
+    * @brief dtScaleMax2: If dtAdaptFlag is set, specifies the maximum dtScaleMax allowed (this is a 2nd maximum that adapts much more slowly)
+    */
+   virtual void ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag);
+
+  /**
     * @brief dtScaleMin: If dtAdaptFlag is set, specifies the default timescale
     * @details The parameter name is misleading, since dtAdapt can drop below timescale min
     */
@@ -299,6 +308,11 @@ private:
    virtual void ioParam_dtMinToleratedTimeScale(enum ParamsIOFlag ioFlag);
 
    /**
+    * @brief writeTimeScaleFieldnames: A flag to determine if fieldnames are written to the HyPerCol_timescales file, if false, file is written as comma separated list
+    */
+   virtual void ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag);
+
+  /**
     * @brief progressInterval: Specifies how often a progress report prints out
     * @details Units of dt
     */
@@ -538,11 +552,14 @@ private:
    double * oldTimeScaleTrue;    // old value of timeScaleTrue
    double * deltaTimeAdapt;    // Actual deltaTimeAdapt buffer passed to updateState
    double * timeScaleMax;     // maximum value of timeScale (prevents deltaTime from growing too large)
-   double timeScaleMaxBase;     // default value of maximum value of timeScale (prevents deltaTime from growing too large)
+   double timeScaleMaxBase;     // default value of maximum value of timeScale 
+   double * timeScaleMax2;     // maximum value of timeScaleMax (prevents timeScaleMax from growing too large)
+   double timeScaleMax2Base;     // default value of maximum value of timeScaleMax 
    double timeScaleMin;     // minimum value of timeScale (not really a minimum, actually sets starting/iniital value of deltaTime)
    double changeTimeScaleMax;     // maximum change in value of timeScale (prevents deltaTime from growing too quickly)
    double changeTimeScaleMin;     // typically 0 or negative, maximum DECREASE in timeScale allowed before resetting timeScale -> timeScaleMin
    double dtMinToleratedTimeScale;// Exits with an error if any layer returns a timeScale between zero and this amount
+   bool   writeTimeScaleFieldnames;      // determines whether fieldnames are written to HyPerCol_timescales file
    double progressInterval; // Output progress after simTime increases by this amount.
    double nextProgressTime; // Next time to output a progress message
    bool writeProgressToErr;// Whether to write progress step to standard error (True) or standard output (False) (default is output)

@@ -100,7 +100,7 @@ elseif isunix
   %%run_type = "DCNNX3";
   %%run_type = "DBN";
   %%run_type = "experts";
-  run_type = "ICA";
+  %%run_type = "ICA";
   if strcmp(run_type, "experts") 
     output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts/VOC2007_landscape2";
     checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts";

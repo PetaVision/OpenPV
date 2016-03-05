@@ -146,6 +146,9 @@ HyPerCol::~HyPerCol()
    if(timeScaleMax){
       free(timeScaleMax);
    }
+   if(timeScaleMax2){
+      free(timeScaleMax2);
+   }
    if(timeScaleTrue){
       free(timeScaleTrue);
    }
@@ -198,6 +201,7 @@ int HyPerCol::initialize_base() {
    stopTime = 0.0;
    deltaTime = DELTA_T;
    dtAdaptFlag = false;
+   writeTimeScaleFieldnames = true;
    useAdaptMethodExp1stOrder = false;
    dtAdaptController = NULL;
    dtAdaptControlProbe = NULL;
@@ -207,11 +211,13 @@ int HyPerCol::initialize_base() {
    deltaTimeBase = DELTA_T;
    timeScale = NULL;
    timeScaleMax = NULL;
+   timeScaleMax2 = NULL;
    timeScaleTrue = NULL;
    oldTimeScale = NULL;
    oldTimeScaleTrue = NULL;
    deltaTimeAdapt = NULL;
-   timeScaleMaxBase = 1.0;
+   timeScaleMaxBase  = 1.0;
+   timeScaleMax2Base = 1.0;
    timeScaleMin = 1.0;
    changeTimeScaleMax = 1.0;
    changeTimeScaleMin = 0.0;
@@ -660,6 +666,11 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       fprintf(stderr, "%s error: unable to allocate memory for timeScaleMax buffer.\n", programName);
       exit(EXIT_FAILURE);
    }
+   timeScaleMax2 = (double*) malloc(sizeof(double) * nbatch);
+   if(timeScaleMax2 ==NULL) {
+      fprintf(stderr, "%s error: unable to allocate memory for timeScaleMax2 buffer.\n", programName);
+      exit(EXIT_FAILURE);
+   }
    timeScaleTrue = (double*) malloc(sizeof(double) * nbatch);
    if(timeScaleTrue ==NULL) {
       fprintf(stderr, "%s error: unable to allocate memory for timeScaleTrue buffer.\n", programName);
@@ -686,6 +697,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       oldTimeScaleTrue[b]    = -1;
       timeScale[b]           = timeScaleMin;
       timeScaleMax[b]        = timeScaleMaxBase;
+      timeScaleMax2[b]       = timeScaleMax2Base;
       oldTimeScale[b]        = timeScaleMin;
       deltaTimeAdapt[b]      = deltaTimeBase;
    }
@@ -743,6 +755,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_startTime(ioFlag);
    ioParam_dt(ioFlag);
    ioParam_dtAdaptFlag(ioFlag);
+   ioParam_writeTimeScaleFieldnames(ioFlag);
    ioParam_useAdaptMethodExp1stOrder(ioFlag);
    ioParam_dtAdaptController(ioFlag);
    ioParam_dtAdaptTriggerLayerName(ioFlag);
@@ -942,6 +955,13 @@ void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "dtAdaptFlag", &dtAdaptFlag, dtAdaptFlag);
 }
 
+void HyPerCol::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
+   if (dtAdaptFlag) {
+     ioParamValue(ioFlag, name, "writeTimeScaleFieldnames", &writeTimeScaleFieldnames, writeTimeScaleFieldnames);
+   }
+}
+
 void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
    if (dtAdaptFlag) {
@@ -971,6 +991,13 @@ void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
    if (dtAdaptFlag) {
      ioParamValue(ioFlag, name, "dtScaleMax", &timeScaleMaxBase, timeScaleMaxBase);
+   }
+}
+
+void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
+   if (dtAdaptFlag) {
+     ioParamValue(ioFlag, name, "dtScaleMax2", &timeScaleMax2Base, timeScaleMax2Base);
    }
 }
 
@@ -2174,20 +2201,26 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
    calcTimeScaleTrue(); // sets timeScaleTrue[b] to sqrt(Energy(t+dt)/|I|^2))^-1
    for(int b = 0; b < nbatch; b++){
      
+     if ((timeScale[b] == timeScaleMin) && (oldTimeScale[b] == timeScaleMax2[b])) {
+       timeScaleMax2[b] = (1 + changeTimeScaleMin) * timeScaleMax2[b];
+     }
+       
      double E_dt  =  timeScaleTrue[b]; 
      double E_0   =  oldTimeScaleTrue[b];
-     double dE_dt  = (E_0 - E_dt)  /  deltaTimeAdapt[b];
+     double dE_dt = (E_0 - E_dt)  /  deltaTimeAdapt[b];
 
      if ( (dE_dt <= 0.0) || (E_0 <= 0) || (E_dt <= 0) ) {
-       timeScale[b] = timeScaleMin;
+       timeScale[b]      = timeScaleMin;
        deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
        timeScaleMax[b]   = timeScaleMaxBase;
+       timeScaleMax2[b]  = oldTimeScale[b]; // set Max2 to value of time scale at which instability appeared
      }
      else {
        double tau_eff = E_0 / dE_dt;
 
        // dt := timeScaleMaxBase * tau_eff
        timeScale[b] = changeTimeScaleMax * tau_eff / deltaTimeBase;
+       timeScale[b] = (timeScale[b] <= timeScaleMax2[b]) ? timeScale[b] : timeScaleMax2[b];
        timeScale[b] = (timeScale[b] <= timeScaleMax[b]) ? timeScale[b] : timeScaleMax[b];
        timeScale[b] = (timeScale[b] <  timeScaleMin) ? timeScaleMin : timeScale[b];
 
@@ -2207,6 +2240,7 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
        //std::cout << "tau_eff: " << tau_eff << "\n";
        //std::cout << "timeScale: " << timeScale[b] << "\n";
        //std::cout << "timeScaleMax: " << timeScaleMax[b] << "\n";
+       //std::cout << "timeScaleMax2: " << timeScaleMax2[b] << "\n";
        //std::cout << "deltaTimeAdapt: " << deltaTimeAdapt[b] << "\n";
        //std::cout <<  "\n";
        
@@ -2327,13 +2361,29 @@ int HyPerCol::advanceTime(double sim_time)
      if (useAdaptMethodExp1stOrder){
        adaptTimeScaleExp1stOrder();}
      else{
-       adaptTimeScale();}
+       adaptTimeScale();
+     }
      if(writeTimescales && columnId() == 0) {
+       if (writeTimeScaleFieldnames) {
          timeScaleStream << "sim_time = " << sim_time << "\n";
+       }
+       else {
+         timeScaleStream << sim_time << ", ";
+       }
          for(int b = 0; b < nbatch; b++){
-	   timeScaleStream << "\tbatch = " << b << ", timeScale = " << timeScale[b] << ", " << "timeScaleTrue = " << timeScaleTrue[b];
+	   if (writeTimeScaleFieldnames) {
+	     timeScaleStream << "\tbatch = " << b << ", timeScale = " << timeScale[b] << ", " << "timeScaleTrue = " << timeScaleTrue[b];
+	   }
+	   else {
+	     timeScaleStream << b << ", " << timeScale[b] << ", " << timeScaleTrue[b];
+	   }
 	   if (useAdaptMethodExp1stOrder) {
-	     timeScaleStream << ", " << "timeScaleMax = " << timeScaleMax[b] << std::endl;
+	     if (writeTimeScaleFieldnames) {
+	       timeScaleStream <<  ", " << "timeScaleMax = " << timeScaleMax[b] <<  ", " << "timeScaleMax2 = " << timeScaleMax2[b] << std::endl;
+	     }
+	     else {
+	       timeScaleStream <<  ", " << timeScaleMax[b] <<  ", " << timeScaleMax2[b] << std::endl;
+	     }
 	   }
 	   else {
 	     timeScaleStream << std::endl;
@@ -2666,6 +2716,7 @@ int HyPerCol::checkpointRead() {
 	 double timeScale; // timeScale factor for increasing/decreasing dt
 	 double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScaleTrue() typically computed by an adaptTimeScaleController (ColProbe)
 	 double timeScaleMax; //  current maximum allowed value of timeScale as returned by HyPerLayer::getTimeScaleMaxPtr() 
+	 double timeScaleMax2; //  current maximum allowed value of timeScale as returned by HyPerLayer::getTimeScaleMax2Ptr() 
        };
        struct timescale_struct {
 	 double timeScale; // timeScale factor for increasing/decreasing dt
@@ -2678,6 +2729,7 @@ int HyPerCol::checkpointRead() {
 	   timescalemax[b].timeScale = 1;
 	   timescalemax[b].timeScaleTrue = 1;
 	   timescalemax[b].timeScaleMax = 1;
+	   timescalemax[b].timeScaleMax2 = 1;
 	 }
        }
        else {
@@ -2690,7 +2742,7 @@ int HyPerCol::checkpointRead() {
       size_t timescale_size = sizeof(struct timescale_struct);
       size_t timescalemax_size = sizeof(struct timescalemax_struct);
       if (useAdaptMethodExp1stOrder) {
-	assert(sizeof(struct timescalemax_struct) == sizeof(double) + sizeof(double) + sizeof(double));
+	assert(sizeof(struct timescalemax_struct) == sizeof(double) + sizeof(double) + sizeof(double) + sizeof(double));
       }
       else {
 	assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
@@ -2707,7 +2759,7 @@ int HyPerCol::checkpointRead() {
          if (timescalefile == NULL) {
             fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
 	    if (useAdaptMethodExp1stOrder) {
-	      fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f, timeScaleMax=%f\n", 1.0, 1.0, 1.0);
+	      fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f, timeScaleMax=%f, timeScaleMax2=%f\n", 1.0, 1.0, 1.0, 1.0);
 	    }
 	    else {
 	      fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", 1.0, 1.0);
@@ -2745,6 +2797,7 @@ int HyPerCol::checkpointRead() {
 	timeScaleTrue[b] = (useAdaptMethodExp1stOrder) ? timescalemax[b].timeScaleTrue : timescale[b].timeScaleTrue;
 	 if (useAdaptMethodExp1stOrder) {
 	   timeScaleMax[b] = timescalemax[b].timeScaleMax;
+	   timeScaleMax2[b] = timescalemax[b].timeScaleMax2;
 	 }
       }
    }
@@ -2872,6 +2925,12 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
 	 if (useAdaptMethodExp1stOrder) {
 	   if (PV_fwrite(&timeScaleMax[b],1,sizeof(double),timescalefile) != sizeof(double)) {
 	     fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleMax to %s\n", timescalefile->name);
+	     exit(EXIT_FAILURE);
+         }
+	 }
+	 if (useAdaptMethodExp1stOrder) {
+	   if (PV_fwrite(&timeScaleMax2[b],1,sizeof(double),timescalefile) != sizeof(double)) {
+	     fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleMax2 to %s\n", timescalefile->name);
 	     exit(EXIT_FAILURE);
          }
 	 }
