@@ -71,6 +71,7 @@ protected:
    virtual void ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag);
    virtual void ioParam_heatMapMontageDir(enum ParamsIOFlag ioFlag);
    virtual void ioParam_imageBlendCoeff(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_boundingBoxLineWidth(enum ParamsIOFlag ioFlag);
    virtual void ioParam_displayCommand(enum ParamsIOFlag ioFlag);
    virtual int initNumValues();
    int makeDisplayCategoryIndicesString();
@@ -100,6 +101,7 @@ protected:
    int displayCategoryIndexStart;
    int displayCategoryIndexEnd;
    char * heatMapMontageDir;
+   int boundingBoxLineWidth;
    char * displayCommand;
 
    PV::HyPerLayer * imageLayer;

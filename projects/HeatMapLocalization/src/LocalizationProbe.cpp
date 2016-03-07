@@ -50,6 +50,7 @@ int LocalizationProbe::initialize_base() {
    montageImageLocal = NULL;
    montageImageComm = NULL;
    imageBlendCoeff = 0.3;
+   boundingBoxLineWidth = 5;
 
    outputFilenameBase = NULL; // Not used by harness since we don't have a filename to use for the base
    return PV_SUCCESS;
@@ -77,6 +78,7 @@ int LocalizationProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_displayCategoryIndexEnd(ioFlag);
    ioParam_heatMapMontageDir(ioFlag);
    ioParam_imageBlendCoeff(ioFlag);
+   ioParam_boundingBoxLineWidth(ioFlag);
    ioParam_displayCommand(ioFlag);
    return status;
 }
@@ -137,6 +139,13 @@ void LocalizationProbe::ioParam_imageBlendCoeff(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "imageBlendCoeff", &imageBlendCoeff, imageBlendCoeff/*default value*/, true/*warnIfAbsent*/);
+   }
+}
+
+void LocalizationProbe::ioParam_boundingBoxLineWidth(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   if (drawMontage) {
+      this->getParent()->ioParamValue(ioFlag, this->getName(), "boundingBoxLineWidth", &boundingBoxLineWidth, boundingBoxLineWidth/*default value*/, true/*warnIfAbsent*/);
    }
 }
 
@@ -360,6 +369,7 @@ int LocalizationProbe::setOptimalMontage() {
    while ((numMontageColumns-1)*numMontageRows >= numCategories) { numMontageColumns--; }
    while ((numMontageRows-1)*numMontageColumns >= numCategories) { numMontageRows--; }
    if (numMontageRows < 2) { numMontageRows = 2; }
+   return PV_SUCCESS;
 }
 
 char const * LocalizationProbe::getClassName(int k) {
@@ -959,6 +969,44 @@ int LocalizationProbe::makeMontage() {
    insertImageIntoMontage(xStart, yStart, reconLayer->getLayerData(), reconLayer->getLayerLoc(), true/*extended*/);
 
    if (parent->columnId()!=0) { return PV_SUCCESS; }
+
+   // Draw bounding box
+   if (boundingBoxLineWidth > 0) {
+      int montageColumn = kxPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
+      int montageRow = kyPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
+      double * values = getValuesBuffer();
+      int xStartInMontage = montageColumn * (imageLoc->nxGlobal+10) + 5 + (int) values[2];
+      int yStartInMontage = montageRow * (imageLoc->nyGlobal+64+10) + 5 + 64 + (int) values[4];
+      int width = (int) (values[3]-values[2]);
+      int height = (int) (values[5]-values[4]);
+      char const bbColor[3] = {255, 0, 0}; // red
+      for (int y=0; y<boundingBoxLineWidth; y++) {
+         int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+         for (int k=0; k<3*width; k++) {
+            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+            montageImage[lineStart+k] = bbColor[f];
+         }
+      }
+      for (int y=boundingBoxLineWidth; y<height-boundingBoxLineWidth; y++) {
+         int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+         for (int k=0; k<3*boundingBoxLineWidth; k++) {
+            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+            montageImage[lineStart+k] = bbColor[f];
+         }
+         lineStart=kIndex(xStartInMontage+width-boundingBoxLineWidth, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+         for (int k=0; k<3*boundingBoxLineWidth; k++) {
+            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+            montageImage[lineStart+k] = bbColor[f];
+         }
+      }
+      for (int y=height-boundingBoxLineWidth; y<height; y++) {
+         int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+         for (int k=0; k<3*width; k++) {
+            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+            montageImage[lineStart+k] = bbColor[f];
+         }
+      }
+   }
 
    // Add progress information to bottom 32 pixels
    std::stringstream progress("");
