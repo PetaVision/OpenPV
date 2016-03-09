@@ -161,7 +161,8 @@ int ParameterArray::outputString(FILE * fp, int indentation) {
 
 ParameterArray* ParameterArray::copyParameterArray(){
    ParameterArray* returnPA = new ParameterArray(bufferSize);
-   assert(returnPA->setName(paramName) == PV_SUCCESS);
+   int status = returnPA->setName(paramName);
+   assert(status == PV_SUCCESS);
    for(int i = 0; i < arraySize; i++){
       returnPA->pushValue(valuesDbl[i]);
    }
