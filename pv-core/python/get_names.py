@@ -1,3 +1,11 @@
+# Written by Max Theiler, max.theiler@gmail.com
+# 2/5/2016
+
+# An ancilliary script for analysis_parse.py and
+# analyze_network.m, very likely to be obsolete.
+# Should be deleted when those two commands are
+# no longer being used.
+
 from os import listdir
 import re
 import sys

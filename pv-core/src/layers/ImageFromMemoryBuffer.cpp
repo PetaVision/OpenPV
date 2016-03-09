@@ -22,11 +22,57 @@ ImageFromMemoryBuffer::ImageFromMemoryBuffer() {
 
 int ImageFromMemoryBuffer::initialize_base() {
    buffer = NULL;
+   bufferSize = -1;
+   hasNewImageFlag = false;
+   autoResizeFlag = false;
+   aspectRatioAdjustment = NULL;
+   resizeFactor = 1.0f;
+   imageLeft = 0;
+   imageRight = 0;
+   imageTop = 0;
+   imageBottom = 0;
    return PV_SUCCESS;
 }
 
 int ImageFromMemoryBuffer::initialize(char const * name, HyPerCol * hc) {
    return BaseInput::initialize(name, hc);
+   if (useImageBCflag && autoResizeFlag) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n", getKeyword(), name);
+      }
+      MPI_Barrier(parent->icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
+}
+
+int ImageFromMemoryBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+   int status = BaseInput::ioParamsFillGroup(ioFlag);
+   ioParam_autoResizeFlag(ioFlag);
+   ioParam_aspectRatioAdjustment(ioFlag);
+   return status;
+}
+
+void ImageFromMemoryBuffer::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "autoResizeFlag", &autoResizeFlag, autoResizeFlag);
+}
+
+void ImageFromMemoryBuffer::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
+   if (autoResizeFlag) {
+      parent->ioParamString(ioFlag, name, "aspectRatioAdjustment", &aspectRatioAdjustment, "crop"/*default*/);
+      if (ioFlag == PARAMS_IO_READ) {
+         assert(aspectRatioAdjustment);
+         for (char * c = aspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
+      }
+      if (strcmp(aspectRatioAdjustment, "crop") && strcmp(aspectRatioAdjustment, "pad")) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
+                  getKeyword(), name);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
 }
 
 template <typename pixeltype>
@@ -37,60 +83,127 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
       }
       return PV_FAILURE;
    }
-   imageLoc.nx = width;
-   imageLoc.ny = height;
+
+   int resizedWidth, resizedHeight;
+   if (autoResizeFlag) {
+      float xRatio = (float) getLayerLoc()->nxGlobal/(float) width;
+      float yRatio = (float) getLayerLoc()->nyGlobal/(float) height;
+      if (!strcmp(aspectRatioAdjustment, "crop")) {
+         resizeFactor = xRatio < yRatio ? yRatio : xRatio;
+         // resizeFactor * width should be >= getLayerLoc()->nx; resizeFactor * height should be >= getLayerLoc()->ny,
+         // and one of these relations should be == (up to floating-point roundoff).
+         resizedWidth = (int) nearbyintf(resizeFactor * width);
+         resizedHeight = (int) nearbyintf(resizeFactor * height);
+         assert(resizedWidth >= getLayerLoc()->nxGlobal);
+         assert(resizedHeight >= getLayerLoc()->nyGlobal);
+         assert(resizedWidth == getLayerLoc()->nxGlobal || resizedHeight == getLayerLoc()->nyGlobal);
+      }
+      else if (!strcmp(aspectRatioAdjustment, "pad")) {
+         resizeFactor = xRatio < yRatio ? xRatio : yRatio;
+         // resizeFactor * width should be <= getLayerLoc()->nx; resizeFactor * height should be <= getLayerLoc()->ny,
+         // and one of these relations should be == (up to floating-point roundoff).
+         resizedWidth = (int) nearbyintf(resizeFactor * width);
+         resizedHeight = (int) nearbyintf(resizeFactor * height);
+         assert(resizedWidth <= getLayerLoc()->nxGlobal);
+         assert(resizedHeight <= getLayerLoc()->nyGlobal);
+         assert(resizedWidth == getLayerLoc()->nxGlobal || resizedHeight == getLayerLoc()->nxGlobal);
+      }
+      else {
+         assert(0);
+      }
+   }
+   else {
+      resizedWidth = width;
+      resizedHeight = height;
+   }
+
+   imageLoc.nbatch = 1;
+   imageLoc.nx = resizedWidth;
+   imageLoc.ny = resizedHeight;
    imageLoc.nf = numbands;
-   imageLoc.nxGlobal = width;
-   imageLoc.nyGlobal = height;
+   imageLoc.nbatchGlobal = 1;
+   imageLoc.nxGlobal = resizedWidth;
+   imageLoc.nyGlobal = resizedHeight;
+   imageLoc.kb0 = 0;
    imageLoc.kx0 = 0;
    imageLoc.ky0 = 0;
    memset(&imageLoc.halo, 0, sizeof(PVHalo));
 
+   int dataLeft, dataTop, bufferLeft, bufferTop, localWidth, localHeight;
+   calcLocalBox(parent->columnId(), &dataLeft, &dataTop, &bufferLeft, &bufferTop, &localWidth, &localHeight);
+   imageLeft = dataLeft;
+   imageRight = dataLeft + localWidth;
+   imageTop = dataTop;
+   imageBottom = dataTop + localHeight;
+
    if (parent->columnId()==0) {
-      free(buffer);
-      int buffersize = height*width*numbands;
-      buffer = (pvadata_t *) malloc((size_t) buffersize * sizeof(pvadata_t));
-      if (buffer==NULL) {
-         fprintf(stderr, "%s \"%s\": unable to allocate buffer for %d values of %zu chars each: %s\n",
-               getKeyword(), name, buffersize, sizeof(pvadata_t), strerror(errno));
-         exit(EXIT_FAILURE);
+      int newBufferSize = resizedWidth * resizedHeight * numbands;
+      if (newBufferSize != bufferSize) {
+         free(buffer);
+         bufferSize = newBufferSize;
+         buffer = (pvadata_t *) malloc((size_t) bufferSize * sizeof(pvadata_t));
+         if (buffer==NULL) {
+            fprintf(stderr, "%s \"%s\": unable to allocate buffer for %d values of %zu chars each: %s\n",
+                  getKeyword(), name, bufferSize, sizeof(pvadata_t), strerror(errno));
+            exit(EXIT_FAILURE);
+         }
       }
-      for (int k=0; k<buffersize; k++) {
-         int x=kxPos(k,width,height,numbands);
-         int y=kyPos(k,width,height,numbands);
-         int f=featureIndex(k,width,height,numbands);
-         int externalIndex = f*bandstride + x*xstride + y*ystride;
-         pixeltype q = externalBuffer[externalIndex];
-         buffer[k] = pixelTypeConvert(q, zeroval, oneval);
+      if (autoResizeFlag) {
+         int const nxExtern = imageLoc.nxGlobal;
+         int const nyExtern = imageLoc.nyGlobal;
+         bicubicinterp(externalBuffer, height, width, numbands, xstride, ystride, bandstride, resizedHeight, resizedWidth, zeroval, oneval);
+      }
+      else {
+         #ifdef PV_USE_OPENMP_THREADS
+         #pragma omp parallel for
+         #endif // PV_USE_OPENMP_THREADS
+         for (int k=0; k<bufferSize; k++) {
+            int x=kxPos(k,width,height,numbands);
+            int y=kyPos(k,width,height,numbands);
+            int f=featureIndex(k,width,height,numbands);
+            int externalIndex = f*bandstride + x*xstride + y*ystride;
+            pixeltype q = externalBuffer[externalIndex];
+            buffer[k] = pixelTypeConvert(q, zeroval, oneval);
+         }
       }
 
-      // Fix this code starting with the line immediately below this one!  Code duplication from Image::readImage
+      // Code duplication from Image::readImage
       // if normalizeLuminanceFlag == true and normalizeStdDev == true, then force average luminance to be 0, std. dev.=1
       // if normalizeLuminanceFlag == true and normalizeStdDev == false, then force min=0, max=1.
+      // if normalizeLuminanceFlag == true and the image in buffer is completely flat, force all values to zero
       bool normalize_standard_dev = normalizeStdDev;
       if(normalizeLuminanceFlag){
          if (normalize_standard_dev){
             double image_sum = 0.0f;
             double image_sum2 = 0.0f;
-            for (int k=0; k<buffersize; k++) {
+            for (int k=0; k<bufferSize; k++) {
                image_sum += buffer[k];
                image_sum2 += buffer[k]*buffer[k];
             }
-            double image_ave = image_sum / buffersize;
-            double image_ave2 = image_sum2 / buffersize;
+            double image_ave = image_sum / bufferSize;
+            double image_ave2 = image_sum2 / bufferSize;
             // set mean to zero
-            for (int k=0; k<buffersize; k++) {
+            #ifdef PV_USE_OPENMP
+            #pragma omp parallel for
+            #endif // PV_USE_OPENMP
+            for (int k=0; k<bufferSize; k++) {
                buffer[k] -= image_ave;
             }
             // set std dev to 1
             double image_std = sqrt(image_ave2 - image_ave*image_ave);
             if(image_std == 0){
-               for (int k=0; k<buffersize; k++) {
-                  buffer[k] = .5;
+               #ifdef PV_USE_OPENMP
+               #pragma omp parallel for
+               #endif // PV_USE_OPENMP
+               for (int k=0; k<bufferSize; k++) {
+                  buffer[k] = 0.0f;
                }
             }
             else{
-               for (int k=0; k<buffersize; k++) {
+               #ifdef PV_USE_OPENMP
+               #pragma omp parallel for
+               #endif // PV_USE_OPENMP
+               for (int k=0; k<bufferSize; k++) {
                   buffer[k] /= image_std;
                }
             }
@@ -98,32 +211,40 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
          else{
             float image_max = -FLT_MAX;
             float image_min = FLT_MAX;
-            for (int k=0; k<buffersize; k++) {
+            for (int k=0; k<bufferSize; k++) {
                image_max = buffer[k] > image_max ? buffer[k] : image_max;
                image_min = buffer[k] < image_min ? buffer[k] : image_min;
             }
             if (image_max > image_min){
                float image_stretch = 1.0f / (image_max - image_min);
-               for (int k=0; k<buffersize; k++) {
+               #ifdef PV_USE_OPENMP
+               #pragma omp parallel for
+               #endif // PV_USE_OPENMP
+               for (int k=0; k<bufferSize; k++) {
                   buffer[k] -= image_min;
                   buffer[k] *= image_stretch;
                }
             }
-            else{ // image_max == image_min, set to gray
-               //float image_shift = 0.5f - image_ave;
-               for (int k=0; k<buffersize; k++) {
-                  buffer[k] = 0.5f; //image_shift;
+            else{
+               #ifdef PV_USE_OPENMP
+               #pragma omp parallel for
+               #endif // PV_USE_OPENMP
+               for (int k=0; k<bufferSize; k++) {
+                  buffer[k] = 0.0f;
                }
             }
          }
       } // normalizeLuminanceFlag
 
       if( inverseFlag ) {
-         for (int k=0; k<buffersize; k++) {
+         #ifdef PV_USE_OPENMP
+         #pragma omp parallel for
+         #endif // PV_USE_OPENMP
+         for (int k=0; k<bufferSize; k++) {
             buffer[k] = 1 - buffer[k];
          }
       }
-      // Fix this code up to the line immediately above this one!  Code duplication from Image::readImage
+      // Code duplication from Image::readImage
 
    }
    
@@ -132,9 +253,6 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
    return PV_SUCCESS;
 }
 template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, uint8_t zeroval, uint8_t oneval);
-/*
-
- */
 
 template <typename pixeltype>
 int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval, int offsetX, int offsetY, char const * offsetAnchor) {
@@ -157,6 +275,59 @@ template int ImageFromMemoryBuffer::setMemoryBuffer<uint8_t>(uint8_t const * buf
 template <typename pixeltype>
 pvadata_t ImageFromMemoryBuffer::pixelTypeConvert(pixeltype q, pixeltype zeroval, pixeltype oneval) {
    return ((pvadata_t) (q-zeroval))/((pvadata_t) (oneval-zeroval));
+}
+
+template <typename pixeltype> int ImageFromMemoryBuffer::bicubicinterp(pixeltype const * bufferIn, int heightIn, int widthIn, int numBands, int xStrideIn, int yStrideIn, int bandStrideIn, int heightOut, int widthOut, pixeltype zeroval, pixeltype oneval) {
+   /* Interpolation using bicubic convolution with a=-1 (following Octave image toolbox's imremap function -- change this?). */
+   float xinterp[widthOut];
+   int xinteger[widthOut];
+   float xfrac[widthOut];
+   float dx = (float) (widthIn-1)/(float) (widthOut-1);
+   for (int kx=0; kx<widthOut; kx++) {
+      float x = dx * (float) kx;
+      xinterp[kx] = x;
+      float xfloor = floorf(x);
+      xinteger[kx] = (int) xfloor;
+      xfrac[kx] = x-xfloor;
+   }
+
+   float yinterp[heightOut];
+   int yinteger[heightOut];
+   float yfrac[heightOut];
+   float dy = (float) (heightIn-1)/(float) (heightOut-1);
+   for (int ky=0; ky<heightOut; ky++) {
+      float y = dy * (float) ky;
+      yinterp[ky] = y;
+      float yfloor = floorf(y);
+      yinteger[ky] = (int) yfloor;
+      yfrac[ky] = y-yfloor;
+   }
+
+   memset(buffer, 0, sizeof(*buffer)*bufferSize);
+   for (int xOff = 2; xOff > -2; xOff--) {
+      for (int yOff = 2; yOff > -2; yOff--) {
+         for (int ky=0; ky<heightOut; ky++) {
+            float ycoeff = bicubic(yfrac[ky]-(float) yOff);
+            int yfetch = yinteger[ky]+yOff;
+            if (yfetch < 0) yfetch = -yfetch;
+            if (yfetch >= heightIn) yfetch = heightIn - (yfetch - heightIn) - 1;
+            for (int kx=0; kx<widthOut; kx++) {
+               float xcoeff = bicubic(xfrac[kx]-(float) xOff);
+               int xfetch = xinteger[kx]+xOff;
+               if (xfetch < 0) xfetch = -xfetch;
+               if (xfetch >= widthIn) xfetch = widthIn - (xfetch - widthIn) - 1;
+               assert(xfetch >= 0 && xfetch < widthIn && yfetch >= 0 && yfetch < heightIn);
+               for (int f=0; f<numBands; f++) {
+                  int fetchIdx = yfetch * yStrideIn + xfetch * xStrideIn + f * bandStrideIn;
+                  pvadata_t p = pixelTypeConvert(bufferIn[fetchIdx], zeroval, oneval);
+                  int outputIdx = kIndex(kx, ky, f, widthOut, heightOut, numBands);
+                  buffer[outputIdx] += xcoeff * ycoeff * p;
+               }
+            }
+         }
+      }
+   }
+   return PV_SUCCESS;
 }
 
 int ImageFromMemoryBuffer::initializeActivity(double time, double dt) {
@@ -183,7 +354,7 @@ int ImageFromMemoryBuffer::copyBuffer() {
    Communicator * icComm = parent->icCommunicator();
    if (parent->columnId()==0) {
       if (buffer == NULL) {
-         fprintf(stderr, "%s \"%s\" error: moveBufferToData called without having called setMemoryBuffer.\n",
+         fprintf(stderr, "%s \"%s\" error: copyBuffer called without having called setMemoryBuffer.\n",
                getKeyword(), name);
          exit(PV_FAILURE); // return PV_FAILURE;
       }
@@ -203,28 +374,72 @@ int ImageFromMemoryBuffer::copyBuffer() {
 }
 
 int ImageFromMemoryBuffer::moveBufferToData(int rank) {
-   //AutoResizeFlag is in Image, as currently autoResizeFlag only works on reading images with gdal
-   //if (autoResizeFlag) {
-   //   fprintf(stderr, "autoResizeFlag not implemented for ImageFromMemoryBuffer yet :-(\n");
-   //   exit(EXIT_FAILURE);
-   //}
    assert(parent->columnId()==0);
    assert(buffer != NULL);
+
+   int startxdata, startydata, startxbuffer, startybuffer, xsize, ysize;
+   calcLocalBox(rank, &startxdata, &startydata, &startxbuffer, &startybuffer, &xsize, &ysize);
+   PVLayerLoc const * layerLoc = getLayerLoc();
+   PVHalo const * halo = &layerLoc->halo;
+   int fsize = layerLoc->nf;
    
-   // The part of the buffer with x in [processcolumnnumber * nx, processcolumnnumber * (nx + 1) - 1]
-   // and y in [processcolumnnumber * nx, processcolumnnumber * (nx + 1) - 1]
-   // gets copied to the restricted space of the given rank.
-   // If useImageBCflag is set, we also have to copy as much of the surrounding region as
-   // will fit in both the halo and the image.
-   // Are we also supposed to mirror any gap between the edge of the image and the edge of the halo?
-   // The code doesn't do that at this point.
-   // The code below assumes that all processes have the same getLayerLoc().
+   if (fsize != 1 && imageLoc.nf != 1 && fsize != imageLoc.nf) {
+      fprintf(stderr, "%s \"%s\": If nf and the number of bands in the image are both greater than 1, they must be equal.\n", getKeyword(), name);
+      exit(EXIT_FAILURE);
+   }
+
+   // begin by setting entire data buffer to padValue, then load the needed section of the image
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for
+   #endif // PV_USE_OPENMP_THREADS
+   for (int kExt=0; kExt<getNumExtended(); kExt++) {
+      data[kExt] = padValue;
+   }
+
+   if (fsize == 1 && imageLoc.nf > 1) {
+      // layer has one feature; convert memory buffer to grayscale
+      for (int y=0; y<ysize; y++) {
+         for (int x=0; x<xsize; x++) {
+            int indexdata = kIndex(startxdata+x,startydata+y,0,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,1);
+            int indexbuffer = kIndex(startxdata+x,startydata+y,0,imageLoc.nx,imageLoc.ny,imageLoc.nf);
+            pvdata_t val = (pvadata_t) 0;
+            for (int f=0; f<imageLoc.nf; f++) {
+               val += buffer[indexbuffer+f];
+            }
+            data[indexdata] = val/(pvadata_t) imageLoc.nf;
+         }
+      }
+   }
+   else if (fsize > 1 && imageLoc.nf == 1) {
+      // image is grayscale; replicate over all color bands of layer
+      for (int y=0; y<ysize; y++) {
+         for (int x=0; x<xsize; x++) {
+            for (int f=0; f<fsize; f++) {
+               int indexdata = kIndex(startxdata+x,startydata+y,f,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,getLayerLoc()->nf);
+               int indexbuffer = kIndex(startxdata+x,startydata+y,0,imageLoc.nx,imageLoc.ny,imageLoc.nf);
+               data[indexdata] = buffer[indexbuffer];
+            }
+         }
+      }
+   }
+   else {
+      assert(fsize == imageLoc.nf); // layer and memory buffer have the same number of features
+      for (int y=0; y<ysize; y++) {
+         int linestartdata = kIndex(startxdata,startydata+y,0,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,fsize);
+         int linestartbuffer = kIndex(startxbuffer,startybuffer+y,0,imageLoc.nx,imageLoc.ny,fsize);
+         memcpy(&data[linestartdata], &buffer[linestartbuffer], sizeof(pvadata_t) * xsize * fsize);
+      }
+   }
+   return PV_SUCCESS;
+}
+
+int ImageFromMemoryBuffer::calcLocalBox(int rank, int * dataLeft, int * dataTop, int * imageLeft, int * imageTop, int * width, int * height) {
    Communicator * icComm = parent->icCommunicator();
    int column = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
    int startxbuffer = getOffsetX(this->offsetAnchor, this->offsets[0]) + column * getLayerLoc()->nx;
    int startxdata = getLayerLoc()->halo.lt;
    int row = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
-   int startybuffer = getOffsetY(this->offsetAnchor, this->offsets[0]) + row * getLayerLoc()->ny;
+   int startybuffer = getOffsetY(this->offsetAnchor, this->offsets[1]) + row * getLayerLoc()->ny;
    int startydata = getLayerLoc()->halo.up;
    int xsize = getLayerLoc()->nx;
    int ysize = getLayerLoc()->ny;
@@ -268,46 +483,59 @@ int ImageFromMemoryBuffer::moveBufferToData(int rank) {
          ysize += movedown;
       }   
    }
+
+   if (startxbuffer < 0) {
+      int discrepancy = -startxbuffer;
+      startxdata += discrepancy;
+      startxbuffer = 0;
+      xsize -= discrepancy;
+   }
+   if (startxdata < 0) {
+      int discrepancy = -startxdata;
+      startxdata = 0;
+      startxbuffer += discrepancy;
+      xsize -= discrepancy;
+   }
+
+   if (startxbuffer+xsize > imageLoc.nxGlobal) {
+      xsize = imageLoc.nxGlobal - startxbuffer;
+   }
+   if (startxdata+xsize > getLayerLoc()->nx) {
+      xsize = getLayerLoc()->nx - startxdata;
+   }
+
+   if (startybuffer < 0) {
+      int discrepancy = -startybuffer;
+      startydata += discrepancy;
+      startybuffer = 0;
+      ysize -= discrepancy;
+   }
+   if (startydata < 0) {
+      int discrepancy = -startydata;
+      startydata = 0;
+      startybuffer += discrepancy;
+      ysize -= discrepancy;
+   }
+
+   if (startybuffer+ysize > imageLoc.nyGlobal) {
+      ysize = imageLoc.nyGlobal - startybuffer;
+   }
+   if (startydata+ysize > getLayerLoc()->ny) {
+      ysize = getLayerLoc()->ny - startydata;
+   }
+
    assert(startxbuffer >= 0 && startxbuffer + xsize <= imageLoc.nxGlobal);
+   assert(startxdata >= 0 && startxdata + xsize <= getLayerLoc()->nxGlobal);
    assert(startybuffer >= 0 && startybuffer + ysize <= imageLoc.nyGlobal);
-   if (fsize != 1 && imageLoc.nf != 1 && fsize != imageLoc.nf) {
-      fprintf(stderr, "%s \"%s\": If nf and the number of bands in the image are both greater than 1, they must be equal.\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
-   }
-   if (fsize == 1 && imageLoc.nf > 1) {
-      // layer has one feature; convert memory buffer to grayscale
-      for (int y=0; y<ysize; y++) {
-         for (int x=0; x<xsize; x++) {
-            int indexdata = kIndex(startxdata+x,startydata+y,0,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,1);
-            int indexbuffer = kIndex(startxdata+x,startydata+y,0,imageLoc.nx,imageLoc.ny,imageLoc.nf);
-            pvdata_t val = (pvadata_t) 0;
-            for (int f=0; f<imageLoc.nf; f++) {
-               val += buffer[indexbuffer+f];
-            }
-            data[indexdata] = val/(pvadata_t) imageLoc.nf;
-         }
-      }
-   }
-   else if (fsize > 1 && imageLoc.nf == 1) {
-      // image is grayscale; replicate over all color bands of layer
-      for (int y=0; y<ysize; y++) {
-         for (int x=0; x<xsize; x++) {
-            for (int f=0; f<fsize; f++) {
-               int indexdata = kIndex(startxdata+x,startydata+y,f,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,getLayerLoc()->nf);
-               int indexbuffer = kIndex(startxdata+x,startydata+y,0,imageLoc.nx,imageLoc.ny,imageLoc.nf);
-               data[indexdata] = buffer[indexbuffer];
-            }
-         }
-      }
-   }
-   else {
-      assert(fsize == imageLoc.nf); // layer and memory buffer have the same number of features
-      for (int y=0; y<ysize; y++) {
-         int linestartdata = kIndex(startxdata,startydata+y,0,getLayerLoc()->nx+halo->lt+halo->rt,getLayerLoc()->ny+halo->dn+halo->up,fsize);
-         int linestartbuffer = kIndex(startxbuffer,startybuffer+y,0,imageLoc.nx,imageLoc.ny,fsize);
-         memcpy(&data[linestartdata], &buffer[linestartbuffer], sizeof(pvadata_t) * xsize * fsize);
-      }
-   }
+   assert(startydata >= 0 && startydata + ysize <= getLayerLoc()->nyGlobal);
+
+   *dataLeft = startxdata;
+   *dataTop = startydata;
+   *imageLeft = startxbuffer;
+   *imageTop = startybuffer;
+   *width = xsize;
+   *height = ysize;
+
    return PV_SUCCESS;
 }
 
@@ -322,6 +550,7 @@ int ImageFromMemoryBuffer::outputState(double time, bool last) {
 
 ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {
    free(buffer);
+   free(aspectRatioAdjustment);
 }
 
 }  // namespace PV

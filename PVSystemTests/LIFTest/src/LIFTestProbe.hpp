@@ -19,6 +19,7 @@ public:
    virtual ~LIFTestProbe();
 
    virtual int communicateInitInfo();
+   virtual int allocateDataStructures();
 
    virtual int outputState(double timed);
 

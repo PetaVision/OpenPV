@@ -1,0 +1,101 @@
+set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/ANNErrorLayer.cpp
+   ${SUBDIR}/ANNLayer.cpp
+   ${SUBDIR}/ANNNormalizedErrorLayer.cpp
+   ${SUBDIR}/ANNSquaredLayer.cpp
+   ${SUBDIR}/ANNWhitenedLayer.cpp
+   ${SUBDIR}/BackgroundLayer.cpp
+   ${SUBDIR}/BaseInput.cpp
+   ${SUBDIR}/BaseLayer.cpp
+   ${SUBDIR}/BinningLayer.cpp
+   ${SUBDIR}/CloneVLayer.cpp
+   ${SUBDIR}/ConstantLayer.cpp
+   ${SUBDIR}/FilenameParsingGroundTruthLayer.cpp
+   ${SUBDIR}/GapLayer.cpp
+   ${SUBDIR}/HyPerLayer.cpp
+   ${SUBDIR}/HyPerLCALayer.cpp
+   ${SUBDIR}/Image.cpp
+   ${SUBDIR}/ImageFromMemoryBuffer.cpp
+   ${SUBDIR}/ImagePvp.cpp
+   ${SUBDIR}/InitV.cpp
+   ${SUBDIR}/ISTALayer.cpp
+   ${SUBDIR}/KmeansLayer.cpp
+   ${SUBDIR}/LabelErrorLayer.cpp
+   ${SUBDIR}/LabelLayer.cpp
+   ${SUBDIR}/LCALIFLayer.cpp
+   ${SUBDIR}/LeakyIntegrator.cpp
+   ${SUBDIR}/LIF.cpp
+   ${SUBDIR}/LIFGap.cpp
+   ${SUBDIR}/MaskLayer.cpp
+   ${SUBDIR}/Movie.cpp
+   ${SUBDIR}/MoviePvp.cpp
+   ${SUBDIR}/Patterns.cpp
+   ${SUBDIR}/PoolingIndexLayer.cpp
+   ${SUBDIR}/PtwiseLinearTransferLayer.cpp
+   ${SUBDIR}/PtwiseProductLayer.cpp
+   ${SUBDIR}/RescaleLayer.cpp
+   ${SUBDIR}/Retina.cpp
+   ${SUBDIR}/RunningAverageLayer.cpp
+   ${SUBDIR}/Segmentify.cpp
+   ${SUBDIR}/SegmentLayer.cpp
+   ${SUBDIR}/ShuffleLayer.cpp
+   ${SUBDIR}/SigmoidLayer.cpp
+   ${SUBDIR}/WTALayer.cpp
+)
+
+set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/ANNErrorLayer.hpp
+   ${SUBDIR}/ANNLayer.hpp
+   ${SUBDIR}/ANNNormalizedErrorLayer.hpp
+   ${SUBDIR}/ANNSquaredLayer.hpp
+   ${SUBDIR}/ANNWhitenedLayer.hpp
+   ${SUBDIR}/BackgroundLayer.hpp
+   ${SUBDIR}/BaseInput.hpp
+   ${SUBDIR}/BaseLayer.hpp
+   ${SUBDIR}/BinningLayer.hpp
+   ${SUBDIR}/CloneVLayer.hpp
+   ${SUBDIR}/ConstantLayer.hpp
+   ${SUBDIR}/FilenameParsingGroundTruthLayer.hpp
+   ${SUBDIR}/GapLayer.hpp
+   ${SUBDIR}/HyPerLayer.hpp
+   ${SUBDIR}/HyPerLCALayer.hpp
+   ${SUBDIR}/Image.hpp
+   ${SUBDIR}/ImageFromMemoryBuffer.hpp
+   ${SUBDIR}/ImagePvp.hpp
+   ${SUBDIR}/InitV.hpp
+   ${SUBDIR}/ISTALayer.hpp
+   ${SUBDIR}/KmeansLayer.hpp
+   ${SUBDIR}/LabelErrorLayer.hpp
+   ${SUBDIR}/LabelLayer.hpp
+   ${SUBDIR}/LCALIFLayer.hpp
+   ${SUBDIR}/LeakyIntegrator.hpp
+   ${SUBDIR}/LIF.hpp
+   ${SUBDIR}/LIFGap.hpp
+   ${SUBDIR}/MaskLayer.hpp
+   ${SUBDIR}/Movie.hpp
+   ${SUBDIR}/MoviePvp.hpp
+   ${SUBDIR}/Patterns.hpp
+   ${SUBDIR}/PoolingIndexLayer.hpp
+   ${SUBDIR}/PtwiseLinearTransferLayer.hpp
+   ${SUBDIR}/PtwiseProductLayer.hpp
+   ${SUBDIR}/RescaleLayer.hpp
+   ${SUBDIR}/Retina.hpp
+   ${SUBDIR}/RunningAverageLayer.hpp
+   ${SUBDIR}/Segmentify.hpp
+   ${SUBDIR}/SegmentLayer.hpp
+   ${SUBDIR}/ShuffleLayer.hpp
+   ${SUBDIR}/SigmoidLayer.hpp
+   ${SUBDIR}/WTALayer.hpp
+)
+
+set (PVLibSrcC ${PVLibSrcC}
+   ${SUBDIR}/accumulate_functions.c
+   ${SUBDIR}/PVLayerCube.c
+)
+
+set (PVLibSrcH ${PVLibSrcH}
+   ${SUBDIR}/accumulate_functions.h
+   ${SUBDIR}/PVLayerCube.h
+   ${SUBDIR}/updateStateFunctions.h
+)
+

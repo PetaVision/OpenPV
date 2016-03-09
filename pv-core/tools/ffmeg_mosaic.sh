@@ -16,15 +16,15 @@ ffmpeg -i ImageReconS1_dtMax_2.mp4 -i ImageReconS2_dtMax_2.mp4 -filter_complex "
 
 
 # make video from individual frames
-ffmpeg -framerate 4 -pattern_type glob -i 'Frame*ReconS1_00480000.png' -c:v libx264 -pix_fmt yuv420p FrameReconS1_00480000.mp4
+ffmpeg -framerate 4 -pattern_type glob -i 'Frame*ReconS1_00072000.png' -c:v libx264 -pix_fmt yuv420p FrameReconS1_00072000.mp4
 
-ffmpeg -framerate 4 -pattern_type glob -i 'S1_0ToFrame?ReconS1Error_W_00301331_1.png' -c:v libx264 -pix_fmt yuv420p S1_0ToFrameReconS1Error_00301331_1.mp4
+ffmpeg -framerate 4 -pattern_type glob -i 'S1_0ToFrame?ReconS1Error_W_00072000_1.png' -c:v libx264 -pix_fmt yuv420p S1_0ToFrameReconS1Error_00072000_1.mp4
 
 
-ffmpeg -i Frame_00480000.mp4 -i FrameReconS1_00480000.mp4 -filter_complex "nullsrc=size=256x288 [base]; [0:v] setpts=PTS-STARTPTS, scale=256x144 [top]; [1:v] setpts=PTS-STARTPTS, scale=256x144 [bottom]; [base][top] overlay=shortest=1 [tmp1]; [tmp1][bottom] overlay=shortest=1:y=144" -c:v libx264 mosaic_2X1_FrameReconS1_00480000.mp4
+ffmpeg -i Frame_00152000.mp4 -i FrameReconS1_00152000.mp4 -filter_complex "nullsrc=size=256x288 [base]; [0:v] setpts=PTS-STARTPTS, scale=256x144 [top]; [1:v] setpts=PTS-STARTPTS, scale=256x144 [bottom]; [base][top] overlay=shortest=1 [tmp1]; [tmp1][bottom] overlay=shortest=1:y=144" -c:v libx264 mosaic_2X1_FrameReconS1_00152000.mp4
 
 ffmpeg -i FrameLeft_00480000.mp4 -i FrameLeftReconS1_00480000.mp4 -i FrameRight_00480000.mp4 -i FrameRightReconS1_00480000.mp4 -filter_complex "nullsrc=size=1024x288 [base]; [0:v] setpts=PTS-STARTPTS, scale=512x144 [topleft]; [1:v] setpts=PTS-STARTPTS, scale=512x144 [bottomleft]; [2:v] setpts=PTS-STARTPTS, scale=512x144 [topright]; [3:v] setpts=PTS-STARTPTS, scale=512x144 [bottomright]; [base][topleft] overlay=shortest=1 [tmp1]; [tmp1][bottomleft] overlay=shortest=1:y=144 [tmp2]; [tmp2][topright] overlay=shortest=1:x=512 [tmp3]; [tmp3][bottomright] overlay=shortest=1:x=512:y=144" -c:v libx264 mosaic_2X2_FrameReconLeftRightS1_00120000.mp4
 
-ffmpeg -i FrameLeft_00480000.mp4 -i FrameLeftReconS1_00480000.mp4 -i FrameRight_00480000.mp4 -i FrameRightReconS1_00480000.mp4 -filter_complex "nullsrc=size=512x576 [base]; [0:v] setpts=PTS-STARTPTS, scale=512x144 [firstrow]; [1:v] setpts=PTS-STARTPTS, scale=512x144 [secondrow]; [2:v] setpts=PTS-STARTPTS, scale=512x144 [thirdrow]; [3:v] setpts=PTS-STARTPTS, scale=512x144 [fourthrow]; [base][firstrow] overlay=shortest=1 [tmp1]; [tmp1][secondrow] overlay=shortest=1:y=144 [tmp2]; [tmp2][thirdrow] overlay=shortest=1:y=288 [tmp3]; [tmp3][fourthrow] overlay=shortest=1:y=432" -c:v libx264 mosaic_4X1_FrameReconLeftRightS1_00480000.mp4
+ffmpeg -i FrameLeft_00084000.mp4 -i FrameLeftReconS1_00084000.mp4 -i FrameRight_00084000.mp4 -i FrameRightReconS1_00084000.mp4 -filter_complex "nullsrc=size=512x576 [base]; [0:v] setpts=PTS-STARTPTS, scale=512x144 [firstrow]; [1:v] setpts=PTS-STARTPTS, scale=512x144 [secondrow]; [2:v] setpts=PTS-STARTPTS, scale=512x144 [thirdrow]; [3:v] setpts=PTS-STARTPTS, scale=512x144 [fourthrow]; [base][firstrow] overlay=shortest=1 [tmp1]; [tmp1][secondrow] overlay=shortest=1:y=144 [tmp2]; [tmp2][thirdrow] overlay=shortest=1:y=288 [tmp3]; [tmp3][fourthrow] overlay=shortest=1:y=432" -c:v libx264 mosaic_4X1_FrameReconLeftRightS1_00084000.mp4
 
 

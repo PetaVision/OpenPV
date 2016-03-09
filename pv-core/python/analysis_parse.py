@@ -1,3 +1,14 @@
+# Written by Max Theiler, max.theiler@gmail.com
+# 2/5/2016
+
+# This script is an obsolete, earlier version of the
+# param_draw.py script that is used for the param-
+# reading aspects of the analyze_network.m script in
+# util/mlab. If no one is still using analyze_network.m,
+# it should be deleted.
+
+
+
 from os import listdir
 import os
 import re

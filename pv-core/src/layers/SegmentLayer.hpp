@@ -2,6 +2,7 @@
 #define SEGMENTLAYER_HPP_
 
 #include "HyPerLayer.hpp"
+#include <map>
 
 namespace PV {
 
@@ -12,6 +13,7 @@ public:
    virtual int allocateDataStructures();
    virtual bool activityIsSpiking() { return false; }
    virtual ~SegmentLayer();
+   const std::map<int, int> getCenterIdxBuf(int batch){ return centerIdx[batch];}
 
 protected:
    SegmentLayer();
@@ -25,8 +27,6 @@ protected:
    virtual int initializeV();
 
    virtual int updateState(double timef, double dt);
-
-   //int growLabelBuffers(int newSize);
 
 private:
    int initialize_base();

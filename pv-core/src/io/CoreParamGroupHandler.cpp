@@ -44,6 +44,7 @@
 #include "../layers/RescaleLayer.hpp"
 #include "../layers/RunningAverageLayer.hpp"
 #include "../layers/Retina.hpp"
+#include "../layers/Segmentify.hpp"
 #include "../layers/SegmentLayer.hpp"
 #include "../layers/ShuffleLayer.hpp"
 #include "../layers/SigmoidLayer.hpp"
@@ -169,6 +170,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"RescaleLayer", LayerGroupType},
          {"RunningAverageLayer", LayerGroupType},
          {"Retina", LayerGroupType},
+         {"Segmentify", LayerGroupType},
          {"SegmentLayer", LayerGroupType},
          {"ShuffleLayer", LayerGroupType},
          {"SigmoidLayer", LayerGroupType},
@@ -401,6 +403,9 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    }
    else if( !strcmp(keyword, "Retina") ) {
       addedLayer = new Retina(name, hc);
+   }
+   else if( !strcmp(keyword, "Segmentify") ) {
+      addedLayer = new Segmentify(name, hc);
    }
    else if( !strcmp(keyword, "SegmentLayer") ) {
       addedLayer = new SegmentLayer(name, hc);

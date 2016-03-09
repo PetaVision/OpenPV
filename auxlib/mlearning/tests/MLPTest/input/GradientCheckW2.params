@@ -11,15 +11,15 @@
 debugParsing = false;    // Debug the reading of this parameter file.
 
 HyPerCol "column" = {
-   nx = 1;
-   ny = 1;
+   nx = 64;
+   ny = 64;
    dt = 1.0;  //time step in ms.	     
    randomSeed = 2394853940;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
    stopTime = 6.0; //Number of total parameters in the network (weights + biases)
    progressInterval = 10.0; //Program will output its progress at each progressStep
    writeProgressToErr = false;  
-   outputPath = "alexOutput/";
+   outputPath = "w2output/";
    filenamesContainLayerNames = true;  
    filenamesContainConnectionNames = true;
    checkpointRead = false;  
@@ -39,7 +39,7 @@ ConstantLayer "onesLayer" = {
     writeStep = -1;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
-    writeSparseActivity = false;
+    //writeSparseActivity = false;
     InitVType = "ConstantV";
     valueV    = 1;
     VThresh = -infinity;   
@@ -50,13 +50,13 @@ ConstantLayer "onesLayer" = {
 //Note that the layer name matches train.txt
 InputLayer "train" = {
     restart = 0;
-    nxScale = 1; 
-    nyScale = 1;
+    nxScale = 2; 
+    nyScale = 2;
     nf = 2;
     writeStep = -1;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
-    writeSparseActivity = false;
+    //writeSparseActivity = false;
     InitVType = "ZeroV";
     inFilename = "input/train/input.txt";
     phase = 0;
@@ -75,13 +75,15 @@ ANNLayer "HiddenLayer1" = {
     writeStep = -1; //Change based on display period
     initialWriteTime = 0.0; //Change based on display period 
     mirrorBCflag = 0;
-    writeSparseActivity = 0;
+    //writeSparseActivity = 0;
     InitVType = "ZeroV";
     phase = 1;
     //rectified
-    VThresh = 0;
-    VMax = infinity;
-    VMin = 0;
+    //VThresh = 0;
+    //AMin = 0;
+    VThresh = -infinity;
+    AMin = -infinity;
+    AMax = infinity;
 };
 
 ANNLayer "FinalLayer" = {
@@ -92,7 +94,7 @@ ANNLayer "FinalLayer" = {
     writeStep = -1; //Change based on display period
     initialWriteTime = 0.0; //Change based on display period 
     mirrorBCflag = 0;
-    writeSparseActivity = 0;
+    //writeSparseActivity = 0;
     InitVType = "ZeroV";
     phase = 3;
     ////rectified
@@ -109,7 +111,7 @@ GTLayer "gt" = {
     writeStep = -1;
     initialWriteTime = 0.0;
     mirrorBCflag = 0;
-    writeSparseActivity = false;
+    //writeSparseActivity = false;
     InitVType = "ZeroV";
     inFilename = "input/train/gt.txt";
     phase = 0;
@@ -140,34 +142,45 @@ ANNLayer "FinalError" = {
    nf = 1;
    writeStep = -1;
    mirrorBCflag = 0;
-   writeSparseActivity = 0;
+   //writeSparseActivity = 0;
    InitVType = "ZeroV";
    VThresh = -infinity;
    phase = 3;
 };
 
-MaskLayer "Error1" = {
-    restart = 0;
+ANNLayer "Error1" = {
     nxScale = 1;
     nyScale = 1;
     nf = 4;
     writeStep = -1; //Change based on display period
     mirrorBCflag = 0;
-    writeSparseActivity = 0;
     InitVType = "ZeroV";
     VThresh = -infinity;
     phase = 4;
-    maskMethod = "layer";
-    maskLayerName = "HiddenLayer1";
 };
+
+//MaskLayer "Error1" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 4;
+//    writeStep = -1; //Change based on display period
+//    mirrorBCflag = 0;
+//    //writeSparseActivity = 0;
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    phase = 4;
+//    maskMethod = "layer";
+//    maskLayerName = "HiddenLayer1";
+//};
 
 //Connections
 KernelConn "W1Plasticity" = {
     preLayerName = "train";
     postLayerName = "Error1";
     channelCode = -1; //Does not update on this channel
-    nxp = 1; 
-    nyp = 1; 
+    nxp = 13; 
+    nyp = 13; 
     numAxonalArbors = 1;
     initFromLastFlag = 0;  // 1;  // restart
     writeStep = -1;
@@ -179,6 +192,7 @@ KernelConn "W1Plasticity" = {
     strength = 1.0;  
     normalizeMethod = "none";
     sharedWeights = true;
+    normalizeDw = false;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
@@ -214,6 +228,7 @@ KernelConn "B1Plasticity" = {
         
     strength = 1.0;  
     normalizeMethod = "none";
+    normalizeDw = false;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;
@@ -276,6 +291,7 @@ GradientCheckConn "W2Plasticity" = {
     strength = 1.0;  
     normalizeMethod = "none";
     sharedWeights = true;
+    normalizeDw = false;
     
     shrinkPatches = false;
     //writeCompressedWeights = 0.0;

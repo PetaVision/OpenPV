@@ -246,8 +246,7 @@ int BaseProbe::setNumValues(int n) {
 }
 
 int BaseProbe::communicateInitInfo() {
-   //Set up output stream
-   int status = initOutputStream(probeOutputFilename);
+   int status = PV_SUCCESS;
 
    // Set up triggering.
    if(triggerFlag){
@@ -280,6 +279,11 @@ int BaseProbe::communicateInitInfo() {
 }
 
 int BaseProbe::allocateDataStructures(){
+   int status = PV_SUCCESS;
+
+   //Set up output stream
+   status = initOutputStream(probeOutputFilename);
+
    return PV_SUCCESS;
 }
 

@@ -175,6 +175,17 @@ int PoolingConn::communicateInitInfo() {
          
       }
 
+      const PVLayerLoc * idxLoc = postIndexLayer->getLayerLoc();
+      //postIndexLayer must be the same size as the post layer
+      //(margins doesnt matter)
+      if(idxLoc->nxGlobal != postLoc->nxGlobal || idxLoc->nyGlobal != postLoc->nyGlobal || idxLoc->nf != postLoc->nf){
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: postIndexLayer \"%s\" must have the same dimensions as the post pooling layer \"%s\".", this->getKeyword(), name, this->postIndexLayerName, this->postLayerName);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+
       //TODO this is currently a hack, need to properly implement data types.
       assert(sizeof(int) == sizeof(float));
    }

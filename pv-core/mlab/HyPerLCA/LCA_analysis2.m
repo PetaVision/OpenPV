@@ -44,9 +44,12 @@ if ismac
       {"VOC2007_landscape1"};
     endif
   elseif strcmp(run_type, "VID")
-    output_dir = "/Volumes/mountData/VID/ImageNetVid_S1X32_32X16_4X14frames/train1"
+    output_dir = "/Volumes/mountData/VID/ImageNetVid_S1X32_32X16_4X14frames/train6"
     checkpoint_parent = "/Volumes/mountData/VID/ImageNetVid_S1X32_32X16_4X14frames"
-    checkpoint_children = {"train1"}; %%
+    checkpoint_children = {"train6"}; %%
+    %%output_dir = "/Volumes/mountData/KITTI/KITTI_S1X32_32X16_2X6frames/2011_09_26_train9";
+    %%checkpoint_parent = "/Volumes/mountData/KITTI/KITTI_S1X32_32X16_2X6frames";
+    %%checkpoint_children = {"2011_09_26_train9"}; %%
   elseif strcmp(run_type, "JIEDDO") 
     if ~exist("JIEDDO_subtype", "var") || strcmp(JIEDDO_subtype, "CARS")
       output_dir = "/Volumes/mountData/JIEDDO/JIEDDO_S1X4_1536/car_n02958343_2";
@@ -97,7 +100,7 @@ elseif isunix
   %%run_type = "DCNNX3";
   %%run_type = "DBN";
   %%run_type = "experts";
-  run_type = "ICA";
+  %%run_type = "ICA";
   if strcmp(run_type, "experts") 
     output_dir = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts/VOC2007_landscape2";
     checkpoint_parent = "/nh/compneuro/Data/PASCAL_VOC/PASCAL_S1_16_8_4_experts";
@@ -207,9 +210,11 @@ if analyze_Recon
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glob generated list
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    Recon_glob_list = glob([output_dir, filesep, "*Image*.pvp"]);
-    Recon_glob_list2 = glob([output_dir, filesep, "*Frame*.pvp"]);
-    Recon_glob_list = [Recon_glob_list; Recon_glob_list2];
+    Recon_glob_list = glob([output_dir, filesep, "Image*.pvp"]);
+    Recon_glob_list2 = glob([output_dir, filesep, "Frame*.pvp"]);
+    Recon_glob_list3 = glob([output_dir, filesep, "GroundTruthDownsample*.pvp"]);
+    Recon_glob_list4 = glob([output_dir, filesep, "GroundTruth*WTA.pvp"]);
+    Recon_glob_list = [Recon_glob_list; Recon_glob_list2; Recon_glob_list3; Recon_glob_list4];
     num_Recon_list = length(Recon_glob_list);    
     Recon_list = cell(num_Recon_list,1);
     for i_Recon_list = 1 : num_Recon_list
@@ -305,16 +310,13 @@ if analyze_Sparse_flag
       Sparse_list{i_Sparse_list,1} = "";
       Sparse_list{i_Sparse_list,2} = Sparse_list_name;
     endfor
-    Sparse_glob_str2 = "GroundTruth.pvp";
+    Sparse_glob_str2 = "GroundTruth?.pvp";
     Sparse_glob_list2 = glob([output_dir, filesep, Sparse_glob_str2]);
     num_Sparse_list2 = length(Sparse_glob_list2);    
-    Sparse_list2 = cell(num_Sparse_list2,1);
     for i_Sparse_list2 = 1 : num_Sparse_list2
       [Sparse_list_dir, Sparse_list_name2, Sparse_list_ext, ~] = fileparts(Sparse_glob_list2{i_Sparse_list2});
-      Sparse_list2{i_Sparse_list2,1} = "";
-      Sparse_list2{i_Sparse_list2,2} = Sparse_list_name2;
       Sparse_list{num_Sparse_list+i_Sparse_list2,1} = "";
-      Sparse_list{num_Sparse_list+i_Sparse_list2,2} = Sparse_list2{i_Sparse_list2,2};
+      Sparse_list{num_Sparse_list+i_Sparse_list2,2} = Sparse_list_name2;
     endfor
   endif %% run_type
   num_Sparse_list = length(Sparse_list);    
@@ -400,9 +402,9 @@ if analyze_nonSparse_flag
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %% default/glob generated list
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    nonSparse_glob_list = glob([output_dir, filesep, "*Image*Error*.pvp"]);
-    nonSparse_glob_list2 = glob([output_dir, filesep, "*Frame*Error*.pvp"]);
-    nonSparse_glob_list = [nonSparse_glob_list; nonSparse_glob_list2];
+    nonSparse_glob_list1 = glob([output_dir, filesep, "Image*Error*.pvp"]);
+    nonSparse_glob_list2 = glob([output_dir, filesep, "Frame*Error*.pvp"]);
+    nonSparse_glob_list = [nonSparse_glob_list1; nonSparse_glob_list2];
     num_nonSparse_list = length(nonSparse_glob_list);    
     nonSparse_list = cell(num_nonSparse_list,1);
     for i_nonSparse_list = 1 : num_nonSparse_list
@@ -410,43 +412,42 @@ if analyze_nonSparse_flag
       nonSparse_list{i_nonSparse_list,1} = "";
       nonSparse_list{i_nonSparse_list,2} = nonSparse_list_name;
     endfor
-    nonSparse_skip = repmat(1, num_nonSparse_list, 1);
     nonSparse_norm_list = cell(num_nonSparse_list, 2);
     for i_nonSparse_norm_list = 1 : num_nonSparse_list
       nonSparse_norm_list{i_nonSparse_norm_list,1} = ""; %%
-      if i_nonSparse_norm_list <= length(nonSparse_glob_list)
+      if i_nonSparse_norm_list <= length(nonSparse_glob_list1)
 	nonSparse_norm_list{i_nonSparse_norm_list,2} = "Image";
       elseif i_nonSparse_norm_list <= length(nonSparse_glob_list2)
-	nonSparse_norm_list{i_nonSparse_norm_list,2} = "Frame";
+	if exist([output_dir, filesep, "Frame0.pvp"])
+	  nonSparse_norm_list{i_nonSparse_norm_list,2} = "Frame0";
+	elseif exist([output_dir, filesep, "FrameLeft0.pvp"])
+	  nonSparse_norm_list{i_nonSparse_norm_list,2} = "FrameLeft0";
+	endif
       endif
     endfor
     nonSparse_norm_strength = ones(num_nonSparse_list,1);
     nonSparse_norm_strength = nonSparse_norm_strength./sqrt(16*16*3);
     Sparse_std_ndx = zeros(num_nonSparse_list,1); 
 
-    nonSparse_glob_list2 = glob([output_dir, filesep, "GroundTruth*Error*.pvp"]);
-    num_nonSparse_list2 = length(nonSparse_glob_list2);    
-    nonSparse_list2 = cell(num_nonSparse_list2,1);
-    for i_nonSparse_list2 = 1 : num_nonSparse_list2
-      [nonSparse_list_dir, nonSparse_list_name2, nonSparse_list_ext, ~] = fileparts(nonSparse_glob_list2{i_nonSparse_list2});
-      nonSparse_list2{i_nonSparse_list2,1} = "";
-      nonSparse_list2{i_nonSparse_list2,2} = nonSparse_list_name2;
-      nonSparse_list2{num_nonSparse_list+i_nonSparse_list2,1} = "";
-      nonSparse_list2{num_nonSparse_list+i_nonSparse_list,2} = nonSparse_list_name2;
+    nonSparse_glob_list3 = glob([output_dir, filesep, "GroundTruth*Error*.pvp"]);
+    num_nonSparse_list3 = length(nonSparse_glob_list3);    
+    for i_nonSparse_list3 = 1 : num_nonSparse_list3
+      [nonSparse_list_dir, nonSparse_list_name3, nonSparse_list_ext, ~] = fileparts(nonSparse_glob_list3{i_nonSparse_list3});
+      nonSparse_list{num_nonSparse_list+i_nonSparse_list3,1} = "";
+      nonSparse_list{num_nonSparse_list+i_nonSparse_list3,2} = nonSparse_list_name3;
     endfor
-    nonSparse_skip2 = repmat(1, num_nonSparse_list2, 1);
-    nonSparse_norm_list2 = cell(num_nonSparse_list2, 2);
-    for i_nonSparse_norm_list2 = 1 : num_nonSparse_list2
-      nonSparse_norm_list2{i_nonSparse_norm_list2,1} = ""; %%
-      nonSparse_norm_list2{i_nonSparse_norm_list2,2} = "GroundTruth";
-      nonSparse_norm_list2{num_nonSparse_list+i_nonSparse_norm_list,1} = ""; %%
-      nonSparse_norm_list2{num_nonSparse_list+i_nonSparse_norm_list,2} = "GroundTruth";
+    nonSparse_skip3 = repmat(1, num_nonSparse_list3, 1);
+    for i_nonSparse_norm_list3 = 1 : num_nonSparse_list3
+      nonSparse_norm_list{num_nonSparse_list+i_nonSparse_norm_list3,1} = ""; %%
+      nonSparse_norm_list{num_nonSparse_list+i_nonSparse_norm_list3,2} = "GroundTruth0";
     endfor
-    nonSparse_norm_strength2 = ones(num_nonSparse_list2,1);
-    Sparse_std_ndx2 = repmat(num_Sparse_list+1, num_nonSparse_list2,1); 
+    nonSparse_norm_strength3 = ones(num_nonSparse_list3,1);
+    Sparse_std_ndx3 = repmat(num_Sparse_list, num_nonSparse_list3,1); 
+    Sparse_std_ndx = [Sparse_std_ndx; Sparse_std_ndx3];
+    nonSparse_norm_strength = [nonSparse_norm_strength; nonSparse_norm_strength3];
 
-    Sparse_std_ndx = [Sparse_std_ndx; Sparse_std_ndx2];
-    nonSparse_norm_strength = [nonSparse_norm_strength; nonSparse_norm_strength2];
+    nonSparse_skip = repmat(0, num_nonSparse_list, 1);
+    nonSparse_skip = [nonSparse_skip; nonSparse_skip3];
   endif %% run_type
   if ~exist("Sparse_std_ndx")
     Sparse_std_ndx = zeros(num_nonSparse_list,1);

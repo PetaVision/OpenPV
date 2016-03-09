@@ -1,0 +1,142 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 8; //1242;  // KITTI synced value
+    ny = 8;  //218; dt = 1.0;
+    dtAdaptFlag = false;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0.0;
+    stopTime = 2.0;       // Depends on number of VINE video frames
+    progressInterval = 1.0;
+    outputPath = "output/";
+    printParamsFilename = "pv.params";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    initializeFromCheckpointDir = "";
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+    verifyWrites = false;
+    errorOnNotANumber = false;
+    batchMethod = "byImage";
+    nbatch = 1;
+};
+
+MoviePvp "Input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    inputPath = "input/input.pvp";
+    writeFrameToTimestamp = true;
+    writeStep = -1;
+    sparseLayer = false;
+    writeSparseValues = true;
+    displayPeriod = 1;
+    //start_frame_index = 0; //Start at frame 1
+    //skip_frame_index = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = true;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    //useParamsImage = true;
+};
+
+SegmentLayer "segLayer" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    sparseLayer = false;
+    displayPeriod = 1;
+    mirrorBCflag = true;
+    segmentMethod = "none"; //Reading directly from Input
+    originalLayerName = "Input";
+    writeStep = 1;
+    phase = 1;
+};
+
+Segmentify "downsample" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 1;
+    sparseLayer = false;
+    displayPeriod = 1;
+    mirrorBCflag = true;
+    segmentMethod = "none"; //Reading directly from Input
+    originalLayerName = "Input";
+    segmentLayerName = "segLayer";
+    inputMethod = "average";
+    outputMethod = "centroid";
+    writeStep = 1;
+    phase = 2;
+};
+
+Segmentify "upsample" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    sparseLayer = false;
+    displayPeriod = 1;
+    mirrorBCflag = true;
+    segmentMethod = "none"; //Reading directly from Input
+    originalLayerName = "Input";
+    segmentLayerName = "segLayer";
+    inputMethod = "max";
+    outputMethod = "fill";
+    writeStep = 1;
+    phase = 2;
+};
+
+ANNLayer "outputTest" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    // 
+    phase = 3; 
+    triggerLayerName = NULL;
+};
+
+IdentConn "RecvPostTest" = {
+    preLayerName = "Input";
+    postLayerName = "outputTest";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+IdentConn "RecvPreTest" = {
+    preLayerName = "upsample";
+    postLayerName = "outputTest";
+    channelCode = 1;
+    delay = 0;
+    writeStep = -1;
+};
+
+AssertZerosProbe "testProbe" = {
+   targetLayer = "outputTest";
+   message = "testProbe ";
+};
+

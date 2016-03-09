@@ -1,3 +1,14 @@
+# Written by Max Theiler, max.theiler@gmail.com
+# 2/5/2016
+
+# This script for parsing the output file timers.txt,
+# and writing it as a csv file comprehensible to the
+# pie chart tools created by Brian Broom-Peltz.
+
+# It also includes in the comments a crude mini-tutorial
+# on python's regex tools.
+
+
 # "re" is the best Python library for handling regexes. Used here for the re.search function 
 import re
 import csv

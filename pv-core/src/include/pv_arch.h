@@ -1,7 +1,7 @@
 #ifndef PV_ARCH_H
 #define PV_ARCH_H
 
-#include "cMakeHeader.h" /* Loads preprocessor directives set by CMake */
+#include <cMakeHeader.h> /* Loads preprocessor directives set by CMake */
 
 /* Note: defining or undefining
  * PV_USE_OPENMP_THREADS, PV_OPENCL, PV_CUDA, PV_CUDNN

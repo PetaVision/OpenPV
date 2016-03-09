@@ -152,8 +152,8 @@ void HyPerLCALayer::ioParam_windowSymY(enum ParamsIOFlag ioFlag) {
 
 void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
-   if (parent->columnId() == 0) {
-     std::cout << "selfInteract = " << selfInteract << std::endl;
+   if (ioFlag==PARAMS_IO_READ && parent->columnId() == 0) {
+     std::cout << getKeyword() << "\"" << name << "\"" << ": selfInteract flag is " << (selfInteract ? "true" : "false") << std::endl;
    }   
 }
 

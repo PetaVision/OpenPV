@@ -1,0 +1,58 @@
+set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/InitCloneKernelWeights.cpp
+   ${SUBDIR}/InitCocircWeights.cpp
+   ${SUBDIR}/InitCocircWeightsParams.cpp
+   ${SUBDIR}/InitGauss2DWeights.cpp
+   ${SUBDIR}/InitGauss2DWeightsParams.cpp
+   ${SUBDIR}/InitGaussianRandomWeights.cpp
+   ${SUBDIR}/InitGaussianRandomWeightsParams.cpp
+   ${SUBDIR}/InitIdentWeights.cpp
+   ${SUBDIR}/InitIdentWeightsParams.cpp
+   ${SUBDIR}/InitMaxPoolingWeights.cpp
+   ${SUBDIR}/InitMaxPoolingWeightsParams.cpp
+   ${SUBDIR}/InitOneToOneWeights.cpp
+   ${SUBDIR}/InitOneToOneWeightsParams.cpp
+   ${SUBDIR}/InitOneToOneWeightsWithDelays.cpp
+   ${SUBDIR}/InitOneToOneWeightsWithDelaysParams.cpp
+   ${SUBDIR}/InitRandomWeights.cpp
+   ${SUBDIR}/InitRandomWeightsParams.cpp
+   ${SUBDIR}/InitSmartWeights.cpp
+   ${SUBDIR}/InitSpreadOverArborsWeights.cpp
+   ${SUBDIR}/InitSpreadOverArborsWeightsParams.cpp
+   ${SUBDIR}/InitUniformRandomWeights.cpp
+   ${SUBDIR}/InitUniformRandomWeightsParams.cpp
+   ${SUBDIR}/InitUniformWeights.cpp
+   ${SUBDIR}/InitUniformWeightsParams.cpp
+   ${SUBDIR}/InitWeights.cpp
+   ${SUBDIR}/InitWeightsParams.cpp
+)
+
+set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/InitCloneKernelWeights.hpp
+   ${SUBDIR}/InitCocircWeights.hpp
+   ${SUBDIR}/InitCocircWeightsParams.hpp
+   ${SUBDIR}/InitGauss2DWeights.hpp
+   ${SUBDIR}/InitGauss2DWeightsParams.hpp
+   ${SUBDIR}/InitGaussianRandomWeights.hpp
+   ${SUBDIR}/InitGaussianRandomWeightsParams.hpp
+   ${SUBDIR}/InitIdentWeights.hpp
+   ${SUBDIR}/InitIdentWeightsParams.hpp
+   ${SUBDIR}/InitMaxPoolingWeights.hpp
+   ${SUBDIR}/InitMaxPoolingWeightsParams.hpp
+   ${SUBDIR}/InitOneToOneWeights.hpp
+   ${SUBDIR}/InitOneToOneWeightsParams.hpp
+   ${SUBDIR}/InitOneToOneWeightsWithDelays.hpp
+   ${SUBDIR}/InitOneToOneWeightsWithDelaysParams.hpp
+   ${SUBDIR}/InitRandomWeights.hpp
+   ${SUBDIR}/InitRandomWeightsParams.hpp
+   ${SUBDIR}/InitSmartWeights.hpp
+   ${SUBDIR}/InitSpreadOverArborsWeights.hpp
+   ${SUBDIR}/InitSpreadOverArborsWeightsParams.hpp
+   ${SUBDIR}/InitUniformRandomWeights.hpp
+   ${SUBDIR}/InitUniformRandomWeightsParams.hpp
+   ${SUBDIR}/InitUniformWeights.hpp
+   ${SUBDIR}/InitUniformWeightsParams.hpp
+   ${SUBDIR}/InitWeights.hpp
+   ${SUBDIR}/InitWeightsParams.hpp
+)
+

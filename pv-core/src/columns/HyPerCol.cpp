@@ -30,6 +30,7 @@
 #include <time.h>
 #include <csignal>
 #include <limits>
+#include <libgen.h>
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 #include <map>
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -145,6 +146,9 @@ HyPerCol::~HyPerCol()
    if(timeScaleMax){
       free(timeScaleMax);
    }
+   if(timeScaleMax2){
+      free(timeScaleMax2);
+   }
    if(timeScaleTrue){
       free(timeScaleTrue);
    }
@@ -165,6 +169,7 @@ int HyPerCol::initialize_base() {
    // Initialize all member variables to safe values.  They will be set to their actual values in initialize()
    warmStart = false;
    readyFlag = false;
+   paramsProcessedFlag = false;
    currentStep = 0;
    layerArraySize = INITIAL_LAYER_ARRAY_SIZE;
    numLayers = 0;
@@ -196,6 +201,7 @@ int HyPerCol::initialize_base() {
    stopTime = 0.0;
    deltaTime = DELTA_T;
    dtAdaptFlag = false;
+   writeTimeScaleFieldnames = true;
    useAdaptMethodExp1stOrder = false;
    dtAdaptController = NULL;
    dtAdaptControlProbe = NULL;
@@ -205,11 +211,13 @@ int HyPerCol::initialize_base() {
    deltaTimeBase = DELTA_T;
    timeScale = NULL;
    timeScaleMax = NULL;
+   timeScaleMax2 = NULL;
    timeScaleTrue = NULL;
    oldTimeScale = NULL;
    oldTimeScaleTrue = NULL;
    deltaTimeAdapt = NULL;
-   timeScaleMaxBase = 1.0;
+   timeScaleMaxBase  = 1.0;
+   timeScaleMax2Base = 1.0;
    timeScaleMin = 1.0;
    changeTimeScaleMax = 1.0;
    changeTimeScaleMin = 0.0;
@@ -479,21 +487,12 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    ensureDirExists(srcPath);
 #endif
 
-   ensureDirExists(outputPath);
 
    simTime = startTime;
    initialStep = (long int) nearbyint(startTime/deltaTimeBase);
    currentStep = initialStep;
    finalStep = (long int) nearbyint(stopTime/deltaTimeBase);
    nextProgressTime = startTime + progressInterval;
-   if (columnId()==0 && dtAdaptFlag && writeTimescales){
-      size_t timeScaleFileNameLen = strlen(outputPath) + strlen("/HyPerCol_timescales.txt");
-      char timeScaleFileName[timeScaleFileNameLen+1];
-      int charsneeded = snprintf(timeScaleFileName, timeScaleFileNameLen+1, "%s/HyPerCol_timescales.txt", outputPath);
-      assert(charsneeded<=timeScaleFileNameLen);
-      timeScaleStream.open(timeScaleFileName);
-      timeScaleStream.precision(17);
-   }
 
    if(checkpointWriteFlag) {
       switch (checkpointWriteTriggerMode) {
@@ -667,6 +666,11 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       fprintf(stderr, "%s error: unable to allocate memory for timeScaleMax buffer.\n", programName);
       exit(EXIT_FAILURE);
    }
+   timeScaleMax2 = (double*) malloc(sizeof(double) * nbatch);
+   if(timeScaleMax2 ==NULL) {
+      fprintf(stderr, "%s error: unable to allocate memory for timeScaleMax2 buffer.\n", programName);
+      exit(EXIT_FAILURE);
+   }
    timeScaleTrue = (double*) malloc(sizeof(double) * nbatch);
    if(timeScaleTrue ==NULL) {
       fprintf(stderr, "%s error: unable to allocate memory for timeScaleTrue buffer.\n", programName);
@@ -693,6 +697,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       oldTimeScaleTrue[b]    = -1;
       timeScale[b]           = timeScaleMin;
       timeScaleMax[b]        = timeScaleMaxBase;
+      timeScaleMax2[b]       = timeScaleMax2Base;
       oldTimeScale[b]        = timeScaleMin;
       deltaTimeAdapt[b]      = deltaTimeBase;
    }
@@ -750,6 +755,7 @@ int HyPerCol::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_startTime(ioFlag);
    ioParam_dt(ioFlag);
    ioParam_dtAdaptFlag(ioFlag);
+   ioParam_writeTimeScaleFieldnames(ioFlag);
    ioParam_useAdaptMethodExp1stOrder(ioFlag);
    ioParam_dtAdaptController(ioFlag);
    ioParam_dtAdaptTriggerLayerName(ioFlag);
@@ -949,6 +955,13 @@ void HyPerCol::ioParam_dtAdaptFlag(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "dtAdaptFlag", &dtAdaptFlag, dtAdaptFlag);
 }
 
+void HyPerCol::ioParam_writeTimeScaleFieldnames(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
+   if (dtAdaptFlag) {
+     ioParamValue(ioFlag, name, "writeTimeScaleFieldnames", &writeTimeScaleFieldnames, writeTimeScaleFieldnames);
+   }
+}
+
 void HyPerCol::ioParam_useAdaptMethodExp1stOrder(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
    if (dtAdaptFlag) {
@@ -978,6 +991,13 @@ void HyPerCol::ioParam_dtScaleMax(enum ParamsIOFlag ioFlag) {
    assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
    if (dtAdaptFlag) {
      ioParamValue(ioFlag, name, "dtScaleMax", &timeScaleMaxBase, timeScaleMaxBase);
+   }
+}
+
+void HyPerCol::ioParam_dtScaleMax2(enum ParamsIOFlag ioFlag) {
+   assert(!params->presentAndNotBeenRead(name, "dtAdaptFlag"));
+   if (dtAdaptFlag) {
+     ioParamValue(ioFlag, name, "dtScaleMax2", &timeScaleMax2Base, timeScaleMax2Base);
    }
 }
 
@@ -1079,7 +1099,13 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
 
 void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
    ioParamString(ioFlag, name, "printParamsFilename", &printParamsFilename, "pv.params");
-   assert(printParamsFilename);
+   if (printParamsFilename==NULL || printParamsFilename[0]=='\0') {
+      if (columnId()==0) {
+         fprintf(stderr, "Error: printParamsFilename cannot be null or the empty string.\n");
+      }
+      MPI_Barrier(icCommunicator()->communicator());
+      exit(EXIT_FAILURE);
+   }
 }
 
 void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
@@ -1457,7 +1483,7 @@ int HyPerCol::checkDirExists(const char * dirname, struct stat * pathstat) {
 
 
 static inline int _mkdir(const char *dir) {
-   mode_t dirmode = S_IRWXU | S_IRGRP | S_IXGRP;
+   mode_t dirmode = S_IRWXU | S_IRWXG | S_IRWXO;
    char tmp[PV_PATH_MAX];
    char *p = NULL;
    int status = 0;
@@ -1495,7 +1521,6 @@ int HyPerCol::ensureDirExists(const char * dirname) {
    int rank = columnId();
    struct stat pathstat;
    int resultcode = checkDirExists(dirname, &pathstat);
-   int numAttempts = 5;
    if( resultcode == 0 ) { // outputPath exists; now check if it's a directory.
       if( !(pathstat.st_mode & S_IFDIR ) ) {
          if( rank == 0 ) {
@@ -1509,15 +1534,8 @@ int HyPerCol::ensureDirExists(const char * dirname) {
       if( rank == 0 ) {
          printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
 
-         //char targetString[PV_PATH_MAX];
-         //int num_chars_needed = snprintf(targetString,PV_PATH_MAX,"mkdir -p %s",dirname);
-         //if (num_chars_needed > PV_PATH_MAX) {
-         //   fflush(stdout);
-         //   fprintf(stderr,"Path \"%s\" is too long.",dirname);
-         //   exit(EXIT_FAILURE);
-         //}
-
-         //Try again until it works
+         //Try up to 5 times until it works
+         int const numAttempts = 5;
          for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
             int mkdirstatus = _mkdir(dirname);
             if( mkdirstatus != 0 ) {
@@ -1685,75 +1703,35 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    stopTime = stop_time;
    deltaTime = dt;
 
+   int status = PV_SUCCESS;
    if (!readyFlag) {
-      layerStatus = (int *) calloc((size_t) numLayers, sizeof(int));
-      if (layerStatus==NULL) {
-         fprintf(stderr, "Global rank %d process unable to allocate memory for status of %zu layers: %s\n", globalRank(), (size_t) numLayers, strerror(errno));
+      ensureDirExists(outputPath);
+      if (columnId()==0 && dtAdaptFlag && writeTimescales){
+         size_t timeScaleFileNameLen = strlen(outputPath) + strlen("/HyPerCol_timescales.txt");
+         char timeScaleFileName[timeScaleFileNameLen+1];
+         int charsneeded = snprintf(timeScaleFileName, timeScaleFileNameLen+1, "%s/HyPerCol_timescales.txt", outputPath);
+         assert(charsneeded<=timeScaleFileNameLen);
+         timeScaleStream.open(timeScaleFileName);
+         timeScaleStream.precision(17);
       }
-      connectionStatus = (int *) calloc((size_t) numConnections, sizeof(int));
-      if (connectionStatus==NULL) {
-         fprintf(stderr, "Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), (size_t) numConnections, strerror(errno));
+      assert(printParamsFilename && printParamsFilename[0]);
+      std::string printParamsFileString("");
+      if (printParamsFilename[0] != '/') {
+         printParamsFileString += outputPath;
+         printParamsFileString += "/";
+      }
+      printParamsFileString += printParamsFilename;
+
+      // do communicateInitInfo stage, set up adaptive time step, and print params
+      status = processParams(printParamsFileString.c_str());
+      MPI_Barrier(icCommunicator()->communicator());
+      if (status != PV_SUCCESS) {
+         fprintf(stderr, "HyPerCol \"%s\" failed to run.\n", name);
+         exit(EXIT_FAILURE);
       }
 
       int (HyPerCol::*layerInitializationStage)(int) = NULL;
       int (HyPerCol::*connInitializationStage)(int) = NULL;
-
-      // communicateInitInfo stage
-      layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
-      connInitializationStage = &HyPerCol::connCommunicateInitInfo;
-      doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
-
-      // do communication step for probes
-      // This is where probes are added to their respective target layers and connections
-      for (int i=0; i<numBaseProbes; i++) {
-         BaseProbe * p = baseProbes[i];
-         int pstatus = p->communicateInitInfo();
-         if (pstatus==PV_SUCCESS) {
-            if (globalRank()==0) printf("Probe \"%s\" communicateInitInfo completed.\n", p->getName());
-         }
-         else {
-            assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
-            // A more detailed error message should be printed by probe's communicateInitInfo function.
-            fprintf(stderr, "Probe \"%s\" communicateInitInfo failed.  Exiting.\n", p->getName());
-            exit(EXIT_FAILURE);
-         }
-      }
-      
-      // add the dtAdaptController, if there is one.
-      if (dtAdaptController && dtAdaptController[0]) {
-         dtAdaptControlProbe = getColProbeFromName(dtAdaptController);
-         if (dtAdaptControlProbe==NULL) {
-            if (globalRank()==0) {
-               fprintf(stderr, "HyPerCol \"%s\" error: dtAdaptController \"%s\" does not refer to a ColProbe in the HyPerCol.\n",
-                     this->getName(), dtAdaptController);
-            }
-            MPI_Barrier(this->icCommunicator()->communicator());
-            exit(EXIT_FAILURE);
-         }
-
-         // add the dtAdaptTriggerLayer, if there is one.
-         if (dtAdaptTriggerLayerName && dtAdaptTriggerLayerName[0]) {
-            dtAdaptTriggerLayer = getLayerFromName(dtAdaptTriggerLayerName);
-            if (dtAdaptTriggerLayer==NULL) {
-               if (globalRank()==0) {
-                  fprintf(stderr, "HyPerCol \"%s\" error: dtAdaptTriggerLayerName \"%s\" does not refer to layer in the column.\n", this->getName(), dtAdaptTriggerLayerName);
-               }
-               MPI_Barrier(this->icCommunicator()->communicator());
-               exit(EXIT_FAILURE);
-            }
-         }
-      }
-
-      parameters()->warnUnread();
-      std::string printParamsPath = "";
-      if (printParamsFilename!=NULL && printParamsFilename[0] != '\0') {
-         if (printParamsFilename[0] != '/') {
-            printParamsPath += outputPath;
-            printParamsPath += "/";
-         }
-         printParamsPath += printParamsFilename;
-      }
-      outputParams(printParamsPath.c_str());
 
       // allocateDataStructures stage
       layerInitializationStage = &HyPerCol::layerAllocateDataStructures;
@@ -1848,7 +1826,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    // time loop
    //
    long int step = 0;
-   int status = PV_SUCCESS;
+   assert(status == PV_SUCCESS);
    while (simTime < stopTime - deltaTime/2.0 && status != PV_EXIT_NORMALLY) {
       // Should we move the if statement below into advanceTime()?
       // That way, the routine that polls for SIGUSR1 and sets checkpointSignal is the same
@@ -1911,6 +1889,80 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    stop_clock();
 #endif
 
+   return status;
+}
+
+int HyPerCol::processParams(char const * path) {
+   if (!paramsProcessedFlag) {
+      layerStatus = (int *) calloc((size_t) numLayers, sizeof(int));
+      if (layerStatus==NULL) {
+         fprintf(stderr, "Global rank %d process unable to allocate memory for status of %zu layers: %s\n", globalRank(), (size_t) numLayers, strerror(errno));
+      }
+      connectionStatus = (int *) calloc((size_t) numConnections, sizeof(int));
+      if (connectionStatus==NULL) {
+         fprintf(stderr, "Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), (size_t) numConnections, strerror(errno));
+      }
+   
+      int (HyPerCol::*layerInitializationStage)(int) = NULL;
+      int (HyPerCol::*connInitializationStage)(int) = NULL;
+   
+      // do communication step for layers and connections
+      layerInitializationStage = &HyPerCol::layerCommunicateInitInfo;
+      connInitializationStage = &HyPerCol::connCommunicateInitInfo;
+      doInitializationStage(layerInitializationStage, connInitializationStage, "communicateInitInfo");
+   
+      // do communication step for probes
+      // This is where probes are added to their respective target layers and connections
+      for (int i=0; i<numBaseProbes; i++) {
+         BaseProbe * p = baseProbes[i];
+         int pstatus = p->communicateInitInfo();
+         if (pstatus==PV_SUCCESS) {
+            if (globalRank()==0) printf("Probe \"%s\" communicateInitInfo completed.\n", p->getName());
+         }
+         else {
+            assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
+            // A more detailed error message should be printed by probe's communicateInitInfo function.
+            fprintf(stderr, "Probe \"%s\" communicateInitInfo failed.\n", p->getName());
+            return PV_FAILURE;
+         }
+      }
+   
+      // add the dtAdaptController, if there is one.
+      if (dtAdaptController && dtAdaptController[0]) {
+         dtAdaptControlProbe = getColProbeFromName(dtAdaptController);
+         if (dtAdaptControlProbe==NULL) {
+            if (globalRank()==0) {
+               fprintf(stderr, "HyPerCol \"%s\" error: dtAdaptController \"%s\" does not refer to a ColProbe in the HyPerCol.\n",
+                     this->getName(), dtAdaptController);
+            }
+            return PV_FAILURE;
+         }
+   
+         // add the dtAdaptTriggerLayer, if there is one.
+         if (dtAdaptTriggerLayerName && dtAdaptTriggerLayerName[0]) {
+            dtAdaptTriggerLayer = getLayerFromName(dtAdaptTriggerLayerName);
+            if (dtAdaptTriggerLayer==NULL) {
+               if (globalRank()==0) {
+                  fprintf(stderr, "HyPerCol \"%s\" error: dtAdaptTriggerLayerName \"%s\" does not refer to layer in the column.\n", this->getName(), dtAdaptTriggerLayerName);
+               }
+               return PV_FAILURE;
+            }
+         }
+      }
+   }
+
+   // Print a cleaned up version of params to the file given by printParamsFilename
+   parameters()->warnUnread();
+   std::string printParamsPath = "";
+   if (path!=NULL && path[0] != '\0') {
+      outputParams(path);
+   }
+   else {
+      if (globalRank()==0) {
+         printf("HyPerCol \"%s\": path for printing parameters file was empty or null.\n", name);
+      }
+   }
+   paramsProcessedFlag = true;
    return PV_SUCCESS;
 }
 
@@ -2149,20 +2201,26 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
    calcTimeScaleTrue(); // sets timeScaleTrue[b] to sqrt(Energy(t+dt)/|I|^2))^-1
    for(int b = 0; b < nbatch; b++){
      
+     if ((timeScale[b] == timeScaleMin) && (oldTimeScale[b] == timeScaleMax2[b])) {
+       timeScaleMax2[b] = (1 + changeTimeScaleMin) * timeScaleMax2[b];
+     }
+       
      double E_dt  =  timeScaleTrue[b]; 
      double E_0   =  oldTimeScaleTrue[b];
-     double dE_dt  = (E_0 - E_dt)  /  deltaTimeAdapt[b];
+     double dE_dt = (E_0 - E_dt)  /  deltaTimeAdapt[b];
 
      if ( (dE_dt <= 0.0) || (E_0 <= 0) || (E_dt <= 0) ) {
-       timeScale[b] = timeScaleMin;
+       timeScale[b]      = timeScaleMin;
        deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
        timeScaleMax[b]   = timeScaleMaxBase;
+       timeScaleMax2[b]  = oldTimeScale[b]; // set Max2 to value of time scale at which instability appeared
      }
      else {
        double tau_eff = E_0 / dE_dt;
 
        // dt := timeScaleMaxBase * tau_eff
        timeScale[b] = changeTimeScaleMax * tau_eff / deltaTimeBase;
+       timeScale[b] = (timeScale[b] <= timeScaleMax2[b]) ? timeScale[b] : timeScaleMax2[b];
        timeScale[b] = (timeScale[b] <= timeScaleMax[b]) ? timeScale[b] : timeScaleMax[b];
        timeScale[b] = (timeScale[b] <  timeScaleMin) ? timeScaleMin : timeScale[b];
 
@@ -2182,6 +2240,7 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
        //std::cout << "tau_eff: " << tau_eff << "\n";
        //std::cout << "timeScale: " << timeScale[b] << "\n";
        //std::cout << "timeScaleMax: " << timeScaleMax[b] << "\n";
+       //std::cout << "timeScaleMax2: " << timeScaleMax2[b] << "\n";
        //std::cout << "deltaTimeAdapt: " << deltaTimeAdapt[b] << "\n";
        //std::cout <<  "\n";
        
@@ -2192,14 +2251,19 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
 
 int HyPerCol::calcTimeScaleTrue() {
    if (!dtAdaptControlProbe) {
+      // Using dtAdaptFlag w/o dtAdaptControlProbe was deprecated Feb 1, 2016.
+      if (columnId()==0) {
+         fflush(stdout);
+         fprintf(stderr, "\n\nWARNING: Setting dtAdaptFlag without defining a dtAdaptControlProbe is deprecated.\n\n\n");
+      }
       // If there is no probe controlling the adaptive timestep,
       // query all layers to check for barriers on how big the time scale can be.
       // By default, HyPerLayer::getTimeScale returns -1
       // (that is, the layer doesn't care how big the time scale is).
       // Movie and MoviePvp return minTimeScale when expecting to load a new frame
       // on next time step based on current value of deltaTime.
-      // ANNNormalizeErrorLayer is the only other layer in pv-core that overrides getTimeScale
-      // but we want to deprecate it.
+      // ANNNormalizeErrorLayer (deprecated) is the only other layer in pv-core
+      // that overrides getTimeScale.
       for (int b=0; b<nbatch; b++) {
          // copying of timeScale and timeScaleTrue was moved to adaptTimeScale, just before the call to calcTimeScaleTrue -- Oct. 8, 2015
          // set the true timeScale to the minimum timeScale returned by each layer, stored in minTimeScaleTmp
@@ -2297,13 +2361,29 @@ int HyPerCol::advanceTime(double sim_time)
      if (useAdaptMethodExp1stOrder){
        adaptTimeScaleExp1stOrder();}
      else{
-       adaptTimeScale();}
+       adaptTimeScale();
+     }
      if(writeTimescales && columnId() == 0) {
+       if (writeTimeScaleFieldnames) {
          timeScaleStream << "sim_time = " << sim_time << "\n";
+       }
+       else {
+         timeScaleStream << sim_time << ", ";
+       }
          for(int b = 0; b < nbatch; b++){
-	   timeScaleStream << "\tbatch = " << b << ", timeScale = " << timeScale[b] << ", " << "timeScaleTrue = " << timeScaleTrue[b];
+	   if (writeTimeScaleFieldnames) {
+	     timeScaleStream << "\tbatch = " << b << ", timeScale = " << timeScale[b] << ", " << "timeScaleTrue = " << timeScaleTrue[b];
+	   }
+	   else {
+	     timeScaleStream << b << ", " << timeScale[b] << ", " << timeScaleTrue[b];
+	   }
 	   if (useAdaptMethodExp1stOrder) {
-	     timeScaleStream << ", " << "timeScaleMax = " << timeScaleMax[b] << std::endl;
+	     if (writeTimeScaleFieldnames) {
+	       timeScaleStream <<  ", " << "timeScaleMax = " << timeScaleMax[b] <<  ", " << "timeScaleMax2 = " << timeScaleMax2[b] << std::endl;
+	     }
+	     else {
+	       timeScaleStream <<  ", " << timeScaleMax[b] <<  ", " << timeScaleMax2[b] << std::endl;
+	     }
 	   }
 	   else {
 	     timeScaleStream << std::endl;
@@ -2636,6 +2716,7 @@ int HyPerCol::checkpointRead() {
 	 double timeScale; // timeScale factor for increasing/decreasing dt
 	 double timeScaleTrue; // true timeScale as returned by HyPerLayer::getTimeScaleTrue() typically computed by an adaptTimeScaleController (ColProbe)
 	 double timeScaleMax; //  current maximum allowed value of timeScale as returned by HyPerLayer::getTimeScaleMaxPtr() 
+	 double timeScaleMax2; //  current maximum allowed value of timeScale as returned by HyPerLayer::getTimeScaleMax2Ptr() 
        };
        struct timescale_struct {
 	 double timeScale; // timeScale factor for increasing/decreasing dt
@@ -2648,6 +2729,7 @@ int HyPerCol::checkpointRead() {
 	   timescalemax[b].timeScale = 1;
 	   timescalemax[b].timeScaleTrue = 1;
 	   timescalemax[b].timeScaleMax = 1;
+	   timescalemax[b].timeScaleMax2 = 1;
 	 }
        }
        else {
@@ -2660,7 +2742,7 @@ int HyPerCol::checkpointRead() {
       size_t timescale_size = sizeof(struct timescale_struct);
       size_t timescalemax_size = sizeof(struct timescalemax_struct);
       if (useAdaptMethodExp1stOrder) {
-	assert(sizeof(struct timescalemax_struct) == sizeof(double) + sizeof(double) + sizeof(double));
+	assert(sizeof(struct timescalemax_struct) == sizeof(double) + sizeof(double) + sizeof(double) + sizeof(double));
       }
       else {
 	assert(sizeof(struct timescale_struct) == sizeof(double) + sizeof(double));
@@ -2677,7 +2759,7 @@ int HyPerCol::checkpointRead() {
          if (timescalefile == NULL) {
             fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
 	    if (useAdaptMethodExp1stOrder) {
-	      fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f, timeScaleMax=%f\n", 1.0, 1.0, 1.0);
+	      fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f, timeScaleMax=%f, timeScaleMax2=%f\n", 1.0, 1.0, 1.0, 1.0);
 	    }
 	    else {
 	      fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", 1.0, 1.0);
@@ -2715,6 +2797,7 @@ int HyPerCol::checkpointRead() {
 	timeScaleTrue[b] = (useAdaptMethodExp1stOrder) ? timescalemax[b].timeScaleTrue : timescale[b].timeScaleTrue;
 	 if (useAdaptMethodExp1stOrder) {
 	   timeScaleMax[b] = timescalemax[b].timeScaleMax;
+	   timeScaleMax2[b] = timescalemax[b].timeScaleMax2;
 	 }
       }
    }
@@ -2845,6 +2928,12 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
 	     exit(EXIT_FAILURE);
          }
 	 }
+	 if (useAdaptMethodExp1stOrder) {
+	   if (PV_fwrite(&timeScaleMax2[b],1,sizeof(double),timescalefile) != sizeof(double)) {
+	     fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleMax2 to %s\n", timescalefile->name);
+	     exit(EXIT_FAILURE);
+         }
+	 }
       }
       PV_fclose(timescalefile);
       chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.txt", cpDir);
@@ -2945,12 +3034,26 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
 }
 
 int HyPerCol::outputParams(char const * path) {
+   assert(path!=NULL && path[0]!='\0');
    int status = PV_SUCCESS;
    int rank=icComm->commRank();
    assert(printParamsStream==NULL);
    char printParamsPath[PV_PATH_MAX];
+   char * tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
+   if (tmp==NULL) {
+      fflush(stdout);
+      fprintf(stderr, "HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
+      exit(EXIT_FAILURE);
+   }
+   char * containingdir = dirname(tmp);
+   status = ensureDirExists(containingdir); // must be called by all processes, even though only rank 0 creates the directory
+   if (status != PV_SUCCESS) {
+      fflush(stdout);
+      fprintf(stderr, "HyPerCol::outputParams unable to create directory \"%s\"\n", containingdir);
+   }
+   free(tmp);
    if(rank == 0){
-      if( strlen(path+4) >= (size_t) PV_PATH_MAX ) {
+      if( strlen(path)+4/*allow room for .lua at end, and string terminator*/ > (size_t) PV_PATH_MAX ) {
          fprintf(stderr, "outputParams called with too long a filename.  Parameters will not be printed.\n");
          status = ENAMETOOLONG;
       }

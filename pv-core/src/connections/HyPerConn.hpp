@@ -286,6 +286,10 @@ public:
       return normalizer;
    }
 
+   bool getNormalizeDwFlag() {
+      return normalizeDwFlag;
+   }
+
    PVPatch*** convertPreSynapticWeights(double time);
    PVPatch**** point2PreSynapticWeights();
    //PVPatch**** point2PreSynapticWeights2();
@@ -364,6 +368,8 @@ protected:
    int maskFeatureIdx;
    HyPerLayer* mask;
    bool* batchSkip;
+
+   bool normalizeDwFlag;
 
    int nxp, nyp, nfp; // size of weight dimensions
    bool warnDefaultNfp; // Whether to print a warning if the default nfp is used.
@@ -748,6 +754,11 @@ protected:
     */
    virtual void ioParam_keepKernelsSynchronized(enum ParamsIOFlag ioFlag);
    
+   /**
+    * @brief normalizeDw: Specifies if this connection is averaging gradients (true) or summing them (false)
+    */
+   virtual void ioParam_normalizeDw(enum ParamsIOFlag ioFlag);
+
    /**
     * @brief useMask: Specifies if this connection is using a post mask for learning
     */

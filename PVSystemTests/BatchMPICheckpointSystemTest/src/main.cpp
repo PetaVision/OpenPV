@@ -136,12 +136,12 @@ int diffDirs(const char* cpdir1, const char* cpdir2, int index){
    snprintf(shellcommand, max_buf_len, fmtstr, cpdir1, index, cpdir2, index);
    status = system(shellcommand);
    if( status != 0 ) {
-      fprintf(stderr, "system(\"%s\") returned %d\n", shellcommand, status);
-      // Because system() seems to return the result of the shell command multiplied by 256,
-      // and Unix only sees the 8 least-significant bits of the value returned by a C/C++ program,
-      // simply returning the result of the system call doesn't work.
-      // I haven't found the mult-by-256 behavior in the documentation, so I'm not sure what's
-      // going on.
+      // Allow for possibility that the file system hasn't finished sync'ing yet
+      sleep(1);
+      status = system(shellcommand);
+      if (status != 0) {
+         fprintf(stderr, "system(\"%s\") returned %d\n", shellcommand, status);
+      }
       status = PV_FAILURE;
    }
    return status;

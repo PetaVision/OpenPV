@@ -97,10 +97,10 @@ int PtwiseLinearTransferLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void PtwiseLinearTransferLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
-   int numVerticesV;
-   this->getParent()->ioParamArray(ioFlag, this->getName(), "verticesV", &verticesV, &numVerticesV);
+   int numVerticesTmp = numVertices;
+   this->getParent()->ioParamArray(ioFlag, this->getName(), "verticesV", &verticesV, &numVerticesTmp);
    if (ioFlag==PARAMS_IO_READ) {
-      if (numVerticesV==0) {
+      if (numVerticesTmp==0) {
          if (this->getParent()->columnId()==0) {
             fprintf(stderr,
                   "%s \"%s\" error: verticesV cannot be empty\n",
@@ -109,17 +109,17 @@ void PtwiseLinearTransferLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
-      if (numVertices !=0 && numVerticesV != numVertices) {
+      if (numVertices !=0 && numVerticesTmp != numVertices) {
          if (this->getParent()->columnId()==0) {
             fprintf(stderr,
                   "%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
-                  this->getKeyword(), this->getName(), numVerticesV, numVertices);
+                  this->getKeyword(), this->getName(), numVerticesTmp, numVertices);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
-      assert(numVertices==0 || numVertices==numVerticesV);
-      numVertices = numVerticesV;
+      assert(numVertices==0 || numVertices==numVerticesTmp);
+      numVertices = numVerticesTmp;
    }
 }
 

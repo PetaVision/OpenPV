@@ -1,0 +1,32 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+<META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">
+<title>PetaVision Image Classifier</title>
+<link rel="icon" href="favicon.ico" type="image/x-icon" />
+<link rel="stylesheet" href="stylesheets/styles.css">
+<script type="text/javascript">
+function inputCheck(inputName)
+{if (document.getElementById(inputName).value == ""){return false;};}
+</script>
+</head>
+<body>
+<div><h1><a href="https://petavision.github.io/"><img height=40px src="images/petavisionLogo.png" style="margin-right:20px"></a>PetaVision</h1></div>
+<div><h2>Image Classifier</h2></div>
+   <div> 
+      <form id="fileUpload" action="upload.php" method="post" enctype="multipart/form-data">
+         <h3>Select Model:</h3>
+         <select name="model">
+            <option value="landscape_S1X16_1536_ICA_DeepX3_ICA">Deep Semi-Supervised (default)</option>
+         </select>
+         <br><br><h3>Select image to upload:</h3>
+         <input type="file" name="fileToUpload" id="fileToUpload" accept="image/*"/>
+         <input type="submit" value="Upload File" name="fileSubmit" onClick="return inputCheck('fileToUpload')"/>
+         <br><br><h3>Or provide image URL:</h3> 
+         <input type="text" name="urlToUpload" id="urlToUpload" size="30"/>
+         <input type="submit" value="Submit URL" name="urlSubmit" onClick="return inputCheck('urlToUpload')"/>
+      </form>
+   </div>
+</body>
+</html> 

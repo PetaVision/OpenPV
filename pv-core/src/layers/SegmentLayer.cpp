@@ -185,7 +185,6 @@ int SegmentLayer::loadCenterIdxMap(int batchIdx, int numLabels){
    return PV_SUCCESS;
 }
 
-
 int SegmentLayer::checkIdxBufSize(int newSize){
    if(newSize <= centerIdxBufSize){
       return PV_SUCCESS;

@@ -64,7 +64,7 @@ int MPI_Allreduce(void * sendbuf, void * recvbuf, int count, MPI_Datatype dataty
                   MPI_Op op, MPI_Comm comm)
 {
    if (sendbuf != MPI_IN_PLACE && sendbuf != recvbuf) {
-      memmove(sendbuf, recvbuf, count*datatype);
+      memmove(recvbuf, sendbuf, count*datatype);
    }
    return 0;
 }
