@@ -11,7 +11,7 @@
 #include "HyPerLayer.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "Movie.hpp"
-#include "../include/cMakeHeader.h"
+#include <cMakeHeader.h>
 
 namespace PV{
 
