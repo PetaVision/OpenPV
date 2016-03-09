@@ -16,7 +16,7 @@
 #include <layers/ANNLayer.hpp>
 #include <io/PointProbe.hpp>
 #include <weightinit/InitUniformWeights.hpp>
-#include <include/cMakeHeader.h>
+#include <cMakeHeader.h>
 #include <assert.h>
 
 #undef DEBUG_OUTPUT

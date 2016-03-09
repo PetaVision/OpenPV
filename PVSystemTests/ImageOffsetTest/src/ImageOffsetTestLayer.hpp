@@ -2,7 +2,7 @@
 #define IMAGEOFFSETTESTLAYER_HPP_
 
 #include <layers/Image.hpp>
-#include <include/cMakeHeader.h>
+#include <cMakeHeader.h>
 
 namespace PV {
 
