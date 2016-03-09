@@ -788,27 +788,86 @@ int LocalizationProbe::outputState(double timevalue) {
    double * values = getValuesBuffer();
    int winningFeature = (int) values[0];
    double maxActivity = values[1];
-   if (parent->columnId() == 0) {
-      if (winningFeature >= 0) {
+
+   if (winningFeature >= 0) {
+      PVLayerLoc const * targetLoc = targetLayer->getLayerLoc();
+      int const nx = targetLoc->nx;
+      int const ny = targetLoc->ny;
+      int const nxy = nx * ny;
+      int const nf = targetLoc->nf;
+      pvadata_t * wfBuffer = (pvadata_t *) malloc((size_t) nxy * sizeof(pvadata_t));
+      if (wfBuffer==NULL) {
+         fprintf(stderr, "%s \"%s\" memory allocation failure on rank %d in outputState: %s\n", getKeyword(), getName(), parent->columnId(), strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      for (int kxy=0; kxy<nxy; kxy++) {
+         int kx = kxPos(kxy, nx, ny, 1);
+         int ky = kyPos(kxy, nx, ny, 1);
+         int idx = kIndex(kx, ky, winningFeature, nx, ny, nf);
+         int idxExtended = kIndexExtended(idx, nx, ny, nf, targetLoc->halo.lt, targetLoc->halo.rt, targetLoc->halo.dn, targetLoc->halo.up);
+         wfBuffer[kxy] = targetLayer->getLayerData()[idxExtended];
+      }
+      if (parent->columnId() == 0) {
          if (maxActivity >= detectionThreshold) {
-            fprintf(outputstream->fp, "Time %f, activity %f, bounding box x=[%d,%d), y=[%d,%d): detected %s\n",
+            fprintf(outputstream->fp, "Time %f, maximum activity of %f, \"%s\", bounding box x=[%d,%d), y=[%d,%d)\n",
                   timevalue,
                   maxActivity,
+                  getClassName(winningFeature),
                   (int) values[2],
                   (int) values[3],
                   (int) values[4],
-                  (int) values[5],
-                  getClassName(winningFeature));
+                  (int) values[5]);
          }
          else {
-            fprintf(outputstream->fp, "Time %f, no features detected above threshold %f (highest was %s at %f)\n", timevalue, detectionThreshold, getClassName(winningFeature), maxActivity);
+            fprintf(outputstream->fp, "Time %f, maximum activity of %f, \"%s\", not above threshold %f\n",
+                  timevalue,
+                  maxActivity,
+                  getClassName(winningFeature),
+                  detectionThreshold);
+         }
+         int const nxGlobal = targetLoc->nxGlobal;
+         int const nyGlobal = targetLoc->nyGlobal;
+         int const nxyGlobal = nxGlobal * nyGlobal;
+         pvadata_t * wfBufferGlobal = (pvadata_t *) malloc((size_t) nxyGlobal * sizeof(pvadata_t));
+         if (wfBufferGlobal==NULL) {
+            fprintf(stderr, "%s \"%s\" memory allocation failure on root process in outputState: %s\n", getKeyword(), getName(), strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         for (int k=0; k<nxy; k++) {
+            int kx = kxPos(k, nx, ny, 1);
+            int ky = kyPos(k, nx, ny, 1);
+            int kGlobal = kIndex(kx+targetLoc->kx0, ky+targetLoc->ky0, 0, nxGlobal, nyGlobal, 1);
+            wfBufferGlobal[kGlobal] = wfBuffer[k];
+         }
+         for (int r=0; r<parent->numberOfColumns(); r++) {
+            if (r==0) { continue; }
+            MPI_Recv(wfBuffer, nxy, MPI_FLOAT, r, 340+r, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+            int rankStartX = nx*columnFromRank(r, parent->icCommunicator()->numCommRows(), parent->icCommunicator()->numCommColumns());
+            int rankStartY = ny*rowFromRank(r, parent->icCommunicator()->numCommRows(), parent->icCommunicator()->numCommColumns());
+            for (int k=0; k<nxy; k++) {
+               int kx = kxPos(k, nx, ny, 1);
+               int ky = kyPos(k, nx, ny, 1);
+               int kGlobal = kIndex(kx+rankStartX, ky+rankStartY, 0, nxGlobal, nyGlobal, 1);
+               wfBufferGlobal[kGlobal] = wfBuffer[k];
+            }
+         }
+         for (int k=0; k<nxyGlobal; k++) {
+            int kx = kxPos(k, nxGlobal, nyGlobal, 1);
+            int ky = kyPos(k, nxGlobal, nyGlobal, 1);
+            fprintf(outputstream->fp, "  Tile (%d, %d): activity %f\n", kx, ky, wfBufferGlobal[k]);
          }
       }
       else {
+         MPI_Send(wfBuffer, nxy, MPI_FLOAT, 0, 340+parent->columnId(), parent->icCommunicator()->communicator());
+         free(wfBuffer);
+
+      }
+   }
+   else {
+      if (parent->columnId() == 0) {
          fprintf(outputstream->fp, "Time %f, no features detected.\n", timevalue);
          // no activity above threshold
       }
-      fflush(outputstream->fp);
    }
 
    if (drawMontage) {
