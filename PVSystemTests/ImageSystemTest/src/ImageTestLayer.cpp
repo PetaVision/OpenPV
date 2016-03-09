@@ -2,6 +2,8 @@
 
 namespace PV {
 
+#ifdef PV_USE_GDAL
+
 ImageTestLayer::ImageTestLayer(const char * name, HyPerCol * hc) {
    Image::initialize(name, hc);
 }
@@ -39,6 +41,15 @@ int ImageTestLayer::updateStateWrapper(double time, double dt)
 int ImageTestLayer::updateState(double time, double dt){
    return Image::updateState(time, dt);
 }
+#else // PV_USE_GDAL
+ImageTestLayer::ImageTestLayer(const char * name, HyPerCol * hc) {
+   if (hc->columnId()==0) {
+      fprintf(stderr, "ImageTestLayer class requires compiling with PV_USE_GDAL set\n");
+   }
+   MPI_Barrier(hc->icCommunicator()->communicator());
+   exit(EXIT_FAILURE);
+}
+#endif // PV_USE_GDAL
 }
 
 

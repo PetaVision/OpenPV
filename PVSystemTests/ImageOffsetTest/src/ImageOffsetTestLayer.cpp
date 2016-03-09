@@ -2,6 +2,8 @@
 
 namespace PV {
 
+#ifdef PV_USE_GDAL
+
 ImageOffsetTestLayer::ImageOffsetTestLayer(const char * name, HyPerCol * hc){
    Image::initialize(name, hc);
 }
@@ -127,6 +129,14 @@ int ImageOffsetTestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-
+#else // PV_USE_GDAL
+ImageOffsetTestLayer::ImageOffsetTestLayer(const char * name, HyPerCol * hc) {
+   if (hc->columnId()==0) {
+      fprintf(stderr, "ImageOffsetTestLayer class requires compiling with PV_USE_GDAL set\n");
+   }
+   MPI_Barrier(hc->icCommunicator()->communicator());
+   exit(EXIT_FAILURE);
+}
+#endif // PV_USE_GDAL
 
 } /* namespace PV */

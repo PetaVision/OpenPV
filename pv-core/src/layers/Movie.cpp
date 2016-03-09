@@ -17,6 +17,8 @@
 
 namespace PV {
 
+#ifdef PV_USE_GDAL
+
 Movie::Movie() {
    initialize_base();
 }
@@ -885,4 +887,15 @@ const char * Movie::advanceFileName(int batchIdx) {
 //   return inputfile;
 //}
 
+#else // PV_USE_GDAL
+Movie::Movie(const char * name, HyPerCol * hc) {
+   if (hc->columnId()==0) {
+      fprintf(stderr, "Movie class requires compiling with PV_USE_GDAL set\n");
+   }
+   MPI_Barrier(hc->icCommunicator()->communicator());
+   exit(EXIT_FAILURE);
 }
+Movie::Movie() {}
+#endif // PV_USE_GDAL
+
+} // ends namespace PV block
