@@ -8,6 +8,7 @@
 #include <time.h>
 
 #ifdef PV_USE_GDAL
+#  include <gdal.h>
 #  include <gdal_priv.h>
 #  include <ogr_spatialref.h>
 #else
@@ -58,6 +59,7 @@ int getFileType(const char * filename)
    return 0;
 }
 
+#ifdef OBSOLETE // Marked obsolete Jan 29, 2016.  getImageInfo was commented out in the .cpp file some time ago.
 ///**
 // * Calculates location information given processor distribution and the
 // * size of the image.
@@ -78,6 +80,8 @@ int getFileType(const char * filename)
 //   }
 //   return getImageInfoGDAL(filename, comm, loc, colorbandtypes);
 //}
+#endif // OBSOLETE // Marked obsolete Jan 29, 2016.  getImageInfo was commented out in the .cpp file some time ago.
+
 
 int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc * loc)
 {
@@ -128,6 +132,101 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
    return status;
 }
 
+
+
+int gatherImageFile(const char * filename,
+                    PV::Communicator * comm, const PVLayerLoc * loc, pvdata_t * pvdata_buf, bool verifyWrites){
+   unsigned char * char_buf;
+   const int numItems = loc->nx * loc->ny * loc->nf;
+   char_buf = (unsigned char *) calloc(numItems, sizeof(unsigned char));
+   assert( char_buf != NULL );
+   pvdata_t max_buf = -1.0e20;
+   pvdata_t min_buf = 1.0e20;
+   for (int i = 0; i < numItems; i++) {
+      max_buf = pvdata_buf[i] > max_buf ? pvdata_buf[i] : max_buf;
+      min_buf = pvdata_buf[i] < min_buf ? pvdata_buf[i] : min_buf;
+   }
+   pvdata_t range_buf = max_buf - min_buf;  // all char_buf == 0
+   if (range_buf == 0) {
+      range_buf = 1.0;
+   }
+   for (int i = 0; i < numItems; i++) {
+      char_buf[i] = 255 * ( pvdata_buf[i] - min_buf ) / range_buf;
+   }
+   int status = gatherImageFile(filename, comm, loc, char_buf, verifyWrites);
+   free(char_buf);
+   return status;
+}
+
+int gatherImageFile(const char * filename,
+                    PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites)
+{
+   if (getFileType(filename) == PVP_FILE_TYPE) {
+      return gatherImageFilePVP(filename, comm, loc, buf, verifyWrites);
+   }
+#ifdef PV_USE_GDAL
+   return gatherImageFileGDAL(filename, comm, loc, buf, verifyWrites);
+#else // PV_USE_GDAL
+   if (comm->commRank()==0) {
+      fprintf(stderr, "Error reading \"%s\": " GDAL_CONFIG_ERR_STR, filename);
+   }
+   return PV_FAILURE;
+#endif // PV_USE_GDAL
+}
+
+int gatherImageFilePVP(const char * filename,
+                       PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites)
+{
+   int status = PV_SUCCESS;
+   int rootproc = 0;
+   int rank = comm->commRank();
+
+   PV_Stream * pvstream = NULL;
+   if (rank==rootproc) {
+      pvstream = PV::PV_fopen(filename, "wb", verifyWrites);
+      if (pvstream==NULL) {
+         fprintf(stderr, "gatherImageFilePVP error opening \"%s\" for writing.\n", filename);
+         abort();
+      }
+      int params[NUM_PAR_BYTE_PARAMS];
+      const int numParams  = NUM_PAR_BYTE_PARAMS;
+      const int headerSize = numParams * sizeof(int);
+      const int recordSize = loc->nxGlobal * loc->nyGlobal * loc->nf;
+
+      params[INDEX_HEADER_SIZE] = headerSize;
+      params[INDEX_NUM_PARAMS]  = numParams;
+      params[INDEX_FILE_TYPE]   = PVP_FILE_TYPE;
+      params[INDEX_NX]          = loc->nxGlobal;
+      params[INDEX_NY]          = loc->nyGlobal;
+      params[INDEX_NF]          = loc->nf;
+      params[INDEX_NUM_RECORDS] = 1;
+      params[INDEX_RECORD_SIZE] = recordSize;
+      params[INDEX_DATA_SIZE]   = 1; // sizeof(unsigned char);
+      params[INDEX_DATA_TYPE]   = PV_BYTE_TYPE;
+      params[INDEX_NX_PROCS]    = 1;
+      params[INDEX_NY_PROCS]    = 1;
+      params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
+      params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
+      params[INDEX_KX0]         = 0;
+      params[INDEX_KY0]         = 0;
+      params[INDEX_NBATCH]          = loc->nbatch; // loc->nb;
+      params[INDEX_NBANDS]      = 1;
+
+      int numWrite = PV::PV_fwrite(params, sizeof(int), numParams, pvstream);
+      if (numWrite != numParams) {
+         fprintf(stderr, "gatherImageFilePVP error writing the header.  fwrite called with %d parameters; %d were written.\n", numParams, numWrite);
+         abort();
+      }
+   }
+   status = gatherActivity(pvstream, comm, rootproc, buf, loc, false/*extended*/);
+   // buf is a nonextended buffer.  Image layers copy buf into the extended data buffer by calling Image::copyFromInteriorBuffer
+   if (rank==rootproc) {
+      PV::PV_fclose(pvstream); pvstream=NULL;
+   }
+   return status;
+}
+
+#ifdef PV_USE_GDAL
 GDALDataset * PV_GDALOpen(const char * filename)
 {
    int gdalopencounts = 0;
@@ -155,7 +254,6 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
    int status = PV_SUCCESS;
    int rank = comm->commRank();
 
-#ifdef PV_USE_GDAL
    const int locSize = sizeof(PVLayerLoc) / sizeof(int) + 1; // The extra 1 is for the status of the OpenGDAL call
    // LayerLoc should contain 12 ints, so locSize should be 13.
    //assert(locSize == 13);
@@ -268,98 +366,6 @@ int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc 
    }
 #endif // PV_USE_MPI
 
-
-#else
-   fprintf(stderr, GDAL_CONFIG_ERR_STR);
-   exit(1);
-#endif // PV_USE_GDAL
-
-   return status;
-}
-
-
-int gatherImageFile(const char * filename,
-                    PV::Communicator * comm, const PVLayerLoc * loc, pvdata_t * pvdata_buf, bool verifyWrites){
-   unsigned char * char_buf;
-   const int numItems = loc->nx * loc->ny * loc->nf;
-   char_buf = (unsigned char *) calloc(numItems, sizeof(unsigned char));
-   assert( char_buf != NULL );
-   pvdata_t max_buf = -1.0e20;
-   pvdata_t min_buf = 1.0e20;
-   for (int i = 0; i < numItems; i++) {
-      max_buf = pvdata_buf[i] > max_buf ? pvdata_buf[i] : max_buf;
-      min_buf = pvdata_buf[i] < min_buf ? pvdata_buf[i] : min_buf;
-   }
-   pvdata_t range_buf = max_buf - min_buf;  // all char_buf == 0
-   if (range_buf == 0) {
-      range_buf = 1.0;
-   }
-   for (int i = 0; i < numItems; i++) {
-      char_buf[i] = 255 * ( pvdata_buf[i] - min_buf ) / range_buf;
-   }
-   int status = gatherImageFile(filename, comm, loc, char_buf, verifyWrites);
-   free(char_buf);
-   return status;
-}
-
-int gatherImageFile(const char * filename,
-                    PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites)
-{
-   if (getFileType(filename) == PVP_FILE_TYPE) {
-      return gatherImageFilePVP(filename, comm, loc, buf, verifyWrites);
-   }
-   return gatherImageFileGDAL(filename, comm, loc, buf, verifyWrites);
-}
-
-int gatherImageFilePVP(const char * filename,
-                       PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites)
-{
-   int status = PV_SUCCESS;
-   int rootproc = 0;
-   int rank = comm->commRank();
-
-   PV_Stream * pvstream = NULL;
-   if (rank==rootproc) {
-      pvstream = PV::PV_fopen(filename, "wb", verifyWrites);
-      if (pvstream==NULL) {
-         fprintf(stderr, "gatherImageFilePVP error opening \"%s\" for writing.\n", filename);
-         abort();
-      }
-      int params[NUM_PAR_BYTE_PARAMS];
-      const int numParams  = NUM_PAR_BYTE_PARAMS;
-      const int headerSize = numParams * sizeof(int);
-      const int recordSize = loc->nxGlobal * loc->nyGlobal * loc->nf;
-
-      params[INDEX_HEADER_SIZE] = headerSize;
-      params[INDEX_NUM_PARAMS]  = numParams;
-      params[INDEX_FILE_TYPE]   = PVP_FILE_TYPE;
-      params[INDEX_NX]          = loc->nxGlobal;
-      params[INDEX_NY]          = loc->nyGlobal;
-      params[INDEX_NF]          = loc->nf;
-      params[INDEX_NUM_RECORDS] = 1;
-      params[INDEX_RECORD_SIZE] = recordSize;
-      params[INDEX_DATA_SIZE]   = 1; // sizeof(unsigned char);
-      params[INDEX_DATA_TYPE]   = PV_BYTE_TYPE;
-      params[INDEX_NX_PROCS]    = 1;
-      params[INDEX_NY_PROCS]    = 1;
-      params[INDEX_NX_GLOBAL]   = loc->nxGlobal;
-      params[INDEX_NY_GLOBAL]   = loc->nyGlobal;
-      params[INDEX_KX0]         = 0;
-      params[INDEX_KY0]         = 0;
-      params[INDEX_NBATCH]          = loc->nbatch; // loc->nb;
-      params[INDEX_NBANDS]      = 1;
-
-      int numWrite = PV::PV_fwrite(params, sizeof(int), numParams, pvstream);
-      if (numWrite != numParams) {
-         fprintf(stderr, "gatherImageFilePVP error writing the header.  fwrite called with %d parameters; %d were written.\n", numParams, numWrite);
-         abort();
-      }
-   }
-   status = gatherActivity(pvstream, comm, rootproc, buf, loc, false/*extended*/);
-   // buf is a nonextended buffer.  Image layers copy buf into the extended data buffer by calling Image::copyFromInteriorBuffer
-   if (rank==rootproc) {
-      PV::PV_fclose(pvstream); pvstream=NULL;
-   }
    return status;
 }
 
@@ -373,7 +379,6 @@ int gatherImageFileGDAL(const char * filename,
 
    int status = 0;
 
-#ifdef PV_USE_GDAL
    // const int maxBands = 3;
 
    const int nxProcs = comm->numCommColumns();
@@ -458,15 +463,13 @@ int gatherImageFileGDAL(const char * filename,
 #endif // PV_USE_MPI
       GDALClose(dataset);
    }
-#else
-   fprintf(stderr, GDAL_CONFIG_ERR_STR);
-   exit(1);
-#endif // PV_USE_GDAL
 
    return status;
 }
+#endif // PV_USE_GDAL
 
-/*int scatterImageFile(const char * filename, int xOffset, int yOffset,
+#ifdef OBSOLETE // Marked obsolete Jan 29, 2016.  At some point it was commented out.
+int scatterImageFile(const char * filename, int xOffset, int yOffset,
                      PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber, bool autoResizeFlag)
 {
    if (getFileType(filename) == PVP_FILE_TYPE) {
@@ -803,4 +806,4 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
    }
    return status;
 }
-*/
+#endif // OBSOLETE // Marked obsolete Jan 29, 2016.  At some point it was commented out.

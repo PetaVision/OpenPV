@@ -8,12 +8,16 @@
 #ifndef FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_
 #define FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_
 
+#include <cMakeHeader.h>
 #include "ANNLayer.hpp"
 #include <string>
 #include "Movie.hpp"
 namespace PV {
 
 class FilenameParsingGroundTruthLayer: public PV::ANNLayer {
+
+#ifdef PV_USE_GDAL
+
 public:
    FilenameParsingGroundTruthLayer(const char * name, HyPerCol * hc);
    virtual ~FilenameParsingGroundTruthLayer();
@@ -67,8 +71,14 @@ protected:
    virtual void ioParam_gtClassFalseValue(enum ParamsIOFlag ioFlag);
 
    /** @} */
-
+#else // PV_USE_GDAL
+public:
+    FilenameParsingGroundTruthLayer(char const * name, HyPerCol * hc);
+protected:
+    FilenameParsingGroundTruthLayer();
+#endif // PV_USE_GDAL
 };
 
 } /* namespace PV */
+
 #endif /* FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_ */

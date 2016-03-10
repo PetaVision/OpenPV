@@ -71,8 +71,6 @@ macro(pv_config_project)
     set(PV_OPENMP_FLAG ${ICC_OPENMP_FLAG} CACHE STRING "${PV_OPENMP_FLAG_HELP}")
     set(PV_SANITIZE_ADDRESS_CXX_FLAGS "${ICC_SANITIZE_ADDRESS_CXX_FLAGS}")
     set(PV_SANITIZE_ADDRESS_LINKER_FLAGS "${ICC_SANITIZE_ADDRESS_LINKER_FLAGS}")
-    set(CMAKE_C_COMPILER ${ICC_CC})
-    set(CMAKE_CXX_COMPILER ${ICC_CXX})
     set(PV_COMPILE_FLAGS_DEBUG ${ICC_DEBUG_FLAGS})
     set(PV_COMPILE_FLAGS_RELEASE ${ICC_RELEASE_FLAGS})
     # NVCC isn't compatible with the Intel compiler
@@ -97,7 +95,7 @@ macro(pv_config_project)
       # Open source clang detected
       set(COMPILER_DETECTED ON)
       set(PV_NVCC_FLAGS ${CLANG_NVCC_FLAGS})
-      if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "3.6.0")
+      if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "3.5.0" OR ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL "3.5.0")
         # This is a clang that supports OpenMP. Note how Apple's clang has a version
         # number greater than this. What could go wrong?
         message(STATUS "Clang with OpenMP support detected")

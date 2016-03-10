@@ -62,7 +62,6 @@ Movie "Input" = {
     phase                               = 0;
     mirrorBCflag                        = false;
     valueBC                             = 0;
-    triggerLayerName                    = NULL;
     writeStep                           = -1;
     sparseLayer                         = false;
     updateGpu                           = false;

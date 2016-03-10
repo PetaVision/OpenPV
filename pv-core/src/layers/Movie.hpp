@@ -9,11 +9,15 @@
 #define MOVIE_HPP_
 
 #include "Image.hpp"
+#include <cMakeHeader.h>
 #include <sstream>
 
 namespace PV {
 
 class Movie: public PV::Image {
+
+#ifdef PV_USE_GDAL
+
 public:
    Movie(const char * name, HyPerCol * hc);
    virtual ~Movie();
@@ -164,6 +168,12 @@ private:
    bool initFlag;
    //int numTotalFrames;
    //long* frameNumber;
+#else // PV_USE_GDAL
+public:
+   Movie(char const * name, HyPerCol * hc);
+protected:
+   Movie();
+#endif // PV_USE_GDAL
 };
 
 }

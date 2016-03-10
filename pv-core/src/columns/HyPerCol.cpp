@@ -2201,9 +2201,9 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
    calcTimeScaleTrue(); // sets timeScaleTrue[b] to sqrt(Energy(t+dt)/|I|^2))^-1
    for(int b = 0; b < nbatch; b++){
      
-     if ((timeScale[b] == timeScaleMin) && (oldTimeScale[b] == timeScaleMax2[b])) {
-       timeScaleMax2[b] = (1 + changeTimeScaleMin) * timeScaleMax2[b];
-     }
+     // if ((timeScale[b] == timeScaleMin) && (oldTimeScale[b] == timeScaleMax2[b])) {
+     //   timeScaleMax2[b] = (1 + changeTimeScaleMin) * timeScaleMax2[b];
+     // }
        
      double E_dt  =  timeScaleTrue[b]; 
      double E_0   =  oldTimeScaleTrue[b];
@@ -2213,14 +2213,14 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
        timeScale[b]      = timeScaleMin;
        deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
        timeScaleMax[b]   = timeScaleMaxBase;
-       timeScaleMax2[b]  = oldTimeScale[b]; // set Max2 to value of time scale at which instability appeared
+       //timeScaleMax2[b]  = oldTimeScale[b]; // set Max2 to value of time scale at which instability appeared
      }
      else {
        double tau_eff = E_0 / dE_dt;
 
        // dt := timeScaleMaxBase * tau_eff
        timeScale[b] = changeTimeScaleMax * tau_eff / deltaTimeBase;
-       timeScale[b] = (timeScale[b] <= timeScaleMax2[b]) ? timeScale[b] : timeScaleMax2[b];
+       //timeScale[b] = (timeScale[b] <= timeScaleMax2[b]) ? timeScale[b] : timeScaleMax2[b];
        timeScale[b] = (timeScale[b] <= timeScaleMax[b]) ? timeScale[b] : timeScaleMax[b];
        timeScale[b] = (timeScale[b] <  timeScaleMin) ? timeScaleMin : timeScale[b];
 
@@ -2379,10 +2379,12 @@ int HyPerCol::advanceTime(double sim_time)
 	   }
 	   if (useAdaptMethodExp1stOrder) {
 	     if (writeTimeScaleFieldnames) {
-	       timeScaleStream <<  ", " << "timeScaleMax = " << timeScaleMax[b] <<  ", " << "timeScaleMax2 = " << timeScaleMax2[b] << std::endl;
+	       timeScaleStream <<  ", " << "timeScaleMax = " << timeScaleMax[b] << std::endl;
+	       // timeScaleStream <<  ", " << "timeScaleMax = " << timeScaleMax[b] <<  ", " << "timeScaleMax2 = " << timeScaleMax2[b] << std::endl;
 	     }
 	     else {
-	       timeScaleStream <<  ", " << timeScaleMax[b] <<  ", " << timeScaleMax2[b] << std::endl;
+	       // timeScaleStream <<  ", " << timeScaleMax[b] <<  ", " << timeScaleMax2[b] << std::endl;
+	       timeScaleStream <<  ", " << timeScaleMax[b] << std::endl;
 	     }
 	   }
 	   else {

@@ -13,16 +13,16 @@
 #include <iostream>
 
 #ifdef PV_USE_GDAL
+#  include <gdal.h>
 #  include <gdal_priv.h>
 #  include <ogr_spatialref.h>
 #else
 #  define GDAL_CONFIG_ERR_STR "PetaVision must be compiled with GDAL to use this file type\n"
 #endif // PV_USE_GDAL
-#include <gdal.h>
-
-
 
 namespace PV {
+
+#ifdef PV_USE_GDAL
 
 Image::Image() {
    initialize_base();
@@ -745,5 +745,16 @@ void Image::equalBandWeights(int numBands, float * bandweight) {
    float w = 1.0/(float) numBands;
    for( int b=0; b<numBands; b++ ) bandweight[b] = w;
 }
+
+#else // PV_USE_GDAL
+Image::Image(const char * name, HyPerCol * hc) {
+   if (hc->columnId()==0) {
+      fprintf(stderr, "Image class requires compiling with PV_USE_GDAL set\n");
+   }
+   MPI_Barrier(hc->icCommunicator()->communicator());
+   exit(EXIT_FAILURE);
+}
+Image::Image() {}
+#endif // PV_USE_GDAL
 
 } // namespace PV
