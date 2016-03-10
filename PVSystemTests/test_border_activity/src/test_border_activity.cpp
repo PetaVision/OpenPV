@@ -16,7 +16,7 @@
 #include <layers/ANNLayer.hpp>
 #include <io/PointProbe.hpp>
 #include <weightinit/InitUniformWeights.hpp>
-
+#include <cMakeHeader.h>
 #include <assert.h>
 
 #undef DEBUG_OUTPUT
@@ -32,6 +32,9 @@ int check_activity(HyPerLayer * l);
 
 int main(int argc, char * argv[])
 {
+
+#ifdef PV_USE_GDAL
+
    int status = 0;
 
    int rank=0;
@@ -81,6 +84,11 @@ int main(int argc, char * argv[])
    delete initObj;
 
    return status;
+
+#else // PV_USE_GDAL
+   fprintf(stderr, "%s requires PV_USE_GDAL to be set.\n", argv[0]);
+   return EXIT_FAILURE;
+#endif // PV_USE_GDAL
 }
 
 int check_activity(HyPerLayer * l)

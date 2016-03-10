@@ -29,9 +29,11 @@ int main(int argc, char * argv[]) {
 #ifdef MAIN_USES_CUSTOMGROUPS
 void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
    void * addedGroup = NULL;
+#ifdef PV_USE_GDAL
    if (strcmp(keyword, "ImageOffsetTestLayer") == 0){
       addedGroup = new ImageOffsetTestLayer(name, hc);
    }
+#endif // PV_USE_GDAL
    return addedGroup;
 }
 #endif // MAIN_USES_CUSTOMGROUPS

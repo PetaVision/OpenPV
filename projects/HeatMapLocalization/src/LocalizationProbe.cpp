@@ -50,6 +50,7 @@ int LocalizationProbe::initialize_base() {
    montageImageLocal = NULL;
    montageImageComm = NULL;
    imageBlendCoeff = 0.3;
+   boundingBoxLineWidth = 5;
 
    outputFilenameBase = NULL; // Not used by harness since we don't have a filename to use for the base
    return PV_SUCCESS;
@@ -77,6 +78,7 @@ int LocalizationProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_displayCategoryIndexEnd(ioFlag);
    ioParam_heatMapMontageDir(ioFlag);
    ioParam_imageBlendCoeff(ioFlag);
+   ioParam_boundingBoxLineWidth(ioFlag);
    ioParam_displayCommand(ioFlag);
    return status;
 }
@@ -137,6 +139,13 @@ void LocalizationProbe::ioParam_imageBlendCoeff(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "imageBlendCoeff", &imageBlendCoeff, imageBlendCoeff/*default value*/, true/*warnIfAbsent*/);
+   }
+}
+
+void LocalizationProbe::ioParam_boundingBoxLineWidth(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   if (drawMontage) {
+      this->getParent()->ioParamValue(ioFlag, this->getName(), "boundingBoxLineWidth", &boundingBoxLineWidth, boundingBoxLineWidth/*default value*/, true/*warnIfAbsent*/);
    }
 }
 
@@ -360,6 +369,7 @@ int LocalizationProbe::setOptimalMontage() {
    while ((numMontageColumns-1)*numMontageRows >= numCategories) { numMontageColumns--; }
    while ((numMontageRows-1)*numMontageColumns >= numCategories) { numMontageRows--; }
    if (numMontageRows < 2) { numMontageRows = 2; }
+   return PV_SUCCESS;
 }
 
 char const * LocalizationProbe::getClassName(int k) {
@@ -778,27 +788,86 @@ int LocalizationProbe::outputState(double timevalue) {
    double * values = getValuesBuffer();
    int winningFeature = (int) values[0];
    double maxActivity = values[1];
-   if (parent->columnId() == 0) {
-      if (winningFeature >= 0) {
+
+   if (winningFeature >= 0) {
+      PVLayerLoc const * targetLoc = targetLayer->getLayerLoc();
+      int const nx = targetLoc->nx;
+      int const ny = targetLoc->ny;
+      int const nxy = nx * ny;
+      int const nf = targetLoc->nf;
+      pvadata_t * wfBuffer = (pvadata_t *) malloc((size_t) nxy * sizeof(pvadata_t));
+      if (wfBuffer==NULL) {
+         fprintf(stderr, "%s \"%s\" memory allocation failure on rank %d in outputState: %s\n", getKeyword(), getName(), parent->columnId(), strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      for (int kxy=0; kxy<nxy; kxy++) {
+         int kx = kxPos(kxy, nx, ny, 1);
+         int ky = kyPos(kxy, nx, ny, 1);
+         int idx = kIndex(kx, ky, winningFeature, nx, ny, nf);
+         int idxExtended = kIndexExtended(idx, nx, ny, nf, targetLoc->halo.lt, targetLoc->halo.rt, targetLoc->halo.dn, targetLoc->halo.up);
+         wfBuffer[kxy] = targetLayer->getLayerData()[idxExtended];
+      }
+      if (parent->columnId() == 0) {
          if (maxActivity >= detectionThreshold) {
-            fprintf(outputstream->fp, "Time %f, activity %f, bounding box x=[%d,%d), y=[%d,%d): detected %s\n",
+            fprintf(outputstream->fp, "Time %f, maximum activity of %f, \"%s\", bounding box x=[%d,%d), y=[%d,%d)\n",
                   timevalue,
                   maxActivity,
+                  getClassName(winningFeature),
                   (int) values[2],
                   (int) values[3],
                   (int) values[4],
-                  (int) values[5],
-                  getClassName(winningFeature));
+                  (int) values[5]);
          }
          else {
-            fprintf(outputstream->fp, "Time %f, no features detected above threshold %f (highest was %s at %f)\n", timevalue, detectionThreshold, getClassName(winningFeature), maxActivity);
+            fprintf(outputstream->fp, "Time %f, maximum activity of %f, \"%s\", not above threshold %f\n",
+                  timevalue,
+                  maxActivity,
+                  getClassName(winningFeature),
+                  detectionThreshold);
          }
+         int const nxGlobal = targetLoc->nxGlobal;
+         int const nyGlobal = targetLoc->nyGlobal;
+         int const nxyGlobal = nxGlobal * nyGlobal;
+         pvadata_t * wfBufferGlobal = (pvadata_t *) malloc((size_t) nxyGlobal * sizeof(pvadata_t));
+         if (wfBufferGlobal==NULL) {
+            fprintf(stderr, "%s \"%s\" memory allocation failure on root process in outputState: %s\n", getKeyword(), getName(), strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         for (int k=0; k<nxy; k++) {
+            int kx = kxPos(k, nx, ny, 1);
+            int ky = kyPos(k, nx, ny, 1);
+            int kGlobal = kIndex(kx+targetLoc->kx0, ky+targetLoc->ky0, 0, nxGlobal, nyGlobal, 1);
+            wfBufferGlobal[kGlobal] = wfBuffer[k];
+         }
+         for (int r=0; r<parent->numberOfColumns(); r++) {
+            if (r==0) { continue; }
+            MPI_Recv(wfBuffer, nxy, MPI_FLOAT, r, 340+r, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
+            int rankStartX = nx*columnFromRank(r, parent->icCommunicator()->numCommRows(), parent->icCommunicator()->numCommColumns());
+            int rankStartY = ny*rowFromRank(r, parent->icCommunicator()->numCommRows(), parent->icCommunicator()->numCommColumns());
+            for (int k=0; k<nxy; k++) {
+               int kx = kxPos(k, nx, ny, 1);
+               int ky = kyPos(k, nx, ny, 1);
+               int kGlobal = kIndex(kx+rankStartX, ky+rankStartY, 0, nxGlobal, nyGlobal, 1);
+               wfBufferGlobal[kGlobal] = wfBuffer[k];
+            }
+         }
+         for (int k=0; k<nxyGlobal; k++) {
+            int kx = kxPos(k, nxGlobal, nyGlobal, 1);
+            int ky = kyPos(k, nxGlobal, nyGlobal, 1);
+            fprintf(outputstream->fp, "  Tile (%d, %d): activity %f\n", kx, ky, wfBufferGlobal[k]);
+         }
+         fflush(outputstream->fp);
       }
       else {
+         MPI_Send(wfBuffer, nxy, MPI_FLOAT, 0, 340+parent->columnId(), parent->icCommunicator()->communicator());
+         free(wfBuffer);
+      }
+   }
+   else {
+      if (parent->columnId() == 0) {
          fprintf(outputstream->fp, "Time %f, no features detected.\n", timevalue);
          // no activity above threshold
       }
-      fflush(outputstream->fp);
    }
 
    if (drawMontage) {
@@ -959,6 +1028,44 @@ int LocalizationProbe::makeMontage() {
    insertImageIntoMontage(xStart, yStart, reconLayer->getLayerData(), reconLayer->getLayerLoc(), true/*extended*/);
 
    if (parent->columnId()!=0) { return PV_SUCCESS; }
+
+   // Draw bounding box
+   if (boundingBoxLineWidth > 0) {
+      int montageColumn = kxPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
+      int montageRow = kyPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
+      double * values = getValuesBuffer();
+      int xStartInMontage = montageColumn * (imageLoc->nxGlobal+10) + 5 + (int) values[2];
+      int yStartInMontage = montageRow * (imageLoc->nyGlobal+64+10) + 5 + 64 + (int) values[4];
+      int width = (int) (values[3]-values[2]);
+      int height = (int) (values[5]-values[4]);
+      char const bbColor[3] = {255, 0, 0}; // red
+      for (int y=0; y<boundingBoxLineWidth; y++) {
+         int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+         for (int k=0; k<3*width; k++) {
+            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+            montageImage[lineStart+k] = bbColor[f];
+         }
+      }
+      for (int y=boundingBoxLineWidth; y<height-boundingBoxLineWidth; y++) {
+         int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+         for (int k=0; k<3*boundingBoxLineWidth; k++) {
+            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+            montageImage[lineStart+k] = bbColor[f];
+         }
+         lineStart=kIndex(xStartInMontage+width-boundingBoxLineWidth, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+         for (int k=0; k<3*boundingBoxLineWidth; k++) {
+            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+            montageImage[lineStart+k] = bbColor[f];
+         }
+      }
+      for (int y=height-boundingBoxLineWidth; y<height; y++) {
+         int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+         for (int k=0; k<3*width; k++) {
+            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+            montageImage[lineStart+k] = bbColor[f];
+         }
+      }
+   }
 
    // Add progress information to bottom 32 pixels
    std::stringstream progress("");

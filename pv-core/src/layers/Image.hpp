@@ -10,10 +10,13 @@
 #define IMAGE_HPP_
 
 #include "BaseInput.hpp"
+#include <cMakeHeader.h>
 
 namespace PV {
 
 class Image : public BaseInput{
+
+#ifdef PV_USE_GDAL
 
 protected:
    /** 
@@ -83,6 +86,13 @@ protected:
 
 
    bool autoResizeFlag; // if true, PetaVision will automatically resize your images to the size specified by hypercolumn
+#else // PV_USE_GDAL
+public:
+   Image(char const * name, HyPerCol * hc);
+protected:
+   Image();
+#endif // PV_USE_GDAL
+
 };
 
 }

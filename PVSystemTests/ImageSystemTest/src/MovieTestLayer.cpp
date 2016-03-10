@@ -2,6 +2,8 @@
 
 namespace PV {
 
+#ifdef PV_USE_GDAL
+
 MovieTestLayer::MovieTestLayer(const char * name, HyPerCol * hc) {
    Movie::initialize(name, hc);
 }
@@ -43,6 +45,15 @@ int MovieTestLayer::updateStateWrapper(double time, double dt)
    }
    return PV_SUCCESS;
 }
-
+#else // PV_USE_GDAL
+MovieTestLayer::MovieTestLayer(const char * name, HyPerCol * hc) {
+   if (hc->columnId()==0) {
+      fprintf(stderr, "MovieTestLayer class requires compiling with PV_USE_GDAL set\n");
+   }
+   MPI_Barrier(hc->icCommunicator()->communicator());
+   exit(EXIT_FAILURE);
 }
+#endif // PV_USE_GDAL
+
+}  // end namespace PV
 

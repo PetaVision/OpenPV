@@ -40,6 +40,8 @@
 
 namespace PV{
 
+#ifdef PV_USE_GDAL
+
 LabelLayer::LabelLayer(){
    initialize_base();
 }
@@ -330,8 +332,16 @@ int LabelLayer::initClayer() {
    return PV_SUCCESS;
 }
 */
-
-
+#else // PV_USE_GDAL
+LabelLayer::LabelLayer(const char * name, HyPerCol * hc)
+{
+   if (hc->columnId()==0) {
+      fprintf(stderr, "LabelLayer class requires compiling with PV_USE_GDAL set\n");
+   }
+   MPI_Barrier(hc->icCommunicator()->communicator());
+   exit(EXIT_FAILURE);
 }
+LabelLayer::LabelLayer() {}
+#endif // PV_USE_GDAL
 
-
+} // end namespace PV

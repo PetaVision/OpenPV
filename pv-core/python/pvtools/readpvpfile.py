@@ -206,10 +206,9 @@ def readpvpfile(filename,
             idxList = []
             timeList = []
 
-            validFrames = range(startFrame, lastFrame, skipFrames)
             frameNum = 0
             for frame in range(lastFrame):
-                if frame in validFrames:
+                if frame in range(startFrame, lastFrame, skipFrames):
                     time = np.fromfile(stream,np.float64,1)[0]
                     timeList.append(time)
                     numActive = np.fromfile(stream,np.uint32,1)
@@ -222,14 +221,11 @@ def readpvpfile(filename,
                     frameNum += 1
                 else:
                     numActive = np.fromfile(stream,np.uint32,3)[-1]
-                    stream.seek(entryPattern.itemsize * numActive,
-                                os.SEEK_CUR)
+                    stream.seek(entryPattern.itemsize * numActive, os.SEEK_CUR)
                     continue
 
-                #data.append(DataFrame(time,zip(currentData['index'],
-                #                               currentData['activation'])))
                 if progressPeriod:
-                    if not frame % progressPeriod and frame:
+                    if frame in range(startFrame, lastFrame, progressPeriod):
                         print("File "+filename+": frame "+str(frame)+" of "+str(lastFrame))
 
             #Make coosparsematrix

@@ -21,11 +21,9 @@
 #ifdef OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
 #include "../layers/CreateMovies.hpp"
 #endif // OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
-#include "../layers/FilenameParsingGroundTruthLayer.hpp"
 #include "../layers/GapLayer.hpp"
 #include "../layers/HyPerLCALayer.hpp"
 #include "../layers/ISTALayer.hpp"
-#include "../layers/Image.hpp"
 #include "../layers/ImagePvp.hpp"
 #include "../layers/ImageFromMemoryBuffer.hpp"
 #ifdef OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
@@ -36,10 +34,8 @@
 #include "../layers/LIF.hpp"
 #include "../layers/LIFGap.hpp"
 #include "../layers/LabelErrorLayer.hpp"
-#include "../layers/LabelLayer.hpp"
 #include "../layers/LeakyIntegrator.hpp"
 #include "../layers/MaskLayer.hpp"
-#include "../layers/Movie.hpp"
 #include "../layers/MoviePvp.hpp"
 #include "../layers/Patterns.hpp"
 #include "../layers/PoolingIndexLayer.hpp"
@@ -54,6 +50,13 @@
 #include "../layers/SigmoidLayer.hpp"
 //#include "../layers/TrainingLayer.hpp" //Obsolete June 17th 2015
 #include "../layers/WTALayer.hpp"
+#ifdef PV_USE_GDAL
+#   include "../layers/FilenameParsingGroundTruthLayer.hpp"
+#   include "../layers/Image.hpp"
+#   include "../layers/LabelLayer.hpp"
+#   include "../layers/Movie.hpp"
+#endif // PV_USE_GDAL
+
 #include "../connections/HyPerConn.hpp"
 #include "../connections/CloneConn.hpp"
 #include "../connections/CloneKernelConn.hpp"
@@ -143,11 +146,9 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 #ifdef OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
          {"CreateMovies", LayerGroupType},
 #endif // Marked obsolete June 17, 2015.  Moved to obsolete/layers
-         {"FilenameParsingGroundTruthLayer", LayerGroupType},
          {"GapLayer", LayerGroupType},
          {"HyPerLCALayer", LayerGroupType},
 	 {"ISTALayer", LayerGroupType},
-         {"Image", LayerGroupType},
          {"ImagePvp", LayerGroupType},
          {"ImageFromMemoryBuffer", LayerGroupType},
 #ifdef OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
@@ -158,11 +159,9 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"LIF", LayerGroupType},
          {"LIFGap", LayerGroupType},
          {"LabelErrorLayer", LayerGroupType},
-         {"LabelLayer", LayerGroupType},
          {"LeakyIntegrator", LayerGroupType},
          {"MaskLayer", LayerGroupType},
          {"MaxPooling", LayerGroupType},
-         {"Movie", LayerGroupType},
          {"MoviePvp", LayerGroupType},
          {"Patterns", LayerGroupType},
          {"PoolingIndexLayer", LayerGroupType},
@@ -177,6 +176,12 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
          {"SigmoidLayer", LayerGroupType},
 //         {"TrainingLayer", LayerGroupType}, //Marked obsolete June 17, 2015
          {"WTALayer", LayerGroupType},
+#ifdef PV_USE_GDAL
+         {"FilenameParsingGroundTruthLayer", LayerGroupType},
+         {"Image", LayerGroupType},
+         {"LabelLayer", LayerGroupType},
+         {"Movie", LayerGroupType},
+#endif // PV_USE_GDAL
 
          // Connections
          {"HyPerConn", ConnectionGroupType},
@@ -334,9 +339,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
       addedLayer = new CreateMovies(name, hc);
    }
 #endif // Marked obsolete June 17, 2015.  Moved to obsolete/layers
-   else if( !strcmp(keyword, "FilenameParsingGroundTruthLayer") ) {
-      addedLayer = new FilenameParsingGroundTruthLayer(name, hc);
-   }
    else if( !strcmp(keyword, "GapLayer") ) {
       addedLayer = new GapLayer(name, hc);
    }
@@ -345,9 +347,6 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    }
    else if( !strcmp(keyword, "ISTALayer") ) {
      addedLayer = new ISTALayer(name, hc);
-   }
-   else if( !strcmp(keyword, "Image") ) {
-      addedLayer = new Image(name, hc);
    }
    else if( !strcmp(keyword, "ImagePvp") ) {
       addedLayer = new ImagePvp(name, hc);
@@ -375,17 +374,11 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "LabelErrorLayer") ) {
       addedLayer = new LabelErrorLayer(name, hc);
    }
-   else if( !strcmp(keyword, "LabelLayer") ) {
-      addedLayer = new LabelLayer(name, hc);
-   }
    else if( !strcmp(keyword, "LeakyIntegrator") ) {
       addedLayer = new LeakyIntegrator(name, hc);
    }
    else if( !strcmp(keyword, "MaskLayer") ) {
       addedLayer = new MaskLayer(name, hc);
-   }
-   else if( !strcmp(keyword, "Movie") ) {
-      addedLayer = new Movie(name, hc);
    }
    else if( !strcmp(keyword, "MoviePvp") ) {
       addedLayer = new MoviePvp(name, hc);
@@ -431,6 +424,20 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    else if( !strcmp(keyword, "WTALayer") ) {
       addedLayer = new WTALayer(name, hc);
    }
+#ifdef PV_USE_GDAL
+   else if( !strcmp(keyword, "FilenameParsingGroundTruthLayer") ) {
+      addedLayer = new FilenameParsingGroundTruthLayer(name, hc);
+   }
+  else if( !strcmp(keyword, "Image") ) {
+     addedLayer = new Image(name, hc);
+  }
+  else if( !strcmp(keyword, "LabelLayer") ) {
+     addedLayer = new LabelLayer(name, hc);
+  }
+  else if( !strcmp(keyword, "Movie") ) {
+     addedLayer = new Movie(name, hc);
+  }
+#endif // PV_USE_GDAL
 
    if (addedLayer==NULL && getGroupType(keyword)==LayerGroupType) {
       if (hc->columnId()==0) {

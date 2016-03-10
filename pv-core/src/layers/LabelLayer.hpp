@@ -11,10 +11,13 @@
 #include "HyPerLayer.hpp"
 #include "../columns/HyPerCol.hpp"
 #include "Movie.hpp"
+#include <cMakeHeader.h>
 
 namespace PV{
 
 class LabelLayer : public HyPerLayer {
+
+#ifdef PV_USE_GDAL
 
 protected:
    LabelLayer();
@@ -52,10 +55,15 @@ public:
 private:
    int initialize_base();
    int updateLabels();
+#else // PV_USE_GDAL
+public:
+   LabelLayer(char const * name, HyPerCol * hc);
+protected:
+   LabelLayer();
+#endif // PV_USE_GDAL
 
 };
 
 }
-
 
 #endif /* LABELLAYER_HPP_ */
