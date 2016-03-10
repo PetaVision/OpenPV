@@ -74,7 +74,7 @@ Image "input" = {
     writeFrameToTimestamp = true;
 };
 
-ANNNormalizedErrorLayer "residual" = {
+ANNErrorLayer "residual" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 1;

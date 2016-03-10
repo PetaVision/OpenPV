@@ -8,7 +8,7 @@
 #ifndef FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_
 #define FILENAMEPARSINGGROUNDTRUTHLAYER_HPP_
 
-#include "../include/cMakeHeader.h"
+#include <cMakeHeader.h>
 #include "ANNLayer.hpp"
 #include <string>
 #include "Movie.hpp"

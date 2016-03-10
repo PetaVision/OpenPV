@@ -18,7 +18,7 @@ HyPerCol "column" = {
    dt = 1.0;
    dtAdaptFlag = true;
    useAdaptMethodExp1stOrder = false;
-   dtAdaptController = NULL;
+   dtAdaptController = "TimeScale";
    dtScaleMax = 5;
    dtScaleMin = 0.125;
    dtChangeMax = 0.05;
@@ -74,7 +74,7 @@ Image "Input" = {
     jitterFlag = false;
 };
 
-ANNNormalizedErrorLayer "Residual" = {
+ANNErrorLayer "Residual" = {
     nxScale = 1; 
     nyScale = 1;
     nf = 1;
@@ -92,7 +92,6 @@ ANNNormalizedErrorLayer "Residual" = {
     clearGSynInterval = 0;
     
     errScale = 1.0;
-    useMask = false;
 };
 
 HyPerLCALayer "V1" = {
@@ -293,7 +292,44 @@ IdentConn "CorrectToComparison" = {
     delay = 0;
 };
 
-// Probe.  Sets a flag if activity in "Comparison" is ever nonzero.
+// Energy probe used in time scale adaptation
+
+QuotientColProbe "TimeScale" = {
+    numerator                           = "InputEnergyColProbe";
+    denominator                         = "TotalEnergyProbe";
+    probeOutputFile                     = "timescale.txt";
+    valueDescription                    = "TimeScale";
+};
+
+ColumnEnergyProbe "InputEnergyColProbe" = {
+    probeOutputFile                     = "input_energy.txt";
+};
+
+ColumnEnergyProbe "TotalEnergyProbe" = {
+    probeOutputFile                     = "total_energy.txt";
+};
+
+L2NormProbe "ReconstructionErrorProbe" = {
+    targetLayer                         = "Residual";
+    message                             = NULL;
+    probeOutputFile                     = "recon_error_l2norm.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = "TotalEnergyProbe";
+    coefficient                         = 0.5;
+    exponent                            = 2.0;
+};
+
+FirmThresholdCostFnLCAProbe "CostFunctionProbe" = {
+    targetLayer                         = "V1";
+    message                             = NULL;
+    probeOutputFile                     = "cost_function.txt";
+    triggerLayerName                    = NULL;
+    energyProbe                         = "TotalEnergyProbe";
+    // VThresh inherited from targetLayer
+    // VWidth inherited from targetLayer
+};
+
+// Evaluation probe.  Sets a flag if activity in "Comparison" is ever nonzero.
 
 RequireAllZeroActivityProbe "ComparisonTest" = {
     targetLayer = "Comparison";

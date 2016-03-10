@@ -9,7 +9,7 @@
 #define MOVIE_HPP_
 
 #include "Image.hpp"
-#include "../include/cMakeHeader.h"
+#include <cMakeHeader.h>
 #include <sstream>
 
 namespace PV {

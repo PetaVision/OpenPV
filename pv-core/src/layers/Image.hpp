@@ -10,7 +10,7 @@
 #define IMAGE_HPP_
 
 #include "BaseInput.hpp"
-#include "../include/cMakeHeader.h"
+#include <cMakeHeader.h>
 
 namespace PV {
 

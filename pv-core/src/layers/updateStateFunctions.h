@@ -397,6 +397,37 @@ int applyGSyn_LabelErrorLayer(int nbatch, int numNeurons, MEM_GLOBAL pvdata_t * 
 }
 
 KERNEL
+int applyGSyn_MomentumLCALayer(int nbatch, int numNeurons,
+      MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * Vdot, MEM_GLOBAL pvdata_t * GSynHead,
+      MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau_slow, pvdata_t tau_fast, pvdata_t selfInteract, 
+      int nx, int ny, int nf, int lt, int rt, int dn, int up) {
+   int kbatch;
+   MEM_GLOBAL pvdata_t * GSynError = &GSynHead[0 * nbatch * numNeurons]; // weighted input
+#if !defined(PV_USE_OPENCL) && !defined(PV_USE_CUDA)
+   #ifdef PV_USE_OPENMP_THREADS
+   #pragma omp parallel for schedule(static)
+   #endif
+   for (kbatch = 0; kbatch < numNeurons*nbatch; kbatch++)
+#else
+   kbatch = getIndex();
+#endif // PV_USE_OPENCL
+   {
+      int b = kbatch / numNeurons;
+      int k = kbatch % numNeurons;
+      float exp_tau_slow = exp(-dtAdapt[b]/tau_slow);
+      float exp_tau_fast = exp(-dtAdapt[b]/tau_fast);
+      MEM_GLOBAL pvdata_t* VBatch = V + b*numNeurons;
+      MEM_GLOBAL pvdata_t* VdotBatch = Vdot + b*numNeurons;
+      MEM_GLOBAL pvdata_t* GSynErrorBatch = GSynError + b*numNeurons;
+      //Activity extended
+      MEM_GLOBAL pvdata_t* activityBatch = activity + b*(nx+rt+lt)*(ny+up+dn)*nf;
+      int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+      VdotBatch[k] = exp_tau_fast * VdotBatch[k] + (1 - exp_tau_fast) * (GSynErrorBatch[k] + selfInteract * activityBatch[kex]);
+   }
+   return PV_SUCCESS;
+}
+
+KERNEL
 int applyGSyn_HyPerLCALayer(int nbatch, int numNeurons,
       MEM_GLOBAL pvdata_t * V, MEM_GLOBAL pvdata_t * GSynHead,
       MEM_GLOBAL pvdata_t * activity, double* dtAdapt, pvdata_t tau, pvdata_t selfInteract, 

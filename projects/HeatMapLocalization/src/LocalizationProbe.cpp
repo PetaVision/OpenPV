@@ -856,11 +856,11 @@ int LocalizationProbe::outputState(double timevalue) {
             int ky = kyPos(k, nxGlobal, nyGlobal, 1);
             fprintf(outputstream->fp, "  Tile (%d, %d): activity %f\n", kx, ky, wfBufferGlobal[k]);
          }
+         fflush(outputstream->fp);
       }
       else {
          MPI_Send(wfBuffer, nxy, MPI_FLOAT, 0, 340+parent->columnId(), parent->icCommunicator()->communicator());
          free(wfBuffer);
-
       }
    }
    else {
