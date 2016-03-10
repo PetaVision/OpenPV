@@ -5,7 +5,15 @@
 %% which should point to a folder stored in VOCdevkit
 
 clear all
-addpath('/home/ec2-user/mountData/openpv/projects/PASCAL_VOC/mlab/')
+if exist("/nh/compneuro/Data", "dir")
+  machine_path = "/nh/compneuro/Data";
+elseif exist("/home/ec2-user/mountData", "dir")
+  machine_path = "/home/ec2-user/mountData";
+elseif exist("/Users/gkenyon")
+  machine_path = "/Users/gkenyon";
+elseif exist("/home/gkenyon")
+  machine_path = "/home/gkenyon";
+endif
 setImagePaths;
 
 imageNet_dir = "/home/ec2-user/mountData/openpv/projects/PASCAL_VOC/imageNet"; %% folder containing imageNet tar.gz fliles, 1 tar file per object category
