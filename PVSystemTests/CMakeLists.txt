@@ -80,7 +80,10 @@ add_subdirectory(SegmentTest)
 add_subdirectory(ShrunkenPatchTest)
 add_subdirectory(ShrunkenPatchFlagTest)
 add_subdirectory(StochasticReleaseTest)
-add_subdirectory(SumPoolTest)
+
+#TODO reimplement sumpooltest
+#add_subdirectory(SumPoolTest)
+
 add_subdirectory(test_border_activity)
 add_subdirectory(test_cocirc)
 add_subdirectory(test_constant_input)
