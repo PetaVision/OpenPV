@@ -311,9 +311,10 @@ float PoolingConn::minWeight(int arborId){
      return 1.0;
    }
    else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-     int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
-     int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
-     return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
+     //int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
+     //int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
+     //return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
+     return 1;
    }
    else {
        assert(0); // only possibilities are ACCUMULATE_MAXPOOLING and ACCUMULATE_SUMPOOLING
@@ -326,9 +327,10 @@ float PoolingConn::maxWeight(int arborId){
      return 1.0;
    }
    else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-     int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
-     int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
-     return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
+     //int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
+     //int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
+     //return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
+     return 1;
    }
    else {
        assert(0); // only possibilities are ACCUMULATE_MAXPOOLING and ACCUMULATE_SUMPOOLING
@@ -490,7 +492,8 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
          if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
            float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
            float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-           w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+           //w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+           w = 1.0;
          }
          void* auxPtr = NULL;
          for (int y = 0; y < ny; y++) {
@@ -637,7 +640,8 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
          if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
            float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
            float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-           w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+           //w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+           w = 1.0;
          }
 
          for (int ky = 0; ky < yPatchSize; ky++){
