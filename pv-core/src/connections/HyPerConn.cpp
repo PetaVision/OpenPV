@@ -532,6 +532,12 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weight
       //accumulateFunctionPointer = &pvpatch_sum_pooling;
       //accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
       break;
+   case ACCUMULATE_AVGPOOLING:
+      std::cout << "ACCUMULATE_AVGPOOLING not allowed in HyPerConn, use PoolingConn instead\n";
+      exit(-1);
+      //accumulateFunctionPointer = &pvpatch_sum_pooling;
+      //accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
+      break;
    default:
       assert(0);
       break;
@@ -993,6 +999,11 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 	       (strcmp(pvpatchAccumulateTypeString,"sum_pooling")==0)  ||
 	       (strcmp(pvpatchAccumulateTypeString,"sum pooling")==0)) {
          pvpatchAccumulateType = ACCUMULATE_SUMPOOLING;
+      }
+      else if ((strcmp(pvpatchAccumulateTypeString,"avgpooling")==0) ||
+	       (strcmp(pvpatchAccumulateTypeString,"avg_pooling")==0)  ||
+	       (strcmp(pvpatchAccumulateTypeString,"avg pooling")==0)) {
+         pvpatchAccumulateType = ACCUMULATE_AVGPOOLING;
       }
       else {
          unsetAccumulateType();

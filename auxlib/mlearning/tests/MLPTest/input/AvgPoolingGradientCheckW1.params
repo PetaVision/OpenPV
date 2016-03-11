@@ -1,0 +1,488 @@
+//
+// MLPTest.params
+//
+// created by slundquist: Mar 21, 2014
+//
+
+//A params file to test PV implementation of a multilayer perceptron
+//This test is solving the xor problem
+//http://www.mind.ilstu.edu/curriculum/artificial_neural_net/xor_problem_and_solution.php?modGUI=239&compGUI=1286&itemGUI=2253
+
+debugParsing = false;    // Debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx = 2;
+   ny = 2;
+   dt = 1.0;  //time step in ms.	     
+   randomSeed = 2394853940;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
+   stopTime = 10.0; //Number of total parameters in the network (weights + biases)
+   progressInterval = 10.0; //Program will output its progress at each progressStep
+   writeProgressToErr = false;  
+   outputPath = "w1output/";
+   filenamesContainLayerNames = true;  
+   filenamesContainConnectionNames = true;
+   checkpointRead = false;  
+   checkpointWrite = false;
+   suppressLastOutput = false; //Save the last output as checkpoint.
+};
+
+//
+// layers
+//
+ConstantLayer "onesLayer" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    //writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
+ConstantLayer "onesLayerHalfScale" = {
+    restart = 0;
+    nxScale = .5; 
+    nyScale = .5;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    //writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
+//The input layer of data
+//Note that the layer name matches train.txt
+InputLayer "train" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 2;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    //writeSparseActivity = false;
+    InitVType = "ZeroV";
+    inFilename = "input/train/input.txt";
+    phase = 0;
+    ////rectified
+    //VThresh = 0;
+    //VMax = infinity;
+    //VMin = 0;
+    constantValue = true;
+};
+
+ANNLayer "HiddenLayer1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    //writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    phase = 1;
+    //rectified
+    //VThresh = 0;
+    //AMin = 0;
+    VThresh = -infinity;
+    AMin = -infinity;
+    AMax = infinity;
+};
+
+ANNLayer "MaxPooledHidden" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 4;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    InitVType = "ZeroV";
+    phase = 2;
+    //rectified
+    //VThresh = 0;
+    //AMin = 0;
+    VThresh = -infinity;
+    AMin = -infinity;
+    AMax = infinity;
+};
+
+//PoolingIndexLayer "MaxPoolIndex" = {
+//    restart = 0;
+//    nxScale = .5;
+//    nyScale = .5;
+//    nf = 4;
+//    writeStep = -1.0;
+//    initialWriteTime = 0.0;
+//    mirrorBCflag = false;
+//    valueBC = 0.0;
+//    sparseLayer = 0;
+//    //
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+//    AMin = -infinity; 
+//    AShift = 0.0;
+//    VWidth = 0.0;
+//    // 
+//    phase = 3; 
+//    triggerLayerName = NULL;
+//};
+
+ANNLayer "FinalLayer" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 1;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    //writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    phase = 3;
+    ////rectified
+    //VThresh = 0;
+    //VMax = infinity;
+    //VMin = 0;
+};
+
+GTLayer "gt" = {
+    restart = 0;
+    nxScale = .5; 
+    nyScale = .5;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    //writeSparseActivity = false;
+    InitVType = "ZeroV";
+    inFilename = "input/train/gt.txt";
+    phase = 0;
+    ////rectified
+    //VThresh = 0;
+    //VMax = infinity;
+    //VMin = 0;
+    constantValue = true;
+};
+
+//ComparisonLayer "comparison" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 1;
+//    writeStep = -1; //Change based on display period
+//    initialWriteTime = 999.0; //Change based on display period 
+//    mirrorBCflag = 1;
+//    writeSparseActivity = 0;
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    phase = 3;
+//};
+
+ANNLayer "FinalError" = {
+   nxScale = .5;
+   nyScale = .5;
+   nf = 1;
+   writeStep = -1;
+   mirrorBCflag = 0;
+   //writeSparseActivity = 0;
+   InitVType = "ZeroV";
+   VThresh = -infinity;
+   phase = 4;
+};
+
+ANNLayer "Error1" = {
+    nxScale = .5;
+    nyScale = .5;
+    nf = 4;
+    writeStep = -1; //Change based on display period
+    mirrorBCflag = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    phase = 5;
+};
+
+//MaskLayer "GatedError1" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 4;
+//    writeStep = -1; //Change based on display period
+//    mirrorBCflag = 0;
+//    //writeSparseActivity = 0;
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    phase = 5;
+//    maskMethod = "layer";
+//    maskLayerName = "HiddenLayer1";
+//};
+
+ANNLayer "GatedError1" = {
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    writeStep = -1; //Change based on display period
+    mirrorBCflag = 0;
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    phase = 6;
+};
+
+//Connections
+GradientCheckConn "W1Plasticity" = {
+    preLayerName = "train";
+    postLayerName = "GatedError1";
+    channelCode = -1; //Does not update on this channel
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -.1; //sqrt(3/2);
+    wMaxInit = .1;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    sharedWeights = true;
+    normalizeDw = false;
+    
+    shrinkPatches = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 1;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+    dWMax = .01; // 200.0 used for initial training 
+    delay = 0;
+     
+    selfFlag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+
+    estLayerName = "FinalLayer";
+    gtLayerName = "gt";
+    costFunction = "sqerr";
+};
+
+KernelConn "B1Plasticity" = {
+    preLayerName = "onesLayer";
+    postLayerName = "GatedError1";
+    channelCode = -1; //Does not update on this channel
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    sharedWeights = true;
+    
+    weightInitType = "UniformRandomWeight";
+    wMinInit = 0; //sqrt(3/2);
+    wMaxInit = 0;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    normalizeDw = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+    dWMax = .01; // 200.0 used for initial training 
+    delay = 0;
+     
+    selfFlag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneConn "W1" = {
+    preLayerName = "train";
+    postLayerName = "HiddenLayer1";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "W1Plasticity";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneConn "B1" = {
+    preLayerName = "onesLayer";
+    postLayerName = "HiddenLayer1";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    originalConnName = "B1Plasticity";
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+PoolingConn "HiddenLayer1ToMaxPooledHidden" = {
+   preLayerName                        = "HiddenLayer1";
+   postLayerName                       = "MaxPooledHidden";
+   channelCode                         = 0;
+   nxp                                 = 1;
+   nyp                                 = 1;
+   delay                               = 0;
+   numAxonalArbors                     = 1;
+   //convertRateToSpikeCount             = false;
+   //receiveGpu                          = false;
+   sharedWeights                       = true;
+   //initializeFromCheckpointFlag        = false;
+   updateGSynFromPostPerspective       = false;
+   pvpatchAccumulateType               = "avgpooling";
+   writeStep                           = -1;
+   writeCompressedCheckpoints          = false;
+   selfFlag                            = false;
+   shrinkPatches                       = false;
+   needPostIndexLayer                  = false;
+};
+
+HyPerConn "W2Plasticity" = {
+    preLayerName = "MaxPooledHidden";
+    postLayerName = "FinalError";
+    channelCode = -1; //Does not update on this channel
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -.1; //sqrt(3/1);
+    wMaxInit = .1;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    sharedWeights = true;
+    normalizeDw = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+    dWMax = .01; // 200.0 used for initial training 
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+KernelConn "B2Plasticity" = {
+   #include "B1Plasticity";
+   @preLayerName = "onesLayerHalfScale";
+   @postLayerName = "FinalError";
+   @wMinInit = 0; //sqrt(3/1);
+   @wMaxInit = 0;
+};
+
+CloneConn "W2" = {
+    preLayerName = "MaxPooledHidden";
+    postLayerName = "FinalLayer";
+    originalConnName = "W2Plasticity";
+    channelCode = 0; //On exc channel
+    writeStep = -1;
+    selfFlag = false;
+    delay = 0;
+    preActivityIsNotRate = false;
+    useWindowPost = false;
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+CloneConn "B2" = {
+   #include "B1";
+   @preLayerName = "onesLayerHalfScale";
+   @postLayerName = "FinalLayer";
+   @originalConnName = "B2Plasticity";
+};
+
+TransposeConn "W2T" = {
+    preLayerName = "FinalError";
+    postLayerName = "Error1";
+    channelCode = 0; //On excitatory channel
+    originalConnName = "W2Plasticity";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = false;
+};
+
+TransposePoolingConn "Error1ToGatedError1" = {
+    preLayerName = "Error1";
+    postLayerName = "GatedError1";
+    channelCode = 0;
+    originalConnName = "HiddenLayer1ToMaxPooledHidden";
+    selfFlag = false;
+    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "avgpooling";
+    updateGSynFromPostPerspective = false;
+};
+
+IdentConn "gtToFinalError" = {
+    preLayerName = "gt";
+    postLayerName = "FinalError";
+    channelCode = 0;
+    writeStep = -1;    
+    delay = 0;
+};
+
+IdentConn "FinalLayerToFinalError" = {
+    preLayerName = "FinalLayer";
+    postLayerName = "FinalError";
+    channelCode = 1;
+    writeStep = -1;    
+    delay = 0;
+};
+
+////GT on inh, estimated on excitatory
+//IdentConn "GTToComparison" = {
+//    preLayerName = "gt";
+//    postLayerName = "comparison";
+//    channelCode = 0;
+//    writeStep = -1;    
+//    delay = 0;
+//};
+//
+//IdentConn "FinalLayerToComparison" = {
+//    preLayerName = "FinalLayer";
+//    postLayerName = "comparison";
+//    channelCode = 1; 
+//    writeStep = -1;    
+//    delay = 0;
+//};
+//

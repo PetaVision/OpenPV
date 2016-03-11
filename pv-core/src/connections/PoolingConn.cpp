@@ -115,6 +115,10 @@ int PoolingConn::initialize(const char * name, HyPerCol * hc, InitWeights * weig
       accumulateFunctionPointer = &pvpatch_sum_pooling;
       accumulateFunctionFromPostPointer = &pvpatch_sumpooling_from_post;
       break;
+   case ACCUMULATE_AVGPOOLING:
+      accumulateFunctionPointer = &pvpatch_sum_pooling;
+      accumulateFunctionFromPostPointer = &pvpatch_sumpooling_from_post;
+      break;
    default:
       assert(0);
       break;
@@ -311,13 +315,15 @@ float PoolingConn::minWeight(int arborId){
      return 1.0;
    }
    else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-     //int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
-     //int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
-     //return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
      return 1;
    }
+   else if(getPvpatchAccumulateType() == ACCUMULATE_AVGPOOLING){
+     int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
+     int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
+     return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
+   }
    else {
-       assert(0); // only possibilities are ACCUMULATE_MAXPOOLING and ACCUMULATE_SUMPOOLING
+       assert(0); // only possibilities are ACCUMULATE_MAXPOOLING, ACCUMULATE_SUMPOOLING, ACCUMULATe_AVGPOOLING
        return 0.0; // gets rid of a compile warning
     }
 }
@@ -327,10 +333,12 @@ float PoolingConn::maxWeight(int arborId){
      return 1.0;
    }
    else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-     //int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
-     //int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
-     //return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
      return 1;
+   }
+   else if(getPvpatchAccumulateType() == ACCUMULATE_AVGPOOLING){
+     int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
+     int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
+     return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
    }
    else {
        assert(0); // only possibilities are ACCUMULATE_MAXPOOLING and ACCUMULATE_SUMPOOLING
@@ -490,10 +498,12 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
          int sf = fPatchSize();
          pvwdata_t w = 1.0;
          if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+           w = 1.0;
+         }
+         else if(getPvpatchAccumulateType() == ACCUMULATE_AVGPOOLING){
            float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
            float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-           //w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
-           w = 1.0;
+           w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
          }
          void* auxPtr = NULL;
          for (int y = 0; y < ny; y++) {
@@ -638,10 +648,12 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
 
          pvwdata_t w = 1.0;
          if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+           w = 1.0;
+         }
+         else if(getPvpatchAccumulateType() == ACCUMULATE_AVGPOOLING){
            float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
            float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-           //w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
-           w = 1.0;
+           w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
          }
 
          for (int ky = 0; ky < yPatchSize; ky++){

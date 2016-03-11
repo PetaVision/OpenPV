@@ -78,6 +78,10 @@ int TransposePoolingConn::initialize(const char * name, HyPerCol * hc) {
       accumulateFunctionPointer = &pvpatch_sum_pooling;
       accumulateFunctionFromPostPointer = &pvpatch_sumpooling_from_post;
       break;
+   case ACCUMULATE_AVGPOOLING:
+      accumulateFunctionPointer = &pvpatch_sum_pooling;
+      accumulateFunctionFromPostPointer = &pvpatch_sumpooling_from_post;
+      break;
    default:
       assert(0);
       break;
@@ -621,9 +625,16 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
 
             pvwdata_t w = 1.0;
             if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+              //float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
+              //float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
+              //w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+              w = 1.0;
+            }
+            else if(getPvpatchAccumulateType() == ACCUMULATE_AVGPOOLING){
               float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
               float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
-              w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
+              float normVal = nxp*nyp;
+              w = 1.0/normVal;
             }
             void* auxPtr = NULL;
             for (int y = 0; y < ny; y++) {
