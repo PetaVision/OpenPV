@@ -118,3 +118,18 @@ else()
   add_library(${PV_LIBRARY_NAME} ${SHARED_FLAG} ${PVLibSrc} ${BISON_PARSER_OUTPUTS} ${FLEX_SCANNER_OUTPUTS})
 endif()
 
+
+message(STATUS "cmake build_type: ${CMAKE_BUILD_TYPE}")
+
+# The following is needed to make the Xcode generator put libpv.a into the correct place.
+# Without this, Xcode appends a Debug to the end of the output path, regardless of 
+# whether or not a Debug build is being created
+
+set_target_properties(${PV_LIBRARY_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PV_LIBRARY_DIR})
+set_target_properties(${PV_LIBRARY_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY_DEBUG ${PV_LIBRARY_DIR})
+set_target_properties(${PV_LIBRARY_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${PV_LIBRARY_DIR})
+set_target_properties(${PV_LIBRARY_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${PV_LIBRARY_DIR})
+set_target_properties(${PV_LIBRARY_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${PV_LIBRARY_DIR})
+set_target_properties(${PV_LIBRARY_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${PV_LIBRARY_DIR})
+
+
