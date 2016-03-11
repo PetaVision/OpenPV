@@ -64,6 +64,8 @@ macro(pv_add_executable TARGET)
   # Set target properties
   if(PARSED_ARGS_OUTPUT_PATH)
     set_target_properties(${TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PARSED_ARGS_OUTPUT_PATH})
+    set_target_properties(${TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PARSED_ARGS_OUTPUT_PATH})
+    set_target_properties(${TARGET} PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PARSED_ARGS_OUTPUT_PATH})
   endif()
 
   if (GDAL_FOUND AND PV_USE_GDAL)
@@ -82,12 +84,5 @@ macro(pv_add_executable TARGET)
     target_link_libraries(${TARGET} ${PV_OPENMP_LIBRARIES})
   endif()
 
-  if (PV_USE_CUDA)
-    target_link_libraries(${TARGET} ${CUDA_LIBRARIES})
-    target_link_libraries(${TARGET} ${CUDNN_LIBRARY})
-  endif()
-
-  if (PV_LINK_LIBRARIES)
-    target_link_libraries(${TARGET} ${PV_LINK_LIBRARIES})
-  endif()
 endmacro()
+
