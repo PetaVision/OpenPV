@@ -4,7 +4,6 @@ get_filename_component(TARGET ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 # Add the executable
 pv_add_executable(${TARGET} SRC
-  BIDS_main_buildandrun.cpp
   src/BIDS_main_buildandrun.cpp
   src/BIDSCloneLayer.cpp
   src/BIDSConn.cpp
