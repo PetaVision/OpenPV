@@ -49,7 +49,7 @@ public:
     *    "-batchwidth": the next argument is parsed as an integer and stored as the batch width.
     *    "--require-return": the require-return flag is set to true.
     * If the last argument is "-t" and "-t" did not appear earlier, set numThreads to the max possible
-    *    (omp_get_max_threads() if PV_USE_OPENMP is on; 1 if PV_USE_OPENMP is off).
+    *    (omp_get_max_threads() if PV_USE_OPENMP_THREADS is on; 1 if PV_USE_OPENMP_THREADS is off).
     * It is an error to have both the -r and -c options.
     *
     * Note that all arguments have a single hyphen, except for "--require-return".

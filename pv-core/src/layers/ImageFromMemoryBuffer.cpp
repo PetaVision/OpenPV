@@ -183,26 +183,26 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
             double image_ave = image_sum / bufferSize;
             double image_ave2 = image_sum2 / bufferSize;
             // set mean to zero
-            #ifdef PV_USE_OPENMP
+            #ifdef PV_USE_OPENMP_THREADS
             #pragma omp parallel for
-            #endif // PV_USE_OPENMP
+            #endif // PV_USE_OPENMP_THREADS
             for (int k=0; k<bufferSize; k++) {
                buffer[k] -= image_ave;
             }
             // set std dev to 1
             double image_std = sqrt(image_ave2 - image_ave*image_ave);
             if(image_std == 0){
-               #ifdef PV_USE_OPENMP
+               #ifdef PV_USE_OPENMP_THREADS
                #pragma omp parallel for
-               #endif // PV_USE_OPENMP
+               #endif // PV_USE_OPENMP_THREADS
                for (int k=0; k<bufferSize; k++) {
                   buffer[k] = 0.0f;
                }
             }
             else{
-               #ifdef PV_USE_OPENMP
+               #ifdef PV_USE_OPENMP_THREADS
                #pragma omp parallel for
-               #endif // PV_USE_OPENMP
+               #endif // PV_USE_OPENMP_THREADS
                for (int k=0; k<bufferSize; k++) {
                   buffer[k] /= image_std;
                }
@@ -217,18 +217,18 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
             }
             if (image_max > image_min){
                float image_stretch = 1.0f / (image_max - image_min);
-               #ifdef PV_USE_OPENMP
+               #ifdef PV_USE_OPENMP_THREADS
                #pragma omp parallel for
-               #endif // PV_USE_OPENMP
+               #endif // PV_USE_OPENMP_THREADS
                for (int k=0; k<bufferSize; k++) {
                   buffer[k] -= image_min;
                   buffer[k] *= image_stretch;
                }
             }
             else{
-               #ifdef PV_USE_OPENMP
+               #ifdef PV_USE_OPENMP_THREADS
                #pragma omp parallel for
-               #endif // PV_USE_OPENMP
+               #endif // PV_USE_OPENMP_THREADS
                for (int k=0; k<bufferSize; k++) {
                   buffer[k] = 0.0f;
                }
@@ -237,9 +237,9 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
       } // normalizeLuminanceFlag
 
       if( inverseFlag ) {
-         #ifdef PV_USE_OPENMP
+         #ifdef PV_USE_OPENMP_THREADS
          #pragma omp parallel for
-         #endif // PV_USE_OPENMP
+         #endif // PV_USE_OPENMP_THREADS
          for (int k=0; k<bufferSize; k++) {
             buffer[k] = 1 - buffer[k];
          }
