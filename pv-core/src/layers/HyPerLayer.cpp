@@ -440,20 +440,30 @@ HyPerLayer::~HyPerLayer()
 
 }
 
+template <typename T>
+int HyPerLayer::freeBuffer(T ** buf) {
+   free(*buf);
+   *buf = NULL;
+   return PV_SUCCESS;
+}
+// Declare the instantiations of allocateBuffer that occur in other .cpp files; otherwise you may get linker errors.
+template int HyPerLayer::freeBuffer<pvdata_t>(pvdata_t ** buf);
+template int HyPerLayer::freeBuffer<int>(int ** buf);
+
+int HyPerLayer::freeRestrictedBuffer(pvdata_t ** buf) {
+   return freeBuffer(buf);
+}
+
+int HyPerLayer::freeExtendedBuffer(pvdata_t ** buf) {
+   return freeBuffer(buf);
+}
+
 int HyPerLayer::freeClayer() {
    pvcube_delete(clayer->activity);
 
-   //if (clayer->activeFP != NULL) {
-   //   PV_fclose(clayer->activeFP);
-   //   clayer->activeFP = NULL;
-   //}
-
-
-   //free(clayer->activeIndices); clayer->activeIndices = NULL;
-   free(clayer->prevActivity);  clayer->prevActivity = NULL;
-   //free(clayer->activeIndices); clayer->activeIndices = NULL;
-   free(clayer->V);             clayer->V = NULL;
-   free(clayer);                clayer = NULL;
+   freeBuffer(&clayer->prevActivity);
+   freeBuffer(&clayer->V);
+   free(clayer); clayer = NULL;
 
    return PV_SUCCESS;
 }
@@ -521,8 +531,16 @@ int HyPerLayer::allocateBuffer(T ** buf, int bufsize, const char * bufname) {
 template int HyPerLayer::allocateBuffer<pvdata_t>(pvdata_t ** buf, int bufsize, const char * bufname);
 template int HyPerLayer::allocateBuffer<int>(int ** buf, int bufsize, const char * bufname);
 
+int HyPerLayer::allocateRestrictedBuffer(pvdata_t ** buf, char const * bufname) {
+   return allocateBuffer(buf, getNumNeuronsAllBatches(), bufname);
+}
+
+int HyPerLayer::allocateExtendedBuffer(pvdata_t ** buf, char const * bufname) {
+   return allocateBuffer(buf, getNumExtendedAllBatches(), bufname);
+}
+
 int HyPerLayer::allocateV() {
-   return allocateBuffer(&clayer->V, getNumNeuronsAllBatches(), "membrane potential V");
+   return allocateRestrictedBuffer(&clayer->V, "membrane potential V");
 }
 
 int HyPerLayer::allocateActivity() {
@@ -531,7 +549,7 @@ int HyPerLayer::allocateActivity() {
 }
 
 int HyPerLayer::allocatePrevActivity() {
-   return allocateBuffer(&clayer->prevActivity, getNumExtendedAllBatches(), "time of previous activity");
+   return allocateExtendedBuffer(&clayer->prevActivity, "time of previous activity");
 }
 
 int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale, int nf, int numBatches)
@@ -2291,7 +2309,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
          pvp_read_time(readFile, comm, 0/*root process*/, &tlevel);
          datastore->setLastUpdateTime(b/*bufferId*/, l, tlevel);
          pvdata_t * buffer = (pvdata_t *) datastore->buffer(b, l);
-         int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true);
+         int status1 = scatterActivity(readFile, comm, 0/*root process*/, buffer, getLayerLoc(), true, NULL, 0, 0, PVP_NONSPIKING_ACT_FILE_TYPE, 0);
          if (status1 != PV_SUCCESS) status = PV_FAILURE;
       }
    }
@@ -2303,28 +2321,19 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
 int HyPerLayer::checkpointWrite(const char * cpDir) {
    // Writes checkpoint files for V, A, and datastore to files in working directory
    InterColComm * icComm = parent->icCommunicator();
-   char basepath[PV_PATH_MAX];
-   char filename[PV_PATH_MAX];
-   int lenbase = snprintf(basepath, PV_PATH_MAX, "%s/%s", cpDir, name);
-   if (lenbase+strlen("_Delays.pvp") >= PV_PATH_MAX) { // currently _Delays.pvp is the longest suffix needed
-      if (icComm->commRank()==0) {
-         fprintf(stderr, "HyPerLayer::checkpointWrite error in layer \"%s\".  Base pathname \"%s/%s_\" too long.\n", name, cpDir, name);
-      }
-      abort();
-   }
    double timed = (double) parent->simulationTime();
-   int chars_needed = snprintf(filename, PV_PATH_MAX, "%s_A.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
+   char * filename = NULL;
+   filename = parent->pathInCheckpoint(cpDir, getName(), "_A.pvp");
    pvdata_t * A = getActivity();
    writeBufferFile(filename, icComm, timed, &A, 1, /*extended*/true, getLayerLoc());
    if( getV() != NULL ) {
-      chars_needed = snprintf(filename, PV_PATH_MAX, "%s_V.pvp", basepath);
-      assert(chars_needed < PV_PATH_MAX);
+      free(filename);
+      filename = parent->pathInCheckpoint(cpDir, getName(), "_V.pvp");
       pvdata_t * V = getV();
       writeBufferFile(filename, icComm, timed, &V, /*numbands*/1, /*extended*/false, getLayerLoc());
    }
-   chars_needed = snprintf(filename, PV_PATH_MAX, "%s_Delays.pvp", basepath);
-   assert(chars_needed < PV_PATH_MAX);
+   free(filename);
+   filename = parent->pathInCheckpoint(cpDir, getName(), "_Delays.pvp");
    writeDataStoreToFile(filename, icComm, timed);
 
    parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);

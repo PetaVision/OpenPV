@@ -269,8 +269,22 @@ protected:
    virtual int allocateBuffers();
    virtual int allocateGSyn();
 
+   /*
+    * Allocates a buffer of the given length.  The membrane potential and activity buffer, among others, are created using allocateBuffer.
+    * To free a buffer created with this method, call freeBuffer().
+    */
    template <typename T>
    int allocateBuffer(T ** buf, int bufsize, const char * bufname);
+
+   /**
+    * Allocates a restricted buffer (that is, buffer's length is getNumNeuronsAllBatches()).
+    */
+   int allocateRestrictedBuffer(pvdata_t ** buf, const char * bufname);
+
+   /**
+    * Allocates an extended buffer (that is, buffer's length is getNumExtendedAllBatches()).
+    */
+   int allocateExtendedBuffer(pvdata_t ** buf, const char * bufname);
 
    int allocateCube();
    virtual int allocateV();
@@ -310,6 +324,30 @@ protected:
     * Copies the membrane potential V from triggerResetLayer and then calls setActivity to update A.
     */
    virtual int resetStateOnTrigger();
+
+   /*
+    * Frees a buffer created by allocateBuffer().  Note that the address to the buffer
+    * is passed as the argument; on return, the address contains NULL.
+    * Note that there is no checking whether the buffer was created by allocateBuffer(),
+    * or any other allocateBuffer()-related method.
+    */
+   template <typename T>
+   int freeBuffer(T ** buf);
+
+   /**
+    * Frees a buffer created by allocateRestrictedBuffer().
+    * Note that there is no checking whether the buffer was created by allocateRestrictedBuffer(),
+    * or any other allocateBuffer()-related method.
+    */
+   int freeRestrictedBuffer(pvdata_t ** buf);
+
+   /**
+    * Frees a buffer created by allocateRestrictedBuffer().
+    * Note that there is no checking whether the buffer was created by allocateExtendedBuffer(),
+    * or any other allocateBuffer()-related method.
+    */
+   int freeExtendedBuffer(pvdata_t ** buf);
+
 public:
    pvdata_t * getActivity()          {return clayer->activity->data;} // TODO: access to clayer->activity->data should not be public
    virtual double calcTimeScale(int batchIdx)          {return -1.0;};
