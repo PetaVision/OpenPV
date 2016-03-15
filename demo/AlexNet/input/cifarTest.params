@@ -1,0 +1,732 @@
+//
+// CifarTest.params
+//
+
+debugParsing = true;    // Debug the reading of this parameter file.  
+HyPerCol "column" = {
+   nx = 32;
+   ny = 32;
+   dt = 1.0;
+   randomSeed = 2394853940;
+   startTime = 0.0;
+   stopTime = 10000.0; //Run through entire dataset once
+   progressInterval = 100.0;
+   writeProgressToErr = false;  
+   outputPath = "testOutput/";
+   filenamesContainLayerNames = true;  
+   filenamesContainConnectionNames = true;
+   checkpointRead = false;  
+   checkpointWrite = false;
+   checkpointWriteDir = "trainOutput/Checkpoints";
+   checkpointWriteStepInterval = 400; //About once per epoch
+   suppressLastOutput = false;
+   nbatch = 1;
+};
+
+//
+// layers
+//
+
+//Constant ones layers for biases
+ConstantLayer "onesLayer_32" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    writeSparseActivity = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
+ConstantLayer "onesLayer_16" = {
+    #include "onesLayer_32";
+    @nxScale = .5; 
+    @nyScale = .5;
+};
+
+ConstantLayer "onesLayer_8" = {
+    #include "onesLayer_32";
+    @nxScale = .25; 
+    @nyScale = .25;
+};
+
+ConstantLayer "onesLayer_1" = {
+    #include "onesLayer_32";
+    @nxScale = .03125; 
+    @nyScale = .03125;
+};
+
+MoviePvp "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    inputPath = "/home/sheng/mountData/datasets/cifar/pvp/cifarTestData.pvp";
+    writeFrameToTimestamp = true;
+    writeStep = -1;
+    sparseLayer = false;
+    displayPeriod = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = false;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    batchMethod = "byImage";
+    //useParamsImage = true;
+};
+
+MoviePvp "gt" = {
+    restart = 0;
+    nxScale = .03125; 
+    nyScale = .03125; 
+    nf = 10;
+    inputPath = "/home/sheng/mountData/datasets/cifar/pvp/cifarTestLabels.pvp";
+    writeFrameToTimestamp = true;
+    writeStep = 1;
+    sparseLayer = false;
+    displayPeriod = 1;
+    echoFramePathnameFlag = true;
+    mirrorBCflag = false;
+    jitterFlag = 0;
+    useImageBCflag = false;
+    inverseFlag = false;
+    normalizeLuminanceFlag = false;
+    writeImages = false;
+    offsetX = 0;
+    offsetY = 0;
+    autoResizeFlag = 0;
+    randomMovie = 0;
+    phase = 0;
+    batchMethod = "byImage";
+    //useParamsImage = true;
+};
+
+RescaleLayer "inputNorm" = {
+    restart                         = false;
+    originalLayerName               = "input";
+    nxScale                         = 1;
+    nyScale                         = 1;
+    nf                              = 3;
+    mirrorBCflag                    = false;
+    writeStep                       = -1;
+    initialWriteTime                = 0;
+    writeSparseActivity             = false;
+    rescaleMethod                   = "meanstd";
+    valueBC = 0;
+    phase                           = 1;
+};
+
+ANNLayer "conv1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 32;
+    writeStep = -1; 
+    initialWriteTime = 0.0; 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    phase = 2;
+};
+
+ANNLayer "pool1" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 32;
+    writeStep = -1; 
+    initialWriteTime = 0.0; 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    //rectified
+    AThresh = 0;
+    AMax = infinity;
+    AMin = 0;
+    phase = 3;
+};
+
+PoolingIndexLayer "pool1Index" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 32;
+    writeStep = -1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = 0;
+    InitVType = "ZeroV";
+    phase = 4; 
+    triggerLayerName = NULL;
+};
+
+ANNLayer "conv2" = {
+    #include "conv1";
+    @nxScale = .5;
+    @nyScale = .5;
+    @nf = 32;
+    @phase = 4;
+};
+
+ANNLayer "pool2" = {
+    #include "pool1";
+    @nxScale = .25;
+    @nyScale = .25;
+    @nf = 32;
+    @phase = 5;
+};
+
+PoolingIndexLayer "pool2Index" = {
+    #include "pool1Index";
+    @nxScale = .25;
+    @nyScale = .25;
+    @nf = 32;
+    @phase = 6; 
+};
+
+ANNLayer "conv3" = {
+    #include "conv1";
+    @nxScale = .25;
+    @nyScale = .25;
+    @nf = 64;
+    @phase = 6;
+}; 
+
+ANNLayer "pool3" = {
+    #include "pool1";
+    @nxScale = .125;
+    @nyScale = .125;
+    @nf = 64;
+    @phase = 7;
+};
+
+PoolingIndexLayer "pool3Index" = {
+    #include "pool1Index";
+    @nxScale = .125;
+    @nyScale = .125;
+    @nf = 64;
+    @phase = 8; 
+};
+
+ANNLayer "fc64" = {
+    restart = 0;
+    nxScale = .03125;
+    nyScale = .03125;
+    nf = 64;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    //rectified
+    AThresh = 0;
+    AMax = infinity;
+    AMin = 0;
+    phase = 8;
+};
+
+ANNLayer "fc10" = {
+    restart = 0;
+    nxScale = .03125;
+    nyScale = .03125;
+    nf = 10;
+    writeStep = -1; //Change based on display period
+    initialWriteTime = 0.0; //Change based on display period 
+    mirrorBCflag = 0;
+    writeSparseActivity = 0;
+    InitVType = "ZeroV";
+    phase = 9;
+};
+
+RescaleLayer "est" = {
+    restart                         = false;
+    originalLayerName               = "fc10";
+    nxScale                         = .03125;
+    nyScale                         = .03125;
+    nf                              = 10;
+    mirrorBCflag                    = false;
+    //
+    writeStep                       = 1;
+    initialWriteTime                = 0;
+    writeSparseActivity             = false;
+    //
+    rescaleMethod                   = "softmax"; //Can be either meanstd or maxmin
+    valueBC = 0;
+    phase                           = 10;
+};
+
+////Back prop error layers, starting from the back
+//ANNLayer "fc10Error" = {
+//    restart = 0;
+//    nxScale = .03125;
+//    nyScale = .03125;
+//    nf = 10;
+//    writeStep = -1; //Change based on display period
+//    mirrorBCflag = 0;
+//    writeSparseActivity = 0;
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    phase = 11;
+//};
+//
+////fc64 is relu layer, mask with feedforward
+//MaskLayer "fc64Error" = {
+//    restart = 0;
+//    nxScale = .03125;
+//    nyScale = .03125;
+//    nf = 64;
+//    writeStep = -1; //Change based on display period
+//    mirrorBCflag = 0;
+//    writeSparseActivity = 0;
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    phase = 12;
+//    maskMethod = "layer";
+//    maskLayerName = "fc64";
+//};
+//
+////pool3 is a relu layer, mask with feedforward
+//MaskLayer "pool3Error" = {
+//    nxScale = .125;
+//    nyScale = .125;
+//    nf = 64;
+//    writeStep = -1; //Change based on display period
+//    mirrorBCflag = 0;
+//    InitVType = "ZeroV";
+//    VThresh = -infinity;
+//    phase = 13;
+//    maskMethod = "layer";
+//    maskLayerName = "pool3";
+//};
+//
+//ANNLayer "conv3Error" = {
+//    restart = 0;
+//    nxScale = .25;
+//    nyScale = .25;
+//    nf = 64;
+//    writeStep = -1; //Change based on display period
+//    initialWriteTime = 0.0; //Change based on display period 
+//    mirrorBCflag = 0;
+//    writeSparseActivity = 0;
+//    InitVType = "ZeroV";
+//    phase = 14;
+//};
+//
+////pool2 is a relu layer, mask with feedforward
+//MaskLayer "pool2Error" = {
+//    #include "pool3Error";
+//    @nxScale = .25;
+//    @nyScale = .25;
+//    @nf = 32;
+//    @phase = 15;
+//    @maskLayerName = "pool2";
+//};
+//
+//ANNLayer "conv2Error" = {
+//    #include "conv3Error";
+//    @nxScale = .5;
+//    @nyScale = .5;
+//    @nf = 32;
+//    @phase = 16;
+//};
+//
+////pool1 is a relu layer, mask with feedforward
+//MaskLayer "pool1Error" = {
+//    #include "pool3Error";
+//    @nxScale = .5;
+//    @nyScale = .5;
+//    @nf = 32;
+//    @phase = 17;
+//    @maskLayerName = "pool1";
+//};
+//
+//ANNLayer "conv1Error" = {
+//    #include "conv3Error";
+//    @nxScale = 1;
+//    @nyScale = 1;
+//    @nf = 32;
+//    @phase = 18;
+//};
+//
+////Not needed, but may be interesting to see
+//ANNLayer "imageError" = {
+//    #include "conv3Error";
+//    @nxScale = 1;
+//    @nyScale = 1;
+//    @nf = 3;
+//    @phase = 19;
+//};
+
+
+//Plastic Connections
+MomentumConn "W1Plasticity" = {
+    preLayerName = "inputNorm";
+    postLayerName = "conv1";
+    channelCode = 0; //Does not update on this channel
+    nxp = 5; 
+    nyp = 5; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/sheng/workspace/OpenPV/demo/AlexNet/trainOutput/Checkpoints/Checkpoints00000/W1Plasticity_W.pvp";
+
+    //weightInitType = "UniformRandomWeight";
+    //wMinInit = -.0001;
+    //wMaxInit = .0001;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    sharedWeights = true;
+    normalizeDw = false;
+    
+    shrinkPatches = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+
+    dWMax = 0.0001;
+    momentumTau = .9;
+    momentumDecay = 0.0004;
+    momentumMethod = "alex";
+    delay = 0;
+    updateGSynFromPostPerspective = false;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+
+    pvpatchAccumulateType = "convolve";
+};
+
+MomentumConn "B1Plasticity" = {
+    preLayerName = "onesLayer_32";
+    postLayerName = "conv1";
+    channelCode = 0; //Does not update on this channel
+    nxp = 1; 
+    nyp = 1; 
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = -1;
+    
+    weightInitType = "FileWeight";
+    initWeightsFile = "/home/sheng/workspace/OpenPV/demo/AlexNet/trainOutput/Checkpoints/Checkpoints00000/B1Plasticity_W.pvp";
+
+    //weightInitType = "UniformWeight";
+    //weightInit = 0;
+        
+    strength = 1.0;  
+    normalizeMethod = "none";
+    sharedWeights = true;
+    normalizeDw = false;
+    
+    shrinkPatches = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    weightUpdatePeriod = 1.0;
+    initialWeightUpdateTime = 1.0;
+
+    dWMax = 0.0002; //  // 200.0 used for initial training
+    momentumTau = .9;
+    momentumDecay = 0;
+    momentumMethod = "alex";
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+
+    updateGSynFromPostPerspective = false;
+    pvpatchAccumulateType = "convolve";
+};
+
+MomentumConn "W2Plasticity" = {
+   #include "W1Plasticity";
+   @preLayerName = "pool1";
+   @postLayerName = "conv2";
+   @initWeightsFile = "/home/sheng/workspace/OpenPV/demo/AlexNet/trainOutput/Checkpoints/Checkpoints00000/W2Plasticity_W.pvp";
+   @wMinInit = -.01;
+   @wMaxInit = .01;
+};
+
+MomentumConn "B2Plasticity" = {
+   #include "B1Plasticity";
+   @preLayerName = "onesLayer_16";
+   @postLayerName = "conv2";
+   @initWeightsFile = "/home/sheng/workspace/OpenPV/demo/AlexNet/trainOutput/Checkpoints/Checkpoints00000/B2Plasticity_W.pvp";
+};
+
+MomentumConn "W3Plasticity" = {
+   #include "W1Plasticity";
+   @preLayerName = "pool2";
+   @postLayerName = "conv3";
+   @wMinInit = -.01;
+   @wMaxInit = .01;
+   @initWeightsFile = "/home/sheng/workspace/OpenPV/demo/AlexNet/trainOutput/Checkpoints/Checkpoints00000/W3Plasticity_W.pvp";
+};
+
+MomentumConn "B3Plasticity" = {
+   #include "B1Plasticity";
+   @preLayerName = "onesLayer_8";
+   @postLayerName = "conv3";
+   @initWeightsFile = "/home/sheng/workspace/OpenPV/demo/AlexNet/trainOutput/Checkpoints/Checkpoints00000/B3Plasticity_W.pvp";
+};
+
+MomentumConn "W4Plasticity" = {
+   #include "W1Plasticity";
+   @preLayerName = "pool3";
+   @postLayerName = "fc64";
+   @wMinInit = -.1;
+   @wMaxInit = .1;
+   @initWeightsFile = "/home/sheng/workspace/OpenPV/demo/AlexNet/trainOutput/Checkpoints/Checkpoints00000/W4Plasticity_W.pvp";
+};
+
+MomentumConn "B4Plasticity" = {
+   #include "B1Plasticity";
+   @preLayerName = "onesLayer_1";
+   @postLayerName = "fc64";
+   @initWeightsFile = "/home/sheng/workspace/OpenPV/demo/AlexNet/trainOutput/Checkpoints/Checkpoints00000/B4Plasticity_W.pvp";
+};
+
+MomentumConn "W5Plasticity" = {
+   #include "W1Plasticity";
+   @preLayerName = "fc64";
+   @postLayerName = "fc10";
+   @wMinInit = -.1;
+   @wMaxInit = .1;
+   @initWeightsFile = "/home/sheng/workspace/OpenPV/demo/AlexNet/trainOutput/Checkpoints/Checkpoints00000/W5Plasticity_W.pvp";
+};
+
+MomentumConn "B5Plasticity" = {
+   #include "B1Plasticity";
+   @preLayerName = "onesLayer_1";
+   @postLayerName = "fc10";
+   @initWeightsFile = "/home/sheng/workspace/OpenPV/demo/AlexNet/trainOutput/Checkpoints/Checkpoints00000/B5Plasticity_W.pvp";
+};
+
+////Feedforward connections
+//CloneConn "W1" = {
+//    preLayerName = "inputNorm";
+//    postLayerName = "conv1";
+//    channelCode = 0; //On exc channel
+//    writeStep = -1;
+//    originalConnName = "W1Plasticity";
+//    selfFlag = false;
+//    delay = 0;
+//    preActivityIsNotRate = false;
+//    useWindowPost = false;
+//    receiveGpu = true;
+//    updateGSynFromPostPerspective = true;
+//    pvpatchAccumulateType = "convolve";
+//};
+//
+//CloneConn "B1" = {
+//    preLayerName = "onesLayer_32";
+//    postLayerName = "conv1";
+//    channelCode = 0; //On exc channel
+//    writeStep = -1;
+//    originalConnName = "B1Plasticity";
+//    selfFlag = false;
+//    delay = 0;
+//    preActivityIsNotRate = false;
+//    useWindowPost = false;
+//    receiveGpu = false;
+//    updateGSynFromPostPerspective = true;
+//    pvpatchAccumulateType = "convolve";
+//};
+//
+//PoolingConn "maxPoolConn1" = {
+//   preLayerName                        = "conv1";
+//   postLayerName                       = "pool1";
+//   channelCode                         = 0;
+//   nxp                                 = 2; //Translates to a 4x4 patch from post perspective
+//   nyp                                 = 2;
+//   delay                               = 0;
+//   numAxonalArbors                     = 1;
+//   updateGSynFromPostPerspective       = true;
+//   pvpatchAccumulateType               = "maxpooling";
+//   writeStep                           = -1;
+//   writeCompressedCheckpoints          = false;
+//   selfFlag                            = false;
+//   shrinkPatches                       = false;
+//   needPostIndexLayer                  = true;
+//   postIndexLayerName                  = "pool1Index";
+//};
+//
+//CloneConn "W2" = {
+//    #include "W1";
+//    @preLayerName = "pool1";
+//    @postLayerName = "conv2";
+//    @originalConnName = "W2Plasticity";
+//};
+//
+//CloneConn "B2" = {
+//    #include "B1";
+//    @preLayerName = "onesLayer_16";
+//    @postLayerName = "conv2";
+//    @originalConnName = "B2Plasticity";
+//};
+//
+//PoolingConn "maxPoolConn2" = {
+//    #include "maxPoolConn1";
+//    @preLayerName = "conv2";
+//    @postLayerName = "pool2";
+//    @nxp = 2;
+//    @nyp = 2;
+//    @postIndexLayerName = "pool2Index";
+//};
+//
+//CloneConn "W3" = {
+//    #include "W1";
+//    @preLayerName = "pool2";
+//    @postLayerName = "conv3";
+//    @originalConnName = "W3Plasticity";
+//};
+//
+//CloneConn "B3" = {
+//    #include "B1";
+//    @preLayerName = "onesLayer_8";
+//    @postLayerName = "conv3";
+//    @originalConnName = "B3Plasticity";
+//};
+//
+//PoolingConn "maxPoolConn3" = {
+//    #include "maxPoolConn1";
+//    @preLayerName = "conv3";
+//    @postLayerName = "pool3";
+//    @nxp = 2;
+//    @nyp = 2;
+//    @postIndexLayerName = "pool3Index";
+//};
+//
+//CloneConn "W4" = {
+//    #include "W1";
+//    @preLayerName = "pool3";
+//    @postLayerName = "fc64";
+//    @originalConnName = "W4Plasticity";
+//};
+//
+//CloneConn "B4" = {
+//    #include "B1";
+//    @preLayerName = "onesLayer_1";
+//    @postLayerName = "fc64";
+//    @originalConnName = "B4Plasticity";
+//};
+//
+//CloneConn "W5" = {
+//    #include "W1";
+//    @preLayerName = "fc64";
+//    @postLayerName = "fc10";
+//    @originalConnName = "W5Plasticity";
+//};
+//
+//CloneConn "B5" = {
+//    #include "B1";
+//    @preLayerName = "onesLayer_1";
+//    @postLayerName = "fc10";
+//    @originalConnName = "B5Plasticity";
+//};
+//
+//
+////Backprop connections
+//
+//IdentConn "gtToError" = {
+//   preLayerName                        = "gt";
+//   postLayerName                       = "fc10Error";
+//   channelCode                         = 0;
+//   delay                               = [0.000000];
+//   writeStep                           = -1;
+//};
+//
+//IdentConn "estToError" = {
+//   preLayerName                        = "est";
+//   postLayerName                       = "fc10Error";
+//   channelCode                         = 1;
+//   delay                               = [0.000000];
+//   writeStep                           = -1;
+//};
+//
+//TransposeConn "W5T" = {
+//    preLayerName = "fc10Error";
+//    postLayerName = "fc64Error";
+//    channelCode = 0; //On excitatory channel
+//    originalConnName = "W5Plasticity";
+//    selfFlag = false;
+//    preActivityIsNotRate = false;
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    delay = 0;
+//    pvpatchAccumulateType = "convolve";
+//    receiveGpu = true;
+//    updateGSynFromPostPerspective = true;
+//};
+//
+//TransposeConn "W4T" = {
+//    #include "W5T";
+//    @preLayerName = "fc64Error";
+//    @postLayerName = "pool3Error";
+//    @originalConnName = "W4Plasticity";
+//};
+//
+//TransposePoolingConn "unpoolConn3" = {
+//    preLayerName = "pool3Error";
+//    postLayerName = "conv3Error";
+//    channelCode = 0;
+//    originalConnName = "maxPoolConn3";
+//    selfFlag = false;
+//    preActivityIsNotRate = false;  // should help make response more indepenent of time step size dt
+//    writeStep = -1;
+//    writeCompressedCheckpoints = false;
+//    shmget_flag = false;
+//    delay = 0;
+//    pvpatchAccumulateType = "maxpooling";
+//    updateGSynFromPostPerspective = false;
+//};
+//
+//TransposeConn "W3T" = {
+//    #include "W5T";
+//    @preLayerName = "conv3Error";
+//    @postLayerName = "pool2Error";
+//    @originalConnName = "W3Plasticity";
+//};
+//
+//TransposePoolingConn "unpoolConn2" = {
+//    #include "unpoolConn3";
+//    @preLayerName = "pool2Error";
+//    @postLayerName = "conv2Error";
+//    @originalConnName = "maxPoolConn2";
+//};
+//
+//TransposeConn "W2T" = {
+//    #include "W5T";
+//    @preLayerName = "conv2Error";
+//    @postLayerName = "pool1Error";
+//    @originalConnName = "W2Plasticity";
+//};
+//
+//TransposePoolingConn "unpoolConn1" = {
+//    #include "unpoolConn3";
+//    @preLayerName = "pool1Error";
+//    @postLayerName = "conv1Error";
+//    @originalConnName = "maxPoolConn1";
+//};
+//
+//TransposeConn "W1T" = {
+//    #include "W5T";
+//    @preLayerName = "conv1Error";
+//    @postLayerName = "imageError";
+//    @originalConnName = "W1Plasticity";
+//};
