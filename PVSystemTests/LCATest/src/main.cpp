@@ -146,7 +146,7 @@ int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
    std::string sourcePathString = hc->getOutputPath();
    sourcePathString += "/" "a3_reconstruction.pvp";
    const char * sourcePath = sourcePathString.c_str();
-   MoviePvp * correctLayer = dynamic_cast<MoviePvp *>(hc->getLayerFromName("correct"));
+   MoviePvp * correctLayer = dynamic_cast<MoviePvp *>(hc->getLayerFromName("Correct"));
    assert(correctLayer);
    const char * destPath = correctLayer->getInputPath();
    if (strcmp(&destPath[strlen(destPath)-4], ".pvp")!=0) {
