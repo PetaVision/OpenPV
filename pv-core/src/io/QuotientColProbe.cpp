@@ -143,8 +143,11 @@ int QuotientColProbe::outputState(double timevalue) {
    double * valuesBuffer = getValuesBuffer();
    int numValues = this->getNumValues();
    for(int b = 0; b < numValues; b++){
-      fprintf(outputstream->fp, "%s,%f,%d,%f\n",
-            this->valueDescription, timevalue, b, valuesBuffer[b]);
+      if (outputstream->fp == stdout || outputstream->fp == stderr) {
+         fprintf(outputstream->fp,"\"%s\",", this->valueDescription); // lack of \n is deliberate: fprintf immediately below completes the line
+      }
+      fprintf(outputstream->fp, "%f,%d,%f\n",
+            timevalue, b, valuesBuffer[b]);
    }
    fflush(outputstream->fp);
    return PV_SUCCESS;

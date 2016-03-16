@@ -127,8 +127,11 @@ int ColumnEnergyProbe::outputState(double timevalue) {
    double * valuesBuffer = getValuesBuffer();
    int nbatch = this->getNumValues();
    for(int b = 0; b < nbatch; b++){
-      fprintf(outputstream->fp, "\"%s\",%f,%d,%f\n",
-            this->getName(), timevalue, b,valuesBuffer[b]);
+      if (outputstream->fp == stdout || outputstream->fp == stderr) {
+         fprintf(outputstream->fp,"\"%s\",", name); // lack of \n is deliberate: fprintf immediately below completes the line
+      }
+      fprintf(outputstream->fp, "%f,%d,%f\n",
+            timevalue, b,valuesBuffer[b]);
    }
    fflush(outputstream->fp);
    return PV_SUCCESS;
