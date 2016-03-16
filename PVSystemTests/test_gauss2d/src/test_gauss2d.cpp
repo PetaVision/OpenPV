@@ -74,6 +74,8 @@ int main(int argc, char * argv[])
    
    int status = 0;
 
+   hc->ensureDirExists(hc->getOutputPath());
+
    for (int l=0; l<hc->numberOfLayers(); l++) {
       status = hc->getLayer(l)->communicateInitInfo();
       assert(status==PV_SUCCESS);
@@ -98,7 +100,6 @@ int main(int argc, char * argv[])
    assert(num_pre_extended == cHyPer->getNumWeightPatches());
 
    for (int kPre = 0; kPre < num_pre_extended; kPre++) {
-     //printf("testing testing 1 2 3...\n");
      status = check_kernel_vs_hyper(cHyPer, cKernel, kPre, axonID);
      assert(status==0);
      status = check_kernel_vs_hyper(cHyPer1to2, cKernel1to2, kPre, axonID);

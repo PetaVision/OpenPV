@@ -56,6 +56,8 @@ int main(int argc, char * argv[])
    // But we still need to allocate the weights, so we call the
    // layers' and connections' communicate and allocate methods externally.
 
+   hc->ensureDirExists(hc->getOutputPath());
+
    l1->communicateInitInfo();
    l2->communicateInitInfo();
    l3->communicateInitInfo();
