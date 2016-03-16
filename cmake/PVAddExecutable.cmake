@@ -20,7 +20,7 @@
 macro(pv_add_executable TARGET)
   cmake_parse_arguments(
     PARSED_ARGS
-    ""
+    "NO_MPI"
     "OUTPUT_PATH"
     "SRC"
     ${ARGN}
@@ -84,5 +84,11 @@ macro(pv_add_executable TARGET)
     target_link_libraries(${TARGET} ${PV_OPENMP_LIBRARIES})
   endif()
 
+  # This looks redundant, but linking order of cuda libraries can make a difference. Including
+  # these a second time is a bit of a hack, but it can fix things in some cases
+  if (PV_USE_CUDA)
+    target_link_libraries(${TARGET} ${CUDA_LIBRARIES})
+    target_link_libraries(${TARGET} ${CUDNN_LIBRARIES})
+  endif()
 endmacro()
 
