@@ -15,15 +15,12 @@ int custominit(HyPerCol * hc, int argc, char **argv);
 int customexit(HyPerCol * hc, int argc, char **argv);
 // customexit is for doing things after the run completes but before the HyPerCol is deleted.
 
-void * customgroup(const char * name, const char * groupname, HyPerCol * hc);
-// customgroups is for adding objects not supported by build().
-
 bool checkHalo(PVHalo const * halo, int lt, int rt, int dn, int up);
 
 int main(int argc, char * argv[]) {
 
    int status;
-   status = buildandrun(argc, argv, NULL, &customexit, &customgroup);
+   status = buildandrun(argc, argv, NULL, &customexit, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -42,11 +39,6 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
    assert(checkHalo(&hc->getLayerFromName("YMarginLargerImage")->getLayerLoc()->halo,1, 1, 3, 3));
    assert(checkHalo(&hc->getLayerFromName("MultipleConnImage")->getLayerLoc()->halo,3, 3, 3, 3));
    return PV_SUCCESS;
-}
-
-void * customgroup(const char * keyword, const char * name, HyPerCol * hc) {
-   void * addedGroup = NULL;
-   return addedGroup;
 }
 
 bool checkHalo(PVHalo const * halo, int lt, int rt, int dn, int up) {

@@ -37,7 +37,7 @@ int main(int argc, char * argv[]) {
    }
 
    arguments->setParamsFile(paramfile2);
-   int status2 = rebuildandrun(initObj, NULL, &customexit, NULL);
+   int status2 = rebuildandrun(initObj, NULL, &customexit, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
    if (status2 != PV_SUCCESS) {
       fprintf(stderr, "%s failed on param file %s.\n", arguments->getProgramName(), paramfile2);
    }

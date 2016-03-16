@@ -6,12 +6,13 @@
 #include <columns/buildandrun.hpp>
 
 int checkoutput(HyPerCol * hc, int argc, char ** argv);
-// customgroups is for adding objects not supported by build().
+//checkoutput is passed as a custom handle in the buildandrun customexit argument,
+// so that it is called after HyPerCol::run but before the HyPerCol is deleted.
 
 int main(int argc, char * argv[]) {
 
    int status;
-   status = buildandrun(argc, argv, NULL, &checkoutput, NULL);
+   status = buildandrun(argc, argv, NULL, &checkoutput, NULL, 0);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

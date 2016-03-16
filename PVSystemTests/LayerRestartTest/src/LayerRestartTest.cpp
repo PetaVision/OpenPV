@@ -47,21 +47,21 @@ int main(int argc, char * argv[]) {
    }
 
    arguments->setParamsFile("input/LayerRestartTest-Write.params");
-   status = rebuildandrun(initObj);
+   status = rebuildandrun(initObj, NULL, NULL, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
    if( status == PV_SUCCESS ) {
       char const * checkParamsFile = "input/LayerRestartTest-Check.params";
       if (rank==0) {
          printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
       }
       arguments->setParamsFile("input/LayerRestartTest-Check.params");
-      status = rebuildandrun(initObj, NULL, &checkComparisonNonzero);
+      status = rebuildandrun(initObj, NULL, &checkComparisonNonzero, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
       if( status == PV_SUCCESS ) {
          char const * readParamsFile = "input/LayerRestartTest-Read.params";
          if (rank==0) {
             printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
          }
          arguments->setParamsFile(readParamsFile);
-         status = rebuildandrun(initObj, NULL, &checkComparisonZero);
+         status = rebuildandrun(initObj, NULL, &checkComparisonZero, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
       }
    }
 

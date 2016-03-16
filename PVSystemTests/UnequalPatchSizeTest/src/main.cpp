@@ -13,7 +13,7 @@ int correctHaloSize(int patchsize, int nPre, int nPost);
 int main(int argc, char * argv[]) {
 
    int status;
-   status = buildandrun(argc, argv, NULL, &customexit, NULL);
+   status = buildandrun(argc, argv, NULL, &customexit, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

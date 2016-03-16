@@ -44,7 +44,7 @@ int main(int argc, char * argv[]) {
 }
 
 int runKernelActivationTest(PV_Init* initObj) {
-   int status = rebuildandrun(initObj, NULL, &dumpweights);
+   int status = rebuildandrun(initObj, NULL, &dumpweights, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
    return status;
 }
 
