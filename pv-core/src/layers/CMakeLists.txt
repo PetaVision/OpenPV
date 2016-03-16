@@ -14,6 +14,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/GapLayer.cpp
    ${SUBDIR}/HyPerLayer.cpp
    ${SUBDIR}/HyPerLCALayer.cpp
+   ${SUBDIR}/MomentumLCALayer.cpp
    ${SUBDIR}/Image.cpp
    ${SUBDIR}/ImageFromMemoryBuffer.cpp
    ${SUBDIR}/ImagePvp.cpp

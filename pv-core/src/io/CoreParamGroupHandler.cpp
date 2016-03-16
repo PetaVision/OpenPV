@@ -23,6 +23,7 @@
 #endif // OBSOLETE // Marked obsolete June 17, 2015.  Moved to obsolete/layers
 #include "../layers/GapLayer.hpp"
 #include "../layers/HyPerLCALayer.hpp"
+#include "../layers/MomentumLCALayer.hpp"
 #include "../layers/ISTALayer.hpp"
 #include "../layers/ImagePvp.hpp"
 #include "../layers/ImageFromMemoryBuffer.hpp"
@@ -148,6 +149,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 #endif // Marked obsolete June 17, 2015.  Moved to obsolete/layers
          {"GapLayer", LayerGroupType},
          {"HyPerLCALayer", LayerGroupType},
+         {"MomentumLCALayer", LayerGroupType},
 	 {"ISTALayer", LayerGroupType},
          {"ImagePvp", LayerGroupType},
          {"ImageFromMemoryBuffer", LayerGroupType},
@@ -344,6 +346,9 @@ HyPerLayer * CoreParamGroupHandler::createLayer(char const * keyword, char const
    }
    else if( !strcmp(keyword, "HyPerLCALayer") ) {
       addedLayer = new HyPerLCALayer(name, hc);
+   }
+   else if( !strcmp(keyword, "MomentumLCALayer") ) {
+      addedLayer = new MomentumLCALayer(name, hc);
    }
    else if( !strcmp(keyword, "ISTALayer") ) {
      addedLayer = new ISTALayer(name, hc);

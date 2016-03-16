@@ -62,6 +62,7 @@ add_subdirectory(MaskLayerTest)
 add_subdirectory(MaxPoolTest)
 add_subdirectory(MovieSystemTest)
 add_subdirectory(MomentumTest)
+add_subdirectory(MomentumLCATest)
 #add_subdirectory(MLPTest) # Moved to auxlib/mlearning
 add_subdirectory(MPITest)
 add_subdirectory(NormalizeSubclassSystemTest)

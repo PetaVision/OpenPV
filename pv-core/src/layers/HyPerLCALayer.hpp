@@ -71,6 +71,13 @@ protected:
    pvdata_t timeConstantTau;
    bool selfInteract;
 
+#ifdef PV_USE_CUDA
+   PVCuda::CudaBuffer* d_dtAdapt;
+   PVCuda::CudaBuffer* d_verticesV;
+   PVCuda::CudaBuffer* d_verticesA;
+   PVCuda::CudaBuffer* d_slopes;
+#endif
+
 private:
    int initialize_base();
 #ifdef OBSOLETE // Marked Jul 9, 2015
@@ -80,12 +87,6 @@ private:
    bool windowSymX;
    bool windowSymY;
 #endif // OBSOLETE // Marked Jul 9, 2015
-#ifdef PV_USE_CUDA
-   PVCuda::CudaBuffer* d_dtAdapt;
-   PVCuda::CudaBuffer* d_verticesV;
-   PVCuda::CudaBuffer* d_verticesA;
-   PVCuda::CudaBuffer* d_slopes;
-#endif
 };
 
 } /* namespace PV */
