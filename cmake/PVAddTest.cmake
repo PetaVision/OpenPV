@@ -68,7 +68,7 @@ endfunction()
 
 macro(pv_add_test)
   cmake_parse_arguments(PARSED_ARGS "MPI_ONLY;NO_MPI;NO_PARAMS" "MIN_MPI_COPIES;MAX_MPI_COPIES;FLAGS;BASE_NAME" "PARAMS" ${ARGN})
-  
+
   set(ERROR_STATE OFF)
 
   get_filename_component(BASE_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
@@ -135,6 +135,13 @@ macro(pv_add_test)
 
     pv_add_executable(${BASE_NAME} SRC ${libSrcCPP} ${libSrcC} ${libSrcHPP} ${libSrcH} OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
     add_dependencies(${BASE_NAME} pv)
+    if (NOT ${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_CURRENT_BINARY_DIR})
+      set(TEST_SOURCE_INPUT "${CMAKE_CURRENT_SOURCE_DIR}/input")
+      if (EXISTS "${TEST_SOURCE_INPUT}")
+        set(TEST_BINARY_INPUT "${CMAKE_CURRENT_BINARY_DIR}/input")
+        execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${TEST_SOURCE_INPUT} ${TEST_BINARY_INPUT})
+      endif (EXISTS "${TEST_SOURCE_INPUT}")
+    endif()
     
     set(FIRST_TEST ON)
     set(PREV_TEST_NAME "")
@@ -154,8 +161,8 @@ macro(pv_add_test)
           set(TEST_NAME "${TEST_BASE_NAME}_1")
           set(TEST_LOG "${TEST_LOG_DIR}/${TEST_NAME}.log")
           set(TEST_PARAMS "input/${PARAM}.params")
-          add_test(${TEST_NAME} ${CMAKE_COMMAND} -E chdir ${TEST_TOP_DIR}
-            ${TEST_BINARY} ${TEST_FLAGS} -p ${TEST_PARAMS} -l ${TEST_LOG})
+          add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMAND ${TEST_BINARY} ${TEST_FLAGS} -p ${TEST_PARAMS} -l ${TEST_LOG})
           set(FIRST_TEST OFF)
           set(PREV_TEST_NAME ${TEST_NAME})
         endif()
@@ -168,8 +175,8 @@ macro(pv_add_test)
             set(TEST_NAME "${TEST_BASE_NAME}_${COPIES}")
             set(TEST_LOG "${TEST_LOG_DIR}/${TEST_NAME}.log")
             set(TEST_PARAMS "input/${PARAM}.params")
-            add_test(${TEST_NAME} ${CMAKE_COMMAND} -E chdir ${TEST_TOP_DIR}
-              ${MPIEXEC} -np ${COPIES} ${TEST_BINARY} ${TEST_FLAGS} -p ${TEST_PARAMS} -l ${TEST_LOG})
+            add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+              COMMAND ${MPIEXEC} -np ${COPIES} ${TEST_BINARY} ${TEST_FLAGS} -p ${TEST_PARAMS} -l ${TEST_LOG})
 
             if (NOT FIRST_TEST)
               set_tests_properties(${TEST_NAME} PROPERTIES DEPENDS ${PREV_TEST_NAME})
@@ -192,8 +199,8 @@ macro(pv_add_test)
         # One process, no MPI
         set(TEST_NAME "${TEST_BASE_NAME}_1")
         set(TEST_LOG "${TEST_LOG_DIR}/${TEST_NAME}.log")
-        add_test(${TEST_NAME} ${CMAKE_COMMAND} -E chdir ${TEST_TOP_DIR}
-          ${TEST_BINARY} ${TEST_FLAGS} -l ${TEST_LOG})
+        add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+          COMMAND ${TEST_BINARY} ${TEST_FLAGS} -l ${TEST_LOG})
         set(FIRST_TEST OFF)
         set(PREV_TEST_NAME ${TEST_NAME})
       endif()
@@ -206,8 +213,8 @@ macro(pv_add_test)
           set(TEST_NAME "${TEST_BASE_NAME}_${COPIES}")
           set(TEST_LOG "${TEST_LOG_DIR}/${TEST_NAME}.log")
           
-          add_test(${TEST_NAME} ${CMAKE_COMMAND} -E chdir ${TEST_TOP_DIR}
-            ${MPIEXEC} -np ${COPIES} ${TEST_BINARY} ${TEST_FLAGS} -l ${TEST_LOG})
+          add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMAND ${MPIEXEC} -np ${COPIES} ${TEST_BINARY} ${TEST_FLAGS} -l ${TEST_LOG})
           
           if (NOT FIRST_TEST)
             set_tests_properties(${TEST_NAME} PROPERTIES DEPENDS ${PREV_TEST_NAME})
