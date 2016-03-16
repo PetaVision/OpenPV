@@ -20,7 +20,7 @@
 macro(pv_add_executable TARGET)
   cmake_parse_arguments(
     PARSED_ARGS
-    "NO_MPI"
+    ""
     "OUTPUT_PATH"
     "SRC"
     ${ARGN}
