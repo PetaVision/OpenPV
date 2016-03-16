@@ -144,7 +144,7 @@ int generate(PV_Init* initObj, int rank) {
 int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
    std::string sourcePathString = hc->getOutputPath();
-   sourcePathString += "/" "a3_reconstruction.pvp";
+   sourcePathString += "/" "a3_Reconstruction.pvp";
    const char * sourcePath = sourcePathString.c_str();
    MoviePvp * correctLayer = dynamic_cast<MoviePvp *>(hc->getLayerFromName("Correct"));
    assert(correctLayer);
