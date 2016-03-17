@@ -33,7 +33,7 @@ public:
    /**
     * The standard constructor for PV_Arguments.
     * The strings argv[0], argv[1], ..., argv[argc-1] are processed as follows:
-    * argv[0] is ignored.
+    * argv[0] is ignored (but can be retrieved using the getProgramName method).
     * argv[1] through argv[argc-1] are scanned for an exact match with each of the following:
     *    "-c": the next argument is copied into the checkpointRead directory string.
     *    "-d": the next argument is copied into the gpu devices argument.
@@ -48,8 +48,9 @@ public:
     *    "-columns": the next argument is parsed as an integer and stored as the number of MPI columns.
     *    "-batchwidth": the next argument is parsed as an integer and stored as the batch width.
     *    "--require-return": the require-return flag is set to true.
-    * If the last argument is "-t" and "-t" did not appear earlier, set numThreads to the max possible
-    *    (omp_get_max_threads() if PV_USE_OPENMP_THREADS is on; 1 if PV_USE_OPENMP_THREADS is off).
+    * If "-t" appears but is not followed by an integer, numThreads is set to -1 and
+    *    useDefaultNumThreads is set to true (this behavior is governed by pv_getoptionalopt_int() in io/io.c)
+    * If "-t" is followed by an integer, useDefaultNumThreads is set to fals.
     * It is an error to have both the -r and -c options.
     *
     * Note that all arguments have a single hyphen, except for "--require-return".

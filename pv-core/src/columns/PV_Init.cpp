@@ -5,6 +5,10 @@
  *      Author: slundquist
  */
 #include <csignal>
+#include <cMakeHeader.h>
+#ifdef PV_USE_OPENMP_THREADS
+#include <omp.h>
+#endif // PV_USE_OPENMP_THREADS
 #include "PV_Init.hpp"
 
 namespace PV {
@@ -13,6 +17,7 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
    //Initialize MPI
    initSignalHandler();
    commInit(argc, argv);
+   initMaxThreads();
    params = NULL;
    icComm = NULL;
    arguments = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
@@ -57,6 +62,15 @@ int PV_Init::initialize() {
    if (params) { delete params; }
    params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
    initialized = true;
+   return PV_SUCCESS;
+}
+
+int PV_Init::initMaxThreads() {
+#ifdef PV_USE_OPENMP_THREADS
+   maxThreads = omp_get_max_threads();
+#else // PV_USE_OPENMP_THREADS
+   maxThreads = 1;
+#endif // PV_USE_OPENMP_THREADS
    return PV_SUCCESS;
 }
 

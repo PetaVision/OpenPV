@@ -9,10 +9,10 @@
 #define PV_INIT_HPP_
 
 #include <iostream>
-#include "../arch/mpi/mpi.h"
-#include "../io/PVParams.hpp"
-#include "../io/io.h"
-#include "PV_Arguments.hpp"
+#include <arch/mpi/mpi.h>
+#include <io/PVParams.hpp>
+#include <io/io.h>
+#include <columns/PV_Arguments.hpp>
 
 namespace PV {
 
@@ -65,19 +65,28 @@ public:
    int getInit(){return initialized;}
 
    /**
+    * If using PV_USE_OPENMP_THREADS, returns the value returned by omp_get_max_threads() when the PV_Init object was instantiated.
+    * Note that this value is NOT divided by the number of MPI processes.
+    * If not using PV_USE_OPENMP_THREADS, returns 1.
+    */
+   int getMaxThreads() const {return maxThreads; }
+
+   /**
     * Returns the PV_Arguments object holding the parsed values of the command line arguments.
     */
    PV_Arguments * getArguments() { return arguments; }
 
 private:
    int initSignalHandler();
+   int initMaxThreads();
    int commInit(int* argc, char*** argv);
    int commFinalize();
    //int getNBatchValue(char* infile);
    PVParams * params;
-   InterColComm * icComm;
    PV_Arguments * arguments;
    int initialized;
+   int maxThreads;
+   InterColComm * icComm;
 };
 
 }

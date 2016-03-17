@@ -380,14 +380,14 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    int thread_status = PV_SUCCESS;
    int num_threads = 0;
 #ifdef PV_USE_OPENMP_THREADS
-   int max_threads = omp_get_max_threads();
+   int max_threads = pv_initObj->getMaxThreads();
    int comm_size = icComm->globalCommSize();
    if (globalRank()==0) {
       printf("Maximum number of OpenMP threads%s is %d\nNumber of MPI processes is %d.\n",
             comm_size==1 ? "" : " (over all processes)", max_threads, comm_size);
    }
    if (pv_initObj->getArguments()->getUseDefaultNumThreads()) {
-      num_threads = omp_get_max_threads()/icComm->globalCommSize(); // integer arithmetic
+      num_threads = max_threads/comm_size; // integer arithmetic
       if (num_threads == 0) {
          num_threads = 1;
          if (globalRank()==0) {
@@ -447,7 +447,6 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    }
    //set num_threads to member variable
    this->numThreads = num_threads;
-
 
    if(working_dir && columnId()==0) {
       int status = chdir(working_dir);
@@ -3101,6 +3100,7 @@ int HyPerCol::outputParams(char const * path) {
 #endif
 #ifdef PV_USE_OPENMP_THREADS
       fprintf(printParamsStream->fp, "// Compiled with OpenMP parallel code and run using %d threads.\n", numThreads);
+      printf("Rank %d, reading numThreads ******** %d\n", columnId(), numThreads);
 #else
       fprintf(printParamsStream->fp, "// Compiled without OpenMP parallel code.\n");
 #endif // PV_USE_OPENMP_THREADS
