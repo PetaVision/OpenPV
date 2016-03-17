@@ -3100,7 +3100,6 @@ int HyPerCol::outputParams(char const * path) {
 #endif
 #ifdef PV_USE_OPENMP_THREADS
       fprintf(printParamsStream->fp, "// Compiled with OpenMP parallel code and run using %d threads.\n", numThreads);
-      printf("Rank %d, reading numThreads ******** %d\n", columnId(), numThreads);
 #else
       fprintf(printParamsStream->fp, "// Compiled without OpenMP parallel code.\n");
 #endif // PV_USE_OPENMP_THREADS
