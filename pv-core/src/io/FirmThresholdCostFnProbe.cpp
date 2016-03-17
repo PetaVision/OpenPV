@@ -89,7 +89,7 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
    double a2 = 0.5f/VThreshPlusVWidth;
    pvadata_t const * aBuffer = getTargetLayer()->getLayerData() + index * getTargetLayer()->getNumExtended();
    
-      if (getMaskLayer()) {
+   if (getMaskLayer()) {
       PVLayerLoc const * maskLoc = getMaskLayer()->getLayerLoc();
       PVHalo const * maskHalo = &maskLoc->halo;
       pvadata_t const * maskLayerData = getMaskLayer()->getLayerData() + index*getMaskLayer()->getNumExtended(); // Is there a DataStore method to return the part of the layer data for a given batch index?
@@ -139,18 +139,37 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
       }
    }
    else {
+      if (getTargetLayer()->getSparseFlag()) {
+         DataStore * store = parent->icCommunicator()->publisherStore(getTargetLayer()->getLayerId());
+         int numActive = (int) store->numActiveBuffer(index)[0];
+         unsigned int const * activeList = store->activeIndicesBuffer(index);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS
-      for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {      
-         int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         pvadata_t a = fabsf(aBuffer[kex]);
-         if (a==0) { continue; }
-         if (a>=VThreshPlusVWidth) {
-            sum += amax;
+         for (int k=0; k<numActive; k++) {
+            pvadata_t a = fabsf(aBuffer[activeList[k]]);
+            if (a>=VThreshPlusVWidth) {
+               sum += amax;
+            }
+            else {
+               sum += a*(1 - a2*a);
+            }
          }
-         else {
-            sum += a*(1 - a2*a);
+      }
+      else {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : sum)
+#endif // PV_USE_OPENMP_THREADS
+         for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
+            int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+            pvadata_t a = fabsf(aBuffer[kex]);
+            if (a==0) { continue; }
+            if (a>=VThreshPlusVWidth) {
+               sum += amax;
+            }
+            else {
+               sum += a*(1 - a2*a);
+            }
          }
       }
    }

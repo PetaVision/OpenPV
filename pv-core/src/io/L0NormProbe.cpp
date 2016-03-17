@@ -71,8 +71,8 @@ double L0NormProbe::getValueInternal(double timevalue, int index) {
                int featureBase = kxy*nf;
                for (int f=0; f<nf; f++) {
                   int kex = kIndexExtended(featureBase++, nx, ny, nf, lt, rt, dn, up);
-                  pvadata_t val = aBuffer[kex];
-                  sum += (aBuffer[kex]>nnzThreshold || aBuffer[kex]<nnzThreshold);
+                  pvadata_t val = fabsf(aBuffer[kex]);
+                  sum += val>nnzThreshold;
                }
             }
          }         
@@ -85,20 +85,34 @@ double L0NormProbe::getValueInternal(double timevalue, int index) {
             int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
             int kexMask = kIndexExtended(k, nx, ny, nf, maskLt, maskRt, maskDn, maskUp);
             if (maskLayerData[kexMask]) {
-               pvadata_t val = aBuffer[kex];
-               sum += aBuffer[kex]>nnzThreshold || aBuffer[kex]<nnzThreshold;
+               pvadata_t val = fabsf(aBuffer[kex]);
+               sum += val>nnzThreshold;
             }
          }
       }
    }
    else {
+      if (getTargetLayer()->getSparseFlag()) {
+         DataStore * store = parent->icCommunicator()->publisherStore(getTargetLayer()->getLayerId());
+         int numActive = (int) store->numActiveBuffer(index)[0];
+         unsigned int const * activeList = store->activeIndicesBuffer(index);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS
-      for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {      
-         int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         pvadata_t val = aBuffer[kex];
-         sum += aBuffer[kex]>nnzThreshold || aBuffer[kex]<nnzThreshold;
+         for (int k=0; k<numActive; k++) {
+            pvadata_t val = fabsf(aBuffer[activeList[k]]);
+            sum += val>nnzThreshold;
+         }
+      }
+      else {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : sum)
+#endif // PV_USE_OPENMP_THREADS
+         for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
+            int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+            pvadata_t val = fabsf(aBuffer[kex]);
+            sum += val>nnzThreshold;
+         }
       }
    }
    

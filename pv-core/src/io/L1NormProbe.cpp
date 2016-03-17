@@ -81,13 +81,27 @@ double L1NormProbe::getValueInternal(double timevalue, int index) {
       }
    }
    else {
+      if (getTargetLayer()->getSparseFlag()) {
+         DataStore * store = parent->icCommunicator()->publisherStore(getTargetLayer()->getLayerId());
+         int numActive = (int) store->numActiveBuffer(index)[0];
+         unsigned int const * activeList = store->activeIndicesBuffer(index);
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for reduction(+ : sum)
 #endif // PV_USE_OPENMP_THREADS
-      for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {      
-         int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
-         pvadata_t val = aBuffer[kex];
-         sum += fabs(val);
+         for (int k=0; k<numActive; k++) {
+            pvadata_t val = fabsf(aBuffer[activeList[k]]);
+            sum += fabsf(val);
+         }
+      }
+      else {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for reduction(+ : sum)
+#endif // PV_USE_OPENMP_THREADS
+         for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
+            int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
+            pvadata_t val = fabsf(aBuffer[kex]);
+            sum += fabsf(val);
+         }
       }
    }
    
