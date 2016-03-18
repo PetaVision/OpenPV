@@ -605,7 +605,14 @@ static inline int layerIndexRes(int kPreRes, const PVLayerLoc * inLoc, const PVL
    return layerIndexExt(kPreExt, inLoc, outLoc);
 }
 
-
+/**
+ * Returns 1 if the given extended index is in the border region, and 0 if it is in the restricted space.
+ */
+static inline int extendedIndexInBorderRegion(int extK, int nx, int ny, int nf, int lt, int rt, int dn, int up) {
+   int x = kxPos(extK, nx+lt+rt, ny+dn+up, nf);
+   int y = kyPos(extK, nx+lt+rt, ny+dn+up, nf);
+   return x < lt | x >= nx+lt | y < up | y >= ny+up; // Which is better: bitwise-or or logical-or?
+}
 
 //Converts a local ext index into a global res index
 //Returns -1 if localExtK is in extended space
