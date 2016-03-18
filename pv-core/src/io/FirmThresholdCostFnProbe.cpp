@@ -149,7 +149,7 @@ double FirmThresholdCostFnProbe::getValueInternal(double timevalue, int index) {
          for (int k=0; k<numActive; k++) {
             int extIndex = activeList[k];
             int inRestricted = !extendedIndexInBorderRegion(extIndex, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
-            pvadata_t a = inRestricted * fabsf(aBuffer[activeList[k]]);
+            pvadata_t a = inRestricted * fabsf(aBuffer[extIndex]);
             if (a>=VThreshPlusVWidth) {
                sum += amax;
             }

@@ -122,7 +122,9 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
 #pragma omp parallel for reduction(+ : l2normsq)
 #endif // PV_USE_OPENMP_THREADS
          for (int k=0; k<numActive; k++) {
-            pvadata_t val = aBuffer[activeList[k]];
+            int extIndex = activeList[k];
+            int inRestricted = !extendedIndexInBorderRegion(extIndex, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
+            pvadata_t val = inRestricted * fabsf(aBuffer[extIndex]);
             l2normsq += val*val;
          }
       }
