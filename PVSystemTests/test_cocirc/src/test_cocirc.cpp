@@ -50,6 +50,8 @@ int main(int argc, char * argv[])
    assert(cHyPer2to1);
    PV::HyPerConn * cCocirc2to1 = new HyPerConn("test_cocirc cocircconn 2 to 1", hc);
    assert(cCocirc2to1);
+
+   hc->ensureDirExists(hc->getOutputPath());
    
    for (int l=0; l<hc->numberOfLayers(); l++) {
       hc->getLayer(l)->communicateInitInfo();
