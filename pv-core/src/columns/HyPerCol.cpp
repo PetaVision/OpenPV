@@ -284,13 +284,18 @@ int HyPerCol::initialize_base() {
 int HyPerCol::initialize(const char * name, PV_Init* initObj)
 {
    if(!initObj->getInit()){
-      std::cout << "PV_Init object's initialize method must be called before it is passed to HyPerCol\n";
-      exit(-1);
+      initObj->initialize();
    }
    pv_initObj = initObj;
    this->icComm = pv_initObj->getComm();
    this->params = pv_initObj->getParams();
-   assert(this->params); // PV_Init should have set params already
+   if(this->params == NULL) {
+      if (icComm->globalCommRank()==0) {
+         std::cout << "HyPerCol::initialize error: params have not been set." << std::endl;
+         MPI_Barrier(icComm->communicator());
+      }
+      exit(EXIT_FAILURE);
+   }
 
    int rank = icComm->globalCommRank();
 

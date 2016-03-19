@@ -35,11 +35,24 @@ public:
 
    /**
     * initialize(void) creates the PVParams and InterColComm objects from
-    * the existing arguments.
+    * the existing arguments.  If the paramsFile (-p) argument is not set,
+    * params is kept at null, and the params file can be set later using the
+    * setParams() method.
     */
    int initialize();
 
+   /**
+    * getParams() returns a pointer to the PVParams object created from the params file.
+    */
    PVParams * getParams(){return params;}
+
+   /**
+    * setParams(paramsFile) creates the PVParams object for the given params file,
+    * deleting the existing params object if it already exists.  It also sets the
+    * params file returned by getArguments()->getParamsFile().
+    */
+   int setParams(char const * paramsFile);
+
    InterColComm * getComm(){return icComm;}
    int getWorldRank(){
       if(icComm){

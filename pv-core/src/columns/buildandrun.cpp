@@ -44,6 +44,16 @@ int rebuildandrun(PV_Init* initObj,
    if(initObj->isExtraProc()){
       return 0;
    }
+   PVParams * params = initObj->getParams();
+   if (params==NULL) {
+      if (initObj->getWorldRank()==0) {
+         char const * progName = initObj->getArguments()->getProgramName();
+         if (progName==NULL) { progName = "PetaVision"; }
+         fprintf(stderr, "%s was called without having set a params file\n", progName);
+      }
+      MPI_Barrier(initObj->getComm()->communicator());
+      exit(EXIT_FAILURE);
+   }
 
    int numParamSweepValues = initObj->getParams()->getParameterSweepSize();
 
@@ -87,6 +97,16 @@ int rebuildandrun(PV_Init* initObj,
    initObj->initialize();
    if(initObj->isExtraProc()){
       return 0;
+   }
+   PVParams * params = initObj->getParams();
+   if (params==NULL) {
+      if (initObj->getWorldRank()==0) {
+         char const * progName = initObj->getArguments()->getProgramName();
+         if (progName==NULL) { progName = "PetaVision"; }
+         fprintf(stderr, "%s was called without having set a params file\n", progName);
+      }
+      MPI_Barrier(initObj->getComm()->communicator());
+      exit(EXIT_FAILURE);
    }
 
    int numParamSweepValues = initObj->getParams()->getParameterSweepSize();

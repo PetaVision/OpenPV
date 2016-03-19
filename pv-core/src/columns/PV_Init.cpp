@@ -25,12 +25,8 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
 }
 
 PV_Init::~PV_Init(){
-   if(params){
-      delete params;
-   }
-   if(icComm){
-      delete icComm;
-   }
+   delete params;
+   delete icComm;
    delete arguments;
    commFinalize();
 }
@@ -52,15 +48,13 @@ int PV_Init::initSignalHandler()
 }
 
 int PV_Init::initialize() {
-   char const * params_file = arguments->getParamsFile();
-   if(!params_file){
-      std::cout << "PV_Init error: initialize called without having set a params file.\n";
-      exit(PV_FAILURE);
-   }
-   if (icComm) { delete icComm; }
+   delete icComm;
    icComm = new InterColComm(arguments);
-   if (params) { delete params; }
-   params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
+   delete params; params=NULL;
+   char const * params_file = arguments->getParamsFile();
+   if (params_file) {
+      setParams(params_file);
+   }
    initialized = true;
    return PV_SUCCESS;
 }
@@ -93,6 +87,14 @@ int PV_Init::commInit(int* argc, char*** argv)
    }
 
    return 0;
+}
+
+int PV_Init::setParams(char const * params_file) {
+   if (params_file == NULL) { return PV_FAILURE; }
+   PVParams * oldParams = params;
+   params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
+   delete oldParams;
+   return PV_SUCCESS;
 }
 
 int PV_Init::commFinalize()
