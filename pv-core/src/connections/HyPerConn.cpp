@@ -3987,9 +3987,11 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    }
 
 #if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
-   if(updatePreAct){
-      krRecvPost->permuteDatastorePVToCudnn();
-   }
+   //Permutation buffer is local to the kernel, NOT the layer
+   //Therefore, we must permute Datastore every time
+   krRecvPost->permuteDatastorePVToCudnn();
+   //}
+   
    //Permute GSyn
    krRecvPost->permuteGSynPVToCudnn(this->getChannel());
 #endif // defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
