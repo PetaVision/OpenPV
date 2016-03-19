@@ -1890,6 +1890,7 @@ int HyPerLayer::recvAllSynapticInput() {
          }
 #endif
          conn->deliver();
+         parent->getDevice()->syncDevice();
       }
 #ifdef PV_USE_CUDA
       if(switchGpu){
