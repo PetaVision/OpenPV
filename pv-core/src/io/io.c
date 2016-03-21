@@ -65,17 +65,7 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
       paramusage[arg] = false;
    }
    
-
-   bool reqrtn = false; 
-   for(arg=1; arg<argc; arg++) { 
-      if( !strcmp(argv[arg], "--require-return")) { 
-         reqrtn = true; 
-         paramusage[arg] = true;
-         break; 
-      } 
-   } 
-   *require_return = reqrtn;
-
+   if (pv_getopt(argc, argv, "--require-return", paramusage) == 0) { *require_return = true; }
    pv_getopt_str(argc, argv, "-d", gpu_devices, paramusage);
    pv_getoptionalopt_int(argc, argv, "-t", numthreads, useDefaultNumThreads, paramusage);
    pv_getopt_str(argc, argv, "-o", output_path, paramusage);
@@ -103,6 +93,7 @@ int pv_getopt(int argc, char * argv[], const char * opt, bool * paramusage)
    int i;
    for (i = 1; i < argc; i++) {
       if (strcmp(argv[i], opt)==0) {
+         if (paramusage) { paramusage[i] = true; }
          return 0;
       }
    }
