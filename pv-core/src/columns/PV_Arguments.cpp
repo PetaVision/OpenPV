@@ -42,6 +42,7 @@ int PV_Arguments::initializeState() {
    numRows = 0;
    numColumns = 0;
    batchWidth = 0;
+   dryRunFlag = false;
    return PV_SUCCESS;
 }
 
@@ -143,6 +144,10 @@ int PV_Arguments::setBatchWidth(int val) {
    batchWidth = val;
    return batchWidth;
 }
+bool PV_Arguments::setDryRunFlag(bool val) {
+   dryRunFlag = val;
+   return dryRunFlag;
+}
 
 char const * PV_Arguments::setString(char ** parameter, char const * string, char const * parameterName) {
    int status = PV_SUCCESS;
@@ -209,12 +214,14 @@ int PV_Arguments::setStateFromCmdLineArgs(bool allowUnrecognizedArguments) {
    usedArgArray[0] = true; // Always use the program name
 
    int restart = (int) restartFlag;
+   int dryrun = (int) dryRunFlag;
    int status = parse_options(numArgs, args,
          usedArgArray, &requireReturnFlag, &outputPath, &paramsFile, &logFile,
          &gpuDevices, &randomSeed, &workingDir,
          &restart, &checkpointReadDir, &useDefaultNumThreads, &numThreads,
-         &numRows, &numColumns, &batchWidth);
+         &numRows, &numColumns, &batchWidth, &dryrun);
    restartFlag = restart!=0;
+   dryRunFlag = dryrun!=0;
 
    // Error out if both -r and -c are used
    if (errorChecking()) {

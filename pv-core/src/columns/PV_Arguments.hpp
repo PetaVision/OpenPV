@@ -47,6 +47,7 @@ public:
     *    "-rows": the next argument is parsed as an integer and stored as the number of MPI rows.
     *    "-columns": the next argument is parsed as an integer and stored as the number of MPI columns.
     *    "-batchwidth": the next argument is parsed as an integer and stored as the batch width.
+    *    "-n": the dry-run flag is set to true.
     *    "--require-return": the require-return flag is set to true.
     * If "-t" appears but is not followed by an integer, numThreads is set to -1 and
     *    useDefaultNumThreads is set to true (this behavior is governed by pv_getoptionalopt_int() in io/io.c)
@@ -180,6 +181,11 @@ public:
    int getBatchWidth() { return batchWidth; }
 
    /**
+    * Returns true if the dry-run flag was set.
+    */
+   bool getDryRunFlag() { return dryRunFlag; }
+
+   /**
     * Sets the value of the require-return flag.
     * The return value is the new value of the require-return flag.
     */
@@ -281,6 +287,13 @@ public:
    int setBatchWidth(int val);
 
    /**
+    * Sets the dry-run flag to the new argument.  The old value is discarded.
+    * The return value is the new value of the dry-run flag.
+    *
+    */
+   bool setDryRunFlag(bool val);
+
+   /**
     * Reinitializes the object's state based on the new argc and argv array.
     * The allowUnrecognizedArguments flag has the same effect as in the
     * constructor. Any previous pointers returned by get-methods become
@@ -376,6 +389,7 @@ private:
    int numRows;
    int numColumns;
    int batchWidth;
+   bool dryRunFlag;
 };
 
 } /* namespace PV */

@@ -1726,14 +1726,18 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       }
       printParamsFileString += printParamsFilename;
 
-      // do communicateInitInfo stage, set up adaptive time step, and print params
+      // processParams function does communicateInitInfo stage, sets up adaptive time step, and prints params
       status = processParams(printParamsFileString.c_str());
       MPI_Barrier(icCommunicator()->communicator());
       if (status != PV_SUCCESS) {
          fprintf(stderr, "HyPerCol \"%s\" failed to run.\n", name);
          exit(EXIT_FAILURE);
       }
+   }
 
+   if (pv_initObj->getArguments()->getDryRunFlag()) { return PV_SUCCESS; }
+
+   if (!readyFlag) {
       int (HyPerCol::*layerInitializationStage)(int) = NULL;
       int (HyPerCol::*connInitializationStage)(int) = NULL;
 
@@ -1777,7 +1781,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       if ( checkpointReadFlag ) {
          checkpointRead();
       }
-      // HyPerLayer's and HyPerConn's initializeState methods now check checkpointReadFlag and call their checkpointRead methods accordingly - Dec 8, 2014
+
+      // setInitialValues stage sets the initial values of layers and connections, either from params or from checkpoint
       layerInitializationStage = &HyPerCol::layerSetInitialValues;
       connInitializationStage = &HyPerCol::connSetInitialValues;
       doInitializationStage(layerInitializationStage, connInitializationStage, "setInitialValues");

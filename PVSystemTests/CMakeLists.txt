@@ -38,6 +38,7 @@ add_subdirectory(ConvertToGrayscaleTest)
 add_subdirectory(CopyConnTest)
 add_subdirectory(DatastoreDelayTest)
 add_subdirectory(DelaysToFeaturesTest)
+add_subdirectory(DryRunFlagTest)
 add_subdirectory(DtAdaptControllerTest)
 add_subdirectory(GenericSystemTest)
 

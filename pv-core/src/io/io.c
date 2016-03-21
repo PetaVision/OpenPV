@@ -22,7 +22,6 @@ void usage()
 {
    printf("\nUsage:\n");
    printf(" -p <parameters filename>\n");
-   // printf(" [-n <number of timesteps>]\n");
    printf(" [-o <output directory>\n");
    printf(" [-s <random number generator seed>]\n");
    printf(" [-d [<GPU device>,<GPU device>,...]]\n");
@@ -31,6 +30,7 @@ void usage()
    printf(" [-r|-c <checkpoint directory>]\n");
 #ifdef PV_USE_OPENMP_THREADS
    printf(" [-t [number of threads]\n");
+   printf(" [-n]\n");
 #endif // PV_USE_OPENMP_THREADS
 
 }
@@ -48,7 +48,7 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
                   unsigned int * random_seed, char ** working_dir,
                   int * restart, char ** checkpointReadDir,
                   bool * useDefaultNumThreads, int * numthreads,
-                  int * num_rows, int * num_columns, int* batch_width)
+                  int * num_rows, int * num_columns, int* batch_width, int * dry_run)
 {
    // // Commented out Jan 7, 2016: some simple system tests do not require any arguments;
    // // other tests may use several different command line set ups and may choose to start
@@ -88,6 +88,7 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
    pv_getopt_int(argc, argv, "-rows", num_rows, paramusage);
    pv_getopt_int(argc, argv, "-columns", num_columns, paramusage);
    pv_getopt_int(argc, argv, "-batchwidth", batch_width, paramusage);
+   if (pv_getopt(argc, argv, "-n", paramusage) == 0) { *dry_run = 1; }
 
    return 0;
 }

@@ -91,7 +91,7 @@ int parse_options(int argc, char * argv[], bool * paramusage, bool * require_ret
                   char ** output_path, char ** param_file, char ** log_file, char ** gpu_devices,
                   unsigned int * random_seed, char ** working_dir,
                   int * restart, char ** checkpointReadDir,
-                  bool * useDefaultNumThreads, int * numthreads, int * numRows, int * numColumns, int* batch_width);
+                  bool * useDefaultNumThreads, int * numthreads, int * numRows, int * numColumns, int* batch_width, int* dryrun);
 
 /** If a filename begins with "~/" or is "~", presume the user means the home directory.
  * The return value is the expanded path; e.g. if the home directory is /home/user1,
