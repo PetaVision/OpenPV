@@ -22,6 +22,7 @@ public:
    FilenameParsingGroundTruthLayer(const char * name, HyPerCol * hc);
    virtual ~FilenameParsingGroundTruthLayer();
    virtual int initialize(const char * name, HyPerCol * hc);
+   virtual int communicateInitInfo();
    virtual int updateState(double timef, double dt);
    virtual bool needUpdate(double time, double dt);
    int ioParamsFillGroup(enum ParamsIOFlag ioFlag);

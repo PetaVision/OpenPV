@@ -43,14 +43,6 @@ int FilenameParsingGroundTruthLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_movieLayerName(ioFlag);
    ioParam_gtClassTrueValue(ioFlag);
    ioParam_gtClassFalseValue(ioFlag);
-   movieLayer = dynamic_cast<Movie *>(parent->getLayerFromName(movieLayerName));
-   if(movieLayer==NULL) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: movieLayerName \"%s\" is not a layer in the HyPerCol.\n",
-            getKeyword(), name, movieLayerName); 
-      }
-   exit(EXIT_FAILURE);
-   }
    return status1;
 }
 
@@ -90,6 +82,17 @@ void FilenameParsingGroundTruthLayer::ioParam_classes(enum ParamsIOFlag ioFlag) 
       getline(inputfile, classes[i]);
    }
    inputfile.close();
+}
+
+int FilenameParsingGroundTruthLayer::communicateInitInfo() {
+   movieLayer = dynamic_cast<Movie *>(parent->getLayerFromName(movieLayerName));
+   if(movieLayer==NULL) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: movieLayerName \"%s\" is not a layer in the HyPerCol.\n",
+            getKeyword(), name, movieLayerName); 
+      }
+      exit(EXIT_FAILURE);
+   }
 }
 
 bool FilenameParsingGroundTruthLayer::needUpdate(double time, double dt){
