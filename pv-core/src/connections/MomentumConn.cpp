@@ -7,6 +7,7 @@
 
 #include "MomentumConn.hpp"
 #include <cstring>
+#include "utils/PVAlloc.hpp"
 
 namespace PV {
 
@@ -52,13 +53,8 @@ int MomentumConn::allocateDataStructures(){
    const int numAxons = numberOfAxonalArborLists();
 
    //Allocate dw buffer for previous dw
-   prev_dwDataStart = (pvwdata_t **) calloc(numAxons, sizeof(pvwdata_t *));
-   if( prev_dwDataStart == NULL ) {
-      createArborsOutOfMemory();
-      assert(false);
-   }
-   prev_dwDataStart[0] = (pvwdata_t*) calloc(numAxons * nxp * nyp * nfp * nPatches, sizeof(pvwdata_t));
-   assert(prev_dwDataStart[0] != NULL);
+   prev_dwDataStart = (pvwdata_t **) pvCalloc(numAxons, sizeof(pvwdata_t *));
+   prev_dwDataStart[0] = (pvwdata_t*) pvCalloc(numAxons * nxp * nyp * nfp * nPatches, sizeof(pvwdata_t));
    for (int arborId = 0; arborId < numAxons; arborId++) {
       prev_dwDataStart[arborId] = (prev_dwDataStart[0] + sp * nPatches * arborId);
       assert(prev_dwDataStart[arborId] != NULL);
