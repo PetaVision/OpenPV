@@ -222,6 +222,7 @@ void PoolingConn::clearGateIdxBuffer(){
 
 int PoolingConn::allocateDataStructures(){
    int status = HyPerConn::allocateDataStructures();
+   if (status == PV_POSTPONE) { return status; }
    assert(status == PV_SUCCESS);
 
    if(needPostIndexLayer){

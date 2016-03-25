@@ -408,7 +408,8 @@ int TransposePoolingConn::allocateDataStructures() {
       postToPreActivity = originalConn->postConn->getPostToPreActivity();
       tempNeedPost = true;
    }
-   HyPerConn::allocateDataStructures();
+   int status = HyPerConn::allocateDataStructures();
+   if (status != PV_SUCCESS) { return status; }
 
    //Set nessessary buffers
    if(tempNeedPost){

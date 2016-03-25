@@ -118,7 +118,8 @@ int privateTransposeConn::setPatchSize() {
 }
 
 int privateTransposeConn::allocateDataStructures() {
-   HyPerConn::allocateDataStructures();
+   int status = HyPerConn::allocateDataStructures();
+   assert(status==PV_SUCCESS);
    normalizer = NULL;
    
    // normalize_flag = false; // replaced by testing whether normalizer!=NULL

@@ -344,12 +344,13 @@ int TransposeConn::allocateDataStructures() {
       return PV_POSTPONE;
    }
 
-   HyPerConn::allocateDataStructures();
+   int status = HyPerConn::allocateDataStructures();
+   if (status != PV_SUCCESS) { return status; }
 
    normalizer = NULL;
    
    // normalize_flag = false; // replaced by testing whether normalizer!=NULL
-   return PV_SUCCESS;
+   return status;
 }
 
 int TransposeConn::constructWeights(){

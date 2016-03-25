@@ -33,6 +33,7 @@ int ImprintConn::initialize_base() {
 
 int ImprintConn::allocateDataStructures() {
    int status = HyPerConn::allocateDataStructures();
+   if (status==PV_POSTPONE) { return status; }
    const PVLayerLoc * loc = pre->getLayerLoc();
    int numKernelIndices = getNumDataPatches();
    imprinted = (bool*) calloc(numKernelIndices * numberOfAxonalArborLists(), sizeof(bool));

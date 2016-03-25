@@ -58,19 +58,32 @@ int main(int argc, char * argv[])
 
    hc->ensureDirExists(hc->getOutputPath());
 
-   l1->communicateInitInfo();
-   l2->communicateInitInfo();
-   l3->communicateInitInfo();
-   c1->communicateInitInfo();
-   c2->communicateInitInfo();
-   c3->communicateInitInfo();
+   for (int l=0; l<hc->numberOfLayers(); l++) {
+      HyPerLayer * layer = hc->getLayer(l);
+      int status = layer->communicateInitInfo();
+      assert(status==PV_SUCCESS);
+      layer->setInitInfoCommunicatedFlag();
+   }   
+   for (int c=0; c<hc->numberOfConnections(); c++) {
+      BaseConnection * conn = hc->getConnection(c);
+      int status = conn->communicateInitInfo();
+      assert(status==PV_SUCCESS);
+      conn->setInitInfoCommunicatedFlag();
+   }
    
-   l1->allocateDataStructures();
-   l2->allocateDataStructures();
-   l3->allocateDataStructures();
-   c1->allocateDataStructures();
-   c2->allocateDataStructures();
-   c3->allocateDataStructures();
+   for (int l=0; l<hc->numberOfLayers(); l++) {
+      HyPerLayer * layer = hc->getLayer(l);
+      int status = layer->allocateDataStructures();
+      assert(status==PV_SUCCESS);
+      layer->setDataStructuresAllocatedFlag();
+   }
+   
+   for (int c=0; c<hc->numberOfConnections(); c++) {
+      BaseConnection * conn = hc->getConnection(c);
+      int status = conn->allocateDataStructures();
+      assert(status==PV_SUCCESS);
+      conn->setDataStructuresAllocatedFlag();
+   }
 
    // Don't need to call initializeState methods:
    // we don't look at the layer values, and the weight values are

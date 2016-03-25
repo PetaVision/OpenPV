@@ -2077,8 +2077,9 @@ int HyPerCol::layerAllocateDataStructures(int l) {
 }
 
 int HyPerCol::connAllocateDataStructures(int c) {
+   assert(c>=0 && c<numConnections);
    BaseConnection * conn = connections[c];
-   assert(c>=0 && c<numConnections && conn->getDataStructuresAllocatedFlag()==false);
+   assert(conn->getDataStructuresAllocatedFlag()==false);
    int status = conn->allocateDataStructures();
    if (status==PV_SUCCESS) conn->setDataStructuresAllocatedFlag();
    return status;

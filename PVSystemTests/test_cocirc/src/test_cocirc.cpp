@@ -54,18 +54,30 @@ int main(int argc, char * argv[])
    hc->ensureDirExists(hc->getOutputPath());
    
    for (int l=0; l<hc->numberOfLayers(); l++) {
-      hc->getLayer(l)->communicateInitInfo();
+      HyPerLayer * layer = hc->getLayer(l);
+      int status = layer->communicateInitInfo();
+      assert(status==PV_SUCCESS);
+      layer->setInitInfoCommunicatedFlag();
    }   
    for (int c=0; c<hc->numberOfConnections(); c++) {
-      hc->getConnection(c)->communicateInitInfo();
+      BaseConnection * conn = hc->getConnection(c);
+      int status = conn->communicateInitInfo();
+      assert(status==PV_SUCCESS);
+      conn->setInitInfoCommunicatedFlag();
    }
    
    for (int l=0; l<hc->numberOfLayers(); l++) {
-      hc->getLayer(l)->allocateDataStructures();
+      HyPerLayer * layer = hc->getLayer(l);
+      int status = layer->allocateDataStructures();
+      assert(status==PV_SUCCESS);
+      layer->setDataStructuresAllocatedFlag();
    }
    
    for (int c=0; c<hc->numberOfConnections(); c++) {
-      hc->getConnection(c)->allocateDataStructures();
+      BaseConnection * conn = hc->getConnection(c);
+      int status = conn->allocateDataStructures();
+      assert(status==PV_SUCCESS);
+      conn->setDataStructuresAllocatedFlag();
    }
 
    const int axonID = 0;

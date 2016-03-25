@@ -41,8 +41,9 @@ int MomentumConn::initialize_base() {
 }
 
 int MomentumConn::allocateDataStructures(){
-   HyPerConn::allocateDataStructures();
-   if (!plasticityFlag) return PV_SUCCESS;
+   int status = HyPerConn::allocateDataStructures();
+   if (status==PV_POSTPONE) { return status; }
+   if (!plasticityFlag) return status;
    int sx = nfp;
    int sy = sx * nxp;
    int sp = sy * nyp;

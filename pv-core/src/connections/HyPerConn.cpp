@@ -1659,7 +1659,17 @@ int HyPerConn::allocatePostConn(){
 
 
 int HyPerConn::allocateDataStructures() {
+#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+   if (!pre->getDataStructuresAllocatedFlag()) {
+      if (parent->columnId()==0) {
+         const char * connectiontype = this->getKeyword();
+         printf("%s \"%s\" must wait until pre-synaptic layer \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, pre->getName());
+      }
+      return PV_POSTPONE;
+   }
+#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    int status = BaseConnection::allocateDataStructures();
+   assert(status == PV_SUCCESS);
    initNumWeightPatches();
    initNumDataPatches();
    initPatchToDataLUT();
@@ -1686,30 +1696,6 @@ int HyPerConn::allocateDataStructures() {
    }
 
    status = constructWeights();
-
-   //if (sharedWeights && plasticityFlag) {
-   //   const int numPatches = getNumDataPatches();
-   //   const size_t patchSize = nxp*nyp*nfp;
-   //   const size_t localSize = numPatches * patchSize;
-   //   
-   //   numKernelActivations = (long ***) malloc(this->numberOfAxonalArborLists() * sizeof(long**));
-
-   //   for(int arbor_ID = 0; arbor_ID < this->numberOfAxonalArborLists(); arbor_ID++){
-   //      long * tempData = (long*) malloc(numPatches * sizeof(long) * patchSize);
-   //      long ** singleArbor = (long **) malloc(numPatches * sizeof(long*));
-   //      if(singleArbor == NULL || tempData == NULL) {
-   //         fprintf(stderr, "Connection \"%s\" unable to allocate memory for numKernelActivations in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
-   //         exit(PV_FAILURE);
-   //      }
-   //      for (int ki = 0; ki < numPatches; ki++) {
-   //         singleArbor[ki] = &(tempData[ki*patchSize]);
-   //         for (int pi = 0; pi < patchSize; pi++){
-   //            singleArbor[ki][pi] = 0;
-   //         }
-   //      }
-   //      numKernelActivations[arbor_ID] = singleArbor;
-   //   }
-   //}
 
    allocatePostConn();
 
@@ -2213,7 +2199,7 @@ int HyPerConn::allocateReceivePostKernel()
    int status = 0;
    PVCuda::CudaDevice * device = parent->getDevice();
    krRecvPost = new PVCuda::CudaRecvPost(device);
-#endif
+#endif // PV_USE_CUDA
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
@@ -2224,7 +2210,7 @@ int HyPerConn::allocateReceivePostKernel()
    CLBuffer* d_PreData = pre->getDeviceDatastore();
    CLBuffer* d_PostGSyn = post->getDeviceGSyn();
    CLBuffer* d_origWData = postConn->getDeviceWData();
-#endif
+#endif // PV_USE_OPENCL
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_PreData = pre->getDeviceDatastore();
    PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn();
@@ -2237,9 +2223,9 @@ int HyPerConn::allocateReceivePostKernel()
    assert(cudnn_preData);
    assert(cudnn_gSyn);
    assert(cudnn_origWData);
-#endif
+#endif // PV_USE_CUDNN
 
-#endif
+#endif // PV_USE_CUDA
 
    assert(d_PreData);
    assert(d_PostGSyn);
