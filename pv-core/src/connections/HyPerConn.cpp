@@ -420,17 +420,17 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weight
       accumulateFunctionFromPostPointer = &pvpatch_accumulate_stochastic_from_post;
       break;
    case ACCUMULATE_MAXPOOLING:
-      pvAssertMessage(0, "ACCUMULATE_MAXPOOLING not allowed in HyPerConn, use PoolingConn instead");
+      exitFailure("ACCUMULATE_MAXPOOLING not allowed in HyPerConn, use PoolingConn instead");
       //accumulateFunctionPointer = &pvpatch_max_pooling;
       //accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
       break;
    case ACCUMULATE_SUMPOOLING:
-      pvAssertMessage(0, "ACCUMULATE_SUMPOOLING not allowed in HyPerConn, use PoolingConn instead");
+      exitFailure("ACCUMULATE_SUMPOOLING not allowed in HyPerConn, use PoolingConn instead");
       //accumulateFunctionPointer = &pvpatch_sum_pooling;
       //accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
       break;
    case ACCUMULATE_AVGPOOLING:
-      pvAssertMessage(0, "ACCUMULATE_AVGPOOLING not allowed in HyPerConn, use PoolingConn instead");
+      exitFailure("ACCUMULATE_AVGPOOLING not allowed in HyPerConn, use PoolingConn instead");
       //accumulateFunctionPointer = &pvpatch_sum_pooling;
       //accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
       break;
