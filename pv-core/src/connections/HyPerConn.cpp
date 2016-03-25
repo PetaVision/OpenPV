@@ -24,7 +24,7 @@
 #include "io/CoreParamGroupHandler.hpp"
 #include <limits>
 
-#include "utils/pv_log.h"
+#include "utils/PVLog.hpp"
 #include "utils/PVAlloc.hpp"
 #include "utils/PVAssert.hpp"
 

@@ -21,7 +21,9 @@
  */
 
 #include <stdlib.h>
-#include "utils/pv_log.h"
+#include "utils/PVLog.hpp"
+
+namespace PV {
 
 /**
  * pvMalloc(size_t size);
@@ -65,6 +67,8 @@ void pv_delete(const char *file, int line, T *ptr) {
       delete ptr;
       ptr = NULL;
    }
+}
+
 }
 
 #endif

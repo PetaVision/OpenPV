@@ -20,7 +20,14 @@
 #include <cxxabi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "utils/pv_log.h"
+#include "utils/PVLog.hpp"
+
+namespace PV {
+   
+#ifdef NDEBUG
+#define pvAssert(c)
+#define pvAssertMessage(c, fmt, ...)
+#else
 
 /**
  * Works just like assert(), except it is not compiled out in Release versions and provides a stack trace and
@@ -31,6 +38,7 @@
  * Like pvAssert(). Adds an additional error message to the output.
  */
 #define pvAssertMessage(c, fmt, ...) if (!(c)) { pv_assert_failed_message(__FILE__, __LINE__, #c, fmt, ##__VA_ARGS__); }
+#endif
 
 void pv_assert_failed(const char *file, int line, const char *condition);
 void pv_assert_failed_message(const char *file, int line, const char *condition, const char *fmt, ...);
@@ -111,6 +119,7 @@ static inline void print_stacktrace(FILE *out = stderr, unsigned int max_frames 
    
    free(funcname);
    free(symbollist);
+}
 }
 
 #endif

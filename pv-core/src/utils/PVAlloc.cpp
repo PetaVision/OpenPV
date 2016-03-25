@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "PVAlloc.hpp"
-#include "pv_log.h"
+#include "utils/PVLog.hpp"
+
+namespace PV {
 
 void *pv_malloc(const char *file, int line, size_t size) {
    void *ptr = malloc(size);
@@ -55,4 +57,6 @@ void *pv_calloc(const char *file, int line, size_t count, size_t size, const cha
       exit(EXIT_FAILURE);
    }
    return ptr;
+}
+
 }
