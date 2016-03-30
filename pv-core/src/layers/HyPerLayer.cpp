@@ -2322,6 +2322,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    // Writes checkpoint files for V, A, and datastore to files in working directory
    InterColComm * icComm = parent->icCommunicator();
    double timed = (double) parent->simulationTime();
+
    char * filename = NULL;
    filename = parent->pathInCheckpoint(cpDir, getName(), "_A.pvp");
    pvdata_t * A = getActivity();
@@ -2335,6 +2336,7 @@ int HyPerLayer::checkpointWrite(const char * cpDir) {
    free(filename);
    filename = parent->pathInCheckpoint(cpDir, getName(), "_Delays.pvp");
    writeDataStoreToFile(filename, icComm, timed);
+   free(filename);
 
    parent->writeScalarToFile(cpDir, getName(), "lastUpdateTime", lastUpdateTime);
    parent->writeScalarToFile(cpDir, getName(), "nextUpdateTime", nextUpdateTime);

@@ -57,3 +57,24 @@
    ...
    fun:yyparse
 }
+
+{
+   <suppress_leak_cudaStreamCreate>
+   Memcheck:Leak
+   ...
+   fun:cudaStreamCreate
+}
+
+{
+   <suppress_leak_cudnnCreate>
+   Memcheck:Leak
+   ...
+   fun:cudnnCreate
+}
+
+{
+   <suppress_leak_cudaGetDeviceCount>
+   Memcheck:Leak
+   ...
+   fun:cudaGetDeviceCount
+}
