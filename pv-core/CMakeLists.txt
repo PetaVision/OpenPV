@@ -75,14 +75,14 @@ configure_file (
 )
 
 if (PV_BUILD_SHARED) 
-  message(STATUS "Building shared library")
+  message(STATUS "Building shared library for ${PV_LIBRARY_NAME}")
   if (APPLE)
     # Like LD_LIBRARY_PATH, but for OS X
     set(CMAKE_MACOSX_RPATH ${PV_LIBRARY_DIR})
   endif()
   set(SHARED_FLAG "SHARED")
 else()
-  message(STATUS "Building static library")
+  message(STATUS "Building static library for ${PV_LIBRARY_NAME}")
   set(SHARED_FLAG "STATIC")
 endif()
 

@@ -34,7 +34,7 @@ macro(pv_add_library TARGET)
     endif()
     set(SHARED_FLAG "SHARED")
   else()
-    message(STATUS "Building static library")
+    message(STATUS "Building static library for ${TARGET}")
     set(SHARED_FLAG "STATIC")
   endif()
 
