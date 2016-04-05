@@ -94,7 +94,7 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
                for (int f=0; f<nf; f++) {
                   int kex = kIndexExtended(featureBase++, nx, ny, nf, lt, rt, dn, up);
                   pvadata_t val = aBuffer[kex];
-                  l2normsq += fabs(val*val);
+                  l2normsq += val*val;
                }
             }
          }         
@@ -106,10 +106,10 @@ double L2NormProbe::getValueInternal(double timevalue, int index) {
          for (int k=0; k<getTargetLayer()->getNumNeurons(); k++) {
             int kex = kIndexExtended(k, nx, ny, nf, lt, rt, dn, up);
             int kexMask = kIndexExtended(k, nx, ny, nf, maskLt, maskRt, maskDn, maskUp);
-            if (maskLayerData[kexMask]) {
+            //            if (maskLayerData[kexMask]) {
                pvadata_t val = aBuffer[kex];
-               l2normsq += fabs(val*val);
-            }
+               l2normsq += maskLayerData[kexMask] * val*val;
+            //            }
          }
       }
    }

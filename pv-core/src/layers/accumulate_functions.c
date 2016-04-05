@@ -38,12 +38,11 @@ void pvpatch_accumulate(int kPreExt, int nk, float* restrict v, float a, pvwdata
 int pvpatch_accumulate_from_post(int kPreExt, int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
    int status = 0;
    int k;
-   //float dv = 0.0f;
+   float dv = 0.0;
    for (k = 0; k < nk; k++) {
-      *v += dt_factor*a[k]*w[k];
-      //dv = dv + a[k]*w[k];
+      dv += a[k] * w[k];
    }
-   //*v = *v + dt_factor*dv;
+   *v += dt_factor * dv;
    return status;
 }
 
@@ -158,12 +157,11 @@ int pvpatch_sum_pooling(int kPreExt, int nk, float* RESTRICT v, float a, pvwdata
 int pvpatch_sumpooling_from_post(int kPreExt, int nk, float * RESTRICT v, float * RESTRICT a, pvwdata_t * RESTRICT w, float dt_factor, void * auxPtr, int sf) {
    int status = 0;
    int k;
-   //float dv = 0.0f;
+   float dv = 0.0f;
    for (k = 0; k < nk; k+=sf) {
-      *v += dt_factor*a[k]*w[0];
-      //dv = dv + a[k]*w[k];
+      dv += a[k]*w[0];
    }
-   //*v = *v + dt_factor*dv;
+   *v += dt_factor*dv;
    return status;
 }
 
