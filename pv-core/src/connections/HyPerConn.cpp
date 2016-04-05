@@ -47,7 +47,7 @@ HyPerConn::~HyPerConn()
 
    free(pvpatchAccumulateTypeString);
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#if defined(PV_USE_CUDA)
    pvDelete(d_WData);
    pvDelete(d_Patches);
    pvDelete(d_GSynPatchStart);
@@ -56,11 +56,11 @@ HyPerConn::~HyPerConn()
    pvDelete(krRecvPost);
    pvDelete(krRecvPre);
 
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+#if defined(PV_USE_CUDNN)
    pvDelete(cudnn_WData);
 #endif
 
-#endif // PV_USE_OPENCL
+#endif // PV_USE_CUDA
 
    deleteWeights();
 
@@ -211,7 +211,7 @@ int HyPerConn::initialize_base()
 
    batchSkip = NULL;
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#if defined(PV_USE_CUDA)
    receiveGpu = false;
    allocDeviceWeights = false;
    allocPostDeviceWeights = false;
@@ -228,7 +228,7 @@ int HyPerConn::initialize_base()
    numFLocal = 1;
    preDataLocal = true;
    gpuGroupIdx = -1;
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+#if defined(PV_USE_CUDNN)
    cudnn_WData = NULL;
 #endif
 #endif
@@ -303,21 +303,17 @@ int HyPerConn::constructWeights()
 
    ////allocate weight patches and axonal arbors for each arbor
    ////Allocate all the weights
-   //bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
-   //if (!is_pooling_from_pre_perspective){
-     wDataStart[0] = allocWeights(nPatches, nxp, nyp, nfp);
-     pvAssert(get_wDataStart(0) != NULL);
-   //}
+   wDataStart[0] = allocWeights(nPatches, nxp, nyp, nfp);
+   pvAssert(get_wDataStart(0) != NULL);
+
    for (int arborId=0;arborId<numAxonalArborLists;arborId++) {
       status = createWeights(wPatches, arborId);
       pvAssert(wPatches[arborId] != NULL);
 
-      //if (!is_pooling_from_pre_perspective){
-         if (arborId > 0){  // wDataStart already allocated
-            wDataStart[arborId] = (get_wDataStart(0) + sp * nPatches * arborId);
-            pvAssert(wDataStart[arborId] != NULL);
-         }
-      //}
+      if (arborId > 0){  // wDataStart already allocated
+         wDataStart[arborId] = (get_wDataStart(0) + sp * nPatches * arborId);
+         pvAssert(wDataStart[arborId] != NULL);
+      }
       if (shrinkPatches_flag || arborId == 0){
          status |= adjustAxonalArbors(arborId);
       }
@@ -440,19 +436,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weight
    }
 
    ioAppend = parent->getCheckpointReadFlag();
-
-//This has been commented out because layers will decide if GPU acceleration
-//will happen and they will call the init methods as necessary
-//#ifdef PV_USE_OPENCL
-//   initializeThreadBuffers("HyPerLayer_recv_synaptic_input");
-//   initializeThreadKernels("HyPerLayer_recv_synaptic_input");
-//#endif // PV_USE_OPENCL
-
-//Post here is not set, moved to communicate
-//#ifdef PV_USE_OPENCL
-//   gpuAccelerateFlag=post->getUseGPUFlag();
-//#endif
-
    io_timer     = new Timer(getName(), "conn", "io     ");
    update_timer = new Timer(getName(), "conn", "update ");
 
@@ -559,18 +542,12 @@ int HyPerConn::initPlasticityPatches()
 int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
 {
    BaseConnection::ioParamsFillGroup(ioFlag);
-   // ioParam_preLayerName(ioFlag); // read by parent class BaseConnection
-   // ioParam_postLayerName(ioFlag); // read by parent class BaseConnection
-   // ioParam_channelCode(ioFlag); // read by parent class BaseConnection
-   // ioParam_initWeightsFile(ioFlag);
    ioParam_sharedWeights(ioFlag);
    ioParam_weightInitType(ioFlag);
    if (weightInitializer != NULL) {
       weightInitializer->ioParamsFillGroup(ioFlag);
    }
    ioParam_initializeFromCheckpointFlag(ioFlag);
-   // ioParam_numAxonalArbors(ioFlag); // read by parent class BaseConnection
-   // ioParam_plasticityFlag(ioFlag); // read by parent class BaseConnection
    ioParam_triggerLayerName(ioFlag);
    ioParam_triggerFlag(ioFlag);
    ioParam_triggerOffset(ioFlag);
@@ -578,15 +555,12 @@ int HyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    ioParam_initialWeightUpdateTime(ioFlag);
    ioParam_updateGSynFromPostPerspective(ioFlag);
    ioParam_pvpatchAccumulateType(ioFlag);
-   // ioParam_preActivityIsNotRate(ioFlag); // preActivityIsNotRate was replaced with convertRateToSpikeCount on Dec 31, 2014.
-   // ioParam_convertRateToSpikeCount(ioFlag); // read by parent class BaseConnection
    ioParam_writeStep(ioFlag);
    ioParam_initialWriteTime(ioFlag);
    ioParam_writeCompressedWeights(ioFlag);
    ioParam_writeCompressedCheckpoints(ioFlag);
    ioParam_selfFlag(ioFlag);
    ioParam_combine_dW_with_W_flag(ioFlag);
-   // ioParam_delay(ioFlag); // read by parent class BaseConnection
    ioParam_nxp(ioFlag);
    ioParam_nyp(ioFlag);
    ioParam_nxpShrunken(ioFlag);
@@ -720,7 +694,7 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
       parent->ioParamValueRequired(ioFlag, name, "channelCode", &ch);
    }
    else {
-      pvAssert(0); // All possibilities of ioFlag are covered above.
+      exitFailure("All possibilities of ioFlag are covered above.");
    }
 }
 
@@ -735,12 +709,6 @@ void HyPerConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
       pvAssertMessage(status == PV_SUCCESS, "%s \"%s\": Rank %d process unable to construct weightInitializer", getKeyword(), name, parent->columnId());
    }
 }
-
-// ioParam_plasticityFlag was moved to the base class BaseConnection on Jan 26, 2015.
-//void HyPerConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
-//   parent->ioParamValue(ioFlag, name, "plasticityFlag", &plasticityFlag, true/*default value*/);
-//}
-
 
 void HyPerConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "plasticityFlag"));
@@ -834,26 +802,9 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
          logError("%s \"%s\" error: parameter stochasticReleaseFlag is obsolete.  Instead, set pvpatchAccumulateType to either \"convolve\" (the default) or \"stochastic\".", getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
-      pvAssert(0);
+      exitFailure("");
    }
-#ifdef OBSOLETE // Marked obsolete April 10, 2015.  stochasticReleaseFlag no longer gives a warning, but an error.
-   if (ioFlag==PARAMS_IO_READ && params->present(name, "stochasticReleaseFlag")) {
-      bool stochasticReleaseFlag = params->value(name, "stochasticReleaseFlag")!=0.0;
-      const char * pvpatch_accumulate_string = stochasticReleaseFlag ? "stochastic" : "convolve";
-      if (parent->columnId()==0) {
-         logError("%s \"%s\" warning: parameter stochasticReleaseFlag is deprecated.  Instead, set pvpatchAccumulateType to one of \"convolve\" (the default), \"stochastic\", or \"maxpooling\".", getKeyword(), name);
-         logError("    pvpatchAccumulateType set to \"%s\"", pvpatch_accumulate_string);
-      }
-      pvpatchAccumulateTypeString = strdup(pvpatch_accumulate_string);
-      if (pvpatchAccumulateTypeString==NULL) {
-         logError("%s \"%s\": rank %d process unable to set pvpatchAccumulateType string: %s.",
-               getKeyword(), name, parent->columnId(), strerror(errno));
-         pvAssert(0);
-      }
-      pvpatchAccumulateType = stochasticReleaseFlag ? ACCUMULATE_STOCHASTIC : ACCUMULATE_CONVOLVE;
-      return;
-   }
-#endif // OBSOLETE // Marked obsolete April 10, 2015.  stochasticReleaseFlag no longer gives a warning, but an error.
+
    parent->ioParamString(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString, "convolve");
    if (ioFlag==PARAMS_IO_READ) {
       if (pvpatchAccumulateTypeString==NULL) {
@@ -906,7 +857,7 @@ void HyPerConn::unsetAccumulateType() {
       logError("  Allowed values are \"convolve\", \"stochastic\", or \"maxpooling\".");
    }
    MPI_Barrier(parent->icCommunicator()->communicator());
-   pvAssert(0);
+   exitFailure("");
 }
 
 
@@ -915,7 +866,6 @@ void HyPerConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
-   PVParams * params = parent->parameters();
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "writeStep"));
    if (writeStep>=0) {
       double start_time = parent->getStartTime();
@@ -1064,8 +1014,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (normalizeMethod==NULL) {
          if (parent->columnId()==0) {
-            logError("Error in %s \"%s\": specifying a normalizeMethod string is required.\n", getKeyword(), name);
-            exit(EXIT_FAILURE);
+            exitFailure("Error in %s \"%s\": specifying a normalizeMethod string is required.\n", getKeyword(), name);
          }
       }
       if (!strcmp(normalizeMethod, "")) {
@@ -1075,9 +1024,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
       if (normalizer==NULL) {
          int status = setWeightNormalizer();
          if (status != PV_SUCCESS) {
-            logError("%s \"%s\": Rank %d process unable to construct weight normalizer\n",
-                  getKeyword(), name, parent->columnId());
-            exit(EXIT_FAILURE);
+            exitFailure("%s \"%s\": Rank %d process unable to construct weight normalizer\n", getKeyword(), name, parent->columnId());
          }
       }
       if (normalizer!=NULL) {
@@ -1155,29 +1102,31 @@ int HyPerConn::setPostPatchSize() {
 
    pvAssert(pre && post);
 
-   int xscaleDiff = post->getXScale() - pre->getXScale();
-   int nxp_orig = xPatchSize();
-   int nyp_orig = yPatchSize();
-   nxpPost = nxp_orig;
-   if(xscaleDiff > 0 ) {
-      nxpPost *= (int) pow( 2, xscaleDiff );
-   }
-   else if(xscaleDiff < 0) {
-      nxpPost /= (int) pow(2,-xscaleDiff);
-      pvAssert(nxp_orig==nxpPost*pow( 2, (float) (-xscaleDiff) ));
-   }
+   if (pre != NULL && post != NULL) {
+      int xscaleDiff = post->getXScale() - pre->getXScale();
+      int nxp_orig = xPatchSize();
+      int nyp_orig = yPatchSize();
+      nxpPost = nxp_orig;
+      if(xscaleDiff > 0 ) {
+         nxpPost *= (int) pow( 2, xscaleDiff );
+      }
+      else if(xscaleDiff < 0) {
+         nxpPost /= (int) pow(2,-xscaleDiff);
+         pvAssert(nxp_orig==nxpPost*pow( 2, (float) (-xscaleDiff) ));
+      }
 
-   int yscaleDiff = post->getYScale() - pre->getYScale();
-   nypPost = nyp_orig;
-   if(yscaleDiff > 0 ) {
-      nypPost *= (int) pow( 2, yscaleDiff );
-   }
-   else if(yscaleDiff < 0) {
-      nypPost /= (int) pow(2,-yscaleDiff);
-      pvAssert(nyp_orig==nypPost*pow( 2, (float) (-yscaleDiff) ));
-   }
+      int yscaleDiff = post->getYScale() - pre->getYScale();
+      nypPost = nyp_orig;
+      if(yscaleDiff > 0 ) {
+         nypPost *= (int) pow( 2, yscaleDiff );
+      }
+      else if(yscaleDiff < 0) {
+         nypPost /= (int) pow(2,-yscaleDiff);
+         pvAssert(nyp_orig==nypPost*pow( 2, (float) (-yscaleDiff) ));
+      }
 
-   nfpPost = pre->getLayerLoc()->nf;
+      nfpPost = pre->getLayerLoc()->nf;
+   }
 
    return PV_SUCCESS;
 }
@@ -1219,9 +1168,9 @@ int HyPerConn::communicateInitInfo() {
    pvAssert(preSynapticLayer()!=NULL && postSynapticLayer()!=NULL);
    handleDefaultSelfFlag();
 
-   if(useMask){
+   if(useMask) {
       mask = getParent()->getLayerFromName(maskLayerName);
-      if (mask==NULL) {
+      if (mask == NULL) {
          if (getParent()->columnId()==0) {
             logError("Connection \"%s\": maskLayerName \"%s\" does not correspond to a layer in the column.\n", getName(), maskLayerName);
          }
@@ -1311,20 +1260,6 @@ int HyPerConn::communicateInitInfo() {
    }
 
    status = setPostPatchSize();
-   //xmargin = computeMargin(post->getXScale(), pre->getXScale(), nxpPost);
-   //ymargin = computeMargin(post->getYScale(), pre->getYScale(), nypPost);
-   //receivedxmargin = 0;
-   //statusx = post->requireMarginWidth(xmargin, &receivedxmargin, 'x');
-   //if (statusx != PV_SUCCESS) {
-   //   logError("Margin Failure for layer %s.  Received x-margin is %d, but connection \"%s\" requires margin of at least %d\n", pre->getName(),receivedxmargin, name, xmargin);
-   //   status = PV_MARGINWIDTH_FAILURE;
-   //}
-   //receivedymargin = 0;
-   //statusy = post->requireMarginWidth(ymargin, &receivedymargin, 'y');
-   //if (statusy != PV_SUCCESS) {
-   //   logError("Margin Failure for layer %s.  Received y-margin is %d, but connection \"%s\" requires margin of at least %d\n", pre->getName(),receivedymargin, name, ymargin);
-   //   status = PV_MARGINWIDTH_FAILURE;
-   //}
 
    //Trigger stuff
    if(triggerLayerName){
@@ -1378,12 +1313,12 @@ int HyPerConn::communicateInitInfo() {
    }
 
    //Check if need transpose
-   if(updateGSynFromPostPerspective){
+   if(updateGSynFromPostPerspective) {
       needPost = true;
    }
 
 //GPU stuff
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#if defined(PV_USE_CUDA)
    //Here, the connection tells all participating recev layers to allocate memory on gpu
    //if receive from gpu is set. These buffers should be set in allocate
    if(receiveGpu){
@@ -1436,7 +1371,6 @@ int HyPerConn::allocatePostToPreBuffer(){
    float sourceToTargetScaleY = (float)sourceNy/targetNy;
 
    const PVHalo * sourceHalo = &sourceLoc->halo;
-   const PVHalo * targetHalo = &targetLoc->halo;
 
    const int numRestricted = postSynapticLayer()->getNumNeurons();
 
@@ -1473,13 +1407,10 @@ int HyPerConn::allocatePostToPreBuffer(){
          int yVal = floor(((float)centerY - offsetY)/2);
          postToPreActivity[kTargetRes] = kIndex(xVal + sourceHalo->lt, yVal + sourceHalo->up, 0,
                sourceNx + sourceHalo->lt + sourceHalo->rt, sourceNy + sourceHalo->up + sourceHalo->dn, sourceNf); 
-         //std::cout << "OneToMany postToPre  kTarget: (" << kTargetXRes << ", " << kTargetYRes << ")  kSource: (" << xVal << ", " << yVal << ")\n";
       }
    }
    else{
-      logError("sourceToTargetScaleX= %f, sourceToTargetScaleY= %f: the case of many-to-one in one dimension and one-to-many in the other"
-            "has not yet been implemented.\n", sourceToTargetScaleX, sourceToTargetScaleY);
-      exit(1);
+      exitFailure("sourceToTargetScaleX= %f, sourceToTargetScaleY= %f: the case of many-to-one in one dimension and one-to-many in the other has not yet been implemented.\n", sourceToTargetScaleX, sourceToTargetScaleY);
    }
    
    return PV_SUCCESS;
@@ -1507,21 +1438,13 @@ PVPatch *** HyPerConn::initializeWeights(PVPatch *** patches, pvwdata_t ** dataS
 {
    PVPatch *** patches_arg = sharedWeights ? NULL : patches;
    weightInitializer->initializeWeights(patches_arg, dataStart);
-   // normalizeWeights(); // normalizeWeights call moved to HyPerCol::run, to facilitate normalization of groups of connections
-#ifdef PV_USE_OPENCL
-// Copied over from KernelConn.
-//   //don't support GPU acceleration in kernelconn yet
-//   ignoreGPUflag=false;
-//   //tell the recieving layer to copy gsyn to the gpu, because kernelconn won't be calculating it
-//   post->copyChannelToDevice();
-#endif
    return patches;
 }
 
 int HyPerConn::allocatePostConn(){
    int status = PV_SUCCESS;
    //Allocate private transpose conn
-   if(needPost){
+   if(needPost) {
       char privateConnName [PV_PATH_MAX];
       sprintf(privateConnName, "&%s_privatePostConn", name);
       postConn = new privateTransposeConn(privateConnName, parent, this);
@@ -1529,7 +1452,7 @@ int HyPerConn::allocatePostConn(){
       status = postConn->allocateDataStructures();
    }
    //Can't do this with shrink patches flag
-   if(needPost && !shrinkPatches_flag){
+   if(needPost && !shrinkPatches_flag) {
       status = allocatePostToPreBuffer();
       postConn->allocatePostToPreBuffer();
    }
@@ -1538,7 +1461,7 @@ int HyPerConn::allocatePostConn(){
 
 
 int HyPerConn::allocateDataStructures() {
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#if defined(PV_USE_CUDA)
    if (!pre->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
          const char * connectiontype = this->getKeyword();
@@ -1546,9 +1469,9 @@ int HyPerConn::allocateDataStructures() {
       }
       return PV_POSTPONE;
    }
-#endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#endif // defined(PV_USE_CUDA)
    int status = BaseConnection::allocateDataStructures();
-   assert(status == PV_SUCCESS);
+   pvAssert(status == PV_SUCCESS);
    initNumWeightPatches();
    initNumDataPatches();
    initPatchToDataLUT();
@@ -1599,7 +1522,7 @@ int HyPerConn::allocateDataStructures() {
 
    //Allocate temp buffers if needed, 1 for each thread
    //Only allocate for recv from pre, and not threading over batches
-   if(!getUpdateGSynFromPostPerspective() && parent->getNumThreads() > 1){
+   if(!getUpdateGSynFromPostPerspective() && parent->getNumThreads() > 1) {
       //thread_gSyn is only a buffer for one batch, as if we're not threading over batches, batches will be sequential
       thread_gSyn = (pvdata_t**) pvMalloc(sizeof(pvdata_t*) * parent->getNumThreads());
 
@@ -1651,13 +1574,7 @@ InitWeights * HyPerConn::getDefaultInitWeightsMethod(const char * keyword) {
    exit(EXIT_FAILURE);
 }
 
-#ifdef OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
-InitWeights * HyPerConn::handleMissingInitWeights(PVParams * params) {
-   return new InitWeights(name, parent);
-}
-#endif // OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
-
-#if defined(OPENCL) || defined(PV_USE_CUDA)
+#if defined(PV_USE_CUDA)
 
 int HyPerConn::allocatePostDeviceWeights(){
    pvAssert(postConn);
@@ -1666,25 +1583,18 @@ int HyPerConn::allocatePostDeviceWeights(){
 }
 
 int HyPerConn::allocateDeviceWeights(){
-#ifdef PV_USE_OPENCL
-   CLDevice * device = parent->getDevice();
-#endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaDevice * device = parent->getDevice();
 #endif
    const size_t size = numberOfAxonalArborLists() * getNumDataPatches() * xPatchSize() * yPatchSize() * fPatchSize() * sizeof(pvwdata_t);
-#ifdef PV_USE_OPENCL
-   d_WData = device->createBuffer(CL_MEM_READ_ONLY, size, NULL);
-#endif
-
 #ifdef PV_USE_CUDA
    d_WData = device->createBuffer(size);
    pvAssert(d_WData);
-#endif
-
 #ifdef PV_USE_CUDNN
    cudnn_WData = device->createBuffer(size);
 #endif
+#endif
+
    return PV_SUCCESS;
 
 }
@@ -1693,9 +1603,6 @@ int HyPerConn::allocateDeviceBuffers()
 {
    int status = 0;
 
-#ifdef PV_USE_OPENCL
-   CLDevice * device = parent->getDevice();
-#endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaDevice * device = parent->getDevice();
 #endif
@@ -1765,18 +1672,12 @@ int HyPerConn::allocateDeviceBuffers()
    if(receiveGpu){
       if(updateGSynFromPostPerspective){
          int numPostRes = post->getNumNeurons();
-#ifdef PV_USE_OPENCL
-         d_PostToPreActivity = device->createBuffer(CL_MEM_READ_ONLY, numPostRes*sizeof(long), NULL); 
-#endif
 #ifdef PV_USE_CUDA
          d_PostToPreActivity = device->createBuffer(numPostRes*sizeof(long)); 
 #endif
 
          if(sharedWeights){
             int numWeightPatches = postConn->getNumWeightPatches();
-#ifdef PV_USE_OPENCL
-            d_Patch2DataLookupTable = device->createBuffer(CL_MEM_READ_ONLY, numWeightPatches * sizeof(int), NULL);  
-#endif
 #ifdef PV_USE_CUDA
             d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int));  
 #endif
@@ -1802,27 +1703,18 @@ int HyPerConn::allocateDeviceBuffers()
          int numWeightPatches = pre->getNumExtended() ;
          int patchSize = numWeightPatches * sizeof(PVPatch);
 
-#ifdef PV_USE_OPENCL
-         d_Patches = device->createBuffer(CL_MEM_READ_ONLY, patchSize, NULL); 
-#endif
 #ifdef PV_USE_CUDA
          d_Patches = device->createBuffer(patchSize); 
 #endif
 
          //Need a buffer for gsynpatch start for one arbor
          int gsynPatchStartIndexSize = numWeightPatches * sizeof(size_t);
-#ifdef PV_USE_OPENCL
-         d_GSynPatchStart = device->createBuffer(CL_MEM_READ_ONLY, gsynPatchStartIndexSize, NULL); 
-#endif
 #ifdef PV_USE_CUDA
          d_GSynPatchStart = device->createBuffer(gsynPatchStartIndexSize); 
 #endif
 
          if(numberOfAxonalArborLists() == 1){
             PVPatch* h_patches = weights(0)[0]; //0 beacuse it's one block of memory
-#ifdef PV_USE_OPENCL
-            CLBuffer * d_patches = getDevicePatches();
-#endif
 #ifdef PV_USE_CUDA
             PVCuda::CudaBuffer * d_patches = getDevicePatches();
 #endif
@@ -1830,9 +1722,6 @@ int HyPerConn::allocateDeviceBuffers()
             d_patches->copyToDevice(h_patches);
 
             size_t* h_GSynPatchStart = getGSynPatchStart()[0];
-#ifdef PV_USE_OPENCL
-            CLBuffer * d_GSynPatchStart = getDeviceGSynPatchStart();
-#endif
 #ifdef PV_USE_CUDA
             PVCuda::CudaBuffer * d_GSynPatchStart = getDeviceGSynPatchStart();
 #endif
@@ -1842,9 +1731,6 @@ int HyPerConn::allocateDeviceBuffers()
 
          if(sharedWeights){
             int numWeightPatches = getNumWeightPatches();
-#ifdef PV_USE_OPENCL
-            d_Patch2DataLookupTable = device->createBuffer(CL_MEM_READ_ONLY, numWeightPatches * sizeof(int), NULL);  
-#endif
 #ifdef PV_USE_CUDA
             d_Patch2DataLookupTable = device->createBuffer(numWeightPatches * sizeof(int));  
 #endif
@@ -1856,21 +1742,6 @@ int HyPerConn::allocateDeviceBuffers()
 
 int HyPerConn::allocateReceivePreKernel()
 {
-#ifdef PV_USE_OPENCL
-   int status = CL_SUCCESS;
-   const char* kernel_name = "HyPerLayer_recv_pre";
-   char kernelPath[PV_PATH_MAX+128];
-   char kernelFlags[PV_PATH_MAX+128];
-
-   CLDevice * device = parent->getDevice();
-
-   sprintf(kernelPath, "%s/../src/kernels/%s.cl", parent->getSrcPath(), kernel_name);
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/../src/kernels/", parent->getSrcPath());
-
-   // create kernels
-   krRecvPre = device->createKernel(kernelPath, kernel_name, kernelFlags);
-#endif
-
 #ifdef PV_USE_CUDA
    int status = 0;
    PVCuda::CudaDevice * device = parent->getDevice();
@@ -1881,11 +1752,6 @@ int HyPerConn::allocateReceivePreKernel()
    const PVLayerLoc * postLoc = post->getLayerLoc();
    const PVHalo * preHalo = &pre->getLayerLoc()->halo;
    const PVHalo * postHalo = &post->getLayerLoc()->halo;
-
-#ifdef PV_USE_OPENCL
-   CLBuffer* d_PreData = pre->getDeviceDatastore();
-   CLBuffer* d_PostGSyn = post->getDeviceGSyn();
-#endif
 
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_PreData = pre->getDeviceDatastore();
@@ -1916,10 +1782,6 @@ int HyPerConn::allocateReceivePreKernel()
    int nbatch = postLoc->nbatch;
 
 
-#ifdef PV_USE_OPENCL
-      CLBuffer* d_activeIndices = NULL;
-      CLBuffer* d_numActive = NULL;
-#endif
 #ifdef PV_USE_CUDA
       PVCuda::CudaBuffer* d_activeIndices = NULL;
       PVCuda::CudaBuffer* d_numActive = NULL;
@@ -1940,49 +1802,6 @@ int HyPerConn::allocateReceivePreKernel()
    //CLBuffer * d_patches = getClPatches();
    //
 
-#ifdef PV_USE_OPENCL   
-   std::cout << "OpenCL recv pre not implemented yet\n";
-   exit(-1);
-   ////Set arguments
-   //int argid = 0;
-
-   //std::cout << "localPre: " << localPreX << "," << localPreY << "," << preNf << "\n";
-
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &preNxExt);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &preNyExt);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &preNf);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postNxRes);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postNyRes);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postNf);
-
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &nxp);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &nyp);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &nfp);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postGroupXSize);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &postGroupYSize);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localPreX);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localPreY);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localBufSizeX);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &localBufSizeY);
-
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &sy);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &syw);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(float), &dt_factor);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(int), &i_sharedWeights);
-
-   //status |= krRecvPre->setKernelArg(argid++, d_Patches);
-   //status |= krRecvPre->setKernelArg(argid++, d_GSynPatchStart);
-
-   //status |= krRecvPre->setKernelArg(argid++, d_PostToPreActivity);
-   //status |= krRecvPre->setKernelArg(argid++, d_PreData);
-   //status |= krRecvPre->setKernelArg(argid++, d_WData);
-   //status |= krRecvPre->setKernelArg(argid++, d_PostGSyn);
-   //status |= krRecvPre->setKernelArg(argid++, d_Patch2DataLookupTable);
-
-   //Local buffers
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(float) * localBufSizeX * localBufSizeY * preNf, NULL);
-   //status |= krRecvPre->setKernelArg(argid++, sizeof(float) * (postGroupXSize * numXLocal) * (postGroupYSize * numYLocal) * postNf, NULL);
-#endif
 #ifdef PV_USE_CUDA
    krRecvPre->setArgs(
       nbatch,
@@ -2015,21 +1834,6 @@ int HyPerConn::allocateReceivePreKernel()
 int HyPerConn::allocateReceivePostKernel()
 {
    std::cout << name << " setting up post kernel\n";
-#ifdef PV_USE_OPENCL
-   int status = CL_SUCCESS;
-   const char* kernel_name = "HyPerLayer_recv_post";
-   char kernelPath[PV_PATH_MAX+128];
-   char kernelFlags[PV_PATH_MAX+128];
-
-   CLDevice * device = parent->getDevice();
-
-   sprintf(kernelPath, "%s/../src/kernels/%s.cl", parent->getSrcPath(), kernel_name);
-   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/../src/kernels/", parent->getSrcPath());
-
-   // create kernels
-   krRecvPost = device->createKernel(kernelPath, kernel_name, kernelFlags);
-#endif
-
 #ifdef PV_USE_CUDA
    int status = 0;
    PVCuda::CudaDevice * device = parent->getDevice();
@@ -2041,11 +1845,6 @@ int HyPerConn::allocateReceivePostKernel()
    const PVHalo* preHalo = &pre->getLayerLoc()->halo;
    const PVHalo* postHalo = &post->getLayerLoc()->halo;
 
-#ifdef PV_USE_OPENCL
-   CLBuffer* d_PreData = pre->getDeviceDatastore();
-   CLBuffer* d_PostGSyn = post->getDeviceGSyn();
-   CLBuffer* d_origWData = postConn->getDeviceWData();
-#endif // PV_USE_OPENCL
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_PreData = pre->getDeviceDatastore();
    PVCuda::CudaBuffer* d_PostGSyn = post->getDeviceGSyn();
@@ -2147,61 +1946,6 @@ int HyPerConn::allocateReceivePostKernel()
       std::cout << "local sizes: (" << localBufSizeX << "," << localBufSizeY << ")\n";
    }
    
-#ifdef PV_USE_OPENCL
-   //Set arguments
-   int argid = 0;
-   int tmpArbor = 0;
-   int tmpBatchIdx = 0;
-
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &tmpBatchIdx);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &nbatch);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &postNx);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &postNy);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &postNf);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNblt);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNbrt);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNbdn);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNbup);
-
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &preNx);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &preNy);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &preNf);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &preNblt);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &preNbrt);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &preNbup);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &preNbdn);
-
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNxp);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNyp);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &oNfp);
-
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &localBufSizeX);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &localBufSizeY);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(float), &preToPostScaleX);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(float), &preToPostScaleY);
-
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &sy);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &syp);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &numPerStride);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(float), &dt_factor);
-   status |= krRecvPost->setKernelArg(argid++, sizeof(int), &(i_sharedWeights));
-
-   status |= krRecvPost->setKernelArg(argid++, d_PostToPreActivity);
-   status |= krRecvPost->setKernelArg(argid++, d_PreData);
-   status |= krRecvPost->setKernelArg(argid++, d_origWData);
-   status |= krRecvPost->setKernelArg(argid++, d_PostGSyn);
-   status |= krRecvPost->setKernelArg(argid++, d_Patch2DataLookupTable);
-
-   //Buffer for pre activity. Only one plane in x and f dimension at a time
-   status |= krRecvPost->setKernelArg(argid++, sizeof(float) * localBufSizeX * oNfp, NULL);
-   //Buffer for post gsyn. One per neuron in workgroup
-   status |= krRecvPost->setKernelArg(argid++, sizeof(float) * numXLocal * numYLocal * numFLocal, NULL);
-   //Buffer for weights. Only one xf set of weights
-   status |= krRecvPost->setKernelArg(argid++, sizeof(float) * oNxp * oNfp, NULL);
-
-
-#endif
-
 #ifdef PV_USE_CUDA
    krRecvPost->setArgs(
       nbatch,
@@ -2255,61 +1999,6 @@ int HyPerConn::allocateReceivePostKernel()
 }
 
 #endif
-
-//
-//int HyPerConn::initializeThreadKernels(const char * kernel_name)
-//{
-//   char kernelPath[PV_PATH_MAX+128];
-//   char kernelFlags[PV_PATH_MAX+128];
-//
-//   int status = CL_SUCCESS;
-//   CLDevice * device = parent->getCLDevice();
-//
-//   const char * pvRelPath = "../PetaVision";
-//   sprintf(kernelPath, "%s/%s/src/kernels/%s.cl", parent->getSrcPath(), pvRelPath, kernel_name);
-//   sprintf(kernelFlags, "-D PV_USE_OPENCL -cl-fast-relaxed-math -I %s/%s/src/kernels/", parent->getSrcPath(), pvRelPath);
-//
-//   // create kernels
-//   //
-//
-//   krRecvSyn = device->createKernel(kernelPath, kernel_name, kernelFlags);
-//
-//   const PVLayerLoc * preLoc  = pre-> getLayerLoc();
-//   const PVLayerLoc * postLoc = post->getLayerLoc();
-//
-//   int argid = 0;
-//
-//   status |= krRecvSyn->setKernelArg(argid++, preLoc->nx);
-//   status |= krRecvSyn->setKernelArg(argid++, preLoc->ny);
-//   status |= krRecvSyn->setKernelArg(argid++, preLoc->nf);
-//   status |= krRecvSyn->setKernelArg(argid++, preLoc->nb);
-//
-//   status |= krRecvSyn->setKernelArg(argid++, nxp);
-//   status |= krRecvSyn->setKernelArg(argid++, nyp);
-//   status |= krRecvSyn->setKernelArg(argid++, nfp);
-//
-//   float fScale = (float)postLoc->nf/(float)preLoc->nf;
-//   float xScale = (float)postLoc->nx/(float)preLoc->nx;
-//   float yScale = (float)postLoc->ny/(float)preLoc->ny;
-//   status |= krRecvSyn->setKernelArg(argid++, fScale);
-//   status |= krRecvSyn->setKernelArg(argid++, xScale);
-//   status |= krRecvSyn->setKernelArg(argid++, yScale);
-//
-//   clArgIdOffset = argid;  // offset into activity buffer (with delay)
-//   argid++;
-//   status |= krRecvSyn->setKernelArg(argid++, clPatch2DataLookUpTable);
-//   // activity buffer from DataStore
-//   clArgIdDataStore=argid;
-//   argid++;
-//   clArgIdWeights = argid; // weights
-//   status |= krRecvSyn->setKernelArg(argid++, clWeights[0]);
-//   // update variable, GSyn
-//   status |= krRecvSyn->setKernelArg(argid++, post->getNumNeurons()*getChannel());
-//   status |= krRecvSyn->setKernelArg(argid++, post->getChannelCLBuffer());
-//
-//   return status;
-//}
-//#endif // PV_USE_OPENCL
 
 int HyPerConn::writeWeights(double timed, bool last)
 {
@@ -2432,114 +2121,6 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
    return 0;
 }
 
-//#ifdef PV_USE_OPENCL
-//int HyPerConn::deliverOpenCL(Publisher * pub, const PVLayerCube * cube)
-//{
-//   int status = PV_SUCCESS;
-//
-//
-//   const PVLayerLoc * preLoc = pre->getLayerLoc();
-//   const size_t nxex = (preLoc->nx + 2*preLoc->nb)*preLoc->nf;
-//   const size_t nyex = preLoc->ny + 2*preLoc->nb;
-//   while((nxex%nxl!=0)&&(nxl>1)) {nxl--;}
-//   while((nyex%nyl!=0)&&(nyl>1)) {nyl--;}
-//
-//   status |= krRecvSyn->setKernelArg(clArgIdDataStore, pre->getLayerDataStoreCLBuffer());
-//
-//   status |= pre->waitForDataStoreCopy();
-//
-//
-//   // for all numextended in pre
-//
-//   post->startTimer();
-//
-//
-//   int arborCnt=numberOfAxonalArborLists();
-//   for (int arbor = 0; arbor < arborCnt; arbor++) {
-//      int delay = getDelay(arbor);
-//      size_t activityOffset = pre->getLayerDataStoreOffset(delay);
-//      status |= krRecvSyn->setKernelArg(clArgIdOffset, activityOffset/sizeof(pvdata_t)); //need to convert offset to an array index offset
-//      status |= krRecvSyn->setKernelArg(clArgIdWeights, clWeights[arbor]);
-//      status |= krRecvSyn->run(nxex, nyex, nxl, nyl, 0, NULL, &evRecvSynWaitList[arbor]);
-//      numWait++;
-//   }
-//
-//   // TODO - use events properly
-//   status |= clWaitForEvents(numWait, evRecvSynWaitList);
-//   for (int i = 0; i < numWait; i++) {
-//      clReleaseEvent(evRecvSynWaitList[i]);
-//   }
-//   numWait = 0;
-//
-//   post->stopTimer();
-//
-//   int arborId=0;
-//   int delay = getDelay(arborId);
-//   pub->readData(delay);
-//   const PVLayerLoc * postLoc = post->getLayerLoc();
-//   //define global location:
-//   int kx=nxex/2; int ky=nyex/2;
-//   //int kPre=ky*nxex+kx;
-//   int gstart=0;//post->getNumNeurons()*getChannel();
-//   float * gTempBuf= (float*) calloc(sizeof(float), post->getNumNeurons());
-//   int * lutpointer = getLUTpointer();
-//   const int numWeightPatches = getNumWeightPatches();
-//   bool freelutpointer=false;
-//   if(lutpointer==NULL) {
-//      lutpointer = (int *) calloc(sizeof(int), numWeightPatches);
-//      freelutpointer=true;
-//      lutpointer[0]=-1;
-//   }
-//   printf("nxex %lu\n",nxex);
-//   printf("nyex %lu\n",nyex);
-//   printf("nxl %lu\n",nxl);
-//   printf("nyl %lu\n",nyl);
-//   printf("nxex/nxl %lu\n",nxex/nxl);
-//   printf("nyex/nyl %lu\n",nyex/nyl);
-//   for(kx=0;kx<(int)(nxex/nxl);kx++) {
-//      for(ky=0;ky<(int)(nyex/nyl);ky++) {
-//
-//         for(int lidx=0;lidx<(int)nxl;lidx++) {
-//            for(int lidy=0;lidy<(int)nyl;lidy++) {
-//               HyPerLayer_recv_synaptic_input(kx*nxl+nxl/2, ky*nyl+nyl/2, lidx, lidy, nxl, nyl,
-//                     preLoc->nx, preLoc->ny, preLoc->nf, preLoc->nb, nxp, nyp, nfp,
-//                     (float)postLoc->nf/(float)preLoc->nf,(float)postLoc->nx/(float)preLoc->nx,(float)postLoc->ny/(float)preLoc->ny,
-//                     0, lutpointer, cube->data, get_wDataStart(arborId), gstart, gTempBuf);
-//               //free(tempBuf);
-//            }
-//         }
-//
-//      }
-//   }
-//   if(freelutpointer) {free(lutpointer);lutpointer=NULL;}
-//
-//#ifdef TODO_CRAIG
-////TODO 2014.5.24 - need to figure out type of getGSynPatchStart (see LCALIFLateralConn.cpp for usage)
-////               - is it like a weight or activity parameter?
-//   //copyChannelExcFromDevice();
-//   ptrdiff_t gTempBuf2=getGSynPatchStart(0, arborId);
-//
-//   int errcnt=0;
-//   for (int ix=0;ix<postLoc->nx; ix++) {
-//      for (int iy=0;iy<postLoc->ny; iy++) {
-//         if (fabs(gTempBuf[iy*postLoc->nx+ix]-gTempBuf2[iy*postLoc->nx+ix])>0.00001) {
-//            printf("mismatch! C function version: %f \n",gTempBuf[iy*postLoc->nx+ix]);
-//            printf("opencl function version: %f \n",gTempBuf2[iy*postLoc->nx+ix]);
-//            printf("at loc x: %d y %d \n",ix, iy);
-//            printf("kpre %d \n",ix+preLoc->nb+ (iy+preLoc->nb)*(preLoc->nx*preLoc->nf + 2*preLoc->nb));
-//            errcnt++;
-//            if (errcnt>10) exit(1);
-//         }
-//      }
-//   }
-//#endif // TODO_CRAIG
-//
-//   free(gTempBuf);
-//
-//   return status;
-//}
-//#endif // PV_USE_OPENCL
-
 int HyPerConn::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
    // If timeptr is NULL, the timestamps in the pvp files are ignored.  If non-null, they are compared to the value of *timeptr and
    // a warning is issued if there is a discrepancy.
@@ -2636,18 +2217,6 @@ int HyPerConn::writeTimers(FILE* stream){
 
 float HyPerConn::minWeight(int arborId)
 {
-   //bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
-   //if (is_pooling_from_pre_perspective){
-   //  if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
-   //    return 1.0;
-   //  }
-   //  else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-   //    int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
-   //    int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
-   //    return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
-   //  }
-   //}
-
    const int num_data_patches = getNumDataPatches();
    float min_weight = FLT_MAX;
    if (sharedWeights) {
@@ -2676,17 +2245,6 @@ float HyPerConn::minWeight(int arborId)
 
 float HyPerConn::maxWeight(int arborId)
 {
-   //bool is_pooling_from_pre_perspective = (((getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING) || (getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING)) && (!updateGSynFromPostPerspective));
-   //if (is_pooling_from_pre_perspective){
-   //  if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
-   //    return 1.0;
-   //  }
-   //  else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
-   //    int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
-   //    int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
-   //    return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
-   //  }
-   //}
    const int num_data_patches = getNumDataPatches();
    float max_weight = -FLT_MAX;
    if (sharedWeights) {
@@ -2757,11 +2315,6 @@ int HyPerConn::outputProbeParams() {
 
 int HyPerConn::outputState(double timef, bool last)
 {
-
-#ifdef PV_USE_OPENCL
-   clFinishW();
-#endif
-
    int status = 0;
    io_timer->start();
 
@@ -2826,10 +2379,6 @@ int HyPerConn::updateState(double time, double dt){
    if(needUpdate(time, dt)){
       //Need to finish command queue of pre and post activity
       //Doing both in case of multiple gpus running
-#ifdef PV_USE_OPENCL
-      pre->clFinishActivity();
-      post->clFinishActivity();
-#endif
 
       //TODO: commented out to compile, but we'll want to average across only batches where timeScale >= timeScaleMin.
       for(int b = 0; b < parent->getNBatch(); b++){
@@ -2925,7 +2474,7 @@ int HyPerConn::initialize_dW(int arborId){
 int HyPerConn::finalizeUpdate(double timed, double dt){
    if (!needFinalize) { return PV_SUCCESS; }
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#if defined(PV_USE_CUDA)
    if(allocDeviceWeights){
       updateDeviceWeights();
    }
@@ -2969,10 +2518,7 @@ int HyPerConn::reduceActivations(int arborID){
       const size_t arborSize = localSize * numberOfAxonalArborLists();
       ierr = MPI_Allreduce(MPI_IN_PLACE, get_activations(arborID), arborSize, MPI_LONG, MPI_SUM, mpi_comm);
    }
-   //reduction not necessary, as clones will accumulate into this buffer
-   //for(int i = 0; i < clones.size(); i++){
-   //   clones[i]->reduceActivations(arborID);
-   //}
+
    return PV_BREAK;
 }
 
@@ -2992,10 +2538,7 @@ int HyPerConn::reduceKernels(int arborID) {
       const size_t arborSize = localSize * numberOfAxonalArborLists();
       ierr = MPI_Allreduce(MPI_IN_PLACE, get_dwDataStart(arborID), arborSize, MPI_FLOAT, MPI_SUM, mpi_comm);
    }
-   //reduction not necessary, as clones will accumulate into this buffer
-   //for(int i = 0; i < clones.size(); i++){
-   //   clones[i]->reduceKernels(arborID);
-   //}
+
    return PV_BREAK;
 }
 
@@ -3102,7 +2645,6 @@ int HyPerConn::update_dW(int arbor_ID) {
 }
 
 int HyPerConn::updateInd_dW(int arbor_ID, int batch_ID, int kExt){
-   const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
 
    const pvdata_t * preactbufHead = preSynapticLayer()->getLayerData(getDelay(arbor_ID));
@@ -3160,7 +2702,6 @@ int HyPerConn::updateInd_dW(int arbor_ID, int batch_ID, int kExt){
       sym = (maskLoc->nf * (maskLoc->nx + maskLoc->halo.lt + maskLoc->halo.rt));
    }
 
-   int kernelIndex = patchIndexToDataIndex(kExt);
    pvwdata_t * dwdata = get_dwData(arbor_ID, kExt);
    long * activations = NULL;
    if(sharedWeights && normalizeDwFlag){
@@ -3309,7 +2850,7 @@ int HyPerConn::deliver() {
             cube.numActive = store->numActiveBuffer(0, delay);
             cube.activeIndices = store->activeIndicesBuffer(0, delay);
          }
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#if defined(PV_USE_CUDA)
          if(getReceiveGpu()){
             status = deliverPresynapticPerspectiveGPU(&cube, arbor);
             //No need to update GSyn since it's already living on gpu
@@ -3319,14 +2860,14 @@ int HyPerConn::deliver() {
 #endif
          {
             status = deliverPresynapticPerspective(&cube, arbor);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#if defined(PV_USE_CUDA)
             //CPU updated gsyn, need to update gsyn
             post->setUpdatedDeviceGSynFlag(true);
 #endif
          }
       }
       else{
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#if defined(PV_USE_CUDA)
          if(getReceiveGpu()){
             status = deliverPostsynapticPerspectiveGPU(&cube, arbor);
             //GSyn already living on GPU
@@ -3336,7 +2877,7 @@ int HyPerConn::deliver() {
 #endif
          {
             status = deliverPostsynapticPerspective(&cube, arbor);
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#if defined(PV_USE_CUDA)
             //CPU updated gsyn, need to update on GPU
             post->setUpdatedDeviceGSynFlag(true);
 #endif
@@ -3372,15 +2913,6 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 
    pvAssert(arborID >= 0);
    const int numExtended = activity->numItems;
-
-#ifdef DEBUG_OUTPUT
-   int rank;
-   MPI_Comm_rank(parent->icCommunicator()->communicator(), &rank);
-   //printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
-   logInfo("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numExtended, activity, this, conn);
-   fflush(stdout);
-#endif // DEBUG_OUTPUT
-
 
    int nbatch = parent->getNBatch();
 
@@ -3476,14 +3008,6 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
    //Get number of neurons restricted target
    const int numPostRestricted = post->getNumNeurons();
 
-#ifdef DEBUG_OUTPUT
-   int rank;
-   MPI_Comm_rank(parent->icCommunicator()->communicator(), &rank);
-   //logInfo("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
-   logInfo("[%d]: HyPerLayr::pullSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numRestricted, activity, this, this);
-   fflush(stdout);
-#endif // DEBUG_OUTPUT
-
    float dt_factor;
    if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
       dt_factor = getParent()->getDeltaTime();
@@ -3518,8 +3042,6 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
       exit(EXIT_FAILURE);
    }
 
-   int sf = 1;
-
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static) collapse(2)
 #endif
@@ -3546,13 +3068,10 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
 }
 
 
-#if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
+#if defined(PV_USE_CUDA)
 void HyPerConn::updateDeviceWeights(){
    //wDataStart is one big buffer, so this should grab everything
    float * h_weights = get_wDataStart(0);
-#ifdef PV_USE_OPENCL
-   CLBuffer * d_weights = getDeviceWData();
-#endif
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer * d_weights = getDeviceWData();
 #endif
@@ -3562,7 +3081,7 @@ void HyPerConn::updateDeviceWeights(){
    //Need barrier here?
    parent->getDevice()->syncDevice();
 
-#if defined(PV_USE_CUDA) && defined(PV_USE_CUDNN)
+#if defined(PV_USE_CUDNN)
    //Set local sizes here
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
@@ -3598,9 +3117,6 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
 #ifdef PV_USE_CUDA
    krRecvPre->set_dt_factor(dt_factor);
 #endif // PV_USE_CUDA
-#ifdef PV_USE_OPENCL
-   krRecvPre->setKernelArg(17, sizeof(float), &dt_factor); // WARNING: if OpenCL receive kernel parameters change, the hard-coded 17 might need to be changed.
-#endif // PV_USE_OPENCL
 
    //Post layer receives synaptic input
    //Only with respect to post layer
@@ -3616,9 +3132,6 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
    //If one arbor, done in allocatePreKernel in HyPerConn
    if(numberOfAxonalArborLists() > 1){
       PVPatch* h_patches = weights(arborID)[0]; //0 because it's one block of memory
-#ifdef PV_USE_OPENCL
-      CLBuffer * d_patches = getDevicePatches();
-#endif
 #ifdef PV_USE_CUDA
       PVCuda::CudaBuffer * d_patches = getDevicePatches();
 #endif
@@ -3627,9 +3140,6 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
       d_patches->copyToDevice(h_patches);
 
       size_t* h_GSynPatchStart = getGSynPatchStart()[arborID];
-#ifdef PV_USE_OPENCL
-      CLBuffer * d_GSynPatchStart = getDeviceGSynPatchStart();
-#endif
 #ifdef PV_USE_CUDA
       PVCuda::CudaBuffer * d_GSynPatchStart = getDeviceGSynPatchStart();
 #endif
@@ -3641,9 +3151,6 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
    //Only if their updated
    if(preSynapticLayer()->getUpdatedDeviceDatastoreFlag()){
       float * h_preDatastore= activity->data;
-#ifdef PV_USE_OPENCL
-      CLBuffer * d_preDatastore= preSynapticLayer()->getDeviceDatastore();
-#endif
 #ifdef PV_USE_CUDA
       PVCuda::CudaBuffer * d_preDatastore = preSynapticLayer()->getDeviceDatastore();
 #endif
@@ -3652,10 +3159,6 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
 
       //Copy active indices and num active if needed
       if(activity->isSparse){
-#ifdef PV_USE_OPENCL
-         CLBuffer * d_ActiveIndices;
-         CLBuffer * d_numActive;
-#endif
 #ifdef PV_USE_CUDA
          PVCuda::CudaBuffer * d_ActiveIndices;
          PVCuda::CudaBuffer * d_numActive;
@@ -3672,17 +3175,6 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
       //Device now has updated
       preSynapticLayer()->setUpdatedDeviceDatastoreFlag(false);
    }
-
-//#ifdef PV_USE_OPENCL
-//   //Grab kernel from conn
-//   CLKernel * krRecvPre = getKrRecvPre();        // CL kernel for update state call
-//#endif
-//#ifdef PV_USE_CUDA
-//   PVCuda::CudaKernel * krRecvPre = getKrRecvPre();        // CL kernel for update state call
-//#endif
-
-   //int totX = conn->getNumPostGroupX();
-   //int totY = conn->getNumPostGroupY();
 
    //X direction is active neuron
    //Y direction is post patch size
@@ -3704,13 +3196,6 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
 
    long totThreads = maxTotalActiveNeuron * totPatchSize;
 
-#ifdef PV_USE_OPENCL
-   cl_event* timerEvent;
-   timerEvent = post->getRecvSynStartEvent();
-   std::cout << "opencl recv pre not implemented yet\n";
-   exit(-1);
-#endif
-
 #ifdef PV_USE_CUDA
    //krRecvPre->set_numActive(totActiveNeuron);
 
@@ -3730,15 +3215,6 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
       return PV_SUCCESS;
    }
    pvAssert(post->getChannel(getChannel()));
-
-   ////Cast to transpose conn
-   //TransposeConn * sourceToTargetConn = dynamic_cast <TransposeConn*> (this);
-   //if(sourceToTargetConn == NULL){
-   //   logError("Layer \"%s\": Updating GSyn buffer from post perspective requires connection %s to be a TransposeConn.\n", post->getName(), getName());
-   //   abort();
-   //}
-   //update conn to original connection
-   //HyPerConn * targetToSourceConn = sourceToTargetConn->getOriginalConn();
 
    pvAssert(arborID >= 0);
    //Get number of neurons restricted target
@@ -3760,9 +3236,6 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
 #ifdef PV_USE_CUDA
    krRecvPost->set_dt_factor(dt_factor);
 #endif // PV_USE_CUDA
-#ifdef PV_USE_OPENCL
-   krRecvPost->setKernelArg(26, sizeof(float), &dt_factor); // WARNING: if OpenCL receive kernel parameters change, the hard-coded 26 might need to be changed.
-#endif // PV_USE_OPENCL
 
    const PVLayerLoc * sourceLoc = pre->getLayerLoc();
    const PVLayerLoc * targetLoc = post->getLayerLoc();
@@ -3793,9 +3266,6 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    //Only if they're updated
    if(pre->getUpdatedDeviceDatastoreFlag()){
       float * h_preDatastore = activity->data;
-#ifdef PV_USE_OPENCL
-      CLBuffer * d_preDatastore = pre->getDeviceDatastore();
-#endif
 #ifdef PV_USE_CUDA
       PVCuda::CudaBuffer* d_preDatastore = pre->getDeviceDatastore();
 #endif
@@ -3821,25 +3291,6 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    int totX = targetNx;
    int totY = targetNy;
    //Make sure local sizes are divisible by f, x, and y
-   //krRecvPost->run(numRestricted, 0, NULL, NULL);
-#ifdef PV_USE_OPENCL
-   if(getNumFLocal() != 1){
-      logError("gpu post run: numFLocal must be 1\n");
-      exit(-1);
-   }
-   if(getNumYLocal() != 1){
-      logError("gpu post run: numYLocal must be 1\n");
-      exit(-1);
-   }
-   cl_event* timerEvent;
-   timerEvent = post->getRecvSynStartEvent();
-
-   for(int b = 0; b < nbatch; b++){
-      krRecvPost->setKernelArg(0, sizeof(float), &b); // WARNING: if OpenCL receive kernel parameters change, the hard-coded 0 might need to be changed.
-      krRecvPost->run(totF, totX, totY, getNumFLocal(), getNumXLocal(), getNumYLocal(),
-            0, NULL, timerEvent);
-   }
-#endif
 #ifdef PV_USE_CUDA
    krRecvPost->run(totX, totY, totF, getNumXLocal(), getNumYLocal(), getNumFLocal());
 #endif
@@ -4057,8 +3508,6 @@ int HyPerConn::adjustAllPatches(
    const int yPostNeuronsPerPreNeuron = yScaleDiff > 0 ? (int) pow(2,yScaleDiff) : 1;
    const int yPreNeuronsPerPostNeuron = yScaleDiff < 0 ? (int) pow(2,-yScaleDiff) : 1;
 
-   int xPatchHead = 0;
-   int yPatchHead = 0;
 
    // can't use member variable numWeightPatches because GPUs might call this routine with a smaller block.  Calculate from input arguments
    int numWeightPatches = (nxPre + haloPre->lt + haloPre->rt) * (nyPre+haloPre->up + haloPre->dn) * nfPre; 
@@ -4134,11 +3583,6 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
    const double powXScale = pow(2.0f, (double) xScale);
    const double powYScale = pow(2.0f, (double) yScale);
 
-// fixed?
-// TODO - fix this
-//   pvAssert(xScale <= 0);
-//   pvAssert(yScale <= 0);
-
    // pre-synaptic weights are in extended layer reference frame
    const int nxPre = preLoc->nx + preLoc->halo.lt + preLoc->halo.rt;
    const int nyPre = preLoc->ny + preLoc->halo.dn + preLoc->halo.up;
@@ -4194,12 +3638,6 @@ PVPatch *** HyPerConn::convertPreSynapticWeights(double time)
          // convert kxPreHead and kyPreHead to extended indices
          kxPreHead += preLoc->halo.lt;
          kyPreHead += preLoc->halo.up;
-
-         // TODO - FIXME for powXScale > 1
-   //      int ax = (int) (1.0f / powXScale);
-   //      int ay = (int) (1.0f / powYScale);
-   //      int xShift = (ax - 1) - (kxPost + (int) (0.5f * ax)) % ax;
-   //      int yShift = (ay - 1) - (kyPost + (int) (0.5f * ay)) % ay;
 
          pvwdata_t * postData = wPostDataStart[arborID] + nxpPost*nypPost*nfpPost*kPost + wPostPatches[arborID][kPost]->offset;
          for (int kp = 0; kp < numPostPatch; kp++) {
@@ -4419,8 +3857,6 @@ int HyPerConn::postSynapticPatchHead(int kPreEx,
    const PVLayerLoc * preLoc = pre->getLayerLoc();
    const PVLayerLoc * postLoc = post->getLayerLoc();
 
-   const int nxPre  = preLoc->nx;
-   const int nyPre  = preLoc->ny;
    const int kx0Pre = preLoc->kx0;
    const int ky0Pre = preLoc->ky0;
    const int nfPre  = preLoc->nf;
@@ -4746,8 +4182,7 @@ int HyPerConn::calcUnitCellIndex(int patchIndex, int * kxUnitCellIndex/*default=
 }
 
 void HyPerConn::connOutOfMemory(const char * funcname) {
-   logError("Out of memory error in %s for connection \"%s\"\n", funcname, name);
-   exit(EXIT_FAILURE);
+   exitFailure("Out of memory error in %s for connection \"%s\"\n", funcname, name);
 }
 
 } // namespace PV

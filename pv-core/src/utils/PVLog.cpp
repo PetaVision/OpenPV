@@ -11,10 +11,12 @@ void vpv_log_with_prefix(FILE *stream, const char *prefix, const char *file, int
    char msg[buf_size];
    vsnprintf(msg, buf_size, fmt, args);
    fprintf(stream, "%s<%s:%d>: %s\n", prefix, basename((char*)file), line, msg);
-   fflush(stream);
 }
 
 void vpv_log_error(const char *file, int line, const char *fmt, va_list args) {
+   // Flush stdout before printing to stderr. This makes the output
+   // a bit cleaner if logging to the console
+   fflush(stdout);
    vpv_log_with_prefix(stderr, "ERROR", file, line, fmt, args);
 }
 
