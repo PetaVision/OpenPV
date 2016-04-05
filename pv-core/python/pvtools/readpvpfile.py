@@ -44,7 +44,7 @@ def readpvpfile(filename,
         header = readpvpheader(stream)
 
         dataType = dataTypeSwitch[header['datatype']]
-        lastFrame = min(lastFrame, header['nbands'])
+        #lastFrame = min(lastFrame, header['nbands'])
 
         #Initialize data structure
         data = {}
@@ -168,7 +168,7 @@ def readpvpfile(filename,
             fileSize = os.path.getsize(filename)
             frameSize = header['recordsize'] * header['nbands'] + header['headersize']
             lastFrame = min(lastFrame,fileSize/frameSize)
-            shape = (header['nxp'], header['nyp'], header['nfp'])
+            shape = (header['nyp'], header['nxp'], header['nfp'])
             patchPattern = np.dtype([('nx', np.uint16),
                                      ('ny', np.uint16),
                                      ('offset', np.uint32),
