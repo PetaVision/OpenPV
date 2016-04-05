@@ -50,8 +50,10 @@ protected:
 
    float LCAMomentumRate;
    pvdata_t * prevDrive;
+#ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_prevDrive;
-
+#endif
+   
 private:
    int initialize_base();
 };

@@ -53,6 +53,7 @@ macro(pv_config_project)
   set(PV_CUDNN_PATH_HELP "Location of cuDNN libraries. Optional")
   set(PV_ADDRESS_SANITIZE_HELP "Add compiler flags for sanitizing addresses")
   set(PV_BUILD_SHARED_HELP "Build a shared library")
+  set(PV_DEBUG_OUTPUT_HELP "Display output from logDebug() in Release builds")
   
   ################################################################################
   # Detect the compiler and OpenMP capabilities
@@ -145,8 +146,9 @@ macro(pv_config_project)
   set(PV_CUDA_RELEASE ON CACHE BOOL ${PV_CUDA_RELEASE_HELP})
   set(PV_USE_GDAL ON CACHE BOOL "${PV_USE_GDAL_HELP}")
   set(PV_ADDRESS_SANITIZE OFF CACHE BOOL "${PV_ADDRESS_SANITIZE_HELP}")
-  set(PV_BUILD_SHARED OFF CACHE BOOL "{$PV_BUILD_SHARED_HELP}")
-  
+  set(PV_BUILD_SHARED OFF CACHE BOOL "${PV_BUILD_SHARED_HELP}")
+  set(PV_DEBUG_OUTPUT OFF CACHE BOOL "${PV_DEBUG_OUTPUT_HELP}")
+
   ################################################################################
   # Set compiler flags
   ################################################################################
