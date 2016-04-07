@@ -44,30 +44,8 @@ Communicator::Communicator(PV_Arguments * argumentList)
    bool inferingDim = !rowsDefined || !colsDefined || !batchDefined;
 
    if(!batchDefined){
-      ////Case where both rows and cols are defined, we can find out what the batch width is
-      //if(rowsDefined && colsDefined){
-      //   batchWidth = globalSize/(numRows * numCols);
-      //}
-      //else if(rowsDefined && !colsDefined){
-      //   batchWidth = gcd(globalSize/numRows, nbatch);
-      //}
-      //else if(!rowsDefined && colsDefined){
-      //   batchWidth = gcd(globalSize/numCols, nbatch);
-      //}
-      //else{
-      //   //Find gcd between np and nbatch, and set that as the batchWidth
-      //   batchWidth = gcd(globalSize, nbatch);
-      //}
       batchWidth = 1;
    }
-   //if(batchWidth > nbatch){
-   //   std::cout << "Error: batchWidth of " << batchWidth << " must be bigger than nbatch of " << nbatch << "\n";
-   //   exit(-1);
-   //}
-   //if(nbatch % batchWidth != 0){
-   //   std::cout << "Error: batchWidth of " << batchWidth << " must be a multiple of nbatch of " << nbatch << "\n";
-   //   exit(-1);
-   //}
 
    int procsLeft = totalSize/batchWidth;
    if( rowsDefined && !colsDefined ) {
@@ -130,22 +108,12 @@ Communicator::Communicator(PV_Arguments * argumentList)
 //      fprintf(stderr, "[%2d]: Formed resized communicator, size==%d cols==%d rows==%d\n", icRank, icSize, numCols, numRows);
 //#endif // DEBUG_OUTPUT
 
-//   // some ranks are excluded if they don't fit in the processor quilt
-//   if (worldRank < commSize) {
-
 //Grab local rank and check for errors
    int tmpLocalRank;
    MPI_Comm_size(localIcComm, &localSize);
    MPI_Comm_rank(localIcComm, &tmpLocalRank);
    //This should be equiv
    assert(tmpLocalRank == localRank);
-
-
-//   }
-//   else {
-//      icSize = 0;
-//      icRank = -worldRank;
-//   }
 
    commName[0] = '\0';
    if (globalSize > 1) {
@@ -173,7 +141,6 @@ Communicator::~Communicator()
       MPI_Comm_free(&globalIcComm);
    }
 #endif
-   //commFinalize(); // calls MPI_Finalize
 
    // delete timers
    //
@@ -274,30 +241,6 @@ bool Communicator::hasNeighbor(int neighbor)
 {
    int nbrIdx = neighborIndex(localRank, neighbor);
    return nbrIdx >= 0;
-
-//   switch (neighbor) {
-//   case LOCAL: /* local */
-//      return true;
-//   case NORTHWEST : /* northwest */
-//      return hasNorthwesternNeighbor(commRow(), commColumn());
-//   case NORTH     : /* north */
-//      return hasNorthernNeighbor(commRow(), commColumn());
-//   case NORTHEAST : /* northeast */
-//      return hasNortheasternNeighbor(commRow(), commColumn());
-//   case WEST      : /* west */
-//      return hasWesternNeighbor(commRow(), commColumn());
-//   case EAST      : /* east */
-//      return hasEasternNeighbor(commRow(), commColumn());
-//   case SOUTHWEST : /* southwest */
-//      return hasSouthwesternNeighbor(commRow(), commColumn());
-//   case SOUTH     : /* south */
-//      return hasSouthernNeighbor(commRow(), commColumn());
-//   case SOUTHEAST : /* southeast */
-//      return hasSoutheasternNeighbor(commRow(), commColumn());
-//   default:
-//      fprintf(stderr, "ERROR:hasNeighbor: bad index\n");
-//      return false;
-//   }
 }
 
 /**
@@ -386,27 +329,6 @@ int Communicator::numberOfNeighbors()
          hasSouthwesternNeighbor(commRow(), commColumn()) +
          hasSouthernNeighbor(commRow(), commColumn()) +
          hasSoutheasternNeighbor(commRow(), commColumn());
-
-//   int hasWest = hasWesternNeighbor(commRow(), commColumn());
-//   int hasEast = hasEasternNeighbor(commRow(), commColumn());
-//   int hasNorth = hasNorthernNeighbor(commRow(), commColumn());
-//   int hasSouth = hasSouthernNeighbor(commRow(), commColumn());
-//
-//   if (hasNorth > 0) n += 1;
-//   if (hasSouth > 0) n += 1;
-//
-//   if (hasWest > 0) {
-//      n += 1;
-//      if (hasNorth > 0) n += 1;
-//      if (hasSouth > 0) n += 1;
-//   }
-//
-//   if (hasEast > 0) {
-//      n += 1;
-//      if (hasNorth > 0) n += 1;
-//      if (hasSouth > 0) n += 1;
-//   }
-
    return n;
 }
 
