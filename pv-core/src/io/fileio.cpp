@@ -1816,7 +1816,7 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
       exit(EXIT_FAILURE);
    }
    assert(nyp == wgtParams[INDEX_WGT_NYP]);
-   assert(nfp = wgtParams[INDEX_WGT_NFP]);
+   assert(nfp == wgtParams[INDEX_WGT_NFP]);
 
    // Have to use memcpy instead of casting floats because of strict aliasing rules, since some are int and some are float
    float minVal = 0.0f;
