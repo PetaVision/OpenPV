@@ -3049,6 +3049,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
       exit(EXIT_FAILURE);
    }
 
+   //If numActive is a valid pointer, we're recv from post sparse
    bool recvPostSparse = numActive;
 
    for(int b = 0; b < nbatch; b++){
