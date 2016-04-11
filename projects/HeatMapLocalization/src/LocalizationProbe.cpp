@@ -24,6 +24,8 @@ LocalizationProbe::LocalizationProbe() {
 int LocalizationProbe::initialize_base() {
    classNamesFile = NULL;
    classNames = NULL;
+   displayedCategories = NULL;
+   numDisplayedCategories = 0;
    displayCategoryIndexStart = -1;
    displayCategoryIndexEnd = -1;
    detectionThreshold = 0.0f;
@@ -74,6 +76,7 @@ int LocalizationProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_classNamesFile(ioFlag);
    ioParam_outputPeriod(ioFlag);
    ioParam_drawMontage(ioFlag);
+   ioParam_displayedCategories(ioFlag);
    ioParam_displayCategoryIndexStart(ioFlag);
    ioParam_displayCategoryIndexEnd(ioFlag);
    ioParam_heatMapMontageDir(ioFlag);
@@ -114,16 +117,22 @@ void LocalizationProbe::ioParam_drawMontage(enum ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "drawMontage", &drawMontage, drawMontage, true/*warnIfAbsent*/);
 }
 
+void LocalizationProbe::ioParam_displayedCategories(enum ParamsIOFlag ioFlag) {
+   this->getParent()->ioParamArray(ioFlag, this->getName(), "displayedCategories", &displayedCategories, &numDisplayedCategories);
+}
+
 void LocalizationProbe::ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
-   if (drawMontage) {
+   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
+   if (drawMontage && numDisplayedCategories==0) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexStart", &displayCategoryIndexStart, -1, true/*warnIfAbsent*/);
    }
 }
 
 void LocalizationProbe::ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
-   if (drawMontage) {
+   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
+   if (drawMontage && numDisplayedCategories==0) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexEnd", &displayCategoryIndexEnd, -1, true/*warnIfAbsent*/);
    }
 }
@@ -182,18 +191,48 @@ int LocalizationProbe::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
    if (drawMontage && imageLayer->getLayerLoc()->nf != 3) {
-      if (parent->columnId()!=0) {
+      if (parent->columnId()==0) {
          fprintf(stderr, "%s \"%s\" error: drawMontage requires the image layer have exactly three features.\n", getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
 
-   if (displayCategoryIndexStart <= 0) {
-      displayCategoryIndexStart = 1;
-   }
-   if (displayCategoryIndexEnd <= 0) {
-      displayCategoryIndexEnd = nf;
+   if (numDisplayedCategories==0) {
+      if (displayCategoryIndexStart <= 0) {
+         displayCategoryIndexStart = 1;
+         if (parent->globalRank()==0) {
+            printf("%s \"%s\": setting displayCategoryIndexStart to 1.\n",
+                  getKeyword(), name);
+         }
+      }
+      if (displayCategoryIndexEnd <= 0) {
+         displayCategoryIndexEnd = nf;
+         if (parent->globalRank()==0) {
+            printf("%s \"%s\": setting displayCategoryIndexEnd to nf=%d.\n",
+                  getKeyword(), name, nf);
+         }
+      }
+      numDisplayedCategories = displayCategoryIndexEnd - displayCategoryIndexStart + 1;
+      if (parent->globalRank()==0) {
+         fflush(stdout);
+         fprintf(stderr, "%s \"%s\": converting values of displayCategoryIndexStart and displayCategoryIndexEnd to a displayedCategories array.\n",
+               getKeyword(), name);
+      }
+
+      if (numDisplayedCategories <= 0) {
+         if (parent->globalRank()==0) {
+            fprintf(stderr, "%s \"%s\" error: displayCategoryIndexStart (%d) cannot be greater than displayCategoryIndexEnd (%d).\n",
+                  getKeyword(), name, displayCategoryIndexStart, displayCategoryIndexEnd);
+         }
+         MPI_Barrier(getParent()->icCommunicator()->globalCommunicator());
+         exit(EXIT_FAILURE);
+      }
+      displayedCategories = (int *) malloc(numDisplayedCategories*sizeof(int));
+      for (int idx=0; idx<numDisplayedCategories; idx++) {
+         displayedCategories[idx] = displayCategoryIndexStart + idx;
+         assert(displayedCategories[idx] < displayCategoryIndexEnd);
+      }
    }
    imageDilationX = pow(2.0, targetLayer->getXScale() - imageLayer->getXScale());
    imageDilationY = pow(2.0, targetLayer->getYScale() - imageLayer->getYScale());
@@ -304,13 +343,15 @@ int LocalizationProbe::communicateInitInfo() {
             exit(EXIT_FAILURE);
          }
 
-         for (int f=0; f<nf; f++) {
+         for (int idx=0; idx<numDisplayedCategories; idx++) {
+            int category = displayedCategories[idx];
+            int f = category-1; // category is one-indexed; f is zero-indexed.
             char labelFilename[PV_PATH_MAX];
             int slen;
-            slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, f);
+            slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, category);
             if (slen>=PV_PATH_MAX) {
                fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error: file name for label %d is too long (%d characters versus %d).\n", getKeyword(), name, f, slen, PV_PATH_MAX);
+               fprintf(stderr, "%s \"%s\" error: file name for label %d is too long (%d characters versus %d).\n", getKeyword(), name, category, slen, PV_PATH_MAX);
                exit(EXIT_FAILURE);
             }
             status = drawTextIntoFile(labelFilename, "white", "gray", classNames[f], nxGlobal);
@@ -320,10 +361,10 @@ int LocalizationProbe::communicateInitInfo() {
                exit(EXIT_FAILURE);
             }
 
-            slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, f);
+            slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, category);
             if (slen>=PV_PATH_MAX) {
                fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error: file name for label %d is too long (%d characters versus %d).\n", getKeyword(), name, f, slen, PV_PATH_MAX);
+               fprintf(stderr, "%s \"%s\" error: file name for label %d is too long (%d characters versus %d).\n", getKeyword(), name, category, slen, PV_PATH_MAX);
                exit(EXIT_FAILURE);
             }
             status = drawTextIntoFile(labelFilename, "white", "blue", classNames[f], nxGlobal);
@@ -339,35 +380,35 @@ int LocalizationProbe::communicateInitInfo() {
 
 int LocalizationProbe::setOptimalMontage() {
    // Find the best number of rows and columns to use for the montage
-   int const numCategories = displayCategoryIndexEnd - displayCategoryIndexStart + 1;
-   assert(numCategories>0);
-   int numRows[numCategories];
-   float totalSizeX[numCategories];
-   float totalSizeY[numCategories];
-   float aspectRatio[numCategories];
-   float ldfgr[numCategories]; // log-distance to golden ratio
+//   int const numCategories = displayCategoryIndexEnd - displayCategoryIndexStart + 1;
+   assert(numDisplayedCategories>0);
+   int numRows[numDisplayedCategories];
+   float totalSizeX[numDisplayedCategories];
+   float totalSizeY[numDisplayedCategories];
+   float aspectRatio[numDisplayedCategories];
+   float ldgr[numDisplayedCategories]; // log of difference from golden ratio
    float loggoldenratio = logf(0.5f * (1.0f + sqrtf(5.0f)));
-   for (int numCol=1; numCol <= numCategories ; numCol++) {
+   for (int numCol=1; numCol <= numDisplayedCategories ; numCol++) {
       int idx = numCol-1;
-      numRows[idx] = (int) ceil((float) numCategories/(float) numCol);
+      numRows[idx] = (int) ceil((float) numDisplayedCategories/(float) numCol);
       totalSizeX[idx] = numCol * (imageLayer->getLayerLoc()->nxGlobal + 10); // +10 for spacing between images.
       totalSizeY[idx] = numRows[idx] * (imageLayer->getLayerLoc()->nyGlobal + 64 + 10); // +64 for category label
       aspectRatio[idx] = (float) totalSizeX[idx]/(float) totalSizeY[idx];
-      ldfgr[idx] = fabsf(log(aspectRatio[idx]) - loggoldenratio);
+      ldgr[idx] = fabsf(log(aspectRatio[idx]) - loggoldenratio);
    }
    numMontageColumns = -1;
    float minldfgr = std::numeric_limits<float>::infinity();
-   for (int numCol=1; numCol <= numCategories ; numCol++) {
+   for (int numCol=1; numCol <= numDisplayedCategories ; numCol++) {
       int idx = numCol-1;
-      if (ldfgr[idx] < minldfgr) {
-         minldfgr = ldfgr[idx];
+      if (ldgr[idx] < minldfgr) {
+         minldfgr = ldgr[idx];
          numMontageColumns = numCol;
       }
    }
    assert(numMontageColumns > 0);
    numMontageRows = numRows[numMontageColumns-1];
-   while ((numMontageColumns-1)*numMontageRows >= numCategories) { numMontageColumns--; }
-   while ((numMontageRows-1)*numMontageColumns >= numCategories) { numMontageRows--; }
+   while ((numMontageColumns-1)*numMontageRows >= numDisplayedCategories) { numMontageColumns--; }
+   while ((numMontageRows-1)*numMontageColumns >= numDisplayedCategories) { numMontageRows--; }
    if (numMontageRows < 2) { numMontageRows = 2; }
    return PV_SUCCESS;
 }
@@ -442,18 +483,19 @@ int LocalizationProbe::allocateDataStructures() {
             exit(EXIT_FAILURE);
          }
    
-         for (int f=displayCategoryIndexStart-1; f<displayCategoryIndexEnd; f++) {
-            int fDisplayed = f-displayCategoryIndexStart+1;
-            int montageCol=kxPos(fDisplayed, numMontageColumns, numMontageRows, 1);
-            int montageRow=kyPos(fDisplayed, numMontageColumns, numMontageRows, 1);
+         for (int idx=0; idx<numDisplayedCategories; idx++) {
+            int category = displayedCategories[idx];
+            int f = category - 1; // category is one-indexed; f is zero-indexed;
+            int montageCol=kxPos(idx, numMontageColumns, numMontageRows, 1);
+            int montageRow=kyPos(idx, numMontageColumns, numMontageRows, 1);
             int xStart = montageCol * (nxGlobal+10) + 5;
             int yStart = montageRow * (nyGlobal+64+10) + 5;
             char filename[PV_PATH_MAX];
-            int slen = snprintf(filename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, f);
+            int slen = snprintf(filename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, category);
             if (slen >= PV_PATH_MAX) {
                fflush(stdout);
                fprintf(stderr, "%s \"%s\" allocateDataStructures error: path to label file for label %d is too large.\n",
-                     getKeyword(), name, f);
+                     getKeyword(), name, category);
                exit(EXIT_FAILURE);
             }
             status = insertFileIntoMontage(filename, xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
@@ -697,15 +739,19 @@ int LocalizationProbe::calcValues(double timevalue) {
 int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, int * yLocation, pvadata_t * maxActivity) {
    int const N = targetLayer->getNumNeurons();
    PVLayerLoc const * loc = targetLayer->getLayerLoc();
+   int const nxy = loc->nx * loc->ny;
    PVHalo const * halo = &loc->halo;
    int maxLocation = -1;
    pvadata_t maxVal = -std::numeric_limits<pvadata_t>::infinity();
-   for (int n=0; n<N; n++) {
-      int nExt = kIndexExtended(n, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
-      pvadata_t const a = targetLayer->getLayerData()[nExt];
-      if (a>maxVal) {
-         maxVal = a;
-         maxLocation = n;
+   for (int n=0; n<nxy; n++) {
+      int nExt = kIndexExtended(n*loc->nf, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
+      for (int idx=0; idx<numDisplayedCategories; idx++) {
+         int f = displayedCategories[idx];
+         pvadata_t const a = targetLayer->getLayerData()[nExt+f];
+         if (a>maxVal) {
+            maxVal = a;
+            maxLocation = n*loc->nf + f;
+         }
       }
    }
 
@@ -784,7 +830,7 @@ int LocalizationProbe::findBoundingBox(int winningFeature, int xLocation, int yL
 }
 
 int LocalizationProbe::outputState(double timevalue) {
-   int status = getValues(timevalue); // all processes must call getValues is parallel,
+   int status = getValues(timevalue); // all processes must call getValues is parallel.
    double * values = getValuesBuffer();
    int winningFeature = (int) values[0];
    double maxActivity = values[1];
@@ -932,6 +978,13 @@ int LocalizationProbe::makeMontage() {
    PVLayerLoc const * targetLoc = targetLayer->getLayerLoc();
    PVHalo const * targetHalo = &targetLoc->halo;
    int winningFeature = (int) getValuesBuffer()[0];
+   int winningIndex = -1;
+   for (int idx=0; idx<numDisplayedCategories; idx++) {
+      if (winningFeature==displayedCategories[idx]-1) {
+         winningIndex = idx;
+      }
+   }
+   printf("winningFeature = %d, winningIndex = %d\n", winningFeature, winningIndex);
    double maxConfidence = getValuesBuffer()[1];
    pvadata_t maxConfByCategory[targetLoc->nf];
    for (int f=0; f<targetLoc->nf; f++) { maxConfByCategory[f] = -std::numeric_limits<pvadata_t>::infinity(); }
@@ -943,7 +996,10 @@ int LocalizationProbe::makeMontage() {
       maxConfByCategory[f] = a > m ? a : m;
    }
    MPI_Allreduce(MPI_IN_PLACE, maxConfByCategory, targetLoc->nf, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
-   for (int f=displayCategoryIndexStart-1; f<displayCategoryIndexEnd; f++) {
+   for (int idx=0; idx<numDisplayedCategories; idx++) {
+      int category = displayedCategories[idx];
+      int f = category-1; // category is 1-indexed; f is zero-indexed.
+      bool highlightingSomewhere = false;
       for (int y=0; y<ny; y++) {
          for (int x=0; x<nx; x++) {
             pvadata_t backgroundLevel = grayScaleImage[x + nx * y];
@@ -952,6 +1008,14 @@ int LocalizationProbe::makeMontage() {
             int targetIdx = kIndex(xTarget, yTarget, f, targetLoc->nx, targetLoc->ny, targetLoc->nf);
             int targetIdxExt = kIndexExtended(targetIdx, targetLoc->nx, targetLoc->ny, targetLoc->nf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
             pvadata_t heatMapLevel = targetLayer->getLayerData()[targetIdxExt];
+
+            // Only show values if they are the highest category
+            for(int idx2=0; idx2<numDisplayedCategories; idx2++) {
+               int f2 = displayedCategories[idx2]-1;
+               heatMapLevel *= (float) (heatMapLevel >= targetLayer->getLayerData()[targetIdxExt-f+f2]);
+            }
+
+            highlightingSomewhere |= (heatMapLevel > detectionThreshold);
             heatMapLevel = (heatMapLevel - detectionThreshold)/(heatMapMaximum-detectionThreshold);
             heatMapLevel = heatMapLevel < (pvadata_t) 0 ? (pvadata_t) 0 : heatMapLevel > (pvadata_t) 1 ? (pvadata_t) 1 : heatMapLevel;
             int montageIdx = kIndex(x, y, 0, nx, ny, 3);
@@ -960,7 +1024,7 @@ int LocalizationProbe::makeMontage() {
                pvadata_t g = imageBlendCoeff * backgroundLevel + (1-imageBlendCoeff) * h;
                assert(g>=(pvadata_t) -0.001 && g <= (pvadata_t) 1.001);
                g = nearbyintf(255*g);
-               unsigned char gchar = (unsigned char) g; // (g<0.0f ? 0.0f : g>255.0f ? 255.0f : g);
+               unsigned char gchar = (unsigned char) g;
                assert(montageIdx>=0 && montageIdx+rgb<nx*ny*3);
                montageImageLocal[montageIdx + rgb] = gchar;
             }
@@ -970,8 +1034,8 @@ int LocalizationProbe::makeMontage() {
          MPI_Send(montageImageLocal, nx*ny*3, MPI_UNSIGNED_CHAR, 0, 111, parent->icCommunicator()->communicator());
       }
       else {
-         int montageCol = (f-displayCategoryIndexStart+1) % numMontageColumns;
-         int montageRow = (f-displayCategoryIndexStart+1 - montageCol) / numMontageColumns; // Integer arithmetic
+         int montageCol = idx % numMontageColumns;
+         int montageRow = (idx - montageCol) / numMontageColumns; // Integer arithmetic
          int xStartInMontage = (imageLoc->nxGlobal + 10)*montageCol + 5;
          int yStartInMontage = (imageLoc->nyGlobal + 64 + 10)*montageRow + 64 + 5;
          int const numCommRows = parent->icCommunicator()->numCommRows();
@@ -994,16 +1058,22 @@ int LocalizationProbe::makeMontage() {
 
          // Draw labels and confidences
          char confidenceText[16];
-         int slen = snprintf(confidenceText, 16, "%.1f%%", 100*maxConfByCategory[f]);
-         if (slen >= 16) {
-            fflush(stdout);
-            fprintf(stderr, "Formatted text for confidence %f of %d is too long.\n", maxConfByCategory[f], f);
-            exit(EXIT_FAILURE);
+         if (highlightingSomewhere) {
+            int slen = snprintf(confidenceText, 16, "%.1f", 100*maxConfByCategory[f]);
+            if (slen >= 16) {
+               fflush(stdout);
+               fprintf(stderr, "Formatted text for confidence %f of %d is too long.\n", maxConfByCategory[f], f);
+               exit(EXIT_FAILURE);
+            }
+         }
+         else {
+            int slen = snprintf(confidenceText, 16, "-");
+            assert(slen < 16);
          }
          char const * textColor = NULL;
          if (f==winningFeature) {
             char labelFilename[PV_PATH_MAX];
-            int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, f);
+            int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, f+1);
             assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
             insertFileIntoMontage(labelFilename, xStartInMontage, yStartInMontage-64, imageLoc->nxGlobal, 32);
             
@@ -1030,9 +1100,9 @@ int LocalizationProbe::makeMontage() {
    if (parent->columnId()!=0) { return PV_SUCCESS; }
 
    // Draw bounding box
-   if (boundingBoxLineWidth > 0) {
-      int montageColumn = kxPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
-      int montageRow = kyPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
+   if (boundingBoxLineWidth > 0 && winningIndex>=0) {
+      int montageColumn = kxPos(winningIndex, numMontageColumns, numMontageRows, 1);
+      int montageRow = kyPos(winningIndex, numMontageColumns, numMontageRows, 1);
       double * values = getValuesBuffer();
       int xStartInMontage = montageColumn * (imageLoc->nxGlobal+10) + 5 + (int) values[2];
       int yStartInMontage = montageRow * (imageLoc->nyGlobal+64+10) + 5 + 64 + (int) values[4];
@@ -1108,13 +1178,13 @@ int LocalizationProbe::makeMontage() {
    GDALClose(dataset);
 
    // Restore the winning feature's gray label
-   if (winningFeature >= displayCategoryIndexStart-1 && winningFeature <= displayCategoryIndexEnd-1) {
-      int montageColumn = kxPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
-      int montageRow = kyPos(winningFeature - displayCategoryIndexStart + 1, numMontageColumns, numMontageRows, 1);
+   if (winningIndex >= 0) {
+      int montageColumn = kxPos(winningIndex, numMontageColumns, numMontageRows, 1);
+      int montageRow = kyPos(winningIndex, numMontageColumns, numMontageRows, 1);
       int xStartInMontage = montageColumn * (imageLoc->nxGlobal+10) + 5;
       int yStartInMontage = montageRow * (imageLoc->nyGlobal+64+10) + 5;
       char labelFilename[PV_PATH_MAX];
-      int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, winningFeature);
+      int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, winningFeature+1);
       assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
       insertFileIntoMontage(labelFilename, xStartInMontage, yStartInMontage, imageLoc->nxGlobal, 32);
    }
@@ -1123,6 +1193,7 @@ int LocalizationProbe::makeMontage() {
 }
 
 LocalizationProbe::~LocalizationProbe() {
+   free(displayedCategories);
    free(imageLayerName);
    free(reconLayerName);
    free(classNamesFile);

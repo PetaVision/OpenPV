@@ -67,6 +67,7 @@ protected:
    virtual void ioParam_classNamesFile(enum ParamsIOFlag ioFlag);
    virtual void ioParam_outputPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_drawMontage(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_displayedCategories(enum ParamsIOFlag ioFlag);
    virtual void ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag);
    virtual void ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag);
    virtual void ioParam_heatMapMontageDir(enum ParamsIOFlag ioFlag);
@@ -98,6 +99,8 @@ protected:
    bool drawMontage;
    char * classNamesFile;
    char ** classNames; // The array of strings giving the names of each category.  Only the root process creates or uses this array.
+   int * displayedCategories;
+   int numDisplayedCategories;
    int displayCategoryIndexStart;
    int displayCategoryIndexEnd;
    char * heatMapMontageDir;
