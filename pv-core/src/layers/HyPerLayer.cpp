@@ -1192,21 +1192,46 @@ int HyPerLayer::flushOutputStateStream() {
 
 int HyPerLayer::openOutputStateFile() {
    if (writeStep<0) { ioAppend = false; return PV_SUCCESS; }
+
+   // If the communicator's batchwidth is greater than one, each local communicator creates an outputState file.
+   // To prevent filename collisions, the global rank is inserted into the filename, just before the ".pvp" extension.
+   // If the batchwidth is one, however, there is no need to insert the global rank.
+   char appendCommBatchIdx[32];
+   int numCommBatches = parent->icCommunicator()->numCommBatches();
+   if (numCommBatches != 1) {
+      int sz = snprintf(appendCommBatchIdx, 32, "_%d", parent->commBatch());
+      if (sz >= 32) {
+         fflush(stdout);
+         fprintf(stderr, "%s \"%s\": Unable to create file name for outputState file: comm batch index %d is too long.\n",
+               getKeyword(), name, parent->commBatch());
+         exit(EXIT_FAILURE);
+      }
+   }
+   else { // numCommBatches is one; insert the empty string instead.
+      appendCommBatchIdx[0] = 0; // appendCommBatchIdx is the empty string
+   }
    char filename[PV_PATH_MAX];
    char posFilename[PV_PATH_MAX];
+   int sz;
    switch( parent->includeLayerName() ) {
    case 0:
-      snprintf(filename, PV_PATH_MAX, "%s/a%d.pvp", parent->getOutputPath(), layerId);
+      sz = snprintf(filename, PV_PATH_MAX, "%s/a%d%s.pvp", parent->getOutputPath(), layerId, appendCommBatchIdx);
       break;
    case 1:
-      snprintf(filename, PV_PATH_MAX, "%s/a%d_%s.pvp", parent->getOutputPath(), layerId, name);
+      sz = snprintf(filename, PV_PATH_MAX, "%s/a%d_%s%s.pvp", parent->getOutputPath(), layerId, name, appendCommBatchIdx);
       break;
    case 2:
-      snprintf(filename, PV_PATH_MAX, "%s/%s.pvp", parent->getOutputPath(), name);
+      sz = snprintf(filename, PV_PATH_MAX, "%s/%s%s.pvp", parent->getOutputPath(), name, appendCommBatchIdx);
       break;
    default:
       assert(0);
       break;
+   }
+   if (sz >= PV_PATH_MAX) {
+      fflush(stdout);
+      fprintf(stderr, "%s \"%s\": Unable to create file name for outputState file: file name with comm batch index %d is too long.\n",
+            getKeyword(), name, parent->commBatch());
+      exit(EXIT_FAILURE);
    }
 
    // initialize writeActivityCalls and writeSparseActivityCalls

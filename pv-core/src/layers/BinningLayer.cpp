@@ -198,6 +198,13 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
          for (int iX = 0; iX < (nx+halo->lt+halo->rt); iX++){
             int origIdx = kIndex(iX, iY, 0, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, origLoc->nf);
             float inVal = origDataBatch[origIdx];
+            //If inVal is out of bounds in either binMax or binMin, set the value to be the maximum or minimum val
+            if(inVal < binMin){
+               inVal = binMin;
+            }
+            if(inVal > binMax){
+               inVal = binMax;
+            }
 
             if(zeroDCR && inVal == 0){
                for(int iF = 0; iF < numBins; iF++){
@@ -208,6 +215,7 @@ int BinningLayer::doUpdateState(double timed, double dt, const PVLayerLoc * orig
             else{
                //A sigma of zero means only the centered bin value should get input
                int featureIdx = round((inVal-binMin)/stepSize);
+
                for(int iF = 0; iF < numBins; iF++){
                   if(binSigma == 0){
                      int currIdx = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, numBins);

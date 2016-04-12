@@ -2996,8 +2996,15 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 }
 
 
+int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID, int* numActive, int** activeList) {
+   //Make sure numActive and activeList are either both null or both valid pointers
+   if(numActive){
+      assert(activeList);
+   }
+   else{
+      assert(!activeList);
+   }
 
-int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) {
    //Check channel number for noupdate
    if(getChannel() == CHANNEL_NOUPDATE){
       return PV_SUCCESS;
@@ -3042,11 +3049,30 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
       exit(EXIT_FAILURE);
    }
 
-#ifdef PV_USE_OPENMP_THREADS
-#pragma omp parallel for schedule(static) collapse(2)
-#endif
+   //If numActive is a valid pointer, we're recv from post sparse
+   bool recvPostSparse = numActive;
+
    for(int b = 0; b < nbatch; b++){
-      for (int kTargetRes = 0; kTargetRes < numPostRestricted; kTargetRes++){
+      int numLoop;
+      if(recvPostSparse){
+         numLoop = numActive[b];
+      }
+      else{
+         numLoop = numPostRestricted;
+      }
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(static)
+#endif
+      for (int iLoop = 0; iLoop < numLoop; iLoop++){
+         int kTargetRes;
+         if(recvPostSparse){
+            kTargetRes = activeList[b][iLoop];
+         }
+         else{
+            kTargetRes = iLoop;
+         }
+         
+
          pvdata_t * activityBatch = activity->data + b * (sourceNx + sourceHalo->rt + sourceHalo->lt) * (sourceNy + sourceHalo->up + sourceHalo->dn) * sourceNf;
          pvdata_t * gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
          //Change restricted to extended post neuron
@@ -3066,6 +3092,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
    }
    return PV_SUCCESS;
 }
+
 
 
 #if defined(PV_USE_CUDA)

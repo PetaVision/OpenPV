@@ -873,7 +873,10 @@ protected:
    void connOutOfMemory(const char* funcname);
 
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
-   virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
+   virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborId){
+      return deliverPostsynapticPerspective(activity, arborId, NULL, NULL);
+   }
+   virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID, int* numActive, int** activeList);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    virtual int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);
    virtual int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID);

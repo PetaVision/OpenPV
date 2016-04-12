@@ -1154,20 +1154,11 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "nbatch", &nbatchGlobal, nbatchGlobal);
    //Make sure numCommBatches is a multiple of nbatch specified in the params file
    if(nbatchGlobal % icComm->numCommBatches() != 0){
-      std::cout << "Batch width (" << icComm->numCommBatches() << ") must be a multiple of the total number of batches (" << nbatchGlobal << ")\n";
-      exit(-1);
+      std::cout << "The total number of batches (" << nbatchGlobal << ") must be a multiple of the batch width (" << icComm->numCommBatches() << ")\n";
+      exit(EXIT_FAILURE);
    }
    nbatch = nbatchGlobal/icComm->numCommBatches();
 }
-
-//void HyPerCol::ioParam_threadBatch(enum ParamsIOFlag ioFlag) {
-//   ioParamValue(ioFlag, name, "threadBatch", &threadBatch, threadBatch);
-//   if(threadBatch < -1 || threadBatch > 1){
-//      std::cout << "threadBatch value (" << threadBatch << ") not recognized, must be -1 (auto, set by default), 0 (thread over neurons), or 1 (thread over batches)\n";
-//      exit(-1);
-//   }
-//}
-
 
 void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "filenamesContainLayerNames", &filenamesContainLayerNames, 0);
