@@ -984,7 +984,6 @@ int LocalizationProbe::makeMontage() {
          winningIndex = idx;
       }
    }
-   printf("winningFeature = %d, winningIndex = %d\n", winningFeature, winningIndex);
    double maxConfidence = getValuesBuffer()[1];
    pvadata_t maxConfByCategory[targetLoc->nf];
    for (int f=0; f<targetLoc->nf; f++) { maxConfByCategory[f] = -std::numeric_limits<pvadata_t>::infinity(); }
