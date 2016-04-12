@@ -20,6 +20,7 @@ macro(pv_config_project)
   
   # Clang Compiler defaults
   set(CLANG_OPENMP_FLAG "-fopenmp=libiomp5")
+  set(CLANG_OTHER_COMPILE_FLAGS "-std=c++11")
   set(CLANG_SANITIZE_ADDRESS_CXX_FLAGS "-g -fsanitize=address -fno-omit-frame-pointer")
   set(CLANG_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
   # Flag to pass in to NVCC (which in turn passes this on to clang) so that off_t is defined
@@ -82,7 +83,9 @@ macro(pv_config_project)
     set(PV_SANITIZE_ADDRESS_LINKER_FLAGS "${CLANG_SANITIZE_ADDRESS_LINKER_FLAGS}")
     list(APPEND PV_COMPILE_FLAGS_DEBUG ${CLANG_COMPILE_FLAGS_DEBUG})
     list(APPEND PV_COMPILE_FLAGS_RELEASE ${CLANG_COMPILE_FLAGS_RELEASE})
-    
+    list(APPEND PV_COMPILE_FLAGS_DEBUG ${CLANG_OTHER_COMPILE_FLAGS})    
+    list(APPEND PV_COMPILE_FLAGS_RELEASE ${CLANG_OTHER_COMPILE_FLAGS})    
+
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "7.0")
       # Xcode detected
       # Apple's Xcode clang compiler detected, which has a greater version number than
