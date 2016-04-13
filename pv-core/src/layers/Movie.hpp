@@ -30,16 +30,11 @@ public:
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
    virtual int outputState(double time, bool last=false);
-   //virtual bool needUpdate(double time, double dt);
    virtual double getDeltaUpdateTime();
    virtual double calcTimeScale(int batchIdx);
-   //virtual int updateStateWrapper(double time, double dt);
    virtual int updateState(double time, double dt);
    virtual bool updateImage(double time, double dt);
-   // bool        getNewImageFlag();
-   //const char * getCurrentImage();
    int  randomFrame();
-   //int getFrameNumber(){return frameNumber;}
    const char* getFilename(int batchIdx){return framePath[batchIdx];}
    const char* getBatchMethod(){return batchMethod;}
 
@@ -125,7 +120,6 @@ protected:
 
 private:
    int initialize_base();
-   //int copyReducedImagePortion();
    int updateFrameNum();
    int getNumFrames();
    const char * advanceFileName(int batchIdx);
@@ -133,7 +127,6 @@ private:
    bool resetToStartOnLoop;
 
    double displayPeriod;   // length of time a frame is displayed
-   //double nextDisplayTime; // time of next frame; now handled by HyPerLayer nextUpdateTime
 
 #ifdef OBSOLETE // randomMovie was commented out of Movie.cpp on Jul 22, 2015.
    int randomMovie;       // these are used for performing a reverse correlation analysis
@@ -141,7 +134,6 @@ private:
 #endif // OBSOLETE // randomMovie was commented out of Movie.cpp on Jul 22, 2015.
 
    bool echoFramePathnameFlag; // if true, echo the frame pathname to stdout
-   // bool newImageFlag; // true when a new image was presented this timestep;
 
    int* startFrameIndex;
    int* skipFrameIndex;
@@ -166,8 +158,6 @@ private:
    bool flipOnTimescaleError;
    long * batchPos;
    bool initFlag;
-   //int numTotalFrames;
-   //long* frameNumber;
 #else // PV_USE_GDAL
 public:
    Movie(char const * name, HyPerCol * hc);
