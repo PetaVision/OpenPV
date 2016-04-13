@@ -86,6 +86,12 @@ protected:
     */
    virtual bool needRecalc(double timevalue);
 
+   /**
+    * Implementation of referenceUpdateTime().  Since ColumnEnergyProbe updates
+    * every timestep, it uses current simulation time.
+    */
+   virtual double referenceUpdateTime() const;
+
    size_t numTerms;
    BaseProbe ** terms;
 

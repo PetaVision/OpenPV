@@ -137,6 +137,10 @@ int QuotientColProbe::calcValues(double timeValue) {
    return PV_SUCCESS;
 }
 
+double QuotientColProbe::referenceUpdateTime() const {
+   return parent->simulationTime();
+}
+
 int QuotientColProbe::outputState(double timevalue) {
    getValues(timevalue);
    if( this->getParent()->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
