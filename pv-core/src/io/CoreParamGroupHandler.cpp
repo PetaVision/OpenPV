@@ -204,7 +204,6 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 #endif
          {"PlasticCloneConn", ConnectionGroupType},
          {"PoolingConn", ConnectionGroupType},
-         {"SparseConn", ConnectionGroupType},
          {"TransposeConn", ConnectionGroupType},
          {"TransposePoolingConn", ConnectionGroupType},
 
