@@ -20,7 +20,7 @@ macro(pv_config_project)
   
   # Clang Compiler defaults
   set(CLANG_OPENMP_FLAG -fopenmp=libiomp5)
-  set(CLANG_OTHER_COMPILE_FLAGS "-Wno-c++11-extensions")
+  set(CLANG_CPP_11X_FLAGS "-Wno-c++11-extensions")
   set(CLANG_SANITIZE_ADDRESS_CXX_FLAGS "-g -fsanitize=address -fno-omit-frame-pointer")
   set(CLANG_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
   # Flag to pass in to NVCC (which in turn passes this on to clang) so that off_t is defined
@@ -29,7 +29,7 @@ macro(pv_config_project)
   
   # GCC compiler defaults
   set(GCC_OPENMP_FLAG "-fopenmp")
-  set(GCC_OTHER_COMPILE_FLAGS "-std=c++11")
+  set(GCC_CPP_11X_FLAGS "-std=c++11")
   set(GCC_SANITIZE_ADDRESS_CXX_FLAGS -g;-fsanitize=address;-fno-omit-frame-pointer)
   set(GCC_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
   set(GCC_RELEASE_FLAGS "")
@@ -82,10 +82,9 @@ macro(pv_config_project)
     # Clang detected
     set(PV_SANITIZE_ADDRESS_CXX_FLAGS "${CLANG_SANITIZE_ADDRESS_CXX_FLAGS}")
     set(PV_SANITIZE_ADDRESS_LINKER_FLAGS "${CLANG_SANITIZE_ADDRESS_LINKER_FLAGS}")
+    set(PV_CPP_11X_FLAGS ${CLANG_CPP_11X_FLAGS})
     list(APPEND PV_COMPILE_FLAGS_DEBUG ${CLANG_COMPILE_FLAGS_DEBUG})
     list(APPEND PV_COMPILE_FLAGS_RELEASE ${CLANG_COMPILE_FLAGS_RELEASE})
-    list(APPEND PV_COMPILE_FLAGS_DEBUG ${CLANG_OTHER_COMPILE_FLAGS})    
-    list(APPEND PV_COMPILE_FLAGS_RELEASE ${CLANG_OTHER_COMPILE_FLAGS})    
 
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "7.0")
       # Xcode detected
@@ -122,8 +121,7 @@ macro(pv_config_project)
     set(PV_COMPILE_FLAGS_DEBUG ${GCC_COMPILE_FLAGS_DEBUG})
     set(PV_COMPILE_FLAGS_RELEASE ${GCC_COMPILE_FLAGS_RELEASE})
     set(PV_LINK_LIBRARIES ${GCC_LINK_LIBRARIES})
-    list(APPEND PV_COMPILE_FLAGS_DEBUG ${GCC_OTHER_COMPILE_FLAGS})    
-    list(APPEND PV_COMPILE_FLAGS_RELEASE ${GCC_OTHER_COMPILE_FLAGS})    
+    set(PV_CPP_11X_FLAGS ${GCC_CPP_11X_FLAGS})
     
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.2")
       set(PV_USE_OPENMP ON CACHE BOOL "${PV_USE_OPENMP_HELP}")
