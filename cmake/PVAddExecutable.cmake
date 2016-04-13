@@ -49,9 +49,12 @@ macro(pv_add_executable TARGET)
   endif()
 
   if(PV_USE_CUDA AND CUDA_FOUND AND CUDNN_FOUND)
-    list(APPEND CMAKE_CXX_FLAGS ${PV_NVCC_FLAGS})
+    #list(APPEND CMAKE_CXX_FLAGS ${PV_NVCC_FLAGS})
     STRING(REGEX REPLACE ";" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    cuda_add_executable(${TARGET} ${PARSED_ARGS_SRC})
+    # It's hard to believe that this works. It's expected that we need
+    # cuda_add_executable to get a cuda enabled executable.
+    # This was changed for c++11 support. 
+    add_executable(${TARGET} ${PARSED_ARGS_SRC})
     target_link_libraries(${TARGET} ${CUDNN_LIBRARIES})
   else()
     # Add  PetaVision library target, no CUDA

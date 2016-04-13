@@ -45,7 +45,7 @@ void pv_assert_failed_message(const char *file, int line, const char *condition,
 
 /** Print a demangled stack backtrace of the caller function to FILE* out. */
 static inline void print_stacktrace(FILE *out = stderr, unsigned int max_frames = 63) {
-   fprintf(out, "stack trace:\n");
+   StackTrace() << "stack trace:" << std::endl;
 
    // storage array for stack trace address data
    void *addrlist[max_frames+1];
@@ -54,7 +54,7 @@ static inline void print_stacktrace(FILE *out = stderr, unsigned int max_frames 
    int addrlen = backtrace(addrlist, sizeof(addrlist) / sizeof(void*));
 
    if (addrlen == 0) {
-      fprintf(out, "  <empty, possibly corrupt>\n");
+      StackTrace() << "  <empty, possibly corrupt>" << std::endl;
       return;
    }
 
@@ -100,20 +100,18 @@ static inline void print_stacktrace(FILE *out = stderr, unsigned int max_frames 
                                          funcname, &funcnamesize, &status);
          if (status == 0) {
             funcname = ret; // use possibly realloc()-ed string
-            fprintf(out, "  %s : %s+%s\n",
-                    symbollist[i], funcname, begin_offset);
+            StackTrace() << "  " << symbollist[i] << " : " << funcname << "+" << begin_offset << std::endl;
          }
          else {
             // demangling failed. Output function name as a C function with
             // no arguments.
-            fprintf(out, "  %s : %s()+%s\n",
-                    symbollist[i], begin_name, begin_offset);
+            StackTrace() << "  " << symbollist[i] << " : " << begin_name << "+" << begin_offset << std::endl;
          }
       }
       else
       {
          // couldn't parse the line? print the whole line.
-         fprintf(out, "  %s\n", symbollist[i]);
+         StackTrace() << "  " << symbollist[i] << std::endl;
       }
    }
    

@@ -17,9 +17,11 @@ macro(pv_config_project)
   set(ICC_CXX "icpc")
   set(ICC_SANITIZE_ADDRESS_CXX_FLAGS "")
   set(ICC_SANITIZE_ADDRESS_EXE_LINKER_FLAGS "")
-  
+  set(ICC_CPP_11X_FLAGS "")
+
   # Clang Compiler defaults
-  set(CLANG_OPENMP_FLAG "-fopenmp=libiomp5")
+  set(CLANG_OPENMP_FLAG -fopenmp=libiomp5)
+  set(CLANG_CPP_11X_FLAGS "-std=c++11 -stdlib=libc++")
   set(CLANG_SANITIZE_ADDRESS_CXX_FLAGS "-g -fsanitize=address -fno-omit-frame-pointer")
   set(CLANG_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
   # Flag to pass in to NVCC (which in turn passes this on to clang) so that off_t is defined
@@ -28,6 +30,7 @@ macro(pv_config_project)
   
   # GCC compiler defaults
   set(GCC_OPENMP_FLAG "-fopenmp")
+  set(GCC_CPP_11X_FLAGS "-std=c++11")
   set(GCC_SANITIZE_ADDRESS_CXX_FLAGS -g;-fsanitize=address;-fno-omit-frame-pointer)
   set(GCC_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
   set(GCC_RELEASE_FLAGS "")
@@ -74,15 +77,17 @@ macro(pv_config_project)
     set(PV_SANITIZE_ADDRESS_LINKER_FLAGS "${ICC_SANITIZE_ADDRESS_LINKER_FLAGS}")
     set(PV_COMPILE_FLAGS_DEBUG ${ICC_DEBUG_FLAGS})
     set(PV_COMPILE_FLAGS_RELEASE ${ICC_RELEASE_FLAGS})
+    set(PV_CPP_11X_FLAGS ${ICC_CPP_11X_FLAGS})
     # NVCC isn't compatible with the Intel compiler
     set(PV_USE_CUDA OFF CACHE BOOL "${PV_USE_CUDA_HELP}")
   elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     # Clang detected
     set(PV_SANITIZE_ADDRESS_CXX_FLAGS "${CLANG_SANITIZE_ADDRESS_CXX_FLAGS}")
     set(PV_SANITIZE_ADDRESS_LINKER_FLAGS "${CLANG_SANITIZE_ADDRESS_LINKER_FLAGS}")
+    set(PV_CPP_11X_FLAGS ${CLANG_CPP_11X_FLAGS})
     list(APPEND PV_COMPILE_FLAGS_DEBUG ${CLANG_COMPILE_FLAGS_DEBUG})
     list(APPEND PV_COMPILE_FLAGS_RELEASE ${CLANG_COMPILE_FLAGS_RELEASE})
-    
+
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "7.0")
       # Xcode detected
       # Apple's Xcode clang compiler detected, which has a greater version number than
@@ -118,6 +123,7 @@ macro(pv_config_project)
     set(PV_COMPILE_FLAGS_DEBUG ${GCC_COMPILE_FLAGS_DEBUG})
     set(PV_COMPILE_FLAGS_RELEASE ${GCC_COMPILE_FLAGS_RELEASE})
     set(PV_LINK_LIBRARIES ${GCC_LINK_LIBRARIES})
+    set(PV_CPP_11X_FLAGS ${GCC_CPP_11X_FLAGS})
     
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.2")
       set(PV_USE_OPENMP ON CACHE BOOL "${PV_USE_OPENMP_HELP}")

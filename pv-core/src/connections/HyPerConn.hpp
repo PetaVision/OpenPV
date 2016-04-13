@@ -20,6 +20,8 @@
 #include "../utils/Timer.hpp"
 #include <stdlib.h>
 #include <vector>
+#include <stdlib.h>
+#include <set>
 
 #ifdef PV_USE_OPENCL
 #include "../arch/opencl/CLKernel.hpp"
@@ -35,6 +37,11 @@
 
 namespace PV {
 
+struct SparseWeightInfo {
+   unsigned long size;
+   pvwdata_t thresholdWeight;
+   float percentile;
+};
 
 //class HyPerCol;
 //class HyPerLayer;
@@ -358,6 +365,51 @@ private:
    long * postToPreActivity;
 
    bool needPost;
+
+   // All weights that are above the threshold
+   typedef pvwdata_t WeightType;
+   typedef std::vector<WeightType> WeightListType;
+   typedef std::vector<int> IndexListType;
+
+   // Percentage of weights that are ignored. Weight values must be above this threshold
+   // to be included in the calculation. Valid values are 0.0 - 1.0. But there's no
+   // point in setting this to 1.0.
+   float _weightSparsity;
+   // The output offset into the post layer for a weight
+   std::vector<int> _sparsePost;
+   // Start of sparse weight data in the _sparseWeight array, indexed by data patch
+   std::vector<int> _patchSparseWeightIndex;
+   // Number of sparse weights for a patch, indexed by data patch
+   std::vector<int> _patchSparseWeightCount;
+   // Have sparse weights been allocated for each arbor?
+   std::vector<bool> _sparseWeightsAllocated;
+
+   typedef std::map<const WeightType * const, const WeightListType> WeightPtrMapType;
+   typedef std::map<const WeightType * const, const IndexListType>  WeightIndexMapType;
+
+   // Map nk -> weight ptr -> sparse weights
+   typedef std::map<int, WeightPtrMapType> WeightMapType;
+   // Map nk -> weight ptr -> output index
+   typedef std::map<int, WeightIndexMapType> IndexMapType;
+
+   WeightMapType _sparseWeightValues;
+   IndexMapType _sparseWeightIndexes;
+   SparseWeightInfo _sparseWeightInfo;
+
+   std::set<int> _kPreExtWeightSparsified;
+
+   unsigned long _numDeliverCalls; // Number of times deliver has been called
+   unsigned long _allocateSparseWeightsFrequency; // Number of _numDeliverCalls that need to happen before the pre list needs to be rebuilt
+
+   // Allocate sparse weights when performing presynaptic delivery
+   void allocateSparseWeightsPre(PVLayerCube const *activity, int arbor);
+   // Allocate sparse weights when performing postsynaptic delivers
+   void allocateSparseWeightsPost(PVLayerCube const *activity, int arbor);
+   // Calculates the sparse weight threshold
+   SparseWeightInfo calculateSparseWeightInfo() const;
+   SparseWeightInfo findPercentileThreshold(float percentile, pvwdata_t **wDataStart, size_t numAxonalArborLists, size_t numPatches, size_t patchSize) const;
+   void deliverOnePreNeuronActivitySparseWeights(int kPreExt, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
+   void deliverOnePostNeuronActivitySparseWeights(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, taus_uint4 * rngPtr);
 
 
 protected:
@@ -810,6 +862,10 @@ protected:
     */
    virtual void ioParam_numFLocal(enum ParamsIOFlag ioFlag);
 
+   /**
+    * @brief weightSparsity: Specifies what percentage of weights will be ignored. Default is 0.0
+    */
+   virtual void ioParam_weightSparsity(enum ParamsIOFlag ioFlag);
 
    /** @} */
 
