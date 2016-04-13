@@ -105,6 +105,10 @@ bool ColumnEnergyProbe::needRecalc(double timevalue) {
    return true;
 }
 
+double ColumnEnergyProbe::referenceUpdateTime() const {
+   return parent->simulationTime();
+}
+
 int ColumnEnergyProbe::calcValues(double timevalue) {
    double * valuesBuffer = getValuesBuffer();
    int numValues = this->getNumValues();

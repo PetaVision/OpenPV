@@ -347,7 +347,7 @@ int BaseProbe::getValues(double timevalue) {
    if (needRecalc(timevalue)) {
       status = calcValues(timevalue);
       if (status == PV_SUCCESS) {
-         lastUpdateTime = timevalue;
+         lastUpdateTime = referenceUpdateTime();
       }
    }
    return status;

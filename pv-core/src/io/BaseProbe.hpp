@@ -1,5 +1,5 @@
 /*
- * BaseProbe.h
+ * BaseProbe.hpp
  *
  *      Author: slundquist
  */
@@ -219,6 +219,19 @@ protected:
     * Note that there is a single needRecalc that applies to all getNumValues() quantities.
     */
    virtual bool needRecalc(double timevalue) = 0;
+
+   /**
+    * A pure virtual method that should return the simulation time for the values that calcValues()
+    * would compute if it were called instead.  The reason that this time might be different from
+    * the simuluation time at which referenceUpdate was called, is that calcValues might be called
+    * either before or after the update of whatever object the probe is attached to.
+    *
+    * The getValues() method calls this function after calling calcValues(),
+    * and stores the result in the lastUpdateTime member variable.  Typically, the implementation
+    * of needRecalc() will return true if lastUpdateTime is less than the value returned by
+    * referenceUpdateTime, and false otherwise.
+    */
+   virtual double referenceUpdateTime() const = 0;
 
    /**
     * A pure virtual method to calculate the values of the probe.  calcValues() can

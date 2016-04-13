@@ -81,4 +81,8 @@ bool LayerProbe::needRecalc(double timevalue) {
    return this->getLastUpdateTime() < targetLayer->getLastUpdateTime();
 }
 
+double LayerProbe::referenceUpdateTime() const {
+   return targetLayer->getLastUpdateTime();
+}
+
 } // namespace PV

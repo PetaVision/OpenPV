@@ -213,6 +213,14 @@ int LocalizationProbe::communicateInitInfo() {
                   getKeyword(), name, nf);
          }
       }
+      if (displayCategoryIndexEnd > nf) {
+         if (parent->globalRank()==0) {
+            fprintf(stderr, "%s \"%s\": displayCategoryIndexEnd=%d cannot be greater than nf=%d.\n",
+                  getKeyword(), name, displayCategoryIndexEnd, nf);
+         }
+         MPI_Barrier(parent->icCommunicator()->globalCommunicator());
+         exit(EXIT_FAILURE);
+      }
       numDisplayedCategories = displayCategoryIndexEnd - displayCategoryIndexStart + 1;
       if (parent->globalRank()==0) {
          fflush(stdout);
@@ -746,7 +754,8 @@ int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, in
    for (int n=0; n<nxy; n++) {
       int nExt = kIndexExtended(n*loc->nf, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
       for (int idx=0; idx<numDisplayedCategories; idx++) {
-         int f = displayedCategories[idx];
+         int const category = displayedCategories[idx];
+         int const f = category-1; // category is 1-indexed; f is zero-indexed.
          pvadata_t const a = targetLayer->getLayerData()[nExt+f];
          if (a>maxVal) {
             maxVal = a;
@@ -1057,20 +1066,14 @@ int LocalizationProbe::makeMontage() {
 
          // Draw labels and confidences
          char confidenceText[16];
-         if (highlightingSomewhere) {
-            int slen = snprintf(confidenceText, 16, "%.1f", 100*maxConfByCategory[f]);
-            if (slen >= 16) {
-               fflush(stdout);
-               fprintf(stderr, "Formatted text for confidence %f of %d is too long.\n", maxConfByCategory[f], f);
-               exit(EXIT_FAILURE);
-            }
-         }
-         else {
-            int slen = snprintf(confidenceText, 16, "-");
-            assert(slen < 16);
+         int slen = snprintf(confidenceText, 16, "%.1f", 100*maxConfByCategory[f]);
+         if (slen >= 16) {
+            fflush(stdout);
+            fprintf(stderr, "Formatted text for confidence %f of %d is too long.\n", maxConfByCategory[f], f);
+            exit(EXIT_FAILURE);
          }
          char const * textColor = NULL;
-         if (f==winningFeature) {
+         if (f==winningFeature && maxConfidence > 0.0) {
             char labelFilename[PV_PATH_MAX];
             int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, f+1);
             assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.

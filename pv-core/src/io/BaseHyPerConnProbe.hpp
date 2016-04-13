@@ -25,7 +25,12 @@ public:
 protected:
    BaseHyPerConnProbe();
    int initialize(const char * probeName, HyPerCol * hc);
-   bool needRecalc(double timevalue);
+   virtual bool needRecalc(double timevalue);
+
+   /**
+    * Implements the referenceUpdateTime method.  Returns the last update time of the target HyPerConn.
+    */
+   virtual double referenceUpdateTime() const;
 
 private:
    int initialize_base();

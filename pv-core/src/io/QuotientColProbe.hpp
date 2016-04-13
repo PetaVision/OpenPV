@@ -101,6 +101,8 @@ protected:
    
    virtual bool needRecalc(double timevalue) { return true; }
    
+   virtual double referenceUpdateTime() const;
+
    /**                                                                             
     * Implements the needRecalc method.  Always returns true, in the expectation
     * that the hard work is done by the probes in the numerator and denominator. 

@@ -65,6 +65,12 @@ protected:
     */
    virtual bool needRecalc(double timevalue);
 
+   /**
+    * Implements the referenceUpdateTime method.  Returns the last update time of the target layer.
+    */
+   virtual double referenceUpdateTime() const;
+
+
 private:
    int initialize_base();
    int setTargetLayer(const char * layerName);

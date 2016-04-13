@@ -45,6 +45,10 @@ bool BaseHyPerConnProbe::needRecalc(double timevalue) {
    return this->getLastUpdateTime() < targetHyPerConn->getLastUpdateTime();
 }
 
+double BaseHyPerConnProbe::referenceUpdateTime() const {
+   return targetHyPerConn->getLastUpdateTime();
+}
+
 BaseHyPerConnProbe::~BaseHyPerConnProbe() {
 }
 
