@@ -20,7 +20,7 @@ macro(pv_config_project)
   
   # Clang Compiler defaults
   set(CLANG_OPENMP_FLAG -fopenmp=libiomp5)
-  set(CLANG_CPP_11X_FLAGS "-Wno-c++11-extensions")
+  set(CLANG_CPP_11X_FLAGS "-std=c++11")
   set(CLANG_SANITIZE_ADDRESS_CXX_FLAGS "-g -fsanitize=address -fno-omit-frame-pointer")
   set(CLANG_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
   # Flag to pass in to NVCC (which in turn passes this on to clang) so that off_t is defined
