@@ -18,6 +18,7 @@
 #include <iostream>
 #include <cmath>
 #include <limits>
+#include <algorithm>
 
 #include "layers/accumulate_functions.h"
 #include "weightinit/InitWeights.hpp"

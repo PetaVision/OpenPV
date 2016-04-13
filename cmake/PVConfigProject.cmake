@@ -29,6 +29,7 @@ macro(pv_config_project)
   
   # GCC compiler defaults
   set(GCC_OPENMP_FLAG "-fopenmp")
+  set(GCC_OTHER_COMPILE_FLAGS "-std=c++11")
   set(GCC_SANITIZE_ADDRESS_CXX_FLAGS -g;-fsanitize=address;-fno-omit-frame-pointer)
   set(GCC_SANITIZE_ADDRESS_LINKER_FLAGS -g;-fsanitize=address)
   set(GCC_RELEASE_FLAGS "")
@@ -121,6 +122,8 @@ macro(pv_config_project)
     set(PV_COMPILE_FLAGS_DEBUG ${GCC_COMPILE_FLAGS_DEBUG})
     set(PV_COMPILE_FLAGS_RELEASE ${GCC_COMPILE_FLAGS_RELEASE})
     set(PV_LINK_LIBRARIES ${GCC_LINK_LIBRARIES})
+    list(APPEND PV_COMPILE_FLAGS_DEBUG ${GCC_OTHER_COMPILE_FLAGS})    
+    list(APPEND PV_COMPILE_FLAGS_RELEASE ${GCC_OTHER_COMPILE_FLAGS})    
     
     if (${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER "4.2")
       set(PV_USE_OPENMP ON CACHE BOOL "${PV_USE_OPENMP_HELP}")
