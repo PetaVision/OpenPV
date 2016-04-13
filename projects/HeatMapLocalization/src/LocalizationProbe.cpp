@@ -213,6 +213,14 @@ int LocalizationProbe::communicateInitInfo() {
                   getKeyword(), name, nf);
          }
       }
+      if (displayCategoryIndexEnd > nf) {
+         if (parent->globalRank()==0) {
+            fprintf(stderr, "%s \"%s\": displayCategoryIndexEnd=%d cannot be greater than nf=%d.\n",
+                  getKeyword(), name, displayCategoryIndexEnd, nf);
+         }
+         MPI_Barrier(parent->icCommunicator()->globalCommunicator());
+         exit(EXIT_FAILURE);
+      }
       numDisplayedCategories = displayCategoryIndexEnd - displayCategoryIndexStart + 1;
       if (parent->globalRank()==0) {
          fflush(stdout);
@@ -1065,7 +1073,7 @@ int LocalizationProbe::makeMontage() {
             exit(EXIT_FAILURE);
          }
          char const * textColor = NULL;
-         if (f==winningFeature) {
+         if (f==winningFeature && maxConfidence > 0.0) {
             char labelFilename[PV_PATH_MAX];
             int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, f+1);
             assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
