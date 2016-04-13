@@ -746,7 +746,8 @@ int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, in
    for (int n=0; n<nxy; n++) {
       int nExt = kIndexExtended(n*loc->nf, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
       for (int idx=0; idx<numDisplayedCategories; idx++) {
-         int f = displayedCategories[idx];
+         int const category = displayedCategories[idx];
+         int const f = category-1; // category is 1-indexed; f is zero-indexed.
          pvadata_t const a = targetLayer->getLayerData()[nExt+f];
          if (a>maxVal) {
             maxVal = a;
