@@ -1057,17 +1057,11 @@ int LocalizationProbe::makeMontage() {
 
          // Draw labels and confidences
          char confidenceText[16];
-         if (highlightingSomewhere) {
-            int slen = snprintf(confidenceText, 16, "%.1f", 100*maxConfByCategory[f]);
-            if (slen >= 16) {
-               fflush(stdout);
-               fprintf(stderr, "Formatted text for confidence %f of %d is too long.\n", maxConfByCategory[f], f);
-               exit(EXIT_FAILURE);
-            }
-         }
-         else {
-            int slen = snprintf(confidenceText, 16, "-");
-            assert(slen < 16);
+         int slen = snprintf(confidenceText, 16, "%.1f", 100*maxConfByCategory[f]);
+         if (slen >= 16) {
+            fflush(stdout);
+            fprintf(stderr, "Formatted text for confidence %f of %d is too long.\n", maxConfByCategory[f], f);
+            exit(EXIT_FAILURE);
          }
          char const * textColor = NULL;
          if (f==winningFeature) {
