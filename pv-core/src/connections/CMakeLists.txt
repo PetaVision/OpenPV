@@ -13,7 +13,6 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/PlasticCloneConn.cpp
    ${SUBDIR}/PoolingConn.cpp
    ${SUBDIR}/privateTransposeConn.cpp
-   ${SUBDIR}/SparseConn.cpp
    ${SUBDIR}/TransposeConn.cpp
    ${SUBDIR}/TransposePoolingConn.cpp
 )
@@ -33,7 +32,6 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PlasticCloneConn.hpp
    ${SUBDIR}/PoolingConn.hpp
    ${SUBDIR}/privateTransposeConn.hpp
-   ${SUBDIR}/SparseConn.hpp
    ${SUBDIR}/TransposeConn.hpp
    ${SUBDIR}/TransposePoolingConn.hpp
    ${SUBDIR}/weight_conversions.hpp

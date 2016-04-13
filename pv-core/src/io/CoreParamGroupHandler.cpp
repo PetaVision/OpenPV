@@ -67,7 +67,6 @@
 #include "../connections/IdentConn.hpp"
 #include "../connections/ImprintConn.hpp"
 #include "../connections/KernelConn.hpp"
-#include "../connections/SparseConn.hpp"
 #ifdef OBSOLETE // Marked obsolete June 29, 2015. Moved to obsolete/connections
 #include "../connections/LCALIFLateralConn.hpp"
 #endif // OBSOLETE 
@@ -510,9 +509,6 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
    }
    else if( !strcmp(keyword, "PoolingConn") ) {
       addedConnection = new PoolingConn(name, hc);
-   }
-   else if( !strcmp(keyword, "SparseConn") ) {
-      addedConnection = new SparseConn(name, hc);
    }
    else if( !strcmp(keyword, "TransposeConn") ) {
       addedConnection = new TransposeConn(name, hc);
