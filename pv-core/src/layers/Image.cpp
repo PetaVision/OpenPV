@@ -641,7 +641,7 @@ void Image::equalBandWeights(int numBands, float * bandweight) {
 #else // PV_USE_GDAL
 Image::Image(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
-      fprintf(stderr, "%s \"%s\": Image class requires compiling with PV_USE_GDAL set\n", getKeyword(), name);
+      fprintf(stderr, "Image \"%s\": Image class requires compiling with PV_USE_GDAL set\n", name);
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

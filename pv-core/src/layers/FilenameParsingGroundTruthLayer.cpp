@@ -160,7 +160,7 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt)
 FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer(const char * name, HyPerCol * hc)
 {
    if (hc->columnId()==0) {
-      fprintf(stderr, "%s \"%s\": FilenameParsingGroundTruthLayer class requires compiling with PV_USE_GDAL set\n", getKeyword(), name);
+      fprintf(stderr, "FilenameParsingGroundTruthLayer \"%s\": FilenameParsingGroundTruthLayer class requires compiling with PV_USE_GDAL set\n", name);
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

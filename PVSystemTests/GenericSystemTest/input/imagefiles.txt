@@ -1,4 +1,0 @@
-input/1.png
-input/2.png
-input/3.png
-input/4.png

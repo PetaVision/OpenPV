@@ -4,6 +4,7 @@ HyPerCol "column" = {
     startTime                           = 0;
     dt                                  = 1;
     dtAdaptFlag                         = false;
+    dtAdaptController                   = NULL;
     stopTime                            = 10;
     progressInterval                    = 10;
     writeProgressToErr                  = false;
@@ -13,6 +14,7 @@ HyPerCol "column" = {
     randomSeed                          = 1538299561;
     nx                                  = 32;
     ny                                  = 32;
+    nbatch                              = 1;
     filenamesContainLayerNames          = 0;
     filenamesContainConnectionNames     = 0;
     initializeFromCheckpointDir         = "";
@@ -21,7 +23,7 @@ HyPerCol "column" = {
     errorOnNotANumber                   = true;
 };
 
-Image "Input" = {
+ImagePvp "Input" = {
     nxScale                             = 1;
     nyScale                             = 1;
     nf                                  = 1;
@@ -32,7 +34,7 @@ Image "Input" = {
     sparseLayer                         = false;
     updateGpu                           = false;
     dataType                            = NULL;
-    inputPath                           = "input/sampleimage.png";
+    inputPath                           = "input/sampleimage.pvp";
     offsetAnchor                        = "tl";
     offsetX                             = 0;
     offsetY                             = 0;
@@ -43,6 +45,7 @@ Image "Input" = {
     normalizeLuminanceFlag              = false;
     jitterFlag                          = 0;
     padValue                            = 0;
+    pvpFrameIdx                         = 0;
 };
 
 ANNLayer "OriginalConn Output" = {
@@ -132,11 +135,6 @@ HyPerConn "OriginalConn" = {
     minSumTolerated                     = 0;
     dWMax                               = 1;
     useMask                             = false;
-    gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
 };
 
 CopyConn "CopyConn" = {
@@ -153,7 +151,6 @@ CopyConn "CopyConn" = {
     writeCompressedWeights              = false;
     writeCompressedCheckpoints          = false;
     selfFlag                            = false;
-    combine_dW_with_W_flag              = false;
     shrinkPatches                       = false;
     normalizeMethod                     = "normalizeSum";
     strength                            = 2;
@@ -168,10 +165,5 @@ CopyConn "CopyConn" = {
     minSumTolerated                     = 0;
     dWMax                               = 1;
     useMask                             = false;
-    gpuGroupIdx                         = 0;
-    preDataLocal                        = false;
-    numXLocal                           = 0;
-    numYLocal                           = 0;
-    numFLocal                           = 0;
     originalConnName                    = "OriginalConn";
 };
