@@ -82,7 +82,6 @@ add_subdirectory(ResetStateOnTriggerTest)
 add_subdirectory(SegmentTest)
 add_subdirectory(ShrunkenPatchTest)
 add_subdirectory(ShrunkenPatchFlagTest)
-add_subdirectory(SparseConnTest)
 add_subdirectory(StochasticReleaseTest)
 
 #TODO reimplement sumpooltest
