@@ -63,6 +63,7 @@ int buildandrun1paramset(PV_Init* initObj,
                          int (*customexit)(HyPerCol *, int, char **),
                          ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
 
+// Deprecated April 14, 2016, in favor of using the dryRunFlag in PV_Arguments and the -n flag on the command line.
 int outputParams(int argc, char * argv[], char const * path, ParamGroupHandler ** groupHandlerList, int numGroupHandlers);
 
 HyPerCol * build(PV_Init * initObj,

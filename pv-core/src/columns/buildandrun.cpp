@@ -281,7 +281,9 @@ int buildandrun1paramset(PV_Init * initObj,
    return status;
 }
 
+// Deprecated April 14, 2016.
 int outputParams(int argc, char * argv[], char const * path, ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
+   printf("\nWarning: outputParams is deprecated.  Instead use the -n option on the command line or the dryRunFlag in PV_Arguments.\n\n");
    PV::PV_Init * initObj = new PV::PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
    initObj->initialize();
    if (initObj->isExtraProc()) { return EXIT_SUCCESS; }

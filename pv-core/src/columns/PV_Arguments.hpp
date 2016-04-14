@@ -75,13 +75,13 @@ public:
     * Returns the string passed as argv[0] to the constructor,
     * typically the name of the program being run.
     */
-   char const * getProgramName() { return args ? args[0] : NULL; }
+   char const * getProgramName() const { return args ? args[0] : NULL; }
 
    /**
     * getArgument(i) returns the string passed as argv[i] to the constructor.
     * If i is out of bounds, returns null.
     */
-   char const * getArgument(int i) { return (i>=0 && i<numArgs) ? args[i] : NULL; }
+   char const * getArgument(int i) const { return (i>=0 && i<numArgs) ? args[i] : NULL; }
 
    /**
     * Returns a read-only pointer to the args array.
@@ -89,7 +89,7 @@ public:
     * this method does not provide a way to modify the args array.
     */
 
-   char const * const * getArgsConst() { return args; }
+   char const * const * getArgsConst() const { return args; }
    /**
     * Returns a copy of the args array.  It uses malloc and strdup, so the caller
     * is responsible for freeing getArgs()[k] for each k and for freeing getArgs()
@@ -97,7 +97,7 @@ public:
     * static method PV_Argument::freeArgs)
     * The length of the returned array is argc+1, and getArgs()[argc] is NULL.
     */
-   char ** getArgsCopy();
+   char ** getArgsCopy() const;
 
    /**
     * Deallocates an array, assuming it was created by a call to getArgs().
@@ -108,82 +108,82 @@ public:
    /**
     * Returns the length of the array returned by getUnusedArgArray(); i.e. the argc argument passed to the constructor.
     */
-   int getNumArgs() { return numArgs; }
+   int getNumArgs() const { return numArgs; }
 
    /**
     * Returns true if the require-return flag was set.
     */
-   bool getRequireReturnFlag() { return requireReturnFlag; }
+   bool getRequireReturnFlag() const { return requireReturnFlag; }
 
    /**
     * Returns the output path string.
     */
-   char const * getOutputPath() { return outputPath; }
+   char const * getOutputPath() const { return outputPath; }
 
    /**
     * Returns the params file string.
     */
-   char const * getParamsFile() { return paramsFile; }
+   char const * getParamsFile() const { return paramsFile; }
 
    /**
     * Returns the log file string.
     */
-   char const * getLogFile() { return logFile; }
+   char const * getLogFile() const { return logFile; }
 
    /**
     * Returns the gpu devices string.
     */
-   char const * getGPUDevices() { return gpuDevices; }
+   char const * getGPUDevices() const { return gpuDevices; }
 
    /**
     * Returns the random seed.
     */
-   unsigned int getRandomSeed() { return randomSeed; }
+   unsigned int getRandomSeed() const { return randomSeed; }
 
    /**
     * Returns the working directory string.
     */
-   char const * getWorkingDir() { return workingDir; }
+   char const * getWorkingDir() const { return workingDir; }
 
    /**
     * Returns true if the restart flag was set.
     */
-   bool getRestartFlag() { return restartFlag; }
+   bool getRestartFlag() const { return restartFlag; }
 
    /**
     * Returns the checkpointRead directory string.
     */
-   char const * getCheckpointReadDir() { return checkpointReadDir; }
+   char const * getCheckpointReadDir() const { return checkpointReadDir; }
 
    /**
     * Returns the useDefaultNumThreads flag.
     */
-   bool getUseDefaultNumThreads() { return useDefaultNumThreads; }
+   bool getUseDefaultNumThreads() const { return useDefaultNumThreads; }
 
    /**
     * Returns the number of threads.
     */
-   int getNumThreads() { return numThreads; }
+   int getNumThreads() const { return numThreads; }
 
    /**
     * Returns the number of rows.
     */
-   int getNumRows() { return numRows; }
+   int getNumRows() const { return numRows; }
 
    /**
     * Returns the number of columns.
     */
-   int getNumColumns() { return numColumns; }
+   int getNumColumns() const { return numColumns; }
 
    /**
     * Returns the batch width.
     */
-   int getBatchWidth() { return batchWidth; }
+   int getBatchWidth() const { return batchWidth; }
 
    /**
     * Returns true if the dry-run flag was set.
     */
-   bool getDryRunFlag() { return dryRunFlag; }
+   bool getDryRunFlag() const { return dryRunFlag; }
 
    /**
     * Sets the value of the require-return flag.

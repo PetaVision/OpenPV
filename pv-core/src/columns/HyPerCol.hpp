@@ -485,10 +485,19 @@ private:
    int writeTimers(FILE* stream);
 
    int outputParams(char const * path);
+   int outputParamsHeadComments(FILE* fp, char const * commentToken);
 
    double* adaptTimeScale();
    double* adaptTimeScaleExp1stOrder();
    int calcTimeScaleTrue();
+
+   /**
+    * Sets the numThreads member variable based on whether PV_USE_OPENMP is set
+    * and the -t option in the PV_Arguments object.
+    * If printMessagesFlag is true, it may print to stdout and stderr.
+    * If printMessagesFlag is false, these messages are suppressed.
+    */
+   int setNumThreads(bool printMessagesFlag);
 
    long int currentStep;
    long int initialStep;
