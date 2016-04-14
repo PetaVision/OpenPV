@@ -391,4 +391,7 @@ namespace PVsound {
         
     }
     
+    PV::BasePVObject * createNewCochlearLayer(char const * name, PV::HyPerCol * hc) {
+        return hc ? new NewCochlearLayer(name, hc) : NULL;
+    }
 }  // end namespace PVsound

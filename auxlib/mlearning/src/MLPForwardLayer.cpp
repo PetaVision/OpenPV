@@ -149,7 +149,11 @@ int MLPForwardLayer::updateState(double time, double dt)
    return PV_SUCCESS;
 }
 
-} /* namespace PV */
+PV::BasePVObject * createMLPForwardLayer(char const * name, PV::HyPerCol * hc) { 
+   return hc ? new MLPForwardLayer(name, hc) : NULL;
+}
+
+} /* namespace PVMLearning */
 
 
 //#ifdef __cplusplus

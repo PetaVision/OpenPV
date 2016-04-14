@@ -34,4 +34,6 @@ private:
 
 };
 
+PV::BasePVObject * createSoundProbe(char const * name, PV::HyPerCol * hc);
+
 #endif // SOUNDPROBE_HPP_

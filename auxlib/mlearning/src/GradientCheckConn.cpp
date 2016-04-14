@@ -290,9 +290,9 @@ float GradientCheckConn::getLogErrCost(){
    return -sumcost;
 }
 
+PV::BasePVObject * createGradientCheckConn(char const * name, PV::HyPerCol * hc) {
+   return hc ? new GradientCheckConn(name, hc) : NULL;
+}
 
 
-
-
-
-}  // end of namespace PV block
+}  // end of namespace PVMLearning block

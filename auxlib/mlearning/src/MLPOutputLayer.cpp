@@ -389,4 +389,8 @@ int MLPOutputLayer::updateState(double timef, double dt) {
    return PV_SUCCESS;
 }
 
+PV::BasePVObject * createMLPOutputLayer(char const * name, PV::HyPerCol * hc) { 
+   return hc ? new MLPOutputLayer(name, hc) : NULL;
 }
+
+}  // end namespace PVMLearning

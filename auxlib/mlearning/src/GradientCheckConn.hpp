@@ -45,9 +45,11 @@ private:
    float epsilon;
    long prevIdx;
    float prevWeightVal;
-};
+}; // end of class GradientCheckConn
 
-}  // end of block for namespace PV
+PV::BasePVObject * createGradientCheckConn(char const * name, PV::HyPerCol * hc);
+
+}  // end of block for namespace PVMLearning
 
 
-#endif /* IDENTCONN_HPP_ */
+#endif /* GRADIENTCHECKCONN_HPP_ */

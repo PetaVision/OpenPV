@@ -60,4 +60,6 @@ private:
 
 }; // end of class inverseCochlearLayer
 
+PV::BasePVObject * create_inverseCochlearLayer(char const * name, PV::HyPerCol * hc);
+
 #endif /* INVERSECOCHLEARLAYER_HPP_ */

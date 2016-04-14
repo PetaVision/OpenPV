@@ -280,7 +280,11 @@ int MLPErrorLayer::updateState(double time, double dt)
    return PV_SUCCESS;
 }
 
-} /* namespace PV */
+PV::BasePVObject * createMLPErrorLayer(char const * name, PV::HyPerCol * hc) { 
+   return hc ? new MLPErrorLayer(name, hc) : NULL;
+}
+
+} /* namespace PVMLearning */
 
 
 //#ifdef __cplusplus
