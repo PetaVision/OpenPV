@@ -55,5 +55,9 @@ MovieTestLayer::MovieTestLayer(const char * name, HyPerCol * hc) {
 }
 #endif // PV_USE_GDAL
 
+BasePVObject * createMovieTestLayer(char const * name, HyPerCol * hc) {
+   return hc ? new MovieTestLayer(name, hc) : NULL;
+}
+
 }  // end namespace PV
 

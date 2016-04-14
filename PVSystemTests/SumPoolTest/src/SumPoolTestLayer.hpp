@@ -15,7 +15,10 @@ protected:
    int updateState(double timef, double dt);
 
 private:
-};
+}; // end class SumPoolTestLayer
+
+
+BasePVObject * createSumPoolTestLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif

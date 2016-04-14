@@ -21,37 +21,36 @@ int main(int argc, char * argv[]) {
 
    int status = PV_SUCCESS;
 
-   PV::PV_Init * pv_obj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   assert(pv_obj);
+   PV::PV_Init pv_obj(&argc, &argv, false/*allowUnrecognizedArguments*/);
 
-   status = pv_obj->initialize();
+   status = pv_obj.initialize();
    if (status != PV_SUCCESS) {
       fflush(stdout);
       fprintf(stderr, "%s: PV_Init::initialize() failed on process with PID=%d\n", argv[0], getpid()); 
       exit(EXIT_FAILURE);
    }
 
-   PV::PV_Arguments * pv_arguments = pv_obj->getArguments();
+   PV::PV_Arguments * pv_arguments = pv_obj.getArguments();
 
    pv_arguments->setDryRunFlag(true);
 
    if (pv_arguments->getParamsFile()==NULL) {
       pv_arguments->setParamsFile("input/DryRunFlagTest.params");
-      pv_obj->setParams(pv_arguments->getParamsFile());
+      pv_obj.setParams(pv_arguments->getParamsFile());
    }
 
-   if (pv_obj->isExtraProc()) { return EXIT_SUCCESS; }
+   if (pv_obj.isExtraProc()) { return EXIT_SUCCESS; }
 
-   int rank = pv_obj->getComm()->globalCommRank();
+   int rank = pv_obj.getComm()->globalCommRank();
 
-   status = deleteGeneratedFiles(pv_obj);
+   status = deleteGeneratedFiles(&pv_obj);
    if (status!=PV_SUCCESS) {
       fflush(stdout);
       fprintf(stderr, "%s: error cleaning generated files from any previous run.\n", argv[0]);
       exit(EXIT_FAILURE);
    }
 
-   status = rebuildandrun(pv_obj, NULL, checkDryRunSet, (ParamGroupHandler **) NULL, 0);
+   status = rebuildandrun(&pv_obj, NULL, checkDryRunSet);
 
    if (status!=PV_SUCCESS) {
       fflush(stdout);
@@ -62,7 +61,7 @@ int main(int argc, char * argv[]) {
    // Re-run, without the dry-run flag.
    pv_arguments->setDryRunFlag(false);
    pv_arguments->setOutputPath("output-generate");
-   status = rebuildandrun(pv_obj, NULL, checkDryRunCleared, (ParamGroupHandler **) NULL, 0);
+   status = rebuildandrun(&pv_obj, NULL, checkDryRunCleared);
    if (status != PV_SUCCESS) {
       fflush(stdout);
       fprintf(stderr, "%s: running with dry-run flag cleared failed on process %d\n", argv[0], rank);
@@ -72,7 +71,7 @@ int main(int argc, char * argv[]) {
    // Run the column with the cleaned-up params file, sending output to directory "output-verify/"
    pv_arguments->setOutputPath("output-verify");
    pv_arguments->setParamsFile("output/pv.params");
-   status = rebuildandrun(pv_obj, NULL, checkDryRunCleared, (ParamGroupHandler **) NULL, 0);
+   status = rebuildandrun(&pv_obj, NULL, checkDryRunCleared);
    if (status != PV_SUCCESS) {
       fflush(stdout);
       fprintf(stderr, "%s: running with processed params file failed on process %d\n", argv[0], rank);
@@ -88,7 +87,6 @@ int main(int argc, char * argv[]) {
       }
    }
 
-   delete pv_obj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

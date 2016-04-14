@@ -20,31 +20,24 @@
 #include <io/io.h>
 #include <arch/mpi/mpi.h>
 
-int runKernelActivationTest(PV_Init* initObj);
 int dumpweights(HyPerCol * hc, int argc, char * argv[]);
 int dumponeweight(HyPerConn * conn);
 
 int main(int argc, char * argv[]) {
    int status;
-   PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   PV_Arguments * arguments = initObj->getArguments();
-   if (arguments->getParamsFile()==NULL) {
-      arguments->setParamsFile("input/KernelActivationTest-fullData.params");
-      status = runKernelActivationTest(initObj);
+   PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   PV_Arguments * arguments = initObj.getArguments();
+   if (initObj.getParams()==NULL) {
+      initObj.setParams("input/KernelActivationTest-fullData.params");
+      status = buildandrun(&initObj);
       if (status==PV_SUCCESS) {
          arguments->setParamsFile("input/KernelActivationTest-maskData.params");
-         status = runKernelActivationTest(initObj);
+         status = rebuildandrun(&initObj);
       }
    }
    else {
-      status = runKernelActivationTest(initObj);
+      status = buildandrun(&initObj);
    }
-   delete initObj;
-   return status;
-}
-
-int runKernelActivationTest(PV_Init* initObj) {
-   int status = rebuildandrun(initObj, NULL, &dumpweights, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
    return status;
 }
 

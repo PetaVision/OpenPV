@@ -73,6 +73,8 @@ int VaryingHyPerConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag)
    return 0;
 }
 
+BasePVObject * createVaryingHyPerConn(char const * name, HyPerCol * hc) {
+   return hc ? new VaryingHyPerConn(name, hc) : NULL;
+}
+
 }  // end of namespace PV block
-
-

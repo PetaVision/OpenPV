@@ -168,4 +168,8 @@ StochasticReleaseTestProbe::~StochasticReleaseTestProbe() {
    free(pvalues);
 }
 
+BasePVObject * createStochasticReleaseTestProbe(char const * name, HyPerCol * hc) {
+   return hc ? new StochasticReleaseTestProbe(name, hc) : NULL;
+}
+
 } /* namespace PV */

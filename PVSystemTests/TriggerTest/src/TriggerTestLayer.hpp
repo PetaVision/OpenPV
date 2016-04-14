@@ -16,5 +16,7 @@ public:
    int virtual updateStateWrapper (double time, double dt);
 };
 
+BasePVObject * createTriggerTestLayer(char const * name, HyPerCol * hc);
+
 }
 #endif /* IMAGETESTPROBE_HPP */

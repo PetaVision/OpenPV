@@ -21,7 +21,7 @@ int testcheckpoint(PV_Init* initObj, int rank);
 int testioparams(PV_Init* initObj, int rank);
 
 int main(int argc, char * argv[]) {
-   PV_Init* initObj = new PV_Init(&argc, &argv, true/*allowUnrecognizedArguments*/);
+   PV_Init initObj(&argc, &argv, true/*allowUnrecognizedArguments*/);
    // argv has to allow --generate, --testrun, etc.
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -79,39 +79,37 @@ int main(int argc, char * argv[]) {
 
    int status = PV_SUCCESS;
    if (status==PV_SUCCESS && generateFlag) {
-      if (generate(initObj, rank)!=PV_SUCCESS) {
+      if (generate(&initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            fprintf(stderr, "%s: generate failed.\n", initObj->getArguments()->getProgramName());
+            fprintf(stderr, "%s: generate failed.\n", initObj.getArguments()->getProgramName());
          }
       }
    }
    if (status==PV_SUCCESS && testrunFlag) {
-      if (testrun(initObj, rank)!=PV_SUCCESS) {
+      if (testrun(&initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            fprintf(stderr, "%s: testrun failed.\n", initObj->getArguments()->getProgramName());
+            fprintf(stderr, "%s: testrun failed.\n", initObj.getArguments()->getProgramName());
          }
       }
    }
    if (status==PV_SUCCESS && testcheckpointFlag) {
-      if (testcheckpoint(initObj, rank)!=PV_SUCCESS) {
+      if (testcheckpoint(&initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            fprintf(stderr, "%s: testcheckpoint failed.\n", initObj->getArguments()->getProgramName());
+            fprintf(stderr, "%s: testcheckpoint failed.\n", initObj.getArguments()->getProgramName());
          }
       }
    }
    if (status==PV_SUCCESS && testioparamsFlag) {
-      if (testioparams(initObj, rank)!=PV_SUCCESS) {
+      if (testioparams(&initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            fprintf(stderr, "%s: testioparams failed.\n", initObj->getArguments()->getProgramName());
+            fprintf(stderr, "%s: testioparams failed.\n", initObj.getArguments()->getProgramName());
          }
       }
    }
-
-   delete initObj;
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -137,7 +135,7 @@ int generate(PV_Init* initObj, int rank) {
       }
       PV_fclose(emptyinfile);
    }
-   int status = rebuildandrun(initObj, NULL, &copyCorrectOutput, NULL, 0);
+   int status = rebuildandrun(initObj, NULL, &copyCorrectOutput);
    return status;
 }
 
@@ -186,7 +184,7 @@ int testrun(PV_Init * initObj, int rank) {
       printf("%s --testrun running PetaVision with arguments\n", arguments->getProgramName());
       arguments->printState();
    }
-   int status = rebuildandrun(initObj, NULL, &assertAllZeroes, NULL, 0);
+   int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
    return status;
 }
 
@@ -206,7 +204,7 @@ int testcheckpoint(PV_Init * initObj, int rank) {
       printf("%s --testcheckpoint running PetaVision with arguments\n", arguments->getProgramName());
       arguments->printState();
    }
-   int status = rebuildandrun(initObj, NULL, &assertAllZeroes, NULL, 0);
+   int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
    return status;
 }
 
@@ -217,7 +215,7 @@ int testioparams(PV_Init* initObj, int rank) {
    arguments->setRestartFlag(false);
    arguments->setCheckpointReadDir(NULL);
    initObj->initialize();
-   HyPerCol * hc = build(initObj, NULL, 0);
+   HyPerCol * hc = build(initObj);
    if (hc == NULL) {
       fprintf(stderr, "testioparams error: unable to build HyPerCol.\n");
       exit(EXIT_FAILURE);
@@ -241,7 +239,7 @@ int testioparams(PV_Init* initObj, int rank) {
       printf("%s --testioparams running PetaVision with arguments\n", arguments->getProgramName());
       arguments->printState();
    }
-   status = rebuildandrun(initObj, NULL, &assertAllZeroes, NULL, 0);
+   status = rebuildandrun(initObj, NULL, &assertAllZeroes);
    return status;
 }
 

@@ -140,4 +140,8 @@ ShrunkenPatchTestProbe::~ShrunkenPatchTestProbe() {
    free(correctValues);
 }
 
+BasePVObject * createShrunkenPatchTestProbe(char const * name, HyPerCol * hc) {
+   return hc ? new ShrunkenPatchTestProbe(name, hc) : NULL;
+}
+
 }

@@ -7,14 +7,14 @@
 //============================================================================
 
 #include <columns/buildandrun.hpp>
-#include "CustomGroupHandler.hpp"
+#include "NormalizeL3.hpp"
 
 int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
-   ParamGroupHandler * normalizeL3GroupHandler = new CustomGroupHandler();
-   int status = buildandrun(argc, argv, NULL, customexit, &normalizeL3GroupHandler, 1/*numGroupHandlers*/);
-   delete normalizeL3GroupHandler;
+   PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
+   pv_initObj.registerKeyword("normalizeL3", createNormalizeL3);
+   int status = buildandrun(&pv_initObj, NULL, customexit);
    return status;
 }
 

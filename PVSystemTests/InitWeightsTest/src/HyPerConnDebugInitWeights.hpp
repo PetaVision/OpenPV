@@ -53,5 +53,7 @@ private:
    HyPerConn *otherConn;
 };
 
+BasePVObject * createHyPerConnDebugInitWeights(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* HYPERCONNDEBUGINITWEIGHTS_HPP_ */

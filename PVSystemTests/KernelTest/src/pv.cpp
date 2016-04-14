@@ -6,14 +6,11 @@
 
 #include <columns/buildandrun.hpp>
 #include "KernelTestProbe.hpp"
-#include "KernelTestGroupHandler.hpp"
 
 int main(int argc, char * argv[]) {
 
-   int status;
-   KernelTestGroupHandler * groupHandlerList[1];
-   groupHandlerList[0] = new KernelTestGroupHandler();
-   status = buildandrun(argc, argv, NULL, NULL, (ParamGroupHandler **) groupHandlerList, 1);
-   delete groupHandlerList[0];
+   PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
+   pv_initObj.registerKeyword("KernelTestProbe", createKernelTestProbe);
+   int status = buildandrun(&pv_initObj);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

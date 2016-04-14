@@ -39,7 +39,9 @@ protected:
 private:
    int initialize_base();
 
-};
+}; // end of class TestConnProbe
+
+BasePVObject * createTestConnProbe(char const * name, HyPerCol * hc);
 
 }  // end of namespace PV block
 

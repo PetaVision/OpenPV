@@ -39,4 +39,6 @@ protected:
    double firstFailureTime;
 };
 
+PV::BasePVObject * createResetStateOnTriggerTestProbe(char const * name, PV::HyPerCol * hc);
+
 #endif // RESETSTATEONTRIGGERTESTPROBE_HPP_

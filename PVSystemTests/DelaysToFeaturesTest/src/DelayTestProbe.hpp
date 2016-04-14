@@ -27,5 +27,7 @@ private:
 
 };
 
+BasePVObject * createDelayTestProbe(char const * probeName, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* DelayTestProbe_HPP_ */

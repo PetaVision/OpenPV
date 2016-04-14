@@ -37,6 +37,8 @@ protected:
 
 }; // end class CPTestInputLayer
 
+BasePVObject * createCPTestInputLayer(char const * name, HyPerCol * hc);
+
 }  // end of namespace PV block
 
 

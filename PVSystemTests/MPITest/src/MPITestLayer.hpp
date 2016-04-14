@@ -26,5 +26,8 @@ private:
 
 };
 
+
+BasePVObject * createMPITestLayer(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* MPITESTLAYER_HPP_ */

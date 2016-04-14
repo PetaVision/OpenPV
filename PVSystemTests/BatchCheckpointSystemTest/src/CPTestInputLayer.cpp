@@ -135,6 +135,10 @@ int CPTestInputLayer::updateState(double timed, double dt) {
    return PV_SUCCESS;
 }
 
+BasePVObject * createCPTestInputLayer(char const * name, HyPerCol * hc) {
+   return hc ? new CPTestInputLayer(name, hc) : NULL;
+}
+
 }  // end of namespace PV block
 
 

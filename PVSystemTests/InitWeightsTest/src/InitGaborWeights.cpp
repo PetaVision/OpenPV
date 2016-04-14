@@ -115,4 +115,8 @@ int InitGaborWeights::gaborWeights(pvwdata_t * dataStart, InitGaborWeightsParams
    return 0;
 }
 
+BasePVObject * createInitGaborWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitGaborWeights(name, hc) : NULL;
+}
+
 } /* namespace PV */
