@@ -379,79 +379,11 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    printf("============================= srcPath is %s\n", srcPath);
 #endif
 
+   // numThreads will not be set, or used until HyPerCol::run.
+   // This means that threading cannot happen in the initialization or communicateInitInfo stages,
+   // but that should not be a problem.
+
    char const * programName = pv_initObj->getArguments()->getProgramName();
-
-   // determine number of threads
-   int thread_status = PV_SUCCESS;
-   int num_threads = 0;
-#ifdef PV_USE_OPENMP_THREADS
-   int max_threads = pv_initObj->getMaxThreads();
-   int comm_size = icComm->globalCommSize();
-   if (globalRank()==0) {
-      printf("Maximum number of OpenMP threads%s is %d\nNumber of MPI processes is %d.\n",
-            comm_size==1 ? "" : " (over all processes)", max_threads, comm_size);
-   }
-   if (pv_initObj->getArguments()->getUseDefaultNumThreads()) {
-      num_threads = max_threads/comm_size; // integer arithmetic
-      if (num_threads == 0) {
-         num_threads = 1;
-         if (globalRank()==0) {
-            fprintf(stderr, "Warning: more MPI processes than available threads.  Processors may be oversubscribed.\n");
-         }
-      }
-   }
-   else {
-      num_threads = pv_initObj->getArguments()->getNumThreads();
-   }
-   if (num_threads>0) {
-      omp_set_num_threads(num_threads);
-      if (globalRank()==0) {
-         printf("Number of threads used is %d\n", num_threads);
-      }
-   }
-   else if (num_threads==0) {
-      thread_status = PV_FAILURE;
-      if (globalRank()==0) {
-         fflush(stdout);
-         fprintf(stderr, "%s error: number of threads must be positive (was set to zero)\n", programName);
-      }
-   }
-   else {
-      assert(num_threads==-1);
-      // If the -t argument is followed by an argument beginning with a
-      // hyphen, it is interpreted as the next option, not as a negative
-      // number.  Therefore, the only way pv_initObj->arguments->numThreads
-      // can be negative is if it was set to -1 because there was no -t option
-      // set on the command line.
-      thread_status = PV_FAILURE;
-      if (globalRank()==0) {
-         fflush(stdout);
-         fprintf(stderr, "%s was compiled with PV_USE_OPENMP_THREADS; therefore the \"-t\" argument is required.\n", programName);
-      }
-   }
-#else // PV_USE_OPENMP_THREADS
-   if (pv_initObj->getArguments()->getUseDefaultNumThreads()) {
-      num_threads = 1;
-   }
-   else {
-      num_threads = pv_initObj->getArguments()->getNumThreads();
-      if (num_threads < 0) { num_threads = 1; }
-      if (num_threads != 1) { thread_status = PV_FAILURE; }
-   }
-   if (globalRank()==0) {
-      if (thread_status!=PV_SUCCESS) {
-         fflush(stdout);
-         fprintf(stderr, "%s error: PetaVision must be compiled with OpenMP to run with threads.\n", programName);
-      }
-   }
-#endif // PV_USE_OPENMP_THREADS
-
-   MPI_Barrier(icComm->globalCommunicator());
-   if (thread_status !=PV_SUCCESS) {
-      exit(EXIT_FAILURE);
-   }
-   //set num_threads to member variable
-   this->numThreads = num_threads;
 
    if(working_dir && columnId()==0) {
       int status = chdir(working_dir);
@@ -1717,6 +1649,12 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       }
       printParamsFileString += printParamsFilename;
 
+      setNumThreads(false/*don't print messages*/);
+      //When we call processParams, the communicateInitInfo stage will run, which can put out a lot of messages.
+      //So if there's a problem with the -t option setting, the error message can be hard to find.
+      //Instead of printing the error messages here, we will call setNumThreads a second time after
+      //processParams(), and only then print messages.
+
       // processParams function does communicateInitInfo stage, sets up adaptive time step, and prints params
       status = processParams(printParamsFileString.c_str());
       MPI_Barrier(icCommunicator()->communicator());
@@ -1724,11 +1662,19 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          fprintf(stderr, "HyPerCol \"%s\" failed to run.\n", name);
          exit(EXIT_FAILURE);
       }
-   }
+      if (pv_initObj->getArguments()->getDryRunFlag()) { return PV_SUCCESS; }
 
-   if (pv_initObj->getArguments()->getDryRunFlag()) { return PV_SUCCESS; }
+      int thread_status = setNumThreads(true/*now, print messages related to setting number of threads*/);
+      MPI_Barrier(icComm->globalCommunicator());
+      if (thread_status !=PV_SUCCESS) {
+         exit(EXIT_FAILURE);
+      }
 
-   if (!readyFlag) {
+#ifdef PV_USE_OPENMP_THREADS
+      assert(numThreads>0); // setNumThreads should fail if it sets numThreads less than or equal to zero
+      omp_set_num_threads(numThreads);
+#endif // PV_USE_OPENMP_THREADS
+
       int (HyPerCol::*layerInitializationStage)(int) = NULL;
       int (HyPerCol::*connInitializationStage)(int) = NULL;
 
@@ -1890,6 +1836,76 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 #endif
 
    return status;
+}
+
+// This routine sets the numThreads member variable.  It should only be called by the run() method,
+// and only inside the !ready if-statement.
+int HyPerCol::setNumThreads(bool printMessagesFlag) {
+   bool printMsgs0 = printMessagesFlag && globalRank()==0;
+   int thread_status = PV_SUCCESS;
+   PV_Arguments const * arguments = pv_initObj->getArguments();
+   int num_threads = 0;
+#ifdef PV_USE_OPENMP_THREADS
+   int max_threads = pv_initObj->getMaxThreads();
+   int comm_size = icComm->globalCommSize();
+   if (printMsgs0) {
+      printf("Maximum number of OpenMP threads%s is %d\nNumber of MPI processes is %d.\n",
+            comm_size==1 ? "" : " (over all processes)", max_threads, comm_size);
+   }
+   if (arguments->getUseDefaultNumThreads()) {
+      num_threads = max_threads/comm_size; // integer arithmetic
+      if (num_threads == 0) {
+         num_threads = 1;
+         if (printMsgs0) {
+            fprintf(stderr, "Warning: more MPI processes than available threads.  Processors may be oversubscribed.\n");
+         }
+      }
+   }
+   else {
+      num_threads = arguments->getNumThreads();
+   }
+   if (num_threads>0) {
+      if (printMsgs0) {
+         printf("Number of threads used is %d\n", num_threads);
+      }
+   }
+   else if (num_threads==0) {
+      thread_status = PV_FAILURE;
+      if (printMsgs0) {
+         fflush(stdout);
+         fprintf(stderr, "%s error: number of threads must be positive (was set to zero)\n", arguments->getProgramName());
+      }
+   }
+   else {
+      assert(num_threads<0);
+      thread_status = PV_FAILURE;
+      if (printMsgs0) {
+         fflush(stdout);
+         fprintf(stderr, "%s was compiled with PV_USE_OPENMP_THREADS; therefore the \"-t\" argument is required.\n", arguments->getProgramName());
+      }
+   }
+#else // PV_USE_OPENMP_THREADS
+   if (arguments->getUseDefaultNumThreads()) {
+      num_threads = 1;
+      if (printMsgs0) {
+         printf("Number of threads used is 1 (Compiled without OpenMP.\n");
+      }
+   }
+   else {
+      num_threads = arguments->getNumThreads();
+      if (num_threads < 0) { num_threads = 1; }
+      if (num_threads != 1) { thread_status = PV_FAILURE; }
+   }
+   if (printMsgs0) {
+      if (thread_status!=PV_SUCCESS) {
+         fflush(stdout);
+         fprintf(stderr, "%s error: PetaVision must be compiled with OpenMP to run with threads.\n", arguments->getProgramName());
+      }
+   }
+#endif // PV_USE_OPENMP_THREADS
+   //set num_threads to member variable
+   this->numThreads = num_threads;
+   return thread_status;
 }
 
 int HyPerCol::processParams(char const * path) {
@@ -3079,66 +3095,14 @@ int HyPerCol::outputParams(char const * path) {
       assert(printParamsStream != NULL);
       assert(luaPrintParamsStream != NULL);
 
-      time_t t = time(NULL);
-
-
       //Params file output
-      fprintf(printParamsStream->fp, "// PetaVision, " PV_REVISION "\n");
-      fprintf(printParamsStream->fp, "// Run time %s", ctime(&t)); // newline is included in output of ctime
-#ifdef PV_USE_MPI
-      fprintf(printParamsStream->fp, "// Compiled with MPI and run using %d rows and %d columns.\n", icComm->numCommRows(), icComm->numCommColumns());
-#else // PV_USE_MPI
-      fprintf(printParamsStream->fp, "// Compiled without MPI.\n");
-#endif // PV_USE_MPI
-#ifdef PV_USE_OPENCL
-      fprintf(printParamsStream->fp, "// Compiled with OpenCL.\n");
-#else
-      fprintf(printParamsStream->fp, "// Compiled without OpenCL.\n");
-#endif // PV_USE_OPENCL
-#ifdef PV_USE_CUDA
-      fprintf(printParamsStream->fp, "// Compiled with CUDA.\n");
-#else
-      fprintf(printParamsStream->fp, "// Compiled without CUDA.\n");
-#endif
-#ifdef PV_USE_OPENMP_THREADS
-      fprintf(printParamsStream->fp, "// Compiled with OpenMP parallel code and run using %d threads.\n", numThreads);
-#else
-      fprintf(printParamsStream->fp, "// Compiled without OpenMP parallel code.\n");
-#endif // PV_USE_OPENMP_THREADS
-      if (checkpointReadFlag) {
-         fprintf(printParamsStream->fp, "// Started from checkpoint \"%s\"\n", checkpointReadDir);
-      }
+      outputParamsHeadComments(printParamsStream->fp, "//");
 
-      //lua file output
-      fprintf(luaPrintParamsStream->fp, "-- PetaVision, " PV_REVISION "\n");
-      fprintf(luaPrintParamsStream->fp, "-- Run time %s", ctime(&t)); // newline is included in output of ctime
-#ifdef PV_USE_MPI
-      fprintf(luaPrintParamsStream->fp, "-- Compiled with MPI and run using %d rows and %d columns.\n", icComm->numCommRows(), icComm->numCommColumns());
-#else // PV_USE_MPI
-      fprintf(luaPrintParamsStream->fp, "-- Compiled without MPI.\n");
-#endif // PV_USE_MPI
-#ifdef PV_USE_OPENCL
-      fprintf(luaPrintParamsStream->fp, "-- Compiled with OpenCL.\n");
-#else
-      fprintf(luaPrintParamsStream->fp, "-- Compiled without OpenCL.\n");
-#endif // PV_USE_OPENCL
-#ifdef PV_USE_CUDA
-      fprintf(luaPrintParamsStream->fp, "-- Compiled with CUDA.\n");
-#else
-      fprintf(luaPrintParamsStream->fp, "-- Compiled without CUDA.\n");
-#endif
-#ifdef PV_USE_OPENMP_THREADS
-      fprintf(luaPrintParamsStream->fp, "-- Compiled with OpenMP parallel code and run using %d threads.\n", numThreads);
-#else
-      fprintf(luaPrintParamsStream->fp, "-- Compiled without OpenMP parallel code.\n");
-#endif // PV_USE_OPENMP_THREADS
-      if (checkpointReadFlag) {
-         fprintf(luaPrintParamsStream->fp, "-- Started from checkpoint \"%s\"\n", checkpointReadDir);
-      }
+      //Lua file output
+      outputParamsHeadComments(luaPrintParamsStream->fp, "--");
       //Load util module based on PVPath
       fprintf(luaPrintParamsStream->fp, "package.path = package.path .. \";\" .. \"" PV_DIR "/parameterWrapper/?.lua\"\n");
-      fprintf(luaPrintParamsStream->fp, "local pv = require \"PVModule\"\n\n"); 
-      
+      fprintf(luaPrintParamsStream->fp, "local pv = require \"PVModule\"\n\n");
       fprintf(luaPrintParamsStream->fp, "-- Base table variable to store\n"); 
       fprintf(luaPrintParamsStream->fp, "local pvParameters = {\n"); 
    }
@@ -3202,6 +3166,42 @@ int HyPerCol::outputParams(char const * path) {
       luaPrintParamsStream = NULL;
    }
    return status;
+}
+
+int HyPerCol::outputParamsHeadComments(FILE* fp, char const * commentToken) {
+   time_t t = time(NULL);
+   fprintf(fp, "%s PetaVision, " PV_REVISION "\n", commentToken);
+   fprintf(fp, "%s Run time %s", commentToken, ctime(&t)); // newline is included in output of ctime
+#ifdef PV_USE_MPI
+   fprintf(fp, "%s Compiled with MPI and run using %d rows and %d columns.\n", commentToken, icComm->numCommRows(), icComm->numCommColumns());
+#else // PV_USE_MPI
+   fprintf(fp, "%s Compiled without MPI.\n", commentToken);
+#endif // PV_USE_MPI
+#ifdef PV_USE_OPENCL
+   fprintf(fp, "%s Compiled with OpenCL.\n", commentToken);
+#else
+   fprintf(fp, "%s Compiled without OpenCL.\n", commentToken);
+#endif // PV_USE_OPENCL
+#ifdef PV_USE_CUDA
+   fprintf(fp, "%s Compiled with CUDA.\n", commentToken);
+#else
+   fprintf(fp, "%s Compiled without CUDA.\n", commentToken);
+#endif
+#ifdef PV_USE_OPENMP_THREADS
+   fprintf(fp, "%s Compiled with OpenMP parallel code", commentToken);
+   if (numThreads>0) { fprintf(fp, " and run using %d threads.\n", numThreads); }
+   else if (numThreads==0) { fprintf(fp, " but number of threads was set to zero (error).\n"); }
+   else { fprintf(fp, " but the -t option was not specified.\n"); }
+#else
+   fprintf(fp, "%s Compiled without OpenMP parallel code", commentToken);
+   if (numThreads==1) { fprintf(fp, ".\n"); }
+   else if (numThreads==0) { fprintf(fp, " but number of threads was set to zero (error).\n"); }
+   else { fprintf(fp, " but number of threads specified was %d instead of 1. (error).\n", numThreads); }
+#endif // PV_USE_OPENMP_THREADS
+   if (checkpointReadFlag) {
+      fprintf(fp, "%s Started from checkpoint \"%s\"\n", commentToken, checkpointReadDir);
+   }
+   return PV_SUCCESS;
 }
 
 // Uses the arguments cpDir, objectName, and suffix to create a path of the form

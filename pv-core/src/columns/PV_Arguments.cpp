@@ -88,7 +88,7 @@ void PV_Arguments::freeArgs(int argc, char ** argv) {
    return;
 }
 
-char ** PV_Arguments::getArgsCopy() {
+char ** PV_Arguments::getArgsCopy() const {
    return copyArgs(numArgs, args);
 }
 
