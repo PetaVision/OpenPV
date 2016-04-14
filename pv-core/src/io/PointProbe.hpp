@@ -63,7 +63,9 @@ private:
     * A convenience method to return probeValues[0] (the activity).  Note that it does not call needRecalc().
     */   
    inline double getA();
-};
+}; // end class PointProbe
+
+BasePVObject * createPointProbe(char const * name, HyPerCol * hc);
 
 }
 

@@ -36,6 +36,8 @@ private:
    int initialize_base();
 };  // end class PtwiseProductLayer
 
+BasePVObject * createPtwiseProductLayer(char const * name, HyPerCol * hc);
+
 }  // end namespace PV
 
 #endif /* PTWISEPRODUCTLAYER_HPP_ */

@@ -289,5 +289,8 @@ int ANNLayer::checkpointWrite(char const * cpDir) {
    return status;
 }
 
+BasePVObject * createANNLayer(char const * name, HyPerCol * hc) {
+   return hc ? new ANNLayer(name, hc) : NULL;
+}
 
 }  // end namespace PV

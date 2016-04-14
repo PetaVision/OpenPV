@@ -788,4 +788,8 @@ int TransposeConn::finalizeUpdate(double timed, double dt){
 //   return PV_SUCCESS;
 //}
 
+BasePVObject * createTransposeConn(char const * name, HyPerCol * hc) {
+   return hc ? new TransposeConn(name, hc) : NULL;
+}
+
 } // end namespace PV

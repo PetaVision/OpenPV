@@ -59,13 +59,9 @@ protected:
    char* inputMethod;
    char* outputMethod;
 
+}; // class Segmentify
 
-
-
-
-
-
-};
+BasePVObject * createSegmentify(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif 

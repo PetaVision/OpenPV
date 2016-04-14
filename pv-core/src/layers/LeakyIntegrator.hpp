@@ -31,7 +31,9 @@ private:
 // Member Variables
 protected:
    pvdata_t integrationTime;
-};
+}; // class LeakyIntegrator
+
+BasePVObject * createLeakyIntegrator(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* LEAKYINTEGRATOR_HPP_ */

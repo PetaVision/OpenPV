@@ -351,4 +351,8 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
    return PV_SUCCESS;
 }
 
+BasePVObject * createIdentConn(char const * name, HyPerCol * hc) {
+   return hc ? new IdentConn(name, hc) : NULL;
+}
+
 }  // end of namespace PV block

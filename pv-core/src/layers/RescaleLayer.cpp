@@ -518,16 +518,9 @@ int RescaleLayer::updateState(double timef, double dt) {
    return status;
 }
 
-//bool RescaleLayer::checkIfUpdateNeeded() {
-//   bool needsUpdate = false;
-//   if (getPhase() > originalLayer->getPhase()) {
-//      needsUpdate = originalLayer->getLastUpdateTime() >= lastUpdateTime;
-//   }
-//   else {
-//      needsUpdate = originalLayer->getLastUpdateTime() > lastUpdateTime;
-//   }
-//   return needsUpdate;
-//}
+BasePVObject * createRescaleLayer(char const * name, HyPerCol * hc) {
+   return hc ? new RescaleLayer(name, hc) : NULL;
+}
 
 } // end namespace PV
 

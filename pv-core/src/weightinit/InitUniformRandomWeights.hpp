@@ -28,7 +28,9 @@ protected:
 private:
    int initialize_base();
 
-};
+}; // class InitUniformRandomWeights
+
+BasePVObject * createInitUniformRandomWeights(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* INITUNIFORMRANDOMWEIGHTS_HPP_ */

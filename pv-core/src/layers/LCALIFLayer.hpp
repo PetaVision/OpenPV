@@ -79,8 +79,11 @@ protected:
 private:
    int initialize_base();
   // other methods and member variables
-};
-}
+}; // class LCALIFLayer
+
+BasePVObject * createLCALIFLayer(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 
 
 

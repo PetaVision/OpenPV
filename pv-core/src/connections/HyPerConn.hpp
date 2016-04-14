@@ -1222,7 +1222,11 @@ protected:
       return PV_SUCCESS;
    }
 
-};
+}; // class HyPerConn
+
+BasePVObject * createHyPerConn(char const * name, HyPerCol * hc);
+InitWeights * getWeightInitializer(char const * name, HyPerCol * hc);
+NormalizeBase * getWeightNormalizer(char const * name, HyPerCol * hc);
 
 } // namespace PV
 

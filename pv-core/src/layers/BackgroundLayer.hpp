@@ -31,8 +31,10 @@ protected:
 private:
    int initialize_base();
    int repFeatureNum;
-};
+}; // class BackgroundLayer
 
-}
+BasePVObject * createBackgroundLayer(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 
 #endif /* CLONELAYER_HPP_ */

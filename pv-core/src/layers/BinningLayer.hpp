@@ -47,7 +47,9 @@ private:
 protected:
    char * originalLayerName;
    HyPerLayer * originalLayer;
-};
+}; // class BinningLayer
+
+BasePVObject * createBinningLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif 

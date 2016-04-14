@@ -8,15 +8,14 @@
 #ifndef HYPERCOL_HPP_
 #define HYPERCOL_HPP_
 
-//#include "HyPerColRunDelegate.hpp"
-#include "InterColComm.hpp"
-#include "../layers/HyPerLayer.hpp"
-#include "../connections/BaseConnection.hpp"
-#include "../io/PVParams.hpp"
-#include "../include/pv_types.h"
-#include "PV_Init.hpp"
-#include "../utils/Timer.hpp"
-#include "../io/ColProbe.hpp"
+#include <columns/InterColComm.hpp>
+#include <layers/HyPerLayer.hpp>
+#include <connections/BaseConnection.hpp>
+#include <io/PVParams.hpp>
+#include <include/pv_types.h>
+#include <columns/PV_Init.hpp>
+#include <utils/Timer.hpp>
+#include <io/ColProbe.hpp>
 #include <time.h>
 #include <typeinfo>
 #include <sys/stat.h>
@@ -24,10 +23,10 @@
 #include <string>
 #include <sstream>
 #ifdef PV_USE_OPENCL
-#include "../arch/opencl/CLDevice.hpp"
+#include <arch/opencl/CLDevice.hpp>
 #endif
 #ifdef PV_USE_CUDA
-#include "../arch/cuda/CudaDevice.hpp"
+#include <arch/cuda/CudaDevice.hpp>
 #endif
 
 #include <vector>
@@ -38,9 +37,6 @@ enum CheckpointWriteTriggerMode { CPWRITE_TRIGGER_STEP, CPWRITE_TRIGGER_TIME, CP
 
 typedef enum { CLOCK_SECOND, CLOCK_MINUTE, CLOCK_HOUR, CLOCK_DAY} TimeUnit;
 
-//class HyPerLayer;
-//class InterColComm;
-//class BaseConnection;
 class ColProbe;
 class BaseProbe;
 class PVParams;
@@ -153,6 +149,7 @@ public:
 
    const char * inputFile()               {return image_file;}
 
+   PV_Init * getPV_InitObj()             {return pv_initObj;}
 
    int numberOfLayers()                   {return numLayers;}
    int numberOfConnections()              {return numConnections;}

@@ -104,6 +104,8 @@ private:
 
 }; // end class ColumnEnergyProbe
 
+BasePVObject * createColumnEnergyProbe(char const * name, HyPerCol * hc);
+
 }  // end namespace PV
 
 #endif /* COLUMNENERGYPROBE_HPP_ */
