@@ -160,7 +160,7 @@ int buildandrun1paramset(PV_Init* initObj,
          fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);
       }
    }
-   if( status==PV_SUCCESS && customexit != NULL ) {
+   if( status==PV_SUCCESS && customexit != NULL && !initObj->getArguments()->getDryRunFlag()) {
       status = (*customexit)(hc, argc, argv);
       if( status != PV_SUCCESS) {
          fprintf(stderr, "customexit function failed with return value %d\n", status);
@@ -268,7 +268,7 @@ int buildandrun1paramset(PV_Init * initObj,
          fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);
       }
    }
-   if( status==PV_SUCCESS && customexit != NULL ) {
+   if( status==PV_SUCCESS && customexit != NULL && !initObj->getArguments()->getDryRunFlag() ) {
       status = (*customexit)(hc, argc, argv);
       if( status != PV_SUCCESS) {
          fprintf(stderr, "customexit function failed with return value %d\n", status);
