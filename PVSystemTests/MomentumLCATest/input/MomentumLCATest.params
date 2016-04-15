@@ -17,8 +17,8 @@ HyPerCol "column" = {
    nbatch = 1;
    dt = 1.0;
    dtAdaptFlag = true;
-   useAdaptMethodExp1stOrder = false;
-   dtAdaptController = "TimeScale";
+   useAdaptMethodExp1stOrder = true;
+   dtAdaptController = "TotalEnergyProbe";
    dtScaleMax = 5;
    dtScaleMin = 0.125;
    dtChangeMax = 0.05;
@@ -294,17 +294,6 @@ IdentConn "CorrectToComparison" = {
 };
 
 // Energy probe used in time scale adaptation
-
-QuotientColProbe "TimeScale" = {
-    numerator                           = "InputEnergyColProbe";
-    denominator                         = "TotalEnergyProbe";
-    probeOutputFile                     = "timescale.txt";
-    valueDescription                    = "TimeScale";
-};
-
-ColumnEnergyProbe "InputEnergyColProbe" = {
-    probeOutputFile                     = "input_energy.txt";
-};
 
 ColumnEnergyProbe "TotalEnergyProbe" = {
     probeOutputFile                     = "total_energy.txt";
