@@ -12,6 +12,7 @@ namespace PV {
 
 IdentConn::IdentConn() {
     initialize_base();
+    scale = 1;
 }
 
 IdentConn::IdentConn(const char * name, HyPerCol * hc) {
@@ -31,7 +32,12 @@ int IdentConn::initialize(const char * name, HyPerCol * hc) {
 
 int IdentConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = HyPerConn::ioParamsFillGroup(ioFlag);
+   ioParam_scale(ioFlag);
    return status;
+}
+
+void IdentConn::ioParam_scale(enum ParamsIOFlag ioFlag){
+   parent->ioParamValue(ioFlag, name, "scale", &scale, scale/*default*/, false /*warn if absent*/);
 }
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -314,7 +320,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
             if (weights->nx>0 && weights->ny>0) {
                int f = featureIndex(kPre, preLoc->nx, preLoc->ny, preLoc->nf); // Not taking halo into account, but for feature index, shouldn't matter.
                pvgsyndata_t * postPatchStart = gSynPatchHeadBatch + getGSynPatchStart(kPre, arborID) + f;
-               *postPatchStart += a;
+               *postPatchStart += scale * a;
             }
          }
       }
@@ -331,7 +337,7 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
             int nk = loc->nx*loc->nf;
             pvdata_t * lineStartPostGSyn = &gSynPatchHeadBatch[y*nk];
             for (int k=0; k<nk; k++) {
-               lineStartPostGSyn[k] += lineStartPreActivity[k];
+               lineStartPostGSyn[k] += scale * lineStartPreActivity[k];
             }
          }
 #ifdef OBSOLETE // Marked obsolete Jan 5, 2016.  IdentConn is simple enough that we shouldn't need to call kIndexExtended inside the inner loop.

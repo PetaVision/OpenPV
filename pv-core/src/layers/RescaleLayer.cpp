@@ -452,19 +452,19 @@ int RescaleLayer::updateState(double timef, double dt) {
 #endif
           for(int iY = 0; iY < ny; iY++){ 
              for(int iX = 0; iX < nx; iX++){ 
-                //There can exit overflow/underflow problems with exp()
-                //Find mean and subtract from all values to bring values closer to 0
-                float sum = 0;
-                for(int iF = 0; iF < nf; iF++){
-                   int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-                   sum += originalABatch[kextOrig];
-                }
-                float mean = sum/nf;
+                ////There can exit overflow/underflow problems with exp()
+                ////Find mean and subtract from all values to bring values closer to 0
+                //float sum = 0;
+                //for(int iF = 0; iF < nf; iF++){
+                //   int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
+                //   sum += originalABatch[kextOrig];
+                //}
+                //float mean = sum/nf;
                 //Find sum expx in feature space, accounting for mean
                 float sumexpx = 0;
                 for(int iF = 0; iF < nf; iF++){
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-                   sumexpx += exp(originalABatch[kextOrig] - mean);
+                   sumexpx += exp(originalABatch[kextOrig]);
                 }
                 //Error checking for sumexpx = 0
                 assert(sumexpx != 0);
@@ -472,7 +472,11 @@ int RescaleLayer::updateState(double timef, double dt) {
                 for(int iF = 0; iF < nf; iF++){
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
                    int kext = kIndex(iX, iY, iF, nx+halo->lt+halo->rt, ny+halo->dn+halo->up, nf);
-                   ABatch[kext] = exp(originalABatch[kextOrig] - mean)/sumexpx;
+                   ABatch[kext] = exp(originalABatch[kextOrig])/sumexpx;
+                   //if(ABatch[kext] < 0 || ABatch[kext] > 1){
+                   //   std::cout << "ABatch[" << kext << "] = " << ABatch[kext] << " : " << originalABatch[kextOrig] << " - " << mean << " / " << sumexpx << "\n";
+                   //   std::cout << std::flush;
+                   //}
                    assert(ABatch[kext] >= 0 && ABatch[kext] <= 1);
                 }
              }
