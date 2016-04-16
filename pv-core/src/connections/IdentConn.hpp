@@ -56,8 +56,6 @@ protected:
    void ioParam_weightUpdatePeriod(enum ParamsIOFlag ioFlag);
    void ioParam_initialWeightUpdateTime(enum ParamsIOFlag ioFlag);
 
-   void ioParam_scale(enum ParamsIOFlag ioFlag);
-
    virtual int setWeightInitializer();
 
    // IdentConn does not need to checkpoint
@@ -67,8 +65,6 @@ protected:
    virtual void handleDefaultSelfFlag();
 
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
-
-   float scale;
 };
 
 }  // end of block for namespace PV

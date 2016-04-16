@@ -12,6 +12,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/MomentumConn.cpp
    ${SUBDIR}/PlasticCloneConn.cpp
    ${SUBDIR}/PoolingConn.cpp
+   ${SUBDIR}/RescaleConn.cpp
    ${SUBDIR}/privateTransposeConn.cpp
    ${SUBDIR}/TransposeConn.cpp
    ${SUBDIR}/TransposePoolingConn.cpp
@@ -31,6 +32,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/MomentumConn.hpp
    ${SUBDIR}/PlasticCloneConn.hpp
    ${SUBDIR}/PoolingConn.hpp
+   ${SUBDIR}/RescaleConn.hpp
    ${SUBDIR}/privateTransposeConn.hpp
    ${SUBDIR}/TransposeConn.hpp
    ${SUBDIR}/TransposePoolingConn.hpp

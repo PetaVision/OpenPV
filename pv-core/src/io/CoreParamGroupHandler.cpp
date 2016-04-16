@@ -77,6 +77,7 @@
 #include "../connections/PlasticCloneConn.hpp"
 
 #include "../connections/PoolingConn.hpp"
+#include "../connections/RescaleConn.hpp"
 #include "../connections/TransposeConn.hpp"
 #include "../connections/TransposePoolingConn.hpp"
 
@@ -204,6 +205,7 @@ ParamGroupType CoreParamGroupHandler::getGroupType(char const * keyword) {
 #endif
          {"PlasticCloneConn", ConnectionGroupType},
          {"PoolingConn", ConnectionGroupType},
+         {"RescaleConn", ConnectionGroupType},
          {"TransposeConn", ConnectionGroupType},
          {"TransposePoolingConn", ConnectionGroupType},
 
@@ -508,6 +510,9 @@ BaseConnection * CoreParamGroupHandler::createConnection(char const * keyword, c
    }
    else if( !strcmp(keyword, "PoolingConn") ) {
       addedConnection = new PoolingConn(name, hc);
+   }
+   else if( !strcmp(keyword, "RescaleConn") ) {
+      addedConnection = new RescaleConn(name, hc);
    }
    else if( !strcmp(keyword, "TransposeConn") ) {
       addedConnection = new TransposeConn(name, hc);
