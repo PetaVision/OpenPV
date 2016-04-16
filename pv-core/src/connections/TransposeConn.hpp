@@ -118,7 +118,9 @@ private:
 protected:
     char * originalConnName;
     HyPerConn * originalConn;
-};
+}; // end class TransposeConn
+
+BasePVObject * createTransposeConn(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

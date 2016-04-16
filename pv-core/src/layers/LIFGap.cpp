@@ -357,6 +357,9 @@ int LIFGap::updateState(double time, double dt)
    return status;
 }
 
+BasePVObject * createLIFGap(char const * name, HyPerCol * hc) {
+   return hc ? new LIFGap(name, hc) : NULL;
+}
 
 } // namespace PV
 

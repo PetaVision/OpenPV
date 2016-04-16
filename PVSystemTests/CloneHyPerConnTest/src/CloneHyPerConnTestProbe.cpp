@@ -45,5 +45,8 @@ int CloneHyPerConnTestProbe::outputState(double timed)
    return status;
 }
 
+BasePVObject * createCloneHyPerConnTestProbe(char const * name, HyPerCol * hc) {
+   return hc ? new CloneHyPerConnTestProbe(name, hc) : NULL;
+}
 
 } /* namespace PV */

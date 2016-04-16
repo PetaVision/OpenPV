@@ -9,10 +9,10 @@
 #define TIMESTEP_OUTPUT
 
 #include "HyPerCol.hpp"
-#include "InterColComm.hpp"
-#include "../normalizers/NormalizeBase.hpp"
-#include "../io/clock.h"
-#include "../io/io.h"
+#include <columns/InterColComm.hpp>
+#include <normalizers/NormalizeBase.hpp>
+#include <io/clock.h>
+#include <io/io.h>
 
 #include <assert.h>
 #include <math.h>
@@ -36,6 +36,15 @@
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
 namespace PV {
+
+HyPerCol * castToHyPerCol(void * p) {
+   HyPerCol * hc = static_cast<HyPerCol*>(p);
+   hc = dynamic_cast<HyPerCol*>(hc);
+   if (hc==NULL) {
+      fprintf(stderr, "Pointer %p is not a valid HyPerCol pointer.\n", p);
+   }
+   return hc;
+}
 
 HyPerCol::HyPerCol(const char * name, PV_Init * initObj) {
    initialize_base();
@@ -105,7 +114,6 @@ HyPerCol::~HyPerCol()
    }
    free(baseProbes);
 
-   free(name);
    free(printParamsFilename);
    // free(outputNamesOfLayersAndConns);
    free(outputPath);
@@ -242,7 +250,6 @@ int HyPerCol::initialize_base() {
    normalizers = NULL;
    layerStatus = NULL;
    connectionStatus = NULL;
-   name = NULL;
    srcPath = NULL;
    outputPath = NULL;
    // outputNamesOfLayersAndConns = NULL;

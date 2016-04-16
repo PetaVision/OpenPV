@@ -61,7 +61,9 @@ protected:
 private:
    int initStatsProbe_base();
    void resetStats();
-};
+}; // end class StatsProbe
+
+BasePVObject * createStatsProbe(char const * name, HyPerCol * hc);
 
 }
 

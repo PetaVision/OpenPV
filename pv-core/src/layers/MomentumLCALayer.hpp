@@ -56,7 +56,9 @@ protected:
    
 private:
    int initialize_base();
-};
+}; // class MomentumLCALayer
+
+BasePVObject * createMomentumLCALayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
-#endif /* HYPERLCALAYER_HPP_ */
+#endif /* MOMENTUMLCALAYER_HPP_ */

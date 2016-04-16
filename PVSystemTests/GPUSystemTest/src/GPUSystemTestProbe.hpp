@@ -24,5 +24,7 @@ private:
 
 };
 
+BasePVObject * createGPUSystemTestProbe(char const * probeName, HyPerCol * hc);
+
 }
 #endif 

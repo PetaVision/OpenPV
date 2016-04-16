@@ -112,6 +112,8 @@ private:
 
 }; // end class CloneConn
 
+BasePVObject * createCloneConn(char const * name, HyPerCol * hc);
+
 }  // end namespace PV
 
 #endif /* CLONECONN_HPP_ */

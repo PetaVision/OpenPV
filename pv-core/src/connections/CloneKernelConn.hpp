@@ -26,6 +26,8 @@ protected:
 
 }; // end class CloneKernelConn
 
+BasePVObject * createCloneKernelConn(char const * name, HyPerCol * hc);
+
 }  // end namespace PV
 
 #endif /* CLONEKERNELCONN_HPP_ */

@@ -13,5 +13,7 @@ protected:
    int updateState(double timef, double dt);
 };
 
+BasePVObject * createComparisonLayer(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif

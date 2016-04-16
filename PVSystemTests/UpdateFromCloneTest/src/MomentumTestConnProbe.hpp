@@ -39,7 +39,9 @@ protected:
 private:
    int initialize_base();
 
-};
+}; // end of class MomentumTestConnProbe
+
+BasePVObject * createMomentumTestConnProbe(char const * name, HyPerCol * hc);
 
 }  // end of namespace PV block
 

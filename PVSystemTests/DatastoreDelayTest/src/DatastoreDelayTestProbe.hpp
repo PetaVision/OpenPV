@@ -28,6 +28,8 @@ protected:
 
 };
 
+BasePVObject * createDatastoreDelayTestProbe(const char * probename, HyPerCol * hc);
+
 }
 
 #endif /* DATASTOREDELAYTESTPROBE_HPP_ */

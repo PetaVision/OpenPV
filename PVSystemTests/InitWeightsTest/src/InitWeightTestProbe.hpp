@@ -26,5 +26,7 @@ private:
 	int initInitWeightTestProbe_base();
 };
 
+BasePVObject * createInitWeightTestProbe(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* ArborTestProbe_HPP_ */

@@ -28,5 +28,7 @@ private:
    int initialize_base();
 };
 
+BasePVObject * createAverageRateConn(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* AVERAGERATECONN_HPP_ */

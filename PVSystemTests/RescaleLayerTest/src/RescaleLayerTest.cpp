@@ -5,15 +5,13 @@
 
 
 #include <columns/buildandrun.hpp>
+#include <columns/PV_Init.hpp>
 #include "RescaleLayerTestProbe.hpp"
-#include "RescaleLayerTestGroupHandler.hpp"
 
 int main(int argc, char * argv[]) {
 
-   int status;
-   RescaleLayerTestGroupHandler * groupHandlerList[1];
-   groupHandlerList[0] = new RescaleLayerTestGroupHandler();
-   status = buildandrun(argc, argv, NULL, NULL, (ParamGroupHandler **) groupHandlerList, 1);
-   delete groupHandlerList[0];
+   PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
+   pv_initObj.registerKeyword("RescaleLayerTestProbe", createRescaleLayerTestProbe);
+   int status = buildandrun(&pv_initObj);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

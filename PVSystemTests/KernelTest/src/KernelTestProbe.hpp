@@ -27,5 +27,7 @@ private:
 
 };
 
+BasePVObject * createKernelTestProbe(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* KERNELTESTPROBE_HPP_ */

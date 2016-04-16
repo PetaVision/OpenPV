@@ -53,30 +53,30 @@ DerivedLayer::initialize(arguments) {
 #ifndef HYPERLAYER_HPP_
 #define HYPERLAYER_HPP_
 
-#include "../layers/accumulate_functions.h"
-#include "../layers/PVLayerCube.h"
-#include "../layers/BaseLayer.hpp"
-#include "../columns/DataStore.hpp"
-#include "../columns/HyPerCol.hpp"
-#include "../columns/InterColComm.hpp"
-#include "../columns/Random.hpp"
-#include "../io/LayerProbe.hpp"
-#include "../io/fileio.hpp"
-#include "../include/pv_common.h"
-#include "../include/pv_types.h"
-#include "../utils/Timer.hpp"
+#include <layers/accumulate_functions.h>
+#include <layers/PVLayerCube.h>
+#include <layers/BaseLayer.hpp>
+#include <columns/DataStore.hpp>
+#include <columns/HyPerCol.hpp>
+#include <columns/InterColComm.hpp>
+#include <columns/Random.hpp>
+#include <io/LayerProbe.hpp>
+#include <io/fileio.hpp>
+#include <include/pv_common.h>
+#include <include/pv_types.h>
+#include <utils/Timer.hpp>
 
 
 #ifdef PV_USE_CUDA
 #  undef PV_USE_CUDA
-#  include "../layers/updateStateFunctions.h"
+#  include <layers/updateStateFunctions.h>
 #  define PV_USE_CUDA
 #elif defined(PV_USE_OPENCL)
 #  undef PV_USE_OPENCL
-#  include "../layers/updateStateFunctions.h"
+#  include <layers/updateStateFunctions.h>
 #  define PV_USE_OPENCL
 #else
-#  include "../layers/updateStateFunctions.h"
+#  include <layers/updateStateFunctions.h>
 #endif //PV_USE_OPENCL
 
 #ifdef PV_USE_OPENMP_THREADS
@@ -87,7 +87,7 @@ DerivedLayer::initialize(arguments) {
 #ifdef PV_USE_OPENCL
 #define PV_CL_COPY_BUFFERS 0
 #define PV_CL_EVENTS 1
-#include "../arch/opencl/CLKernel.hpp"
+#include <arch/opencl/CLKernel.hpp>
 #define EV_GSYN 0
 #define EV_ACTIVITY 1
 #define EV_HPL_PHI_E 0
@@ -95,13 +95,13 @@ DerivedLayer::initialize(arguments) {
 #endif //PV_USE_OPENCL
 
 #ifdef PV_USE_CUDA
-#include "../arch/cuda/CudaKernel.hpp"
-#include "../arch/cuda/CudaBuffer.hpp"
-#include "../arch/cuda/CudaTimer.hpp"
+#include <arch/cuda/CudaKernel.hpp>
+#include <arch/cuda/CudaBuffer.hpp>
+#include <arch/cuda/CudaTimer.hpp>
 #endif //PV_USE_CUDA
 
 #ifdef PV_USE_OPENCL
-#include "../arch/opencl/CLTimer.hpp"
+#include <arch/opencl/CLTimer.hpp>
 #endif //PV_USE_OPENCL
 
 #include <vector>
@@ -480,17 +480,7 @@ public:
    virtual int mirrorToSouth    (PVLayerCube * dest, PVLayerCube * src);
    virtual int mirrorToSouthEast(PVLayerCube * dest, PVLayerCube * src);
 
-   // const char * getOutputFilename(char * buf, const char * dataName, const char * term);
-
-   /**
-    * Returns the keyword of the params group associated with this layer.
-    * (typically the name of the derived class).
-    */
-   char const * getKeyword();
-
    // Public access functions:
-
-   const char * getName()            {return name;}
 
    int getNumNeurons()               {return clayer->numNeurons;}
    int getNumExtended()              {return clayer->numExtended;}
@@ -519,9 +509,6 @@ public:
    int getYScale()                   {return clayer->yScale;}
 
    //int getNumActive()                {return clayer->numActive;}
-
-   HyPerCol* getParent()             {return parent;}
-   void setParent(HyPerCol* parent)  {this->parent = parent;}
 
    bool useMirrorBCs()               {return this->mirrorBCflag;}
    pvdata_t getValueBC() {return this->valueBC;}
@@ -558,10 +545,6 @@ protected:
          pvdata_t * V, int num_channels, pvdata_t * GSynHead);
    virtual int setActivity();
    void freeChannels();
-
-   HyPerCol * parent;
-
-   char * name;                 // well known name of layer
 
    int layerId;                 // unique ID that identifies layer in its parent HyPerCol
 

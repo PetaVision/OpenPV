@@ -23,6 +23,8 @@ protected:
    virtual void ioParam_sharedWeights(enum ParamsIOFlag ioFlag);
 }; // class KernelConn
 
+BasePVObject * createKernelConn(char const * name, HyPerCol * hc);
+
 } // namespace PV
 
 #endif /* KERNELCONN_HPP_ */

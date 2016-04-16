@@ -26,6 +26,7 @@
 #include "privateTransposeConn.hpp"
 #include "PlasticCloneConn.hpp"
 #include "io/CoreParamGroupHandler.hpp"
+#include "columns/PV_Factory.hpp"
 
 #include "utils/PVLog.hpp"
 #include "utils/PVAlloc.hpp"
@@ -465,10 +466,9 @@ int HyPerConn::setWeightInitializer() {
  */
 InitWeights * HyPerConn::createInitWeightsObject(const char * weightInitTypeStr) {
    pvAssert(weightInitializer == NULL);
-   CoreParamGroupHandler * initWeightsHandler = new CoreParamGroupHandler();
-   weightInitializer = initWeightsHandler->createWeightInitializer(weightInitTypeStr, name, parent);
-   delete initWeightsHandler;
-
+   PV_Init * initObj = parent->getPV_InitObj();
+   BasePVObject * basePVObject = initObj->create(weightInitTypeStr, name, parent);
+   weightInitializer = dynamic_cast<InitWeights*>(basePVObject);
    return weightInitializer;
 }
 
@@ -4463,6 +4463,47 @@ void HyPerConn::deliverOnePostNeuronActivitySparseWeights(int arborID, int kTarg
       }
       *gSynPatchPos += dt_factor * dv;
    }
+}
+
+BasePVObject * createHyPerConn(char const * name, HyPerCol * hc) {
+   if (hc==NULL) { return NULL; }
+   InitWeights * weightInitializer = getWeightInitializer(name, hc);
+   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
+   return new HyPerConn(name, hc, weightInitializer, weightNormalizer);
+}
+
+InitWeights * getWeightInitializer(char const * name, HyPerCol * hc) {
+   if (hc==NULL) { return NULL; }
+   InitWeights * weightInitializer = NULL;
+   char const * weightInitStr = hc->parameters()->stringValue(name, "weightInitType", false/*warnIfAbsent*/);
+   if (weightInitStr!=NULL) {
+      BasePVObject * baseObj = hc->getPV_InitObj()->create(weightInitStr, name, hc);
+      weightInitializer = dynamic_cast<InitWeights*>(baseObj);
+      if (weightInitializer==NULL) {
+         if (hc->columnId()==0) {
+            fprintf(stderr, "HyPerConn \"%s\" error: weightInitType \"%s\" is not recognized.\n", name, weightInitStr);
+            exit(EXIT_FAILURE);
+         }
+      }
+   }
+   return weightInitializer;
+}
+
+NormalizeBase * getWeightNormalizer(char const * name, HyPerCol * hc) {
+   if (hc==NULL) { return NULL; }
+   NormalizeBase * weightNormalizer = NULL;
+   char const * weightNormalizerStr = hc->parameters()->stringValue(name, "normalizeMethod", false/*warnIfAbsent*/);
+   if (weightNormalizerStr!=NULL) {
+      BasePVObject * baseObj = hc->getPV_InitObj()->create(weightNormalizerStr, name, hc);
+      weightNormalizer = dynamic_cast<NormalizeBase*>(baseObj);
+      if (weightNormalizerStr==NULL) {
+         if (hc->columnId()==0) {
+            fprintf(stderr, "HyPerConn \"%s\" error: normalizeMethod \"%s\" is not recognized.\n", name, weightNormalizerStr);
+            exit(EXIT_FAILURE);
+         }
+      }
+   }
+   return weightNormalizer;
 }
 
 } // namespace PV

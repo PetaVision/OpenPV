@@ -30,7 +30,9 @@ protected:
 
 private:
    int initialize_base();
-};
+}; // class ConstantLayer
+
+BasePVObject * createConstantLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif

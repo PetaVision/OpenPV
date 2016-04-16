@@ -9,9 +9,11 @@
 #define COLPROBE_HPP_
 
 #include <string.h>
-#include "../columns/HyPerCol.hpp"
+#include "io/BaseProbe.hpp"
 
 namespace PV {
+
+class HyPerCol;
 
 /**
  * ColProbe is the base class for probes that are attached to the column as a whole,

@@ -93,8 +93,10 @@ protected:
    Image();
 #endif // PV_USE_GDAL
 
-};
+}; // class Image
 
-}
+BasePVObject * createImage(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 
 #endif /* IMAGE_HPP_ */

@@ -42,7 +42,9 @@ private:
    bool * imprinted;
    float imprintChance;
 
-}; // end class 
+}; // end class ImprintConn
+
+BasePVObject * createImprintConn(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

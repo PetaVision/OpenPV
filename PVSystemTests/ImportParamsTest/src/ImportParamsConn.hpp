@@ -16,5 +16,7 @@ private:
    int initialize_base();
 };
 
+BasePVObject * createImportParamsConn(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif

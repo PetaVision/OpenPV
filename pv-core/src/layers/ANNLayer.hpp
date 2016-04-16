@@ -129,6 +129,8 @@ private:
    int initialize_base();
 }; // end of class ANNLayer
 
+BasePVObject * createANNLayer(char const * name, HyPerCol * hc);
+
 }  // end namespace PV
 
 #endif /* ANNLAYER_HPP_ */

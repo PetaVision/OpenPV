@@ -31,7 +31,9 @@ protected:
 
 protected:
    int initialize_base();
-};
+}; // class InitIdentWeights
+
+BasePVObject * createInitIdentWeights(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* INITIDENTWEIGHTS_HPP_ */

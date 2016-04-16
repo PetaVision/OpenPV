@@ -92,4 +92,8 @@ PlasticConnTestProbe::~PlasticConnTestProbe() {
    }
 }
 
+BasePVObject * createPlasticConnTestProbe(char const * name, HyPerCol * hc) {
+   return hc ? new PlasticConnTestProbe(name, hc) : NULL;
+}
+
 }  // end of namespace PV block

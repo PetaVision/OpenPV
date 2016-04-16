@@ -19,5 +19,7 @@ protected:
 private:
 };
 
+BasePVObject * createImageOffsetTestLayer(const char * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif

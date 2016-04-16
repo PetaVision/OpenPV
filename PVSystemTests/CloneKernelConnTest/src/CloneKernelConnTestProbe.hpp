@@ -25,5 +25,7 @@ private:
    int initCloneKernelConnTestProbe_base();
 };
 
+BasePVObject * createCloneKernelConnTestProbe(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* CLONEKERNELCONNTESTPROBE_HPP_ */

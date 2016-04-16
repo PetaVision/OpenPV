@@ -66,4 +66,8 @@ int ReceiveFromPostProbe::outputState(double timed){
    return status;
 }
 
+BasePVObject * createReceiveFromPostProbe(char const * name, HyPerCol * hc) {
+   return hc ? new ReceiveFromPostProbe(name, hc) : NULL;
 }
+
+}  // end namespace PV

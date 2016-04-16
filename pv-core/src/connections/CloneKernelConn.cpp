@@ -40,4 +40,8 @@ int CloneKernelConn::communicateInitInfo() {
 CloneKernelConn::~CloneKernelConn() {
 }
 
+BasePVObject * createCloneKernelConn(char const * name, HyPerCol * hc) {
+   return hc ? new CloneKernelConn(name, hc) : NULL;
+}
+
 } // end namespace PV

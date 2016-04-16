@@ -38,8 +38,10 @@ protected:
    int nxpShrunken;
    int nypShrunken;
    pvdata_t * correctValues;
-};
+}; // end class ShrunkenPatchTestProbe
 
-}
+BasePVObject * createShrunkenPatchTestProbe(char const * name, HyPerCol * hc);
+
+}  // end namespace PV
 
 #endif /* SHRUNKENPATCHTESTPROBE_HPP_ */

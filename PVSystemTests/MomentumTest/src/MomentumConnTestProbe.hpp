@@ -22,8 +22,10 @@ public:
 protected:
    int initialize(const char * probename, HyPerCol * hc);
    int isViscosity;
-};
+}; // end class MomentumConnTestProbe
 
-}
+BasePVObject * createMomentumConnTestProbe(char const * name, HyPerCol * hc);
+
+}  // end namespace PV
 
 #endif /* PLASTICCONNTESTPROBE_HPP_ */

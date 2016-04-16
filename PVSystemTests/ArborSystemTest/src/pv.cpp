@@ -6,10 +6,11 @@
 #include <columns/buildandrun.hpp>
 #include "ArborTestProbe.hpp"
 #include "ArborTestForOnesProbe.hpp"
-#include "ArborSystemTestGroupHandler.hpp"
 
 int main(int argc, char * argv[]) {
-   ParamGroupHandler * customGroupHandler = new ArborSystemTestGroupHandler();
-   int status = buildandrun(argc, argv, NULL, NULL, &customGroupHandler, 1/*numGroupHandlers*/);
+   PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
+   pv_initObj.registerKeyword("ArborTestProbe", createArborTestProbe);
+   pv_initObj.registerKeyword("ArborTestForOnesProbe", createArborTestForOnesProbe);
+   int status = buildandrun(&pv_initObj);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

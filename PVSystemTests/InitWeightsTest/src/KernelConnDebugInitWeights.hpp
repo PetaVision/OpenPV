@@ -53,5 +53,7 @@ private:
    HyPerConn *otherConn;
 };
 
+BasePVObject * createKernelConnDebugInitWeights(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* KERNELCONNDEBUGINITWEIGHTS_HPP_ */

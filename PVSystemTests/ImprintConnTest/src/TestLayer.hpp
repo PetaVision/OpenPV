@@ -15,5 +15,7 @@ protected:
 private:
 };
 
+BasePVObject * createTestLayer(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif

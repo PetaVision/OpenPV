@@ -165,4 +165,8 @@ FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer(const char * na
 FilenameParsingGroundTruthLayer::FilenameParsingGroundTruthLayer() {}
 #endif // PV_USE_GDAL
 
+BasePVObject * createFilenameParsingGroundTruthLayer(char const * name, HyPerCol * hc) {
+   return hc ? new FilenameParsingGroundTruthLayer(name, hc) : NULL;
+}
+
 } /* namespace PV */

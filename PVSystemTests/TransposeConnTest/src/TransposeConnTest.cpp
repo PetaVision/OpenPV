@@ -46,7 +46,7 @@ int main(int argc, char * argv[]) {
    initObj->initialize();
 
    // Don't call buildandrun because it will delete hc before returning. (I could use the customexit hook)
-   HyPerCol * hc = build(initObj, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
+   HyPerCol * hc = build(initObj);
    hc->run(); // Weight values are initialized when run calls allocateDataStructures
 
    int status = PV_SUCCESS;

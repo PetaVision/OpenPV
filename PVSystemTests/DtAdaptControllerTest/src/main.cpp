@@ -10,8 +10,8 @@
 int assertAllZeroes(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
-   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   int rank = initObj->getWorldRank();
+   PV_Init initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
+   int rank = initObj.getWorldRank();
 
    char const * paramFile1 = "input/DtAdaptController_ANNNormalized.params";
    char const * paramFile2 = "input/DtAdaptController_dtAdaptController.params";
@@ -25,30 +25,28 @@ int main(int argc, char * argv[]) {
       exit(EXIT_FAILURE);
    }
 
-   PV_Arguments * arguments = initObj->getArguments();
+   PV_Arguments * arguments = initObj.getArguments();
 
    arguments->setParamsFile(paramFile1);
-   status = rebuildandrun(initObj, NULL, NULL, NULL, 0);
+   status = rebuildandrun(&initObj, NULL, NULL, NULL, 0);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
       exit(status);
    }
 
    arguments->setParamsFile(paramFile2);
-   status = rebuildandrun(initObj, NULL, NULL, NULL, 0);
+   status = rebuildandrun(&initObj, NULL, NULL, NULL, 0);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
       exit(status);
    }
 
    arguments->setParamsFile(paramFileCompare);
-   status = rebuildandrun(initObj, NULL, &assertAllZeroes, NULL, 0);
+   status = rebuildandrun(&initObj, NULL, &assertAllZeroes, NULL, 0);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFileCompare, status);
       exit(status);
    }
-   
-   delete initObj;
    
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

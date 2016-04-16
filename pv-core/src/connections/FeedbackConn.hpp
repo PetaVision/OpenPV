@@ -30,7 +30,9 @@ protected:
 
     virtual int setPreAndPostLayerNames();
     virtual int handleMissingPreAndPostLayerNames();
-};
+}; // end class FeedbackConn
+
+BasePVObject * createFeedbackConn(char const * name, HyPerCol * hc);
 
 }  // end of block for namespace PV
 

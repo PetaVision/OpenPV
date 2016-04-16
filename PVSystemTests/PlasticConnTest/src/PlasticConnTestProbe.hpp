@@ -25,8 +25,10 @@ protected:
 
 protected:
    bool errorPresent;
-};
+}; // end class PlasticConnTestProbe
 
-}
+BasePVObject * createPlasticConnTestProbe(char const * name, HyPerCol * hc);
+
+}  // end namespace PV
 
 #endif /* PLASTICCONNTESTPROBE_HPP_ */

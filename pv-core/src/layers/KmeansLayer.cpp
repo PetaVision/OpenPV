@@ -83,6 +83,10 @@ namespace PV
 
         return status;
     }
+
+    BasePVObject * createKmeansLayer(char const * name, HyPerCol * hc) {
+        return hc ? new KmeansLayer(name, hc) : NULL;
+    }
     
 }
 

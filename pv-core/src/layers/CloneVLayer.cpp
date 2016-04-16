@@ -156,4 +156,8 @@ CloneVLayer::~CloneVLayer() {
    clayer->V = NULL;
 }
 
+BasePVObject * createCloneVLayer(char const * name, HyPerCol * hc) {
+   return hc ? new CloneVLayer(name, hc) : NULL;
+}
+
 } /* namespace PV */

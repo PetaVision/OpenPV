@@ -32,7 +32,9 @@ protected:
 private:
    int initialize_base();
 
-};
+}; // class MaskLayer
+
+BasePVObject * createMaskLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* ANNERRORLAYER_HPP_ */

@@ -553,4 +553,8 @@ ImageFromMemoryBuffer::~ImageFromMemoryBuffer() {
    free(aspectRatioAdjustment);
 }
 
+BasePVObject * createImageFromMemoryBuffer(char const * name, HyPerCol * hc) {
+   return hc ? new ImageFromMemoryBuffer(name, hc) : NULL;
+}
+
 }  // namespace PV

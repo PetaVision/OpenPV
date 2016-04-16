@@ -15,5 +15,7 @@ protected:
 private:
 };
 
+BasePVObject * createSegmentTestLayer(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif

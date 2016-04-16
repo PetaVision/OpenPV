@@ -63,8 +63,8 @@ InputLayer "test" = {
     phase = 0;
     //rectified
     VThresh = 0;
-    VMax = infinity;
-    VMin = 0;
+    AMax = infinity;
+    AMin = 0;
 };
 
 ANNLayer "HiddenLayer1" = {
@@ -80,8 +80,8 @@ ANNLayer "HiddenLayer1" = {
     phase = 1;
     //rectified
     VThresh = 0;
-    VMax = infinity;
-    VMin = 0;
+    AMax = infinity;
+    AMin = 0;
 };
 
 ANNLayer "FinalLayer" = {
@@ -106,8 +106,8 @@ GTLayer "gt" = {
     phase = 0;
     //rectified
     VThresh = 0;
-    VMax = infinity;
-    VMin = 0;
+    AMax = infinity;
+    AMin = 0;
 };
 
 ComparisonLayer "comparison" = {
