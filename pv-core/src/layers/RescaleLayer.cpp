@@ -452,15 +452,6 @@ int RescaleLayer::updateState(double timef, double dt) {
 #endif
           for(int iY = 0; iY < ny; iY++){ 
              for(int iX = 0; iX < nx; iX++){ 
-                ////There can exit overflow/underflow problems with exp()
-                ////Find mean and subtract from all values to bring values closer to 0
-                //float sum = 0;
-                //for(int iF = 0; iF < nf; iF++){
-                //   int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
-                //   sum += originalABatch[kextOrig];
-                //}
-                //float mean = sum/nf;
-                //Find sum expx in feature space, accounting for mean
                 float sumexpx = 0;
                 for(int iF = 0; iF < nf; iF++){
                    int kextOrig = kIndex(iX, iY, iF, nx+haloOrig->lt+haloOrig->rt, ny+haloOrig->dn+haloOrig->up, nf);
@@ -521,17 +512,6 @@ int RescaleLayer::updateState(double timef, double dt) {
    }
    return status;
 }
-
-//bool RescaleLayer::checkIfUpdateNeeded() {
-//   bool needsUpdate = false;
-//   if (getPhase() > originalLayer->getPhase()) {
-//      needsUpdate = originalLayer->getLastUpdateTime() >= lastUpdateTime;
-//   }
-//   else {
-//      needsUpdate = originalLayer->getLastUpdateTime() > lastUpdateTime;
-//   }
-//   return needsUpdate;
-//}
 
 } // end namespace PV
 
