@@ -93,6 +93,9 @@ int FilenameParsingGroundTruthLayer::communicateInitInfo() {
       }
       exit(EXIT_FAILURE);
    }
+   // What should the return value actually be? Unknown, but if we don't return a value
+   // here, the program will abort with a hard to diagnose error.
+   return PV_SUCCESS;
 }
 
 bool FilenameParsingGroundTruthLayer::needUpdate(double time, double dt){
