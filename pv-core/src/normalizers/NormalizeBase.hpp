@@ -8,12 +8,13 @@
 #ifndef NORMALIZEBASE_HPP_
 #define NORMALIZEBASE_HPP_
 
-#include "../connections/HyPerConn.hpp"
+#include <columns/BaseObject.hpp>
+#include <connections/HyPerConn.hpp>
 #include <assert.h>
 
 namespace PV {
 
-class NormalizeBase {
+class NormalizeBase : public BaseObject {
 // Member functions
 public:
    // no public constructor; only subclasses can be constructed directly
@@ -34,7 +35,6 @@ public:
     */
    int normalizeWeightsWrapper();
 
-   const char * getName() {return name;}
    const float getStrength() {return strength;}
    // normalizeFromPostPerspective,rMinX,rMinY,normalize_cutoff moved to NormalizeMultiply
    const bool  getNormalizeArborsIndividuallyFlag() {return normalizeArborsIndividually;}
@@ -59,15 +59,12 @@ protected:
    int accumulateMax(pvwdata_t * dataPatchStart, int weights_in_patch, float * max);
    int accumulateMin(pvwdata_t * dataPatchStart, int weights_in_patch, float * max);
    static void normalizePatch(pvwdata_t * dataStart, int weights_per_patch, float multiplier);
-   HyPerCol * parent() { return parentHyPerCol; }
 
 private:
    int initialize_base();
 
 // Member variables
 protected:
-   char * name;
-   HyPerCol * parentHyPerCol;
    HyPerConn ** connectionList;
    int numConnections;
    float strength;                    // Value to normalize to; precise interpretation depends on normalization method
@@ -77,6 +74,8 @@ protected:
    bool normalizeOnInitialize;        // Whether to normalize weights when setting the weights' initial values
    bool normalizeOnWeightUpdate;      // Whether to normalize weights when the weights have been updated
 }; // end of class NormalizeBase
+
+BaseObject * createNormalizeBase(char const * name, HyPerCol * hc);
 
 } // end namespace PV
 

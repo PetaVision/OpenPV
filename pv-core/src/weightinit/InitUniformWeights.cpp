@@ -35,7 +35,7 @@ int InitUniformWeights::initialize(char const * name, HyPerCol * hc) {
 }
 
 InitWeightsParams * InitUniformWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitUniformWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitUniformWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -88,6 +88,10 @@ int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
    }
 
    return PV_SUCCESS;
+}
+
+BaseObject * createInitUniformWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitUniformWeights(name, hc) : NULL;
 }
 
 } /* namespace PV */

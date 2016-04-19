@@ -757,4 +757,8 @@ Image::Image(const char * name, HyPerCol * hc) {
 Image::Image() {}
 #endif // PV_USE_GDAL
 
+BaseObject * createImage(char const * name, HyPerCol * hc) {
+   return hc ? new Image(name, hc) : NULL;
+}
+
 } // namespace PV

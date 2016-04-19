@@ -32,7 +32,9 @@ protected:
    char * originalLayerName;
    HyPerLayer * originalLayer;
 
-};
+}; // class WTALayer
 
-}
+BaseObject * createWTALayer(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 #endif 

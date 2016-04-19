@@ -89,6 +89,10 @@ int ANNWhitenedLayer::doUpdateState(double time, double dt, const PVLayerLoc * l
    return PV_SUCCESS;
 }
 
+BaseObject * createANNWhitenedLayer(char const * name, HyPerCol * hc) {
+   return hc ? new ANNWhitenedLayer(name, hc) : NULL;
+}
+
 } /* namespace PV */
 
 

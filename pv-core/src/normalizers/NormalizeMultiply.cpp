@@ -43,30 +43,30 @@ int NormalizeMultiply::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeMultiply::ioParam_rMinX(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "rMinX", &rMinX, rMinX);
+   parent->ioParamValue(ioFlag, name, "rMinX", &rMinX, rMinX);
 }
 
 void NormalizeMultiply::ioParam_rMinY(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "rMinY", &rMinY, rMinY);
+   parent->ioParamValue(ioFlag, name, "rMinY", &rMinY, rMinY);
 }
 
 void NormalizeMultiply::ioParam_nonnegativeConstraintFlag(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "nonnegativeConstraintFlag", &nonnegativeConstraintFlag, nonnegativeConstraintFlag);
+   parent->ioParamValue(ioFlag, name, "nonnegativeConstraintFlag", &nonnegativeConstraintFlag, nonnegativeConstraintFlag);
 }
 
 void NormalizeMultiply::ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "normalize_cutoff", &normalize_cutoff, normalize_cutoff);
+   parent->ioParamValue(ioFlag, name, "normalize_cutoff", &normalize_cutoff, normalize_cutoff);
 }
 
 void NormalizeMultiply::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
-   if (ioFlag==PARAMS_IO_READ && !parent()->parameters()->present(name, "normalizeFromPostPerspective") && parent()->parameters()->present(name, "normalize_arbors_individually")) {
-      if (parent()->columnId()==0) {
+   if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "normalizeFromPostPerspective") && parent->parameters()->present(name, "normalize_arbors_individually")) {
+      if (parent->columnId()==0) {
          fprintf(stderr, "Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use normalizeFromPostPerspective.\n", name);
       }
-      normalizeFromPostPerspective = parent()->parameters()->value(name, "normalizeTotalToPost");
+      normalizeFromPostPerspective = parent->parameters()->value(name, "normalizeTotalToPost");
       return;
    }
-   parent()->ioParamValue(ioFlag, name, "normalizeFromPostPerspective", &normalizeFromPostPerspective, false/*default value*/, true/*warnIfAbsent*/);
+   parent->ioParamValue(ioFlag, name, "normalizeFromPostPerspective", &normalizeFromPostPerspective, false/*default value*/, true/*warnIfAbsent*/);
 }
 
 int NormalizeMultiply::normalizeWeights() {
@@ -78,28 +78,28 @@ int NormalizeMultiply::normalizeWeights() {
       HyPerConn * conn = connectionList[c];
       // Do we need to require sharedWeights be the same for all connections in the group?
       if (conn->usingSharedWeights()!=conn0->usingSharedWeights()) {
-         if (parent()->columnId() == 0) {
+         if (parent->columnId() == 0) {
             fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same sharedWeights (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->usingSharedWeights(), conn->getName(), conn->usingSharedWeights());
          }
          status = PV_FAILURE;
       }
       if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
-         if (parent()->columnId() == 0) {
+         if (parent->columnId() == 0) {
             fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of arbors (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->numberOfAxonalArborLists(), conn->getName(), conn->numberOfAxonalArborLists());
          }
          status = PV_FAILURE;
       }
       if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
-         if (parent()->columnId() == 0) {
+         if (parent->columnId() == 0) {
             fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of data patches (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->getNumDataPatches(), conn->getName(), conn->getNumDataPatches());
          }
          status = PV_FAILURE;
       }
       if (status==PV_FAILURE) {
-         MPI_Barrier(parent()->icCommunicator()->communicator());
+         MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -211,6 +211,10 @@ int NormalizeMultiply::applyRMin(pvwdata_t * dataPatchStart, float rMinX, float 
 }
 
 NormalizeMultiply::~NormalizeMultiply() {
+}
+
+BaseObject * createNormalizeMultiply(char const * name, HyPerCol * hc) {
+   return hc ? new NormalizeMultiply(name, hc) : NULL;
 }
 
 } /* namespace PV */

@@ -675,4 +675,8 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
    return PV_SUCCESS;
 }
 
+BaseObject * createPoolingConn(char const * name, HyPerCol * hc) {
+   return hc ? new PoolingConn(name, hc) : NULL;
+}
+
 } // end namespace PV

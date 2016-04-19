@@ -35,7 +35,9 @@ private:
    bool useMask;
    char* maskLayerName;
    HyPerLayer* maskLayer;
-};
+}; // class ANNNormalizedErrorLayer
+
+BaseObject * createANNNormalizedErrorLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* ANNNORMALIZEDERRORLAYER_HPP_ */

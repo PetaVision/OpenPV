@@ -26,8 +26,9 @@ protected:
    int initialize_base();
    int initialize(char const * name, HyPerCol * hc);
 
+}; // class InitMaxPoolingWeights
 
-};
+BaseObject * createInitMaxPoolingWeights(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* INITMAXPOOLINGWEIGHTS_HPP_ */

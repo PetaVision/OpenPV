@@ -193,6 +193,8 @@ protected:
    int imageBottom;
 }; // class ImageFromMemoryBuffer
 
+BaseObject * createImageFromMemoryBuffer(char const * name, HyPerCol * hc);
+
 }  // namespace PV
 
 #endif // IMAGEFROMMEMORYBUFFER_HPP_

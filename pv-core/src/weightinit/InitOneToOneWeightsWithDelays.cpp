@@ -35,7 +35,7 @@ int InitOneToOneWeightsWithDelays::initialize(char const * name, HyPerCol * hc) 
 }
 
 InitWeightsParams * InitOneToOneWeightsWithDelays::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitOneToOneWeightsWithDelaysParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitOneToOneWeightsWithDelaysParams(name, parent);
    return tempPtr;
 }
 
@@ -81,6 +81,10 @@ int InitOneToOneWeightsWithDelays::createOneToOneConnectionWithDelays(pvdata_t *
 
    return PV_SUCCESS;
 
+}
+
+BaseObject * createInitOneToOneWeightsWithDelays(char const * name, HyPerCol * hc) {
+   return hc ? new InitOneToOneWeightsWithDelays(name, hc) : NULL;
 }
 
 } /* namespace PV */

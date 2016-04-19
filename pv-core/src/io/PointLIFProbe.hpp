@@ -43,7 +43,9 @@ protected:
    double writeTime;             // time of next output
    double writeStep;             // output time interval
 
-};
+}; // end class PointLIFProbe
+
+BaseObject * createPointLIFProbe(char const * name, HyPerCol * hc);
 
 }
 

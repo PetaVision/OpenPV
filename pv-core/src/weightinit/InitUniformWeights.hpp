@@ -29,7 +29,9 @@ protected:
 private:
   int uniformWeights(pvdata_t * dataStart, float iWeight, int kf, InitUniformWeightsParams *weightParamPtr, bool connectOnlySameFeatures = false);
 
-};
+}; // class InitUniformWeights
+
+BaseObject * createInitUniformWeights(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* INITUNIFORMWEIGHTS_HPP_ */

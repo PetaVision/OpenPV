@@ -65,7 +65,9 @@ protected:
    virtual void handleDefaultSelfFlag();
 
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
-};
+}; // class IdentConn
+
+BaseObject * createIdentConn(char const * name, HyPerCol * hc);
 
 }  // end of block for namespace PV
 

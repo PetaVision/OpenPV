@@ -155,4 +155,8 @@ int WTALayer::updateState(double timef, double dt) {
    return PV_SUCCESS;
 }
 
+BaseObject * createWTALayer(char const * name, HyPerCol * hc) {
+   return hc ? new WTALayer(name, hc) : NULL;
+}
+
 }

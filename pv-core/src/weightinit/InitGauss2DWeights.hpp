@@ -32,5 +32,7 @@ private:
 
 }; // class InitGauss2DWeights
 
+BaseObject * createInitGauss2DWeights(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* INITGAUSS2DWEIGHTS_HPP_ */

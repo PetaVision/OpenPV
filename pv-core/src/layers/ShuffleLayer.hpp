@@ -47,8 +47,10 @@ private:
    long * maxCount;
    long freqCollectTime;
    bool readFreqFromFile;
-};
+}; // class ShuffleLayer
+ 
+BaseObject * createShuffleLayer(char const * name, HyPerCol * hc);
 
-}
+}  // namespace PV
 
 #endif /* ShuffleLayer.hpp */

@@ -231,8 +231,8 @@ int HyPerLayer::initialize_base() {
 /// does not call initialize.  This way, HyPerLayer::initialize can call virtual
 /// methods and the derived class's method will be the one that gets called.
 int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
-   this->name = strdup(name);
-   setParent(hc); // Could this line and the parent->addLayer line be combined in a HyPerLayer method?
+   int status = BaseLayer::initialize(name, hc);
+   if (status != PV_SUCCESS) { return status; }
 
    // Timers
    this->update_timer =  new Timer(getName(), "layer", "update ");
@@ -263,7 +263,7 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 
    PVParams * params = parent->parameters();
 
-   int status = ioParams(PARAMS_IO_READ);
+   status = ioParams(PARAMS_IO_READ);
    assert(status == PV_SUCCESS);
 
    writeTime = initialWriteTime;
@@ -288,10 +288,6 @@ int HyPerLayer::initialize(const char * name, HyPerCol * hc) {
 //#endif
 
    return PV_SUCCESS;
-}
-
-char const * HyPerLayer::getKeyword() {
-   return this->getParent()->parameters()->groupKeywordFromName(this->getName());
 }
 
 int HyPerLayer::initClayer() {
@@ -387,7 +383,6 @@ HyPerLayer::~HyPerLayer()
 
    delete initVObject; initVObject = NULL;
    freeClayer();
-   free(name); name = NULL;
    freeChannels();
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)

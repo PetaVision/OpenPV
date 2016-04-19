@@ -898,4 +898,8 @@ Movie::Movie(const char * name, HyPerCol * hc) {
 Movie::Movie() {}
 #endif // PV_USE_GDAL
 
+BaseObject * createMovie(char const * name, HyPerCol * hc) {
+   return hc ? new Movie(name, hc) : NULL;
+}
+
 } // ends namespace PV block

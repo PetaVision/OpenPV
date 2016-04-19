@@ -8,13 +8,12 @@
 #ifndef INITWEIGHTS_HPP_
 #define INITWEIGHTS_HPP_
 
-#include "../include/pv_common.h"
-#include "../include/pv_types.h"
-#include "../io/PVParams.hpp"
-#include "../connections/HyPerConn.hpp"
-#include "InitWeightsParams.hpp"
-//#include "InitGauss2DWeightsParams.hpp"
-
+#include <columns/BaseObject.hpp>
+#include <include/pv_common.h>
+#include <include/pv_types.h>
+#include <io/PVParams.hpp>
+#include <connections/HyPerConn.hpp>
+#include <weightinit/InitWeightsParams.hpp>
 
 namespace PV {
 
@@ -23,7 +22,7 @@ namespace PV {
 class InitWeightsParams;
 //class InitGauss2DWeightsParams;
 
-class InitWeights {
+class InitWeights : public BaseObject {
 public:
    InitWeights(char const * name, HyPerCol * hc);
    virtual ~InitWeights();
@@ -67,12 +66,12 @@ private:
    int initialize_base();
 
 protected:
-   char * name;
    HyPerConn * callingConn;
    InitWeightsParams * weightParams;
-   HyPerCol * parentHyPerCol;
 
-};
+}; // class InitWeights
+
+BaseObject * createInitWeights(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* INITWEIGHTS_HPP_ */

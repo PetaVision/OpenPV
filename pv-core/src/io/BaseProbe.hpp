@@ -9,7 +9,8 @@
 
 #include <stdio.h>
 #include <vector>
-#include "../io/fileio.hpp"
+#include <columns/BaseObject.hpp>
+#include <io/fileio.hpp>
 
 namespace PV {
 
@@ -24,7 +25,7 @@ class HyPerLayer;
 /**
  * An abstract base class for the common functionality of layer probes and connection probes.
  */
-class BaseProbe {
+class BaseProbe : public BaseObject {
 
 // Methods
 public:
@@ -32,7 +33,6 @@ public:
    virtual ~BaseProbe();
 
    int ioParams(enum ParamsIOFlag ioFlag);
-
 
    /**
     * A pure virtual function called during HyPerCol::run, during the communicateInitInfo stage.
@@ -80,16 +80,6 @@ public:
     */
    virtual int outputState(double timef) = 0;
    virtual int writeTimer(FILE* stream) {return PV_SUCCESS;}
-
-   /**
-    * Returns the keyword of the params group associated with this probe.
-    */
-   char const * getKeyword();
-
-   /**
-    * Returns the name of the probe, specified in the public constructor.
-    */
-   const char * getName() {return name;}
    
    /**
     * Returns the name of the targetName parameter for this probe.
@@ -245,11 +235,6 @@ protected:
     * (by calling calcValues) and sets lastUpdateTime to the timevalue input argument.
     */
    int getValues(double timevalue);
-
-   /**
-    * Returns a pointer to parent HyPerCol.
-    */
-   HyPerCol * getParent() {return parent;}
    
    /**
     * Returns a pointer to the message parameter.
@@ -298,8 +283,6 @@ protected:
 
 private:
    int initialize_base();
-   void setParentCol(HyPerCol * hc) {parent = hc;}
-   int setProbeName(const char * probeName);
 
 // Member variables
 protected:
@@ -308,8 +291,6 @@ protected:
    char* triggerLayerName;
    HyPerLayer * triggerLayer;
    double triggerOffset;
-   HyPerCol * parent;
-   char * name;
    char * targetName;
    char * energyProbe; // the name of the ColumnEnergyProbe to attach to, if any.
    double coefficient;

@@ -84,5 +84,9 @@ int GapLayer::setActivity() {
    return setActivity_GapLayer(loc->nbatch, getNumNeurons(), getCLayer()->activity->data, getV(), loc->nx, loc->ny, loc->nf, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, originalLayer->getLayerLoc()->halo.lt, originalLayer->getLayerLoc()->halo.rt, originalLayer->getLayerLoc()->halo.dn, originalLayer->getLayerLoc()->halo.up, getCLayer()->activity->data,ampSpikelet);
 }
 
+BaseObject * createGapLayer(char const * name, HyPerCol * hc) {
+   return hc ? new GapLayer(name, hc) : NULL;
+}
+
 } // end namespace PV
 

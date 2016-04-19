@@ -14,13 +14,10 @@ NormalizeBase::NormalizeBase() {
 }
 
 NormalizeBase::~NormalizeBase() {
-   free(name);
    free(connectionList); // normalizer does not own the individual connections in the list, so don't free them
 }
 
 int NormalizeBase::initialize_base() {
-   name = NULL;
-   parentHyPerCol = NULL;
    connectionList = NULL;
    numConnections = 0;
    strength = 1.0f;
@@ -36,15 +33,9 @@ int NormalizeBase::initialize_base() {
 int NormalizeBase::initialize(const char * name, HyPerCol * hc) {
    // name is the name of a group in the PVParams object.  Parameters related to normalization should be in the indicated group.
 
-   int status = PV_SUCCESS;
+   int status = BaseObject::initialize(name, hc);
    this->connectionList = NULL;
    this->numConnections = 0;
-   this->name = strdup(name);
-   if (this->name==NULL) {
-      fprintf(stderr, "Rank %d error: unable to allocate memory for name \"%s\" of normalizer object.\n", hc->columnId(), name);
-      exit(EXIT_FAILURE);
-   }
-   this->parentHyPerCol = hc;
    status = hc->addNormalizer(this);
    return status;
 }
@@ -58,27 +49,27 @@ int NormalizeBase::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeBase::ioParam_strength(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "strength", &strength, strength/*default*/, true/*warn if absent*/);
+   parent->ioParamValue(ioFlag, name, "strength", &strength, strength/*default*/, true/*warn if absent*/);
 }
 
 void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag) {
    // normalize_arbors_individually as a parameter name was deprecated April 19, 2013 and marked obsolete October 24, 2014
-   if (ioFlag==PARAMS_IO_READ && !parent()->parameters()->present(name, "normalizeArborsIndividually") && parent()->parameters()->present(name, "normalize_arbors_individually")) {
-      if (parent()->columnId()==0) {
+   if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "normalizeArborsIndividually") && parent->parameters()->present(name, "normalize_arbors_individually")) {
+      if (parent->columnId()==0) {
          fprintf(stderr, "Normalizer \"%s\": parameter name normalize_arbors_individually is obsolete.  Use normalizeArborsIndividually.\n", name);
       }
-      MPI_Barrier(parent()->icCommunicator()->communicator());
+      MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
    }
-   parent()->ioParamValue(ioFlag, name, "normalizeArborsIndividually", &normalizeArborsIndividually, false/*default*/, true/*warnIfAbsent*/);
+   parent->ioParamValue(ioFlag, name, "normalizeArborsIndividually", &normalizeArborsIndividually, false/*default*/, true/*warnIfAbsent*/);
 }
 
 void NormalizeBase::ioParam_normalizeOnInitialize(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "normalizeOnInitialize", &normalizeOnInitialize, normalizeOnInitialize);
+   parent->ioParamValue(ioFlag, name, "normalizeOnInitialize", &normalizeOnInitialize, normalizeOnInitialize);
 }
 
 void NormalizeBase::ioParam_normalizeOnWeightUpdate(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "normalizeOnWeightUpdate", &normalizeOnWeightUpdate, normalizeOnWeightUpdate);
+   parent->ioParamValue(ioFlag, name, "normalizeOnWeightUpdate", &normalizeOnWeightUpdate, normalizeOnWeightUpdate);
 }
 
 
@@ -208,7 +199,7 @@ int NormalizeBase::addConnToList(HyPerConn * newConn) {
    connectionList = newList;
    connectionList[numConnections] = newConn;
    numConnections++;
-   if (parent()->columnId()==0) {
+   if (parent->columnId()==0) {
       printf("Adding connection \"%s\" to normalizer group \"%s\".\n", newConn->getName(), this->getName());
    }
    return PV_SUCCESS;
@@ -216,6 +207,13 @@ int NormalizeBase::addConnToList(HyPerConn * newConn) {
 
 void NormalizeBase::normalizePatch(pvwdata_t * dataStartPatch, int weights_per_patch, float multiplier) {
    for (int k=0; k<weights_per_patch; k++) dataStartPatch[k] *= multiplier;
+}
+
+BaseObject * createNormalizeBase(char const * name, HyPerCol * hc) {
+   if (hc==NULL || hc->columnId()==0) {
+      fprintf(stderr, "NormalizeBase cannot be instantiated itself.  Only derived classes of NormalizeBase can be instantiated.\n");
+   }
+   return NULL;
 }
 
 } // end namespace PV

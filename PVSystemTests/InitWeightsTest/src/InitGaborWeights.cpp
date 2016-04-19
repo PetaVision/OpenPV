@@ -36,7 +36,7 @@ int InitGaborWeights::initialize(char const * name, HyPerCol * hc) {
 }
 
 InitWeightsParams * InitGaborWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitGaborWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitGaborWeightsParams(name, parent);
    return tempPtr;
 }
 

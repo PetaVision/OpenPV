@@ -72,6 +72,8 @@ private:
    double exponent;
 }; // end class L2NormProbe
 
+BaseObject * createL2NormProbe(char const * name, HyPerCol * hc);
+
 }  // end namespace PV
 
 #endif /* L2NORMPROBE_HPP_ */

@@ -43,9 +43,8 @@ int InitWeights::initialize(char const * name, HyPerCol * hc) {
       fprintf(stderr, "InitWeights::initialize called with a HyPerCol argument of null.\n");
       exit(EXIT_FAILURE);
    }
-   this->name = strdup(name);
+   int status = BaseObject::initialize(name, hc);
    callingConn = NULL; // will be set during communicateInitInfo stage.
-   parentHyPerCol = hc;
 
    return PV_SUCCESS;
 }
@@ -74,10 +73,10 @@ int InitWeights::communicateParamsInfo() {
 
    int status = PV_SUCCESS;
    if (callingConn==NULL) {
-      BaseConnection * baseCallingConn = parentHyPerCol->getConnFromName(name);
+      BaseConnection * baseCallingConn = parent->getConnFromName(name);
       if (baseCallingConn==NULL) {
          status = PV_FAILURE;
-         if (parentHyPerCol->columnId()==0) {
+         if (parent->columnId()==0) {
             fprintf(stderr, "InitWeights error: \"%s\" is not a connection in the column.\n", name);
          }
       }
@@ -85,13 +84,13 @@ int InitWeights::communicateParamsInfo() {
          callingConn = dynamic_cast<HyPerConn *>(baseCallingConn);
          if (callingConn==NULL) {
             status = PV_FAILURE;
-            if (parentHyPerCol->columnId()==0) {
+            if (parent->columnId()==0) {
                fprintf(stderr, "InitWeights error: \"%s\" is not a HyPerConn.\n", name);
             }
          }
       }
    }
-   MPI_Barrier(parentHyPerCol->icCommunicator()->communicator());
+   MPI_Barrier(parent->icCommunicator()->communicator());
    if (status == PV_FAILURE) {
       exit(EXIT_FAILURE);
    }
@@ -219,7 +218,7 @@ int InitWeights::zeroWeightsOutsideShrunkenPatch(PVPatch *** patches) {
 
 
 InitWeightsParams * InitWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -252,16 +251,14 @@ int InitWeights::calcWeights(pvwdata_t * dataStart, int dataPatchIndex, int arbo
 }
 
 int InitWeights::initialize_base() {
-   name = NULL;
    callingConn = NULL;
    weightParams = NULL;
-   parentHyPerCol = NULL;
    return PV_SUCCESS;
 }
 
 int InitWeights::readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numPatches, const char * filename, double * timeptr/*default=NULL*/) {
    if (callingConn==NULL) {
-      callingConn = dynamic_cast<HyPerConn *>(parentHyPerCol->getConnFromName(name));
+      callingConn = dynamic_cast<HyPerConn *>(parent->getConnFromName(name));
    }
    InterColComm *icComm = callingConn->getParent()->icCommunicator();
    int numArbors = callingConn->numberOfAxonalArborLists();
@@ -405,6 +402,10 @@ int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataS
    } // file_count < num_weight_files
 
    return PV_SUCCESS;
+}
+
+BaseObject * createInitWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitWeights(name, hc) : NULL;
 }
 
 } /* namespace PV */

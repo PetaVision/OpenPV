@@ -211,4 +211,8 @@ int MaskLayer::updateState(double time, double dt)
    return PV_SUCCESS;
 }
 
+BaseObject * createMaskLayer(char const * name, HyPerCol * hc) {
+   return hc ? new MaskLayer(name, hc) : NULL;
+}
+
 } /* namespace PV */

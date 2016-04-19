@@ -656,6 +656,10 @@ int Retina::outputState(double time, bool last)
    return HyPerLayer::outputState(time, last);
 }
 
+BaseObject * createRetina(char const * name, HyPerCol * hc) {
+   return hc ? new Retina(name, hc) : NULL;
+}
+
 } // namespace PV
 
 ///////////////////////////////////////////////////////

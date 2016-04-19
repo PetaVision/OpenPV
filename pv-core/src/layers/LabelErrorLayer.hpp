@@ -28,7 +28,9 @@ private:
    int initialize_base();
    float errScale;
    int isBinary;
-};
+}; // class LabelErrorLayer
+
+BaseObject * createLabelErrorLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* LABELERRORLAYER_HPP_ */

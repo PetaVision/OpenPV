@@ -33,7 +33,9 @@ private:
 // Member variables
 protected:
    float minSumTolerated; // Error if abs(sum(weights)) in any patch is less than this amount.
-};
+}; // class NormalizeSum
+
+BaseObject * createNormalizeSum(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* NORMALIZESUM_HPP_ */

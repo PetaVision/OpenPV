@@ -44,7 +44,9 @@ private:
 protected:
    char * originalLayerName;
    HyPerLayer * originalLayer;
-};
+}; // class CloneVLayer
+
+BaseObject * createCloneVLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* CLONEVLAYER_HPP_ */

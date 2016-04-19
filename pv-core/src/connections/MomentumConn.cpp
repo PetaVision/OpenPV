@@ -439,4 +439,11 @@ int MomentumConn::checkpointRead(const char * cpDir, double * timeptr) {
    return status;
 }
 
+BaseObject * createMomentumConn(char const * name, HyPerCol * hc) {
+   if (hc==NULL) { return NULL; }
+   InitWeights * weightInitializer = getWeightInitializer(name, hc);
+   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
+   return new MomentumConn(name, hc, weightInitializer, weightNormalizer);
+}
+
 } // end namespace PV

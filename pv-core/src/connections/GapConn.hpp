@@ -29,7 +29,9 @@ private:
    int initialize_base();
    bool initNormalizeFlag;
 
-};
+}; // end class GapConn
+
+BaseObject * createGapConn(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* GAPCONN_HPP_ */

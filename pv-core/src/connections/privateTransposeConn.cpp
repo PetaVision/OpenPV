@@ -18,10 +18,7 @@ privateTransposeConn::~privateTransposeConn() {
 
 //privateTransposeConn initialize will be called during parentConn's communicate
 int privateTransposeConn::initialize(const char * name, HyPerCol * hc, HyPerConn * parentConn, bool needWeights) {
-   int status = PV_SUCCESS;
-   status = setParent(hc);
-   assert(status == PV_SUCCESS);
-   status = setName(name);
+   int status = BaseObject::initialize(name, hc); // Don't call HyPerConn::initialize
    assert(status == PV_SUCCESS);
 
    this->weightInitializer = NULL;

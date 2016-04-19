@@ -37,4 +37,8 @@ int L1NormLCAProbe::communicateInitInfo() {
    return status;
 }
 
+BaseObject * createL1NormLCAProbe(char const * name, HyPerCol * hc) {
+   return hc ? new L1NormLCAProbe(name, hc) : NULL;
+}
+
 } /* namespace PV */

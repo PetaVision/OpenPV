@@ -513,5 +513,9 @@ int RescaleLayer::updateState(double timef, double dt) {
    return status;
 }
 
+BaseObject * createRescaleLayer(char const * name, HyPerCol * hc) {
+   return hc ? new RescaleLayer(name, hc) : NULL;
+}
+
 } // end namespace PV
 

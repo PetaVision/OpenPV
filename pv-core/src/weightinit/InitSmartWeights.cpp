@@ -42,7 +42,7 @@ int InitSmartWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, in
 }
 
 InitWeightsParams * InitSmartWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -67,6 +67,10 @@ int InitSmartWeights::smartWeights(/* PVPatch * wp */ pvdata_t * dataStart, int 
    }
 
    return 0;
+}
+
+BaseObject * createInitSmartWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitSmartWeights(name, hc) : NULL;
 }
 
 } /* namespace PV */

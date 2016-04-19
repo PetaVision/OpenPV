@@ -305,6 +305,10 @@ int HyPerLCALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc,
    return PV_SUCCESS;
 }
 
+BaseObject * createHyPerLCALayer(char const * name, HyPerCol * hc) {
+   return hc ? new HyPerLCALayer(name, hc) : NULL;
+}
+
 } /* namespace PV */
 
 

@@ -31,7 +31,10 @@ namespace PV
     private:
         int initialize_base();
 
-    };
-}
+    }; // class KmeansLayer
+
+BaseObject * createKmeansLayer(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 
 #endif /* KMEANSLAYER_HPP_ */

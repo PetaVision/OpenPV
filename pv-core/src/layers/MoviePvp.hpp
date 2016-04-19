@@ -154,8 +154,10 @@ private:
    bool flipOnTimescaleError;
    bool initFlag;
    char* batchMethod;
-};
+}; // class MoviePvp
 
-}
+BaseObject * createMoviePvp(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 
 #endif /* MOVIE_HPP_ */

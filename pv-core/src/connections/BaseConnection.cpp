@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include "BaseConnection.hpp"
-#include "../io/BaseConnectionProbe.hpp"
+#include <io/BaseConnectionProbe.hpp>
 
 namespace PV {
 
@@ -22,8 +22,6 @@ BaseConnection::BaseConnection() {
 }
 
 int BaseConnection::initialize_base() {
-   name = NULL;
-   parent = NULL;
    connId = -1;
    preLayerName = NULL;
    postLayerName = NULL;
@@ -48,42 +46,11 @@ int BaseConnection::initialize_base() {
 }
 
 int BaseConnection::initialize(const char * name, HyPerCol * hc) {
-   int status = PV_SUCCESS;
-   if (status == PV_SUCCESS) status = setParent(hc);
-   if (status == PV_SUCCESS) status = setName(name);
-   // if(status == PV_SUCCESS) status = setPreAndPostLayerNames(); // Moved into ioParams
+   int status = BaseObject::initialize(name, hc);
 
    this->connId = this->getParent()->addConnection(this);
    if (status == PV_SUCCESS) status = ioParams(PARAMS_IO_READ);
    return status;
-}
-
-int BaseConnection::setParent(HyPerCol * hc) {
-   assert(parent==NULL);
-   if(hc==NULL) {
-      int rank = 0;
-      MPI_Comm_rank(hc->icCommunicator()->communicator(), &rank);
-      fprintf(stderr, "HyPerConn error in rank %d process: constructor called with HyPerCol set to the null pointer.\n", rank);
-      exit(EXIT_FAILURE);
-   }
-   parent = hc;
-   return PV_SUCCESS;
-}
-
-int BaseConnection::setName(const char * name) {
-   assert(parent!=NULL);
-   if(name==NULL) {
-      fprintf(stderr, "HyPerConn error in rank %d process: constructor called with name set to the null pointer.\n", parent->columnId());
-      exit(EXIT_FAILURE);
-   }
-   free(this->name);  // name will already have been set in initialize_base()
-   this->name = strdup(name);
-   if (this->name==NULL) {
-      fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of connection: %s\n",
-            name, parent->columnId(), strerror(errno));
-      exit(EXIT_FAILURE);
-   }
-   return PV_SUCCESS;
 }
 
 int BaseConnection::setPreAndPostLayerNames() {
@@ -142,10 +109,6 @@ void BaseConnection::setPostSynapticLayer(HyPerLayer * post) {
 void BaseConnection::setChannelType(ChannelType ch) {
    assert(!initInfoCommunicatedFlag);
    this->channel = ch;
-}
-
-char const * BaseConnection::getKeyword() {
-   return this->getParent()->parameters()->groupKeywordFromName(this->getName());
 }
 
 void BaseConnection::setNumberOfAxonalArborLists(int numArbors) {
@@ -575,7 +538,6 @@ int BaseConnection::initializeState() {
 }
 
 BaseConnection::~BaseConnection() {
-   free(name);
    free(this->preLayerName);
    free(this->postLayerName);
    free(fDelayArray);

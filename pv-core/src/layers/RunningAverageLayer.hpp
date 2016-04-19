@@ -30,7 +30,6 @@ protected:
    void ioParam_numImagesToAverage(enum ParamsIOFlag ioFlag);
 private:
    int initialize_base();
-   //bool checkIfUpdateNeeded();
 
    // Handled by CloneVLayer
    // char * originalLayerName;
@@ -39,8 +38,10 @@ private:
 protected:
    int numImagesToAverage;
    int numUpdateTimes;
-};
+}; // class RunningAverageLayer
 
-}
+BaseObject * createRunningAverageLayer(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 
 #endif /* CLONELAYER_HPP_ */

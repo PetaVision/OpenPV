@@ -29,7 +29,9 @@ protected:
 private:
    int initialize_base();
    int smartWeights(/* PVPatch * patch */ pvdata_t * dataStart, int k, InitWeightsParams *weightParams);
-};
+}; // class InitSmartWeights
+
+BaseObject * createInitSmartWeights(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* INITSMARTWEIGHTS_HPP_ */

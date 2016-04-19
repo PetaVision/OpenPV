@@ -59,6 +59,8 @@ int PoolingIndexLayer::resetGSynBuffers(double timef, double dt) {
    return PV_SUCCESS;
 }
 
-
+BaseObject * createPoolingIndexLayer(char const * name, HyPerCol * hc) {
+   return hc ? new PoolingIndexLayer(name, hc) : NULL;
+}
 
 }  // end namespace PV

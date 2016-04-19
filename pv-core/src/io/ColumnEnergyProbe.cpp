@@ -6,7 +6,7 @@
  */
 
 #include "ColumnEnergyProbe.hpp"
-#include "BaseProbe.hpp"
+#include "columns/HyPerCol.hpp"
 #include <limits>
 
 namespace PV {
@@ -140,5 +140,9 @@ int ColumnEnergyProbe::outputState(double timevalue) {
    fflush(outputstream->fp);
    return PV_SUCCESS;
 }  // end ColumnEnergyProbe::outputState(float, HyPerCol *)
+
+BaseObject * createColumnEnergyProbe(char const * name, HyPerCol * hc) {
+   return hc ? new ColumnEnergyProbe(name, hc) : NULL;
+}
 
 }  // end namespace PV

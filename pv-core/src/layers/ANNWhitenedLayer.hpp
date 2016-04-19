@@ -23,7 +23,9 @@ protected:
          pvdata_t * V, int num_channels, pvdata_t * gSynHead);
 private:
    int initialize_base();
-};
+}; // class ANNWhitenedLayer
+
+BaseObject * createANNWhitenedLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* ANNWHITENEDLAYER_HPP_ */

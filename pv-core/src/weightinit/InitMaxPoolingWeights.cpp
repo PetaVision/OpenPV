@@ -35,7 +35,7 @@ int InitMaxPoolingWeights::initialize(const char * name, HyPerCol * hc) {
 }
 
 InitWeightsParams * InitMaxPoolingWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitMaxPoolingWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitMaxPoolingWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -48,6 +48,10 @@ int InitMaxPoolingWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStar
    }
 
    return PV_SUCCESS; // return 1;
+}
+
+BaseObject * createInitMaxPoolingWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitMaxPoolingWeights(name, hc) : NULL;
 }
 
 } /* namespace PV */

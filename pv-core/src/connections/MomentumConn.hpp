@@ -47,7 +47,9 @@ private:
    int timeBatchPeriod;
 
 
-}; // end class 
+}; // end class MomentumConn
+
+BaseObject * createMomentumConn(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

@@ -118,7 +118,9 @@ int SigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc, p
    return PV_SUCCESS;
 }
 
-
+BaseObject * createSigmoidLayer(char const * name, HyPerCol * hc) {
+   return hc ? new SigmoidLayer(name, hc) : NULL;
+}
 
 } // end namespace PV
 

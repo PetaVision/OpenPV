@@ -362,6 +362,10 @@ int PtwiseLinearTransferLayer::checkpointWrite(char const * cpDir) {
    return status;
 }
 
+BaseObject * createPtwiseLinearTransferLayer(char const * name, HyPerCol * hc) {
+   return hc ? new PtwiseLinearTransferLayer(name, hc) : NULL;
+}
+
 }  // end namespace PV
 
 ///////////////////////////////////////////////////////

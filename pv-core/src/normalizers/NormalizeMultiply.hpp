@@ -86,7 +86,9 @@ protected:
                                       // The rMinX, rMinY, and nonnegative constraints are applied before the normalize_cutoff constraint.
    bool normalizeFromPostPerspective; // If false, group all weights with a common presynaptic neuron for normalizing.  If true, group all weights with a common postsynaptic neuron
                                       // Only meaningful (at least for now) for KernelConns using sum of weights or sum of squares normalization methods.
-};
+}; // class NormalizeMultiply
+
+BaseObject * createNormalizeMultiply(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 

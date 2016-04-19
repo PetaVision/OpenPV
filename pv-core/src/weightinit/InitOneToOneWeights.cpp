@@ -35,7 +35,7 @@ int InitOneToOneWeights::initialize(char const * name, HyPerCol * hc) {
 }
 
 InitWeightsParams * InitOneToOneWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitOneToOneWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitOneToOneWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -80,6 +80,10 @@ int InitOneToOneWeights::createOneToOneConnection(pvdata_t * dataStart, int data
 
    return PV_SUCCESS;
 
+}
+
+BaseObject * createInitOneToOneWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitOneToOneWeights(name, hc) : NULL;
 }
 
 } /* namespace PV */

@@ -60,7 +60,10 @@ private:
    bool needFrameSizesForSpiking;
    PV_Stream * posstream;
    
-};
-}
+}; // class ImagePvp
+
+BaseObject * createImagePvp(char const * name, HyPerCol * hc);
+
+} // namespace PV
 
 #endif

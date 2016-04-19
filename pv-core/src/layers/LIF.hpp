@@ -151,7 +151,9 @@ private:
    // an array with their indices.
    // an array with their feature vectors.
    int* nNeurons, int nConnectedNeurons[], float *vPos);
-};
+}; // class LIF
+
+BaseObject * createLIF(char const * name, HyPerCol * hc);
 
 } // namespace PV
 

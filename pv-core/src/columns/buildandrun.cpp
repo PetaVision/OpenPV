@@ -6,7 +6,7 @@
  * It deletes the PV_Init and HyPerCol objects that it creates.
  * Often, the main() function consists only of a call to buildandrun.
  *
- * outputParams(argc, argv, path, groupHandlerList, numGroupHandlersargc) builds the
+ * outputParams(argc, argv, path, factory) builds the
  * layers, connections, etc. and then calls the hypercol's processParams
  * method, which fills in default parameters, ignores unnecessary parameters
  * and sends the parameters to the file specified in the path argument.
@@ -22,25 +22,135 @@
  */
 
 #include "buildandrun.hpp"
+#include <columns/BaseObject.hpp>
 
 using namespace PV;
 
+// The buildandrun, rebuildandrun, and buildandrun1paramset functions below,
+// which use the Factory class, are the preferred versions of these
+// functions.  Older versions follow, and are kept for backwards
+// compatibility, but are deprecated as of March 24, 2016.
+int buildandrun(int argc, char * argv[],
+                int (*custominit)(HyPerCol *, int, char **),
+                int (*customexit)(HyPerCol *, int, char **)) {
+   PV_Init initObj(&argc, &argv, false/*value of allowUnrecognizedArguments*/);
+   int status = buildandrun(&initObj, custominit, customexit);
+   return status;
+}
+
+int buildandrun(PV_Init * initObj,
+                int (*custominit)(HyPerCol *, int, char **),
+                int (*customexit)(HyPerCol *, int, char **)) {
+   initObj->initialize();
+   if(initObj->isExtraProc()){
+      return 0;
+   }
+   PVParams * params = initObj->getParams();
+   if (params==NULL) {
+      if (initObj->getWorldRank()==0) {
+         char const * progName = initObj->getArguments()->getProgramName();
+         if (progName==NULL) { progName = "PetaVision"; }
+         fprintf(stderr, "%s was called without having set a params file\n", progName);
+      }
+      MPI_Barrier(initObj->getComm()->communicator());
+      exit(EXIT_FAILURE);
+   }
+
+   int numParamSweepValues = initObj->getParams()->getParameterSweepSize();
+
+   int status = PV_SUCCESS;
+   if (numParamSweepValues) {
+      for (int k=0; k<numParamSweepValues; k++) {
+         if (initObj->getWorldRank()==0) {
+            printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
+         }
+         status = buildandrun1paramset(initObj, custominit, customexit, k) == PV_SUCCESS ? status : PV_FAILURE;
+      }
+   }
+   else{
+      if(initObj->getComm()->numCommBatches() > 1){
+         initObj->getParams()->setBatchSweepValues();
+      }
+      status = buildandrun1paramset(initObj, custominit, customexit) == PV_SUCCESS ? status : PV_FAILURE;
+   }
+
+   return status;
+}
+
+// A synonym for the form of buildandrun() that takes a PV_Init object.
+// It is older than that form, and has been kept for backwards compatibility.
+int rebuildandrun(PV_Init * initObj,
+                int (*custominit)(HyPerCol *, int, char **),
+                int (*customexit)(HyPerCol *, int, char **)) {
+   return buildandrun(initObj, custominit, customexit);
+}
+
+int buildandrun1paramset(PV_Init * initObj,
+                         int (*custominit)(HyPerCol *, int, char **),
+                         int (*customexit)(HyPerCol *, int, char **),
+                         int sweepindex) {
+   if (sweepindex>=0) { initObj->getParams()->setParameterSweepValues(sweepindex); }
+   HyPerCol * hc = initObj->build();
+   if( hc == NULL ) return PV_FAILURE;  // build() prints error message
+
+   int status = PV_SUCCESS;
+   int argc = 0;
+   char ** argv = NULL;
+   if (custominit || customexit) {
+      argc = initObj->getArguments()->getNumArgs();
+      argv = initObj->getArguments()->getArgsCopy();
+   }
+   if( custominit != NULL ) {
+      status = (*custominit)(hc, argc, argv);
+      if(status != PV_SUCCESS) {
+         fprintf(stderr, "custominit function failed with return value %d\n", status);
+      }
+   }
+
+   if( status==PV_SUCCESS && hc->getInitialStep() < hc->getFinalStep() ) {
+      status = hc->run();
+      if( status != PV_SUCCESS ) {
+         fprintf(stderr, "HyPerCol::run() returned with error code %d\n", status);
+      }
+   }
+   if( status==PV_SUCCESS && customexit != NULL ) {
+      status = (*customexit)(hc, argc, argv);
+      if( status != PV_SUCCESS) {
+         fprintf(stderr, "customexit function failed with return value %d\n", status);
+      }
+   }
+   if (custominit || customexit) {
+      initObj->getArguments()->freeArgs(argc, argv);
+   }
+   delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
+   return status;
+}
+
+HyPerCol * build(PV_Init* initObj) {
+   return initObj ? initObj->build() : NULL;
+}
+
+// This version of buildandrun was deprecated March 24, 2016 in favor of the Factory version.
 int buildandrun(int argc, char * argv[],
       int (*custominit)(HyPerCol *, int, char **),
       int (*customexit)(HyPerCol *, int, char **),
       void * (*customgroups)(const char *, const char *, HyPerCol *)) {
    PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   initObj->initialize();
+   initObj->printBuildAndRunDeprecationWarning("buildandrun", "argc, argv, custominit, customexit, customgroups");
    int status = rebuildandrun(initObj, custominit, customexit, customgroups);
    delete initObj;
    return status;
 }
 
+// This version of rebuildandrun was deprecated March 24, 2016 in favor of the Factory version.
 int rebuildandrun(PV_Init* initObj,
       int (*custominit)(HyPerCol *, int, char **),
       int (*customexit)(HyPerCol *, int, char **),
       void * (*customgroups)(const char *, const char *, HyPerCol *)) {
 
    initObj->initialize();
+   initObj->printBuildAndRunDeprecationWarning("rebuildandrun", "initObj, custominit, customexit, customgroups");
    if(initObj->isExtraProc()){
       return 0;
    }
@@ -77,24 +187,28 @@ int rebuildandrun(PV_Init* initObj,
    return status;
 }
 
-
+// This version of buildandrun was deprecated March 24, 2016 in favor of the Factory version.
 int buildandrun(int argc, char * argv[],
                 int (*custominit)(HyPerCol *, int, char **),
                 int (*customexit)(HyPerCol *, int, char **),
                 ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
 
    PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   initObj->initialize();
+   initObj->printBuildAndRunDeprecationWarning("buildandrun", "argc, argv, custominit, customexit, groupHandlerList, numGroupHandlers");
    int status = rebuildandrun(initObj, custominit, customexit, groupHandlerList, numGroupHandlers);
    delete initObj;
    return status;
 }
 
+// This version of rebuildandrun was deprecated March 24, 2016 in favor of the Factory version.
 int rebuildandrun(PV_Init* initObj,
                 int (*custominit)(HyPerCol *, int, char **),
                 int (*customexit)(HyPerCol *, int, char **),
                 ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
 
    initObj->initialize();
+   initObj->printBuildAndRunDeprecationWarning("rebuildandrun", "initObj, custominit, customexit, groupHandlerList, numGroupHandlers");
    if(initObj->isExtraProc()){
       return 0;
    }
@@ -133,10 +247,12 @@ int rebuildandrun(PV_Init* initObj,
    return status;
 }
 
+// This version of buildandrun1paramset was deprecated March 24, 2016 in favor of the Factory version.
 int buildandrun1paramset(PV_Init* initObj,
                          int (*custominit)(HyPerCol *, int, char **),
                          int (*customexit)(HyPerCol *, int, char **),
                          void * (*customgroups)(const char *, const char *, HyPerCol *)) {
+   initObj->printBuildAndRunDeprecationWarning("rebuildandrun1paramset", "initObj, custominit, customexit, customgroups");
    HyPerCol * hc = build(initObj, customgroups);
    if( hc == NULL ) return PV_FAILURE;  // build() prints error message
 
@@ -173,8 +289,10 @@ int buildandrun1paramset(PV_Init* initObj,
    return status;
 }
 
+// This version of build was deprecated March 24, 2016 in favor of the Factory version.
 HyPerCol * build(PV_Init* initObj,
                  void * (*customgroups)(const char *, const char *, HyPerCol *)) {
+   initObj->printBuildAndRunDeprecationWarning("build", "initObj, customgroups");
    HyPerCol * hc = new HyPerCol("column", initObj);
    if( hc == NULL ) {
       fprintf(stderr, "Unable to create HyPerCol\n");
@@ -293,7 +411,7 @@ int outputParams(int argc, char * argv[], char const * path, ParamGroupHandler *
 
    delete hc;
    delete initObj;
-   return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
+   return status;
 }
 
 HyPerCol * build(PV_Init* initObj, ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {

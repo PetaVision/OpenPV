@@ -46,6 +46,8 @@ protected:
    float scale;
 };
 
+BaseObject * createRescaleConn(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 
 #endif /* PV_CORE_SRC_CONNECTIONS_RESCALECONN_HPP_ */

@@ -33,5 +33,7 @@ private:
    int initialize_base();
 };
 
+BaseObject * createNormalizeGap(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* NORMALIZEGAP_HPP_ */

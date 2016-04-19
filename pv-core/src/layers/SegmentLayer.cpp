@@ -432,4 +432,8 @@ SegmentLayer::~SegmentLayer() {
    centerIdx.clear();
 }
 
+BaseObject * createSegmentLayer(char const * name, HyPerCol * hc) {
+   return hc ? new SegmentLayer(name, hc) : NULL;
+}
+
 } /* namespace PV */

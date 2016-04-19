@@ -35,7 +35,7 @@ int InitIdentWeights::initialize(char const * name, HyPerCol * hc) {
 }
 
 InitWeightsParams * InitIdentWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitIdentWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitIdentWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -54,6 +54,10 @@ int InitIdentWeights::calcWeights(pvdata_t * dataStart, int patchIndex, int arbo
 
 
    return createOneToOneConnection(dataStart, patchIndex, 1, weightParamPtr);
+}
+
+BaseObject * createInitIdentWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitIdentWeights(name, hc) : NULL;
 }
 
 } /* namespace PV */

@@ -316,4 +316,8 @@ int StatsProbe::checkpointTimers(PV_Stream * timerstream) {
    return PV_SUCCESS;
 }
 
+BaseObject * createStatsProbe(char const * name, HyPerCol * hc) {
+   return hc ? new StatsProbe(name, hc) : NULL;
+}
+
 }

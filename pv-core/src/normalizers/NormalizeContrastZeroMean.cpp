@@ -33,17 +33,17 @@ int NormalizeContrastZeroMean::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeContrastZeroMean::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true/*warnIfAbsent*/);
+   parent->ioParamValue(ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true/*warnIfAbsent*/);
 }
 
 void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
-      if (parent()->parameters()->present(name, "normalizeFromPostPerspective")) {
-         if (parent()->columnId()==0) {
+      if (parent->parameters()->present(name, "normalizeFromPostPerspective")) {
+         if (parent->columnId()==0) {
             fprintf(stderr, "%s \"%s\": normalizeMethod \"normalizeContrastZeroMean\" doesn't use normalizeFromPostPerspective parameter.\n",
-                  parent()->parameters()->groupKeywordFromName(name), name);
+                  parent->parameters()->groupKeywordFromName(name), name);
          }
-         parent()->parameters()->value(name, "normalizeFromPostPerspective"); // marks param as having been read
+         parent->parameters()->value(name, "normalizeFromPostPerspective"); // marks param as having been read
       }
    }
 }
@@ -58,21 +58,21 @@ int NormalizeContrastZeroMean::normalizeWeights() {
    for (int c=1; c<numConnections; c++) {
       HyPerConn * conn = connectionList[c];
       if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
-         if (parent()->columnId() == 0) {
+         if (parent->columnId() == 0) {
             fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of arbors (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->numberOfAxonalArborLists(), conn->getName(), conn->numberOfAxonalArborLists());
          }
          status = PV_FAILURE;
       }
       if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
-         if (parent()->columnId() == 0) {
+         if (parent->columnId() == 0) {
             fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of data patches (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->getNumDataPatches(), conn->getName(), conn->getNumDataPatches());
          }
          status = PV_FAILURE;
       }
       if (status==PV_FAILURE) {
-         MPI_Barrier(parent()->icCommunicator()->communicator());
+         MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
       }
    }
@@ -168,6 +168,10 @@ int NormalizeContrastZeroMean::accumulateSumAndSumSquared(pvwdata_t * dataPatchS
 }
 
 NormalizeContrastZeroMean::~NormalizeContrastZeroMean() {
+}
+
+BaseObject * createNormalizeContrastZeroMean(char const * name, HyPerCol * hc) {
+   return hc ? new NormalizeContrastZeroMean(name, hc) : NULL;
 }
 
 } /* namespace PV */

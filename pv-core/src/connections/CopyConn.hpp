@@ -126,7 +126,9 @@ protected:
 
 private:
    int initialize_base();
-};
+}; // end class CopyConn
+
+BaseObject * createCopyConn(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 

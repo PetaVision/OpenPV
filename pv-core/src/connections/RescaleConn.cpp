@@ -113,4 +113,8 @@ int RescaleConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
 RescaleConn::~RescaleConn() {
 }
 
+BaseObject * createRescaleConn(char const * name, HyPerCol * hc) {
+   return hc ? new RescaleConn(name, hc) : NULL;
+}
+
 } /* namespace PV */

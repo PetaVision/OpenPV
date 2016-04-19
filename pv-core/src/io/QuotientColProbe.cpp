@@ -6,7 +6,7 @@
  */
 
 #include "QuotientColProbe.hpp"
-#include "BaseProbe.hpp"
+#include "columns/HyPerCol.hpp"
 #include <limits>
 
 namespace PV {
@@ -156,5 +156,9 @@ int QuotientColProbe::outputState(double timevalue) {
    fflush(outputstream->fp);
    return PV_SUCCESS;
 }  // end QuotientColProbe::outputState(float, HyPerCol *)
+
+BaseObject * createQuotientColProbe(char const * name, HyPerCol * hc) {
+   return hc ? new QuotientColProbe(name, hc) : NULL;
+}
 
 }  // end namespace PV
