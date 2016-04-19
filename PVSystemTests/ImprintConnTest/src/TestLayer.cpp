@@ -86,6 +86,8 @@ int TestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-
+BaseObject * createTestLayer(char const * name, HyPerCol * hc) {
+   return hc ? new TestLayer(name, hc) : NULL;
+}
 
 } /* namespace PV */

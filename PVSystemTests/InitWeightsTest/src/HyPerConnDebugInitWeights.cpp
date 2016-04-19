@@ -942,30 +942,11 @@ int HyPerConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, 
    return 0;
 }
 
-/*
-int HyPerConnDebugInitWeights::copyToWeightPatch(PVPatch * sourcepatch, int arbor, int patchindex) {
-   int status = PV_SUCCESS;
-   assert(arbor >= 0 && arbor < this->numberOfAxonalArborLists());
-   assert(patchindex >= 0 && patchindex < this->numWeightPatches());
-   assert((int) sourcepatch->nx == nxp && (int) sourcepatch->ny == nyp);
-   PVPatch * targetpatch = getWeights(patchindex, arbor);
-   pvwdata_t * targetdata = get_wData(arbor, patchindex); // targetpatch->data;
-   const int unshrunkPatchSize = xPatchSize()*yPatchSize()*fPatchSize();
-   pvwdata_t * wtop = get_wDataStart(arbor);
-   //TODO-CER-2014.4.4 - weight conversion
-   pvwdata_t * data_head = (pvwdata_t *) &wtop[unshrunkPatchSize*patchindex];
-   size_t data_offset = targetpatch - data_head;
-   pvwdata_t * sourcedata = &sourcepatch->data[data_offset];
-   int nk = targetpatch->nx * nfp;
-   for (int ky = 0; ky < targetpatch->ny; ky++) {
-      for (int iWeight = 0; iWeight < nk; iWeight++) {
-         targetdata[iWeight] = sourcedata[iWeight];
-      }
-      targetdata += yPatchStride();
-      sourcedata += yPatchStride();
-   }
-   return status;
+BaseObject * createHyPerConnDebugInitWeights(char const * name, HyPerCol * hc) {
+   if (hc==NULL) { return NULL; }
+   InitWeights * weightInitializer = getWeightInitializer(name, hc);
+   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
+   return new HyPerConnDebugInitWeights(name, hc, weightInitializer, weightNormalizer);
 }
- */
 
 } /* namespace PV */

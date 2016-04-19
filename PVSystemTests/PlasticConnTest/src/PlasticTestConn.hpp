@@ -19,7 +19,10 @@ public:
 protected:
 	//virtual int update_dW(int axonId);
 	virtual pvdata_t updateRule_dW(pvdata_t pre, pvdata_t post);
-};
+}; // end class PlasticTestConn
 
-} /* namespace PV */
+
+BaseObject * createPlasticTestConn(char const * name, HyPerCol * hc);
+
+}  // end namespace PV
 #endif /* PLASTICTESTCONN_HPP_ */

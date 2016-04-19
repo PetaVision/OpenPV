@@ -13,7 +13,9 @@ class TriggerTestConn: public PV::HyPerConn{
 public:
    TriggerTestConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    int virtual updateState (double time, double dt);
-};
+}; // end class TriggerTestConn
 
-}
+BaseObject * createTriggerTestConn(char const * name, HyPerCol * hc);
+
+}  // end namespace PV
 #endif /* IMAGETESTPROBE_HPP */

@@ -11,7 +11,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv);
 int main(int argc, char * argv[]) {
 
    int status;
-   status = buildandrun(argc, argv, NULL, &customexit, NULL, 0);
+   status = buildandrun(argc, argv, NULL, &customexit);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

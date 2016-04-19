@@ -76,6 +76,8 @@ int PlasticConnTestLayer::publish(InterColComm* comm, double timef)
    //return HyPerLayer::publish(comm, time);
 }
 
-
+BaseObject * createPlasticConnTestLayer(char const * name, HyPerCol * hc) {
+   return hc ? new PlasticConnTestLayer(name, hc) : NULL;
+}
 
 } /* namespace PV */

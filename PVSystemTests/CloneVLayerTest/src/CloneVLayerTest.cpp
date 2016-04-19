@@ -9,15 +9,14 @@
 int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
-   PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   PV_Arguments * arguments = initObj->getArguments();
+   PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   PV_Arguments * arguments = initObj.getArguments();
    if (arguments->getParamsFile() == NULL) {
       arguments->setParamsFile("input/CloneVLayerTest.params");
    }
 
    int status;
-   status = rebuildandrun(initObj, NULL, &customexit, NULL, 0);
-   delete initObj;
+   status = rebuildandrun(&initObj, NULL, &customexit);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

@@ -20,8 +20,10 @@ protected:
 private:
    int initTestAllZerosProbe_base() {return PV_SUCCESS;}
 
-};
+}; // end class TestAllZerosProbe
 
-} // namespace PV
+BaseObject * createTestAllZerosProbe(char const * name, HyPerCol * hc);
+
+}  // end namespace PV
 
 #endif // TESTALLZEROSPROBE_HPP_

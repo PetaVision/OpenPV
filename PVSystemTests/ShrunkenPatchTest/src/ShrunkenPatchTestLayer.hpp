@@ -24,7 +24,9 @@ public:
 private:
    int initialize(const char * name, HyPerCol * hc);
 
-};
+}; // end class ShrunkenPatchTestLayer
+
+BaseObject * createShrunkenPatchTestLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* SHRUNKENPATCHTESTLAYER_HPP_ */

@@ -51,7 +51,7 @@ int runparamsfile(PV_Init* initObj, char const * paramsfile) {
    initObj->initialize();
 
    int status = PV_SUCCESS;
-   HyPerCol * hc = build(initObj, NULL/* ParamGroupHandler**/, 0/*numGroupHandlers*/);
+   HyPerCol * hc = build(initObj);
    if (hc != NULL) {
       status = hc->run();
       if( status != PV_SUCCESS ) {

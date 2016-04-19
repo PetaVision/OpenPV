@@ -2,62 +2,26 @@
  * main .cpp file for WriteActivitySparseTest
  *
  */
-
-
 #include <columns/buildandrun.hpp>
 #include <layers/Movie.hpp>
-#include <io/ParamGroupHandler.hpp>
+#include <columns/PV_Init.hpp>
 #include "TestNotAlwaysAllZerosProbe.hpp"
 #include "TestAllZerosProbe.hpp"
-
-class CustomGroupHandler : public ParamGroupHandler {
-public:
-   CustomGroupHandler() {}
-   virtual ~CustomGroupHandler() {}
-   virtual ParamGroupType getGroupType(char const * keyword) {
-      ParamGroupType result = UnrecognizedGroupType;
-      if (keyword==NULL) { result = UnrecognizedGroupType; }
-      else if (!strcmp(keyword, "TestAllZerosProbe")) { result = ProbeGroupType; }
-      else if (!strcmp(keyword, "TestNotAlwaysAllZerosProbe")) { result = ProbeGroupType; }
-      else { result = UnrecognizedGroupType; }
-      return result;
-   }
-   virtual BaseProbe * createProbe(char const * keyword, char const * name, HyPerCol * hc) {
-      BaseProbe * addedProbe = NULL;
-      bool matched = false;
-      if (keyword==NULL) { addedProbe = NULL; }
-      else if (!strcmp(keyword, "TestAllZerosProbe")) {
-         matched = true;
-         addedProbe = new TestAllZerosProbe(name, hc);
-      }
-      else if (!strcmp(keyword, "TestNotAlwaysAllZerosProbe")) {
-         matched = true;
-         addedProbe = new TestNotAlwaysAllZerosProbe(name, hc);
-      }
-      else { addedProbe = NULL; }
-      if (matched && !addedProbe) {
-         fprintf(stderr, "Rank %d process unable to create %s \"%s\".\n", hc->columnId(), keyword, name);
-         exit(EXIT_FAILURE);
-      }
-      return addedProbe;
-   }
-}; // class CustomGroupHandler
 
 int checkProbesOnExit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    int rank = 0;
-   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
    char const * paramFile1 = "input/GenerateOutput.params";
    char const * paramFile2 = "input/TestOutput.params";
    char const * outputDir1 = "outputGenerate";
    char const * outputDir2 = "outputTest";
    int status = PV_SUCCESS;
-   PV_Arguments * arguments = initObj->getArguments();
-   if (arguments->getParamsFile()!=NULL) {
+   if (initObj.getParams()!=NULL) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the params file argument.\n", arguments->getProgramName());
+         fprintf(stderr, "%s should be run without the params file argument.\n", initObj.getArguments()->getProgramName());
          fprintf(stderr, "This test uses two hard-coded params files, %s and %s. The first generates an output pvp file, and the second checks whether the output is consistent with the input.\n",
                paramFile1, paramFile2);
       }
@@ -74,25 +38,23 @@ int main(int argc, char * argv[]) {
       }
    }
 
-   ParamGroupHandler * customGroupHandler = new CustomGroupHandler;
+   initObj.registerKeyword("TestNotAlwaysAllZerosProbe", createTestNotAlwaysAllZerosProbe);
+   initObj.registerKeyword("TestAllZerosProbe", createTestAllZerosProbe);
 
-   arguments->setParamsFile(paramFile1);
-   status = rebuildandrun(initObj, NULL, NULL, &customGroupHandler, 1);
+   initObj.setParams(paramFile1);
+   status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", initObj.getArguments()->getProgramName(), rank, paramFile1, status);
       exit(status);
    }
 
-   arguments->setParamsFile(paramFile2);
+   initObj.setParams(paramFile2);
 
-   status = rebuildandrun(initObj, NULL, &checkProbesOnExit, &customGroupHandler, 1);
+   status = rebuildandrun(&initObj, NULL, &checkProbesOnExit);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
+      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", initObj.getArguments()->getProgramName(), rank, paramFile2, status);
    }
 
-   delete customGroupHandler;
-
-   delete initObj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

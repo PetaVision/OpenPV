@@ -27,7 +27,9 @@ protected:
 private:
    int initRescaleLayerTestProbe_base();
 
-};
+}; // end class RescaleLayerTestProbe
 
-} /* namespace PV */
+BaseObject * createRescaleLayerTestProbe(char const * name, HyPerCol * hc);
+
+}  // end namespace PV
 #endif /* RESCALELAYERTESTPROBE_HPP_ */

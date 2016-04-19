@@ -156,4 +156,8 @@ int LIFTestProbe::outputState(double timed) {
    return status;
 }
 
+BaseObject * createLIFTestProbe(char const * name, HyPerCol * hc) {
+   return hc ? new LIFTestProbe(name, hc) : NULL;
+}
+
 } /* namespace PV */

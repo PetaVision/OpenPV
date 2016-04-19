@@ -1,5 +1,5 @@
 /*
- * customStatsProbe.hpp
+ * MPITestProbe.hpp
  *
  *  Created on: Mar 10, 2009
  *      Author: garkenyon
@@ -23,8 +23,10 @@ protected:
 
 private:
    int initMPITestProbe_base();
-};
+}; // end class MPITestProbe
 
-}
+BaseObject * createMPITestProbe(char const * name, HyPerCol * hc);
+
+}  // end namespace PV
 
 #endif /* MPITESTPROBE_HPP_ */

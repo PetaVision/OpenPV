@@ -22,7 +22,9 @@ protected:
    int copyAtoV();
    int setActivitytoGlobalPos();
    int initialize(const char * name, HyPerCol * hc);
-};
+}; // end class PlasticConnTestLayer
 
-} /* namespace PV */
+BaseObject * createPlasticConnTestLayer(char const * name, HyPerCol * hc);
+
+} // end namespace PV
 #endif /* PLASTICCONNTESTLAYER_HPP_ */

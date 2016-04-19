@@ -43,5 +43,10 @@ int MoviePvpTestLayer::updateStateWrapper(double time, double dt)
    }
    return PV_SUCCESS;
 }
+
+BaseObject * createMoviePvpTestLayer(char const * name, HyPerCol * hc) {
+   return hc ? new MoviePvpTestLayer(name, hc) : NULL;
 }
+
+}  // end namespace PV
 

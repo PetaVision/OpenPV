@@ -8,8 +8,6 @@
 #include <arch/mpi/mpi.h>
 #include <columns/buildandrun.hpp>
 
-#undef MAIN_USES_CUSTOMGROUPS
-
 int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
@@ -17,10 +15,10 @@ int main(int argc, char * argv[]) {
    const char * paramfile2 = "input/RandStateSystemTest2.params";
 
    int rank=0;
-   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   MPI_Comm_rank(MPI_COMM_WORLD, &rank); /* Can't use `initObj->getComm()->communicator()` because initObj->initialize hasn't been called. */
+   PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank); /* Can't use `initObj.getComm()->communicator()` because initObj.initialize hasn't been called. */
 
-   PV_Arguments * arguments = initObj->getArguments();
+   PV_Arguments * arguments = initObj.getArguments();
    if (arguments->getParamsFile() != NULL) {
       if (rank==0) {
          fprintf(stderr, "%s does not take -p as an option.  Instead the necessary params files are hard-coded.\n", arguments->getProgramName());
@@ -30,14 +28,14 @@ int main(int argc, char * argv[]) {
    }
 
    arguments->setParamsFile(paramfile1);
-   int status1 = rebuildandrun(initObj, NULL, NULL, NULL, 0);
+   int status1 = rebuildandrun(&initObj, NULL, NULL);
    if (status1 != PV_SUCCESS) {
       fprintf(stderr, "%s failed on param file %s with return code %d.\n", arguments->getProgramName(), paramfile1, status1);
       return EXIT_FAILURE;
    }
 
    arguments->setParamsFile(paramfile2);
-   int status2 = rebuildandrun(initObj, NULL, &customexit, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
+   int status2 = rebuildandrun(&initObj, NULL, &customexit);
    if (status2 != PV_SUCCESS) {
       fprintf(stderr, "%s failed on param file %s.\n", arguments->getProgramName(), paramfile2);
    }
@@ -58,8 +56,6 @@ int main(int argc, char * argv[]) {
       fprintf(stderr, "Test complete.  %s FAILED.\n", arguments->getProgramName());
    }
 #endif // PV_USE_MPI
-
-   delete initObj;
 
    return status;
 }

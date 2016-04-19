@@ -5,58 +5,14 @@
 
 
 #include <columns/buildandrun.hpp>
-#include <io/ParamGroupHandler.hpp>
-
-class CustomGroupHandler : public ParamGroupHandler {
-public:
-   CustomGroupHandler() {}
-   virtual ~CustomGroupHandler() {}
-   virtual ParamGroupType getGroupType(char const * keyword) {
-      ParamGroupType result = UnrecognizedGroupType;
-      if (keyword==NULL) { result = UnrecognizedGroupType; }
-      //else if (!strcmp(keyword, "CPTestInputLayer")) { result = LayerGroupType; }
-      //else if (!strcmp(keyword, "VaryingHyPerConn")) { result = ConnectionGroupType; }
-      //else { result = UnrecognizedGroupType; }
-      return result;
-   }
-   virtual HyPerLayer * createLayer(char const * keyword, char const * name, HyPerCol * hc) {
-      HyPerLayer * addedLayer = NULL;
-      bool matched = false;
-      if (keyword==NULL) { addedLayer = NULL; }
-      //else if (!strcmp(keyword, "CPTestInputLayer")) {
-      //   matched = true;
-      //   addedLayer = new CPTestInputLayer(name, hc);
-      //}
-      else { addedLayer = NULL; }
-      if (matched && !addedLayer) {
-         fprintf(stderr, "Rank %d process unable to create %s \"%s\".\n", hc->columnId(), keyword, name);
-         exit(EXIT_FAILURE);
-      }
-      return addedLayer;
-   }
-   virtual BaseConnection * createConnection(char const * keyword, char const * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer) {
-      BaseConnection * addedConn = NULL;
-      bool matched = false;
-      if (keyword==NULL) { addedConn = NULL; }
-      //else if (!strcmp(keyword, "VaryingHyPerConn")) {
-      //   matched = true;
-      //   addedConn = new VaryingHyPerConn(name, hc, weightInitializer, weightNormalizer);
-      //}
-      else { addedConn = NULL; }
-      if (matched && !addedConn) {
-         fprintf(stderr, "Rank %d process unable to create %s \"%s\".\n", hc->columnId(), keyword, name);
-         exit(EXIT_FAILURE);
-      }
-      return addedConn;
-   }
-}; // class CustomGroupHandler
+#include <columns/PV_Init.hpp>
 
 int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    int rank = 0;
-   PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   rank = initObj->getWorldRank();
+   PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   rank = initObj.getWorldRank();
    char const * paramFile1 = "input/timeBatch.params";
    char const * paramFile2 = "input/dimBatch.params";
    int status = PV_SUCCESS;
@@ -96,12 +52,10 @@ int main(int argc, char * argv[]) {
       }
    }
 
-   ParamGroupHandler * customGroupHandler = new CustomGroupHandler;
-
-   PV_Arguments * arguments = initObj->getArguments();
+   PV_Arguments * arguments = initObj.getArguments();
    arguments->setParamsFile(paramFile1);
 
-   status = rebuildandrun(initObj, NULL, NULL, &customGroupHandler, 1);
+   status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
       exit(status);
@@ -109,14 +63,11 @@ int main(int argc, char * argv[]) {
 
    arguments->setParamsFile(paramFile2);
 
-   status = rebuildandrun(initObj, NULL, &customexit, &customGroupHandler, 1);
+   status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
    }
 
-   delete customGroupHandler;
-
-   delete initObj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

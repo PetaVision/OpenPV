@@ -18,5 +18,7 @@ public:
 #endif // PV_USE_GDAL
 };
 
+BaseObject * createImageTestLayer(char const * name, HyPerCol * hc);
+
 }
 #endif /* IMAGETESTLAYER_HPP */

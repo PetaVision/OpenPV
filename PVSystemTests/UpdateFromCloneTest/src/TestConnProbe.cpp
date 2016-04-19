@@ -58,6 +58,10 @@ int TestConnProbe::outputState(double timed){
 
 }
 
+BaseObject * createTestConnProbe(char const * name, HyPerCol * hc) {
+   return hc ? new TestConnProbe(name, hc) : NULL;
+}
+
 }  // end of namespace PV
 
 

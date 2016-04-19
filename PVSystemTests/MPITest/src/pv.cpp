@@ -12,104 +12,42 @@
 
 #include <columns/buildandrun.hpp>
 #include <io/io.h>
-#include "MPITestProbe.hpp"
-#include "MPITestLayer.hpp"
 #include <assert.h>
 
-// use compiler directive in case MPITestLayer gets moved to PetaVision trunk
-#define MAIN_USES_CUSTOMGROUP // TODO: rewrite using subclass of ParamGroupHandler
+#define MAIN_USES_CUSTOM_GROUPS
 
-#ifdef MAIN_USES_CUSTOMGROUP
-#include <io/ParamGroupHandler.hpp>
-// CustomGroupHandler is for adding objects not supported by CoreParamGroupHandler().
-class CustomGroupHandler: public ParamGroupHandler {
-public:
-   CustomGroupHandler() {}
-
-   virtual ~CustomGroupHandler() {}
-
-   virtual ParamGroupType getGroupType(char const * keyword) {
-      ParamGroupType result = UnrecognizedGroupType;
-      //
-      // This routine should compare keyword to the list of keywords handled by CustomGroupHandler and return one of
-      // LayerGroupType, ConnectionGroupType, ProbeGroupType, ColProbeGroupType, WeightInitializerGroupType, or
-      // WeightNormalizerGroupType
-      // according to the keyword, or UnrecognizedGroupType if this ParamGroupHandler object does not know the keyword.
-      //
-      if (keyword==NULL) {
-         return result;
-      }
-      else if (!strcmp(keyword, "MPITestLayer")) {
-         result = LayerGroupType;
-      }
-      else if (!strcmp(keyword, "MPITestProbe")) {
-         result = ProbeGroupType;
-      }
-      else {
-         result = UnrecognizedGroupType;
-      }
-      return result;
-   }
-   // A CustomGroupHandler group should override createLayer, createConnection, etc., as appropriate, if there are custom
-   // objects
-   // corresponding to that group type.
-   virtual HyPerLayer * createLayer (char const *keyword, char const *name, HyPerCol *hc) {
-      HyPerLayer * addedLayer = NULL;
-      bool errorFound = false;
-      if (keyword==NULL) {
-         return addedLayer;
-      }
-      else if (!strcmp(keyword, "MPITestLayer")) {
-         addedLayer = new MPITestLayer(name, hc);
-         if (addedLayer==NULL) { errorFound = true; }
-      }
-      else {
-         fprintf(stderr, "CustomGroupHandler error creating %s \"%s\": %s is not a recognized keyword.\n", keyword, name, keyword);
-      }
-
-      if (errorFound) {
-         assert(addedLayer==NULL);
-         fprintf(stderr, "CustomGroupHandler error: could not create %s \"%s\"\n", keyword, name);
-      }
-      return addedLayer;
-   }
-   virtual BaseProbe * createProbe (char const *keyword, char const *name, HyPerCol *hc) {
-      BaseProbe * addedProbe = NULL;
-      bool errorFound = false;
-      if (keyword==NULL) {
-         return addedProbe;
-      }
-      else if (!strcmp(keyword, "MPITestProbe")) {
-         addedProbe = new MPITestProbe(name, hc);
-         if (addedProbe==NULL) { errorFound = true; }
-      }
-      else {
-         fprintf(stderr, "CustomGroupHandler error creating %s \"%s\": %s is not a recognized keyword.\n", keyword, name, keyword);
-      }
-
-      if (errorFound) {
-         assert(addedProbe==NULL);
-         fprintf(stderr, "CustomGroupHandler error: could not create %s \"%s\"\n", keyword, name);
-      }
-      return addedProbe;
-   }
-}; /* class CustomGroupHandler */
-#endif // MAIN_USES_ADDCUSTOM
+#ifdef MAIN_USES_CUSTOM_GROUPS
+#include <columns/PV_Init.hpp>
+#include "MPITestProbe.hpp"
+#include "MPITestLayer.hpp"
+#endif // MAIN_USES_CUSTOM_GROUPS
 
 int main(int argc, char * argv[]) {
 
-   int status;
-   PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   PV_Arguments * arguments = initObj->getArguments();
-   if (arguments->getParamsFile()==NULL) {
-      arguments->setParamsFile("input/MPI_test.params");
-   }
-#ifdef MAIN_USES_CUSTOMGROUP
-   ParamGroupHandler * customGroupHandler = new CustomGroupHandler();
-   status = rebuildandrun(initObj, NULL, NULL, &customGroupHandler, 1/*numGroupHandler*/)==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
-#else
-   status = rebuildandrun(initObj, NULL, NULL, NULL/*groupHandlerList*/, 0/*numGroupHandler*/);
-#endif // MAIN_USES_ADDCUSTOM
-   delete initObj;
+#ifndef MAIN_USES_CUSTOM_GROUPS
+   //
+   // The most basic invocation of PetaVision, suitable if you are running from a params file with no custom classes.
+   //
+   int status = buildandrun(argc, argv);
+#else // MAIN_USES_CUSTOM_GROUPS
+   PV_Init pv_initObj(&argc, &argv, false/*do not allow unrecognized arguments*/);
+   //
+   // The method PV_Init::registerKeyword(char const * keyword, ObjectCreatorFn creator))
+   // adds a new keyword known to the buildandrun functions.  The type ObjectCreatorFn is a
+   // function pointer to a function taking a C-style string (the keyword used in params files)
+   // and a pointer to a HyPerCol, and returning a BaseObject pointer, created with the C++ new operator.
+   // It is expected that the object will be added to the HyPerCol, or (in the case of weight initializers
+   // and weight normalizers) a HyPerConn, and will therefore automatically be deleted when the HyPerCol is deleted.
+   // If you create a new class that buildandrun needs to know about, you should also write a function taking
+   // the name of the object and the parent HyPerCol as arguments.  See, for example, createANNLayer in <layers/ANNLayer.cpp>.
+   // The function pointer to that create-function can then be passed to the registerKeyword method:
+   //
+   // pv_initObj.registerKeyword("CustomClass1", createCustomClass1);
+   // pv_initObj.registerKeyword("CustomClass2", createCustomClass2);
+   // etc.
+   pv_initObj.registerKeyword("MPITestProbe", createMPITestProbe);
+   pv_initObj.registerKeyword("MPITestLayer", createMPITestLayer);
+   int status = buildandrun(&pv_initObj, NULL, NULL);
+#endif // MAIN_USES_CUSTOM_GROUPS
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }

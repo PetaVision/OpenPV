@@ -17,5 +17,7 @@ public:
 #endif // PV_USE_GDAL
 };
 
+BaseObject * createMovieTestLayer(char const * name, HyPerCol * hc);
+
 }
 #endif /* IMAGETESTLAYER_HPP */

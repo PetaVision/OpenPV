@@ -1,5 +1,5 @@
 /*
- * receiveFromPostProbe.cpp
+ * GPUSystemTestProbe.cpp
  * Author: slundquist
  */
 
@@ -51,6 +51,10 @@ int GPUSystemTestProbe::outputState(double timed){
    }
 
    return status;
+}
+
+BaseObject * createGPUSystemTestProbe(char const * probeName, HyPerCol * hc) {
+   return hc ? new GPUSystemTestProbe(probeName, hc) : NULL;
 }
 
 } // end namespace PV

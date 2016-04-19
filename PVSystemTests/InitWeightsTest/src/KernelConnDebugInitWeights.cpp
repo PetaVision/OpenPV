@@ -930,30 +930,8 @@ int KernelConnDebugInitWeights::gaborWeights(pvdata_t * dataStart, int xScale, i
    return 0;
 }
 
-/*
-int KernelConnDebugInitWeights::copyToKernelPatch(PVPatch * sourcepatch, int arbor, int patchindex) {
-   int status = PV_SUCCESS;
-   assert(arbor >= 0 && arbor < this->numberOfAxonalArborLists());
-   assert(patchindex >= 0 && patchindex < this->numDataPatches());
-   assert((int) sourcepatch->nx == nxp && (int) sourcepatch->ny == nyp);
-   PVPatch * targetpatch = getKernelPatch(arbor, patchindex);
-   pvdata_t * targetdata = targetpatch->data;
-   const int unshrunkPatchSize = xPatchSize()*yPatchSize()*fPatchSize();
-   pvwdata_t * wtop = get_wDataStart(arbor);
-   //TODO-CER-2014.4.4 - weight conversion
-   pvwdata_t * data_head = (pvwdata_t *) &wtop[unshrunkPatchSize*patchindex];
-   size_t data_offset = targetpatch->data - data_head;
-   pvdata_t * sourcedata = &sourcepatch->data[data_offset];
-   int nk = targetpatch->nx * nfp;
-   for (int ky = 0; ky < targetpatch->ny; ky++) {
-      for (int iWeight = 0; iWeight < nk; iWeight++) {
-         targetdata[iWeight] = sourcedata[iWeight];
-      }
-      targetdata += yPatchStride();
-      sourcedata += yPatchStride();
-   }
-   return status;
+BaseObject * createKernelConnDebugInitWeights(char const * name, HyPerCol * hc) {
+   return hc ? new KernelConnDebugInitWeights(name, hc) : NULL;
 }
- */
 
 } /* namespace PV */
