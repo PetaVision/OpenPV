@@ -22,6 +22,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <set>
+#include <map>
 
 #ifdef PV_USE_OPENCL
 #include "../arch/opencl/CLKernel.hpp"
