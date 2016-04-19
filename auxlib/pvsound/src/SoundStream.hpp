@@ -56,8 +56,10 @@ protected:
    // double nextSampleTime;   // time at which next sample is retrieved
    char * filename;          // Path to file if a file exists
 
-};
+}; // end class SoundStream
 
-}  // namespace PVsound
+PV::BaseObject * createSoundStream(char const * name, PV::HyPerCol * hc);
+
+}  // end namespace PVsound
 
 #endif /* SOUNDSTREAM_HPP_ */

@@ -288,4 +288,8 @@ int MatchingPursuitLayer::outputState(double timed, bool last) {
    return status;
 }
 
+PV::BaseObject * createMatchingPursuitLayer(char const * name, PV::HyPerCol * hc) {
+   return hc ? new MatchingPursuitLayer(name, hc) : NULL;
+}
+
 } /* namespace PVMatchingPursuit */

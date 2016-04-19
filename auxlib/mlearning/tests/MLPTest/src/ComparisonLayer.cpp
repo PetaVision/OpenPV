@@ -34,4 +34,8 @@ int ComparisonLayer::updateState(double timef, double dt) {
    return PV_SUCCESS;
 }
 
+PV::BaseObject * createComparisonLayer(char const * name, PV::HyPerCol * hc) {
+   return hc ? new ComparisonLayer(name, hc) : NULL;
 }
+
+}  // end namespace PVMLearning

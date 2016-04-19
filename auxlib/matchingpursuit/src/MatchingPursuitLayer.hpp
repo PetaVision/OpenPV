@@ -62,7 +62,9 @@ protected:
    int yWindowSize;               // The distance in the y-direction from the changed activity to the edge of the window where the GSyn changes.
 
    int activeIndex;
-};
+}; // end class MatchingPursuitLayer
+
+PV::BaseObject * createMatchingPursuitLayer(char const * name, PV::HyPerCol * hc);
 
 } /* namespace PVMatchingPursuit */
 #endif /* MATCHINGPURSUITLAYER_HPP_ */

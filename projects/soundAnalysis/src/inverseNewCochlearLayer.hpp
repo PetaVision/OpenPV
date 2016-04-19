@@ -73,4 +73,5 @@ private:
     
 }; // end of class inverseNewCochlearLayer
     
+PV::BaseObject * create_inverseNewCochlearLayer(char const * name, PV::HyPerCol * hc);
 #endif /* INVERSENEWCOCHLEARLAYER_HPP_ */

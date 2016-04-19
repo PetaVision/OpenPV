@@ -69,3 +69,7 @@ int StreamReconLayer::updateState(double timef, double dt) {
     update_timer->stop();
     return PV_SUCCESS;
 } // end update state
+
+PV::BaseObject * createStreamReconLayer(const char * name, PV::HyPerCol * hc) {
+   return hc ? new StreamReconLayer(name, hc) : NULL;
+}

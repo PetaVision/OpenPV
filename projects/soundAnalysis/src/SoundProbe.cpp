@@ -110,3 +110,7 @@ int SoundProbe::outputState(double timed){
     return PV_SUCCESS;
 }
 
+PV::BaseObject * createSoundProbe(char const * name, PV::HyPerCol * hc) {
+    return hc ? new SoundProbe(name, hc) : NULL;
+}
+

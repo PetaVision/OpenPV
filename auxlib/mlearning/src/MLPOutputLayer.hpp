@@ -50,7 +50,9 @@ private:
    int progressNumTotNeg;
    int progressTruePos;
    int progressTrueNeg;
-};
+}; // end class MLPOutputLayer
 
-}
+PV::BaseObject * createMLPOutputLayer(char const * name, PV::HyPerCol * hc);
+
+}  // end namespace PVMLearning
 #endif 

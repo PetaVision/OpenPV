@@ -30,7 +30,10 @@ private:
 // Member variables
 protected:
    bool inputInV; // set to false on initialization when trigger layer triggers; set to true after updateState loads GSynExc into V.
-};
+}; // end class MatchingPursuitResidual
+
+
+PV::BaseObject * createMatchingPursuitResidual(char const * name, PV::HyPerCol * hc);
 
 } /* namespace PVMatchingPursuit */
 #endif /* MATCHINGPURSUITRESIDUAL_HPP_ */

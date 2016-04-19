@@ -66,4 +66,7 @@ private:
 
 }; // end of class CochlearLayer
 
+
+PV::BaseObject * createCochlearLayer(char const * name, PV::HyPerCol * hc);
+
 #endif /* COCHLEARLAYER_HPP_ */

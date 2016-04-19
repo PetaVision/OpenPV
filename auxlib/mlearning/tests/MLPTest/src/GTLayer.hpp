@@ -26,7 +26,10 @@ private:
    bool constantValue;
    bool firstRun;
    int iVal;
-};
+}; // end class GTLayer
 
-}
-#endif 
+PV::BaseObject * createGTLayer(char const * name, PV::HyPerCol * hc);
+
+}  // end namespace PVMLearning
+
+#endif // GTLAYER_HPP_

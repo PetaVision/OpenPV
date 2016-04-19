@@ -277,3 +277,7 @@ int CochlearLayer::updateState(double time, double dt){
    return PV_SUCCESS;
     
 }
+
+PV::BaseObject * createCochlearLayer(char const * name, PV::HyPerCol * hc) {
+   return hc ? new CochlearLayer(name, hc) : NULL;
+}

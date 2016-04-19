@@ -73,4 +73,8 @@ int MatchingPursuitProbe::outputState(double timed) {
 MatchingPursuitProbe::~MatchingPursuitProbe() {
 }
 
+PV::BaseObject * createMatchingPursuitProbe(char const * name, PV::HyPerCol * hc) {
+   return hc ? new MatchingPursuitProbe(name, hc) : NULL;
+}
+
 } /* namespace PV */

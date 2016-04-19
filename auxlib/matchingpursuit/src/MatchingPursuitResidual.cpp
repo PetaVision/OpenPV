@@ -57,4 +57,8 @@ int MatchingPursuitResidual::updateState(double timed, double dt) {
 MatchingPursuitResidual::~MatchingPursuitResidual() {
 }
 
+PV::BaseObject * createMatchingPursuitResidual(char const * name, PV::HyPerCol * hc) {
+   return hc ? new MatchingPursuitResidual(name, hc) : NULL;
+}
+
 } /* namespace PVMatchingPursuit */

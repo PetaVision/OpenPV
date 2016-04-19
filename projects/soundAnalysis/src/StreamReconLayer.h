@@ -26,6 +26,9 @@ private:
     int initialize_base();
     int bufferLevel;
     
-}; // end of class streamreconlayer
+}; // end of class StreamReconLayer
     
+
+PV::BaseObject * createStreamReconLayer(char const * name, PV::HyPerCol * hc);
+
 #endif /* defined(STREAMRECONLAYER_H_) */

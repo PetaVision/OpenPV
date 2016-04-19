@@ -29,7 +29,10 @@ protected:
 private:
    int initMatchingPursuitProbe_base();
 
-};
+}; // end class MatchingPursuitProbe
+
+
+PV::BaseObject * createMatchingPursuitProbe(char const * name, PV::HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* MATCHINGPURSUITPROBE_HPP_ */

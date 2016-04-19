@@ -26,7 +26,9 @@ private:
    bool constantValue;
    bool firstRun;
    int iVal;
-};
+}; // end class InputLayer
 
-}
+PV::BaseObject * createInputLayer(char const * name, PV::HyPerCol * hc);
+
+}  // end namespace PVMLearning
 #endif 

@@ -137,7 +137,9 @@ int MLPSigmoidLayer::updateState(double timef, double dt, const PVLayerLoc * loc
    return PV_SUCCESS;
 }
 
+PV::BaseObject * createMLPSigmoidLayer(char const * name, PV::HyPerCol * hc) { 
+   return hc ? new MLPSigmoidLayer(name, hc) : NULL;
+}
 
 
-} // end namespace PV
-
+} // end namespace PVMLearning

@@ -155,4 +155,8 @@ int SoundStream::updateState(double time, double dt){
    return status;
 }
 
+PV::BaseObject * createSoundStream(char const * name, PV::HyPerCol * hc) {
+   return hc ? new SoundStream(name, hc) : NULL;
+} 
+
 }  /* namespace PVsound */
