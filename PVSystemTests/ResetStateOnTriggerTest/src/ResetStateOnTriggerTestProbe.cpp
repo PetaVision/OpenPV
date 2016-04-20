@@ -83,3 +83,8 @@ int ResetStateOnTriggerTestProbe::outputState(double timevalue) {
 
 ResetStateOnTriggerTestProbe::~ResetStateOnTriggerTestProbe() {
 }
+
+PV::BaseObject * createResetStateOnTriggerTestProbe(char const * name, PV::HyPerCol * hc) { 
+   return hc ? new ResetStateOnTriggerTestProbe(name, hc) : NULL;
+}
+

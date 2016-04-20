@@ -32,7 +32,9 @@ protected:
 private:
     double expectedSum;
     float expectedMin, expectedMax;
-};
+}; // end class ParameterSweepTestProbe
 
-} /* namespace PV */
+BaseObject * createParameterSweepTestProbe(char const * name, HyPerCol * hc);
+
+} // end namespace PV
 #endif /* PARAMETERSWEEPTESTPROBE_HPP_ */

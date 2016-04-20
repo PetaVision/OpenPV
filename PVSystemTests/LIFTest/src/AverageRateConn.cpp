@@ -56,4 +56,8 @@ int AverageRateConn::updateState(double timed, double dt) {
    return PV_SUCCESS;
 }
 
+BaseObject * createAverageRateConn(char const * name, HyPerCol * hc) {
+   return hc ? new AverageRateConn(name, hc) : NULL;
+}
+
 } /* namespace PV */

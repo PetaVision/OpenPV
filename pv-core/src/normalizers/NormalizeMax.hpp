@@ -35,5 +35,7 @@ protected:
    float minMaxTolerated; // Error if abs(sum(weights)) in any patch is less than this amount.
 };
 
+BaseObject * createNormalizeMax(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* NORMALIZEMAX_HPP_ */

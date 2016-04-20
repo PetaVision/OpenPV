@@ -34,7 +34,7 @@ int NormalizeSum::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeSum::ioParam_minSumTolerated(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true/*warnIfAbsent*/);
+   parent->ioParamValue(ioFlag, name, "minSumTolerated", &minSumTolerated, 0.0f, true/*warnIfAbsent*/);
 }
 
 int NormalizeSum::normalizeWeights() {
@@ -125,6 +125,10 @@ int NormalizeSum::normalizeWeights() {
 }
 
 NormalizeSum::~NormalizeSum() {
+}
+
+BaseObject * createNormalizeSum(char const * name, HyPerCol * hc) {
+   return hc ? new NormalizeSum(name, hc) : NULL;
 }
 
 } /* namespace PV */

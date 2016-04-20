@@ -36,5 +36,10 @@ int ImagePvpTestLayer::updateStateWrapper(double time, double dt)
    }
    return PV_SUCCESS;
 }
+
+BaseObject * createImagePvpTestLayer(char const * name, HyPerCol * hc) {
+   return hc ? new ImagePvpTestLayer(name, hc) : NULL;
+}
+
 }
 

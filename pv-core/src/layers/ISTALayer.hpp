@@ -83,7 +83,9 @@ private:
 #ifdef PV_USE_CUDA
    PVCuda::CudaBuffer* d_dtAdapt;
 #endif
-};
+}; // class ISTALayer
+
+BaseObject * createISTALayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* ISTALAYER_HPP_ */

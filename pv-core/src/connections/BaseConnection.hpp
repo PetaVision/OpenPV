@@ -13,16 +13,17 @@
 #ifndef BASECONNECTION_HPP_
 #define BASECONNECTION_HPP_
 
-#include "../columns/HyPerCol.hpp"
-#include "../io/io.h"
-#include "../io/PVParams.hpp"
+#include <columns/BaseObject.hpp>
+#include <columns/HyPerCol.hpp>
+#include <io/io.h>
+#include <io/PVParams.hpp>
 
 namespace PV {
 
 class HyPerLayer;
 class BaseConnectionProbe;
 
-class BaseConnection {
+class BaseConnection : public BaseObject {
 
 public:
    /**
@@ -187,22 +188,6 @@ public:
    virtual int insertProbe(BaseConnectionProbe* p);
 
    /**
-    * Returns the keyword of the params group associated with this connection.
-    * (typically the name of the derived class).
-    */
-   char const * getKeyword();
-
-   /**
-    * Returns the connection's name
-    */
-   inline const char * getName() { return name; }
-
-   /**
-    * Returns the connection's parent HyPerCol.
-    */
-   inline HyPerCol * getParent() { return parent; }
-
-   /**
     * Returns the connection's connId (assigned when added to its parent HyPerCol)
     */
    inline int getConnectionId() { return connId; }
@@ -291,17 +276,6 @@ protected:
     * which reads params from the parent HyPerCol's params.
     */
    int initialize(const char * name, HyPerCol * hc);
-
-   /**
-    * Sets the parent member variable.
-    */
-   int setParent(HyPerCol * hc);
-
-   /**
-    * Sets the name member variable.  It should be called after setParent
-    * since it uses the parent's columnId() to print any error messages
-    */
-   int setName(const char * name);
 
    /**
     * Sets the pre- and post-synaptic layer names according to the parent HyPerCol's params.
@@ -556,8 +530,6 @@ public:
 
 // member variables
 protected:
-   char * name;
-   HyPerCol * parent;
    int connId;
    char * preLayerName;
    char * postLayerName;

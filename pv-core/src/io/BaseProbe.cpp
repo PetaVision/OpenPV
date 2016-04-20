@@ -8,8 +8,8 @@
 #include <float.h>
 #include <limits>
 #include "BaseProbe.hpp"
-#include "ColumnEnergyProbe.hpp"
-#include "../layers/HyPerLayer.hpp"
+#include <io/ColumnEnergyProbe.hpp>
+#include <layers/HyPerLayer.hpp>
 
 namespace PV {
 
@@ -32,14 +32,11 @@ BaseProbe::~BaseProbe()
       free(triggerLayerName);
       triggerLayerName = NULL;
    }
-   free(name);
    free(energyProbe);
    free(probeValues);
 }
 
 int BaseProbe::initialize_base() {
-   name = NULL;
-   parent = NULL;
    outputstream = NULL;
    targetName = NULL;
    msgparams = NULL;
@@ -64,30 +61,13 @@ int BaseProbe::initialize_base() {
  */
 int BaseProbe::initialize(const char * probeName, HyPerCol * hc)
 {
-   int status = PV_SUCCESS;
-   setParentCol(hc);
-   setProbeName(probeName);
+   int status = BaseObject::initialize(probeName, hc);
+   if (status != PV_SUCCESS) { return status; }
    ioParams(PARAMS_IO_READ);
    //Add probe to list of probes
    parent->addBaseProbe(this); // Adds probe to HyPerCol.  If needed, probe will be attached to layer or connection during communicateInitInfo
    status = initNumValues();
    return status;
-}
-
-int BaseProbe::setProbeName(const char * probeName) {
-   assert(this->name == NULL);
-   this->name = strdup(probeName);
-   if (this->name == NULL) {
-      assert(parent!=NULL);
-      fprintf(stderr,"BaseProbe \"%s\" unable to set probeName on rank %d: %s\n",
-            probeName, parent->columnId(), strerror(errno));
-      exit(EXIT_FAILURE);
-   }
-   return PV_SUCCESS;
-}
-
-char const * BaseProbe::getKeyword() {
-   return this->getParent()->parameters()->groupKeywordFromName(this->getName());
 }
 
 int BaseProbe::ioParams(enum ParamsIOFlag ioFlag) {

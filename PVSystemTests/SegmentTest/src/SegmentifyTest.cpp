@@ -114,6 +114,8 @@ int SegmentifyTest::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-
+BaseObject * createSegmentifyTest(char const * name, HyPerCol * hc) {
+   return hc ? new SegmentifyTest(name, hc) : NULL;
+}
 
 } /* namespace PV */

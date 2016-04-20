@@ -28,5 +28,7 @@ private:
 
 };
 
+BaseObject * createArborTestProbe(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* ArborTestProbe_HPP_ */

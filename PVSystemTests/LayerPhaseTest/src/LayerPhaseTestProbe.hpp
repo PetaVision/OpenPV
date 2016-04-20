@@ -37,5 +37,7 @@ protected:
 
 };
 
+BaseObject * createLayerPhaseTestProbe(char const * probeName, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* LAYERPHASETESTPROBE_HPP_ */

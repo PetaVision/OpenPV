@@ -48,4 +48,8 @@ void TestNotAlwaysAllZerosProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    requireType(BufActivity);
 }
 
+BaseObject * createTestNotAlwaysAllZerosProbe(char const * name, HyPerCol * hc) {
+   return hc ? new TestNotAlwaysAllZerosProbe(name, hc) : NULL;
+}
+
 }; // namespace PV

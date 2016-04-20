@@ -61,5 +61,8 @@ int LayerPhaseTestProbe::outputState(double timed)
    return status;
 }
 
+BaseObject * createLayerPhaseTestProbe(char const * probeName, HyPerCol * hc) {
+   return hc ? new LayerPhaseTestProbe(probeName, hc) : NULL;
+}
 
 } /* namespace PV */

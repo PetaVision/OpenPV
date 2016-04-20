@@ -47,4 +47,9 @@ int TriggerTestConn::updateState(double time, double dt){
    }
    return HyPerConn::updateState(time, dt);
 }
+
+BaseObject * createTriggerTestConn(char const * name, HyPerCol * hc) {
+   return hc ? new TriggerTestConn(name, hc) : NULL;
+}
+
 }

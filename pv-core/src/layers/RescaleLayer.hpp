@@ -39,7 +39,6 @@ protected:
    void ioParam_patchSize(enum ParamsIOFlag ioFlag);
 private:
    int initialize_base();
-   //bool checkIfUpdateNeeded();
 
    // Handled by CloneVLayer
    // char * originalLayerName;
@@ -52,8 +51,10 @@ protected:
    float targetStd;
    char * rescaleMethod; //can be either maxmin or meanstd
    int patchSize;
-};
+}; // class RescaleLayer
 
-}
+BaseObject * createRescaleLayer(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 
 #endif /* CLONELAYER_HPP_ */

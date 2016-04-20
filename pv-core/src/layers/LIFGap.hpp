@@ -64,7 +64,9 @@ private:
    bool gapStrengthInitialized;
    int calcGapStrength();
 
-};
+}; // class LIFGap
+
+BaseObject * createLIFGap(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* LIFGAP_HPP_ */

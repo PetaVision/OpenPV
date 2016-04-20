@@ -375,4 +375,8 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
    return status;
 }
 
+BaseObject * createImagePvp(char const * name, HyPerCol * hc) {
+   return hc ? new ImagePvp(name, hc) : NULL;
+}
+
 }

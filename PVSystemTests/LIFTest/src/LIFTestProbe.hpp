@@ -44,5 +44,7 @@ private:
    float tolerance; // Number of standard deviations that the observed rates can differ from the expected rates.
 };
 
+BaseObject * createLIFTestProbe(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* LIFTESTPROBE_HPP_ */

@@ -50,6 +50,9 @@ ImageTestLayer::ImageTestLayer(const char * name, HyPerCol * hc) {
    exit(EXIT_FAILURE);
 }
 #endif // PV_USE_GDAL
+
+BaseObject * createImageTestLayer(char const * name, HyPerCol * hc) {
+   return hc ? new ImageTestLayer(name, hc) : NULL;
 }
 
-
+}  // end namespace PV

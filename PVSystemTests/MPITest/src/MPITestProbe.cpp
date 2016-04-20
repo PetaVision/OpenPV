@@ -1,5 +1,5 @@
 /*
- * StatsProbe.cpp
+ * MPITestProbe.cpp
  *
  *  Created on:
  *      Author: garkenyon
@@ -75,6 +75,10 @@ int MPITestProbe::outputState(double timed) {
    }
 
 	return status;
+}
+
+BaseObject * createMPITestProbe(char const * name, HyPerCol * hc) {
+   return hc ? new MPITestProbe(name, hc) : NULL;
 }
 
 }

@@ -106,4 +106,8 @@ PlasticCloneConn::~PlasticCloneConn() {
   deleteWeights();
 }
 
+BaseObject * createPlasticCloneConn(char const * name, HyPerCol * hc) {
+   return hc ? new PlasticCloneConn(name, hc) : NULL;
+}
+
 } // end namespace PV

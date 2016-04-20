@@ -24,7 +24,9 @@ private:
 // Member variables
 protected:
    bool nonzeroValueOccurred;
-};
+}; // end of class TestNotAlwaysAllZerosProbe
+
+BaseObject * createTestNotAlwaysAllZerosProbe(char const * name, HyPerCol * hc);
 
 } // namespace PV
 

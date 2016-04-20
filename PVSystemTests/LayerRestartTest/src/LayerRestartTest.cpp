@@ -33,35 +33,35 @@ int checkComparisonNonzero(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
    int status;
-   PV_Init * initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
+   PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-   PV_Arguments * arguments = initObj->getArguments();
+   PV_Arguments * arguments = initObj.getArguments();
    if (arguments->getParamsFile()!=NULL) {
       if (rank==0) {
          fprintf(stderr, "%s runs a number of params files in sequence.  Do not include a '-p' option when running this program.\n", argv[0]);
       }
-      MPI_Barrier(MPI_COMM_WORLD); /* Can't use `initObj->getComm()->communicator()` because initObj->initialize hasn't been called. */
+      MPI_Barrier(MPI_COMM_WORLD); /* Can't use `initObj.getComm()->communicator()` because initObj.initialize hasn't been called. */
       exit(EXIT_FAILURE);
    }
 
    arguments->setParamsFile("input/LayerRestartTest-Write.params");
-   status = rebuildandrun(initObj, NULL, NULL, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
+   status = rebuildandrun(&initObj);
    if( status == PV_SUCCESS ) {
       char const * checkParamsFile = "input/LayerRestartTest-Check.params";
       if (rank==0) {
          printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
       }
       arguments->setParamsFile("input/LayerRestartTest-Check.params");
-      status = rebuildandrun(initObj, NULL, &checkComparisonNonzero, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
+      status = rebuildandrun(&initObj, NULL, &checkComparisonNonzero);
       if( status == PV_SUCCESS ) {
          char const * readParamsFile = "input/LayerRestartTest-Read.params";
          if (rank==0) {
             printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
          }
          arguments->setParamsFile(readParamsFile);
-         status = rebuildandrun(initObj, NULL, &checkComparisonZero, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
+         status = rebuildandrun(&initObj, NULL, &checkComparisonZero);
       }
    }
 
@@ -89,7 +89,6 @@ int main(int argc, char * argv[]) {
 
    //if( !mpi_initialized_on_entry ) MPI_Finalize();
 #endif // PV_USE_MPI
-   delete initObj;
    return status;
 }
 

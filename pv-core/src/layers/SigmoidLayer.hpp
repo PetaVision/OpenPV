@@ -42,8 +42,10 @@ private:
    // Use CloneVLayer's originalLayerName and originalLayer member variables
    // char * sourceLayerName;
    // HyPerLayer * sourceLayer;
-};
+}; // class SigmoidLayer
 
-}
+BaseObject * createSigmoidLayer(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 
 #endif /* CLONELAYER_HPP_ */

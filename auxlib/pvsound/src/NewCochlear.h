@@ -99,6 +99,8 @@ namespace PVsound {
         
     }; // end of class NewCochlearLayer
     
+    PV::BaseObject * createNewCochlearLayer(char const * name, PV::HyPerCol * hc);
+
 }  // end namespace PVsound
 
 #endif /* NEWCOCHLEARLAYER_H_ */

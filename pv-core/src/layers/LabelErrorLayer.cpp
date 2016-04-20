@@ -98,6 +98,10 @@ int LabelErrorLayer::doUpdateState(double time, double dt, const PVLayerLoc * lo
    return PV_SUCCESS;
 }
 
+BaseObject * createLabelErrorLayer(char const * name, HyPerCol * hc) {
+   return hc ? new LabelErrorLayer(name, hc) : NULL;
+}
+
 } /* namespace PV */
 
 

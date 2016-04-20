@@ -31,5 +31,12 @@ void KernelConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    }
 }
 
+BaseObject * createKernelConn(char const * name, HyPerCol * hc) {
+   if (hc==NULL) { return NULL; }
+   InitWeights * weightInitializer = getWeightInitializer(name, hc);
+   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
+   return new KernelConn(name, hc, weightInitializer, weightNormalizer);
+}
+
 } // namespace PV
 

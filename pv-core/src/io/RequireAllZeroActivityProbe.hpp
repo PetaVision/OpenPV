@@ -42,7 +42,9 @@ private:
 protected:
    bool nonzeroFound;
    double nonzeroTime;
-};
+}; // end class RequireAllZeroActivityProbe
+
+BaseObject * createRequireAllZeroActivityProbe(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* REQUIREALLZEROACTIVITYPROBE_HPP_ */

@@ -22,6 +22,8 @@ private:
 
 };
 
+BaseObject * createTestAllZerosProbe(char const * name, HyPerCol * hc);
+
 } // namespace PV
 
 #endif // TESTALLZEROSPROBE_HPP_

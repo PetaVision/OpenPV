@@ -47,5 +47,8 @@ int ArborTestForOnesProbe::outputState(double timed)
    return status;
 }
 
+BaseObject * createArborTestForOnesProbe(char const * name, HyPerCol * hc) {
+   return hc ? new ArborTestForOnesProbe(name, hc) : NULL;
+}
 
 } /* namespace PV */

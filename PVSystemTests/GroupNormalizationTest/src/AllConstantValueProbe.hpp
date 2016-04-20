@@ -33,6 +33,8 @@ private:
    pvadata_t correctValue;
 }; // class AllConstantValueProbe
 
+BaseObject * createAllConstantValueProbe(char const * probeName, HyPerCol * hc);
+
 }  // namespace PV
 
 #endif // ALLCONSTANTVALUEPROBE_HPP_

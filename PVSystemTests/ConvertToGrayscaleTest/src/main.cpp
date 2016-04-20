@@ -10,7 +10,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv);
 
 int main(int argc, char * argv[]) {
    int status;
-   status = buildandrun(argc, argv, NULL/*custominit*/, &customexit, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
+   status = buildandrun(argc, argv, NULL/*custominit*/, &customexit);
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

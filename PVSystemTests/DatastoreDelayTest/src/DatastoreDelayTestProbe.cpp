@@ -16,14 +16,14 @@ namespace PV {
  * @type
  * @msg
  */
-DatastoreDelayTestProbe::DatastoreDelayTestProbe(const char * probename, HyPerCol * hc) : StatsProbe()
+DatastoreDelayTestProbe::DatastoreDelayTestProbe(const char * probeName, HyPerCol * hc) : StatsProbe()
 {
-   initDatastoreDelayTestProbe(probename, hc);
+   initDatastoreDelayTestProbe(probeName, hc);
 }
 
 
-int DatastoreDelayTestProbe::initDatastoreDelayTestProbe(const char * probename, HyPerCol * hc) {
-   initStatsProbe(probename, hc);
+int DatastoreDelayTestProbe::initDatastoreDelayTestProbe(const char * probeName, HyPerCol * hc) {
+   initStatsProbe(probeName, hc);
    return PV_SUCCESS;
 }
 
@@ -64,6 +64,10 @@ int DatastoreDelayTestProbe::outputState(double timed) {
 }
 
 DatastoreDelayTestProbe::~DatastoreDelayTestProbe() {
+}
+
+BaseObject * createDatastoreDelayTestProbe(char const * probeName, HyPerCol * hc) {
+   return hc ? new DatastoreDelayTestProbe(probeName, hc) : NULL;
 }
 
 }  // end of namespace PV block

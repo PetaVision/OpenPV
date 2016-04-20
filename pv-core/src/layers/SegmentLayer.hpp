@@ -65,7 +65,9 @@ protected:
    //Stores centriod linear index as global res
    std::vector<std::map<int, int> > centerIdx;
    
-};
+}; // class SegmentLayer
+
+BaseObject * createSegmentLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif 

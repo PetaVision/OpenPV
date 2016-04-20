@@ -71,4 +71,9 @@ int TriggerTestLayerProbe::outputState(double timef)
 {
    return 0;
 }
+
+BaseObject * createTriggerTestLayerProbe(char const * name, HyPerCol * hc) {
+   return hc ? new TriggerTestLayerProbe(name, hc) : NULL;
+}
+
 } // namespace PV

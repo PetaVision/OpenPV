@@ -222,4 +222,8 @@ double PointProbe::getA() {
    return getValuesBuffer()[1];
 }
 
+BaseObject * createPointProbe(char const * name, HyPerCol * hc) {
+   return hc ? new PointProbe(name, hc) : NULL;
+}
+
 } // namespace PV

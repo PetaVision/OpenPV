@@ -77,6 +77,8 @@ protected:
    pvpotentialdata_t VWidth;
 }; // end class FirmThresholdCostFnProbe
 
+BaseObject * createFirmThresholdCostFnProbe(char const * name, HyPerCol * hc);
+
 }  // end namespace PV
 
 #endif /* FIRMTHRESHOLDCOSTFNPROBE_HPP_ */

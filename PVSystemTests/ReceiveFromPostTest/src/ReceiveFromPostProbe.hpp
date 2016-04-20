@@ -28,7 +28,10 @@ private:
 protected:
    pvadata_t tolerance;
 
-};
+}; // end class ReceiveFromPostProbe
 
-}
-#endif 
+BaseObject * createReceiveFromPostProbe(char const * name, HyPerCol * hc);
+
+}  // end namespcae PV
+
+#endif  // RECEIVEFROMPOSTPROBE_HPP_

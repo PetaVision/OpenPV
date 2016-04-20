@@ -49,5 +49,8 @@ int KernelTestProbe::outputState(double timed)
    return status;
 }
 
+BaseObject * createKernelTestProbe(char const * name, HyPerCol * hc) {
+   return hc ? new KernelTestProbe(name, hc) : NULL;
+}
 
 } /* namespace PV */

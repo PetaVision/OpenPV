@@ -7,7 +7,7 @@ MaxPoolTestLayer::MaxPoolTestLayer(const char * name, HyPerCol * hc){
 }
 
 int MaxPoolTestLayer::updateState(double timef, double dt){
-   //Do update state of ANN Layer first
+   //Do update state of ANNLayer first
    ANNLayer::updateState(timef, dt);
 
    //Grab layer size
@@ -60,6 +60,8 @@ int MaxPoolTestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-
+BaseObject * createMaxPoolTestLayer(char const * name, HyPerCol * hc) {
+   return hc ? new MaxPoolTestLayer(name, hc) : NULL;
+}  
 
 } /* namespace PV */

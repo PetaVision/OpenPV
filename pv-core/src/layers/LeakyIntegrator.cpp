@@ -63,4 +63,8 @@ int LeakyIntegrator::updateState(double timed, double dt) {
 LeakyIntegrator::~LeakyIntegrator() {
 }
 
+BaseObject * createLeakyIntegrator(char const * name, HyPerCol * hc) {
+   return hc ? new LeakyIntegrator(name, hc) : NULL;
+}
+
 } /* namespace PV */

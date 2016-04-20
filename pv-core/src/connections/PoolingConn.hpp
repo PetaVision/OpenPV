@@ -67,7 +67,9 @@ private:
    PoolingIndexLayer* postIndexLayer;
 
 
-}; // end class 
+}; // end class PoolingConn
+
+BaseObject * createPoolingConn(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

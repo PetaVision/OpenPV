@@ -296,3 +296,7 @@ int inverseCochlearLayer::ringBuffer(int level) {
    return b;
 }
 
+PV::BaseObject * create_inverseCochlearLayer(char const * name, PV::HyPerCol * hc) {
+   return hc ? new inverseCochlearLayer(name, hc) : NULL;
+}
+

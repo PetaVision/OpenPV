@@ -34,7 +34,7 @@ int InitCocircWeights::initialize(char const * name, HyPerCol * hc) {
 }
 
 InitWeightsParams * InitCocircWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitCocircWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitCocircWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -181,5 +181,8 @@ bool InitCocircWeights::calcDistChordCocircKurvePreNKurvePost(
    return false;
 }
 
+BaseObject * createInitCocircWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitCocircWeights(name, hc) : NULL;
+}
 
 } /* namespace PV */

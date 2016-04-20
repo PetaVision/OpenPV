@@ -35,5 +35,7 @@ private:
    int initialize_base();
 };
 
+BaseObject * createInitOneToOneWeightsWithDelays(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif /* INITONETOONEWEIGHTSWITHDELAYS_HPP_ */

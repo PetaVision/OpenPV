@@ -314,4 +314,8 @@ int inverseNewCochlearLayer::updateState(double time, double dt){
     update_timer->stop();
     return PV_SUCCESS;
 }
-    
+ 
+
+PV::BaseObject * create_inverseNewCochlearLayer(char const * name, PV::HyPerCol * hc) {
+   return hc ? new inverseNewCochlearLayer(name, hc) : NULL;
+}

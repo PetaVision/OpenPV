@@ -80,14 +80,9 @@ protected:
 
 private:
    int initialize_base();
-#ifdef OBSOLETE // Marked Jul 9, 2015
-   SparsityLayerProbe* sparseProbe;
-   int numWindowX;
-   int numWindowY;
-   bool windowSymX;
-   bool windowSymY;
-#endif // OBSOLETE // Marked Jul 9, 2015
-};
+}; // class HyPerLCALayer
+
+BaseObject * createHyPerLCALayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* HYPERLCALAYER_HPP_ */

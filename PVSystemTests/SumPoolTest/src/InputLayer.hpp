@@ -15,7 +15,9 @@ protected:
    int updateState(double timef, double dt);
 
 private:
-};
+}; // end class InputLayer
+
+BaseObject * createInputLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif

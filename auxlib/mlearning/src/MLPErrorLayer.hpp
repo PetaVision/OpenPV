@@ -67,7 +67,9 @@ private:
    float linAlpha;
    bool symSigmoid;
    bool lastError;
-};
+}; /* class MLPErrorLayer */
 
-} /* namespace PV */
+PV::BaseObject * createMLPErrorLayer(char const * name, PV::HyPerCol * hc);
+
+} /* namespace PVMLearning */
 #endif /* ANNERRORLAYER_HPP_ */

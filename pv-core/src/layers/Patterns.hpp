@@ -180,8 +180,10 @@ private:
 
    int initPatternCntr;
    int initialize_base();
-};
+}; // class Patterns
 
-}
+BaseObject * createPatterns(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 
 #endif /* PATTERNS_HPP_ */

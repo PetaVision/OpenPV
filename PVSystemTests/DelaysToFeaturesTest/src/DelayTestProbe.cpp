@@ -55,5 +55,8 @@ int DelayTestProbe::outputState(double timed)
    return status;
 }
 
+BaseObject * createDelayTestProbe(char const * probeName, HyPerCol * hc) {
+   return hc ? new DelayTestProbe(probeName, hc): NULL;
+}
 
 } /* namespace PV */

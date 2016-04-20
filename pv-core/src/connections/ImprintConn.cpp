@@ -317,4 +317,11 @@ int ImprintConn::checkpointWrite(const char * cpDir) {
    return PV_SUCCESS;
 }
 
+BaseObject * createImprintConn(char const * name, HyPerCol * hc) {
+   if (hc==NULL) { return NULL; }
+   InitWeights * weightInitializer = getWeightInitializer(name, hc);
+   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
+   return new ImprintConn(name, hc, weightInitializer, weightNormalizer);
+}
+
 } // end namespace PV

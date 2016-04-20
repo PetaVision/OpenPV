@@ -37,7 +37,9 @@ private:
    bool calcDistChordCocircKurvePreNKurvePost(
             float xDelta, float yDelta, int kfPost, InitCocircWeightsParams *weightParamPtr, float thPost);
    int cocircCalcWeights(pvdata_t * w_tmp, InitCocircWeightsParams * weightParamPtr);
-};
+}; // class InitCocircWeights
+
+BaseObject * createInitCocircWeights(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* INITCOCIRCWEIGHTS_HPP_ */

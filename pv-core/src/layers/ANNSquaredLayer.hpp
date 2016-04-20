@@ -37,7 +37,9 @@ protected:
 private:
    int initialize_base();
 
-};
+}; // class ANNSquaredLayer
+
+BaseObject * createANNSquaredLayer(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* ANNSQUAREDLAYER_HPP_ */

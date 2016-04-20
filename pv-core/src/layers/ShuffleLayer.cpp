@@ -351,5 +351,9 @@ int ShuffleLayer::updateState(double timef, double dt) {
    return status;
 }
 
+BaseObject * createShuffleLayer(char const * name, HyPerCol * hc) {
+   return hc ? new ShuffleLayer(name, hc) : NULL;
+}
+
 } // end namespace PV
 

@@ -344,4 +344,8 @@ LabelLayer::LabelLayer(const char * name, HyPerCol * hc)
 LabelLayer::LabelLayer() {}
 #endif // PV_USE_GDAL
 
+BaseObject * createLabelLayer(char const * name, HyPerCol * hc) {
+   return hc ? new LabelLayer(name, hc) : NULL;
+}
+
 } // end namespace PV

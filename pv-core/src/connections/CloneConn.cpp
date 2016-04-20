@@ -364,4 +364,8 @@ CloneConn::~CloneConn() {
    postToPreActivity = NULL;
 }
 
+BaseObject * createCloneConn(char const * name, HyPerCol * hc) {
+   return hc ? new CloneConn(name, hc) : NULL;
+}
+
 } // end namespace PV

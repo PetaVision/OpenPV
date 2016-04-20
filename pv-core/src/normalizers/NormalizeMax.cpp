@@ -34,7 +34,7 @@ int NormalizeMax::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeMax::ioParam_minMaxTolerated(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "minMaxTolerated", &minMaxTolerated, 0.0f, true/*warnIfAbsent*/);
+   parent->ioParamValue(ioFlag, name, "minMaxTolerated", &minMaxTolerated, 0.0f, true/*warnIfAbsent*/);
 }
 
 int NormalizeMax::normalizeWeights() {
@@ -123,6 +123,10 @@ int NormalizeMax::normalizeWeights() {
 }
 
 NormalizeMax::~NormalizeMax() {
+}
+
+BaseObject * createNormalizeMax(char const * name, HyPerCol * hc) {
+   return hc ? new NormalizeMax(name, hc) : NULL;
 }
 
 } /* namespace PV */

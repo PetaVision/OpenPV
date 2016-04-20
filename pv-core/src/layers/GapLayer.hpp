@@ -45,8 +45,10 @@ private:
    // LIFGap * sourceLayer; // We don't call any LIFGap-specific methods so we can use originalLayer
    float ampSpikelet;
 
-};
+}; // class GapLayer
 
-}
+BaseObject * createGapLayer(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 
 #endif /* GAPLAYER_HPP_ */

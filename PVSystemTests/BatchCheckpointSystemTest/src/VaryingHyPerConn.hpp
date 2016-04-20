@@ -27,6 +27,8 @@ protected:
 
 }; // end class VaryingHyPerConn
 
+BaseObject * createVaryingHyPerConn(char const * name, HyPerCol * hc);
+
 }  // end namespace PV block
 
 

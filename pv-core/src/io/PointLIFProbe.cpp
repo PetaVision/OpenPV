@@ -158,4 +158,8 @@ int PointLIFProbe::writeState(double timed)
    return PV_SUCCESS;
 }
 
+BaseObject * createPointLIFProbe(char const * name, HyPerCol * hc) {
+   return hc ? new PointLIFProbe(name, hc) : NULL;
+}
+
 } // namespace PV

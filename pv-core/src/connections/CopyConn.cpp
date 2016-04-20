@@ -232,4 +232,10 @@ CopyConn::~CopyConn() {
    free(originalConnName);
 }
 
+BaseObject * createCopyConn(char const * name, HyPerCol * hc) {
+   if (hc==NULL) { return NULL; }
+   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
+   return new CopyConn(name, hc, weightNormalizer);
+}
+
 } /* namespace PV */

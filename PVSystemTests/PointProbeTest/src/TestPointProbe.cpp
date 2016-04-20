@@ -15,10 +15,6 @@ TestPointProbe::TestPointProbe() {
    // Default constructor for derived classes.  Derived classes should call initTestPointProbe from their init-method.
 }
 
-/**
- * @probeName
- * @hc
- */
 TestPointProbe::TestPointProbe(const char * probeName, HyPerCol * hc) :
    PointProbe()
 {
@@ -30,12 +26,6 @@ TestPointProbe::~TestPointProbe()
 }
 
 
-/**
- * @time
- * @l
- * @k
- * @kex
- */
 int TestPointProbe::point_writeState(double timef, float outVVal, float outAVal) {
    if(parent->columnId()==0){
       //Input pvp layer's spinning order is nf, nx, ny
@@ -47,6 +37,10 @@ int TestPointProbe::point_writeState(double timef, float outVVal, float outAVal)
       }
    }
    return PV_SUCCESS;
+}
+
+BaseObject * createTestPointProbe(char const * name, HyPerCol * hc) {
+   return hc ? new TestPointProbe(name, hc) : NULL;
 }
 
 } // namespace PV

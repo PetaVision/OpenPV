@@ -32,7 +32,9 @@ private:
    float dropoutChance;
    float potentialScale;
    PV::Random * randState;
-};
+}; /* class MLPForwardLayer */
 
-} /* namespace PV */
+PV::BaseObject * createMLPForwardLayer(char const * name, PV::HyPerCol * hc);
+
+} /* namespace PVMLearning */
 #endif /* ANNERRORLAYER_HPP_ */

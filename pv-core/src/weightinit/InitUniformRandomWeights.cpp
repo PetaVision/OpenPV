@@ -32,7 +32,7 @@ int InitUniformRandomWeights::initialize(char const * name, HyPerCol * hc) {
 }
 
 InitWeightsParams * InitUniformRandomWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitUniformRandomWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitUniformRandomWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -78,6 +78,10 @@ int InitUniformRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeigh
    }
 
    return PV_SUCCESS;
+}
+
+BaseObject * createInitUniformRandomWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitUniformRandomWeights(name, hc) : NULL;
 }
 
 } /* namespace PV */

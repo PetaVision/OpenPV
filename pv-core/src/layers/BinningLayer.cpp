@@ -291,4 +291,8 @@ BinningLayer::~BinningLayer() {
    clayer->V = NULL;
 }
 
+BaseObject * createBinningLayer(char const * name, HyPerCol * hc) {
+   return hc ? new BinningLayer(name, hc) : NULL;
+}
+
 } /* namespace PV */

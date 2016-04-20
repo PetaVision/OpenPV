@@ -89,7 +89,9 @@ private:
 protected:
     char * originalConnName;
     PoolingConn * originalConn;
-};
+}; // end class TransposePoolingConn
+
+BaseObject * createTransposePoolingConn(char const * name, HyPerCol * hc);
 
 }  // end namespace PV
 

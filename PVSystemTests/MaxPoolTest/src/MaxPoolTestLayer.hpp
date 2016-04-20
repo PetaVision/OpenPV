@@ -15,5 +15,7 @@ protected:
 private:
 };
 
+BaseObject * createMaxPoolTestLayer(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif

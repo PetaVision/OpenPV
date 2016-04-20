@@ -56,6 +56,8 @@ int SegmentTestLayer::updateState(double timef, double dt){
    return PV_SUCCESS;
 }
 
-
+BaseObject * createSegmentTestLayer(char const * name, HyPerCol * hc) {
+   return hc ? new SegmentTestLayer(name, hc) : NULL;
+}
 
 } /* namespace PV */

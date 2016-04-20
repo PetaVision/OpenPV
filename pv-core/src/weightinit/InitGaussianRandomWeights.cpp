@@ -34,7 +34,7 @@ int InitGaussianRandomWeights::initialize(char const * name, HyPerCol * hc) {
 }
 
 InitWeightsParams * InitGaussianRandomWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitGaussianRandomWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitGaussianRandomWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -81,6 +81,10 @@ int InitGaussianRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeig
    }
 
    return 0;
+}
+
+BaseObject * createInitGaussianRandomWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitGaussianRandomWeights(name, hc) : NULL;
 }
 
 } /* namespace PV */

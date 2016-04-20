@@ -1,5 +1,5 @@
 /*
- * receiveFromPostProbe.cpp
+ * identicalBatchProbe.cpp
  * Author: slundquist
  */
 
@@ -56,6 +56,10 @@ int identicalBatchProbe::outputState(double timed){
    //For max std of 5e-5
    //assert(sigma <= 5e-5);
    return status;
+}
+
+BaseObject * create_identicalBatchProbe(char const * probeName, HyPerCol * hc) {
+   return hc ? new identicalBatchProbe(probeName, hc): NULL;
 }
 
 } // end namespace PV

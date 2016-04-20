@@ -253,6 +253,9 @@ void ANNNormalizedErrorLayer::ioParam_maskLayerName(enum ParamsIOFlag ioFlag) {
    }
 }
 
+BaseObject * createANNNormalizedErrorLayer(char const * name, HyPerCol * hc) {
+   return hc ? new ANNNormalizedErrorLayer(name, hc) : NULL;
+}
 
 } /* namespace PV */
 

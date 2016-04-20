@@ -114,4 +114,8 @@ int InputLayer::updateState(double timef, double dt) {
    return PV_SUCCESS;
 }
 
+PV::BaseObject * createInputLayer(char const * name, PV::HyPerCol * hc) {
+   return hc ? new InputLayer(name, hc) : NULL;
 }
+
+}  // end namespace PVMLearning

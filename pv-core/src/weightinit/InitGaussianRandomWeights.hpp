@@ -34,7 +34,9 @@ private:
 // Member variables
 protected:
    GaussianRandom * gaussianRandState; // Use this instead of randState to use Box-Muller transformation.
-};
+}; // class InitGaussianRandomWeights
+
+BaseObject * createInitGaussianRandomWeights(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* INITGAUSSIANRANDOMWEIGHTS_HPP_ */

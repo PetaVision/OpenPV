@@ -19,5 +19,7 @@ private:
    char* maskMethod;
 };
 
+BaseObject * createMaskTestLayer(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif

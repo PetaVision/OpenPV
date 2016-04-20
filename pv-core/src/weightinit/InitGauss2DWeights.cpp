@@ -31,7 +31,7 @@ int InitGauss2DWeights::initialize(char const * name, HyPerCol * hc) {
 }
 
 InitWeightsParams * InitGauss2DWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitGauss2DWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitGauss2DWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -119,9 +119,8 @@ int InitGauss2DWeights::gauss2DCalcWeights(pvdata_t * dataStart, InitGauss2DWeig
    return PV_SUCCESS;
 }
 
-
-
-
-
+BaseObject * createInitGauss2DWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitGauss2DWeights(name, hc) : NULL;
+}
 
 } /* namespace PV */

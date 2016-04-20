@@ -260,5 +260,8 @@ bool RescaleLayerTestProbe::colinear(int nx, int ny, int ystrideA, int ystrideB,
    return fabs(covariance - astd*bstd) <= tolerance;
 }
 
+BaseObject * createRescaleLayerTestProbe(char const * name, HyPerCol * hc) { 
+   return hc ? new RescaleLayerTestProbe(name, hc) : NULL;
+}
 
 } /* namespace PV */

@@ -291,6 +291,10 @@ int ISTALayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvd
    return PV_SUCCESS;
 }
 
+BaseObject * createISTALayer(char const * name, HyPerCol * hc) {
+   return hc ? new ISTALayer(name, hc) : NULL;
+}
+
 } /* namespace PV */
 
 

@@ -82,4 +82,9 @@ int GTLayer::updateState(double timef, double dt) {
    firstRun = false;
    return PV_SUCCESS;
 }
+
+PV::BaseObject * createGTLayer(char const * name, PV::HyPerCol * hc) {
+   return hc ? new GTLayer(name, hc) : NULL;
+}
+
 }

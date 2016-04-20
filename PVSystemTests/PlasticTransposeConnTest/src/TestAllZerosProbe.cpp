@@ -44,4 +44,8 @@ void TestAllZerosProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
    requireType(BufActivity);
 }
 
-}; // namespace PV
+BaseObject * createTestAllZerosProbe(char const * name, HyPerCol * hc) {
+   return hc ? new TestAllZerosProbe(name, hc) : NULL;
+}
+
+}  // namespace PV

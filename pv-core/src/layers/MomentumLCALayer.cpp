@@ -285,6 +285,10 @@ int MomentumLCALayer::checkpointRead(const char * cpDir, double * timeptr) {
    return status;
 }
 
+BaseObject * createMomentumLCALayer(char const * name, HyPerCol * hc) {
+   return hc ? new MomentumLCALayer(name, hc) : NULL;
+}
+
 }
 
 #ifdef __cplusplus

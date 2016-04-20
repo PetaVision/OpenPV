@@ -47,4 +47,12 @@ int ImportParamsConn::allocateDataStructures() {
    return status;
 }
 
+BaseObject * createImportParamsConn(const char * name, HyPerCol * hc) {
+   if (hc==NULL) { return NULL; }
+   InitWeights * weightInitializer = getWeightInitializer(name, hc);
+   NormalizeBase * weightNormalizer = getWeightNormalizer(name, hc);
+   return new HyPerConn(name, hc, weightInitializer, weightNormalizer);
+}
+
+
 } /* namespace PV */

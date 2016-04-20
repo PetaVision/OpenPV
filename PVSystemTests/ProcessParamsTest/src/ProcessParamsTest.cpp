@@ -18,33 +18,32 @@ int main(int argc, char * argv[]) {
 
    int status = PV_SUCCESS;
 
-   PV::PV_Init * pv_obj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   assert(pv_obj);
+   PV::PV_Init pv_obj(&argc, &argv, false/*allowUnrecognizedArguments*/);
 
-   PV::PV_Arguments * pv_arguments = pv_obj->getArguments();
+   PV::PV_Arguments * pv_arguments = pv_obj.getArguments();
    if (pv_arguments->getParamsFile()==NULL) {
       pv_arguments->setParamsFile("input/ProcessParamsTest.params");
    }
 
-   status = pv_obj->initialize();
+   status = pv_obj.initialize();
    if (status != PV_SUCCESS) {
       fflush(stdout);
       fprintf(stderr, "%s: PV_Init::initialize() failed on process with PID=%d\n", argv[0], getpid()); 
       exit(EXIT_FAILURE);
    }
 
-   if (pv_obj->isExtraProc()) { return EXIT_SUCCESS; }
+   if (pv_obj.isExtraProc()) { return EXIT_SUCCESS; }
 
-   int rank = pv_obj->getComm()->globalCommRank();
+   int rank = pv_obj.getComm()->globalCommRank();
 
-   status = deleteGeneratedFiles(pv_obj);
+   status = deleteGeneratedFiles(&pv_obj);
    if (status!=PV_SUCCESS) {
       fflush(stdout);
       fprintf(stderr, "%s: error cleaning generated files from any previous run.\n", argv[0]);
       exit(EXIT_FAILURE);
    }
 
-   PV::HyPerCol * hc = build(pv_obj, NULL, 0);
+   PV::HyPerCol * hc = build(&pv_obj);
    if (hc==NULL) {
       fflush(stdout);
       fprintf(stderr, "%s: build() failed on process %d\n", argv[0], rank);
@@ -61,7 +60,7 @@ int main(int argc, char * argv[]) {
 
    // Run the column with the raw params file, sending output to directory "output-generate/"
    pv_arguments->setOutputPath("output-generate");
-   status = rebuildandrun(pv_obj);
+   status = rebuildandrun(&pv_obj);
    if (status != PV_SUCCESS) {
       fflush(stdout);
       fprintf(stderr, "%s: running with raw params file failed on process %d\n", argv[0], rank);
@@ -71,7 +70,7 @@ int main(int argc, char * argv[]) {
    // Run the column with the cleaned-up params file, sending output to directory "output-verify/"
    pv_arguments->setOutputPath("output-verify");
    pv_arguments->setParamsFile(PROCESSED_PARAMS);
-   status = rebuildandrun(pv_obj);
+   status = rebuildandrun(&pv_obj);
    if (status != PV_SUCCESS) {
       fflush(stdout);
       fprintf(stderr, "%s: running with processed params file failed on process %d\n", argv[0], rank);
@@ -87,7 +86,6 @@ int main(int argc, char * argv[]) {
       }
    }
 
-   delete pv_obj;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

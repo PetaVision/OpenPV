@@ -37,7 +37,9 @@ private:
 protected:
    HyPerConn * conn; // The connection for which targetLayer is the postsynaptic layer.  There must be exactly one such conn.
    double * pvalues;      // The two-tailed p-value of the nnz value of each timestep.
-};
+}; // end class StochasticReleaseTestProbe
+
+BaseObject * createStochasticReleaseTestProbe(const char * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* STOCHASTICRELEASETESTPROBE_HPP_ */

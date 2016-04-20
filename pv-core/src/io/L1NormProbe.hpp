@@ -39,6 +39,8 @@ private:
    int initL1NormProbe_base() {return PV_SUCCESS;}
 }; // end class L1NormProbe
 
+BaseObject * createL1NormProbe(char const * name, HyPerCol * hc);
+
 }  // end namespace PV
 
 #endif /* L1NORMPROBE_HPP_ */

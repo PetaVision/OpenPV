@@ -10,6 +10,7 @@
 #include <omp.h>
 #endif // PV_USE_OPENMP_THREADS
 #include "PV_Init.hpp"
+#include "columns/HyPerCol.hpp"
 
 namespace PV {
 
@@ -21,13 +22,16 @@ PV_Init::PV_Init(int* argc, char ** argv[], bool allowUnrecognizedArguments){
    params = NULL;
    icComm = NULL;
    arguments = new PV_Arguments(*argc, *argv, allowUnrecognizedArguments);
+   factory = new Factory();
    initialized = false;
+   buildandrunDeprecationWarning = true;
 }
 
 PV_Init::~PV_Init(){
    delete params;
    delete icComm;
    delete arguments;
+   delete factory;
    commFinalize();
 }
 
@@ -50,13 +54,15 @@ int PV_Init::initSignalHandler()
 int PV_Init::initialize() {
    delete icComm;
    icComm = new InterColComm(arguments);
-   delete params; params=NULL;
-   char const * params_file = arguments->getParamsFile();
-   if (params_file) {
-      setParams(params_file);
-   }
    initialized = true;
-   return PV_SUCCESS;
+   int status = PV_SUCCESS;
+   // It is okay to initialize without there being a params file.
+   // setParams() can be called later.
+   delete params; params = NULL;
+   if (arguments->getParamsFile()) {
+      status = createParams();
+   }
+   return status;
 }
 
 int PV_Init::initMaxThreads() {
@@ -91,16 +97,119 @@ int PV_Init::commInit(int* argc, char*** argv)
 
 int PV_Init::setParams(char const * params_file) {
    if (params_file == NULL) { return PV_FAILURE; }
-   PVParams * oldParams = params;
-   params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
-   delete oldParams;
+   char const * newParamsFile = getArguments()->setParamsFile(params_file);
+   if (newParamsFile==NULL) {
+      fflush(stdout);
+      fprintf(stderr, "PV_Init error setting new params file: %s\n", strerror(errno));
+      return PV_FAILURE;
+   }
+   if (!initialized) { initialize(); }
+   return createParams();
    return PV_SUCCESS;
+}
+
+int PV_Init::createParams() {
+   assert(initialized);
+   char const * params_file = getArguments()->getParamsFile();
+   if (params_file) {
+      delete params;
+      params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
+      return PV_SUCCESS;
+   }
+   else {
+      return PV_FAILURE;
+   }
+}
+
+int PV_Init::registerKeyword(char const * keyword, ObjectCreateFn creator) {
+   int status = factory->registerKeyword(keyword, creator);
+   if (status != PV_SUCCESS) {
+      if (getWorldRank()==0) {
+         fflush(stdout);
+         fprintf(stderr, "PV_Init error: keyword \"%s\" has already been registered.\n", keyword);
+      }
+   }
+   return status;
+}
+
+BaseObject * PV_Init::create(char const * keyword, char const * name, HyPerCol * hc) const {
+   BaseObject * pvObject = factory->create(keyword, name, hc);
+   if (pvObject == NULL) {
+      if (getWorldRank()==0) {
+         fflush(stdout);
+         fprintf(stderr, "Unable to create %s \"%s\": keyword \"%s\" has not been registered.\n", keyword, name, keyword);
+      }
+   }
+   return pvObject;
+}
+
+HyPerCol * PV_Init::build() {
+   HyPerCol * hc = new HyPerCol("column", this);
+   if( hc == NULL ) {
+      fprintf(stderr, "Unable to create HyPerCol\n");
+      return NULL;
+   }
+   PVParams * hcparams = hc->parameters();
+   int numGroups = hcparams->numberOfGroups();
+
+   // Make sure first group defines a column
+   if( strcmp(hcparams->groupKeywordFromIndex(0), "HyPerCol") ) {
+      fprintf(stderr, "First group in the params file did not define a HyPerCol.\n");
+      delete hc;
+      return NULL;
+   }
+
+   for (int k=0; k<numGroups; k++) {
+      const char * kw = hcparams->groupKeywordFromIndex(k);
+      const char * name = hcparams->groupNameFromIndex(k);
+      if (!strcmp(kw, "HyPerCol")) {
+         if (k==0) { continue; }
+         else {
+            if (hc->columnId()==0) {
+               fflush(stdout);
+               fprintf(stderr, "Group %d in params file (\"%s\") is a HyPerCol; the HyPerCol must be the first group.\n",
+                       k+1, name);
+            }
+            delete hc;
+            return NULL;
+         }
+      }
+      else {
+         BaseObject * addedObject = factory->create(kw, name, hc);
+         if (addedObject==NULL) {
+            if (hc->globalRank()==0) {
+               fflush(stdout);
+               fprintf(stderr, "Error creating %s \"%s\".\n", kw, name);
+            }
+            delete hc;
+            return NULL;
+         }
+      }
+   }
+
+   if( hc->numberOfLayers() == 0 ) {
+      fflush(stdout);
+      fprintf(stderr, "HyPerCol \"%s\" does not have any layers.\n", hc->getName());
+      delete hc;
+      return NULL;
+   }
+   return hc;
 }
 
 int PV_Init::commFinalize()
 {
    MPI_Finalize();
    return 0;
+}
+
+void PV_Init::printBuildAndRunDeprecationWarning(char const * functionName, char const * functionSignature) {
+   if (buildandrunDeprecationWarning) {
+      if (getWorldRank()==0) {
+         fprintf(stderr, "\nWarning: %s(%s) has been deprecated.  Use the Factory version of %s instead.\n\n",
+               functionName, functionSignature, functionName);
+      }
+      clearBuildAndRunDeprecationWarning();
+   }
 }
 
 } // namespace PV

@@ -49,5 +49,8 @@ int InitWeightTestProbe::outputState(double timed)
    return status;
 }
 
+BaseObject * createInitWeightTestProbe(char const * name, HyPerCol * hc) {
+   return hc ? new InitWeightTestProbe(name, hc) : NULL;
+}
 
 } /* namespace PV */

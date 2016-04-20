@@ -33,7 +33,7 @@ int NormalizeL2::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 }
 
 void NormalizeL2::ioParam_minL2NormTolerated(enum ParamsIOFlag ioFlag) {
-   parent()->ioParamValue(ioFlag, name, "minL2NormTolerated", &minL2NormTolerated, 0.0f, true/*warnIfAbsent*/);
+   parent->ioParamValue(ioFlag, name, "minL2NormTolerated", &minL2NormTolerated, 0.0f, true/*warnIfAbsent*/);
 }
 
 int NormalizeL2::normalizeWeights() {
@@ -126,6 +126,10 @@ int NormalizeL2::normalizeWeights() {
 }
 
 NormalizeL2::~NormalizeL2() {
+}
+
+BaseObject * createNormalizeL2(char const * name, HyPerCol * hc) {
+   return hc ? new NormalizeL2(name, hc) : NULL;
 }
 
 } /* namespace PV */

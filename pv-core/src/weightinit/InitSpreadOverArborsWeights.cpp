@@ -34,7 +34,7 @@ int InitSpreadOverArborsWeights::initialize(char const * name, HyPerCol * hc) {
 }
 
 InitWeightsParams * InitSpreadOverArborsWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitSpreadOverArborsWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitSpreadOverArborsWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -128,6 +128,10 @@ int InitSpreadOverArborsWeights::spreadOverArborsWeights(/* PVPatch * patch */ p
    }
 
    return PV_SUCCESS;
+}
+
+BaseObject * createInitSpreadOverArborsWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitSpreadOverArborsWeights(name, hc) : NULL;
 }
 
 } /* namespace PV */

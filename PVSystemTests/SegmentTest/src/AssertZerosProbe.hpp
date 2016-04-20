@@ -22,7 +22,9 @@ protected:
 private:
    int initAssertZerosProbe_base();
 
-};
+}; // end class AssertZerosProbe
 
-}
+BaseObject * createAssertZerosProbe(char const * name, HyPerCol * hc);
+
+}  // end namespace PV
 #endif 

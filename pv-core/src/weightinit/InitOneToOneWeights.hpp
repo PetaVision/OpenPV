@@ -33,7 +33,9 @@ protected:
 
 private:
    int initialize_base();
-};
+}; // class InitOneToOneWeights
+
+BaseObject * createInitOneToOneWeights(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* INITONETOONEWEIGHTS_HPP_ */

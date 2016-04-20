@@ -36,7 +36,7 @@ int InitGaborWeights::initialize(char const * name, HyPerCol * hc) {
 }
 
 InitWeightsParams * InitGaborWeights::createNewWeightParams() {
-   InitWeightsParams * tempPtr = new InitGaborWeightsParams(name, parentHyPerCol);
+   InitWeightsParams * tempPtr = new InitGaborWeightsParams(name, parent);
    return tempPtr;
 }
 
@@ -113,6 +113,10 @@ int InitGaborWeights::gaborWeights(pvwdata_t * dataStart, InitGaborWeightsParams
    }
 
    return 0;
+}
+
+BaseObject * createInitGaborWeights(char const * name, HyPerCol * hc) {
+   return hc ? new InitGaborWeights(name, hc) : NULL;
 }
 
 } /* namespace PV */

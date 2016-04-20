@@ -62,8 +62,10 @@ protected:
    LabelLayer();
 #endif // PV_USE_GDAL
 
-};
+}; // class LabelLayer
 
-}
+BaseObject * createLabelLayer(char const * name, HyPerCol * hc);
+
+}  // namespace PV
 
 #endif /* LABELLAYER_HPP_ */

@@ -33,7 +33,9 @@ private:
    // Member variables
 protected:
    float minL2NormTolerated; // Error if sqrt(sum(weights^2)) in any patch is less than this amount.
-};
+}; // class NormalizeL2
+
+BaseObject * createNormalizeL2(char const * name, HyPerCol * hc);
 
 } /* namespace PV */
 #endif /* NORMALIZEL2_HPP_ */

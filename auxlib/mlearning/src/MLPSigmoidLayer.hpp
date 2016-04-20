@@ -48,8 +48,10 @@ private:
    bool  InverseFlag;
    bool  SigmoidFlag;
    float SigmoidAlpha;
-};
+}; // end class MLPSigmoidLayer
 
-}
+PV::BaseObject * createMLPSigmoidLayer(char const * name, PV::HyPerCol * hc);
+
+}  // end namespace PVMLearning
 
 #endif /* CLONELAYER_HPP_ */

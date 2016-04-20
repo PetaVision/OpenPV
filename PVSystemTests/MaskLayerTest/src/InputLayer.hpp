@@ -14,5 +14,7 @@ protected:
 private:
 };
 
+BaseObject * createInputLayer(char const * name, HyPerCol * hc);
+
 } /* namespace PV */
 #endif

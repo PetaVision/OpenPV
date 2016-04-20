@@ -12,7 +12,7 @@
 int customexit(HyPerCol * hc, int argc, char * argv[]);
 
 int main(int argc, char * argv[]) {
-	return buildandrun(argc, argv, NULL, customexit, NULL/*groupHandlerList*/, 0/*numGroupHandlers*/);
+	return buildandrun(argc, argv, NULL, customexit);
 }
 
 int customexit(HyPerCol * hc, int argc, char * argv[]) {

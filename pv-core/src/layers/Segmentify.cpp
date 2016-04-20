@@ -448,4 +448,8 @@ Segmentify::~Segmentify() {
    clayer->V = NULL;
 }
 
+BaseObject * createSegmentify(char const * name, HyPerCol * hc) {
+   return hc ? new Segmentify(name, hc) : NULL;
+}
+
 } /* namespace PV */
