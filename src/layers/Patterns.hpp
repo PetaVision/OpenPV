@@ -121,7 +121,7 @@ protected:
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readPatternStateFromCheckpoint(const char * cpDir);
 
-   virtual int retrieveData(double timef, double dt);
+   virtual int retrieveData(double timef, double dt, int batchIndex);
 
    PatternType type;
    char * typeString;

@@ -24,7 +24,6 @@ public:
 
    virtual int allocateDataStructures();
 
-   virtual pvdata_t * getImageBuffer();
    virtual PVLayerLoc getImageLoc();
 
    virtual int checkpointRead(const char * cpDir, double * timef);
@@ -34,7 +33,6 @@ public:
    virtual double calcTimeScale(int batchIdx);
    virtual int updateState(double time, double dt);
    virtual bool updateImage(double time, double dt);
-   int  randomFrame();
    const char* getFilename(int batchIdx){return framePath[batchIdx];}
    const char* getBatchMethod(){return batchMethod;}
 
@@ -111,8 +109,7 @@ protected:
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readFrameNumStateFromCheckpoint(const char * cpDir);
 
-   virtual int retrieveData(double timef, double dt);
-   //bool readPvpFile;
+   virtual int retrieveData(double timef, double dt, int batchIdx);
    const char * getNextFileName(int n_skip, int batchIdx);
    int updateFrameNum(int n_skip);
    PV_Stream * timestampFile;
@@ -127,11 +124,6 @@ private:
    bool resetToStartOnLoop;
 
    double displayPeriod;   // length of time a frame is displayed
-
-#ifdef OBSOLETE // randomMovie was commented out of Movie.cpp on Jul 22, 2015.
-   int randomMovie;       // these are used for performing a reverse correlation analysis
-   float randomMovieProb;
-#endif // OBSOLETE // randomMovie was commented out of Movie.cpp on Jul 22, 2015.
 
    bool echoFramePathnameFlag; // if true, echo the frame pathname to stdout
 
@@ -157,7 +149,6 @@ private:
 
    bool flipOnTimescaleError;
    long * batchPos;
-   bool initFlag;
 #else // PV_USE_GDAL
 public:
    Movie(char const * name, HyPerCol * hc);

@@ -23,6 +23,10 @@
 #ifndef BASEOBJECT_HPP_
 #define BASEOBJECT_HPP_
 
+#include "utils/PVLog.hpp"
+#include "utils/PVAssert.hpp"
+#include "utils/PVAlloc.hpp"
+
 namespace PV {
 
 class HyPerCol;

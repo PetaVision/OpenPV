@@ -91,7 +91,6 @@ int Movie::initialize_base() {
 
    batchPos = NULL;
    batchMethod = NULL;
-   initFlag = false;
 
    return PV_SUCCESS;
 }
@@ -162,6 +161,7 @@ int Movie::initialize(const char * name, HyPerCol * hc) { int status = Image::in
    PVParams * params = hc->parameters();
 
 
+   //If not pvp file, open fileOfFileNames 
    if (hc->columnId()==0) {
       filenamestream = PV_fopen(inputPath, "r", false/*verifyWrites*/);
       if( filenamestream == NULL ) {
@@ -413,11 +413,6 @@ int Movie::allocateDataStructures() {
    return status;
 }
 
-pvdata_t * Movie::getImageBuffer()
-{
-   return data;
-}
-
 PVLayerLoc Movie::getImageLoc()
 {
    return imageLoc;
@@ -428,7 +423,7 @@ PVLayerLoc Movie::getImageLoc()
 }
 
 double Movie::getDeltaUpdateTime(){
-   //If jittering, update every timestep
+   //If jitter , update every timestep
    if( jitterFlag ){
       return parent->getDeltaTime();
    }
@@ -457,34 +452,21 @@ int Movie::updateState(double time, double dt)
 //Image readImage reads the same thing to every batch
 //This call is here since this is the entry point called from allocate
 //Movie overwrites this function to define how it wants to load into batches
-int Movie::retrieveData(double timef, double dt)
+int Movie::retrieveData(double timef, double dt, int batchIdx)
 {
    int status = PV_SUCCESS;
-   bool init = false;
-   for(int b = 0; b < parent->getNBatch(); b++){
-      if(parent->icCommunicator()->commRank() == 0){
-         if(framePath[b]!= NULL) free(framePath[b]);
-         if(!initFlag){
-            framePath[b] = strdup(getNextFileName(startFrameIndex[b]+1, b));
-            init = true;
-         }
-         else{
-            framePath[b] = strdup(getNextFileName(skipFrameIndex[b], b));
-         }
-         std::cout << "Reading frame " << framePath[b] << " into batch " << b << " at time " << timef << "\n";
-         status = readImage(framePath[b], b, offsets[0], offsets[1], offsetAnchor);
-      }
-      else{
-         status = readImage(NULL, b, offsets[0], offsets[1], offsetAnchor);
-      }
-
-      if( status != PV_SUCCESS ) {
-         fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, framePath[b]);
-         abort();
-      }
+   if(framePath[batchIdx]!= NULL) free(framePath[batchIdx]);
+   if(timef==parent->getStartTime()){
+      framePath[batchIdx] = strdup(getNextFileName(startFrameIndex[batchIdx]+1, batchIdx));
    }
-   if(init){
-      initFlag = true;
+   else{
+      framePath[batchIdx] = strdup(getNextFileName(skipFrameIndex[batchIdx], batchIdx));
+   }
+   std::cout << "Reading frame " << framePath[batchIdx] << " into batch " << batchIdx << " at time " << timef << "\n";
+   status = readImage(framePath[batchIdx]);
+   if( status != PV_SUCCESS ) {
+      fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, framePath[batchIdx]);
+      abort();
    }
    return status;
 }
@@ -515,54 +497,51 @@ bool Movie::updateImage(double time, double dt)
    //      std::cout << "timeScale of " << parent->getTimeScale() << " is less than timeScaleMin of " << parent->getTimeScaleMin() << ", Movie is keeping the same frame\n";
    //   }
    //}
-   //else{
+   //else
+   {
       //Only do this if it's not the first update timestep
       //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
-      //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).  
-   if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
-      int status = getFrame(time, dt);
-      assert(status == PV_SUCCESS);
-   }
-   
-   
+      //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).
+      if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
+         int status = getFrame(time, dt);
+         assert(status == PV_SUCCESS);
+      }
 
 
-   //nextDisplayTime removed, now using nextUpdateTime in HyPerLayer
-   //while (time >= nextDisplayTime) {
-   //   nextDisplayTime += displayPeriod;
-   //}
-   //Set frame number (member variable in Image)
-   
-   //Write to timestamp file here when updated
-   if( icComm->commRank()==0 ) {
-       //Only write if the parameter is set
-       if(timestampFile){
-          std::ostringstream outStrStream;
-          outStrStream.precision(15);
-          int kb0 = getLayerLoc()->kb0;
-          for(int b = 0; b < parent->getNBatch(); b++){
-             outStrStream << time << "," << b+kb0 << "," << frameNumbers[b] << "," << framePath[b] << "\n";
-          }
 
-          size_t len = outStrStream.str().length();
-          int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
-          if (status != PV_SUCCESS) {
-             fprintf(stderr, "%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
-             exit(EXIT_FAILURE);
-          }
-          //Flush buffer
-          fflush(timestampFile->fp);
-       }
-   }
+
+      //nextDisplayTime removed, now using nextUpdateTime in HyPerLayer
+      //while (time >= nextDisplayTime) {
+      //   nextDisplayTime += displayPeriod;
+      //}
+      //Set frame number (member variable in Image)
+
+      //Write to timestamp file here when updated
+      if( icComm->commRank()==0 ) {
+         //Only write if the parameter is set
+         if(timestampFile){
+            std::ostringstream outStrStream;
+            outStrStream.precision(15);
+            int kb0 = getLayerLoc()->kb0;
+            for(int b = 0; b < parent->getNBatch(); b++){
+               outStrStream << time << "," << b+kb0 << "," << frameNumbers[b] << "," << framePath[b] << "\n";
+            }
+
+            size_t len = outStrStream.str().length();
+            int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
+            if (status != PV_SUCCESS) {
+               fprintf(stderr, "%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
+               exit(EXIT_FAILURE);
+            }
+            //Flush buffer
+            fflush(timestampFile->fp);
+         }
+      }
+   } // else-clause of if(!flipOnTimescaleError && (parent->getTimeScale() > 0 && parent->getTimeScale() < parent->getTimeScaleMin()))
 
    return true;
 }
 
-/**
- * When we play a random frame - in order to perform a reverse correlation analysis -
- * we call writeActivitySparse(time) in order to write the "activity" in the image.
- *
- */
 int Movie::outputState(double timed, bool last)
 {
    if (writeImages) {
@@ -589,7 +568,7 @@ const char * Movie::getNextFileName(int n_skip, int batchIdx) {
       outFilename = advanceFileName(batchIdx);
    }
    if (echoFramePathnameFlag){
-      printf("%f, %d: %s\n", parent->simulationTime(), batchIdx, outFilename);
+      printf("%s \"%s\": t=%f, batch element %d: loading %s\n", getKeyword(), name, parent->simulationTime(), batchIdx, outFilename);
    }
    return outFilename;
 }
@@ -687,7 +666,6 @@ const char * Movie::advanceFileName(int batchIdx) {
    batchPos[batchIdx] = getPV_StreamFilepos(filenamestream);
    return inputfile;
 }
-
 
 #else // PV_USE_GDAL
 Movie::Movie(const char * name, HyPerCol * hc) {

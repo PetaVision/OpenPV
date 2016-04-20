@@ -30,9 +30,7 @@ int ImagePvp::initialize_base() {
    needFrameSizesForSpiking = true;
    frameStartBuf = NULL;
    countBuf = NULL;
-   //pvpFilename = NULL;
    pvpFrameIdx = 0;
-   //pvpBatchIdx = 0;
    return PV_SUCCESS;
 }
 
@@ -52,7 +50,6 @@ int ImagePvp::initialize(const char * name, HyPerCol * hc) {
       exit(EXIT_FAILURE);
    }
    fileNumFrames = params[INDEX_NBANDS]; 
-   //fileNumBatches = params[INDEX_NBATCH];
    
    if(pvpFrameIdx < 0 || pvpFrameIdx >= fileNumFrames){
       std::cout << "ImagePvp:: pvpFrameIndex of " << pvpFrameIdx << " out of bounds, file contains " << fileNumFrames << " frames\n";
@@ -64,33 +61,13 @@ int ImagePvp::initialize(const char * name, HyPerCol * hc) {
 
 int ImagePvp::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseInput::ioParamsFillGroup(ioFlag);
-   //ioParam_pvpPath(ioFlag);
    ioParam_pvpFrameIdx(ioFlag);
-   //ioParam_pvpBatchIdx(ioFlag);
    return status;
 }
-
-//void ImagePvp::ioParam_inputPath(enum ParamsIOFlag ioFlag) {
-//   parent->ioParamStringRequired(ioFlag, name, "inputPath", &pvpFilename);
-//}
 
 void ImagePvp::ioParam_pvpFrameIdx(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "pvpFrameIdx", &pvpFrameIdx, pvpFrameIdx);
 }
-
-//void ImagePvp::ioParam_pvpBatchIdx(enum ParamsIOFlag ioFlag) {
-//   parent->ioParamValue(ioFlag, name, "pvpBatchIdx", &pvpBatchIdx, pvpBatchIdx);
-//   //If the file specifies a "dont care" numBatches, but the user specifies a pvpbatchIdx, error
-//   if(pvpBatchIdx > 0 && fileNumBatches == 0){
-//      std::cout << "ImagePvp:: File " << inputPath << " does not contain a numBatches, cannot specify a pvpBatchIdx\n";
-//      exit(-1);
-//   }
-//   //Check bounds
-//   if(pvpBatchIdx < 0 || pvpBatchIdx >= fileNumBatches){
-//      std::cout << "ImagePvp:: pvpBatchIdx of " << pvpBatchIdx << " out of bounds, file contains " << fileNumBatches << " batches\n";
-//      exit(-1);
-//   }
-//}
 
 int ImagePvp::communicateInitInfo() {
    int status = BaseInput::communicateInitInfo();
@@ -102,16 +79,25 @@ int ImagePvp::communicateInitInfo() {
    return status;
 }
 
+int ImagePvp::getFrame(double timef, double dt) {
+   int status = PV_SUCCESS;
+   for(int b = 0; b < parent->getNBatch(); b++) {
+      if (status == PV_SUCCESS) { status = retrieveData(timef, dt, b); }
+      if (status == PV_SUCCESS) { status = scatterInput(b); }
+   }
+   if (status == PV_SUCCESS) { status = postProcess(timef, dt); }
+   return status;
+}
 
 //Image readImage reads the same thing to every batch
 //This call is here since this is the entry point called from allocate
 //Movie overwrites this function to define how it wants to load into batches
-int ImagePvp::retrieveData(double timef, double dt)
+int ImagePvp::retrieveData(double timef, double dt, int batchIndex)
 {
    int status = PV_SUCCESS;
-   for(int b = 0; b < parent->getNBatch(); b++){
-      status = readPvp(inputPath, pvpFrameIdx, b, offsets[0], offsets[1], offsetAnchor);
-      assert(status == PV_SUCCESS);
+   status = readPvp(inputPath, pvpFrameIdx);
+   if(status != PV_SUCCESS) {
+      pvLogError("%s \"%s\": retrieveData failed at t=%f with batchIndex %d\n", getKeyword(), name, timef, batchIndex);
    }
    return status;
 }
@@ -125,57 +111,270 @@ double ImagePvp::getDeltaUpdateTime(){
    }
 }
 
-int ImagePvp::readPvp(const char * filename, int frameIdx, int destBatchIdx, int offsetX, int offsetY, const char* anchor)
-{
-   int status = 0;
-   PVLayerLoc * loc = & clayer->loc;
+int ImagePvp::readPvp(const char * filename, int frameNumber) {
 
-   if(useImageBCflag){ //Expand dimensions to the extended space
-      loc->nx = loc->nx + loc->halo.lt + loc->halo.rt;
-      loc->ny = loc->ny + loc->halo.dn + loc->halo.up;
-      //TODO this seems to fix the pvp ext vs res offset if imageBC flag is on, but only for no mpi runs
-      //offsetX = offsetX - loc->halo.lt;
-      //offsetY = offsetY - loc->halo.up;
-   }
+   //Root process reads a PVP file into imageData.
+   //All processes must be called because pvp_read_header requires that,
+   //but only root process does actual I/O.
+   //Scattering takes place in BaseInput::scatterInput.
 
-   // read the image and scatter the local portions
-   bool usingTempFile = false;
-   int numAttempts = 5;
-
-   status = getImageInfoPVP(filename, parent->icCommunicator(), &imageLoc);
-   if(status != 0) {
-      fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
-      abort();
-   }
-
-   //See if we are padding
-   int n = loc->nx * loc->ny * imageLoc.nf;
-
-   // Use number of bands in file instead of in params, to allow for grayscale conversion
-   float * buf = new float[n];
-   assert(buf != NULL);
-
-   int aOffsetX = getOffsetX(anchor, offsetX);
-   int aOffsetY = getOffsetY(anchor, offsetY);
-
-   status = scatterImageFilePVP(filename, aOffsetX, aOffsetY, parent->icCommunicator(), loc, buf, frameIdx);
-   if (status != PV_SUCCESS) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "Image::readImage failed for layer \"%s\"\n", getName());
+   int status = PV_SUCCESS;
+   int rootproc = 0;
+   int rank = parent->columnId();
+   Communicator * comm = parent->icCommunicator();
+   PV_Stream * pvstream = PV::pvp_open_read_file(filename, comm);
+   int numParams = NUM_BIN_PARAMS;
+   int params[numParams];
+   PV::pvp_read_header(pvstream, comm, params, &numParams);
+   assert (pvstream==NULL ^ rank==rootproc); // root process needs non-null pvstream; all other processes should have null pvstream.
+   if (frameNumber < 0 || frameNumber >= fileNumFrames) {
+      if (rank==rootproc) {
+         fprintf(stderr, "scatterImageFilePVP error: requested frameNumber %d but file \"%s\" only has frames numbered 0 through %d.\n", frameNumber, filename, params[INDEX_NBANDS]-1);
       }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      return PV_FAILURE;
+   }
+
+   if (rank!=rootproc) { return PV_SUCCESS; }
+
+   PVLayerLoc fileloc;
+   fileloc.nx = params[INDEX_NX];
+   fileloc.ny = params[INDEX_NY];
+   fileloc.nf = params[INDEX_NF];
+   //fileloc.nbatch = params[INDEX_NBATCH];
+   fileloc.nxGlobal = params[INDEX_NX_GLOBAL];
+   fileloc.nyGlobal = params[INDEX_NY_GLOBAL];
+   fileloc.kx0 = params[INDEX_KX0];
+   fileloc.ky0 = params[INDEX_KY0];
+   int nxProcs = params[INDEX_NX_PROCS];
+   int nyProcs = params[INDEX_NY_PROCS];
+   if (fileloc.nx != fileloc.nxGlobal || fileloc.ny != fileloc.nyGlobal ||
+       nxProcs != 1 || nyProcs != 1 ||
+       fileloc.kx0 != 0 || fileloc.ky0 != 0) {
+       fprintf(stderr, "File \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
+       exit(EXIT_FAILURE);
+   }
+
+   int bufferSize = fileloc.nx*fileloc.ny*fileloc.nf;
+   if (bufferSize != imageLoc.nxGlobal*imageLoc.nyGlobal*imageLoc.nf) {
+      free(imageData);
+      imageData = (pvadata_t *) malloc(bufferSize*sizeof(pvadata_t));
+   }
+   imageLoc.nxGlobal = fileloc.nx;
+   imageLoc.nyGlobal = fileloc.ny;
+   imageLoc.nf = fileloc.nf;
+   this->imageColorType = COLORTYPE_UNRECOGNIZED; // TODO: recognize RGB, YUV, etc.
+
+   bool spiking = false;
+   double timed = 0.0;
+   int filetype = params[INDEX_FILE_TYPE];
+
+   switch (filetype) {
+   case PVP_FILE_TYPE:
+      assert(0); // Is PVP_FILE_TYPE ever used?
+      break;
+
+   case PVP_ACT_FILE_TYPE:
+      status = readSparseBinaryActivityFrame(numParams, params, pvstream, frameNumber);
+      break;
+   case PVP_ACT_SPARSEVALUES_FILE_TYPE:
+      status = readSparseValuesActivityFrame(numParams, params, pvstream, frameNumber);
+      break;
+   case PVP_NONSPIKING_ACT_FILE_TYPE:
+      status = readNonspikingActivityFrame(numParams, params, pvstream, frameNumber);
+      break;
+   case PVP_WGT_FILE_TYPE:
+      fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+      break;
+   case PVP_KERNEL_FILE_TYPE:
+      fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+      break;
+
+   default:
+      fprintf(stderr, "scatterImageFilePVP error opening \"%s\": filetype %d is unrecognized.\n", filename ,filetype);
+      status = PV_FAILURE;
+      break;
+   }
+   if (status != PV_SUCCESS) {
       exit(EXIT_FAILURE);
    }
+   pvp_close_file(pvstream, comm);
 
-   if( status == PV_SUCCESS ) copyFromInteriorBuffer(buf, destBatchIdx, 1.0f);
+   pvpFileTime = timed;
+   //This is being printed twice: track down
+   //std::cout << "Rank " << rank << " Reading pvpFileTime " << pvpFileTime << " at timestep " << parent->simulationTime() << " with offset (" << xOffset << "," << yOffset << ")\n";
+   return status;
+}
 
-   delete[] buf;
+int ImagePvp::readSparseBinaryActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
 
-   if(useImageBCflag){ //Restore non-extended dimensions
-      loc->nx = loc->nx - loc->halo.lt - loc->halo.rt;
-      loc->ny = loc->ny - loc->halo.dn - loc->halo.up;
+   //Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
+   //Only need to do this once
+   int status = PV_SUCCESS;
+   if (needFrameSizesForSpiking) {
+      std::cout << "Calculating file positions\n";
+      frameStartBuf = (long *) calloc(params[INDEX_NBANDS] ,sizeof(long));
+      if (frameStartBuf==NULL) {
+         fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameStart.\n");
+         status = PV_FAILURE;
+         abort();
+      }
+
+      countBuf = (int *) calloc(params[INDEX_NBANDS] ,sizeof(int));
+      if (countBuf==NULL) {
+         fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameLength.\n");
+         status = PV_FAILURE;
+         abort();
+      }
+
+      //Fseek past the header and first timestamp
+      PV::PV_fseek(pvstream, (long)8 + (long)params[INDEX_HEADER_SIZE], SEEK_SET);
+      int percent = 0;
+      for (int f = 0; f<params[INDEX_NBANDS]; f++) {
+         int newpercent = 100*(f/(params[INDEX_NBANDS]));
+         if(percent != newpercent){
+            percent = newpercent;
+            std::cout << "\r" << percent << "\% Done";
+            std::cout.flush();
+         }
+         //First byte position should always be 92
+         if (f == 0) {
+            frameStartBuf[f] = (long)92;
+         }
+         //Read in the number of active neurons for that frame and calculate byte position
+         else {
+            PV::PV_fread(&countBuf[f-1], sizeof(int), 1, pvstream);
+            frameStartBuf[f] = frameStartBuf[f-1] + (long)countBuf[f-1]*(long)params[INDEX_DATA_SIZE] + (long)12;
+            PV::PV_fseek(pvstream, frameStartBuf[f] - (long)4, SEEK_SET);
+         }
+      }
+      std::cout << "\r" << percent << "% Done\n";
+      std::cout.flush();
+      //We still need the last count
+      PV::PV_fread(&countBuf[(params[INDEX_NBANDS])-1], sizeof(int), 1, pvstream);
+
+      //So we don't have to calculate frameStart and count again
+      needFrameSizesForSpiking = false;
    }
 
+   long framepos = (long)frameStartBuf[frameNumber];
+   unsigned int length = countBuf[frameNumber];
+   PV::PV_fseek(pvstream, framepos-sizeof(double)-sizeof(unsigned int), SEEK_SET);
+   PV::PV_fread(&pvpFileTime, sizeof(double), 1, pvstream);
+
+   unsigned int dropLength;
+   PV::PV_fread(&dropLength, sizeof(unsigned int), 1, pvstream);
+   assert(dropLength == length);
+
+   memset(imageData, 0, sizeof(*imageData)*(size_t) (imageLoc.nxGlobal*imageLoc.nyGlobal*imageLoc.nf));
+   int locations[length];
+   PV::PV_fread(locations, sizeof(int), length, pvstream);
+   for (unsigned int l=0; l<length; l++) {
+      imageData[locations[l]]=(pvadata_t) 1;
+   }
+
+   return status;
+}
+
+int ImagePvp::readSparseValuesActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
+
+   //Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
+   //Only need to do this once
+   int status = PV_SUCCESS;
+   if (needFrameSizesForSpiking) {
+      std::cout << "Calculating file positions\n";
+      frameStartBuf = (long *) calloc(params[INDEX_NBANDS] ,sizeof(long));
+      if (frameStartBuf==NULL) {
+         fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameStart.\n");
+         status = PV_FAILURE;
+         abort();
+      }
+
+      countBuf = (int *) calloc(params[INDEX_NBANDS] ,sizeof(int));
+      if (countBuf==NULL) {
+         fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameLength.\n");
+         status = PV_FAILURE;
+         abort();
+      }
+
+      //Fseek past the header and first timestamp
+      PV::PV_fseek(pvstream, (long)8 + (long)params[INDEX_HEADER_SIZE], SEEK_SET);
+      int percent = 0;
+      for (int f = 0; f<params[INDEX_NBANDS]; f++) {
+         int newpercent = 100*(f/(params[INDEX_NBANDS]));
+         if(percent != newpercent){
+            percent = newpercent;
+            std::cout << "\r" << percent << "\% Done";
+            std::cout.flush();
+         }
+         //First byte position should always be 92
+         if (f == 0) {
+            frameStartBuf[f] = (long)92;
+         }
+         //Read in the number of active neurons for that frame and calculate byte position
+         else {
+            PV::PV_fread(&countBuf[f-1], sizeof(int), 1, pvstream);
+            frameStartBuf[f] = frameStartBuf[f-1] + (long)countBuf[f-1]*(long)params[INDEX_DATA_SIZE] + (long)12;
+            PV::PV_fseek(pvstream, frameStartBuf[f] - (long)4, SEEK_SET);
+         }
+      }
+      std::cout << "\r" << percent << "% Done\n";
+      std::cout.flush();
+      //We still need the last count
+      PV::PV_fread(&countBuf[(params[INDEX_NBANDS])-1], sizeof(int), 1, pvstream);
+
+      //So we don't have to calculate frameStart and count again
+      needFrameSizesForSpiking = false;
+   }
+
+   long framepos = (long)frameStartBuf[frameNumber];
+   unsigned int length = countBuf[frameNumber];
+   PV::PV_fseek(pvstream, framepos-sizeof(double)-sizeof(unsigned int), SEEK_SET);
+   PV::PV_fread(&pvpFileTime, sizeof(double), 1, pvstream);
+   {
+      unsigned int dropLength;
+      PV::PV_fread(&dropLength, sizeof(unsigned int), 1, pvstream);
+      assert(dropLength == length);
+   }
+   status = PV_SUCCESS;
+
+   memset(imageData, 0, sizeof(*imageData)*(size_t) (imageLoc.nxGlobal*imageLoc.nyGlobal*imageLoc.nf));
+   struct locvalue {
+      int location;
+      float value;
+   };
+   struct locvalue locvalues[length];
+   assert(sizeof(locvalue)==sizeof(int)+sizeof(float));
+   PV::PV_fread(locvalues, sizeof(locvalue), length, pvstream);
+   for (int l=0; l<length; l++) {
+      imageData[locvalues[l].location]=(pvadata_t) locvalues[l].value;
+   }
+   return status;
+}
+
+int ImagePvp::readNonspikingActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber) {
+   int status = PV_SUCCESS;
+   int recordsize = params[INDEX_RECORD_SIZE];
+   int datasize = params[INDEX_DATA_SIZE];
+   int framesize = recordsize*datasize+8;
+   long framepos = (long)framesize * (long)frameNumber + (long)params[INDEX_HEADER_SIZE];
+   //ONLY READING TIME INFO HERE
+   status = PV::PV_fseek(pvstream, framepos, SEEK_SET);
+   if (status != 0) {
+      fprintf(stderr, "scatterImageFilePVP error: Unable to seek to start of frame %d in \"%s\": %s\n", frameNumber, pvstream->name, strerror(errno));
+      status = PV_FAILURE;
+   }
+   if (status == PV_SUCCESS) {
+      size_t numread = PV::PV_fread(&pvpFileTime, sizeof(double), (size_t) 1, pvstream);
+      if (numread != (size_t) 1) {
+         fprintf(stderr, "scatterImageFilePVP error: Unable to read timestamp from frame %d of file \"%s\":", frameNumber, pvstream->name);
+         if (feof(pvstream->fp)) { fprintf(stderr, " end-of-file."); }
+         if (ferror(pvstream->fp)) { fprintf(stderr, " fread error."); }
+         fprintf(stderr, "\n");
+         status = PV_FAILURE;
+      }
+   }
+   // Assumes that imageData is of type float.
+   size_t numread = PV::PV_fread(imageData, sizeof(float), (size_t) (imageLoc.nxGlobal*imageLoc.nyGlobal*imageLoc.nf), pvstream);
    return status;
 }
 
@@ -184,14 +383,6 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
 {
 
    //// Read a PVP file and scatter it to the multiple processes.
-   //if (autoResizeFlag) {
-   //   if (parent->columnId()==0) {
-   //      fprintf(stderr, "%s \"%s\" error: autoRescaleFlag=true has not been implemented for .pvp files.\n",
-   //         getKeyword(), name);
-   //   }
-   //   MPI_Barrier(parent->icCommunicator()->communicator());
-   //   exit(EXIT_FAILURE);
-   //}
    
    int status = PV_SUCCESS;
    int rootproc = 0;
@@ -245,11 +436,6 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
       char tempPosFilename [PV_PATH_MAX];
       const char * posFilename;
       int targetIdx = 0;
-
-      //int nbatches = params[INDEX_NBATCH];
-      //if(nbatches == 0){
-      //   nbatches = 1;
-      //}
 
       switch (filetype) {
       case PVP_FILE_TYPE:

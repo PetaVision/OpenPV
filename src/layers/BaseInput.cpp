@@ -10,14 +10,11 @@ BaseInput::BaseInput() {
    initialize_base();
 }
 
-//Image::Image(const char * name, HyPerCol * hc) {
-//   initialize_base();
-//   initialize(name, hc);
-//}
-
 BaseInput::~BaseInput() {
    Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
    delete randState; randState = NULL;
+
+   free(aspectRatioAdjustment);
 
    if(writePosition){
       if (getParent()->icCommunicator()->commRank()==0 && fp_pos != NULL && fp_pos->isfile) {
@@ -28,19 +25,21 @@ BaseInput::~BaseInput() {
       free(offsetAnchor);
    }
    free(writeImagesExtension);
-   if(inputPath){
-      free(inputPath);
-   }
+   free(inputPath);
+   delete[] imageData;
 }
 
 int BaseInput::initialize_base() {
    numChannels = 0;
    mpi_datatypes = NULL;
    data = NULL;
-   //filename = NULL;
    imageData = NULL;
+   memset(&imageLoc, 0, sizeof(PVLayerLoc));
+   imageColorType = COLORTYPE_UNRECOGNIZED;
    useImageBCflag = false;
-   //autoResizeFlag = false;
+   autoResizeFlag = false;
+   aspectRatioAdjustment = NULL;
+   interpolationMethod = INTERPOLATE_UNDEFINED;
    writeImages = false;
    writeImagesExtension = NULL;
    inverseFlag = false;
@@ -61,10 +60,7 @@ int BaseInput::initialize_base() {
    fp_pos = NULL;
    biases[0]   = 0;
    biases[1]   = 0;
-   //frameNumber = 0;
    randState = NULL;
-   //posstream = NULL;
-   //pvpFileTime = 0;
    biasConstraintMethod = 0; 
    padValue = 0;
    inputPath = NULL;
@@ -99,6 +95,9 @@ int BaseInput::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_writeImages(ioFlag);
    ioParam_writeImagesExtension(ioFlag);
 
+   ioParam_autoResizeFlag(ioFlag);
+   ioParam_aspectRatioAdjustment(ioFlag);
+   ioParam_interpolationMethod(ioFlag);
    ioParam_inverseFlag(ioFlag);
    ioParam_normalizeLuminanceFlag(ioFlag);
    ioParam_normalizeStdDev(ioFlag);
@@ -158,6 +157,70 @@ void BaseInput::ioParam_writeImagesExtension(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "writeImages"));
    if (writeImages) {
       parent->ioParamString(ioFlag, name, "writeImagesExtension", &writeImagesExtension, "tif");
+   }
+}
+
+void BaseInput::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
+   parent->ioParamValue(ioFlag, name, "autoResizeFlag", &autoResizeFlag, autoResizeFlag);
+}
+
+void BaseInput::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
+   if (autoResizeFlag) {
+      parent->ioParamString(ioFlag, name, "aspectRatioAdjustment", &aspectRatioAdjustment, "crop"/*default*/);
+      if (ioFlag == PARAMS_IO_READ) {
+         assert(aspectRatioAdjustment);
+         for (char * c = aspectRatioAdjustment; *c; c++) { *c = tolower(*c); }
+      }
+      if (strcmp(aspectRatioAdjustment, "crop") && strcmp(aspectRatioAdjustment, "pad")) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
+                  getKeyword(), name);
+         }
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+}
+
+void BaseInput::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
+   if (autoResizeFlag) {
+      char * interpolationMethodString = NULL;
+      parent->ioParamString(ioFlag, name, "interpolationMethod", &interpolationMethodString, "bicubic", true/*warn if absent*/);
+      if (ioFlag == PARAMS_IO_READ) {
+         assert(interpolationMethodString);
+         for (char * c = interpolationMethodString; *c; c++) { *c = tolower(*c); }
+         if (!strncmp(interpolationMethodString, "bicubic", strlen("bicubic"))) {
+            interpolationMethod = INTERPOLATE_BICUBIC;
+         }
+         else if (!strncmp(interpolationMethodString, "nearestneighbor", strlen("nearestneighbor"))) {
+            interpolationMethod = INTERPOLATE_NEARESTNEIGHBOR;
+         }
+         else {
+            if (parent->columnId()==0) {
+               fprintf(stderr, "%s \"%s\" error: interpolationMethod must be either \"bicubic\" or \"nearestNeighbor\".\n",
+                     getKeyword(), name);
+            }
+            MPI_Barrier(parent->icCommunicator()->communicator());
+            exit(EXIT_FAILURE);
+         }
+      }
+      else {
+         assert(ioFlag == PARAMS_IO_WRITE);
+         switch (interpolationMethod) {
+         case INTERPOLATE_BICUBIC:
+            interpolationMethodString = strdup("bicubic");
+            break;
+         case INTERPOLATE_NEARESTNEIGHBOR:
+            interpolationMethodString = strdup("nearestNeighbor");
+            break;
+         default:
+            assert(0); // interpolationMethod should be one of the above two categories.
+         }
+      }
+      parent->ioParamString(ioFlag, name, "interpolationMethod", &interpolationMethodString, "bicubic", true/*warn if absent*/);
+      free(interpolationMethodString);
    }
 }
 
@@ -301,10 +364,6 @@ int BaseInput::allocateDataStructures() {
 
    data = clayer->activity->data;
 
-   ////Image copies 
-   //assert(imageFilename);
-   
-   //status = readImage(imageFilename, this->offsets[0], this->offsets[1], this->offsetAnchor);
    status = getFrame(parent->simulationTime(), parent->getDeltaTimeBase());
    assert(status == PV_SUCCESS);
 
@@ -350,11 +409,330 @@ int BaseInput::allocateDataStructures() {
 
 
 //This function is only being called here from allocate. Subclasses will call this function when a new frame is nessessary
-int BaseInput::getFrame(double timef, double dt){
-   int status = retrieveData(timef, dt);
-   assert(status == PV_SUCCESS);
-   status = postProcess(timef, dt); //Post processing on activity buffer
-   assert(status == PV_SUCCESS);
+int BaseInput::getFrame(double timef, double dt) {
+   int status = PV_SUCCESS;
+   for(int b = 0; b < parent->getNBatch(); b++) {
+      if (parent->columnId()==0) {
+         if (status == PV_SUCCESS) { status = retrieveData(timef, dt, b); }
+      }
+      if (status == PV_SUCCESS) { status = scatterInput(b); }
+   }
+   if (status == PV_SUCCESS) { status = postProcess(timef, dt); }
+   return status;
+}
+
+int BaseInput::scatterInput(int batchIndex) {
+   int const rank = parent->columnId();
+   MPI_Comm mpi_comm = parent->icCommunicator()->communicator();
+   int const rootproc = 0;
+   pvadata_t * A = data + batchIndex * getNumExtended();
+   if (rank == rootproc) {
+      PVLayerLoc const * loc = getLayerLoc();
+      PVHalo const * halo = &loc->halo;
+      int const nxExt = loc->nx + halo->lt + halo->rt;
+      int const nyExt = loc->ny + halo->dn + halo->up;
+      int const nf = loc->nf;
+
+      if (imageLoc.nf==1 && nf>1) {
+         convertGrayScaleToMultiBand(&imageData, imageLoc.nxGlobal, imageLoc.nyGlobal, nf);
+         imageLoc.nf = nf;
+         imageColorType = COLORTYPE_UNRECOGNIZED;
+      }
+      if (imageLoc.nf>1 && nf==1) {
+         convertToGrayScale(&imageData, imageLoc.nxGlobal, imageLoc.nyGlobal, imageLoc.nf, imageColorType);
+         imageLoc.nf = 1;
+         imageColorType = COLORTYPE_GRAYSCALE;
+      }
+      if (imageLoc.nf != nf) {
+         pvExitFailure("%s \"%s\" error: imageLoc has %d features but layer has %d features.\n",
+               getKeyword(), name, imageLoc.nf, nf);
+      }
+
+      resizeInput();
+      int dims[2] = {imageLoc.nxGlobal, imageLoc.nyGlobal};
+      MPI_Bcast(dims, 2, MPI_INT, rootproc, mpi_comm);
+      for (int r=0; r<parent->icCommunicator()->commSize(); r++) {
+         if (r==rootproc) { continue; } // Do root process last so that we don't clobber root process data by using the data buffer to send.
+         for (int n=0; n<getNumExtended(); n++) { A[n] = padValue; }
+         int dataLeft, dataTop, imageLeft, imageTop, width, height;
+         int status = calcLocalBox(r, &dataLeft, &dataTop, &imageLeft, &imageTop, &width, &height);
+         if (status==PV_SUCCESS) {
+            pvAssert(width>0 && height>0);
+            for (int y=0; y<height; y++) {
+               int imageIdx = kIndex(imageLeft, imageTop+y, 0, imageLoc.nxGlobal, imageLoc.nyGlobal, nf);
+               int dataIdx = kIndex(dataLeft, dataTop+y, 0, nxExt, nyExt, nf);
+               memcpy(&A[dataIdx], &imageData[imageIdx], sizeof(pvadata_t)*width*nf);
+            }
+         }
+         else {
+            pvAssert(width==0||height==0);
+         }
+         MPI_Send(A, getNumExtended(), MPI_FLOAT, r, 31, mpi_comm);
+      }
+      // Finally, do root process.
+      for (int n=0; n<getNumExtended(); n++) { A[n] = padValue; }
+      int status = calcLocalBox(rootproc, &dataLeft, &dataTop, &imageLeft, &imageTop, &dataWidth, &dataHeight);
+      if (status==PV_SUCCESS) {
+         pvAssert(dataWidth>0 && dataHeight>0);
+         for (int y=0; y<dataHeight; y++) {
+            int imageIdx = kIndex(imageLeft, imageTop+y, 0, imageLoc.nxGlobal, imageLoc.nyGlobal, nf);
+            int dataIdx = kIndex(dataLeft, dataTop+y, 0, nxExt, nyExt, nf);
+            assert(imageIdx>=0 && imageIdx<imageLoc.nxGlobal * imageLoc.nyGlobal * imageLoc.nf);
+            assert(dataIdx>=0 && dataIdx<getNumExtended());
+            memcpy(&A[dataIdx], &imageData[imageIdx], sizeof(pvadata_t)*dataWidth*nf);
+         }
+      }
+      else { assert(dataWidth==0||dataHeight==0); }
+   }
+   else {
+      int dims[2];
+      MPI_Bcast(dims, 2, MPI_INT, rootproc, mpi_comm);
+      imageLoc.nxGlobal = dims[0];
+      imageLoc.nyGlobal = dims[1];
+      imageLoc.nf = getLayerLoc()->nf;
+      MPI_Recv(A, getNumExtended(), MPI_FLOAT, rootproc, 31, mpi_comm, MPI_STATUS_IGNORE);
+      calcLocalBox(rank, &dataLeft, &dataTop, &imageLeft, &imageTop, &dataWidth, &dataHeight);
+   }
+   return PV_SUCCESS;
+}
+
+int BaseInput::resizeInput() {
+   pvAssert(parent->columnId()==0); // Should only be called by root process.
+   if (!autoResizeFlag) {
+      resizeFactor = 1.0f;
+      return PV_SUCCESS;
+   }
+   PVLayerLoc const * loc = getLayerLoc();
+   PVHalo const * halo = &loc->halo;
+   int const targetWidth = loc->nxGlobal + (useImageBCflag ? (halo->lt + halo->rt) : 0);
+   int const targetHeight = loc->nyGlobal + (useImageBCflag ? (halo->dn + halo->up) : 0);
+   float xRatio = (float) targetWidth/(float) imageLoc.nxGlobal;
+   float yRatio = (float) targetHeight/(float) imageLoc.nyGlobal;
+   int resizedWidth, resizedHeight;
+   if (!strcmp(aspectRatioAdjustment, "crop")) {
+      resizeFactor = xRatio < yRatio ? yRatio : xRatio;
+      // resizeFactor * width should be >= getLayerLoc()->nx; resizeFactor * height should be >= getLayerLoc()->ny,
+      // and one of these relations should be == (up to floating-point roundoff).
+      resizedWidth = (int) nearbyintf(resizeFactor * imageLoc.nxGlobal);
+      resizedHeight = (int) nearbyintf(resizeFactor * imageLoc.nyGlobal);
+      pvAssert(resizedWidth >= targetWidth);
+      pvAssert(resizedHeight >= targetHeight);
+      pvAssert(resizedWidth == targetWidth || resizedHeight == targetHeight);
+   }
+   else if (!strcmp(aspectRatioAdjustment, "pad")) {
+      resizeFactor = xRatio < yRatio ? xRatio : yRatio;
+      // resizeFactor * width should be <= getLayerLoc()->nx; resizeFactor * height should be <= getLayerLoc()->ny,
+      // and one of these relations should be == (up to floating-point roundoff).
+      resizedWidth = (int) nearbyintf(resizeFactor * imageLoc.nxGlobal);
+      resizedHeight = (int) nearbyintf(resizeFactor * imageLoc.nyGlobal);
+      pvAssert(resizedWidth <= getLayerLoc()->nxGlobal);
+      pvAssert(resizedHeight <= getLayerLoc()->nyGlobal);
+      pvAssert(resizedWidth == getLayerLoc()->nxGlobal || resizedHeight == getLayerLoc()->nxGlobal);
+   }
+   else {
+      assert(0);
+   }
+   float * newImageData = new float[resizedHeight*resizedWidth*imageLoc.nf];
+   switch(interpolationMethod) {
+   case INTERPOLATE_BICUBIC:
+      bicubicInterp(imageData, imageLoc.nxGlobal, imageLoc.nyGlobal, imageLoc.nf, imageLoc.nf, imageLoc.nf*imageLoc.nxGlobal, 1, newImageData, resizedWidth, resizedHeight);
+      break;
+   case INTERPOLATE_NEARESTNEIGHBOR:
+      nearestNeighborInterp(imageData, imageLoc.nxGlobal, imageLoc.nyGlobal, imageLoc.nf, imageLoc.nf, imageLoc.nf*imageLoc.nxGlobal, 1, newImageData, resizedWidth, resizedHeight);
+      break;
+   default:
+      assert(0);
+      break;
+   }
+   delete[] imageData;
+   imageData = newImageData;
+   imageLoc.nxGlobal = resizedWidth;
+   imageLoc.nyGlobal = resizedHeight;
+   return PV_SUCCESS;
+}
+int BaseInput::nearestNeighborInterp(pvadata_t const * bufferIn, int widthIn, int heightIn, int numBands, int xStrideIn, int yStrideIn, int bandStrideIn, pvadata_t * bufferOut, int widthOut, int heightOut) {
+   /* Interpolation using nearest neighbor interpolation */
+   int xinteger[widthOut];
+   float dx = (float) (widthIn-1)/(float) (widthOut-1);
+   for (int kx=0; kx<widthOut; kx++) {
+      float x = dx * (float) kx;
+      xinteger[kx] = (int) nearbyintf(x);
+   }
+
+   int yinteger[heightOut];
+   float dy = (float) (heightIn-1)/(float) (heightOut-1);
+   for (int ky=0; ky<heightOut; ky++) {
+      float y = dy * (float) ky;
+      yinteger[ky] = (int) nearbyintf(y);
+   }
+
+   for (int ky=0; ky<heightOut; ky++) {
+      float yfetch = yinteger[ky];
+      for (int kx=0; kx<widthOut; kx++) {
+         int xfetch = xinteger[kx];
+         for (int f=0; f<numBands; f++) {
+            int fetchIdx = yfetch * yStrideIn + xfetch * xStrideIn + f * bandStrideIn;
+            int outputIdx = kIndex(kx, ky, f, widthOut, heightOut, numBands);
+            bufferOut[outputIdx] = bufferIn[fetchIdx];
+         }
+      }
+   }
+   return PV_SUCCESS;
+}
+
+int BaseInput::bicubicInterp(pvadata_t const * bufferIn, int widthIn, int heightIn, int numBands, int xStrideIn, int yStrideIn, int bandStrideIn, pvadata_t * bufferOut, int widthOut, int heightOut) {
+   /* Interpolation using bicubic convolution with a=-1 (following Octave image toolbox's imremap function -- change this?). */
+   float xinterp[widthOut];
+   int xinteger[widthOut];
+   float xfrac[widthOut];
+   float dx = (float) (widthIn-1)/(float) (widthOut-1);
+   for (int kx=0; kx<widthOut; kx++) {
+      float x = dx * (float) kx;
+      xinterp[kx] = x;
+      float xfloor = floorf(x);
+      xinteger[kx] = (int) xfloor;
+      xfrac[kx] = x-xfloor;
+   }
+
+   float yinterp[heightOut];
+   int yinteger[heightOut];
+   float yfrac[heightOut];
+   float dy = (float) (heightIn-1)/(float) (heightOut-1);
+   for (int ky=0; ky<heightOut; ky++) {
+      float y = dy * (float) ky;
+      yinterp[ky] = y;
+      float yfloor = floorf(y);
+      yinteger[ky] = (int) yfloor;
+      yfrac[ky] = y-yfloor;
+   }
+
+   memset(bufferOut, 0, sizeof(*bufferOut)*size_t(widthOut*heightOut*numBands));
+   for (int xOff = 2; xOff > -2; xOff--) {
+      for (int yOff = 2; yOff > -2; yOff--) {
+         for (int ky=0; ky<heightOut; ky++) {
+            float ycoeff = bicubic(yfrac[ky]-(float) yOff);
+            int yfetch = yinteger[ky]+yOff;
+            if (yfetch < 0) yfetch = -yfetch;
+            if (yfetch >= heightIn) yfetch = heightIn - (yfetch - heightIn) - 1;
+            for (int kx=0; kx<widthOut; kx++) {
+               float xcoeff = bicubic(xfrac[kx]-(float) xOff);
+               int xfetch = xinteger[kx]+xOff;
+               if (xfetch < 0) xfetch = -xfetch;
+               if (xfetch >= widthIn) xfetch = widthIn - (xfetch - widthIn) - 1;
+               assert(xfetch >= 0 && xfetch < widthIn && yfetch >= 0 && yfetch < heightIn);
+               for (int f=0; f<numBands; f++) {
+                  int fetchIdx = yfetch * yStrideIn + xfetch * xStrideIn + f * bandStrideIn;
+                  pvadata_t p = bufferIn[fetchIdx];
+                  int outputIdx = kIndex(kx, ky, f, widthOut, heightOut, numBands);
+                  bufferOut[outputIdx] += xcoeff * ycoeff * p;
+               }
+            }
+         }
+      }
+   }
+   return PV_SUCCESS;
+}
+
+int BaseInput::calcLocalBox(int rank, int * dataLeft, int * dataTop, int * imageLeft, int * imageTop, int * width, int * height) {
+   Communicator * icComm = parent->icCommunicator();
+   PVLayerLoc const * loc = getLayerLoc();
+   PVHalo const * halo = &loc->halo;
+   int column = columnFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
+   int boxInImageLeft = getOffsetX(this->offsetAnchor, this->offsets[0]) + column * getLayerLoc()->nx;
+   int boxInImageRight = boxInImageLeft + loc->nx;
+   int boxInLayerLeft = halo->lt;
+   int boxInLayerRight = boxInLayerLeft + loc->nx;
+   int row = rowFromRank(rank, icComm->numCommRows(), icComm->numCommColumns());
+   int boxInImageTop = getOffsetY(this->offsetAnchor, this->offsets[1]) + row * getLayerLoc()->ny;
+   int boxInImageBottom = boxInImageTop + loc->ny;
+   int boxInLayerTop = halo->up;
+   int boxInLayerBottom = boxInLayerTop + loc->ny;
+
+   if (useImageBCflag) {
+      boxInLayerLeft -= halo->lt;
+      boxInLayerRight += halo->rt;
+      boxInImageLeft -= halo->lt;
+      boxInImageRight += halo->rt;
+
+      boxInLayerTop -= halo->up;
+      boxInLayerBottom += halo->dn;
+      boxInImageTop -= halo->up;
+      boxInImageBottom += halo->dn;
+   }
+
+   int status = PV_SUCCESS;
+   if (boxInImageLeft > imageLoc.nxGlobal || boxInImageRight < 0 ||
+       boxInImageTop > imageLoc.nyGlobal || boxInImageBottom < 0 ||
+       boxInLayerLeft > loc->nx+halo->lt+halo->rt || boxInLayerRight < 0 ||
+       boxInLayerTop > loc->ny+halo->dn+halo->up || boxInLayerBottom < 0) {
+      *width = 0;
+      *height = 0;
+      status = PV_FAILURE;
+   }
+   else {
+      if (boxInImageLeft < 0) {
+         int discrepancy = -boxInImageLeft;
+         boxInLayerLeft += discrepancy;
+         boxInImageLeft += discrepancy;
+      }
+      if (boxInLayerLeft < 0) {
+         int discrepancy = -boxInLayerLeft;
+         boxInLayerLeft += discrepancy;
+         boxInImageLeft += discrepancy;
+      }
+
+      if (boxInImageRight > imageLoc.nxGlobal) {
+         int discrepancy = boxInImageRight - imageLoc.nxGlobal;
+         boxInLayerRight -= discrepancy;
+         boxInImageRight -= discrepancy;
+      }
+      if (boxInLayerRight > loc->nx+halo->lt+halo->rt) {
+         int discrepancy = boxInLayerRight - (loc->nx+halo->lt+halo->rt);
+         boxInLayerRight -= discrepancy;
+         boxInImageRight -= discrepancy;
+      }
+
+      if (boxInImageTop < 0) {
+         int discrepancy = -boxInImageTop;
+         boxInLayerTop += discrepancy;
+         boxInImageTop += discrepancy;
+      }
+      if (boxInLayerTop < 0) {
+         int discrepancy = -boxInLayerTop;
+         boxInLayerTop += discrepancy;
+         boxInImageTop += discrepancy;
+      }
+
+      if (boxInImageBottom > imageLoc.nyGlobal) {
+         int discrepancy = boxInImageBottom - imageLoc.nyGlobal;
+         boxInLayerBottom -= discrepancy;
+         boxInImageBottom -= discrepancy;
+      }
+      if (boxInLayerBottom > loc->ny+halo->dn+halo->up) {
+         int discrepancy = boxInLayerRight - (loc->ny+halo->dn+halo->up);
+         boxInLayerBottom -= discrepancy;
+         boxInImageBottom -= discrepancy;
+      }
+
+      int boxWidth = boxInImageRight-boxInImageLeft;
+      int boxHeight = boxInImageBottom-boxInImageTop;
+      pvAssert(boxWidth>=0);
+      pvAssert(boxHeight>=0);
+      pvAssert(boxWidth == boxInLayerRight-boxInLayerLeft);
+      pvAssert(boxHeight == boxInLayerBottom-boxInLayerTop);
+      // coordinates can be outside of the imageLoc limits, as long as the box has zero area
+      pvAssert(boxInImageLeft >= 0 && boxInImageRight <= imageLoc.nxGlobal);
+      pvAssert(boxInImageTop >= 0 && boxInImageBottom <= imageLoc.nyGlobal);
+      pvAssert(boxInLayerLeft >= 0 && boxInLayerRight <= loc->nx+halo->lt+halo->rt);
+      pvAssert(boxInLayerTop >= 0 && boxInLayerBottom <= loc->ny+halo->dn+halo->up);
+
+      *dataLeft = boxInLayerLeft;
+      *dataTop = boxInLayerTop;
+      *imageLeft = boxInImageLeft;
+      *imageTop = boxInImageTop;
+      *width = boxWidth;
+      *height = boxHeight;
+   }
    return status;
 }
 
@@ -399,9 +777,8 @@ int BaseInput::copyToInteriorBuffer(unsigned char * buf, int batchIdx, float fac
    return 0;
 }
 
-//Post processing done out of this function
-
-//TODO
+//Apply normalizeLuminanceFlag, normalizeStdDev, and inverseFlag, which can be done pixel-by-pixel
+//after scattering.
 int BaseInput::postProcess(double timef, double dt){
    int numExtended = getNumExtended();
 
@@ -825,18 +1202,6 @@ int BaseInput::updateState(double time, double dt){
    return PV_SUCCESS;
 }
 
-////! CLEAR IMAGE
-///*!
-// * this is Image specific.
-// */
-//int BaseInput::clearImage()
-//{
-//   // default is to do nothing for now
-//   // it could, for example, set the data buffer to zero.
-//
-//   return 0;
-//}
-
 /**
  *
  * The data buffer lives in the extended space. Here, we only copy the restricted space
@@ -863,7 +1228,99 @@ int BaseInput::writeImage(const char * filename, int batchIdx)
    return status;
 }
 
+
+int BaseInput::convertToGrayScale(float ** buffer, int nx, int ny, int numBands, InputColorType colorType)
+{
+   // even though the numBands argument goes last, the routine assumes that
+   // the organization of buf is, bands vary fastest, then x, then y.
+   if (numBands < 2) {return PV_SUCCESS;}
+
+   const int sxcolor = numBands;
+   const int sycolor = numBands*nx;
+   const int sb = 1;
+
+   const int sxgray = 1;
+   const int sygray = nx;
+
+   float * graybuf = new float[nx*ny];
+   float * colorbuf = *buffer;
+
+   float bandweight[numBands];
+   calcBandWeights(numBands, bandweight, colorType);
+
+   for (int j = 0; j < ny; j++) {
+      for (int i = 0; i < nx; i++) {
+         float val = 0;
+         for (int b = 0; b < numBands; b++) {
+            float d = colorbuf[i*sxcolor + j*sycolor + b*sb];
+            val += d*bandweight[b];
+         }
+         graybuf[i*sxgray + j*sygray] = val;
+      }
+   }
+   delete[] *buffer;
+   *buffer = graybuf;
+   return PV_SUCCESS;
 }
+
+int BaseInput::convertGrayScaleToMultiBand(float ** buffer, int nx, int ny, int numBands)
+{
+   const int sxcolor = numBands;
+   const int sycolor = numBands*nx;
+   const int sb = 1;
+
+   const int sxgray = 1;
+   const int sygray = nx;
+
+   float * multiBandsBuf = new float[nx*ny*numBands];
+   float * graybuf = *buffer;
+
+   for (int j = 0; j < ny; j++)
+   {
+      for (int i = 0; i < nx; i++)
+      {
+         for (int b = 0; b < numBands; b++)
+         {
+            multiBandsBuf[i*sxcolor + j*sycolor + b*sb] = graybuf[i*sxgray + j*sygray];
+         }
+
+      }
+   }
+   delete[] *buffer;
+   *buffer = multiBandsBuf;
+   return PV_SUCCESS;
+}
+
+int BaseInput::calcBandWeights(int numBands, float * bandweight, InputColorType colorType) {
+   const float grayalphaweights[2] = {1.0, 0.0};
+   const float rgbaweights[4] = {0.30f, 0.59f, 0.11f, 0.0f}; // RGB weights from <https://en.wikipedia.org/wiki/Grayscale>, citing Pratt, Digital Image Processing
+   switch (colorType) {
+   case COLORTYPE_UNRECOGNIZED:
+      equalBandWeights(numBands, bandweight);
+      break;
+   case COLORTYPE_GRAYSCALE:
+      if (numBands==1 || numBands==2) {
+         memcpy(bandweight, grayalphaweights, numBands*sizeof(*bandweight));
+      }
+      else {
+         pvAssert(0);
+      }
+      break;
+   case COLORTYPE_RGB:
+      if (numBands==3 || numBands==4) {
+         memcpy(bandweight, rgbaweights, numBands*sizeof(*bandweight));
+      }
+      else {
+         pvAssert(0);
+      }
+      break;
+   default:
+      pvAssert(0);
+   }
+   return PV_SUCCESS;
+}
+
+} // namespace PV
 
 
 

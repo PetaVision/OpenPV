@@ -7,7 +7,6 @@
 
 #include "MomentumConn.hpp"
 #include <cstring>
-#include "utils/PVAlloc.hpp"
 
 namespace PV {
 

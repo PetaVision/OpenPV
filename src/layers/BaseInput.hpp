@@ -5,12 +5,24 @@
 #define BASEINPUT_HPP_
 
 #include "HyPerLayer.hpp"
-#include "../columns/HyPerCol.hpp"
-#include "../columns/Random.hpp"
-#include "../io/imageio.hpp"
+#include "columns/HyPerCol.hpp"
+#include "columns/Random.hpp"
+#include "io/imageio.hpp"
 
 
 namespace PV {
+
+typedef enum {
+   INTERPOLATE_UNDEFINED,
+   INTERPOLATE_BICUBIC,
+   INTERPOLATE_NEARESTNEIGHBOR
+} InputInterpolationMethod;
+
+typedef enum {
+   COLORTYPE_UNRECOGNIZED,
+   COLORTYPE_GRAYSCALE/*One or two bands; if two the second is the alpha channel*/,
+   COLORTYPE_RGB/*Three or four bands; if four, the last is the alpha channel*/
+} InputColorType;
 
 class BaseInput: public HyPerLayer{
 protected:
@@ -52,6 +64,29 @@ protected:
     * @details Defaults to .tif
     */
    virtual void ioParam_writeImagesExtension(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief autoResizeFlag: resize image before cropping to the layer
+    * @details If set to true, image will be resized to the
+    * smallest size with the same aspect ratio that completely covers the
+    * layer size, and then cropped according to the offsets and offsetAnchor
+    * parameters inherited from BaseInput.
+    */
+   virtual void ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief aspectRatioAdjustment: either "crop" or "pad"
+    * @details If autoResizeFlag is true * and the input buffer's aspect ratio
+    * is different from the layer's, this parameter controls whether to
+    * resize the image so that it completely covers the layer and then crop;
+    * or to resize the image to completely fit inside the layer and then pad.
+    */
+   virtual void ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag);
+
+   /**
+    * @brief interpolationMethod: either "bicubic" or "nearestNeighbor".
+    */
+   virtual void ioParam_interpolationMethod(enum ParamsIOFlag ioFlag);
 
    /**
     * @brief inverseFlag: If set to true, inverts the image
@@ -171,15 +206,36 @@ protected:
    virtual bool constrainOffsets();
 
    /**
-    * This virtual function gets called from getFrame. Each subclass needs to overwrite this
-    * function to define how to fill the activity buffer of the input class.
-    */
-   virtual int retrieveData(double timef, double dt) = 0;
-   /**
     * This is the interface for loading a new "frame" (which can be either pvp, image, etc)
-    * into the activity buffer. This function calls retrieveData.
+    * into the activity buffer. This function calls retrieveData, scatterInput, and postProcess.
     */
    virtual int getFrame(double timef, double dt);
+
+   /**
+    * This pure virtual function gets called from getFrame by the root process only.
+    * Derived classes should set the nxGlobal, nyGlobal, and nf fields of imageLoc.
+    * If the product of nxGlobal, nyGlobal, and nf changes, retrieveData should
+    * free imageData with delete[] and reallocate imageData with new[], to prevent
+    * memory leaks.  retrieveData should also set the imageColorType data member.
+    */
+   virtual int retrieveData(double timef, double dt, int batchIndex) = 0;
+
+   /**
+    * This function scatters the imageData buffer to the activity buffers of the several MPI processes.
+    */
+   virtual int scatterInput(int batchIndex);
+
+   /**
+    * Calculates the intersection of the given rank's local extended region
+    * with the imageData, based on the offsetX, offsetY, and offsetAnchor
+    * parameters.
+    * Used in scatterInput by the root process to determine what part of the
+    * imageData buffer to scatter to the other processes.
+    * Return value is zero if width and height are both positive, and nonzero
+    * if either is negative (i.e. the local layer and image do not intersect).
+    */
+   int calcLocalBox(int rank, int * dataLeft, int * dataTop, int * imageLeft, int * imageTop, int * width, int * height);
+
    /**
     * This function achieves post processing of the activity buffer after a frame is loaded.
     */
@@ -192,29 +248,81 @@ protected:
     */
    int checkValidAnchorString();
 
-   int toGrayScale();
-
    int copyFromInteriorBuffer(float * buf, int batchIdx, float fac);
    int copyToInteriorBuffer(unsigned char * buf, int batchIdx, float fac);
 
+   /**
+    * This method is called during scatterInput, by the root process only.
+    * It uses the values of autoResizeFlag, aspectRatioAdjustment, and ImageBCflag
+    * to resize the imageData buffer.  It also updates the nxGlobal, nyGlobal, and nf
+    * fields of imageLoc, and the resizeFactor data member.
+    */
+   virtual int resizeInput();
+
+   int nearestNeighborInterp(pvadata_t const * bufferIn, int widthIn, int heightIn, int numBands, int xStrideIn, int yStrideIn, int bandStdrideIn, pvadata_t * bufferOut, int widthOut, int heightOut);
+
+   /**
+    * Resizes an image using band-by-band bicubic interpolation of the bufferIn array,
+    * placing the result in the bufferOut array.
+    * bufferIn is widthIn-by-heightOut-by-numBands; bufferOut is widthOut-by-heightOut-by-numBands.
+    * Inputs:
+    *    bufferIn    A pointer to the buffer containing the image.
+    *    widthIn     The width in pixels of the entire image
+    *    heightIn    The height in pixels of the entire image
+    *    numbands    The number of bands in the image: i.e., grayscale=1, RGB=3, etc.
+    *    xStrideIn   The difference between the memory locations, as pointers of type pixeltype, between two pixels adjacent in the x-direction, with the same y-coordinate and band number.
+    *    yStrideIn   The difference between the memory locations, as pointers of type pixeltype, between two pixels adjacent in the y-direction, with the same x-coordinate and band number.
+    *    bandStrideIn The difference between the memory locations, as pointers of type pixeltype, between two pixels from adjacent bands, with the same x- and y-coordinates.
+    *    bufferOut   The buffer for the resized image
+    *    widthOut    The width in pixels of the entire image
+    *    heightOut   The height in pixels of the entire image
+    */
+   int bicubicInterp(pvadata_t const * bufferIn, int widthIn, int heightIn, int numBands, int xStrideIn, int yStrideIn, int bandStdrideIn, pvadata_t * bufferOut, int widthOut, int heightOut);
+
+   // Bicubic convolution kernel with a=-1
+   inline static pvadata_t bicubic(pvadata_t x) {
+      pvadata_t const absx = fabsf(x); // assumes pvadata_t is float ; ideally should generalize
+      return absx < 1 ? 1 + absx*absx*(-2 + absx) : absx < 2 ? 4 + absx*(-8 + absx*(5-absx)) : 0;
+
+   }
+
+   /**
+    * Converts a grayscale buffer to a multiband buffer, by replicating the buffer in each band.
+    * On entry, *buffer points to an nx-by-ny-by-1 buffer that must have been created with the new[] operator.
+    * On exit, *buffer points to an nx-by-ny-by-numBands buffer that was created with the new[] operator.
+    */
+   static int convertGrayScaleToMultiBand(float ** buffer, int nx, int ny, int numBands);
+
+   /**
+    * Converts a multiband buffer to a grayscale buffer, using the colorType to weight the bands.
+    * On entry, *buffer points to an nx-by-ny-by-numBands buffer that must have been created with the new[] operator.
+    * On exit, *buffer points to an nx-by-ny-by-1 buffer that was created with the new[] operator.
+    */
+   static int convertToGrayScale(float ** buffer, int nx, int ny, int numBands, InputColorType colorType);
+
+   /**
+    * Based on the value of colorType, fills the bandweights buffer with weights to assign to each band
+    * of a multiband buffer when converting to grayscale.
+    */
+   static int calcBandWeights(int numBands, float * bandweights, InputColorType colorType);
+
+   /**
+    * Called by calcBandWeights when the color type is unrecognized; it fills each bandweights entry
+    * with 1/numBands.
+    */
+   static inline void equalBandWeights(int numBands, float * bandweights) {
+      float w = 1.0/(float) numBands;
+      for( int b=0; b<numBands; b++ ) bandweights[b] = w;
+   }
 
 public:
    BaseInput(const char * name, HyPerCol * hc);
    virtual ~BaseInput();
-   //virtual int communicateInitInfo();
    virtual int requireChannel(int channelNeeded, int * numChannelsResult);
    virtual int allocateDataStructures();
    virtual int updateState(double time, double dt);
 
-   //virtual bool needUpdate(double time, double dt);
-   //virtual int updateState(double time, double dt);
-   //virtual int outputState(double time, bool last=false);
-   
    virtual int checkpointRead(const char * cpDir, double * timeptr);
-
-   // partially override implementation of LayerDataInterface interface
-   //
-   const pvdata_t * getLayerData(int delay=0)   { return data; }
 
    virtual bool activityIsSpiking() {return false;}
 
@@ -242,7 +350,13 @@ public:
    const int * getBiases() { return biases; }
    char * getInputPath(){return inputPath;}
 
-   //virtual int scatterImageFile(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber, bool autoResizeFlag, int batchIdx);
+   // These get-methods are needed for masking
+   int getDataLeft() { return dataLeft; }
+   int getDataTop() { return dataTop; }
+   int getImageLeft() { return imageLeft; }
+   int getImageTop() { return imageTop; }
+   int getDataWidth() { return dataWidth; }
+   int getDataHeight() { return dataHeight; }
 
 private:
    int initialize_base();
@@ -253,12 +367,16 @@ protected:
    pvdata_t * data;       // buffer containing reduced image
 
    PVLayerLoc imageLoc;   // size/location of actual image
-   pvdata_t * imageData;  // buffer containing image
+   pvdata_t * imageData;  // buffer containing image, used only by a local communicator's root process.
+   InputColorType imageColorType; // Whether the data in imageData is grayscale, RGB, or something else.
 
    int writeImages;      // controls writing of image file during outputState
    char * writeImagesExtension; // ".pvp", ".tif", ".png", etc.; the extension to use when writing images
-   // bool useGrayScale;    // whether to convert image to grayscale
    
+   bool autoResizeFlag;
+   char * aspectRatioAdjustment;
+   InputInterpolationMethod interpolationMethod;
+   float resizeFactor;
    bool inverseFlag;
    bool normalizeLuminanceFlag; // if true, normalize the input image as specified by normalizeStdDev
    bool normalizeStdDev;        // if true and normalizeLuminanceFlag == true, normalize the standard deviation to 1 and mean = 0
@@ -287,6 +405,13 @@ protected:
    int offsets[2];        // offsets array points to [offsetX, offsetY]
    char* offsetAnchor;
 
+   int dataLeft; // The left edge of valid image data in the local activity buffer.  Can be positive if there is padding.  Can be negative if the data extends into the border region.
+   int dataTop; // The top edge of valid image data in the local activity buffer.  Can be positive if there is padding.  Can be negative if the data extends into the border region.
+   int imageLeft; // The x-coordinate in image coordinates corresponding to a value of dataLeft in layer coordinates.
+   int imageTop; // The y-coordinate in image coordinates corresponding to a value of dataTop in layer coordinates.
+   int dataWidth; // The width of valid image data in local activity buffer.
+   int dataHeight; // The height of valid image data in the local activity buffer.
+
    float padValue;
    bool useImageBCflag;
 
@@ -294,8 +419,8 @@ protected:
 
    char* inputPath;
 
-};
-}
+}; // class BaseInput
+}  // namespace PV
 
-#endif
+#endif // BASEINPUT_HPP_
 

@@ -32,7 +32,12 @@ int gatherImageFile(    const char * filename,
 int gatherImageFilePVP( const char * filename,
                         PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites);
 #ifdef PV_USE_GDAL
-int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes);
+/**
+ * Stores the dimensions of the image specified in the filename argument in the PVLayerLoc,
+ * and allocates the *colorbandtypes array (using malloc) to store information on the color type of each band.
+ * Should only be called by processes that do I/O.
+ */
+int getImageInfoGDAL(const char * filename, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes);
 int gatherImageFileGDAL(const char * filename,
                        PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites);
 GDALDataset * PV_GDALOpen(const char * filename);

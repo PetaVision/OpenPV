@@ -20,33 +20,23 @@ public:
 
    virtual int allocateDataStructures();
 
-   virtual pvdata_t * getImageBuffer();
    virtual PVLayerLoc getImageLoc();
 
    virtual int checkpointRead(const char * cpDir, double * timef);
    virtual int checkpointWrite(const char * cpDir);
    virtual int outputState(double time, bool last=false);
-   //virtual bool needUpdate(double time, double dt);
    virtual double getDeltaUpdateTime();
    virtual double calcTimeScale(int batchIdx);
-   //virtual int updateStateWrapper(double time, double dt);
    virtual int updateState(double time, double dt);
    virtual bool updateImage(double time, double dt);
-   // bool        getNewImageFlag();
    const char * getCurrentImage();
    const char* getBatchMethod(){return batchMethod;}
  
-   //Overwriting ImagePvp's getPvpFrameIdx
-   //virtual long getPvpFrameIdx() { return frameNumber; }
-
-
-   //int  randomFrame();
-
 protected:
    MoviePvp();
    int initialize(const char * name, HyPerCol * hc);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual int retrieveData(double timef, double dt);
+   virtual int retrieveData(double timef, double dt, int batchIndex);
 
    /**
     * List of parameters needed from the MoviePvp class
@@ -114,8 +104,6 @@ protected:
    virtual int readStateFromCheckpoint(const char * cpDir, double * timeptr);
    virtual int readFrameNumStateFromCheckpoint(const char * cpDir);
 
-   //bool readPvpFile;
-   //const char * getNextFileName(int n_skip);
    int updateFrameNum(int n_skip, int batchIdx);
    PV_Stream * timestampFile;
 
@@ -124,18 +112,12 @@ private:
    int initialize_base();
    int copyReducedImagePortion();
    int updateFrameNum(int batchIdx);
-   //const char * advanceFileName();
 
    bool resetToStartOnLoop;
 
    double displayPeriod;   // length of time a frame is displayed
-   //double nextDisplayTime; // time of next frame; now handled by HyPerLayer nextUpdateTime
-
-   //int randomMovie;       // these are used for performing a reverse correlation analysis
-   //float randomMovieProb;
 
    bool echoFramePathnameFlag; // if true, echo the frame pathname to stdout
-   // bool newImageFlag; // true when a new image was presented this timestep;
 
    int* startFrameIndex;
    int* skipFrameIndex;
@@ -152,7 +134,6 @@ private:
    bool writeFrameToTimestamp;
 
    bool flipOnTimescaleError;
-   bool initFlag;
    char* batchMethod;
 }; // class MoviePvp
 

@@ -930,8 +930,9 @@ int Patterns::updateState(double timef, double dt) {
 //Image readImage reads the same thing to every batch
 //This call is here since this is the entry point called from allocate
 //Movie overwrites this function to define how it wants to load into batches
-int Patterns::retrieveData(double timef, double dt)
+int Patterns::retrieveData(double timef, double dt, int batchIndex)
 {
+   assert(batchIndex==0); // TODO incorporate batches
    int status = PV_SUCCESS;
    status = updatePattern(timef);
    return status;

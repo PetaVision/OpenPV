@@ -49,7 +49,6 @@ int Image::initialize_base() {
    numChannels = 0;
    mpi_datatypes = NULL;
    data = NULL;
-   imageData = NULL;
    useImageBCflag = false;
    autoResizeFlag = false;
    writeImages = false;
@@ -83,27 +82,22 @@ int Image::initialize(const char * name, HyPerCol * hc) {
 
 int Image::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseInput::ioParamsFillGroup(ioFlag);
-
-   ioParam_autoResizeFlag(ioFlag);
-
+   // Image has no additional parameters.
    return status;
 }
 
-void Image::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "autoResizeFlag", &autoResizeFlag, autoResizeFlag);
-}
-
-//Image readImage reads the same thing to every member of the batch
+//Image readImage reads the same thing to every batch
 //This call is here since this is the entry point called from allocate
 //Movie overwrites this function to define how it wants to load into batches
-int Image::retrieveData(double timef, double dt)
+int Image::retrieveData(double timef, double dt, int batchIndex)
 {
    assert(inputPath);
    int status = PV_SUCCESS;
-   for(int b = 0; b < parent->getNBatch(); b++){
-      //Using member varibles here
-      status = readImage(inputPath, b, offsets[0], offsets[1], offsetAnchor);
-      assert(status == PV_SUCCESS);
+   //Using member varibles here
+   status = readImage(inputPath);
+   if(status != PV_SUCCESS) {
+      fflush(stdout);
+      fprintf(stderr, "%s \"%s\": readImage failed at t=%f for batchIndex %d\n", getKeyword(), name, timef, batchIndex);
    }
    return status;
 }
@@ -117,7 +111,71 @@ double Image::getDeltaUpdateTime(){
    }
 }
 
+int Image::readImageFileGDAL(char const * filename, PVLayerLoc const * loc) {
+   assert(parent->columnId()==0);
 
+   GDALAllRegister();
+
+   GDALDataset * dataset = PV_GDALOpen(filename);
+   if (dataset==NULL) { return PV_FAILURE; } // PV_GDALOpen prints an error message.
+   GDALRasterBand * poBand = dataset->GetRasterBand(1);
+   GDALDataType dataType = poBand->GetRasterDataType();
+
+   // GDAL defines whether a band is binary, not whether the image as a whole is binary.
+   // Set isBinary to false if any band is not binary (metadata doesn't have NBITS=1)
+   bool isBinary = true;
+   for(int iBand = 0; iBand < GDALGetRasterCount(dataset); iBand++){
+      GDALRasterBandH hBand = GDALGetRasterBand(dataset, iBand+1);
+      char ** metadata = GDALGetMetadata(hBand, "Image_Structure");
+      if(CSLCount(metadata) > 0){
+         bool found = false;
+         for(int i = 0; metadata[i] != NULL; i++){
+            if(strcmp(metadata[i], "NBITS=1") == 0){
+               found = true;
+               break;
+            }
+         }
+         if(!found){
+            isBinary = false;
+         }
+      }
+      else{
+         isBinary = false;
+      }
+   }
+
+   int const xImageSize = imageLoc.nxGlobal;
+   int const yImageSize = imageLoc.nyGlobal;
+   int const bandsInFile = imageLoc.nf;
+
+   int numTotal = xImageSize * yImageSize * bandsInFile;
+
+   dataset->RasterIO(GF_Read, 0, 0, xImageSize, yImageSize, imageData,
+         xImageSize, yImageSize, GDT_Float32, bandsInFile, NULL,
+         bandsInFile*sizeof(float), bandsInFile*xImageSize*sizeof(float), sizeof(float));
+
+
+   GDALClose(dataset);
+   if(!isBinary){
+      pvadata_t fac;
+      if(dataType == GDT_Byte){
+         fac = 1.0f / 255.0f;  // normalize to 1.0
+      }
+      else if(dataType == GDT_UInt16){
+         fac = 1.0f / 65535.0f;  // normalize to 1.0
+      }
+      else{
+         fprintf(stderr, "Image data type %s in file \"%s\" is not implemented.\n", GDALGetDataTypeName(dataType), filename);
+         exit(EXIT_FAILURE);
+      }
+      for( int n=0; n<numTotal; n++ ) {
+         imageData[n] *= fac;
+      }
+   }
+   return EXIT_SUCCESS;
+}
+
+#ifdef INACTIVE // Commented out April 19, 2016.  Might prove useful to restore the option to resize using GDAL.
 int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                          PV::Communicator * comm, const PVLayerLoc * loc, float * buf, bool autoResizeFlag)
 {
@@ -376,20 +434,20 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    }
    return status;
 }
+#endif // INACTIVE // Commented out April 19, 2016.  Might prove useful to restore the option to resize using GDAL.
 
 int Image::communicateInitInfo() {
    int status = BaseInput::communicateInitInfo();
    int fileType = getFileType(inputPath);
    if(fileType == PVP_FILE_TYPE){
       std::cout << "Image/Movie no longer reads PVP files. Use ImagePvp/MoviePvp layer instead.\n";
-      exit(-1);
+      exit(EXIT_FAILURE);
    }
    return status;
 }
 
 
 // TODO: checkpointWrite and checkpointRead need to handle nextBiasChange
-
 
 /**
  * update the image buffers
@@ -404,96 +462,81 @@ void Image::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, -1.0);
 }
 
-int Image::readImage(const char * filename, int targetBatchIdx, int offsetX, int offsetY, const char* anchor)
+int Image::readImage(const char * filename)
 {
+   assert(parent->columnId()==0); // readImage is called by retrieveData, which only the root process calls.  BaseInput::scatterInput does the scattering.
    int status = 0;
    PVLayerLoc * loc = & clayer->loc;
 
-   if(useImageBCflag){ //Expand dimensions to the extended space
-      loc->nx = loc->nx + loc->halo.lt + loc->halo.rt;
-      loc->ny = loc->ny + loc->halo.dn + loc->halo.up;
-      //TODO this seems to fix the pvp ext vs res offset if imageBC flag is on, but only for no mpi runs
-   }
-
-   // read the image and scatter the local portions
    char * path = NULL;
    bool usingTempFile = false;
-   int numAttempts = 5;
 
-   if (parent->columnId()==0) {
-      if (strstr(filename, "://") != NULL) {
-         usingTempFile = true;
-         std::string pathstring = parent->getOutputPath();
-         pathstring += "/temp.XXXXXX";
-         const char * ext = strrchr(filename, '.');
-         if (ext) { pathstring += ext; }
-         path = strdup(pathstring.c_str());
-         int fid;
-         fid=mkstemps(path, strlen(ext));
-         if (fid<0) {
-            fprintf(stderr,"Cannot create temp image file.\n");
-            exit(EXIT_FAILURE);
-         }
-         close(fid);
-         std::string systemstring;
-         if (strstr(filename, "s3://") != NULL) {
-            systemstring = "aws s3 cp \'";
-            systemstring += filename;
-            systemstring += "\' ";
-            systemstring += path;
-         }
-         else { // URLs other than s3://
-            systemstring = "wget -O ";
-            systemstring += path;
-            systemstring += " \'";
-            systemstring += filename;
-            systemstring += "\'";
-         }
-         
-         for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
-            int status = system(systemstring.c_str());
-            if(status != 0){
-               if(attemptNum == numAttempts - 1){
-                  fprintf(stderr, "download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
-                  exit(EXIT_FAILURE);
-               }
-               else{
-                  fprintf(stderr, "download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
-                  sleep(1);
-               }
+   if (strstr(filename, "://") != NULL) {
+      usingTempFile = true;
+      std::string pathstring = parent->getOutputPath();
+      pathstring += "/temp.XXXXXX";
+      const char * ext = strrchr(filename, '.');
+      if (ext) { pathstring += ext; }
+      path = strdup(pathstring.c_str());
+      int fid;
+      fid=mkstemps(path, strlen(ext));
+      if (fid<0) {
+         fprintf(stderr,"Cannot create temp image file.\n");
+         exit(EXIT_FAILURE);
+      }
+      close(fid);
+      std::string systemstring;
+      if (strstr(filename, "s3://") != NULL) {
+         systemstring = "aws s3 cp \'";
+         systemstring += filename;
+         systemstring += "\' ";
+         systemstring += path;
+      }
+      else { // URLs other than s3://
+         systemstring = "wget -O ";
+         systemstring += path;
+         systemstring += " \'";
+         systemstring += filename;
+         systemstring += "\'";
+      }
+
+      int numAttempts = 5;
+      for(int attemptNum = 0; attemptNum < numAttempts; attemptNum++){
+         int status = system(systemstring.c_str());
+         if(status != 0){
+            if(attemptNum == numAttempts - 1){
+               fprintf(stderr, "download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
+               exit(EXIT_FAILURE);
             }
             else{
-               break;
+               fprintf(stderr, "download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
+               sleep(1);
             }
          }
+         else{
+            break;
+         }
       }
-      else {
-         path = strdup(filename);
-      }
+   }
+   else {
+      path = strdup(filename);
    }
    GDALColorInterp * colorbandtypes = NULL;
-   status = getImageInfoGDAL(path, parent->icCommunicator(), &imageLoc, &colorbandtypes);
+   status = getImageInfoGDAL(path, &imageLoc, &colorbandtypes);
+   calcColorType(imageLoc.nf, colorbandtypes);
+   free(colorbandtypes); colorbandtypes = NULL;
+
    if(status != 0) {
       fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
-      abort();
+      exit(EXIT_FAILURE);
    }
 
-   //See if we are padding
-   int n = loc->nx * loc->ny * imageLoc.nf;
+   delete[] imageData;
+   imageData = new pvadata_t[imageLoc.nxGlobal*imageLoc.nyGlobal*imageLoc.nf];
 
-   // Use number of bands in file instead of in params, to allow for grayscale conversion
-   float * buf = new float[n];
-   assert(buf != NULL);
-
-   int aOffsetX = getOffsetX(anchor, offsetX);
-   int aOffsetY = getOffsetY(anchor, offsetY);
-
-   status = scatterImageFileGDAL(path, aOffsetX, aOffsetY, parent->icCommunicator(), loc, buf, this->autoResizeFlag);
+   status = readImageFileGDAL(path, &imageLoc);
    if (status != PV_SUCCESS) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "Image::readImage failed for layer \"%s\"\n", getName());
-      }
-      MPI_Barrier(parent->icCommunicator()->communicator());
+      fprintf(stderr, "Image::readImage failed for layer \"%s\"\n", getName());
       exit(EXIT_FAILURE);
    }
 
@@ -506,136 +549,29 @@ int Image::readImage(const char * filename, int targetBatchIdx, int offsetX, int
    }
    free(path);
 
-   assert(status == PV_SUCCESS);
-   if( loc->nf == 1 && imageLoc.nf > 1 ) {
-      buf = convertToGrayScale(buf,loc->nx,loc->ny,imageLoc.nf, colorbandtypes);
-      //Redefine n for grayscale images
-      n = loc->nx * loc->ny;
-   }
-   else if (loc->nf > 1 && imageLoc.nf == 1)
-   {
-       buf = copyGrayScaletoMultiBands(buf,loc->nx,loc->ny,loc->nf,colorbandtypes);
-       n = loc->nx * loc->ny * loc->nf;
-       
-   }
-   free(colorbandtypes); colorbandtypes = NULL;
-
-   //This copies the buffer to activity buffer
-   if( status == PV_SUCCESS ) copyFromInteriorBuffer(buf, targetBatchIdx, 1.0f);
-
-   delete[] buf;
-
-   if(useImageBCflag){ //Restore non-extended dimensions
-      loc->nx = loc->nx - loc->halo.lt - loc->halo.rt;
-      loc->ny = loc->ny - loc->halo.dn - loc->halo.up;
-   }
-
    return status;
 }
 
-
-float * Image::convertToGrayScale(float * buf, int nx, int ny, int numBands, GDALColorInterp * colorbandtypes)
-{
-   // even though the numBands argument goes last, the routine assumes that
-   // the organization of buf is, bands vary fastest, then x, then y.
-   if (numBands < 2) return buf;
-
-
-   const int sxcolor = numBands;
-   const int sycolor = numBands*nx;
-   const int sb = 1;
-
-   const int sxgray = 1;
-   const int sygray = nx;
-
-   float * graybuf = new float[nx*ny];
-
-   float * bandweight = (float *) malloc(numBands*sizeof(float));
-   calcBandWeights(numBands, bandweight, colorbandtypes);
-
-   for (int j = 0; j < ny; j++) {
-      for (int i = 0; i < nx; i++) {
-         float val = 0;
-         for (int b = 0; b < numBands; b++) {
-            float d = buf[i*sxcolor + j*sycolor + b*sb];
-            val += d*bandweight[b];
-         }
-         graybuf[i*sxgray + j*sygray] = val;
-      }
-   }
-   free(bandweight);
-   delete[] buf;
-   return graybuf;
-}
-
-float* Image::copyGrayScaletoMultiBands(float * buf, int nx, int ny, int numBands, GDALColorInterp * colorbandtypes)
-{
-   const int sxcolor = numBands;
-   const int sycolor = numBands*nx;
-   const int sb = 1;
-
-   const int sxgray = 1;
-   const int sygray = nx;
-
-   float * multiBandsBuf = new float[nx*ny*numBands];
-
-   for (int j = 0; j < ny; j++)
-   {
-      for (int i = 0; i < nx; i++)
-      {
-         for (int b = 0; b < numBands; b++)
-         {
-            multiBandsBuf[i*sxcolor + j*sycolor + b*sb] = buf[i*sxgray + j*sygray];
-         }
-
-      }
-   }
-   delete[] buf;
-   return multiBandsBuf;
-
-}
-    
-int Image::calcBandWeights(int numBands, float * bandweight, GDALColorInterp * colorbandtypes) {
+int Image::calcColorType(int numBands, GDALColorInterp * colorbandtypes) {
    int colortype = 0; // 1=grayscale(with or without alpha), return value 2=RGB(with or without alpha), 0=unrecognized
    const GDALColorInterp grayalpha[2] = {GCI_GrayIndex, GCI_AlphaBand};
    const GDALColorInterp rgba[4] = {GCI_RedBand, GCI_GreenBand, GCI_BlueBand, GCI_AlphaBand};
    const float grayalphaweights[2] = {1.0, 0.0};
    const float rgbaweights[4] = {0.30, 0.59, 0.11, 0.0}; // RGB weights from <https://en.wikipedia.org/wiki/Grayscale>, citing Pratt, Digital Image Processing
-   switch( numBands ) {
+   switch (numBands) {
    case 1:
-      bandweight[0] = 1.0;
-      colortype = 1;
-      break;
    case 2:
-      if ( !memcmp(colorbandtypes, grayalpha, 2*sizeof(GDALColorInterp)) ) {
-         memcpy(bandweight, grayalphaweights, 2*sizeof(float));
-         colortype = 1;
-      }
+      imageColorType = memcmp(colorbandtypes, grayalpha, numBands*sizeof(GDALColorInterp)) ? COLORTYPE_UNRECOGNIZED : COLORTYPE_GRAYSCALE;
       break;
    case 3:
-      if ( !memcmp(colorbandtypes, rgba, 3*sizeof(GDALColorInterp)) ) {
-         memcpy(bandweight, rgbaweights, 3*sizeof(float));
-         colortype = 2;
-      }
-      break;
    case 4:
-      if ( !memcmp(colorbandtypes, rgba, 4*sizeof(GDALColorInterp)) ) {
-         memcpy(bandweight, rgbaweights, 4*sizeof(float));
-         colortype = 2;
-      }
+      imageColorType = memcmp(colorbandtypes, rgba, numBands*sizeof(GDALColorInterp)) ? COLORTYPE_UNRECOGNIZED : COLORTYPE_RGB;
       break;
    default:
+      imageColorType = COLORTYPE_UNRECOGNIZED;
       break;
    }
-   if (colortype==0) {
-      equalBandWeights(numBands, bandweight);
-   }
-   return colortype;
-}
-
-void Image::equalBandWeights(int numBands, float * bandweight) {
-   float w = 1.0/(float) numBands;
-   for( int b=0; b<numBands; b++ ) bandweight[b] = w;
+   return PV_SUCCESS;
 }
 
 #else // PV_USE_GDAL

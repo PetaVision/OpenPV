@@ -249,122 +249,38 @@ GDALDataset * PV_GDALOpen(const char * filename)
    return dataset;
 }
 
-int getImageInfoGDAL(const char * filename, PV::Communicator * comm, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes)
+int getImageInfoGDAL(const char * filename, PVLayerLoc * loc, GDALColorInterp ** colorbandtypes)
 {
    int status = PV_SUCCESS;
-   int rank = comm->commRank();
 
-   const int locSize = sizeof(PVLayerLoc) / sizeof(int) + 1; // The extra 1 is for the status of the OpenGDAL call
-   // LayerLoc should contain 12 ints, so locSize should be 13.
-   //assert(locSize == 13);
+   GDALAllRegister();
 
-   int locBuf[locSize];
+   GDALDataset* dataset = PV_GDALOpen(filename);
+   if (dataset==NULL) status = PV_FAILURE; // PV_GDALOpen prints an error message
 
-   const int nxProcs = comm->numCommColumns();
-   const int nyProcs = comm->numCommRows();
+   if (status==PV_SUCCESS) {
+      loc->nxGlobal = dataset->GetRasterXSize();
+      loc->nyGlobal = dataset->GetRasterYSize();
 
-   const int icCol = comm->commColumn();
-   const int icRow = comm->commRow();
-
-#ifdef DEBUG_OUTPUT
-   fprintf(stderr, "[%2d]: nxProcs==%d nyProcs==%d icRow==%d icCol==%d\n",
-           rank, nxProcs, nyProcs, icRow, icCol);
-#endif // DEBUG_OUTPUT
-
-   if (rank == 0) {
-      GDALAllRegister();
-
-      GDALDataset* dataset = PV_GDALOpen(filename);
-      if (dataset==NULL) status = PV_FAILURE; // PV_GDALOpen prints an error message
-
-      if (status==PV_SUCCESS) {
-         int xImageSize = dataset->GetRasterXSize();
-         int yImageSize = dataset->GetRasterYSize();
-
-         loc->nf = dataset->GetRasterCount();
-         if( colorbandtypes ) {
-            *colorbandtypes = (GDALColorInterp *) malloc(loc->nf*sizeof(GDALColorInterp));
-            if( *colorbandtypes == NULL ) {
-               fprintf(stderr, "getImageInfoGDAL: Rank 0 process unable to allocate memory for colorbandtypes\n");
-               abort();
-            }
-            for( int b=0; b<loc->nf; b++) {
-               GDALRasterBand * band = dataset->GetRasterBand(b+1);
-               (*colorbandtypes)[b] = band->GetColorInterpretation();
-            }
+      loc->nf = dataset->GetRasterCount();
+      if( colorbandtypes ) {
+         *colorbandtypes = (GDALColorInterp *) malloc(loc->nf*sizeof(GDALColorInterp));
+         if( *colorbandtypes == NULL ) {
+            fprintf(stderr, "getImageInfoGDAL: Rank 0 process unable to allocate memory for colorbandtypes\n");
+            abort();
          }
-
-         // calculate local layer size
-
-         //SL nx and ny are no longer being used in image loc
-         //int nx = xImageSize / nxProcs;
-         //int ny = yImageSize / nyProcs;
-         //loc->nx = nx;
-         //loc->ny = ny;
-         loc->nx = -1;
-         loc->ny = -1;
-
-         // loc->nb = 0;
-         memset(&loc->halo, 0, sizeof(loc->halo));
-
-         //loc->nxGlobal = nxProcs * nx;
-         //loc->nyGlobal = nyProcs * ny;
-         //Image loc does not have a batch index
-         loc->nbatch = 0;
-         loc->nxGlobal = xImageSize;
-         loc->nyGlobal = yImageSize;
-         loc->kx0 = 0;
-         loc->ky0 = 0;
-
-         locBuf[0] = PV_SUCCESS;
-         copyToLocBuffer(&locBuf[1], loc);
-
-         GDALClose(dataset);
+         for( int b=0; b<loc->nf; b++) {
+            GDALRasterBand * band = dataset->GetRasterBand(b+1);
+            (*colorbandtypes)[b] = band->GetColorInterpretation();
+         }
       }
-      else {
-         locBuf[0] = PV_FAILURE;
-         memset(&locBuf[1], 0, (locSize-1)*sizeof(int));
-         if (colorbandtypes) *colorbandtypes = NULL;
-      }
+
+      // Store image size in the nxGlobal, nyGlobal, and nf fields of the PVLayerLoc.
+
+      memset(&loc->halo, 0, sizeof(loc->halo));
+
+      GDALClose(dataset);
    }
-
-#ifdef PV_USE_MPI
-   // broadcast location information
-   MPI_Bcast(locBuf, locSize, MPI_INT, 0, comm->communicator());
-   copyFromLocBuffer(&locBuf[1], loc);
-#endif // PV_USE_MPI
-
-   status = locBuf[0];
-
-   // fix up layer indices
-   loc->kx0 = loc->nx * icCol;
-   loc->ky0 = loc->ny * icRow;
-
-#ifdef PV_USE_MPI
-   // broadcast colorband type info.  This needs to follow copyFromLocBuffer because
-   // it depends on the loc->nf which is set in copyFromLocBuffer.
-   // status was MPI_Bcast along with locBuf, there is no danger of some processes calling MPI_Bcast and others not.
-   if( colorbandtypes ) {
-      if (rank==0) {
-         if (status==PV_SUCCESS) {
-            MPI_Bcast(*colorbandtypes, loc->nf*sizeof(GDALColorInterp), MPI_BYTE, 0, comm->communicator());
-         }
-      }
-      else {
-         if (status==PV_SUCCESS) {
-            *colorbandtypes = (GDALColorInterp *) malloc(loc->nf*sizeof(GDALColorInterp));
-            if( *colorbandtypes == NULL ) {
-               fprintf(stderr, "getImageInfoGDAL: Rank %d process unable to allocate memory for colorbandtypes\n", rank);
-               abort();
-            }
-            MPI_Bcast(*colorbandtypes, loc->nf*sizeof(GDALColorInterp), MPI_BYTE, 0, comm->communicator());
-         }
-         else {
-            *colorbandtypes = NULL;
-         }
-      }
-   }
-#endif // PV_USE_MPI
 
    return status;
 }

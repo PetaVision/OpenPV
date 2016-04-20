@@ -33,11 +33,11 @@ private:
 
 // Member variables
    char* imageLayerName;
-   PV::ImageFromMemoryBuffer * imageLayer;
-   int imageLeft;
-   int imageRight;
-   int imageTop;
-   int imageBottom;
+   PV::BaseInput * imageLayer;
+   int dataLeft;
+   int dataRight;
+   int dataTop;
+   int dataBottom;
 
 }; // class MaskFromMemoryBuffer
 
