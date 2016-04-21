@@ -4,19 +4,23 @@ include(PVAddLibrary)
 get_filename_component(TARGET ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 # Add the executable
+#TODO mirror this CMakeLists with the ones in pv-core.
+#for now, we add all layers this way
 pv_add_library(${TARGET} SRC
-  src/GradientCheckConn.cpp
-  src/MLPRegisterKeywords.cpp
-  src/MLPErrorLayer.cpp
-  src/MLPForwardLayer.cpp
-  src/MLPOutputLayer.cpp
-  src/MLPSigmoidLayer.cpp
-  src/GradientCheckConn.hpp
-  src/MLPRegisterKeywords.hpp
-  src/MLPErrorLayer.hpp
-  src/MLPForwardLayer.hpp
-  src/MLPOutputLayer.hpp
-  src/MLPSigmoidLayer.hpp
+  src/connections/GradientCheckConn.cpp
+  src/connections/GradientCheckConn.hpp
+  src/columns/MLPRegisterKeywords.cpp
+  src/columns/MLPRegisterKeywords.hpp
+  src/layers/MLPErrorLayer.cpp
+  src/layers/MLPErrorLayer.hpp
+  src/layers/MLPForwardLayer.cpp
+  src/layers/MLPForwardLayer.hpp
+  src/layers/MLPOutputLayer.cpp
+  src/layers/MLPOutputLayer.hpp
+  src/layers/MLPSigmoidLayer.cpp
+  src/layers/MLPSigmoidLayer.hpp
+  #src/layers/BatchNorm.cpp
+  #src/layers/BatchNorm.hpp
 )
 
 # Dependencies

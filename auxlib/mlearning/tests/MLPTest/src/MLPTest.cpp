@@ -6,7 +6,7 @@
 
 #include <columns/buildandrun.hpp>
 #include <columns/PV_Init.hpp>
-#include <MLPRegisterKeywords.hpp>
+#include <columns/MLPRegisterKeywords.hpp>
 #include "InputLayer.hpp"
 #include "GTLayer.hpp"
 #include "ComparisonLayer.hpp"

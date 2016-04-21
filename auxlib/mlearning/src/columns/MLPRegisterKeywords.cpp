@@ -1,8 +1,9 @@
-#include "GradientCheckConn.hpp"
-#include "MLPErrorLayer.hpp"
-#include "MLPForwardLayer.hpp"
-#include "MLPSigmoidLayer.hpp"
-#include "MLPOutputLayer.hpp"
+#include "../connections/GradientCheckConn.hpp"
+#include "../layers/MLPErrorLayer.hpp"
+#include "../layers/MLPForwardLayer.hpp"
+#include "../layers/MLPSigmoidLayer.hpp"
+#include "../layers/MLPOutputLayer.hpp"
+//#include "../layers/BatchNorm.hpp"
 
 namespace PVMLearning {
 
@@ -14,6 +15,7 @@ int MLPRegisterKeywords(PV::PV_Init * pv_initObj) {
     status |= pv_initObj->registerKeyword("MLPForwardLayer", createMLPForwardLayer);
     status |= pv_initObj->registerKeyword("MLPSigmoidLayer", createMLPSigmoidLayer);
     status |= pv_initObj->registerKeyword("MLPOutputLayer", createMLPOutputLayer);
+    //.status |= pv_initObj->registerKeyword("BatchNorm", createBatchNorm);
     return status;
 }
 
