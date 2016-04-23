@@ -281,6 +281,11 @@ protected:
     */
    double getLastUpdateTime() { return lastUpdateTime; }
 
+   /**
+    * Returns the value of the textOutputFlag parameter
+    */
+   inline bool getTextOutputFlag() const { return textOutputFlag; }
+
 private:
    int initialize_base();
 
