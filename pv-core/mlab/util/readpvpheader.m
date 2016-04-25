@@ -34,9 +34,19 @@ function hdr = readpvpheader(fid,pos)
 % If hdr.numparams is bigger than 20, there is a field 'additional'
 % containing an vector of hdr.numparams-20 elements.
 
-if exist('pos','var')
-    fseek(fid,pos,'bof');
-end
+if ~exist('pos','var')
+   pos = 0;
+end%if
+
+status = fseek(fid, 0, 'eof');
+if status ~= 0, error('readpvpheader:seekeof', 'readpvpheader error: seeking to end of file failed.'); end
+fileend = ftell(fid);
+status = fseek(fid, pos, 'bof');
+if status ~= 0, error('readpvpheader:seekeof', 'readpvpheader error: seeking to position %d failed.', pos); end
+
+if 80 > fileend-pos
+    error('readpvpheader:toofewparams', 'readpvpheader error: File is not long enough to contain a pvp header starting at position %d.', pos);
+end%if
 
 headerwords = fread(fid,18,'int32');
 hdr.headersize = headerwords(1);
@@ -60,5 +70,8 @@ hdr.nbands = headerwords(18);
 hdr.time = fread(fid,1,'float64');
 
 if hdr.numparams>20
+    if 4*hdr.numparams > fileend-pos
+        error('readpvpheader:toomanyparams', 'readpvpheader error: numparams %d is too large for the given file.', hdr.numparams);
+    end%if
     hdr.additional = fread(fid,hdr.numparams-20,'int32');
 end
