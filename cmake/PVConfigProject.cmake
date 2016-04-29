@@ -184,10 +184,10 @@ macro(pv_config_project)
   endif()
   
   # Set up PV_SOURCE and INCLUDE_DIR.
-  set(PV_SOURCE_DIR "${PV_DIR}/src")
-  set(PV_INCLUDE_DIR "${PV_DIR}/src")
+  set(PV_SOURCE_DIR ${PV_DIR})
+  set(PV_INCLUDE_DIR ${PV_DIR})
   
-  set(PV_LIBRARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/pv-core/lib")
+  set(PV_LIBRARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/lib")
   
   if (PV_BUILD_SHARED)
     if (APPLE)

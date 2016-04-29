@@ -8,7 +8,7 @@ project(PetaVision)
 ################################################################################
 
 # Default PetaVision core library directory
-set(PV_DIR_DEFAULT "${CMAKE_CURRENT_SOURCE_DIR}/pv-core")
+set(PV_DIR_DEFAULT "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 # Set CMAKE_MODULE_PATH
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
