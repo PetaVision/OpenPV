@@ -18,6 +18,7 @@ HyPerCol "column" = {
    ny = 32;
    dt = 1.0;
    dtAdaptFlag = false;
+   dtAdaptController = NULL;
    randomSeed = 1554498580;  // if not set here,  clock time is used to generate seed
    startTime = 0.0;
    stopTime = 10;
@@ -39,8 +40,8 @@ HyPerCol "column" = {
 // layers
 //
 
-Movie "Input" = {
-    inputPath = "./input/images.txt";
+MoviePvp "Input" = {
+    inputPath = "./input/box.pvp";
 
     nxScale = 1;
     nyScale = 1;
@@ -48,6 +49,7 @@ Movie "Input" = {
     phase = 0;
     writeStep = -1;
     sparseLayer = false;
+    updateGpu = false;
     mirrorBCflag = false;
     valueBC = 0.0;
     useImageBCflag = false;
@@ -61,11 +63,8 @@ Movie "Input" = {
 
     displayPeriod = 100;
     flipOnTimescaleError = false;
-    randomMovie = true;
-    randomMovieProb = 0.25;
-    // start_frame_index = 0;
-    // skip_frame_index = 0;
-    // echoFramePathnameFlag = false;
+    start_frame_index = [0, 0];
+    skip_frame_index = [0, 0];
     jitterFlag = false;
     offsetAnchor = "tl";
     offsetX = 0;
@@ -84,6 +83,7 @@ ANNLayer "Retina" = {
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
+    updateGpu = false;
 
     InitVType = "ZeroV";
 
@@ -92,6 +92,7 @@ ANNLayer "Retina" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
 };
 
 ANNLayer "OutputFromOriginal" = {
@@ -105,6 +106,7 @@ ANNLayer "OutputFromOriginal" = {
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
+    updateGpu = false;
 
     InitVType = "ZeroV";
 
@@ -113,6 +115,7 @@ ANNLayer "OutputFromOriginal" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
 };
 
 ANNLayer "OutputFromClone" = {
@@ -126,6 +129,7 @@ ANNLayer "OutputFromClone" = {
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
+    updateGpu = false;
 
     InitVType = "ZeroV";
 
@@ -134,6 +138,7 @@ ANNLayer "OutputFromClone" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
 };
 
 ANNLayer "Comparison" = {
@@ -147,6 +152,7 @@ ANNLayer "Comparison" = {
     mirrorBCflag = 0;
     valueBC = 0.0;
     sparseLayer = false;
+    updateGpu = false;
 
     InitVType = "ZeroV";
 
@@ -155,6 +161,7 @@ ANNLayer "Comparison" = {
     AMin = -infinity;
     AShift = 0.0;
     VWidth = 0.0;
+    clearGSynInterval = 0.0;
 };
 
 HyPerConn "Original" = {
@@ -186,7 +193,6 @@ HyPerConn "Original" = {
     normalizeMethod = "normalizeSum";
     normalize_cutoff = 0.0;
     normalizeArborsIndividually = false;
-    symmetrizeWeights = false;
     minSumTolerated = 0.0;
     normalizeFromPostPerspective = false;
     normalizeOnInitialize = true;
@@ -216,13 +222,9 @@ CloneConn "Clone" = {
 
     channelCode = 0;
 
-    writeStep = 1.0;
-    initialWriteTime = 0.0;
-
-    writeCompressedWeights = false;
-    writeCompressedCheckpoints = false;
     selfFlag = false;
     convertRateToSpikeCount = false;
+    receiveGpu = false;
 
     delay = 0;
     
@@ -258,6 +260,7 @@ CloneKernelConnTestProbe "ComparisonProbe" = {
     targetLayer = "Comparison";
     probeOutputFile = "Comparison_stats.txt";
     message = "CloneKernelConnTest probe      ";
+    textOutputFlag = true;
     buffer = "Activity";
     triggerLayerName = NULL;
     nnzThreshold = 0.0;

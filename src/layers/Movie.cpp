@@ -13,7 +13,6 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-//#include <iostream>
 
 namespace PV {
 
@@ -92,10 +91,6 @@ int Movie::initialize_base() {
 
    batchPos = NULL;
    batchMethod = NULL;
-   //randomMovie commented out Jul 22, 2015
-   //randomMovie = false;
-   //updateThisTimestep = false;
-   // newImageFlag = false;
    initFlag = false;
 
    return PV_SUCCESS;
@@ -114,28 +109,6 @@ int Movie::readFrameNumStateFromCheckpoint(const char * cpDir) {
    parent->readArrayFromFile(cpDir, getName(), "FilenamePos", batchPos, nbatch);
    parent->readArrayFromFile(cpDir, getName(), "FrameNumbers", frameNumbers, parent->getNBatch());
 
-
-   //for(int b = 0; b < nbatch; b++){
-   //   int startFrame = frameNumber[b];
-   //   if (parent->columnId()==0) {
-   //      PV_fseek(filenamestream, 0L, SEEK_SET);
-   //      frameNumber = 0;
-   //   }
-   //   if (framePath[b] != NULL) free(framePath[b]);
-
-   //   //Navigates to one frame before, as getFrame will increment getNextFileName 
-   //   if(startFrame - skipFrameIndex[b] > 0){
-   //      framePath[b] = strdup(getNextFileName(startFrame-skipFrameIndex[b])); // getNextFileName() will increment frameNumber by startFrame;
-   //      initFlag = true;
-   //   }
-
-
-   //   if (parent->columnId()==0) assert(frameNumber[b]==startFrame);
-   //   if (parent->columnId()==0) {
-   //      printf("%s \"%s\" checkpointRead set frameNumber to %d and filename to \"%s\"\n",
-   //            getKeyword(), name, frameNumber[b], framePath[b]);
-   //   }
-   //}
    return status;
 }
 
@@ -173,7 +146,6 @@ int Movie::checkpointWrite(const char * cpDir){
    return status;
 }
 
-//
 /*
  * Notes:
  * - writeImages, offsetX, offsetY are initialized by Image::initialize()
@@ -189,12 +161,7 @@ int Movie::initialize(const char * name, HyPerCol * hc) { int status = Image::in
 
    PVParams * params = hc->parameters();
 
-   //assert(!params->presentAndNotBeenRead(name, "randomMovie")); // randomMovie should have been set in ioParams
-   //if (randomMovie) return status; // Nothing else to be done until data buffer is allocated, in allocateDataStructures
 
-
-   //If not pvp file, open fileOfFileNames 
-   //assert(!params->presentAndNotBeenRead(name, "readPvpFile")); // readPvpFile should have been set in ioParams
    if (hc->columnId()==0) {
       filenamestream = PV_fopen(inputPath, "r", false/*verifyWrites*/);
       if( filenamestream == NULL ) {
@@ -202,12 +169,6 @@ int Movie::initialize(const char * name, HyPerCol * hc) { int status = Image::in
          exit(EXIT_FAILURE);
       }
    }
-
-   //if (!randomMovie) {
-   //   //frameNumber handled here
-   //   //imageFilename = strdup(getNextFileName(startFrameIndex));
-   //   //assert(imageFilename != NULL);
-   //}
 
    // set output path for movie frames
    if(writeImages){
@@ -246,11 +207,7 @@ int Movie::initialize(const char * name, HyPerCol * hc) { int status = Image::in
 
 int Movie::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = Image::ioParamsFillGroup(ioFlag);
-   //ioParam_imageListPath(ioFlag);
    ioParam_displayPeriod(ioFlag);
-   //ioParam_randomMovie(ioFlag);
-   //ioParam_randomMovieProb(ioFlag);
-   //ioParam_readPvpFile(ioFlag);
    ioParam_echoFramePathnameFlag(ioFlag);
    ioParam_batchMethod(ioFlag);
    ioParam_start_frame_index(ioFlag);
@@ -262,26 +219,6 @@ int Movie::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-//void Movie::ioParam_imagePath(enum ParamsIOFlag ioFlag) {
-//   if (ioFlag == PARAMS_IO_READ) {
-//      imageFilename = NULL;
-//      parent->parameters()->handleUnnecessaryStringParameter(name, "imageList");
-//   }
-//}
-
-//void Movie::ioParam_frameNumber(enum ParamsIOFlag ioFlag) {
-//   // Image uses frameNumber to pick the frame of a pvp file, but
-//   // Movie uses start_frame_index to pick the starting frame.
-//   if (ioFlag == PARAMS_IO_READ) {
-//      filename = NULL;
-//      parent->parameters()->handleUnnecessaryParameter(name, "frameNumber");
-//   }
-//}
-
-//void Movie::ioParam_imageListPath(enum ParamsIOFlag ioFlag) {
-//   parent->ioParamStringRequired(ioFlag, name, "imageListPath", &fileOfFileNames);
-//}
-//
 void Movie::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    //Do not use Image's ioParam_writeStep
    BaseInput::ioParam_writeStep(ioFlag);
@@ -295,29 +232,8 @@ void Movie::ioParam_displayPeriod(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "displayPeriod", &displayPeriod, displayPeriod);
 }
 
-//void Movie::ioParam_randomMovie(enum ParamsIOFlag ioFlag) {
-//   parent->ioParamValue(ioFlag, name, "randomMovie", &randomMovie, 0/*default value*/);
-//}
-//
-//void Movie::ioParam_randomMovieProb(enum ParamsIOFlag ioFlag) {
-//   assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
-//   if (randomMovie) {
-//      parent->ioParamValue(ioFlag, name, "randomMovieProb", &randomMovieProb, 0.05f);
-//   }
-//}
-
-//void Movie::ioParam_readPvpFile(enum ParamsIOFlag ioFlag) {
-//   assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
-//   if (!randomMovie) {
-//      parent->ioParamValue(ioFlag, name, "readPvpFile", &readPvpFile, false/*default value*/);
-//   }
-//}
-
 void Movie::ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag) {
-   //assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
-   //if (!randomMovie) {
-      parent->ioParamValue(ioFlag, name, "echoFramePathnameFlag", &echoFramePathnameFlag, false/*default value*/);
-   //}
+   parent->ioParamValue(ioFlag, name, "echoFramePathnameFlag", &echoFramePathnameFlag, false/*default value*/);
 }
 
 void Movie::ioParam_batchMethod(enum ParamsIOFlag ioFlag){
@@ -332,20 +248,11 @@ void Movie::ioParam_batchMethod(enum ParamsIOFlag ioFlag){
 }
 
 void Movie::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
-   //Read parameter
    this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &numStartFrame);
-   //if(numStartFrame == 0){
-   //   numStartFrameIndex = 1;
-   //   *paramsStartFrameIndex = 0;
-   //}
 }
 
 void Movie::ioParam_skip_frame_index(enum ParamsIOFlag ioFlag) {
-   //Read parameter
    this->getParent()->ioParamArray(ioFlag, this->getName(), "skip_frame_index", &paramsSkipFrameIndex, &numSkipFrame);
-   //if(numSkipFrame == 0){
-   //   *paramsSkipFrameIndex = 1;
-   //}
 }
 
 void Movie::ioParam_movieOutputPath(enum ParamsIOFlag ioFlag) {
@@ -503,38 +410,17 @@ int Movie::allocateDataStructures() {
    //Call Image allocate, which will call getFrame
    int status = Image::allocateDataStructures();
 
-   //if (!randomMovie) {
-      //assert(!parent->parameters()->presentAndNotBeenRead(name, "start_frame_index"));
-      //assert(!parent->parameters()->presentAndNotBeenRead(name, "skip_frame_index"));
-
-      //assert(!parent->parameters()->presentAndNotBeenRead(name, "autoResizeFlag"));
-      //if (!autoResizeFlag){
-      //   constrainOffsets();  // ensure that offsets keep loc within image bounds
-      //}
-
-      // status = readImage(filename, getOffsetX(), getOffsetY()); // readImage already called by Image::allocateDataStructures(), above
-      //assert(status == PV_SUCCESS);
-   //}
-   //else {
-   //   if (randState==NULL) {
-   //      initRandState();
-   //   }
-   //   status = randomFrame();
-   //}
-
    return status;
 }
 
 pvdata_t * Movie::getImageBuffer()
 {
-   //   return imageData;
    return data;
 }
 
 PVLayerLoc Movie::getImageLoc()
 {
    return imageLoc;
-   //   return clayer->loc;
    // imageLoc contains size information of the image file being loaded;
    // clayer->loc contains size information of the layer, which may
    // be smaller than the whole image.  To get information on the layer, use
@@ -542,13 +428,10 @@ PVLayerLoc Movie::getImageLoc()
 }
 
 double Movie::getDeltaUpdateTime(){
-   //If jitter or randomMovie, update every timestep
+   //If jittering, update every timestep
    if( jitterFlag ){
       return parent->getDeltaTime();
    }
-   //if(randomMovie){
-   //   return parent->getDeltaTime();
-   //}
    return displayPeriod;
 }
 
@@ -626,52 +509,51 @@ bool Movie::updateImage(double time, double dt)
 
    InterColComm * icComm = getParent()->icCommunicator();
 
-      //TODO: Fix movie layer to take with batches. This is commented out for compile
-      //if(!flipOnTimescaleError && (parent->getTimeScale() > 0 && parent->getTimeScale() < parent->getTimeScaleMin())){
-      //   if (parent->icCommunicator()->commRank()==0) {
-      //      std::cout << "timeScale of " << parent->getTimeScale() << " is less than timeScaleMin of " << parent->getTimeScaleMin() << ", Movie is keeping the same frame\n";
-      //   }
-      //}
-      //else{
-         //Only do this if it's not the first update timestep
-         //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
-         //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).  
-      if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
-         int status = getFrame(time, dt);
-         assert(status == PV_SUCCESS);
-      }
-      
-      
+   //TODO: Fix movie layer to take with batches. This is commented out for compile
+   //if(!flipOnTimescaleError && (parent->getTimeScale() > 0 && parent->getTimeScale() < parent->getTimeScaleMin())){
+   //   if (parent->icCommunicator()->commRank()==0) {
+   //      std::cout << "timeScale of " << parent->getTimeScale() << " is less than timeScaleMin of " << parent->getTimeScaleMin() << ", Movie is keeping the same frame\n";
+   //   }
+   //}
+   //else{
+      //Only do this if it's not the first update timestep
+      //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
+      //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).  
+   if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
+      int status = getFrame(time, dt);
+      assert(status == PV_SUCCESS);
+   }
+   
+   
 
 
-      //nextDisplayTime removed, now using nextUpdateTime in HyPerLayer
-      //while (time >= nextDisplayTime) {
-      //   nextDisplayTime += displayPeriod;
-      //}
-      //Set frame number (member variable in Image)
-      
-      //Write to timestamp file here when updated
-      if( icComm->commRank()==0 ) {
-          //Only write if the parameter is set
-          if(timestampFile){
-             std::ostringstream outStrStream;
-             outStrStream.precision(15);
-             int kb0 = getLayerLoc()->kb0;
-             for(int b = 0; b < parent->getNBatch(); b++){
-                outStrStream << time << "," << b+kb0 << "," << frameNumbers[b] << "," << framePath[b] << "\n";
-             }
-
-             size_t len = outStrStream.str().length();
-             int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
-             if (status != PV_SUCCESS) {
-                fprintf(stderr, "%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
-                exit(EXIT_FAILURE);
-             }
-             //Flush buffer
-             fflush(timestampFile->fp);
+   //nextDisplayTime removed, now using nextUpdateTime in HyPerLayer
+   //while (time >= nextDisplayTime) {
+   //   nextDisplayTime += displayPeriod;
+   //}
+   //Set frame number (member variable in Image)
+   
+   //Write to timestamp file here when updated
+   if( icComm->commRank()==0 ) {
+       //Only write if the parameter is set
+       if(timestampFile){
+          std::ostringstream outStrStream;
+          outStrStream.precision(15);
+          int kb0 = getLayerLoc()->kb0;
+          for(int b = 0; b < parent->getNBatch(); b++){
+             outStrStream << time << "," << b+kb0 << "," << frameNumbers[b] << "," << framePath[b] << "\n";
           }
-      }
-   //} // randomMovie
+
+          size_t len = outStrStream.str().length();
+          int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
+          if (status != PV_SUCCESS) {
+             fprintf(stderr, "%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
+             exit(EXIT_FAILURE);
+          }
+          //Flush buffer
+          fflush(timestampFile->fp);
+       }
+   }
 
    return true;
 }
@@ -696,83 +578,6 @@ int Movie::outputState(double timed, bool last)
 
    return status;
 }
-
-//int Movie::copyReducedImagePortion()
-//{
-//   const PVLayerLoc * loc = getLayerLoc();
-//
-//   const int nx = loc->nx;
-//   const int ny = loc->ny;
-//
-//   const int nx0 = imageLoc.nx;
-//   const int ny0 = imageLoc.ny;
-//
-//   assert(nx0 <= nx);
-//   assert(ny0 <= ny);
-//
-//   const int i0 = nx/2 - nx0/2;
-//   const int j0 = ny/2 - ny0/2;
-//
-//   int ii = 0;
-//   for (int j = j0; j < j0+ny0; j++) {
-//      for (int i = i0; i < i0+nx0; i++) {
-//         imageData[ii++] = data[i+nx*j];
-//      }
-//   }
-//
-//   return 0;
-//}
-
-///**
-// * This creates a random image patch (frame) that is used to perform a reverse correlation analysis
-// * as the input signal propagates up the visual system's hierarchy.
-// * NOTE: Check Image::toGrayScale() method which was the inspiration for this routine
-// */
-//int Movie::randomFrame()
-//{
-//   assert(randomMovie); // randomMovieProb was set only if randomMovie is true
-//   for (int kex = 0; kex < clayer->numExtended; kex++) {
-//      double p = randState->uniformRandom();
-//      data[kex] = (p < randomMovieProb) ? 1: 0;
-//   }
-//   return 0;
-//}
-
-///**
-// * A function only called if readPvpFile is set
-// * Will update frameNumber
-// */
-////This function takes care of rewinding for pvp files
-//int Movie::updateFrameNum(int n_skip){
-//   //assert(readPvpFile);
-//   InterColComm * icComm = getParent()->icCommunicator();
-//   int numskip = n_skip < 1 ? 1 : n_skip;
-//   for(int i_skip = 0; i_skip < numskip; i_skip++){
-//      int status = updateFrameNum();
-//      if(status == PV_BREAK){
-//         break;
-//      }
-//   }
-//   return PV_SUCCESS;
-//}
-
-//int Movie::updateFrameNum() {
-//   frameNumber += 1;
-//   //numFrames only set if pvp file
-//   if(frameNumber >= numFrames){
-//      if(parent->columnId()==0){
-//         fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, fileOfFileNames);
-//      }
-//      if(resetToStartOnLoop){
-//         frameNumber = startFrameIndex-1;
-//         return PV_BREAK;
-//      }
-//      else{
-//         frameNumber = 0;
-//      }
-//   }
-//   return PV_SUCCESS;
-//}
 
 // advance by n_skip lines through file of filenames, always advancing at least one line
 const char * Movie::getNextFileName(int n_skip, int batchIdx) {
@@ -883,14 +688,11 @@ const char * Movie::advanceFileName(int batchIdx) {
    return inputfile;
 }
 
-//const char * Movie::getCurrentImage(){
-//   return inputfile;
-//}
 
 #else // PV_USE_GDAL
 Movie::Movie(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
-      fprintf(stderr, "Movie class requires compiling with PV_USE_GDAL set\n");
+      fprintf(stderr, "Movie \"%s\": Movie class requires compiling with PV_USE_GDAL set\n", name);
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

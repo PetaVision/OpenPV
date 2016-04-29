@@ -336,7 +336,7 @@ int LabelLayer::initClayer() {
 LabelLayer::LabelLayer(const char * name, HyPerCol * hc)
 {
    if (hc->columnId()==0) {
-      fprintf(stderr, "LabelLayer class requires compiling with PV_USE_GDAL set\n");
+      fprintf(stderr, "LabelLayer \"%s\": LabelLayer class requires compiling with PV_USE_GDAL set\n", name);
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

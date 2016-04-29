@@ -34,8 +34,6 @@ Image::Image(const char * name, HyPerCol * hc) {
 }
 
 Image::~Image() {
-   //free(imageFilename); // It is not an error to pass NULL to free().
-   //imageFilename = NULL;
    Communicator::freeDatatypes(mpi_datatypes); mpi_datatypes = NULL;
    delete randState; randState = NULL;
 
@@ -51,7 +49,6 @@ int Image::initialize_base() {
    numChannels = 0;
    mpi_datatypes = NULL;
    data = NULL;
-   //imageFilename = NULL;
    imageData = NULL;
    useImageBCflag = false;
    autoResizeFlag = false;
@@ -75,14 +72,7 @@ int Image::initialize_base() {
    fp_pos = NULL;
    biases[0]   = 0;
    biases[1]   = 0;
-   //frameNumber = 0;
    randState = NULL;
-   //posstream = NULL;
-   //pvpFileTime = 0;
-   //frameStartBuf = NULL;
-   //countBuf = NULL;
-   //biasConstraintMethod = 0; 
-   //padValue = 0;
    return PV_SUCCESS;
 }
 
@@ -94,40 +84,16 @@ int Image::initialize(const char * name, HyPerCol * hc) {
 int Image::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = BaseInput::ioParamsFillGroup(ioFlag);
 
-   //ioParam_imagePath(ioFlag);
-
    ioParam_autoResizeFlag(ioFlag);
 
    return status;
 }
 
-//void Image::ioParam_imagePath(enum ParamsIOFlag ioFlag) {
-//   parent->ioParamStringRequired(ioFlag, name, "imagePath", &imageFilename);
-//}
-
-
 void Image::ioParam_autoResizeFlag(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "autoResizeFlag", &autoResizeFlag, autoResizeFlag);
 }
 
-//int Image::scatterImageFile(const char * path, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber, bool autoResizeFlag, int batchIdx)
-//{
-//   //int status = PV_SUCCESS;
-//   //int fileType;
-//   //if (comm->commRank()==0) {
-//   //   fileType = getFileType(filename);
-//   //}
-//   //MPI_Bcast(&fileType, 1, MPI_INT, 0, comm->communicator());
-//   //if (fileType == PVP_FILE_TYPE) {
-//   //   status = scatterImageFilePVP(path, xOffset, yOffset, comm, loc, buf, frameNumber, batchIdx);
-//   //}
-//   //else {
-//      status = scatterImageFileGDAL(path, xOffset, yOffset, comm, loc, buf, autoResizeFlag);
-//   //}
-//   return status;
-//}
-
-//Image readImage reads the same thing to every batch
+//Image readImage reads the same thing to every member of the batch
 //This call is here since this is the entry point called from allocate
 //Movie overwrites this function to define how it wants to load into batches
 int Image::retrieveData(double timef, double dt)
@@ -158,8 +124,6 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    int status = 0;
 
 #ifdef PV_USE_GDAL
-   // const int maxBands = 3;
-
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
 
@@ -169,7 +133,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    const int ny = loc->ny;
 
    const int numBands = loc->nf;
-   int numTotal; // will be nx*ny*bandsInFile;
+   int numTotal; // will be nx*ny*bandsInFile
 
    const MPI_Comm mpi_comm = comm->communicator();
    GDALDataType dataType;
@@ -199,7 +163,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
    else {
       GDALAllRegister();
 
-      GDALDataset * dataset = PV_GDALOpen(filename); // (GDALDataset *) GDALOpen(filename, GA_ReadOnly);
+      GDALDataset * dataset = PV_GDALOpen(filename);
       GDALRasterBand * poBand = dataset->GetRasterBand(1);
       dataType = poBand->GetRasterDataType();
 #ifdef PV_USE_MPI
@@ -306,8 +270,6 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                kx = xImageSize/nxProcs * col;
                ky = new_y * row;
 
-               //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", kx, ky, xImageSize/nxProcs, new_y);
-
                dataset->RasterIO(GF_Read, kx, ky + y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
                      GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
                      bandsInFile*nx*sizeof(float), sizeof(float));
@@ -321,7 +283,6 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                kx = new_x * col;
                ky = yImageSize/nyProcs * row;
 
-               //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d, x_off = %d", kx, ky, new_x, yImageSize/nyProcs, x_off);
                dataset->RasterIO(GF_Read, kx + x_off + jitter_x, ky, new_x, yImageSize/nyProcs, buf, nx, ny,
                      GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
                      bandsInFile*nx*sizeof(float),sizeof(float));
@@ -389,47 +350,6 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       }
 
       GDALClose(dataset);
-
-      //Moved to above for loop
-      // get local image portion
-
-      //? same logic as before, except this time we know that the row and column are 0
-
-      //if (autoResizeFlag){
-
-      //   if (xImageSize/(double)xTotalSize < yImageSize/(double)yTotalSize){
-      //      int new_y = int(round(ny*xImageSize/(double)xTotalSize));
-      //      int y_off = int(round((yImageSize - new_y*nyProcs)/2.0));
-
-      //      int offset_y = max(min(y_off,yOffset),-y_off);
-
-      //      //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", 0, 0, xImageSize/nxProcs, new_y);
-      //      dataset->RasterIO(GF_Read, 0, y_off + offset_y, xImageSize/nxProcs, new_y, buf, nx, ny,
-      //                        GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
-      //                        bandsInFile*nx*sizeof(float), sizeof(float));
-      //   }
-      //   else{
-      //      int new_x = int(round(nx*yImageSize/(double)yTotalSize));
-      //      int x_off = int(round((xImageSize - new_x*nxProcs)/2.0));
-
-      //      int offset_x = max(min(x_off,xOffset),-x_off);
-
-      //      //fprintf(stderr, "xImageSize = %d, xTotalSize = %d, yImageSize = %d, yTotalSize = %d", xImageSize, xTotalSize, yImageSize, yTotalSize);
-      //      //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d",
-      //      //0, 0, new_x, yImageSize/nyProcs);
-      //      dataset->RasterIO(GF_Read, x_off + offset_x, 0, new_x, yImageSize/nyProcs, buf, nx, ny,
-      //                        GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
-      //                        bandsInFile*nx*sizeof(float),sizeof(float));
-      //   }
-      //}
-      //else {
-
-      //   //fprintf(stderr,"just checking");
-      //    dataset->RasterIO(GF_Read, xOffset, yOffset, nx, ny, buf, nx, ny,
-      //                      GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
-      //}
-
-      //GDALClose(dataset);
    }
 #else
    fprintf(stderr, GDAL_CONFIG_ERR_STR);
@@ -471,26 +391,11 @@ int Image::communicateInitInfo() {
 // TODO: checkpointWrite and checkpointRead need to handle nextBiasChange
 
 
-//Now handeled in HyPerLayer needUpdate, with getDeltaUpdateTime
-//bool Image::needUpdate(double time, double dt){
-//   //Image should never need an update unless jittered
-//   if(jitterFlag){
-//      return true;
-//   }
-//   else{
-//      return false;
-//   }
-//}
-
 /**
  * update the image buffers
  */
 int Image::updateState(double time, double dt)
 {
-   // make sure image is copied to activity buffer
-   //
-   //update_timer->start();
-   //update_timer->stop();
    return 0;
 }
 
@@ -498,17 +403,6 @@ void Image::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
    //Default to -1 in Image
    parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, -1.0);
 }
-
-//int Image::outputState(double time, bool last)
-//{
-//   //io_timer->start();
-//   // this could probably use Marion's update time interval
-//   // for some classes
-//   //
-//   //io_timer->stop();
-//
-//   return 0;
-//}
 
 int Image::readImage(const char * filename, int targetBatchIdx, int offsetX, int offsetY, const char* anchor)
 {
@@ -519,8 +413,6 @@ int Image::readImage(const char * filename, int targetBatchIdx, int offsetX, int
       loc->nx = loc->nx + loc->halo.lt + loc->halo.rt;
       loc->ny = loc->ny + loc->halo.dn + loc->halo.up;
       //TODO this seems to fix the pvp ext vs res offset if imageBC flag is on, but only for no mpi runs
-      //offsetX = offsetX - loc->halo.lt;
-      //offsetY = offsetY - loc->halo.up;
    }
 
    // read the image and scatter the local portions
@@ -749,12 +641,13 @@ void Image::equalBandWeights(int numBands, float * bandweight) {
 #else // PV_USE_GDAL
 Image::Image(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
-      fprintf(stderr, "Image class requires compiling with PV_USE_GDAL set\n");
+      fprintf(stderr, "Image \"%s\": Image class requires compiling with PV_USE_GDAL set\n", name);
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);
 }
 Image::Image() {}
+int Image::retrieveData(double timef, double dt) { return PV_FAILURE; }
 #endif // PV_USE_GDAL
 
 BaseObject * createImage(char const * name, HyPerCol * hc) {

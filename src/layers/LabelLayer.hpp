@@ -58,6 +58,7 @@ private:
 #else // PV_USE_GDAL
 public:
    LabelLayer(char const * name, HyPerCol * hc);
+   virtual bool activityIsSpiking() { return false; }
 protected:
    LabelLayer();
 #endif // PV_USE_GDAL

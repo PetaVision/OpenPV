@@ -38,9 +38,8 @@ public:
    inline float getDetectionThreshold() const { return detectionThreshold; }
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
+   virtual int outputStateWrapper(double timef, double dt);
 
-
-// // Not used by harness since we don't have a filename to use for the base
 // /**
 //  * sets the base of the output filename.  It takes the part of the string
 //  * Everything before the last slash '/' is removed, and then everything

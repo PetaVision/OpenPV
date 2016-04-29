@@ -53,16 +53,11 @@ public:
    Image(const char * name, HyPerCol * hc);
    virtual ~Image();
    virtual int communicateInitInfo();
-   //virtual int allocateDataStructures();
 
    // primary layer interface
    //
    virtual double getDeltaUpdateTime();
-   //virtual bool needUpdate(double time, double dt);
    virtual int updateState(double time, double dt);
-   //virtual int outputState(double time, bool last=false);
-
-   //const char * getFilename() { return imageFilename; }
 
 private:
    int initialize_base();
@@ -71,19 +66,12 @@ protected:
    virtual int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, bool autoResizeFlag);
    virtual int retrieveData(double timef, double dt);
 
-   //Virtual function to define how readImage specifies batches
-   //virtual int readImage(const char * filename, int offsetX, int offsetY, const char* anchor);
-
-   //virtual int readImage(const char * filename, int batchIdx);
-   //virtual int readImage(const char * filename, int batchIdx, int offsetX, int offsetY);
    virtual int readImage(const char * filename, int batchIdx, int offsetX, int offsetY, const char* anchor);
 
-   //char * imageFilename;       // path to file if a file exists
    static float * convertToGrayScale(float * buf, int nx, int ny, int numBands, GDALColorInterp * colorbandtypes);
    static float* copyGrayScaletoMultiBands(float * buf, int nx, int ny, int numBands, GDALColorInterp * colorbandtypes);
    static inline int calcBandWeights(int numBands, float * bandweights, GDALColorInterp * colorbandtypes);
    static inline void equalBandWeights(int numBands, float * bandweights);
-
 
    bool autoResizeFlag; // if true, PetaVision will automatically resize your images to the size specified by hypercolumn
 #else // PV_USE_GDAL
@@ -91,6 +79,7 @@ public:
    Image(char const * name, HyPerCol * hc);
 protected:
    Image();
+   int retrieveData(double timef, double dt);
 #endif // PV_USE_GDAL
 
 }; // class Image

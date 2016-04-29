@@ -84,9 +84,6 @@
 //#define INIT_FN int (*)( PVConnection *);
 #define INIT_FN  void*
 
-// For IO:
-#define pv_log fprintf
-
 // This probably depends on the gnu preprocessor
 #ifdef DEBUG_OUTPUT
 #  define pv_debug_info(format, args...)  \
