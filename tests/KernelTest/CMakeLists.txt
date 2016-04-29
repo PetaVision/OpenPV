@@ -1,0 +1,1 @@
+pv_add_test(PARAMS test_kernel test_kernel_normalizepost test_kernel_normalizepost_shrunken)

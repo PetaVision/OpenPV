@@ -1,0 +1,1 @@
+pv_add_test(MAX_MPI_COPIES 8 NO_PARAMS MPI_ONLY)

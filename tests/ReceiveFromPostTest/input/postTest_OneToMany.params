@@ -1,0 +1,195 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 32; //1242;  // KITTI synced value
+    ny = 32;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 0.0;
+    stopTime = 10.0;       // Depends on number of VINE video frames
+    progressInterval = 1.0;
+    //Change this
+    outputPath = "output/postTest_OneToMany";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+};
+
+ConstantLayer "input" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 3;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = -1;
+    sparseLayer = 0;
+    //
+    InitVType = "UniformRandomV";
+    minV = 0;
+    maxV = 1;
+
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    // 
+    phase = 1; 
+};
+
+ANNLayer "outputRecvPre" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = -1;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    // 
+    phase = 2; 
+};
+
+ANNLayer "outputRecvPost" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = -1;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    // 
+    phase = 2; 
+};
+
+ANNLayer "outputTest" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = -1;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    // 
+    phase = 3; 
+};
+
+HyPerConn "origConn" = {
+    preLayerName = "outputRecvPost";
+    postLayerName = "input";
+    channelCode = 2; //Inhib b, doing nothing to input
+    sharedWeights = true;
+    nxp = 5; 
+    nyp = 5; 
+    nfp = 3;
+    numAxonalArbors = 1;
+    initFromLastFlag = 0;  // 1;  // restart
+    writeStep = 1;
+    initialWriteTime = 0.0;
+    writeCompressedWeights = false;
+    
+    weightInitType = "UniformRandomWeight";
+    weightInit = 1.0;
+    sparseFraction = 0;
+        
+    strength = 1.0;  
+    normalizeMethod = "normalizeSum";
+    minSumTolerated = 0;
+    normalizeArborsIndividually = 1;
+    normalize_cutoff = 0.0;
+    normalizeFromPostPerspective = false;
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+    shmget_flag = false;
+
+    updateGSynFromPostPerspective = false;
+};
+
+TransposeConn "preTransposeConn" = {
+    preLayerName = "input";
+    postLayerName = "outputRecvPre";
+    channelCode = 0; //Does nothing to the input layer
+    originalConnName = "origConn";
+    selfFlag = false;
+    preActivityIsNotRate = false;
+    writeStep = -1;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+
+    updateGSynFromPostPerspective = false;
+};
+
+TransposeConn "postTransposeConn" = {
+    preLayerName = "input";
+    postLayerName = "outputRecvPost";
+    channelCode = 0;
+    originalConnName = "origConn";
+    selfFlag = false;
+    preActivityIsNotRate = false;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    shmget_flag = false;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+
+    updateGSynFromPostPerspective = true;
+};
+
+IdentConn "RecvPostTest" = {
+    preLayerName = "outputRecvPost";
+    postLayerName = "outputTest";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+IdentConn "RecvPreTest" = {
+    preLayerName = "outputRecvPre";
+    postLayerName = "outputTest";
+    channelCode = 1;
+    delay = 0;
+    writeStep = -1;
+};
+
+ReceiveFromPostProbe "testProbe" = {
+   targetLayer = "outputTest";
+   message = "testProbe ";
+};
+

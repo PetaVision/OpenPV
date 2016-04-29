@@ -1,0 +1,649 @@
+//
+// test_kernel.params
+//
+// created by garkenyon: August 4, 2011
+//
+
+//  - input parameters for test_kernel.cpp for system level testing of kernels
+//
+
+debugParsing = false;
+
+HyPerCol "column" = {
+   nx = 32;   
+   ny = 32;
+   dt = 1.0;
+   dtAdaptFlag = false;
+   randomSeed = 17406293508;  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
+   stopTime = 10;  // num images plus (num layers + 1) * delay
+   writeProgressToErr = false;
+   verifyWrites = false;
+   progressInterval = 10;
+   outputPath = "output/";
+   printParamsFilename = "pv.params";
+   filenamesContainLayerNames = true;
+   filenamesContainConnectionNames = true;
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   // checkpointWriteDir = "Checkpoints";
+   // checkpointWriteStepInterval = 1;
+   suppressLastOutput = false;
+   errorOnNotANumber = false;
+   nbatch = 2;
+};
+
+//
+// layers
+//
+
+ConstantLayer "Retina" = {
+    restart = 0;
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 0;
+    sparseLayer = false;
+    InitVType = "ConstantV";
+    valueV    = 1;
+    VThresh = -infinity;   
+    phase = 0;
+};
+
+//Retina "Retina" = {
+//    restart = 0;
+//    nxScale = 1;
+//    nyScale = 1;
+//    nf = 1;
+//    phase = 0;
+//    writeStep = 1.0;
+//    initialWriteTime = 0.0;
+//    mirrorBCflag = true;
+//    spikingFlag = false;
+//    sparseLayer = false;
+//    // GPUAccelerate = false;
+//    triggerLayerName = NULL;
+//
+//    // refractoryPeriod
+//    // absRefractoryPeriod
+//    foregroundRate = 1000;
+//    backgroundRate = 1000;
+//    burstFreq = 1;
+//    burstDuration = 1000;
+//
+//    beginStim = 0;
+//    endStim = 1000;
+//};
+
+
+
+
+ANNLayer "L0" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    phase = 1;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = true;
+    sparseLayer = false;
+    // GPUAccelerate = false;
+    triggerLayerName = NULL;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+    clearGSynInterval = 0.0;
+};
+
+
+ANNLayer "Lx1" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 4;
+    phase = 2;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = true;
+    sparseLayer = false;
+    // GPUAccelerate = false;
+    triggerLayerName = NULL;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+    clearGSynInterval = 0.0;
+};
+
+
+ANNLayer "Lx2" = {
+    restart = 0;
+    nxScale = 2;
+    nyScale = 2;
+    nf = 8;
+    phase = 2;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = true;
+    sparseLayer = false;
+    // GPUAccelerate = false;
+    triggerLayerName = NULL;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+    clearGSynInterval = 0.0;
+};
+
+
+ANNLayer "Lx4" = {
+    restart = 0;
+    nxScale = 4;
+    nyScale = 4;
+    nf = 16;
+    phase = 2;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = false;
+    // GPUAccelerate = false;
+    triggerLayerName = NULL;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+    clearGSynInterval = 0.0;
+};
+
+
+
+ANNLayer "Lx1_2" = {
+    restart = 0;
+    nxScale = 0.5;
+    nyScale = 0.5;
+    nf = 2;
+    phase = 2;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = false;
+    // GPUAccelerate = false;
+    triggerLayerName = NULL;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+    clearGSynInterval = 0.0;
+};
+
+
+
+ANNLayer "Lx1_4" = {
+    restart = 0;
+    nxScale = 0.25;
+    nyScale = 0.25;
+    nf = 1;
+    phase = 2;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    valueBC = 0.0;
+    sparseLayer = false;
+    // GPUAccelerate = false;
+    triggerLayerName = NULL;
+
+    InitVType = "ZeroV";
+
+    VThresh = -infinity;
+    AMax = infinity;
+    AMin = -infinity;
+    AShift = 0.0;
+    VWidth = 0.0;
+    clearGSynInterval = 0.0;
+};
+
+
+//  connections: 
+
+HyPerConn "Retina to L0" = {
+    preLayerName = "Retina";
+    postLayerName = "L0";
+    channelCode = 0;
+    sharedWeights = true;
+    numAxonalArbors = 1;
+    nxp = 1;
+    nyp = 1;
+    nfp = 4;
+    writeStep = 1.0; // -1;
+    initialWriteTime = 0;
+    
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax  = infinity;
+    rMin = 0;
+    numOrientationsPost = 4;
+    
+    selfFlag = false;
+    
+    // combine_dW_with_W_flag = false;
+      
+    strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    rMinX = 0.0;
+    rMinY = 0.0;
+    nonnegativeConstraintFlag = false;
+    normalize_cutoff = 0.0;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    // weightUpdatePeriod = -1.0;
+
+    delay = 0;     
+};
+
+
+
+
+HyPerConn "L0 to Lx1" = {
+    preLayerName = "L0";
+    postLayerName = "Lx1";
+    channelCode = 0;
+    sharedWeights = true;
+    numAxonalArbors = 4;
+    nxp = 5;
+    nyp = 5;
+    nfp = 4;
+    writeStep = 1.0; // -1;
+    initialWriteTime = 0;
+
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax  = infinity;
+    rMin = 0;
+    numOrientationsPost = 4;
+    numOrientationsPre = 4;
+      
+    selfFlag = false;
+    // combine_dW_with_W_flag = false;
+
+    strength = 1; //0.25; //was 1, now 1/4 // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    rMinX = 0.0;
+    rMinY = 0.0;
+    nonnegativeConstraintFlag = false;
+    normalize_cutoff = 0.0;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    // weightUpdatePeriod = -1.0;
+
+    delay = [0, 1, 2, 3];     
+};
+
+
+HyPerConn "L0 to Lx2" = {
+    preLayerName = "L0";
+    postLayerName = "Lx2";
+    numAxonalArbors = 4;
+    channelCode = 0;
+    sharedWeights = true;
+    nxp = 10;
+    nyp = 10;
+    nfp = 8;
+    writeStep = 1.0; // -1;
+    initialWriteTime = 0;
+
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax  = infinity;
+    rMin = 0;
+    numOrientationsPost = 8;
+    numOrientationsPre = 4;
+      
+    selfFlag = false;
+    // combine_dW_with_W_flag = false;
+      
+    strength = 8; //2.0; //was 8, now 2 // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    rMinX = 0.0;
+    rMinY = 0.0;
+    nonnegativeConstraintFlag = false;
+    normalize_cutoff = 0.0;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    // weightUpdatePeriod = -1.0;
+
+    delay = [0, 1, 2, 3];     
+};
+
+
+HyPerConn "L0 to Lx4" = {
+    preLayerName = "L0";
+    postLayerName = "Lx4";
+    numAxonalArbors = 4;
+    channelCode = 0;
+    sharedWeights = true;
+    nxp = 20;
+    nyp = 20;
+    nfp = 16;
+    writeStep = 1.0; // -1;
+    initialWriteTime = 0;
+
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax  = infinity;
+    rMin = 0;
+    numOrientationsPost = 16;
+    numOrientationsPre = 4;
+      
+    selfFlag = false;
+    // combine_dW_with_W_flag = false;
+      
+    strength = 64; //16.0; //was 64.0, now 64/4 // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    rMinX = 0.0;
+    rMinY = 0.0;
+    nonnegativeConstraintFlag = false;
+    normalize_cutoff = 0.0;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    // weightUpdatePeriod = -1.0;
+
+    delay = [0, 1, 2, 3];     
+};
+
+
+HyPerConn "L0 to Lx1_2" = {
+    preLayerName = "L0";
+    postLayerName = "Lx1_2";
+    numAxonalArbors = 4;
+    channelCode = 0;
+    sharedWeights = true;
+    nxp = 3;
+    nyp = 3;
+    nfp = 2;
+    writeStep = 1.0; // -1;
+    initialWriteTime = 0;
+
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax  = infinity;
+    rMin = 0;
+    numOrientationsPost = 2;
+    numOrientationsPre = 4;
+      
+    selfFlag = false;
+    // combine_dW_with_W_flag = false;
+      
+    strength = 0.125; //0.03125; //was 0.125, now 0.125/4 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    rMinX = 0.0;
+    rMinY = 0.0;
+    nonnegativeConstraintFlag = false;
+    normalize_cutoff = 0.0;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    // weightUpdatePeriod = -1.0;
+
+    delay = [0, 1, 2, 3];     
+};
+
+
+HyPerConn "L0 to Lx1_4" = {
+    preLayerName = "L0";
+    postLayerName = "Lx1_4";
+    numAxonalArbors = 4;
+    channelCode = 0;
+    sharedWeights = true;
+    nxp = 1;
+    nyp = 1;
+    nfp = 1;
+    writeStep = 1.0; // -1;
+    initialWriteTime = 0;
+
+    weightInit=1;
+    
+    weightInitType = "SpreadOverArborsWeight";
+    aspect = 1;
+    sigma = 1;
+    rMax  = infinity;
+    rMin = 0;
+    numOrientationsPre = 4;
+      
+    selfFlag = false;
+    // combine_dW_with_W_flag = false;
+      
+    strength = 0.015625; // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    rMinX = 0.0;
+    rMinY = 0.0;
+    nonnegativeConstraintFlag = false;
+    normalize_cutoff = 0.0;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+
+    pvpatchAccumulateType = "convolve";
+    convertRateToSpikeCount = false;
+    shrinkPatches = false;
+    updateGSynFromPostPerspective = false;
+
+    // wMax = 1.0;
+    // wMin = 0;
+    writeCompressedWeights = false;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    // weightUpdatePeriod = -1.0;
+
+    delay = [0, 1, 2, 3];     
+};
+
+
+
+ArborTestForOnesProbe "Retina Stats File" = {
+    targetLayer = "Retina";
+    probeOutputFile = "Retina_Stats.txt";
+    message = "Retina Stats File              ";
+    triggerLayerName = NULL;
+    buffer = "Activity";
+    nnzThreshold = 0;
+};
+ArborTestForOnesProbe "L0 Stats File" = {
+    targetLayer = "L0";
+    probeOutputFile = "L0_Stats.txt";
+    message = "L0 Stats File                 ";
+    triggerLayerName = NULL;
+    buffer = "Activity";
+    nnzThreshold = 0;
+};
+ArborTestProbe "Lx1 Stats File" = {
+    targetLayer = "Lx1";
+    probeOutputFile = "Lx1_Stats.txt";
+    message = "Lx1 Stats File                ";
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+};
+ArborTestProbe "Lx2 Stats File" = {
+    targetLayer = "Lx2";
+    probeOutputFile = "Lx2_Stats.txt";
+    message = "Lx2 Stats File                ";
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+};
+ArborTestProbe "Lx4 Stats File" = {
+    targetLayer = "Lx4";
+    probeOutputFile = "Lx4_Stats.txt";
+    message = "Lx4 Stats File                ";
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+};
+ArborTestProbe "Lx1_2 Stats File" = {
+    targetLayer = "Lx1_2";
+    probeOutputFile = "Lx1_2_Stats.txt";
+    message = "Lx1_2 Stats File              ";
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+};
+ArborTestProbe "Lx1_4 Stats File" = {
+    targetLayer = "Lx1_4";
+    probeOutputFile = "Lx1_4_Stats.txt";
+    message = "Lx1_4 Stats File              ";
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+};
+
+ArborTestForOnesProbe "Retina Stats Screen" = {
+    targetLayer = "Retina";
+    message = "Retina Stats File             ";
+    triggerLayerName = NULL;
+    buffer = "Activity";
+    nnzThreshold = 0;
+};
+ArborTestForOnesProbe "L0 Stats Screen" = {
+    targetLayer = "L0";
+    message = "L0 Stats Screen               ";
+    triggerLayerName = NULL;
+    buffer = "Activity";
+    nnzThreshold = 0;
+};
+ArborTestProbe "Lx1 Stats Screen" = {
+    targetLayer = "Lx1";
+    message = "Lx1 Stats Screen              ";
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+};
+ArborTestProbe "Lx2 Stats Screen" = {
+    targetLayer = "Lx2";
+    message = "Lx1 Stats Screen              ";
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+};
+ArborTestProbe "Lx4 Stats Screen" = {
+    targetLayer = "Lx4";
+    message = "Lx4 Stats Screen              ";
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+};
+ArborTestProbe "Lx1_2 Stats Screen" = {
+    targetLayer = "Lx1_2";
+    message = "Lx1_2 Stats Screen            ";
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+};
+ArborTestProbe "Lx1_4 Stats Screen" = {
+    targetLayer = "Lx1_4";
+    message = "Lx1_4 Stats Screen            ";
+    triggerLayerName = NULL;
+    nnzThreshold = 0;
+};

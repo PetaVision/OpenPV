@@ -1,0 +1,17 @@
+./input/black32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png
+./input/white32.png

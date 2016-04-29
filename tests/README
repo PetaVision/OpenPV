@@ -1,0 +1,5 @@
+This directory contains system tests for the core PetaVision library.
+If you build the tests using the CMakeLists.txt in this directory
+(which incorporates the CMakeLists.txt in the test subdirectories 
+using CMake's add_subdirectory command), you can run the tests from
+this directory using the ctest command.

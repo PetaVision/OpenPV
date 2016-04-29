@@ -1,0 +1,252 @@
+debugParsing = false;
+
+HyPerCol "column" = {
+    nx = 64; //1242;  // KITTI synced value
+    ny = 64;  //218;
+    dt = 1.0;
+    randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+    startTime = 10.0;
+    stopTime = 30.0;       // Depends on number of VINE video frames
+    progressInterval = 1.0;
+    //Change this
+    outputPath = "output/postTest/";
+    filenamesContainLayerNames = true;
+    filenamesContainConnectionNames = true;
+    checkpointWrite = false;
+    // deleteOlderCheckpoints = false;
+    suppressLastOutput = false;
+    writeProgressToErr = true;
+};
+
+ConstantLayer "input" = {
+    restart = 0;
+    nxScale = 1;
+    nyScale = 1;
+    nf = 3;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    sparseLayer = 0;
+    //
+    InitVType = "UniformRandomV";
+    minV = 0;
+    maxV = 1;
+
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    // 
+    phase = 1; 
+    triggerLayerName = NULL;
+};
+
+ANNLayer "outputRecv" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 64;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    // 
+    phase = 2; 
+    triggerLayerName = NULL;
+};
+
+ANNLayer "outputRecvGpu" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 64;
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    // 
+    phase = 2; 
+    triggerLayerName = NULL;
+};
+
+ANNLayer "outputTest" = {
+    restart = 0;
+    nxScale = .5;
+    nyScale = .5;
+    nf = 64;
+    writeStep = -1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = false;
+    sparseLayer = 0;
+    //
+    InitVType = "ZeroV";
+    VThresh = -infinity;
+    AMax = infinity;     // prevent reconstruction from exceeding reasonable bounds
+    AMin = -infinity; 
+    AShift = 0;
+    // 
+    phase = 3; 
+    triggerLayerName = NULL;
+};
+
+//HyPerConn "tempConn" = {
+//    preLayerName = "input";
+//    postLayerName = "outputRecvGpu";
+//    channelCode = -1; //Inhib b, doing nothing to input
+//    sharedWeights = true;
+//    nxp = 13; 
+//    nyp = 13; 
+//    numAxonalArbors = 1;
+//    writeStep = -1;
+//    initialWriteTime = 0.0;
+//    writeCompressedWeights = false;
+//    
+//    weightInitType = "UniformRandomWeight";
+//    wMinInit = -1;
+//    wMaxInit = 1;
+//    sparseFraction = 0;
+//        
+//    normalizeMethod                     = "none";
+//    //strength                            = 1;
+//    //rMinX                               = 1.5;
+//    //rMinY                               = 1.5;
+//    //normalize_cutoff                    = 0;
+//
+//    normalizeArborsIndividually = false;
+//    normalizeFromPostPerspective = false;
+//
+//    minL2NormTolerated                  = 0;
+//
+//    symmetrizeWeights = false;
+//    
+//    shrinkPatches = false;
+//    //writeCompressedWeights = 0.0;
+//    writeCompressedCheckpoints = false;
+//    plasticityFlag = 0;
+//    pvpatchAccumulateType = "convolve";
+//     
+//    delay = 0;
+//     
+//    preActivityIsNotRate = false;
+//    selfFlag = false;
+//
+//    updateGSynFromPostPerspective = false;
+//
+//    keepKernelsSynchronized             = true;
+//};
+
+HyPerConn "origConn" = {
+    preLayerName = "outputRecvGpu";
+    postLayerName = "input";
+    channelCode = -1; //Inhib b, doing nothing to input
+    sharedWeights = true;
+    nxp = 18; 
+    nyp = 18; 
+    numAxonalArbors = 1;
+    writeStep = -1;
+    initialWriteTime = 0.0;
+    writeCompressedWeights = false;
+    
+    weightInitType = "UniformRandomWeight";
+    wMinInit = -1;
+    wMaxInit = 1;
+    sparseFraction = 0;
+        
+    normalizeMethod                     = "none";
+    //strength                            = 1;
+    //rMinX                               = 1.5;
+    //rMinY                               = 1.5;
+    //normalize_cutoff                    = 0;
+
+    normalizeArborsIndividually = false;
+    normalizeFromPostPerspective = false;
+
+    minL2NormTolerated                  = 0;
+
+    symmetrizeWeights = false;
+    
+    shrinkPatches = false;
+    //writeCompressedWeights = 0.0;
+    writeCompressedCheckpoints = false;
+    plasticityFlag = 0;
+    pvpatchAccumulateType = "convolve";
+     
+    delay = 0;
+     
+    preActivityIsNotRate = false;
+    selfFlag = false;
+
+    updateGSynFromPostPerspective = false;
+
+    keepKernelsSynchronized             = true;
+};
+
+TransposeConn "TransposeConn" = {
+    preLayerName = "input";
+    postLayerName = "outputRecv";
+    channelCode = 0; 
+    originalConnName = "origConn";
+    selfFlag = false;
+    preActivityIsNotRate = false;
+    writeStep = -1;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
+    receiveGpu = false;
+};
+
+TransposeConn "gpuTransposeConn" = {
+    preLayerName = "input";
+    postLayerName = "outputRecvGpu";
+    channelCode = 0;
+    originalConnName = "origConn";
+    selfFlag = false;
+    preActivityIsNotRate = false;
+    writeStep = -1.0;
+    delay = 0;
+    pvpatchAccumulateType = "convolve";
+    updateGSynFromPostPerspective = true;
+    receiveGpu = true;
+    preDataLocal = false;
+    //numXLocal = 64;
+    //numYLocal = 1;
+    //numFLocal = 1;
+};
+
+IdentConn "RecvPostTest" = {
+    preLayerName = "outputRecvGpu";
+    postLayerName = "outputTest";
+    channelCode = 0;
+    delay = 0;
+    writeStep = -1;
+};
+
+IdentConn "RecvPreTest" = {
+    preLayerName = "outputRecv";
+    postLayerName = "outputTest";
+    channelCode = 1;
+    delay = 0;
+    writeStep = -1;
+};
+
+GPUSystemTestProbe "testProbe" = {
+   targetLayer = "outputTest";
+   message = "testProbe ";
+};
+
+//RequireAllZeroActivityProbe "testProbe" = {
+//    targetLayer = "outputTest";
+//    nnzThreshold = 1e-6;
+//};

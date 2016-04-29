@@ -1,0 +1,1 @@
+pv_add_test(PARAMS ImageFileIO ImagePvpFileIO ImagePvpFileIOSparse MovieFileIO MoviePvpFileIO)

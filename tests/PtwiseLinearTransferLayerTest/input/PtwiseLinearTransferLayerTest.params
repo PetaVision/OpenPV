@@ -1,0 +1,140 @@
+//
+// BasicSystemTest.params
+//
+// created by peteschultz: Nov 10, 2011
+//
+
+//  A params file for a simple simulation: two layers, one connection.
+//  It serves as the basic template for systems tests, and tests the
+//  basic functionality
+//
+
+debugParsing = true;    // Debug the reading of this parameter file.
+
+HyPerCol "column" = {
+   nx = 32;   //size of the whole networks
+   ny = 32;
+   dt = 1.0;  //time step in ms.
+   dtAdaptFlag = false;  // If true, layers can provide HyPerCol info on acceptable timesteps and dt can be adjusted accordingly 
+   randomSeed = 1234567890;  // Must be at least 8 digits long.  // if not set here,  clock time is used to generate seed
+   startTime = 0.0;
+   stopTime = 10.0;  
+   errorOnNotANumber = true;
+   progressInterval = 10.0; //Program will output its progress at each progressInterval
+   writeProgressToErr = false;
+   verifyWrites = false;
+   outputPath = "output/";
+   printParamsFilename = "pv.params"; // A record of the parameters used, including defaults and excluding unused params, will be written to this file.
+   filenamesContainLayerNames = false;  
+   filenamesContainConnectionNames = false;
+   initializeFromCheckpointDir = "";
+   checkpointWrite = false;
+   suppressLastOutput = false; //If true, save the last output as checkpoint.
+};
+
+//
+// layers
+//
+
+//All layers are subclasses of hyperlayer
+
+
+// this is a input layer
+Image "Input" = {
+    nxScale = 1;  // this must be 2^n, n = ...,-2,-1,0,1,2,... 
+    nyScale = 1;  // the scale is to decide how much area will be used as input. For exampel, nx * nxScale = 32. The size of input
+    	      	  // cannot be larger than the input image size.
+    inputPath = "input/sampleimage.png"; // it's a 32*32 image
+    nf = 1; //number of features. For a grey image, it's 1. For a color image, it could be either 1 or 3.
+    phase = 0; //phase defines an order in which layers should be executed.
+    writeStep = -1;  //-1 means doesn't write for log
+    sparseLayer = false; //only write weights which are not 0
+    mirrorBCflag = false;    //border condition flag
+    valueBC = 0.0;
+    useImageBCflag = false;
+    inverseFlag = false; 
+    normalizeLuminanceFlag = false;
+    autoResizeFlag = false;
+    writeImages = false;
+    offsetAnchor = "tl";
+    offsetX = 0;  // offset for crop, when the input size is smaller than the size of image
+    offsetY = 0;
+    jitterFlag = false; // moving around like an eyeball. our eyeballs are not still even when we are gazing at something.
+    padValue = false;
+};
+
+//an output layer
+PtwiseLinearTransferLayer "Output" = {
+    nxScale = 1; 
+    nyScale = 1;
+    nf = 8; // 8 outputs 
+    phase = 1;
+    triggerLayerName = NULL; // If set to another layer, this layer updates in response to the trigger layer updating.
+    writeStep = 1.0;
+    initialWriteTime = 0.0;
+    mirrorBCflag = 1;
+    sparseLayer = false;
+
+    InitVType = "ZeroV";
+
+    //define a linear relation between its input and output, with some hard cut-off.
+    verticesV = [0.5, 0.5];
+    verticesA = [0.0, 1.0];
+    slopeNegInf = 0.0;
+    slopePosInf = 0.0;
+    clearGSynInterval = 0.0; // If positive, only blanks GSyn the given amount of time.  If zero or negative, clears GSyn every time step.
+};
+
+//HyPerConns are connections between two layers
+
+HyPerConn "InputToOutput" = {
+    preLayerName = "Input";
+    postLayerName = "Output";
+    channelCode = 0;
+
+// we have a 32*32 image, an input layer with nf = 1 and an output layer with nf = 8. So we have 32*32*8 outputs.
+// the connection layer defines nxp * nyp (i.e. 7*7) edges from each pixel in input layer to 7*7 vertexs of 1 out of 8 images
+// and these vertexs are chosen from the nearest ones around the pixel
+    nxp = 7;
+    nyp = 7;
+    nfp = 8; 
+    numAxonalArbors = 1;
+    sharedWeights = true;
+    writeStep = -1;
+    
+    weightInitType = "Gauss2DWeight";
+    deltaThetaMax = 6.283185;
+    thetaMax = 1.0;
+    numFlanks = 1;
+    flankShift = 0;
+    rotate = false;
+    bowtieFlag = false;
+    aspect = 3;
+    sigma = 1;
+    rMax  = infinity;
+    rMin = 0;
+    numOrientationsPost = 8;
+      
+    strength = 4.0;  // 1.0 x post->num_neurons / pre->num_neurons
+    normalizeMethod = "normalizeSum";
+    normalizeArborsIndividually = false;
+    normalizeOnInitialize = true;
+    normalizeOnWeightUpdate = true;
+    normalize_cutoff = 0;
+    convertRateToSpikeCount = false;
+    minSumTolerated = 0.0;
+    normalizeFromPostPerspective = false;
+    rMinX = 0.0;
+    rMinY = 0.0;
+    nonnegativeConstraintFlag = false;
+
+    writeCompressedCheckpoints = false;
+    plasticityFlag = false;
+    selfFlag = false;  // conntect to itself
+
+    delay = 0;
+
+    pvpatchAccumulateType = "Convolve"; // "Convolve", "Stochastic", or "Maxpooling" (case-insensitive)
+    shrinkPatches = false; // If only a small part of connections whose weights are non-zero, then we could shrink the whole networks
+    updateGSynFromPostPerspective = false; // Whether receiving synaptic input should loop over pre-synaptic neurons (false) or post-synaptic neurons (true)
+};
