@@ -1,5 +1,0 @@
-input/zeros08x08.png
-input/gray08x08.png
-input/zeros08x08.png
-input/zeros08x08.png
-input/zeros08x08.png

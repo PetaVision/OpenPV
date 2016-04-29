@@ -12,7 +12,6 @@ set(LIBRARY_OUTPUT_PATH ${PV_LIBRARY_DIR})
 
 set(PV_IO_DIR "${PV_LIBRARY_DIR}/io")
 set(PV_PARSER_DIR "${PV_IO_DIR}/parser-generated")
-message(STATUS "pv_parser_dir: ${PV_PARSER_DIR}")
 set(PV_PARAM_LEXER_C "${PV_PARSER_DIR}/param_lexer.c")
 set(PV_PARAM_PARSER_CPP "${PV_PARSER_DIR}/param_parser.cpp")
 set(PV_PARAM_PARSER_HPP "${PV_PARSER_DIR}/param_parser.hpp")

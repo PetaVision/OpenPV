@@ -1,5 +1,0 @@
-input/CIFAR_17794.png
-input/CIFAR_18609.png
-input/CIFAR_15921.png
-input/CIFAR_11633.png
-input/CIFAR_13975.png
