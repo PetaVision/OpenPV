@@ -43,6 +43,8 @@ protected:
    char * dataFile;
    convTableStruct convTable;
    float * convData;
-};
+}; // class createConvertFromTable
+
+PV::BaseObject * createConvertFromTable(char const * name, PV::HyPerCol * hc);
 
 #endif /* SRC_CONVERTFROMTABLE_HPP_ */

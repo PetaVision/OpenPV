@@ -133,4 +133,6 @@ protected:
    int featurefieldwidth; // how many digits it takes to print the features (e.g. if nf was 100, the last feature is 99, which needs 2 digits)  Set in communicateInitInfo.  All processes compute this, although only the root process uses it
 }; /* class LocalizationProbe */
 
+PV::BaseObject * createLocalizationProbe(char const * name, PV::HyPerCol * hc);
+
 #endif /* LOCALIZATIONPROBE_HPP_ */

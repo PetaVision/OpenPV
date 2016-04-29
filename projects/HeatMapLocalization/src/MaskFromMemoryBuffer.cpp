@@ -124,3 +124,7 @@ int MaskFromMemoryBuffer::updateState(double time, double dt)
    }
    return PV_SUCCESS;
 }
+
+PV::BaseObject * createMaskFromMemoryBuffer(char const * name, PV::HyPerCol * hc) {
+   return hc ? new MaskFromMemoryBuffer(name, hc) : NULL;
+}

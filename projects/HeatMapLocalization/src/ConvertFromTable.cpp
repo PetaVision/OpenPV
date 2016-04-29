@@ -174,3 +174,6 @@ ConvertFromTable::~ConvertFromTable() {
    free(convData);
 }
 
+PV::BaseObject * createConvertFromTable(char const * name, PV::HyPerCol * hc) {
+   return hc ? new ConvertFromTable(name, hc) : NULL;
+}

@@ -6,7 +6,6 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(${PV_PROJECT_NAME}_SRCCPP
   src/ConvertFromTable.cpp
-  src/HarnessCustomGroupHandler.cpp
   src/LocalizationProbe.cpp
   src/MaskFromMemoryBuffer.cpp
   src/main.cpp

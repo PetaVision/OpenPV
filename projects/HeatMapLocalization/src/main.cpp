@@ -3,8 +3,9 @@
 #include <sys/wait.h>
 #include <columns/buildandrun.hpp>
 #include <layers/ImageFromMemoryBuffer.hpp>
-#include <HarnessCustomGroupHandler.hpp>
+#include "ConvertFromTable.hpp"
 #include "LocalizationProbe.hpp"
+#include "MaskFromMemoryBuffer.hpp"
 #define TEXTFILEBUFFERSIZE 1024
 
 char * getImageFileName(InterColComm * icComm);
@@ -14,122 +15,137 @@ int main(int argc, char* argv[])
 {
    int status = PV_SUCCESS;
 
-   PV::PV_Init * pv_init = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   pv_init -> initialize();
+   PV::PV_Init pv_init(&argc, &argv, true/*allowUnrecognizedArguments*/);
    // Build the column from the params file
-   PV::ParamGroupHandler * customGroupHandler[1];
-   customGroupHandler[0] = new HarnessCustomGroupHandler();
-   PV::HyPerCol * hc = build(pv_init, customGroupHandler, 1);
+   pv_init.registerKeyword("ConvertFromTable", createConvertFromTable);
+   pv_init.registerKeyword("LocalizationProbe", createLocalizationProbe);
+   pv_init.registerKeyword("MaskFromMemoryBuffer", createMaskFromMemoryBuffer);
+   PV::HyPerCol * hc = pv_init.build();
    assert(hc->getStartTime()==hc->simulationTime());
 
-   double startTime = hc->getStartTime();
-   double stopTime = hc->getStopTime();
-   double dt = hc->getDeltaTime();
-   double displayPeriod = stopTime - startTime;
-   const int rank = hc->columnId();
-   InterColComm * icComm = hc->icCommunicator();
+   bool useHarness = true;
+   for (int arg=0; arg<argc; arg++) {
+      if (!strcmp(argv[arg], "--harness")) { useHarness = true; }
+      if (!strcmp(argv[arg], "--no-harness")) { useHarness = false; }
+   }
+   if (useHarness) {
+      double startTime = hc->getStartTime();
+      double stopTime = hc->getStopTime();
+      double dt = hc->getDeltaTime();
+      double displayPeriod = stopTime - startTime;
+      const int rank = hc->columnId();
+      InterColComm * icComm = hc->icCommunicator();
 
-   int layerNx, layerNy, layerNf;
-   int imageNx, imageNy, imageNf;
-   int bufferNx, bufferNy, bufferNf;
-   size_t imageBufferSize;
-   uint8_t * imageBuffer;
-   //int octavepid = 0; // pid of the child octave process.
+      int layerNx, layerNy, layerNf;
+      int imageNx, imageNy, imageNf;
+      int bufferNx, bufferNy, bufferNf;
+      size_t imageBufferSize;
+      uint8_t * imageBuffer;
 
-   PV::ImageFromMemoryBuffer * imageLayer = NULL;
-   for (int k=0; k<hc->numberOfLayers(); k++) {
-      PV::HyPerLayer * l = hc->getLayer(k);
-      PV::ImageFromMemoryBuffer * img_buffer_layer = dynamic_cast<PV::ImageFromMemoryBuffer *>(l);
-      if (img_buffer_layer) {
-         if (imageLayer!=NULL) {
-            if (hc->columnId()==0) {
-               fprintf(stderr, "%s error: More than one ImageFromMemoryBuffer (\"%s\" and \"%s\").\n",
-                     argv[0], imageLayer->getName(), img_buffer_layer->getName());
+      PV::ImageFromMemoryBuffer * imageLayer = NULL;
+      for (int k=0; k<hc->numberOfLayers(); k++) {
+         PV::HyPerLayer * l = hc->getLayer(k);
+         PV::ImageFromMemoryBuffer * img_buffer_layer = dynamic_cast<PV::ImageFromMemoryBuffer *>(l);
+         if (img_buffer_layer) {
+            if (imageLayer!=NULL) {
+               if (hc->columnId()==0) {
+                  fprintf(stderr, "%s error: More than one ImageFromMemoryBuffer (\"%s\" and \"%s\").\n",
+                        argv[0], imageLayer->getName(), img_buffer_layer->getName());
+               }
+               MPI_Barrier(hc->icCommunicator()->communicator());
+               exit(EXIT_FAILURE);
             }
-            MPI_Barrier(hc->icCommunicator()->communicator());
-            exit(EXIT_FAILURE);
-         }
-         else {
-            imageLayer = img_buffer_layer;
-         }
-      }
-   }
-   LocalizationProbe * localizationProbe = NULL; 
-   for (int k=0; k < hc->numberOfBaseProbes(); k++)
-   {
-      PV::BaseProbe * p = hc->getBaseProbe(k);
-      LocalizationProbe * localization_probe = dynamic_cast<LocalizationProbe *>(p);
-      if (localization_probe) {
-         if (localizationProbe != NULL) {
-            if (hc->columnId()==0) {
-               fprintf(stderr, "%s error: More than one LocalizationProbe (\"%s\" and \"%s\").\n",
-                     argv[0], localizationProbe->getName(), localization_probe->getName());
+            else {
+               imageLayer = img_buffer_layer;
             }
-            MPI_Barrier(hc->icCommunicator()->communicator());
-            exit(EXIT_FAILURE);
-         }
-         else {
-            localizationProbe = localization_probe;
          }
       }
-   }
-   if (imageLayer==NULL) {
-      if (hc->columnId()==0) {
-         fprintf(stderr, "%s error: params file must have exactly one ImageFromMemoryBuffer layer.\n",
-               argv[0]);
-         status = PV_FAILURE;
+      LocalizationProbe * localizationProbe = NULL; 
+      for (int k=0; k < hc->numberOfBaseProbes(); k++)
+      {
+         PV::BaseProbe * p = hc->getBaseProbe(k);
+         LocalizationProbe * localization_probe = dynamic_cast<LocalizationProbe *>(p);
+         if (localization_probe) {
+            if (localizationProbe != NULL) {
+               if (hc->columnId()==0) {
+                  fprintf(stderr, "%s error: More than one LocalizationProbe (\"%s\" and \"%s\").\n",
+                        argv[0], localizationProbe->getName(), localization_probe->getName());
+               }
+               MPI_Barrier(hc->icCommunicator()->communicator());
+               exit(EXIT_FAILURE);
+            }
+            else {
+               localizationProbe = localization_probe;
+            }
+         }
       }
-   }
-   if (localizationProbe==NULL) {
-      if (hc->columnId()==0) {
-         fprintf(stderr, "%s error: params file must have exactly one LocalizationProbe.\n",
-               argv[0]);
-         status = PV_FAILURE;
+      if (imageLayer==NULL) {
+         if (hc->columnId()==0) {
+            fprintf(stderr, "%s error: params file must have exactly one ImageFromMemoryBuffer layer.\n",
+                  argv[0]);
+            status = PV_FAILURE;
+         }
       }
-   }
-   if (status != PV_SUCCESS) {
-      MPI_Barrier(hc->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
+      if (localizationProbe==NULL) {
+         if (hc->columnId()==0) {
+            fprintf(stderr, "%s error: params file must have exactly one LocalizationProbe.\n",
+                  argv[0]);
+            status = PV_FAILURE;
+         }
+      }
+      if (status != PV_SUCCESS) {
+         MPI_Barrier(hc->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
 
-   if (rank==0) {
-      if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
+      if (rank==0) {
+         if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
 
-      layerNx = imageLayer->getLayerLoc()->nxGlobal;
-      layerNy = imageLayer->getLayerLoc()->nyGlobal;
-      layerNf = imageLayer->getLayerLoc()->nf;
+         layerNx = imageLayer->getLayerLoc()->nxGlobal;
+         layerNy = imageLayer->getLayerLoc()->nyGlobal;
+         layerNf = imageLayer->getLayerLoc()->nf;
 
-      imageNx = layerNx;
-      imageNy = layerNy;
-      imageNf = 3;
+         imageNx = layerNx;
+         imageNy = layerNy;
+         imageNf = 3;
 
-      bufferNx = layerNx;
-      bufferNy = layerNy;
-      bufferNf = imageNf;
+         bufferNx = layerNx;
+         bufferNy = layerNy;
+         bufferNf = imageNf;
 
-      imageBufferSize = (size_t)bufferNx*(size_t)bufferNy*(size_t)bufferNf;
-      imageBuffer = NULL;
-      GDALAllRegister();
-   }
+         imageBufferSize = (size_t)bufferNx*(size_t)bufferNy*(size_t)bufferNf;
+         imageBuffer = NULL;
+         GDALAllRegister();
+      }
 
-   // Main loop: get an image, load it into the image layer, do HyPerCol::run(), lather, rinse, repeat
-   char * imageFile = getImageFileName(icComm);
-   while(imageFile!=NULL && imageFile[0]!='\0')
-   {
-      startTime = hc->simulationTime();
-      stopTime = startTime + displayPeriod;
-      localizationProbe->setOutputFilenameBase(imageFile);
-      setImageLayerMemoryBuffer(hc->icCommunicator(), imageFile, imageLayer, &imageBuffer, &imageBufferSize);
-      hc->run(startTime, stopTime, dt);
+      // Main loop: get an image, load it into the image layer, do HyPerCol::run(), lather, rinse, repeat
+      char * imageFile = getImageFileName(icComm);
+      while(imageFile!=NULL && imageFile[0]!='\0')
+      {
+         startTime = hc->simulationTime();
+         stopTime = startTime + displayPeriod;
+         localizationProbe->setOutputFilenameBase(imageFile);
+         setImageLayerMemoryBuffer(hc->icCommunicator(), imageFile, imageLayer, &imageBuffer, &imageBufferSize);
+         status = hc->run(startTime, stopTime, dt);
+         if (status!=PV_SUCCESS) {
+            if (hc->columnId()==0) {
+               fflush(stdout);
+               fprintf(stderr, "Run failed at t=%f.  Exiting.\n", startTime);
+            }
+            break;
+         }
 
+         free(imageFile);
+         imageFile = getImageFileName(hc->icCommunicator());
+      }
       free(imageFile);
-      imageFile = getImageFileName(hc->icCommunicator());
+   }
+   else {
+      assert(!useHarness); // else-clause of if(useHarness) statement
+      status = hc->run();
    }
 
    delete hc;
-   free(imageFile);
-   delete customGroupHandler[0];
-   delete pv_init;
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

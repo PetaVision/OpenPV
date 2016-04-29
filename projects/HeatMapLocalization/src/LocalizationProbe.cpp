@@ -1216,3 +1216,6 @@ LocalizationProbe::~LocalizationProbe() {
    free(montageImageComm);
 }
 
+PV::BaseObject * createLocalizationProbe(char const * name, PV::HyPerCol * hc) {
+   return hc ? new LocalizationProbe(name, hc) : NULL;
+}
