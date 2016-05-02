@@ -23,38 +23,38 @@
 #include <stdlib.h>
 #include "utils/PVLog.hpp"
 
-namespace PV {
-
 /**
  * pvMalloc(size_t size);
  * 
  * replaces standard malloc()
  */
-#define pvMalloc(size) pv_malloc(__FILE__, __LINE__, size)
+#define pvMalloc(size) PV::pv_malloc(__FILE__, __LINE__, size)
 /**
  * pvCalloc(count, size)
  *
  * replaces standard calloc()
  */
-#define pvCalloc(count, size) pv_calloc(__FILE__, __LINE__, count, size)
+#define pvCalloc(count, size) PV::pv_calloc(__FILE__, __LINE__, count, size)
 /**
  * pvMallocError(size, fmt, ...)
  *
  * Adds an error message if the allocation fails.
  */
-#define pvMallocError(size, fmt, ...) pv_malloc(__FILE__, __LINE__, size, fmt, ##__VA_ARGS__)
+#define pvMallocError(size, fmt, ...) PV::pv_malloc(__FILE__, __LINE__, size, fmt, ##__VA_ARGS__)
 /**
  * pvCallocError(count, size, fmt, ...)
  *
  * Adds an error message if the allocation fails.
  */
-#define pvCallocError(count, size, fmt, ...) pv_calloc(__FILE__, __LINE__, count, size, fmt, ##__VA_ARGS__)
+#define pvCallocError(count, size, fmt, ...) PV::pv_calloc(__FILE__, __LINE__, count, size, fmt, ##__VA_ARGS__)
 /**
  * Wraps a call to delete
  *
  * Verifies that the pointer is not NULL for calling delete. 
  */
-#define pvDelete(ptr) pv_delete(__FILE__, __LINE__, ptr)
+#define pvDelete(ptr) PV::pv_delete(__FILE__, __LINE__, ptr)
+
+namespace PV {
 
 void *pv_malloc(const char *file, int line, size_t size);
 void *pv_malloc(const char *file, int line, size_t size, const char *fmt, ...);
