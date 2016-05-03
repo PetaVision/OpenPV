@@ -40,6 +40,7 @@ enum ChannelType {
   CHANNEL_NOUPDATE = -1
 };
 
+#ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
 enum GSynAccumulateType {
    ACCUMULATE_CONVOLVE = 0,
    ACCUMULATE_STOCHASTIC = 1,
@@ -47,6 +48,7 @@ enum GSynAccumulateType {
    ACCUMULATE_SUMPOOLING = 3,
    ACCUMULATE_AVGPOOLING = 4
 };
+#endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
 
 enum PVDataType{
    PV_FLOAT = 0,

@@ -26,7 +26,6 @@ public:
    virtual bool needUpdate(double timed, double dt);
    virtual int updateState(double time, double dt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
-   //virtual int finalizeUpdate(double time, double dt);
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
    virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
@@ -52,6 +51,7 @@ protected:
     virtual void ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag);
     virtual void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
     virtual void ioParam_triggerLayerName(enum ParamsIOFlag ioFlag);
+    virtual void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
     virtual void ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag);
     virtual void ioParam_nxp(enum ParamsIOFlag ioFlag);
     virtual void ioParam_nyp(enum ParamsIOFlag ioFlag);
@@ -65,30 +65,20 @@ protected:
     virtual void ioParam_originalConnName(enum ParamsIOFlag ioFlag);
     virtual int setPatchSize();
     virtual int setNeededRNGSeeds() {return 0;}
-#ifdef OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
-    virtual InitWeights * handleMissingInitWeights(PVParams * params);
-#endif // OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
     virtual int setInitialValues();
     virtual PVPatch *** initializeWeights(PVPatch *** arbors, pvwdata_t ** dataStart);
-    //int transpose(int arborId);
     virtual int calc_dW(int arborId){return PV_BREAK;};
-    //virtual int reduceKernels(int arborID);
     virtual int constructWeights();
 
 private:
-    //int transposeSharedWeights(int arborId);
-    //int transposeNonsharedWeights(int arborId);
     int deleteWeights();
+    void unsetAccumulateType();
 
-    /**
-     * Calculates the parameters of the the region that needs to be sent to adjoining processes using MPI.
-     * Used only in the sharedWeights=false case, because in that case an individual weight's pre and post neurons can live in different processes.
-     */
-    //int mpiexchangesize(int neighbor, int * size, int * startx, int * stopx, int * starty, int * stopy, int * blocksize, size_t * buffersize);
 // Member variables
 protected:
     char * originalConnName;
     PoolingConn * originalConn;
+    PoolingConn::AccumulateType poolingType;
 }; // end class TransposePoolingConn
 
 BaseObject * createTransposePoolingConn(char const * name, HyPerCol * hc);

@@ -67,8 +67,13 @@ public:
    friend class PlasticCloneConn;
    friend class TransposeConn;
    friend class privateTransposeConn;
+//#ifdef OBSOLETE // Marked obsolete May 3, 2016.  All pooling-dependent behavior should be in PoolingConn
    friend class TransposePoolingConn;
+//#endif // OBSOLETE // Marked obsolete May 3, 2016.  All pooling-dependent behavior should be in PoolingConn
    
+   enum AccumulateType {UNDEFINED, CONVOLVE, STOCHASTIC};
+   // Subclasses that need different accumulate types should define their own enums
+
    HyPerConn(const char * name, HyPerCol * hc, InitWeights * weightInitializer=NULL, NormalizeBase * weightNormalizer=NULL);
    virtual ~HyPerConn();
 //#ifdef PV_USE_OPENCL
@@ -108,7 +113,7 @@ public:
    virtual void deliverOnePreNeuronActivity(int patchIndex, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
    virtual void deliverOnePostNeuronActivity(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, taus_uint4 * rngPtr);
     
-   GSynAccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
+   AccumulateType getPvpatchAccumulateType() { return pvpatchAccumulateType; }
    int (*accumulateFunctionPointer)(int kPreRes, int nk, float* v, float a, pvwdata_t* w, void* auxPtr, int sf);
    int (*accumulateFunctionFromPostPointer)(int kPreRes, int nk, float* v, float* a, pvwdata_t* w, float dt_factor, void* auxPtr, int sf);
 
@@ -478,7 +483,7 @@ protected:
    char * weightInitTypeString;
    InitWeights* weightInitializer;
    char * pvpatchAccumulateTypeString;
-   GSynAccumulateType pvpatchAccumulateType;
+   AccumulateType pvpatchAccumulateType;
    bool normalizeTotalToPost; // if false, normalize the sum of weights from each presynaptic neuron.  If true, normalize the sum of weights into a postsynaptic neuron.
    float dWMax;  // dW scale factor
    bool useListOfArborFiles;
@@ -496,8 +501,6 @@ protected:
    long ** numKernelActivations;
    bool keepKernelsSynchronized_flag;
 
-   // unsigned int rngSeedBase; // The starting seed for rng.  The parent HyPerCol reserves {rngSeedbase, rngSeedbase+1,...rngSeedbase+neededRNGSeeds-1} for use by this layer
-   // taus_uint4 * rnd_state; // An array of RNGs.
    Random * randState;
 
 
@@ -1048,21 +1051,19 @@ protected:
    PVCuda::CudaBuffer * d_WData;
 #ifdef PV_USE_CUDNN
    PVCuda::CudaBuffer * cudnn_WData;
-#endif
+#endif // PV_USE_CUDNN
    PVCuda::CudaBuffer * d_Patches;
    PVCuda::CudaBuffer * d_GSynPatchStart;
    PVCuda::CudaBuffer * d_PostToPreActivity;
    PVCuda::CudaBuffer * d_Patch2DataLookupTable;
    PVCuda::CudaRecvPost* krRecvPost;        // Cuda kernel for update state call
    PVCuda::CudaRecvPre* krRecvPre;        // Cuda kernel for update state call
-#endif
+#endif // PV_USE_CUDA
    int gpuGroupIdx;
    bool preDataLocal;
    int numXLocal;
    int numYLocal;
    int numFLocal;
-
-
 
 //   bool gpuAccelerateFlag; // Whether to accelerate the connection on a GPU
 //   bool ignoreGPUflag;     // Don't use GPU (overrides gpuAccelerateFlag)
