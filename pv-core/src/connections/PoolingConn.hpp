@@ -15,6 +15,7 @@ namespace PV {
 class PoolingConn: public HyPerConn {
 
 public:
+   enum AccumulateType {UNDEFINED, MAX, SUM, AVG};
    PoolingConn();
    PoolingConn(const char * name, HyPerCol * hc);
    virtual ~PoolingConn();
@@ -27,12 +28,14 @@ public:
    virtual int finalizeUpdate(double time, double dt);
    PoolingIndexLayer* getPostIndexLayer(){return postIndexLayer;}
    bool needPostIndex(){return needPostIndexLayer;}
+   inline AccumulateType getPoolingType() const { return poolingType; }
 
 protected:
    int initialize(const char * name, HyPerCol * hc, InitWeights * weightInitializer, NormalizeBase * weightNormalizer);
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    void ioParam_plasticityFlag(enum ParamsIOFlag ioFlag);
    void ioParam_weightInitType(enum ParamsIOFlag ioFlag);
+   void ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag);
    void ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag);
    void ioParam_postIndexLayerName(enum ParamsIOFlag ioFlag);
    void ioParam_normalizeMethod(enum ParamsIOFlag ioFlag);
@@ -60,13 +63,12 @@ protected:
 
 private:
    int initialize_base();
+   void unsetAccumulateType();
    int ** thread_gateIdxBuffer;
-   //float ** thread_gateIdxBuffer;
    bool needPostIndexLayer;
    char* postIndexLayerName;
    PoolingIndexLayer* postIndexLayer;
-
-
+   AccumulateType poolingType;
 }; // end class PoolingConn
 
 BaseObject * createPoolingConn(char const * name, HyPerCol * hc);
