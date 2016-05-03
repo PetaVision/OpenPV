@@ -179,7 +179,7 @@ int HyPerConn::initialize_base()
    thread_gSyn = NULL;
 
    pvpatchAccumulateTypeString = NULL;
-   pvpatchAccumulateType = ACCUMULATE_CONVOLVE;
+   pvpatchAccumulateType = CONVOLVE;
 
    initInfoCommunicatedFlag = false;
    dataStructuresAllocatedFlag = false;
@@ -411,14 +411,15 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weight
    //set accumulateFunctionPointer
    pvAssert(!inputParams->presentAndNotBeenRead(name, "pvpatchAccumulateType"));
    switch (pvpatchAccumulateType) {
-   case ACCUMULATE_CONVOLVE:
+   case CONVOLVE:
       accumulateFunctionPointer  = &pvpatch_accumulate;
       accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
       break;
-   case ACCUMULATE_STOCHASTIC:
+   case STOCHASTIC:
       accumulateFunctionPointer = &pvpatch_accumulate_stochastic;
       accumulateFunctionFromPostPointer = &pvpatch_accumulate_stochastic_from_post;
       break;
+#ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines AccumulateType and PoolingConn defines PoolingType
    case ACCUMULATE_MAXPOOLING:
       pvExitFailure("ACCUMULATE_MAXPOOLING not allowed in HyPerConn, use PoolingConn instead");
       //accumulateFunctionPointer = &pvpatch_max_pooling;
@@ -434,6 +435,7 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weight
       //accumulateFunctionPointer = &pvpatch_sum_pooling;
       //accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
       break;
+#endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines AccumulateType and PoolingConn defines PoolingType
    default:
       pvAssert(0);
       break;
@@ -826,12 +828,12 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
       }
 
       if (strcmp(pvpatchAccumulateTypeString,"convolve")==0) {
-         pvpatchAccumulateType = ACCUMULATE_CONVOLVE;
+         pvpatchAccumulateType = CONVOLVE;
       }
       else if (strcmp(pvpatchAccumulateTypeString,"stochastic")==0) {
-         pvpatchAccumulateType = ACCUMULATE_STOCHASTIC;
+         pvpatchAccumulateType = STOCHASTIC;
       }
-      //IOParam for different pooling types is still handled here, TODO, move this to PoolingConn
+#ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
       else if ((strcmp(pvpatchAccumulateTypeString,"maxpooling")==0) ||
 	       (strcmp(pvpatchAccumulateTypeString,"max_pooling")==0) ||
 	       (strcmp(pvpatchAccumulateTypeString,"max pooling")==0)) {
@@ -847,6 +849,7 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 	       (strcmp(pvpatchAccumulateTypeString,"avg pooling")==0)) {
          pvpatchAccumulateType = ACCUMULATE_AVGPOOLING;
       }
+#endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
       else {
          unsetAccumulateType();
       }
@@ -863,7 +866,7 @@ void HyPerConn::unsetAccumulateType() {
          pvLogError("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
                getKeyword(), name);
       }
-      pvLogError("  Allowed values are \"convolve\", \"stochastic\", or \"maxpooling\".");
+      pvLogError("  Allowed values are \"convolve\" or \"stochastic\".");
    }
    MPI_Barrier(parent->icCommunicator()->communicator());
    pvExitFailure("");
@@ -1220,7 +1223,7 @@ int HyPerConn::communicateInitInfo() {
    }
 
 
-   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC && (getConvertRateToSpikeCount() || pre->activityIsSpiking())) {
+   if (getPvpatchAccumulateType()==STOCHASTIC && (getConvertRateToSpikeCount() || pre->activityIsSpiking())) {
       if (parent->columnId()==0) {
          pvLogError("Connection \"%s\": stochastic accumulation function is not consistent with ", getName());
          if (getConvertRateToSpikeCount()) {
@@ -1489,7 +1492,7 @@ int HyPerConn::allocateDataStructures() {
    initNumDataPatches();
    initPatchToDataLUT();
 
-   if (pvpatchAccumulateType == ACCUMULATE_STOCHASTIC) {
+   if (pvpatchAccumulateType == STOCHASTIC) {
       bool from_post = getUpdateGSynFromPostPerspective();
       if (from_post) {
          randState = new Random(parent, postSynapticLayer()->getLayerLoc(), false/*isExtended*/);
@@ -1573,7 +1576,7 @@ void HyPerConn::initPatchToDataLUT() {
 
 taus_uint4 * HyPerConn::getRandState(int index) {
    taus_uint4 * state = NULL;
-   if (pvpatchAccumulateType==ACCUMULATE_STOCHASTIC) {
+   if (pvpatchAccumulateType==STOCHASTIC) {
       state = randState->getRNG(index);
    }
    return state;
@@ -2912,7 +2915,7 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
    pvAssert(post->getChannel(getChannel()));
 
    float dt_factor;
-   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
+   if (getPvpatchAccumulateType()==STOCHASTIC) {
       dt_factor = getParent()->getDeltaTime();
    }
    else {
@@ -3036,7 +3039,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
    const int numPostRestricted = post->getNumNeurons();
 
    float dt_factor;
-   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
+   if (getPvpatchAccumulateType()==STOCHASTIC) {
       dt_factor = getParent()->getDeltaTime();
    }
    else {
@@ -3159,10 +3162,10 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
    pvAssert(post->getChannel(getChannel())); // pvAssert(GSyn && GSyn[conn->getChannel()]);
 
    float dt_factor;
-   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
+   if (getPvpatchAccumulateType()==STOCHASTIC) {
       dt_factor = getParent()->getDeltaTime();
    }
-   else if (getPvpatchAccumulateType()==ACCUMULATE_CONVOLVE) {
+   else if (getPvpatchAccumulateType()==CONVOLVE) {
       dt_factor = getConvertToRateDeltaTimeFactor();
    }
    else{
@@ -3277,15 +3280,14 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
    const int numRestricted = post->getNumNeurons();
 
    float dt_factor;
-   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
+   if (getPvpatchAccumulateType()==STOCHASTIC) {
       dt_factor = getParent()->getDeltaTime();
    }
-   else if (getPvpatchAccumulateType()==ACCUMULATE_CONVOLVE) {
+   else if (getPvpatchAccumulateType()==CONVOLVE) {
       dt_factor = getConvertToRateDeltaTimeFactor();
    }
    else{
-      std::cout << "Pooling accumulate not implemented for GPUs";
-      exit(-1);
+      pvAssert(0); // Only STOCHASTIC and CONVOLVE are defined in HyPerConn; other methods should be handled in subclasses.
    }
 
    pvAssert(krRecvPost);

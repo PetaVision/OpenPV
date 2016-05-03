@@ -94,9 +94,10 @@ void IdentConn::ioParam_plasticityFlag(enum ParamsIOFlag ioFlag) {
 }
 
 void IdentConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
+   // IdentConn does not use the pvpatchAccumulateType parameter
    if (ioFlag == PARAMS_IO_READ) {
       pvpatchAccumulateTypeString = strdup("convolve");
-      pvpatchAccumulateType = ACCUMULATE_CONVOLVE;
+      pvpatchAccumulateType = CONVOLVE;
       parent->parameters()->handleUnnecessaryStringParameter(name, "pvpatchAccumulateType", "convolve", true/*case insensitive*/);
    }
 }
