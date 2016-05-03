@@ -6,7 +6,6 @@
 #include <type_traits>
 #include <string>
 
-namespace PV {
 
 #ifdef NDEBUG
     // Not DEBUG build
@@ -47,6 +46,27 @@ namespace PV {
 #define DEBUG_LOG_TEST_CONDITION        false
 #endif
 
+// Because __LINE__ and __FILE__ evaluate to *this* file, not
+// the file where the inline function is called. This is different
+// from Clang, which puts in the __FILE__ and __LINE__ of the caller
+#ifdef __GNUC__
+#define Debug() PV::_Debug(__FILE__, __LINE__)
+#define Info() PV::_Info(__FILE__, __LINE__)
+#define Error() PV::_Error(__FILE__, __LINE__)
+#define StackTrace() PV::_StackTrace(__FILE__, __LINE__)
+#endif
+
+#ifdef _PV_DEBUG_OUTPUT
+#define logDebug(fmt, ...) PV::pv_log_debug(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#else
+#define logDebug(fmt, ...)
+#endif
+
+#define logError(fmt, ...) PV::pv_log_error(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define logInfo(fmt, ...) PV::pv_log_info(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define exitFailure(fmt, ...) PV::pv_exit_failure(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+
+namespace PV {
 enum LogTypeEnum {
    _LogInfo, _LogError, _LogDebug, _LogStackTrace
 };
@@ -150,6 +170,7 @@ private:
 };
 
 #ifdef __GNUC__
+//Macros that call these functions defined outside of namespace
 typedef _Log<char,    LogDebugType>      _Debug;
 typedef _Log<char,    LogInfoType>       _Info;
 typedef _Log<char,    LogErrorType>      _Error;
@@ -159,14 +180,6 @@ typedef _Log<wchar_t, LogDebugType>      _WDebug;
 typedef _Log<wchar_t, LogInfoType>       _WInfo;
 typedef _Log<wchar_t, LogErrorType>      _WError;
 typedef _Log<wchar_t, LogStackTraceType> _WStackTrace;
-
-// Because __LINE__ and __FILE__ evaluate to *this* file, not
-// the file where the inline function is called. This is different
-// from Clang, which puts in the __FILE__ and __LINE__ of the caller
-#define Debug() _Debug(__FILE__, __LINE__)
-#define Info() _Info(__FILE__, __LINE__)
-#define Error() _Error(__FILE__, __LINE__)
-#define StackTrace() _StackTrace(__FILE__, __LINE__)
 
 #else
 // Clang __FILE__ and __LINE__ evalaute to the caller of the function
@@ -200,15 +213,6 @@ typedef _Log<wchar_t, LogStackTraceType> WStackTrace;
  * These macros provide an opportunity to handle sending debug, error and info messages to other MPI ranks
  */
 
-#ifdef _PV_DEBUG_OUTPUT
-#define logDebug(fmt, ...) pv_log_debug(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#else
-#define logDebug(fmt, ...)
-#endif
-
-#define logError(fmt, ...) pv_log_error(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#define logInfo(fmt, ...) pv_log_info(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#define exitFailure(fmt, ...) pv_exit_failure(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 void pv_log_error(const char *file, int line, const char *fmt, ...);
 void pv_log_debug(const char *file, int line, const char *fmt, ...);
