@@ -50,21 +50,21 @@
 // the file where the inline function is called. This is different
 // from Clang, which puts in the __FILE__ and __LINE__ of the caller
 #ifdef __GNUC__
-#define Debug() PV::_Debug(__FILE__, __LINE__)
-#define Info() PV::_Info(__FILE__, __LINE__)
-#define Error() PV::_Error(__FILE__, __LINE__)
-#define StackTrace() PV::_StackTrace(__FILE__, __LINE__)
+#define pvDebug() PV::_Debug(__FILE__, __LINE__)
+#define pvInfo() PV::_Info(__FILE__, __LINE__)
+#define pvError() PV::_Error(__FILE__, __LINE__)
+#define pvStackTrace() PV::_StackTrace(__FILE__, __LINE__)
 #endif
 
 #ifdef _PV_DEBUG_OUTPUT
-#define logDebug(fmt, ...) PV::pv_log_debug(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define pvLogDebug(fmt, ...) PV::pv_log_debug(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 #else
-#define logDebug(fmt, ...)
+#define pvLogDebug(fmt, ...)
 #endif
 
-#define logError(fmt, ...) PV::pv_log_error(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#define logInfo(fmt, ...) PV::pv_log_info(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#define exitFailure(fmt, ...) PV::pv_exit_failure(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define pvLogError(fmt, ...) PV::pv_log_error(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define pvLogInfo(fmt, ...) PV::pv_log_info(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+#define pvExitFailure(fmt, ...) PV::pv_exit_failure(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 namespace PV {
 enum LogTypeEnum {
