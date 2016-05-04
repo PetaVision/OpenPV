@@ -1,4 +1,4 @@
-function extractImagesOctave(batch_name, cnt)
+function extractCIFAR(batch_name, cnt)
 
 %
 %   ___     ___  __        __  ___     __     ___       __                   __   ___  __  
@@ -14,8 +14,8 @@ function extractImagesOctave(batch_name, cnt)
 %	Navigate to the location of your unzipped cifar.mat files
 %	Open octave 
 %
-%	> addpath('~/path/to/PetaVision/mlab/datasets')
-%	> extractImagesOctave(batch_name, cnt)
+%	> addpath('~/path/to/OpenPV/tutorials/LCACifar/scripts/')
+%	> extractCIFAR(batch_name, cnt)
 %
 %	 batch_name:	mat file given as string, e.g 'data_batch_1.mat'
 % 	 cnt:		most significant digit in unique file number
