@@ -66,11 +66,14 @@ protected:
    virtual void ioParam_classNamesFile(enum ParamsIOFlag ioFlag);
    virtual void ioParam_outputPeriod(enum ParamsIOFlag ioFlag);
    virtual void ioParam_drawMontage(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minBoundingBoxWidth(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minBoundingBoxHeight(enum ParamsIOFlag ioFlag);
    virtual void ioParam_displayedCategories(enum ParamsIOFlag ioFlag);
    virtual void ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag);
    virtual void ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag);
    virtual void ioParam_heatMapMontageDir(enum ParamsIOFlag ioFlag);
    virtual void ioParam_imageBlendCoeff(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_maxDetections(enum ParamsIOFlag ioFlag);
    virtual void ioParam_boundingBoxLineWidth(enum ParamsIOFlag ioFlag);
    virtual void ioParam_displayCommand(enum ParamsIOFlag ioFlag);
    virtual int initNumValues();
@@ -84,17 +87,25 @@ protected:
 private:
    int initialize_base();
    int setOptimalMontage();
-   int findMaxLocation(int * winningFeature, int * xLocation, int * yLocation, pvadata_t * maxActivity);
-   int findBoundingBox(int winningFeature, int xLocation, int yLocation, int * boundingBox);
+   int findMaxLocation(int * winningFeature, int * xLocation, int * yLocation, float * maxActivity, float * buffer, PVLayerLoc const * loc);
+   int findBoundingBox(int winningFeature, int xLocation, int yLocation, float const * buffer, PVLayerLoc const * loc, int * boundingBox);
    int drawTextOnMontage(char const * backgroundColor, char const * textColor, char const * labelText, int xOffset, int yOffset, int width, int height);
    int drawTextIntoFile(char const * labelName, char const * backgroundColor, char const * textColor, char const * labelText, int width, int height=32);
    int insertFileIntoMontage(char const * labelname, int xOffset, int yOffset, int xExpectedSize, int yExpectedSize);
    int insertImageIntoMontage(int xStart, int yStart, pvadata_t const * sourceData, PVLayerLoc const * loc, bool extended);
 
+   int makeGrayScaleImage();
+   int drawHeatMaps();
+   int drawOriginalAndReconstructed();
+   int drawProgressInformation();
+   int writeMontage();
+
 // Member variables
 protected:
    char * imageLayerName;
    char * reconLayerName;
+   int minBoundingBoxWidth;
+   int minBoundingBoxHeight;
    bool drawMontage;
    char * classNamesFile;
    char ** classNames; // The array of strings giving the names of each category.  Only the root process creates or uses this array.
@@ -103,6 +114,7 @@ protected:
    int displayCategoryIndexStart;
    int displayCategoryIndexEnd;
    char * heatMapMontageDir;
+   int maxDetections;
    int boundingBoxLineWidth;
    char * displayCommand;
 

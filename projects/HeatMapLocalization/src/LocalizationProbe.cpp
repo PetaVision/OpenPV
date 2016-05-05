@@ -31,6 +31,8 @@ int LocalizationProbe::initialize_base() {
    detectionThreshold = 0.0f;
    heatMapMaximum = 1.0f;
    heatMapMontageDir = NULL;
+   minBoundingBoxWidth = 6;
+   minBoundingBoxHeight = 6;
    drawMontage = false;
    displayCommand = NULL;
 
@@ -52,6 +54,7 @@ int LocalizationProbe::initialize_base() {
    montageImageLocal = NULL;
    montageImageComm = NULL;
    imageBlendCoeff = 0.3;
+   maxDetections = 100;
    boundingBoxLineWidth = 5;
 
    outputFilenameBase = NULL; // Not used by harness since we don't have a filename to use for the base
@@ -63,7 +66,7 @@ int LocalizationProbe::initialize(const char * probeName, PV::HyPerCol * hc) {
    int status = PV::LayerProbe::initialize(probeName, hc);
    PV::InterColComm * icComm = parent->icCommunicator();
    if (status != PV_SUCCESS) { exit(EXIT_FAILURE); }
-   outputFilenameBase = strdup("out"); // The harness doesn't provide a filename, so we use this as the file base name for every image.
+   outputFilenameBase = strdup("out"); // Default file base name for every image.
    return status;
 }
 
@@ -72,9 +75,12 @@ int LocalizationProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    ioParam_imageLayer(ioFlag);
    ioParam_reconLayer(ioFlag);
    ioParam_detectionThreshold(ioFlag);
+   ioParam_maxDetections(ioFlag);
    ioParam_heatMapMaximum(ioFlag);
    ioParam_classNamesFile(ioFlag);
    ioParam_outputPeriod(ioFlag);
+   ioParam_minBoundingBoxWidth(ioFlag);
+   ioParam_minBoundingBoxHeight(ioFlag);
    ioParam_drawMontage(ioFlag);
    ioParam_displayedCategories(ioFlag);
    ioParam_displayCategoryIndexStart(ioFlag);
@@ -116,6 +122,14 @@ void LocalizationProbe::ioParam_outputPeriod(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void LocalizationProbe::ioParam_minBoundingBoxWidth(enum ParamsIOFlag ioFlag) {
+   this->getParent()->ioParamValue(ioFlag, this->getName(), "minBoundingBoxWidth", &minBoundingBoxWidth, minBoundingBoxWidth, true/*warnIfAbsent*/);
+}
+
+void LocalizationProbe::ioParam_minBoundingBoxHeight(enum ParamsIOFlag ioFlag) {
+   this->getParent()->ioParamValue(ioFlag, this->getName(), "minBoundingBoxHeight", &minBoundingBoxHeight, minBoundingBoxHeight, true/*warnIfAbsent*/);
+}
+
 void LocalizationProbe::ioParam_drawMontage(enum ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "drawMontage", &drawMontage, drawMontage, true/*warnIfAbsent*/);
 }
@@ -154,6 +168,10 @@ void LocalizationProbe::ioParam_imageBlendCoeff(enum ParamsIOFlag ioFlag) {
    }
 }
 
+void LocalizationProbe::ioParam_maxDetections(enum ParamsIOFlag ioFlag) {
+   this->getParent()->ioParamValue(ioFlag, this->getName(), "maxDetections", &maxDetections, maxDetections, true/*warnIfAbsent*/);
+}
+
 void LocalizationProbe::ioParam_boundingBoxLineWidth(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
@@ -170,7 +188,9 @@ void LocalizationProbe::ioParam_displayCommand(enum ParamsIOFlag ioFlag) {
 
 
 int LocalizationProbe::initNumValues() {
-   return setNumValues(6); // winningFeature,maxActivity,boundingBoxLeft,boundingBoxRight,boundingBoxTop,boundingBoxBottom
+   return setNumValues(6*maxDetections+1);
+   // Each detection has 6 values. winningFeature,maxActivity,boundingBoxLeft,boundingBoxRight,boundingBoxTop,boundingBoxBottom
+   // getValuesBuffer[0] returns the number of realized detections.
 }
 
 int LocalizationProbe::communicateInitInfo() {
@@ -371,17 +391,6 @@ int LocalizationProbe::communicateInitInfo() {
                fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, labelFilename);
                exit(EXIT_FAILURE);
             }
-
-            slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, category);
-            if (slen>=PV_PATH_MAX) {
-               fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error: file name for label %d is too long (%d characters versus %d).\n", getKeyword(), name, category, slen, PV_PATH_MAX);
-               exit(EXIT_FAILURE);
-            }
-            status = drawTextIntoFile(labelFilename, "white", "blue", classNames[f], nxGlobal);
-            if (status != 0) {
-               exit(EXIT_FAILURE);
-            }
          }
       } 
    }
@@ -439,8 +448,8 @@ int LocalizationProbe::allocateDataStructures() {
    if (drawMontage) {
       assert(imageLayer);
       PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
-      int const nx= imageLoc->nx;
-      int const ny= imageLoc->ny;
+      int const nx = imageLoc->nx;
+      int const ny = imageLoc->ny;
       grayScaleImage = (pvadata_t *) calloc(nx*ny, sizeof(pvadata_t));
       if (grayScaleImage==NULL) {
          fprintf(stderr, "%s \"%s\" error allocating for montage background image: %s\n", getKeyword(), name, strerror(errno));
@@ -720,59 +729,89 @@ bool LocalizationProbe::needUpdate(double timed, double dt) {
 }
 
 int LocalizationProbe::calcValues(double timevalue) {
-   int winningFeature, xLocation, yLocation;
-   pvadata_t maxActivity;
-   findMaxLocation(&winningFeature, &xLocation, &yLocation, &maxActivity);
-   // the values returned by findMaxLocation are for the global restricted targetLayer
    double * values = getValuesBuffer();
-   if (winningFeature >= 0) {
-      assert(xLocation >= 0 && yLocation >= 0);
-      values[0] = (double) winningFeature;
-      values[1] = maxActivity;
-      double * boundingBoxDbl = &values[2];
-      if (maxActivity>=detectionThreshold) {
+   assert(getNumValues()==6*maxDetections+1);
+   values[0] = 0.0;
+   for (int k=0; k<maxDetections; k++) {
+      values[6*k+1] = -1.0;
+      values[6*k+2] = 0.0;
+      values[6*k+3] = -1.0;
+      values[6*k+4] = -1.0;
+      values[6*k+5] = -1.0;
+      values[6*k+6] = -1.0;
+   }
+   int const N = targetLayer->getNumNeurons();
+   PVLayerLoc const * loc = targetLayer->getLayerLoc();
+   PVHalo const * halo = &loc->halo;
+   float * targetRes = (float *) malloc(sizeof(float)*N);
+   if (targetRes==NULL) { fprintf(stderr, "Nooooooooooo!\n"); exit(EXIT_FAILURE); }
+   for (int n=0; n<N; n++) {
+      int nExt = kIndexExtended(n, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
+      targetRes[n] = targetLayer->getLayerData()[nExt];
+   }
+   values[0] = maxDetections;
+   int detection = 0;
+   while(detection<maxDetections) {
+      int winningFeature, xLocation, yLocation;
+      float activity;
+      findMaxLocation(&winningFeature, &xLocation, &yLocation, &activity, targetRes, loc);
+      if (winningFeature >= 0 && activity >= detectionThreshold) {
+         assert(xLocation>=0 && yLocation>=0);
          int boundingBox[4];
-         findBoundingBox(winningFeature, xLocation, yLocation, boundingBox);
-         boundingBoxDbl[0] = (double) boundingBox[0] * imageDilationX;
-         boundingBoxDbl[1] = (double) boundingBox[1] * imageDilationX;
-         boundingBoxDbl[2] = (double) boundingBox[2] * imageDilationY;
-         boundingBoxDbl[3] = (double) boundingBox[3] * imageDilationY;
+         findBoundingBox(winningFeature, xLocation, yLocation, targetRes, loc, boundingBox);
+         double score = 0.0;
+         int numpixels = 0;
+         for (int y=boundingBox[2]; y<boundingBox[3]; y++) {
+            for (int x=boundingBox[0]; x<boundingBox[1]; x++) {
+               int xLoc = x-loc->kx0;
+               int yLoc = y-loc->ky0;
+               if (xLoc>=0 && xLoc<loc->nx && yLoc>=0 && yLoc<loc->ny) {
+                  int n=kIndex(xLoc, yLoc, winningFeature, loc->nx, loc->ny,loc->nf);
+                  int nExt=kIndexExtended(n, loc->nx, loc->ny,loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
+                  targetRes[n] = 0.0f;
+                  score += targetLayer->getLayerData()[nExt];
+                  numpixels++;
+               }
+            }
+         }
+         MPI_Allreduce(MPI_IN_PLACE, &score, 1, MPI_DOUBLE, MPI_SUM, parent->icCommunicator()->communicator());
+         MPI_Allreduce(MPI_IN_PLACE, &numpixels, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
+         score = score/numpixels;
+         if (boundingBox[1]-boundingBox[0]>=minBoundingBoxWidth && boundingBox[3]-boundingBox[2]>=minBoundingBoxHeight) {
+            double * thisBox = &values[6*detection+1];
+            thisBox[0] = (double) winningFeature;
+            thisBox[1] = score;
+            double * boundingBoxDbl = &thisBox[2];
+            boundingBoxDbl[0] = (double) boundingBox[0] * imageDilationX;
+            boundingBoxDbl[1] = (double) boundingBox[1] * imageDilationX;
+            boundingBoxDbl[2] = (double) boundingBox[2] * imageDilationY;
+            boundingBoxDbl[3] = (double) boundingBox[3] * imageDilationY;
+            detection++;
+         }
       }
       else {
-         values[2] = -1.0;
-         values[3] = -1.0;
-         values[4] = -1.0;
-         values[5] = -1.0;
+         assert(!(winningFeature >= 0 && activity >= detectionThreshold));
+         values[0] = detection;
+         break;
       }
    }
-   else {
-      assert(xLocation < 0 && yLocation < 0);
-      values[0] = -1.0;
-      values[1] = 0.0;
-      values[2] = -1.0;
-      values[3] = -1.0;
-      values[4] = -1.0;
-      values[5] = -1.0;
-   }
+   free(targetRes);
    return PV_SUCCESS;
 }
 
-int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, int * yLocation, pvadata_t * maxActivity) {
-   int const N = targetLayer->getNumNeurons();
-   PVLayerLoc const * loc = targetLayer->getLayerLoc();
+int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, int * yLocation, float * maxActivity, float * buffer, PVLayerLoc const * loc) {
    int const nxy = loc->nx * loc->ny;
-   PVHalo const * halo = &loc->halo;
+   int const nf = loc->nf;
    int maxLocation = -1;
    pvadata_t maxVal = -std::numeric_limits<pvadata_t>::infinity();
    for (int n=0; n<nxy; n++) {
-      int nExt = kIndexExtended(n*loc->nf, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
       for (int idx=0; idx<numDisplayedCategories; idx++) {
          int const category = displayedCategories[idx];
          int const f = category-1; // category is 1-indexed; f is zero-indexed.
-         pvadata_t const a = targetLayer->getLayerData()[nExt+f];
+         pvadata_t const a = buffer[n*nf+f];
          if (a>maxVal) {
             maxVal = a;
-            maxLocation = n*loc->nf + f;
+            maxLocation = n*nf + f;
          }
       }
    }
@@ -783,17 +822,19 @@ int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, in
    MPI_Allreduce(&maxVal, &maxValGlobal, 1, MPI_FLOAT, MPI_MAX, comm);
 
    int maxLocGlobal;
+   int const nxGlobal = loc->nxGlobal;
+   int const nyGlobal = loc->nyGlobal;
    if (maxValGlobal==maxVal) {
        maxLocGlobal = globalIndexFromLocal(maxLocation, *loc);
    }
    else {
-       maxLocGlobal = targetLayer->getNumGlobalNeurons();
+       maxLocGlobal = nxGlobal*nyGlobal*nf; // should be the same as targetLayer's getNumGlobalNeurons
    }
    MPI_Allreduce(MPI_IN_PLACE, &maxLocGlobal, 1, MPI_INT, MPI_MIN, comm);
    if (maxLocGlobal>=0) {
-      *winningFeature = featureIndex(maxLocGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf);
-      *xLocation = kxPos(maxLocGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf);
-      *yLocation = kyPos(maxLocGlobal, loc->nxGlobal, loc->nyGlobal, loc->nf);
+      *winningFeature = featureIndex(maxLocGlobal, nxGlobal, nyGlobal, nf);
+      *xLocation = kxPos(maxLocGlobal, nxGlobal, nyGlobal, nf);
+      *yLocation = kyPos(maxLocGlobal, nxGlobal, nyGlobal, nf);
    }
    else {
       *winningFeature = -1;
@@ -804,10 +845,8 @@ int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, in
    return PV_SUCCESS;
 }
 
-int LocalizationProbe::findBoundingBox(int winningFeature, int xLocation, int yLocation, int * boundingBox) {
+int LocalizationProbe::findBoundingBox(int winningFeature, int xLocation, int yLocation, float const * buffer, PVLayerLoc const * loc, int * boundingBox) {
    if (winningFeature>=0 && xLocation>=0 && yLocation>=0) {
-      PVLayerLoc const * loc = targetLayer->getLayerLoc();
-      PVHalo const * halo = &loc->halo;
       bool locationThisProcess = (xLocation>=loc->kx0 && xLocation<loc->kx0+loc->nx && yLocation>=loc->ky0 && yLocation<loc->ky0+loc->ny);
       int lt = xLocation - loc->kx0;
       int rt = xLocation - loc->kx0;
@@ -815,8 +854,7 @@ int LocalizationProbe::findBoundingBox(int winningFeature, int xLocation, int yL
       int up = yLocation - loc->ky0;
       int const N = targetLayer->getNumNeurons();
       for (int n=winningFeature; n<N; n+=loc->nf) {
-         int nExt = kIndexExtended(n, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
-         pvadata_t const a = targetLayer->getLayerData()[nExt];
+         float const a = buffer[n];
          if (a>detectionThreshold) {
             int x = kxPos(n, loc->nx, loc->ny, loc->nf);
             int y = kyPos(n, loc->nx, loc->ny, loc->nf);
@@ -832,7 +870,7 @@ int LocalizationProbe::findBoundingBox(int winningFeature, int xLocation, int yL
       rt += loc->kx0;
       up += loc->ky0;
       dn += loc->ky0;
-      
+
       // Now we need the maximum of the rt and dn over all processes,
       // and the minimum of the lt and up over all processes.
       // Change the sign of lt and up, then do MPI_MAX, then change the sign back.
@@ -861,78 +899,32 @@ int LocalizationProbe::outputStateWrapper(double timef, double dt){
 
 int LocalizationProbe::outputState(double timevalue) {
    int status = getValues(timevalue); // all processes must call getValues in parallel.
-   double * values = getValuesBuffer();
-   int winningFeature = (int) values[0];
-   assert(winningFeature>=0 && winningFeature<targetLayer->getLayerLoc()->nf);
-   double maxActivity = values[1];
-
-   // Each MPI process copies its restricted activity into a buffer to be sent over MPI.
-   // A better way to do this would be to use an MPI_Datatype.
-   pvadata_t * localBuffer = (pvadata_t *) malloc(sizeof(pvadata_t)*(size_t) targetLayer->getNumNeurons());
-   if (localBuffer==NULL) {
-      fprintf(stderr, "%s \"%s\": outputState failed to allocate local buffer: %s", getKeyword(), name, strerror(errno));
-      exit(EXIT_FAILURE);
+   if (parent->columnId()!=0) {
+      return PV_SUCCESS;
    }
-   if (parent->columnId()==0) {
-      PVLayerLoc const * loc = targetLayer->getLayerLoc();
-      PVHalo const * halo = &loc->halo;
-      pvadata_t * globalBuffer = (pvadata_t *) malloc(sizeof(pvadata_t)*(size_t) targetLayer->getNumGlobalNeurons());
-      if (globalBuffer==NULL) {
-         fprintf(stderr, "%s \"%s\": outputState failed to allocate global buffer: %s", getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
+   if (getTextOutputFlag()) {
+      assert(outputstream && outputstream->fp);
+      double * values = getValuesBuffer();
+      int numDetected = (int) nearbyint(values[0]);
+      assert(numDetected>=0 && numDetected<maxDetections && getNumValues()==maxDetections*6+1);
+      if (numDetected==0) {
+         fprintf(outputstream->fp, "Time %f, no detections.\n", timevalue);
       }
-      for (int r=0; r<parent->icCommunicator()->commSize(); r++) {
-         int row = rowFromRank(r, parent->icCommunicator()->numCommRows(), parent->icCommunicator()->numCommColumns());
-         int column = columnFromRank(r, parent->icCommunicator()->numCommRows(), parent->icCommunicator()->numCommColumns());
-         if (r!=0) {
-            MPI_Recv(localBuffer, targetLayer->getNumNeurons(), MPI_FLOAT, 0, 53, parent->icCommunicator()->communicator(), MPI_STATUS_IGNORE);
-         }
-         for (int y=0; y<targetLayer->getLayerLoc()->ny; y++) {
-            int kLocalExt = kIndex(halo->lt,y+halo->up,0,loc->nx+halo->lt+halo->rt, loc->ny+halo->dn+halo->up, loc->nf);
-            int kGlobal = kIndex(column*loc->nx,row*loc->ny+y,0,loc->nxGlobal,loc->nyGlobal,loc->nf);
-            memcpy(&globalBuffer[kGlobal], &targetLayer->getLayerData()[kLocalExt], sizeof(pvadata_t)*loc->nf*loc->nx);
-         }
-
-         if (maxActivity >= detectionThreshold) {
-            fprintf(outputstream->fp, "Time %f, maximum activity of %f, \"%s\", bounding box x=[%d,%d), y=[%d,%d)\n",
-                  timevalue,
-                  maxActivity,
-                  getClassName(winningFeature),
-                  (int) values[2],
-                  (int) values[3],
-                  (int) values[4],
-                  (int) values[5]);
-         }
-         else {
-            fprintf(outputstream->fp, "Time %f, maximum activity of %f, \"%s\", not above threshold %f\n",
-                  timevalue,
-                  maxActivity,
-                  getClassName(winningFeature),
-                  detectionThreshold);
-         }
-
-         bool featureSelector[loc->nf];
-         memset(featureSelector, 0, sizeof(bool)*loc->nf);
-         for (int c = 0; c < this->numDisplayedCategories; c++) {
-            featureSelector[displayedCategories[c]-1]=true;
-         }
-         for (int k=0; k<targetLayer->getNumGlobalNeurons(); k++) {
-            int x = kxPos(k, loc->nxGlobal, loc->nyGlobal, loc->nf);
-            int y = kyPos(k, loc->nxGlobal, loc->nyGlobal, loc->nf);
-            int f = featureIndex(k, loc->nxGlobal, loc->nyGlobal, loc->nf);
-            if (featureSelector[f]) {
-               fprintf(outputstream->fp, "  Tile (%d, %d), category %d \"%s\": activity %f\n", x, y, f, getClassName(f), globalBuffer[k]);
-            }
-         }
+      for (int d=0; d<numDetected; d++) {
+         double const * thisDetection = &values[6*d+1];
+         int winningFeature = (int) thisDetection[0];
+         assert(winningFeature>=0 && winningFeature<targetLayer->getLayerLoc()->nf);
+         double score = thisDetection[1];
+         fprintf(outputstream->fp, "Time %f, \"%s\", score %f, bounding box x=[%d,%d), y=[%d,%d)\n",
+               timevalue,
+               getClassName(winningFeature),
+               score,
+               (int) thisDetection[2],
+               (int) thisDetection[3],
+               (int) thisDetection[4],
+               (int) thisDetection[5]);
       }
-      free(globalBuffer);
    }
-   else {
-      MPI_Send(localBuffer, targetLayer->getNumNeurons(), MPI_FLOAT, 0, 53, parent->icCommunicator()->communicator());
-   }
-   free(localBuffer);
-
-
    if (drawMontage) {
       status = makeMontage();
    }     
@@ -942,10 +934,90 @@ int LocalizationProbe::outputState(double timevalue) {
 int LocalizationProbe::makeMontage() {
    assert(drawMontage);
    assert(numMontageRows > 0 && numMontageColumns > 0);
-   assert(grayScaleImage);
    assert((parent->columnId()==0) == (montageImage!=NULL));
+   PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
+   PVHalo const * halo = &imageLoc->halo;
+   int const nx = imageLoc->nx;
+   int const ny = imageLoc->ny;
+   int const nf = imageLoc->nf;
+   int const N = nx * ny;
 
    // create grayscale version of image layer for background of heat maps.
+   makeGrayScaleImage();
+
+   // for each displayed category, copy grayScaleImage to the relevant part of the montage, and impose the upsampled version
+   // of the target layer onto it.
+   drawHeatMaps();
+
+   drawOriginalAndReconstructed();
+
+   if (parent->columnId()!=0) { return PV_SUCCESS; }
+
+   // Draw bounding boxes
+   if (boundingBoxLineWidth > 0) {
+      double * values = getValuesBuffer();
+      for (int d=0; d<(int) values[0]; d++) {
+         double * thisBoundingBox = &values[6*d+1];
+         int winningFeature = (int) values[6*d+1];
+         if (winningFeature<0) { continue; }
+         int left = (int) thisBoundingBox[2];
+         int right = (int) thisBoundingBox[3];
+         int top = (int) thisBoundingBox[4];
+         int bottom = (int) thisBoundingBox[5];
+         int winningIndex=-1;
+         for (int k=0; k<numDisplayedCategories; k++) {
+            int category = displayedCategories[k];
+            int feature = category-1;
+            if (feature==winningFeature) { winningIndex=k; break; }
+         }
+         assert(winningIndex>=0);
+         int montageColumn = kxPos(winningIndex, numMontageColumns, numMontageRows, 1);
+         int montageRow = kyPos(winningIndex, numMontageColumns, numMontageRows, 1);
+         int xStartInMontage = montageColumn * (imageLoc->nxGlobal+10) + 5 + left;
+         int yStartInMontage = montageRow * (imageLoc->nyGlobal+64+10) + 5 + 64 + top;
+         int width = (int) (right-left);
+         int height = (int) (bottom-top);
+         char const bbColor[3] = {'\377', '\0', '\0'}; // red
+         for (int y=0; y<boundingBoxLineWidth; y++) {
+            int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+            for (int k=0; k<3*width; k++) {
+               int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+               montageImage[lineStart+k] = bbColor[f];
+            }
+         }
+         for (int y=boundingBoxLineWidth; y<height-boundingBoxLineWidth; y++) {
+            int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+            for (int k=0; k<3*boundingBoxLineWidth; k++) {
+               int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+               montageImage[lineStart+k] = bbColor[f];
+            }
+            lineStart=kIndex(xStartInMontage+width-boundingBoxLineWidth, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+            for (int k=0; k<3*boundingBoxLineWidth; k++) {
+               int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+               montageImage[lineStart+k] = bbColor[f];
+            }
+         }
+         for (int y=height-boundingBoxLineWidth; y<height; y++) {
+            int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
+            for (int k=0; k<3*width; k++) {
+               int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
+               montageImage[lineStart+k] = bbColor[f];
+            }
+         }
+      }
+   }
+
+   // Add progress information to bottom 32 pixels
+   drawProgressInformation();
+
+   // write out montageImage to disk
+   writeMontage();
+
+   return PV_SUCCESS;
+}
+
+int LocalizationProbe::makeGrayScaleImage() {
+   assert(grayScaleImage);
    PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
    PVHalo const * halo = &imageLoc->halo;
    int const nx = imageLoc->nx;
@@ -985,37 +1057,44 @@ int LocalizationProbe::makeMontage() {
          *pixloc = scaleFactor * (*pixloc - minValue);
       }
    }
+   return PV_SUCCESS;
+}
 
-   // for each displayed category, copy grayScaleImage to the relevant part of the montage, and impose the upsampled version
-   // of the target layer onto it.
-
+int LocalizationProbe::drawHeatMaps() {
    pvadata_t thresholdColor[] = {0.5f, 0.5f, 0.5f}; // rgb color of heat map when activity is at or below detectionThreshold
    pvadata_t heatMapColor[] = {0.0f, 1.0f, 0.0f};   // rgb color of heat map when activity is at or above heatMapMaximum
 
    PVLayerLoc const * targetLoc = targetLayer->getLayerLoc();
    PVHalo const * targetHalo = &targetLoc->halo;
-   int winningFeature = (int) getValuesBuffer()[0];
-   int winningIndex = -1;
-   for (int idx=0; idx<numDisplayedCategories; idx++) {
-      if (winningFeature==displayedCategories[idx]-1) {
-         winningIndex = idx;
+   int winningFeature[maxDetections];
+   int winningIndex[maxDetections];
+   double maxConfidence[maxDetections];
+   for (int d=0; d<maxDetections; d++) {
+      maxConfidence[d] = getValuesBuffer()[6*d+2];
+      winningFeature[d] = (int) getValuesBuffer()[6*d+1];
+      winningIndex[d] = -1;
+      for (int idx=0; idx<numDisplayedCategories; idx++) {
+         if (displayedCategories[idx]==winningFeature[d]+1) {
+            winningIndex[d] = idx;
+         }
       }
    }
-   double maxConfidence = getValuesBuffer()[1];
-   pvadata_t maxConfByCategory[targetLoc->nf];
+
+   double maxConfByCategory[targetLoc->nf];
    for (int f=0; f<targetLoc->nf; f++) { maxConfByCategory[f] = -std::numeric_limits<pvadata_t>::infinity(); }
-   for (int k=0; k<targetLayer->getNumNeurons(); k++) {
-      int kExt = kIndexExtended(k, targetLoc->nx, targetLoc->ny, targetLoc->nf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-      pvadata_t a = targetLayer->getLayerData()[kExt];
-      int f = featureIndex(k, targetLoc->nx, targetLoc->ny, targetLoc->nf);
-      pvadata_t m = maxConfByCategory[f];
+   for (int d=0; d<getValuesBuffer()[0]; d++) {
+      int f = winningFeature[d];
+      double a = maxConfidence[d];
+      double m = maxConfByCategory[f];
       maxConfByCategory[f] = a > m ? a : m;
    }
-   MPI_Allreduce(MPI_IN_PLACE, maxConfByCategory, targetLoc->nf, MPI_FLOAT, MPI_MAX, parent->icCommunicator()->communicator());
+
+   PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
+   int const nx = imageLoc->nxGlobal;
+   int const ny = imageLoc->nyGlobal;
    for (int idx=0; idx<numDisplayedCategories; idx++) {
       int category = displayedCategories[idx];
       int f = category-1; // category is 1-indexed; f is zero-indexed.
-      bool highlightingSomewhere = false;
       for (int y=0; y<ny; y++) {
          for (int x=0; x<nx; x++) {
             pvadata_t backgroundLevel = grayScaleImage[x + nx * y];
@@ -1031,11 +1110,10 @@ int LocalizationProbe::makeMontage() {
                heatMapLevel *= (float) (heatMapLevel >= targetLayer->getLayerData()[targetIdxExt-f+f2]);
             }
 
-            highlightingSomewhere |= (heatMapLevel > detectionThreshold);
             heatMapLevel = (heatMapLevel - detectionThreshold)/(heatMapMaximum-detectionThreshold);
             heatMapLevel = heatMapLevel < (pvadata_t) 0 ? (pvadata_t) 0 : heatMapLevel > (pvadata_t) 1 ? (pvadata_t) 1 : heatMapLevel;
             int montageIdx = kIndex(x, y, 0, nx, ny, 3);
-            for(int rgb=0; rgb<3; rgb++) { 
+            for(int rgb=0; rgb<3; rgb++) {
                pvadata_t h = heatMapLevel * heatMapColor[rgb] + (1-heatMapLevel) * thresholdColor[rgb];
                pvadata_t g = imageBlendCoeff * backgroundLevel + (1-imageBlendCoeff) * h;
                assert(g>=(pvadata_t) -0.001 && g <= (pvadata_t) 1.001);
@@ -1072,30 +1150,27 @@ int LocalizationProbe::makeMontage() {
             }
          }
 
-         // Draw labels and confidences
+         // Draw confidences
          char confidenceText[16];
-         int slen = snprintf(confidenceText, 16, "%.1f", 100*maxConfByCategory[f]);
-         if (slen >= 16) {
-            fflush(stdout);
-            fprintf(stderr, "Formatted text for confidence %f of %d is too long.\n", maxConfByCategory[f], f);
-            exit(EXIT_FAILURE);
-         }
-         char const * textColor = NULL;
-         if (f==winningFeature && maxConfidence > 0.0) {
-            char labelFilename[PV_PATH_MAX];
-            int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/blue%0*d.tif", heatMapMontageDir, featurefieldwidth, f+1);
-            assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
-            insertFileIntoMontage(labelFilename, xStartInMontage, yStartInMontage-64, imageLoc->nxGlobal, 32);
-            
-            textColor = "blue";
+         if (maxConfByCategory[f]>0.0) {
+            int slen = snprintf(confidenceText, 16, "%.1f", 100*maxConfByCategory[f]);
+            if (slen >= 16) {
+               fflush(stdout);
+               fprintf(stderr, "Formatted text for confidence %f of category %d is too long.\n", maxConfByCategory[idx], f);
+               exit(EXIT_FAILURE);
+            }
          }
          else {
-            textColor = "gray";
+            strncpy(confidenceText, "-", 2);
          }
-         drawTextOnMontage("white", textColor, confidenceText, xStartInMontage, yStartInMontage-32, imageLoc->nxGlobal, 32);
+         drawTextOnMontage("white", "gray", confidenceText, xStartInMontage, yStartInMontage-32, imageLayer->getLayerLoc()->nxGlobal, 32);
       }
    }
+   return PV_SUCCESS;
+}
 
+int LocalizationProbe::drawOriginalAndReconstructed() {
+   PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
    // Draw original image
    int xStart = 5+(2*numMontageColumns+1)*(imageLoc->nxGlobal+10)/2;
    int yStart = 5+64;
@@ -1106,48 +1181,9 @@ int LocalizationProbe::makeMontage() {
    // I should check that reconLayer and imageLayer have the same dimensions
    yStart += imageLoc->nyGlobal + 64 + 10;
    insertImageIntoMontage(xStart, yStart, reconLayer->getLayerData(), reconLayer->getLayerLoc(), true/*extended*/);
+}
 
-   if (parent->columnId()!=0) { return PV_SUCCESS; }
-
-   // Draw bounding box
-   if (boundingBoxLineWidth > 0 && winningIndex>=0) {
-      int montageColumn = kxPos(winningIndex, numMontageColumns, numMontageRows, 1);
-      int montageRow = kyPos(winningIndex, numMontageColumns, numMontageRows, 1);
-      double * values = getValuesBuffer();
-      int xStartInMontage = montageColumn * (imageLoc->nxGlobal+10) + 5 + (int) values[2];
-      int yStartInMontage = montageRow * (imageLoc->nyGlobal+64+10) + 5 + 64 + (int) values[4];
-      int width = (int) (values[3]-values[2]);
-      int height = (int) (values[5]-values[4]);
-      char const bbColor[3] = {'\377', '\0', '\0'}; // red
-      for (int y=0; y<boundingBoxLineWidth; y++) {
-         int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
-         for (int k=0; k<3*width; k++) {
-            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
-            montageImage[lineStart+k] = bbColor[f];
-         }
-      }
-      for (int y=boundingBoxLineWidth; y<height-boundingBoxLineWidth; y++) {
-         int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
-         for (int k=0; k<3*boundingBoxLineWidth; k++) {
-            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
-            montageImage[lineStart+k] = bbColor[f];
-         }
-         lineStart=kIndex(xStartInMontage+width-boundingBoxLineWidth, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
-         for (int k=0; k<3*boundingBoxLineWidth; k++) {
-            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
-            montageImage[lineStart+k] = bbColor[f];
-         }
-      }
-      for (int y=height-boundingBoxLineWidth; y<height; y++) {
-         int lineStart=kIndex(xStartInMontage, yStartInMontage+y, 0, montageDimX, montageDimY, 3);
-         for (int k=0; k<3*width; k++) {
-            int f = featureIndex(k,imageLoc->nxGlobal, imageLoc->nyGlobal, 3);
-            montageImage[lineStart+k] = bbColor[f];
-         }
-      }
-   }
-
-   // Add progress information to bottom 32 pixels
+int LocalizationProbe::drawProgressInformation() {
    std::stringstream progress("");
    double elapsed = parent->simulationTime() - parent->getStartTime();
    double finishTime = parent->getStopTime() - parent->getStartTime();
@@ -1160,10 +1196,12 @@ int LocalizationProbe::makeMontage() {
       progress << "t = " << elapsed << ", completed";
    }
    drawTextOnMontage("black", "white", progress.str().c_str(), 0, montageDimY-32, montageDimX, 32);
+}
 
-   // write out montageImage
+int LocalizationProbe::writeMontage() {
    std::stringstream montagePathSStream("");
    montagePathSStream << heatMapMontageDir << "/" << outputFilenameBase << "_" << parent->getCurrentStep();
+   bool isLastTimeStep = parent->simulationTime() >= parent->getStopTime() - parent->getDeltaTimeBase()/2;
    if (isLastTimeStep) { montagePathSStream << "_final"; }
    montagePathSStream << ".tif";
    char * montagePath = strdup(montagePathSStream.str().c_str()); // not sure why I have to strdup this
@@ -1186,19 +1224,6 @@ int LocalizationProbe::makeMontage() {
    free(montagePath);
    dataset->RasterIO(GF_Write, 0, 0, montageDimX, montageDimY, montageImage, montageDimX, montageDimY, GDT_Byte, 3/*numBands*/, NULL, 3/*x-stride*/, 3*montageDimX/*y-stride*/, 1/*band-stride*/);
    GDALClose(dataset);
-
-   // Restore the winning feature's gray label
-   if (winningIndex >= 0) {
-      int montageColumn = kxPos(winningIndex, numMontageColumns, numMontageRows, 1);
-      int montageRow = kyPos(winningIndex, numMontageColumns, numMontageRows, 1);
-      int xStartInMontage = montageColumn * (imageLoc->nxGlobal+10) + 5;
-      int yStartInMontage = montageRow * (imageLoc->nyGlobal+64+10) + 5;
-      char labelFilename[PV_PATH_MAX];
-      int slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, winningFeature+1);
-      assert(slen<PV_PATH_MAX); // it fit when making the labels; it should fit now.
-      insertFileIntoMontage(labelFilename, xStartInMontage, yStartInMontage, imageLoc->nxGlobal, 32);
-   }
-
    return PV_SUCCESS;
 }
 
