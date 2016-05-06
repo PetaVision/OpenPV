@@ -28,8 +28,9 @@ int LocalizationProbe::initialize_base() {
    numDisplayedCategories = 0;
    displayCategoryIndexStart = -1;
    displayCategoryIndexEnd = -1;
-   detectionThreshold = 0.0f;
-   heatMapMaximum = 1.0f;
+   numDetectionThresholds = 0;
+   detectionThreshold = NULL;
+   heatMapMaximum = NULL;
    heatMapMontageDir = NULL;
    minBoundingBoxWidth = 6;
    minBoundingBoxHeight = 6;
@@ -74,17 +75,17 @@ int LocalizationProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV::LayerProbe::ioParamsFillGroup(ioFlag);
    ioParam_imageLayer(ioFlag);
    ioParam_reconLayer(ioFlag);
+   ioParam_displayedCategories(ioFlag);
+   ioParam_displayCategoryIndexStart(ioFlag);
+   ioParam_displayCategoryIndexEnd(ioFlag);
    ioParam_detectionThreshold(ioFlag);
    ioParam_maxDetections(ioFlag);
-   ioParam_heatMapMaximum(ioFlag);
    ioParam_classNamesFile(ioFlag);
    ioParam_outputPeriod(ioFlag);
    ioParam_minBoundingBoxWidth(ioFlag);
    ioParam_minBoundingBoxHeight(ioFlag);
    ioParam_drawMontage(ioFlag);
-   ioParam_displayedCategories(ioFlag);
-   ioParam_displayCategoryIndexStart(ioFlag);
-   ioParam_displayCategoryIndexEnd(ioFlag);
+   ioParam_heatMapMaximum(ioFlag);
    ioParam_heatMapMontageDir(ioFlag);
    ioParam_imageBlendCoeff(ioFlag);
    ioParam_boundingBoxLineWidth(ioFlag);
@@ -100,12 +101,26 @@ void LocalizationProbe::ioParam_reconLayer(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "reconLayer", &reconLayerName);
 }
 
-void LocalizationProbe::ioParam_detectionThreshold(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "detectionThreshold", &detectionThreshold, detectionThreshold);
+void LocalizationProbe::ioParam_displayedCategories(enum ParamsIOFlag ioFlag) {
+   this->getParent()->ioParamArray(ioFlag, this->getName(), "displayedCategories", &displayedCategories, &numDisplayedCategories);
 }
 
-void LocalizationProbe::ioParam_heatMapMaximum(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "heatMapMaximum", &heatMapMaximum, heatMapMaximum);
+void LocalizationProbe::ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
+   if (drawMontage && numDisplayedCategories==0) {
+      this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexStart", &displayCategoryIndexStart, -1, true/*warnIfAbsent*/);
+   }
+}
+
+void LocalizationProbe::ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
+   if (drawMontage && numDisplayedCategories==0) {
+      this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexEnd", &displayCategoryIndexEnd, -1, true/*warnIfAbsent*/);
+   }
+}
+
+void LocalizationProbe::ioParam_detectionThreshold(enum ParamsIOFlag ioFlag) {
+   parent->ioParamArray(ioFlag, name, "detectionThresholds", &detectionThreshold, &numDetectionThresholds);
 }
 
 void LocalizationProbe::ioParam_classNamesFile(enum ParamsIOFlag ioFlag) {
@@ -146,30 +161,17 @@ void LocalizationProbe::ioParam_drawMontage(enum ParamsIOFlag ioFlag) {
 #endif // PV_USE_GDAL
 }
 
-void LocalizationProbe::ioParam_displayedCategories(enum ParamsIOFlag ioFlag) {
-   this->getParent()->ioParamArray(ioFlag, this->getName(), "displayedCategories", &displayedCategories, &numDisplayedCategories);
-}
-
-void LocalizationProbe::ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
-   if (drawMontage && numDisplayedCategories==0) {
-      this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexStart", &displayCategoryIndexStart, -1, true/*warnIfAbsent*/);
-   }
-}
-
-void LocalizationProbe::ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
-   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
-   if (drawMontage && numDisplayedCategories==0) {
-      this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexEnd", &displayCategoryIndexEnd, -1, true/*warnIfAbsent*/);
-   }
-}
-
 void LocalizationProbe::ioParam_heatMapMontageDir(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->ioParamStringRequired(ioFlag, this->getName(), "heatMapMontageDir", &heatMapMontageDir);
+   }
+}
+
+void LocalizationProbe::ioParam_heatMapMaximum(enum ParamsIOFlag ioFlag) {
+   assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
+   if (drawMontage) {
+      parent->ioParamArray(ioFlag, name, "heatMapMaxima", &heatMapMaximum, &numHeatMapMaxima);
    }
 }
 
@@ -209,13 +211,6 @@ int LocalizationProbe::communicateInitInfo() {
    int status = PV::LayerProbe::communicateInitInfo();
    assert(targetLayer);
    int const nf = targetLayer->getLayerLoc()->nf;
-   if (drawMontage && heatMapMaximum < detectionThreshold) {
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\": heatMapMaximum (%f) cannot be less than detectionThreshold (%f).\n",
-               getKeyword(), getName(), heatMapMaximum, detectionThreshold);
-         exit(EXIT_FAILURE);
-      }
-   }
    imageLayer = parent->getLayerFromName(imageLayerName);
    if (imageLayer==NULL) {
       if (parent->columnId()==0) {
@@ -277,6 +272,81 @@ int LocalizationProbe::communicateInitInfo() {
          assert(displayedCategories[idx] < displayCategoryIndexEnd);
       }
    }
+
+   if (numDetectionThresholds==0) {
+      detectionThreshold = (float *) malloc(sizeof(*detectionThreshold)*(size_t) numDisplayedCategories);
+      if (detectionThreshold==NULL) {
+         fprintf(stderr, "%s \"%s\": Unable to allocate memory for detectionThresholds: %s\n",
+               getKeyword(), name, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      for (int k=0; k<numDisplayedCategories; k++) { detectionThreshold[0] = 0.0f; }
+      numDetectionThresholds = numDisplayedCategories;
+   }
+   else if (numDetectionThresholds==1 && numDisplayedCategories>1) {
+      detectionThreshold = (float *) realloc(detectionThreshold, sizeof(*detectionThreshold)*(size_t) numDisplayedCategories);
+      if (detectionThreshold==NULL) {
+         fprintf(stderr, "%s \"%s\": Unable to allocate memory for detectionThresholds: %s\n",
+               getKeyword(), name, strerror(errno));
+         exit(EXIT_FAILURE);
+      }
+      float detThresh = detectionThreshold[0];
+      for (int k=1; k<numDisplayedCategories; k++) { detectionThreshold[k] = detThresh; }
+      numDetectionThresholds = numDisplayedCategories;
+   }
+   else if (numDetectionThresholds != numDisplayedCategories) {
+      if (parent->columnId()==0) {
+         fprintf(stderr, "%s \"%s\" error: detectionThresholds array given %d entries, but number of displayed categories is %d.\n",
+               getKeyword(), name, numDetectionThresholds, numDisplayedCategories);
+         exit(EXIT_FAILURE);
+      }
+   }
+   if (drawMontage) {
+      // TODO: abstract out similarities between expanding heatMapMaxima array and expanding detectionThresholds array, and perhaps other arrays in pv-core.
+      if (numHeatMapMaxima==0) {
+         heatMapMaximum = (float *) malloc(sizeof(*detectionThreshold)*(size_t) numDisplayedCategories);
+         if (heatMapMaximum==NULL) {
+            fprintf(stderr, "%s \"%s\": Unable to allocate memory for heatMapMaxima: %s\n",
+                  getKeyword(), name, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         for (int k=0; k<numDisplayedCategories; k++) { heatMapMaximum[0] = 1.0f; }
+         numHeatMapMaxima = numDisplayedCategories;
+      }
+      else if (numHeatMapMaxima==1 && numDisplayedCategories>1) {
+         heatMapMaximum = (float *) realloc(heatMapMaximum, sizeof(*heatMapMaximum)*(size_t) numDisplayedCategories);
+         if (heatMapMaximum==NULL) {
+            fprintf(stderr, "%s \"%s\": Unable to allocate memory for heatMapMaxima: %s\n",
+                  getKeyword(), name, strerror(errno));
+            exit(EXIT_FAILURE);
+         }
+         float heatMapMax = heatMapMaximum[0];
+         for (int k=1; k<numDisplayedCategories; k++) { heatMapMaximum[k] = heatMapMax; }
+         numHeatMapMaxima = numDisplayedCategories;
+      }
+      else if (numHeatMapMaxima != numDisplayedCategories) {
+         if (parent->columnId()==0) {
+            fprintf(stderr, "%s \"%s\" error: detectionThresholds array given %d entries, but number of displayed categories is %d.\n",
+                  getKeyword(), name, numDetectionThresholds, numDisplayedCategories);
+            exit(EXIT_FAILURE);
+         }
+      }
+      assert(status==PV_SUCCESS);
+      for (int k=0; k<numDisplayedCategories; k++) {
+         if (heatMapMaximum[k] < detectionThreshold[k]) {
+            status = PV_FAILURE;
+            if (parent->columnId()==0) {
+               fprintf(stderr, "%s \"%s\": heatMapMaxima entry %d (%f) cannot be less than corresponding detectionThresholds entry (%f).\n",
+                     getKeyword(), name, k, heatMapMaximum[k], detectionThreshold[k]);
+            }
+         }
+      }
+      if (status != PV_SUCCESS) {
+         MPI_Barrier(parent->icCommunicator()->communicator());
+         exit(EXIT_FAILURE);
+      }
+   }
+
    imageDilationX = pow(2.0, targetLayer->getXScale() - imageLayer->getXScale());
    imageDilationY = pow(2.0, targetLayer->getYScale() - imageLayer->getYScale());
 
@@ -763,14 +833,20 @@ int LocalizationProbe::calcValues(double timevalue) {
    }
    values[0] = maxDetections;
    int detection = 0;
+   float minDetectionThreshold = std::numeric_limits<float>::infinity();
+   for (int k=0; k<numDisplayedCategories; k++) {
+      float a = detectionThreshold[k];
+      minDetectionThreshold = a < minDetectionThreshold ? a : minDetectionThreshold;
+   }
    while(detection<maxDetections) {
-      int winningFeature, xLocation, yLocation;
+      int winningFeature, winningIndex, xLocation, yLocation;
       float activity;
-      findMaxLocation(&winningFeature, &xLocation, &yLocation, &activity, targetRes, loc);
-      if (winningFeature >= 0 && activity >= detectionThreshold) {
+      findMaxLocation(&winningFeature, &winningIndex, &xLocation, &yLocation, &activity, targetRes, loc);
+      assert(winningFeature == displayedCategories[winningIndex]-1);
+      if (winningFeature >= 0 && activity >= minDetectionThreshold) {
          assert(xLocation>=0 && yLocation>=0);
          int boundingBox[4];
-         findBoundingBox(winningFeature, xLocation, yLocation, targetRes, loc, boundingBox);
+         findBoundingBox(winningFeature, winningIndex, xLocation, yLocation, targetRes, loc, boundingBox);
          double score = 0.0;
          int numpixels = 0;
          for (int y=boundingBox[2]; y<boundingBox[3]; y++) {
@@ -802,7 +878,7 @@ int LocalizationProbe::calcValues(double timevalue) {
          }
       }
       else {
-         assert(!(winningFeature >= 0 && activity >= detectionThreshold));
+         assert(!(winningFeature >= 0 && activity >= minDetectionThreshold));
          values[0] = detection;
          break;
       }
@@ -811,7 +887,7 @@ int LocalizationProbe::calcValues(double timevalue) {
    return PV_SUCCESS;
 }
 
-int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, int * yLocation, float * maxActivity, float * buffer, PVLayerLoc const * loc) {
+int LocalizationProbe::findMaxLocation(int * winningFeature, int * winningIndex, int * xLocation, int * yLocation, float * maxActivity, float * buffer, PVLayerLoc const * loc) {
    int const nxy = loc->nx * loc->ny;
    int const nf = loc->nf;
    int maxLocation = -1;
@@ -847,9 +923,16 @@ int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, in
       *winningFeature = featureIndex(maxLocGlobal, nxGlobal, nyGlobal, nf);
       *xLocation = kxPos(maxLocGlobal, nxGlobal, nyGlobal, nf);
       *yLocation = kyPos(maxLocGlobal, nxGlobal, nyGlobal, nf);
+      *winningIndex = -1;
+      for (int k=0; k<numDisplayedCategories; k++) {
+         int category = displayedCategories[k];
+         int f = category - 1;
+         if (*winningFeature==f) { *winningIndex = k; break; }
+      }
    }
    else {
       *winningFeature = -1;
+      *winningIndex = -1;
       *xLocation = -1;
       *yLocation = -1;
    }
@@ -857,7 +940,7 @@ int LocalizationProbe::findMaxLocation(int * winningFeature, int * xLocation, in
    return PV_SUCCESS;
 }
 
-int LocalizationProbe::findBoundingBox(int winningFeature, int xLocation, int yLocation, float const * buffer, PVLayerLoc const * loc, int * boundingBox) {
+int LocalizationProbe::findBoundingBox(int winningFeature, int winningIndex, int xLocation, int yLocation, float const * buffer, PVLayerLoc const * loc, int * boundingBox) {
    if (winningFeature>=0 && xLocation>=0 && yLocation>=0) {
       bool locationThisProcess = (xLocation>=loc->kx0 && xLocation<loc->kx0+loc->nx && yLocation>=loc->ky0 && yLocation<loc->ky0+loc->ny);
       int lt = xLocation - loc->kx0;
@@ -867,7 +950,7 @@ int LocalizationProbe::findBoundingBox(int winningFeature, int xLocation, int yL
       int const N = targetLayer->getNumNeurons();
       for (int n=winningFeature; n<N; n+=loc->nf) {
          float const a = buffer[n];
-         if (a>detectionThreshold) {
+         if (a>detectionThreshold[winningIndex]) {
             int x = kxPos(n, loc->nx, loc->ny, loc->nf);
             int y = kyPos(n, loc->nx, loc->ny, loc->nf);
             if (x<lt) { lt = x; }
@@ -1122,7 +1205,9 @@ int LocalizationProbe::drawHeatMaps() {
                heatMapLevel *= (float) (heatMapLevel >= targetLayer->getLayerData()[targetIdxExt-f+f2]);
             }
 
-            heatMapLevel = (heatMapLevel - detectionThreshold)/(heatMapMaximum-detectionThreshold);
+            float detThresh = detectionThreshold[idx];
+            float heatMapMax = heatMapMaximum[idx];
+            heatMapLevel = (heatMapLevel - detThresh)/(heatMapMax-detThresh);
             heatMapLevel = heatMapLevel < (pvadata_t) 0 ? (pvadata_t) 0 : heatMapLevel > (pvadata_t) 1 ? (pvadata_t) 1 : heatMapLevel;
             int montageIdx = kIndex(x, y, 0, nx, ny, 3);
             for(int rgb=0; rgb<3; rgb++) {
@@ -1243,7 +1328,9 @@ LocalizationProbe::~LocalizationProbe() {
    free(displayedCategories);
    free(imageLayerName);
    free(reconLayerName);
+   free(detectionThreshold);
    free(classNamesFile);
+   free(heatMapMaximum);
    free(heatMapMontageDir);
    free(displayCommand);
    free(outputFilenameBase);
