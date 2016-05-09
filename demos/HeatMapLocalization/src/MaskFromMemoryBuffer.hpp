@@ -39,6 +39,8 @@ private:
    int imageTop;
    int imageBottom;
 
-};
+}; // class MaskFromMemoryBuffer
+
+PV::BaseObject * createMaskFromMemoryBuffer(char const * name, PV::HyPerCol * hc);
 
 #endif /* MASKFROMMEMORYBUFFER_HPP_ */
