@@ -874,6 +874,9 @@ void HyPerCol::ioParamArray(enum ParamsIOFlag ioFlag, const char * group_name, c
              (*value)[k] = (T) param_array[k];
           }
        }
+       else {
+          *value = NULL;
+       }
     }
     else if (ioFlag==PARAMS_IO_WRITE) {
        writeParamArray(param_name, *value, *arraysize);
