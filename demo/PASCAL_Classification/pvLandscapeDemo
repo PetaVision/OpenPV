@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-Release/PASCAL_Classification -p paramsfiles/landscape.params -t 60 -d 0 2>&1 | tee pvLandscapeDemo.log

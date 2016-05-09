@@ -3,16 +3,7 @@
 # the directories to pass to add_subdirectory commands.
 # 
 # Comments begin with '#'
-PVSystemTests  # comments can follow the subdirectory
-  
 # Empty lines and lines containing only whitespace are ignored.
-auxlib/mlearning
-   auxlib/mlearning/tests   # Leading and trailing whitespace is ignored
-projects/HyPerHLCA
+# Leading and trailing whitespace is ignored
 
-# The above is processed exactly the same as the following would be
-# (without the leading '#' on each line):
-#PVSystemTests
-#auxlib/mlearning
-#auxlib/mlearning/tests
-#projects/HyPerHLCA
+tests  # comments can follow the subdirectory

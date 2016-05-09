@@ -4,10 +4,12 @@ Makefile
 CTestTestfile.cmake
 cmake_install.cmake
 .sass-cache/
+.DS_Store
 Gemfile
 Gemfile.lock
 _site/
+lib
+*.pyc
+src/include/cMakeHeader.h
 subdirectories.txt
 
-.DS_Store
-*.pyc
