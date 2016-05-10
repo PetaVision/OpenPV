@@ -8,6 +8,9 @@
 #include "PoolingConn.hpp"
 #include <cstring>
 #include <cmath>
+#include "utils/PVLog.hpp"
+#include "utils/PVAlloc.hpp"
+#include "utils/PVAssert.hpp"
 
 namespace PV {
 
@@ -37,10 +40,12 @@ PoolingConn::~PoolingConn() {
 
 int PoolingConn::initialize_base() {
    //gateIdxBuffer = NULL;
+   pvpatchAccumulateType = HyPerConn::UNDEFINED;
    thread_gateIdxBuffer = NULL;
    needPostIndexLayer = false;
    postIndexLayerName = NULL;
    postIndexLayer = NULL;
+   poolingType = UNDEFINED;
 
    return PV_SUCCESS;
 }
@@ -64,6 +69,57 @@ void PoolingConn::ioParam_weightInitType(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       parent->parameters()->handleUnnecessaryStringParameter(name, "weightInitType", NULL);
    }
+}
+
+void PoolingConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
+   PVParams * params = parent->parameters();
+
+   parent->ioParamStringRequired(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString);
+   if (ioFlag==PARAMS_IO_READ) {
+      if (pvpatchAccumulateTypeString==NULL) {
+         unsetAccumulateType();
+         return;
+      }
+      // Convert string to lowercase so that capitalization doesn't matter.
+      for (char * c = pvpatchAccumulateTypeString; *c!='\0'; c++) {
+         *c = (char) tolower((int) *c);
+      }
+
+      if ((strcmp(pvpatchAccumulateTypeString,"maxpooling")==0) ||
+           (strcmp(pvpatchAccumulateTypeString,"max_pooling")==0) ||
+           (strcmp(pvpatchAccumulateTypeString,"max pooling")==0)) {
+         poolingType = MAX;
+      }
+      else if ((strcmp(pvpatchAccumulateTypeString,"sumpooling")==0) ||
+           (strcmp(pvpatchAccumulateTypeString,"sum_pooling")==0)  ||
+           (strcmp(pvpatchAccumulateTypeString,"sum pooling")==0)) {
+         poolingType = SUM;
+      }
+      else if ((strcmp(pvpatchAccumulateTypeString,"avgpooling")==0) ||
+           (strcmp(pvpatchAccumulateTypeString,"avg_pooling")==0)  ||
+           (strcmp(pvpatchAccumulateTypeString,"avg pooling")==0)) {
+         poolingType = AVG;
+      }
+      else {
+         unsetAccumulateType();
+      }
+   }
+}
+
+void PoolingConn::unsetAccumulateType() {
+   if (parent->columnId()==0) {
+      if (pvpatchAccumulateTypeString) {
+         pvLogError("%s \"%s\" error: pvpatchAccumulateType \"%s\" is unrecognized.",
+               getKeyword(), name, pvpatchAccumulateTypeString);
+      }
+      else {
+         pvLogError("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
+               getKeyword(), name);
+      }
+      pvLogError("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
+   }
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   pvExitFailure("");
 }
 
 void PoolingConn::ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag){
@@ -98,7 +154,8 @@ int PoolingConn::initialize(const char * name, HyPerCol * hc, InitWeights * weig
 
    //set accumulateFunctionPointer
    assert(!inputParams->presentAndNotBeenRead(name, "pvpatchAccumulateType"));
-   switch (pvpatchAccumulateType) {
+   switch (poolingType) {
+#ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case ACCUMULATE_CONVOLVE:
       std::cout << "ACCUMULATE_CONVOLVE not allowed in pooling conn\n";
       exit(-1);
@@ -107,20 +164,21 @@ int PoolingConn::initialize(const char * name, HyPerCol * hc, InitWeights * weig
       std::cout << "ACCUMULATE_STOCASTIC not allowed in pooling conn\n";
       exit(-1);
       break;
-   case ACCUMULATE_MAXPOOLING:
+#endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
+   case MAX:
       accumulateFunctionPointer = &pvpatch_max_pooling;
       accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
       break;
-   case ACCUMULATE_SUMPOOLING:
+   case SUM:
       accumulateFunctionPointer = &pvpatch_sum_pooling;
       accumulateFunctionFromPostPointer = &pvpatch_sumpooling_from_post;
       break;
-   case ACCUMULATE_AVGPOOLING:
+   case AVG:
       accumulateFunctionPointer = &pvpatch_sum_pooling;
       accumulateFunctionFromPostPointer = &pvpatch_sumpooling_from_post;
       break;
    default:
-      assert(0);
+      pvAssert(0); // Only MAX, SUM, and AVG are defined in PoolingConn; other methods should be handled in other classes.
       break;
    }
 
@@ -312,13 +370,13 @@ int PoolingConn::checkpointWrite(const char * cpDir) {
 }
 
 float PoolingConn::minWeight(int arborId){
-   if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+   if(getPoolingType() == MAX){
      return 1.0;
    }
-   else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+   else if(getPoolingType() == SUM){
      return 1;
    }
-   else if(getPvpatchAccumulateType() == ACCUMULATE_AVGPOOLING){
+   else if(getPoolingType() == AVG){
      int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
      int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
      return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
@@ -330,13 +388,13 @@ float PoolingConn::minWeight(int arborId){
 }
 
 float PoolingConn::maxWeight(int arborId){
-   if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+   if(getPoolingType() == MAX){
      return 1.0;
    }
-   else if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+   else if(getPoolingType() == SUM){
      return 1;
    }
-   else if(getPvpatchAccumulateType() == ACCUMULATE_AVGPOOLING){
+   else if(getPoolingType() == AVG){
      int relative_XScale = (int) pow(2, pre->getXScale() - post->getXScale());
      int relative_YScale = (int) pow(2, pre->getYScale() - post->getYScale());
      return (1.0/(nxp*nyp*relative_XScale*relative_YScale));
@@ -355,13 +413,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
    }
    assert(post->getChannel(getChannel()));
 
-   float dt_factor;
-   if (getPvpatchAccumulateType()==ACCUMULATE_STOCHASTIC) {
-      dt_factor = getParent()->getDeltaTime();
-   }
-   else {
-      dt_factor = getConvertToRateDeltaTimeFactor();
-   }
+   float dt_factor = getConvertToRateDeltaTimeFactor();
 
    const PVLayerLoc * preLoc = preSynapticLayer()->getLayerLoc();
    const PVLayerLoc * postLoc = postSynapticLayer()->getLayerLoc();
@@ -370,7 +422,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
    const int numExtended = activity->numItems;
 
    float resetVal = 0;
-   if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+   if(getPoolingType() == MAX){
       resetVal = -INFINITY;
       float* gSyn = post->getChannel(getChannel());
       //gSyn is res
@@ -498,10 +550,10 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
          int offset = kfPre;
          int sf = fPatchSize();
          pvwdata_t w = 1.0;
-         if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+         if(getPoolingType() == SUM){
            w = 1.0;
          }
-         else if(getPvpatchAccumulateType() == ACCUMULATE_AVGPOOLING){
+         else if(getPoolingType() == AVG){
            float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
            float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
            w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
@@ -528,7 +580,7 @@ int PoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int
 #pragma omp parallel for
          for(int ni = 0; ni < numNeurons; ni++){
             //Different for maxpooling
-            if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+            if(getPoolingType() == MAX){
                for(int ti = 0; ti < parent->getNumThreads(); ti++){
                   if(gSynPatchHead[ni] < thread_gSyn[ti][ni]){
                      gSynPatchHead[ni] = thread_gSyn[ti][ni];
@@ -605,7 +657,7 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
    }
 
    float resetVal = 0;
-   if(getPvpatchAccumulateType() == ACCUMULATE_MAXPOOLING){
+   if(getPoolingType() == MAX){
       resetVal = -INFINITY;
    }
 
@@ -648,10 +700,10 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
          int offset = kfPost;
 
          pvwdata_t w = 1.0;
-         if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+         if(getPoolingType() == SUM){
            w = 1.0;
          }
-         else if(getPvpatchAccumulateType() == ACCUMULATE_AVGPOOLING){
+         else if(getPoolingType() == AVG){
            float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
            float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
            w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);

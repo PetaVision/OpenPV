@@ -5,6 +5,9 @@
  */
 
 #include "TransposePoolingConn.hpp"
+#include "utils/PVLog.hpp"
+#include "utils/PVAlloc.hpp"
+#include "utils/PVAssert.hpp"
 
 namespace PV {
 
@@ -61,7 +64,8 @@ int TransposePoolingConn::initialize(const char * name, HyPerCol * hc) {
 
    //set accumulateFunctionPointer
    assert(!inputParams->presentAndNotBeenRead(name, "pvpatchAccumulateType"));
-   switch (pvpatchAccumulateType) {
+   switch (poolingType) {
+#ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case ACCUMULATE_CONVOLVE:
       std::cout << "ACCUMULATE_CONVOLVE not allowed in TransposePoolingConn\n";
       exit(-1);
@@ -70,20 +74,21 @@ int TransposePoolingConn::initialize(const char * name, HyPerCol * hc) {
       std::cout << "ACCUMULATE_STOCASTIC not allowed in TransposePoolingConn\n";
       exit(-1);
       break;
-   case ACCUMULATE_MAXPOOLING:
+#endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
+   case PoolingConn::MAX:
       accumulateFunctionPointer = &pvpatch_max_pooling;
       accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
       break;
-   case ACCUMULATE_SUMPOOLING:
+   case PoolingConn::SUM:
       accumulateFunctionPointer = &pvpatch_sum_pooling;
       accumulateFunctionFromPostPointer = &pvpatch_sumpooling_from_post;
       break;
-   case ACCUMULATE_AVGPOOLING:
+   case PoolingConn::AVG:
       accumulateFunctionPointer = &pvpatch_sum_pooling;
       accumulateFunctionFromPostPointer = &pvpatch_sumpooling_from_post;
       break;
    default:
-      assert(0);
+      pvAssert(0);
       break;
    }
 
@@ -151,6 +156,59 @@ void TransposePoolingConn::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
       parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", triggerFlag);
       parent->parameters()->handleUnnecessaryStringParameter(name, "triggerLayerName", NULL);
    }
+}
+
+// TODO: ioParam_pvpatchAccumulateType and unsetAccumulateType are copied from PV::PoolingConn.
+// Can we make TransposePoolingConn a derived class of PoolingConn?  (TransposeConn is a derived class of HyPerConn.)
+void TransposePoolingConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
+   PVParams * params = parent->parameters();
+
+   parent->ioParamStringRequired(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString);
+   if (ioFlag==PARAMS_IO_READ) {
+      if (pvpatchAccumulateTypeString==NULL) {
+         unsetAccumulateType();
+         return;
+      }
+      // Convert string to lowercase so that capitalization doesn't matter.
+      for (char * c = pvpatchAccumulateTypeString; *c!='\0'; c++) {
+         *c = (char) tolower((int) *c);
+      }
+
+      if ((strcmp(pvpatchAccumulateTypeString,"maxpooling")==0) ||
+           (strcmp(pvpatchAccumulateTypeString,"max_pooling")==0) ||
+           (strcmp(pvpatchAccumulateTypeString,"max pooling")==0)) {
+         poolingType = PoolingConn::MAX;
+      }
+      else if ((strcmp(pvpatchAccumulateTypeString,"sumpooling")==0) ||
+           (strcmp(pvpatchAccumulateTypeString,"sum_pooling")==0)  ||
+           (strcmp(pvpatchAccumulateTypeString,"sum pooling")==0)) {
+         poolingType = PoolingConn::SUM;
+      }
+      else if ((strcmp(pvpatchAccumulateTypeString,"avgpooling")==0) ||
+           (strcmp(pvpatchAccumulateTypeString,"avg_pooling")==0)  ||
+           (strcmp(pvpatchAccumulateTypeString,"avg pooling")==0)) {
+         poolingType = PoolingConn::AVG;
+      }
+      else {
+         unsetAccumulateType();
+      }
+   }
+}
+
+void TransposePoolingConn::unsetAccumulateType() {
+   if (parent->columnId()==0) {
+      if (pvpatchAccumulateTypeString) {
+         pvLogError("%s \"%s\" error: pvpatchAccumulateType \"%s\" is unrecognized.",
+               getKeyword(), name, pvpatchAccumulateTypeString);
+      }
+      else {
+         pvLogError("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
+               getKeyword(), name);
+      }
+      pvLogError("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
+   }
+   MPI_Barrier(parent->icCommunicator()->communicator());
+   pvExitFailure("");
 }
 
 void TransposePoolingConn::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {
@@ -222,13 +280,6 @@ void TransposePoolingConn::ioParam_originalConnName(enum ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "originalConnName", &originalConnName);
 }
 
-#ifdef OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
-InitWeights * TransposePoolingConn::handleMissingInitWeights(PVParams * params) {
-   // TransposePoolingConn doesn't use InitWeights; it initializes the weight by transposing the initial weights of originalConn
-   return NULL;
-}
-#endif // OBSOLETE // Marked obsolete Mar 20, 2015.  Not used since creating the InitWeights object was taken out of HyPerConn.
-
 int TransposePoolingConn::communicateInitInfo() {
    int status = PV_SUCCESS;
    BaseConnection * originalConnBase = parent->getConnFromName(this->originalConnName);
@@ -277,7 +328,7 @@ int TransposePoolingConn::communicateInitInfo() {
    status = HyPerConn::communicateInitInfo(); // calls setPatchSize()
    if (status != PV_SUCCESS) return status;
 
-   if(!originalConn->needPostIndex() && pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+   if(!originalConn->needPostIndex() && poolingType == PoolingConn::MAX){
       if (parent->columnId()==0) {
          fprintf(stderr, "TransposePoolingConn \"%s\" error: original pooling conn \"%s\" needs to have a postIndexLayer if unmax pooling.\n", name, originalConnName);
          status = PV_FAILURE;
@@ -290,9 +341,9 @@ int TransposePoolingConn::communicateInitInfo() {
       fprintf(stderr, "TransposePoolingConn \"%s\" warning: originalConn's post layer phase is greater or equal than this layer's post. Behavior undefined.\n", name);
    }
 
-   if(originalConn->getPvpatchAccumulateType() != getPvpatchAccumulateType()){
+   if(originalConn->getPoolingType() != poolingType){
       fprintf(stderr, "TransposePoolingConn \"%s\" error: originalConn accumulateType does not match this layer's accumulate type.\n", name);
-      exit(-1);
+      exit(EXIT_FAILURE);
    }
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
@@ -326,7 +377,7 @@ int TransposePoolingConn::communicateInitInfo() {
    originalConn->postSynapticLayer()->synchronizeMarginWidth(pre);
    pre->synchronizeMarginWidth(originalConn->postSynapticLayer());
 
-   if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+   if(poolingType == PoolingConn::MAX){
       //Sync pre margins
       //Synchronize margines of this post and the postIndexLayer, and vice versa
       pre->synchronizeMarginWidth(originalConn->getPostIndexLayer());
@@ -498,7 +549,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
 
    //Grab postIdxLayer's data
    int* postIdxData = NULL;
-   if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+   if(poolingType == PoolingConn::MAX){
       PoolingIndexLayer* postIndexLayer = originalConn->getPostIndexLayer();
       assert(postIndexLayer);
       //Make sure this layer is an integer layer
@@ -514,7 +565,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
       pvdata_t * activityBatch = activity->data + b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt) * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
       pvdata_t * gSynPatchHeadBatch = post->getChannel(getChannel()) + b * postLoc->nx * postLoc->ny * postLoc->nf;
       int * postIdxDataBatch = NULL;
-      if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+      if(poolingType == PoolingConn::MAX){
          postIdxDataBatch = postIdxData + b * originalConn->getPostIndexLayer()->getNumExtended();
       }
 
@@ -580,7 +631,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
          const int kyPreExt = kyPos(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
          const int kfPre = featureIndex(kPreExt, preLoc->nx + preLoc->halo.lt + preLoc->halo.rt, preLoc->ny + preLoc->halo.dn + preLoc->halo.up, preLoc->nf);
 
-         if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+         if(poolingType == PoolingConn::MAX){
             const int kxPreGlobalExt = kxPreExt + preLoc->kx0;
             const int kyPreGlobalExt = kyPreExt + preLoc->ky0;
             if(kxPreGlobalExt < preLoc->halo.lt || kxPreGlobalExt >= preLoc->nxGlobal + preLoc->halo.lt ||
@@ -625,13 +676,13 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
             int sf = fPatchSize();
 
             pvwdata_t w = 1.0;
-            if(getPvpatchAccumulateType() == ACCUMULATE_SUMPOOLING){
+            if(poolingType == PoolingConn::MAX){
               //float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
               //float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
               //w = 1.0/(nxp*nyp*relative_XScale*relative_YScale);
               w = 1.0;
             }
-            else if(getPvpatchAccumulateType() == ACCUMULATE_AVGPOOLING){
+            else if(poolingType == PoolingConn::MAX){
               float relative_XScale = pow(2, (post->getXScale() - pre->getXScale()));
               float relative_YScale = pow(2, (post->getYScale() - pre->getYScale()));
               float normVal = nxp*nyp;
@@ -652,7 +703,7 @@ int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * acti
          //Looping over neurons first to be thread safe
 #pragma omp parallel for
          for(int ni = 0; ni < numNeurons; ni++){
-            if(pvpatchAccumulateType == ACCUMULATE_MAXPOOLING){
+            if(poolingType == PoolingConn::MAX){
                //Grab maxumum magnitude of thread_gSyn and set that value
                float maxMag = -INFINITY;
                int maxMagIdx = -1;
