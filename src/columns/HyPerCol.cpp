@@ -6,7 +6,8 @@
  */
 
 #define TIMER_ON
-#define TIMESTEP_OUTPUT
+#define DEFAULT_OUTPUT_PATH "output/"
+#define DEFAULT_DELTA_T 1.0 //time step size (msec)
 
 #include "HyPerCol.hpp"
 #include <columns/InterColComm.hpp>
@@ -207,7 +208,7 @@ int HyPerCol::initialize_base() {
    simTime = 0.0;
    startTime = 0.0;
    stopTime = 0.0;
-   deltaTime = DELTA_T;
+   deltaTime = DEFAULT_DELTA_T;
    dtAdaptFlag = false;
    writeTimeScaleFieldnames = true;
    useAdaptMethodExp1stOrder = false;
@@ -216,7 +217,7 @@ int HyPerCol::initialize_base() {
    dtAdaptTriggerLayerName = NULL;
    dtAdaptTriggerLayer = NULL;
    dtAdaptTriggerOffset = 0.0;
-   deltaTimeBase = DELTA_T;
+   deltaTimeBase = DEFAULT_DELTA_T;
    timeScale = NULL;
    timeScaleMax = NULL;
    timeScaleMax2 = NULL;
@@ -1027,10 +1028,10 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
             assert(outputPath != NULL);
          }
          else {
-            outputPath = strdup(OUTPUT_PATH);
+            outputPath = strdup(DEFAULT_OUTPUT_PATH);
             assert(outputPath != NULL);
             printf("Output path specified neither in command line nor in params file.\n"
-                   "Output path set to default \"%s\"\n", OUTPUT_PATH);
+                   "Output path set to default \"%s\"\n", DEFAULT_OUTPUT_PATH);
          }
       }
       break;
