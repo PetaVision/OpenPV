@@ -292,59 +292,6 @@ char * expandLeadingTilde(char const * path) {
    return newpath;
 }
 
-#ifdef OBSOLETE // Marked obsolete Jul 16, 2015.  Only probe that was using readFile was marked obsolete long ago
-/**
- * @filename
- * @buf
- * @nx
- * @ny
- */
-int readFile(const char * filename, float * buf, int * nx, int * ny)
-{
-   int result, nItems;
-   int status = 0;
-   FILE * fp;
-   const char * altfile = INPUT_PATH "const_one_64x64.bin";
-
-   if (filename == NULL) {
-      filename = altfile;
-      fprintf(stderr, "[ ]: Warning: Input file is NULL -- using %s.\n", filename);
-   }
-
-   if (filetype(filename) == TIFF_FILE_TYPE) {
-      return tiff_read_file(filename, buf, nx, ny);
-   }
-
-   fp = fopen(filename, "rb");
-
-   if (fp == NULL) {
-      fprintf(stderr, "[ ]: readFile: ERROR opening input file %s: %s\n", filename, strerror(errno));
-      return 1;
-   }
-   else {
-      nItems = (*nx) * (*ny);
-
-      // assume binary file
-      assert(filetype(filename) == BINARY_FILE_TYPE);
-      result = fread(buf, sizeof(float), nItems, fp);
-      fclose(fp);
-
-      if (result != nItems) {
-         fprintf(stderr, "[ ]: Warning: readFile %s, expected %d, got %d.\n",
-                filename, nItems, result);
-         status = 1;
-      }
-      else {
-#ifdef DEBUG_OUTPUT
-         printf("[ ]: readFile: Successfully read %d items from %s\n", nItems, filename);  fflush(stdout);
-#endif // DEBUG_OUTPUT
-      }
-   }
-
-   return status;
-}
-#endif // OBSOLETE // Marked obsolete Jul 16, 2015.  Only probe that was using readFile was marked obsolete long
-
 /**
  * @fd
  * @patch
