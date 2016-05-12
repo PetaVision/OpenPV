@@ -15,6 +15,19 @@
 #include <layers/HyPerLayer.hpp>
 
 /**
+ * A struct to contain a bounding box, its feature, its displayed category index, and its score
+ */
+struct localization {
+   int feature;
+   int displayedIndex;
+   double left;
+   double right;
+   double top;
+   double bottom;
+   double score;
+};
+
+/**
  * A probe to generate heat map montages.
  */
 class LocalizationProbe: public PV::LayerProbe {
@@ -36,23 +49,32 @@ public:
    char const * getDisplayCommand() { return displayCommand; }
    double getImageDilationX() { return imageDilationX; }
    double getImageDilationY() { return imageDilationY; }
+   inline int getNumDisplayedCategories() const { return numDisplayedCategories; }
    inline float getDetectionThreshold(int idx) const { return (idx>=0 && idx<numDisplayedCategories) ? detectionThreshold[idx] : std::numeric_limits<float>::signaling_NaN(); }
    virtual int communicateInitInfo();
    virtual int allocateDataStructures();
    virtual int outputStateWrapper(double timef, double dt);
 
-// /**
-//  * sets the base of the output filename.  It takes the part of the string
-//  * Everything before the last slash '/' is removed, and then everything
-//  * from the last period '.' onward is removed.  For example, if the input
-//  * argument is /home/user/Pictures/sample.images/image1.jpg
-//  * then the output filename base will be set to image1
-//  * If there is no slash in the input string, nothing is removed from the
-//  * front of the string; if there is no period (except before a slash)
-//  * nothing is discarded from the end.
-//  * Note that the input argument itself is not modified, only the
-//  * outputFilenameBase member variable.
-//  */
+   /**
+    * Returns the bounding box, feature, and score information for the detection of the given index.
+    * Throws out_of_range exception if index is >= getNumDetections().
+    * The bounding box values (left, right, top, bottom) are in imageLayer coordinates.
+    */
+   localization const * getDetection(size_t index) {return &detections.at(index);}
+
+   /**
+    * Sets the base of the output filename.  It takes everything after the
+    * last slash '/' and before the last period '.' from the input argument
+    * and stores it into the outputFilenameBase data member.
+    * For example, if the input argument is
+    * /home/user/Pictures/sample.images/image1.jpg
+    * then the output filename base will be set to image1
+    * If there is no slash in the input string, nothing is removed from the
+    * front of the string; if there is no period (except before a slash)
+    * nothing is discarded from the end.
+    * Note that the input argument itself is not modified, only the
+    * outputFilenameBase member variable.
+    */
    int setOutputFilenameBase(char const * fn);
    char const * getOutputFilenameBase() { return outputFilenameBase; }
 
@@ -69,7 +91,17 @@ protected:
    virtual void ioParam_detectionThreshold(enum ParamsIOFlag ioFlag);
    virtual void ioParam_classNamesFile(enum ParamsIOFlag ioFlag);
    virtual void ioParam_outputPeriod(enum ParamsIOFlag ioFlag);
+
+   /**
+    * The minimum width, in targetLayer pixels, for a bounding box to be
+    * included in the detections.
+    */
    virtual void ioParam_minBoundingBoxWidth(enum ParamsIOFlag ioFlag);
+
+   /**
+    * The minimum height, in targetLayer pixels, for a bounding box to be
+    * included in the detections.
+    */
    virtual void ioParam_minBoundingBoxHeight(enum ParamsIOFlag ioFlag);
    virtual void ioParam_drawMontage(enum ParamsIOFlag ioFlag);
    virtual void ioParam_heatMapMaximum(enum ParamsIOFlag ioFlag);
@@ -78,7 +110,6 @@ protected:
    virtual void ioParam_boundingBoxLineWidth(enum ParamsIOFlag ioFlag);
    virtual void ioParam_displayCommand(enum ParamsIOFlag ioFlag);
    virtual int initNumValues();
-   int makeDisplayCategoryIndicesString();
    virtual bool needUpdate(double timed, double dt);
    virtual int calcValues(double timevalue);
    virtual int outputState(double timevalue);
@@ -115,7 +146,8 @@ protected:
    int displayCategoryIndexStart;
    int displayCategoryIndexEnd;
    char * heatMapMontageDir;
-   int maxDetections;
+   std::vector<localization> detections;
+   unsigned int maxDetections;
    int boundingBoxLineWidth;
    char * displayCommand;
 
