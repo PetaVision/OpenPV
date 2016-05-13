@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <set>
 #include <map>
+#include <memory>
 
 #ifdef PV_USE_OPENCL
 #include "../arch/opencl/CLKernel.hpp"
@@ -55,6 +56,8 @@ class NormalizeBase;
 class Random;
 class TransposeConn;
 class privateTransposeConn;
+class WeightData;
+class SparseWeight;
 
 /**
  * A HyPerConn identifies a connection between two layers
@@ -67,6 +70,8 @@ public:
    friend class PlasticCloneConn;
    friend class TransposeConn;
    friend class privateTransposeConn;
+   friend class WeightData;
+
 //#ifdef OBSOLETE // Marked obsolete May 3, 2016.  All pooling-dependent behavior should be in PoolingConn
    friend class TransposePoolingConn;
 //#endif // OBSOLETE // Marked obsolete May 3, 2016.  All pooling-dependent behavior should be in PoolingConn
@@ -372,49 +377,35 @@ private:
 
    bool needPost;
 
-   // All weights that are above the threshold
+   // Typedefs for SparseWeights. It's preferable to use SPARSE_WEIGHT_TYPEDEFS(pvwdata_t),
+   // but there's a circular dependency between the HyPerConn and SparseWeight classes
    typedef pvwdata_t WeightType;
    typedef std::vector<WeightType> WeightListType;
    typedef std::vector<int> IndexListType;
-
-   // Percentage of weights that are ignored. Weight values must be above this threshold
-   // to be included in the calculation. Valid values are 0.0 - 1.0. But there's no
-   // point in setting this to 1.0.
-   float _weightSparsity;
-   // The output offset into the post layer for a weight
-   std::vector<int> _sparsePost;
-   // Start of sparse weight data in the _sparseWeight array, indexed by data patch
-   std::vector<int> _patchSparseWeightIndex;
-   // Number of sparse weights for a patch, indexed by data patch
-   std::vector<int> _patchSparseWeightCount;
-   // Have sparse weights been allocated for each arbor?
-   std::vector<bool> _sparseWeightsAllocated;
-
    typedef std::map<const WeightType * const, const WeightListType> WeightPtrMapType;
    typedef std::map<const WeightType * const, const IndexListType>  WeightIndexMapType;
-
    // Map nk -> weight ptr -> sparse weights
    typedef std::map<int, WeightPtrMapType> WeightMapType;
    // Map nk -> weight ptr -> output index
    typedef std::map<int, WeightIndexMapType> IndexMapType;
 
-   WeightMapType _sparseWeightValues;
-   IndexMapType _sparseWeightIndexes;
-   SparseWeightInfo _sparseWeightInfo;
+   // The sparse weight data structure. By wrapping up the pointer in std::unique_ptr,
+   // the memory will be freed automatically when this HyPerConn is destructed
+   std::unique_ptr<SparseWeight> mSparseWeight;
 
-   std::set<int> _kPreExtWeightSparsified;
+   // Percentage of weights that are ignored. Weight values must be above this threshold
+   // to be included in the calculation. Valid values are 0.0 - 1.0. But there's no
+   // point in setting this to 1.0.
+   float mWeightSparsity = 0.0;
 
-   unsigned long _numDeliverCalls; // Number of times deliver has been called
-   unsigned long _allocateSparseWeightsFrequency; // Number of _numDeliverCalls that need to happen before the pre list needs to be rebuilt
-
-   // Allocate sparse weights when performing presynaptic delivery
-   void allocateSparseWeightsPre(PVLayerCube const *activity, int arbor);
-   // Allocate sparse weights when performing postsynaptic delivers
-   void allocateSparseWeightsPost(PVLayerCube const *activity, int arbor);
-   // Calculates the sparse weight threshold
-   SparseWeightInfo calculateSparseWeightInfo() const;
-   SparseWeightInfo findPercentileThreshold(float percentile, pvwdata_t **wDataStart, size_t numAxonalArborLists, size_t numPatches, size_t patchSize) const;
+   /**
+    * Deliver one pre neuron activity using sparse weights
+    */
    void deliverOnePreNeuronActivitySparseWeights(int kPreExt, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr);
+
+   /**
+    * Deliver one post neuron activity using sparse weights
+    */
    void deliverOnePostNeuronActivitySparseWeights(int arborID, int kTargetExt, int inSy, float* activityStartBuf, pvdata_t* gSynPatchPos, float dt_factor, taus_uint4 * rngPtr);
 
 
@@ -943,6 +934,9 @@ protected:
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
    float getConvertToRateDeltaTimeFactor();
+
+   virtual void allocateSparseWeightsPre();
+   virtual void allocateSparseWeightsPost();
 
 //GPU variables
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)

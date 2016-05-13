@@ -49,6 +49,10 @@ protected:
    //gSynPatchPos, float dt_factor, taus_uint4 * rngPtr);
    void clearGateIdxBuffer();
 
+   // Sparse weights not supported in PoolingConn
+   virtual void allocateSparseWeightsPre() {}
+   virtual void allocateSparseWeightsPost() {}
+
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID){
       std::cout << "Pooling Conn does not allow GPU deliver\n";

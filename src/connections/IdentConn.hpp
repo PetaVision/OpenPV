@@ -65,6 +65,10 @@ protected:
    virtual void handleDefaultSelfFlag();
 
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
+
+   // Sparse weights not supported in IdentConn
+   virtual void allocateSparseWeightsPre() {}
+   virtual void allocateSparseWeightsPost() {}
 }; // class IdentConn
 
 BaseObject * createIdentConn(char const * name, HyPerCol * hc);
