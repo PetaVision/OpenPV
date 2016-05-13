@@ -18,6 +18,7 @@
 #include <layers/BackgroundLayer.hpp>
 #include <layers/BinningLayer.hpp>
 #include <layers/CloneVLayer.hpp>
+#include <layers/ComponentLayer.hpp>
 #include <layers/ConstantLayer.hpp>
 #include <layers/FilenameParsingGroundTruthLayer.hpp>
 #include <layers/GapLayer.hpp>
@@ -47,6 +48,15 @@
 #include <layers/ShuffleLayer.hpp>
 #include <layers/SigmoidLayer.hpp>
 #include <layers/WTALayer.hpp>
+
+#include <layers/components/InputComponent.hpp>
+#include <layers/components/StateComponent.hpp>
+#include <layers/components/LCAStateComponent.hpp>
+#include <layers/components/OutputComponent.hpp>
+#include <layers/components/SigmoidOutputComponent.hpp>
+#include <layers/components/TanhOutputComponent.hpp>
+#include <layers/components/ANNOutputComponent.hpp>
+#include <layers/components/ImageOutputComponent.hpp>
 
 #include <connections/HyPerConn.hpp>
 #include <connections/CloneConn.hpp>
@@ -125,6 +135,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("BackgroundLayer", createBackgroundLayer);
    registerKeyword("BinningLayer", createBinningLayer);
    registerKeyword("CloneVLayer", createCloneVLayer);
+   registerKeyword("ComponentLayer", createComponentLayer);
    registerKeyword("ConstantLayer", createConstantLayer);
    registerKeyword("FilenameParsingGroundTruthLayer", createFilenameParsingGroundTruthLayer);
    registerKeyword("GapLayer", createGapLayer);
@@ -154,6 +165,15 @@ int Factory::registerCoreKeywords() {
    registerKeyword("ShuffleLayer", createShuffleLayer);
    registerKeyword("SigmoidLayer", createSigmoidLayer);
    registerKeyword("WTALayer", createWTALayer);
+
+   registerKeyword("InputComponent", createInputComponent);
+   registerKeyword("StateComponent", createStateComponent);
+   registerKeyword("LCAStateComponent", createLCAStateComponent);
+   registerKeyword("OutputComponent", createOutputComponent);
+   registerKeyword("ImageOutputComponent", createImageOutputComponent);
+   registerKeyword("SigmoidOutputComponent", createSigmoidOutputComponent);
+   registerKeyword("TanhOutputComponent", createTanhOutputComponent);
+   registerKeyword("ANNOutputComponent", createANNOutputComponent);
 
    registerKeyword("HyPerConn", createHyPerConn);
    registerKeyword("CloneConn", createCloneConn);

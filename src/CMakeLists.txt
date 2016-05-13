@@ -48,6 +48,7 @@ set(SRC_SUBDIRS
   io
   kernels
   layers
+  layers/components
   normalizers
   utils
   weightinit
