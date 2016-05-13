@@ -57,10 +57,15 @@ public:
 
    /**
     * Returns the bounding box, feature, and score information for the detection of the given index.
-    * Throws out_of_range exception if index is >= getNumDetections().
+    * Throws an out_of_range exception if index is >= getNumDetections().
     * The bounding box values (left, right, top, bottom) are in imageLayer coordinates.
     */
-   localization const * getDetection(size_t index) {return &detections.at(index);}
+   inline localization const * getDetection(size_t index) { return &detections.at(index); }
+
+   /**
+    * Returns the vector of all detections that would be returned by getDetection(k)
+    */
+   inline std::vector<localization> const * getDetections() { return &detections; }
 
    /**
     * Sets the base of the output filename.  It takes everything after the
