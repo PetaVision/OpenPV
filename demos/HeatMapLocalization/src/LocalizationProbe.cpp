@@ -55,7 +55,7 @@ int LocalizationProbe::initialize_base() {
    montageImageLocal = NULL;
    montageImageComm = NULL;
    imageBlendCoeff = 0.3;
-   maxDetections = 100;
+   maxDetections = 100U;
    boundingBoxLineWidth = 5;
 
    outputFilenameBase = NULL; // Not used by harness since we don't have a filename to use for the base
@@ -107,20 +107,20 @@ void LocalizationProbe::ioParam_displayedCategories(enum ParamsIOFlag ioFlag) {
 
 void LocalizationProbe::ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
-   if (drawMontage && numDisplayedCategories==0) {
+   if (numDisplayedCategories==0) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexStart", &displayCategoryIndexStart, -1, true/*warnIfAbsent*/);
    }
 }
 
 void LocalizationProbe::ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
-   if (drawMontage && numDisplayedCategories==0) {
+   if (numDisplayedCategories==0) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexEnd", &displayCategoryIndexEnd, -1, true/*warnIfAbsent*/);
    }
 }
 
 void LocalizationProbe::ioParam_detectionThreshold(enum ParamsIOFlag ioFlag) {
-   parent->ioParamArray(ioFlag, name, "detectionThresholds", &detectionThreshold, &numDetectionThresholds);
+   parent->ioParamArray(ioFlag, name, "detectionThreshold", &detectionThreshold, &numDetectionThresholds);
 }
 
 void LocalizationProbe::ioParam_classNamesFile(enum ParamsIOFlag ioFlag) {
@@ -171,7 +171,7 @@ void LocalizationProbe::ioParam_heatMapMontageDir(enum ParamsIOFlag ioFlag) {
 void LocalizationProbe::ioParam_heatMapMaximum(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
-      parent->ioParamArray(ioFlag, name, "heatMapMaxima", &heatMapMaximum, &numHeatMapMaxima);
+      parent->ioParamArray(ioFlag, name, "heatMapMaximum", &heatMapMaximum, &numHeatMapMaxima);
    }
 }
 
@@ -202,9 +202,9 @@ void LocalizationProbe::ioParam_displayCommand(enum ParamsIOFlag ioFlag) {
 
 
 int LocalizationProbe::initNumValues() {
-   return setNumValues(6*maxDetections+1);
-   // Each detection has 6 values. winningFeature,maxActivity,boundingBoxLeft,boundingBoxRight,boundingBoxTop,boundingBoxBottom
-   // getValuesBuffer[0] returns the number of realized detections.
+   return setNumValues(1);
+   // numValues is the number of detections.  detections will be a vector of that length.
+   // If we add batching to localization probe, this should change to the batch size.
 }
 
 int LocalizationProbe::communicateInitInfo() {
@@ -269,14 +269,14 @@ int LocalizationProbe::communicateInitInfo() {
       displayedCategories = (int *) malloc(numDisplayedCategories*sizeof(int));
       for (int idx=0; idx<numDisplayedCategories; idx++) {
          displayedCategories[idx] = displayCategoryIndexStart + idx;
-         assert(displayedCategories[idx] < displayCategoryIndexEnd);
+         assert(displayedCategories[idx] <= displayCategoryIndexEnd);
       }
    }
 
    if (numDetectionThresholds==0) {
       detectionThreshold = (float *) malloc(sizeof(*detectionThreshold)*(size_t) numDisplayedCategories);
       if (detectionThreshold==NULL) {
-         fprintf(stderr, "%s \"%s\": Unable to allocate memory for detectionThresholds: %s\n",
+         fprintf(stderr, "%s \"%s\": Unable to allocate memory for detectionThreshold array: %s\n",
                getKeyword(), name, strerror(errno));
          exit(EXIT_FAILURE);
       }
@@ -286,7 +286,7 @@ int LocalizationProbe::communicateInitInfo() {
    else if (numDetectionThresholds==1 && numDisplayedCategories>1) {
       detectionThreshold = (float *) realloc(detectionThreshold, sizeof(*detectionThreshold)*(size_t) numDisplayedCategories);
       if (detectionThreshold==NULL) {
-         fprintf(stderr, "%s \"%s\": Unable to allocate memory for detectionThresholds: %s\n",
+         fprintf(stderr, "%s \"%s\": Unable to allocate memory for detectionThreshold array: %s\n",
                getKeyword(), name, strerror(errno));
          exit(EXIT_FAILURE);
       }
@@ -296,27 +296,27 @@ int LocalizationProbe::communicateInitInfo() {
    }
    else if (numDetectionThresholds != numDisplayedCategories) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: detectionThresholds array given %d entries, but number of displayed categories is %d.\n",
+         fprintf(stderr, "%s \"%s\" error: detectionThreshold array given %d entries, but number of displayed categories is %d.\n",
                getKeyword(), name, numDetectionThresholds, numDisplayedCategories);
          exit(EXIT_FAILURE);
       }
    }
    if (drawMontage) {
-      // TODO: abstract out similarities between expanding heatMapMaxima array and expanding detectionThresholds array, and perhaps other arrays in pv-core.
+      // TODO: abstract out similarities between expanding heatMapMaximum array and expanding detectionThreshold array, and perhaps other arrays in pv-core.
       if (numHeatMapMaxima==0) {
          heatMapMaximum = (float *) malloc(sizeof(*detectionThreshold)*(size_t) numDisplayedCategories);
          if (heatMapMaximum==NULL) {
-            fprintf(stderr, "%s \"%s\": Unable to allocate memory for heatMapMaxima: %s\n",
+            fprintf(stderr, "%s \"%s\": Unable to allocate memory for heatMapMaximum array: %s\n",
                   getKeyword(), name, strerror(errno));
             exit(EXIT_FAILURE);
          }
-         for (int k=0; k<numDisplayedCategories; k++) { heatMapMaximum[0] = 1.0f; }
+         for (int k=0; k<numDisplayedCategories; k++) { heatMapMaximum[k] = 1.0f; }
          numHeatMapMaxima = numDisplayedCategories;
       }
       else if (numHeatMapMaxima==1 && numDisplayedCategories>1) {
          heatMapMaximum = (float *) realloc(heatMapMaximum, sizeof(*heatMapMaximum)*(size_t) numDisplayedCategories);
          if (heatMapMaximum==NULL) {
-            fprintf(stderr, "%s \"%s\": Unable to allocate memory for heatMapMaxima: %s\n",
+            fprintf(stderr, "%s \"%s\": Unable to allocate memory for heatMapMaximum array: %s\n",
                   getKeyword(), name, strerror(errno));
             exit(EXIT_FAILURE);
          }
@@ -326,7 +326,7 @@ int LocalizationProbe::communicateInitInfo() {
       }
       else if (numHeatMapMaxima != numDisplayedCategories) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: detectionThresholds array given %d entries, but number of displayed categories is %d.\n",
+            fprintf(stderr, "%s \"%s\" error: detectionThreshold array given %d entries, but number of displayed categories is %d.\n",
                   getKeyword(), name, numDetectionThresholds, numDisplayedCategories);
             exit(EXIT_FAILURE);
          }
@@ -336,7 +336,7 @@ int LocalizationProbe::communicateInitInfo() {
          if (heatMapMaximum[k] < detectionThreshold[k]) {
             status = PV_FAILURE;
             if (parent->columnId()==0) {
-               fprintf(stderr, "%s \"%s\": heatMapMaxima entry %d (%f) cannot be less than corresponding detectionThresholds entry (%f).\n",
+               fprintf(stderr, "%s \"%s\": heatMapMaximum entry %d (%f) cannot be less than corresponding detectionThreshold entry (%f).\n",
                      getKeyword(), name, k, heatMapMaximum[k], detectionThreshold[k]);
             }
          }
@@ -380,6 +380,10 @@ int LocalizationProbe::communicateInitInfo() {
       }
       if (strcmp(classNamesFile,"")) {
          std::ifstream * classNamesStream = new std::ifstream(classNamesFile);
+         if (classNamesStream->fail()) {
+            fprintf(stderr, "%s \"%s\": unable to open classNamesFile \"%s\".\n", getKeyword(), name, classNamesFile);
+            exit(EXIT_FAILURE);
+         }
          for (int k=0; k<nf; k++) {
             // Need to clean this section up: handle too-long lines, premature eof, other issues
             char oneclass[1024];
@@ -527,6 +531,7 @@ int LocalizationProbe::allocateDataStructures() {
       fprintf(stderr, "%s \"%s\": LocalizationProbe::allocateDataStructures failed.\n", getKeyword(), name);
       exit(EXIT_FAILURE);
    }
+   detections.reserve(maxDetections);
    if (drawMontage) {
       assert(imageLayer);
       PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
@@ -811,34 +816,26 @@ bool LocalizationProbe::needUpdate(double timed, double dt) {
 }
 
 int LocalizationProbe::calcValues(double timevalue) {
-   double * values = getValuesBuffer();
-   assert(getNumValues()==6*maxDetections+1);
-   values[0] = 0.0;
-   for (int k=0; k<maxDetections; k++) {
-      values[6*k+1] = -1.0;
-      values[6*k+2] = 0.0;
-      values[6*k+3] = -1.0;
-      values[6*k+4] = -1.0;
-      values[6*k+5] = -1.0;
-      values[6*k+6] = -1.0;
-   }
    int const N = targetLayer->getNumNeurons();
    PVLayerLoc const * loc = targetLayer->getLayerLoc();
    PVHalo const * halo = &loc->halo;
    float * targetRes = (float *) malloc(sizeof(float)*N);
-   if (targetRes==NULL) { fprintf(stderr, "Nooooooooooo!\n"); exit(EXIT_FAILURE); }
+   if (targetRes==NULL) {
+      fprintf(stderr, "%s \"%s\" unable to allocate buffer for calcValues\n", getKeyword(), name);
+      exit(EXIT_FAILURE);
+   }
    for (int n=0; n<N; n++) {
       int nExt = kIndexExtended(n, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
       targetRes[n] = targetLayer->getLayerData()[nExt];
    }
-   values[0] = maxDetections;
-   int detection = 0;
    float minDetectionThreshold = std::numeric_limits<float>::infinity();
    for (int k=0; k<numDisplayedCategories; k++) {
       float a = detectionThreshold[k];
       minDetectionThreshold = a < minDetectionThreshold ? a : minDetectionThreshold;
    }
-   while(detection<maxDetections) {
+   detections.clear();
+   size_t detectionIndex = 0;
+   while(detectionIndex<maxDetections) {
       int winningFeature, winningIndex, xLocation, yLocation;
       float activity;
       findMaxLocation(&winningFeature, &winningIndex, &xLocation, &yLocation, &activity, targetRes, loc);
@@ -866,23 +863,26 @@ int LocalizationProbe::calcValues(double timevalue) {
          MPI_Allreduce(MPI_IN_PLACE, &numpixels, 1, MPI_INT, MPI_SUM, parent->icCommunicator()->communicator());
          score = score/numpixels;
          if (boundingBox[1]-boundingBox[0]>=minBoundingBoxWidth && boundingBox[3]-boundingBox[2]>=minBoundingBoxHeight) {
-            double * thisBox = &values[6*detection+1];
-            thisBox[0] = (double) winningFeature;
-            thisBox[1] = score;
-            double * boundingBoxDbl = &thisBox[2];
-            boundingBoxDbl[0] = (double) boundingBox[0] * imageDilationX;
-            boundingBoxDbl[1] = (double) boundingBox[1] * imageDilationX;
-            boundingBoxDbl[2] = (double) boundingBox[2] * imageDilationY;
-            boundingBoxDbl[3] = (double) boundingBox[3] * imageDilationY;
-            detection++;
+            localization newDetection;
+            newDetection.feature = winningFeature;
+            newDetection.displayedIndex = winningIndex;
+            newDetection.left = boundingBox[0] * imageDilationX;
+            newDetection.right = boundingBox[1] * imageDilationX;
+            newDetection.top = boundingBox[2] * imageDilationY;
+            newDetection.bottom = boundingBox[3] * imageDilationY;
+            newDetection.score = score;
+            detections.push_back(newDetection);
+            detectionIndex++;
          }
       }
       else {
          assert(!(winningFeature >= 0 && activity >= minDetectionThreshold));
-         values[0] = detection;
          break;
       }
    }
+   assert(getNumValues()==1);
+   double * values = getValuesBuffer();
+   *values = detectionIndex;
    free(targetRes);
    return PV_SUCCESS;
 }
@@ -994,30 +994,26 @@ int LocalizationProbe::outputStateWrapper(double timef, double dt){
 
 int LocalizationProbe::outputState(double timevalue) {
    int status = getValues(timevalue); // all processes must call getValues in parallel.
-   if (parent->columnId()!=0) {
-      return PV_SUCCESS;
-   }
-   if (getTextOutputFlag()) {
-      assert(outputstream && outputstream->fp);
-      double * values = getValuesBuffer();
-      int numDetected = (int) nearbyint(values[0]);
-      assert(numDetected>=0 && numDetected<maxDetections && getNumValues()==maxDetections*6+1);
+   if (getTextOutputFlag() && outputstream && outputstream->fp) {
+      assert(parent->columnId()==0);
+      size_t numDetected = detections.size();
+      assert(numDetected<maxDetections);
       if (numDetected==0) {
          fprintf(outputstream->fp, "Time %f, no detections.\n", timevalue);
       }
-      for (int d=0; d<numDetected; d++) {
-         double const * thisDetection = &values[6*d+1];
-         int winningFeature = (int) thisDetection[0];
+      for (size_t d=0; d<numDetected; d++) {
+         localization const * thisDetection = &detections.at(d);
+         int winningFeature = thisDetection->feature;
          assert(winningFeature>=0 && winningFeature<targetLayer->getLayerLoc()->nf);
-         double score = thisDetection[1];
+         double score = thisDetection->score;
          fprintf(outputstream->fp, "Time %f, \"%s\", score %f, bounding box x=[%d,%d), y=[%d,%d)\n",
                timevalue,
                getClassName(winningFeature),
                score,
-               (int) thisDetection[2],
-               (int) thisDetection[3],
-               (int) thisDetection[4],
-               (int) thisDetection[5]);
+               (int) thisDetection->left,
+               (int) thisDetection->right,
+               (int) thisDetection->top,
+               (int) thisDetection->bottom);
       }
    }
    if (drawMontage) {
@@ -1050,21 +1046,16 @@ int LocalizationProbe::makeMontage() {
 
    // Draw bounding boxes
    if (boundingBoxLineWidth > 0) {
-      double * values = getValuesBuffer();
-      for (int d=0; d<(int) values[0]; d++) {
-         double * thisBoundingBox = &values[6*d+1];
-         int winningFeature = (int) values[6*d+1];
+      assert(getNumValues()==1);
+      for (size_t d=0; d<detections.size(); d++) {
+         localization const * thisBoundingBox = &detections.at(d);
+         int winningFeature = thisBoundingBox->feature;
          if (winningFeature<0) { continue; }
-         int left = (int) thisBoundingBox[2];
-         int right = (int) thisBoundingBox[3];
-         int top = (int) thisBoundingBox[4];
-         int bottom = (int) thisBoundingBox[5];
-         int winningIndex=-1;
-         for (int k=0; k<numDisplayedCategories; k++) {
-            int category = displayedCategories[k];
-            int feature = category-1;
-            if (feature==winningFeature) { winningIndex=k; break; }
-         }
+         int left = (int) thisBoundingBox->left;
+         int right = (int) thisBoundingBox->right;
+         int top = (int) thisBoundingBox->top;
+         int bottom = (int) thisBoundingBox->bottom;
+         int winningIndex = thisBoundingBox->displayedIndex;
          assert(winningIndex>=0);
          int montageColumn = kxPos(winningIndex, numMontageColumns, numMontageRows, 1);
          int montageRow = kyPos(winningIndex, numMontageColumns, numMontageRows, 1);
@@ -1161,32 +1152,29 @@ int LocalizationProbe::drawHeatMaps() {
 
    PVLayerLoc const * targetLoc = targetLayer->getLayerLoc();
    PVHalo const * targetHalo = &targetLoc->halo;
-   int winningFeature[maxDetections];
-   int winningIndex[maxDetections];
-   double maxConfidence[maxDetections];
-   for (int d=0; d<maxDetections; d++) {
-      maxConfidence[d] = getValuesBuffer()[6*d+2];
-      winningFeature[d] = (int) getValuesBuffer()[6*d+1];
-      winningIndex[d] = -1;
-      for (int idx=0; idx<numDisplayedCategories; idx++) {
-         if (displayedCategories[idx]==winningFeature[d]+1) {
-            winningIndex[d] = idx;
-         }
-      }
+   size_t numDetections = detections.size();
+   int winningFeature[numDetections];
+   int winningIndex[numDetections];
+   double boxConfidence[numDetections];
+   for (int d=0; d<numDetections; d++) {
+      localization const * box = &detections.at(d);
+      boxConfidence[d] = box->score;
+      winningFeature[d] = box->feature;
+      winningIndex[d] = box->displayedIndex;
    }
 
    double maxConfByCategory[targetLoc->nf];
    for (int f=0; f<targetLoc->nf; f++) { maxConfByCategory[f] = -std::numeric_limits<pvadata_t>::infinity(); }
-   for (int d=0; d<getValuesBuffer()[0]; d++) {
+   for (size_t d=0; d<numDetections; d++) {
       int f = winningFeature[d];
-      double a = maxConfidence[d];
+      double a = boxConfidence[d];
       double m = maxConfByCategory[f];
       maxConfByCategory[f] = a > m ? a : m;
    }
 
    PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
-   int const nx = imageLoc->nxGlobal;
-   int const ny = imageLoc->nyGlobal;
+   int const nx = imageLoc->nx;
+   int const ny = imageLoc->ny;
    for (int idx=0; idx<numDisplayedCategories; idx++) {
       int category = displayedCategories[idx];
       int f = category-1; // category is 1-indexed; f is zero-indexed.
