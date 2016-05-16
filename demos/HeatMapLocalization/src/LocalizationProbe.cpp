@@ -107,14 +107,14 @@ void LocalizationProbe::ioParam_displayedCategories(enum ParamsIOFlag ioFlag) {
 
 void LocalizationProbe::ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
-   if (drawMontage && numDisplayedCategories==0) {
+   if (numDisplayedCategories==0) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexStart", &displayCategoryIndexStart, -1, true/*warnIfAbsent*/);
    }
 }
 
 void LocalizationProbe::ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
-   if (drawMontage && numDisplayedCategories==0) {
+   if (numDisplayedCategories==0) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexEnd", &displayCategoryIndexEnd, -1, true/*warnIfAbsent*/);
    }
 }
@@ -269,7 +269,7 @@ int LocalizationProbe::communicateInitInfo() {
       displayedCategories = (int *) malloc(numDisplayedCategories*sizeof(int));
       for (int idx=0; idx<numDisplayedCategories; idx++) {
          displayedCategories[idx] = displayCategoryIndexStart + idx;
-         assert(displayedCategories[idx] < displayCategoryIndexEnd);
+         assert(displayedCategories[idx] <= displayCategoryIndexEnd);
       }
    }
 
@@ -380,6 +380,10 @@ int LocalizationProbe::communicateInitInfo() {
       }
       if (strcmp(classNamesFile,"")) {
          std::ifstream * classNamesStream = new std::ifstream(classNamesFile);
+         if (classNamesStream->fail()) {
+            fprintf(stderr, "%s \"%s\": unable to open classNamesFile \"%s\".\n", getKeyword(), name, classNamesFile);
+            exit(EXIT_FAILURE);
+         }
          for (int k=0; k<nf; k++) {
             // Need to clean this section up: handle too-long lines, premature eof, other issues
             char oneclass[1024];
@@ -990,11 +994,8 @@ int LocalizationProbe::outputStateWrapper(double timef, double dt){
 
 int LocalizationProbe::outputState(double timevalue) {
    int status = getValues(timevalue); // all processes must call getValues in parallel.
-   if (parent->columnId()!=0) {
-      return PV_SUCCESS;
-   }
-   if (getTextOutputFlag()) {
-      assert(outputstream && outputstream->fp);
+   if (getTextOutputFlag() && outputstream && outputstream->fp) {
+      assert(parent->columnId()==0);
       size_t numDetected = detections.size();
       assert(numDetected<maxDetections);
       if (numDetected==0) {
@@ -1172,8 +1173,8 @@ int LocalizationProbe::drawHeatMaps() {
    }
 
    PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
-   int const nx = imageLoc->nxGlobal;
-   int const ny = imageLoc->nyGlobal;
+   int const nx = imageLoc->nx;
+   int const ny = imageLoc->ny;
    for (int idx=0; idx<numDisplayedCategories; idx++) {
       int category = displayedCategories[idx];
       int f = category-1; // category is 1-indexed; f is zero-indexed.
