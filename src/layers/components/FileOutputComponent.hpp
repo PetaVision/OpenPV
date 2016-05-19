@@ -16,43 +16,52 @@ namespace PV
 	class FileOutputComponent : public OutputComponent
 	{
 		public:
-			virtual void initialize();
+         ~FileOutputComponent();
+         virtual void initialize();
 			virtual void transform();
-			virtual void readFile(std::string fileName) = 0;
-			virtual void scatterFileBuffer();
-			//virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-		
+			virtual void ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+         virtual double getDeltaUpdateTime();
+         virtual void updateFileBuffer(std::string fileName, std::vector<pvdata_t> &fileBuffer) = 0; 
+      
 		protected:
 			//These could be public static with very few changes if they'd be useful elsewhere
 			vector<pvdata_t> scale(vector<pvdata_t> bufferToScale, int sourceWidth, int sourceHeight, int newWidth, int newHeight);
 			vector<pvdata_t> shift(vector<pvdata_t> bufferToShift, int sourceWidth, int sourceHeight, int xShift, int yShift);
 			vector<pvdata_t> flip(vector<pvdata_t> bufferToFlip, int sourceWidth, int sourceHeight, bool xFlip, bool yFlip);
-			vector<pvdata_t> crop(vector<pvdata_t> bufferToCrop, int sourceWidth, int sourceHeight, int leftCrop, int rightCrop, int topCrop, int bottomCrop);
+			vector<pvdata_t> crop(vector<pvdata_t> bufferToCrop, int sourceWidth, int sourceHeight, int left, int top, int width, int height);
 			vector<pvdata_t> expand(vector<pvdata_t> bufferToExpand, int sourceWidth, int sourceHeight, int newWidth, int newHeight);
-			//Helper function for indexing mFileBuffer
+			
+         //Helper function for indexing mFileBuffer
 			int getBufferIndex(int x, int y, int width, int features);
-			
-			pvdata_t getFromFile(int x, int y, int f);
-			
-			//virtual void ioParam_fileName(enum ParamsIOFlag ioFlag);
-			//virtual void ioParam_displayPeriod(enum ParamsIOFlag ioFlag);
+         void scatterFileBuffer(int batchIndex);
+         void readFileList(std::string fileName);
 
-			bool mFilelist = false;
-			bool mShuffle = false;
+			virtual void ioParam_fileName(enum ParamsIOFlag ioFlag);
+         virtual void ioParam_isFileList(enum ParamsIOFlag ioFlag);
+			virtual void ioParam_updatePeriod(enum ParamsIOFlag ioFlag);
+         virtual void ioParam_updatesPerFileAdvance(enum ParamsIOFlag ioFlag);
+         virtual void ioParam_autoScale(enum ParamsIOFlag ioFlag);
+         virtual void ioParam_linearInterpolation(enum ParamsIOFlag ioFlag);
+         virtual void ioParam_fillExtended(enum ParamsIOFlag ioFlag);
+         
+			bool mIsFileList = false;
 			bool mLinearInterpolation = true;
 			bool mAutoScale = true;
 			bool mFillExtended = true;
 			bool mXFlip = false;
 			bool mYFlip = false;
-			int mPlaylistIndex = 0;
-			int mDisplayPeriod = 100;
-			int mDisplayTimer = INT_MAX;
-			int mFileWidth = 1;
+			int mFileListIndex = 0;
+         int mUpdatesPerFileAdvance = 1;
+         int mFileAdvanceTimer = 0;
+			int mUpdatePeriod = 100;
+         int mFileWidth = 1;
 			int mFileHeight = 1;
 			int mXShift = 0;
 			int mYShift = 0;
-			std::vector<std::string> mFilenames;
-			std::vector<pvdata_t> mFileBuffer;
+         char *mCFileName = nullptr;
+         std::string mFileName;
+			std::vector<std::string> mFileList;
+			std::vector< std::vector<pvdata_t> > mFileBuffers; //TODO: Batching should probably have a vector of these, one for each batch
 	};
 }
 

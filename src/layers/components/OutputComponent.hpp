@@ -14,6 +14,8 @@ namespace PV
 			virtual void allocateDerivativeBuffer();
 			virtual void transform();
 			virtual void derivative();
+         virtual double getDeltaUpdateTime() { return -1.0; }
+         void clearActivity();
 	};
 	
 	BaseObject * createOutputComponent(char const * name, HyPerCol * hc);
