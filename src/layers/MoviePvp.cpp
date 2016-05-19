@@ -13,7 +13,6 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-//#include <iostream>
 
 namespace PV {
 
@@ -35,21 +34,13 @@ int MoviePvp::initialize_base() {
    numStartFrame = 0;
    numSkipFrame = 0;
    echoFramePathnameFlag = false;
-   //filenamestream = NULL;
    displayPeriod = DISPLAY_PERIOD;
-   //readPvpFile = false;
-   //fileOfFileNames = NULL;
    frameNumbers = NULL;
-   //fileNumFrames = 0;
-   //fileNumBatches = 0;
    writeFrameToTimestamp = true;
    timestampFile = NULL;
    flipOnTimescaleError = true;
    resetToStartOnLoop = false;
-   initFlag = false;
    batchMethod = NULL;
-   //updateThisTimestep = false;
-   // newImageFlag = false;
    return PV_SUCCESS;
 }
 
@@ -61,23 +52,7 @@ int MoviePvp::readStateFromCheckpoint(const char * cpDir, double * timeptr) {
 
 int MoviePvp::readFrameNumStateFromCheckpoint(const char * cpDir) {
    int status = PV_SUCCESS;
-   
    parent->readArrayFromFile(cpDir, getName(), "FrameNumState", frameNumbers, parent->getNBatch());
-
-   //if (!readPvpFile) {
-   //   int startFrame = frameNumber;
-   //   if (parent->columnId()==0) {
-   //      PV_fseek(filenamestream, 0L, SEEK_SET);
-   //      frameNumber = 0;
-   //   }
-   //   if (filename != NULL) free(filename);
-   //   filename = strdup(getNextFileName(startFrame)); // getNextFileName() will increment frameNumber by startFrame;
-   //   if (parent->columnId()==0) assert(frameNumber==startFrame);
-   //   if (parent->columnId()==0) {
-   //      printf("%s \"%s\" checkpointRead set frameNumber to %d and filename to \"%s\"\n",
-   //            getKeyword(), name, frameNumber, filename);
-   //   }
-   //}
    return status;
 }
 
@@ -129,42 +104,6 @@ int MoviePvp::initialize(const char * name, HyPerCol * hc) {
    //Update on first timestep
    setNextUpdateTime(parent->simulationTime() + hc->getDeltaTime());
 
-   //PVParams * params = hc->parameters();
-
-   //assert(!params->presentAndNotBeenRead(name, "randomMovie")); // randomMovie should have been set in ioParams
-   //if (randomMovie) return status; // Nothing else to be done until data buffer is allocated, in allocateDataStructures
-
-
-   ////If not pvp file, open fileOfFileNames 
-   //assert(!params->presentAndNotBeenRead(name, "readPvpFile")); // readPvpFile should have been set in ioParams
-   //if( getParent()->icCommunicator()->commRank()==0 && !readPvpFile) {
-   //   filenamestream = PV_fopen(fileOfFileNames, "r", false/*verifyWrites*/);
-   //   if( filenamestream == NULL ) {
-   //      fprintf(stderr, "Movie::initialize error opening \"%s\": %s\n", fileOfFileNames, strerror(errno));
-   //      abort();
-   //   }
-   //}
-
-   //if (startFrameIndex <= 1){
-   //   frameNumber = 0;
-   //}
-   //else{
-   //   frameNumber = startFrameIndex - 1;
-   //}
-   ////Set filename as param
-   //Grab number of frames from header
-   
-   //PV_Stream * pvstream = NULL;
-   //if (getParent()->icCommunicator()->commRank()==0) {
-   //   pvstream = PV::PV_fopen(inputPath, "rb", false/*verifyWrites*/);
-   //}
-   //int numParams = NUM_PAR_BYTE_PARAMS;
-   //int params[numParams];
-   //pvp_read_header(pvstream, getParent()->icCommunicator(), params, &numParams);
-   //PV::PV_fclose(pvstream); pvstream = NULL;
-   //fileNumFrames = params[INDEX_NBANDS]; 
-   //fileNumBatches = params[INDEX_NBATCH];
-
    // set output path for movie frames
    if(writeImages){
       status = parent->ensureDirExists(movieOutputPath);
@@ -201,10 +140,6 @@ int MoviePvp::initialize(const char * name, HyPerCol * hc) {
 int MoviePvp::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ImagePvp::ioParamsFillGroup(ioFlag);
    ioParam_displayPeriod(ioFlag);
-   //ioParam_randomMovie(ioFlag);
-   //ioParam_randomMovieProb(ioFlag);
-   //ioParam_readPvpFile(ioFlag);
-   //ioParam_echoFramePathnameFlag(ioFlag);
    ioParam_batchMethod(ioFlag);
    ioParam_start_frame_index(ioFlag);
    ioParam_skip_frame_index(ioFlag);
@@ -242,27 +177,6 @@ void MoviePvp::ioParam_batchMethod(enum ParamsIOFlag ioFlag){
    }
 }
 
-//void MoviePvp::ioParam_randomMovie(enum ParamsIOFlag ioFlag) {
-//   parent->ioParamValue(ioFlag, name, "randomMovie", &randomMovie, 0/*default value*/);
-//}
-//
-//void MoviePvp::ioParam_randomMovieProb(enum ParamsIOFlag ioFlag) {
-//   assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
-//   if (randomMovie) {
-//      parent->ioParamValue(ioFlag, name, "randomMovieProb", &randomMovieProb, 0.05f);
-//   }
-//}
-
-//void MoviePvp::ioParam_echoFramePathnameFlag(enum ParamsIOFlag ioFlag) {
-//   assert(!parent->parameters()->presentAndNotBeenRead(name, "randomMovie"));
-//   if (!randomMovie) {
-//      assert(!parent->parameters()->presentAndNotBeenRead(name, "readPvpFile"));
-//      if (!readPvpFile) {
-//         parent->ioParamValue(ioFlag, name, "echoFramePathnameFlag", &echoFramePathnameFlag, false/*default value*/);
-//      }
-//   }
-//}
-
 void MoviePvp::ioParam_start_frame_index(enum ParamsIOFlag ioFlag) {
    this->getParent()->ioParamArray(ioFlag, this->getName(), "start_frame_index", &paramsStartFrameIndex, &numStartFrame);
 }
@@ -288,14 +202,6 @@ void MoviePvp::ioParam_resetToStartOnLoop(enum ParamsIOFlag ioFlag) {
 
 MoviePvp::~MoviePvp()
 {
-   //if (imageData != NULL) {
-   //   delete imageData;
-   //   imageData = NULL;
-   //}
-   //if (getParent()->icCommunicator()->commRank()==0 && filenamestream != NULL && filenamestream->isfile) {
-   //   PV_fclose(filenamestream);
-   //}
-   //free(fileOfFileNames); fileOfFileNames = NULL;
    if (getParent()->icCommunicator()->commRank()==0 && timestampFile != NULL && timestampFile->isfile) {
        PV_fclose(timestampFile);
    }
@@ -426,16 +332,9 @@ int MoviePvp::allocateDataStructures() {
    return status;
 }
 
-pvdata_t * MoviePvp::getImageBuffer()
-{
-   //   return imageData;
-   return data;
-}
-
 PVLayerLoc MoviePvp::getImageLoc()
 {
    return imageLoc;
-   //   return clayer->loc;
    // imageLoc contains size information of the image file being loaded;
    // clayer->loc contains size information of the layer, which may
    // be smaller than the whole image.  To get information on the layer, use
@@ -443,13 +342,10 @@ PVLayerLoc MoviePvp::getImageLoc()
 }
 
 double MoviePvp::getDeltaUpdateTime(){
-   //If jitter or randomMovie, update every timestep
+   //If jittering, update every timestep
    if( jitterFlag ){
       return parent->getDeltaTime();
    }
-   //if(randomMovie){
-   //   return parent->getDeltaTime();
-   //}
    return displayPeriod;
 }
 
@@ -474,26 +370,17 @@ int MoviePvp::updateState(double time, double dt)
 //Image readImage reads the same thing to every batch
 //This call is here since this is the entry point called from allocate
 //Movie overwrites this function to define how it wants to load into batches
-int MoviePvp::retrieveData(double timef, double dt)
+int MoviePvp::retrieveData(double timef, double dt, int batchIndex)
 {
-   bool init = false;
    //TODO this function needs to decide how to read into batches
    int status = PV_SUCCESS;
-   for(int b = 0; b < parent->getNBatch(); b++){
-      if(!initFlag){
-         init = true;
-      }
-      else{
-         updateFrameNum(skipFrameIndex[b], b);
-      }
+   if(timef>parent->getStartTime()){
+      updateFrameNum(skipFrameIndex[batchIndex], batchIndex);
+   }
 
-      //Using member varibles here
-      status = readPvp(inputPath, frameNumbers[b], b, offsets[0], offsets[1], offsetAnchor);
-      assert(status == PV_SUCCESS);
-   }
-   if(init){
-      initFlag = true;
-   }
+   //Using member varibles here
+   status = readPvp(inputPath, frameNumbers[batchIndex]);
+   assert(status == PV_SUCCESS);
    return status;
 }
 
@@ -512,39 +399,8 @@ int MoviePvp::retrieveData(double timef, double dt)
  */
 bool MoviePvp::updateImage(double time, double dt)
 {
-   //if( jitterFlag ) {
-   //   jitter();
-   //} // jitterFlag
-
    InterColComm * icComm = getParent()->icCommunicator();
 
-   //if(randomMovie){
-   //   randomFrame();
-   //   //Moved to updateStateWrapper
-   //   //lastUpdateTime = time;
-   //} else {
-      //TODO: Fix movie layer to take with batches. This is commented out for compile
-      //if(!flipOnTimescaleError && (parent->getTimeScale() > 0 && parent->getTimeScale() < parent->getTimeScaleMin())){
-      //   if (parent->icCommunicator()->commRank()==0) {
-      //      std::cout << "timeScale of " << parent->getTimeScale() << " is less than timeScaleMin of " << parent->getTimeScaleMin() << ", Movie is keeping the same frame\n";
-      //   }
-      //}
-      //else{
-         //if(!readPvpFile){
-         //   //Only do this if it's not the first update timestep
-         //   //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
-         //   //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).  
-         //   if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
-         //      //If the error is too high, keep the same frame
-         //      if (filename != NULL) free(filename);
-         //      filename = strdup(getNextFileName(skipFrameIndex));
-         //   }
-         //   assert(filename != NULL);
-         //}
-         //else{
-            //Only do this if it's not the first update timestep
-            //The timestep number is (time - startTime)/(width of timestep), with allowance for roundoff.
-            //But if we're using adaptive timesteps, the dt passed as a function argument is not the correct (width of timestep).  
             if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
                int status = getFrame(time, dt);
                if( status != PV_SUCCESS ) {
@@ -552,18 +408,9 @@ bool MoviePvp::updateImage(double time, double dt)
                   abort();
                }
             }
-         //}
-      //}
-      
-      
-
       if(writePosition && icComm->commRank()==0){
          fprintf(fp_pos->fp,"%f %s: \n",time,inputPath);
       }
-      //nextDisplayTime removed, now using nextUpdateTime in HyPerLayer
-      //while (time >= nextDisplayTime) {
-      //   nextDisplayTime += displayPeriod;
-      //}
       //Set frame number (member variable in Image)
       //Write to timestamp file here when updated
       if( icComm->commRank()==0 ) {
@@ -604,47 +451,6 @@ int MoviePvp::outputState(double timed, bool last)
 
    return status;
 }
-
-//int MoviePvp::copyReducedImagePortion()
-//{
-//   const PVLayerLoc * loc = getLayerLoc();
-//
-//   const int nx = loc->nx;
-//   const int ny = loc->ny;
-//
-//   const int nx0 = imageLoc.nx;
-//   const int ny0 = imageLoc.ny;
-//
-//   assert(nx0 <= nx);
-//   assert(ny0 <= ny);
-//
-//   const int i0 = nx/2 - nx0/2;
-//   const int j0 = ny/2 - ny0/2;
-//
-//   int ii = 0;
-//   for (int j = j0; j < j0+ny0; j++) {
-//      for (int i = i0; i < i0+nx0; i++) {
-//         imageData[ii++] = data[i+nx*j];
-//      }
-//   }
-//
-//   return 0;
-//}
-
-///**
-// * This creates a random image patch (frame) that is used to perform a reverse correlation analysis
-// * as the input signal propagates up the visual system's hierarchy.
-// * NOTE: Check Image::toGrayScale() method which was the inspiration for this routine
-// */
-//int MoviePvp::randomFrame()
-//{
-//   assert(randomMovie); // randomMovieProb was set only if randomMovie is true
-//   for (int kex = 0; kex < clayer->numExtended; kex++) {
-//      double p = randState->uniformRandom();
-//      data[kex] = (p < randomMovieProb) ? 1: 0;
-//   }
-//   return 0;
-//}
 
 /**
  * A function only called if readPvpFile is set

@@ -13,7 +13,6 @@
 #include "BaseObject.hpp"
 #include "include/pv_common.h"
 #include "columns/HyPerCol.hpp"
-#include "utils/PVAssert.hpp"
 
 namespace PV {
 

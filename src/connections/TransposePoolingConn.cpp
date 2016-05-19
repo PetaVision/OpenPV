@@ -5,9 +5,6 @@
  */
 
 #include "TransposePoolingConn.hpp"
-#include "utils/PVLog.hpp"
-#include "utils/PVAlloc.hpp"
-#include "utils/PVAssert.hpp"
 
 namespace PV {
 

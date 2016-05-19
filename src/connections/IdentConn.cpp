@@ -7,7 +7,6 @@
 
 #include "IdentConn.hpp"
 #include "weightinit/InitIdentWeights.hpp"
-#include "utils/PVLog.hpp"
 
 namespace PV {
 

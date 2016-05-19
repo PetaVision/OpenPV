@@ -28,10 +28,6 @@
 #include "io/CoreParamGroupHandler.hpp"
 #include "columns/Factory.hpp"
 
-#include "utils/PVLog.hpp"
-#include "utils/PVAlloc.hpp"
-#include "utils/PVAssert.hpp"
-
 namespace PV {
 
 HyPerConn::HyPerConn()

@@ -7,7 +7,7 @@
  */
 
 #include "MaskFromMemoryBuffer.hpp"
-#include <layers/ImageFromMemoryBuffer.hpp>
+#include <layers/BaseInput.hpp>
 
 MaskFromMemoryBuffer::MaskFromMemoryBuffer(const char * name, PV::HyPerCol * hc){
    initialize_base();
@@ -26,10 +26,10 @@ MaskFromMemoryBuffer::~MaskFromMemoryBuffer(){
 int MaskFromMemoryBuffer::initialize_base(){
    imageLayerName = NULL;
    imageLayer = NULL;
-   imageLeft = -1;
-   imageRight = -1;
-   imageTop = -1;
-   imageBottom = -1;
+   dataLeft = -1;
+   dataRight = -1;
+   dataTop = -1;
+   dataBottom = -1;
    return PV_SUCCESS;
 }
 
@@ -55,11 +55,11 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
       status = PV_FAILURE;
    }
    else {
-      imageLayer = dynamic_cast<PV::ImageFromMemoryBuffer *>(hyperLayer);
+      imageLayer = dynamic_cast<PV::BaseInput *>(hyperLayer);
       if (imageLayer==NULL) {
          if (parent->columnId()==0) {
          fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error: imageLayerName \"%s\" is not an ImageFromMemoryBuffer layer.\n",
+            fprintf(stderr, "%s \"%s\" error: imageLayerName \"%s\" is not an BaseInput-derived layer.\n",
                     getKeyword(), name, imageLayerName);
          }
          status = PV_FAILURE;
@@ -91,17 +91,17 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
 
 int MaskFromMemoryBuffer::updateState(double time, double dt)
 {
-   if (imageLayer->getImageLeft() == imageLeft &&
-       imageLayer->getImageRight() == imageRight &&
-       imageLayer->getImageTop() == imageTop &&
-       imageLayer->getImageBottom() && imageBottom) {
+   if (imageLayer->getDataLeft() == dataLeft &&
+         imageLayer->getDataTop() == dataTop &&
+         imageLayer->getDataWidth() == dataRight-dataLeft &&
+         imageLayer->getDataHeight() && dataBottom-dataTop) {
       return PV_SUCCESS; // mask only needs to change if the imageLayer changes its active region
    }
 
-   imageLeft = imageLayer->getImageLeft();
-   imageRight = imageLayer->getImageRight();
-   imageTop = imageLayer->getImageTop();
-   imageBottom = imageLayer->getImageBottom();
+   dataLeft = imageLayer->getDataLeft();
+   dataRight = dataLeft+imageLayer->getDataWidth();
+   dataTop = imageLayer->getDataTop();
+   dataBottom = dataTop + imageLayer->getDataHeight();
 
    PVLayerLoc const * loc = getLayerLoc();
    for(int b = 0; b < loc->nbatch; b++){
@@ -117,7 +117,7 @@ int MaskFromMemoryBuffer::updateState(double time, double dt)
          int const nf = loc->nf;
          int x = kxPos(ni, nx, ny, nf);
          int y = kyPos(ni, nx, ny, nf);
-         pvadata_t a = (pvadata_t) (x>=imageLeft && x < imageRight && y >= imageTop && y < imageBottom);
+         pvadata_t a = (pvadata_t) (x>=dataLeft && x < dataRight && y >= dataTop && y < dataBottom);
          int nExt = kIndexExtended(ni, nx, ny, nf, halo->lt, halo->rt, halo->dn, halo->up);
          ABatch[nExt] = a;
       }

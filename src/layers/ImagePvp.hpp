@@ -27,23 +27,21 @@ protected:
     * @}
     */
 
-
-   virtual int retrieveData(double timef, double dt);
+   virtual int getFrame(double timef, double dt);
+   virtual int retrieveData(double timef, double dt, int batchIndex);
+   virtual int readPvp(const char * filename, int frameNumber);
+   int readSparseBinaryActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber);
+   int readSparseValuesActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber);
+   int readNonspikingActivityFrame(int numParams, int * params, PV_Stream * pvstream, int frameNumber);
    virtual int scatterImageFilePVP(const char * filename, int xOffset, int yOffset, PV::Communicator * comm, const PVLayerLoc * loc, float * buf, int frameNumber);
    ImagePvp();
    virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   //frameIndex is a linear index into both batches and frames
-   int readPvp(const char * filename, int frameIdx, int destBatchIdx, int offsetX, int offsetY, const char* anchor);
 
-   //char * pvpFilename;       // path to file if a file exists
    long * frameStartBuf;
    int * countBuf;
-   //Current pvp file time
-   float pvpFileTime;
+   float pvpFileTime; //Current pvp file time
    long pvpFrameIdx;
-   //long pvpBatchIdx;
    int fileNumFrames; //Number of frames
-   //int fileNumBatches;
 public:
    ImagePvp(const char * name, HyPerCol * hc);
    virtual ~ImagePvp();
@@ -52,7 +50,6 @@ public:
 
    float getPvpFileTime(){ return pvpFileTime;};
    virtual long getPvpFrameIdx() { return pvpFrameIdx; }
-   //virtual long getPvpBatchIdx() { return pvpBatchIdx; }
    virtual double getDeltaUpdateTime();
 private:
    int initialize_base();

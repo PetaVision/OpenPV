@@ -200,15 +200,17 @@ typedef _Log<wchar_t, LogStackTraceType> WStackTrace;
  *
  * Provides a standardized method for logging error, debug and information messages.
  *
- * logDebug(), logError() and logInfo()q work the same as printf().
+ * pvLogDebug(), pvLogError() and pvLogInfo() take printf-style format control string and arguments.
  *
- * logDebug() and logError() will prepend DEBUG: and ERROR: plus the file name and line number
- * of the call.
+ * pvLogDebug() and pvLogError() will prepend DEBUG: and ERROR: plus the file name and line number
+ * of the call, and append a newline.
  *
- * logInfo() works just like printf. Nothing is prepended.
+ * pvLogInfo() appends a newline. Nothing is prepended.
  *
- * logDebug() calls are compiled out in a Release build. logError() and logInfo() calls are not
+ * pvLogDebug() calls are compiled out in a Release build. pvLogError() and pvLogInfo() calls are not
  * compiled out.
+ *
+ * pvLogDebug() and pvLogInfo() send output to stdout.  pvLogError sends output to stderr.
  *
  * These macros provide an opportunity to handle sending debug, error and info messages to other MPI ranks
  */

@@ -8,9 +8,6 @@
 #include "PoolingConn.hpp"
 #include <cstring>
 #include <cmath>
-#include "utils/PVLog.hpp"
-#include "utils/PVAlloc.hpp"
-#include "utils/PVAssert.hpp"
 
 namespace PV {
 
