@@ -18,7 +18,8 @@ namespace PV
 			virtual int resetGSynBuffers(double timef, double dt);
 			virtual int recvAllSynapticInput();
 			virtual bool activityIsSpiking() { return false; }
-			
+			virtual double getDeltaUpdateTime();
+
 			int calcActivityIndex(int k);
 			int calcBatchOffset();
 		
@@ -32,6 +33,7 @@ namespace PV
 			virtual int setActivity();
 			virtual int initializeV();
 			virtual int initializeActivity();
+         virtual int setInitialValues();
 			virtual int callUpdateState(double timed, double dt);
 			virtual int readActivityFromCheckpoint(const char * cpDir, double * timeptr);
 			virtual int readVFromCheckpoint(const char * cpDir, double * timeptr);

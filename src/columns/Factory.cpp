@@ -57,6 +57,7 @@
 #include <layers/components/TanhOutputComponent.hpp>
 #include <layers/components/ANNOutputComponent.hpp>
 #include <layers/components/ImageOutputComponent.hpp>
+#include <layers/components/AudioOutputComponent.hpp>
 
 #include <connections/HyPerConn.hpp>
 #include <connections/CloneConn.hpp>
@@ -174,6 +175,7 @@ int Factory::registerCoreKeywords() {
    registerKeyword("SigmoidOutputComponent", createSigmoidOutputComponent);
    registerKeyword("TanhOutputComponent", createTanhOutputComponent);
    registerKeyword("ANNOutputComponent", createANNOutputComponent);
+   registerKeyword("AudioOutputComponent", createAudioOutputComponent);
 
    registerKeyword("HyPerConn", createHyPerConn);
    registerKeyword("CloneConn", createCloneConn);

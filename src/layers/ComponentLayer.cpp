@@ -128,6 +128,13 @@ namespace PV
         return PV_SUCCESS;
     }
 
+   int ComponentLayer::setInitialValues()
+   {
+      initializeV();
+      initializeActivity();
+      return PV_SUCCESS;
+   }
+
    //********************
    // Utility functions
    //********************
@@ -241,16 +248,24 @@ namespace PV
     }
     
     int ComponentLayer::initializeActivity()
-   {
+    {
       mOutputComponent->initialize();
-      return setActivity();
-   }
+      mOutputComponent->clearActivity();
+      return PV_SUCCESS;
+    }
    
     int ComponentLayer::readActivityFromCheckpoint(const char * cpDir, double * timeptr)
     {
        HyPerLayer::readActivityFromCheckpoint(cpDir, timeptr);
        mOutputComponent->initialize();
        return PV_SUCCESS;
+    }
+
+    double ComponentLayer::getDeltaUpdateTime()
+    {
+       double dt = mOutputComponent->getDeltaUpdateTime();
+       if(dt != -1.0) return dt;
+       return HyPerLayer::getDeltaUpdateTime();
     }
 			
     //************************
