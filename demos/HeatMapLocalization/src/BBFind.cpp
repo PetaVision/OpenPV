@@ -307,7 +307,10 @@ BBFind::Map2 BBFind::scale(const Map2 &source, int newWidth, int newHeight, bool
    {
       float xRatio = sourceWidth / (float)(newWidth);
       float yRatio = sourceHeight / (float)(newHeight);
-   
+
+      #ifdef PV_USE_OPENMP_THREADS
+			#pragma omp parallel for
+		#endif   
       for(int j = 0; j < newHeight; j++)
       {
          result[j].resize(newWidth);
@@ -327,7 +330,10 @@ BBFind::Map2 BBFind::applyThreshold(const Map2 confMap, float threshold)
 	int mapWidth = confMap[0].size();
 	int mapHeight = confMap.size();
 	Map2 resultMap = confMap;
-	
+
+   #ifdef PV_USE_OPENMP_THREADS
+		#pragma omp parallel for
+   #endif	
    for(int x = 0; x < mapWidth; x++)
 	{
 		for(int y = 0; y < mapHeight; y++)
@@ -441,6 +447,9 @@ BBFind::Map2 BBFind::makeEdgeDistanceMap(const Map2 confMap)
    
    Map2 resultMap = horizMap;
    
+   #ifdef PV_USE_OPENMP_THREADS
+		#pragma omp parallel for
+   #endif
    for(int y = 0; y < mapHeight; y++)
 	{
 		for(int x = 0; x < mapWidth; x++)
@@ -479,6 +488,9 @@ void BBFind::squash(Map2 &map, float scaleMin, float scaleMax)
       }
    }
    float range = maxVal - minVal;
+   #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+   #endif
    for(int x = 0; x < mapWidth; x++)
    {
       for(int y = 0; y < mapHeight; y++)
@@ -523,7 +535,10 @@ BBFind::Map3 BBFind::increaseContrast(const Map3 fullMap, float contrast, float 
 	int mapWidth = fullMap[0][0].size();
 	int mapHeight = fullMap[0].size();
 	Map3 resultMap = fullMap;
-	
+
+   #ifdef PV_USE_OPENMP_THREADS
+       #pragma omp parallel for
+   #endif	
    for(int c = 0; c < numCategories; c++)
    {
       for(int y = 0; y < mapHeight; y++)
@@ -557,6 +572,9 @@ BBFind::Map3 BBFind::contrastAndAverage(const Map3 fullMap, float contrast, floa
       ((float)mInternalConfidenceWidth * mInternalConfidenceHeight)
            / (mOriginalConfidenceWidth * mOriginalConfidenceHeight));
   
+   #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+   #endif
    for(int c = 0; c < numCategories; c++)
    {
       resultMap[c].resize(mapHeight);
@@ -586,6 +604,9 @@ BBFind::Map3 BBFind::blendMaps(const Map3 &mapA, const Map3 &mapB, float interp)
 
    Map3 interpolatedMap(numCategories);
    
+   #ifdef PV_USE_OPENMP_THREADS
+		#pragma omp parallel for
+   #endif
    for(int c = 0; c < numCategories; c++)
    {
       interpolatedMap[c].resize(mapHeight);
@@ -617,6 +638,9 @@ BBFind::Map3 BBFind::sumMaps(const Map3 &mapA, const Map3 &mapB, float scale)
 
    Map3 summedMap(numCategories);
    
+   #ifdef PV_USE_OPENMP_THREADS
+		#pragma omp parallel for
+   #endif
    for(int c = 0; c < numCategories; c++)
    {
       summedMap[c].resize(mapHeight);
@@ -642,6 +666,9 @@ void BBFind::clip(Map3 &confMap, float minVal, float maxVal)
    int numCategories = confMap.size();
 	int mapHeight = confMap[0].size();
    int mapWidth = confMap[0][0].size();
+   #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+   #endif
    for(int c = 0; c < numCategories; c++)
    {
       for(int y = 0; y < mapHeight; y++)
@@ -682,6 +709,9 @@ void BBFind::squash(Map3 &map, float scaleMin, float scaleMax)
       }
    }
    float range = maxVal - minVal;
+   #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+   #endif
    for(int c = 0; c < numCategories; c++)
    {
       for(int y = 0; y < mapHeight; y++)
@@ -721,6 +751,9 @@ void BBFind::accumulateIntoPrev(Map3 &prevMap, const Map3 &currentMap, float acc
          }
       }
    }
+   #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+   #endif
    for(int c = 0; c < numCategories; c++)
    {
       for(int y = 0; y < mapHeight; y++)
@@ -758,6 +791,9 @@ BBFind::Rectangles BBFind::placePotentialBoxes(const Map3 fullMap)
 	float maxVal = 0.0f;
 	Rectangles boundingBoxes(numCategories);
 
+   #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+   #endif
    for(int c = 0; c < numCategories; c++)
    {
       Map2 distanceMap = applyThreshold(fullMap[c], mMinBlobSize);
@@ -794,6 +830,9 @@ void BBFind::joinBoundingBoxes(Rectangles &boundingBoxes)
    
 	int numCategories = boundingBoxes.size();
 
+   #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+   #endif
 	for(int c = 0; c < numCategories; c++)
 	{
 		bool joinedBox = true;
@@ -833,6 +872,9 @@ void BBFind::smoothBoundingBoxes(Rectangles &boundingBoxes)
    if(mRectSizesPerCategory.size() < numCategories)
       mRectSizesPerCategory.resize(numCategories);
    
+   #ifdef PV_USE_OPENMP_THREADS
+      #pragma omp parallel for
+   #endif
 	for(int c = 0; c < numCategories; c++)
 	{
       if(mRectSizesPerCategory[c].size() > 0)
