@@ -35,11 +35,9 @@ public:
    /**
     * A function to copy host memory to device memory. Note that the host and device memory must have the same size, otherwise undefined behavior
     * @param h_ptr The pointer to the host address to copy to the device
-    * @param in_size The size of the data to copy. Defaults to the size of the buffer.
     * #return Returns PV_Success if successful
     */
-   virtual int copyToDevice(void * h_ptr);
-   virtual int copyToDevice(void * h_ptr, size_t in_size);
+   virtual int copyToDevice(const void * h_ptr);
 
    /**
     * A function to copy device memory to host memory. Note that the host and device memory must have the same size, otherwise undefined behavior
@@ -69,6 +67,15 @@ protected:
    size_t size;
    cudaStream_t stream;
    CudaDevice * device;
+
+private:
+   /**
+    * A function to copy host memory to device memory. Note that the host and device memory must have the same size, otherwise undefined behavior
+    * @param h_ptr The pointer to the host address to copy to the device
+    * @param in_size The size of the data to copy. Defaults to the size of the buffer.
+    * #return Returns PV_Success if successful
+    */
+   virtual int copyToDevice(const void * h_ptr, size_t in_size);
 };
 
 } // namespace PV

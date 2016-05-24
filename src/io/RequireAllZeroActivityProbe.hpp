@@ -33,14 +33,17 @@ public:
 
 protected:
    RequireAllZeroActivityProbe();
+   int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
    int initRequireAllZeroActivityProbe(const char * probeName, HyPerCol * hc);
    virtual void ioParam_buffer(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_exitOnFailure(enum ParamsIOFlag ioFlag);
 
 private:
    int initialize_base();
 
 protected:
    bool nonzeroFound;
+   bool exitOnFailure;
    double nonzeroTime;
 }; // end class RequireAllZeroActivityProbe
 

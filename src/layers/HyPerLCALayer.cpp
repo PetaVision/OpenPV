@@ -254,10 +254,7 @@ int HyPerLCALayer::allocateUpdateKernel(){
 
 #ifdef PV_USE_CUDA
 int HyPerLCALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead){
-   if(triggerLayer != NULL){
-      fprintf(stderr, "HyPerLayer::Trigger reset of V does not work on GPUs\n");
-      abort();
-   }
+   //this is a change
    //Copy over d_dtAdapt
    d_dtAdapt->copyToDevice(parent->getTimeScale());
    //Change dt to match what is passed in
