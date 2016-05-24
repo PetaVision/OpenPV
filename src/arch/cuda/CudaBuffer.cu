@@ -59,13 +59,13 @@ CudaBuffer::~CudaBuffer()
    handleError(cudaFree(d_ptr), "Freeing device pointer");
 }
    
-int CudaBuffer::copyToDevice(void * h_ptr)
+int CudaBuffer::copyToDevice(const void * h_ptr)
 {
    copyToDevice(h_ptr, this->size);
    return 0;
 }
 
-int CudaBuffer::copyToDevice(void * h_ptr, size_t in_size)
+int CudaBuffer::copyToDevice(const void * h_ptr, size_t in_size)
 {
    if(in_size > this->size){
       printf("copyToDevice, in_size of %zu is bigger than buffer size of %zu\n", in_size, this->size);

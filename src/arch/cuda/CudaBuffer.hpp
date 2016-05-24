@@ -38,8 +38,8 @@ public:
     * @param in_size The size of the data to copy. Defaults to the size of the buffer.
     * #return Returns PV_Success if successful
     */
-   virtual int copyToDevice(void * h_ptr);
-   virtual int copyToDevice(void * h_ptr, size_t in_size);
+   virtual int copyToDevice(const void * h_ptr);
+   virtual int copyToDevice(const void * h_ptr, size_t in_size);
 
    /**
     * A function to copy device memory to host memory. Note that the host and device memory must have the same size, otherwise undefined behavior

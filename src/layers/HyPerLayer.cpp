@@ -1777,11 +1777,27 @@ int HyPerLayer::resetStateOnTrigger() {
       for (int k=0; k<getNumNeurons(); k++) {
          V[k] = resetV[k];
       }
+      //Update on GPU if updateGpu is set
+#if defined(PV_USE_CUDA) || defined(PV_USE_OPENCL)
+      if(updateGpu){
+          getDeviceV()->copyToDevice(resetV);
+      }
+#endif
+
    }
    else {
       pvadata_t const * resetA = triggerResetLayer->getActivity();
       PVLayerLoc const * loc = triggerResetLayer->getLayerLoc();
       PVHalo const * halo = &loc->halo;
+
+      //This will not work as the activity buffer is extended
+#if defined(PV_USE_CUDA) || defined(PV_USE_OPENCL)
+      if(updateGpu){
+          fprintf(stderr, "HyPerLayer::Trigger reset of V does not work on GPUs when trigger reset layer does not hav e a V buffer\n");
+          abort();
+      }
+#endif
+
       #ifdef PV_USE_OPENMP_THREADS
       #pragma omp parallel for
       #endif // PV_USE_OPENMP_THREADS
