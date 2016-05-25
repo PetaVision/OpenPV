@@ -1148,6 +1148,7 @@ int HyPerLayer::communicateInitInfo()
                fprintf(stderr, "    \"%s\" is %d-by-%d-by-%d and \"%s\" is %d-by-%d-by-%d.\n",
                      name, localLoc->nxGlobal, localLoc->nyGlobal, localLoc->nf,
                      resetLayerName, triggerLoc->nxGlobal, triggerLoc->nyGlobal, triggerLoc->nf);
+               exit(EXIT_FAILURE);
             }
          }
       }
@@ -1773,7 +1774,7 @@ int HyPerLayer::resetStateOnTrigger() {
       #ifdef PV_USE_OPENMP_THREADS
       #pragma omp parallel for
       #endif // PV_USE_OPENMP_THREADS
-      for (int k=0; k<getNumNeurons(); k++) {
+      for (int k=0; k<getNumNeuronsAllBatches(); k++) {
          V[k] = resetV[k];
       }
    }
@@ -1781,15 +1782,37 @@ int HyPerLayer::resetStateOnTrigger() {
       pvadata_t const * resetA = triggerResetLayer->getActivity();
       PVLayerLoc const * loc = triggerResetLayer->getLayerLoc();
       PVHalo const * halo = &loc->halo;
-      #ifdef PV_USE_OPENMP_THREADS
-      #pragma omp parallel for
-      #endif // PV_USE_OPENMP_THREADS
-      for (int k=0; k<getNumNeurons(); k++) {
-         int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
-         V[k] = resetA[kex];
+      for (int b = 0; b < parent->getNBatch(); b++){
+          pvadata_t const * resetABatch = resetA + (b*triggerResetLayer->getNumExtended());
+          pvpotentialdata_t * VBatch = V + (b*triggerResetLayer->getNumNeurons());
+          #ifdef PV_USE_OPENMP_THREADS
+          #pragma omp parallel for
+          #endif // PV_USE_OPENMP_THREADS
+          for (int k=0; k<getNumNeurons(); k++) {
+             int kex = kIndexExtended(k, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
+             VBatch[k] = resetABatch[kex];
+          }
       }
    }
-   return setActivity();
+
+   int status = setActivity();
+
+   //Update V on GPU after CPU V gets set
+#if defined(PV_USE_CUDA) || defined(PV_USE_OPENCL)
+   if(updateGpu){
+       getDeviceV()->copyToDevice(V);
+       //Right now, we're setting the activity on the CPU and memsetting the GPU memory
+       //TODO calculate this on the GPU
+       getDeviceActivity()->copyToDevice(clayer->activity->data);
+       //We need to updateDeviceActivity and Datastore if we're resetting V
+       updatedDeviceActivity = true;
+       updatedDeviceDatastore = true;
+   }
+#endif
+
+
+
+   return status;
 }
 
 int HyPerLayer::resetGSynBuffers(double timef, double dt) {
@@ -1812,6 +1835,10 @@ int HyPerLayer::runUpdateKernel(){
 
    //V and Activity are write only buffers, so we don't need to do anything with them
    assert(krUpdate);
+
+   //Sync all buffers before running
+   syncGpu();
+   
    //Run kernel
    krUpdate->run();
 #endif
