@@ -58,23 +58,25 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
    int oldSize = imageLoc.nxGlobal * imageLoc.nyGlobal * imageLoc.nf;
    int newSize = height * width * numbands;
 
-   if (oldSize != newSize) {
-      delete[] imageData;
-      imageData = new pvadata_t[newSize];
-      imageLoc.nxGlobal = width;
-      imageLoc.nyGlobal = height;
-      imageLoc.nf = numbands;
-   }
 
+   if (parent->columnId()==0) {
+      if (oldSize != newSize) {
+         delete[] imageData;
+         imageData = new pvadata_t[newSize];
+         imageLoc.nxGlobal = width;
+         imageLoc.nyGlobal = height;
+         imageLoc.nf = numbands;
+      }
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for
 #endif // PV_USE_OPENMP_THREADS
-   for (int k=0; k<newSize; k++) {
-      int x=kxPos(k, imageLoc.nxGlobal, imageLoc.nyGlobal, imageLoc.nf);
-      int y=kyPos(k, imageLoc.nxGlobal, imageLoc.nyGlobal, imageLoc.nf);
-      int f=featureIndex(k, imageLoc.nxGlobal, imageLoc.nyGlobal, imageLoc.nf);
-      int externalIndex = x*xstride + y*ystride + f*bandstride;
-      imageData[k] = pixelTypeConvert(externalBuffer[externalIndex], zeroval, oneval);
+      for (int k=0; k<newSize; k++) {
+         int x=kxPos(k, imageLoc.nxGlobal, imageLoc.nyGlobal, imageLoc.nf);
+         int y=kyPos(k, imageLoc.nxGlobal, imageLoc.nyGlobal, imageLoc.nf);
+         int f=featureIndex(k, imageLoc.nxGlobal, imageLoc.nyGlobal, imageLoc.nf);
+         int externalIndex = x*xstride + y*ystride + f*bandstride;
+         imageData[k] = pixelTypeConvert(externalBuffer[externalIndex], zeroval, oneval);
+      }
    }
 
    switch (numbands) {

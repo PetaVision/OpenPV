@@ -39,6 +39,7 @@ public:
    void setFrameRate(int fr) { mFrameRate = fr; }
 
    virtual ~FrameServer() {
+      clearFrames();
       rmdir(mTmpDir);
       free(mTmpDir);
    }
