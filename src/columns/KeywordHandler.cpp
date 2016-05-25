@@ -25,6 +25,7 @@ KeywordHandler::KeywordHandler(KeywordHandler const& orig) {
 KeywordHandler& KeywordHandler::operator=(KeywordHandler const& orig) {
    free(keyword);
    initialize(orig.getKeyword(), orig.getCreator());
+   return *this;
 }
 
 int KeywordHandler::initialize(char const * kw, ObjectCreateFn creator) {

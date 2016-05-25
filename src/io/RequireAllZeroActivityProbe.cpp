@@ -31,8 +31,9 @@ int RequireAllZeroActivityProbe::initRequireAllZeroActivityProbe(const char * pr
 }
 
 int RequireAllZeroActivityProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-    StatsProbe::ioParamsFillGroup(ioFlag);
+    int status = StatsProbe::ioParamsFillGroup(ioFlag);
     ioParam_exitOnFailure(ioFlag);
+    return status;
 }
 
 void RequireAllZeroActivityProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
