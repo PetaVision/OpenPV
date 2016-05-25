@@ -1,5 +1,8 @@
-pv_add_test(PARAMS ResetStateOnTriggerTest)
+set(TEST_PARAMS "ResetStateOnTriggerTest")
 
-if (PV_USE_CUDA OR PV_USE_OPENCL)
-   pv_add_test(ResetStateOnTriggerGPU)
+if (PV_USE_CUDA)
+  set(TEST_PARAMS "${TEST_PARAMS} ResetStateOnTriggerTestGPU")
 endif()
+
+pv_add_test(PARAMS ${testParams})
+
