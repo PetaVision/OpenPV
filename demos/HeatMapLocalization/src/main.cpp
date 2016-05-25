@@ -322,6 +322,9 @@ int runWithHarness(PV::HyPerCol * hc, int frameInterval) {
          }
       }
       free(videoFile);
+      if (rank==0) {
+         frameServer.clearFrames();
+      }
       videoFile = getImageFileName(icComm);
    }
    free(videoFile);
