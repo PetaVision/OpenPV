@@ -34,6 +34,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/PoolingConn.hpp
    ${SUBDIR}/RescaleConn.hpp
    ${SUBDIR}/privateTransposeConn.hpp
+   ${SUBDIR}/SparseWeight.hpp
    ${SUBDIR}/TransposeConn.hpp
    ${SUBDIR}/TransposePoolingConn.hpp
    ${SUBDIR}/weight_conversions.hpp

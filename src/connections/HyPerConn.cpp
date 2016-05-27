@@ -27,6 +27,7 @@
 #include "PlasticCloneConn.hpp"
 #include "io/CoreParamGroupHandler.hpp"
 #include "columns/Factory.hpp"
+#include "connections/SparseWeight.hpp"
 
 namespace PV {
 
@@ -440,9 +441,6 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weight
    ioAppend = parent->getCheckpointReadFlag();
    io_timer     = new Timer(getName(), "conn", "io     ");
    update_timer = new Timer(getName(), "conn", "update ");
-
-   _sparseWeightsAllocated.resize(numAxonalArborLists);
-   std::fill(_sparseWeightsAllocated.begin(), _sparseWeightsAllocated.end(), false);
 
    return status;
 }
@@ -1042,7 +1040,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
 }
 
 void HyPerConn::ioParam_weightSparsity(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "weightSparsity", &_weightSparsity, 0.0f, false);
+   parent->ioParamValue(ioFlag, name, "weightSparsity", &mWeightSparsity, 0.0f, false);
 }
 
 int HyPerConn::setWeightNormalizer() {
@@ -2430,6 +2428,11 @@ int HyPerConn::updateState(double time, double dt){
          pvAssert(status==PV_SUCCESS);
       }
 
+      // Refresh sparse weights, if needed
+      if (mSparseWeight != nullptr) {
+         mSparseWeight->refresh();
+      }
+
       lastUpdateTime = time;
       computeNewWeightUpdateTime(time, weightUpdateTime);
       needFinalize = true;
@@ -2836,6 +2839,11 @@ double HyPerConn::computeNewWeightUpdateTime(double time, double currentUpdateTi
 
 PVPatch * HyPerConn::getWeights(int k, int arbor)
 {
+   pvAssert(arbor >= 0);
+   pvAssert(arbor < numberOfAxonalArborLists());
+   pvAssert(k >= 0);
+   pvAssert(k <= getNumWeightPatches());
+
    // a separate arbor/patch of weights for every neuron
    return wPatches[arbor][k];
 }
@@ -2871,6 +2879,9 @@ int HyPerConn::deliver() {
          else
 #endif
          {
+            if (mWeightSparsity > 0.0 && !mSparseWeight) {
+               allocateSparseWeightsPre();
+            }
             status = deliverPresynapticPerspective(&cube, arbor);
 #if defined(PV_USE_CUDA)
             //CPU updated gsyn, need to update gsyn
@@ -2888,6 +2899,10 @@ int HyPerConn::deliver() {
          else
 #endif
          {
+            if (mWeightSparsity > 0.0 && !mSparseWeight) {
+               allocateSparseWeightsPost();
+            }
+
             status = deliverPostsynapticPerspective(&cube, arbor);
 #if defined(PV_USE_CUDA)
             //CPU updated gsyn, need to update on GPU
@@ -2916,10 +2931,6 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
    }
    else {
       dt_factor = getConvertToRateDeltaTimeFactor();
-   }
-
-   if (_weightSparsity > 0.0f && !_sparseWeightsAllocated[arborID]) {
-      allocateSparseWeightsPre(activity, arborID);
    }
 
    const PVLayerLoc * preLoc = preSynapticLayer()->getLayerLoc();
@@ -2990,10 +3001,10 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 #else // PV_USE_OPENMP_THREADS
        gSynPatchHead = gSynPatchHeadBatch;
 #endif // PV_USE_OPENMP_THREADS
-         if (_weightSparsity <= 0.0f) {
-            deliverOnePreNeuronActivity(kPreExt, arborID, a, gSynPatchHead, getRandState(kPreExt));
-         } else {
+         if (mSparseWeight) {
             deliverOnePreNeuronActivitySparseWeights(kPreExt, arborID, a, gSynPatchHead, getRandState(kPreExt));
+         } else {
+            deliverOnePreNeuronActivity(kPreExt, arborID, a, gSynPatchHead, getRandState(kPreExt));
          }
       }
 #ifdef PV_USE_OPENMP_THREADS
@@ -3040,10 +3051,6 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
    }
    else {
       dt_factor = getConvertToRateDeltaTimeFactor();
-   }
-
-   if (_weightSparsity > 0.0f && !_sparseWeightsAllocated[arborID]) {
-      allocateSparseWeightsPost(activity, arborID);
    }
 
    const PVLayerLoc * sourceLoc = preSynapticLayer()->getLayerLoc();
@@ -3110,7 +3117,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
          taus_uint4 * rngPtr = getRandState(kTargetRes);
          float* activityStartBuf = &(activityBatch[startSourceExt]); 
 
-         if (_weightSparsity <= 0.0f) {
+         if (mWeightSparsity <= 0.0f) {
             deliverOnePostNeuronActivity(arborID, kTargetExt, sy, activityStartBuf, gSynPatchPos, dt_factor, rngPtr);
          } else {
             deliverOnePostNeuronActivitySparseWeights(arborID, kTargetExt, sy, activityStartBuf, gSynPatchPos, dt_factor, rngPtr);
@@ -4238,178 +4245,19 @@ void HyPerConn::connOutOfMemory(const char * funcname) {
    pvExitFailure("Out of memory error in %s for connection \"%s\"\n", funcname, name);
 }
 
-
-/**
- * Find the weight value that that is in the nth percentile
- */
-SparseWeightInfo HyPerConn::findPercentileThreshold(float percentile, pvwdata_t **wDataStart, size_t numAxonalArborLists, size_t numPatches, size_t patchSize) const {
-   pvAssert(percentile >= 0.0f);
-   pvAssert(percentile <= 1.0f);
-
-   size_t fullWeightSize = numAxonalArborLists * numPatches * patchSize;
-   SparseWeightInfo info;
-   info.percentile = percentile;
-
-   if (percentile >= 1.0) {
-      info.size = fullWeightSize;
-      info.thresholdWeight = 0.0;
-      return info;
-   }
-
-   std::vector<pvwdata_t> weights;
-   weights.reserve(fullWeightSize);
-
-   for (int ar = 0; ar < numAxonalArborLists; ar++) {
-      for (int pt = 0; pt < numPatches; pt++) {
-         pvwdata_t *weight = &wDataStart[ar][pt * patchSize];
-         for (int k = 0; k < patchSize; k++) {
-            weights.push_back(fabs(weight[k]));
-         }
-      }
-   }
-
-   std::sort(weights.begin(), weights.end());
-   int index = weights.size() * info.percentile;
-
-   info.thresholdWeight = weights[index];
-   info.size = weights.size() - index;
-   return info;
+void HyPerConn::allocateSparseWeightsPre() {
+   pvAssert(mSparseWeight == nullptr);
+   mSparseWeight = std::unique_ptr<SparseWeightPre>(new SparseWeightPre(this, mWeightSparsity));
+   mSparseWeight->refresh();
 }
 
-SparseWeightInfo HyPerConn::calculateSparseWeightInfo() const {
-   size_t patchSize = nfp * nxp * nyp;
-   return findPercentileThreshold(_weightSparsity, wDataStart, numAxonalArborLists, numDataPatches, patchSize);
-}
-
-void HyPerConn::allocateSparseWeightsPre(PVLayerCube const *activity, int arbor) {
-   _sparseWeightInfo = calculateSparseWeightInfo();
-
-   std::map<const WeightType * const, int> sizes;
-
-   for (int kPreExt = 0; kPreExt < activity->numItems; kPreExt++) {
-      PVPatch *patch = getWeights(kPreExt, arbor);
-      const int nk = patch->nx * fPatchSize();
-      const int nyp = patch->ny;
-      const WeightType * const weightDataStart = get_wData(arbor, kPreExt);
-
-      for (int y = 0; y < nyp; y++) {
-         const WeightType * const weightPtr = weightDataStart + y * yPatchStride();
-
-         // Don't re-sparsify something that's already been put thru the sparsfication grinder
-         bool shouldSparsify = false;
-
-         // Find the weight pointers for this nk sized patch
-         WeightMapType::iterator sparseWeightValuesNk = _sparseWeightValues.find(nk);
-         IndexMapType::iterator sparseWeightIndexesNk = _sparseWeightIndexes.find(nk);
-
-         if (sparseWeightValuesNk == _sparseWeightValues.end()) {
-            // Weight pointers don't exist for this sized nk. Allocate a map for this nk
-            _sparseWeightValues.insert(make_pair(nk, WeightPtrMapType()));
-            _sparseWeightIndexes.insert(make_pair(nk, WeightIndexMapType()));
-            // Get references
-            sparseWeightValuesNk = _sparseWeightValues.find(nk);
-            sparseWeightIndexesNk = _sparseWeightIndexes.find(nk);
-            shouldSparsify = true;
-         } else if (sparseWeightValuesNk->second.find(weightPtr) == sparseWeightValuesNk->second.end()) {
-            // This nk group exists, but no weight pointer.
-            shouldSparsify = true;
-         }
-
-         if (shouldSparsify) {
-            WeightListType sparseWeight;
-            IndexListType idx;
-
-            // Equivalent to inner loop accumulate
-            for (int k = 0; k < nk; k++) {
-               WeightType weight = weightPtr[k];
-               if (std::abs(weight) >= _sparseWeightInfo.thresholdWeight) {
-                  sparseWeight.push_back(weight);
-                  idx.push_back(k);
-               }
-            }
-
-            sparseWeightValuesNk->second.insert(make_pair(weightPtr, sparseWeight));
-            sparseWeightIndexesNk->second.insert(make_pair(weightPtr, idx));
-         }
-      }
-
-      _kPreExtWeightSparsified.insert(kPreExt);
-   }
-
-   _sparseWeightsAllocated[arbor] = true;
-}
-
-void HyPerConn::allocateSparseWeightsPost(PVLayerCube const *activity, int arbor) {
-   _sparseWeightInfo = calculateSparseWeightInfo();
-   const PVLayerLoc *targetLoc = post->getLayerLoc();
-   const PVHalo *targetHalo = &targetLoc->halo;
-   const int targetNx = targetLoc->nx;
-   const int targetNy = targetLoc->ny;
-   const int targetNf = targetLoc->nf;
-
-   for (int kTargetRes = 0; kTargetRes < post->getNumNeurons(); kTargetRes++) {
-      // Change restricted to extended post neuron
-      int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
-      // get source layer's patch y stride
-      int syp = postConn->yPatchStride();
-      int yPatchSize = postConn->yPatchSize();
-      // Iterate through y patch
-      int nk = postConn->xPatchSize() * postConn->fPatchSize();
-      int kernelIndex = postConn->patchToDataLUT(kTargetExt);
-
-      const WeightType * const weightDataStart = postConn->get_wDataHead(arbor, kernelIndex);
-
-      for (int ky = 0; ky < yPatchSize; ky++) {
-         const WeightType * const weightPtr = weightDataStart + ky * syp;
-
-         // Don't re-sparsify something that's already been put thru the sparsfication grinder
-         bool shouldSparsify = false;
-
-         // Find the weight pointers for this nk sized patch
-         // Find the weight pointers for this nk sized patch
-         WeightMapType::iterator sparseWeightValuesNk = _sparseWeightValues.find(nk);
-         IndexMapType::iterator sparseWeightIndexesNk = _sparseWeightIndexes.find(nk);
-
-         if (_sparseWeightValues.find(nk) == _sparseWeightValues.end()) {
-            // Weight pointers don't exist for this sized nk. Allocate a map for this nk
-            _sparseWeightValues.insert(make_pair(nk, WeightPtrMapType()));
-            _sparseWeightIndexes.insert(make_pair(nk, WeightIndexMapType()));
-            // Get references
-            sparseWeightValuesNk = _sparseWeightValues.find(nk);
-            sparseWeightIndexesNk = _sparseWeightIndexes.find(nk);
-            shouldSparsify = true;
-         } else if (sparseWeightValuesNk->second.find(weightPtr) == sparseWeightValuesNk->second.end()) {
-            // This nk group exists, but no weight pointer.
-            shouldSparsify = true;
-         }
-
-         if (shouldSparsify) {
-            WeightListType sparseWeight;
-            IndexListType idx;
-
-            for (int k = 0; k < nk; k++) {
-               WeightType weight = weightPtr[k];
-               if (std::abs(weight) >= _sparseWeightInfo.thresholdWeight) {
-                  sparseWeight.push_back(weight);
-                  idx.push_back(k);
-               }
-            }
-
-            sparseWeightValuesNk->second.insert(make_pair(weightPtr, sparseWeight));
-            sparseWeightIndexesNk->second.insert(make_pair(weightPtr, idx));
-         }
-      }
-
-      _kPreExtWeightSparsified.insert(kTargetRes);
-   }
-
-   _sparseWeightsAllocated[arbor] = true;
+void HyPerConn::allocateSparseWeightsPost() {
+   pvAssert(mSparseWeight == nullptr);
+   mSparseWeight = std::unique_ptr<SparseWeightPost>(new SparseWeightPost(this, mWeightSparsity));
+   mSparseWeight->refresh();
 }
 
 void HyPerConn::deliverOnePreNeuronActivitySparseWeights(int kPreExt, int arbor, pvadata_t a, pvgsyndata_t * postBufferStart, void * auxPtr) {
-   pvAssert(_sparseWeightsAllocated[arbor] == true);
-   pvAssert(_kPreExtWeightSparsified.find(kPreExt) != _kPreExtWeightSparsified.end());
-
    PVPatch *patch = getWeights(kPreExt, arbor);
    const int nk = patch->nx * fPatchSize();
    const int nyp = patch->ny;
@@ -4422,11 +4270,8 @@ void HyPerConn::deliverOnePreNeuronActivitySparseWeights(int kPreExt, int arbor,
       WeightType *weightPtr = weightDataStart + y * yPatchStride();
       pvadata_t *post = postPatchStart + y * sy + offset;
 
-      pvAssert(_sparseWeightValues.find(nk) != _sparseWeightValues.end());
-      pvAssert(_sparseWeightValues.find(nk)->second.find(weightPtr) != _sparseWeightValues.find(nk)->second.end());
-
-      const WeightListType& sparseWeights = _sparseWeightValues.find(nk)->second.find(weightPtr)->second;
-      const IndexListType& idx = _sparseWeightIndexes.find(nk)->second.find(weightPtr)->second;
+      const WeightListType& sparseWeights = mSparseWeight->values(nk, weightPtr);
+      const IndexListType& idx = mSparseWeight->indexes(nk, weightPtr);
 
       for (int k = 0; k < sparseWeights.size(); k++) {
          int outIdx = idx[k];
@@ -4443,18 +4288,15 @@ void HyPerConn::deliverOnePostNeuronActivitySparseWeights(int arborID, int kTarg
    int nk = postConn->xPatchSize() * postConn->fPatchSize();
    int kernelIndex = postConn->patchToDataLUT(kTargetExt);
 
-   pvwdata_t* weightStartBuf = postConn->get_wDataHead(arborID, kernelIndex);
+   WeightType * weightStartBuf = postConn->get_wDataHead(arborID, kernelIndex);
    int offset = 0;
    for (int ky = 0; ky < yPatchSize; ky++) {
       float * activityY = &(activityStartBuf[ky*inSy+offset]);
       
-      pvwdata_t *weightPtr = weightStartBuf + ky * syp;
+      WeightType * weightPtr = weightStartBuf + ky * syp;
 
-      pvAssert(_sparseWeightValues.find(nk) != _sparseWeightValues.end());
-      pvAssert(_sparseWeightValues.find(nk)->second.find(weightPtr) != _sparseWeightValues.find(nk)->second.end());
-
-      const WeightListType& sparseWeight = _sparseWeightValues.find(nk)->second.find(weightPtr)->second;
-      const IndexListType& idx = _sparseWeightIndexes.find(nk)->second.find(weightPtr)->second;
+      const WeightListType& sparseWeight = mSparseWeight->values(nk, weightPtr);
+      const IndexListType& idx = mSparseWeight->indexes(nk, weightPtr);
       
       float dv = 0.0;
       for (int k = 0; k < sparseWeight.size(); k++) {

@@ -26,6 +26,12 @@ public:
    virtual bool needUpdate(double timed, double dt);
    virtual int updateState(double time, double dt);
    virtual double computeNewWeightUpdateTime(double time, double currentUpdateTime);
+   //virtual int finalizeUpdate(double time, double dt);
+
+   // Sparse weights not supported in PoolingConn
+   virtual void allocateSparseWeightsPre() {}
+   virtual void allocateSparseWeightsPost() {}
+
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
    virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)

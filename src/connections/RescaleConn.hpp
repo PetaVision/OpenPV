@@ -38,6 +38,10 @@ protected:
 
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
 
+   // Sparse weights not supported in PoolingConn
+   virtual void allocateSparseWeightsPre() {}
+   virtual void allocateSparseWeightsPost() {}
+
 private:
    int initialize_base();
 
