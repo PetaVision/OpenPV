@@ -3080,6 +3080,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
       pvdata_t * gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
 
 #ifdef PV_REORDER_HYPERCONN
+      // Iterate over each line in the y axis, the goal is to keep weights in the cache
       for (int ky = 0; ky < yPatchSize; ky++) {
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(dynamic)
