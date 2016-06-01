@@ -3082,6 +3082,8 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
 #ifdef PV_REORDER_HYPERCONN
       // Iterate over each line in the y axis, the goal is to keep weights in the cache
       for (int ky = 0; ky < yPatchSize; ky++) {
+         // Threading over feature was the important change that improved cache performance by
+         // 5-10x. dynamic scheduling also gave another performance increase over static.
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(dynamic)
 #endif
