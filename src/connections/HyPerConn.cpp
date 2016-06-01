@@ -2931,6 +2931,8 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
    const int numExtended = activity->numItems;
 
    int nbatch = parent->getNBatch();
+   const int sy  = getPostNonextStrides()->sy;       // stride in layer
+   const int syw = yPatchStride();                   // stride in patch
 
    for(int b = 0; b < nbatch; b++){
       size_t batchOffset = b * (preLoc->nx + preLoc->halo.rt + preLoc->halo.lt) * (preLoc->ny + preLoc->halo.up + preLoc->halo.dn) * preLoc->nf;
@@ -2941,7 +2943,7 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
          activeIndicesBatch = activity->activeIndices + batchOffset;
       }
 
-      int numLoop = activity->isSparse ? activity->numActive[b] : numExtended;
+      int numNeurons = activity->isSparse ? activity->numActive[b] : numExtended;
 
 #ifdef PV_USE_OPENMP_THREADS
       //Clear all thread gsyn buffer
@@ -2957,27 +2959,30 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 
 #pragma omp parallel for schedule(static)
 #endif
-      for (int loopIndex = 0; loopIndex < numLoop; loopIndex++) {
-         int kPreExt = activity->isSparse ? activeIndicesBatch[loopIndex] : loopIndex;
+      for (int idx = 0; idx < numNeurons; idx++) {
+         int kPreExt = activity->isSparse ? activeIndicesBatch[idx] : idx;
 
+         // Activity
          float a = activityBatch[kPreExt] * dt_factor;
          if (a == 0.0f) continue;
 
-         //If we're using thread_gSyn, set this here
+         // gSyn
          pvdata_t * gSynPatchHead = gSynPatchHeadBatch;
+
 #ifdef PV_USE_OPENMP_THREADS
          if(thread_gSyn) {
             gSynPatchHead = thread_gSyn[omp_get_thread_num()];
          }
 #endif // PV_USE_OPENMP_THREADS
 
+         pvgsyndata_t * postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arbor);
+
+         // Weight
          PVPatch * weights = getWeights(kPreExt, arbor);
          const int nk = weights->nx * fPatchSize();
          const int ny = weights->ny;
-         const int sy  = getPostNonextStrides()->sy;       // stride in layer
-         const int syw = yPatchStride();                   // stride in patch
          pvwdata_t * weightDataStart = get_wData(arbor,kPreExt); // make this a pvwdata_t const *?
-         pvgsyndata_t * postPatchStart = gSynPatchHead + getGSynPatchStart(kPreExt, arbor);
+
          for (int y = 0; y < ny; y++) {
             float * v = postPatchStart + y * sy;
             pvwdata_t * w = weightDataStart + y * syw;
@@ -3000,7 +3005,7 @@ int HyPerConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
             }
          }
       }
-#endif
+#endif // PV_USE_OPENMP_THREADS
    }
    return PV_SUCCESS;
 }
@@ -3063,47 +3068,80 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
    //If numActive is a valid pointer, we're recv from post sparse
    bool recvPostSparse = numActive;
 
-   for(int b = 0; b < nbatch; b++){
-      int numLoop = recvPostSparse ? numActive[b] : numPostRestricted;
+   // Get source layer's patch y stride
+   int syp = postConn->yPatchStride();
+   int yPatchSize = postConn->yPatchSize();
+   int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
 
+   for(int b = 0; b < nbatch; b++){
+      int numNeurons = recvPostSparse ? numActive[b] : numPostRestricted;
+
+      pvdata_t * activityBatch = activity->data + b * (sourceNx + sourceHalo->rt + sourceHalo->lt) * (sourceNy + sourceHalo->up + sourceHalo->dn) * sourceNf;
+      pvdata_t * gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
+
+#ifdef PV_REORDER_HYPERCONN
+      for (int ky = 0; ky < yPatchSize; ky++) {
+#ifdef PV_USE_OPENMP_THREADS
+#pragma omp parallel for schedule(dynamic)
+#endif
+         for (int feature = 0; feature < nfp; feature++) {
+            for (int idx = feature; idx < numNeurons; idx += nfp) {
+               int kTargetRes = recvPostSparse ? activeList[b][idx] : idx;
+
+               // gSyn
+               pvdata_t * gSyn = gSynPatchHeadBatch + kTargetRes;
+
+               // Activity
+               long startSourceExt = startSourceExtBuf[kTargetRes];
+               float* activityStartBuf = activityBatch + startSourceExt;
+               float * a = activityStartBuf + ky * sy;
+
+               // Weight
+               int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
+               int kernelIndex = postConn->patchToDataLUT(kTargetExt);
+               pvwdata_t* weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
+               pvwdata_t * w = weightStartBuf + ky * syp;
+
+               float dv = 0.0;
+               for (int k = 0; k < numPerStride; k++) {
+                  dv += a[k] * w[k];
+               }
+               *gSyn += dt_factor * dv;
+            }
+         }
+      }
+#else // Not reordered
 #ifdef PV_USE_OPENMP_THREADS
 #pragma omp parallel for schedule(static)
 #endif
-      for (int iLoop = 0; iLoop < numLoop; iLoop++){
-         int kTargetRes = recvPostSparse ? activeList[b][iLoop] : iLoop;
+      for (int idx = 0; idx < numNeurons; idx++) {
+         int kTargetRes = recvPostSparse ? activeList[b][idx] : idx;
 
-         pvdata_t * activityBatch = activity->data + b * (sourceNx + sourceHalo->rt + sourceHalo->lt) * (sourceNy + sourceHalo->up + sourceHalo->dn) * sourceNf;
-         pvdata_t * gSynPatchHeadBatch = gSynPatchHead + b * targetNx * targetNy * targetNf;
-         //Change restricted to extended post neuron
-         int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
+         // gSyn
+         pvdata_t * gSyn = gSynPatchHeadBatch + kTargetRes;
 
-         //Read from buffer
+         // Activity
          long startSourceExt = startSourceExtBuf[kTargetRes];
+         float* activityStartBuf = activityBatch + startSourceExt;
 
-         //Calculate target's start of gsyn
-         pvdata_t * v = gSynPatchHeadBatch + kTargetRes;
-
-         float* activityStartBuf = &(activityBatch[startSourceExt]);
-
-         // Get source layer's patch y stride
-         int syp = postConn->yPatchStride();
-         int yPatchSize = postConn->yPatchSize();
-         // Iterate through y patch
-         int numPerStride = postConn->xPatchSize() * postConn->fPatchSize();
+         // Weight
+         int kTargetExt = kIndexExtended(kTargetRes, targetNx, targetNy, targetNf, targetHalo->lt, targetHalo->rt, targetHalo->dn, targetHalo->up);
          int kernelIndex = postConn->patchToDataLUT(kTargetExt);
-
          pvwdata_t* weightStartBuf = postConn->get_wDataHead(arbor, kernelIndex);
+
          for (int ky = 0; ky < yPatchSize; ky++){
-            float * a = &(activityStartBuf[ky * sy]);
+            float * a = activityStartBuf + ky * sy;
             pvwdata_t * w = weightStartBuf + ky * syp;
             float dv = 0.0;
             for (int k = 0; k < numPerStride; k++) {
                dv += a[k] * w[k];
             }
-            *v += dt_factor * dv;
+            *gSyn += dt_factor * dv;
          }
       }
+#endif
    }
+
    return PV_SUCCESS;
 }
 
