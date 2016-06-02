@@ -1,6 +1,7 @@
 set(DEMOS 
     # binocDemo
    HeatMapLocalization 
+   openav
 )
 
 foreach(subdir ${DEMOS})

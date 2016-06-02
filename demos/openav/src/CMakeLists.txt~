@@ -1,0 +1,10 @@
+set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/AudioGroupHandler.cpp
+   ${SUBDIR}/AudioInputLayer.cpp
+)
+
+set (PVLibSrcHpp ${PVLibSrcHpp}
+   ${SUBDIR}/AudioGroupHandler.hpp
+   ${SUBDIR}/AudioInputLayer.hpp
+)
+
