@@ -111,6 +111,7 @@ Factory::Factory(Factory const& orig) {
 Factory& Factory::operator=(Factory const& orig) {
    clearKeywordHandlerList();
    copyKeywordHandlerList(orig.keywordHandlerList);
+   return *this;
 }
 
 

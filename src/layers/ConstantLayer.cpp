@@ -26,6 +26,7 @@ ConstantLayer::~ConstantLayer()
 
 int ConstantLayer::initialize_base()
 {
+   writeStep = -1; // HyPerLayer default for writeStep is 1.0, but -1 (never write) is a better default for ConstantLayer
    return PV_SUCCESS;
 }
 
@@ -38,7 +39,7 @@ int ConstantLayer::initialize(const char * name, HyPerCol * hc)
 void ConstantLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    //This layer is a never a trigger layer, so set flag to false
    if (ioFlag==PARAMS_IO_READ) {
-      triggerFlag = 0;
+      triggerFlag = false;
       parent->parameters()->handleUnnecessaryParameter(name, "triggerFlag", false);
    }
 }
@@ -48,31 +49,6 @@ int ConstantLayer::communicateInitInfo() {
    //Set the triggerLayer needed by HyPerLayer::needUpdate()
    return status;
 }
-
-//Done in HyPerLayer now
-//int ConstantLayer::recvAllSynapticInput(){
-//   int status = PV_SUCCESS;
-//   if (checkIfUpdateNeeded()){
-//      status = ANNLayer::recvAllSynapticInput();
-//      // doUpdateState will also need to check movieLayer->getLastUpdateTime() against lastUpdateTime,
-//      // so wait until then to update lastUpdateTime.
-//   }
-//   return status;
-//}
-
-//int ConstantLayer::doUpdateState(double time, double dt, const PVLayerLoc * loc, pvdata_t * A,
-//      pvdata_t * V, int num_channels, pvdata_t * gSynHead, bool spiking,
-//      unsigned int * active_indices, unsigned int * num_active)
-//{
-//   update_timer->start();
-//   int status = PV_SUCCESS;
-//   if (checkIfUpdateNeeded()){
-//      status = ANNLayer::doUpdateState(time,  dt, loc, A, V, num_channels, gSynHead, spiking, active_indices, num_active);
-//      lastUpdateTime = parent->simulationTime();
-//   }
-//   update_timer->stop();
-//   return status;
-//}
 
 //bool ConstantLayer::checkIfUpdateNeeded() {
 bool ConstantLayer::needUpdate(double time, double dt) {
