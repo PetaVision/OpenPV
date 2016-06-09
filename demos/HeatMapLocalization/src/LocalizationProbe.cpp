@@ -456,7 +456,7 @@ int LocalizationProbe::communicateInitInfo() {
          std::string originalLabelString("");
          originalLabelString += heatMapMontageDir;
          originalLabelString += "/labels/original.tif";
-         status = drawTextIntoFile(originalLabelString.c_str(), "black", "white", "original image", nxGlobal);
+         status = drawTextIntoFile(originalLabelString.c_str(), "black", "white", "Original Image", nxGlobal);
          if (status != 0) {
             fflush(stdout);
             fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, originalLabelString.c_str());
@@ -466,7 +466,7 @@ int LocalizationProbe::communicateInitInfo() {
          std::string reconLabelString("");
          reconLabelString += heatMapMontageDir;
          reconLabelString += "/labels/reconstruction.tif";
-         status = drawTextIntoFile(reconLabelString.c_str(), "black", "white", "reconstruction", nxGlobal);
+         status = drawTextIntoFile(reconLabelString.c_str(), "black", "white", "Reconstruction", nxGlobal);
          if (status != 0) {
             fflush(stdout);
             fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, reconLabelString.c_str());
@@ -673,7 +673,7 @@ int LocalizationProbe::drawTextOnMontage(char const * backgroundColor, char cons
 int LocalizationProbe::drawTextIntoFile(char const * labelFilename, char const * backgroundColor, char const * textColor, char const * labelText, int width, int height) {
    assert(parent->columnId()==0);
    std::stringstream convertCmd("");
-   convertCmd << "convert -depth 8 -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << width << "x" << height << " -pointsize 24 -gravity center label:\"" << labelText << "\" \"" << labelFilename << "\"";
+   convertCmd << "convert -depth 8 -background \"" << backgroundColor << "\" -fill \"" << textColor << "\" -size " << width << "x" << height << " -pointsize 18 -gravity center label:\"" << labelText << "\" \"" << labelFilename << "\"";
    int status = system(convertCmd.str().c_str());
    if (status != 0) {
       fflush(stdout);
@@ -1288,13 +1288,14 @@ int LocalizationProbe::drawProgressInformation() {
    double elapsed = parent->simulationTime() - parent->getStartTime();
    double finishTime = parent->getStopTime() - parent->getStartTime();
    bool isLastTimeStep = elapsed >= finishTime - parent->getDeltaTimeBase()/2;
-   if (!isLastTimeStep) {
+   //if (!isLastTimeStep) {
       int percentage = (int) nearbyintf(100.0 * elapsed / finishTime);
-      progress << "t = " << elapsed << ", finish time = " << finishTime << " (" << percentage << "%%)";
-   }
-   else {
-      progress << "t = " << elapsed << ", completed";
-   }
+      progress << "t = " << elapsed << "/" << finishTime << " (" << percentage << "%%)";
+   //   progress << "t = " << elapsed << ", finish time = " << finishTime << " (" << percentage << "%%)";
+   //}
+   //else {
+   //   progress << "t = " << elapsed << ", completed";
+   //}
    drawTextOnMontage("black", "white", progress.str().c_str(), 0, montageDimY-32, montageDimX, 32);
 }
 
