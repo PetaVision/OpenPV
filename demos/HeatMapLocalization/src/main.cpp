@@ -60,7 +60,7 @@ public:
 
    void feedVideoToDragonsGapingMaw(char const * path) {
       pvAssert(mTmpDir);
-      std::string cmdString("avconv -r ");
+      std::string cmdString("avconv -threads auto -r ");
       cmdString += std::to_string(mFrameRate);
       cmdString += " -i ";
       cmdString += path;
@@ -305,6 +305,9 @@ int runWithHarness(PV::HyPerCol * hc, int frameInterval) {
             pvExitFailure("");
          }
          filenameBase += frameNumberStr;
+         if (f==numFrames-1) {
+            filenameBase += "_last";
+         }
          localizationProbe->setOutputFilenameBase(filenameBase.c_str());
          char const * framePath;
          if (rank==0) {
