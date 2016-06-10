@@ -10,10 +10,10 @@
 #define DEFAULT_DELTA_T 1.0 //time step size (msec)
 
 #include "HyPerCol.hpp"
-#include <columns/InterColComm.hpp>
-#include <normalizers/NormalizeBase.hpp>
-#include <io/clock.h>
-#include <io/io.h>
+#include "columns/InterColComm.hpp"
+#include "normalizers/NormalizeBase.hpp"
+#include "io/Clock.hpp"
+#include "io/io.h"
 
 #include <assert.h>
 #include <math.h>
@@ -1730,7 +1730,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 //   }
 
 #ifdef TIMER_ON
-   start_clock();
+   Clock runClock;
+   runClock.start_clock();
 #endif
    // time loop
    //
@@ -1780,7 +1781,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
       step += 1;
 #ifdef TIMER_ON
-      if (step == 10) start_clock();
+      if (step == 10) { runClock.start_clock(); }
 #endif
 
    }  // end time loop
@@ -1795,7 +1796,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
    exitRunLoop(exitOnFinish);
 
 #ifdef TIMER_ON
-   stop_clock();
+   runClock.stop_clock();
+   runClock.print_elapsed(getOutputStream());
 #endif
 
    return status;

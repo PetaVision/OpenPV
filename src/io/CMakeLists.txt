@@ -3,6 +3,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/BaseConnectionProbe.cpp
    ${SUBDIR}/BaseHyPerConnProbe.cpp
    ${SUBDIR}/BaseProbe.cpp
+   ${SUBDIR}/Clock.cpp
    ${SUBDIR}/ColProbe.cpp
    ${SUBDIR}/ColumnEnergyProbe.cpp
    ${SUBDIR}/CoreParamGroupHandler.cpp
@@ -33,6 +34,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/BaseConnectionProbe.hpp
    ${SUBDIR}/BaseHyPerConnProbe.hpp
    ${SUBDIR}/BaseProbe.hpp
+   ${SUBDIR}/Clock.hpp
    ${SUBDIR}/ColProbe.hpp
    ${SUBDIR}/ColumnEnergyProbe.hpp
    ${SUBDIR}/CoreParamGroupHandler.hpp
@@ -59,12 +61,10 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
 )
 
 set (PVLibSrcC ${PVLibSrcC}
-   ${SUBDIR}/clock.c
    ${SUBDIR}/io.c
 )
 
 set (PVLibSrcH ${PVLibSrcH}
-   ${SUBDIR}/clock.h
    ${SUBDIR}/io.h
 )
 
