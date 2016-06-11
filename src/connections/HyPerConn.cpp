@@ -1499,10 +1499,12 @@ int HyPerConn::allocateDataStructures() {
    }
 
    if (plasticityFlag) {
+      // If checkpointReadFlag is true, the sanity check on weightUpdateTime is postponed until HyPerConn::checkpointRead,
+      // since HyPerCol::checkpointRead will change the simulation start time.
       if (parent->getCheckpointReadFlag()==false && weightUpdateTime < parent->simulationTime()) {
          while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
          if (parent->columnId()==0) {
-            pvLogError("Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+            pvLogWarn("initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
                   getKeyword(), name, weightUpdateTime);
          }
       }
@@ -2162,14 +2164,15 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
 
    status = parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, lastUpdateTime);
    pvAssert(status == PV_SUCCESS);
-   if (plasticityFlag && !triggerLayerName && weightUpdateTime<parent->simulationTime()) {
+   if (plasticityFlag) {
       status = parent->readScalarFromFile(cpDir, getName(), "weightUpdateTime", &weightUpdateTime, weightUpdateTime);
-      pvAssert(status == PV_SUCCESS);
-      // simulationTime() may have been changed by HyPerCol::checkpoint, so this repeats the sanity check on weightUpdateTime in allocateDataStructures
-      while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
-      if (parent->columnId()==0) {
-         pvLogError("Warning: initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
-               getKeyword(), name, weightUpdateTime);
+      if (!triggerLayerName && weightUpdateTime<parent->simulationTime()) {
+         pvAssert(status == PV_SUCCESS);
+         while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
+         if (parent->columnId()==0) {
+            pvLogWarn("initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+                  getKeyword(), name, weightUpdateTime);
+         }
       }
    }
 

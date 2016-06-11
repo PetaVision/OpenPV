@@ -351,25 +351,12 @@ private:
    char const * setString(char ** parameter, char const * string, char const * parameterName);
 
    /**
-    * errorSettingString() is used internally to provide a common interface for reporting an error encountered by setString.
-    * It uses the value of errno.
-    */
-   int errorSettingString(char const * parameterName, char const * attempted_value);
-
-   /**
     * clearState() frees all memory allocated for member variables except for the copy of argv, and resets
     * all member variables to their
     */
    int clearState();
 
    int setStateFromCmdLineArgs(bool allowUnrecognizedArguments);
-
-   /**
-    * prints a message to stderr and returns PV_FAILURE if any error in the state is detected;
-    * returns PV_SUCCESS otherwise.
-    * Currently, it only checks whether restartFlag and checkpointReadDir are not both set.
-    */
-   int errorChecking();
 
    // Member variables
 private:

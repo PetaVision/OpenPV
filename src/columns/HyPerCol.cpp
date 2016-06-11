@@ -134,21 +134,6 @@ HyPerCol::~HyPerCol()
       timeScaleStream.close();
    }
 
-   if(pv_initObj->getArguments()->getLogFile()){
-      //Flush all buffers
-      fflush(stdout);
-      fflush(stderr);
-      std::cout.flush();
-      std::cerr.flush();
-
-      //Restore stdout
-      dup2(origStdOut, fileno(stdout));
-      dup2(origStdErr, fileno(stderr));
-
-      //Close origStdOut file descriptors
-      close(origStdOut);
-      close(origStdErr);
-   }
    if(timeScale){
       free(timeScale);
    }
@@ -313,39 +298,6 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    char const * checkpoint_read_dir = pv_initObj->getArguments()->getCheckpointReadDir();
    if (checkpoint_read_dir) {
       checkpointReadDir = strdup(pv_initObj->getArguments()->getCheckpointReadDir());
-   }
-
-   //Set up log file if it exists
-   char const * log_file = pv_initObj->getArguments()->getLogFile();
-   if(log_file){
-      //Flush buffers before duplicating stdout
-      fflush(stdout);
-      fflush(stderr);
-      std::cout.flush();
-      std::cerr.flush();
-      //Save orig stdout and stderr
-      origStdOut = dup(fileno(stdout));
-      if (origStdOut == -1) {
-         fprintf(stderr, "Unable to duplicate stdout: %s\n", strerror(errno));
-         exit(errno);
-      }
-      origStdErr = dup(fileno(stderr));
-      if (origStdErr == -1) {
-         fprintf(stderr, "Unable to duplicate stderr: %s\n", strerror(errno));
-         exit(errno);
-      }
-
-      //Open log file for stdout
-      if(!freopen(log_file, "w", stdout)){
-         std::cout << "Error opening log file " << log_file << " for writing: " << strerror(errno) << std::endl;
-         exit(EXIT_FAILURE);
-      }
-      //Redirect stdout to stderr
-      int dupstatus = dup2(fileno(stdout), fileno(stderr));
-      if (dupstatus==-1) {
-         fprintf(stderr, "Error duplicating stderr to stdout (log file \"%s\"): %s\n", log_file, strerror(errno));
-         exit(errno);
-      }
    }
 
 #ifdef PVP_DEBUG

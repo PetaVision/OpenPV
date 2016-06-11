@@ -158,6 +158,21 @@ private:
    int commInit(int* argc, char*** argv);
 
    /**
+    * A method used internally by initialize() to set the streams that will
+    * be used by pvInfo(), pvWarn(), etc.
+    * If the logFile is a path, the root process writes to that path and the
+    * nonroot process will write to a path modified by inserting _<rank>
+    * before the extension, or at the end if the path has no extension.
+    * If the logFile is null, all processes write to the standard output and
+    * error streams.
+    *
+    * After setting the log file streams, initLogFile() writes the time stamp
+    * to pvInfo() and calls PV_Arguments::printState(), which writes the effective
+    * command line to pvInfo().
+    */
+   void initLogFile();
+
+   /**
     * A method used internally by initialize() and setParams() to create the PVParams object
     * from the params file set in the arguments.
     * If the arguments has the params file set, it creates the PVParams object and returns success;

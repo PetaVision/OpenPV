@@ -11,7 +11,9 @@
 #endif
 #include <string.h>
 #include "PV_Arguments.hpp"
-#include "../io/io.h"
+#include "io/io.h"
+#include "utils/PVLog.hpp"
+#include "utils/PVAssert.hpp"
 
 namespace PV {
 
@@ -48,8 +50,7 @@ int PV_Arguments::initializeState() {
 
 int PV_Arguments::initialize(int argc, char * argv[], bool allowUnrecognizedArguments) {
    if (argc<=0) {
-      fprintf(stderr, "PV_Arguments error: argc must be positive (called with argc=%d)\n", argc);
-      exit(EXIT_FAILURE);
+      pvError().printf("PV_Arguments: argc must be positive (called with argc=%d)\n", argc);
    }
    numArgs = argc;
    args = copyArgs(argc, argv);
@@ -59,18 +60,16 @@ int PV_Arguments::initialize(int argc, char * argv[], bool allowUnrecognizedArgu
 char ** PV_Arguments::copyArgs(int argc, char const * const * argv) {
    char ** argumentArray = (char **) malloc((size_t) (argc+1) * sizeof(char *));
    if (argumentArray==NULL) {
-      fprintf(stderr, "PV_Arguments error: unable to allocate memory for %d arguments: %s\n",
+      pvError().printf("PV_Arguments error: unable to allocate memory for %d arguments: %s\n",
             argc, strerror(errno));
-      exit(EXIT_FAILURE);
    }
    for (int a=0; a<argc; a++) {
       char const * arga = argv[a];
       if (arga) {
          char * copied = strdup(arga);
          if (!copied) {
-            fprintf(stderr, "PV_Arguments unable to store argument %d: %s\n", a, strerror(errno));
-            fprintf(stderr, "Argument was \"%s\".\n", arga);
-            exit(EXIT_FAILURE);
+            pvErrorNoExit().printf("PV_Arguments unable to store argument %d: %s\n", a, strerror(errno));
+            pvError().printf("Argument was \"%s\".\n", arga);
          }
          argumentArray[a] = copied;
       }
@@ -155,7 +154,8 @@ char const * PV_Arguments::setString(char ** parameter, char const * string, cha
    if (string!=NULL) {
       newParameter = strdup(string);
       if (newParameter==NULL) {
-         errorSettingString(parameterName, string);
+         pvError().printf("PV_Arguments error setting %s to \"%s\": %s\n",
+               parameterName, string, strerror(errno));
          status = PV_FAILURE;
       }
    }
@@ -166,22 +166,16 @@ char const * PV_Arguments::setString(char ** parameter, char const * string, cha
    return newParameter;
 }
 
-int PV_Arguments::errorSettingString(char const * parameterName, char const * value) {
-   fprintf(stderr, "PV_Arguments error setting %s to \"%s\": %s\n",
-         parameterName, value, strerror(errno));
-   exit(EXIT_FAILURE);
-}
-
 int PV_Arguments::resetState(int argc, char * argv[], bool allowUnrecognizedArguments) {
    int status = clearState();
-   assert(status == PV_SUCCESS);
+   pvAssert(status == PV_SUCCESS);
    freeArgs(numArgs, args); args = NULL;
    return initialize(argc, argv, allowUnrecognizedArguments);
 }
 
 int PV_Arguments::resetState() {
    int status = clearState();
-   assert(status == PV_SUCCESS);
+   pvAssert(status == PV_SUCCESS);
    return setStateFromCmdLineArgs(true);
    /* If unrecognized arguments were not allowed in the constructor and there were unrecognized args in argv,
     * the error would have taken place during the constructor. */
@@ -205,11 +199,10 @@ int PV_Arguments::clearState() {
 }
 
 int PV_Arguments::setStateFromCmdLineArgs(bool allowUnrecognizedArguments) {
-   assert(numArgs>0);
+   pvAssert(numArgs>0);
    bool * usedArgArray = (bool *) calloc((size_t) numArgs, sizeof(bool));
    if (usedArgArray==NULL) {
-      fprintf(stderr, "PV_Arguments::setStateFromCmdLineArgs unable to allocate memory for usedArgArray: %s\n", strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("PV_Arguments::setStateFromCmdLineArgs unable to allocate memory for usedArgArray: %s\n", strerror(errno));
    }
    usedArgArray[0] = true; // Always use the program name
 
@@ -224,15 +217,15 @@ int PV_Arguments::setStateFromCmdLineArgs(bool allowUnrecognizedArguments) {
    dryRunFlag = dryrun!=0;
 
    // Error out if both -r and -c are used
-   if (errorChecking()) {
-      exit(EXIT_FAILURE);
+   if (restartFlag && checkpointReadDir) {
+      pvError().printf("PV_Arguments: cannot set both the restart flag and the checkpoint read directory.\n");
    }
 
    if (!allowUnrecognizedArguments) {
       bool anyUnusedArgs = false;
       for (int a=0; a<numArgs; a++) {
          if(!usedArgArray[a]) {
-            fprintf(stderr, "%s: argument %d, \"%s\", is not recognized.\n",
+            pvErrorNoExit().printf("%s: argument %d, \"%s\", is not recognized.\n",
                   getProgramName(), a, args[a]);
             anyUnusedArgs = true;
          }
@@ -246,32 +239,23 @@ int PV_Arguments::setStateFromCmdLineArgs(bool allowUnrecognizedArguments) {
 }
 
 int PV_Arguments::printState() {
-   printf("%s", getProgramName());
-   if (requireReturnFlag) { printf(" --require-return"); }
-   if (outputPath) { printf(" -o %s", outputPath); }
-   if (paramsFile) { printf(" -p %s", paramsFile); }
-   if (logFile) { printf(" -l %s", logFile); }
-   if (gpuDevices) { printf(" -d %s", gpuDevices); }
-   if (randomSeed) { printf(" -s %u", randomSeed); }
-   if (workingDir) { printf(" -w %s", workingDir); }
-   assert(!(restartFlag && checkpointReadDir));
-   if (restartFlag) { printf(" -r"); }
-   if (checkpointReadDir) { printf(" -c %s", checkpointReadDir); }
-   if (numThreads) { printf(" -t %d", numThreads); }
-   if (numRows) { printf(" -rows %d", numRows); }
-   if (numColumns) { printf(" -columns %d", numColumns); }
-   if (batchWidth) { printf(" -batchwidth %d", batchWidth); }
-   printf("\n");
+   pvInfo().printf("%s", getProgramName());
+   if (requireReturnFlag) { pvInfo().printf(" --require-return"); }
+   if (outputPath) { pvInfo().printf(" -o %s", outputPath); }
+   if (paramsFile) { pvInfo().printf(" -p %s", paramsFile); }
+   if (logFile) { pvInfo().printf(" -l %s", logFile); }
+   if (gpuDevices) { pvInfo().printf(" -d %s", gpuDevices); }
+   if (randomSeed) { pvInfo().printf(" -s %u", randomSeed); }
+   if (workingDir) { pvInfo().printf(" -w %s", workingDir); }
+   pvAssert(!(restartFlag && checkpointReadDir));
+   if (restartFlag) { pvInfo().printf(" -r"); }
+   if (checkpointReadDir) { pvInfo().printf(" -c %s", checkpointReadDir); }
+   if (numThreads>=0) { pvInfo().printf(" -t %d", numThreads); }
+   if (numRows) { pvInfo().printf(" -rows %d", numRows); }
+   if (numColumns) { pvInfo().printf(" -columns %d", numColumns); }
+   if (batchWidth) { pvInfo().printf(" -batchwidth %d", batchWidth); }
+   pvInfo().printf("\n");
    return PV_SUCCESS;
-}
-
-int PV_Arguments::errorChecking() {
-   int status = PV_SUCCESS;
-   if (restartFlag && checkpointReadDir) {
-      fprintf(stderr, "PV_Arguments error: cannot set both the restart flag and the checkpoint read directory.\n");
-      status = PV_FAILURE;
-   }
-   return status;
 }
 
 PV_Arguments::~PV_Arguments() {
