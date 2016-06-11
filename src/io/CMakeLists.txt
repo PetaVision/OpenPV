@@ -7,6 +7,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/ColumnEnergyProbe.cpp
    ${SUBDIR}/CoreParamGroupHandler.cpp
    ${SUBDIR}/fileio.cpp
+   ${SUBDIR}/FileStream.cpp
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.cpp
    ${SUBDIR}/FirmThresholdCostFnProbe.cpp
    ${SUBDIR}/imageio.cpp
@@ -36,6 +37,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/ColumnEnergyProbe.hpp
    ${SUBDIR}/CoreParamGroupHandler.hpp
    ${SUBDIR}/fileio.hpp
+   ${SUBDIR}/FileStream.hpp
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.hpp
    ${SUBDIR}/FirmThresholdCostFnProbe.hpp
    ${SUBDIR}/imageio.hpp

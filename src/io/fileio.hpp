@@ -9,23 +9,23 @@
 #define FILEIO_HPP_
 
 #include "io.h"
-#include "../arch/mpi/mpi.h"
-#include "../include/pv_types.h"
-#include "../include/PVLayerLoc.h"
-#include "../columns/Communicator.hpp"
-#include "../columns/DataStore.hpp"
+#include "arch/mpi/mpi.h"
+#include "include/pv_types.h"
+#include "include/PVLayerLoc.h"
+#include "columns/Communicator.hpp"
+#include "columns/DataStore.hpp"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+namespace PV {
 
 // index/value pairs used by writeActivitySparseNonspiking()
 typedef struct indexvaluepair_ {
     unsigned int index;
     pvdata_t value;
 } indexvaluepair;
-
-namespace PV {
 
 void timeToParams(double time, void * params);
 double timeFromParams(void * params);
