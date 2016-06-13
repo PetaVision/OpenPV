@@ -6,10 +6,16 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CudaTimer.hpp
 )
 
-set (PVLibSrcCu ${PVLibSrcCu}
-   ${SUBDIR}/CudaBuffer.cu
-   ${SUBDIR}/CudaDevice.cu
-   ${SUBDIR}/CudaKernel.cu
-   ${SUBDIR}/CudaTimer.cu
+set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/CudaBuffer.cpp
+   ${SUBDIR}/CudaDevice.cpp
+   ${SUBDIR}/CudaKernel.cpp
+   ${SUBDIR}/CudaTimer.cpp
 )
 
+set (PVLibSrcCu ${PVLibSrcCu}
+   ${SUBDIR}/CudaBuffer.cu
+#   ${SUBDIR}/CudaDevice.cu
+#   ${SUBDIR}/CudaKernel.cu
+#   ${SUBDIR}/CudaTimer.cu
+)

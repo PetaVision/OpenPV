@@ -9,11 +9,11 @@
 
 #include "../../utils/Timer.hpp"
 #include <stdio.h>
+#include <cuda_runtime_api.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace PVCuda{
-#include <cuda_runtime_api.h>
    
    /**
     * A subclass of Timer to time Cuda gpu runs

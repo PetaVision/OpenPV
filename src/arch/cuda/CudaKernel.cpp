@@ -10,6 +10,7 @@
 #include <assert.h>
 #include "cuda_util.hpp"
 #include <sys/stat.h>
+#include <cmath>
 
 
 namespace PVCuda {
@@ -82,9 +83,9 @@ void CudaKernel::setDims(long gWorkSizeX, long gWorkSizeY, long gWorkSizeZ, long
       assert(gWorkSizeY % lWorkSizeY == 0);
       assert(gWorkSizeZ % lWorkSizeZ == 0);
    }
-   long gridSizeX = ceil((float)gWorkSizeX / lWorkSizeX);
-   long gridSizeY = ceil((float)gWorkSizeY / lWorkSizeY);
-   long gridSizeZ = ceil((float)gWorkSizeZ / lWorkSizeZ);
+   long gridSizeX = std::ceil((float)gWorkSizeX / lWorkSizeX);
+   long gridSizeY = std::ceil((float)gWorkSizeY / lWorkSizeY);
+   long gridSizeZ = std::ceil((float)gWorkSizeZ / lWorkSizeZ);
 
    int max_grid_size_x = device->get_max_grid_size_dimension(0);
    if(gridSizeX > max_grid_size_x){

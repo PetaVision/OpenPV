@@ -18,7 +18,7 @@
 namespace PVCuda{
 #include <builtin_types.h>
 
-//Parameter structur
+//Parameter structure
    struct recv_post_params{
       int nbatch;
       int nxRes; //num post neurons
@@ -157,8 +157,8 @@ protected:
 
 private:
    recv_post_params params;
-};
+}; // end class CudaRecvPost
 
-}
+}  // end namespace PV
 
 #endif /* CLKERNEL_HPP_ */

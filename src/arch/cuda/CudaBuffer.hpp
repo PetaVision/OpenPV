@@ -8,11 +8,11 @@
 #ifndef CUDABUFFER_HPP_
 #define CUDABUFFER_HPP_
 
+#include <cuda_runtime_api.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace PVCuda {
-#include <cuda_runtime_api.h>
 
 class CudaDevice;
 

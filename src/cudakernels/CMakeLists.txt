@@ -4,6 +4,12 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/CudaUpdateStateFunctions.hpp
 )
 
+set (PVLibSrcCpp ${PVLibSrcCpp}
+   ${SUBDIR}/CudaRecvPost.cpp
+   ${SUBDIR}/CudaRecvPre.cpp
+   ${SUBDIR}/CudaUpdateStateFunctions.cpp
+)
+
 set (PVLibSrcCu ${PVLibSrcCu}
    ${SUBDIR}/CudaRecvPost.cu
    ${SUBDIR}/CudaRecvPre.cu
