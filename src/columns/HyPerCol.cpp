@@ -348,9 +348,9 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    if(working_dir && columnId()==0) {
       int status = chdir(working_dir);
       if(status) {
-         fprintf(stderr, "Unable to switch directory to \"%s\"\n", working_dir);
-         fprintf(stderr, "chdir error: %s\n", strerror(errno));
-         exit(status);
+         pvError(chdirMessage);
+         chdirMessage.printf("Unable to switch directory to \"%s\"\n", working_dir);
+         chdirMessage.printf("chdir error: %s\n", strerror(errno));
       }
    }
    working_dir = NULL;

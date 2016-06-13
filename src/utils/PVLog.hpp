@@ -58,12 +58,12 @@
 // the file where the inline function is called. This is different
 // from Clang, which puts in the __FILE__ and __LINE__ of the caller
 #ifdef __GNUC__
-#define pvInfo() PV::_Info(__FILE__, __LINE__)
-#define pvWarn() PV::_Warn(__FILE__, __LINE__)
-#define pvError() PV::_Error(__FILE__, __LINE__)
-#define pvErrorNoExit() PV::_ErrorNoExit(__FILE__, __LINE__)
-#define pvDebug() PV::_Debug(__FILE__, __LINE__)
-#define pvStackTrace() PV::_StackTrace(__FILE__, __LINE__)
+#define pvInfo(...) PV::_Info __VA_ARGS__(__FILE__, __LINE__)
+#define pvWarn(...) PV::_Warn __VA_ARGS__(__FILE__, __LINE__)
+#define pvError(...) PV::_Error __VA_ARGS__(__FILE__, __LINE__)
+#define pvErrorNoExit(...) PV::_ErrorNoExit __VA_ARGS__(__FILE__, __LINE__)
+#define pvDebug(...) PV::_Debug __VA_ARGS__(__FILE__, __LINE__)
+#define pvStackTrace(...) PV::_StackTrace __VA_ARGS__(__FILE__, __LINE__)
 #endif // __GNUC__
 
 namespace PV {
