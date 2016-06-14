@@ -1497,7 +1497,7 @@ int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResul
       if (xmargin < marginWidthNeeded) {
          assert(clayer);
          if (parent->columnId()==0) {
-            printf("Layer \"%s\": adjusting x-margin width from %d to %d\n", name, xmargin, marginWidthNeeded);
+            fprintf(stdout, "Layer \"%s\": adjusting x-margin width from %d to %d\n", name, xmargin, marginWidthNeeded);
          }
          xmargin = marginWidthNeeded;
          halo->lt = xmargin;
@@ -1522,7 +1522,7 @@ int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResul
       if (ymargin < marginWidthNeeded) {
          assert(clayer);
          if (parent->columnId()==0) {
-            printf("Layer \"%s\": adjusting y-margin width from %d to %d\n", name, ymargin, marginWidthNeeded);
+            fprintf(stdout, "Layer \"%s\": adjusting y-margin width from %d to %d\n", name, ymargin, marginWidthNeeded);
          }
          ymargin = marginWidthNeeded;
          halo->dn = ymargin;

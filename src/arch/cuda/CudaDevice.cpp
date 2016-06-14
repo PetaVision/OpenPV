@@ -106,9 +106,9 @@ int CudaDevice::query_device_info()
 {
    // query and print information about the devices found
    //
-   printf("\n");
-   printf("Number of Cuda devices found: %d\n", num_devices);
-   printf("\n");
+   fprintf(stdout, "\n");
+   fprintf(stdout, "Number of Cuda devices found: %d\n", num_devices);
+   fprintf(stdout, "\n");
 
    for (unsigned int i = 0; i < num_devices; i++) {
       query_device(i);
@@ -119,7 +119,7 @@ int CudaDevice::query_device_info()
 CudaBuffer* CudaDevice::createBuffer(size_t size){
    long memLeft = reserveMem(size);
    if(memLeft < 0){
-      printf("CudaDevice createBuffer: out of memory\n");
+      fprintf(stdout, "CudaDevice createBuffer: out of memory\n");
       exit(-1);
    }
    return(new CudaBuffer(size, this, stream));
@@ -136,34 +136,34 @@ void CudaDevice::query_device(int id)
    else{
       handleError(cudaGetDeviceProperties(&props, id), "Getting device properties");
    }
-   printf("device: %d\n", id);
-   printf("CUDA Device # %d == %s\n", id, props.name);
+   fprintf(stdout, "device: %d\n", id);
+   fprintf(stdout, "CUDA Device # %d == %s\n", id, props.name);
 
-   printf("with %d units/cores", props.multiProcessorCount);
+   fprintf(stdout, "with %d units/cores", props.multiProcessorCount);
 
-   printf(" at %f MHz\n", (float)props.clockRate * .001);
+   fprintf(stdout, " at %f MHz\n", (float)props.clockRate * .001);
 
-   printf("\tMaximum threads group size == %d\n", props.maxThreadsPerBlock);
+   fprintf(stdout, "\tMaximum threads group size == %d\n", props.maxThreadsPerBlock);
    
-   printf("\tMaximum grid sizes == (");
-   for (unsigned int i = 0; i < 3; i++) printf(" %d", props.maxGridSize[i]);
-   printf(" )\n");
+   fprintf(stdout, "\tMaximum grid sizes == (");
+   for (unsigned int i = 0; i < 3; i++) fprintf(stdout, " %d", props.maxGridSize[i]);
+   fprintf(stdout, " )\n");
 
-   printf("\tMaximum threads sizes == (");
-   for (unsigned int i = 0; i < 3; i++) printf(" %d", props.maxThreadsDim[i]);
-   printf(" )\n");
+   fprintf(stdout, "\tMaximum threads sizes == (");
+   for (unsigned int i = 0; i < 3; i++) fprintf(stdout, " %d", props.maxThreadsDim[i]);
+   fprintf(stdout, " )\n");
 
-   printf("\tLocal mem size == %zu\n", props.sharedMemPerBlock);
+   fprintf(stdout, "\tLocal mem size == %zu\n", props.sharedMemPerBlock);
 
-   printf("\tGlobal mem size == %zu\n", props.totalGlobalMem);
+   fprintf(stdout, "\tGlobal mem size == %zu\n", props.totalGlobalMem);
 
-   printf("\tConst mem size == %zu\n", props.totalConstMem);
+   fprintf(stdout, "\tConst mem size == %zu\n", props.totalConstMem);
 
-   printf("\tRegisters per block == %d\n", props.regsPerBlock);
+   fprintf(stdout, "\tRegisters per block == %d\n", props.regsPerBlock);
 
-   printf("\tWarp size == %d\n", props.warpSize);
+   fprintf(stdout, "\tWarp size == %d\n", props.warpSize);
 
-   printf("\n");
+   fprintf(stdout, "\n");
 }
 
 int CudaDevice::get_max_threads(){

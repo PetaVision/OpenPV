@@ -159,7 +159,7 @@ char * getImageFileName(InterColComm * icComm)
       bool found = false;
       while(!found)
       {
-         printf("Enter filename: "); fflush(stdout);
+         fprintf(stdout, "Enter filename: "); fflush(stdout);
          char * result = fgets(buffer, TEXTFILEBUFFERSIZE, stdin);
          if (result==NULL) { break; }
 
@@ -209,7 +209,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
       bool usingTempFile = false;
       char * path = NULL;
       if (strstr(imageFile, "://") != NULL) {
-         printf("Image from URL \"%s\"\n", imageFile);
+         fprintf(stdout, "Image from URL \"%s\"\n", imageFile);
          usingTempFile = true;
          std::string pathstring = "/tmp/temp.XXXXXX";
          const char * ext = strrchr(imageFile, '.');
@@ -256,7 +256,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
          }
       }
       else {
-         printf("Image from file \"%s\"\n", imageFile);
+         fprintf(stdout, "Image from file \"%s\"\n", imageFile);
          path = strdup(imageFile);
       }
       GDALDataset * gdalDataset = PV_GDALOpen(path);

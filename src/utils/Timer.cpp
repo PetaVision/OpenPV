@@ -35,7 +35,7 @@ uint64_t get_cpu_time() {
    //   getrusage(RUSAGE_SELF, &ru);
    //   tim = ru.ru_utime;
    gettimeofday(&tim, NULL);
-   //printf("get_cpu_time: sec==%d usec==%d\n", tim.tv_sec, tim.tv_usec);
+   //fprintf(stdout, "get_cpu_time: sec==%d usec==%d\n", tim.tv_sec, tim.tv_usec);
    return ((uint64_t) tim.tv_sec)*1000000 + (uint64_t) tim.tv_usec;
 #endif
 }

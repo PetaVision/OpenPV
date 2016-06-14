@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre,  scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch - 1;
       if (kh != kpre-nPatch/2  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
    }
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre,  scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch - 1;
       if (kh != kpre-nPatch/2  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
    }
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre,  scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch - 1;
       if (kh != kpre-nPatch/2  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
    }
@@ -116,9 +116,9 @@ int main(int argc, char* argv[])
    for (kpre = -9; kpre < 9; kpre++) {
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
-      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
+      //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
       if (kh != ans  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
       ans += (kpre + 9) % 2;
@@ -133,9 +133,9 @@ int main(int argc, char* argv[])
    for (kpre = -9; kpre < 9; kpre++) {
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
-      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
+      //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
       if (kh != ans  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
       ans += (kpre + 9) % 2;
@@ -154,9 +154,9 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch/a + (kpre%2 == 0);
       kBack = kpre;
-      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi=%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%4==1);
+      //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi=%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%4==1);
       if (kh != ans  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
       ans += ((kpre + 9) % 4) == 2;
@@ -172,9 +172,9 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch + (kpre%2 == 0);
       kBack = kpre;
-      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
       ans += ((kpre + 9) % 4) == 2;
@@ -202,9 +202,9 @@ int main(int argc, char* argv[])
 		kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
 		kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
 				+ nPatch * ainv - ainv + kmod;
-		//printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
+		//fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
 		if (kh != ans || kBack != kpre) {
-			printf(
+			fprintf(stderr,
 					"FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
 					test, kpre, kh, kBack, kmod);
 			exit(1);
@@ -228,9 +228,9 @@ int main(int argc, char* argv[])
 		kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
 		kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
 				+ nPatch * ainv - ainv + kmod;
-		//printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
+		//fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
 		if (kh != ans || kBack != kpre) {
-			printf(
+			fprintf(stderr,
 					"FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
 					test, kpre, kh, kBack, kmod);
 			exit(1);
@@ -257,9 +257,9 @@ int main(int argc, char* argv[])
 		kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
 		kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
 				+ nPatch * ainv - ainv + kmod;
-		//printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi=%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%4==1);
+		//fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi=%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%4==1);
 		if (kh != ans || kBack != kpre) {
-			printf(
+			fprintf(stderr,
 					"FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
 					test, kpre, kh, kBack, kmod);
 			exit(1);
@@ -283,9 +283,9 @@ int main(int argc, char* argv[])
 		kh = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
 		kBack = zPatchHead(kh, nPatch * ainv, scaleLog2Post, scaleLog2Pre)
 				+ nPatch * ainv - ainv + kmod;
-		//printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+		//fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
 		if (kh != ans || kBack != kpre) {
-			printf(
+			fprintf(stderr,
 					"FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d kmod=%d\n",
 					test, kpre, kh, kBack, kmod);
 			exit(1);
@@ -308,9 +308,9 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
       kBack = kpre;
-      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
       ans += 2;
@@ -326,9 +326,9 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
       kBack = kpre;
-      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
       ans += 2;
@@ -344,9 +344,9 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
       kBack = kpre;
-      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
       ans += 2;
@@ -365,9 +365,9 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
       kBack = kpre;
-      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
       ans += 4;
@@ -380,9 +380,9 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
       kBack = kpre;
-      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
       ans += 4;
@@ -395,9 +395,9 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre, scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
       kBack = kpre;
-      //printf("test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
+      //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
+         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
          exit(1);
       }
       ans += 4;

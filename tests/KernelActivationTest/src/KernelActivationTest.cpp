@@ -65,7 +65,7 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
       fprintf(stderr, "Rank %d: %s failed with return code %d.\n", rank, paramsfilename, status);
    }
    else {
-      printf("Rank %d: %s succeeded.\n", rank, paramsfilename);
+      fprintf(stdout, "Rank %d: %s succeeded.\n", rank, paramsfilename);
    }
    free(paramsfilename);
    return status;
@@ -110,7 +110,7 @@ int dumponeweight(HyPerConn * conn) {
                   if( errorfound == false ) {
                       errorfound = true;
                       for( int k=0; k<72; k++ ) { fprintf(stdout, "="); } fprintf(stdout,"\n");
-                      printf("Rank %d, Connection \"%s\":\n",rank, conn->getName());
+                      fprintf(stdout, "Rank %d, Connection \"%s\":\n",rank, conn->getName());
                   }
                   fprintf(stdout, "Rank %d, Patch %d, x=%d, y=%d, f=%d: weight=%f, correct=%f, off by a factor of %f\n", rank, p, x, y, f, wgt, correct, wgt/correct);
                   status = PV_FAILURE;

@@ -194,7 +194,7 @@ int BaseConnection::getPreAndPostLayerNames(const char * name, char ** preLayerN
    *postLayerNamePtr = NULL;
    if (preLayerName == NULL && postLayerName == NULL) {
       if (parent->icCommunicator()->commRank()==0) {
-         printf("Connection \"%s\": preLayerName and postLayerName will be inferred in the communicateInitInfo stage.\n", name);
+         fprintf(stdout, "Connection \"%s\": preLayerName and postLayerName will be inferred in the communicateInitInfo stage.\n", name);
       }
    }
    else if (preLayerName==NULL && postLayerName!=NULL) {
@@ -293,7 +293,7 @@ void BaseConnection::ioParam_delay(enum ParamsIOFlag ioFlag) {
       *fDelayArray = 0.0f; // Default delay
       delayArraySize = 1;
       if (this->getParent()->columnId()==0) {
-         printf("%s \"%s\": Using default value of zero for delay.\n",
+         fprintf(stdout, "%s \"%s\": Using default value of zero for delay.\n",
                this->getKeyword(), this->getName());
       }
    }

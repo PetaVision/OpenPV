@@ -620,11 +620,11 @@ int Retina::updateState(double timed, double dt)
    sprintf(filename, "r_%d.tiff", (int)(2*timed));
    this->writeActivity(filename, timed);
 
-   printf("----------------\n");
+   fprintf(stdout, "----------------\n");
    for (int k = 0; k < 6; k++) {
-      printf("host:: k==%d h_exc==%f h_inh==%f\n", k, phiExc[k], phiInh[k]);
+      fprintf(stdout, "host:: k==%d h_exc==%f h_inh==%f\n", k, phiExc[k], phiInh[k]);
    }
-   printf("----------------\n");
+   fprintf(stdout, "----------------\n");
 
 #endif // DEBUG_PRINT
    //update_timer->stop();

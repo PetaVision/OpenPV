@@ -1468,7 +1468,7 @@ double PVParams::value(const char * groupName, const char * paramName, double in
    }
    else {
       if( warnIfAbsent && worldRank == 0 ) {
-          printf("Using default value %f for parameter \"%s\" in group \"%s\"\n", initialValue, paramName, groupName);
+          fprintf(stdout, "Using default value %f for parameter \"%s\" in group \"%s\"\n", initialValue, paramName, groupName);
       }
       return initialValue;
    }
@@ -1565,7 +1565,7 @@ const char * PVParams::stringValue(const char * groupName, const char * paramStr
    }
    else {
       if( warnIfAbsent && worldRank == 0 ) {
-         printf("No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
+         fprintf(stdout, "No parameter string named \"%s\" in group \"%s\"\n", paramStringName, groupName);
       }
       return NULL;
    }
@@ -1877,24 +1877,24 @@ void PVParams::action_pvparams_directive(char * id, double val)
    if( !strcmp(id,"debugParsing") ) {
       debugParsing = (val != 0);
       if( worldRank == 0 ) {
-         printf("debugParsing turned ");
+         fprintf(stdout, "debugParsing turned ");
          if(debugParsing) {
-            printf("on.\n");
+            fprintf(stdout, "on.\n");
          }
          else {
-            printf("off.\n");
+            fprintf(stdout, "off.\n");
          }
       }
    }
    else if ( !strcmp(id, "disable") ) {
       disable = (val != 0);
       if (worldRank == 0 ) {
-         printf("Parsing params file ");
+         fprintf(stdout, "Parsing params file ");
          if (disable) {
-            printf("disabled.\n");
+            fprintf(stdout, "disabled.\n");
          }
          else {
-            printf("enabled.\n");
+            fprintf(stdout, "enabled.\n");
          }
       }
    }
@@ -1913,7 +1913,7 @@ void PVParams::action_parameter_group()
 {
    if (disable) return;
    if(debugParsing && worldRank==0 ) {
-      printf("action_parameter_group: %s \"%s\" parsed successfully.\n", currGroupKeyword, currGroupName);
+      fprintf(stdout, "action_parameter_group: %s \"%s\" parsed successfully.\n", currGroupKeyword, currGroupName);
       fflush(stdout);
    }
    // build a parameter group
@@ -1927,7 +1927,7 @@ void PVParams::action_parameter_group_name(char * keyword, char * name)
    name[len-1] = '\0';
 
    if(debugParsing && worldRank==0 ) {
-      printf("action_parameter_group_name: %s \"%s\" parsed successfully.\n", keyword, name);
+      fprintf(stdout, "action_parameter_group_name: %s \"%s\" parsed successfully.\n", keyword, name);
       fflush(stdout);
    }
    currGroupKeyword = keyword;
@@ -1943,7 +1943,7 @@ void PVParams::action_parameter_def(char * id, double val)
    if (disable) return;
    if(debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_parameter_def: %s = %lf\n", id, val);
+      fprintf(stdout, "action_parameter_def: %s = %lf\n", id, val);
       fflush(stdout);
    }
    if( checkDuplicates(id, val) != PV_SUCCESS ) exit(EXIT_FAILURE);
@@ -1955,7 +1955,7 @@ void PVParams::action_parameter_def_overwrite(char * id, double val){
    if (disable) return;
    if (debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_parameter_def_overwrite: %s = %lf\n", id, val);
+      fprintf(stdout, "action_parameter_def_overwrite: %s = %lf\n", id, val);
       fflush(stdout);
    }
    //Search through current parameters for the id
@@ -1972,13 +1972,13 @@ void PVParams::action_parameter_def_overwrite(char * id, double val){
          ParameterArray* arrayParam = arrayStack->peek(i);
          if(strcmp(arrayParam->name(), param_name) == 0){
             fflush(stdout);
-            printf("%s is defined as an array parameter. Overwriting array parameters with value parameters not implemented yet.\n", id);
+            fprintf(stdout, "%s is defined as an array parameter. Overwriting array parameters with value parameters not implemented yet.\n", id);
             fflush(stdout);
             exit(EXIT_FAILURE);
          }
       }
       fflush(stdout);
-      printf("Overwrite error: %s is not an existing parameter to overwrite.\n", id);
+      fprintf(stdout, "Overwrite error: %s is not an existing parameter to overwrite.\n", id);
       fflush(stdout);
       exit(EXIT_FAILURE);
    }
@@ -1992,7 +1992,7 @@ void PVParams::action_parameter_array(char * id)
    if (disable) return;
    if (debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_parameter_array: %s\n", id);
+      fprintf(stdout, "action_parameter_array: %s\n", id);
       fflush(stdout);
    }
    int status = currentParamArray->setName(id);
@@ -2006,7 +2006,7 @@ void PVParams::action_parameter_array_overwrite(char * id){
    if (disable) return;
    if (debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_parameter_array_overwrite: %s\n", id);
+      fprintf(stdout, "action_parameter_array_overwrite: %s\n", id);
       fflush(stdout);
    }
    //Search through current parameters for the id
@@ -2023,13 +2023,13 @@ void PVParams::action_parameter_array_overwrite(char * id){
          Parameter* param = stack->peek(i);
          if(strcmp(param->name(), param_name) == 0){
             fflush(stdout);
-            printf("%s is defined as a value parameter. Overwriting value parameters with array parameters not implemented yet.\n", id);
+            fprintf(stdout, "%s is defined as a value parameter. Overwriting value parameters with array parameters not implemented yet.\n", id);
             fflush(stdout);
             exit(EXIT_FAILURE);
          }
       }
       fflush(stdout);
-      printf("Overwrite error: %s is not an existing parameter to overwrite.\n", id);
+      fprintf(stdout, "Overwrite error: %s is not an existing parameter to overwrite.\n", id);
       fflush(stdout);
       exit(EXIT_FAILURE);
    }
@@ -2049,7 +2049,7 @@ void PVParams::action_parameter_array_value(double val)
    if (disable) return;
    if(debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_parameter_array_value %lf\n", val);
+      fprintf(stdout, "action_parameter_array_value %lf\n", val);
    }
    int sz = currentParamArray->getArraySize();
    int newsize = currentParamArray->pushValue(val);
@@ -2060,7 +2060,7 @@ void PVParams::action_parameter_string_def(const char * id, const char * stringv
    if (disable) return;
    if( debugParsing && worldRank == 0 ) {
       fflush(stdout);
-      printf("action_parameter_string_def: %s = %s\n", id, stringval);
+      fprintf(stdout, "action_parameter_string_def: %s = %s\n", id, stringval);
       fflush(stdout);
    }
    if( checkDuplicates(id, 0.0) != PV_SUCCESS ) exit(EXIT_FAILURE);
@@ -2075,7 +2075,7 @@ void PVParams::action_parameter_string_def_overwrite(const char * id, const char
    if (disable) return;
    if( debugParsing && worldRank == 0 ) {
       fflush(stdout);
-      printf("action_parameter_string_def_overwrite: %s = %s\n", id, stringval);
+      fprintf(stdout, "action_parameter_string_def_overwrite: %s = %s\n", id, stringval);
       fflush(stdout);
    }
    //Search through current parameters for the id
@@ -2091,7 +2091,7 @@ void PVParams::action_parameter_string_def_overwrite(const char * id, const char
    free(param_name);
    if(!currParam){
       fflush(stdout);
-      printf("Overwrite error: %s is not an existing parameter to overwrite.\n", id);
+      fprintf(stdout, "Overwrite error: %s is not an existing parameter to overwrite.\n", id);
       fflush(stdout);
       exit(EXIT_FAILURE);
    }
@@ -2106,7 +2106,7 @@ void PVParams::action_parameter_filename_def(const char * id, const char * strin
    if (disable) return;
    if( debugParsing && worldRank == 0 ) {
       fflush(stdout);
-      printf("action_parameter_filename_def: %s = %s\n", id, stringval);
+      fprintf(stdout, "action_parameter_filename_def: %s = %s\n", id, stringval);
       fflush(stdout);
    }
    if( checkDuplicates(id, 0.0) != PV_SUCCESS ) { exit(EXIT_FAILURE); }
@@ -2130,7 +2130,7 @@ void PVParams::action_parameter_filename_def_overwrite(const char * id, const ch
    if (disable) return;
    if( debugParsing && worldRank == 0 ) {
       fflush(stdout);
-      printf("action_parameter_filename_def_overwrite: %s = %s\n", id, stringval);
+      fprintf(stdout, "action_parameter_filename_def_overwrite: %s = %s\n", id, stringval);
       fflush(stdout);
    }
    //Search through current parameters for the id
@@ -2146,7 +2146,7 @@ void PVParams::action_parameter_filename_def_overwrite(const char * id, const ch
    free(param_name); param_name = NULL;
    if(!currParam){
       fflush(stdout);
-      printf("Overwrite error: %s is not an existing parameter to overwrite.\n", id);
+      fprintf(stdout, "Overwrite error: %s is not an existing parameter to overwrite.\n", id);
       fflush(stdout);
       exit(EXIT_FAILURE);
    }
@@ -2167,13 +2167,13 @@ void PVParams::action_include_directive(const char * stringval) {
    if (disable) return;
    if( debugParsing && worldRank == 0 ) {
       fflush(stdout);
-      printf("action_include_directive: including %s\n", stringval);
+      fprintf(stdout, "action_include_directive: including %s\n", stringval);
       fflush(stdout);
    }
    //The include directive must be the first parameter in the group if defined
    if(stack->size() != 0 || arrayStack->size() != 0 || stringStack->size() != 0){
       fflush(stdout);
-      printf("Import of %s must be the first parameter specified in the group.\n", stringval);
+      fprintf(stdout, "Import of %s must be the first parameter specified in the group.\n", stringval);
       fflush(stdout);
       exit(EXIT_FAILURE);
    }
@@ -2190,14 +2190,14 @@ void PVParams::action_include_directive(const char * stringval) {
    //If group not found
    if(!includeGroup){
       fflush(stdout);
-      printf("Include error: include group %s is not defined.\n", param_value);
+      fprintf(stdout, "Include error: include group %s is not defined.\n", param_value);
       fflush(stdout);
       exit(EXIT_FAILURE);
    }
    //Check keyword of group
    if(strcmp(includeGroup->getGroupKeyword(), currGroupKeyword) != 0){
       fflush(stdout);
-      printf("Include error: Cannot include group %s, which is a %s, into a %s. Group types must be the same.\n", param_value, includeGroup->getGroupKeyword(), currGroupKeyword);
+      fprintf(stdout, "Include error: Cannot include group %s, which is a %s, into a %s. Group types must be the same.\n", param_value, includeGroup->getGroupKeyword(), currGroupKeyword);
       fflush(stdout);
       exit(EXIT_FAILURE);
    }
@@ -2226,7 +2226,7 @@ void PVParams::action_sweep_open(const char * groupname, const char * paramname)
    currSweepParamName = strdup(paramname);
    if (debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_batch_sweep_open: Sweep for group %s, parameter \"%s\" starting\n", groupname, paramname);
+      fprintf(stdout, "action_batch_sweep_open: Sweep for group %s, parameter \"%s\" starting\n", groupname, paramname);
       fflush(stdout);
    }
 }
@@ -2236,7 +2236,7 @@ void PVParams::action_parameter_sweep_close()
    if (disable) return;
    addActiveParamSweep(currSweepGroupName, currSweepParamName);
    if(debugParsing && worldRank==0 ) {
-      printf("action_parameter_group: ParameterSweep for %s \"%s\" parsed successfully.\n", currSweepGroupName, currSweepParamName);
+      fprintf(stdout, "action_parameter_group: ParameterSweep for %s \"%s\" parsed successfully.\n", currSweepGroupName, currSweepParamName);
       fflush(stdout);
    }
    // build a parameter group
@@ -2249,7 +2249,7 @@ void PVParams::action_batch_sweep_close()
    if (disable) return;
    addActiveBatchSweep(currSweepGroupName, currSweepParamName);
    if(debugParsing && worldRank==0 ) {
-      printf("action_parameter_group: BatchSweep for %s \"%s\" parsed successfully.\n", currSweepGroupName, currSweepParamName);
+      fprintf(stdout, "action_parameter_group: BatchSweep for %s \"%s\" parsed successfully.\n", currSweepGroupName, currSweepParamName);
       fflush(stdout);
    }
    // build a parameter group
@@ -2262,7 +2262,7 @@ void PVParams::action_parameter_sweep_values_number(double val)
    if (disable) return;
    if (debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_parameter_sweep_values_number: %f\n", val);
+      fprintf(stdout, "action_parameter_sweep_values_number: %f\n", val);
       fflush(stdout);
    }
    activeParamSweep->pushNumericValue(val);
@@ -2273,7 +2273,7 @@ void PVParams::action_batch_sweep_values_number(double val)
    if (disable) return;
    if (debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_batch_sweep_values_number: %f\n", val);
+      fprintf(stdout, "action_batch_sweep_values_number: %f\n", val);
       fflush(stdout);
    }
    activeBatchSweep->pushNumericValue(val);
@@ -2284,7 +2284,7 @@ void PVParams::action_parameter_sweep_values_string(const char * stringval)
    if (disable) return;
    if (debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_sweep_values_string: %s\n", stringval);
+      fprintf(stdout, "action_sweep_values_string: %s\n", stringval);
       fflush(stdout);
    }
    char * string = stripQuotationMarks(stringval);
@@ -2298,7 +2298,7 @@ void PVParams::action_batch_sweep_values_string(const char * stringval)
    if (disable) return;
    if (debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_batch_values_string: %s\n", stringval);
+      fprintf(stdout, "action_batch_values_string: %s\n", stringval);
       fflush(stdout);
    }
    char * string = stripQuotationMarks(stringval);
@@ -2312,7 +2312,7 @@ void PVParams::action_parameter_sweep_values_filename(const char * stringval)
    if (disable) return;
    if (debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_sweep_values_filename: %s\n", stringval);
+      fprintf(stdout, "action_sweep_values_filename: %s\n", stringval);
       fflush(stdout);
    }
    char * filename = stripQuotationMarks(stringval);
@@ -2331,7 +2331,7 @@ void PVParams::action_batch_sweep_values_filename(const char * stringval)
    if (disable) return;
    if (debugParsing && worldRank == 0) {
       fflush(stdout);
-      printf("action_batch_sweep_values_filename: %s\n", stringval);
+      fprintf(stdout, "action_batch_sweep_values_filename: %s\n", stringval);
       fflush(stdout);
    }
    char * filename = stripQuotationMarks(stringval);

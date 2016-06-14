@@ -200,7 +200,7 @@ int NormalizeBase::addConnToList(HyPerConn * newConn) {
    connectionList[numConnections] = newConn;
    numConnections++;
    if (parent->columnId()==0) {
-      printf("Adding connection \"%s\" to normalizer group \"%s\".\n", newConn->getName(), this->getName());
+      fprintf(stdout, "Adding connection \"%s\" to normalizer group \"%s\".\n", newConn->getName(), this->getName());
    }
    return PV_SUCCESS;
 }

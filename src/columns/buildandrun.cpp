@@ -62,7 +62,7 @@ int buildandrun(PV_Init * initObj,
    if (numParamSweepValues) {
       for (int k=0; k<numParamSweepValues; k++) {
          if (initObj->getWorldRank()==0) {
-            printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
+            fprintf(stdout, "Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
          }
          status = buildandrun1paramset(initObj, custominit, customexit, k) == PV_SUCCESS ? status : PV_FAILURE;
       }
@@ -171,7 +171,7 @@ int rebuildandrun(PV_Init* initObj,
    if (numParamSweepValues) {
       for (int k=0; k<numParamSweepValues; k++) {
          if (initObj->getWorldRank()==0) {
-            printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
+            fprintf(stdout, "Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
          }
          initObj->getParams()->setParameterSweepValues(k);
          status = buildandrun1paramset(initObj, custominit, customexit, customgroups) == PV_SUCCESS ? status : PV_FAILURE;
@@ -229,7 +229,7 @@ int rebuildandrun(PV_Init* initObj,
    if (numParamSweepValues) {
       for (int k=0; k<numParamSweepValues; k++) {
          if (initObj->getWorldRank()==0) {
-            printf("Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
+            fprintf(stdout, "Parameter sweep: starting run %d of %d\n", k+1, numParamSweepValues);
          }
          initObj->getParams()->setParameterSweepValues(k);
          status = buildandrun1paramset(initObj, custominit, customexit, groupHandlerList, numGroupHandlers) == PV_SUCCESS ? status : PV_FAILURE;
@@ -401,7 +401,7 @@ int buildandrun1paramset(PV_Init * initObj,
 
 // Deprecated April 14, 2016.
 int outputParams(int argc, char * argv[], char const * path, ParamGroupHandler ** groupHandlerList, int numGroupHandlers) {
-   printf("\nWarning: outputParams is deprecated.  Instead use the -n option on the command line or the dryRunFlag in PV_Arguments.\n\n");
+   fprintf(stdout, "\nWarning: outputParams is deprecated.  Instead use the -n option on the command line or the dryRunFlag in PV_Arguments.\n\n");
    PV::PV_Init * initObj = new PV::PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
    initObj->initialize();
    if (initObj->isExtraProc()) { return EXIT_SUCCESS; }
@@ -559,7 +559,7 @@ int checknewobject(void * object, const char * kw, const char * name, HyPerCol *
       status = PV_FAILURE;
    }
    else {
-      if( rank==0 ) printf("Added %s \"%s\"\n", kw, name);
+      if( rank==0 ) fprintf(stdout, "Added %s \"%s\"\n", kw, name);
    }
    return status;
 }

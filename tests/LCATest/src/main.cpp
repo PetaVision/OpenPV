@@ -121,7 +121,7 @@ int generate(PV_Init* initObj, int rank) {
    arguments->setRestartFlag(false);
    arguments->setCheckpointReadDir(NULL);
    if (rank==0) {
-      printf("%s --generate running PetaVision with arguments\n", arguments->getProgramName());
+      fprintf(stdout, "%s --generate running PetaVision with arguments\n", arguments->getProgramName());
       arguments->printState();
    }
    if (rank==0) {
@@ -181,7 +181,7 @@ int testrun(PV_Init * initObj, int rank) {
    arguments->setRestartFlag(false);
    arguments->setCheckpointReadDir(NULL);
    if (rank==0) {
-      printf("%s --testrun running PetaVision with arguments\n", arguments->getProgramName());
+      fprintf(stdout, "%s --testrun running PetaVision with arguments\n", arguments->getProgramName());
       arguments->printState();
    }
    int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
@@ -201,7 +201,7 @@ int testcheckpoint(PV_Init * initObj, int rank) {
       exit(EXIT_FAILURE);
    }
    if (rank==0) {
-      printf("%s --testcheckpoint running PetaVision with arguments\n", arguments->getProgramName());
+      fprintf(stdout, "%s --testcheckpoint running PetaVision with arguments\n", arguments->getProgramName());
       arguments->printState();
    }
    int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
@@ -236,7 +236,7 @@ int testioparams(PV_Init* initObj, int rank) {
 
    arguments->setParamsFile(paramsfileString.c_str());
    if (rank==0) {
-      printf("%s --testioparams running PetaVision with arguments\n", arguments->getProgramName());
+      fprintf(stdout, "%s --testioparams running PetaVision with arguments\n", arguments->getProgramName());
       arguments->printState();
    }
    status = rebuildandrun(initObj, NULL, &assertAllZeroes);

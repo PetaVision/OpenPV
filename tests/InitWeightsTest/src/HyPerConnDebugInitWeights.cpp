@@ -924,7 +924,7 @@ int HyPerConnDebugInitWeights::gaborWeights(PVPatch * wp, pvdata_t * dataStart, 
             float wt = factor * expf(-d2 / (2.0f*sigma*sigma));
 
 #ifdef DEBUG_OUTPUT
-            if (j == 0) printf("x=%f fac=%f w=%f\n", xp, factor, wt);
+            if (j == 0) fprintf(stdout, "x=%f fac=%f w=%f\n", xp, factor, wt);
 #endif
             if (xp*xp + yp*yp > r2Max) {
                w[i*sx + j*sy + f*sf] = 0.0f;

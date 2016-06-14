@@ -87,7 +87,7 @@ int Patterns::initialize(const char * name, HyPerCol * hc) {
       snprintf(file_name, PV_PATH_MAX-1, "%s/patterns-pos.txt", patternsOutputPath);
       //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
       if (parent->columnId()==0) {
-         printf("write position to %s\n",file_name);
+         fprintf(stdout, "write position to %s\n",file_name);
          patternsFile = PV_fopen(file_name,"a",parent->getVerifyWrites());
          if(patternsFile == NULL) {
             fprintf(stderr, "Patterns layer \"%s\" unable to open \"%s\" for writing: error %s\n", name, file_name, strerror(errno));

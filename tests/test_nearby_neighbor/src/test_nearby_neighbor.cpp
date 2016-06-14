@@ -44,9 +44,9 @@ int main(int argc, char* argv[])
    test = 1;
    for (kPre = min; kPre < max; kPre++) {
       kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
-      //printf("test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, kPre, ans);
+      //fprintf(stdout, "test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, kPre, ans);
       if (kPost != kPre) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+         fprintf(stdout, "FAILED:TEST_NEARBY_NEIGHBOR: "
                 "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
                 test, scaleLog2Pre, scaleLog2Post, kPre, kPost, ans);
          exit(1);
@@ -61,9 +61,9 @@ int main(int argc, char* argv[])
    test = 2;
    for (kPre = min; kPre <= max; kPre++) {
       kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
-      //printf("test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, ans);
+      //fprintf(stdout, "test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, ans);
       if (kPost != ans) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+         fprintf(stdout, "FAILED:TEST_NEARBY_NEIGHBOR: "
                 "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
                 test, scaleLog2Pre, scaleLog2Post, kPre, kPost, ans);
          exit(1);
@@ -78,9 +78,9 @@ int main(int argc, char* argv[])
    test = 3;
    for (kPre = min; kPre <= max; kPre++) {
       kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
-      //printf("test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, ans);
+      //fprintf(stdout, "test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, ans);
       if (kPost != ans) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+         fprintf(stdout, "FAILED:TEST_NEARBY_NEIGHBOR: "
                 "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
                 test, scaleLog2Pre, scaleLog2Post, kPre, kPost, ans);
          exit(1);
@@ -95,9 +95,9 @@ int main(int argc, char* argv[])
    test = 4;
    for (kPre = min; kPre <= max; kPre++) {
       kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
-      //printf("test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, ans);
+      //fprintf(stdout, "test==%d kPre==%d kPost==%d ans==%d\n", test, kPre, kPost, ans);
       if (kPost != ans) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+         fprintf(stdout, "FAILED:TEST_NEARBY_NEIGHBOR: "
                 "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d ans==%d\n",
                 test, scaleLog2Pre, scaleLog2Post, kPre, kPost, ans);
          exit(1);
@@ -114,9 +114,9 @@ int main(int argc, char* argv[])
    for (kPre = min; kPre <= max; kPre++) {
       kPost = nearby_neighbor(kPre,  scaleLog2Pre,  scaleLog2Post);
       kBack = nearby_neighbor(kPost, scaleLog2Post, scaleLog2Pre);
-      //printf("test==%d kPre==%d kPost==%d kBack==%d ans==%d\n", test, kPre, kPost, kBack, ans);
+      //fprintf(stdout, "test==%d kPre==%d kPost==%d kBack==%d ans==%d\n", test, kPre, kPost, kBack, ans);
       if (kPost != ans && kBack != kPre) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+         fprintf(stdout, "FAILED:TEST_NEARBY_NEIGHBOR: "
                 "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
                 test, scaleLog2Pre, scaleLog2Post, kPre, kPost, kBack, ans);
          exit(1);
@@ -133,9 +133,9 @@ int main(int argc, char* argv[])
    for (kPre = min; kPre < max; kPre++) {
       kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
       kBack = nearby_neighbor(kPost, scaleLog2Post, scaleLog2Pre);
-      //printf("test==%d kPre==%d kPost==%d kBack==%d ans==%d\n", test, kPre, kPost, kBack, ans);
+      //fprintf(stdout, "test==%d kPre==%d kPost==%d kBack==%d ans==%d\n", test, kPre, kPost, kBack, ans);
       if (kPost != ans && kBack != kPre) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+         fprintf(stdout, "FAILED:TEST_NEARBY_NEIGHBOR: "
                 "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
                 test, scaleLog2Pre, scaleLog2Post, kPre, kPost, kBack, ans);
          exit(1);
@@ -152,9 +152,9 @@ int main(int argc, char* argv[])
    for (kPre = min; kPre < max; kPre++) {
       kPost = nearby_neighbor(kPre, scaleLog2Pre, scaleLog2Post);
       kBack = nearby_neighbor(kPost, scaleLog2Post, scaleLog2Pre);
-      //printf("test==%d kPre==%d kPost==%d kBack==%d ans==%d\n", test, kPre, kPost, kBack, ans);
+      //fprintf(stdout, "test==%d kPre==%d kPost==%d kBack==%d ans==%d\n", test, kPre, kPost, kBack, ans);
       if (kPost != ans && kBack != kPre) {
-         printf("FAILED:TEST_NEARBY_NEIGHBOR: "
+         fprintf(stdout, "FAILED:TEST_NEARBY_NEIGHBOR: "
                 "test==%d scaleLog2Pre==%d scaleLog2Post==%d kPre==%d kPost==%d kBack==%d ans==%d\n",
                 test, scaleLog2Pre, scaleLog2Post, kPre, kPost, kBack, ans);
          exit(1);

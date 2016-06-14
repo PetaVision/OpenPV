@@ -43,14 +43,14 @@ int main(int argc, char * argv[]) {
 
 #ifdef PV_USE_MPI
    if (status == EXIT_SUCCESS) {
-      printf("Test complete.  %s passed on process rank %d.\n", arguments->getProgramName(), rank);
+      fprintf(stdout, "Test complete.  %s passed on process rank %d.\n", arguments->getProgramName(), rank);
    }
    else {
       fprintf(stderr, "Test complete.  %s FAILED on process rank %d.\n", arguments->getProgramName(), rank);
    }
 #else
    if (status == EXIT_SUCCESS) {
-      printf("Test complete.  %s passed.\n", arguments->getProgramName());
+      fprintf(stdout, "Test complete.  %s passed.\n", arguments->getProgramName());
    }
    else {
       fprintf(stderr, "Test complete.  %s FAILED.\n", arguments->getProgramName());

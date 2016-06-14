@@ -111,7 +111,7 @@ int CLBuffer::copyFromDevice(void * host_ptr, unsigned int nWait, cl_event * wai
 void * CLBuffer::map(cl_map_flags flags)
 {
    //TODO doesn't work on neuro
-   printf("Unmap not implemented\n");
+   fprintf(stdout, "Unmap not implemented\n");
    exit(1);
 
    int status = 0;
@@ -175,7 +175,7 @@ int CLBuffer::unmap(void * mapped_ptr)
    int status = CL_SUCCESS;
 
    //TODO doesn't work on neuro
-   printf("Unmap not implemented\n");
+   fprintf(stdout, "Unmap not implemented\n");
    exit(1);
 
    h_ptr = NULL;  // buffer no longer mapped for host usage

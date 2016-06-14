@@ -51,24 +51,24 @@ CLTimer::~CLTimer()
 
 //double CLTimer::start()
 //{
-//   printf("Starting opencl timer\n");
+//   fprintf(stdout, "Starting opencl timer\n");
 //   cl_int status = clEnqueueMarkerWithWaitList(commands, 0, NULL, startEvent);
 //   if(status != CL_SUCCESS){
 //      switch(status){
 //         case CL_INVALID_COMMAND_QUEUE:
-//            printf("Invalid command queue\n");
+//            fprintf(stdout, "Invalid command queue\n");
 //            break;
 //         case CL_INVALID_EVENT_WAIT_LIST:
-//            printf("Invalid event wait list\n");
+//            fprintf(stdout, "Invalid event wait list\n");
 //            break;
 //         case CL_OUT_OF_RESOURCES:
-//            printf("Out of resources\n");
+//            fprintf(stdout, "Out of resources\n");
 //            break;
 //         case CL_OUT_OF_HOST_MEMORY:
-//            printf("Out of host memory\n");
+//            fprintf(stdout, "Out of host memory\n");
 //            break;
 //         default:
-//            printf("Unknown error\n");
+//            fprintf(stdout, "Unknown error\n");
 //      }
 //      exit(EXIT_FAILURE);
 //   }
@@ -77,24 +77,24 @@ CLTimer::~CLTimer()
 //
 //double CLTimer::stop()
 //{
-//   printf("Stopping opencl timer\n");
+//   fprintf(stdout, "Stopping opencl timer\n");
 //   cl_int status = clEnqueueMarkerWithWaitList(commands, 0, NULL, stopEvent);
 //   if(status != CL_SUCCESS){
 //      switch(status){
 //         case CL_INVALID_COMMAND_QUEUE:
-//            printf("Invalid command queue\n");
+//            fprintf(stdout, "Invalid command queue\n");
 //            break;
 //         case CL_INVALID_EVENT_WAIT_LIST:
-//            printf("Invalid event wait list\n");
+//            fprintf(stdout, "Invalid event wait list\n");
 //            break;
 //         case CL_OUT_OF_RESOURCES:
-//            printf("Out of resources\n");
+//            fprintf(stdout, "Out of resources\n");
 //            break;
 //         case CL_OUT_OF_HOST_MEMORY:
-//            printf("Out of host memory\n");
+//            fprintf(stdout, "Out of host memory\n");
 //            break;
 //         default:
-//            printf("Unknown error\n");
+//            fprintf(stdout, "Unknown error\n");
 //      }
 //      exit(EXIT_FAILURE);
 //   }
@@ -103,7 +103,7 @@ CLTimer::~CLTimer()
 
 //Note this function is blocking
 double CLTimer::accumulateTime(){
-   //printf("Accumulating opencl timer\n");
+   //fprintf(stdout, "Accumulating opencl timer\n");
    cl_ulong cl_time_start, cl_time_end;
    cl_time_start = 0;
    cl_time_end = 0;
@@ -113,16 +113,16 @@ double CLTimer::accumulateTime(){
    if(status != CL_SUCCESS){
       switch(status){
          case CL_PROFILING_INFO_NOT_AVAILABLE:
-            printf("Profiling info not avaliable\n");
+            fprintf(stdout, "Profiling info not avaliable\n");
             break;
          case CL_INVALID_VALUE:
-            printf("Invalid param names\n");
+            fprintf(stdout, "Invalid param names\n");
             break;
          case CL_INVALID_EVENT:
-            printf("Invalid event for start event\n");
+            fprintf(stdout, "Invalid event for start event\n");
             break;
          default:
-            printf("Unknown error\n");
+            fprintf(stdout, "Unknown error\n");
       }
       exit(EXIT_FAILURE);
    }
@@ -133,21 +133,21 @@ double CLTimer::accumulateTime(){
    if(status != CL_SUCCESS){
       switch(status){
          case CL_PROFILING_INFO_NOT_AVAILABLE:
-            printf("Profiling info not avaliable\n");
+            fprintf(stdout, "Profiling info not avaliable\n");
             break;
          case CL_INVALID_VALUE:
-            printf("Invalid param names\n");
+            fprintf(stdout, "Invalid param names\n");
             break;
          case CL_INVALID_EVENT:
-            printf("Invalid event for stop event\n");
+            fprintf(stdout, "Invalid event for stop event\n");
             break;
          default:
-            printf("Unknown error\n");
+            fprintf(stdout, "Unknown error\n");
       }
       exit(EXIT_FAILURE);
    }
    //Roundoff errors?
-   //printf("Diff times: %f\n", (double)(cl_time_end - cl_time_start)/1000000);
+   //fprintf(stdout, "Diff times: %f\n", (double)(cl_time_end - cl_time_start)/1000000);
    time += (double)(cl_time_end - cl_time_start)/1000000;
 
    return (double) time;

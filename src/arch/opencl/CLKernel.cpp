@@ -45,7 +45,7 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
    program = clCreateProgramWithSource(context, 1, (const char **) &source, NULL, &status);
    if (!program || status != CL_SUCCESS)
    {
-       printf("Error: Failed to create compute program!\n");
+       fprintf(stdout, "Error: Failed to create compute program!\n");
        CLDevice::print_error_code(status);
        exit(status);
    }
@@ -59,14 +59,14 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
        size_t len;
        char buffer[150641]; //[12050]; //[8192];
 
-       printf("Error: Failed to build program executable!\n");
+       fprintf(stdout, "Error: Failed to build program executable!\n");
        CLDevice::print_error_code(status);
        status = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
        if (status != CL_SUCCESS) {
-          printf("CLKernel: error buffer length may be too small, is %ld, should be %ld\n", sizeof(buffer), len);
+          fprintf(stdout, "CLKernel: error buffer length may be too small, is %ld, should be %ld\n", sizeof(buffer), len);
           CLDevice::print_error_code(status);
        }
-       printf("%s\n", buffer);
+       fprintf(stdout, "%s\n", buffer);
        exit(status);
    }
 
@@ -146,7 +146,7 @@ int CLKernel::run(size_t global_work_size, size_t local_work_size,
    }
 
    if (local_work_size > max_local_size) {
-      printf("run: local_work_size==%ld global_work_size==%ld max_local_size==%ld\n", local_work_size, global_work_size, max_local_size);
+      fprintf(stdout, "run: local_work_size==%ld global_work_size==%ld max_local_size==%ld\n", local_work_size, global_work_size, max_local_size);
       local_work_size = max_local_size;
    }
 
@@ -199,7 +199,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
       CLDevice::print_error_code(status);
       exit(status);
    } else {
-//      printf("run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
+//      fprintf(stdout, "run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
 //             local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
    }
 
@@ -216,7 +216,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    //TODO doesn't work on neuro
    if (profiling) {
       //TODO doesn't work on neuro
-      printf("Profiling not implemented\n");
+      fprintf(stdout, "Profiling not implemented\n");
       exit(1);
 
       //TODO - why not use clEnqueueBarrierWithWaitList
@@ -231,7 +231,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    //TODO doesn't work on neuro
    if (profiling) {
       //TODO doesn't work on neuro
-      printf("Profiling not implemented\n");
+      fprintf(stdout, "Profiling not implemented\n");
       exit(1);
 
       //int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &endMark);
@@ -314,7 +314,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t gWorkSizeF,
       CLDevice::print_error_code(status);
       exit(status);
    } else {
-//      printf("run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
+//      fprintf(stdout, "run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
 //             local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
    }
 
@@ -331,7 +331,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t gWorkSizeF,
    //TODO doesn't work on neuro
    if (profiling) {
       //TODO doesn't work on neuro
-      printf("Profiling not implemented\n");
+      fprintf(stdout, "Profiling not implemented\n");
       exit(1);
 
       //TODO - why not use clEnqueueBarrierWithWaitList
@@ -351,7 +351,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t gWorkSizeF,
    //TODO doesn't work with neuro
    if (profiling) {
       //TODO doesn't work on neuro
-      printf("Profiling not implemented\n");
+      fprintf(stdout, "Profiling not implemented\n");
       exit(1);
       //int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &endMark);
       //error |= clFinish(commands);

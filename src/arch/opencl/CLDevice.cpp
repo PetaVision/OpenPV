@@ -58,7 +58,7 @@ int CLDevice::initialize(int device)
 
    status = clGetPlatformIDs(0, NULL, &num_platforms);
    if (status != CL_SUCCESS) {
-      printf("Error: Failed to get number of available platforms!\n");
+      fprintf(stdout, "Error: Failed to get number of available platforms!\n");
       print_error_code(status);
       exit(status);
    }
@@ -66,19 +66,19 @@ int CLDevice::initialize(int device)
 
    status = clGetPlatformIDs(2, platforms, &num_platforms);
    if (status != CL_SUCCESS) {
-      printf("Error: Failed to get platform ids!\n");
+      fprintf(stdout, "Error: Failed to get platform ids!\n");
       print_error_code(status);
       exit(status);
    }
    if (num_platforms > 1) {
-      printf("Warning: number of platforms is %d\n", num_platforms);
+      fprintf(stdout, "Warning: number of platforms is %d\n", num_platforms);
    }
 
    // get info about the platform
    //
    status = clGetPlatformInfo(platforms[0], CL_PLATFORM_NAME, name_size, platform_name, &name_size);
    if (status != CL_SUCCESS) {
-      printf("Error: Failed to get platform info!\n");
+      fprintf(stdout, "Error: Failed to get platform info!\n");
       print_error_code(status);
       exit(status);
    }
@@ -87,19 +87,19 @@ int CLDevice::initialize(int device)
    //
    status = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_ALL, MAX_DEVICES, device_ids, &num_devices);
    if (status != CL_SUCCESS) {
-      printf("Error: Failed to find a device group!\n");
+      fprintf(stdout, "Error: Failed to find a device group!\n");
       print_error_code(status);
       exit(status);
    }
 
-   printf("Using device %d\n", device_id);
+   fprintf(stdout, "Using device %d\n", device_id);
 
    // create a compute context
    //
    context = clCreateContext(0, 1, &device_ids[device_id], NULL, NULL, &status);
    if (!context)
    {
-       printf("Error: Failed to create a compute context for device %d!\n", device);
+       fprintf(stdout, "Error: Failed to create a compute context for device %d!\n", device);
        exit(PVCL_CREATE_CONTEXT_FAILURE);
    }
 
@@ -109,7 +109,7 @@ int CLDevice::initialize(int device)
    assert(status == CL_SUCCESS);
    if (!commands)
    {
-       printf("Error: Failed to create a command commands!\n");
+       fprintf(stdout, "Error: Failed to create a command commands!\n");
        return PVCL_CREATE_CMD_QUEUE_FAILURE;
    }
 
@@ -177,9 +177,9 @@ int CLDevice::query_device_info()
 {
    // query and print information about the devices found
    //
-   printf("\n");
-   printf("Number of OpenCL devices found: %d\n", num_devices);
-   printf("\n");
+   fprintf(stdout, "\n");
+   fprintf(stdout, "Number of OpenCL devices found: %d\n", num_devices);
+   fprintf(stdout, "\n");
 
    for (int i = 0; i < num_devices; i++) {
       query_device_info(i, device_ids[i]);
@@ -203,93 +203,93 @@ int CLDevice::query_device_info(int id, cl_device_id device)
    char   param_value[str_size];
    size_t param_value_size;
 
-   printf("device: %d\n", id);
+   fprintf(stdout, "device: %d\n", id);
 
    status = clGetDeviceInfo(device, CL_DEVICE_NAME, str_size, param_value, &param_value_size);
    param_value[str_size-1] = '\0';
 
-   printf("OpenCL Device # %d == %s\n", id, param_value);
+   fprintf(stdout, "OpenCL Device # %d == %s\n", id, param_value);
 
    status = clGetDeviceInfo(device, CL_DEVICE_TYPE, sizeof(val), &val, NULL);
 
    if (status == CL_SUCCESS) {
-      printf("\tdevice[%p]: Type: ", device);
+      fprintf(stdout, "\tdevice[%p]: Type: ", device);
 
       if (val & CL_DEVICE_TYPE_DEFAULT) {
          val &= ~CL_DEVICE_TYPE_DEFAULT;
-         printf("Default ");
+         fprintf(stdout, "Default ");
       }
 
       if (val & CL_DEVICE_TYPE_CPU) {
          val &= ~CL_DEVICE_TYPE_CPU;
-         printf("CPU ");
+         fprintf(stdout, "CPU ");
       }
 
       if (val & CL_DEVICE_TYPE_GPU) {
          val &= ~CL_DEVICE_TYPE_GPU;
-         printf("GPU ");
+         fprintf(stdout, "GPU ");
       }
 
       if (val & CL_DEVICE_TYPE_ACCELERATOR) {
          val &= ~CL_DEVICE_TYPE_ACCELERATOR;
-         printf("Accelerator ");
+         fprintf(stdout, "Accelerator ");
       }
 
       if (val != 0) {
-         printf("Unknown (0x%llx) ", val);
+         fprintf(stdout, "Unknown (0x%llx) ", val);
       }
    }
    else {
-      printf("\tdevice[%p]: Unable to get TYPE: %s!\n", device, "CLErrString(status)");
+      fprintf(stdout, "\tdevice[%p]: Unable to get TYPE: %s!\n", device, "CLErrString(status)");
       print_error_code(status);
       exit(status);
    }
 
    status = clGetDeviceInfo(device, CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(val), &val, &param_value_size);
-   printf("with %u units/cores", (unsigned int) val);
+   fprintf(stdout, "with %u units/cores", (unsigned int) val);
 
    status = clGetDeviceInfo(device, CL_DEVICE_MAX_CLOCK_FREQUENCY, sizeof(val), &val, &param_value_size);
-   printf(" at %u MHz\n", (unsigned int) val);
+   fprintf(stdout, " at %u MHz\n", (unsigned int) val);
 
    status = clGetDeviceInfo(device, CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT, sizeof(val), &val, &param_value_size);
-   printf("\tfloat vector width == %u\n", (unsigned int) val);
+   fprintf(stdout, "\tfloat vector width == %u\n", (unsigned int) val);
    
    status = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(val), &val, &param_value_size);
-   printf("\tMaximum work group size == %lu\n", (size_t) val);
+   fprintf(stdout, "\tMaximum work group size == %lu\n", (size_t) val);
    
    status = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, sizeof(max_dims), &max_dims, &param_value_size);
-   printf("\tMaximum work item dimensions == %u\n", max_dims);
+   fprintf(stdout, "\tMaximum work item dimensions == %u\n", max_dims);
    
    status = clGetDeviceInfo(device, CL_DEVICE_MAX_WORK_ITEM_SIZES, vals_len*sizeof(size_t), vals, &param_value_size);
-   printf("\tMaximum work item sizes == (");
-   for (unsigned int i = 0; i < max_dims; i++) printf(" %ld", vals[i]);
-   printf(" )\n");
+   fprintf(stdout, "\tMaximum work item sizes == (");
+   for (unsigned int i = 0; i < max_dims; i++) fprintf(stdout, " %ld", vals[i]);
+   fprintf(stdout, " )\n");
    
    status = clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, sizeof(val), &val, &param_value_size);
-   printf("\tLocal mem size == %u\n", (unsigned int) val);
+   fprintf(stdout, "\tLocal mem size == %u\n", (unsigned int) val);
 
    status = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(val), &val, &param_value_size);
-   printf("\tGlobal mem size == %u\n", (unsigned int) val);
+   fprintf(stdout, "\tGlobal mem size == %u\n", (unsigned int) val);
 
    status = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, sizeof(val), &val, &param_value_size);
-   printf("\tGlobal mem cache size == %u\n", (unsigned int) val);
+   fprintf(stdout, "\tGlobal mem cache size == %u\n", (unsigned int) val);
 
    status = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, sizeof(val), &val, &param_value_size);
-   printf("\tGlobal mem cache line size == %u\n", (unsigned int) val);
+   fprintf(stdout, "\tGlobal mem cache line size == %u\n", (unsigned int) val);
 
    status = clGetDeviceInfo(device, CL_DEVICE_MAX_CONSTANT_ARGS, sizeof(val), &val, &param_value_size);
-   printf("\tMax constant arguments == %u\n", (unsigned int) val);
+   fprintf(stdout, "\tMax constant arguments == %u\n", (unsigned int) val);
 
    status = clGetDeviceInfo(device, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, sizeof(val), &val, &param_value_size);
-   printf("\tMax constant buffer size == %lu\n", (unsigned long) val);
+   fprintf(stdout, "\tMax constant buffer size == %lu\n", (unsigned long) val);
 
    status = clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(val), &val, &param_value_size);
-   printf("\tMax mem alloc size == %lu\n", (unsigned long) val);
+   fprintf(stdout, "\tMax mem alloc size == %lu\n", (unsigned long) val);
 
    status = clGetDeviceInfo(device, CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT, sizeof(val), &val, &param_value_size);
-   printf("\tPreferred vector width float == %u\n", (unsigned int) val);
+   fprintf(stdout, "\tPreferred vector width float == %u\n", (unsigned int) val);
 
-   printf("\n");
+   fprintf(stdout, "\n");
 
    return status;
 }
@@ -396,7 +396,7 @@ CLDevice::print_error_code(int code)
          sprintf(msg, "%s (%d)\n", "UNKNOWN_CODE", code);
          break;
   }
-   printf("ERROR_CODE==%s\n", msg);
+   fprintf(stdout, "ERROR_CODE==%s\n", msg);
 }
 
 #endif // PV_USE_OPENCL

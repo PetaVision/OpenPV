@@ -42,17 +42,17 @@ int InputLayer::updateState(double timef, double dt){
    }
 
    ////Printing for double checking 
-   //printf("\nOutMat\n");
+   //fprintf(stdout, "\nOutMat\n");
    ////looping over ext
    //for(int iFeature = 0; iFeature < nf; iFeature++){
    //   for(int iY = 0; iY < ny+loc->halo.up+loc->halo.dn; iY++){
    //      for(int iX = 0; iX < nx+loc->halo.lt+loc->halo.rt; iX++){
    //         int ext_idx = kIndex(iX, iY, iFeature, nx+loc->halo.lt+loc->halo.rt, ny+loc->halo.dn+loc->halo.up, nf);
-   //         printf("%03d ", (int)A[ext_idx]);
+   //         fprintf(stdout, "%03d ", (int)A[ext_idx]);
    //      }
-   //      printf("\n");
+   //      fprintf(stdout, "\n");
    //   }
-   //   printf("\n\n");
+   //   fprintf(stdout, "\n\n");
    //}
 
    return PV_SUCCESS;

@@ -299,7 +299,7 @@ int TransposePoolingConn::communicateInitInfo() {
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
          const char * connectiontype = this->getKeyword();
-         printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
+         fprintf(stdout, "%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -441,7 +441,7 @@ int TransposePoolingConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
          const char * connectiontype = this->getKeyword();
-         printf("%s \"%s\" must wait until original connection \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, originalConn->getName());
+         fprintf(stdout, "%s \"%s\" must wait until original connection \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, originalConn->getName());
       }
       return PV_POSTPONE;
    }

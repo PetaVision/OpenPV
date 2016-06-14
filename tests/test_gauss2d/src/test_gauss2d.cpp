@@ -147,10 +147,10 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre, int
       for (int k = 0; k < nk; k++) {
          test_cond = kernelWeights[k] - hyperWeights[k];
          if (fabs(test_cond) > 0.001f) {
-            printf("y %d\n", y);
-            printf("k %d\n", k);
-            printf("kernelweight %f\n", kernelWeights[k]);
-            printf("hyperWeights %f\n", hyperWeights[k]);
+            fprintf(stdout, "y %d\n", y);
+            fprintf(stdout, "k %d\n", k);
+            fprintf(stdout, "kernelweight %f\n", kernelWeights[k]);
+            fprintf(stdout, "hyperWeights %f\n", hyperWeights[k]);
             const char * cHyper_filename = "gauss2d_hyper.txt";
             cHyPer->writeTextWeights(cHyper_filename, kPre);
             const char * cKernel_filename = "gauss2d_kernel.txt";

@@ -119,7 +119,7 @@ int compareOutputs() {
    status = system(diffcmd);
    if (status != 0) {
       // If the diff command fails, it may be only that the file system hasn't caught up yet.  
-      printf("diff command returned %d: waiting 1 second and trying again...\n", WEXITSTATUS(status));
+      fprintf(stdout, "diff command returned %d: waiting 1 second and trying again...\n", WEXITSTATUS(status));
       fflush(stdout);
       sleep(1);
       status = system(diffcmd);

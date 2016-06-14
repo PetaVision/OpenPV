@@ -568,7 +568,7 @@ const char * Movie::getNextFileName(int n_skip, int batchIdx) {
       outFilename = advanceFileName(batchIdx);
    }
    if (echoFramePathnameFlag){
-      printf("%s \"%s\": t=%f, batch element %d: loading %s\n", getKeyword(), name, parent->simulationTime(), batchIdx, outFilename);
+      fprintf(stdout, "%s \"%s\": t=%f, batch element %d: loading %s\n", getKeyword(), name, parent->simulationTime(), batchIdx, outFilename);
    }
    return outFilename;
 }

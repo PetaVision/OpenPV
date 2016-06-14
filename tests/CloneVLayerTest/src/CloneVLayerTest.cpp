@@ -55,7 +55,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    }
 
    if (hc->columnId()==0) {
-      printf("%s passed.\n", argv[0]);
+      fprintf(stdout, "%s passed.\n", argv[0]);
    }
    return PV_SUCCESS;
 }

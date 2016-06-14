@@ -19,7 +19,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
    pvadata_t tolerance = 1.0e-7f;
 
    if (hc->columnId()==0) {
-      printf("Checking whether input layer has all values equal to %f ...\n", correctvalue);
+      fprintf(stdout, "Checking whether input layer has all values equal to %f ...\n", correctvalue);
    }
    HyPerLayer * inputlayer = hc->getLayerFromName("input");
    assert(inputlayer);
@@ -56,7 +56,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
       }
       free(databuffer);
       if (status == PV_SUCCESS) {
-         printf("%s succeeded.\n", argv[0]);
+         fprintf(stdout, "%s succeeded.\n", argv[0]);
       }
       else {
          fprintf(stderr, "%s failed.\n", argv[0]);

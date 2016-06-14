@@ -15,7 +15,7 @@ inline void handleError(cudaError_t error, const char* message){
       return;
    }
    else{
-      printf("Cuda call error in %s: %s\n", message, cudaGetErrorString(error));
+      fprintf(stdout, "Cuda call error in %s: %s\n", message, cudaGetErrorString(error));
       exit(-1);
    }
 }

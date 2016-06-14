@@ -387,7 +387,7 @@ int BaseInput::allocateDataStructures() {
             fprintf(stderr, "Path for jitter positions \"%s/%s_jitter.txt is too long.\n", parent->getOutputPath(), getName());
             abort();
          }
-         printf("Image layer \"%s\" will write jitter positions to %s\n",getName(), file_name);
+         fprintf(stdout, "Image layer \"%s\" will write jitter positions to %s\n",getName(), file_name);
          fp_pos = PV_fopen(file_name,"w",parent->getVerifyWrites());
          if(fp_pos == NULL) {
             fprintf(stderr, "Image \"%s\" unable to open file \"%s\" for writing jitter positions.\n", getName(), file_name);

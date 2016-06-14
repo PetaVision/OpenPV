@@ -139,7 +139,7 @@ int main(int argc, char * argv[]) {
 int testTransposeOfTransposeWeights(HyPerConn * originalMap, TransposeConn * transpose, TransposeConn * transposeOfTranspose, const char * message) {
    int status = testWeightsEqual(originalMap, transposeOfTranspose);
    if( status == PV_SUCCESS ) {
-      printf("%s: TestTransposeConn passed.\n", message);
+      fprintf(stdout, "%s: TestTransposeConn passed.\n", message);
    }
    else {
       fprintf(stderr, "%s: TestTransposeConn failed.\n", message);

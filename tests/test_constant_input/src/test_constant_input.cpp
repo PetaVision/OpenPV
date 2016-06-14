@@ -70,13 +70,13 @@ int main(int argc, char* argv[])
 
    const int rank = hc->columnId();
 #ifdef DEBUG_OUTPUT
-   printf("[%d]: column: ", rank);
+   fprintf(stdout, "[%d]: column: ", rank);
    printLoc(hc->getImageLoc());
-   printf("[%d]: image : ", rank);
+   fprintf(stdout, "[%d]: image : ", rank);
    printLoc(image->getImageLoc());
-   printf("[%d]: retina: ", rank);
+   fprintf(stdout, "[%d]: retina: ", rank);
    printLoc(*retina->getLayerLoc());
-   printf("[%d]: l1    : ", rank);
+   fprintf(stdout, "[%d]: l1    : ", rank);
    printLoc(*l1->getLayerLoc());
 #endif
 
@@ -171,7 +171,7 @@ int createTestFile(const char* filename, int nTotal, float* buf)
 
 int printLoc(const PVLayerLoc * loc)
 {
-   printf("nxGlobal==%d nyGlobal==%d nx==%d ny==%d kx0==%d ky0==%d halo==(%d,%d,%d,%d) nf==%d\n",
+   fprintf(stdout, "nxGlobal==%d nyGlobal==%d nx==%d ny==%d kx0==%d ky0==%d halo==(%d,%d,%d,%d) nf==%d\n",
      loc->nxGlobal, loc->nyGlobal, loc->nx, loc->ny, loc->kx0, loc->ky0, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, loc->nf);
    fflush(stdout);
    return 0;

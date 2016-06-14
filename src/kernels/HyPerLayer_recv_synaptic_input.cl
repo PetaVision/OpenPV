@@ -181,20 +181,20 @@ CL_KERNEL void HyPerLayer_recv_synaptic_input (
 #ifndef PV_USE_OPENCL
                G[gAddy] += answer;
                if(0) {
-                  printf("j %d\n",j);
-                  printf("i %d\n",i);
-                  printf("kxl %d\n",kxl);
-                  printf("kyl %d\n",kyl);
-                  printf("kx %d\n",kx);
-                  printf("ky %d\n",ky);
-                  printf("lidx %d\n",lidx);
-                  printf("lidy %d\n",lidy);
-                  printf("nxp %d\n",nxp);
-                  printf("nyp %d\n",nyp);
-                  printf("nx %d\n",nxl);
-                  printf("nyl %d\n",nyl);
-                  printf("activity %f\n",activity);
-                  printf("W[weightptr+wOffset] %f\n",W[weightptr+wOffset]);
+                  fprintf(stdout, "j %d\n",j);
+                  fprintf(stdout, "i %d\n",i);
+                  fprintf(stdout, "kxl %d\n",kxl);
+                  fprintf(stdout, "kyl %d\n",kyl);
+                  fprintf(stdout, "kx %d\n",kx);
+                  fprintf(stdout, "ky %d\n",ky);
+                  fprintf(stdout, "lidx %d\n",lidx);
+                  fprintf(stdout, "lidy %d\n",lidy);
+                  fprintf(stdout, "nxp %d\n",nxp);
+                  fprintf(stdout, "nyp %d\n",nyp);
+                  fprintf(stdout, "nx %d\n",nxl);
+                  fprintf(stdout, "nyl %d\n",nyl);
+                  fprintf(stdout, "activity %f\n",activity);
+                  fprintf(stdout, "W[weightptr+wOffset] %f\n",W[weightptr+wOffset]);
                }
 #else
                if(answer!=0) AtomicAddGL(&G[gAddy], answer);

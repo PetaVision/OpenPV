@@ -51,14 +51,14 @@ int main(int argc, char * argv[]) {
    if( status == PV_SUCCESS ) {
       char const * checkParamsFile = "input/LayerRestartTest-Check.params";
       if (rank==0) {
-         printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
+         fprintf(stdout, "*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
       }
       arguments->setParamsFile("input/LayerRestartTest-Check.params");
       status = rebuildandrun(&initObj, NULL, &checkComparisonNonzero);
       if( status == PV_SUCCESS ) {
          char const * readParamsFile = "input/LayerRestartTest-Read.params";
          if (rank==0) {
-            printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
+            fprintf(stdout, "*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
          }
          arguments->setParamsFile(readParamsFile);
          status = rebuildandrun(&initObj, NULL, &checkComparisonZero);
@@ -75,7 +75,7 @@ int main(int argc, char * argv[]) {
       for(int r=0; r<commsize; r++) {
          if( r!= 0) MPI_Recv(&otherprocstatus, 1, MPI_INT, r, 59, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
          if( otherprocstatus == PV_SUCCESS ) {
-            printf("%s: rank %d process succeeded.\n", argv[0], r);
+            fprintf(stdout, "%s: rank %d process succeeded.\n", argv[0], r);
          }
          else {
             fprintf(stderr, "%s: rank %d process FAILED with return code %d\n", argv[0], r, otherprocstatus);

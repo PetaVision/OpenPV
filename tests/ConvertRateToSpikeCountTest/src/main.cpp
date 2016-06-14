@@ -15,7 +15,7 @@ int main(int argc, char * argv[]) {
    int status;
    status = buildandrun(argc, argv, NULL, customexit);
    if (status == PV_SUCCESS) {
-      printf("%s succeeded.\n", argv[0]);
+      fprintf(stdout, "%s succeeded.\n", argv[0]);
    }
    else {
       fprintf(stderr, "%s failed with return code %d.\n", argv[0], status);

@@ -119,9 +119,9 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
 
    PVLayerLoc mpiLoc;
    if( rank == 0 ) {
-      printf("Testing with %d rows by %d columns of subprocesses.\n", rows, columns);
+      fprintf(stdout, "Testing with %d rows by %d columns of subprocesses.\n", rows, columns);
       if( testpassed ) {
-         printf("Rank 0 passed.\n");
+         fprintf(stdout, "Rank 0 passed.\n");
       }
       else {
          dumpLoc(loc, 0);
@@ -159,7 +159,7 @@ int verifyLoc(PV::HyPerCol * hc, int rows, int columns) {
 
 int dumpLoc(const PVLayerLoc * loc, int rank) {
    if( loc == NULL ) return PV_FAILURE;
-   printf("Rank %d: nx=%d, ny=%d, nf=%d, nxGlobal=%d, nyGlobal=%d, kx0=%d, ky0=%d\n",
+   fprintf(stdout, "Rank %d: nx=%d, ny=%d, nf=%d, nxGlobal=%d, nyGlobal=%d, kx0=%d, ky0=%d\n",
           rank, loc->nx, loc->ny, loc->nf, loc->nxGlobal, loc->nyGlobal, loc->kx0, loc->ky0);
    return PV_SUCCESS;
 }

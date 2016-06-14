@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
       float ky = kyPos(kl, nxLocal, nyLocal, nf);
 
       if (ky != (float)kk) {
-         printf("FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, ky);
+         fprintf(stdout, "FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, ky);
          exit(1);
       }
    }
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
       float ky = kyPos(kl, nxLocal, nyLocal, nf);
 
       if ((int)ky-kk != 0) {
-         printf("FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, ky);
+         fprintf(stdout, "FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, ky);
          exit(1);
       }
    }
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
       float ky = kyPos(kl, nxLocal, nyLocal, nf);
 
       if ((int)ky-kk != 0) {
-         printf("FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, ky);
+         fprintf(stdout, "FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, ky);
          exit(1);
       }
    }
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
       float ky = kyPos(kl, nxLocal, nyLocal, nf);
 
       if ((int)ky-kk != 0) {
-         printf("FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, ky);
+         fprintf(stdout, "FAILED:TEST_KYPOS: (k,ky) = (%d,%f)\n", kl, ky);
          exit(1);
       }
    }

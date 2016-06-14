@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
 
 #ifdef DEBUG_OUTPUT
    for (int i = 0; i < numParams - 2; i++) {
-      printf("params[%d] = %d\n", i, params[i]);
+      fprintf(stdout, "params[%d] = %d\n", i, params[i]);
    }
 #endif
 

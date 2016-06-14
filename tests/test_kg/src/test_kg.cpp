@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
    int ij;
 #endif
 
-   //printf("size_loc==%ld size_cube==%ld size_ptr==%ld\n", sizeof(PVLayerLoc), sizeof(PVLayerCube), sizeof(pvdata_t*));
-   //printf("size_int==%ld size_float==%ld, size_size_t==%ld\n", sizeof(int), sizeof(float), sizeof(size_t));
+   //fprintf(stdout, "size_loc==%ld size_cube==%ld size_ptr==%ld\n", sizeof(PVLayerLoc), sizeof(PVLayerCube), sizeof(pvdata_t*));
+   //fprintf(stdout, "size_int==%ld size_float==%ld, size_size_t==%ld\n", sizeof(int), sizeof(float), sizeof(size_t));
 
    int nf = loc.nf = 3;
    int nx = loc.nx = 63;
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
       kg = globalIndexFromLocal_nompi(kl, loc);
 
       if (kg != kl) {
-         printf("FAILED:TEST_KG: (kl,kg) = (%d,%d)\n", kl, kg);
+         fprintf(stdout, "FAILED:TEST_KG: (kl,kg) = (%d,%d)\n", kl, kg);
          exit(1);
       }
    }
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
         kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
 
         if ((kg-kl) != loc.kx0 + (loc.ky0 + kyg)*loc.nx + kf*nx*ny) {
-           printf("FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
+           fprintf(stdout, "FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
            exit(1);
         }
      }
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
      assert(kf == kfg);
 
      if ((kg-kl) != loc.kx0*nf*(1+ky)) {
-        printf("FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
+        fprintf(stdout, "FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
         exit(1);
      }
   }
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
         // kg = ky0*nxGlobal + kf*nxGlobal*nyGlobal
         // kl = kf*nx*ny
         if ((kg-kl) != nx*loc.ky0 + kf*nx*(loc.nyGlobal - ny)) {
-           printf("FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
+           fprintf(stdout, "FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
            exit(1);
         }
      }
@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
      assert(kf == kfg);
 
      if ((kg-kl) != loc.ky0*nf*nx) {
-        printf("FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
+        fprintf(stdout, "FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
         exit(1);
      }
   }
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
      kg = globalIndexFromLocal_nompi(kl, loc);
 
      if (kg != kl) {
-        printf("FAILED:TEST_KG: max ny (kl,kg) = (%d,%d)\n", kl, kg);
+        fprintf(stdout, "FAILED:TEST_KG: max ny (kl,kg) = (%d,%d)\n", kl, kg);
         exit(1);
      }
   }

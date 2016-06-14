@@ -232,14 +232,14 @@ int LocalizationProbe::communicateInitInfo() {
       if (displayCategoryIndexStart <= 0) {
          displayCategoryIndexStart = 1;
          if (parent->globalRank()==0) {
-            printf("%s \"%s\": setting displayCategoryIndexStart to 1.\n",
+            fprintf(stdout, "%s \"%s\": setting displayCategoryIndexStart to 1.\n",
                   getKeyword(), name);
          }
       }
       if (displayCategoryIndexEnd <= 0) {
          displayCategoryIndexEnd = nf;
          if (parent->globalRank()==0) {
-            printf("%s \"%s\": setting displayCategoryIndexEnd to nf=%d.\n",
+            fprintf(stdout, "%s \"%s\": setting displayCategoryIndexEnd to nf=%d.\n",
                   getKeyword(), name, nf);
          }
       }
@@ -397,7 +397,7 @@ int LocalizationProbe::communicateInitInfo() {
          }
       }
       else {
-         printf("classNamesFile was not set in params file; Class names will be feature indices.\n");
+         fprintf(stdout, "classNamesFile was not set in params file; Class names will be feature indices.\n");
          for (int k=0; k<nf; k++) {
             std::stringstream classNameString("");
             classNameString << "Feature " << k;

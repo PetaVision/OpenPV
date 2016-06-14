@@ -108,7 +108,6 @@ int pvpatch_max_pooling(int kPreGlobalExt, int nk, float* RESTRICT v, float a, p
        v[k] = checkVal;
        if(gate){
           gate[k] = kPreGlobalExt;
-          //printf("Writing to address %p idx %d, writing to address %p val%f\n", &(gate[k]), kPreGlobalExt, &(v[k]), checkVal);
        }
     }
   }

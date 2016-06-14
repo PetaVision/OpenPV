@@ -68,7 +68,7 @@ int MaskFromMemoryBuffer::communicateInitInfo() {
    MPI_Barrier(parent->icCommunicator()->communicator());
    if (!imageLayer->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
-         printf("%s \"%s\" must wait until imageLayer \"%s\" has finished its communicateInitInfo stage.\n", getKeyword(), name, imageLayerName);
+         fprintf(stdout, "%s \"%s\" must wait until imageLayer \"%s\" has finished its communicateInitInfo stage.\n", getKeyword(), name, imageLayerName);
       }
       return PV_POSTPONE;
    }
