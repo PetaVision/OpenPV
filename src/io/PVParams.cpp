@@ -6,7 +6,8 @@
  */
 
 #include "PVParams.hpp"
-#include "../include/pv_common.h"
+#include "include/pv_common.h"
+#include "utils/PVLog.hpp"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1764,8 +1765,7 @@ void PVParams::handleUnnecessaryParameter(const char * group_name, const char * 
       if (params_value != correct_value) {
          status = PV_FAILURE;
          if (worldRank==0) {
-            std::cerr << "   Value " << params_value << " is inconsistent with correct value " << correct_value;
-            std::cerr << std::endl; // This line is separate from above line to avoid an Eclipse bug that flags a nonexistent invalid overload
+            pvErrorNoExit() << "   Value " << params_value << " is inconsistent with correct value " << correct_value << std::endl;
          }
       }
    }

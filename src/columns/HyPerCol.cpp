@@ -3663,16 +3663,12 @@ int HyPerCol::readArrayFromFile(const char * cp_dir, const char * group_name, co
          val[i] = default_value;
       }
       if (pvstream==NULL) {
-         std::cerr << "readArrayFromFile warning: unable to open path \"" << filename << "\" for reading.  Value used will be " << *val;
-         std::cerr << std::endl;
-         // fprintf(stderr, "HyPerLayer::readScalarFloat warning: unable to open path %s for reading.  value used will be %f\n", filename, default_value);
+         pvWarn() << "readArrayFromFile: unable to open path \"" << filename << "\" for reading.  Value used will be " << *val << std::endl;
       }
       else {
          int num_read = PV_fread(val, sizeof(T), count, pvstream);
          if (num_read != count) {
-            std::cerr << "readArrayFromFile warning: unable to read from \"" << filename << "\".  Value used will be " << *val;
-            std::cerr << std::endl;
-            // fprintf(stderr, "HyPerLayer::readArrayFloat warning: unable to read from %s.  value used will be %f\n", filename, default_value);
+            pvWarn() << "readArrayFromFile: unable to read from \"" << filename << "\".  Value used will be " << *val << std::endl;
          }
          PV_fclose(pvstream);
       }

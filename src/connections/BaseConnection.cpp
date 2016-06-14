@@ -511,7 +511,7 @@ void BaseConnection::setDelay(int arborId, float delay) {
    int intDelay = round(delay/this->getParent()->getDeltaTime());
    if (fmod(delay, this->getParent()->getDeltaTime()) != 0){
       float actualDelay = intDelay * this->getParent()->getDeltaTime();
-      std::cerr << this->getName() << ": A delay of " << delay << " will be rounded to " << actualDelay << "\n";
+      pvWarn() << this->getName() << ": A delay of " << delay << " will be rounded to " << actualDelay << "\n";
    }
    delays[arborId] = (int)(intDelay);
 }
