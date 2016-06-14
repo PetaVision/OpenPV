@@ -64,12 +64,10 @@ int TransposePoolingConn::initialize(const char * name, HyPerCol * hc) {
    switch (poolingType) {
 #ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case ACCUMULATE_CONVOLVE:
-      std::cout << "ACCUMULATE_CONVOLVE not allowed in TransposePoolingConn\n";
-      exit(-1);
+      pvError() << "ACCUMULATE_CONVOLVE not allowed in TransposePoolingConn\n";
       break;
    case ACCUMULATE_STOCHASTIC:
-      std::cout << "ACCUMULATE_STOCASTIC not allowed in TransposePoolingConn\n";
-      exit(-1);
+      pvError() << "ACCUMULATE_STOCASTIC not allowed in TransposePoolingConn\n";
       break;
 #endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case PoolingConn::MAX:
@@ -527,8 +525,7 @@ double TransposePoolingConn::computeNewWeightUpdateTime(double time, double curr
 }
 
 int TransposePoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int arborID) {
-   std::cout << "Delivering from PostSynapticPerspective for TransposePoolingConn not implented yet\n";
-   exit(-1);
+   pvError() << "Delivering from PostSynapticPerspective for TransposePoolingConn not implented yet\n";
 }
 
 int TransposePoolingConn::deliverPresynapticPerspective(PVLayerCube const * activity, int arborID) {

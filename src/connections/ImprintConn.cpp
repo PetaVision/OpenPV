@@ -193,7 +193,7 @@ int ImprintConn::update_dW(int arbor_ID){
          if (parent->simulationTime() - lastActiveTime[arborStart + kernelIdx] > imprintTimeThresh){
             imprinted[arborStart + kernelIdx] = true;
             lastActiveTime[arborStart + kernelIdx] = parent->simulationTime();
-            std::cout << "Imprinted feature: Arbor " << arbor_ID << " kernel " << kernelIdx << "\n";
+            pvInfo() << "Imprinted feature: Arbor " << arbor_ID << " kernel " << kernelIdx << "\n";
          }
 
          //Loop over all cells in pre ext
@@ -298,7 +298,7 @@ int ImprintConn::checkpointWrite(const char * cpDir) {
       char * filename = (char *) malloc( filenamesize*sizeof(char) );
       assert(filename != NULL);
       sprintf(filename, "%s/%s_ImprintState.bin", cpDir, name);
-      std::cout << "filename: " << filename << "\n";
+      pvInfo() << "filename: " << filename << "\n";
       PV_Stream * pvstream = PV_fopen(filename, "w", parent->getVerifyWrites());
       if( pvstream != NULL ) {
          status = PV_fwrite(lastActiveTime, sizeof(double), numBuf, pvstream) == numBuf ? status : PV_FAILURE;

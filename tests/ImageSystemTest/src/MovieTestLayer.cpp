@@ -38,8 +38,7 @@ int MovieTestLayer::updateStateWrapper(double time, double dt)
 
          pvdata_t expectedVal = kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf) + 10*frameIdx;
          if(fabs(checkVal - expectedVal) >= 1e-4){
-            std::cout << name << " time: " << time << " batch: " << b << " Expected: " << expectedVal << " Actual: " << checkVal << "\n";
-            exit(-1);
+            pvError() << name << " time: " << time << " batch: " << b << " Expected: " << expectedVal << " Actual: " << checkVal << "\n";
          }
       }
    }

@@ -782,8 +782,7 @@ void HyPerLayer::ioParam_dataType(enum ParamsIOFlag ioFlag) {
       dataType = PV_INT;
    }
    else{
-      std::cout << "BaseLayer " << name << " Error: dataType not recognized, can be \"float\" or \"int\"\n";
-      exit(-1);
+      pvError() << "BaseLayer \"" << name << "\": dataType not recognized, can be \"float\" or \"int\"\n";
    }
 }
 
@@ -1005,8 +1004,7 @@ void HyPerLayer::ioParam_writeSparseValues(enum ParamsIOFlag ioFlag) {
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 
 int HyPerLayer::allocateUpdateKernel(){
-   std::cout << "Layer " << name << " of type " << getKeyword() << " does not support updating on gpus yet\n"; 
-   exit(-1);
+   pvError() << "Layer \"" << name << "\" of type " << getKeyword() << " does not support updating on gpus yet\n";
    return -1;
 }
 
@@ -1340,7 +1338,6 @@ int HyPerLayer::equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2) {
 
 int HyPerLayer::allocateDataStructures()
 {
-   std::cout.flush();
    // Once initialize and communicateInitInfo have been called, HyPerLayer has the
    // information it needs to allocate the membrane potential buffer V, the
    // activity buffer activity->data, and the data store.
@@ -1850,8 +1847,7 @@ int HyPerLayer::runUpdateKernel(){
 int HyPerLayer::doUpdateStateGpu(double timef, double dt, const PVLayerLoc * loc, pvdata_t * A,
       pvdata_t * V, int num_channels, pvdata_t * gSynHead)
 {
-   std::cout << "Update state for layer " << name << " is not implemented\n";
-   exit(-1);
+   pvError() << "Update state for layer " << name << " is not implemented\n";
    return -1;
 }
 #endif

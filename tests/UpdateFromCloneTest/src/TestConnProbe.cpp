@@ -40,13 +40,13 @@ int TestConnProbe::outputState(double timed){
          for(int k = 0; k < nk; k++){
             if(fabs(timed - 0) < (parent->getDeltaTime()/2)){
                if(fabs(dataYStart[k] - 1) > .01){
-                  std::cout << "dataYStart[k]: " << dataYStart[k] << "\n";
+                  pvError() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }
                assert(fabs(dataYStart[k] - 1) <= .01);
             }
             else if(fabs(timed - 1) < (parent->getDeltaTime()/2)){
                if(fabs(dataYStart[k] - 1.375) > .01){
-                  std::cout << "dataYStart[k]: " << dataYStart[k] << "\n";
+                  pvError() << "dataYStart[k]: " << dataYStart[k] << "\n";
                }
                assert(fabs(dataYStart[k] - 1.375) <= .01);
             }

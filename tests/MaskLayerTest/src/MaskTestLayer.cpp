@@ -3,6 +3,7 @@
 namespace PV {
 
 MaskTestLayer::MaskTestLayer(const char * name, HyPerCol * hc){
+   initialize_base();
    ANNLayer::initialize(name, hc);
 }
 
@@ -56,17 +57,17 @@ int MaskTestLayer::updateState(double timef, double dt){
       
       for (int k = 0; k < getNumNeurons(); k++){
          if(strcmp(maskMethod, "layer") == 0){
-         //std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+         //pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
             if(GSynInhB[k]){
                if(GSynExt[k] != GSynInh[k]){
-                   std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
-                   isCorrect = false;
+                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+                  isCorrect = false;
                }
             }
             else{
                if(GSynExt[k] != 0){
-                   std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
-                   isCorrect = false;
+                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+                  isCorrect = false;
                }
             }
          }
@@ -75,14 +76,14 @@ int MaskTestLayer::updateState(double timef, double dt){
             //Param files specifies idxs 0 and 2 out of 3 total features
             if(featureIdx == 0 || featureIdx == 2){
                if(GSynExt[k] != 0){
-                   std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
-                   isCorrect = false;
+                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+                  isCorrect = false;
                }
             }
             else{
                if(GSynExt[k] != GSynInh[k]){
-                   std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
-                   isCorrect = false;
+                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+                  isCorrect = false;
                }
             }
          }
@@ -91,14 +92,14 @@ int MaskTestLayer::updateState(double timef, double dt){
             //Param files specifies idxs 0 and 2 out of 3 total features
             if(featureIdx == 0 || featureIdx == 2){
                if(GSynExt[k] != GSynInh[k]){
-                   std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
-                   isCorrect = false;
+                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+                  isCorrect = false;
                }
             }
             else{
                if(GSynExt[k] != 0){
-                   std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
-                   isCorrect = false;
+                  pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: 0.\n";
+                  isCorrect = false;
                }
             }
          }

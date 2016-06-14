@@ -44,7 +44,7 @@ int SegmentTestLayer::updateState(double timef, double dt){
             assert(yIdx == 6);
          }
 
-         //std::cout << "Label " << label << " (" << labelX << ", " << labelY << ") centerpoint: (" << xIdx << ", " << yIdx << ")\n";
+         //pvInfo() << "Label " << label << " (" << labelX << ", " << labelY << ") centerpoint: (" << xIdx << ", " << yIdx << ")\n";
       }
    }
 

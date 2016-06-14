@@ -51,12 +51,10 @@ protected:
 
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
    int deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, int arborID){
-      std::cout << "Pooling Conn does not allow GPU deliver\n";
-      exit(-1);
+      pvError() << "Pooling Conn does not allow GPU deliver\n";
    }
    int deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, int arborID){
-      std::cout << "Pooling Conn does not allow GPU deliver\n";
-      exit(-1);
+      pvError() << "Pooling Conn does not allow GPU deliver\n";
    }
 #endif // defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
 

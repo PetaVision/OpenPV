@@ -30,8 +30,7 @@ int ImageTestLayer::updateStateWrapper(double time, double dt)
 
          pvdata_t expectedVal = kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf);
          if(fabs(checkVal - expectedVal) >= 1e-5){
-            std::cout << "ImageFileIO test Expected: " << expectedVal << " Actual: " << checkVal << "\n";
-            exit(-1);
+            pvError() << "ImageFileIO test Expected: " << expectedVal << " Actual: " << checkVal << "\n";
          }
       }
    }

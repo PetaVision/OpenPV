@@ -31,7 +31,7 @@ int TestPointProbe::point_writeState(double timef, float outVVal, float outAVal)
       //Input pvp layer's spinning order is nf, nx, ny
       float expectedVal = fLoc * 64 + xLoc * 8 + yLoc;
       if(outAVal != expectedVal){
-         std::cout << "Connection " << name << " Mismatch: actual value: " << outAVal << " Expected value: " << expectedVal << ".\n";
+         pvErrorNoExit() << "Connection " << name << " Mismatch: actual value: " << outAVal << " Expected value: " << expectedVal << ".\n";
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(-1);
       }

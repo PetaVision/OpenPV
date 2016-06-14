@@ -33,16 +33,8 @@ int GPUSystemTestProbe::outputState(double timed){
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
    int numExtNeurons = getTargetLayer()->getNumExtendedAllBatches();
    const pvdata_t * A = getTargetLayer()->getLayerData();
-   std::cout.precision(15);
    float sumsq = 0;
    for (int i = 0; i < numExtNeurons; i++){
-      //if(fabs(A[i]) != 0){
-      //   int xpos = kxPos(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
-      //   int ypos = kyPos(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
-      //   int fpos = featureIndex(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
-      //   std::cout << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i] << "\n";
-      //}
-      //For max difference roundoff errors
       assert(fabs(A[i]) < 5e-4);
    }
    for(int b = 0; b < loc->nbatch; b++){

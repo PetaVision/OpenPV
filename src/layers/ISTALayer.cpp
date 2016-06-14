@@ -150,7 +150,7 @@ void ISTALayer::ioParam_windowSymY(enum ParamsIOFlag ioFlag) {
 void ISTALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
    if (parent->columnId() == 0) {
-     std::cout << "selfInteract = " << selfInteract << std::endl;
+     pvInfo() << "selfInteract = " << selfInteract << std::endl;
    }   
 }
 

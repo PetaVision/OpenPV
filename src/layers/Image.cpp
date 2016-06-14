@@ -284,8 +284,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
          padValue_conv = padValue * 65535.0f;
       }
       else{
-         std::cout << "Image data type " << GDALGetDataTypeName(dataType) << " not implemented for image rescaling\n";
-         exit(-1);
+         pvError() << "Image data type " << GDALGetDataTypeName(dataType) << " not implemented for image rescaling\n";
       }
 
       using std::min;
@@ -424,8 +423,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
             fac = 1.0f / 65535.0f;  // normalize to 1.0
          }
          else{
-            std::cout << "Image data type " << GDALGetDataTypeName(dataType) << " not implemented for image rescaling\n";
-            exit(-1);
+            pvError() << "Image data type " << GDALGetDataTypeName(dataType) << " not implemented for image rescaling\n";
          }
          for( int n=0; n<numTotal; n++ ) {
             buf[n] *= fac;
@@ -440,8 +438,7 @@ int Image::communicateInitInfo() {
    int status = BaseInput::communicateInitInfo();
    int fileType = getFileType(inputPath);
    if(fileType == PVP_FILE_TYPE){
-      std::cout << "Image/Movie no longer reads PVP files. Use ImagePvp/MoviePvp layer instead.\n";
-      exit(EXIT_FAILURE);
+      pvError() << "Image/Movie no longer reads PVP files. Use ImagePvp/MoviePvp layer instead.\n";
    }
    return status;
 }

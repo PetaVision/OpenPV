@@ -17,8 +17,7 @@ int main(int argc, char * argv[]) {
    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
    //if(size != 5){
-   //   std::cout << "BatchWeightUpdateMpiTest must be ran with 16 mpi processes\n";
-   //   exit(-1);
+   //   pvError() << "BatchWeightUpdateMpiTest must be ran with 16 mpi processes\n";
    //}
 
    char const * paramFile1 = "input/timeBatch.params";
@@ -109,19 +108,19 @@ int compareFiles(const char* file1, const char* file2){
 
    FILE * fp1 = fopen(file1, "r");
    if(!fp1){
-      std::cout << "Unable to open file " << file1 << ": " << strerror(errno) << ". Retrying.\n";
+      pvWarn() << "Unable to open file " << file1 << ": " << strerror(errno) << ". Retrying.\n";
       fp1 = fopen(file1, "r");
       if (!fp1) {
          sleep(1U);
-         std::cout << "Still unable to open file " << file1 << ": " << strerror(errno) << ". Test failed.\n";
+         pvErrorNoExit() << "Still unable to open file " << file1 << ": " << strerror(errno) << ". Test failed.\n";
       }
    }
    FILE * fp2 = fopen(file2, "r");
    if(!fp2){
-      std::cout << "Unable to open file " << file2 << ": " << strerror(errno) << ". Retrying.\n";
+      pvWarn() << "Unable to open file " << file2 << ": " << strerror(errno) << ". Retrying.\n";
       if (!fp2) {
          sleep(1U);
-         std::cout << "Still unable to open file " << file2 << ": " << strerror(errno) << ". Test failed.\n";
+         pvErrorNoExit() << "Still unable to open file " << file2 << ": " << strerror(errno) << ". Test failed.\n";
       }
    }
    if (!fp1 || !fp2) {
@@ -143,12 +142,10 @@ int compareFiles(const char* file1, const char* file2){
          break;
       }
       if(check1 != 1){
-         std::cout << "Value returned from fread of file \"" << file1 << "\" is " << check1 << " as opposed to 1\n";
-         exit(-1);
+         pvError() << "Value returned from fread of file \"" << file1 << "\" is " << check1 << " as opposed to 1\n";
       }
       if(check2 != 1){
-         std::cout << "Value returned from fread of file \"" << file2 << "\" is " << check2 << " as opposed to 1\n";
-         exit(-1);
+         pvError() << "Value returned from fread of file \"" << file2 << "\" is " << check2 << " as opposed to 1\n";
       }
       //Floating piont comparison
       if(fabs(f1-f2) <= 1e-5){
@@ -157,8 +154,7 @@ int compareFiles(const char* file1, const char* file2){
       }
       //If characters do not match up
       else{
-         std::cout << "File " << file1 << " and " << file2 << " are different\n";
-         exit(-1);
+         pvError() << "File " << file1 << " and " << file2 << " are different\n";
       }
    }
    return PV_SUCCESS;

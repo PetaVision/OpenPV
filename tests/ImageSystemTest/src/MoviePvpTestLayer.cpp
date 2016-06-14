@@ -36,7 +36,7 @@ int MoviePvpTestLayer::updateStateWrapper(double time, double dt)
 
          pvdata_t expectedVal = kIndex(kxGlobal, kyGlobal, kf, loc->nxGlobal, loc->nyGlobal, nf) + frameIdx*192;
          if(fabs(checkVal - expectedVal) >= 1e-5){
-            std::cout << "ImageFileIO " << name << " test Expected: " << expectedVal << " Actual: " << checkVal << "\n";
+            pvInfo() << "ImageFileIO " << name << " test Expected: " << expectedVal << " Actual: " << checkVal << "\n";
             //exit(-1);
          }
       }

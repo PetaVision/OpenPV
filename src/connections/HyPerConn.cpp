@@ -1290,7 +1290,7 @@ int HyPerConn::communicateInitInfo() {
       weightUpdatePeriod = triggerLayer->getDeltaUpdateTime();
       if(weightUpdatePeriod <= 0){
          if(plasticityFlag == true){
-            std::cout << "Warning: Connection " << name << "triggered layer " << triggerLayerName << " never updates, turning placisity flag off\n";
+            pvWarn() << "Connection " << name << "triggered layer " << triggerLayerName << " never updates, turning placisity flag off\n";
             plasticityFlag = false;
          }
       }
@@ -1633,8 +1633,7 @@ int HyPerConn::allocateDeviceBuffers()
          pvAssert(b_conn);
          HyPerConn * group_conn = dynamic_cast<HyPerConn *>(b_conn);
          if(!group_conn){
-            std::cout << "FATAL ERROR: GPU group connection " << b_conn->getName() << " is not of type HyPerConn.\n";
-            exit(-1);
+            pvError() << "FATAL: GPU group connection " << b_conn->getName() << " is not of type HyPerConn.\n";
          }
          //If this connection is NOT the "base" group conn that allocates
          //check dims and don't allocate
@@ -1646,7 +1645,7 @@ int HyPerConn::allocateDeviceBuffers()
                group_conn->fPatchSize() != fPatchSize() ||
                group_conn->getNumDataPatches() != getNumDataPatches() ||
                group_conn->numberOfAxonalArborLists() != numberOfAxonalArborLists()){
-                  std::cout << "Connection " << getName() << " of size (" <<
+                  pvError() << "Connection " << getName() << " of size (" <<
                   numberOfAxonalArborLists() << ", " <<
                   getNumDataPatches() << ", " << 
                   xPatchSize() << ", " <<
@@ -1659,7 +1658,6 @@ int HyPerConn::allocateDeviceBuffers()
                   group_conn->xPatchSize() << ", " <<
                   group_conn->yPatchSize() << ", " <<
                   group_conn->fPatchSize() << ").\n";
-                  exit(-1);
             }
             //set d_WData to the group's d_WData
             d_WData = group_conn->getDeviceWData();
@@ -1847,7 +1845,7 @@ int HyPerConn::allocateReceivePreKernel()
 
 int HyPerConn::allocateReceivePostKernel()
 {
-   std::cout << name << " setting up post kernel\n";
+   pvInfo() << name << " setting up post kernel\n";
 #ifdef PV_USE_CUDA
    int status = 0;
    PVCuda::CudaDevice * device = parent->getDevice();
@@ -1923,18 +1921,15 @@ int HyPerConn::allocateReceivePostKernel()
 
    //In receive from post, we need to make sure x, y, and f local size is divisible by the actual number of post neurons
    if(postLoc->nx % numXLocal != 0){
-      std::cout << "X local size of " << numXLocal << " is not divisible by post nx of " << postLoc->nx << "\n";
-      exit(EXIT_FAILURE);
+      pvError() << "X local size of " << numXLocal << " is not divisible by post nx of " << postLoc->nx << "\n";
    }
 
    if(postLoc->ny % numYLocal != 0){
-      std::cout << "Y local size of " << numYLocal << " is not divisible by post ny of " << postLoc->ny << "\n";
-      exit(EXIT_FAILURE);
+      pvError() << "Y local size of " << numYLocal << " is not divisible by post ny of " << postLoc->ny << "\n";
    }
 
    if(postLoc->nf % numFLocal != 0){
-      std::cout << "F local size of " << numFLocal << " is not divisible by post nf of " << postLoc->nf << "\n";
-      exit(EXIT_FAILURE);
+      pvError() << "F local size of " << numFLocal << " is not divisible by post nf of " << postLoc->nf << "\n";
    }
 
    int localBufSizeX;
@@ -1955,9 +1950,9 @@ int HyPerConn::allocateReceivePostKernel()
    }
 
    if (parent->columnId()==0) {
-      std::cout << "preToPostScale: (" << preToPostScaleX << "," << preToPostScaleY << ")\n";
-      std::cout << "patch size: (" << oNxp << "," << oNyp << ") numLocal: (" << numXLocal << "," << numYLocal << ")\n";
-      std::cout << "local sizes: (" << localBufSizeX << "," << localBufSizeY << ")\n";
+      pvInfo() << "preToPostScale: (" << preToPostScaleX << "," << preToPostScaleY << ")\n";
+      pvInfo() << "patch size: (" << oNxp << "," << oNyp << ") numLocal: (" << numXLocal << "," << numYLocal << ")\n";
+      pvInfo() << "local sizes: (" << localBufSizeX << "," << localBufSizeY << ")\n";
    }
    
 #ifdef PV_USE_CUDA
@@ -3071,8 +3066,7 @@ int HyPerConn::deliverPostsynapticPerspective(PVLayerCube const * activity, int 
 
    long * startSourceExtBuf = getPostToPreActivity();
    if(!startSourceExtBuf){
-      std::cout << "HyPerLayer::recvFromPost error getting preToPostActivity from connection. Is shrink_patches on?\n";
-      exit(EXIT_FAILURE);
+      pvError() << "HyPerLayer::recvFromPost: unable to get preToPostActivity from connection. Is shrink_patches on?\n";
    }
 
    //If numActive is a valid pointer, we're recv from post sparse
@@ -3168,8 +3162,7 @@ int HyPerConn::deliverPresynapticPerspectiveGPU(PVLayerCube const * activity, in
       dt_factor = getConvertToRateDeltaTimeFactor();
    }
    else{
-      std::cout << "Pooling accumulate not implemented for GPUs";
-      exit(-1);
+      pvError() << "Pooling accumulate not implemented for GPUs";
    }
 
 #ifdef PV_USE_CUDA
@@ -3314,8 +3307,7 @@ int HyPerConn::deliverPostsynapticPerspectiveGPU(PVLayerCube const * activity, i
 
    long * startSourceExtBuf = getPostToPreActivity();
    if(!startSourceExtBuf){
-      std::cout << "HyPerLayer::recvFromPost error getting preToPostActivity from connection. Is shrink_patches on?\n";
-      exit(EXIT_FAILURE);
+      pvError() << "HyPerLayer::recvFromPost unable to get preToPostActivity from connection. Is shrink_patches on?\n";
    }
 
    bool updatePreAct = false;

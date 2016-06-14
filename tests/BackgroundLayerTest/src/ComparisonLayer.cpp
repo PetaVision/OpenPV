@@ -24,7 +24,7 @@ int ComparisonLayer::updateState(double timef, double dt){
    //We only care about restricted space
    for (int k = 0; k < getNumNeurons(); k++){
       if(GSynExt[k] != GSynInh[k]){
-          std::cout << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
+          pvErrorNoExit() << "Connection " << name << " Mismatch at " << k << ": actual value: " << GSynExt[k] << " Expected value: " << GSynInh[k] << ".\n";
           isCorrect = false;
       }
    }

@@ -1066,8 +1066,7 @@ bool BaseInput::constrainPoint(int * point, int min_x, int max_x, int min_y, int
          new_x += min_x;
          break;
       default:
-         std::cout << "Method type " << method << " not understood\n";
-         assert(0);
+         pvAssertMessage(0, "Method type \"%d\" not understood\n", method);
          break;
       }
       assert(new_x >= min_x && new_x <= max_x);

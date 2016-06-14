@@ -31,7 +31,6 @@ void identicalBatchProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
 int identicalBatchProbe::outputState(double timed){
    int status = StatsProbe::outputState(timed);
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
-   //const pvdata_t * A = getTargetLayer()->getLayerData();
    const pvdata_t * A = getTargetLayer()->getActivity();
    int numExtNeurons = getTargetLayer()->getNumExtended();
    for (int i = 0; i < numExtNeurons; i++){
@@ -40,21 +39,11 @@ int identicalBatchProbe::outputState(double timed){
          const pvdata_t * ABatch = A + b * getTargetLayer()->getNumExtended();
          float diff = fabs(checkVal - ABatch[i]);
          if(diff > 1e-4){
-            std::cout << "Difference at neuron " << i << ", batch 0: " << checkVal << " batch " << b << ": " << ABatch[i] << "\n";
+            pvError() << "Difference at neuron " << i << ", batch 0: " << checkVal << " batch " << b << ": " << ABatch[i] << "\n";
          }
          assert(diff <= 1e-4);
       }
-      //if(fabs(A[i]) != 0){
-      //   int xpos = kxPos(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
-      //   int ypos = kyPos(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
-      //   int fpos = featureIndex(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);
-      //   std::cout << "[" << xpos << "," << ypos << "," << fpos << "] = " << std::fixed << A[i] << "\n";
-      //}
-      ////For max difference roundoff errors
-      //assert(fabs(A[i]) < 5e-4);
    }
-   //For max std of 5e-5
-   //assert(sigma <= 5e-5);
    return status;
 }
 

@@ -59,8 +59,7 @@ Communicator::Communicator(PV_Arguments * argumentList)
       r = sqrtf(procsLeft);
       numRows = (int) r;
       if(numRows == 0){
-         std::cout << "Not enough processes left, error\n";
-         exit(-1);
+         pvError() << "Not enough processes left, error\n";
       }
       numCols = (int) ceil(procsLeft / numRows);
    }
@@ -69,12 +68,11 @@ Communicator::Communicator(PV_Arguments * argumentList)
 
    //For debugging
    if(globalRank == 0){
-      std::cout << "Running with batchWidth=" << batchWidth << ", numRows=" << numRows << ", and numCols=" << numCols << "\n";
+      pvInfo() << "Running with batchWidth=" << batchWidth << ", numRows=" << numRows << ", and numCols=" << numCols << "\n";
    }
 
    if(commSize > totalSize){
-      std::cout << "Total number of specified processes (" << commSize << ") must be bigger than the number of processes launched (" << totalSize << ")\n";
-      exit(-1);
+      pvError() << "Total number of specified processes (" << commSize << ") must be bigger than the number of processes launched (" << totalSize << ")\n";
    }
 
 #ifdef PV_USE_MPI
@@ -82,7 +80,7 @@ Communicator::Communicator(PV_Arguments * argumentList)
    isExtra = globalRank >= commSize ? 1 : 0;
    MPI_Comm_split(MPI_COMM_WORLD, isExtra, globalRank % commSize, &globalIcComm);
    if(isExtra){
-      std::cout << "Global process rank " << globalRank << " is extra, as only " << commSize << " mpiProcesses are required. Process exiting\n";
+      pvWarn() << "Global process rank " << globalRank << " is extra, as only " << commSize << " mpiProcesses are required. Process exiting\n";
       return;
    }
    //Grab globalSize now that extra processes have been exited

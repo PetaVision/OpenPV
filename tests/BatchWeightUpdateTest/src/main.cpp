@@ -100,8 +100,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
          }
          //If characters do not match up
          else{
-            std::cout << "File " << file1 << " and " << file2 << " are different\n";
-            exit(-1);
+            pvError() << "File " << file1 << " and " << file2 << " are different\n";
          }
       }
    }

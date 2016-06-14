@@ -46,14 +46,12 @@ int ImagePvp::initialize(const char * name, HyPerCol * hc) {
    pvp_read_header(pvstream, getParent()->icCommunicator(), params, &numParams);
    PV::PV_fclose(pvstream); pvstream = NULL;
    if (numParams != NUM_BIN_PARAMS || params[INDEX_HEADER_SIZE] != NUM_BIN_PARAMS*sizeof(int) || params[INDEX_NUM_PARAMS] != NUM_BIN_PARAMS) {
-      std::cout << "ImagePvp:: inputPath \"" << inputPath << "\" is not a .pvp file.\n";
-      exit(EXIT_FAILURE);
+      pvError() << "ImagePvp:: inputPath \"" << inputPath << "\" is not a .pvp file.\n";
    }
    fileNumFrames = params[INDEX_NBANDS]; 
    
    if(pvpFrameIdx < 0 || pvpFrameIdx >= fileNumFrames){
-      std::cout << "ImagePvp:: pvpFrameIndex of " << pvpFrameIdx << " out of bounds, file contains " << fileNumFrames << " frames\n";
-      exit(EXIT_FAILURE);
+      pvError() << "ImagePvp:: pvpFrameIndex of " << pvpFrameIdx << " out of bounds, file contains " << fileNumFrames << " frames\n";
    }
 
    return status;
@@ -73,8 +71,7 @@ int ImagePvp::communicateInitInfo() {
    int status = BaseInput::communicateInitInfo();
    int fileType = getFileType(inputPath);
    if(fileType != PVP_FILE_TYPE){
-      std::cout << "ImagePvp/MoviePvp reads PVP files. Use Image/Movie for reading images.\n";
-      exit(-1);
+      pvError() << "ImagePvp/MoviePvp reads PVP files. Use Image/Movie for reading images.\n";
    }
    return status;
 }
@@ -201,7 +198,7 @@ int ImagePvp::readPvp(const char * filename, int frameNumber) {
 
    pvpFileTime = timed;
    //This is being printed twice: track down
-   //std::cout << "Rank " << rank << " Reading pvpFileTime " << pvpFileTime << " at timestep " << parent->simulationTime() << " with offset (" << xOffset << "," << yOffset << ")\n";
+   //pvInfo() << "Rank " << rank << " Reading pvpFileTime " << pvpFileTime << " at timestep " << parent->simulationTime() << " with offset (" << xOffset << "," << yOffset << ")\n";
    return status;
 }
 
@@ -211,7 +208,7 @@ int ImagePvp::readSparseBinaryActivityFrame(int numParams, int * params, PV_Stre
    //Only need to do this once
    int status = PV_SUCCESS;
    if (needFrameSizesForSpiking) {
-      std::cout << "Calculating file positions\n";
+      pvInfo() << "Calculating file positions\n";
       frameStartBuf = (long *) calloc(params[INDEX_NBANDS] ,sizeof(long));
       if (frameStartBuf==NULL) {
          fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameStart.\n");
@@ -233,8 +230,8 @@ int ImagePvp::readSparseBinaryActivityFrame(int numParams, int * params, PV_Stre
          int newpercent = 100*(f/(params[INDEX_NBANDS]));
          if(percent != newpercent){
             percent = newpercent;
-            std::cout << "\r" << percent << "\% Done";
-            std::cout.flush();
+            pvInfo() << "\r" << percent << "\% Done";
+            pvInfo().flush();
          }
          //First byte position should always be 92
          if (f == 0) {
@@ -247,8 +244,8 @@ int ImagePvp::readSparseBinaryActivityFrame(int numParams, int * params, PV_Stre
             PV::PV_fseek(pvstream, frameStartBuf[f] - (long)4, SEEK_SET);
          }
       }
-      std::cout << "\r" << percent << "% Done\n";
-      std::cout.flush();
+      pvInfo() << "\r" << percent << "% Done\n";
+      pvInfo().flush();
       //We still need the last count
       PV::PV_fread(&countBuf[(params[INDEX_NBANDS])-1], sizeof(int), 1, pvstream);
 
@@ -281,7 +278,7 @@ int ImagePvp::readSparseValuesActivityFrame(int numParams, int * params, PV_Stre
    //Only need to do this once
    int status = PV_SUCCESS;
    if (needFrameSizesForSpiking) {
-      std::cout << "Calculating file positions\n";
+      pvInfo() << "Calculating file positions\n";
       frameStartBuf = (long *) calloc(params[INDEX_NBANDS] ,sizeof(long));
       if (frameStartBuf==NULL) {
          fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameStart.\n");
@@ -303,8 +300,8 @@ int ImagePvp::readSparseValuesActivityFrame(int numParams, int * params, PV_Stre
          int newpercent = 100*(f/(params[INDEX_NBANDS]));
          if(percent != newpercent){
             percent = newpercent;
-            std::cout << "\r" << percent << "\% Done";
-            std::cout.flush();
+            pvInfo() << "\r" << percent << "\% Done";
+            pvInfo().flush();
          }
          //First byte position should always be 92
          if (f == 0) {
@@ -317,8 +314,8 @@ int ImagePvp::readSparseValuesActivityFrame(int numParams, int * params, PV_Stre
             PV::PV_fseek(pvstream, frameStartBuf[f] - (long)4, SEEK_SET);
          }
       }
-      std::cout << "\r" << percent << "% Done\n";
-      std::cout.flush();
+      pvInfo() << "\r" << percent << "% Done\n";
+      pvInfo().flush();
       //We still need the last count
       PV::PV_fread(&countBuf[(params[INDEX_NBANDS])-1], sizeof(int), 1, pvstream);
 
@@ -450,7 +447,7 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
          //Allocate the byte positions in file where each frame's data starts and the number of active neurons in each frame
          //Only need to do this once
          if (needFrameSizesForSpiking) {
-            std::cout << "Calculating file positions\n";
+            pvInfo() << "Calculating file positions\n";
             frameStartBuf = (long *) calloc(params[INDEX_NBANDS] ,sizeof(long));
             if (frameStartBuf==NULL) {
                fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameStart.\n");
@@ -472,8 +469,8 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
                int newpercent = 100*(f/(params[INDEX_NBANDS]));
                if(percent != newpercent){
                   percent = newpercent;
-                  std::cout << "\r" << percent << "\% Done";
-                  std::cout.flush();
+                  pvInfo() << "\r" << percent << "\% Done";
+                  pvInfo().flush();
                }
                //First byte position should always be 92
                if (f == 0) {
@@ -486,8 +483,8 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
                   PV::PV_fseek(pvstream, frameStartBuf[f] - (long)4, SEEK_SET);
                }
             }
-            std::cout << "\r" << percent << "% Done\n";
-            std::cout.flush();
+            pvInfo() << "\r" << percent << "% Done\n";
+            pvInfo().flush();
             //We still need the last count
             PV::PV_fread(&countBuf[(params[INDEX_NBANDS])-1], sizeof(int), 1, pvstream);
 
@@ -543,7 +540,7 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
 
       pvpFileTime = timed;
       //This is being printed twice: track down
-      //std::cout << "Rank " << rank << " Reading pvpFileTime " << pvpFileTime << " at timestep " << parent->simulationTime() << " with offset (" << xOffset << "," << yOffset << ")\n";
+      //pvInfo() << "Rank " << rank << " Reading pvpFileTime " << pvpFileTime << " at timestep " << parent->simulationTime() << " with offset (" << xOffset << "," << yOffset << ")\n";
 
       scatterActivity(pvstream, comm, rootproc, buf, loc, false, &fileloc, xOffset, yOffset, params[INDEX_FILE_TYPE], length);
       // buf is a nonextended layer.  Image layers copy the extended buffer data into buf by calling Image::copyToInteriorBuffer

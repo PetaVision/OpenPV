@@ -1294,7 +1294,7 @@ int PVParams::parseBufferInRootProcess(char * buffer, long int bufferLength) {
 #endif // OBSOLETE // Marked obsolete Aug 30, 2015. Never gets called anywhere in the OpenPV repository, and undocumented.
 
 int PVParams::setBatchSweepSize() {
-   //std::cout << "Exiting test\n";
+   //pvInfo() << "Exiting test\n";
    batchSweepSize = -1;
    for (int k=0; k<numBatchSweeps; k++) {
       if (batchSweepSize<0) {

@@ -284,7 +284,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    this->params = pv_initObj->getParams();
    if(this->params == NULL) {
       if (icComm->globalCommRank()==0) {
-         std::cout << "HyPerCol::initialize error: params have not been set." << std::endl;
+         pvErrorNoExit() << "HyPerCol::initialize: params have not been set." << std::endl;
          MPI_Barrier(icComm->communicator());
       }
       exit(EXIT_FAILURE);
@@ -324,8 +324,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
 
 //Either opencl or cuda, not both
 #if defined(PV_USE_OPENCL) && defined(PV_USE_CUDA)
-   std::cout << "HyPerCol error: Can use either OpenCL or CUDA, not both\n";
-   exit(PV_FAILURE);
+   pvError() << "HyPerCol::initialize: Can use either OpenCL or CUDA, not both\n";
 #endif
 
 #ifdef PV_USE_OPENCL
@@ -1049,8 +1048,7 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "nbatch", &nbatchGlobal, nbatchGlobal);
    //Make sure numCommBatches is a multiple of nbatch specified in the params file
    if(nbatchGlobal % icComm->numCommBatches() != 0){
-      std::cout << "The total number of batches (" << nbatchGlobal << ") must be a multiple of the batch width (" << icComm->numCommBatches() << ")\n";
-      exit(EXIT_FAILURE);
+      pvError() << "The total number of batches (" << nbatchGlobal << ") must be a multiple of the batch width (" << icComm->numCommBatches() << ")\n";
    }
    nbatch = nbatchGlobal/icComm->numCommBatches();
 }
@@ -2151,12 +2149,12 @@ double * HyPerCol::adaptTimeScale(){
       }
 
       if(timeScale[b] > 0 && timeScaleTrue[b] > 0 && timeScale[b] > timeScaleTrue[b]){
-         std::cout << "timeScale is bigger than timeScaleTrue\n";
-         std::cout << "timeScale: " << timeScale[b] << "\n";
-         std::cout << "timeScaleTrue: " << timeScaleTrue[b] << "\n";
-         std::cout << "minTimeScaleTmp: " << minTimeScaleTmp << "\n";
-         std::cout << "oldTimeScaleTrue " << oldTimeScaleTrue[b] << "\n";
-         exit(EXIT_FAILURE);
+         pvError(timeScaleError);
+         timeScaleError << "timeScale is bigger than timeScaleTrue\n";
+         timeScaleError << "timeScale: " << timeScale[b] << "\n";
+         timeScaleError << "timeScaleTrue: " << timeScaleTrue[b] << "\n";
+         timeScaleError << "minTimeScaleTmp: " << minTimeScaleTmp << "\n";
+         timeScaleError << "oldTimeScaleTrue " << oldTimeScaleTrue[b] << "\n";
       }
 
       // deltaTimeAdapt is only used internally to set scale of each update step
@@ -2192,40 +2190,41 @@ double * HyPerCol::adaptTimeScaleExp1stOrder(){
      double dE_dt = (E_0 - E_dt)  /  deltaTimeAdapt[b];
 
      if ( (dE_dt <= 0.0) || (E_0 <= 0) || (E_dt <= 0) ) {
-       timeScale[b]      = timeScaleMin;
-       deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
-       timeScaleMax[b]   = timeScaleMaxBase;
-       //timeScaleMax2[b]  = oldTimeScale[b]; // set Max2 to value of time scale at which instability appeared
+        timeScale[b]      = timeScaleMin;
+        deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
+        timeScaleMax[b]   = timeScaleMaxBase;
+        //timeScaleMax2[b]  = oldTimeScale[b]; // set Max2 to value of time scale at which instability appeared
      }
      else {
-       double tau_eff = E_0 / dE_dt;
+        double tau_eff = E_0 / dE_dt;
 
-       // dt := timeScaleMaxBase * tau_eff
-       timeScale[b] = changeTimeScaleMax * tau_eff / deltaTimeBase;
-       //timeScale[b] = (timeScale[b] <= timeScaleMax2[b]) ? timeScale[b] : timeScaleMax2[b];
-       timeScale[b] = (timeScale[b] <= timeScaleMax[b]) ? timeScale[b] : timeScaleMax[b];
-       timeScale[b] = (timeScale[b] <  timeScaleMin) ? timeScaleMin : timeScale[b];
+        // dt := timeScaleMaxBase * tau_eff
+        timeScale[b] = changeTimeScaleMax * tau_eff / deltaTimeBase;
+        //timeScale[b] = (timeScale[b] <= timeScaleMax2[b]) ? timeScale[b] : timeScaleMax2[b];
+        timeScale[b] = (timeScale[b] <= timeScaleMax[b]) ? timeScale[b] : timeScaleMax[b];
+        timeScale[b] = (timeScale[b] <  timeScaleMin) ? timeScaleMin : timeScale[b];
 
-       if (timeScale[b] == timeScaleMax[b]) {
-	 timeScaleMax[b] = (1 + changeTimeScaleMin) * timeScaleMax[b];
-       }
-       
-       // deltaTimeAdapt is only used internally to set scale of each update step
-       deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
+        if (timeScale[b] == timeScaleMax[b]) {
+           timeScaleMax[b] = (1 + changeTimeScaleMin) * timeScaleMax[b];
+        }
 
-       //std::cout << "simTime: " << simTime << "\n";
-       //std::cout << "oldTimeScaleTrue: " << oldTimeScaleTrue[b] << "\n";
-       //std::cout << "oldTimeScale: " << oldTimeScale[b] << "\n";
-       //std::cout << "E_dt: " << E_dt << "\n";
-       //std::cout << "E_0: " << E_0 << "\n";
-       //std::cout << "dE_dt: " << dE_dt << "\n";
-       //std::cout << "tau_eff: " << tau_eff << "\n";
-       //std::cout << "timeScale: " << timeScale[b] << "\n";
-       //std::cout << "timeScaleMax: " << timeScaleMax[b] << "\n";
-       //std::cout << "timeScaleMax2: " << timeScaleMax2[b] << "\n";
-       //std::cout << "deltaTimeAdapt: " << deltaTimeAdapt[b] << "\n";
-       //std::cout <<  "\n";
-       
+        // deltaTimeAdapt is only used internally to set scale of each update step
+        deltaTimeAdapt[b] = timeScale[b] * deltaTimeBase;
+
+        //pvInfo(timeScaleInfo);
+        //timeScaleInfo: " << simTime << "\n";
+        //timeScaleInfo << "oldTimeScaleTrue: " << oldTimeScaleTrue[b] << "\n";
+        //timeScaleInfo << "oldTimeScale: " << oldTimeScale[b] << "\n";
+        //timeScaleInfo << "E_dt: " << E_dt << "\n";
+        //timeScaleInfo << "E_0: " << E_0 << "\n";
+        //timeScaleInfo << "dE_dt: " << dE_dt << "\n";
+        //timeScaleInfo << "tau_eff: " << tau_eff << "\n";
+        //timeScaleInfo << "timeScale: " << timeScale[b] << "\n";
+        //timeScaleInfo << "timeScaleMax: " << timeScaleMax[b] << "\n";
+        //timeScaleInfo << "timeScaleMax2: " << timeScaleMax2[b] << "\n";
+        //timeScaleInfo << "deltaTimeAdapt: " << deltaTimeAdapt[b] << "\n";
+        //timeScaleInfo <<  "\n";
+
      }
    }
    return deltaTimeAdapt;
@@ -3304,7 +3303,7 @@ int HyPerCol::getAutoGPUDevice(){
 
       //MPI sends to each process to specify which gpu the rank should use
       for(int rank = 0; rank < numMpi; rank++){
-         std::cout << "Rank " << rank << " on host \"" << rankToHost[rank] << "\" (" << rankToMaxGpu[rank] << " GPU[s]) using GPU index " <<
+         pvInfo() << "Rank " << rank << " on host \"" << rankToHost[rank] << "\" (" << rankToMaxGpu[rank] << " GPU[s]) using GPU index " <<
             rankToGpu[rank] << "\n";
          if(rank == 0){
             returnGpuIdx = rankToGpu[rank];
@@ -3339,7 +3338,7 @@ int HyPerCol::initializeThreads(char const * in_device)
 
    //default value
    if(in_device == NULL){
-      std::cout << "Auto assigning GPUs\n";
+      pvInfo() << "Auto assigning GPUs\n";
       device = getAutoGPUDevice();
    }
    else{
@@ -3369,7 +3368,7 @@ int HyPerCol::initializeThreads(char const * in_device)
          fprintf(stderr, "Device specification error: Number of devices specified (%zu) must be either 1 or >= than number of mpi processes (%d).\n", deviceVec.size(), numMpi);
          exit(EXIT_FAILURE);
       }
-      std::cout << "Global MPI Process " << icComm->globalCommRank() << " using device " << device << "\n";
+      pvInfo() << "Global MPI Process " << icComm->globalCommRank() << " using device " << device << "\n";
    }
 
 #ifdef PV_USE_OPENCL
@@ -3420,30 +3419,6 @@ void HyPerCol::addGpuGroup(BaseConnection* conn, int gpuGroupIdx){
    }
    //Otherwise, do nothing
    
-   ////Base connection does not have patch size info. This check will be done in HyPerConn
-   //else{
-   //   //Check connection sizes to make sure they're the same
-   //   BaseConnection* origConn = gpuGroupConns[gpuGroupIdx];
-   //   //Different num arbors is okay, since GPU mem holds only one arbor at a time
-   //   //nxp, nyp, nfp, numKernels all have to be the same
-   //   if(origConn->xPatchSize() != conn->xPatchSize() ||
-   //      origConn->yPatchSize() != conn->yPatchSize() ||
-   //      origConn->fPatchSize() != conn->fPatchSize() ||
-   //      origConn->getNumDataPatches() != conn->getNumDataPatches()){
-   //         std::cout << "Connection " << conn->getName() << " of size (" <<
-   //         conn->getNumDataPatches() << ", " << 
-   //         conn->xPatchSize() << ", " <<
-   //         conn->yPatchSize() << ", " <<
-   //         conn->fPatchSize() << 
-   //         ") does not match the gpuGroupConnection " << 
-   //         origConn->getName() << " of size (" <<
-   //         origConn->getNumDataPatches() << ", " << 
-   //         origConn->xPatchSize() << ", " <<
-   //         origConn->yPatchSize() << ", " <<
-   //         origConn->fPatchSize() << ").\n";
-   //         exit(-1);
-   //   }
-   //}
    return;
 }
 

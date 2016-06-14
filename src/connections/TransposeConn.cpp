@@ -328,10 +328,8 @@ int TransposeConn::allocatePostDeviceWeights(){
 
 //Set this post to orig
 int TransposeConn::allocatePostConn(){
-   std::cout << "Connection " << name << " setting " << originalConn->getName() << " as postConn\n";
+   pvInfo() << "Connection " << name << " setting " << originalConn->getName() << " as postConn\n";
    postConn = originalConn;
-   //originalConn->postConn->allocatePostToPreBuffer();
-   //postToPreActivity = originalConn->postConn->getPostToPreActivity();
    return PV_SUCCESS;
 }
 

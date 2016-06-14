@@ -59,17 +59,15 @@ int privateTransposeConn::initialize(const char * name, HyPerCol * hc, HyPerConn
 
 //Private transpose conn will have no parameters, will be set by parent connection
 int privateTransposeConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
-   std::cout << "Fatal Error, privateTransposeConn ioParamsFillGroup called\n";
-   exit(-1);
-   return PV_SUCCESS;
+   pvError() << "Fatal: privateTransposeConn ioParamsFillGroup called\n";
+   return PV_FAILURE; // never returns since pvError exits
 }
 
 
 int privateTransposeConn::communicateInitInfo() {
    //Should never be called
-   std::cout << "Fatal Error, privateTransposeConn communicate called\n";
-   exit(-1);
-   return PV_SUCCESS;
+   pvError() << "Fatal: privateTransposeConn communicate called\n";
+   return PV_FAILURE; // never returns since pvError exits
 }
 
 int privateTransposeConn::setPatchSize() {
@@ -611,8 +609,8 @@ int privateTransposeConn::reduceKernels(int arborID) {
 
 int privateTransposeConn::deliver() {
    //Sanity check, this should NEVER get called
-   std::cout << "Fatal error, privateTransposeConn deliver got called\n";
-   exit(-1);
+   pvError() << "Fatal: privateTransposeConn deliver got called\n";
+   return PV_FAILURE; // never returns since pvError exits
 }
 
 

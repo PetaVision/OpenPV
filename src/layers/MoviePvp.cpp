@@ -172,8 +172,7 @@ void MoviePvp::ioParam_batchMethod(enum ParamsIOFlag ioFlag){
       //Correct
    }
    else{
-      std::cout << "Movie layer " << name << " batchMethod not recognized. Options are \"byImage\", \"byMovie\", and \"bySpecified\"\n";
-      exit(-1);
+      pvError() << "Movie layer " << name << " batchMethod not recognized. Options are \"byImage\", \"byMovie\", and \"bySpecified\"\n";
    }
 }
 
@@ -230,8 +229,7 @@ int MoviePvp::allocateDataStructures() {
    if(strcmp(batchMethod, "byImage") == 0){
       //No skip here allowed
       if(numSkipFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"" << batchMethod << "\" sets skip_frame_index, do not specify.\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"" << batchMethod << "\" sets skip_frame_index, do not specify.\n";
       }
 
       int offset = 0;
@@ -243,8 +241,7 @@ int MoviePvp::allocateDataStructures() {
          offset = *paramsStartFrameIndex;
       }
       else{
-         std::cout << "Movie layer " << name << " batchMethod of \"" << batchMethod << "\" requires 0 or 1 start_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"" << batchMethod << "\" requires 0 or 1 start_frame_index values\n";
       }
       //Allocate and default
       //Not done in allocate, as Image Allocate needs this parameter to be set
@@ -258,8 +255,7 @@ int MoviePvp::allocateDataStructures() {
    else if (strcmp(batchMethod, "byMovie") == 0){
       //No skip here allowed
       if(numSkipFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"byImage\" sets skip_frame_index, do not specify.\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"byImage\" sets skip_frame_index, do not specify.\n";
       }
       
       int offset = 0;
@@ -271,8 +267,7 @@ int MoviePvp::allocateDataStructures() {
          offset = *paramsStartFrameIndex;
       }
       else{
-         std::cout << "Movie layer " << name << " batchMethod of \"byMovie\" requires 0 or 1 start_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"byMovie\" requires 0 or 1 start_frame_index values\n";
       }
 
       int nbatchGlobal = getLayerLoc()->nbatchGlobal;
@@ -290,12 +285,10 @@ int MoviePvp::allocateDataStructures() {
    }
    else if(strcmp(batchMethod, "bySpecified") == 0){
       if(numStartFrame != nbatch && numStartFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatch << " start_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatch << " start_frame_index values\n";
       }
       if(numSkipFrame != nbatch && numSkipFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatch << " skip_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires 0 or " << nbatch << " skip_frame_index values\n";
       }
       for(int b = 0; b < nbatch; b++){ 
          if(numStartFrame == 0){

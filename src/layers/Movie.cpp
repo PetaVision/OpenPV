@@ -242,8 +242,7 @@ void Movie::ioParam_batchMethod(enum ParamsIOFlag ioFlag){
       //Correct
    }
    else{
-      std::cout << "Movie layer " << name << " batchMethod not recognized. Options are \"byImage\", \"byMovie\", and \"bySpecified\"\n";
-      exit(-1);
+      pvError() << "Movie layer " << name << " batchMethod not recognized. Options are \"byImage\", \"byMovie\", and \"bySpecified\"\n";
    }
 }
 
@@ -301,7 +300,7 @@ int Movie::allocateDataStructures() {
 
    //Calculate file positions for beginning of each frame
    numFrames = getNumFrames();
-   std::cout << "File " << inputPath << " contains " << numFrames << " frames\n";
+   pvInfo() << "File " << inputPath << " contains " << numFrames << " frames\n";
 
    startFrameIndex = (int*)calloc(parent->getNBatch(), sizeof(int));
    assert(startFrameIndex);
@@ -314,8 +313,7 @@ int Movie::allocateDataStructures() {
    if(strcmp(batchMethod, "byImage") == 0){
       //No skip here allowed
       if(numSkipFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"byImage\" sets skip_frame_index, do not specify.\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"byImage\" sets skip_frame_index, do not specify.\n";
       }
 
       int offset = 0;
@@ -327,8 +325,7 @@ int Movie::allocateDataStructures() {
          offset = *paramsStartFrameIndex;
       }
       else{
-         std::cout << "Movie layer " << name << " batchMethod of \"byImage\" requires 0 or 1 start_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"byImage\" requires 0 or 1 start_frame_index values\n";
       }
       //Allocate and default
       //Not done in allocate, as Image Allocate needs this parameter to be set
@@ -342,8 +339,7 @@ int Movie::allocateDataStructures() {
    else if (strcmp(batchMethod, "byMovie") == 0){
       //No skip here allowed
       if(numSkipFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"byImage\" sets skip_frame_index, do not specify.\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"byImage\" sets skip_frame_index, do not specify.\n";
       }
       
       int offset = 0;
@@ -355,8 +351,7 @@ int Movie::allocateDataStructures() {
          offset = *paramsStartFrameIndex;
       }
       else{
-         std::cout << "Movie layer " << name << " batchMethod of \"byMovie\" requires 0 or 1 start_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"byMovie\" requires 0 or 1 start_frame_index values\n";
       }
 
       int nbatchGlobal = getLayerLoc()->nbatchGlobal;
@@ -374,12 +369,10 @@ int Movie::allocateDataStructures() {
    }
    else if(strcmp(batchMethod, "bySpecified") == 0){
       if(numStartFrame != nbatch && numStartFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"bySpecified\" requires " << nbatch << " start_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires " << nbatch << " start_frame_index values\n";
       }
       if(numSkipFrame != nbatch && numSkipFrame != 0){
-         std::cout << "Movie layer " << name << " batchMethod of \"bySpecified\" requires " << nbatch << " skip_frame_index values\n"; 
-         exit(-1);
+         pvError() << "Movie layer " << name << " batchMethod of \"bySpecified\" requires " << nbatch << " skip_frame_index values\n";
       }
       for(int b = 0; b < nbatch; b++){ 
          if(numStartFrame == 0){
@@ -462,7 +455,7 @@ int Movie::retrieveData(double timef, double dt, int batchIdx)
    else{
       framePath[batchIdx] = strdup(getNextFileName(skipFrameIndex[batchIdx], batchIdx));
    }
-   std::cout << "Reading frame " << framePath[batchIdx] << " into batch " << batchIdx << " at time " << timef << "\n";
+   pvInfo() << "Reading frame " << framePath[batchIdx] << " into batch " << batchIdx << " at time " << timef << "\n";
    status = readImage(framePath[batchIdx]);
    if( status != PV_SUCCESS ) {
       fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, framePath[batchIdx]);
@@ -494,7 +487,7 @@ bool Movie::updateImage(double time, double dt)
    //TODO: Fix movie layer to take with batches. This is commented out for compile
    //if(!flipOnTimescaleError && (parent->getTimeScale() > 0 && parent->getTimeScale() < parent->getTimeScaleMin())){
    //   if (parent->icCommunicator()->commRank()==0) {
-   //      std::cout << "timeScale of " << parent->getTimeScale() << " is less than timeScaleMin of " << parent->getTimeScaleMin() << ", Movie is keeping the same frame\n";
+   //      pvWarn() << "timeScale of " << parent->getTimeScale() << " is less than timeScaleMin of " << parent->getTimeScaleMin() << ", Movie is keeping the same frame\n";
    //   }
    //}
    //else

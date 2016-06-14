@@ -64,8 +64,7 @@ void FilenameParsingGroundTruthLayer::ioParam_classes(enum ParamsIOFlag ioFlag) 
    outPath = outPath + "/classes.txt";
    inputfile.open(outPath.c_str(), std::ifstream::in);
    if (!inputfile.is_open()){
-      std::cout << "Unable to open file " << outPath << "\n";
-      exit(EXIT_FAILURE);
+      pvError() << "Unable to open file " << outPath << "\n";
    }
    int i = 0;
    std::string line;
@@ -111,8 +110,7 @@ int FilenameParsingGroundTruthLayer::updateState(double time, double dt)
    int num_neurons = getNumNeurons();
    if (num_neurons != numClasses)
    {
-      std::cout << "The number of neurons in " << getName() << " is not equal to the number of classes specified in " << parent->getOutputPath() << "/classes.txt\n";
-      exit(EXIT_FAILURE);
+      pvError() << "The number of neurons in " << getName() << " is not equal to the number of classes specified in " << parent->getOutputPath() << "/classes.txt\n";
    }   
 
    for(int b = 0; b < loc->nbatch; b++){

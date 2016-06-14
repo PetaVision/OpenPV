@@ -103,8 +103,7 @@ void MomentumConn::ioParam_momentumMethod(enum ParamsIOFlag ioFlag){
       if(strcmp(momentumMethod, "simple") != 0 &&
          strcmp(momentumMethod, "viscosity") != 0 &&
          strcmp(momentumMethod, "alex")){
-         std::cout << "MomentumConn " << name << ": momentumMethod of " << momentumMethod << " is not known, options are \"simple\", \"viscosity\", and \"alex\"\n";
-         exit(-1);
+         pvError() << "MomentumConn " << name << ": momentumMethod of " << momentumMethod << " is not known, options are \"simple\", \"viscosity\", and \"alex\"\n";
       }
    }
 }
@@ -113,8 +112,7 @@ void MomentumConn::ioParam_momentumDecay(enum ParamsIOFlag ioFlag){
    if(plasticityFlag){
       parent->ioParamValue(ioFlag, name, "momentumDecay", &momentumDecay, momentumDecay);
       if(momentumDecay < 0 || momentumDecay > 1){
-         std::cout << "MomentumConn " << name << ": momentumDecay must be between 0 and 1 inclusive\n";
-         exit(-1);
+         pvError() << "MomentumConn " << name << ": momentumDecay must be between 0 and 1 inclusive\n";
       }
    }
 }
@@ -400,7 +398,7 @@ int MomentumConn::applyMomentum(int arbor_ID){
       }
    }
    else{
-      std::cout << "Warning: Momentum not implemented for non-shared weights, not implementing momentum\n";
+      pvWarn() << "Momentum not implemented for non-shared weights, not implementing momentum\n";
    }
    return PV_SUCCESS;
 }

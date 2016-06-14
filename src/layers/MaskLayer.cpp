@@ -134,8 +134,7 @@ int MaskLayer::communicateInitInfo() {
       const PVLayerLoc * loc = getLayerLoc();
       for(int f = 0; f < numSpecifiedFeatures; f++){
          if(features[f] < 0 || features[f] >= loc->nf){
-            std::cout << "Specified feature " << features[f] << "out of bounds\n"; 
-            exit(-1);
+            pvError() << "Specified feature " << features[f] << "out of bounds\n";
          }
          
       }

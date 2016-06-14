@@ -154,12 +154,10 @@ int PoolingConn::initialize(const char * name, HyPerCol * hc, InitWeights * weig
    switch (poolingType) {
 #ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case ACCUMULATE_CONVOLVE:
-      std::cout << "ACCUMULATE_CONVOLVE not allowed in pooling conn\n";
-      exit(-1);
+      pvError() << "ACCUMULATE_CONVOLVE not allowed in pooling conn\n";
       break;
    case ACCUMULATE_STOCHASTIC:
-      std::cout << "ACCUMULATE_STOCASTIC not allowed in pooling conn\n";
-      exit(-1);
+      pvError() << "ACCUMULATE_STOCASTIC not allowed in pooling conn\n";
       break;
 #endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines HyPerConnAccumulateType and PoolingConn defines PoolingType
    case MAX:
@@ -195,15 +193,13 @@ int PoolingConn::communicateInitInfo() {
    const PVLayerLoc * postLoc = post->getLayerLoc();
    
    if(preLoc->nf != postLoc->nf){
-      std::cout << "Pooling Layer " << name << " error:  preLayer " << pre->getName() << " nf of " << preLoc->nf << " does not match postLayer " << post->getName() << " nf of " << postLoc->nf << ". Features must match\n";
-      exit(-1);
+      pvError() << "Pooling Layer " << name << ":  preLayer " << pre->getName() << " nf of " << preLoc->nf << " does not match postLayer " << post->getName() << " nf of " << postLoc->nf << ". Features must match\n";
    }
 
    float preToPostScaleX = (float)preLoc->nx/postLoc->nx;
    float preToPostScaleY = (float)preLoc->ny/postLoc->ny;
    if(preToPostScaleX < 1 || preToPostScaleY < 1){
-      std::cout << "Pooling Layer " << name << " error:  preLayer to postLayer must be a many to one or one to one conection\n";
-      exit(-1);
+      pvError() << "Pooling Layer " << name << ":  preLayer to postLayer must be a many to one or one to one conection\n";
    }
 
    if(needPostIndexLayer){
@@ -649,8 +645,7 @@ int PoolingConn::deliverPostsynapticPerspective(PVLayerCube const * activity, in
 
    long * startSourceExtBuf = getPostToPreActivity();
    if(!startSourceExtBuf){
-      std::cout << "HyPerLayer::recvFromPost error getting preToPostActivity from connection. Is shrink_patches on?\n";
-      exit(EXIT_FAILURE);
+      pvError() << "HyPerLayer::recvFromPost unable to get preToPostActivity from connection. Is shrink_patches on?\n";
    }
 
    float resetVal = 0;

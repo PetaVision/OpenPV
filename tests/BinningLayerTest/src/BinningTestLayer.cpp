@@ -27,13 +27,13 @@ int BinningTestLayer::updateState(double timef, double dt){
                //Based on the input image, X index should be the same as F index
                if(iX+kx0 == iF){
                   if(A[idx] != 1){
-                     std::cout << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
+                     pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
                   assert(A[idx] == 1);
                }
                else{
                   if(A[idx] != 0){
-                     std::cout << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
+                     pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
                   assert(A[idx] == 0);
                }
@@ -43,14 +43,14 @@ int BinningTestLayer::updateState(double timef, double dt){
                if(iX+kx0 == iF-2 || iX+kx0 == iF+2){
                   temp = A[idx] - .121;
                   if(temp > .00001){
-                     std::cout << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
+                     pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
                   assert(temp <= .00001);
                }
                if(iX+kx0 == iF-1 || iX+kx0 == iF+1){
                   temp = A[idx] - .176;
                   if(temp > .00001){
-                     std::cout << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
+                     pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
                   assert(temp <= .00001);
 
@@ -58,7 +58,7 @@ int BinningTestLayer::updateState(double timef, double dt){
                if(iX+kx0 == iF){
                   temp = A[idx] - .199;
                   if(temp > .00001){
-                     std::cout << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
+                     pvError() << iY << "," << iX << "," << iF << ": " << A[idx] << "\n";
                   }
                   assert(temp <= .00001);
                }
