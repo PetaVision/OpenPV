@@ -56,7 +56,8 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
       }
    }
    if( existsgenconn && status != PV_SUCCESS ) {
-      for( int k=0; k<72; k++ ) { fprintf(stdout, "="); } fprintf(stdout,"\n");
+      for( int k=0; k<72; k++ ) { pvInfo().printf("="); }
+      pvInfo().printf("\n");
    }
    int rank = hc->icCommunicator()->commRank();
    char * paramsfilename;
@@ -109,7 +110,8 @@ int dumponeweight(HyPerConn * conn) {
                if( fabs(wgt-correct)>1.0e-5 ) {
                   if( errorfound == false ) {
                       errorfound = true;
-                      for( int k=0; k<72; k++ ) { fprintf(stdout, "="); } fprintf(stdout,"\n");
+                      for( int k=0; k<72; k++ ) { pvInfo().printf("="); }
+                      pvInfo().printf("\n");
                       fprintf(stdout, "Rank %d, Connection \"%s\":\n",rank, conn->getName());
                   }
                   fprintf(stdout, "Rank %d, Patch %d, x=%d, y=%d, f=%d: weight=%f, correct=%f, off by a factor of %f\n", rank, p, x, y, f, wgt, correct, wgt/correct);

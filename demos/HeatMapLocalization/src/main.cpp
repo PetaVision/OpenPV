@@ -159,7 +159,8 @@ char * getImageFileName(InterColComm * icComm)
       bool found = false;
       while(!found)
       {
-         fprintf(stdout, "Enter filename: "); fflush(stdout);
+         fprintf(stdout, "Enter filename: ");
+         fflush(stdout);
          char * result = fgets(buffer, TEXTFILEBUFFERSIZE, stdin);
          if (result==NULL) { break; }
 

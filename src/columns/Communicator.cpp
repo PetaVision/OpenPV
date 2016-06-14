@@ -750,7 +750,8 @@ int Communicator::exchange(pvdata_t * data,
       pvdata_t * recvBuf = data + recvOffset(n, loc);
       pvdata_t * sendBuf = data + sendOffset(n, loc);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", localRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]); fflush(stdout);
+      pvInfo().printf("[%2d]: recv,send to %d, n=%d recvOffset==%ld sendOffset==%ld send[0]==%f\n", localRank, neighbors[n], n, recvOffset(n,loc), sendOffset(n,loc), sendBuf[0]);
+      pvInfo().flush();
 #endif // DEBUG_OUTPUT
       MPI_Irecv(recvBuf, 1, neighborDatatypes[n], neighbors[n], getReverseTag(n), localIcComm,
                 &requests[nreq++]);
@@ -760,7 +761,8 @@ int Communicator::exchange(pvdata_t * data,
    // don't recv interior
    int count = numberOfNeighbors() - 1;
 #ifdef DEBUG_OUTPUT
-   fprintf(stderr, "[%2d]: waiting for data, count==%d\n", localRank, count); fflush(stdout);
+   pvInfo().printf("[%2d]: waiting for data, count==%d\n", localRank, count);
+   pvInfo().flush();
 #endif // DEBUG_OUTPUT
    MPI_Waitall(count, requests, MPI_STATUSES_IGNORE);
 

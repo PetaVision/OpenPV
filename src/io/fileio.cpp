@@ -429,7 +429,7 @@ PV_Stream * PV_stdout() {
       pvstream->isfile = 0;
    }
    else {
-      fprintf(stderr, "PV_stdout failure: %s\n", strerror(errno));
+      pvErrorNoExit().printf("PV_stdout failure: %s\n", strerror(errno));
    }
    return pvstream;
 }

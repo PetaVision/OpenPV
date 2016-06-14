@@ -50,7 +50,8 @@ int main(int argc, char * argv[])
    int commRow = comm->commRow();
    int commCol = comm->commColumn();
 
-   fprintf(stdout, "[%d]: nxProc==%d nyProc==%d commRow==%d commCol==%d numNeighbors==%d\n", comm->commRank(), nxProc, nyProc, commRow, commCol, comm->numberOfNeighbors());  fflush(stdout);
+   pvInfo().printf("[%d]: nxProc==%d nyProc==%d commRow==%d commCol==%d numNeighbors==%d\n", comm->commRank(), nxProc, nyProc, commRow, commCol, comm->numberOfNeighbors());
+   pvInfo().flush();
 
    loc.nbatch = 1;
    loc.nx = 128;

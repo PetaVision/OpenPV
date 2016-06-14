@@ -1669,7 +1669,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
    #ifdef DEBUG_OUTPUT
       if (columnId() == 0) {
-         fprintf(stdout, "[0]: HyPerCol: running...\n");  fflush(stdout);
+         pvInfo().printf("[0]: HyPerCol: running...\n");
+         pvInfo().flush();
       }
    #endif
 
@@ -1786,7 +1787,8 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 
 #ifdef DEBUG_OUTPUT
    if (columnId() == 0) {
-      fprintf(stdout, "[0]: HyPerCol::run done...\n");  fflush(stdout);
+      pvInfo().printf("[0]: HyPerCol::run done...\n");
+      pvInfo().flush();
    }
 #endif
 
@@ -2319,10 +2321,10 @@ int HyPerCol::advanceTime(double sim_time)
    if (simTime >= nextProgressTime) {
       nextProgressTime += progressInterval;
       if (columnId() == 0) {
-         FILE * progressStream = writeProgressToErr ? stderr : stdout;
+         std::ostream& progressStream = writeProgressToErr ? getErrorStream() : getOutputStream();
          time_t current_time;
          time(&current_time);
-         fprintf(progressStream, "   time==%f  %s", sim_time, ctime(&current_time));
+         progressStream << "   time==" << sim_time << "  " << ctime(&current_time); // ctime outputs an newline
       }
    }
 
