@@ -13,8 +13,8 @@
 //
 // The output layer should therefore be all zeros.
 
-#include <columns/buildandrun.hpp>
-#include <io/io.h>
+#include "columns/buildandrun.hpp"
+#include "io/io.hpp"
 #include "DatastoreDelayTestLayer.hpp"
 #include "DatastoreDelayTestProbe.hpp"
 #include <assert.h>

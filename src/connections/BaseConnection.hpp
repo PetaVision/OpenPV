@@ -15,7 +15,7 @@
 
 #include <columns/BaseObject.hpp>
 #include <columns/HyPerCol.hpp>
-#include <io/io.h>
+#include <io/io.hpp>
 #include <io/PVParams.hpp>
 
 namespace PV {

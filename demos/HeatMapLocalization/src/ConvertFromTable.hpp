@@ -28,8 +28,8 @@ public:
 protected:
    ConvertFromTable();
    int initialize(char const * name, PV::HyPerCol * hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_dataFile(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_dataFile(enum PV::ParamsIOFlag ioFlag);
    virtual int doUpdateState(double timed, double dt, const PVLayerLoc * loc,
          pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * GSynHead);
 

@@ -86,34 +86,34 @@ public:
 protected:
    LocalizationProbe();
    int initialize(const char * probeName, PV::HyPerCol * hc);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_imageLayer(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_reconLayer(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_displayedCategories(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_maxDetections(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_detectionThreshold(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_classNamesFile(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_outputPeriod(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_imageLayer(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_reconLayer(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_displayedCategories(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_displayCategoryIndexStart(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_displayCategoryIndexEnd(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_maxDetections(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_detectionThreshold(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_classNamesFile(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_outputPeriod(enum PV::ParamsIOFlag ioFlag);
 
    /**
     * The minimum width, in targetLayer pixels, for a bounding box to be
     * included in the detections.
     */
-   virtual void ioParam_minBoundingBoxWidth(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minBoundingBoxWidth(enum PV::ParamsIOFlag ioFlag);
 
    /**
     * The minimum height, in targetLayer pixels, for a bounding box to be
     * included in the detections.
     */
-   virtual void ioParam_minBoundingBoxHeight(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_drawMontage(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_heatMapMaximum(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_heatMapMontageDir(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_imageBlendCoeff(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_boundingBoxLineWidth(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_displayCommand(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_minBoundingBoxHeight(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_drawMontage(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_heatMapMaximum(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_heatMapMontageDir(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_imageBlendCoeff(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_boundingBoxLineWidth(enum PV::ParamsIOFlag ioFlag);
+   virtual void ioParam_displayCommand(enum PV::ParamsIOFlag ioFlag);
    virtual int initNumValues();
    virtual bool needUpdate(double timed, double dt);
    virtual int calcValues(double timevalue);

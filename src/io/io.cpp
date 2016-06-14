@@ -7,30 +7,29 @@
 
 // Shared input and output routines
 
-#include "io.h"
-#ifdef OBSOLETE // Marked obsolete Jul 16, 2015.  Only probe that was using functions defined in tiff.c was marked obsolete long
-ago.
-#include "tiff.h"
-#endif // OBSOLETE // Marked obsolete Jul 16, 2015.  Only probe that was using functions defined in tiff.c was marked obsolete long
+#include "io.hpp"
 
 #include <assert.h>
 #include <float.h>  // FLT_MAX/MIN
 #include <math.h>
 #include <string.h>     // memcpy
+#include "utils/PVLog.hpp"
+
+namespace PV {
 
 void usage()
 {
-   printf("\nUsage:\n");
-   printf(" -p <parameters filename>\n");
-   printf(" [-o <output directory>\n");
-   printf(" [-s <random number generator seed>]\n");
-   printf(" [-d [<GPU device>,<GPU device>,...]]\n");
-   printf(" [-l <output log file>]\n");
-   printf(" [-w <working directory>]\n");
-   printf(" [-r|-c <checkpoint directory>]\n");
+   pvInfo().printf("\nUsage:\n");
+   pvInfo().printf(" -p <parameters filename>\n");
+   pvInfo().printf(" [-o <output directory>\n");
+   pvInfo().printf(" [-s <random number generator seed>]\n");
+   pvInfo().printf(" [-d [<GPU device>,<GPU device>,...]]\n");
+   pvInfo().printf(" [-l <output log file>]\n");
+   pvInfo().printf(" [-w <working directory>]\n");
+   pvInfo().printf(" [-r|-c <checkpoint directory>]\n");
 #ifdef PV_USE_OPENMP_THREADS
-   printf(" [-t [number of threads]\n");
-   printf(" [-n]\n");
+   pvInfo().printf(" [-t [number of threads]\n");
+   pvInfo().printf(" [-n]\n");
 #endif // PV_USE_OPENMP_THREADS
 
 }
@@ -206,22 +205,6 @@ int pv_getopt_str(int argc, char * argv[], const char * opt, char ** sVal, bool 
    return -1;  // not found
 }
 
-#ifdef OBSOLETE // Marked obsolete Sep 23, 2015.  Only used in a function that was marked obsolete Jul 16, 2015.
-#define TIFF_FILE_TYPE    1
-#define BINARY_FILE_TYPE  2
-
-/**
- * @filename
- */
-static int filetype(const char * filename)
-{
-   int n = strlen(filename);
-   if (strncmp(&filename[n-4], ".tif", 4) == 0) return TIFF_FILE_TYPE;
-   if (strncmp(&filename[n-4], ".bin", 4) == 0) return BINARY_FILE_TYPE;
-   return 0;
-}
-#endif // OBSOLETE // Marked obsolete Sep 23, 2015.  Only used in a function that was marked obsolete Jul 16, 2015.
-
 /**
  * @V
  * @nx0
@@ -266,21 +249,20 @@ char * expandLeadingTilde(char const * path) {
       if (len==1 && path[0]=='~') {
          newpath = strdup(getenv("HOME"));
          if (newpath==NULL) {
-            fprintf(stderr, "Error expanding \"%s\": home directory not defined\n", path);
+            pvError().printf("Unable to expand \"%s\": home directory not defined\n", path);
             exit(EXIT_FAILURE);
          }
       }
       else if (len>1 && path[0]=='~' && path[1]=='/') {
          char * homedir = getenv("HOME");
          if (homedir==NULL) {
-            fprintf(stderr, "Error expanding \"%s\": home directory not defined\n", path);
+            pvError().printf("Unable to expand \"%s\": home directory not defined\n", path);
          }
          char dummy;
          int chars_needed = snprintf(&dummy, 0, "%s/%s", homedir, &path[2]);
          newpath = (char *) malloc(chars_needed+1);
          if (newpath==NULL) {
-            fprintf(stderr, "Unable to allocate memory for path \"%s/%s\"\n", homedir, &path[2]);
-            exit(EXIT_FAILURE);
+            pvError().printf("Unable to allocate memory for path \"%s/%s\"\n", homedir, &path[2]);
          }
          int chars_used = snprintf(newpath, chars_needed+1, "%s/%s", homedir, &path[2]);
          assert(chars_used == chars_needed);
@@ -323,3 +305,5 @@ int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvwdata_t * data,
 
    return 0;
 }
+
+}  // namespace PV

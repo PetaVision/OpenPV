@@ -29,13 +29,13 @@ int ConvertFromTable::initialize(char const * name, PV::HyPerCol * hc) {
    return status;
 }
 
-int ConvertFromTable::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int ConvertFromTable::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
    int status = PV::CloneVLayer::ioParamsFillGroup(ioFlag);
    ioParam_dataFile(ioFlag);
    return status;
 }
 
-void ConvertFromTable::ioParam_dataFile(enum ParamsIOFlag ioFlag) {
+void ConvertFromTable::ioParam_dataFile(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "dataFile", &dataFile);
 }
 

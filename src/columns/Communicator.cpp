@@ -10,8 +10,9 @@
 #include <iostream>
 
 #include "Communicator.hpp"
-#include "../utils/conversions.h"
-#include "../io/io.h"
+#include "utils/PVLog.hpp"
+#include "utils/conversions.h"
+#include "io/io.hpp"
 
 namespace PV {
 

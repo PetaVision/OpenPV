@@ -8,17 +8,16 @@
 #ifndef INITV_HPP_
 #define INITV_HPP_
 
-#include "../columns/Random.hpp"
-#include "../columns/GaussianRandom.hpp"
-#include "../include/default_params.h"
-#include "../include/pv_types.h"
-#include "../include/pv_common.h"
-#include "../layers/HyPerLayer.hpp"
-#include "../io/fileio.hpp"
-#include "../io/imageio.hpp"
-#include "../io/io.h"
+#include "columns/Random.hpp"
+#include "columns/GaussianRandom.hpp"
+#include "include/default_params.h"
+#include "include/pv_types.h"
+#include "include/pv_common.h"
+#include "layers/HyPerLayer.hpp"
+#include "io/fileio.hpp"
+#include "io/imageio.hpp"
+#include "io/io.hpp"
 #include <stdarg.h>
-//#include "Image.hpp"
 
 namespace PV {
 

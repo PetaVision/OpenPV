@@ -33,13 +33,13 @@ int MaskFromMemoryBuffer::initialize_base(){
    return PV_SUCCESS;
 }
 
-int MaskFromMemoryBuffer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int MaskFromMemoryBuffer::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
    ioParam_imageLayerName(ioFlag);
    return status;
 }
 
-void MaskFromMemoryBuffer::ioParam_imageLayerName(enum ParamsIOFlag ioFlag) {
+void MaskFromMemoryBuffer::ioParam_imageLayerName(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "imageLayerName", &imageLayerName);
 }
 

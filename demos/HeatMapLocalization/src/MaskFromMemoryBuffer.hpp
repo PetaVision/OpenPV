@@ -19,7 +19,7 @@ public:
    virtual int communicateInitInfo();
 protected:
    virtual int updateState(double time, double dt);
-   virtual int ioParamsFillGroup(enum ParamsIOFlag ioFlag);
+   virtual int ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag);
 
    /**
     * @brief imageLayerName: the name of an ImageFromMemoryBuffer layer
@@ -27,7 +27,7 @@ protected:
     * getImageLeft, getImageRight, getImageTop, getImageBottom member functions
     * to construct the mask.
     */
-   virtual void ioParam_imageLayerName(enum ParamsIOFlag ioFlag);
+   virtual void ioParam_imageLayerName(enum PV::ParamsIOFlag ioFlag);
 private:
    int initialize_base();
 

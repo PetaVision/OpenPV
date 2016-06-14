@@ -7,9 +7,9 @@
 
 #undef DEBUG_PRINT
 
-#include <layers/HyPerLayer.hpp>
-#include <connections/HyPerConn.hpp>
-#include <io/io.h>
+#include "layers/HyPerLayer.hpp"
+#include "connections/HyPerConn.hpp"
+#include "io/io.hpp"
 #include <assert.h>
 
 #include "Example.hpp"

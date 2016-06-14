@@ -9,11 +9,11 @@
 
 #include <stdlib.h>
 
-#include "../include/default_params.h"
-#include "../io/io.h"
-#include "../io/fileio.hpp"
-#include "../utils/conversions.h"
-#include "../columns/InterColComm.hpp"
+#include "include/default_params.h"
+#include "io/io.hpp"
+#include "io/fileio.hpp"
+#include "utils/conversions.h"
+#include "columns/InterColComm.hpp"
 
 namespace PV {
 

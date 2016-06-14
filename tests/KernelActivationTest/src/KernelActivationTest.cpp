@@ -16,9 +16,9 @@
  * the full activations.
  */
 
-#include <columns/buildandrun.hpp>
-#include <io/io.h>
-#include <arch/mpi/mpi.h>
+#include "columns/buildandrun.hpp"
+#include "io/io.hpp"
+#include "arch/mpi/mpi.h"
 
 int dumpweights(HyPerCol * hc, int argc, char * argv[]);
 int dumponeweight(HyPerConn * conn);

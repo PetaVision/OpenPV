@@ -12,6 +12,7 @@ set (PVLibSrcCpp ${PVLibSrcCpp}
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.cpp
    ${SUBDIR}/FirmThresholdCostFnProbe.cpp
    ${SUBDIR}/imageio.cpp
+   ${SUBDIR}/io.cpp
    ${SUBDIR}/KernelProbe.cpp
    ${SUBDIR}/L0NormLCAProbe.cpp
    ${SUBDIR}/L0NormProbe.cpp
@@ -43,6 +44,7 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/FirmThresholdCostFnLCAProbe.hpp
    ${SUBDIR}/FirmThresholdCostFnProbe.hpp
    ${SUBDIR}/imageio.hpp
+   ${SUBDIR}/io.hpp
    ${SUBDIR}/KernelProbe.hpp
    ${SUBDIR}/L0NormLCAProbe.hpp
    ${SUBDIR}/L0NormProbe.hpp
@@ -59,12 +61,3 @@ set (PVLibSrcHpp ${PVLibSrcHpp}
    ${SUBDIR}/RequireAllZeroActivityProbe.hpp
    ${SUBDIR}/StatsProbe.hpp
 )
-
-set (PVLibSrcC ${PVLibSrcC}
-   ${SUBDIR}/io.c
-)
-
-set (PVLibSrcH ${PVLibSrcH}
-   ${SUBDIR}/io.h
-)
-

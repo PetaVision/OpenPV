@@ -8,7 +8,7 @@
 #ifndef FILEIO_HPP_
 #define FILEIO_HPP_
 
-#include "io.h"
+#include "io.hpp"
 #include "arch/mpi/mpi.h"
 #include "include/pv_types.h"
 #include "include/PVLayerLoc.h"

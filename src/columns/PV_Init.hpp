@@ -11,7 +11,7 @@
 #include <iostream>
 #include <arch/mpi/mpi.h>
 #include <io/PVParams.hpp>
-#include <io/io.h>
+#include <io/io.hpp>
 #include <columns/PV_Arguments.hpp>
 #include <columns/Factory.hpp>
 

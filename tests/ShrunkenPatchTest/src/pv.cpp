@@ -10,8 +10,8 @@
 // equal to their global position
 // ShrunkenPatchProbe checks whether he above suppositions are satisfied
 
-#include <columns/buildandrun.hpp>
-#include <io/io.h>
+#include "columns/buildandrun.hpp"
+#include "io/io.hpp"
 #include "ShrunkenPatchTestLayer.hpp"
 #include "ShrunkenPatchTestProbe.hpp"
 #include <assert.h>

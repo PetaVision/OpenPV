@@ -7,9 +7,9 @@
 #undef DEBUG_PRINT
 
 #include "Example.hpp"
-#include <layers/HyPerLayer.hpp>
-#include <io/io.h>
-#include <columns/PV_Init.hpp>
+#include "layers/HyPerLayer.hpp"
+#include "io/io.hpp"
+#include "columns/PV_Init.hpp"
 
 
 //const int numFeatures = 1;
@@ -43,7 +43,7 @@ int main(int argc, char * argv[])
 
    bLoc = sLoc;
 
-   sCube = pvcube_new(&sLoc, (nS+halo->lt+halo->rt)*(nS+halo->dn+halo->up)*nf);
+   sCube = PV::pvcube_new(&sLoc, (nS+halo->lt+halo->rt)*(nS+halo->dn+halo->up)*nf);
    bCube = sCube;
 
    // fill interior with non-extended index of each neuron
@@ -249,7 +249,7 @@ int main(int argc, char * argv[])
 
 
 
-   pvcube_delete(sCube);
+   PV::pvcube_delete(sCube);
    sCube = bCube = NULL;
 
    delete hc;

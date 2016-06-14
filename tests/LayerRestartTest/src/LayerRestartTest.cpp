@@ -24,9 +24,9 @@
  *
  */
 
-#include <columns/buildandrun.hpp>
-#include <io/io.h>
-#include <arch/mpi/mpi.h>
+#include "columns/buildandrun.hpp"
+#include "io/io.hpp"
+#include "arch/mpi/mpi.h"
 
 int checkComparisonZero(HyPerCol * hc, int argc, char * argv[]);
 int checkComparisonNonzero(HyPerCol * hc, int argc, char * argv[]);

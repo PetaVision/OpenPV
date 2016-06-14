@@ -73,15 +73,15 @@ DerivedLayer::initialize(arguments) {
 #include <iostream>
 #include <sstream>
 #include "HyPerLayer.hpp"
-#include "../include/pv_common.h"
-#include "../include/default_params.h"
-#include "../columns/HyPerCol.hpp"
-#include "../connections/BaseConnection.hpp"
-#include "../connections/TransposeConn.hpp"
+#include "include/pv_common.h"
+#include "include/default_params.h"
+#include "columns/HyPerCol.hpp"
+#include "connections/BaseConnection.hpp"
+#include "connections/TransposeConn.hpp"
 #include "InitV.hpp"
-#include "../io/fileio.hpp"
-#include "../io/imageio.hpp"
-#include "../io/io.h"
+#include "io/fileio.hpp"
+#include "io/imageio.hpp"
+#include "io/io.hpp"
 #include <assert.h>
 #include <string.h>
 
@@ -3228,7 +3228,7 @@ extern "C" {
 #endif // __cplusplus
 
 #ifndef PV_USE_OPENCL
-#  include "../kernels/HyPerLayer_recv_post.cl"
+#  include "kernels/HyPerLayer_recv_post.cl"
 #endif
 
 

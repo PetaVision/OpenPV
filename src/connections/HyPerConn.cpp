@@ -7,7 +7,7 @@
 
 #include "HyPerConn.hpp"
 #include "include/default_params.h"
-#include "io/io.h"
+#include "io/io.hpp"
 #include "io/fileio.hpp"
 #include "utils/conversions.h"
 #include <assert.h>
@@ -4515,10 +4515,10 @@ extern "C" {
 #endif // __cplusplus
 
 #ifndef PV_USE_OPENCL
-#  include "../kernels/HyPerLayer_recv_synaptic_input.cl"
+#  include "kernels/HyPerLayer_recv_synaptic_input.cl"
 #else
 #  undef PV_USE_OPENCL
-#  include "../kernels/HyPerLayer_recv_synaptic_input.cl"
+#  include "kernels/HyPerLayer_recv_synaptic_input.cl"
 #  define PV_USE_OPENCL
 #endif
 

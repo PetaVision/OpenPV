@@ -13,7 +13,7 @@
 #include "columns/InterColComm.hpp"
 #include "normalizers/NormalizeBase.hpp"
 #include "io/Clock.hpp"
-#include "io/io.h"
+#include "io/io.hpp"
 
 #include <assert.h>
 #include <math.h>

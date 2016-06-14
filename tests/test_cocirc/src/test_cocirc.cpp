@@ -8,9 +8,9 @@
 #undef DEBUG_PRINT
 
 #include "Example.hpp"
-#include <layers/HyPerLayer.hpp>
-#include <connections/HyPerConn.hpp>
-#include <io/io.h>
+#include "layers/HyPerLayer.hpp"
+#include "connections/HyPerConn.hpp"
+#include "io/io.hpp"
 #include <assert.h>
 
 using namespace PV;

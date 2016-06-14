@@ -11,7 +11,7 @@
 #endif
 #include <string.h>
 #include "PV_Arguments.hpp"
-#include "io/io.h"
+#include "io/io.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/PVAssert.hpp"
 

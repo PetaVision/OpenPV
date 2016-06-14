@@ -1,4 +1,4 @@
-#include <layers/PVLayerCube.h>
+#include "layers/PVLayerCube.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

@@ -7,9 +7,9 @@
 
 #include "HyPerLayer.hpp"
 #include "Retina.hpp"
-#include "../columns/Random.hpp"
-#include "../io/io.h"
-#include "../include/default_params.h"
+#include "columns/Random.hpp"
+#include "io/io.hpp"
+#include "include/default_params.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -672,14 +672,14 @@ extern "C" {
 #endif
 
 //#ifndef PV_USE_OPENCL
-//#  include "../kernels/Retina_update_state.cl"
-//#  include "../kernels/Retina_update_state.c"
+//#  include "kernels/Retina_update_state.cl"
+//#  include "kernels/Retina_update_state.c"
 //#endif
 #ifndef PV_USE_OPENCL
-#  include "../kernels/Retina_update_state.cl"
+#  include "kernels/Retina_update_state.cl"
 #else
 #  undef PV_USE_OPENCL
-#  include "../kernels/Retina_update_state.cl"
+#  include "kernels/Retina_update_state.cl"
 #  define PV_USE_OPENCL
 #endif
 

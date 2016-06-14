@@ -71,7 +71,7 @@ int LocalizationProbe::initialize(const char * probeName, PV::HyPerCol * hc) {
    return status;
 }
 
-int LocalizationProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
+int LocalizationProbe::ioParamsFillGroup(enum PV::ParamsIOFlag ioFlag) {
    int status = PV::LayerProbe::ioParamsFillGroup(ioFlag);
    ioParam_imageLayer(ioFlag);
    ioParam_reconLayer(ioFlag);
@@ -93,59 +93,59 @@ int LocalizationProbe::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    return status;
 }
 
-void LocalizationProbe::ioParam_imageLayer(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_imageLayer(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "imageLayer", &imageLayerName);
 }
 
-void LocalizationProbe::ioParam_reconLayer(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_reconLayer(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamStringRequired(ioFlag, name, "reconLayer", &reconLayerName);
 }
 
-void LocalizationProbe::ioParam_displayedCategories(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_displayedCategories(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamArray(ioFlag, this->getName(), "displayedCategories", &displayedCategories, &numDisplayedCategories);
 }
 
-void LocalizationProbe::ioParam_displayCategoryIndexStart(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_displayCategoryIndexStart(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
    if (numDisplayedCategories==0) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexStart", &displayCategoryIndexStart, -1, true/*warnIfAbsent*/);
    }
 }
 
-void LocalizationProbe::ioParam_displayCategoryIndexEnd(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_displayCategoryIndexEnd(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "displayedCategories"));
    if (numDisplayedCategories==0) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "displayCategoryIndexEnd", &displayCategoryIndexEnd, -1, true/*warnIfAbsent*/);
    }
 }
 
-void LocalizationProbe::ioParam_detectionThreshold(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_detectionThreshold(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamArray(ioFlag, name, "detectionThreshold", &detectionThreshold, &numDetectionThresholds);
 }
 
-void LocalizationProbe::ioParam_classNamesFile(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_classNamesFile(enum PV::ParamsIOFlag ioFlag) {
    parent->ioParamString(ioFlag, name, "classNamesFile", &classNamesFile, "");
 }
 
-void LocalizationProbe::ioParam_outputPeriod(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_outputPeriod(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "triggerLayer"));
    if (!triggerLayer) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "outputPeriod", &outputPeriod, outputPeriod, true/*warnIfAbsent*/);
    }
-   if (ioFlag==PARAMS_IO_READ) {
+   if (ioFlag==PV::PARAMS_IO_READ) {
       nextOutputTime = outputPeriod;
    }
 }
 
-void LocalizationProbe::ioParam_minBoundingBoxWidth(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_minBoundingBoxWidth(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "minBoundingBoxWidth", &minBoundingBoxWidth, minBoundingBoxWidth, true/*warnIfAbsent*/);
 }
 
-void LocalizationProbe::ioParam_minBoundingBoxHeight(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_minBoundingBoxHeight(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "minBoundingBoxHeight", &minBoundingBoxHeight, minBoundingBoxHeight, true/*warnIfAbsent*/);
 }
 
-void LocalizationProbe::ioParam_drawMontage(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_drawMontage(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "drawMontage", &drawMontage, drawMontage, true/*warnIfAbsent*/);
 #ifdef PV_USE_GDAL
    GDALAllRegister();
@@ -161,39 +161,39 @@ void LocalizationProbe::ioParam_drawMontage(enum ParamsIOFlag ioFlag) {
 #endif // PV_USE_GDAL
 }
 
-void LocalizationProbe::ioParam_heatMapMontageDir(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_heatMapMontageDir(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->ioParamStringRequired(ioFlag, this->getName(), "heatMapMontageDir", &heatMapMontageDir);
    }
 }
 
-void LocalizationProbe::ioParam_heatMapMaximum(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_heatMapMaximum(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       parent->ioParamArray(ioFlag, name, "heatMapMaximum", &heatMapMaximum, &numHeatMapMaxima);
    }
 }
 
-void LocalizationProbe::ioParam_imageBlendCoeff(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_imageBlendCoeff(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "imageBlendCoeff", &imageBlendCoeff, imageBlendCoeff/*default value*/, true/*warnIfAbsent*/);
    }
 }
 
-void LocalizationProbe::ioParam_maxDetections(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_maxDetections(enum PV::ParamsIOFlag ioFlag) {
    this->getParent()->ioParamValue(ioFlag, this->getName(), "maxDetections", &maxDetections, maxDetections, true/*warnIfAbsent*/);
 }
 
-void LocalizationProbe::ioParam_boundingBoxLineWidth(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_boundingBoxLineWidth(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->ioParamValue(ioFlag, this->getName(), "boundingBoxLineWidth", &boundingBoxLineWidth, boundingBoxLineWidth/*default value*/, true/*warnIfAbsent*/);
    }
 }
 
-void LocalizationProbe::ioParam_displayCommand(enum ParamsIOFlag ioFlag) {
+void LocalizationProbe::ioParam_displayCommand(enum PV::ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(this->getName(), "drawMontage"));
    if (drawMontage) {
       this->getParent()->ioParamString(ioFlag, this->getName(), "displayCommand", &displayCommand, NULL, true/*warnIfAbsent*/);     

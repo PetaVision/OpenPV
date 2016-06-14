@@ -17,11 +17,11 @@ int main(int argc, char * argv[]) {
 }
 #else // ifndef PV_USE_MPI
 
-#include <columns/HyPerCol.hpp>
-#include <layers/ANNLayer.hpp>
-#include <io/io.h>
-#include <assert.h>
-#include <arch/mpi/mpi.h>
+#include "columns/HyPerCol.hpp"
+#include "layers/ANNLayer.hpp"
+#include "io/io.hpp"
+#include "assert.h"
+#include "arch/mpi/mpi.h"
 
 int buildandverify(PV::PV_Init* initObj);
 int verifyLoc(PV::HyPerCol * loc, int rows, int columns);

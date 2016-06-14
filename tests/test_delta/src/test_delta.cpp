@@ -1,7 +1,7 @@
-#include <layers/PVLayerCube.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include "layers/PVLayerCube.hpp"
 
 static int zero(float x)
 {
