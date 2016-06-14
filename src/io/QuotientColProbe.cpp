@@ -43,8 +43,8 @@ int QuotientColProbe::initializeQuotientColProbe(const char * probename, HyPerCo
 }
 
 int QuotientColProbe::outputHeader() {
-   if (outputstream) {
-      fprintf(outputstream->fp, "Probe_name,time,index,%s\n", valueDescription);
+   if (outputStream) {
+      output() << "Probe_name,time,index," << valueDescription;
    }
    return PV_SUCCESS;
 }
@@ -147,13 +147,12 @@ int QuotientColProbe::outputState(double timevalue) {
    double * valuesBuffer = getValuesBuffer();
    int numValues = this->getNumValues();
    for(int b = 0; b < numValues; b++){
-      if (outputstream->fp == stdout || outputstream->fp == stderr) {
-         fprintf(outputstream->fp,"\"%s\",", this->valueDescription); // lack of \n is deliberate: fprintf immediately below completes the line
+      if (isWritingToFile()) {
+         output() << "\"" << valueDescription << "\",";
       }
-      fprintf(outputstream->fp, "%f,%d,%f\n",
-            timevalue, b, valuesBuffer[b]);
+      output() << timevalue << "," << b << "," << valuesBuffer[b] << "\n";
    }
-   fflush(outputstream->fp);
+   output().flush();
    return PV_SUCCESS;
 }  // end QuotientColProbe::outputState(float, HyPerCol *)
 

@@ -40,7 +40,7 @@ namespace PVCuda{
        * @return Returns the accumulated time of this timer
        */
       double accumulateTime();
-      virtual int fprint_time(FILE * stream);
+      virtual int fprint_time(std::ostream& stream);
       /**
        * A setter function to set the stream to time
        */

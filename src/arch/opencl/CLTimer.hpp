@@ -37,7 +37,7 @@ class CLTimer : public Timer{
       // */
       //virtual double stop();
       double accumulateTime();
-      virtual int fprint_time(FILE * stream);
+      virtual int fprint_time(std::ostream& stream);
 
       cl_event * getStartEvent(){return startEvent;}
       cl_event * getStopEvent(){return stopEvent;}

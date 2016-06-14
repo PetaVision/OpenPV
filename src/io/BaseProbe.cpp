@@ -21,9 +21,7 @@ BaseProbe::BaseProbe()
 
 BaseProbe::~BaseProbe()
 {
-   if (outputstream != NULL) {
-      PV_fclose(outputstream); outputstream = NULL;
-   }
+   delete outputStream;
    free(targetName); targetName = NULL;
    free(msgparams); msgparams = NULL;
    free(msgstring); msgstring = NULL;
@@ -37,7 +35,7 @@ BaseProbe::~BaseProbe()
 }
 
 int BaseProbe::initialize_base() {
-   outputstream = NULL;
+   outputStream = NULL;
    targetName = NULL;
    msgparams = NULL;
    msgstring = NULL;
@@ -52,6 +50,7 @@ int BaseProbe::initialize_base() {
    numValues = 0;
    probeValues = NULL;
    lastUpdateTime = -DBL_MAX;
+   writingToFile = false;
    return PV_SUCCESS;
 }
 
@@ -177,24 +176,26 @@ void BaseProbe::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
 int BaseProbe::initOutputStream(const char * filename) {
    if( parent->columnId()==0 ) {
       if( filename != NULL ) {
-         char * outputdir = parent->getOutputPath();
-         char * path = (char *) malloc(strlen(outputdir)+1+strlen(filename)+1);
-         sprintf(path, "%s/%s", outputdir, filename);
+         std::string path("");
+         if (filename[0]!='/') {
+            path += parent->getOutputPath();
+            path += "/";
+         }
+         path += filename;
          bool append = parent->getCheckpointReadFlag();
          const char * fopenstring = append ? "a" : "w";
-         outputstream = PV_fopen(path, fopenstring, parent->getVerifyWrites());
-         if( !outputstream ) {
-            fprintf(stderr, "BaseProbe error opening \"%s\" for writing: %s\n", path, strerror(errno));
-            exit(EXIT_FAILURE);
-         }
-         free(path);
+         std::ios_base::openmode mode = std::ios_base::out;
+         if (append) { mode |= std::ios_base::app; }
+         outputStream = new FileStream(path.c_str(), mode, parent->getVerifyWrites());
+         writingToFile = true;
       }
       else {
-         outputstream = PV_stdout();
+         outputStream = new OutStream(PV::getOutputStream());
+         writingToFile = false;
       }
    }
    else {
-      outputstream = NULL; // Only root process writes; if other processes need something written it should be sent to root.
+      outputStream = NULL; // Only root process writes; if other processes need something written it should be sent to root.
                            // Derived classes for which it makes sense for a different process to do the file i/o should override initOutputStream
    }
    return PV_SUCCESS;

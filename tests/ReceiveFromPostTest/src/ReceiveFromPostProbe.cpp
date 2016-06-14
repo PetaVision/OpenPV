@@ -45,7 +45,6 @@ int ReceiveFromPostProbe::outputState(double timed){
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
    int numExtNeurons = getTargetLayer()->getNumExtended();
    const pvdata_t * A = getTargetLayer()->getLayerData();
-   getOutputStream().precision(15);
    for (int i = 0; i < numExtNeurons; i++){
       if(fabs(A[i]) != 0){
          int xpos = kxPos(i, loc->nx+loc->halo.lt+loc->halo.rt, loc->ny+loc->halo.dn+loc->halo.up, loc->nf);

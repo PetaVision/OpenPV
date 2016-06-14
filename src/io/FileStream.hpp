@@ -18,6 +18,7 @@ public:
    OutStream(std::ostream& stream);
    virtual ~OutStream() {}
    std::ostream& outStream() { return *mOutStream; }
+   int printf(const char *fmt, ...);
 
 protected:
    OutStream() {}

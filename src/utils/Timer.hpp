@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <string.h>
+#include <ostream>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -31,7 +32,7 @@ namespace PV {
       virtual double start();
       virtual double stop();
       inline double elapsed_time();
-      virtual int fprint_time(FILE * stream);
+      virtual int fprint_time(std::ostream& stream);
       
    protected:
       

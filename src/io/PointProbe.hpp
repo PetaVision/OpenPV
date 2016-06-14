@@ -34,7 +34,6 @@ protected:
    virtual void ioParam_yLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_fLoc(enum ParamsIOFlag ioFlag);
    virtual void ioParam_batchLoc(enum ParamsIOFlag ioFlag);
-   virtual int initOutputStream(const char * filename);
    virtual int writeState(double timef);
    
    /**

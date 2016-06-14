@@ -479,7 +479,7 @@ private:
 
    int checkpointRead();
    int checkpointWrite(const char * cpDir);
-   int writeTimers(FILE* stream);
+   int writeTimers(std::ostream& stream);
 
    int outputParams(char const * path);
    int outputParamsHeadComments(FILE* fp, char const * commentToken);

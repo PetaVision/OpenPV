@@ -352,11 +352,22 @@ namespace PV {
  *
  * Provides a standardized method for logging error, debug and information messages.
  *
- * Below we define pvLogInfo, pvLogWarn, pvLogError, pvLogErrorNoExit, and pvDebug,
- * which provide standardized methods for logging error, debug, and information messages.
- * Note that the pvError, pvWarn, pvDebug, and pvInfo streams defined above
- * are preferred to the functions below.  However, the functions below are
- * included as easy replacements for fprintf-style statements.
+ * pvLogDebug(), pvLogInfo(), pvLogWarn(), pvLogError(), and pvLogAbort() take printf-style format control string and arguments.
+ *
+ * pvLogDebug(), pvLogError(), and pvLogAbort() will prepend DEBUG: and ERROR: plus the file name and line number
+ * of the call.
+ *
+ * pvLogWarn() will prepend WARN:
+ *
+ * pvLogInfo() appends a newline. Nothing is prepended.
+ *
+ * pvLogDebug() calls are compiled out in a Release build. The other macros are not
+ * compiled out.
+ *
+ * pvLogDebug() and pvLogInfo() send output to the output stream.  pvLogError and pvLogWarn send output to the error stream.
+ *
+ * pvLogError() exits with status EXIT_FAILURE (usually 1) after printing its message.
+ * pvLogAbort() calls abort() after printing its message.
  *
  * These macros provide an opportunity to handle sending debug, error and info messages to other MPI ranks
  */
@@ -393,11 +404,13 @@ void pv_log_error_noexit(const char *file, int line, const char *fmt, ...);
  * In practice, one would use the pvLogDebug macro instead of calling pv_log_debug directly.
  */
 void pv_log_debug(const char *file, int line, const char *fmt, ...);
+
 /**
  * pv_log_abort sends the same output as pvLogError, but calls abort() instead of exit(int).
  * In practice, one would use the pvLogAbort macro instead of calling pv_log_abort directly.
  */
 void pv_log_abort(const char *file, int line, const char *fmt, ...);
+
 /**
  * pv_exit_failure is deprecated.  It behaves the same as pv_log_error except for prepending
  *     a warning that the function is deprecated.

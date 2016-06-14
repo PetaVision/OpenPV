@@ -140,20 +140,22 @@ int PointLIFProbe::calcValues(double timevalue) {
 int PointLIFProbe::writeState(double timed)
 {
    if (parent->columnId()==0 && timed >= writeTime) {
-      assert(outputstream && outputstream->fp);
+      pvAssert(outputStream);
       writeTime += writeStep;
       PVLayerLoc const * loc = getTargetLayer()->getLayerLoc();
       const int k = kIndex(xLoc, yLoc, fLoc, loc->nxGlobal, loc->nyGlobal, loc->nf);
       double * valuesBuffer = getValuesBuffer();
-      fprintf(outputstream->fp, "%s t=%.1f %d", getMessage(), timed, k);
-      fprintf(outputstream->fp, " G_E=" CONDUCTANCE_PRINT_FORMAT, valuesBuffer[0]);
-      fprintf(outputstream->fp, " G_I=" CONDUCTANCE_PRINT_FORMAT, valuesBuffer[1]);
-      fprintf(outputstream->fp, " G_IB=" CONDUCTANCE_PRINT_FORMAT, valuesBuffer[2]);
-      fprintf(outputstream->fp, " V=%6.3f", valuesBuffer[3]);
-      fprintf(outputstream->fp, " Vth=%6.3f", valuesBuffer[4]);
-      fprintf(outputstream->fp, " a=%.1f", valuesBuffer[5]);
-      fprintf(outputstream->fp, "\n");
-      fflush(outputstream->fp);
+      outputStream->printf("%s t=%.1f %d"
+            "G_E=" CONDUCTANCE_PRINT_FORMAT
+            " G_I=" CONDUCTANCE_PRINT_FORMAT
+            " G_IB=" CONDUCTANCE_PRINT_FORMAT
+            " V=" CONDUCTANCE_PRINT_FORMAT
+            " Vth=" CONDUCTANCE_PRINT_FORMAT
+            " a=%.1f",
+            getMessage(), timed, k,
+            valuesBuffer[0], valuesBuffer[1], valuesBuffer[2],
+            valuesBuffer[3], valuesBuffer[4], valuesBuffer[5]);
+      output() << std::endl;
    }
    return PV_SUCCESS;
 }

@@ -144,7 +144,7 @@ Communicator::~Communicator()
    // delete timers
    //
    if (globalCommRank() == 0) {
-      exchange_timer->fprint_time(stdout);
+      exchange_timer->fprint_time(getOutputStream());
       fflush(stdout);
    }
    if(!isExtra){

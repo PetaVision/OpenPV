@@ -95,12 +95,12 @@ int LIFTestProbe::communicateInitInfo() {
 int LIFTestProbe::allocateDataStructures() {
    int status = StatsProbe::allocateDataStructures();
    if (status == PV_SUCCESS && getParent()->columnId()==0) {
-      assert(outputstream);
-      fprintf(outputstream->fp, "%s Correct: ", getMessage());
+      pvAssert(outputStream);
+      outputStream->printf("%s Correct: ", getMessage());
       for (int k=0; k<LIFTESTPROBE_BINS; k++) {
-         fprintf(outputstream->fp, " %f", targetrates[k]);
+         outputStream->printf(" %f", targetrates[k]);
       }
-      fprintf(outputstream->fp, "\n");
+      outputStream->printf("\n");
    }
    return status;
 }
@@ -130,12 +130,12 @@ int LIFTestProbe::outputState(double timed) {
    InterColComm * icComm = l->getParent()->icCommunicator();
    if (icComm->commRank()==root_proc) {
       MPI_Reduce(MPI_IN_PLACE, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
-      fprintf(outputstream->fp, "%s t=%f:", getMessage(), timed);
+      printf("%s t=%f:", getMessage(), timed);
       for (int j=0; j<LIFTESTPROBE_BINS; j++) {
          rates[j] /= counts[j]*timed/1000.0;
-         fprintf(outputstream->fp, " %f", rates[j]);
+         printf(" %f", rates[j]);
       }
-      fprintf(outputstream->fp, "\n");
+      printf("\n");
       if (timed >= endingTime) {
          double stdfactor = sqrt(timed/2000.0); // Since the values of std are based on t=2000.
          for (int j=0; j<LIFTESTPROBE_BINS; j++) {

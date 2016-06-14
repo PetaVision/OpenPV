@@ -119,14 +119,14 @@ int AbstractNormProbe::calcValues(double timeValue) {
 int AbstractNormProbe::outputState(double timevalue) {
    getValues(timevalue);
    double * valuesBuffer = this->getValuesBuffer();
-   if (outputstream!=NULL) {
+   if (outputStream!=NULL) {
       int nBatch = getNumValues();
       int nk = getTargetLayer()->getNumGlobalNeurons();
       for (int b=0; b<nBatch; b++) {
-         fprintf(outputstream->fp, "%st = %6.3f b = %d numNeurons = %8d %s = %f\n",
+         outputStream->printf("%st = %6.3f b = %d numNeurons = %8d %s = %f",
                getMessage(), timevalue, b, nk, getNormDescription(), valuesBuffer[b]);
+         output() << std::endl;
       }
-      fflush(outputstream->fp);
    }
    return PV_SUCCESS;
 }

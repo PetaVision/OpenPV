@@ -64,7 +64,7 @@ int L2ConnProbe::outputState(double timed) {
             }
          }
       }
-      fprintf(outputstream->fp, "t=%f, f=%d, squaredL2=%f\n", timed, kernelIndex, sumsq);
+      output() << "t=" << timed << ", f=" << kernelIndex << ", squaredL2=" << sumsq << "\n";
    }
 
 

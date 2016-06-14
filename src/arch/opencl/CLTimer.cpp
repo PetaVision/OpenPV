@@ -153,10 +153,9 @@ double CLTimer::accumulateTime(){
    return (double) time;
 }
 
-int CLTimer::fprint_time(FILE * stream) {
+int CLTimer::fprint_time(std::ostream& stream) {
    if (rank == 0) {
-      fprintf(stream, "%sprocessor cycle time == %f\n", message, time);
-      fflush(stream);
+      stream << message << "processor cycle time == " << time << std::endl;
    }
    return 0;
 }

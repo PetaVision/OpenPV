@@ -8,7 +8,9 @@
 extern "C" {
 #include <unistd.h>
 }
+#include <cstdio>
 #include <cstring>
+#include <cstdarg>
 #include "FileStream.hpp"
 #include "utils/PVLog.hpp"
 #include "utils/PVAssert.hpp"
@@ -22,6 +24,23 @@ OutStream::OutStream(std::ostream& stream) {
 void OutStream::setOutStream(std::ostream& stream) {
    mOutStream = &stream;
 }
+
+int OutStream::printf(const char *fmt, ...) {
+   va_list args1, args2;
+   va_start(args1, fmt);
+   va_copy(args2, args1);
+   char c;
+   int chars_needed = vsnprintf(&c, 1, fmt, args1);
+   chars_needed++;
+   char output_string[chars_needed];
+   int chars_printed = vsnprintf(output_string, chars_needed, fmt, args2);
+   pvAssert(chars_printed+1==chars_needed);
+   this->outStream() << output_string;
+   va_end(args1);
+   va_end(args2);
+   return chars_needed;
+}
+
 
 FileStream::FileStream(char const * path, std::ios_base::openmode mode, bool verifyWrites) {
    openFile(path, mode);

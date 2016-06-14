@@ -40,9 +40,8 @@ int AllConstantValueProbe::outputState(double timed) {
    if (this->parent->columnId()==0) {
       for(int b = 0; b < this->parent->getNBatch(); b++){
          if (timed>0 && (fMin[b]<correctValue-nnzThreshold || fMax[b] > correctValue+nnzThreshold)) {
-            fprintf(this->outputstream->fp, "     Values outside of tolerance nnzThreshold=%f\n", nnzThreshold);
-            fprintf(stderr, "t=%f: fMin=%f, fMax=%f; values more than nnzThreshold=%g away from correct value %f\n", timed, fMin[b], fMax[b], nnzThreshold, correctValue);
-            exit(EXIT_FAILURE);
+            outputStream->printf("     Values outside of tolerance nnzThreshold=%f\n", nnzThreshold);
+            pvLogError("t=%f: fMin=%f, fMax=%f; values more than nnzThreshold=%g away from correct value %f\n", timed, fMin[b], fMax[b], nnzThreshold, correctValue);
          }
       }
    }

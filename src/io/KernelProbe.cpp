@@ -95,8 +95,8 @@ int KernelProbe::allocateDataStructures() {
       exit(EXIT_FAILURE);
    }
 
-   if(outputstream) {
-      fprintf(outputstream->fp, "Probe \"%s\", kernel index %d, arbor index %d.\n", name, getKernelIndex(), getArbor());
+   if(outputStream) {
+      outputStream->outStream() << "Probe \"" << name << "\", kernel index " << getKernelIndex() << ", arbor index " << getArbor() << ".\n";
    }
    if(getOutputPatchIndices()) {
       patchIndices(getTargetHyPerConn());
@@ -118,20 +118,19 @@ int KernelProbe::outputState(double timed) {
    const pvwdata_t * wdata = getTargetHyPerConn()->get_wDataStart(arborID)+patchSize*kernelIndex;
    const pvwdata_t * dwdata = outputPlasticIncr ?
          getTargetHyPerConn()->get_dwDataStart(arborID)+patchSize*kernelIndex : NULL;
-   fprintf(outputstream->fp, "Time %f, Conn \"%s\", nxp=%d, nyp=%d, nfp=%d\n",
-           timed, getTargetConn()->getName(),nxp, nyp, nfp);
+   output() << "Time " << timed << ", Conn \"" << getTargetConn()->getName() << ", nxp=" << nxp << ", nyp=" << nyp << ", nfp=" << nfp << "\n";
    for(int f=0; f<nfp; f++) {
       for(int y=0; y<nyp; y++) {
          for(int x=0; x<nxp; x++) {
             int k = kIndex(x,y,f,nxp,nyp,nfp);
-            fprintf(outputstream->fp, "    x=%d, y=%d, f=%d (index %d):", x, y, f, k);
-            if(getOutputWeights()) {
-               fprintf(outputstream->fp, "  weight=%f", (float)wdata[k]);
+            output() << "    x=" << x << ", y=" << y << ", f=" << f << " (index " << k << "):";
+            if (getOutputWeights()) {
+               output() << "  weight=" << wdata[k];
             }
-            if(getOutputPlasticIncr()) {
-               fprintf(outputstream->fp, "  dw=%f", (float)dwdata[k]);
+            if (getOutputPlasticIncr()) {
+               output() << "  dw=" << dwdata[k];
             }
-            fprintf(outputstream->fp,"\n");
+            output() << "\n";
          }
       }
    }
@@ -159,8 +158,10 @@ int KernelProbe::patchIndices(HyPerConn * conn) {
       int kxPre = kxPos(kPre,nxPreExt,nyPreExt,nfPre)-loc->halo.lt;
       int kyPre = kyPos(kPre,nxPreExt,nyPreExt,nfPre)-loc->halo.up;
       int kfPre = featureIndex(kPre,nxPreExt,nyPreExt,nfPre);
-      fprintf(outputstream->fp,"    presynaptic neuron %d (x=%d, y=%d, f=%d) uses kernel index %d, starting at x=%d, y=%d\n",
-            kPre, kxPre, kyPre, kfPre, conn->patchIndexToDataIndex(kPre), xOffset, yOffset);
+      output() << "    presynaptic neuron " << kPre;
+      output() << " (x=" << kxPre << ", y=" << kyPre << ", f=" << kfPre;
+      output() << ") uses kernel index " << conn->patchIndexToDataIndex(kPre);
+      output() << ", starting at x=" << xOffset << ", y=" << yOffset << "\n";
    }
    return PV_SUCCESS;
 }

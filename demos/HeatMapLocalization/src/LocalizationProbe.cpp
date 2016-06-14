@@ -615,12 +615,12 @@ int LocalizationProbe::allocateDataStructures() {
       }
    }
    if (getTextOutputFlag()) {
-      if (outputstream) {
+      if (outputStream) {
          PVLayerLoc const * targetLoc = targetLayer->getLayerLoc();
-         fprintf(outputstream->fp, "Layer \"%s\", %dx%d with %d categories.\n",
+         outputStream->printf("Layer \"%s\", %dx%d with %d categories.\n",
                targetLayer->getName(), targetLoc->nxGlobal, targetLoc->nyGlobal, targetLoc->nf);
          PVLayerLoc const * imageLoc = imageLayer->getLayerLoc();
-         fprintf(outputstream->fp, "Image \"%s\", %dx%d with %d features.\n",
+         outputStream->printf("Image \"%s\", %dx%d with %d features.\n",
                imageLayer->getName(), imageLoc->nxGlobal, imageLoc->nyGlobal, imageLoc->nf);
       }
    }
@@ -994,19 +994,19 @@ int LocalizationProbe::outputStateWrapper(double timef, double dt){
 
 int LocalizationProbe::outputState(double timevalue) {
    int status = getValues(timevalue); // all processes must call getValues in parallel.
-   if (getTextOutputFlag() && outputstream && outputstream->fp) {
+   if (getTextOutputFlag() && outputStream) {
       assert(parent->columnId()==0);
       size_t numDetected = detections.size();
       assert(numDetected<maxDetections);
       if (numDetected==0) {
-         fprintf(outputstream->fp, "Time %f, no detections.\n", timevalue);
+         outputStream->printf("Time %f, no detections.\n", timevalue);
       }
       for (size_t d=0; d<numDetected; d++) {
          localization const * thisDetection = &detections.at(d);
          int winningFeature = thisDetection->feature;
          assert(winningFeature>=0 && winningFeature<targetLayer->getLayerLoc()->nf);
          double score = thisDetection->score;
-         fprintf(outputstream->fp, "Time %f, \"%s\", score %f, bounding box x=[%d,%d), y=[%d,%d)\n",
+         outputStream->printf("Time %f, \"%s\", score %f, bounding box x=[%d,%d), y=[%d,%d)\n",
                timevalue,
                getClassName(winningFeature),
                score,

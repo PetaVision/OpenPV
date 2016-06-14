@@ -174,7 +174,7 @@ public:
    /**
     * A pure virtual function for writing timing information.
     */
-   virtual int writeTimers(FILE * stream) = 0;
+   virtual int writeTimers(std::ostream& stream) = 0;
 
    /**
     * Called by HyPerCol::outputParams to output the params groups for probes whose ownership has

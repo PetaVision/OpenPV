@@ -5,9 +5,7 @@
 namespace PV {
 
 void pv_assert_failed(const char *file, int line, const char *condition) {
-   pv_log_error(file, line, "assert failed: %s", condition);
-   print_stacktrace(stderr);
-   exit(EXIT_FAILURE);
+   pv_log_abort(file, line, "assert failed: %s\n", condition);
 }
 
 void pv_assert_failed_message(const char *file, int line, const char *condition, const char *fmt, ...) {
@@ -19,9 +17,7 @@ void pv_assert_failed_message(const char *file, int line, const char *condition,
    vsnprintf(msg, buf_size, fmt, args);
    va_end(args);
 
-   pv_log_error(file, line, "assert failed: %s: %s", condition, msg);
-   print_stacktrace(stderr);
-   exit(EXIT_FAILURE);
+   pv_log_abort(file, line, "assert failed: %s: %s\n", condition, msg);
 }
 
 }

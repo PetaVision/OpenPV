@@ -39,8 +39,8 @@ int ColumnEnergyProbe::initializeColumnEnergyProbe(const char * probename, HyPer
 }
 
 int ColumnEnergyProbe::outputHeader() {
-   if (outputstream) {
-      fprintf(outputstream->fp, "Probe_name,time,index,energy\n");
+   if (outputStream) {
+      output() << "Probe_name,time,index,energy\n";
    }
    return PV_SUCCESS;
 }
@@ -128,18 +128,18 @@ int ColumnEnergyProbe::calcValues(double timevalue) {
 int ColumnEnergyProbe::outputState(double timevalue) {
    getValues(timevalue);
    if( this->getParent()->icCommunicator()->commRank() != 0 ) return PV_SUCCESS;
+   pvAssert(outputStream); // Root process should have outputStream defined; non-root process should have outputStream==nullptr
    double * valuesBuffer = getValuesBuffer();
    int nbatch = this->getNumValues();
    for(int b = 0; b < nbatch; b++){
-      if (outputstream->fp == stdout || outputstream->fp == stderr) {
-         fprintf(outputstream->fp,"\"%s\",", name); // lack of \n is deliberate: fprintf immediately below completes the line
+      if (isWritingToFile()) {
+         output() << "\"" << "\","; // lack of \n is deliberate: line is completed immediately below.
       }
-      fprintf(outputstream->fp, "%f,%d,%f\n",
-            timevalue, b,valuesBuffer[b]);
+      output() << timevalue << "," << b << "," << valuesBuffer[b];
    }
-   fflush(outputstream->fp);
+   output().flush();
    return PV_SUCCESS;
-}  // end ColumnEnergyProbe::outputState(float, HyPerCol *)
+}  // end ColumnEnergyProbe::outputState(float)
 
 BaseObject * createColumnEnergyProbe(char const * name, HyPerCol * hc) {
    return hc ? new ColumnEnergyProbe(name, hc) : NULL;

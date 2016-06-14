@@ -61,7 +61,7 @@ HyPerCol::~HyPerCol()
 #endif // PV_USE_OPENCL || PV_USE_CUDA
 
    //Print all timers
-   writeTimers(stdout);
+   writeTimers(getOutputStream());
 
    if (image_file != NULL) free(image_file);
 
@@ -2817,7 +2817,7 @@ int HyPerCol::checkpointRead() {
    return PV_SUCCESS;
 }
 
-int HyPerCol::writeTimers(FILE* stream){
+int HyPerCol::writeTimers(std::ostream& stream){
    int rank=columnId();
    if (rank==0) {
       runTimer->fprint_time(stream);
@@ -2880,13 +2880,14 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       //timercsvstring += "timers.csv";
 
       const char * timerpath = timerpathstring.c_str();
-      PV_Stream * timerstream = PV_fopen(timerpath, "w", getVerifyWrites());
-      if (timerstream==NULL) {
+      FileStream timerstream(timerpath, std::ios_base::out, getVerifyWrites());
+      if (timerstream.outStream().fail()) {
          fprintf(stderr, "Unable to open \"%s\" for checkpointing timer information: %s\n", timerpath, strerror(errno));
          exit(EXIT_FAILURE);
       }
-      writeTimers(timerstream->fp);
+      writeTimers(timerstream.outStream());
 
+      // NOTE: If timercsvpath ever gets brought back to life, it needs to be converted to using ostreams instead of FILE*s.
       //const char * timercsvpath = timercsvstring.c_str();
       //PV_Stream * timercsvstream = PV_fopen(timercsvpath, "w", getVerifyWrites());
       //if (timercsvstream==NULL) {
@@ -2894,8 +2895,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       //   exit(EXIT_FAILURE);
       //}
       //writeCSV(timercsvstream->fp);
-
-      PV_fclose(timerstream); timerstream = NULL;
+      //
       //PV_fclose(timercsvstream); timercsvstream = NULL;
    }
 

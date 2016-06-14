@@ -2211,7 +2211,7 @@ int HyPerConn::checkpointFilename(char * cpFilename, int size, const char * cpDi
    return PV_SUCCESS;
 }
 
-int HyPerConn::writeTimers(FILE* stream){
+int HyPerConn::writeTimers(std::ostream& stream){
    if (parent->icCommunicator()->commRank()==0) {
       io_timer->fprint_time(stream);
       update_timer->fprint_time(stream);

@@ -32,9 +32,9 @@ StatsProbe::~StatsProbe()
 {
    int rank = getParent()->columnId();
    if (rank==0) {
-      iotimer->fprint_time(stdout);
-      mpitimer->fprint_time(stdout);
-      comptimer->fprint_time(stdout);
+      iotimer->fprint_time(output());
+      mpitimer->fprint_time(output());
+      comptimer->fprint_time(output());
    }
    delete iotimer;
    delete mpitimer;
@@ -222,7 +222,7 @@ int StatsProbe::outputState(double timed)
 #ifdef PV_USE_MPI
             if( rank != rcvProc ) return 0;
 #endif // PV_USE_MPI
-            fprintf(outputstream->fp, "%sV buffer is NULL\n", getMessage());
+            output() << getMessage() << "V buffer is NULL\n";
             return 0;
          }
          for( int k=0; k<nk; k++ ) {
@@ -294,14 +294,18 @@ int StatsProbe::outputState(double timed)
    for(int b = 0; b < nbatch; b++){
       avg[b] = sum[b]/divisor;
       sigma[b] = sqrt(sum2[b]/divisor - avg[b]*avg[b]);
-      if ( type == BufActivity  && getTargetLayer()->getSparseFlag() ) {
-         float freq = 1000.0 * avg[b];
-         fprintf(outputstream->fp, "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f Hz (/dt ms) Max==%f sigma==%f nnz==%d\n", getMessage(), (double)timed, (int)b, (int)divisor, (double)sum[b], (double)fMin[b], (double)freq, (double)fMax[b], (double)sigma[b], (int)nnz[b]);
+      double avgval = 0.0;
+      char const * avgnote = nullptr;
+      if (type==BufActivity && getTargetLayer()->getSparseFlag()) {
+         avgval = 1000.0 * avg[b]; // convert spikes per millisecond to hertz.
+         avgnote = " Hz (/dt ms)";
       }
       else {
-         fprintf(outputstream->fp, "%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f Max==%f sigma==%f nnz==%d\n", getMessage(), (double)timed, (int)b, (int)divisor, (double)sum[b], (double)fMin[b], (double) avg[b], (double)fMax[b], (double) sigma[b], (int)nnz[b]);
+         avgval = avg[b];
+         avgnote = "";
       }
-      fflush(outputstream->fp);
+      outputStream->printf("%st==%6.1f b==%d N==%d Total==%f Min==%f Avg==%f%s Max==%f sigma==%f nnz==%d", getMessage(), (double)timed, (int)b, (int)divisor, (double)sum[b], (double)fMin[b], avgval, avgnote, (double)fMax[b], (double)sigma[b], (int)nnz[b]);
+      output() << std::endl;
    }
 
    iotimer->stop();
@@ -309,10 +313,10 @@ int StatsProbe::outputState(double timed)
    return PV_SUCCESS;
 }
 
-int StatsProbe::checkpointTimers(PV_Stream * timerstream) {
-   iotimer->fprint_time(timerstream->fp);
-   mpitimer->fprint_time(timerstream->fp);
-   comptimer->fprint_time(timerstream->fp);
+int StatsProbe::checkpointTimers(OutStream& timerstream) {
+   iotimer->fprint_time(timerstream.outStream());
+   mpitimer->fprint_time(timerstream.outStream());
+   comptimer->fprint_time(timerstream.outStream());
    return PV_SUCCESS;
 }
 

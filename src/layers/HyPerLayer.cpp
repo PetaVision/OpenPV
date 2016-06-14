@@ -2483,7 +2483,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
    return status;
 }
 
-int HyPerLayer::writeTimers(FILE* stream){
+int HyPerLayer::writeTimers(std::ostream& stream){
    if (parent->icCommunicator()->commRank()==0) {
       recvsyn_timer->fprint_time(stream);
 #if defined(PV_USE_OPENCL) || defined(PV_USE_CUDA)
