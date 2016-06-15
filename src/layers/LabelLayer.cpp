@@ -207,8 +207,7 @@ int LabelLayer::updateLabels(){
 
       if (currentLabel == -1){
          status = PV_FAILURE;
-         fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
-         exit(-1);
+         pvError().printf("Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
      }
       else{
          if (echoLabelFlag){

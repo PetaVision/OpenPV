@@ -52,8 +52,7 @@ int FeedbackConn::handleMissingPreAndPostLayerNames() {
    preLayerName = strdup(originalConn->getPostLayerName());
    postLayerName = strdup(originalConn->getPreLayerName());
    if (preLayerName==NULL || postLayerName==NULL) {
-      fprintf(stderr, "Error in rank %d process: FeedbackConn \"%s\" unable to allocate memory for pre and post layer names: %s", parent->columnId(), name, strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("Error in rank %d process: FeedbackConn \"%s\" unable to allocate memory for pre and post layer names: %s", parent->columnId(), name, strerror(errno));
    }
    return PV_SUCCESS;
 }

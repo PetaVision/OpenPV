@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "utils/PVLog.hpp"
 
 //
 // A replacement for globalIndexFromLocal from conversions.h.
@@ -41,8 +42,7 @@ int main(int argc, char* argv[])
       kg = globalIndexFromLocal_nompi(kl, loc);
 
       if (kg != kl) {
-         fprintf(stdout, "FAILED:TEST_KG: (kl,kg) = (%d,%d)\n", kl, kg);
-         exit(1);
+         pvError().printf("FAILED:TEST_KG: (kl,kg) = (%d,%d)\n", kl, kg);
       }
    }
 
@@ -71,8 +71,7 @@ int main(int argc, char* argv[])
         kfg = featureIndex(kg, loc.nxGlobal, loc.nyGlobal, nf);
 
         if ((kg-kl) != loc.kx0 + (loc.ky0 + kyg)*loc.nx + kf*nx*ny) {
-           fprintf(stdout, "FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
-           exit(1);
+           pvError().printf("FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
         }
      }
   }
@@ -92,8 +91,7 @@ int main(int argc, char* argv[])
      assert(kf == kfg);
 
      if ((kg-kl) != loc.kx0*nf*(1+ky)) {
-        fprintf(stdout, "FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
-        exit(1);
+        pvError().printf("FAILED:TEST_KG: right (kl,kg) = (%d,%d)\n", kl, kg);
      }
   }
 #endif
@@ -123,8 +121,7 @@ int main(int argc, char* argv[])
         // kg = ky0*nxGlobal + kf*nxGlobal*nyGlobal
         // kl = kf*nx*ny
         if ((kg-kl) != nx*loc.ky0 + kf*nx*(loc.nyGlobal - ny)) {
-           fprintf(stdout, "FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
-           exit(1);
+           pvError().printf("FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
         }
      }
   }
@@ -144,8 +141,7 @@ int main(int argc, char* argv[])
      assert(kf == kfg);
 
      if ((kg-kl) != loc.ky0*nf*nx) {
-        fprintf(stdout, "FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
-        exit(1);
+        pvError().printf("FAILED:TEST_KG: bottom (kl,kg) = (%d,%d)\n", kl, kg);
      }
   }
 #endif
@@ -165,8 +161,7 @@ int main(int argc, char* argv[])
      kg = globalIndexFromLocal_nompi(kl, loc);
 
      if (kg != kl) {
-        fprintf(stdout, "FAILED:TEST_KG: max ny (kl,kg) = (%d,%d)\n", kl, kg);
-        exit(1);
+        pvError().printf("FAILED:TEST_KG: max ny (kl,kg) = (%d,%d)\n", kl, kg);
      }
   }
 

@@ -44,8 +44,7 @@ int InitCocircWeights::calcWeights(pvdata_t * dataStart, int patchIndex, int arb
 
 
    if(weightParamPtr==NULL) {
-      fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-      exit(1);
+      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
 

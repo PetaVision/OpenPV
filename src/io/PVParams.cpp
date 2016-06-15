@@ -945,37 +945,30 @@ int PVParams::parseFile(const char * filename) {
    size_t bufferlen;
    if( worldRank == rootproc ) {
       if( filename == NULL ) {
-         fprintf(stderr, "PVParams::parseFile: filename was null.\n");
-         exit(ENOENT);
+         pvError().printf("PVParams::parseFile: filename was null.\n");
       }
       struct stat filestatus;
       if( stat(filename, &filestatus) ) {
-         fprintf(stderr, "PVParams::parseFile ERROR getting status of file \"%s\": %s\n", filename, strerror(errno));
-         exit(errno);
+         pvError().printf("PVParams::parseFile ERROR getting status of file \"%s\": %s\n", filename, strerror(errno));
       }
       if( filestatus.st_mode & S_IFDIR ) {
-         fprintf(stderr, "PVParams::parseFile ERROR: specified file \"%s\" is a directory.\n", filename);
-         exit(EISDIR);
+         pvError().printf("PVParams::parseFile ERROR: specified file \"%s\" is a directory.\n", filename);
       }
       PV_Stream * paramstream = PV_fopen(filename, "r", false/*verifyWrites*/);
       if( paramstream == NULL ) {
-         fprintf(stderr, "PVParams::parseFile ERROR opening file \"%s\": %s\n", filename, strerror(errno));
-         exit(errno);
+         pvError().printf("PVParams::parseFile ERROR opening file \"%s\": %s\n", filename, strerror(errno));
       }
       if( PV_fseek(paramstream, 0, SEEK_END) != 0 ) {
-         fprintf(stderr, "PVParams::parseFile ERROR seeking end of file \"%s\": %s\n", filename, strerror(errno));
-         exit(errno);
+         pvError().printf("PVParams::parseFile ERROR seeking end of file \"%s\": %s\n", filename, strerror(errno));
       }
       bufferlen = (size_t) getPV_StreamFilepos(paramstream);
       paramBuffer = (char *) malloc(bufferlen);
       if( paramBuffer == NULL ) {
-         fprintf(stderr, "PVParams::parseFile: Rank %d process unable to allocate memory for params buffer\n", rootproc);
-         exit(ENOMEM);
+         pvError().printf("PVParams::parseFile: Rank %d process unable to allocate memory for params buffer\n", rootproc);
       }
       PV_fseek(paramstream, 0L, SEEK_SET);
       if( PV_fread(paramBuffer,1, (unsigned long int) bufferlen, paramstream) != bufferlen) {
-         fprintf(stderr, "PVParams::parseFile: ERROR reading params file \"%s\"", filename);
-         exit(EIO);
+         pvError().printf("PVParams::parseFile: ERROR reading params file \"%s\"", filename);
       }
       PV_fclose(paramstream);
 #ifdef PV_USE_MPI
@@ -1017,8 +1010,7 @@ bool PVParams::hasSweepValue(const char* inParamName){
       const char * param_name = sweep->getParamName();
       ParameterGroup * gp = group(group_name);
       if (gp == NULL) {
-         fprintf(stderr, "PVParams::parseBuffer error: ParameterSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
-         exit(EXIT_FAILURE);
+         pvError().printf("PVParams::parseBuffer error: ParameterSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
       }
       if ( !strcmp(gp->getGroupKeyword(),"HyPerCol") && !strcmp(param_name, inParamName)) {
          out = true;
@@ -1033,8 +1025,7 @@ bool PVParams::hasSweepValue(const char* inParamName){
          const char * param_name = sweep->getParamName();
          ParameterGroup * gp = group(group_name);
          if (gp == NULL) {
-            fprintf(stderr, "PVParams::parseBuffer error: BatchSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
-            exit(EXIT_FAILURE);
+            pvError().printf("PVParams::parseBuffer error: BatchSweep %d (zero-indexed) refers to non-existent group \"%s\"\n", k, group_name);
          }
          if ( !strcmp(gp->getGroupKeyword(),"HyPerCol") && !strcmp(param_name, inParamName) ) {
             out = true;
@@ -1279,8 +1270,7 @@ int PVParams::parseBufferInRootProcess(char * buffer, long int bufferLength) {
       MPI_Bcast(&bufLen, 1, MPI_LONG, 0, icComm->globalCommunicator());
       buf = (char *) malloc((size_t) bufLen);
       if (buf==NULL) {
-         fprintf(stderr, "Process %d: error allocating %ld bytes for PVParams buffer.\n", worldRank, bufLen);
-         exit(EXIT_FAILURE);
+         pvError().printf("Process %d: error allocating %ld bytes for PVParams buffer.\n", worldRank, bufLen);
       }
       MPI_Bcast(buf, bufLen, MPI_CHAR, 0, icComm->globalCommunicator());
       status = parseBuffer(buf, bufLen);
@@ -1311,8 +1301,7 @@ int PVParams::setBatchSweepSize() {
    int batchWidth = icComm->numCommBatches();
    if(batchSweepSize){
       if(batchWidth != batchSweepSize){
-         fprintf(stderr, "PVParams::setBatchSweepSize error: batchSweepSize %d must be the same as the MPI batch width %d.\n", batchSweepSize, batchWidth);
-         exit(-1);
+         pvError().printf("PVParams::setBatchSweepSize error: batchSweepSize %d must be the same as the MPI batch width %d.\n", batchSweepSize, batchWidth);
       }
    }
    return batchSweepSize;
@@ -1615,8 +1604,7 @@ void PVParams::addGroup(char * keyword, char * name)
    // Verify that the new group's name is not an existing group's name
    for( int k=0; k<numGroups; k++ ) {
       if( !strcmp(name, groups[k]->name())) {
-         fprintf(stderr, "Rank %d process: group name \"%s\" duplicated\n", worldRank, name);
-         exit(EXIT_FAILURE);
+         pvError().printf("Rank %d process: group name \"%s\" duplicated\n", worldRank, name);
       }
    }
 
@@ -1974,13 +1962,11 @@ void PVParams::action_parameter_def_overwrite(char * id, double val){
             fflush(stdout);
             fprintf(stdout, "%s is defined as an array parameter. Overwriting array parameters with value parameters not implemented yet.\n", id);
             fflush(stdout);
-            exit(EXIT_FAILURE);
          }
       }
       fflush(stdout);
       fprintf(stdout, "Overwrite error: %s is not an existing parameter to overwrite.\n", id);
       fflush(stdout);
-      exit(EXIT_FAILURE);
    }
    free(param_name);
    //Set to new value
@@ -2025,13 +2011,11 @@ void PVParams::action_parameter_array_overwrite(char * id){
             fflush(stdout);
             fprintf(stdout, "%s is defined as a value parameter. Overwriting value parameters with array parameters not implemented yet.\n", id);
             fflush(stdout);
-            exit(EXIT_FAILURE);
          }
       }
       fflush(stdout);
       fprintf(stdout, "Overwrite error: %s is not an existing parameter to overwrite.\n", id);
       fflush(stdout);
-      exit(EXIT_FAILURE);
    }
    free(param_name);
    //Set values of arrays
@@ -2093,7 +2077,6 @@ void PVParams::action_parameter_string_def_overwrite(const char * id, const char
       fflush(stdout);
       fprintf(stdout, "Overwrite error: %s is not an existing parameter to overwrite.\n", id);
       fflush(stdout);
-      exit(EXIT_FAILURE);
    }
    char * param_value = stripQuotationMarks(stringval);
    assert(!stringval || param_value); // stringval can be null, but if stringval is not null, param_value should also be non-null
@@ -2148,7 +2131,6 @@ void PVParams::action_parameter_filename_def_overwrite(const char * id, const ch
       fflush(stdout);
       fprintf(stdout, "Overwrite error: %s is not an existing parameter to overwrite.\n", id);
       fflush(stdout);
-      exit(EXIT_FAILURE);
    }
    char * param_value = stripQuotationMarks(stringval);
    assert(param_value);
@@ -2175,7 +2157,6 @@ void PVParams::action_include_directive(const char * stringval) {
       fflush(stdout);
       fprintf(stdout, "Import of %s must be the first parameter specified in the group.\n", stringval);
       fflush(stdout);
-      exit(EXIT_FAILURE);
    }
    //Grab the parameter value
    char * param_value = stripQuotationMarks(stringval);
@@ -2192,14 +2173,12 @@ void PVParams::action_include_directive(const char * stringval) {
       fflush(stdout);
       fprintf(stdout, "Include error: include group %s is not defined.\n", param_value);
       fflush(stdout);
-      exit(EXIT_FAILURE);
    }
    //Check keyword of group
    if(strcmp(includeGroup->getGroupKeyword(), currGroupKeyword) != 0){
       fflush(stdout);
       fprintf(stdout, "Include error: Cannot include group %s, which is a %s, into a %s. Group types must be the same.\n", param_value, includeGroup->getGroupKeyword(), currGroupKeyword);
       fflush(stdout);
-      exit(EXIT_FAILURE);
    }
    free(param_value);
    //Load all stack values into current parameter group

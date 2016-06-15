@@ -214,8 +214,7 @@ void IdentConn::ioParam_updateGSynFromPostPerspective(enum ParamsIOFlag ioFlag){
 int IdentConn::setWeightInitializer() {
    weightInitializer = (InitWeights *) new InitIdentWeights(name, parent);
    if( weightInitializer == NULL ) {
-      fprintf(stderr, "IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, parent->icCommunicator()->commRank());
-      exit(EXIT_FAILURE);
+      pvError().printf("IdentConn \"%s\": Rank %d process unable to create InitIdentWeights object.  Exiting.\n", name, parent->icCommunicator()->commRank());
    }
    return PV_SUCCESS;
 }

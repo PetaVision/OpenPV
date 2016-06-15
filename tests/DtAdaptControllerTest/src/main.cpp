@@ -30,22 +30,19 @@ int main(int argc, char * argv[]) {
    arguments->setParamsFile(paramFile1);
    status = rebuildandrun(&initObj, NULL, NULL, NULL, 0);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
-      exit(status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
    }
 
    arguments->setParamsFile(paramFile2);
    status = rebuildandrun(&initObj, NULL, NULL, NULL, 0);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
-      exit(status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
    }
 
    arguments->setParamsFile(paramFileCompare);
    status = rebuildandrun(&initObj, NULL, &assertAllZeroes, NULL, 0);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFileCompare, status);
-      exit(status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFileCompare, status);
    }
    
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

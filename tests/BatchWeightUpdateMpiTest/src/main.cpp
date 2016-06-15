@@ -73,8 +73,7 @@ int main(int argc, char * argv[]) {
       char const * rmcommand = "rm -rf checkpoints1 checkpoints2 output";
       status = system(rmcommand);
       if (status != 0) {
-         fprintf(stderr, "deleting old checkpoints and output directories failed: \"%s\" returned %d\n", rmcommand, status);
-         exit(EXIT_FAILURE);
+         pvError().printf("deleting old checkpoints and output directories failed: \"%s\" returned %d\n", rmcommand, status);
       }
    }
 
@@ -85,8 +84,7 @@ int main(int argc, char * argv[]) {
 
    status = buildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
-      exit(status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
    }
 
    arguments->setParamsFile(paramFile2);
@@ -102,8 +100,7 @@ int main(int argc, char * argv[]) {
 
 int compareFiles(const char* file1, const char* file2){
    if(file1 == NULL || file2 == NULL) {
-      fprintf(stderr, "Unable to allocate memory for names of checkpoint directories");
-      exit(EXIT_FAILURE);
+      pvError().printf("Unable to allocate memory for names of checkpoint directories");
    }
 
    FILE * fp1 = fopen(file1, "r");

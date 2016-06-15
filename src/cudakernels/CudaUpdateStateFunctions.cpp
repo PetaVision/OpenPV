@@ -4,18 +4,21 @@
 namespace PVCuda{
 
 CudaUpdateHyPerLCALayer::CudaUpdateHyPerLCALayer(CudaDevice* inDevice):CudaKernel(inDevice){
+   kernelName = "HyPerLCALayer";
 }
   
 CudaUpdateHyPerLCALayer::~CudaUpdateHyPerLCALayer(){
 }
 
 CudaUpdateMomentumLCALayer::CudaUpdateMomentumLCALayer(CudaDevice* inDevice):CudaKernel(inDevice){
+   kernelName = "MomentumLCALayer";
 }
   
 CudaUpdateMomentumLCALayer::~CudaUpdateMomentumLCALayer(){
 }
 
 CudaUpdateISTALayer::CudaUpdateISTALayer(CudaDevice* inDevice):CudaKernel(inDevice){
+   kernelName = "ISTALayer";
 }
 
 CudaUpdateISTALayer::~CudaUpdateISTALayer(){

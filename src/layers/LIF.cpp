@@ -370,8 +370,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
       free(methodString);
       methodString = strdup(default_method);
       if (methodString==NULL) {
-         fprintf(stderr, "%s \"%s\" error: unable to set method string: %s\n", getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("%s \"%s\" error: unable to set method string: %s\n", getKeyword(), name, strerror(errno));
       }
    }
    method = methodString ? methodString[0] : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
@@ -407,8 +406,7 @@ int LIF::allocateDataStructures() {
    // // a random state variable is needed for every neuron/clthread
    randState = new Random(parent, getLayerLoc(), false/*isExtended*/);
    if (randState == NULL) {
-      fprintf(stderr, "LIF::initialize error.  Layer \"%s\" unable to create object of Random class.\n", getName());
-      exit(EXIT_FAILURE);
+      pvError().printf("LIF::initialize error.  Layer \"%s\" unable to create object of Random class.\n", getName());
    }
 
    int numNeurons = getNumNeuronsAllBatches();

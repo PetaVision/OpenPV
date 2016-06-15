@@ -85,6 +85,7 @@ protected:
    //argsSet must be set to true before being called
    bool argsSet;
    bool dimsSet;
+   char const * kernelName;
 
 private:
    /**

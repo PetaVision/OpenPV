@@ -45,8 +45,7 @@ int InitOneToOneWeights::calcWeights(pvdata_t * dataStart, int patchIndex, int a
 
 
    if(weightParamPtr==NULL) {
-      fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-      exit(PV_FAILURE);
+      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
 

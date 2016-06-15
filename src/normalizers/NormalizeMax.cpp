@@ -48,8 +48,7 @@ int NormalizeMax::normalizeWeights() {
    float scale_factor = 1.0f;
    if (normalizeFromPostPerspective) {
       if (conn0->usingSharedWeights()==false) {
-         fprintf(stderr, "NormalizeMax error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", getName());
-         exit(EXIT_FAILURE);
+         pvError().printf("NormalizeMax error for connection \"%s\": normalizeFromPostPerspective is true but connection does not use shared weights.\n", getName());
       }
       scale_factor = ((float) conn0->postSynapticLayer()->getNumNeurons())/((float) conn0->preSynapticLayer()->getNumNeurons());
    }

@@ -199,8 +199,7 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * ic
       PV_Stream * readFile = pvp_open_read_file(filename, icComm);
       if (icComm->commRank()==0) {
          if (readFile==NULL) {
-            fprintf(stderr, "InitV::calcVFromFile error: path \"%s\" could not be opened: %s.  Exiting.\n", filename, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("InitV::calcVFromFile error: path \"%s\" could not be opened: %s.  Exiting.\n", filename, strerror(errno));
          }
       }
       else {

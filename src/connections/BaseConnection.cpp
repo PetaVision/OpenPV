@@ -150,8 +150,7 @@ int BaseConnection::inferPreAndPostFromConnName(const char * name, int rank, cha
          int pre_len = locto - name;
          *preLayerNamePtr = (char *) malloc((size_t) (pre_len + 1));
          if( *preLayerNamePtr==NULL) {
-            fprintf(stderr, "Error: unable to allocate memory for preLayerName in connection \"%s\": %s\n", name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("Error: unable to allocate memory for preLayerName in connection \"%s\": %s\n", name, strerror(errno));
          }
          const char * preInConnName = name;
          memcpy(*preLayerNamePtr, preInConnName, pre_len);
@@ -160,8 +159,7 @@ int BaseConnection::inferPreAndPostFromConnName(const char * name, int rank, cha
          int post_len = strlen(name)-pre_len-seplen;
          *postLayerNamePtr = (char *) malloc((size_t) (post_len + 1));
          if( *postLayerNamePtr==NULL) {
-            fprintf(stderr, "Error: unable to allocate memory for postLayerName in connection \"%s\": %s\n", name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("Error: unable to allocate memory for postLayerName in connection \"%s\": %s\n", name, strerror(errno));
          }
          const char * postInConnName = &name[pre_len+seplen];
          memcpy(*postLayerNamePtr, postInConnName, post_len);
@@ -480,8 +478,7 @@ int BaseConnection::initializeDelays(const float * fDelayArray, int size){
    //Allocate delay data structure
    delays = (int *) calloc(this->numberOfAxonalArborLists(), sizeof(int));
    if( delays == NULL ) {
-      fprintf(stderr, "%s \"%s\": unable to allocate memory for %d delays: %s\n", this->getKeyword(), name, size, strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": unable to allocate memory for %d delays: %s\n", this->getKeyword(), name, size, strerror(errno));
    }
 
    //Initialize delays for each arbor

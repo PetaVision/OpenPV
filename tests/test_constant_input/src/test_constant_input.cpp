@@ -82,34 +82,29 @@ int main(int argc, char* argv[])
 
    status = checkLoc(hc, image->getLayerLoc());
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "[%d]: test_constant_input: ERROR in image loc\n", rank);
-      exit(status);
+      pvError().printf("[%d]: test_constant_input: ERROR in image loc\n", rank);
    }
 
    status = checkLoc(hc, retina->getLayerLoc());
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "[%d]: test_constant_input: ERROR in retina loc\n", rank);
-      exit(status);
+      pvError().printf("[%d]: test_constant_input: ERROR in retina loc\n", rank);
    }
 
    status = checkInput(image->getLayerLoc(), image->getActivity(), image->getConstantVal(), true);
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "[%d]: test_constant_input: ERROR in image data\n", rank);
-      exit(status);
+      pvError().printf("[%d]: test_constant_input: ERROR in image data\n", rank);
    }
 
    float retinaVal = sumOfWeights * image->getConstantVal();
 
    status = checkInput(retina->getLayerLoc(), retina->getActivity(), retinaVal, false);
    if (status != 0) {
-      fprintf(stderr, "[%d]: test_constant_input: ERROR in retina data\n", rank);
-      exit(status);
+      pvError().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
 
    status = checkInput(retina->getLayerLoc(), retina->getLayerData(), retinaVal, true);
    if (status != 0) {
-      fprintf(stderr, "[%d]: test_constant_input: ERROR in retina data\n", rank);
-      exit(status);
+      pvError().printf("[%d]: test_constant_input: ERROR in retina data\n", rank);
    }
 
    delete hc;

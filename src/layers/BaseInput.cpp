@@ -312,8 +312,7 @@ void BaseInput::ioParam_offsetConstraintMethod(enum ParamsIOFlag ioFlag) {
    if (jitterFlag) {
       parent->ioParamValue(ioFlag, name, "offsetConstraintMethod", &offsetConstraintMethod, 0/*default*/);
       if (ioFlag == PARAMS_IO_READ && (offsetConstraintMethod <0 || offsetConstraintMethod >3) ) {
-         fprintf(stderr, "Image layer \"%s\": offsetConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getName());
-         exit(EXIT_FAILURE);
+         pvError().printf("Image layer \"%s\": offsetConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n", getName());
       }
    }
 }
@@ -1039,8 +1038,7 @@ bool BaseInput::constrainPoint(int * point, int min_x, int max_x, int min_y, int
    bool moved_y = point[1] < min_y || point[1] > max_y;
    if (moved_x) {
       if (min_x > max_x) {
-         fprintf(stderr, "Image::constrainPoint error.  min_x=%d is greater than max_x= %d\n", min_x, max_x);
-         exit(EXIT_FAILURE);
+         pvError().printf("Image::constrainPoint error.  min_x=%d is greater than max_x= %d\n", min_x, max_x);
       }
       int size_x = max_x-min_x;
       int new_x = point[0];
@@ -1074,8 +1072,7 @@ bool BaseInput::constrainPoint(int * point, int min_x, int max_x, int min_y, int
    }
    if (moved_y) {
       if (min_y > max_y) {
-         fprintf(stderr, "Image::constrainPoint error.  min_y=%d is greater than max_y=%d\n", min_y, max_y);
-         exit(EXIT_FAILURE);
+         pvError().printf("Image::constrainPoint error.  min_y=%d is greater than max_y=%d\n", min_y, max_y);
       }
       int size_y = max_y-min_y;
       int new_y = point[1];
@@ -1141,8 +1138,7 @@ int BaseInput::initRandState() {
    assert(randState==NULL);
    randState = new Random(parent, 1);
    if (randState==NULL) {
-      fprintf(stderr, "%s \"%s\" error in rank %d process: unable to create object of class Random.\n", getKeyword(), name, parent->columnId());
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\" error in rank %d process: unable to create object of class Random.\n", getKeyword(), name, parent->columnId());
    }
    return PV_SUCCESS;
 }

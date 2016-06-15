@@ -698,8 +698,7 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
       GDALClose(dataset);
    }
 #else
-   fprintf(stderr, GDAL_CONFIG_ERR_STR);
-   exit(1);
+   pvError().printf(GDAL_CONFIG_ERR_STR);
 #endif // PV_USE_GDAL
 
    if (status == 0) {

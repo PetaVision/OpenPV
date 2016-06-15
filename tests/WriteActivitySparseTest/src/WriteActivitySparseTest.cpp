@@ -33,8 +33,7 @@ int main(int argc, char * argv[]) {
       char const * rmcommand = "rm -rf outputGenerate outputTest";
       status = system(rmcommand);
       if (status != 0) {
-         fprintf(stderr, "deleting old output directories failed: \"%s\" returned %d\n", rmcommand, status);
-         exit(EXIT_FAILURE);
+         pvError().printf("deleting old output directories failed: \"%s\" returned %d\n", rmcommand, status);
       }
    }
 
@@ -44,8 +43,7 @@ int main(int argc, char * argv[]) {
    initObj.setParams(paramFile1);
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", initObj.getArguments()->getProgramName(), rank, paramFile1, status);
-      exit(status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", initObj.getArguments()->getProgramName(), rank, paramFile1, status);
    }
 
    initObj.setParams(paramFile2);

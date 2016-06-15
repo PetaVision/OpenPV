@@ -113,12 +113,10 @@ double ANNNormalizedErrorLayer::calcTimeScale(int batchIdx){
          inputMag += gSynExcBatch[ni] * gSynExcBatch[ni]; 
       }
       if (isnan(errorMag)) {
-         fprintf(stderr, "Layer \"%s\": errorMag on process %d is not a number.\n", getName(), getParent()->columnId());
-         exit(EXIT_FAILURE);
+         pvError().printf("Layer \"%s\": errorMag on process %d is not a number.\n", getName(), getParent()->columnId());
       }
       else if (errorMag < 0) {
-         fprintf(stderr, "Layer \"%s\": errorMag on process %d is negative.  This should absolutely never happen.\n", getName(), getParent()->columnId());
-         exit(EXIT_FAILURE);
+         pvError().printf("Layer \"%s\": errorMag on process %d is negative.  This should absolutely never happen.\n", getName(), getParent()->columnId());
       }
       //Sum all errMag across processors
       MPI_Allreduce(MPI_IN_PLACE, &errorMag, 1, MPI_DOUBLE, MPI_SUM, icComm->communicator());

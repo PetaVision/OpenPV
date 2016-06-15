@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cuda_runtime_api.h>
+#include "utils/PVLog.hpp"
 
 namespace PVCuda{
 
@@ -15,8 +16,7 @@ inline void handleError(cudaError_t error, const char* message){
       return;
    }
    else{
-      fprintf(stdout, "Cuda call error in %s: %s\n", message, cudaGetErrorString(error));
-      exit(-1);
+      pvError().printf("Cuda call error in %s: %s\n", message, cudaGetErrorString(error));
    }
 }
 

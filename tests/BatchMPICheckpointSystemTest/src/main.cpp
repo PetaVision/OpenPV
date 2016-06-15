@@ -50,8 +50,7 @@ int main(int argc, char * argv[]) {
       char const * rmcommand = "rm -rf checkpoints1 checkpoints2 output";
       status = system(rmcommand);
       if (status != 0) {
-         fprintf(stderr, "deleting old checkpoints and output directories failed: \"%s\" returned %d\n", rmcommand, status);
-         exit(EXIT_FAILURE);
+         pvError().printf("deleting old checkpoints and output directories failed: \"%s\" returned %d\n", rmcommand, status);
       }
    }
 
@@ -63,8 +62,7 @@ int main(int argc, char * argv[]) {
 
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
-      exit(status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
    }
 
    arguments->setParamsFile(paramFile2);
@@ -81,8 +79,7 @@ int main(int argc, char * argv[]) {
 int diffDirs(const char* cpdir1, const char* cpdir2, int index){
    int status = PV_SUCCESS;
    if(cpdir1 == NULL || cpdir2 == NULL) {
-      fprintf(stderr, "unable to allocate memory for names of checkpoint directories");
-      exit(EXIT_FAILURE);
+      pvError().printf("unable to allocate memory for names of checkpoint directories");
    }
    const int max_buf_len = 1024;
    char shellcommand[max_buf_len];

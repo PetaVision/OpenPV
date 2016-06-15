@@ -121,8 +121,7 @@ int Movie::checkpointRead(const char * cpDir, double * timef){
       if (timestampFile) {
          assert(parent->columnId()==0);
          if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
-            fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
          }
       }
    }
@@ -151,8 +150,7 @@ int Movie::checkpointWrite(const char * cpDir){
  */
 int Movie::initialize(const char * name, HyPerCol * hc) { int status = Image::initialize(name, hc);
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
-      exit(PV_FAILURE);
+      pvError().printf("Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
    }
 
    //Update on first timestep
@@ -165,8 +163,7 @@ int Movie::initialize(const char * name, HyPerCol * hc) { int status = Image::in
    if (hc->columnId()==0) {
       filenamestream = PV_fopen(inputPath, "r", false/*verifyWrites*/);
       if( filenamestream == NULL ) {
-         fprintf(stderr, "Movie::initialize error opening \"%s\": %s\n", inputPath, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("Movie::initialize error opening \"%s\": %s\n", inputPath, strerror(errno));
       }
    }
 
@@ -523,8 +520,7 @@ bool Movie::updateImage(double time, double dt)
             size_t len = outStrStream.str().length();
             int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
             if (status != PV_SUCCESS) {
-               fprintf(stderr, "%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
-               exit(EXIT_FAILURE);
+               pvError().printf("%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
             }
             //Flush buffer
             fflush(timestampFile->fp);
@@ -608,8 +604,7 @@ const char * Movie::advanceFileName(int batchIdx) {
          frameNumbers[0] = -1;
          fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, inputPath);
          if (hasrewound) {
-            fprintf(stderr, "Movie %s: filenamestream \"%s\" does not have any non-blank lines.\n", name, filenamestream->name);
-            exit(EXIT_FAILURE);
+            pvError().printf("Movie %s: filenamestream \"%s\" does not have any non-blank lines.\n", name, filenamestream->name);
          }
          hasrewound = true;
          reset = true;
@@ -649,8 +644,7 @@ const char * Movie::advanceFileName(int batchIdx) {
       // Keeping the line in case inputfile is changed to be malloc'd instead of declared as an array.
       char * expandedpath = expandLeadingTilde(inputfile);
       if (strlen(expandedpath)>=PV_PATH_MAX) {
-         fprintf(stderr, "Movie \"%s\": input line \"%s\" from imageListPath is too long.\n", name, expandedpath);
-         exit(EXIT_FAILURE);
+         pvError().printf("Movie \"%s\": input line \"%s\" from imageListPath is too long.\n", name, expandedpath);
       }
       strncpy(inputfile, expandedpath, PV_PATH_MAX);
       free(expandedpath);

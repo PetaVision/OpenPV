@@ -48,8 +48,7 @@ ANNErrorLayer::ANNErrorLayer(const char * name, HyPerCol * hc)
    int status = initialize_base();
    if (status == PV_SUCCESS) { status = initialize(name, hc); }
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "Creating ANNErrorLayer \"%s\" failed.\n", name);
-      exit(EXIT_FAILURE);
+      pvError().printf("Creating ANNErrorLayer \"%s\" failed.\n", name);
    }
 }
 

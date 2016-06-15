@@ -42,8 +42,7 @@ int InitSpreadOverArborsWeights::calcWeights(/* PVPatch * patch */ pvdata_t * da
    InitSpreadOverArborsWeightsParams *weightParamPtr = dynamic_cast<InitSpreadOverArborsWeightsParams*>(weightParams);
 
    if(weightParamPtr==NULL) {
-      fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-      exit(1);
+      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    weightParamPtr->calcOtherParams(patchIndex);

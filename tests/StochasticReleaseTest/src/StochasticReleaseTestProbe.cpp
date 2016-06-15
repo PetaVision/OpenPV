@@ -40,8 +40,7 @@ int StochasticReleaseTestProbe::communicateInitInfo() {
    long int num_steps = getParent()->getFinalStep() - getParent()->getInitialStep();
    pvalues = (double *) calloc(num_steps*getTargetLayer()->getLayerLoc()->nf, sizeof(double));
    if (pvalues == NULL) {
-      fprintf(stderr, "StochasticReleaseTestProbe error: unable to allocate memory for pvalues: %s\n", strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("StochasticReleaseTestProbe error: unable to allocate memory for pvalues: %s\n", strerror(errno));
    }
    return status;
 }

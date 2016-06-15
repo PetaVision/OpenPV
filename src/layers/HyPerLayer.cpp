@@ -294,8 +294,7 @@ int HyPerLayer::initClayer() {
    clayer = (PVLayer *) calloc(1UL, sizeof(PVLayer));
    int status = PV_SUCCESS;
    if (clayer==NULL) {
-      fprintf(stderr, "HyPerLayer \"%s\" error in rank %d process: unable to allocate memory for Clayer.\n", name, parent->columnId());
-      exit(EXIT_FAILURE);
+      pvError().printf("HyPerLayer \"%s\" error in rank %d process: unable to allocate memory for Clayer.\n", name, parent->columnId());
    }
 
    PVLayerLoc * loc = &clayer->loc;
@@ -818,8 +817,7 @@ void HyPerLayer::ioParam_nf(enum ParamsIOFlag ioFlag) {
 void HyPerLayer::ioParam_phase(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "phase", &phase, phase);
    if (ioFlag == PARAMS_IO_READ && phase<0) {
-      if (parent->columnId()==0) fprintf(stderr, "Error in layer \"%s\": phase must be >= 0 (given value was %d).\n", name, phase);
-      exit(EXIT_FAILURE);
+      if (parent->columnId()==0) pvError().printf("Error in layer \"%s\": phase must be >= 0 (given value was %d).\n", name, phase);
    }
 }
 
@@ -907,8 +905,7 @@ void HyPerLayer::ioParam_triggerOffset(enum ParamsIOFlag ioFlag) {
    if (triggerFlag) {
       parent->ioParamValue(ioFlag, name, "triggerOffset", &triggerOffset, triggerOffset);
       if(triggerOffset < 0){
-         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", getKeyword(), name, parent->columnId(), triggerOffset);
-         exit(EXIT_FAILURE);
+         pvError().printf("%s \"%s\" error in rank %d process: TriggerOffset (%f) must be positive\n", getKeyword(), name, parent->columnId(), triggerOffset);
       }
    }
 }
@@ -1310,8 +1307,7 @@ int HyPerLayer::equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2) {
    layer2->requireMarginWidth(maxborder, &result, 'x');
    if (result != maxborder) { status = PV_FAILURE; }
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "Error in rank %d process: unable to synchronize x-margin widths of layers \"%s\" and \"%s\" to %d\n", layer1->getParent()->columnId(), layer1->getName(), layer2->getName(), maxborder);;
-      exit(EXIT_FAILURE);
+      pvError().printf("Error in rank %d process: unable to synchronize x-margin widths of layers \"%s\" and \"%s\" to %d\n", layer1->getParent()->columnId(), layer1->getName(), layer2->getName(), maxborder);;
    }
    assert(layer1->getLayerLoc()->halo.lt == layer2->getLayerLoc()->halo.lt &&
           layer1->getLayerLoc()->halo.rt == layer2->getLayerLoc()->halo.rt &&
@@ -1326,8 +1322,7 @@ int HyPerLayer::equalizeMargins(HyPerLayer * layer1, HyPerLayer * layer2) {
    layer2->requireMarginWidth(maxborder, &result, 'y');
    if (result != maxborder) { status = PV_FAILURE; }
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "Error in rank %d process: unable to synchronize y-margin widths of layers \"%s\" and \"%s\" to %d\n", layer1->getParent()->columnId(), layer1->getName(), layer2->getName(), maxborder);;
-      exit(EXIT_FAILURE);
+      pvError().printf("Error in rank %d process: unable to synchronize y-margin widths of layers \"%s\" and \"%s\" to %d\n", layer1->getParent()->columnId(), layer1->getName(), layer2->getName(), maxborder);;
    }
    assert(layer1->getLayerLoc()->halo.dn == layer2->getLayerLoc()->halo.dn &&
           layer1->getLayerLoc()->halo.up == layer2->getLayerLoc()->halo.up &&
@@ -1348,8 +1343,7 @@ int HyPerLayer::allocateDataStructures()
    if(triggerFlag){
       double deltaUpdateTime = getDeltaUpdateTime();
       if(deltaUpdateTime != -1 && triggerOffset >= deltaUpdateTime){ 
-         fprintf(stderr, "%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) \n", getKeyword(), name, parent->columnId(), triggerOffset, deltaUpdateTime);
-         exit(EXIT_FAILURE);
+         pvError().printf("%s \"%s\" error in rank %d process: TriggerOffset (%f) must be lower than the change in update time (%f) \n", getKeyword(), name, parent->columnId(), triggerOffset, deltaUpdateTime);
       }
    }
 
@@ -1413,8 +1407,7 @@ int HyPerLayer::allocateDataStructures()
       for(int i = 0; i < parent->getNumThreads(); i++){
          pvdata_t* tempMem = (pvdata_t*) malloc(sizeof(pvdata_t) * getNumNeuronsAllBatches());
          if(!tempMem){
-            fprintf(stderr, "HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gSyn: %s\n", name, parent->columnId(), sizeof(pvdata_t) * getNumNeuronsAllBatches(), strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gSyn: %s\n", name, parent->columnId(), sizeof(pvdata_t) * getNumNeuronsAllBatches(), strerror(errno));
          }
          thread_gSyn[i] = tempMem;
       }
@@ -1429,8 +1422,7 @@ int HyPerLayer::allocateDataStructures()
       status = PV_SUCCESS;
    }
    else{
-      fprintf(stderr, "Connection \"%s\" unable to allocate device memory in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
-      exit(PV_FAILURE);
+      pvError().printf("Connection \"%s\" unable to allocate device memory in rank %d process: %s\n", getName(), getParent()->columnId(), strerror(errno));
    }
    if(updateGpu){
       //This function needs to be overwritten as needed on a subclass basis
@@ -2153,8 +2145,7 @@ int HyPerLayer::outputState(double timef, bool last)
       }
    }
    if (status!=PV_SUCCESS) {
-      fprintf(stderr, "%s \"%s\": outputState failed on rank %d process.\n", getKeyword(), name, parent->columnId());
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": outputState failed on rank %d process.\n", getKeyword(), name, parent->columnId());
    }
 
    io_timer->stop();
@@ -2203,8 +2194,7 @@ int HyPerLayer::readDelaysFromCheckpoint(const char * cpDir, double * timeptr) {
 int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
    int status = readStateFromCheckpoint(cpDir, timeptr);
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "Layer \"%s\": rank %d process failed to read state from checkpoint directory \"%s\"\n", getName(), parent->columnId(), cpDir);
-      exit(EXIT_FAILURE);
+      pvError().printf("Layer \"%s\": rank %d process failed to read state from checkpoint directory \"%s\"\n", getName(), parent->columnId(), cpDir);
    }
    InterColComm * icComm = parent->icCommunicator();
    parent->readScalarFromFile(cpDir, getName(), "lastUpdateTime", &lastUpdateTime, parent->simulationTime()-parent->getDeltaTime());

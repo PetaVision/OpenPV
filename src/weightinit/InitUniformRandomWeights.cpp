@@ -44,8 +44,7 @@ int InitUniformRandomWeights::randomWeights(pvdata_t * patchDataStart, InitWeigh
    InitUniformRandomWeightsParams *weightParamPtr = dynamic_cast<InitUniformRandomWeightsParams*>(weightParams);
 
    if(weightParamPtr==NULL) {
-      fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-      exit(1);
+      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    float minwgt = weightParamPtr->getWMin();

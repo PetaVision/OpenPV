@@ -265,13 +265,11 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
          mpiexchangesize(neighbor,  &size[neighbor], &startx[neighbor], &stopx[neighbor], &starty[neighbor], &stopy[neighbor], &blocksize[neighbor], &buffersize[neighbor]);
          sendbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
          if (sendbuf[neighbor]==NULL) {
-            fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose send buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\": Rank %d process unable to allocate memory for Transpose send buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
          }
          recvbuf[neighbor] = (pvwdata_t *) malloc(buffersize[neighbor]);
          if (recvbuf[neighbor]==NULL) {
-            fprintf(stderr, "%s \"%s\": Rank %d process unable to allocate memory for Transpose receive buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\": Rank %d process unable to allocate memory for Transpose receive buffer: %s\n", this->getKeyword(), name, parent->columnId(), strerror(errno));
          }
          request[neighbor] = NULL;
       }
@@ -292,8 +290,7 @@ int privateTransposeConn::transposeNonsharedWeights(int arborId) {
             int yGlobalRes = yGlobalExt-preLocOrig->halo.up;
             if (xGlobalRes >= preLocOrig->kx0 && xGlobalRes < preLocOrig->kx0+preLocOrig->nx && yGlobalRes >= preLocOrig->ky0 && yGlobalRes < preLocOrig->ky0+preLocOrig->ny) {
                fprintf(stderr, "Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: xGlobalRes = %d, preLocOrig->kx0 = %d, preLocOrig->nx = %d\n", parent->columnId(), name, x, y, neighbor, xGlobalRes, preLocOrig->kx0, preLocOrig->nx);
-               fprintf(stderr, "Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: yGlobalRes = %d, preLocOrig->ky0 = %d, preLocOrig->ny = %d\n", parent->columnId(), name, x, y, neighbor, yGlobalRes, preLocOrig->ky0, preLocOrig->ny);
-               exit(EXIT_FAILURE);
+               pvError().printf("Rank %d, connection \"%s\", x=%d, y=%d, neighbor=%d: yGlobalRes = %d, preLocOrig->ky0 = %d, preLocOrig->ny = %d\n", parent->columnId(), name, x, y, neighbor, yGlobalRes, preLocOrig->ky0, preLocOrig->ny);
             }
             int idxGlobalRes = kIndex(xGlobalRes, yGlobalRes, 0, preLocOrig->nxGlobal, preLocOrig->nyGlobal, preLocOrig->nf);
             memcpy(b, &idxGlobalRes, sizeof(idxGlobalRes));

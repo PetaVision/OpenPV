@@ -112,8 +112,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               fprintf(stdout, "ERROR:northwest mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:northwest mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -130,8 +129,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               fprintf(stdout, "ERROR:north mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:north mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -148,8 +146,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               fprintf(stdout, "ERROR:northeast mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:northeast mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -166,8 +163,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               fprintf(stdout, "ERROR:west mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:west mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -185,8 +181,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               fprintf(stdout, "ERROR:east mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:east mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -203,8 +198,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               fprintf(stdout, "ERROR:southwest mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:southwest mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -221,8 +215,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               fprintf(stdout, "ERROR:south mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:south mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }
@@ -240,8 +233,7 @@ int main(int argc, char * argv[])
             int kmirror = kymirror * syex + kxmirror * nf + kf;
             int mirrorVal = bCube->data[kmirror];
             if ( mirrorVal != k) {
-               fprintf(stdout, "ERROR:southeast mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
-               exit(1);
+               pvError().printf("ERROR:southeast mirror value at %i from %i = %i, should be %i\n", kmirror, kex, mirrorVal, k);
             }
          }
       }

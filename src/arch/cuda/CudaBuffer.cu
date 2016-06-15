@@ -7,7 +7,6 @@
 
 #include "CudaBuffer.hpp"
 #include "CudaDevice.hpp"
-#include "cuda_util.hpp"
 #include <sys/time.h>
 #include <ctime>
 
@@ -37,23 +36,9 @@ void CudaPermuteWeightsPVToCudnn(float* dest, float* src, int numArbors, int out
 
 namespace PVCuda {
 
-void CudaBuffer::permuteWeightsPVToCudnn(void * d_inPtr, int numArbors, int numKernels, int nxp, int nyp, int nfp){
-   //outFeatures is number of kernels
-   int outFeatures = numKernels;
-
-   //Rest is patch sizes
-   int ny = nyp;
-   int nx = nxp;
-   int inFeatures = nfp;
-
-   //Calculate grid and work size
-   int numWeights = numArbors * outFeatures * ny * nx * inFeatures;
-   int blockSize = device->get_max_threads();
-   //Ceil to get all weights
-   int gridSize = ceil((float)numWeights/blockSize);
-   //Call function
+void CudaBuffer::callCudaPermuteWeightsPVToCudnn(int gridSize, int blockSize, void* d_inPtr, int numArbors, int outFeatures, int ny, int nx, int inFeatures) {
    CudaPermuteWeightsPVToCudnn<<<gridSize, blockSize, 0, stream>>>((float*)d_ptr, (float*)d_inPtr, numArbors, outFeatures, ny, nx, inFeatures);
-   handleCallError("Permute weights PV to CUDNN");
 }
+
 
 } // namespace PVCuda

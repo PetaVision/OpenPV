@@ -1,5 +1,4 @@
 #include "CudaRecvPost.hpp"
-#include "../arch/cuda/cuda_util.hpp"
 #include "conversions.hcu"
 
 namespace PVCuda{
@@ -229,85 +228,19 @@ void HyPerLayer_recv_post(recv_post_params params, int batch){
    params.postGsyn[postBatchOffset + kTargetRes] += postBuffer[localIndex];
 }
 
-
 #ifdef PV_USE_CUDNN
-void CudaRecvPost::permuteDatastorePVToCudnn(){
-   //Ext pre activity
-   int ny = params.preNy + params.preNbup + params.preNbdn;
-   int nx = params.preNx + params.preNblt + params.preNbrt;
-   int nf = params.preNf;
-   int nbatch = params.nbatch;
-
-   //Calculate grid and work size
-   int numNeurons = nbatch * ny * nx * nf;
-   int blockSize = device->get_max_threads();
-   //Ceil to get all weights
-   int gridSize = ceil((float)numNeurons/blockSize);
-
-   device->syncDevice();
-
-   //Call function
+void CudaRecvPost::callPermuteDatastorePVToCudnnKernel(int gridSize, int blockSize, int nbatch, int ny, int nx, int nf) {
    //Datastore will never get reshaped, so manyScale will always be 1
    CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_preData, params.preData, nbatch, ny, nx, nf, 1, 1, params.diffX, params.diffY);
-   handleCallError("Permute PV to CUDNN");
 }
 
-void CudaRecvPost::permuteGSynPVToCudnn(int channel){
-   //Res post activity
-   int ny = params.nyRes;
-   int nx = params.nxRes;
-   int nf = params.nf;
-   int nbatch = params.nbatch;
-
-   //Calculate grid and work size
-   int numNeurons = nbatch * ny * nx * nf;
-   float* gSynPatchHead = &(params.postGsyn[numNeurons * channel]);
-
-   int blockSize = device->get_max_threads();
-   //Ceil to get all weights
-   int gridSize = ceil((float)numNeurons/blockSize);
-   //Call function
+void CudaRecvPost::callPermuteGSynPVToCudnnKernel(int gridSize, int blockSize, float* gSynPatchHead, int nbatch, int ny, int nx, int nf) {
    CudaPermutePVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_gSyn, gSynPatchHead, nbatch, ny, nx, nf, params.manyScaleX, params.manyScaleY, 0, 0);
-   handleCallError("Permute GSyn PV to CUDNN");
 }
 
-void CudaRecvPost::permuteGSynCudnnToPV(int channel){
-   //Res post activity
-   int ny = params.nyRes;
-   int nx = params.nxRes;
-   int nf = params.nf;
-   int nbatch = params.nbatch;
-
-   //Calculate grid and work size
-   int numNeurons = nbatch * ny * nx * nf;
-   float* gSynPatchHead = &(params.postGsyn[numNeurons * channel]);
-
-   int blockSize = device->get_max_threads();
-   //Ceil to get all weights
-   int gridSize = ceil((float)numNeurons/blockSize);
-   //Call function
+void CudaRecvPost::callPermuteGSynCudnnToPVKernel(int gridSize, int blockSize, float* gSynPatchHead, int nbatch, int ny, int nx, int nf) {
    CudaPermuteCudnnToPV<<<gridSize, blockSize, 0, device->getStream()>>>(gSynPatchHead, params.cudnn_gSyn, nbatch, ny, nx, nf, params.manyScaleX, params.manyScaleY);
-   handleCallError("Permute GSyn CUDNN to PV");
 }
-
-//void CudaRecvPost::permuteWeightsPVToCudnn(){
-//   //outFeatures is number of kernels
-//   int outFeatures = params.nf;
-//
-//   //Rest is patch sizes
-//   int ny = params.nyp;
-//   int nx = params.nxp;
-//   int inFeatures = params.nfp;
-//
-//   //Calculate grid and work size
-//   int numWeights = outFeatures * params.manyScaleX * params.manyScaleY * ny * nx * inFeatures;
-//   int blockSize = device->get_max_threads();
-//   //Ceil to get all weights
-//   int gridSize = ceil((float)numWeights/blockSize);
-//   //Call function
-//   CudaPermuteWeightsPVToCudnn<<<gridSize, blockSize, 0, device->getStream()>>>(params.cudnn_weights, params.weights, outFeatures, ny, nx, inFeatures, params.manyScaleX, params.manyScaleY);
-//   handleCallError("Permute weights PV to CUDNN");
-//}
 
 #endif // PV_USE_CUDNN
 

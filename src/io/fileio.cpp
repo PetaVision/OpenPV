@@ -265,8 +265,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
    const char * RESTRICT curptr = (const char * RESTRICT) ptr;
    long int fpos = pvstream->filepos; // PV_ftell(pvstream);
    if (fpos<0) {
-      fprintf(stderr, "PV_fwrite error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
-      exit(EXIT_FAILURE);
+      pvError().printf("PV_fwrite error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
    }
    long int ftellresult = ftell(pvstream->fp);
    if(pvstream->isfile && fpos != ftellresult) {
@@ -295,13 +294,11 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
             sleep(1);
             int fseekstatus = fseek(pvstream->fp, fpos, SEEK_SET);
             if (fseekstatus != 0) {
-               fprintf(stderr, "PV_fwrite error: Unable to reset file position of \"%s\".  Fatal error: %s\n", pvstream->name, strerror(errno));
-               exit(EXIT_FAILURE);
+               pvError().printf("PV_fwrite error: Unable to reset file position of \"%s\".  Fatal error: %s\n", pvstream->name, strerror(errno));
             }
             long int ftellreturn = ftell(pvstream->fp);
             if (fpos != ftellreturn) {
-               fprintf(stderr, "PV_fwrite error: attempted to reset file position of \"%s\" to %ld, but ftell() returned %ld.  Fatal error.\n", pvstream->name, fpos, ftellreturn);
-               exit(EXIT_FAILURE);
+               pvError().printf("PV_fwrite error: attempted to reset file position of \"%s\" to %ld, but ftell() returned %ld.  Fatal error.\n", pvstream->name, fpos, ftellreturn);
             }
          }
          else {
@@ -369,8 +366,7 @@ size_t PV_fread(void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RES
    long int fpos = pvstream->filepos; // PV_ftell(pvstream);
    clearerr(pvstream->fp);
    if (fpos<0) {
-      fprintf(stderr, "PV_fread error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
-      exit(EXIT_FAILURE);
+      pvError().printf("PV_fread error: unable to determine file position of \"%s\".  Fatal error\n", pvstream->name);
    }
    while (stilltoread != 0UL) {
       size_t charsread_thispass = fread(curptr, 1UL, stilltoread, pvstream->fp);
@@ -1608,12 +1604,10 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    // rank zero process broadcasts params to all processes, so it's enough for rank zero process to do the error checking
    if (comm->commRank()==0) {
       if (numParams != NUM_WGT_PARAMS) {
-         fprintf(stderr, "Reading weights file \"%s\": expected %zu parameters in header but received %d\n", filename, NUM_WGT_PARAMS, numParams);
-         exit(EXIT_FAILURE);
+         pvError().printf("Reading weights file \"%s\": expected %zu parameters in header but received %d\n", filename, NUM_WGT_PARAMS, numParams);
       }
       if (params[NUM_BIN_PARAMS+INDEX_WGT_NXP] != nxp || params[NUM_BIN_PARAMS+INDEX_WGT_NYP] != nyp) {
-         fprintf(stderr, "readWeights error: called with nxp=%d, nyp=%d, but \"%s\" has nxp=%d, nyp=%d\n", nxp, nyp, filename, params[NUM_BIN_PARAMS+INDEX_WGT_NXP], params[NUM_BIN_PARAMS+INDEX_WGT_NYP]);
-         exit(EXIT_FAILURE);
+         pvError().printf("readWeights error: called with nxp=%d, nyp=%d, but \"%s\" has nxp=%d, nyp=%d\n", nxp, nyp, filename, params[NUM_BIN_PARAMS+INDEX_WGT_NXP], params[NUM_BIN_PARAMS+INDEX_WGT_NYP]);
       }
    }
 
@@ -1656,8 +1650,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
    unsigned char * cbuf = (unsigned char *) malloc(localSize);
    if(cbuf == NULL) {
       fprintf(stderr, "Rank %d: writeWeights unable to allocate memory to write to \"%s\": %s", icRank, filename, strerror(errno));
-      fprintf(stderr, "    (nxp=%d, nyp=%d, nfp=%d, numPatchItems=%d, writing weights as %s)\n", nxp, nyp, nfp, numPatchItems, compress ? "bytes" : "floats");
-      exit(EXIT_FAILURE);
+      pvError().printf("    (nxp=%d, nyp=%d, nfp=%d, numPatchItems=%d, writing weights as %s)\n", nxp, nyp, nfp, numPatchItems, compress ? "bytes" : "floats");
    }
 
    const int expected_file_type = patches == NULL ? PVP_KERNEL_FILE_TYPE : PVP_WGT_FILE_TYPE;
@@ -1709,8 +1702,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
             PV_fseek(pvstream, arborStart, SEEK_SET);
             int numRead = PV_fread(cbuf, localSize, 1, pvstream);
             if (numRead != 1) {
-               fprintf(stderr, "readWeights error reading arbor %d of %zu bytes from position %ld of \"%s\".\n", arbor, localSize, arborStart, filename);
-               exit(EXIT_FAILURE);
+               pvError().printf("readWeights error reading arbor %d of %zu bytes from position %ld of \"%s\".\n", arbor, localSize, arborStart, filename);
             };
 #ifdef DEBUG_OUTPUT
             fprintf(stderr, "[%2d]: readWeights: bcast from %d, arbor %d, numPatchItems %d, numPatches==%d, localSize==%zu\n",
@@ -1744,8 +1736,7 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
                   PV_fseek(pvstream, arborStart+globalIndex*patchSize, SEEK_SET);
                   int numread = PV_fread(cbufpatch, patchSize, 1, pvstream);
                   if (numread != 1) {
-                     fprintf(stderr, "readWeights error reading arbor %d, patch %d of %zu bytes from position %ld of \"%s\".\n", arbor, k, patchSize, arborStart+globalIndex*patchSize, filename);
-                     exit(EXIT_FAILURE);
+                     pvError().printf("readWeights error reading arbor %d, patch %d of %zu bytes from position %ld of \"%s\".\n", arbor, k, patchSize, arborStart+globalIndex*patchSize, filename);
                   }
                } // Loop over patches
                if (proc != comm->commSize()) {
@@ -2022,8 +2013,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
    unsigned char * cbuf = (unsigned char *) malloc(localSize);
    if(cbuf == NULL) {
       fprintf(stderr, "Rank %d: writeWeights unable to allocate memory to write to \"%s\": %s", icRank, filename, strerror(errno));
-      fprintf(stderr, "    (nxp=%d, nyp=%d, nfp=%d, numPatchItems=%d, writing weights as %s)\n", nxp, nyp, nfp, numPatchItems, compress ? "bytes" : "floats");
-      exit(EXIT_FAILURE);
+      pvError().printf("    (nxp=%d, nyp=%d, nfp=%d, numPatchItems=%d, writing weights as %s)\n", nxp, nyp, nfp, numPatchItems, compress ? "bytes" : "floats");
    }
 
 #ifdef PV_USE_MPI
@@ -2048,8 +2038,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
    else /* icRank==0 */ {
       void * wgtExtraParams = calloc(NUM_WGT_EXTRA_PARAMS, sizeof(int));
       if (wgtExtraParams == NULL) {
-         fprintf(stderr, "writeWeights unable to allocate memory to write weight params to \"%s\": %s\n", filename, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("writeWeights unable to allocate memory to write weight params to \"%s\": %s\n", filename, strerror(errno));
       }
       int * wgtExtraIntParams = (int *) wgtExtraParams;
       float * wgtExtraFloatParams = (float *) wgtExtraParams;
@@ -2092,8 +2081,7 @@ int writeWeights(const char * filename, Communicator * comm, double timed, bool 
       status = pvp_write_header(pvstream, comm, timed, preLoc, file_type,
                                 datatype, numArbors, true/*extended*/, true/*contiguous*/, numParams, globalSize);
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "Error writing writing weights header to \"%s\".\n", filename);
-         exit(EXIT_FAILURE);
+         pvError().printf("Error writing writing weights header to \"%s\".\n", filename);
       }
 
       // write extra weight parameters
@@ -2459,8 +2447,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
          //TODO for non-spiking
          if (offsetX < 0 || offsetX + layerLoc->nxGlobal > fileLoc->nxGlobal ||
                offsetY < 0 || offsetY + layerLoc->nyGlobal > fileLoc->nyGlobal) {
-            fprintf(stderr, "scatterActivity error: offset window does not completely fit inside frame defined by image file \"%s\". This case has not been implemented yet for nonspiking activity files.\n", pvstream->name);
-            exit(EXIT_FAILURE);
+            pvError().printf("scatterActivity error: offset window does not completely fit inside frame defined by image file \"%s\". This case has not been implemented yet for nonspiking activity files.\n", pvstream->name);
          }
 
          for (int r=0; r<comm_size; r++) {
@@ -2539,13 +2526,11 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
          //Read list of active neurons and their values
          activeNeurons = (int *) calloc(numActive,datasize);
          if (activeNeurons==NULL) {
-            fprintf(stderr, "scatterActivity error for \"%s\": unable to allocate buffer for active neuron locations: %s\n", pvstream->name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("scatterActivity error for \"%s\": unable to allocate buffer for active neuron locations: %s\n", pvstream->name, strerror(errno));
          }
          pvdata_t * vals =  (pvdata_t *) calloc(numActive, datasize);
          if (activeNeurons==NULL) {
-            fprintf(stderr, "scatterActivity error for \"%s\": unable to allocate buffer for active neuron values: %s\n", pvstream->name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("scatterActivity error for \"%s\": unable to allocate buffer for active neuron values: %s\n", pvstream->name, strerror(errno));
          }
          for (int i = 0; i < numActive; i++) {
             foo = PV_fread(&activeNeurons[i], datasize, 1, pvstream);

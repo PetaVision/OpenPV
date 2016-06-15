@@ -193,8 +193,7 @@ int NormalizeBase::addConnToList(HyPerConn * newConn) {
       newList = (HyPerConn **) malloc(sizeof(*connectionList)*(numConnections+1));
    }
    if (newList==NULL) {
-      fprintf(stderr, "Normalizer \"%s\" unable to add connection \"%s\" as connection number %d : %s\n", name, newConn->getName(), numConnections+1, strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("Normalizer \"%s\" unable to add connection \"%s\" as connection number %d : %s\n", name, newConn->getName(), numConnections+1, strerror(errno));
    }
    connectionList = newList;
    connectionList[numConnections] = newConn;

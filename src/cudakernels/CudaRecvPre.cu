@@ -1,5 +1,4 @@
 #include "CudaRecvPre.hpp"
-#include "../arch/cuda/cuda_util.hpp"
 #include "conversions.hcu"
 
 namespace PVCuda{
@@ -95,8 +94,6 @@ int CudaRecvPre::do_run(){
          b
       );
    }
-
-   handleCallError("Cuda recv pre run");
 
    return 0;
 }

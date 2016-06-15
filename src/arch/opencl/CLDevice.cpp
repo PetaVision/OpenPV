@@ -99,8 +99,7 @@ int CLDevice::initialize(int device)
    context = clCreateContext(0, 1, &device_ids[device_id], NULL, NULL, &status);
    if (!context)
    {
-       fprintf(stdout, "Error: Failed to create a compute context for device %d!\n", device);
-       exit(PVCL_CREATE_CONTEXT_FAILURE);
+       pvError().printf("Error: Failed to create a compute context for device %d!\n", device);
    }
 
    // create a command queue

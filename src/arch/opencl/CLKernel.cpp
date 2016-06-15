@@ -66,8 +66,7 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
           fprintf(stdout, "CLKernel: error buffer length may be too small, is %ld, should be %ld\n", sizeof(buffer), len);
           CLDevice::print_error_code(status);
        }
-       fprintf(stdout, "%s\n", buffer);
-       exit(status);
+       pvError().printf("%s\n", buffer);
    }
 
    // Create the compute kernel in the program we wish to run
@@ -204,8 +203,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    }
 
    if (lWorkSizeX * lWorkSizeY > max_local_size) {
-      fprintf(stderr, "Error: Work size of %lu is bigger than max_local_size of %d\n", lWorkSizeX * lWorkSizeY, (int)max_local_size);
-      exit(-1);
+      pvError().printf("Error: Work size of %lu is bigger than max_local_size of %d\n", lWorkSizeX * lWorkSizeY, (int)max_local_size);
    }
 
    // execute the kernel over the entire range of our 1d input data set
@@ -216,8 +214,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    //TODO doesn't work on neuro
    if (profiling) {
       //TODO doesn't work on neuro
-      fprintf(stdout, "Profiling not implemented\n");
-      exit(1);
+      pvError().printf("Profiling not implemented\n");
 
       //TODO - why not use clEnqueueBarrierWithWaitList
       //int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &startMark);
@@ -231,8 +228,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    //TODO doesn't work on neuro
    if (profiling) {
       //TODO doesn't work on neuro
-      fprintf(stdout, "Profiling not implemented\n");
-      exit(1);
+      pvError().printf("Profiling not implemented\n");
 
       //int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &endMark);
       //error |= clFinish(commands);
@@ -319,8 +315,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t gWorkSizeF,
    }
 
    if (lWorkSizeX * lWorkSizeY * lWorkSizeF > max_local_size) {
-      fprintf(stderr, "Error: Work size of %lu is bigger than max_local_size of %d\n", lWorkSizeX * lWorkSizeY * lWorkSizeF, (int)max_local_size);
-      exit(-1);
+      pvError().printf("Error: Work size of %lu is bigger than max_local_size of %d\n", lWorkSizeX * lWorkSizeY * lWorkSizeF, (int)max_local_size);
    }
 
    // execute the kernel over the entire range of our 1d input data set
@@ -331,8 +326,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t gWorkSizeF,
    //TODO doesn't work on neuro
    if (profiling) {
       //TODO doesn't work on neuro
-      fprintf(stdout, "Profiling not implemented\n");
-      exit(1);
+      pvError().printf("Profiling not implemented\n");
 
       //TODO - why not use clEnqueueBarrierWithWaitList
       //int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &startMark);
@@ -351,8 +345,7 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t gWorkSizeF,
    //TODO doesn't work with neuro
    if (profiling) {
       //TODO doesn't work on neuro
-      fprintf(stdout, "Profiling not implemented\n");
-      exit(1);
+      pvError().printf("Profiling not implemented\n");
       //int error = clEnqueueMarkerWithWaitList(commands, nWait, waitList, &endMark);
       //error |= clFinish(commands);
       //if (error) CLDevice::print_error_code(error);

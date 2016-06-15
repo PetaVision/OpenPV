@@ -523,8 +523,7 @@ BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, Para
    if (weightInitStr!=NULL) {
       ParamGroupHandler * weightInitHandler = getGroupHandlerFromList(weightInitStr, coreGroupHandler, customHandlerList, numGroupHandlers, &groupType);
       if (weightInitHandler==NULL || groupType != WeightInitializerGroupType) {
-         fprintf(stderr, "Connection %s error: weightInitType \"%s\" is not recognized.\n", keyword, weightInitStr);
-         exit(EXIT_FAILURE);
+         pvError().printf("Connection %s error: weightInitType \"%s\" is not recognized.\n", keyword, weightInitStr);
       }
       weightInitializer = weightInitHandler->createWeightInitializer(weightInitStr, groupname, hc);
    }
@@ -533,15 +532,13 @@ BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, Para
    if (weightNormalizeStr!=NULL) {
       ParamGroupHandler * normalizeHandler = getGroupHandlerFromList(weightNormalizeStr, coreGroupHandler, customHandlerList, numGroupHandlers, &groupType);
       if (normalizeHandler==NULL || groupType != WeightNormalizerGroupType) {
-         fprintf(stderr, "Connection %s error: normalizeMethod \"%s\" is not recognized.\n", keyword, weightNormalizeStr);
-         exit(EXIT_FAILURE);
+         pvError().printf("Connection %s error: normalizeMethod \"%s\" is not recognized.\n", keyword, weightNormalizeStr);
       }
       weightNormalizer = normalizeHandler->createWeightNormalizer(weightNormalizeStr, groupname, hc);
    }
    ParamGroupHandler * connectionHandler = getGroupHandlerFromList(keyword, coreGroupHandler, customHandlerList, numGroupHandlers, &groupType);
    if (connectionHandler==NULL || groupType != ConnectionGroupType) {
-      fprintf(stderr, "Connection %s error: connection type \"%s\" is not recognized.\n", keyword, weightNormalizeStr);
-      exit(EXIT_FAILURE);
+      pvError().printf("Connection %s error: connection type \"%s\" is not recognized.\n", keyword, weightNormalizeStr);
    }
    BaseConnection * baseConn = connectionHandler->createConnection(keyword, groupname, hc, weightInitializer, weightNormalizer);
    return baseConn;
@@ -550,8 +547,7 @@ BaseConnection * createConnection(CoreParamGroupHandler * coreGroupHandler, Para
 int checknewobject(void * object, const char * kw, const char * name, HyPerCol * hc) {
    int status = PV_SUCCESS;
    if (hc==NULL) {
-      fprintf(stderr, "checknewobject error: HyPerCol argument must be set.\n");
-      exit(EXIT_FAILURE);
+      pvError().printf("checknewobject error: HyPerCol argument must be set.\n");
    }
    int rank = hc->globalRank();
    if( object == NULL ) {

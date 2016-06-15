@@ -4475,8 +4475,7 @@ InitWeights * getWeightInitializer(char const * name, HyPerCol * hc) {
       weightInitializer = dynamic_cast<InitWeights*>(baseObj);
       if (weightInitializer==NULL) {
          if (hc->columnId()==0) {
-            fprintf(stderr, "HyPerConn \"%s\" error: weightInitType \"%s\" is not recognized.\n", name, weightInitStr);
-            exit(EXIT_FAILURE);
+            pvError().printf("HyPerConn \"%s\" error: weightInitType \"%s\" is not recognized.\n", name, weightInitStr);
          }
       }
    }
@@ -4492,8 +4491,7 @@ NormalizeBase * getWeightNormalizer(char const * name, HyPerCol * hc) {
       weightNormalizer = dynamic_cast<NormalizeBase*>(baseObj);
       if (weightNormalizerStr==NULL) {
          if (hc->columnId()==0) {
-            fprintf(stderr, "HyPerConn \"%s\" error: normalizeMethod \"%s\" is not recognized.\n", name, weightNormalizerStr);
-            exit(EXIT_FAILURE);
+            pvError().printf("HyPerConn \"%s\" error: normalizeMethod \"%s\" is not recognized.\n", name, weightNormalizerStr);
          }
       }
    }

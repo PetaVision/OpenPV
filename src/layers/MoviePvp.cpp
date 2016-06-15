@@ -66,8 +66,7 @@ int MoviePvp::checkpointRead(const char * cpDir, double * timef){
       if (timestampFile) {
          assert(parent->columnId()==0);
          if (PV_fseek(timestampFile, timestampFilePos, SEEK_SET) != 0) {
-            fprintf(stderr, "MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("MovieLayer::checkpointRead error: unable to recover initial file position in timestamp file for layer %s: %s\n", name, strerror(errno));
          }
       }
    }
@@ -97,8 +96,7 @@ int MoviePvp::checkpointWrite(const char * cpDir){
 int MoviePvp::initialize(const char * name, HyPerCol * hc) {
    int status = ImagePvp::initialize(name, hc);
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
-      exit(PV_FAILURE);
+      pvError().printf("Image::initialize failed on Movie layer \"%s\".  Exiting.\n", name);
    }
 
    //Update on first timestep
@@ -418,8 +416,7 @@ bool MoviePvp::updateImage(double time, double dt)
              size_t len = outStrStream.str().length();
              int status = PV_fwrite(outStrStream.str().c_str(), sizeof(char), len, timestampFile)==len ? PV_SUCCESS : PV_FAILURE;
              if (status != PV_SUCCESS) {
-                fprintf(stderr, "%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
-                exit(EXIT_FAILURE);
+                pvError().printf("%s \"%s\" error: Movie::updateState failed to write to timestamp file.\n", getKeyword(), name);
              }
              //Flush buffer
              fflush(timestampFile->fp);

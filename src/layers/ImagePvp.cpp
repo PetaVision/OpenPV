@@ -147,8 +147,7 @@ int ImagePvp::readPvp(const char * filename, int frameNumber) {
    if (fileloc.nx != fileloc.nxGlobal || fileloc.ny != fileloc.nyGlobal ||
        nxProcs != 1 || nyProcs != 1 ||
        fileloc.kx0 != 0 || fileloc.ky0 != 0) {
-       fprintf(stderr, "File \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
-       exit(EXIT_FAILURE);
+       pvError().printf("File \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
    }
 
    int bufferSize = fileloc.nx*fileloc.ny*fileloc.nf;

@@ -187,8 +187,7 @@ char * getImageFileName(InterColComm * icComm)
    char * filename = expandLeadingTilde(buffer);
    if (filename==NULL)
    {
-      fprintf(stderr, "Rank %d process unable to allocate space for line from listOfImageFiles file.\n", rank);
-      exit(EXIT_FAILURE);
+      pvError().printf("Rank %d process unable to allocate space for line from listOfImageFiles file.\n", rank);
    }
    return filename;
 }
@@ -219,8 +218,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
          int fid;
          fid=mkstemps(path, strlen(ext));
          if (fid<0) {
-            fprintf(stderr,"Cannot create temp image file for image \"%s\".\n", imageFile);
-            exit(EXIT_FAILURE);
+            pvError().printf("Cannot create temp image file for image \"%s\".\n", imageFile);
          }   
          close(fid);
          std::string systemstring;
@@ -243,8 +241,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
             int status = system(systemstring.c_str());
             if(status != 0){ 
                if(attemptNum == numAttempts - 1){ 
-                  fprintf(stderr, "download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
-                  exit(EXIT_FAILURE);
+                  pvError().printf("download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
                }   
                else{
                   fprintf(stderr, "download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
@@ -263,8 +260,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
       GDALDataset * gdalDataset = PV_GDALOpen(path);
       if (gdalDataset==NULL)
       {
-         fprintf(stderr, "setImageLayerMemoryBuffer: GDALOpen failed for image \"%s\".\n", imageFile);
-         exit(EXIT_FAILURE);
+         pvError().printf("setImageLayerMemoryBuffer: GDALOpen failed for image \"%s\".\n", imageFile);
       }
       imageNx= gdalDataset->GetRasterXSize();
       imageNy = gdalDataset->GetRasterYSize();
@@ -308,8 +304,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
          GDALDataType dataType = gdalDataset->GetRasterBand(iBand+1)->GetRasterDataType(); // Why are we using both GDALGetRasterBand and GDALDataset::GetRasterBand?
          if (dataType != GDT_Byte)
          {
-            fprintf(stderr, "setImageLayerMemoryBuffer: Image file \"%s\", band %d, is not GDT_Byte type.\n", imageFile, iBand+1);
-            exit(EXIT_FAILURE);
+            pvError().printf("setImageLayerMemoryBuffer: Image file \"%s\", band %d, is not GDT_Byte type.\n", imageFile, iBand+1);
          }
       }
 
@@ -331,8 +326,7 @@ int setImageLayerMemoryBuffer(InterColComm * icComm, char const * imageFile, Ima
       if (usingTempFile) {
          int rmstatus = remove(path);
          if (rmstatus) {
-            fprintf(stderr, "remove(\"%s\") failed.  Exiting.\n", path);
-            exit(EXIT_FAILURE);
+            pvError().printf("remove(\"%s\") failed.  Exiting.\n", path);
          }    
       }
       free(path);

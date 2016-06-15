@@ -59,8 +59,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
          fprintf(stdout, "%s succeeded.\n", argv[0]);
       }
       else {
-         fprintf(stderr, "%s failed.\n", argv[0]);
-         exit(status);
+         pvError().printf("%s failed.\n", argv[0]);
       }
    }
    else {

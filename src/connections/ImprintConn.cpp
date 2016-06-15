@@ -276,8 +276,7 @@ int ImprintConn::checkpointRead(const char * cpDir, double * timeptr) {
          PV_fclose(pvstream);
       }
       else {
-         fprintf(stderr, "Unable to read from \"%s\"\n", filename);
-         exit(-1);
+         pvError().printf("Unable to read from \"%s\"\n", filename);
       }
       free(filename);
    }
@@ -305,12 +304,10 @@ int ImprintConn::checkpointWrite(const char * cpDir) {
          PV_fclose(pvstream);
       }
       else {
-         fprintf(stderr, "Unable to write to \"%s\"\n", filename);
-         exit(-1);
+         pvError().printf("Unable to write to \"%s\"\n", filename);
       }
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "Patterns::checkpointWrite error: %s \"%s\" failed writing to %s\n", this->getKeyword(), name, filename);
-         exit(EXIT_FAILURE);
+         pvError().printf("Patterns::checkpointWrite error: %s \"%s\" failed writing to %s\n", this->getKeyword(), name, filename);
       }
       free(filename); filename=NULL;
    }

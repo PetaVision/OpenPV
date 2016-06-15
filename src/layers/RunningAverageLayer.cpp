@@ -63,8 +63,7 @@ int RunningAverageLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
    ioParam_numImagesToAverage(ioFlag);
 
    if(numImagesToAverage <= 0){
-      fprintf(stderr, "RunningAverageLayer: numImagesToAverage must be an integer greater than 0.\n");
-      exit(PV_FAILURE);
+      pvError().printf("RunningAverageLayer: numImagesToAverage must be an integer greater than 0.\n");
    }
    return PV_SUCCESS;
 

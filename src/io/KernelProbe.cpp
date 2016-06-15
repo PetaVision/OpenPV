@@ -87,12 +87,10 @@ int KernelProbe::allocateDataStructures() {
    int status = BaseHyPerConnProbe::allocateDataStructures();
    assert(getTargetConn());
    if (getKernelIndex()<0 || getKernelIndex()>=getTargetHyPerConn()->getNumDataPatches()) {
-      fprintf(stderr, "KernelProbe \"%s\": kernelIndex %d is out of bounds.  (min 0, max %d)\n", name, getKernelIndex(), getTargetHyPerConn()->getNumDataPatches()-1);
-      exit(EXIT_FAILURE);
+      pvError().printf("KernelProbe \"%s\": kernelIndex %d is out of bounds.  (min 0, max %d)\n", name, getKernelIndex(), getTargetHyPerConn()->getNumDataPatches()-1);
    }
    if (getArbor()<0 || getArbor()>=getTargetConn()->numberOfAxonalArborLists()) {
-      fprintf(stderr, "KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n", name, getArbor(), getTargetConn()->numberOfAxonalArborLists()-1);
-      exit(EXIT_FAILURE);
+      pvError().printf("KernelProbe \"%s\": arborId %d is out of bounds. (min 0, max %d)\n", name, getArbor(), getTargetConn()->numberOfAxonalArborLists()-1);
    }
 
    if(outputStream) {

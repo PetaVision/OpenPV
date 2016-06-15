@@ -287,8 +287,7 @@ int PoolingConn::allocateDataStructures(){
             int* thread_buffer = (int*) malloc(sizeof(int) * post->getNumNeurons());
             //float* thread_buffer = (float*) malloc(sizeof(float) * post->getNumNeurons());
             if(!thread_buffer){
-               fprintf(stderr, "HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gateIdxBuffer: %s\n", name, parent->columnId(), sizeof(int) * post->getNumNeurons(), strerror(errno));
-               exit(EXIT_FAILURE);
+               pvError().printf("HyPerLayer \"%s\" error: rank %d unable to allocate %zu memory for thread_gateIdxBuffer: %s\n", name, parent->columnId(), sizeof(int) * post->getNumNeurons(), strerror(errno));
             }
             thread_gateIdxBuffer[i] = thread_buffer;
          }

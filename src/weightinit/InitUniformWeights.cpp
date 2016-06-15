@@ -43,8 +43,7 @@ int InitUniformWeights::calcWeights(/* PVPatch * patch */ pvdata_t * dataStart, 
    InitUniformWeightsParams *weightParamPtr = dynamic_cast<InitUniformWeightsParams*>(weightParams);
 
    if(weightParamPtr==NULL) {
-      fprintf(stderr, "Failed to recast pointer to weightsParam!  Exiting...");
-      exit(1);
+      pvError().printf("Failed to recast pointer to weightsParam!  Exiting...");
    }
 
    const float iWeight = weightParamPtr->getInitWeight();

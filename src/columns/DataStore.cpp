@@ -36,13 +36,11 @@ DataStore::DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSiz
    this->numBuffers = numBuffers;
    this->recvBuffers = (char*) calloc(numBuffers * numLevels * numItems * dataSize, sizeof(char));
    if (this->recvBuffers==NULL) {
-      fprintf(stderr, "DataStore unable to allocate data buffer for %d items, %d buffers and %d levels: %s\n", numItems, numBuffers, numLevels, strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("DataStore unable to allocate data buffer for %d items, %d buffers and %d levels: %s\n", numItems, numBuffers, numLevels, strerror(errno));
    }
    this->lastUpdateTimes = (double *) malloc(numBuffers * numLevels * sizeof(double));
    if (this->lastUpdateTimes==NULL) {
-      fprintf(stderr, "DataStore unable to allocate lastUpdateTimes buffer for %d buffers and %d levels: %s\n", numBuffers, numLevels, strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("DataStore unable to allocate lastUpdateTimes buffer for %d buffers and %d levels: %s\n", numBuffers, numLevels, strerror(errno));
    }
    double infvalue = std::numeric_limits<double>::infinity();
    for (int lvl=0; lvl<numLevels*numBuffers; lvl++) {
@@ -53,13 +51,11 @@ DataStore::DataStore(HyPerCol * hc, int numBuffers, int numItems, size_t dataSiz
    if(this->isSparse_flag){
       this->activeIndices = (unsigned int*) calloc(numBuffers * numLevels * numItems, sizeof(unsigned int));
       if (this->activeIndices==NULL) {
-         fprintf(stderr, "DataStore unable to allocate activeIndices buffer for %d items, %d buffers and %d levels: %s\n", numItems, numBuffers, numLevels, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("DataStore unable to allocate activeIndices buffer for %d items, %d buffers and %d levels: %s\n", numItems, numBuffers, numLevels, strerror(errno));
       }
       this->numActive = (long *) calloc(numBuffers * numLevels, sizeof(long));
       if (this->numActive==NULL) {
-         fprintf(stderr, "DataStore unable to allocate numActive buffer for %d buffers and %d levels: %s\n", numBuffers, numLevels, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("DataStore unable to allocate numActive buffer for %d buffers and %d levels: %s\n", numBuffers, numLevels, strerror(errno));
       }
    }
    else{

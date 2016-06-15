@@ -219,13 +219,11 @@ int testioparams(PV_Init* initObj, int rank) {
    initObj->initialize();
    HyPerCol * hc = build(initObj, NULL, 0);
    if (hc == NULL) {
-      fprintf(stderr, "testioparams error: unable to build HyPerCol.\n");
-      exit(EXIT_FAILURE);
+      pvError().printf("testioparams error: unable to build HyPerCol.\n");
    }
    int status = hc->run(); // Needed to generate pv.params file
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "testioparams error: run to generate pv.params file failed.\n");
-      exit(EXIT_FAILURE);
+      pvError().printf("testioparams error: run to generate pv.params file failed.\n");
    }
    const char * paramsfile = hc->getPrintParamsFilename();
    std::string paramsfileString = paramsfile;

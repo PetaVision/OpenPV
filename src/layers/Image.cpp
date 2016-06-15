@@ -165,8 +165,7 @@ int Image::readImageFileGDAL(char const * filename, PVLayerLoc const * loc) {
          fac = 1.0f / 65535.0f;  // normalize to 1.0
       }
       else{
-         fprintf(stderr, "Image data type %s in file \"%s\" is not implemented.\n", GDALGetDataTypeName(dataType), filename);
-         exit(EXIT_FAILURE);
+         pvError().printf("Image data type %s in file \"%s\" is not implemented.\n", GDALGetDataTypeName(dataType), filename);
       }
       for( int n=0; n<numTotal; n++ ) {
          imageData[n] *= fac;
@@ -409,8 +408,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       GDALClose(dataset);
    }
 #else
-   fprintf(stderr, GDAL_CONFIG_ERR_STR);
-   exit(1);
+   pvError().printf(GDAL_CONFIG_ERR_STR);
 #endif // PV_USE_GDAL
 
    if (status == 0) {
@@ -478,8 +476,7 @@ int Image::readImage(const char * filename)
       int fid;
       fid=mkstemps(path, strlen(ext));
       if (fid<0) {
-         fprintf(stderr,"Cannot create temp image file.\n");
-         exit(EXIT_FAILURE);
+         pvError().printf("Cannot create temp image file.\n");
       }
       close(fid);
       std::string systemstring;
@@ -502,8 +499,7 @@ int Image::readImage(const char * filename)
          int status = system(systemstring.c_str());
          if(status != 0){
             if(attemptNum == numAttempts - 1){
-               fprintf(stderr, "download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
-               exit(EXIT_FAILURE);
+               pvError().printf("download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
             }
             else{
                fprintf(stderr, "download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
@@ -524,8 +520,7 @@ int Image::readImage(const char * filename)
    free(colorbandtypes); colorbandtypes = NULL;
 
    if(status != 0) {
-      fprintf(stderr, "Movie: Unable to get image info for \"%s\"\n", filename);
-      exit(EXIT_FAILURE);
+      pvError().printf("Movie: Unable to get image info for \"%s\"\n", filename);
    }
 
    delete[] imageData;
@@ -533,15 +528,13 @@ int Image::readImage(const char * filename)
 
    status = readImageFileGDAL(path, &imageLoc);
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "Image::readImage failed for layer \"%s\"\n", getName());
-      exit(EXIT_FAILURE);
+      pvError().printf("Image::readImage failed for layer \"%s\"\n", getName());
    }
 
    if (usingTempFile) {
       int rmstatus = remove(path);
       if (rmstatus) {
-         fprintf(stderr, "remove(\"%s\") failed.  Exiting.\n", path);
-         exit(EXIT_FAILURE);
+         pvError().printf("remove(\"%s\") failed.  Exiting.\n", path);
       }
    }
    free(path);

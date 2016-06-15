@@ -1,6 +1,7 @@
 #include <utils/conversions.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "utils/PVLog.hpp"
 
 //
 // A replacement for globalIndexFromLocal from conversions.h.
@@ -47,8 +48,7 @@ int main(int argc, char* argv[])
       kg = globalIndexFromLocal_nompi(kl, loc);
       kb = kIndexExtended(kl, nx, ny, nf, nb, nb, nb, nb); // All margin widths the same.  Should generalize
       if (kb != kg) {
-         fprintf(stdout, "FAILED:TEST_EXTEND_BORDER: (kl,kb) = (%d,%d)\n", kl, kb);
-         exit(1);
+         pvError().printf("FAILED:TEST_EXTEND_BORDER: (kl,kb) = (%d,%d)\n", kl, kb);
       }
    }
 

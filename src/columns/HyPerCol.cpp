@@ -421,8 +421,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       assert(checkpointReadDir==NULL);
       checkpointReadDir = (char *) calloc(PV_PATH_MAX, sizeof(char));
       if(checkpointReadDir==NULL) {
-         fprintf(stderr, "%s error: unable to allocate memory for path to checkpoint read directory.\n", programName);
-         exit(EXIT_FAILURE);
+         pvError().printf("%s error: unable to allocate memory for path to checkpoint read directory.\n", programName);
       }
       if (columnId()==0) {
          struct stat statbuf;
@@ -434,13 +433,11 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
             if (statbuf.st_mode & S_IFDIR) {
                strncpy(checkpointReadDir, cpDirString.c_str(), PV_PATH_MAX);
                if (checkpointReadDir[PV_PATH_MAX-1]) {
-                  fprintf(stderr, "%s error: checkpoint read directory \"%s\" too long.\n", programName, cpDirString.c_str());
-                  exit(EXIT_FAILURE);
+                  pvError().printf("%s error: checkpoint read directory \"%s\" too long.\n", programName, cpDirString.c_str());
                }
             }
             else {
-               fprintf(stderr, "%s error: checkpoint read directory \"%s\" is not a directory.\n", programName, cpDirString.c_str());
-               exit(EXIT_FAILURE);
+               pvError().printf("%s error: checkpoint read directory \"%s\" is not a directory.\n", programName, cpDirString.c_str());
             }
          }
          else if (checkpointWriteFlag) {
@@ -475,19 +472,16 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
                   }
                   int pathlen=snprintf(checkpointReadDir, PV_PATH_MAX, "%sCheckpoint%ld", cpDirString.c_str(), cp_index);
                   if (pathlen>PV_PATH_MAX) {
-                     fprintf(stderr, "%s error: checkpoint read directory \"%s\" too long.\n", programName, cpDirString.c_str());
-                     exit(EXIT_FAILURE);
+                     pvError().printf("%s error: checkpoint read directory \"%s\" too long.\n", programName, cpDirString.c_str());
                   }
 
                }
                else {
-                  fprintf(stderr, "%s error: checkpoint read directory \"%s\" is not a directory.\n", programName, checkpointWriteDir);
-                  exit(EXIT_FAILURE);
+                  pvError().printf("%s error: checkpoint read directory \"%s\" is not a directory.\n", programName, checkpointWriteDir);
                }
             }
             else if (errno == ENOENT) {
-               fprintf(stderr, "%s error: restarting but neither Last nor checkpointWriteDir directory \"%s\" exists.\n", programName, checkpointWriteDir);
-               exit(EXIT_FAILURE);
+               pvError().printf("%s error: restarting but neither Last nor checkpointWriteDir directory \"%s\" exists.\n", programName, checkpointWriteDir);
             }
          }
          else {
@@ -508,15 +502,13 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
          splitCheckpoint[count] = strdup(tmp);
          count++;
          if(count > icComm->numCommBatches()){
-            fprintf(stderr, "Checkpoint read dir parsing error: Specified too many colon seperated checkpoint read directories. Only specify %d checkpoint directories.\n", icComm->numCommBatches());
-            exit(EXIT_FAILURE);
+            pvError().printf("Checkpoint read dir parsing error: Specified too many colon seperated checkpoint read directories. Only specify %d checkpoint directories.\n", icComm->numCommBatches());
          }
          tmp = strtok(NULL, ":");
       }
       //Make sure number matches up
       if(count != icComm->numCommBatches()){
-         fprintf(stderr, "Checkpoint read dir parsing error: Specified not enough colon seperated checkpoint read directories. Running with %d batch MPIs but only %zu colon seperated checkpoint directories.\n", icComm->numCommBatches(), count);
-         exit(EXIT_FAILURE);
+         pvError().printf("Checkpoint read dir parsing error: Specified not enough colon seperated checkpoint read directories. Running with %d batch MPIs but only %zu colon seperated checkpoint directories.\n", icComm->numCommBatches(), count);
       }
       
       //Grab this rank's actual checkpointReadDir and replace with checkpointReadDir
@@ -553,38 +545,31 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    //Allocate timescales for batches
    timeScale = (double*) malloc(sizeof(double) * nbatch);
    if(timeScale ==NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for timeScale buffer.\n", programName);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s error: unable to allocate memory for timeScale buffer.\n", programName);
    }
    timeScaleMax = (double*) malloc(sizeof(double) * nbatch);
    if(timeScaleMax ==NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for timeScaleMax buffer.\n", programName);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s error: unable to allocate memory for timeScaleMax buffer.\n", programName);
    }
    timeScaleMax2 = (double*) malloc(sizeof(double) * nbatch);
    if(timeScaleMax2 ==NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for timeScaleMax2 buffer.\n", programName);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s error: unable to allocate memory for timeScaleMax2 buffer.\n", programName);
    }
    timeScaleTrue = (double*) malloc(sizeof(double) * nbatch);
    if(timeScaleTrue ==NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for timeScaleTrue buffer.\n", programName);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s error: unable to allocate memory for timeScaleTrue buffer.\n", programName);
    }
    oldTimeScale = (double*) malloc(sizeof(double) * nbatch);
    if(oldTimeScale ==NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for oldTimeScale buffer.\n", programName);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s error: unable to allocate memory for oldTimeScale buffer.\n", programName);
    }
    oldTimeScaleTrue = (double*) malloc(sizeof(double) * nbatch);
    if(oldTimeScaleTrue ==NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for oldTimeScaleTrue buffer.\n", programName);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s error: unable to allocate memory for oldTimeScaleTrue buffer.\n", programName);
    }
    deltaTimeAdapt = (double*) malloc(sizeof(double) * nbatch);
    if(deltaTimeAdapt == NULL) {
-      fprintf(stderr, "%s error: unable to allocate memory for deltaTimeAdapt buffer.\n", programName);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s error: unable to allocate memory for deltaTimeAdapt buffer.\n", programName);
    }
    //Initialize timeScales to 1
    for(int b = 0; b < nbatch; b++){
@@ -771,8 +756,7 @@ void HyPerCol::ioParamString(enum ParamsIOFlag ioFlag, const char * group_name, 
       if (param_string!=NULL) {
          *value = strdup(param_string);
          if (*value==NULL) {
-            fprintf(stderr, "Global rank %d process unable to copy param %s in group \"%s\": %s\n", globalRank(), param_name, group_name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("Global rank %d process unable to copy param %s in group \"%s\": %s\n", globalRank(), param_name, group_name, strerror(errno));
          }
       }
       else {
@@ -792,8 +776,7 @@ void HyPerCol::ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * grou
       if (param_string!=NULL) {
          *value = strdup(param_string);
          if (*value==NULL) {
-            fprintf(stderr, "Global Rank %d process unable to copy param %s in group \"%s\": %s\n", globalRank(), param_name, group_name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("Global Rank %d process unable to copy param %s in group \"%s\": %s\n", globalRank(), param_name, group_name, strerror(errno));
          }
       }
       else {
@@ -1021,8 +1004,7 @@ void HyPerCol::ioParam_randomSeed(enum ParamsIOFlag ioFlag) {
          }
       }
       if (random_seed < 10000000) {
-         fprintf(stderr, "Error: random seed %u is too small. Use a seed of at least 10000000.\n", random_seed);
-         exit(EXIT_FAILURE);
+         pvError().printf("Error: random seed %u is too small. Use a seed of at least 10000000.\n", random_seed);
       }
 
       random_seed_obj = random_seed;
@@ -1056,16 +1038,14 @@ void HyPerCol::ioParam_nBatch(enum ParamsIOFlag ioFlag) {
 void HyPerCol::ioParam_filenamesContainLayerNames(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "filenamesContainLayerNames", &filenamesContainLayerNames, 0);
    if(filenamesContainLayerNames < 0 || filenamesContainLayerNames > 2) {
-      fprintf(stderr,"HyPerCol %s: filenamesContainLayerNames must have the value 0, 1, or 2.\n", name);
-      exit(EXIT_FAILURE);
+      pvError().printf("HyPerCol %s: filenamesContainLayerNames must have the value 0, 1, or 2.\n", name);
    }
 }
 
 void HyPerCol::ioParam_filenamesContainConnectionNames(enum ParamsIOFlag ioFlag) {
    ioParamValue(ioFlag, name, "filenamesContainConnectionNames", &filenamesContainConnectionNames, 0);
    if(filenamesContainConnectionNames < 0 || filenamesContainConnectionNames > 2) {
-      fprintf(stderr,"HyPerCol %s: filenamesContainConnectionNames must have the value 0, 1, or 2.\n", name);
-      exit(EXIT_FAILURE);
+      pvError().printf("HyPerCol %s: filenamesContainConnectionNames must have the value 0, 1, or 2.\n", name);
    }
 }
 
@@ -1224,8 +1204,7 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
             }
             if (cpWriteClockUnitString==NULL) {
                // would get executed if a strdup(cpWriteClockUnitString) statement fails.
-               fprintf(stderr, "Error in global rank %d process converting checkpointWriteClockUnit: %s\n", globalRank(), strerror(errno));
-               exit(EXIT_FAILURE);
+               pvError().printf("Error in global rank %d process converting checkpointWriteClockUnit: %s\n", globalRank(), strerror(errno));
             }
          }
       }
@@ -1379,8 +1358,7 @@ static inline int _mkdir(const char *dir) {
    int num_chars_needed = snprintf(tmp,sizeof(tmp),"%s",dir);
    if (num_chars_needed > PV_PATH_MAX) {
       fflush(stdout);
-      fprintf(stderr,"Path \"%s\" is too long.",dir);
-      exit(EXIT_FAILURE);
+      pvError().printf("Path \"%s\" is too long.",dir);
    }
 
    int len = strlen(tmp);
@@ -1429,8 +1407,7 @@ int HyPerCol::ensureDirExists(const char * dirname) {
             if( mkdirstatus != 0 ) {
                if(attemptNum == numAttempts - 1){
                   fflush(stdout);
-                  fprintf(stderr, "Directory \"%s\" could not be created: %s; Exiting\n", dirname, strerror(errno));
-                  exit(EXIT_FAILURE);
+                  pvError().printf("Directory \"%s\" could not be created: %s; Exiting\n", dirname, strerror(errno));
                }
                else{
                   fflush(stdout);
@@ -1520,8 +1497,7 @@ int HyPerCol::addLayer(HyPerLayer * l)
       layerArraySize += RESIZE_ARRAY_INCR;
       HyPerLayer ** newLayers = (HyPerLayer **) realloc(layers, layerArraySize * sizeof(HyPerLayer *));
       if (newLayers==NULL) {
-         fprintf(stderr, "Global rank %d process unable to append layer %d (\"%s\") to list of layers: %s", globalRank(), numLayers, l->getName(), strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("Global rank %d process unable to append layer %d (\"%s\") to list of layers: %s", globalRank(), numLayers, l->getName(), strerror(errno));
       }
       layers = newLayers;
       // HyPerLayer ** newLayers = (HyPerLayer **) malloc( layerArraySize * sizeof(HyPerLayer *) );
@@ -1575,8 +1551,7 @@ int HyPerCol::addNormalizer(NormalizeBase * normalizer) {
       normalizerArraySize += RESIZE_ARRAY_INCR;
       NormalizeBase ** newNormalizers = (NormalizeBase **) realloc(normalizers, normalizerArraySize*sizeof(NormalizeBase *));
       if(newNormalizers==NULL) {
-         fprintf(stderr, "HyPerCol \"%s\" on global rank %d unable to resize normalizers array to size %zu\n", name, globalRank(), normalizerArraySize);
-         exit(EXIT_FAILURE);
+         pvError().printf("HyPerCol \"%s\" on global rank %d unable to resize normalizers array to size %zu\n", name, globalRank(), normalizerArraySize);
       }
       normalizers = newNormalizers;
    }
@@ -1620,8 +1595,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       status = processParams(printParamsFileString.c_str());
       MPI_Barrier(icCommunicator()->communicator());
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "HyPerCol \"%s\" failed to run.\n", name);
-         exit(EXIT_FAILURE);
+         pvError().printf("HyPerCol \"%s\" failed to run.\n", name);
       }
       if (pv_initObj->getArguments()->getDryRunFlag()) { return PV_SUCCESS; }
 
@@ -1754,8 +1728,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          int chars_printed = snprintf(cpDir, PV_PATH_MAX, "%s/Checkpoint%0*ld", checkpointWriteDir, stepFieldWidth, currentStep);
          if(chars_printed >= PV_PATH_MAX) {
             if (globalRank()==0) {
-               fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
-               exit(EXIT_FAILURE);
+               pvError().printf("HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
             }
          }
          if ( !checkpointReadFlag || strcmp(checkpointReadDir, cpDir) ) {
@@ -2670,13 +2643,11 @@ int HyPerCol::checkpointRead() {
       char timestamppath[PV_PATH_MAX];
       int chars_needed = snprintf(timestamppath, PV_PATH_MAX, "%s/timeinfo.bin", checkpointReadDir);
       if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", checkpointReadDir);
-         exit(EXIT_FAILURE);
+         pvError().printf("HyPerCol::checkpointRead error: path \"%s/timeinfo.bin\" is too long.\n", checkpointReadDir);
       }
       PV_Stream * timestampfile = PV_fopen(timestamppath,"r",false/*verifyWrites*/);
       if (timestampfile == NULL) {
-         fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
-         exit(EXIT_FAILURE);
+         pvError().printf("HyPerCol::checkpointRead error: unable to open \"%s\" for reading.\n", timestamppath);
       }
       long int startpos = getPV_StreamFilepos(timestampfile);
       PV_fread(&timestamp,1,timestamp_size,timestampfile);
@@ -2741,8 +2712,7 @@ int HyPerCol::checkpointRead() {
          char timescalepath[PV_PATH_MAX];
          int chars_needed = snprintf(timescalepath, PV_PATH_MAX, "%s/timescaleinfo.bin", checkpointReadDir);
          if (chars_needed >= PV_PATH_MAX) {
-            fprintf(stderr, "HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", checkpointReadDir);
-            exit(EXIT_FAILURE);
+            pvError().printf("HyPerCol::checkpointRead error: path \"%s/timescaleinfo.bin\" is too long.\n", checkpointReadDir);
          }
          PV_Stream * timescalefile = PV_fopen(timescalepath,"r",false/*verifyWrites*/);
          if (timescalefile == NULL) {
@@ -2847,16 +2817,14 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       char timeinfofilename[PV_PATH_MAX];
       int chars_needed = snprintf(timeinfofilename, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
       if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "HyPerCol::checkpointWrite error: path \"%s/timeinfo.bin\" is too long.\n", cpDir);
-         exit(EXIT_FAILURE);
+         pvError().printf("HyPerCol::checkpointWrite error: path \"%s/timeinfo.bin\" is too long.\n", cpDir);
       }
       int statstatus = stat(timeinfofilename, &timeinfostat);
       if (statstatus == 0) {
          fprintf(stderr, "Warning: Checkpoint directory \"%s\" has existing timeinfo.bin, which is now being deleted.\n", cpDir);
          int unlinkstatus = unlink(timeinfofilename);
          if (unlinkstatus != 0) {
-            fprintf(stderr, "Error deleting \"%s\": %s\n", timeinfofilename, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("Error deleting \"%s\": %s\n", timeinfofilename, strerror(errno));
          }
       }
    }
@@ -2882,8 +2850,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       const char * timerpath = timerpathstring.c_str();
       FileStream timerstream(timerpath, std::ios_base::out, getVerifyWrites());
       if (timerstream.outStream().fail()) {
-         fprintf(stderr, "Unable to open \"%s\" for checkpointing timer information: %s\n", timerpath, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("Unable to open \"%s\" for checkpointing timer information: %s\n", timerpath, strerror(errno));
       }
       writeTimers(timerstream.outStream());
 
@@ -2908,28 +2875,23 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       assert(timescalefile);
       for(int b = 0; b < nbatch; b++){
          if (PV_fwrite(&timeScale[b],1,sizeof(double),timescalefile) != sizeof(double)) {
-            fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScale to %s\n", timescalefile->name);
-            exit(EXIT_FAILURE);
+            pvError().printf("HyPerCol::checkpointWrite error writing timeScale to %s\n", timescalefile->name);
          }
          if (PV_fwrite(&timeScaleTrue[b],1,sizeof(double),timescalefile) != sizeof(double)) {
-            fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleTrue to %s\n", timescalefile->name);
-            exit(EXIT_FAILURE);
+            pvError().printf("HyPerCol::checkpointWrite error writing timeScaleTrue to %s\n", timescalefile->name);
          }
          if (useAdaptMethodExp1stOrder) {
             if (PV_fwrite(&timeScaleMax[b],1,sizeof(double),timescalefile) != sizeof(double)) {
-               fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleMax to %s\n", timescalefile->name);
-               exit(EXIT_FAILURE);
+               pvError().printf("HyPerCol::checkpointWrite error writing timeScaleMax to %s\n", timescalefile->name);
             }
          }
          if (useAdaptMethodExp1stOrder) {
             if (PV_fwrite(&timeScaleMax2[b],1,sizeof(double),timescalefile) != sizeof(double)) {
-               fprintf(stderr, "HyPerCol::checkpointWrite error writing timeScaleMax2 to %s\n", timescalefile->name);
-               exit(EXIT_FAILURE);
+               pvError().printf("HyPerCol::checkpointWrite error writing timeScaleMax2 to %s\n", timescalefile->name);
             }
          }
          if (PV_fwrite(&deltaTimeAdapt[b],1,sizeof(double),timescalefile) != sizeof(double)) {
-            fprintf(stderr, "HyPerCol::checkpointWrite error writing deltaTimeAdapt to %s\n", timescalefile->name);
-            exit(EXIT_FAILURE);
+            pvError().printf("HyPerCol::checkpointWrite error writing deltaTimeAdapt to %s\n", timescalefile->name);
          }
       }
       PV_fclose(timescalefile);
@@ -3039,8 +3001,7 @@ int HyPerCol::outputParams(char const * path) {
    char * tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
    if (tmp==NULL) {
       fflush(stdout);
-      fprintf(stderr, "HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
    }
    char * containingdir = dirname(tmp);
    status = ensureDirExists(containingdir); // must be called by all processes, even though only rank 0 creates the directory
@@ -3088,8 +3049,7 @@ int HyPerCol::outputParams(char const * path) {
    // Parent HyPerCol params
    status = ioParams(PARAMS_IO_WRITE);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
-      exit(EXIT_FAILURE);
+      pvError().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
    }
 
    // HyPerLayer params
@@ -3097,8 +3057,7 @@ int HyPerCol::outputParams(char const * path) {
       HyPerLayer * layer = layers[l];
       status = layer->ioParams(PARAMS_IO_WRITE);
       if( status != PV_SUCCESS ) {
-         fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
-         exit(EXIT_FAILURE);
+         pvError().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
       }
    }
 
@@ -3107,8 +3066,7 @@ int HyPerCol::outputParams(char const * path) {
       BaseConnection * connection = connections[c];
       status = connection->ioParams(PARAMS_IO_WRITE);
       if( status != PV_SUCCESS ) {
-         fprintf(stderr, "outputParams: Error copying params to \"%s\"\n", printParamsPath);
-         exit(EXIT_FAILURE);
+         pvError().printf("outputParams: Error copying params to \"%s\"\n", printParamsPath);
       }
    }
 
@@ -3191,8 +3149,7 @@ char * HyPerCol::pathInCheckpoint(const char * cpDir, const char * objectName, c
    size_t n = strlen(cpDir)+strlen("/")+strlen(objectName)+strlen(suffix)+(size_t) 1; // the +1 leaves room for the terminating null
    char * filename = (char *) malloc(n);
    if (filename==NULL) {
-      fprintf(stderr, "Error: rank %d process unable to allocate filename \"%s/%s%s\": %s\n", columnId(), cpDir, objectName, suffix, strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("Error: rank %d process unable to allocate filename \"%s/%s%s\": %s\n", columnId(), cpDir, objectName, suffix, strerror(errno));
    }
    int chars_needed = snprintf(filename, n, "%s/%s%s", cpDir, objectName, suffix);
    assert(chars_needed < n);
@@ -3218,8 +3175,7 @@ int HyPerCol::exitRunLoop(bool exitOnFinish)
       }
       if(chars_printed >= PV_PATH_MAX) {
          if (icComm->commRank()==0) {
-            fprintf(stderr,"HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
-            exit(EXIT_FAILURE);
+            pvError().printf("HyPerCol::run error.  Checkpoint directory \"%s/Checkpoint%ld\" is too long.\n", checkpointWriteDir, currentStep);
          }
       }
       checkpointWrite(cpDir);
@@ -3352,8 +3308,7 @@ int HyPerCol::initializeThreads(char const * in_device)
          //Convert stoken to integer
          for(std::string::const_iterator k = stoken.begin(); k != stoken.end(); ++k){
             if(!isdigit(*k)){
-               fprintf(stderr, "Device specification error: %s contains unrecognized characters. Must be comma seperated integers greater or equal to 0 with no other characters allowed (including spaces).\n", in_device);
-               exit(EXIT_FAILURE);
+               pvError().printf("Device specification error: %s contains unrecognized characters. Must be comma seperated integers greater or equal to 0 with no other characters allowed (including spaces).\n", in_device);
             }
          }
          deviceVec.push_back(atoi(stoken.c_str()));
@@ -3367,8 +3322,7 @@ int HyPerCol::initializeThreads(char const * in_device)
          device = deviceVec[icComm->globalCommRank()];
       }
       else{
-         fprintf(stderr, "Device specification error: Number of devices specified (%zu) must be either 1 or >= than number of mpi processes (%d).\n", deviceVec.size(), numMpi);
-         exit(EXIT_FAILURE);
+         pvError().printf("Device specification error: Number of devices specified (%zu) must be either 1 or >= than number of mpi processes (%d).\n", deviceVec.size(), numMpi);
       }
       pvInfo() << "Global MPI Process " << icComm->globalCommRank() << " using device " << device << "\n";
    }
@@ -3577,18 +3531,15 @@ int HyPerCol::writeArrayToFile(const char * cp_dir, const char * group_name, con
       char filename[PV_PATH_MAX];
       int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, group_name, val_name);
       if (chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "writeArrayToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
-         exit(EXIT_FAILURE);
+         pvError().printf("writeArrayToFile error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
       }
       PV_Stream * pvstream = PV_fopen(filename, "w", getVerifyWrites());
       if (pvstream==NULL) {
-         fprintf(stderr, "writeArrayToFile error: unable to open path %s for writing.\n", filename);
-         exit(EXIT_FAILURE);
+         pvError().printf("writeArrayToFile error: unable to open path %s for writing.\n", filename);
       }
       int num_written = PV_fwrite(val, sizeof(T), count, pvstream);
       if (num_written != count) {
-         fprintf(stderr, "writeArrayToFile error while writing to %s.\n", filename);
-         exit(EXIT_FAILURE);
+         pvError().printf("writeArrayToFile error while writing to %s.\n", filename);
       }
       PV_fclose(pvstream);
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.txt", cp_dir, group_name, val_name);
@@ -3596,8 +3547,7 @@ int HyPerCol::writeArrayToFile(const char * cp_dir, const char * group_name, con
       std::ofstream fs;
       fs.open(filename);
       if (!fs) {
-         fprintf(stderr, "writeArrayToFile error: unable to open path %s for writing.\n", filename);
-         exit(EXIT_FAILURE);
+         pvError().printf("writeArrayToFile error: unable to open path %s for writing.\n", filename);
       }
       for(int i = 0; i < count; i++){
          fs << val[i];
@@ -3632,8 +3582,7 @@ int HyPerCol::readArrayFromFile(const char * cp_dir, const char * group_name, co
       int chars_needed;
       chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_%s.bin", cp_dir, group_name, val_name); // Could use pathInCheckpoint if not for the .bin
       if(chars_needed >= PV_PATH_MAX) {
-         fprintf(stderr, "HyPerLayer::readArrayFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
-         exit(EXIT_FAILURE);
+         pvError().printf("HyPerLayer::readArrayFloat error: path %s/%s_%s.bin is too long.\n", cp_dir, group_name, val_name);
       }
       PV_Stream * pvstream = PV_fopen(filename, "r", getVerifyWrites());
       for(int i = 0; i < count; i++){

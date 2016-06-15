@@ -28,8 +28,7 @@ int main(int argc, char * argv[]) {
    status = pv_obj.initialize();
    if (status != PV_SUCCESS) {
       fflush(stdout);
-      fprintf(stderr, "%s: PV_Init::initialize() failed on process with PID=%d\n", argv[0], getpid()); 
-      exit(EXIT_FAILURE);
+      pvError().printf("%s: PV_Init::initialize() failed on process with PID=%d\n", argv[0], getpid()); 
    }
 
    if (pv_obj.isExtraProc()) { return EXIT_SUCCESS; }
@@ -39,23 +38,20 @@ int main(int argc, char * argv[]) {
    status = deleteGeneratedFiles(&pv_obj);
    if (status!=PV_SUCCESS) {
       fflush(stdout);
-      fprintf(stderr, "%s: error cleaning generated files from any previous run.\n", argv[0]);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s: error cleaning generated files from any previous run.\n", argv[0]);
    }
 
    PV::HyPerCol * hc = build(&pv_obj);
    if (hc==NULL) {
       fflush(stdout);
-      fprintf(stderr, "%s: build() failed on process %d\n", argv[0], rank);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s: build() failed on process %d\n", argv[0], rank);
    }
 
    // Generate the cleaned-up params file
    status = hc->processParams(PROCESSED_PARAMS);
    if (status != PV_SUCCESS) {
       fflush(stdout);
-      fprintf(stderr, "%s: HyPerCol::processParams failed on process %d\n", argv[0], rank);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s: HyPerCol::processParams failed on process %d\n", argv[0], rank);
    }
 
    // Run the column with the raw params file, sending output to directory "output-generate/"
@@ -63,8 +59,7 @@ int main(int argc, char * argv[]) {
    status = rebuildandrun(&pv_obj);
    if (status != PV_SUCCESS) {
       fflush(stdout);
-      fprintf(stderr, "%s: running with raw params file failed on process %d\n", argv[0], rank);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s: running with raw params file failed on process %d\n", argv[0], rank);
    }
 
    // Run the column with the cleaned-up params file, sending output to directory "output-verify/"
@@ -73,16 +68,14 @@ int main(int argc, char * argv[]) {
    status = rebuildandrun(&pv_obj);
    if (status != PV_SUCCESS) {
       fflush(stdout);
-      fprintf(stderr, "%s: running with processed params file failed on process %d\n", argv[0], rank);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s: running with processed params file failed on process %d\n", argv[0], rank);
    }
 
    if (rank==0) {
       status = compareOutputs();
       if (status != PV_SUCCESS) {
          fflush(stdout);
-         fprintf(stderr, "%s: compareOutputs() failed with return code %d.\n", argv[0], status);
-         exit(EXIT_FAILURE);
+         pvError().printf("%s: compareOutputs() failed with return code %d.\n", argv[0], status);
       }
    }
 

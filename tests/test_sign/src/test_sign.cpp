@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "utils/PVLog.hpp"
 
 static int zero(float x)
 {
@@ -15,26 +16,22 @@ int main(int argc, char* argv[])
 
   s = sign(3.3);
   if ( !zero(1.0 - s) ) {
-      fprintf(stdout, "FAILED:TEST_SIGN: (3.3)\n");
-      exit(1);
+      pvError().printf("FAILED:TEST_SIGN: (3.3)\n");
   }
 
   s = sign(.001);
   if ( !zero(1.0 - s) ) {
-      fprintf(stdout, "FAILED:TEST_SIGN: (.001)\n");
-      exit(1);
+      pvError().printf("FAILED:TEST_SIGN: (.001)\n");
   }
 
   s = sign(-.001);
   if ( !zero(-1.0 - s) ) {
-      fprintf(stdout, "FAILED:TEST_SIGN: (-.001)\n");
-      exit(1);
+      pvError().printf("FAILED:TEST_SIGN: (-.001)\n");
   }
 
   s = sign(0.0);
   if ( !zero(1.0 - s) ) {
-      fprintf(stdout, "FAILED:TEST_SIGN: (0.0)\n");
-      exit(1);
+      pvError().printf("FAILED:TEST_SIGN: (0.0)\n");
   }
 
   return 0;

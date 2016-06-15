@@ -88,8 +88,7 @@ int CudaDevice::initialize(int device)
    }
    cudnnStatus = cudnnSetStream(tmpHandle, stream);
    if(cudnnStatus != CUDNN_STATUS_SUCCESS){
-      fprintf(stderr, "cudnnSetStream error: %s\n", cudnnGetErrorString(cudnnStatus));
-      exit(EXIT_FAILURE);
+      pvError().printf("cudnnSetStream error: %s\n", cudnnGetErrorString(cudnnStatus));
    }
 
    this->handle = (void*) tmpHandle;
@@ -119,8 +118,7 @@ int CudaDevice::query_device_info()
 CudaBuffer* CudaDevice::createBuffer(size_t size){
    long memLeft = reserveMem(size);
    if(memLeft < 0){
-      fprintf(stdout, "CudaDevice createBuffer: out of memory\n");
-      exit(-1);
+      pvError().printf("CudaDevice createBuffer: out of memory\n");
    }
    return(new CudaBuffer(size, this, stream));
 }

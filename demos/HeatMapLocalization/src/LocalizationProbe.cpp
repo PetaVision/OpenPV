@@ -375,14 +375,12 @@ int LocalizationProbe::communicateInitInfo() {
    if (parent->columnId()==0) {
       classNames = (char **) malloc(nf * sizeof(char *));
       if (classNames == NULL) {
-         fprintf(stderr, "%s \"%s\" unable to allocate classNames: %s\n", getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("%s \"%s\" unable to allocate classNames: %s\n", getKeyword(), name, strerror(errno));
       }
       if (strcmp(classNamesFile,"")) {
          std::ifstream * classNamesStream = new std::ifstream(classNamesFile);
          if (classNamesStream->fail()) {
-            fprintf(stderr, "%s \"%s\": unable to open classNamesFile \"%s\".\n", getKeyword(), name, classNamesFile);
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\": unable to open classNamesFile \"%s\".\n", getKeyword(), name, classNamesFile);
          }
          for (int k=0; k<nf; k++) {
             // Need to clean this section up: handle too-long lines, premature eof, other issues
@@ -403,8 +401,7 @@ int LocalizationProbe::communicateInitInfo() {
             classNameString << "Feature " << k;
             classNames[k] = strdup(classNameString.str().c_str());
             if (classNames[k]==NULL) {
-               fprintf(stderr, "%s \"%s\": unable to allocate className %d: %s\n", getKeyword(), name, k, strerror(errno));
-               exit(EXIT_FAILURE);
+               pvError().printf("%s \"%s\": unable to allocate className %d: %s\n", getKeyword(), name, k, strerror(errno));
             }
          }
       }
@@ -420,8 +417,7 @@ int LocalizationProbe::communicateInitInfo() {
       status = parent->ensureDirExists(heatMapMontageDir);
       if (status!=PV_SUCCESS) {
          fflush(stdout);
-         fprintf(stderr, "Error: Unable to make heat map montage directory \"%s\": %s\n", heatMapMontageDir, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("Error: Unable to make heat map montage directory \"%s\": %s\n", heatMapMontageDir, strerror(errno));
       }
 
       // Make the labels directory in heatMapMontageDir if it doesn't already exist
@@ -432,8 +428,7 @@ int LocalizationProbe::communicateInitInfo() {
       status = parent->ensureDirExists(labelsDir);
       if (status!=PV_SUCCESS) {
          fflush(stdout);
-         fprintf(stderr, "Error: Unable to make heat map montage labels directory: %s\n", strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("Error: Unable to make heat map montage labels directory: %s\n", strerror(errno));
       }
       free(labelsDir);
 
@@ -446,8 +441,7 @@ int LocalizationProbe::communicateInitInfo() {
          status = drawTextIntoFile(originalLabelString.c_str(), "black", "white", "original image", nxGlobal);
          if (status != 0) {
             fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, originalLabelString.c_str());
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, originalLabelString.c_str());
          }
 
          std::string reconLabelString("");
@@ -456,8 +450,7 @@ int LocalizationProbe::communicateInitInfo() {
          status = drawTextIntoFile(reconLabelString.c_str(), "black", "white", "reconstruction", nxGlobal);
          if (status != 0) {
             fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, reconLabelString.c_str());
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, reconLabelString.c_str());
          }
 
          for (int idx=0; idx<numDisplayedCategories; idx++) {
@@ -468,14 +461,12 @@ int LocalizationProbe::communicateInitInfo() {
             slen = snprintf(labelFilename, PV_PATH_MAX, "%s/labels/gray%0*d.tif", heatMapMontageDir, featurefieldwidth, category);
             if (slen>=PV_PATH_MAX) {
                fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error: file name for label %d is too long (%d characters versus %d).\n", getKeyword(), name, category, slen, PV_PATH_MAX);
-               exit(EXIT_FAILURE);
+               pvError().printf("%s \"%s\" error: file name for label %d is too long (%d characters versus %d).\n", getKeyword(), name, category, slen, PV_PATH_MAX);
             }
             status = drawTextIntoFile(labelFilename, "white", "gray", classNames[f], nxGlobal);
             if (status != 0) {
                fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, labelFilename);
-               exit(EXIT_FAILURE);
+               pvError().printf("%s \"%s\" error creating label file \"%s\".\n", getKeyword(), name, labelFilename);
             }
          }
       } 
@@ -528,8 +519,7 @@ int LocalizationProbe::allocateDataStructures() {
    int status = PV::LayerProbe::allocateDataStructures();
    if (status != PV_SUCCESS) {
       fflush(stdout);
-      fprintf(stderr, "%s \"%s\": LocalizationProbe::allocateDataStructures failed.\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": LocalizationProbe::allocateDataStructures failed.\n", getKeyword(), name);
    }
    detections.reserve(maxDetections);
    if (drawMontage) {
@@ -539,21 +529,18 @@ int LocalizationProbe::allocateDataStructures() {
       int const ny = imageLoc->ny;
       grayScaleImage = (pvadata_t *) calloc(nx*ny, sizeof(pvadata_t));
       if (grayScaleImage==NULL) {
-         fprintf(stderr, "%s \"%s\" error allocating for montage background image: %s\n", getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("%s \"%s\" error allocating for montage background image: %s\n", getKeyword(), name, strerror(errno));
       }
 
       montageImageLocal = (unsigned char *) calloc(nx*ny*3, sizeof(unsigned char));
       if (montageImageLocal==NULL) {
-         fprintf(stderr, "%s \"%s\" error allocating for montage background image: %s\n", getKeyword(), name, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("%s \"%s\" error allocating for montage background image: %s\n", getKeyword(), name, strerror(errno));
       }
 
       if (parent->columnId()==0) {
          montageImageComm = (unsigned char *) calloc(nx * ny * 3, sizeof(unsigned char));
          if (montageImageComm==NULL) {
-            fprintf(stderr, "%s \"%s\" error allocating for MPI communication of heat map montage image: %s\n", getKeyword(), name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error allocating for MPI communication of heat map montage image: %s\n", getKeyword(), name, strerror(errno));
          }
 
          int const nxGlobal = imageLoc->nxGlobal;
@@ -562,8 +549,7 @@ int LocalizationProbe::allocateDataStructures() {
          montageDimY = (nyGlobal + 64 + 10) * numMontageRows + 32;
          montageImage = (unsigned char *) calloc(montageDimX * montageDimY * 3, sizeof(unsigned char));
          if (montageImage==NULL) {
-            fprintf(stderr, "%s \"%s\" error allocating for heat map montage image: %s\n", getKeyword(), name, strerror(errno));
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error allocating for heat map montage image: %s\n", getKeyword(), name, strerror(errno));
          }
    
          int xStart = (2*numMontageColumns+1)*(nxGlobal+10)/2; // Integer division
@@ -574,8 +560,7 @@ int LocalizationProbe::allocateDataStructures() {
          status = insertFileIntoMontage(originalFileName.c_str(), xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
          if (status != PV_SUCCESS) {
             fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error placing the \"original image\" label.\n", getKeyword(), name);
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error placing the \"original image\" label.\n", getKeyword(), name);
          }
    
          // same xStart.
@@ -586,8 +571,7 @@ int LocalizationProbe::allocateDataStructures() {
          status = insertFileIntoMontage(reconFileName.c_str(), xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
          if (status != PV_SUCCESS) {
             fflush(stdout);
-            fprintf(stderr, "%s \"%s\" error placing the \"reconstruction\" label.\n", getKeyword(), name);
-            exit(EXIT_FAILURE);
+            pvError().printf("%s \"%s\" error placing the \"reconstruction\" label.\n", getKeyword(), name);
          }
    
          for (int idx=0; idx<numDisplayedCategories; idx++) {
@@ -608,8 +592,7 @@ int LocalizationProbe::allocateDataStructures() {
             status = insertFileIntoMontage(filename, xStart, yStart, nxGlobal, 32/*yExpectedSize*/);
             if (status != PV_SUCCESS) {
                fflush(stdout);
-               fprintf(stderr, "%s \"%s\" error placing the label for feature %d.\n", getKeyword(), name, f);
-               exit(EXIT_FAILURE);
+               pvError().printf("%s \"%s\" error placing the label for feature %d.\n", getKeyword(), name, f);
             }
          }
       }
@@ -631,18 +614,15 @@ int LocalizationProbe::drawTextOnMontage(char const * backgroundColor, char cons
    assert(parent->columnId()==0);
    char * tempfile = strdup("/tmp/Localization_XXXXXX.tif");
    if (tempfile == NULL) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to create temporary file for text\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": drawTextOnMontage failed to create temporary file for text\n", getKeyword(), name);
    }
    int tempfd = mkstemps(tempfile, 4/*suffixlen*/);
    if (tempfd < 0) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to create temporary file for writing\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": drawTextOnMontage failed to create temporary file for writing\n", getKeyword(), name);
    }
    int status = close(tempfd); //mkstemps opens the file to avoid race between finding unused filename and opening it, but we don't need the file descriptor.
    if (status != 0) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to close temporory file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": drawTextOnMontage failed to close temporory file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
    }
    status = drawTextIntoFile(tempfile, backgroundColor, textColor, labelText, width, height);
    if (status == 0) {
@@ -650,8 +630,7 @@ int LocalizationProbe::drawTextOnMontage(char const * backgroundColor, char cons
    }
    status = unlink(tempfile);
    if (status != 0) {
-      fprintf(stderr, "%s \"%s\": drawTextOnMontage failed to delete temporary file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\": drawTextOnMontage failed to delete temporary file %s: %s\n", getKeyword(), name, tempfile, strerror(errno));
    }
    free(tempfile);
    return status;
@@ -664,8 +643,7 @@ int LocalizationProbe::drawTextIntoFile(char const * labelFilename, char const *
    int status = system(convertCmd.str().c_str());
    if (status != 0) {
       fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error creating label file \"%s\": ImageMagick convert returned %d.\n", getKeyword(), name, labelFilename, WEXITSTATUS(status));
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\" error creating label file \"%s\": ImageMagick convert returned %d.\n", getKeyword(), name, labelFilename, WEXITSTATUS(status));
    }
    return status;
 }
@@ -791,8 +769,7 @@ int LocalizationProbe::setOutputFilenameBase(char const * fn) {
    else {
       outputFilenameBase = strdup(fnString.c_str());
       if (outputFilenameBase==NULL) {
-         fprintf(stderr, "LocalizationProbe::setOutputFilenameBase failed with filename \"%s\": %s\n", fn, strerror(errno));
-         exit(EXIT_FAILURE);
+         pvError().printf("LocalizationProbe::setOutputFilenameBase failed with filename \"%s\": %s\n", fn, strerror(errno));
       }
    }
    return status;
@@ -821,8 +798,7 @@ int LocalizationProbe::calcValues(double timevalue) {
    PVHalo const * halo = &loc->halo;
    float * targetRes = (float *) malloc(sizeof(float)*N);
    if (targetRes==NULL) {
-      fprintf(stderr, "%s \"%s\" unable to allocate buffer for calcValues\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\" unable to allocate buffer for calcValues\n", getKeyword(), name);
    }
    for (int n=0; n<N; n++) {
       int nExt = kIndexExtended(n, loc->nx, loc->ny, loc->nf, halo->lt, halo->rt, halo->dn, halo->up);
@@ -1241,8 +1217,7 @@ int LocalizationProbe::drawHeatMaps() {
             int slen = snprintf(confidenceText, 16, "%.1f", 100*maxConfByCategory[f]);
             if (slen >= 16) {
                fflush(stdout);
-               fprintf(stderr, "Formatted text for confidence %f of category %d is too long.\n", maxConfByCategory[idx], f);
-               exit(EXIT_FAILURE);
+               pvError().printf("Formatted text for confidence %f of category %d is too long.\n", maxConfByCategory[idx], f);
             }
          }
          else {
@@ -1292,19 +1267,16 @@ int LocalizationProbe::writeMontage() {
    char * montagePath = strdup(montagePathSStream.str().c_str()); // not sure why I have to strdup this
    if (montagePath==NULL) {
       fflush(stdout);
-      fprintf(stderr, "%s \"%s\" error: unable to create montagePath\n", getKeyword(), name);
-      exit(EXIT_FAILURE);
+      pvError().printf("%s \"%s\" error: unable to create montagePath\n", getKeyword(), name);
    }
    GDALDriver * driver = GetGDALDriverManager()->GetDriverByName("GTiff");
    if (driver == NULL) {
       fflush(stdout);
-      fprintf(stderr, "GetGDALDriverManager()->GetDriverByName(\"GTiff\") failed.");
-      exit(EXIT_FAILURE);
+      pvError().printf("GetGDALDriverManager()->GetDriverByName(\"GTiff\") failed.");
    }
    GDALDataset * dataset = driver->Create(montagePath, montageDimX, montageDimY, 3/*numBands*/, GDT_Byte, NULL);
    if (dataset == NULL) {
-      fprintf(stderr, "GDAL failed to open file \"%s\"\n", montagePath);
-      exit(EXIT_FAILURE);
+      pvError().printf("GDAL failed to open file \"%s\"\n", montagePath);
    }
    free(montagePath);
    dataset->RasterIO(GF_Write, 0, 0, montageDimX, montageDimY, montageImage, montageDimX, montageDimY, GDT_Byte, 3/*numBands*/, NULL, 3/*x-stride*/, 3*montageDimX/*y-stride*/, 1/*band-stride*/);

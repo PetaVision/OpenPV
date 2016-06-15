@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "utils/PVLog.hpp"
 
 /*
  * The preferred patch size is even for a > 1 and odd for a <= 1
@@ -75,8 +76,7 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre,  scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch - 1;
       if (kh != kpre-nPatch/2  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
    }
 
@@ -86,8 +86,7 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre,  scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch - 1;
       if (kh != kpre-nPatch/2  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
    }
 
@@ -97,8 +96,7 @@ int main(int argc, char* argv[])
       kh    = zPatchHead(kpre, nPatch, scaleLog2Pre,  scaleLog2Post);
       kBack = zPatchHead(kh  , nPatch, scaleLog2Post, scaleLog2Pre ) + nPatch - 1;
       if (kh != kpre-nPatch/2  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
    }
 
@@ -118,8 +116,7 @@ int main(int argc, char* argv[])
       kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
       //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
       if (kh != ans  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
       ans += (kpre + 9) % 2;
    }
@@ -135,8 +132,7 @@ int main(int argc, char* argv[])
       kBack = zPatchHead(kh  , nPatch/a, scaleLog2Post, scaleLog2Pre) + nPatch/a - 2 + (kpre%2 == 0);
       //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi==%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%2);
       if (kh != ans  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
       ans += (kpre + 9) % 2;
    }
@@ -156,8 +152,7 @@ int main(int argc, char* argv[])
       kBack = kpre;
       //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d addi=%d\n", test, nPatch, kpre, kh, ans, kBack, (kpre+9)%4==1);
       if (kh != ans  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
       ans += ((kpre + 9) % 4) == 2;
    }
@@ -174,8 +169,7 @@ int main(int argc, char* argv[])
       kBack = kpre;
       //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
       ans += ((kpre + 9) % 4) == 2;
    }
@@ -310,8 +304,7 @@ int main(int argc, char* argv[])
       kBack = kpre;
       //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
       ans += 2;
    }
@@ -328,8 +321,7 @@ int main(int argc, char* argv[])
       kBack = kpre;
       //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
       ans += 2;
    }
@@ -346,8 +338,7 @@ int main(int argc, char* argv[])
       kBack = kpre;
       //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
       ans += 2;
    }
@@ -367,8 +358,7 @@ int main(int argc, char* argv[])
       kBack = kpre;
       //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
       ans += 4;
    }
@@ -382,8 +372,7 @@ int main(int argc, char* argv[])
       kBack = kpre;
       //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
       ans += 4;
    }
@@ -397,8 +386,7 @@ int main(int argc, char* argv[])
       kBack = kpre;
       //fprintf(stdout, "test==%d nPatch==%d kpre==%d kh==%d ans==%d kBack==%d\n", test, nPatch, kpre, kh, ans, kBack);
       if (kh != ans  ||  kBack != kpre) {
-         fprintf(stdout, "FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
-         exit(1);
+         pvError().printf("FAILED:TEST_PATCH_HEAD: test==%d kpre==%d kh==%d kBack==%d\n", test, kpre, kh, kBack);
       }
       ans += 4;
    }

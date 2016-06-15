@@ -1,5 +1,4 @@
 #include "CudaUpdateStateFunctions.hpp"
-#include "../arch/cuda/cuda_util.hpp"
 #include "conversions.hcu"
 
 
@@ -179,7 +178,6 @@ int CudaUpdateHyPerLCALayer::do_run(){
    params.tau,
    params.GSynHead,
    params.activity);
-   handleCallError("HyPerLCALayer Update run");
    return 0;
 }
 
@@ -212,7 +210,6 @@ int CudaUpdateMomentumLCALayer::do_run(){
    params.LCAMomentumRate,
    params.GSynHead,
    params.activity);
-   handleCallError("HyPerLCALayer Update run");
    return 0;
 }
 
@@ -239,7 +236,6 @@ int CudaUpdateISTALayer::do_run(){
     params.tau,
     params.GSynHead,
     params.activity);
-    handleCallError("ISTALayer Update run");
     return 0;
 }
 

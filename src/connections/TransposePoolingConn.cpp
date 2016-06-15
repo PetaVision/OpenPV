@@ -337,8 +337,7 @@ int TransposePoolingConn::communicateInitInfo() {
    }
 
    if(originalConn->getPoolingType() != poolingType){
-      fprintf(stderr, "TransposePoolingConn \"%s\" error: originalConn accumulateType does not match this layer's accumulate type.\n", name);
-      exit(EXIT_FAILURE);
+      pvError().printf("TransposePoolingConn \"%s\" error: originalConn accumulateType does not match this layer's accumulate type.\n", name);
    }
 
    const PVLayerLoc * preLoc = pre->getLayerLoc();
