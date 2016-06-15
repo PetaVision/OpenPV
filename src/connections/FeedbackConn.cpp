@@ -37,7 +37,7 @@ int FeedbackConn::setPreAndPostLayerNames() {
    PVParams * params = parent->parameters();
    if (params->stringPresent(name, "preLayerName") || params->stringPresent(name, "postLayerName")) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\": FeedbackConn does not use preLayerName or postLayerName.\n", this->getKeyword(), name);
+         pvErrorNoExit().printf("%s \"%s\": FeedbackConn does not use preLayerName or postLayerName.\n", this->getKeyword(), name);
       }
       status = PV_FAILURE;
    }

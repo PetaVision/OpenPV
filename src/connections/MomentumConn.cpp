@@ -127,8 +127,7 @@ void MomentumConn::ioParam_batchPeriod(enum ParamsIOFlag ioFlag) {
 
 ////Reduce kerenls should never be getting called except for checkpoint write, which is being overwritten.
 //int MomentumConn::reduceKernels(const int arborID){
-//   fprintf(stderr, "Error:  BatchConn calling reduceKernels\n");
-//   exit(1);
+//   pvError().printf(Error:  BatchConn calling reduceKernels\n");
 //}
 //
 ////No normalize reduction here, just summing up

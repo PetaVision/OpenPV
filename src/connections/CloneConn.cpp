@@ -202,7 +202,7 @@ int CloneConn::communicateInitInfo() {
    if (!originalConn->getInitInfoCommunicatedFlag()) {
       if (parent->columnId()==0) {
          const char * connectiontype = this->getKeyword();
-         fprintf(stdout, "%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
+         pvInfo().printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
       }
       return PV_POSTPONE;
    }
@@ -237,9 +237,10 @@ int CloneConn::communicateInitInfo() {
    if (preLoc->nx != origPreLoc->nx || preLoc->ny != origPreLoc->ny || preLoc->nf != origPreLoc->nf ) {
       if (parent->icCommunicator()->commRank()==0) {
          const char * classname = this->getKeyword();
-         fprintf(stderr, "%s \"%s\" error in rank %d process: CloneConn and originalConn \"%s\" must have presynaptic layers with the same nx,ny,nf.\n",
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("%s \"%s\" error in rank %d process: CloneConn and originalConn \"%s\" must have presynaptic layers with the same nx,ny,nf.\n",
                classname, name, parent->columnId(), originalConn->getName());
-         fprintf(stderr, "{nx=%d, ny=%d, nf=%d} versus {nx=%d, ny=%d, nf=%d}\n",
+         errorMessage.printf("{nx=%d, ny=%d, nf=%d} versus {nx=%d, ny=%d, nf=%d}\n",
                  preLoc->nx, preLoc->ny, preLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
       }
       abort();
@@ -278,7 +279,7 @@ int CloneConn::allocateDataStructures() {
    if (!originalConn->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
          const char * connectiontype = this->getKeyword();
-         fprintf(stdout, "%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
+         pvInfo().printf("%s \"%s\" must wait until original connection \"%s\" has finished its communicateInitInfo stage.\n", connectiontype, name, originalConn->getName());
       }
       return PV_POSTPONE;
    }

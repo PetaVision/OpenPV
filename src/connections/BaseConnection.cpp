@@ -63,9 +63,8 @@ void BaseConnection::setPreLayerName(const char * pre_name) {
    if (pre_name != NULL) {
       this->preLayerName = strdup(pre_name);
       if (this->preLayerName==NULL) {
-         fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of presynaptic layer \"%s\": %s\n",
+         pvError().printf("Connection \"%s\" error in rank %d process: unable to allocate memory for name of presynaptic layer \"%s\": %s\n",
                this->getName(), this->getParent()->columnId(), pre_name, strerror(errno));
-         exit(EXIT_FAILURE);
       }
    }
 }
@@ -75,9 +74,8 @@ void BaseConnection::setPostLayerName(const char * post_name) {
    if (post_name != NULL) {
       this->postLayerName = strdup(post_name);
       if (this->postLayerName==NULL) {
-         fprintf(stderr, "Connection \"%s\" error in rank %d process: unable to allocate memory for name of postsynaptic layer \"%s\": %s\n",
+         pvError().printf("Connection \"%s\" error in rank %d process: unable to allocate memory for name of postsynaptic layer \"%s\": %s\n",
                this->getName(), this->getParent()->columnId(), post_name, strerror(errno));
-         exit(EXIT_FAILURE);
       }
    }
 }
@@ -88,9 +86,8 @@ void BaseConnection::setPreSynapticLayer(HyPerLayer * pre) {
       this->pre = pre;
    }
    else{
-      fprintf(stderr, "Connection \"%s\" error in rank %d process: pre layer \"%s\" does not exist in params file.\n",
+      pvError().printf("Connection \"%s\" error in rank %d process: pre layer \"%s\" does not exist in params file.\n",
          this->getName(), this->getParent()->columnId(), this->preLayerName);
-      exit(EXIT_FAILURE);
    }
 }
 
@@ -100,9 +97,8 @@ void BaseConnection::setPostSynapticLayer(HyPerLayer * post) {
       this->post = post;
    }
    else{
-      fprintf(stderr, "Connection \"%s\" error in rank %d process: post layer \"%s\" does not exist in params file.\n",
+      pvError().printf("Connection \"%s\" error in rank %d process: post layer \"%s\" does not exist in params file.\n",
          this->getName(), this->getParent()->columnId(), this->postLayerName);
-      exit(EXIT_FAILURE);
    }
 }
 
@@ -168,17 +164,19 @@ int BaseConnection::inferPreAndPostFromConnName(const char * name, int rank, cha
       else {
          status = PV_FAILURE;
          if (rank==0) {
-            fprintf(stderr, "Unable to infer pre and post from connection name \"%s\":\n", name);
-            fprintf(stderr, "The string \"To\" cannot appear in the name more than once.\n");
+            pvErrorNoExit(errorMessage);
+            errorMessage.printf("Unable to infer pre and post from connection name \"%s\":\n", name);
+            errorMessage.printf("The string \"To\" cannot appear in the name more than once.\n");
          }
       }
    }
    else {
       status = PV_FAILURE;
       if (rank==0) {
-         fprintf(stderr, "Unable to infer pre and post from connection name \"%s\".\n", name);
-         fprintf(stderr, "The connection name must have the form \"AbcToXyz\", to infer the names,\n");
-         fprintf(stderr, "but the string \"To\" does not appear.\n");
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("Unable to infer pre and post from connection name \"%s\".\n", name);
+         errorMessage.printf("The connection name must have the form \"AbcToXyz\", to infer the names,\n");
+         errorMessage.printf("but the string \"To\" does not appear.\n");
       }
    }
    return status;
@@ -192,7 +190,7 @@ int BaseConnection::getPreAndPostLayerNames(const char * name, char ** preLayerN
    *postLayerNamePtr = NULL;
    if (preLayerName == NULL && postLayerName == NULL) {
       if (parent->icCommunicator()->commRank()==0) {
-         fprintf(stdout, "Connection \"%s\": preLayerName and postLayerName will be inferred in the communicateInitInfo stage.\n", name);
+         pvInfo().printf("Connection \"%s\": preLayerName and postLayerName will be inferred in the communicateInitInfo stage.\n", name);
       }
    }
    else if (preLayerName==NULL && postLayerName!=NULL) {
@@ -260,7 +258,7 @@ void BaseConnection::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
       int status = decodeChannel(ch, &channel);
       if (status != PV_SUCCESS) {
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr, "%s \"%s\": channelCode %d is not a valid channel.\n",
+            pvErrorNoExit().printf("%s \"%s\": channelCode %d is not a valid channel.\n",
                   this->getKeyword(), this->getName(),  ch);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
@@ -284,14 +282,13 @@ void BaseConnection::ioParam_delay(enum ParamsIOFlag ioFlag) {
       assert(fDelayArray==NULL);
       fDelayArray = (float *) malloc(sizeof(float));
       if (fDelayArray == NULL) {
-         fprintf(stderr, "%s \"%s\" error setting default delay: %s\n",
+         pvError().printf("%s \"%s\" error setting default delay: %s\n",
                this->getKeyword(), this->getName(), strerror(errno));
-         exit(EXIT_FAILURE);
       }
       *fDelayArray = 0.0f; // Default delay
       delayArraySize = 1;
       if (this->getParent()->columnId()==0) {
-         fprintf(stdout, "%s \"%s\": Using default value of zero for delay.\n",
+         pvInfo().printf("%s \"%s\": Using default value of zero for delay.\n",
                this->getKeyword(), this->getName());
       }
    }
@@ -325,11 +322,13 @@ void BaseConnection::ioParam_convertRateToSpikeCount(enum ParamsIOFlag ioFlag) {
       if (this->getParent()->parameters()->present(this->getName(), "preActivityIsNotRate")) {
          bool preActivityIsNotRateValue = this->getParent()->parameters()->value(this->getName(), "preActivityIsNotRate");
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" %s: preActivityIsNotRate has been replaced with convertRateToSpikeCount.\n",
-                  this->getKeyword(), this->getName(),
-                  preActivityIsNotRateValue ? "error" : "warning");
+            std::stringstream errorMessage("");
+            errorMessage << getKeyword() << "\"" << getName() << "\": preActivityIsNotRate has been replaced with convertRateToSpikeCount.\n";
             if (preActivityIsNotRateValue) {
-               fprintf(stderr, "   Setting preActivityIsNotRate to true is regarded as an error because convertRateToSpikeCount is not exactly equivalent.  Exiting.\n");
+               pvErrorNoExit() << errorMessage.str() << "   Setting preActivityIsNotRate to true is regarded as an error because convertRateToSpikeCount is not exactly equivalent.  Exiting.\n";
+            }
+            else {
+               pvWarn() << errorMessage.str();
             }
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
@@ -367,12 +366,12 @@ void BaseConnection::ioParam_initializeFromCheckpointFlag(enum ParamsIOFlag ioFl
 int BaseConnection::insertProbe(BaseConnectionProbe * p)
 {
    if(p->getTargetConn() != this) {
-      fprintf(stderr, "Connection \"%s\": insertProbe called with probe %p, whose targetConn is not this connection.  Probe was not inserted.\n", this->getName(), p);
+      pvWarn().printf("Connection \"%s\": insertProbe called with probe %p, whose targetConn is not this connection.  Probe was not inserted.\n", this->getName(), p);
       return numProbes;
    }
    for( int i=0; i<numProbes; i++ ) {
       if( p == probes[i] ) {
-         fprintf(stderr, "Connection \"%s\": insertProbe called with probe %p, which has already been inserted as probe %d.\n", this->getName(), p, i);
+         pvWarn().printf("Connection \"%s\": insertProbe called with probe %p, which has already been inserted as probe %d.\n", this->getName(), p, i);
          return numProbes;
       }
    }
@@ -420,13 +419,13 @@ int BaseConnection::communicateInitInfo() {
    this->setPostSynapticLayer(this->getParent()->getLayerFromName(this->getPostLayerName()));
    if (this->preSynapticLayer()==NULL) {
       if (this->getParent()->columnId()==0) {
-         fprintf(stderr, "Connection \"%s\": preLayerName \"%s\" does not correspond to a layer in the column.\n", this->getName(), this->getPreLayerName());
+         pvErrorNoExit().printf("Connection \"%s\": preLayerName \"%s\" does not correspond to a layer in the column.\n", this->getName(), this->getPreLayerName());
       }
       status = PV_FAILURE;
    }
    if (this->postSynapticLayer()==NULL) {
       if (this->getParent()->columnId()==0) {
-         fprintf(stderr, "Connection \"%s\": postLayerName \"%s\" does not correspond to a layer in the column.\n", this->getName(), this->getPostLayerName());
+         pvErrorNoExit().printf("Connection \"%s\": postLayerName \"%s\" does not correspond to a layer in the column.\n", this->getName(), this->getPostLayerName());
       }
       status = PV_FAILURE;
    }
@@ -445,8 +444,7 @@ int BaseConnection::communicateInitInfo() {
    int allowedDelay = this->preSynapticLayer()->increaseDelayLevels(maxdelay);
    if( allowedDelay < maxdelay ) {
       if( this->getParent()->columnId() == 0 ) {
-         fflush(stdout);
-         fprintf(stderr, "Connection \"%s\": attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", this->getName(), maxdelay, allowedDelay);
+         pvErrorNoExit().printf("Connection \"%s\": attempt to set delay to %d, but the maximum allowed delay is %d.  Exiting\n", this->getName(), maxdelay, allowedDelay);
       }
       exit(EXIT_FAILURE);
    }
@@ -495,8 +493,7 @@ int BaseConnection::initializeDelays(const float * fDelayArray, int size){
          setDelay(arborId, fDelayArray[arborId]);
       }
       else{
-         fprintf(stderr, "Delay must be either a single value or the same length as the number of arbors\n");
-         abort();
+         pvError().printf("Delay must be either a single value or the same length as the number of arbors\n");
       }
    }
    return status;

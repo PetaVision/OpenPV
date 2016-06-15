@@ -882,15 +882,16 @@ void HyPerConn::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
       if (ioFlag == PARAMS_IO_READ) {
          if (writeStep>0 && initialWriteTime < start_time) {
             if (parent->columnId()==0) {
-               pvLogInfo("%s \"%s\": initialWriteTime %f earlier than starting time %f.  Adjusting initialWriteTime:\n",
+               pvWarn(adjustInitialWriteTime);
+               adjustInitialWriteTime.printf("%s \"%s\": initialWriteTime %f earlier than starting time %f.  Adjusting initialWriteTime:\n",
                      getKeyword(), name, initialWriteTime, start_time);
-               fflush(stdout);
+               adjustInitialWriteTime.flush();
             }
             while (initialWriteTime < start_time) {
                initialWriteTime += writeStep;
             }
             if (parent->columnId()==0) {
-               pvLogInfo("%s \"%s\": initialWriteTime adjusted to %f\n",
+               pvInfo().printf("%s \"%s\": initialWriteTime adjusted to %f\n",
                      getKeyword(), name, initialWriteTime);
             }
          }
@@ -4055,9 +4056,7 @@ int HyPerConn::writePostSynapticWeights(double timef, bool last) {
         writeCompressedWeights, fileType);
 
    if(status != PV_SUCCESS) {
-      fflush(stdout);
-      pvLogError("Connection \"%s\": writePostSynapticWeights failed at time %f.  Exiting.\n", name, timef);
-      abort();
+      pvError().printf("Connection \"%s\": writePostSynapticWeights failed at time %f.  Exiting.\n", name, timef);
    }
 
    return PV_SUCCESS;

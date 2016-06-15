@@ -106,7 +106,7 @@ void IdentConn::ioParam_writeStep(enum ParamsIOFlag ioFlag) {
          parent->ioParamValue(ioFlag, name, "writeStep", &writeStep, -1.0/*default*/, false/*warnIfAbsent*/);
          if (writeStep>=0) {
             if (parent->columnId()==0) {
-               fprintf(stderr, "Error: %s \"%s\" does not use writeStep, but the parameters file sets it to %f.\n", getKeyword(), getName(), writeStep);
+               pvErrorNoExit().printf("%s \"%s\" does not use writeStep, but the parameters file sets it to %f.\n", getKeyword(), getName(), writeStep);
             }
             MPI_Barrier(parent->icCommunicator()->communicator());
             exit(EXIT_FAILURE);
@@ -226,8 +226,7 @@ int IdentConn::communicateInitInfo() {
    const PVLayerLoc * postLoc = post->getLayerLoc();
    if( preLoc->nx != postLoc->nx || preLoc->ny != postLoc->ny || preLoc->nf != postLoc->nf ) {
       if (parent->columnId()==0) {
-         fprintf( stderr,
-                  "IdentConn \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: %dx%dx%d vs. %dx%dx%d\n",
+         pvErrorNoExit().printf("IdentConn \"%s\" Error: %s and %s do not have the same dimensions.\n Dims: %dx%dx%d vs. %dx%dx%d\n",
                   name, preLayerName,postLayerName,preLoc->nx,preLoc->ny,preLoc->nf,postLoc->nx,postLoc->ny,postLoc->nf);
       }
       exit(EXIT_FAILURE);
@@ -296,9 +295,9 @@ int IdentConn::deliverPresynapticPerspective(PVLayerCube const * activity, int a
 #ifdef DEBUG_OUTPUT
    int rank;
    MPI_Comm_rank(parent->icCommunicator()->communicator(), &rank);
-   //fprintf(stdout, "[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, neighbor, numExtended, activity, this, conn);
-   fprintf(stdout, "[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numExtended, activity, this, conn);
-   fflush(stdout);
+   pvDebug(debugMessage);
+   debugMessage.printf("[%d]: HyPerLayr::recvSyn: neighbor=%d num=%d actv=%p this=%p conn=%p\n", rank, 0, numExtended, activity, this, conn);
+   debugMessage.flush();
 #endif // DEBUG_OUTPUT
 
    for(int b = 0; b < parent->getNBatch(); b++){
