@@ -75,7 +75,7 @@ int InitWeights::communicateParamsInfo() {
       if (baseCallingConn==NULL) {
          status = PV_FAILURE;
          if (parent->columnId()==0) {
-            fprintf(stderr, "InitWeights error: \"%s\" is not a connection in the column.\n", name);
+            pvErrorNoExit().printf("InitWeights error: \"%s\" is not a connection in the column.\n", name);
          }
       }
       else {
@@ -83,7 +83,7 @@ int InitWeights::communicateParamsInfo() {
          if (callingConn==NULL) {
             status = PV_FAILURE;
             if (parent->columnId()==0) {
-               fprintf(stderr, "InitWeights error: \"%s\" is not a HyPerConn.\n", name);
+               pvErrorNoExit().printf("InitWeights error: \"%s\" is not a HyPerConn.\n", name);
             }
          }
       }
@@ -107,11 +107,11 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
    int numPatches = callingConn->getNumDataPatches();
    if (inputParams->present(callingConn->getName(), "initFromLastFlag")) {
       if (callingConn->getParent()->columnId()==0) {
-         fprintf(stderr, "Connection \"%s\": initFromLastFlag is obsolete.\n", callingConn->getName());
+         pvErrorNoExit().printf("Connection \"%s\": initFromLastFlag is obsolete.\n", callingConn->getName());
       }
       if (inputParams->value(callingConn->getName(), "initFromLastFlag")) {
          if (callingConn->getParent()->columnId()==0) {
-            fprintf(stderr, "Instead, use weightInitType=\"FileWeight\" or set HyPerCol initializeFromCheckpointDir and set initializeFromCheckpointFlag to true\n");
+            pvErrorNoExit().printf("Instead, use weightInitType=\"FileWeight\" or set HyPerCol initializeFromCheckpointDir and set initializeFromCheckpointFlag to true\n");
          }
          MPI_Barrier(callingConn->getParent()->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -125,10 +125,9 @@ int InitWeights::initializeWeights(PVPatch *** patches, pvwdata_t ** dataStart,
    } // filename != null
    int successFlag = zeroWeightsOutsideShrunkenPatch(patches);
    if (successFlag != PV_SUCCESS) {
-      fprintf(stderr,
+      pvError().printf(
             "Failed to zero annulus around shrunken patch for %s! Exiting...\n",
             callingConn->getName());
-      exit(PV_FAILURE);
    }
    return PV_SUCCESS;
 }
@@ -233,10 +232,8 @@ int InitWeights::calcWeights() {
                callingConn->get_wDataHead(arbor, dataPatchIndex),
                dataPatchIndex, arbor);
          if (successFlag != PV_SUCCESS) {
-            fprintf(stderr,
-                  "Failed to create weights for %s! Exiting...\n",
+            pvError().printf("Failed to create weights for %s! Exiting...\n",
                   callingConn->getName());
-            exit(PV_FAILURE);
          }
       }
    }
@@ -347,9 +344,7 @@ int InitWeights::readCombinedWeightFiles(PVPatch *** patches, pvwdata_t ** dataS
    int file_count=0;
    PV_Stream * weightstream = pvp_open_read_file(fileOfWeightFiles, icComm);
    if ((weightstream == NULL) && (icComm->commRank() == rootproc) ){
-      fprintf(stderr, ""
-            "Cannot open file of weight files \"%s\".  Exiting.\n", fileOfWeightFiles);
-      exit(EXIT_FAILURE);
+      pvError().printf("Cannot open file of weight files \"%s\".  Exiting.\n", fileOfWeightFiles);
    }
 
    char weightsfilename[PV_PATH_MAX];
