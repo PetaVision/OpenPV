@@ -25,7 +25,7 @@ int FirmThresholdCostFnLCAProbe::communicateInitInfo() {
    HyPerLCALayer * targetLCALayer = dynamic_cast<HyPerLCALayer *>(targetLayer);
    if (targetLCALayer==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: targetLayer \"%s\" is not an LCA layer.\n",
+         pvErrorNoExit().printf("%s \"%s\": targetLayer \"%s\" is not an LCA layer.\n",
                getKeyword(), getName(), getTargetName());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());

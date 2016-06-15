@@ -33,7 +33,7 @@ int WTALayer::communicateInitInfo() {
    originalLayer = parent->getLayerFromName(originalLayerName);
    if (originalLayer==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
+         pvErrorNoExit().printf("%s \"%s\": originalLayerName \"%s\" is not a layer in the HyPerCol.\n",
                  getKeyword(), name, originalLayerName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -49,7 +49,7 @@ int WTALayer::communicateInitInfo() {
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: originalLayerName \"%s\" does not have the same dimensions.\n",
+         pvErrorNoExit().printf("%s \"%s\": originalLayerName \"%s\" does not have the same dimensions.\n",
                  getKeyword(), name, originalLayerName);
          fprintf(stderr, "    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, loc->nxGlobal, loc->nyGlobal);
@@ -58,7 +58,7 @@ int WTALayer::communicateInitInfo() {
       exit(EXIT_FAILURE);
    }
    if(getLayerLoc()->nf != 1){
-      fprintf(stderr, "%s \"%s\" error: WTALayer can only have 1 feature.\n",
+      pvErrorNoExit().printf("%s \"%s\": WTALayer can only have 1 feature.\n",
          getKeyword(), name);
    }
    assert(srcLoc->nx==loc->nx && srcLoc->ny==loc->ny);
@@ -91,7 +91,7 @@ void WTALayer::ioParam_originalLayerName(enum ParamsIOFlag ioFlag) {
    assert(originalLayerName);
    if (ioFlag==PARAMS_IO_READ && originalLayerName[0]=='\0') {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: originalLayerName must be set.\n",
+         pvErrorNoExit().printf("%s \"%s\": originalLayerName must be set.\n",
                  getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -104,7 +104,7 @@ void WTALayer::ioParam_binMaxMin(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "binMin", &binMin, binMin);
    if(ioFlag == PARAMS_IO_READ && binMax <= binMin){
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: binMax (%f) must be greater than binMin (%f).\n",
+         pvErrorNoExit().printf("%s \"%s\": binMax (%f) must be greater than binMin (%f).\n",
             getKeyword(), name, binMax, binMin);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());

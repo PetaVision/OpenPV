@@ -77,10 +77,10 @@ int QuotientColProbe::communicateInitInfo() {
       status = PV_FAILURE;
       if (parent->columnId()==0) {
          if (numerProbe==NULL) {
-            fprintf(stderr, "%s \"%s\" error: numerator probe \"%s\" could not be found.\n", getKeyword(), getName(), numerator);
+            pvErrorNoExit().printf("%s \"%s\": numerator probe \"%s\" could not be found.\n", getKeyword(), getName(), numerator);
          }
          if (denomProbe==NULL) {
-            fprintf(stderr, "%s \"%s\" error: denominator probe \"%s\" could not be found.\n", getKeyword(), getName(), denominator);
+            pvErrorNoExit().printf("%s \"%s\": denominator probe \"%s\" could not be found.\n", getKeyword(), getName(), denominator);
          }
       }
    }
@@ -89,7 +89,7 @@ int QuotientColProbe::communicateInitInfo() {
       int dNumValues = denomProbe->getNumValues();
       if (nNumValues != dNumValues) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: numerator probe \"%s\" and denominator probe \"%s\" have differing numbers of values (%d vs. %d)\n",
+            pvErrorNoExit().printf("%s \"%s\": numerator probe \"%s\" and denominator probe \"%s\" have differing numbers of values (%d vs. %d)\n",
                   getKeyword(), getName(), numerator, denominator, nNumValues, dNumValues);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
@@ -97,7 +97,7 @@ int QuotientColProbe::communicateInitInfo() {
       }
       status = setNumValues(nNumValues);
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "%s \"%s\" error: unable to allocate memory for %d values: %s\n",
+         pvErrorNoExit().printf("%s \"%s\": unable to allocate memory for %d values: %s\n",
                this->getKeyword(), this->getName(), nNumValues, strerror(errno));
          exit(EXIT_FAILURE);
       }

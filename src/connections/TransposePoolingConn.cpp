@@ -280,7 +280,7 @@ int TransposePoolingConn::communicateInitInfo() {
    BaseConnection * originalConnBase = parent->getConnFromName(this->originalConnName);
    if (originalConnBase==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: originalConnName \"%s\" does not refer to any connection in the column.\n", this->getKeyword(), name, this->originalConnName);
+         pvErrorNoExit().printf("%s \"%s\": originalConnName \"%s\" does not refer to any connection in the column.\n", this->getKeyword(), name, this->originalConnName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -288,7 +288,7 @@ int TransposePoolingConn::communicateInitInfo() {
    originalConn = dynamic_cast<PoolingConn *>(originalConnBase);
    if (originalConn == NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "TransposePoolingConn \"%s\" error: originalConnName \"%s\" is not a PoolingConn.\n", name, originalConnName);
+         pvErrorNoExit().printf("TransposePoolingConn \"%s\": originalConnName \"%s\" is not a PoolingConn.\n", name, originalConnName);
          status = PV_FAILURE;
       }
    }
@@ -314,7 +314,7 @@ int TransposePoolingConn::communicateInitInfo() {
 
    if(originalConn->getShrinkPatches_flag()) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "TransposePoolingConn \"%s\" error: original conn \"%s\" has shrinkPatches set to true.  TransposePoolingConn has not been implemented for that case.\n", name, originalConn->getName());
+         pvErrorNoExit().printf("TransposePoolingConn \"%s\": original conn \"%s\" has shrinkPatches set to true.  TransposePoolingConn has not been implemented for that case.\n", name, originalConn->getName());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -325,7 +325,7 @@ int TransposePoolingConn::communicateInitInfo() {
 
    if(!originalConn->needPostIndex() && poolingType == PoolingConn::MAX){
       if (parent->columnId()==0) {
-         fprintf(stderr, "TransposePoolingConn \"%s\" error: original pooling conn \"%s\" needs to have a postIndexLayer if unmax pooling.\n", name, originalConnName);
+         pvErrorNoExit().printf("TransposePoolingConn \"%s\": original pooling conn \"%s\" needs to have a postIndexLayer if unmax pooling.\n", name, originalConnName);
          status = PV_FAILURE;
       }
    }
@@ -344,7 +344,7 @@ int TransposePoolingConn::communicateInitInfo() {
    const PVLayerLoc * origPostLoc = originalConn->postSynapticLayer()->getLayerLoc();
    if (preLoc->nx != origPostLoc->nx || preLoc->ny != origPostLoc->ny || preLoc->nf != origPostLoc->nf) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: transpose's pre layer and original connection's post layer must have the same dimensions.\n", this->getKeyword(), name);
+         pvErrorNoExit().printf("%s \"%s\": transpose's pre layer and original connection's post layer must have the same dimensions.\n", this->getKeyword(), name);
          fprintf(stderr, "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", preLoc->nx, preLoc->ny, preLoc->nf, origPostLoc->nx, origPostLoc->ny, origPostLoc->nf);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -354,7 +354,7 @@ int TransposePoolingConn::communicateInitInfo() {
    const PVLayerLoc * origPreLoc = originalConn->postSynapticLayer()->getLayerLoc();
    if (postLoc->nx != origPreLoc->nx || postLoc->ny != origPreLoc->ny || postLoc->nf != origPreLoc->nf) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: transpose's post layer and original connection's pre layer must have the same dimensions.\n", this->getKeyword(), name);
+         pvErrorNoExit().printf("%s \"%s\": transpose's post layer and original connection's pre layer must have the same dimensions.\n", this->getKeyword(), name);
          fprintf(stderr, "    (x=%d, y=%d, f=%d) versus (x=%d, y=%d, f=%d).\n", postLoc->nx, postLoc->ny, postLoc->nf, origPreLoc->nx, origPreLoc->ny, origPreLoc->nf);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());

@@ -45,7 +45,7 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc) {
 
    if (SigmoidAlpha < 0.0f || SigmoidAlpha > 1.0f) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: SigmoidAlpha cannot be negative or greater than 1.\n", getKeyword(), name);
+         pvErrorNoExit().printf("%s \"%s\": SigmoidAlpha cannot be negative or greater than 1.\n", getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);

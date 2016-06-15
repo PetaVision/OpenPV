@@ -87,7 +87,7 @@ int FilenameParsingGroundTruthLayer::communicateInitInfo() {
    movieLayer = dynamic_cast<Movie *>(parent->getLayerFromName(movieLayerName));
    if(movieLayer==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: movieLayerName \"%s\" is not a layer in the HyPerCol.\n",
+         pvErrorNoExit().printf("%s \"%s\": movieLayerName \"%s\" is not a layer in the HyPerCol.\n",
             getKeyword(), name, movieLayerName); 
       }
       exit(EXIT_FAILURE);

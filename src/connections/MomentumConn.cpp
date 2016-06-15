@@ -411,7 +411,7 @@ int MomentumConn::checkpointWrite(const char * cpDir) {
    int chars_needed = snprintf(filename, PV_PATH_MAX, "%s/%s_prev_dW.pvp", cpDir, name);
    if(chars_needed >= PV_PATH_MAX) {
       if ( parent->icCommunicator()->commRank()==0 ) {
-         fprintf(stderr, "HyPerConn::checkpointFilename error: path \"%s/%s_W.pvp\" is too long.\n", cpDir, name);
+         pvErrorNoExit().printf("HyPerConn::checkpointFilename: path \"%s/%s_W.pvp\" is too long.\n", cpDir, name);
       }
       abort();
    }

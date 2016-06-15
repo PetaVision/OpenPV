@@ -82,7 +82,7 @@ int GapConn::allocateDataStructures() {
    LIFGap * postLIFGap = dynamic_cast <LIFGap*> (postHyPerLayer);
    if (postLIFGap == NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: postsynaptic layer must be a LIFGap or LIFGap-derived layer.\n",
+         pvErrorNoExit().printf("%s \"%s\": postsynaptic layer must be a LIFGap or LIFGap-derived layer.\n",
                this->getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());

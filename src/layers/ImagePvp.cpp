@@ -126,7 +126,7 @@ int ImagePvp::readPvp(const char * filename, int frameNumber) {
    assert (pvstream==NULL ^ rank==rootproc); // root process needs non-null pvstream; all other processes should have null pvstream.
    if (frameNumber < 0 || frameNumber >= fileNumFrames) {
       if (rank==rootproc) {
-         fprintf(stderr, "scatterImageFilePVP error: requested frameNumber %d but file \"%s\" only has frames numbered 0 through %d.\n", frameNumber, filename, params[INDEX_NBANDS]-1);
+         pvErrorNoExit().printf("scatterImageFilePVP: requested frameNumber %d but file \"%s\" only has frames numbered 0 through %d.\n", frameNumber, filename, params[INDEX_NBANDS]-1);
       }
       return PV_FAILURE;
    }
@@ -356,13 +356,13 @@ int ImagePvp::readNonspikingActivityFrame(int numParams, int * params, PV_Stream
    //ONLY READING TIME INFO HERE
    status = PV::PV_fseek(pvstream, framepos, SEEK_SET);
    if (status != 0) {
-      fprintf(stderr, "scatterImageFilePVP error: Unable to seek to start of frame %d in \"%s\": %s\n", frameNumber, pvstream->name, strerror(errno));
+      pvErrorNoExit().printf("scatterImageFilePVP: Unable to seek to start of frame %d in \"%s\": %s\n", frameNumber, pvstream->name, strerror(errno));
       status = PV_FAILURE;
    }
    if (status == PV_SUCCESS) {
       size_t numread = PV::PV_fread(&pvpFileTime, sizeof(double), (size_t) 1, pvstream);
       if (numread != (size_t) 1) {
-         fprintf(stderr, "scatterImageFilePVP error: Unable to read timestamp from frame %d of file \"%s\":", frameNumber, pvstream->name);
+         pvErrorNoExit().printf("scatterImageFilePVP: Unable to read timestamp from frame %d of file \"%s\":", frameNumber, pvstream->name);
          if (feof(pvstream->fp)) { fprintf(stderr, " end-of-file."); }
          if (ferror(pvstream->fp)) { fprintf(stderr, " fread error."); }
          fprintf(stderr, "\n");
@@ -396,7 +396,7 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
    PV::pvp_read_header(pvstream, comm, params, &numParams);
    if (frameNumber < 0 || frameNumber >= fileNumFrames) {
       if (rank==rootproc) {
-         fprintf(stderr, "scatterImageFilePVP error: requested frameNumber %d but file \"%s\" only has frames numbered 0 through %d.\n", frameNumber, filename, params[INDEX_NBANDS]-1);
+         pvErrorNoExit().printf("scatterImageFilePVP: requested frameNumber %d but file \"%s\" only has frames numbered 0 through %d.\n", frameNumber, filename, params[INDEX_NBANDS]-1);
       }
       return PV_FAILURE;
    }
@@ -507,13 +507,13 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
          //ONLY READING TIME INFO HERE
          status = PV::PV_fseek(pvstream, framepos, SEEK_SET);
          if (status != 0) {
-            fprintf(stderr, "scatterImageFilePVP error: Unable to seek to start of frame %d in \"%s\": %s\n", frameNumber, filename, strerror(errno));
+            pvErrorNoExit().printf("scatterImageFilePVP: Unable to seek to start of frame %d in \"%s\": %s\n", frameNumber, filename, strerror(errno));
             status = PV_FAILURE;
          }
          if (status == PV_SUCCESS) {
             size_t numread = PV::PV_fread(&timed, sizeof(double), (size_t) 1, pvstream);
             if (numread != (size_t) 1) {
-               fprintf(stderr, "scatterImageFilePVP error: Unable to read timestamp from frame %d of file \"%s\":", frameNumber, filename);
+               pvErrorNoExit().printf("scatterImageFilePVP: Unable to read timestamp from frame %d of file \"%s\":", frameNumber, filename);
                if (feof(pvstream->fp)) { fprintf(stderr, " end-of-file."); }
                if (ferror(pvstream->fp)) { fprintf(stderr, " fread error."); }
                fprintf(stderr, "\n");

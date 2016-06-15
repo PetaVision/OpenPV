@@ -206,7 +206,7 @@ int PoolingConn::communicateInitInfo() {
       BaseLayer * basePostIndexLayer = parent->getLayerFromName(this->postIndexLayerName);
       if (basePostIndexLayer==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: postIndexLayerName \"%s\" does not refer to any layer in the column.\n", this->getKeyword(), name, this->postIndexLayerName);
+            pvErrorNoExit().printf("%s \"%s\": postIndexLayerName \"%s\" does not refer to any layer in the column.\n", this->getKeyword(), name, this->postIndexLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -215,7 +215,7 @@ int PoolingConn::communicateInitInfo() {
       postIndexLayer = dynamic_cast<PoolingIndexLayer*>(basePostIndexLayer);
       if (postIndexLayer==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: postIndexLayerName \"%s\" is not a PoolingIndexLayer.\n", this->getKeyword(), name, this->postIndexLayerName);
+            pvErrorNoExit().printf("%s \"%s\": postIndexLayerName \"%s\" is not a PoolingIndexLayer.\n", this->getKeyword(), name, this->postIndexLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -223,7 +223,7 @@ int PoolingConn::communicateInitInfo() {
 
       if(postIndexLayer->getDataType() != PV_INT){
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: postIndexLayer \"%s\" must have data type of int. Specify parameter dataType in this layer to be \"int\".\n", this->getKeyword(), name, this->postIndexLayerName);
+            pvErrorNoExit().printf("%s \"%s\": postIndexLayer \"%s\" must have data type of int. Specify parameter dataType in this layer to be \"int\".\n", this->getKeyword(), name, this->postIndexLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -235,7 +235,7 @@ int PoolingConn::communicateInitInfo() {
       //(margins doesnt matter)
       if(idxLoc->nxGlobal != postLoc->nxGlobal || idxLoc->nyGlobal != postLoc->nyGlobal || idxLoc->nf != postLoc->nf){
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: postIndexLayer \"%s\" must have the same dimensions as the post pooling layer \"%s\".", this->getKeyword(), name, this->postIndexLayerName, this->postLayerName);
+            pvErrorNoExit().printf("%s \"%s\": postIndexLayer \"%s\" must have the same dimensions as the post pooling layer \"%s\".", this->getKeyword(), name, this->postIndexLayerName, this->postLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);

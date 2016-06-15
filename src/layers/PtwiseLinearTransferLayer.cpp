@@ -254,7 +254,7 @@ int PtwiseLinearTransferLayer::checkVertices() {
       if (verticesV[v] < verticesV[v-1]) {
          status = PV_FAILURE;
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: vertices %d and %d: V-coordinates decrease from %f to %f.\n",
+            pvErrorNoExit().printf("%s \"%s\": vertices %d and %d: V-coordinates decrease from %f to %f.\n",
                   this->getKeyword(), this->getName(), v, v+1, verticesV[v-1], verticesV[v]);
          }
       }
@@ -268,7 +268,7 @@ int PtwiseLinearTransferLayer::setSlopes() {
    assert(verticesV!=NULL);
    slopes = (float *) malloc((size_t)(numVertices+1)*sizeof(*slopes));
    if (slopes == NULL) {
-      fprintf(stderr, "%s \"%s\" error: unable to allocate memory for transfer function slopes: %s\n",
+      pvErrorNoExit().printf("%s \"%s\": unable to allocate memory for transfer function slopes: %s\n",
             this->getKeyword(), name, strerror(errno));
       exit(EXIT_FAILURE);
       

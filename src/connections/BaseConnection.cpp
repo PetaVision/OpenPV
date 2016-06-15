@@ -198,13 +198,13 @@ int BaseConnection::getPreAndPostLayerNames(const char * name, char ** preLayerN
    else if (preLayerName==NULL && postLayerName!=NULL) {
       status = PV_FAILURE;
       if (parent->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "Connection \"%s\" error: if postLayerName is specified, preLayerName must be specified as well.\n", name);
+         pvErrorNoExit().printf("Connection \"%s\": if postLayerName is specified, preLayerName must be specified as well.\n", name);
       }
    }
    else if (preLayerName!=NULL && postLayerName==NULL) {
       status = PV_FAILURE;
       if (parent->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "Connection \"%s\" error: if preLayerName is specified, postLayerName must be specified as well.\n", name);
+         pvErrorNoExit().printf("Connection \"%s\": if preLayerName is specified, postLayerName must be specified as well.\n", name);
       }
    }
    else {
@@ -347,7 +347,7 @@ void BaseConnection::ioParam_receiveGpu(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "receiveGpu", &receiveGpu, receiveGpu/*default*/, false/*warn if absent*/);
    if (ioFlag==PARAMS_IO_READ && receiveGpu) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: receiveGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
+         pvErrorNoExit().printf("%s \"%s\": receiveGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
                this->getKeyword(), this->getName());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -412,7 +412,7 @@ int BaseConnection::communicateInitInfo() {
    if (status != PV_SUCCESS) {
       assert(this->getPreLayerName()==NULL && this->getPostLayerName()==NULL);
       if (this->getParent()->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: Unable to determine pre- and post-layer names.  Exiting.\n", this->getKeyword(), this->getName());
+         pvErrorNoExit().printf("%s \"%s\": Unable to determine pre- and post-layer names.  Exiting.\n", this->getKeyword(), this->getName());
       }
       exit(EXIT_FAILURE);
    }
@@ -460,7 +460,7 @@ int BaseConnection::communicateInitInfo() {
    assert(status != PV_SUCCESS || num_channels_check > (int) this->getChannel()); // if requireChannel passes, layer's numChannels should be large enough for the connection's channel
    if (status != PV_SUCCESS) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: postsynaptic layer \"%s\" failed to add channel %d\n",
+         pvErrorNoExit().printf("%s \"%s\": postsynaptic layer \"%s\" failed to add channel %d\n",
                this->getKeyword(), this->getName(), this->postSynapticLayer()->getName(), (int) this->getChannel());
       }
    }

@@ -233,7 +233,7 @@ int BaseProbe::communicateInitInfo() {
       triggerLayer = parent->getLayerFromName(triggerLayerName);
       if (triggerLayer==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
+            pvErrorNoExit().printf("%s \"%s\": triggerLayer \"%s\" is not a layer in the HyPerCol.\n",
                   parent->parameters()->groupKeywordFromName(name), name, triggerLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -247,7 +247,7 @@ int BaseProbe::communicateInitInfo() {
       ColumnEnergyProbe * probe = dynamic_cast<ColumnEnergyProbe *>(baseprobe);
       if (probe==NULL) {
          if (getParent()->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: energyProbe \"%s\" is not a ColumnEnergyProbe in the column.\n",
+            pvErrorNoExit().printf("%s \"%s\": energyProbe \"%s\" is not a ColumnEnergyProbe in the column.\n",
                   getParent()->parameters()->groupKeywordFromName(getName()), getName(), energyProbe);
          }
          MPI_Barrier(getParent()->icCommunicator()->communicator());

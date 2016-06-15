@@ -114,7 +114,7 @@ int ANNErrorLayer::checkVertices() {
    int status = PV_SUCCESS;
    if (VThresh < 0 && VThresh > -0.999*max_pvvdata_t) { // 0.999 is to allow for imprecision from params files using 3.40282e+38 instead of infinity
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: VThresh cannot be negative (value is %f).\n",
+         pvErrorNoExit().printf("%s \"%s\": VThresh cannot be negative (value is %f).\n",
                   this->getKeyword(), this->getName(), VThresh);
       }
       status = PV_FAILURE;

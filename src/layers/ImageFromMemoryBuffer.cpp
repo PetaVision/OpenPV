@@ -32,7 +32,7 @@ int ImageFromMemoryBuffer::initialize(char const * name, HyPerCol * hc) {
    return BaseInput::initialize(name, hc);
    if (useImageBCflag && autoResizeFlag) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n", getKeyword(), name);
+         pvErrorNoExit().printf("%s \"%s\": setting both useImageBCflag and autoResizeFlag has not yet been implemented.\n", getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -50,7 +50,7 @@ template <typename pixeltype>
 int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int height, int width, int numbands, int xstride, int ystride, int bandstride, pixeltype zeroval, pixeltype oneval) {
    if (height<=0 || width<=0 || numbands<=0) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "ImageFromMemoryBuffer::setMemoryBuffer error: height, width, numbands arguments must be positive.\n");
+         pvErrorNoExit().printf("ImageFromMemoryBuffer::setMemoryBuffer: height, width, numbands arguments must be positive.\n");
       }
       return PV_FAILURE;
    }
@@ -104,7 +104,7 @@ int ImageFromMemoryBuffer::setMemoryBuffer(pixeltype const * externalBuffer, int
    this->offsetAnchor = strdup(offsetAnchor);
    if (checkValidAnchorString()!=PV_SUCCESS) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: setMemoryBuffer called with invalid anchor string \"%s\"",
+         pvErrorNoExit().printf("%s \"%s\": setMemoryBuffer called with invalid anchor string \"%s\"",
                getKeyword(), name, offsetAnchor);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());

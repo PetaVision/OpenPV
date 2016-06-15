@@ -312,7 +312,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
       int status = PV_SUCCESS;
       PV_Stream * readStream = PV_fopen(pvstream->name, "r", false/*verifyWrites*/);
       if (readStream==NULL) {
-         fprintf(stderr, "PV_fwrite verification error: unable to open \"%s\" for reading: %s\n", pvstream->name, strerror(errno));
+         pvErrorNoExit().printf("PV_fwrite verification: unable to open \"%s\" for reading: %s\n", pvstream->name, strerror(errno));
          status = PV_FAILURE;
       }
       if (status == PV_SUCCESS) {
@@ -325,7 +325,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
       if (status == PV_SUCCESS) {
          read_buffer = (char *) malloc(writesize);
          if (read_buffer==NULL) {
-            fprintf(stderr, "PV_fwrite verification error: unable to create readback buffer of size %zu to verify \"%s\"\n", writesize, pvstream->name);
+            pvErrorNoExit().printf("PV_fwrite verification: unable to create readback buffer of size %zu to verify \"%s\"\n", writesize, pvstream->name);
             status = PV_FAILURE;
          }
       }
@@ -335,7 +335,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
       if (status == PV_SUCCESS) {
          size_t numread = fread(read_buffer, (size_t) 1, writesize, readStream->fp);
          if (numread != writesize) {
-            fprintf(stderr, "PV_fwrite verification error: unable to read into readback buffer for \"%s\": fread returned %zu instead of %zu\n", pvstream->name, numread, writesize);
+            pvErrorNoExit().printf("PV_fwrite verification: unable to read into readback buffer for \"%s\": fread returned %zu instead of %zu\n", pvstream->name, numread, writesize);
             status = PV_FAILURE;
          }
       }
@@ -344,7 +344,7 @@ size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Strea
          if (status != PV_SUCCESS) {
             size_t badcount=0;
             for (size_t n=0; n<writesize; n++) { badcount += (((char *) ptr)[n]!=read_buffer[n]); }
-            fprintf(stderr, "PV_fwrite verification error: readback of %zu bytes from \"%s\" starting at position %zu failed: %zu bytes disagree.\n", writesize, pvstream->name, pvstream->filepos, badcount);
+            pvErrorNoExit().printf("PV_fwrite verification: readback of %zu bytes from \"%s\" starting at position %zu failed: %zu bytes disagree.\n", writesize, pvstream->name, pvstream->filepos, badcount);
          }
       }
       free(read_buffer);
@@ -811,7 +811,7 @@ int pvp_read_header(PV_Stream * pvstream, Communicator * comm, int * params, int
    // int mpi_buffer[*numParams+2]; // space for params to be MPI_Bcast, along with space for status and number of params read
    if (comm->commRank()==0) {
       if (pvstream==NULL) {
-         fprintf(stderr, "pvp_read_header error: pvstream==NULL for rank zero");
+         pvErrorNoExit().printf("pvp_read_header: pvstream==NULL for rank zero");
          status = PV_FAILURE;
       }
       if (*numParams < 2) {
@@ -1275,7 +1275,7 @@ int pvp_read_time(PV_Stream * pvstream, Communicator * comm, int root_process, d
    struct timeandstatus mpi_data;
    if (comm->commRank()==root_process) {
       if (pvstream==NULL) {
-         fprintf(stderr, "pvp_read_time error: root process called with null stream argument.\n");
+         pvErrorNoExit().printf("pvp_read_time: root process called with null stream argument.\n");
          abort();
       }
       int numread = PV_fread(timed, sizeof(*timed), 1, pvstream);
@@ -1363,7 +1363,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
          if (includeValues) {
             indexvaluepairs = (indexvaluepair *) malloc(localActive*sizeof(indexvaluepair));
             if (indexvaluepairs==NULL) {
-               fprintf(stderr, "writeActivitySparseNonspiking error: Rank %d process unable to allocate memory for indexvaluepairs: %s\n",
+               pvErrorNoExit().printf("writeActivitySparseNonspiking: Rank %d process unable to allocate memory for indexvaluepairs: %s\n",
                        icRank, strerror(errno));
                exit(EXIT_FAILURE);
             }
@@ -1465,7 +1465,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
             // otherwise numActive is not used
             numActive = (unsigned int *) malloc(icSize*sizeof(unsigned int));
             if (numActive == NULL) {
-               fprintf(stderr, "writeActivitySparseNonspiking error: Root process unable to allocate memory for numActive array: %s\n",
+               pvErrorNoExit().printf("writeActivitySparseNonspiking: Root process unable to allocate memory for numActive array: %s\n",
                        strerror(errno));
                exit(EXIT_FAILURE);
             }
@@ -1497,7 +1497,7 @@ int writeActivitySparse(PV_Stream * pvstream, Communicator * comm, double timed,
                                       datatype, 1, extended, contiguous,
                                       numParams, (size_t) totalActive);
             if (status != 0) {
-               fprintf(stderr, "[%2d]: writeActivitySparse error: failed in pvp_write_header, numParams==%d, localActive==%d\n",
+               pvErrorNoExit().printf("[%2d]: writeActivitySparse: failed in pvp_write_header, numParams==%d, localActive==%d\n",
                        comm->commRank(), numParams, localActive);
                return status;
             }
@@ -1800,7 +1800,7 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
 
    if (nxp != wgtParams[INDEX_WGT_NXP] || nyp != wgtParams[INDEX_WGT_NYP] || nfp != wgtParams[INDEX_WGT_NFP]) {
       if (icRank==0) {
-         fprintf(stderr, "readWeightsDeprecated error: file \"%s\" patch dimensions (nxp=%d, nyp=%d, nfp=%d) do not agree with expected values (%d,%d,%d).\n",
+         pvErrorNoExit().printf("readWeightsDeprecated: file \"%s\" patch dimensions (nxp=%d, nyp=%d, nfp=%d) do not agree with expected values (%d,%d,%d).\n",
                filename, wgtParams[INDEX_WGT_NXP], wgtParams[INDEX_WGT_NYP], wgtParams[INDEX_WGT_NFP], nxp, nyp, nfp);
       }
       MPI_Barrier(comm->communicator());
@@ -1976,7 +1976,7 @@ int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numAr
             if (offset != patch->offset ||
                 nx != patch->nx ||
                 ny != patch->ny) {
-               fprintf(stderr, "readWeightsDeprecated error: Rank %d process, patch %d: geometry from filename \"%s\" is not consistent with geometry from patches input argument: ", comm->commRank(), patchindex, filename);
+               pvErrorNoExit().printf("readWeightsDeprecated: Rank %d process, patch %d: geometry from filename \"%s\" is not consistent with geometry from patches input argument: ", comm->commRank(), patchindex, filename);
                fprintf(stderr, "filename has nx=%hu, ny=%hu, offset=%u; patches[%d] has nx=%hu, ny=%hu, offset=%u.\n", nx, ny, offset, patchindex, patch->nx, patch->ny, patch->offset);
                status = PV_FAILURE;
             }
@@ -2189,7 +2189,7 @@ int writeRandState(const char * filename, Communicator * comm, taus_uint4 * rand
    if (rank == rootproc) {
       pvstream = PV_fopen(filename, "w", verifyWrites);
       if (pvstream==NULL) {
-         fprintf(stderr, "writeRandState error: unable to open path %s for writing.\n", filename);
+         pvErrorNoExit().printf("writeRandState: unable to open path %s for writing.\n", filename);
          abort();
       }
    }
@@ -2219,7 +2219,7 @@ int readRandState(const char * filename, Communicator * comm, taus_uint4 * randS
    if (rank == rootproc) {
       pvstream = PV_fopen(filename, "r", false/*verifyWrites*/);
       if (pvstream==NULL) {
-         fprintf(stderr, "readRandState error: unable to open path %s for reading.\n", filename);
+         pvErrorNoExit().printf("readRandState: unable to open path %s for reading.\n", filename);
          abort();
       }
    }
@@ -2275,7 +2275,7 @@ template <typename T> int gatherActivity(PV_Stream * pvstream, Communicator * co
    int rank = comm->commRank();
    if (rank==rootproc) {
       if (pvstream == NULL) {
-         fprintf(stderr, "gatherActivity error: file pointer on root process is null.\n");
+         pvErrorNoExit().printf("gatherActivity: file pointer on root process is null.\n");
          status = PV_FAILURE;
          abort();
       }
@@ -2425,7 +2425,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
    int rank = comm->commRank();
    if (rank==rootproc) {
       if (pvstream == NULL) {
-         fprintf(stderr, "scatterActivity error: file pointer on root process is null.\n");
+         pvErrorNoExit().printf("scatterActivity: file pointer on root process is null.\n");
          status = PV_FAILURE;
          abort();
       }
@@ -2437,7 +2437,7 @@ template <typename T> int scatterActivity(PV_Stream * pvstream, Communicator * c
       }
       if (fileLoc==NULL) fileLoc = layerLoc;
       if (fileLoc->nf != layerLoc->nf) {
-         fprintf(stderr, "scatterActivity error: layerLoc->nf and fileLoc->nf must be equal (they are %d and %d)\n", layerLoc->nf, fileLoc->nf);
+         pvErrorNoExit().printf("scatterActivity: layerLoc->nf and fileLoc->nf must be equal (they are %d and %d)\n", layerLoc->nf, fileLoc->nf);
          abort();
       }
 

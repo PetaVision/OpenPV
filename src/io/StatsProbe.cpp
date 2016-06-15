@@ -174,7 +174,7 @@ void StatsProbe::ioParam_buffer(enum ParamsIOFlag ioFlag) {
          if (getParent()->columnId()==0) {
             const char * bufnameinparams = getParent()->parameters()->stringValue(getName(), "buffer");
             assert(bufnameinparams);
-            fprintf(stderr, "%s \"%s\" error: buffer \"%s\" is not recognized.\n",
+            pvErrorNoExit().printf("%s \"%s\": buffer \"%s\" is not recognized.\n",
                   this->getKeyword(), getName(), bufnameinparams);
          }
          MPI_Barrier(getParent()->icCommunicator()->communicator());

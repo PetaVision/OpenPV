@@ -793,7 +793,7 @@ void HyPerLayer::ioParam_updateGpu(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "updateGpu", &updateGpu, updateGpu, false/*warnIfAbsent*/);
    if (ioFlag==PARAMS_IO_READ && updateGpu) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
+         pvErrorNoExit().printf("%s \"%s\": updateGpu is set to true, but PetaVision was compiled without GPU acceleration.\n",
                getKeyword(), getName());
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -843,7 +843,7 @@ void HyPerLayer::ioParam_InitVType(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       initVObject = new InitV(parent, name);
       if( initVObject == NULL ) {
-         fprintf(stderr, "%s \"%s\" error: unable to create InitV object\n", getKeyword(), name);
+         pvErrorNoExit().printf("%s \"%s\": unable to create InitV object\n", getKeyword(), name);
          abort();
       }
    }
@@ -857,7 +857,7 @@ void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (triggerLayerName && !strcmp(name, triggerLayerName)) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: triggerLayerName cannot be the same as the name of the layer itself.\n",
+            pvErrorNoExit().printf("%s \"%s\": triggerLayerName cannot be the same as the name of the layer itself.\n",
                   getKeyword(), name);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -929,7 +929,7 @@ void HyPerLayer::ioParam_triggerBehavior(enum ParamsIOFlag ioFlag) {
       }
       else {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: triggerBehavior=\"%s\" is unrecognized.\n",
+            pvErrorNoExit().printf("%s \"%s\": triggerBehavior=\"%s\" is unrecognized.\n",
                   getKeyword(), name, triggerBehavior);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -1108,7 +1108,7 @@ int HyPerLayer::communicateInitInfo()
       triggerLayer = parent->getLayerFromName(triggerLayerName);
       if (triggerLayer==NULL) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: triggerLayerName \"%s\" is not a layer in the HyPerCol.\n",
+            pvErrorNoExit().printf("%s \"%s\": triggerLayerName \"%s\" is not a layer in the HyPerCol.\n",
                   getKeyword(), name, triggerLayerName);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -1126,7 +1126,7 @@ int HyPerLayer::communicateInitInfo()
             triggerResetLayer = parent->getLayerFromName(triggerResetLayerName);
             if (triggerResetLayer==NULL) {
                if (parent->columnId()==0) {
-                  fprintf(stderr, "%s \"%s\" error: triggerResetLayerName \"%s\" is not a layer in the HyPerCol.\n",
+                  pvErrorNoExit().printf("%s \"%s\": triggerResetLayerName \"%s\" is not a layer in the HyPerCol.\n",
                         getKeyword(), name, triggerResetLayerName);
                }
                MPI_Barrier(parent->icCommunicator()->communicator());
@@ -1139,7 +1139,7 @@ int HyPerLayer::communicateInitInfo()
          PVLayerLoc const * localLoc = this->getLayerLoc();
          if (triggerLoc->nxGlobal != localLoc->nxGlobal || triggerLoc->nyGlobal != localLoc->nyGlobal || triggerLoc->nf != localLoc->nf) {
             if (parent->columnId()==0) {
-               fprintf(stderr, "%s \"%s\" error: triggerResetLayer \"%s\" has incompatible dimensions.\n",
+               pvErrorNoExit().printf("%s \"%s\": triggerResetLayer \"%s\" has incompatible dimensions.\n",
                      getKeyword(), name, resetLayerName);
                fprintf(stderr, "    \"%s\" is %d-by-%d-by-%d and \"%s\" is %d-by-%d-by-%d.\n",
                      name, localLoc->nxGlobal, localLoc->nyGlobal, localLoc->nf,
@@ -1242,7 +1242,7 @@ int HyPerLayer::openOutputStateFile() {
             ioAppend = false;
          }
          else {
-            fprintf(stderr, "HyPerLayer::initializeLayerId error: stat \"%s\": %s\n", filename, strerror(errno));
+            pvErrorNoExit().printf("HyPerLayer::initializeLayerId: stat \"%s\": %s\n", filename, strerror(errno));
             abort();
          }
       }
@@ -1394,7 +1394,7 @@ int HyPerLayer::allocateDataStructures()
    //// labels are not extended
    //labels = (int *) calloc(getNumNeurons(), sizeof(int));
    //if (labels==NULL) {
-   //   fprintf(stderr, "HyPerLayer \"%s\" error: rank %d unable to allocate memory for labels.\n", name, parent->columnId());
+   //   pvErrorNoExit().printf("HyPerLayer \"%s\": rank %d unable to allocate memory for labels.\n", name, parent->columnId());
    //   exit(EXIT_FAILURE);
    //}
 
@@ -1753,7 +1753,7 @@ int HyPerLayer::resetStateOnTrigger() {
    pvpotentialdata_t * V = getV();
    if (V==NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: triggerBehavior is \"resetStateOnTrigger\" but layer does not have a membrane potential.\n",
+         pvErrorNoExit().printf("%s \"%s\": triggerBehavior is \"resetStateOnTrigger\" but layer does not have a membrane potential.\n",
                getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -2206,7 +2206,7 @@ int HyPerLayer::checkpointRead(const char * cpDir, double * timeptr) {
       parent->readScalarFromFile(cpDir, getName(), "filepos", &activityfilepos);
       if (parent->columnId()==0 && outputStateStream) {
          if (PV_fseek(outputStateStream, activityfilepos, SEEK_SET) != 0) {
-            fprintf(stderr, "HyPerLayer::checkpointRead error: unable to recover initial file position in activity file for layer %s\n", name);
+            pvErrorNoExit().printf("HyPerLayer::checkpointRead: unable to recover initial file position in activity file for layer %s\n", name);
             abort();
          }
       }
@@ -2266,7 +2266,7 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
                abort();
             }
             if (rank==0) {
-               fprintf(stderr,"HyPerLayer::readBufferFile error: filename \"%s\" is a compressed spiking file, but this filetype has not yet been implemented in this case.\n", filename);
+               pvErrorNoExit().printf("HyPerLayer::readBufferFile: filename \"%s\" is a compressed spiking file, but this filetype has not yet been implemented in this case.\n", filename);
             }
             status = PV_FAILURE;
             break;
@@ -2280,20 +2280,20 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
          case PVP_WGT_FILE_TYPE:
          case PVP_KERNEL_FILE_TYPE:
             if (rank==0) {
-               fprintf(stderr,"HyPerLayer::readBufferFile error: filename \"%s\" is a weight file (type %d) but a layer file is expected.\n", filename, params[INDEX_FILE_TYPE]);
+               pvErrorNoExit().printf("HyPerLayer::readBufferFile: filename \"%s\" is a weight file (type %d) but a layer file is expected.\n", filename, params[INDEX_FILE_TYPE]);
             }
             status = PV_FAILURE;
             break;
          default:
             if (rank==0) {
-               fprintf(stderr,"HyPerLayer::readBufferFile error: filename \"%s\" has unrecognized pvp file type %d\n", filename, params[INDEX_FILE_TYPE]);
+               pvErrorNoExit().printf("HyPerLayer::readBufferFile: filename \"%s\" has unrecognized pvp file type %d\n", filename, params[INDEX_FILE_TYPE]);
             }
             status = PV_FAILURE;
             break;
          }
          if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
             if (rank==0) {
-               fprintf(stderr, "HyPerLayer::readBufferFile error: file \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
+               pvErrorNoExit().printf("HyPerLayer::readBufferFile: file \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
             }
             abort();
          }
@@ -2325,7 +2325,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
    }
    if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
       if (comm->commRank()==0) {
-         fprintf(stderr, "HyPerLayer::readBufferFile error: file \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
+         pvErrorNoExit().printf("HyPerLayer::readBufferFile: file \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
       }
       abort();
    }

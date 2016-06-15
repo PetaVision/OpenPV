@@ -141,7 +141,7 @@ void BaseInput::ioParam_offsetAnchor(enum ParamsIOFlag ioFlag){
       int status = checkValidAnchorString();
       if (status != PV_SUCCESS) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", getKeyword(), getName());
+            pvErrorNoExit().printf("%s \"%s\": offsetAnchor must be a two-letter string.  The first character must be \"t\", \"c\", or \"b\" (for top, center or bottom); and the second character must be \"l\", \"c\", or \"r\" (for left, center or right).\n", getKeyword(), getName());
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -174,7 +174,7 @@ void BaseInput::ioParam_aspectRatioAdjustment(enum ParamsIOFlag ioFlag) {
       }
       if (strcmp(aspectRatioAdjustment, "crop") && strcmp(aspectRatioAdjustment, "pad")) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" error: aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
+            pvErrorNoExit().printf("%s \"%s\": aspectRatioAdjustment must be either \"crop\" or \"pad\".\n",
                   getKeyword(), name);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -199,7 +199,7 @@ void BaseInput::ioParam_interpolationMethod(enum ParamsIOFlag ioFlag) {
          }
          else {
             if (parent->columnId()==0) {
-               fprintf(stderr, "%s \"%s\" error: interpolationMethod must be either \"bicubic\" or \"nearestNeighbor\".\n",
+               pvErrorNoExit().printf("%s \"%s\": interpolationMethod must be either \"bicubic\" or \"nearestNeighbor\".\n",
                      getKeyword(), name);
             }
             MPI_Barrier(parent->icCommunicator()->communicator());

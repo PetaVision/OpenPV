@@ -106,7 +106,7 @@ int InitV::calcV(HyPerLayer * layer) {
    const PVLayerLoc * loc = layer->getLayerLoc();
    pvdata_t * V = layer->getV();
    if (V == NULL) {
-      fprintf(stderr, "%s \"%s\" error: InitV called but membrane potential V is null.\n",
+      pvErrorNoExit().printf("%s \"%s\": InitV called but membrane potential V is null.\n",
             layer->getKeyword(), layer->getName());
       exit(EXIT_FAILURE);
    }
@@ -217,7 +217,7 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * ic
       status = checkLoc(loc, params[INDEX_NX], params[INDEX_NY], params[INDEX_NF], params[INDEX_NX_GLOBAL], params[INDEX_NY_GLOBAL]);
       if (status != PV_SUCCESS) {
          if (icComm->commRank() == 0) {
-            fprintf(stderr, "InitVFromFilename error: dimensions of \"%s\" (x=%d,y=%d,f=%d) do not agree with layer dimensions (x=%d,y=%d,f=%d).\n", filename, params[INDEX_NX_GLOBAL], params[INDEX_NY_GLOBAL], params[INDEX_NF], loc->nxGlobal, loc->nyGlobal, loc->nf);
+            pvErrorNoExit().printf("InitVFromFilename: dimensions of \"%s\" (x=%d,y=%d,f=%d) do not agree with layer dimensions (x=%d,y=%d,f=%d).\n", filename, params[INDEX_NX_GLOBAL], params[INDEX_NY_GLOBAL], params[INDEX_NF], loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
          MPI_Barrier(icComm->communicator());
          exit(EXIT_FAILURE);
@@ -232,7 +232,7 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * ic
       fileLoc.ky0 = 0;
       if (params[INDEX_NX_PROCS] != 1 || params[INDEX_NY_PROCS] != 1) {
          if (icComm->commRank()==0) {
-            fprintf(stderr, "HyPerLayer::readBufferFile error: file \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
+            pvErrorNoExit().printf("HyPerLayer::readBufferFile: file \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
          }
          abort();
       }

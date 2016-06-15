@@ -217,7 +217,7 @@ int ANNLayer::setVertices() {
    verticesV = (pvpotentialdata_t *) malloc((size_t) numVertices * sizeof(*verticesV));
    verticesA = (pvadata_t *) malloc((size_t) numVertices * sizeof(*verticesA));
    if (verticesV==NULL || verticesA==NULL) {
-      fprintf(stderr, "%s \"%s\" error: unable to allocate memory for vertices:%s\n",
+      pvErrorNoExit().printf("%s \"%s\": unable to allocate memory for vertices:%s\n",
             getKeyword(), name, strerror(errno));
       exit(EXIT_FAILURE);
    }

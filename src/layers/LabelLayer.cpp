@@ -118,13 +118,13 @@ int LabelLayer::communicateInitInfo() {
 
    HyPerLayer * hyperlayer = parent->getLayerFromName(movieLayerName);
    if (hyperlayer == NULL) {
-      fprintf(stderr, "LabelLayer \"%s\" error: movieLayerName \"%s\" is not a layer in the HyPerCol.\n", name, movieLayerName);
+      pvErrorNoExit().printf("LabelLayer \"%s\": movieLayerName \"%s\" is not a layer in the HyPerCol.\n", name, movieLayerName);
       abort();
    }
 
    movie = dynamic_cast<Movie *>(hyperlayer);
    if (movie == NULL) {
-      fprintf(stderr, "LabelLayer \"%s\" error: movieLayerName \"%s\" is not a Movie or Movie-derived class.\n", name, movieLayerName);
+      pvErrorNoExit().printf("LabelLayer \"%s\": movieLayerName \"%s\" is not a Movie or Movie-derived class.\n", name, movieLayerName);
       abort();
    }
 

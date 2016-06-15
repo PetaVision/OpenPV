@@ -186,7 +186,7 @@ int CloneConn::communicateInitInfo() {
    BaseConnection * originalConnBase = parent->getConnFromName(originalConnName);
    if (originalConnBase == NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "CloneConn \"%s\" error: originalConnName \"%s\" is not a connection in the column.\n",
+         pvErrorNoExit().printf("CloneConn \"%s\": originalConnName \"%s\" is not a connection in the column.\n",
                name, originalConnName);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
@@ -195,7 +195,7 @@ int CloneConn::communicateInitInfo() {
    originalConn = dynamic_cast<HyPerConn *>(originalConnBase);
    if (originalConn == NULL) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "CloneConn \"%s\" error: originalConnName \"%s\" is not a HyPerConn or HyPerConn-derived class.\n",
+         pvErrorNoExit().printf("CloneConn \"%s\": originalConnName \"%s\" is not a HyPerConn or HyPerConn-derived class.\n",
                name, originalConnName);
       }
    }
