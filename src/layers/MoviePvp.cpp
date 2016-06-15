@@ -395,8 +395,7 @@ bool MoviePvp::updateImage(double time, double dt)
             if(fabs(time - (parent->getStartTime() + parent->getDeltaTime())) > (parent->getDeltaTime()/2)){
                int status = getFrame(time, dt);
                if( status != PV_SUCCESS ) {
-                  fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, inputPath);
-                  abort();
+                  pvError().printf("Movie %s: Error reading file \"%s\"\n", name, inputPath);
                }
             }
       if(writePosition && icComm->commRank()==0){
@@ -465,7 +464,7 @@ int MoviePvp::updateFrameNum(int batchIdx) {
    //numFrames only set if pvp file
    if(frameNumbers[batchIdx] >= fileNumFrames){
       if(parent->columnId()==0){
-         fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, inputPath );
+         pvInfo().printf("Movie %s: EOF reached, rewinding file \"%s\"\n", name, inputPath );
       }
       if(resetToStartOnLoop){
          frameNumbers[batchIdx] = startFrameIndex[batchIdx];

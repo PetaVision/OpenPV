@@ -106,46 +106,12 @@ void ISTALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
       }
       parent->parameters()->value(name, "numChannels"); // mark the parameter as read
    }
-#ifdef OBSOLETE // Marked obsolete Jul 9, 2015.  A layer learns how many channels it has during the communication stage.
-   parent->ioParamValue(ioFlag, name, "numChannels", &numChannels, numChannels, true/*warnIfAbsent*/);
-   if (numChannels != 1 && numChannels != 2){
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" requires 1 or 2 channels, numChannels = %d\n",
-               getKeyword(), name, numChannels);
-      }
-      MPI_Barrier(parent->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-#endif // OBSOLETE // Marked obsolete Jul 9, 2015.  A layer learns how many channels it has during the communication stage.
 }
 
 void ISTALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true/*warnIfAbsent*/);
 }
 
-#ifdef OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
-void ISTALayer::ioParam_numWindowX(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "numWindowX", &numWindowX, numWindowX);
-   if(numWindowX != 1) {
-      parent->ioParamValue(ioFlag, name, "windowSymX", &windowSymX, windowSymX);
-   }
-}
-
-void ISTALayer::ioParam_numWindowY(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "numWindowY", &numWindowY, numWindowY);
-   if(numWindowY != 1) {
-      parent->ioParamValue(ioFlag, name, "windowSymY", &windowSymY, windowSymY);
-   }
-}
-
-void ISTALayer::ioParam_windowSymX(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "numWindowX"));
-}
-
-void ISTALayer::ioParam_windowSymY(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "numWindowY"));
-}
-#endif // OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
 
 void ISTALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);
@@ -236,8 +202,7 @@ int ISTALayer::allocateUpdateKernel(){
 #ifdef PV_USE_CUDA
 int ISTALayer::doUpdateStateGpu(double time, double dt, const PVLayerLoc * loc, pvdata_t * A, pvdata_t * V, int num_channels, pvdata_t * gSynHead){
    if(triggerLayer != NULL){
-      fprintf(stderr, "HyPerLayer::Trigger reset of V does not work on GPUs\n");
-      abort();
+      pvError().printf("HyPerLayer::Trigger reset of V does not work on GPUs\n");
    }
    //Copy over d_dtAdapt
    d_dtAdapt->copyToDevice(parent->getTimeScale());

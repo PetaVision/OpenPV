@@ -39,8 +39,8 @@ int SigmoidLayer::initialize(const char * name, HyPerCol * hc) {
    int status_init = CloneVLayer::initialize(name, hc);
 
    if (parent->columnId()==0) {
-      if(InverseFlag)   fprintf(stdout,"SigmoidLayer: Inverse flag is set\n");
-      if(SigmoidFlag)   fprintf(stdout,"SigmoidLayer: True Sigmoid flag is set\n");
+      if(InverseFlag)   pvInfo().printf("SigmoidLayer: Inverse flag is set\n");
+      if(SigmoidFlag)   pvInfo().printf("SigmoidLayer: True Sigmoid flag is set\n");
    }
 
    if (SigmoidAlpha < 0.0f || SigmoidAlpha > 1.0f) {

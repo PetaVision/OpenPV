@@ -90,13 +90,6 @@ int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = ANNLayer::ioParamsFillGroup(ioFlag);
    ioParam_numChannels(ioFlag);  // Deprecated Jul 9, 2015.  All ioParam_numChannels does is issue a warning that numChannels is no longer used.  Delete after a suitable fade time.
    ioParam_timeConstantTau(ioFlag);
-#ifdef OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
-   ioParam_numWindowX(ioFlag);
-   ioParam_numWindowY(ioFlag);
-   ioParam_windowSymX(ioFlag);
-   ioParam_windowSymY(ioFlag);
-#endif // OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
-
    ioParam_selfInteract(ioFlag);
    return status;
 }
@@ -109,46 +102,11 @@ void HyPerLCALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
       }
       parent->parameters()->value(name, "numChannels"); // mark the parameter as read
    }
-#ifdef OBSOLETE // Marked obsolete Jul 9, 2015.  A layer learns how many channels it has during the communication stage.
-   parent->ioParamValue(ioFlag, name, "numChannels", &numChannels, numChannels, true/*warnIfAbsent*/);
-   if (numChannels != 1 && numChannels != 2){
-      if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" requires 1 or 2 channels, numChannels = %d\n",
-               getKeyword(), name, numChannels);
-      }
-      MPI_Barrier(parent->icCommunicator()->communicator());
-      exit(EXIT_FAILURE);
-   }
-#endif // OBSOLETE // Marked obsolete Jul 9, 2015.  A layer learns how many channels it has during the communication stage.
 }
 
 void HyPerLCALayer::ioParam_timeConstantTau(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "timeConstantTau", &timeConstantTau, timeConstantTau, true/*warnIfAbsent*/);
 }
-
-#ifdef OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
-void HyPerLCALayer::ioParam_numWindowX(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "numWindowX", &numWindowX, numWindowX);
-   if(numWindowX != 1) {
-      parent->ioParamValue(ioFlag, name, "windowSymX", &windowSymX, windowSymX);
-   }
-}
-
-void HyPerLCALayer::ioParam_numWindowY(enum ParamsIOFlag ioFlag) {
-   parent->ioParamValue(ioFlag, name, "numWindowY", &numWindowY, numWindowY);
-   if(numWindowY != 1) {
-      parent->ioParamValue(ioFlag, name, "windowSymY", &windowSymY, windowSymY);
-   }
-}
-
-void HyPerLCALayer::ioParam_windowSymX(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "numWindowX"));
-}
-
-void HyPerLCALayer::ioParam_windowSymY(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "numWindowY"));
-}
-#endif // OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
 
 void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "selfInteract", &selfInteract, selfInteract);

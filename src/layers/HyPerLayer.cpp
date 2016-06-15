@@ -359,9 +359,6 @@ int HyPerLayer::initClayer() {
 
 HyPerLayer::~HyPerLayer()
 {
-   //if (parent->columnId() == 0) {
-   //   writeTimers(stdout);
-   //}
    delete recvsyn_timer;  recvsyn_timer = NULL;
    delete update_timer;   update_timer  = NULL;
    delete publish_timer;  publish_timer = NULL;
@@ -516,7 +513,7 @@ int HyPerLayer::allocateBuffer(T ** buf, int bufsize, const char * bufname) {
    int status = PV_SUCCESS;
    *buf = (T *) calloc(bufsize, sizeof(T));
    if(*buf == NULL) {
-      fprintf(stderr, "Layer \"%s\" error in rank %d process: unable to allocate memory for %s: %s.\n", name, parent->columnId(), bufname, strerror(errno));
+      pvErrorNoExit().printf("Layer \"%s\" error in rank %d process: unable to allocate memory for %s: %s.\n", name, parent->columnId(), bufname, strerror(errno));
       status = PV_FAILURE;
    }
    return status;
@@ -556,8 +553,9 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
    layerLoc->nxGlobal = (int) nearbyintf(nxglobalfloat);
    if (fabs(nxglobalfloat-layerLoc->nxGlobal)>0.0001) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "nxScale of layer \"%s\" is incompatible with size of column.\n", getName());
-         fprintf(stderr, "Column nx %d multiplied by nxScale %f must be an integer.\n", parent->getNxGlobal(), nxScale);
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("nxScale of layer \"%s\" is incompatible with size of column.\n", getName());
+         errorMessage.printf("Column nx %d multiplied by nxScale %f must be an integer.\n", parent->getNxGlobal(), nxScale);
       }
       status = PV_FAILURE;
    }
@@ -566,8 +564,9 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
    layerLoc->nyGlobal = (int) nearbyintf(nyglobalfloat);
    if (fabs(nyglobalfloat-layerLoc->nyGlobal)>0.0001) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "nyScale of layer \"%s\" is incompatible with size of column.\n", getName());
-         fprintf(stderr, "Column ny %d multiplied by nyScale %f must be an integer.\n", parent->getNyGlobal(), nyScale);
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("nyScale of layer \"%s\" is incompatible with size of column.\n", getName());
+         errorMessage.printf("Column ny %d multiplied by nyScale %f must be an integer.\n", parent->getNyGlobal(), nyScale);
       }
       status = PV_FAILURE;
    }
@@ -578,16 +577,18 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
 
    if (layerLoc->nxGlobal % icComm->numCommColumns() != 0) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
-         fprintf(stderr, "The layer has %d pixels horizontally, and there are %d mpi processes in a row, but %d does not divide %d.\n",
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
+         errorMessage.printf("The layer has %d pixels horizontally, and there are %d mpi processes in a row, but %d does not divide %d.\n",
                layerLoc->nxGlobal, icComm->numCommColumns(), icComm->numCommColumns(), layerLoc->nxGlobal);
       }
       status = PV_FAILURE;
    }
    if (layerLoc->nyGlobal % icComm->numCommRows() != 0) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
-         fprintf(stderr, "The layer has %d pixels vertically, and there are %d mpi processes in a column, but %d does not divide %d.\n",
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("Size of HyPerLayer \"%s\" is not  compatible with the mpi configuration.\n", name);
+         errorMessage.printf("The layer has %d pixels vertically, and there are %d mpi processes in a column, but %d does not divide %d.\n",
                layerLoc->nyGlobal, icComm->numCommRows(), icComm->numCommRows(), layerLoc->nyGlobal);
       }
       status = PV_FAILURE;
@@ -595,7 +596,7 @@ int HyPerLayer::setLayerLoc(PVLayerLoc * layerLoc, float nxScale, float nyScale,
    MPI_Barrier(icComm->communicator()); // If there is an error, make sure that MPI doesn't kill the run before process 0 reports the error.
    if (status != PV_SUCCESS) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Exiting.\n");
+         pvErrorNoExit().printf("setLayerLoc failed for %s \"%s\".\n", getKeyword(), getName());
       }
       exit(EXIT_FAILURE);
    }
@@ -873,29 +874,29 @@ void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 // While triggerFlag is being deprecated, it is an error for triggerFlag to be false
 // and triggerLayerName to be a nonempty string.
 void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
-   assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
+   bool flagFromParams = false;
+   parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
    if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
       if (parent->columnId()==0) {
-         pvWarn().printf("Layer \"%s\": triggerFlag has been deprecated.\n", name);
-      }
-      bool flagFromParams = false;
-      parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
-      if (flagFromParams != triggerFlag) {
+         pvWarn(triggerFlagMessage);
+         triggerFlagMessage.printf("   If triggerLayerName is a nonempty string, triggering will be on;\n");
+         triggerFlagMessage.printf("   if triggerLayerName is empty or null, triggering will be off.\n");
+         triggerFlagMessage.printf("Layer \"%s\": triggerFlag has been deprecated.\n", name);
          if (parent->columnId()==0) {
-            fprintf(stderr, "Layer \"%s\" Error: triggerLayerName=", name);
-            if (triggerLayerName) { fprintf(stderr, "\"%s\"", triggerLayerName); }
-            else { fprintf(stderr, "NULL"); }
-            fprintf(stderr, " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
-                  triggerFlag ? "true" : "false", flagFromParams ? "true" : "false");
+            if (flagFromParams != triggerFlag) {
+               pvErrorNoExit(errorMessage);
+               errorMessage.printf("triggerLayerName=", name);
+               if (triggerLayerName) { errorMessage.printf("\"%s\"", triggerLayerName); }
+               else { errorMessage.printf("NULL"); }
+               errorMessage.printf(" implies triggerFlag=%s but triggerFlag was set in params to %s\n",
+                     triggerFlag ? "true" : "false", flagFromParams ? "true" : "false");
+            }
          }
+      }
+      if (flagFromParams != triggerFlag) {
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
-      }
-      else {
-         if (parent->columnId()==0) {
-            fprintf(stderr, "   If triggerLayerName is a nonempty string, triggering will be on;\n");
-            fprintf(stderr, "   if triggerLayerName is empty or null, triggering will be off.\n");
-         }
       }
    }
 }
@@ -959,15 +960,15 @@ void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
       double start_time = parent->getStartTime();
       parent->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
       if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < start_time) {
-         if (parent->columnId()==0) {
-            pvWarn().printf("%s \"%s\": initialWriteTime is earlier than start time.  Adjusting initialWriteTime:\n",
-                  getKeyword(), name);
-         }
+         double storeInitialWriteTime = initialWriteTime;
          while (initialWriteTime < start_time) {
             initialWriteTime += writeStep;
          }
          if (parent->columnId()==0) {
-            fprintf(stderr, "    initialWriteTime adjusted to %f\n",initialWriteTime);
+            pvWarn(warningMessage);
+            warningMessage.printf("%s \"%s\": initialWriteTime %fis earlier than start time %f.  Adjusting initialWriteTime:\n",
+                  getKeyword(), name, initialWriteTime, start_time);
+            warningMessage.printf("    initialWriteTime adjusted to %f\n",initialWriteTime);
          }
       }
    }
@@ -1139,12 +1140,12 @@ int HyPerLayer::communicateInitInfo()
          PVLayerLoc const * localLoc = this->getLayerLoc();
          if (triggerLoc->nxGlobal != localLoc->nxGlobal || triggerLoc->nyGlobal != localLoc->nyGlobal || triggerLoc->nf != localLoc->nf) {
             if (parent->columnId()==0) {
-               pvErrorNoExit().printf("%s \"%s\": triggerResetLayer \"%s\" has incompatible dimensions.\n",
+               pvError(errorMessage);
+               errorMessage.printf("%s \"%s\": triggerResetLayer \"%s\" has incompatible dimensions.\n",
                      getKeyword(), name, resetLayerName);
-               fprintf(stderr, "    \"%s\" is %d-by-%d-by-%d and \"%s\" is %d-by-%d-by-%d.\n",
+               errorMessage.printf("    \"%s\" is %d-by-%d-by-%d and \"%s\" is %d-by-%d-by-%d.\n",
                      name, localLoc->nxGlobal, localLoc->nyGlobal, localLoc->nf,
                      resetLayerName, triggerLoc->nxGlobal, triggerLoc->nyGlobal, triggerLoc->nf);
-               exit(EXIT_FAILURE);
             }
          }
       }
@@ -1192,10 +1193,8 @@ int HyPerLayer::openOutputStateFile() {
    if (numCommBatches != 1) {
       int sz = snprintf(appendCommBatchIdx, 32, "_%d", parent->commBatch());
       if (sz >= 32) {
-         fflush(stdout);
-         fprintf(stderr, "%s \"%s\": Unable to create file name for outputState file: comm batch index %d is too long.\n",
+         pvError().printf("%s \"%s\": Unable to create file name for outputState file: comm batch index %d is too long.\n",
                getKeyword(), name, parent->commBatch());
-         exit(EXIT_FAILURE);
       }
    }
    else { // numCommBatches is one; insert the empty string instead.
@@ -1219,10 +1218,8 @@ int HyPerLayer::openOutputStateFile() {
       break;
    }
    if (sz >= PV_PATH_MAX) {
-      fflush(stdout);
-      fprintf(stderr, "%s \"%s\": Unable to create file name for outputState file: file name with comm batch index %d is too long.\n",
+      pvError().printf("%s \"%s\": Unable to create file name for outputState file: file name with comm batch index %d is too long.\n",
             getKeyword(), name, parent->commBatch());
-      exit(EXIT_FAILURE);
    }
 
    // initialize writeActivityCalls and writeSparseActivityCalls
@@ -1486,7 +1483,7 @@ int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResul
       if (xmargin < marginWidthNeeded) {
          assert(clayer);
          if (parent->columnId()==0) {
-            fprintf(stdout, "Layer \"%s\": adjusting x-margin width from %d to %d\n", name, xmargin, marginWidthNeeded);
+            pvInfo().printf("Layer \"%s\": adjusting x-margin width from %d to %d\n", name, xmargin, marginWidthNeeded);
          }
          xmargin = marginWidthNeeded;
          halo->lt = xmargin;
@@ -1511,7 +1508,7 @@ int HyPerLayer::requireMarginWidth(int marginWidthNeeded, int * marginWidthResul
       if (ymargin < marginWidthNeeded) {
          assert(clayer);
          if (parent->columnId()==0) {
-            fprintf(stdout, "Layer \"%s\": adjusting y-margin width from %d to %d\n", name, ymargin, marginWidthNeeded);
+            pvInfo().printf("Layer \"%s\": adjusting y-margin width from %d to %d\n", name, ymargin, marginWidthNeeded);
          }
          ymargin = marginWidthNeeded;
          halo->dn = ymargin;
@@ -1586,7 +1583,7 @@ int HyPerLayer::mirrorInteriorToBorder(int whichBorder, PVLayerCube * cube, PVLa
    case SOUTHEAST:
       status = mirrorToSouthEast(border, cube); break;
    default:
-      fprintf(stderr, "ERROR:HyPerLayer:copyToBorder: bad border index %d\n", whichBorder);
+      pvErrorNoExit().printf("HyPerLayer::mirrorInteriorToBorder: bad border index %d\n", whichBorder);
       status = -1;
       break;
    }
@@ -2081,12 +2078,12 @@ int HyPerLayer::waitOnPublish(InterColComm* comm)
 int HyPerLayer::insertProbe(LayerProbe * p)
 {
    if(p->getTargetLayer() != this) {
-      fprintf(stderr, "HyPerLayer \"%s\": insertProbe called with probe %p, whose targetLayer is not this layer.  Probe was not inserted.\n", name, p);
+      pvWarn().printf("HyPerLayer \"%s\": insertProbe called with probe %p, whose targetLayer is not this layer.  Probe was not inserted.\n", name, p);
       return numProbes;
    }
    for( int i=0; i<numProbes; i++ ) {
       if( p == probes[i] ) {
-         fprintf(stderr, "HyPerLayer \"%s\": insertProbe called with probe %p, which has already been inserted as probe %d.\n", name, p, i);
+         pvWarn().printf("HyPerLayer \"%s\": insertProbe called with probe %p, which has already been inserted as probe %d.\n", name, p, i);
          return numProbes;
       }
    }
@@ -2262,8 +2259,7 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
          case PVP_ACT_FILE_TYPE:
             status = pvp_read_time(readFile, comm, 0/*root process*/, &filetime);
             if (status!=PV_SUCCESS) {
-               fprintf(stderr, "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n", filename);
-               abort();
+               pvError().printf("HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n", filename);
             }
             if (rank==0) {
                pvErrorNoExit().printf("HyPerLayer::readBufferFile: filename \"%s\" is a compressed spiking file, but this filetype has not yet been implemented in this case.\n", filename);
@@ -2273,8 +2269,7 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
          case PVP_NONSPIKING_ACT_FILE_TYPE:
             status = pvp_read_time(readFile, comm, 0/*root process*/, &filetime);
             if (status!=PV_SUCCESS) {
-               fprintf(stderr, "HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n", filename);
-               abort();
+               pvError().printf("HyPerLayer::readBufferFile error reading timestamp in file \"%s\"\n", filename);
             }
             break;
          case PVP_WGT_FILE_TYPE:
@@ -2332,8 +2327,7 @@ int HyPerLayer::readDataStoreFromFile(const char * filename, InterColComm * comm
    int numlevels = comm->publisherStore(getLayerId())->numberOfLevels();
    int numbuffers = comm->publisherStore(getLayerId())->numberOfBuffers();
    if (params[INDEX_NBANDS] != numlevels*numbuffers) {
-      fprintf(stderr, "readDataStoreFromFile error reading \"%s\": number of delays + batches in file is %d, but number of delays + batches in layer is %d\n", filename, params[INDEX_NBANDS], numlevels*numbuffers);
-      abort();
+      pvError().printf("readDataStoreFromFile error reading \"%s\": number of delays + batches in file is %d, but number of delays + batches in layer is %d\n", filename, params[INDEX_NBANDS], numlevels*numbuffers);
    }
    DataStore * datastore = comm->publisherStore(getLayerId());
    for (int b = 0; b < numbuffers; b++){
@@ -2404,8 +2398,7 @@ int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, doub
    assert(params && params[1]==NUM_BIN_PARAMS);
    int status = pvp_write_header(writeFile, comm, params, NUM_BIN_PARAMS);
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
-      abort();
+      pvError().printf("HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
    }
 
    for (int band=0; band<numbands; band++) {
@@ -2413,8 +2406,7 @@ int HyPerLayer::writeBufferFile(const char * filename, InterColComm * comm, doub
          if (writeFile != NULL) { // Root process has writeFile set to non-null; other processes to NULL.
             int numwritten = PV_fwrite(&timed, sizeof(double), 1, writeFile);
             if (numwritten != 1) {
-               fprintf(stderr, "HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
-               abort();
+               pvError().printf("HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
             }
          }
          T * bufferBatch;
@@ -2447,8 +2439,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
    assert(params && params[1]==NUM_BIN_PARAMS);
    int status = pvp_write_header(writeFile, comm, params, NUM_BIN_PARAMS);
    if (status != PV_SUCCESS) {
-      fprintf(stderr, "HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
-      abort();
+      pvError().printf("HyPerLayer::writeBufferFile error writing \"%s\"\n", filename);
    }
    free(params);
    DataStore * datastore = comm->publisherStore(getLayerId());
@@ -2458,8 +2449,7 @@ int HyPerLayer::writeDataStoreToFile(const char * filename, InterColComm * comm,
             double lastUpdateTime = datastore->getLastUpdateTime(b/*bufferId*/, l);
             int numwritten = PV_fwrite(&lastUpdateTime, sizeof(double), 1, writeFile);
             if (numwritten != 1) {
-               fprintf(stderr, "HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
-               abort();
+               pvError().printf("HyPerLayer::writeBufferFile error writing timestamp to \"%s\"\n", filename);
             }
          }
          pvdata_t * buffer = (pvdata_t *) datastore->buffer(b, l);
@@ -2988,223 +2978,7 @@ int HyPerLayer::mirrorToSouthEast(PVLayerCube* dest, PVLayerCube* src)
 ////   return status;
 ////}
 //
-//#endif
-
-
-//// deprecated 6/16
-///**
-// * returns the number of neurons in the layer or border region
-// * @param borderId the id of the border region (0 for interior/self)
-// **/
-//int HyPerLayer::numberOfNeurons(int borderId)
-//{
-//   int numNeurons;
-//   const int nx = clayer->loc.nx;
-//   const int ny = clayer->loc.ny;
-//   const int nf = clayer->loc.nf;
-//   const PVHalo * halo = &clayer->loc.halo;
-//
-//   switch (borderId) {
-//   case 0:
-//      numNeurons = clayer->numNeurons;         break;
-//   case NORTHWEST:
-//      numNeurons = halo->lt * halo->up * nf;   break;
-//   case NORTH:
-//      numNeurons = nx       * halo->up * nf;   break;
-//   case NORTHEAST:
-//      numNeurons = halo->rt * halo->up * nf;   break;
-//   case WEST:
-//      numNeurons = halo->lt * ny       * nf;   break;
-//   case EAST:
-//      numNeurons = halo->rt * ny       * nf;   break;
-//   case SOUTHWEST:
-//      numNeurons = halo->lt * halo->dn * nf;   break;
-//   case SOUTH:
-//      numNeurons = nx       * halo->dn * nf;   break;
-//   case SOUTHEAST:
-//      numNeurons = halo->rt * halo->dn * nf;   break;
-//   default:
-//      fprintf(stderr, "ERROR:HyPerLayer:numberOfBorderNeurons: bad border index %d\n", borderId);
-//      numNeurons = 0; break;
-//   }
-//
-//   return numNeurons;
-//}
-
-//Deprecated 6/16/15
-//int HyPerLayer::gatherToInteriorBuffer(unsigned char * buf)
-//{
-//   return HyPerLayer::copyToBuffer(buf, getLayerData(), getLayerLoc(), isExtended(), 255.0);
-//}
-//
-//int HyPerLayer::copyToBuffer(unsigned char * buf, const pvdata_t * data,
-//      const PVLayerLoc * loc, bool extended, float scale)
-//{
-//   size_t sb, sf, sx, sy;
-//
-//   const int nx = loc->nx;
-//   const int ny = loc->ny;
-//   const int nf = loc->nf;
-//   const int nbatch = loc->nbatch
-//
-//   int leftBorder = 0;
-//   int topBorder = 0;
-//
-//   if (extended) {
-//      leftBorder = loc->halo.lt;
-//      topBorder = loc->halo.up;
-//      sf = strideFExtended(loc);
-//      sx = strideXExtended(loc);
-//      sy = strideYExtended(loc);
-//      sb = strideBExtended(loc);
-//   }
-//   else {
-//      sf = strideF(loc);
-//      sx = strideX(loc);
-//      sy = strideY(loc);
-//      sb = strideB(loc);
-//   }
-//
-//   int ii = 0;
-//   for (int j = 0; j < ny; j++) {
-//      int jex = j + topBorder;
-//      for (int i = 0; i < nx; i++) {
-//         int iex = i + leftBorder;
-//         for (int f = 0; f < nf; f++) {
-//            buf[ii++] = (unsigned char) (scale * data[iex*sx + jex*sy + f*sf]);
-//         }
-//      }
-//   }
-//   return 0;
-//}
-//
-//int HyPerLayer::copyToBuffer(pvdata_t * buf, const pvdata_t * data,
-//      const PVLayerLoc * loc, bool extended, float scale)
-//{
-//   size_t sf, sx, sy;
-//   int leftBorder, topBorder;
-//
-//   const int nx = loc->nx;
-//   const int ny = loc->ny;
-//   const int nf = loc->nf;
-//
-//   if (extended) {
-//      leftBorder = loc->halo.lt;
-//      topBorder = loc->halo.up;
-//      sf = strideFExtended(loc);
-//      sx = strideXExtended(loc);
-//      sy = strideYExtended(loc);
-//   }
-//   else {
-//      leftBorder = 0;
-//      topBorder = 0;
-//      sf = strideF(loc);
-//      sx = strideX(loc);
-//      sy = strideY(loc);
-//   }
-//
-//   int ii = 0;
-//   for (int j = 0; j < ny; j++) {
-//      int jex = j + topBorder;
-//      for (int i = 0; i < nx; i++) {
-//         int iex = i + leftBorder;
-//         for (int f = 0; f < nf; f++) {
-//            buf[ii++] = scale * data[iex*sx + jex*sy + f*sf];
-//         }
-//      }
-//   }
-//   return 0;
-//}
-//
-//int HyPerLayer::copyFromBuffer(const unsigned char * buf, pvdata_t * data,
-//      const PVLayerLoc * loc, bool extended, float scale)
-//{
-//   size_t sf, sx, sy;
-//
-//   const int nx = loc->nx;
-//   const int ny = loc->ny;
-//   const int nf = loc->nf;
-//
-//   int leftBorder = 0;
-//   int topBorder = 0;
-//
-//   if (extended) {
-//      leftBorder = loc->halo.lt;
-//      topBorder = loc->halo.up;
-//      sf = strideFExtended(loc);
-//      sx = strideXExtended(loc);
-//      sy = strideYExtended(loc);
-//   }
-//   else {
-//      sf = strideF(loc);
-//      sx = strideX(loc);
-//      sy = strideY(loc);
-//   }
-//
-//   int ii = 0;
-//   for (int j = 0; j < ny; j++) {
-//      int jex = j + topBorder;
-//      for (int i = 0; i < nx; i++) {
-//         int iex = i + leftBorder;
-//         for (int f = 0; f < nf; f++) {
-//            data[iex*sx + jex*sy + f*sf] = scale * (pvdata_t) buf[ii++];
-//         }
-//      }
-//   }
-//   return 0;
-//}
-
-//Labels deprecated 6/16/15
-///**
-// * Return the label (if any) of a neuron in this layer.  A label may be the
-// * orientation (for example) of a neuron.  Creating a label for a neuron is
-// * normally done by offline analysis after the synaptic weights for connections
-// * to the layer have been learned.
-// */
-//int HyPerLayer::label(int k)
-//{
-//   if (labels == NULL) return 0;
-//   else                return labels[k];
-//}
-//
-//int HyPerLayer::calcActiveIndices() {
-//   //Active indicies stored as local ext values
-//   int numActive = 0;
-//   PVLayerLoc & loc = clayer->loc;
-//   pvdata_t * activity = clayer->activity->data;
-//
-//   for (int kex = 0; kex < getNumExtended(); kex++) {
-//      if (activity[kex] != 0.0) {
-//         clayer->activeIndices[numActive++] = kex;
-//      }
-//   }
-//   //for (int k = 0; k < getNumNeurons(); k++) {
-//   //   const int kex = kIndexExtended(k, loc.nx, loc.ny, loc.nf, loc.halo.lt, loc.halo.rt, loc.halo.dn, loc.halo.up);
-//   //   if (activity[kex] != 0.0) {
-//   //      clayer->activeIndices[numActive++] = globalIndexFromLocal(k, loc);
-//   //   }
-//   //}
-//   clayer->numActive = numActive;
-//
-//   return PV_SUCCESS;
-//}
-
-//int HyPerLayer::updateV() {
-//   pvdata_t * V = getV();
-//   pvdata_t * GSynExc = getChannel(CHANNEL_EXC);
-//   pvdata_t * GSynInh = getChannel(CHANNEL_INH);
-//   for( int k=0; k<getNumNeurons(); k++ ) {
-//      V[k] = GSynExc[k] - GSynInh[k];
-//   }
-//   return PV_SUCCESS;
-//}
-
-//int HyPerLayer::allocateActiveIndices() {
-//   //Active indicies is local ext
-//   return allocateBuffer(&clayer->activeIndices, getNumExtended(), "active indices");
-//}
-
-
+//#endif // PV_USE_OPENCL
 
 
 } // end of PV namespace

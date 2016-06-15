@@ -40,12 +40,7 @@ protected:
     * timeConstantTau: the time constant tau for the LCA dynamics, which models the equation dV/dt = 1/tau*(-V+s*A+GSyn)
     */
    virtual void ioParam_timeConstantTau(enum ParamsIOFlag ioFlag);
-#ifdef OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
-   virtual void ioParam_numWindowX(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_numWindowY(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_windowSymX(enum ParamsIOFlag ioFlag);
-   virtual void ioParam_windowSymY(enum ParamsIOFlag ioFlag);
-#endif // OBSOLETE // Marked obsolete Jul 9, 2015.  None of these member variables are being used.
+
    /**
     * timeConstantTau: the self-interaction coefficient s for the LCA dynamics, which models the equation dV/dt = 1/tau*(-V+s*A+GSyn)
     */

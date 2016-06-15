@@ -155,9 +155,10 @@ int Segmentify::communicateInitInfo() {
    //Src layer must have the same number of features as this layer
    if (srcLoc->nf != thisLoc->nf) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": originalLayer \"%s\" does not have the same feature dimension as this layer.\n",
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("%s \"%s\": originalLayer \"%s\" does not have the same feature dimension as this layer.\n",
                  getKeyword(), name, originalLayerName);
-         fprintf(stderr, "    original (nf=%d) versus (nf=%d)\n",
+         errorMessage.printf("    original (nf=%d) versus (nf=%d)\n",
                  srcLoc->nf, thisLoc->nf);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());

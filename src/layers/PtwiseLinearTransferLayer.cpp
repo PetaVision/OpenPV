@@ -102,8 +102,7 @@ void PtwiseLinearTransferLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (numVerticesTmp==0) {
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr,
-                  "%s \"%s\" error: verticesV cannot be empty\n",
+            pvErrorNoExit().printf("%s \"%s\" error: verticesV cannot be empty\n",
                   this->getKeyword(), this->getName());
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
@@ -111,8 +110,7 @@ void PtwiseLinearTransferLayer::ioParam_verticesV(enum ParamsIOFlag ioFlag) {
       }
       if (numVertices !=0 && numVerticesTmp != numVertices) {
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr,
-                  "%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
+            pvErrorNoExit().printf("%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
                   this->getKeyword(), this->getName(), numVerticesTmp, numVertices);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
@@ -129,8 +127,7 @@ void PtwiseLinearTransferLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (numVerticesA==0) {
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr,
-                  "%s \"%s\" error: verticesA cannot be empty\n",
+            pvErrorNoExit().printf("%s \"%s\" error: verticesA cannot be empty\n",
                   this->getKeyword(), this->getName());
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
@@ -138,8 +135,7 @@ void PtwiseLinearTransferLayer::ioParam_verticesA(enum ParamsIOFlag ioFlag) {
       }
       if (numVertices !=0 && numVerticesA != numVertices) {
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr,
-                  "%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
+            pvErrorNoExit().printf("%s \"%s\" error: verticesV (%d elements) and verticesA (%d elements) must have the same lengths.\n",
                   this->getKeyword(), this->getName(), numVertices, numVerticesA);
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());

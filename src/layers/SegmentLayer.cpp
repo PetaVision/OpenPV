@@ -100,9 +100,10 @@ int SegmentLayer::communicateInitInfo() {
    //Original layer must be the same x/y size as this layer
    if (srcLoc->nxGlobal != thisLoc->nxGlobal || srcLoc->nyGlobal != thisLoc->nyGlobal) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": originalLayer \"%s\" does not have the same x and y dimensions as this layer.\n",
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("%s \"%s\": originalLayer \"%s\" does not have the same x and y dimensions as this layer.\n",
                  getKeyword(), name, originalLayerName);
-         fprintf(stderr, "    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
+         errorMessage.printf("    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, thisLoc->nxGlobal, thisLoc->nyGlobal);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());

@@ -281,18 +281,16 @@ int Movie::allocateDataStructures() {
    
    batchPos = (long*) malloc(parent->getNBatch() * sizeof(long));
    if(batchPos==NULL) {
-      fprintf(stderr, "%s \"%s\" error allocating memory for batchPos (batch size %d): %s\n",
+      pvError().printf("%s \"%s\" error allocating memory for batchPos (batch size %d): %s\n",
             name, getKeyword(), parent->getNBatch(), strerror(errno));
-      exit(EXIT_FAILURE);
    }
    for(int b = 0; b < parent->getNBatch(); b++){
       batchPos[b] = 0L;
    }
    frameNumbers = (int*) calloc(parent->getNBatch(), sizeof(int));
    if (frameNumbers==NULL) {
-      fprintf(stderr, "%s \"%s\" error allocating memory for frameNumbers (batch size %d): %s\n",
+      pvError().printf("%s \"%s\" error allocating memory for frameNumbers (batch size %d): %s\n",
             name, getKeyword(), parent->getNBatch(), strerror(errno));
-      exit(EXIT_FAILURE);
    }
 
    //Calculate file positions for beginning of each frame
@@ -455,8 +453,7 @@ int Movie::retrieveData(double timef, double dt, int batchIdx)
    pvInfo() << "Reading frame " << framePath[batchIdx] << " into batch " << batchIdx << " at time " << timef << "\n";
    status = readImage(framePath[batchIdx]);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "Movie %s: Error reading file \"%s\"\n", name, framePath[batchIdx]);
-      abort();
+      pvError().printf("Movie %s: Error reading file \"%s\"\n", name, framePath[batchIdx]);
    }
    return status;
 }
@@ -557,7 +554,7 @@ const char * Movie::getNextFileName(int n_skip, int batchIdx) {
       outFilename = advanceFileName(batchIdx);
    }
    if (echoFramePathnameFlag){
-      fprintf(stdout, "%s \"%s\": t=%f, batch element %d: loading %s\n", getKeyword(), name, parent->simulationTime(), batchIdx, outFilename);
+      pvInfo().printf("%s \"%s\": t=%f, batch element %d: loading %s\n", getKeyword(), name, parent->simulationTime(), batchIdx, outFilename);
    }
    return outFilename;
 }
@@ -602,7 +599,7 @@ const char * Movie::advanceFileName(int batchIdx) {
       if ((c = fgetc(filenamestream->fp)) == EOF) {
          PV_fseek(filenamestream, 0L, SEEK_SET);
          frameNumbers[0] = -1;
-         fprintf(stderr, "Movie %s: EOF reached, rewinding file \"%s\"\n", name, inputPath);
+         pvInfo().printf("Movie %s: EOF reached, rewinding file \"%s\"\n", name, inputPath);
          if (hasrewound) {
             pvError().printf("Movie %s: filenamestream \"%s\" does not have any non-blank lines.\n", name, filenamestream->name);
          }
@@ -657,7 +654,7 @@ const char * Movie::advanceFileName(int batchIdx) {
 #else // PV_USE_GDAL
 Movie::Movie(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
-      fprintf(stderr, "Movie \"%s\": Movie class requires compiling with PV_USE_GDAL set\n", name);
+      pvErrorNoExit().printf("Movie \"%s\": Movie class requires compiling with PV_USE_GDAL set\n", name);
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

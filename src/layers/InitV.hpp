@@ -83,7 +83,6 @@ private:
    int calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * icComm);
    int checkLoc(const PVLayerLoc * loc, int nx, int ny, int nf, int nxGlobal, int nyGlobal);
    int checkLocValue(int fromParams, int fromFile, const char * field);
-   int printerr(const char * fmtstring, ...);
 
    HyPerCol * parent;
    char * groupName;
@@ -96,7 +95,7 @@ private:
       // if valueIsBeingHeld is true, heldValue is normally distributed random number with mean meanV, st.dev. sigmaV
       // if valueIsBeingHeld is false, heldValue is undefined
    char * filename; // Defined only for initVTypeCode=InitVFromFile
-   bool useStderr; // If true, printerr passes message to stderr.  If false, printerr does nothing.
+   bool printErrors; // Currently true for the local root process and false for other processes.  Error messages are printed to the error stream only if this flag is true
 }; // end class InitV
 
 }  // end namespace PV

@@ -96,8 +96,7 @@ int Image::retrieveData(double timef, double dt, int batchIndex)
    //Using member varibles here
    status = readImage(inputPath);
    if(status != PV_SUCCESS) {
-      fflush(stdout);
-      fprintf(stderr, "%s \"%s\": readImage failed at t=%f for batchIndex %d\n", getKeyword(), name, timef, batchIndex);
+      pvErrorNoExit().printf("%s \"%s\": readImage failed at t=%f for batchIndex %d\n", getKeyword(), name, timef, batchIndex);
    }
    return status;
 }
@@ -206,13 +205,13 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       MPI_Bcast(&isBinary, 1, MPI_CHAR, 0, mpi_comm);
       MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, total number of bytes in buffer is %d\n", numTotal);
+      pvDebug().printf("[%2d]: scatterImageFileGDAL: received from 0, total number of bytes in buffer is %d\n", numTotal);
 #endif // DEBUG_OUTPUT
       MPI_Recv(buf, numTotal, MPI_FLOAT, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 #ifdef DEBUG_OUTPUT
       int nf=numTotal/(nx*ny);
       assert( nf*nx*ny == numTotal );
-      fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, nx==%d ny==%d nf==%d size==%d\n",
+      pvDebug().printf("[%2d]: scatterImageFileGDAL: received from 0, nx==%d ny==%d nf==%d size==%d\n",
               comm->commRank(), nx, ny, nf, numTotal);
 #endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
@@ -260,7 +259,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       numTotal = nx * ny * bandsInFile;
 #ifdef PV_USE_MPI
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: scatterImageFileGDAL: broadcast from 0, total number of bytes in buffer is %d\n", numTotal);
+      pvDebug().printf("[%2d]: scatterImageFileGDAL: broadcast from 0, total number of bytes in buffer is %d\n", numTotal);
 #endif // DEBUG_OUTPUT
       MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
 #endif // PV_USE_MPI
@@ -392,7 +391,7 @@ int Image::scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 
          }
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
+         pvDebug().printf("[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
                " ySize==%d bandsInFile==%d size==%d total(over all procs)==%d\n",
                comm->commRank(), dest, nx, ny, bandsInFile, numTotal,
                nx*ny*comm->commSize());
@@ -502,7 +501,7 @@ int Image::readImage(const char * filename)
                pvError().printf("download command \"%s\" failed: %s.  Exiting\n", systemstring.c_str(), strerror(errno));
             }
             else{
-               fprintf(stderr, "download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
+               pvWarn().printf("download command \"%s\" failed: %s.  Retrying %d out of %d.\n", systemstring.c_str(), strerror(errno), attemptNum+1, numAttempts);
                sleep(1);
             }
          }
@@ -567,7 +566,7 @@ int Image::calcColorType(int numBands, GDALColorInterp * colorbandtypes) {
 #else // PV_USE_GDAL
 Image::Image(const char * name, HyPerCol * hc) {
    if (hc->columnId()==0) {
-      fprintf(stderr, "Image \"%s\": Image class requires compiling with PV_USE_GDAL set\n", name);
+      pvErrorNoExit().printf("Image \"%s\": Image class requires compiling with PV_USE_GDAL set\n", name);
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

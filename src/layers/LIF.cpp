@@ -376,7 +376,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
    method = methodString ? methodString[0] : 'a'; // Default is ARMA; 'beginning' and 'original' are deprecated.
    if (method != 'o' && method != 'b' && method != 'a') {
       if (getParent()->columnId()==0) {
-         fprintf(stderr, "LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodString);
+         pvErrorNoExit().printf("LIF::setLIFParams error.  Layer \"%s\" has method \"%s\".  Allowable values are \"arma\", \"beginning\" and \"original\".", name, methodString);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -422,9 +422,8 @@ int LIF::allocateBuffers() {
    assert(status==PV_SUCCESS);
    Vth = (pvdata_t *) calloc((size_t) getNumNeuronsAllBatches(), sizeof(pvdata_t));
    if(Vth == NULL) {
-      fprintf(stderr, "LIF layer \"%s\" rank %d process unable to allocate memory for Vth: %s\n",
+      pvError().printf("LIF layer \"%s\" rank %d process unable to allocate memory for Vth: %s\n",
               name, parent->columnId(), strerror(errno));
-      exit(EXIT_FAILURE);
    }
    return HyPerLayer::allocateBuffers();
 }
@@ -434,9 +433,8 @@ int LIF::allocateConductances(int num_channels) {
    const int numNeurons = getNumNeuronsAllBatches();
    G_E = (pvdata_t *) calloc((size_t) (getNumNeuronsAllBatches()*numChannels), sizeof(pvdata_t));
    if(G_E == NULL) {
-      fprintf(stderr, "LIF layer \"%s\" rank %d process unable to allocate memory for %d conductances: %s\n",
+      pvError().printf("LIF layer \"%s\" rank %d process unable to allocate memory for %d conductances: %s\n",
               name, parent->columnId(), num_channels, strerror(errno));
-      exit(EXIT_FAILURE);
    }
 
    G_I  = G_E + 1*numNeurons;

@@ -213,9 +213,8 @@ int LIFGap::allocateConductances(int num_channels) {
    int status = LIF::allocateConductances(num_channels-1); // CHANNEL_GAP doesn't have a conductance per se.
    gapStrength = (pvgsyndata_t *) calloc((size_t) getNumNeuronsAllBatches(), sizeof(*gapStrength));
    if(gapStrength == NULL) {
-      fprintf(stderr, "%s layer \"%s\": rank %d process unable to allocate memory for gapStrength: %s\n",
+      pvError().printf("%s layer \"%s\": rank %d process unable to allocate memory for gapStrength: %s\n",
               getKeyword(), getName(), parent->columnId(), strerror(errno));
-      exit(EXIT_FAILURE);
    }
    return status;
 }

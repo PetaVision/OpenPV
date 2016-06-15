@@ -147,40 +147,6 @@ int LabelLayer::allocateDataStructures() {
 
    status = updateLabels();
 
-   //for(int b = 0; b < parent->getNBatch(); b++){
-   //   filename = movie->getCurrentImage(b);
-   //   char tmp[lenLabel];
-   //   for (int i=0; i<lenLabel; i++){
-   //      tmp[i] = filename[i + beginLabel];
-   //   }
-   //   using std::istringstream;
-   //   if ( ! (istringstream(tmp) >> currentLabel) ) currentLabel = -1;
-
-   //   if (currentLabel == -1){
-   //      status = PV_FAILURE;
-   //      fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
-   //  }
-   //   else{
-   //      if (echoLabelFlag){
-   //         fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
-   //      }
-
-   //      // the firstlines below force an L2 norm of unity on the activity of the LabelLayer
-   //      // the second lines force a stddev of 1
-   //      for (int i = 0; i<(labelLoc.nbatch * labelLoc.nf*(labelLoc.nx+labelLoc.halo.lt+labelLoc.halo.rt)*(labelLoc.ny+labelLoc.halo.dn+labelLoc.halo.up)); i++){
-   //         if (i%maxLabel == currentLabel){
-   //            labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
-   //            //labelData[i] = sqrt(maxLabel-1);
-   //         }
-   //         else{
-   //            labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
-   //            //labelData[i] = -1/sqrt((maxLabel-1));
-   //         }
-   //      }
-   //   }
-   //}
-
-
    return status;
 }
 
@@ -211,7 +177,7 @@ int LabelLayer::updateLabels(){
      }
       else{
          if (echoLabelFlag){
-            fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
+            pvInfo().printf("Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
          }
 
          pvdata_t * labelDataBatch = labelData + b * getNumExtended();
@@ -233,48 +199,9 @@ int LabelLayer::updateLabels(){
 }
 
 int LabelLayer::updateState(double time, double dt){
-   //update_timer->start();
-
    int status = PV_SUCCESS;
 
-   //Now done with triggerFlag
-   //bool update = (movie->getLastUpdateTime()>lastUpdateTime);
-   //if (update){
-
    status = updateLabels();
-
-   //filename = movie->getCurrentImage();
-   //char tmp[lenLabel];
-   //for (int i=0; i<lenLabel; i++){
-   //   tmp[i] = filename[i + beginLabel];
-   //}
-   //using std::istringstream;
-   //if ( ! (istringstream(tmp) >> currentLabel) ) currentLabel = -1;
-
-   //if (currentLabel == -1){
-   //   status = PV_FAILURE;
-   //   fprintf(stderr, "LabelLayer::updateState: currentLabel = %d", currentLabel);
-   //   exit(PV_FAILURE);
-   //}
-   //else{
-
-   //   if(echoLabelFlag){
-   //      fprintf(stderr,"Current Label Integer: %d out of %d\n",currentLabel, maxLabel);
-   //   }
-   //   for (int i = 0; i<(labelLoc.nbatch * labelLoc.nf*(labelLoc.nx+labelLoc.halo.lt+labelLoc.halo.rt)*(labelLoc.ny+labelLoc.halo.dn+labelLoc.halo.up)); i++){
-   //      if (i%maxLabel == currentLabel){
-   //         labelData[i] = sqrt(maxLabel-1)/sqrt(maxLabel);
-   //      }
-   //      else{
-   //         labelData[i] = -1/sqrt((maxLabel-1)*maxLabel);
-   //      }
-   //   }
-   //}
-   ////Now done with triggerFlag
-   ////lastUpdateTime = parent->simulationTime();
-   ////}
-
-   ////update_timer->stop();
 
    return status;
 
@@ -335,7 +262,7 @@ int LabelLayer::initClayer() {
 LabelLayer::LabelLayer(const char * name, HyPerCol * hc)
 {
    if (hc->columnId()==0) {
-      fprintf(stderr, "LabelLayer \"%s\": LabelLayer class requires compiling with PV_USE_GDAL set\n", name);
+      pvErrorNoExit().printf("LabelLayer \"%s\": LabelLayer class requires compiling with PV_USE_GDAL set\n", name);
    }
    MPI_Barrier(hc->icCommunicator()->communicator());
    exit(EXIT_FAILURE);

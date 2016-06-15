@@ -45,10 +45,7 @@ int RescaleLayer::initialize(const char * name, HyPerCol * hc) {
 
 int RescaleLayer::communicateInitInfo() {
    int status = CloneVLayer::communicateInitInfo();
-   originalLayer = parent->getLayerFromName(originalLayerName);
-   if (originalLayer==NULL) {
-      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a HyPer layer\n", name, originalLayerName);
-   }
+   // CloneVLayer sets originalLayer and errors out if originalLayerName is not valid
    return status;
 }
 
@@ -90,9 +87,8 @@ int RescaleLayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag){
    else if(strcmp(rescaleMethod, "logreg") == 0){
    }
    else{
-      fprintf(stderr, "RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd, pointResponseNormalization, softmax, l2, l2NoMean, and logreg.\n",
+      pvError().printf("RescaleLayer \"%s\": rescaleMethod does not exist. Current implemented methods are maxmin, meanstd, pointmeanstd, pointResponseNormalization, softmax, l2, l2NoMean, and logreg.\n",
             name);
-      exit(PV_FAILURE);
    }
    return PV_SUCCESS;
 }

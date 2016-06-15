@@ -63,7 +63,7 @@ void InitV::ioParamGroup_InitVFromFile(enum ParamsIOFlag ioFlag){
    parent->ioParamString(ioFlag, groupName, "Vfilename", &filename, NULL, true/*warnIfAbsent*/);
    if( filename == NULL ) {
       initVTypeCode = UndefinedInitV;
-      printerr("InitV::initialize, group \"%s\": for InitVFromFile, string parameter \"Vfilename\" must be defined.  Exiting\n", groupName);
+      pvErrorNoExit().printf("InitV::initialize, group \"%s\": for InitVFromFile, string parameter \"Vfilename\" must be defined.  Exiting\n", groupName);
       abort();
    }
 }
@@ -71,7 +71,7 @@ void InitV::ioParamGroup_InitVFromFile(enum ParamsIOFlag ioFlag){
 
 int InitV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    int status = PV_SUCCESS;
-   useStderr = parent->icCommunicator()->commRank()==0;
+   printErrors = parent->icCommunicator()->commRank()==0;
    parent->ioParamString(ioFlag, groupName, "InitVType", &initVTypeString, "ConstantV", true/*warnIfAbsent*/);
    if( !strcmp(initVTypeString, "ConstantV") ) {
       initVTypeCode = ConstantV;
@@ -95,7 +95,7 @@ int InitV::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
    }
    else {
       initVTypeCode = UndefinedInitV;
-      printerr("InitV::initialize, group \"%s\": InitVType \"%s\" not recognized.\n", groupName, initVTypeString);
+      if (printErrors) pvErrorNoExit().printf("InitV::initialize, group \"%s\": InitVType \"%s\" not recognized.\n", groupName, initVTypeString);
       abort();
    }
    return status;
@@ -113,7 +113,7 @@ int InitV::calcV(HyPerLayer * layer) {
    switch(initVTypeCode) {
    case UndefinedInitV:
       status = PV_FAILURE;
-      printerr("InitV::calcV: InitVType was undefined.\n");
+      if (printErrors) pvErrorNoExit().printf("InitV::calcV: InitVType was undefined.\n");
       break;
    case ConstantV:
       status = calcConstantV(V, layer->getNumNeuronsAllBatches());
@@ -129,7 +129,7 @@ int InitV::calcV(HyPerLayer * layer) {
       break;
    default:
       status = PV_FAILURE;
-      printerr("InitV::calcV: InitVType was an unrecognized type.\n");
+      if (printErrors) pvErrorNoExit().printf("InitV::calcV: InitVType was an unrecognized type.\n");
       break;
    }
    return status;
@@ -241,12 +241,12 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * ic
          pvdata_t * VBatch = V + b * (loc->nx * loc->ny * loc->nf);
          switch(filetype) {
          case PVP_FILE_TYPE:
-            printerr("calcVFromFile for file \"%s\": \"PVP_FILE_TYPE\" files is obsolete.\n", this->filename);
+            if (printErrors) pvErrorNoExit().printf("calcVFromFile for file \"%s\": \"PVP_FILE_TYPE\" files is obsolete.\n", this->filename);
             abort();
             //status = scatterActivity(readFile, icComm, 0/*root process*/, VBatch, loc, false/*extended*/, &fileLoc);
             break;
          case PVP_ACT_FILE_TYPE:
-            printerr("calcVFromFile for file \"%s\": sparse activity files are not yet implemented for initializing V buffers.\n", this->filename);
+            if (printErrors) pvErrorNoExit().printf("calcVFromFile for file \"%s\": sparse activity files are not yet implemented for initializing V buffers.\n", this->filename);
             abort();
             break;
          case PVP_NONSPIKING_ACT_FILE_TYPE:
@@ -255,7 +255,7 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * ic
             status = scatterActivity(readFile, icComm, 0/*root process*/, VBatch, loc, false/*extended*/, &fileLoc);
             break;
          default:
-            printerr("calcVFromFile: file \"%s\" is not an activity pvp file.\n", this->filename);
+            if (printErrors) pvErrorNoExit().printf("calcVFromFile: file \"%s\" is not an activity pvp file.\n", this->filename);
             abort();
             break;
          }
@@ -264,7 +264,7 @@ int InitV::calcVFromFile(pvdata_t * V, const PVLayerLoc * loc, InterColComm * ic
       readFile = NULL;
    }
    else { // Treat as an image file
-      printerr("calcVFromFile: file \"%s\" is not a pvp file.\n", this->filename);
+      if (printErrors) pvErrorNoExit().printf("calcVFromFile: file \"%s\" is not a pvp file.\n", this->filename);
       abort();
       
       //Obsoleted 7/7/15, as image does not have a v, and scatterImageFileGDAL should not be public
@@ -294,25 +294,11 @@ int InitV::checkLoc(const PVLayerLoc * loc, int nx, int ny, int nf, int nxGlobal
 int InitV::checkLocValue(int fromParams, int fromFile, const char * field) {
    int status = PV_SUCCESS;
    if( fromParams != fromFile ) {
-      printerr("InitVFromFile: Incompatible %s: parameter group \"%s\" gives %d; filename \"%s\" gives %d\n",
+      if (printErrors) pvErrorNoExit().printf("InitVFromFile: Incompatible %s: parameter group \"%s\" gives %d; filename \"%s\" gives %d\n",
                field, groupName, fromParams, filename, fromFile);
       status = PV_FAILURE;
    }
    return status;
-}
-
-int InitV::printerr(const char * fmtstring, ...) {
-   int rtnval;
-   va_list args;
-   va_start(args, fmtstring);
-   if( useStderr) {
-      rtnval = vfprintf(stderr, fmtstring, args);
-   }
-   else {
-      rtnval=0;
-   }
-   va_end(args);
-   return rtnval;
 }
 
 }  // end namespace PV

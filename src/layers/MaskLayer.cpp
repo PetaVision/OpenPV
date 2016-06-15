@@ -106,9 +106,10 @@ int MaskLayer::communicateInitInfo() {
       assert(maskLoc != NULL && loc != NULL);
       if (maskLoc->nxGlobal != loc->nxGlobal || maskLoc->nyGlobal != loc->nyGlobal) {
          if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\": maskLayerName \"%s\" does not have the same x and y dimensions.\n",
+            pvErrorNoExit(errorMessage);
+            errorMessage.printf("%s \"%s\": maskLayerName \"%s\" does not have the same x and y dimensions.\n",
                     getKeyword(), name, maskLayerName);
-            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+            errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
@@ -117,9 +118,10 @@ int MaskLayer::communicateInitInfo() {
 
       if(maskLoc->nf != 1 && maskLoc->nf != loc->nf){
          if (parent->columnId()==0) {
-            pvErrorNoExit().printf("%s \"%s\": maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
+            pvErrorNoExit(errorMessage);
+            errorMessage.printf("%s \"%s\": maskLayerName \"%s\" must either have the same number of features as this layer, or one feature.\n",
                     getKeyword(), name, maskLayerName);
-            fprintf(stderr, "    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
+            errorMessage.printf("    original (nx=%d, ny=%d, nf=%d) versus (nx=%d, ny=%d, nf=%d)\n",
                     maskLoc->nxGlobal, maskLoc->nyGlobal, maskLoc->nf, loc->nxGlobal, loc->nyGlobal, loc->nf);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());

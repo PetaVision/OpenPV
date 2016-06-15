@@ -42,10 +42,7 @@ int RunningAverageLayer::initialize(const char * name, HyPerCol * hc) {
 
 int RunningAverageLayer::communicateInitInfo() {
    int status = CloneVLayer::communicateInitInfo();
-   originalLayer = parent->getLayerFromName(originalLayerName);
-   if (originalLayer==NULL) {
-      fprintf(stderr, "Group \"%s\": Original layer \"%s\" must be a HyPer layer\n", name, originalLayerName);
-   }
+   // CloneVLayer sets originalLayer and errors out if originalLayerName is not valid
    return status;
 }
 

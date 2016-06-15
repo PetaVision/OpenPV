@@ -300,9 +300,8 @@ void BaseInput::ioParam_biasConstraintMethod(enum ParamsIOFlag ioFlag) {
    if (jitterFlag) {
       parent->ioParamValue(ioFlag, name, "biasConstraintMethod", &biasConstraintMethod, biasConstraintMethod);
       if (ioFlag == PARAMS_IO_READ && (biasConstraintMethod <0 || biasConstraintMethod >3)) {
-         fprintf(stderr, "%s \"%s\": biasConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n",
+         pvError().printf("%s \"%s\": biasConstraintMethod allowed values are 0 (ignore), 1 (mirror BC), 2 (threshold), 3 (circular BC)\n",
                getKeyword(), getName());
-         exit(EXIT_FAILURE);
       }
    }
 }
@@ -383,14 +382,12 @@ int BaseInput::allocateDataStructures() {
 
          int nchars = snprintf(file_name, PV_PATH_MAX, "%s/%s_jitter.txt", parent->getOutputPath(), getName());
          if (nchars >= PV_PATH_MAX) {
-            fprintf(stderr, "Path for jitter positions \"%s/%s_jitter.txt is too long.\n", parent->getOutputPath(), getName());
-            abort();
+            pvError().printf("Path for jitter positions \"%s/%s_jitter.txt is too long.\n", parent->getOutputPath(), getName());
          }
-         fprintf(stdout, "Image layer \"%s\" will write jitter positions to %s\n",getName(), file_name);
+         pvInfo().printf("Image layer \"%s\" will write jitter positions to %s\n",getName(), file_name);
          fp_pos = PV_fopen(file_name,"w",parent->getVerifyWrites());
          if(fp_pos == NULL) {
-            fprintf(stderr, "Image \"%s\" unable to open file \"%s\" for writing jitter positions.\n", getName(), file_name);
-            abort();
+            pvError().printf("Image \"%s\" unable to open file \"%s\" for writing jitter positions.\n", getName(), file_name);
          }
          fprintf(fp_pos->fp,"Layer \"%s\", t=%f, bias x=%d y=%d, offset x=%d y=%d\n",getName(),parent->simulationTime(),biases[0],biases[1],
                getOffsetX(this->offsetAnchor, this->offsets[0]),getOffsetY(this->offsetAnchor, this->offsets[1]));
@@ -1127,7 +1124,7 @@ bool BaseInput::constrainOffsets() {
 
 int BaseInput::requireChannel(int channelNeeded, int * numChannelsResult) {
    if (parent->columnId()==0) {
-      fprintf(stderr, "%s \"%s\" cannot be a post-synaptic layer.\n",
+      pvErrorNoExit().printf("%s \"%s\" cannot be a post-synaptic layer.\n",
             getKeyword(), name);
    }
    *numChannelsResult = 0;
@@ -1185,7 +1182,7 @@ int BaseInput::initializeThreadKernels(const char * kernelName)
 int BaseInput::checkpointRead(const char * cpDir, double * timeptr){
    PVParams * params = parent->parameters();
    if (parent->columnId()==0) {
-      fprintf(stderr,"Initializing image from checkpoint NOT from params file location! \n");
+      pvWarn().printf("Initializing image from checkpoint NOT from params file location! \n");
    }
    HyPerLayer::checkpointRead(cpDir, timeptr);
 

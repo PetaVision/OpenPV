@@ -87,11 +87,10 @@ int Patterns::initialize(const char * name, HyPerCol * hc) {
       snprintf(file_name, PV_PATH_MAX-1, "%s/patterns-pos.txt", patternsOutputPath);
       //int nchars = snprintf(file_name, PV_PATH_MAX-1, "%s/bar-pos.txt", patternsOutputPath);
       if (parent->columnId()==0) {
-         fprintf(stdout, "write position to %s\n",file_name);
+         pvInfo().printf("write position to %s\n",file_name);
          patternsFile = PV_fopen(file_name,"a",parent->getVerifyWrites());
          if(patternsFile == NULL) {
-            fprintf(stderr, "Patterns layer \"%s\" unable to open \"%s\" for writing: error %s\n", name, file_name, strerror(errno));
-            abort();
+            pvError().printf("Patterns layer \"%s\" unable to open \"%s\" for writing: error %s\n", name, file_name, strerror(errno));
          }
       }
       else {
@@ -175,7 +174,7 @@ void Patterns::ioParam_patternType(enum ParamsIOFlag ioFlag) {
       int match = stringMatch(allowed_pattern_types, "_End_allowedPatternTypes", typeString);
       if( match < 0 ) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "Group \"%s\": Pattern type \"%s\" not recognized.\n", name, typeString);
+            pvErrorNoExit().printf("Group \"%s\": Pattern type \"%s\" not recognized.\n", name, typeString);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -201,7 +200,7 @@ void Patterns::ioParam_orientation(enum ParamsIOFlag ioFlag) {
    int match = stringMatch(allowedOrientationModes, "_End_allowedOrientationTypes", orientationString);
    if (match < 0) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Group \"%s\": Orientation mode \"%s\" not recognized.\n", name, orientationString);
+         pvErrorNoExit().printf("Group \"%s\": Orientation mode \"%s\" not recognized.\n", name, orientationString);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -257,7 +256,7 @@ void Patterns::ioParam_movementType(enum ParamsIOFlag ioFlag) {
       int match = stringMatch(allowedMovementTypes, "_End_allowedMovementTypes", movementTypeString);
       if (match < 0) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "Group \"%s\": movementType \"%s\" not recognized.\n", name, movementTypeString);
+            pvErrorNoExit().printf("Group \"%s\": movementType \"%s\" not recognized.\n", name, movementTypeString);
          }
          MPI_Barrier(parent->icCommunicator()->communicator());
          exit(EXIT_FAILURE);
@@ -443,8 +442,7 @@ void Patterns::ioParam_inOut(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "inOut", &inOut, 1.0f);
       //inOut must be between -1 and 1
       if (inOut < -1 || inOut > 1){
-         fprintf(stderr, "Patterns:: inOut must be -1 for all in drops, 0 for random, or 1 for all out drops, or anything in between ");
-         abort();
+         pvError().printf("Patterns:: inOut must be -1 for all in drops, 0 for random, or 1 for all out drops, or anything in between ");
       }
    }
 }
@@ -1080,7 +1078,7 @@ int Patterns::readPatternStateFromCheckpoint(const char * cpDir) {
          PV_fclose(pvstream);
       }
       else {
-         fprintf(stderr, "Unable to read from \"%s\"\n", filename);
+         pvErrorNoExit().printf("Unable to read from \"%s\"\n", filename);
       }
    }
 
@@ -1176,10 +1174,10 @@ int Patterns::checkpointWrite(const char * cpDir) {
          PV_fclose(pvstream);
       }
       else {
-         fprintf(stderr, "Unable to write to \"%s\"\n", filename);
+         pvErrorNoExit().printf("Unable to write to \"%s\"\n", filename);
       }
       if (status != PV_SUCCESS) {
-         pvError().printf("Patterns::checkpointWrite error: %s \"%s\" failed writing to %s\n", getKeyword(), name, pvstream->name);
+         pvError().printf("Patterns::checkpointWrite: %s \"%s\" failed writing to %s\n", getKeyword(), name, pvstream->name);
       }
       sprintf(filename, "%s/%s_PatternState.txt", cpDir, name);
       pvstream = PV_fopen(filename, "w", parent->getVerifyWrites());

@@ -112,9 +112,10 @@ int BinningLayer::communicateInitInfo() {
    assert(srcLoc != NULL && loc != NULL);
    if (srcLoc->nxGlobal != loc->nxGlobal || srcLoc->nyGlobal != loc->nyGlobal) {
       if (parent->columnId()==0) {
-         pvErrorNoExit().printf("%s \"%s\": originalLayerName \"%s\" does not have the same dimensions.\n",
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("%s \"%s\": originalLayerName \"%s\" does not have the same dimensions.\n",
                  getKeyword(), name, originalLayerName);
-         fprintf(stderr, "    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
+         errorMessage.printf("    original (nx=%d, ny=%d) versus (nx=%d, ny=%d)\n",
                  srcLoc->nxGlobal, srcLoc->nyGlobal, loc->nxGlobal, loc->nyGlobal);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());

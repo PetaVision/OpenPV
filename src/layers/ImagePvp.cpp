@@ -179,14 +179,14 @@ int ImagePvp::readPvp(const char * filename, int frameNumber) {
       status = readNonspikingActivityFrame(numParams, params, pvstream, frameNumber);
       break;
    case PVP_WGT_FILE_TYPE:
-      fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+      pvErrorNoExit().printf("scatterImageFilePVP failure opening \"%s\": file is a weight file, not an image file.\n", filename);
       break;
    case PVP_KERNEL_FILE_TYPE:
-      fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+      pvErrorNoExit().printf("scatterImageFilePVP failure opening \"%s\": file is a weight file, not an image file.\n", filename);
       break;
 
    default:
-      fprintf(stderr, "scatterImageFilePVP error opening \"%s\": filetype %d is unrecognized.\n", filename ,filetype);
+      pvErrorNoExit().printf("scatterImageFilePVP failure opening \"%s\": filetype %d is unrecognized.\n", filename ,filetype);
       status = PV_FAILURE;
       break;
    }
@@ -210,16 +210,14 @@ int ImagePvp::readSparseBinaryActivityFrame(int numParams, int * params, PV_Stre
       pvInfo() << "Calculating file positions\n";
       frameStartBuf = (long *) calloc(params[INDEX_NBANDS] ,sizeof(long));
       if (frameStartBuf==NULL) {
-         fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameStart.\n");
          status = PV_FAILURE;
-         abort();
+         pvError().printf("scatterImageFilePVP unable to allocate memory for frameStart.\n");
       }
 
       countBuf = (int *) calloc(params[INDEX_NBANDS] ,sizeof(int));
       if (countBuf==NULL) {
-         fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameLength.\n");
          status = PV_FAILURE;
-         abort();
+         pvError().printf("scatterImageFilePVP unable to allocate memory for frameLength.\n");
       }
 
       //Fseek past the header and first timestamp
@@ -280,16 +278,15 @@ int ImagePvp::readSparseValuesActivityFrame(int numParams, int * params, PV_Stre
       pvInfo() << "Calculating file positions\n";
       frameStartBuf = (long *) calloc(params[INDEX_NBANDS] ,sizeof(long));
       if (frameStartBuf==NULL) {
-         fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameStart.\n");
          status = PV_FAILURE;
+         pvError().printf("scatterImageFilePVP unable to allocate memory for frameStart.\n");
          abort();
       }
 
       countBuf = (int *) calloc(params[INDEX_NBANDS] ,sizeof(int));
       if (countBuf==NULL) {
-         fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameLength.\n");
          status = PV_FAILURE;
-         abort();
+         pvError().printf("scatterImageFilePVP unable to allocate memory for frameLength.\n");
       }
 
       //Fseek past the header and first timestamp
@@ -362,10 +359,11 @@ int ImagePvp::readNonspikingActivityFrame(int numParams, int * params, PV_Stream
    if (status == PV_SUCCESS) {
       size_t numread = PV::PV_fread(&pvpFileTime, sizeof(double), (size_t) 1, pvstream);
       if (numread != (size_t) 1) {
-         pvErrorNoExit().printf("scatterImageFilePVP: Unable to read timestamp from frame %d of file \"%s\":", frameNumber, pvstream->name);
-         if (feof(pvstream->fp)) { fprintf(stderr, " end-of-file."); }
-         if (ferror(pvstream->fp)) { fprintf(stderr, " fread error."); }
-         fprintf(stderr, "\n");
+         pvErrorNoExit(errorMessage);
+         errorMessage.printf("scatterImageFilePVP: Unable to read timestamp from frame %d of file \"%s\":", frameNumber, pvstream->name);
+         if (feof(pvstream->fp)) { errorMessage.printf(" end-of-file."); }
+         if (ferror(pvstream->fp)) { errorMessage.printf(" fread error."); }
+         errorMessage.printf("\n");
          status = PV_FAILURE;
       }
    }
@@ -419,8 +417,7 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
       if (fileloc.nx != fileloc.nxGlobal || fileloc.ny != fileloc.nyGlobal ||
           nxProcs != 1 || nyProcs != 1 ||
           fileloc.kx0 != 0 || fileloc.ky0 != 0) {
-          fprintf(stderr, "File \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
-          abort();
+          pvError().printf("File \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
       }
 
       bool spiking = false;
@@ -449,16 +446,14 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
             pvInfo() << "Calculating file positions\n";
             frameStartBuf = (long *) calloc(params[INDEX_NBANDS] ,sizeof(long));
             if (frameStartBuf==NULL) {
-               fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameStart.\n");
                status = PV_FAILURE;
-               abort();
+               pvError().printf("scatterImageFilePVP unable to allocate memory for frameStart.\n");
             }
 
             countBuf = (int *) calloc(params[INDEX_NBANDS] ,sizeof(int));
             if (countBuf==NULL) {
-               fprintf(stderr, "scatterImageFilePVP unable to allocate memory for frameLength.\n");
                status = PV_FAILURE;
-               abort();
+               pvError().printf("scatterImageFilePVP unable to allocate memory for frameLength.\n");
             }
 
             //Fseek past the header and first timestamp
@@ -513,23 +508,24 @@ int ImagePvp::scatterImageFilePVP(const char * filename, int xOffset, int yOffse
          if (status == PV_SUCCESS) {
             size_t numread = PV::PV_fread(&timed, sizeof(double), (size_t) 1, pvstream);
             if (numread != (size_t) 1) {
-               pvErrorNoExit().printf("scatterImageFilePVP: Unable to read timestamp from frame %d of file \"%s\":", frameNumber, filename);
-               if (feof(pvstream->fp)) { fprintf(stderr, " end-of-file."); }
-               if (ferror(pvstream->fp)) { fprintf(stderr, " fread error."); }
-               fprintf(stderr, "\n");
+               pvErrorNoExit(errorMessage);
+               errorMessage.printf("scatterImageFilePVP: Unable to read timestamp from frame %d of file \"%s\":", frameNumber, filename);
+               if (feof(pvstream->fp)) { errorMessage.printf(" end-of-file."); }
+               if (ferror(pvstream->fp)) { errorMessage.printf(" fread error."); }
+               errorMessage.printf("\n");
                status = PV_FAILURE;
             }
          }
          break;
       case PVP_WGT_FILE_TYPE:
-         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+         pvErrorNoExit().printf("scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
          break;
       case PVP_KERNEL_FILE_TYPE:
-         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+         pvErrorNoExit().printf("scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
          break;
 
       default:
-         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": filetype %d is unrecognized.\n", filename ,filetype);
+         pvErrorNoExit().printf("scatterImageFilePVP error opening \"%s\": filetype %d is unrecognized.\n", filename ,filetype);
          status = PV_FAILURE;
          break;
       }
