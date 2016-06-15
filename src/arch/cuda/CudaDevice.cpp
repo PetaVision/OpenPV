@@ -73,15 +73,16 @@ int CudaDevice::initialize(int device)
    cudnnHandle_t tmpHandle;
    cudnnStatus_t cudnnStatus = cudnnCreate(&tmpHandle); 
    if(cudnnStatus != CUDNN_STATUS_SUCCESS){
+      pvError(cudnnCreateError);
       switch(cudnnStatus){
          case CUDNN_STATUS_NOT_INITIALIZED:
-            fprintf(stderr, "cuDNN Runtime API initialization failed\n");
+            cudnnCreateError.printf("cuDNN Runtime API initialization failed\n");
             break;
          case CUDNN_STATUS_ALLOC_FAILED:
-            fprintf(stderr, "cuDNN resources could not be allocated\n");
+            cudnnCreateError.printf("cuDNN resources could not be allocated\n");
             break;
          default:
-            fprintf(stderr, "cudnnCreate error: %s\n", cudnnGetErrorString(cudnnStatus));
+            cudnnCreateError.printf("cudnnCreate error: %s\n", cudnnGetErrorString(cudnnStatus));
             break;
       }
       exit(EXIT_FAILURE);
@@ -105,9 +106,9 @@ int CudaDevice::query_device_info()
 {
    // query and print information about the devices found
    //
-   fprintf(stdout, "\n");
-   fprintf(stdout, "Number of Cuda devices found: %d\n", num_devices);
-   fprintf(stdout, "\n");
+   pvInfo().printf("\n");
+   pvInfo().printf("Number of Cuda devices found: %d\n", num_devices);
+   pvInfo().printf("\n");
 
    for (unsigned int i = 0; i < num_devices; i++) {
       query_device(i);
@@ -134,34 +135,34 @@ void CudaDevice::query_device(int id)
    else{
       handleError(cudaGetDeviceProperties(&props, id), "Getting device properties");
    }
-   fprintf(stdout, "device: %d\n", id);
-   fprintf(stdout, "CUDA Device # %d == %s\n", id, props.name);
+   pvInfo().printf("device: %d\n", id);
+   pvInfo().printf("CUDA Device # %d == %s\n", id, props.name);
 
-   fprintf(stdout, "with %d units/cores", props.multiProcessorCount);
+   pvInfo().printf("with %d units/cores", props.multiProcessorCount);
 
-   fprintf(stdout, " at %f MHz\n", (float)props.clockRate * .001);
+   pvInfo().printf(" at %f MHz\n", (float)props.clockRate * .001);
 
-   fprintf(stdout, "\tMaximum threads group size == %d\n", props.maxThreadsPerBlock);
+   pvInfo().printf("\tMaximum threads group size == %d\n", props.maxThreadsPerBlock);
    
-   fprintf(stdout, "\tMaximum grid sizes == (");
-   for (unsigned int i = 0; i < 3; i++) fprintf(stdout, " %d", props.maxGridSize[i]);
-   fprintf(stdout, " )\n");
+   pvInfo().printf("\tMaximum grid sizes == (");
+   for (unsigned int i = 0; i < 3; i++) pvInfo().printf(" %d", props.maxGridSize[i]);
+   pvInfo().printf(" )\n");
 
-   fprintf(stdout, "\tMaximum threads sizes == (");
-   for (unsigned int i = 0; i < 3; i++) fprintf(stdout, " %d", props.maxThreadsDim[i]);
-   fprintf(stdout, " )\n");
+   pvInfo().printf("\tMaximum threads sizes == (");
+   for (unsigned int i = 0; i < 3; i++) pvInfo().printf(" %d", props.maxThreadsDim[i]);
+   pvInfo().printf(" )\n");
 
-   fprintf(stdout, "\tLocal mem size == %zu\n", props.sharedMemPerBlock);
+   pvInfo().printf("\tLocal mem size == %zu\n", props.sharedMemPerBlock);
 
-   fprintf(stdout, "\tGlobal mem size == %zu\n", props.totalGlobalMem);
+   pvInfo().printf("\tGlobal mem size == %zu\n", props.totalGlobalMem);
 
-   fprintf(stdout, "\tConst mem size == %zu\n", props.totalConstMem);
+   pvInfo().printf("\tConst mem size == %zu\n", props.totalConstMem);
 
-   fprintf(stdout, "\tRegisters per block == %d\n", props.regsPerBlock);
+   pvInfo().printf("\tRegisters per block == %d\n", props.regsPerBlock);
 
-   fprintf(stdout, "\tWarp size == %d\n", props.warpSize);
+   pvInfo().printf("\tWarp size == %d\n", props.warpSize);
 
-   fprintf(stdout, "\n");
+   pvInfo().printf("\n");
 }
 
 int CudaDevice::get_max_threads(){
