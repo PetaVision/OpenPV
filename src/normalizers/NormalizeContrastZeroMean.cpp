@@ -40,7 +40,7 @@ void NormalizeContrastZeroMean::ioParam_normalizeFromPostPerspective(enum Params
    if (ioFlag == PARAMS_IO_READ) {
       if (parent->parameters()->present(name, "normalizeFromPostPerspective")) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\": normalizeMethod \"normalizeContrastZeroMean\" doesn't use normalizeFromPostPerspective parameter.\n",
+            pvWarn().printf("%s \"%s\": normalizeMethod \"normalizeContrastZeroMean\" doesn't use normalizeFromPostPerspective parameter.\n",
                   parent->parameters()->groupKeywordFromName(name), name);
          }
          parent->parameters()->value(name, "normalizeFromPostPerspective"); // marks param as having been read
@@ -59,14 +59,14 @@ int NormalizeContrastZeroMean::normalizeWeights() {
       HyPerConn * conn = connectionList[c];
       if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
          if (parent->columnId() == 0) {
-            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of arbors (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
+            pvErrorNoExit().printf("Normalizer %s: All connections in the normalization group must have the same number of arbors (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->numberOfAxonalArborLists(), conn->getName(), conn->numberOfAxonalArborLists());
          }
          status = PV_FAILURE;
       }
       if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
          if (parent->columnId() == 0) {
-            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of data patches (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
+            pvErrorNoExit().printf("Normalizer %s: All connections in the normalization group must have the same number of data patches (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->getNumDataPatches(), conn->getName(), conn->getNumDataPatches());
          }
          status = PV_FAILURE;

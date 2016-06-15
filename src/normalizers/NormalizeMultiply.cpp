@@ -61,7 +61,7 @@ void NormalizeMultiply::ioParam_normalize_cutoff(enum ParamsIOFlag ioFlag) {
 void NormalizeMultiply::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "normalizeFromPostPerspective") && parent->parameters()->present(name, "normalize_arbors_individually")) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use normalizeFromPostPerspective.\n", name);
+         pvWarn().printf("Normalizer \"%s\": parameter name normalizeTotalToPost is deprecated.  Use normalizeFromPostPerspective.\n", name);
       }
       normalizeFromPostPerspective = parent->parameters()->value(name, "normalizeTotalToPost");
       return;
@@ -79,21 +79,21 @@ int NormalizeMultiply::normalizeWeights() {
       // Do we need to require sharedWeights be the same for all connections in the group?
       if (conn->usingSharedWeights()!=conn0->usingSharedWeights()) {
          if (parent->columnId() == 0) {
-            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same sharedWeights (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
+            pvErrorNoExit().printf("Normalizer %s: All connections in the normalization group must have the same sharedWeights (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->usingSharedWeights(), conn->getName(), conn->usingSharedWeights());
          }
          status = PV_FAILURE;
       }
       if (conn->numberOfAxonalArborLists() != conn0->numberOfAxonalArborLists()) {
          if (parent->columnId() == 0) {
-            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of arbors (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
+            pvErrorNoExit().printf("Normalizer %s: All connections in the normalization group must have the same number of arbors (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->numberOfAxonalArborLists(), conn->getName(), conn->numberOfAxonalArborLists());
          }
          status = PV_FAILURE;
       }
       if (conn->getNumDataPatches() != conn0->getNumDataPatches()) {
          if (parent->columnId() == 0) {
-            fprintf(stderr, "Normalizer %s: All connections in the normalization group must have the same number of data patches (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
+            pvErrorNoExit().printf("Normalizer %s: All connections in the normalization group must have the same number of data patches (Connection \"%s\" has %d; connection \"%s\" has %d).\n",
                   this->getName(), conn0->getName(), conn0->getNumDataPatches(), conn->getName(), conn->getNumDataPatches());
          }
          status = PV_FAILURE;

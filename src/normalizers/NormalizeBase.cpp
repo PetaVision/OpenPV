@@ -56,7 +56,7 @@ void NormalizeBase::ioParam_normalizeArborsIndividually(enum ParamsIOFlag ioFlag
    // normalize_arbors_individually as a parameter name was deprecated April 19, 2013 and marked obsolete October 24, 2014
    if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "normalizeArborsIndividually") && parent->parameters()->present(name, "normalize_arbors_individually")) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Normalizer \"%s\": parameter name normalize_arbors_individually is obsolete.  Use normalizeArborsIndividually.\n", name);
+         pvErrorNoExit().printf("Normalizer \"%s\": parameter name normalize_arbors_individually is obsolete.  Use normalizeArborsIndividually.\n", name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -199,7 +199,7 @@ int NormalizeBase::addConnToList(HyPerConn * newConn) {
    connectionList[numConnections] = newConn;
    numConnections++;
    if (parent->columnId()==0) {
-      fprintf(stdout, "Adding connection \"%s\" to normalizer group \"%s\".\n", newConn->getName(), this->getName());
+      pvInfo().printf("Adding connection \"%s\" to normalizer group \"%s\".\n", newConn->getName(), this->getName());
    }
    return PV_SUCCESS;
 }
@@ -210,7 +210,7 @@ void NormalizeBase::normalizePatch(pvwdata_t * dataStartPatch, int weights_per_p
 
 BaseObject * createNormalizeBase(char const * name, HyPerCol * hc) {
    if (hc==NULL || hc->columnId()==0) {
-      fprintf(stderr, "NormalizeBase cannot be instantiated itself.  Only derived classes of NormalizeBase can be instantiated.\n");
+      pvErrorNoExit().printf("NormalizeBase cannot be instantiated itself.  Only derived classes of NormalizeBase can be instantiated.\n");
    }
    return NULL;
 }
