@@ -108,6 +108,12 @@ struct LogType {
    // for suppressing debug output in release builds
    static bool output();
 
+   // Should this log type flush the output stream before printing its
+   // message?  If output and error streams are going to a terminal,
+   // error messages can get lost if output is buffered and error
+   // is unbuffered.
+   static bool flushOutputStream();
+
    // Append prefix, file and line number? Used for suppressing
    // this information for LogInfoType
    static bool prependPrefix();
@@ -140,6 +146,13 @@ template<> inline bool LogErrorType::output() { return true; }
 template<> inline bool LogErrorNoExitType::output() { return true; }
 template<> inline bool LogStackTraceType::output() { return true; }
 template<> inline bool LogDebugType::output() { return DEBUG_LOG_TEST_CONDITION; }
+
+template<> inline bool LogInfoType::flushOutputStream() { return false; }
+template<> inline bool LogWarnType::flushOutputStream() { return false; }
+template<> inline bool LogErrorType::flushOutputStream() { return true; }
+template<> inline bool LogErrorNoExitType::flushOutputStream() { return true; }
+template<> inline bool LogStackTraceType::flushOutputStream() { return true; }
+template<> inline bool LogDebugType::flushOutputStream() { return false; }
 
 template<> inline bool LogInfoType::prependPrefix() { return false; }
 template<> inline bool LogWarnType::prependPrefix() { return true; }
@@ -211,6 +224,9 @@ struct _Log
    void outputPrefix(const char *file, int line) {
       // In release this is optimised away if log type is debug
       if (LogType::output()) {
+         if (LogType::flushOutputStream()) {
+            getOutputStream().flush();
+         }
          if (LogType::prependPrefix()) {
             _stream << LogType::prefix() << " ";
          }
