@@ -71,7 +71,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
    else {
       if (probe->getNumValues() != this->getNumValues()) {
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr, "Error adding terms to %s \%s\":  new probe \"%s\" returns %d values, but previous probes return %d values\n",
+            pvErrorNoExit().printf("Failed to add terms to %s \%s\":  new probe \"%s\" returns %d values, but previous probes return %d values\n",
                   getKeyword(), getName(), probe->getName(), probe->getNumValues(), this->getNumValues());
          }
          MPI_Barrier(this->getParent()->icCommunicator()->communicator());
@@ -82,7 +82,7 @@ int ColumnEnergyProbe::addTerm(BaseProbe * probe) {
    int newNumTerms = numTerms+(size_t) 1;
    if (newNumTerms<=numTerms) {
       if (this->getParent()->columnId()==0) {
-         fprintf(stderr, "How did you manage to add %zu terms to %s \"%s\"?  Unable to add any more!\n",
+         pvErrorNoExit().printf("How did you manage to add %zu terms to %s \"%s\"?  Unable to add any more!\n",
                numTerms, getKeyword(), getName());
       }
       MPI_Barrier(this->getParent()->icCommunicator()->communicator());

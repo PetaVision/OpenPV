@@ -158,7 +158,7 @@ protected:
    /**
     * @brief probeOutputFile: If textOutputFlag is true, probeOutputFile specifies
     * the name of the file that the outputState method writes to.
-    * If blank, the output is sent to stdout.
+    * If blank, the output is sent to the output stream.
     */
    virtual void ioParam_probeOutputFile(enum ParamsIOFlag ioFlag);
 

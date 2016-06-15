@@ -274,36 +274,4 @@ char * expandLeadingTilde(char const * path) {
    return newpath;
 }
 
-/**
- * @fd
- * @patch
- */
-int pv_text_write_patch(PV_Stream * pvstream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf)
-{
-   int f, i, j;
-
-   const int nx = (int) patch->nx;
-   const int ny = (int) patch->ny;
-   //const int nf = (int) patch->nf;
-
-   //const int sx = (int) patch->sx;  assert(sx == nf);
-   //const int sy = (int) patch->sy;  //assert(sy == nf*nx);
-   //const int sf = (int) patch->sf;  assert(sf == 1);
-
-   assert(pvstream != NULL);
-
-   FILE * fd = pvstream->fp;
-   for (f = 0; f < nf; f++) {
-      for (j = 0; j < ny; j++) {
-         for (i = 0; i < nx; i++) {
-            fprintf(fd, "%7.5f ", data[i*sx + j*sy + f*sf]);
-         }
-         fprintf(fd, "\n");
-      }
-      fprintf(fd, "\n");
-   }
-
-   return 0;
-}
-
 }  // namespace PV

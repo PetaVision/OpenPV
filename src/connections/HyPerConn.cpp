@@ -27,6 +27,7 @@
 #include "PlasticCloneConn.hpp"
 #include "io/CoreParamGroupHandler.hpp"
 #include "columns/Factory.hpp"
+#include "io/FileStream.hpp"
 
 namespace PV {
 
@@ -2085,47 +2086,46 @@ int HyPerConn::writeTextWeights(const char * filename, int k)
       abort();
       // NOTE : if run under MPI when more than one process sees the same file system, the contending processes will clobber each other.
    }
-   PV_Stream * pvstream = NULL;
+   OutStream * outStream = nullptr;
 
-   if (filename != NULL) {
+   if (filename != nullptr) {
       char outfile[PV_PATH_MAX];
       snprintf(outfile, PV_PATH_MAX-1, "%s/%s", parent->getOutputPath(), filename);
-      pvstream = PV_fopen(outfile, "w", parent->getVerifyWrites());
+      outStream = new FileStream(outfile, std::ios_base::out, parent->getVerifyWrites());
    }
    else {
-      pvstream = PV_stdout();
+      outStream = new OutStream(getOutputStream());
    }
-   if (pvstream == NULL) {
-     pvLogError("writeWeights: ERROR opening file \"%s\"\n", filename);
+   if (outStream == nullptr) {
+     pvErrorNoExit().printf("writeWeights: unable to open file \"%s\"\n", filename);
      return PV_FAILURE;
    }
 
-   FILE * fd = pvstream->fp;
-   fprintf(fd, "Weights for connection \"%s\", neuron %d\n", name, k);
-   fprintf(fd, "   (kxPre,kyPre,kfPre)   = (%i,%i,%i)\n",
+   outStream->printf("Weights for connection \"%s\", neuron %d\n", name, k);
+   outStream->printf("   (kxPre,kyPre,kfPre)   = (%i,%i,%i)\n",
            kxPos(k,pre->getLayerLoc()->nx + pre->getLayerLoc()->halo.lt + pre->getLayerLoc()->halo.rt,
                  pre->getLayerLoc()->ny + pre->getLayerLoc()->halo.dn + pre->getLayerLoc()->halo.up, pre->getLayerLoc()->nf),
            kyPos(k,pre->getLayerLoc()->nx + pre->getLayerLoc()->halo.lt + pre->getLayerLoc()->halo.rt,
                  pre->getLayerLoc()->ny + pre->getLayerLoc()->halo.dn + pre->getLayerLoc()->halo.up, pre->getLayerLoc()->nf),
            featureIndex(k,pre->getLayerLoc()->nx + pre->getLayerLoc()->halo.lt + pre->getLayerLoc()->halo.rt,
                  pre->getLayerLoc()->ny + pre->getLayerLoc()->halo.dn + pre->getLayerLoc()->halo.up, pre->getLayerLoc()->nf) );
-   fprintf(fd, "   (nxp,nyp,nfp)   = (%i,%i,%i)\n", (int) nxp, (int) nyp, (int) nfp);
-   fprintf(fd, "   pre  (nx,ny,nf) = (%i,%i,%i)\n",
+   outStream->printf("   (nxp,nyp,nfp)   = (%i,%i,%i)\n", (int) nxp, (int) nyp, (int) nfp);
+   outStream->printf("   pre  (nx,ny,nf) = (%i,%i,%i)\n",
            pre->getLayerLoc()->nx, pre->getLayerLoc()->ny, pre->getLayerLoc()->nf);
-   fprintf(fd, "   post (nx,ny,nf) = (%i,%i,%i)\n",
+   outStream->printf("   post (nx,ny,nf) = (%i,%i,%i)\n",
            post->getLayerLoc()->nx, post->getLayerLoc()->ny, post->getLayerLoc()->nf);
-   fprintf(fd, "\n");
+   outStream->printf("\n");
 
    for(int arbor = 0; arbor<numberOfAxonalArborLists(); arbor++) {
-      fprintf(fd, "displaying arbor %1.1d\n", arbor);
+      outStream->printf("displaying arbor %1.1d\n", arbor);
       // give a chance for derived classes to add extra information
       //
-      writeTextWeightsExtra(pvstream, k, arbor);
-      pv_text_write_patch(pvstream, wPatches[arbor][k], get_wData(arbor,k), nfp, sxp, syp, sfp);
-      fprintf(fd, "----------------------------\n");
+      writeTextWeightsExtra(outStream, k, arbor);
+      pv_text_write_patch(outStream, wPatches[arbor][k], get_wData(arbor,k), nfp, sxp, syp, sfp);
+      outStream->printf("----------------------------\n");
    }
 
-   PV_fclose(pvstream);
+   delete outStream;
 
    return 0;
 }

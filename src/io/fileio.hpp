@@ -14,6 +14,7 @@
 #include "include/PVLayerLoc.h"
 #include "columns/Communicator.hpp"
 #include "columns/DataStore.hpp"
+#include "FileStream.hpp"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -41,7 +42,6 @@ int PV_fseek(PV_Stream * pvstream, long int offset, int whence);
 size_t PV_fwrite(const void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream);
 size_t PV_fread(void * RESTRICT ptr, size_t size, size_t nitems, PV_Stream * RESTRICT pvstream);
 int PV_fclose(PV_Stream * pvstream);
-PV_Stream * PV_stdout();
 
 PV_Stream * pvp_open_read_file(const char * filename, Communicator * comm);
 
@@ -84,6 +84,8 @@ int readWeights(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int 
 // readWeightsDeprecated() reads weights saved in the old MPI-dependent manner.
 int readWeightsDeprecated(PVPatch *** patches, pvwdata_t ** dataStart, int numArbors, int numPatches, int nxp, int nyp, int nfp, const char * filename,
                 Communicator * comm, double * timed, const PVLayerLoc * loc);
+
+int pv_text_write_patch(OutStream * pvstream, PVPatch * patch, pvwdata_t * data, int nf, int sx, int sy, int sf);
 
 int writeWeights(const char * filename, Communicator * comm, double timed, bool append,
                  const PVLayerLoc * preLoc, const PVLayerLoc * postLoc, int nxp, int nyp, int nfp, float minVal, float maxVal,

@@ -137,26 +137,20 @@ void BaseProbe::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
-      if (parent->columnId()==0) {
-         pvWarn().printf("Layer \"%s\": triggerFlag has been deprecated.\n", name);
-      }
       bool flagFromParams = false;
       parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
-      if (flagFromParams != triggerFlag) {
-         if (parent->columnId()==0) {
-            fprintf(stderr, "Layer \"%s\" Error: triggerLayerName=", name);
-            if (triggerLayerName) { fprintf(stderr, "\"%s\"", triggerLayerName); }
-            else { fprintf(stderr, "NULL"); }
-            fprintf(stderr, " implies triggerFlag=%s but triggerFlag was set in params to %s\n",
+      if (parent->columnId()==0) {
+         pvWarn(triggerFlagDeprecated);
+         triggerFlagDeprecated.printf("Layer \"%s\": triggerFlag has been deprecated.\n", name);
+         triggerFlagDeprecated.printf("   If triggerLayerName is a nonempty string, triggering will be on;\n");
+         triggerFlagDeprecated.printf("   if triggerLayerName is empty or null, triggering will be off.\n");
+         if (flagFromParams!=triggerFlag) {
+            pvErrorNoExit(triggerFlagError);
+            triggerFlagError.printf("Layer \"%s\" Error: triggerLayerName=", name);
+            if (triggerLayerName) { triggerFlagError.printf("\"%s\"", triggerLayerName); }
+            else { triggerFlagError.printf("NULL"); }
+            triggerFlagError.printf(" implies triggerFlag=%s but triggerFlag was set in params to %s\n",
                   triggerFlag ? "true" : "false", flagFromParams ? "true" : "false");
-         }
-         MPI_Barrier(parent->icCommunicator()->communicator());
-         exit(EXIT_FAILURE);
-      }
-      else {
-         if (parent->columnId()==0) {
-            fprintf(stderr, "   If triggerLayerName is a nonempty string, triggering will be on;\n");
-            fprintf(stderr, "   if triggerLayerName is empty or null, triggering will be off.\n");
          }
       }
    }
@@ -286,7 +280,7 @@ int BaseProbe::initMessage(const char * msg) {
       }
    }
    if( !this->msgstring ) {
-      fprintf(stderr, "%s \"%s\": Unable to allocate memory for probe's message.\n",
+      pvErrorNoExit().printf("%s \"%s\": Unable to allocate memory for probe's message.\n",
             parent->parameters()->groupKeywordFromName(name), name);
       status = PV_FAILURE;
    }

@@ -99,7 +99,7 @@ int getImageInfoPVP(const char * filename, PV::Communicator * comm, PVLayerLoc *
 #ifdef DEBUG_OUTPUT
    const int nxProcs = comm->numCommColumns();
    const int nyProcs = comm->numCommRows();
-   fprintf(stderr, "[%2d]: nxProcs==%d nyProcs==%d icRow==%d icCol==%d\n",
+   pvDebug().printf("[%2d]: nxProcs==%d nyProcs==%d icRow==%d icCol==%d\n",
            comm->commRank(), nxProcs, nyProcs, icRow, icCol);
 #endif // DEBUG_OUTPUT
 
@@ -169,7 +169,7 @@ int gatherImageFile(const char * filename,
    return gatherImageFileGDAL(filename, comm, loc, buf, verifyWrites);
 #else // PV_USE_GDAL
    if (comm->commRank()==0) {
-      fprintf(stderr, "Error reading \"%s\": " GDAL_CONFIG_ERR_STR, filename);
+      pvErrorNoExit().printf("Unable to read \"%s\": " GDAL_CONFIG_ERR_STR, filename);
    }
    return PV_FAILURE;
 #endif // PV_USE_GDAL
@@ -186,8 +186,7 @@ int gatherImageFilePVP(const char * filename,
    if (rank==rootproc) {
       pvstream = PV::PV_fopen(filename, "wb", verifyWrites);
       if (pvstream==NULL) {
-         fprintf(stderr, "gatherImageFilePVP error opening \"%s\" for writing.\n", filename);
-         abort();
+         pvError().printf("gatherImageFilePVP error opening \"%s\" for writing.\n", filename);
       }
       int params[NUM_PAR_BYTE_PARAMS];
       const int numParams  = NUM_PAR_BYTE_PARAMS;
@@ -215,8 +214,7 @@ int gatherImageFilePVP(const char * filename,
 
       int numWrite = PV::PV_fwrite(params, sizeof(int), numParams, pvstream);
       if (numWrite != numParams) {
-         fprintf(stderr, "gatherImageFilePVP error writing the header.  fwrite called with %d parameters; %d were written.\n", numParams, numWrite);
-         abort();
+         pvError().printf("gatherImageFilePVP error writing the header.  fwrite called with %d parameters; %d were written.\n", numParams, numWrite);
       }
    }
    status = gatherActivity(pvstream, comm, rootproc, buf, loc, false/*extended*/);
@@ -244,7 +242,7 @@ GDALDataset * PV_GDALOpen(const char * filename)
       }
    }
    if (dataset == NULL) {
-      fprintf(stderr, "getImageInfoGDAL error opening \"%s\": %s\n", filename,
+      pvErrorNoExit().printf("getImageInfoGDAL unable to open \"%s\": %s\n", filename,
             strerror(errno));
    }
    return dataset;
@@ -267,8 +265,7 @@ int getImageInfoGDAL(const char * filename, PVLayerLoc * loc, GDALColorInterp **
       if( colorbandtypes ) {
          *colorbandtypes = (GDALColorInterp *) malloc(loc->nf*sizeof(GDALColorInterp));
          if( *colorbandtypes == NULL ) {
-            fprintf(stderr, "getImageInfoGDAL: Rank 0 process unable to allocate memory for colorbandtypes\n");
-            abort();
+            pvError().printf("getImageInfoGDAL: Rank 0 process unable to allocate memory for colorbandtypes\n");
          }
          for( int b=0; b<loc->nf; b++) {
             GDALRasterBand * band = dataset->GetRasterBand(b+1);
@@ -290,8 +287,9 @@ int gatherImageFileGDAL(const char * filename,
                         PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites)
 {
    if (verifyWrites && comm->commRank()==0) {
-      pvWarn().printf("gatherImageFileGDAL called for \"%s\" with verifyWrites set to true.\n", filename);
-      fprintf(stderr, "Readback has not been implemented for this function.\n");
+      pvWarn(warningMessage);
+      warningMessage.printf("gatherImageFileGDAL called for \"%s\" with verifyWrites set to true.\n", filename);
+      warningMessage.printf("Readback has not been implemented for this function.\n");
    }
 
    int status = 0;
@@ -322,7 +320,7 @@ int gatherImageFileGDAL(const char * filename,
 
       MPI_Send(buf, nxnynf, MPI_BYTE, dest, tag, mpi_comm);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: gather: sent to 0, nx==%d ny==%d nf==%d size==%d\n",
+      pvDebug().printf("[%2d]: gather: sent to 0, nx==%d ny==%d nf==%d size==%d\n",
               comm->commRank(), nx, ny, numBands, nxnynf);
 #endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
@@ -342,11 +340,11 @@ int gatherImageFileGDAL(const char * filename,
                                              GDT_Byte, NULL);
 
       if (dataset == NULL) {
-          fprintf(stderr, "[%2d]: gather: failed to open file %s\n", comm->commRank(), filename);
+          pvError().printf("[%2d]: gather: failed to open file %s\n", comm->commRank(), filename);
       }
       else {
 #ifdef DEBUG_OUTPUT
-          fprintf(stderr, "[%2d]: gather: opened file %s\n", comm->commRank(), filename);
+          pvDebug().printf("[%2d]: gather: opened file %s\n", comm->commRank(), filename);
 #endif // DEBUG_OUTPUT
       }
 
@@ -366,7 +364,7 @@ int gatherImageFileGDAL(const char * filename,
             int kx = nx * px;
             int ky = ny * py;
 #ifdef DEBUG_OUTPUT
-            fprintf(stderr, "[%2d]: gather: receiving from %d xSize==%d"
+            pvDebug().printf("[%2d]: gather: receiving from %d xSize==%d"
                     " ySize==%d size==%d total==%d\n",
                     comm->commRank(), src, nx, ny, nxny*numBands,
                     numTotal*comm->commSize());
@@ -432,8 +430,7 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
       if (fileloc.nx != fileloc.nxGlobal || fileloc.ny != fileloc.nyGlobal ||
           nxProcs != 1 || nyProcs != 1 ||
           fileloc.kx0 != 0 || fileloc.ky0 != 0) {
-          fprintf(stderr, "File \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
-          abort();
+          pvError().printf("File \"%s\" appears to be in an obsolete version of the .pvp format.\n", filename);
       }
 
 
@@ -463,8 +460,7 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
 
 
          PV::PV_fread(&timed, sizeof(double), 1, pvstream);
-         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": Reading spiking PVP files into an Image layer hasn't been implemented yet.\n", filename);
-         abort();
+         pvError().printf("scatterImageFilePVP error opening \"%s\": Reading spiking PVP files into an Image layer hasn't been implemented yet.\n", filename);
          break;
       case PVP_NONSPIKING_ACT_FILE_TYPE:
          framesize = recordsize*datasize*nxProcs*nyProcs+8;
@@ -475,13 +471,13 @@ int scatterImageFilePVP(const char * filename, int xOffset, int yOffset,
          status = PV_SUCCESS;
          break;
       case PVP_WGT_FILE_TYPE:
-         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+         pvErrorNoExit().printf("scatterImageFilePVP: \"%s\" is a weight file, not an image file.\n", filename);
          break;
       case PVP_KERNEL_FILE_TYPE:
-         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": file is a weight file, not an image file.\n", filename);
+         pvErrorNoExit().printf("scatterImageFilePVP: \"%s\": file is a weight file, not an image file.\n", filename);
          break;
       default:
-         fprintf(stderr, "scatterImageFilePVP error opening \"%s\": filetype %d is unrecognized.\n", filename ,filetype);
+         pvErrorNoExit().printf("scatterImageFilePVP: \"%s\" has unrecognized filetype %d.\n", filename ,filetype);
          status = PV_FAILURE;
          break;
       }
@@ -523,13 +519,13 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
 
       MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, total number of bytes in buffer is %d\n", numTotal);
+      pvDebug().printf("[%2d]: scatterImageFileGDAL: received from 0, total number of bytes in buffer is %d\n", numTotal);
 #endif // DEBUG_OUTPUT
       MPI_Recv(buf, numTotal, MPI_FLOAT, src, tag, mpi_comm, MPI_STATUS_IGNORE);
 #ifdef DEBUG_OUTPUT
       int nf=numTotal/(nx*ny);
       assert( nf*nx*ny == numTotal );
-      fprintf(stderr, "[%2d]: scatterImageFileGDAL: received from 0, nx==%d ny==%d nf==%d size==%d\n",
+      pvDebug().printf("[%2d]: scatterImageFileGDAL: received from 0, nx==%d ny==%d nf==%d size==%d\n",
               comm->commRank(), nx, ny, nf, numTotal);
 #endif // DEBUG_OUTPUT
 #endif // PV_USE_MPI
@@ -545,7 +541,7 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       
       numTotal = nx * ny * bandsInFile;
 #ifdef DEBUG_OUTPUT
-      fprintf(stderr, "[%2d]: scatterImageFileGDAL: broadcast from 0, total number of bytes in buffer is %d\n", numTotal);
+      pvDebug().printf("[%2d]: scatterImageFileGDAL: broadcast from 0, total number of bytes in buffer is %d\n", numTotal);
 #endif // DEBUG_OUTPUT
       MPI_Bcast(&numTotal, 1, MPI_INT, 0, mpi_comm);
 
@@ -556,10 +552,11 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
       // choose the right offsets and sizes.
       if (!autoResizeFlag){
          if (xOffset + xTotalSize > xImageSize || yOffset + yTotalSize > yImageSize) {
-            fprintf(stderr, "[ 0]: scatterImageFile: image size too small, "
+            pvErrorNoExit().printf(noResize);
+            noResize.printf("[ 0]: scatterImageFile: image size too small, "
                   "xTotalSize==%d xImageSize==%d yTotalSize==%d yImageSize==%d xOffset==%d yOffset==%d\n",
                   xTotalSize, xImageSize, yTotalSize, yImageSize, xOffset, yOffset);
-            fprintf(stderr, "[ 0]: xSize==%d ySize==%d nxProcs==%d nyProcs==%d\n",
+            noResize.printf("[ 0]: xSize==%d ySize==%d nxProcs==%d nyProcs==%d\n",
                   nx, ny, nxProcs, nyProcs);
             GDALClose(dataset);
             return -1;
@@ -606,8 +603,6 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                 kx = xImageSize/nxProcs * col;
                 ky = new_y * row;
 
-                //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", kx, ky, xImageSize/nxProcs, new_y);
-
                 dataset->RasterIO(GF_Read, kx, ky + y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
                                   GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
                                   bandsInFile*nx*sizeof(float), sizeof(float));
@@ -625,7 +620,6 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
                 kx = new_x * col;
                 ky = yImageSize/nyProcs * row;
 
-                //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d, x_off = %d", kx, ky, new_x, yImageSize/nyProcs, x_off);
                 dataset->RasterIO(GF_Read, kx + x_off + jitter_x, ky, new_x, yImageSize/nyProcs, buf, nx, ny,
                                   GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
                                   bandsInFile*nx*sizeof(float),sizeof(float));
@@ -633,14 +627,13 @@ int scatterImageFileGDAL(const char * filename, int xOffset, int yOffset,
           }
          else {
 
-            //fprintf(stderr, "just checking");
              dataset->RasterIO(GF_Read, kx+xOffset, ky+yOffset, nx, ny, buf,
                                nx, ny, GDT_Float32, bandsInFile, NULL,
                                bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
              
          }
 #ifdef DEBUG_OUTPUT
-fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
+pvDebug().printf("[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
       " ySize==%d bandsInFile==%d size==%d total(over all procs)==%d\n",
       comm->commRank(), dest, nx, ny, bandsInFile, numTotal,
       nx*ny*comm->commSize());
@@ -666,7 +659,6 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
                jitter_y = rand() % min(y_off*2,yOffset*2) - min(y_off,yOffset);
             }
 
-            //fprintf(stderr, "kx = %d, ky = %d, nx = %d, new_y = %d", 0, 0, xImageSize/nxProcs, new_y);
             dataset->RasterIO(GF_Read, 0, y_off + jitter_y, xImageSize/nxProcs, new_y, buf, nx, ny,
                               GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), 
                               bandsInFile*nx*sizeof(float), sizeof(float));           
@@ -680,10 +672,6 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
                srand(time(NULL));
                jitter_x = rand() % min(x_off*2,xOffset*2) - min(x_off,xOffset);
             }
-            
-            //fprintf(stderr, "xImageSize = %d, xTotalSize = %d, yImageSize = %d, yTotalSize = %d", xImageSize, xTotalSize, yImageSize, yTotalSize);
-            //fprintf(stderr, "kx = %d, ky = %d, new_x = %d, ny = %d",
-            //0, 0, new_x, yImageSize/nyProcs);
             dataset->RasterIO(GF_Read, x_off + jitter_x, 0, new_x, yImageSize/nyProcs, buf, nx, ny,
                               GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float),
                               bandsInFile*nx*sizeof(float),sizeof(float));
@@ -691,7 +679,6 @@ fprintf(stderr, "[%2d]: scatterImageFileGDAL: sending to %d xSize==%d"
       }
       else {
 
-         //fprintf(stderr,"just checking");
           dataset->RasterIO(GF_Read, xOffset, yOffset, nx, ny, buf, nx, ny,
                             GDT_Float32, bandsInFile, NULL, bandsInFile*sizeof(float), bandsInFile*nx*sizeof(float), sizeof(float));
       }

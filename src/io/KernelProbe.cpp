@@ -72,7 +72,7 @@ int KernelProbe::communicateInitInfo() {
    assert(targetHyPerConn);
    if(getTargetHyPerConn()->usingSharedWeights()==false) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "KernelProbe \"%s\": connection \"%s\" is not using shared weights.\n", name, targetConn->getName());
+         pvErrorNoExit().printf("KernelProbe \"%s\": connection \"%s\" is not using shared weights.\n", name, targetConn->getName());
       }
       status = PV_FAILURE;
    }

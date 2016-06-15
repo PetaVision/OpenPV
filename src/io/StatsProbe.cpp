@@ -135,7 +135,7 @@ void StatsProbe::requireType(PVBufType requiredType) {
          }
          if (type != BufV) {
             if (getParent()->columnId()==0) {
-               fprintf(stderr, "   Value \"%s\" is inconsistent with allowed values %s.\n",
+               pvErrorNoExit().printf("   Value \"%s\" is inconsistent with allowed values %s.\n",
                      params->stringValue(getName(), "buffer"), requiredString);
             }
          }

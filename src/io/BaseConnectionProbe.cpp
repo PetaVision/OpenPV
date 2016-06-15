@@ -52,7 +52,7 @@ int BaseConnectionProbe::setTargetConn(const char * connName) {
    int status = PV_SUCCESS;
    targetConn = getParent()->getConnFromName(connName);
    if (targetConn==NULL) {
-      fprintf(stderr, "BaseConnectionProbe \"%s\" error in rank %d process: targetConnection \"%s\" is not a connection in the HyPerCol.\n",
+      pvErrorNoExit().printf("BaseConnectionProbe \"%s\", rank %d process: targetConnection \"%s\" is not a connection in the HyPerCol.\n",
             name, getParent()->columnId(), connName);
       status = PV_FAILURE;
    }

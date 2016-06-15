@@ -79,19 +79,19 @@ int PointProbe::communicateInitInfo() {
    const PVLayerLoc * loc = getTargetLayer()->getLayerLoc();
    bool isRoot = getParent()->icCommunicator()->commRank()==0;
    if( (xLoc < 0 || xLoc > loc->nxGlobal) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in the x-direction.\n", getTargetLayer()->getName(), xLoc, loc->nxGlobal);
+      pvErrorNoExit().printf("PointProbe on layer %s: xLoc coordinate %d is out of bounds (layer has %d neurons in the x-direction.\n", getTargetLayer()->getName(), xLoc, loc->nxGlobal);
       status = PV_FAILURE;
    }
    if( (yLoc < 0 || yLoc > loc->nyGlobal) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in the y-direction.\n", getTargetLayer()->getName(), yLoc, loc->nyGlobal);
+      pvErrorNoExit().printf("PointProbe on layer %s: yLoc coordinate %d is out of bounds (layer has %d neurons in the y-direction.\n", getTargetLayer()->getName(), yLoc, loc->nyGlobal);
       status = PV_FAILURE;
    }
    if( (fLoc < 0 || fLoc > loc->nf) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n", getTargetLayer()->getName(), fLoc, loc->nf);
+      pvErrorNoExit().printf("PointProbe on layer %s: fLoc coordinate %d is out of bounds (layer has %d features.\n", getTargetLayer()->getName(), fLoc, loc->nf);
       status = PV_FAILURE;
    }
    if( (batchLoc < 0 || batchLoc > loc->nbatch) && isRoot ) {
-      fprintf(stderr, "PointProbe on layer %s: batchLoc coordinate %d is out of bounds (layer has %d batches.\n", getTargetLayer()->getName(), batchLoc, loc->nbatch);
+      pvErrorNoExit().printf("PointProbe on layer %s: batchLoc coordinate %d is out of bounds (layer has %d batches.\n", getTargetLayer()->getName(), batchLoc, loc->nbatch);
       status = PV_FAILURE;
    }
    if( status != PV_SUCCESS ) abort();
