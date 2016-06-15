@@ -70,13 +70,13 @@ int main(int argc, char* argv[])
 
    const int rank = hc->columnId();
 #ifdef DEBUG_OUTPUT
-   fprintf(stdout, "[%d]: column: ", rank);
+   pvDebug().printf("[%d]: column: ", rank);
    printLoc(hc->getImageLoc());
-   fprintf(stdout, "[%d]: image : ", rank);
+   pvDebug().printf("[%d]: image : ", rank);
    printLoc(image->getImageLoc());
-   fprintf(stdout, "[%d]: retina: ", rank);
+   pvDebug().printf("[%d]: retina: ", rank);
    printLoc(*retina->getLayerLoc());
-   fprintf(stdout, "[%d]: l1    : ", rank);
+   pvDebug().printf("[%d]: l1    : ", rank);
    printLoc(*l1->getLayerLoc());
 #endif
 
@@ -143,21 +143,21 @@ int createTestFile(const char* filename, int nTotal, float* buf)
     result = fwrite(buf, sizeof(float), nTotal, fd);
     fclose(fd);
     if ((int) result != nTotal) {
-       fprintf(stderr, "[ ]: createTestFile: ERROR writing to file %s\n", filename);
+       pvErrorNoExit().printf("[ ]: createTestFile: failure to write to file %s\n", filename);
     }
 
     fd = fopen(filename, "rb");
     result = fread(buf, sizeof(float), nTotal, fd);
     fclose(fd);
     if ((int) result != nTotal) {
-       fprintf(stderr, "[ ]: createTestFile: ERROR reading from file %s\n", filename);
+       pvErrorNoExit().printf("[ ]: createTestFile: unable to read from file %s\n", filename);
     }
 
     err = 0;
     for (i = 0; i < nTotal; i++) {
         if (buf[i] != (float) i) {
             err = 1;
-            fprintf(stderr, "%s file is incorrect at %d\n", filename, i);
+            pvErrorNoExit().printf("%s file is incorrect at %d\n", filename, i);
         }
     }
 
@@ -166,9 +166,9 @@ int createTestFile(const char* filename, int nTotal, float* buf)
 
 int printLoc(const PVLayerLoc * loc)
 {
-   fprintf(stdout, "nxGlobal==%d nyGlobal==%d nx==%d ny==%d kx0==%d ky0==%d halo==(%d,%d,%d,%d) nf==%d\n",
+   pvInfo().printf("nxGlobal==%d nyGlobal==%d nx==%d ny==%d kx0==%d ky0==%d halo==(%d,%d,%d,%d) nf==%d\n",
      loc->nxGlobal, loc->nyGlobal, loc->nx, loc->ny, loc->kx0, loc->ky0, loc->halo.lt, loc->halo.rt, loc->halo.dn, loc->halo.up, loc->nf);
-   fflush(stdout);
+   pvInfo().flush();
    return 0;
 }
 

@@ -29,7 +29,7 @@ void MaskTestLayer::ioParam_maskMethod(enum ParamsIOFlag ioFlag) {
    }
    else{
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" error: \"%s\" is not a valid maskMethod. Options are \"layer\", \"maskFeatures\", or \"noMaskFeatures\".\n",
+         pvErrorNoExit().printf("%s \"%s\" error: \"%s\" is not a valid maskMethod. Options are \"layer\", \"maskFeatures\", or \"noMaskFeatures\".\n",
                  getKeyword(), name, maskMethod);
       }
       exit(-1);

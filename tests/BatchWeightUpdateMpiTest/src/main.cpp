@@ -26,43 +26,43 @@ int main(int argc, char * argv[]) {
    PV_Arguments * arguments = initObj.getArguments();
    if (arguments->getParamsFile()!=NULL) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the params file argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the params file argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
    if (arguments->getCheckpointReadDir()!=NULL) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the checkpoint directory argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the checkpoint directory argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
    if (arguments->getRestartFlag()) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the restart flag.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the restart flag.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
    if (arguments->getNumRows()!=0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the rows argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the rows argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
    if (arguments->getNumColumns()!=0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the columns argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the columns argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
    if (arguments->getBatchWidth()!=0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the batchwidth argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the batchwidth argument.\n", arguments->getProgramName());
       }
       status = PV_FAILURE;
    }
    if (status != PV_SUCCESS) {
       if (rank==0) {
-         fprintf(stderr, "This test uses two hard-coded params files, %s and %s. The second run is started from a checkpoint from the first run, and the results of the two runs are compared.\n",
+         pvErrorNoExit().printf("This test uses two hard-coded params files, %s and %s. The second run is started from a checkpoint from the first run, and the results of the two runs are compared.\n",
                paramFile1, paramFile2);
       }
       MPI_Barrier(MPI_COMM_WORLD);
@@ -84,7 +84,7 @@ int main(int argc, char * argv[]) {
 
    status = buildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
+      pvError().printf("%s: rank %d running with params file %s returned status %d.\n", arguments->getProgramName(), rank, paramFile1, status);
    }
 
    arguments->setParamsFile(paramFile2);
@@ -92,7 +92,7 @@ int main(int argc, char * argv[]) {
 
    status = buildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
+      pvError().printf("%s: rank %d running with params file %s returned status %d.\n", arguments->getProgramName(), rank, paramFile2, status);
    }
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

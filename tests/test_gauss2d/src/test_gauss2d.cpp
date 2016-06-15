@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
       int rank = 0;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       if (rank==0) {
-         fprintf(stderr, "%s does not take a -p argument; the necessary param file is hardcoded.\n", argv[0]);
+         pvErrorNoExit().printf("%s does not take a -p argument; the necessary param file is hardcoded.\n", argv[0]);
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
@@ -147,16 +147,16 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre, int
       for (int k = 0; k < nk; k++) {
          test_cond = kernelWeights[k] - hyperWeights[k];
          if (fabs(test_cond) > 0.001f) {
-            fprintf(stdout, "y %d\n", y);
-            fprintf(stdout, "k %d\n", k);
-            fprintf(stdout, "kernelweight %f\n", kernelWeights[k]);
-            fprintf(stdout, "hyperWeights %f\n", hyperWeights[k]);
+            pvError(errorMessage);
+            errorMessage.printf("y %d\n", y);
+            errorMessage.printf("k %d\n", k);
+            errorMessage.printf("kernelweight %f\n", kernelWeights[k]);
+            errorMessage.printf("hyperWeights %f\n", hyperWeights[k]);
             const char * cHyper_filename = "gauss2d_hyper.txt";
             cHyPer->writeTextWeights(cHyper_filename, kPre);
             const char * cKernel_filename = "gauss2d_kernel.txt";
             cKernel->writeTextWeights(cKernel_filename, kPre);
             status=1;
-            //exit(EXIT_FAILURE);
          }
       }
       // advance pointers in y

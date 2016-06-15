@@ -25,7 +25,7 @@ int testWeightsEqual(HyPerConn * conn1, HyPerConn * conn2);
 int testPatchesEqual(PVPatch * patch1, PVPatch * patch2, int index, const char * conn1name, const char * conn2name);
 int verifyEqual(int val1, int val2, const char * description, const char * name1, const char * name2, int status_in);
 int testDataPatchEqual(pvdata_t * w1, pvdata_t * w2, int patchSize, const char * name1, const char * name2, int status_in);
-int dumpWeights(HyPerConn * conn, FILE * stream);
+int dumpWeights(HyPerConn * conn);
 
 int main(int argc, char * argv[]) {
    PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
@@ -35,7 +35,7 @@ int main(int argc, char * argv[]) {
    if (arguments->getParamsFile() != NULL) {
       int rank = icComm->globalCommRank();
       if (rank==0) {
-         fprintf(stderr, "%s does not take -p as an option.  Instead the necessary params file is hard-coded.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s does not take -p as an option.  Instead the necessary params file is hard-coded.\n", arguments->getProgramName());
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
@@ -139,13 +139,13 @@ int main(int argc, char * argv[]) {
 int testTransposeOfTransposeWeights(HyPerConn * originalMap, TransposeConn * transpose, TransposeConn * transposeOfTranspose, const char * message) {
    int status = testWeightsEqual(originalMap, transposeOfTranspose);
    if( status == PV_SUCCESS ) {
-      fprintf(stdout, "%s: TestTransposeConn passed.\n", message);
+      pvInfo().printf("%s: TestTransposeConn passed.\n", message);
    }
    else {
-      fprintf(stderr, "%s: TestTransposeConn failed.\n", message);
-      dumpWeights(originalMap, stdout);
-      dumpWeights(transpose, stdout);
-      dumpWeights(transposeOfTranspose, stdout);
+      dumpWeights(originalMap);
+      dumpWeights(transpose);
+      dumpWeights(transposeOfTranspose);
+      pvErrorNoExit().printf("%s: TestTransposeConn failed.\n", message);
    }
    return status;
 }
@@ -203,7 +203,7 @@ int testPatchesEqual(PVPatch * patch1, PVPatch * patch2, int index, const char *
 int verifyEqual(int val1, int val2, const char * description, const char * name1, const char * name2, int status_in) {
    int status_out = status_in;
    if (val1 != val2) {
-      fprintf(stderr, "TransposeConnTest: %s of \"%s\" and \"%s\" are not equal (%d versus %d).\n", description, name1, name2, val1, val2);
+      pvErrorNoExit().printf("TransposeConnTest: %s of \"%s\" and \"%s\" are not equal (%d versus %d).\n", description, name1, name2, val1, val2);
       status_out = PV_FAILURE;
    }
    return status_out;
@@ -213,7 +213,7 @@ int testDataPatchEqual(pvdata_t * w1, pvdata_t * w2, int patchSize, const char *
    int status_out = status_in;
    for (int w=0; w<patchSize; w++) {
       if (w1[w] != w2[w]) {
-         fprintf(stderr, "TransposeConnTest: value %d of \"%s\" and \"%s\" are not equal (%f versus %f).\n", w, name1, name2, w1[w], w2[w]);
+         pvErrorNoExit().printf("TransposeConnTest: value %d of \"%s\" and \"%s\" are not equal (%f versus %f).\n", w, name1, name2, w1[w], w2[w]);
          status_out = PV_FAILURE;
          if (status_out != PV_SUCCESS) break;
       }
@@ -221,13 +221,13 @@ int testDataPatchEqual(pvdata_t * w1, pvdata_t * w2, int patchSize, const char *
    return status_out;
 }
 
-int dumpWeights(HyPerConn * conn, FILE * stream) {
-   fprintf(stream, "Dumping weights for connection %s\n", conn->getName() );
+int dumpWeights(HyPerConn * conn) {
+   pvErrorNoExit().printf("Dumping weights for connection %s\n", conn->getName() );
    int nxp = conn->xPatchSize();
    int nyp = conn->yPatchSize();
    int nfp = conn->fPatchSize();
    int numArbors = conn->numberOfAxonalArborLists();
-   fprintf(stream, "    nxp = %d, nyp = %d, nfp = %d, numAxonalArbors = %d\n",
+   pvErrorNoExit().printf("    nxp = %d, nyp = %d, nfp = %d, numAxonalArbors = %d\n",
            nxp, nyp, nfp, numArbors);
    int numPatches = conn->getNumWeightPatches();
    for (int arbor=0; arbor<numArbors; arbor++) {
@@ -236,7 +236,7 @@ int dumpWeights(HyPerConn * conn, FILE * stream) {
          int nx = kp->nx;
          int ny = kp->ny;
          int offset = kp->offset;
-         fprintf(stream, "    Weight Patch %d: nx=%d, ny=%d, offset=%d\n",
+         pvErrorNoExit().printf("    Weight Patch %d: nx=%d, ny=%d, offset=%d\n",
                kn, nx, ny, offset);
       }
    }
@@ -244,7 +244,7 @@ int dumpWeights(HyPerConn * conn, FILE * stream) {
    for (int arbor=0; arbor<numArbors; arbor++) {
       for(int n=0; n<numDataPatches; n++) {
          for(int k=0; k<nxp*nyp*nfp; k++) {
-            fprintf(stream, "    Arbor %d, Data Patch %d, Index %4d, (x=%3d, y=%3d, f=%3d): Value %g\n",
+            pvErrorNoExit().printf("    Arbor %d, Data Patch %d, Index %4d, (x=%3d, y=%3d, f=%3d): Value %g\n",
                     arbor, n, k, kxPos(k, nxp, nyp, nfp), kyPos(k, nxp, nyp, nfp),
                     featureIndex(k, nxp, nyp, nfp), conn->get_wData(arbor, n)[k]);
          }

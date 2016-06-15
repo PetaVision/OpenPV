@@ -63,10 +63,10 @@ int dumpweights(HyPerCol * hc, int argc, char * argv[]) {
    char * paramsfilename;
    pv_getopt_str(argc, argv, "-p", &paramsfilename, NULL/*paramusage*/);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "Rank %d: %s failed with return code %d.\n", rank, paramsfilename, status);
+      pvErrorNoExit().printf("Rank %d: %s failed with return code %d.\n", rank, paramsfilename, status);
    }
    else {
-      fprintf(stdout, "Rank %d: %s succeeded.\n", rank, paramsfilename);
+      pvInfo().printf("Rank %d: %s succeeded.\n", rank, paramsfilename);
    }
    free(paramsfilename);
    return status;
@@ -108,13 +108,14 @@ int dumponeweight(HyPerConn * conn) {
                //Squared because both pre and post is grabbing it's activity from the image
                pvdata_t correct = usingMirrorBCs ? pow(float(127)/float(255),2) : (float(127)/float(255)) * .5;
                if( fabs(wgt-correct)>1.0e-5 ) {
+                  pvErrorNoExit(errorMessage);
                   if( errorfound == false ) {
                       errorfound = true;
                       for( int k=0; k<72; k++ ) { pvInfo().printf("="); }
-                      pvInfo().printf("\n");
-                      fprintf(stdout, "Rank %d, Connection \"%s\":\n",rank, conn->getName());
+                      errorMessage.printf("\n");
+                      errorMessage.printf("Rank %d, Connection \"%s\":\n",rank, conn->getName());
                   }
-                  fprintf(stdout, "Rank %d, Patch %d, x=%d, y=%d, f=%d: weight=%f, correct=%f, off by a factor of %f\n", rank, p, x, y, f, wgt, correct, wgt/correct);
+                  errorMessage.printf("Rank %d, Patch %d, x=%d, y=%d, f=%d: weight=%f, correct=%f, off by a factor of %f\n", rank, p, x, y, f, wgt, correct, wgt/correct);
                   status = PV_FAILURE;
                }
             }
@@ -122,7 +123,7 @@ int dumponeweight(HyPerConn * conn) {
       }
    }
    if( status == PV_SUCCESS ) {
-      fprintf(stdout, "Rank %d, connection \"%s\": Weights are correct.\n", rank, conn->getName());
+      pvInfo().printf("Rank %d, connection \"%s\": Weights are correct.\n", rank, conn->getName());
    }
    return status;
 }

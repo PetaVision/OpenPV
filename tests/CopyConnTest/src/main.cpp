@@ -16,8 +16,8 @@ int main(int argc, char * argv[]) {
    PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
    if (initObj->getArguments()->getParamsFile()) {
       if(initObj->getWorldRank()==0) {
-         fprintf(stderr, "%s should be run without the params file argument.\n", argv[0]);
-         fprintf(stderr, "This test uses several hard-coded params files\n");
+         pvErrorNoExit() << argv[0] << " should be run without the params file argument.\n" <<
+               "This test uses several hard-coded params files\n";
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
@@ -56,7 +56,7 @@ int runparamsfile(PV_Init* initObj, char const * paramsfile) {
       status = hc->run();
       if( status != PV_SUCCESS ) {
          if (rank==0) {
-            fprintf(stderr, "%s: running with params file %s returned error %d.\n",
+            pvErrorNoExit().printf("%s: running with params file %s returned status code %d.\n",
                   initObj->getArguments()->getProgramName(), paramsfile, status);
          }
       }
@@ -73,14 +73,14 @@ int runparamsfile(PV_Init* initObj, char const * paramsfile) {
    HyPerConn * origConn = dynamic_cast<HyPerConn *>(hc->getConnFromName("OriginalConn"));
    if (origConn==NULL) {
       if (rank==0) {
-         fprintf(stderr, "Unable to find connection named \"OriginalConn\" in params file \"%s\".\n", paramsfile);
+         pvErrorNoExit().printf("Unable to find connection named \"OriginalConn\" in params file \"%s\".\n", paramsfile);
       }
       status = PV_FAILURE;
    }
    CopyConn * copyConn = dynamic_cast<CopyConn *>(hc->getConnFromName("CopyConn"));
    if (origConn==NULL) {
       if (rank==0) {
-         fprintf(stderr, "Unable to find connection named \"CopyConn\" in params file \"%s\".\n", paramsfile);
+         pvErrorNoExit().printf("Unable to find connection named \"CopyConn\" in params file \"%s\".\n", paramsfile);
       }
       status = PV_FAILURE;
    }
@@ -123,7 +123,7 @@ int runparamsfile(PV_Init* initObj, char const * paramsfile) {
                   pvwdata_t copyWeight = copyConn->get_wDataHead(arbor, patchindex)[indexinpatch];
                   float discrep = fabsf(origWeight*copyStrength - copyWeight*origStrength);
                   if (discrep > 1e-6) {
-                     fprintf(stderr, "Rank %d: arbor %d, patchindex %d, x=%d, y=%d, f=%d: discrepancy of %g\n",
+                     pvErrorNoExit().printf("Rank %d: arbor %d, patchindex %d, x=%d, y=%d, f=%d: discrepancy of %g\n",
                            hc->columnId(), arbor, patchindex, x, y, f, discrep);
                      status = PV_FAILURE;
                   }

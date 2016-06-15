@@ -18,25 +18,25 @@ int main(int argc, char * argv[]) {
    int status = PV_SUCCESS;
    if (pv_getopt_str(argc, argv, "-p", NULL, NULL)==0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the params file argument.\n", argv[0]);
+         pvErrorNoExit().printf("%s should be run without the params file argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
    if (pv_getopt_str(argc, argv, "-c", NULL, NULL)==0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the checkpoint directory argument.\n", argv[0]);
+         pvErrorNoExit().printf("%s should be run without the checkpoint directory argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
    if (pv_getopt(argc, argv, "-r", NULL)==0) {
       if (rank==0) {
-         fprintf(stderr, "%s should be run without the checkpoint directory argument.\n", argv[0]);
+         pvErrorNoExit().printf("%s should be run without the checkpoint directory argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
    if (status != PV_SUCCESS) {
       if (rank==0) {
-         fprintf(stderr, "This test uses two hard-coded params files, %s and %s. The second run is started from a checkpoint from the first run, and the results of the two runs are compared.\n",
+         pvErrorNoExit().printf("This test uses two hard-coded params files, %s and %s. The second run is started from a checkpoint from the first run, and the results of the two runs are compared.\n",
                paramFile1, paramFile2);
       }
       MPI_Barrier(MPI_COMM_WORLD);
@@ -56,14 +56,14 @@ int main(int argc, char * argv[]) {
 
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
+      pvError().printf("%s: rank %d running with params file %s returned status code %d.\n", arguments->getProgramName(), rank, paramFile1, status);
    }
 
    arguments->setParamsFile(paramFile2);
 
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      fprintf(stderr, "%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
+      pvError().printf("%s: rank %d running with params file %s returned status code %d.\n", arguments->getProgramName(), rank, paramFile2, status);
    }
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

@@ -54,7 +54,7 @@ int ReceiveFromPostProbe::outputState(double timed){
       }
       //For roundoff errors
       if(fabs(A[i]) >= tolerance) {
-         fprintf(stderr, "%s Layer \"%s\" activity outside of tolerance %f: extended index %d has activity %f\n",
+         pvErrorNoExit().printf("%s Layer \"%s\" activity outside of tolerance %f: extended index %d has activity %f\n",
                getMessage(), getTargetLayer()->getName(), tolerance, i, A[i]);
          status = PV_FAILURE;
       }

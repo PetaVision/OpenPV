@@ -51,8 +51,7 @@ int MomentumConnTestProbe::outputState(double timed) {
    const pvwdata_t * w = c->get_wDataHead(getArbor(), getKernelIndex());
    const pvdata_t * dw = c->get_dwDataHead(getArbor(), getKernelIndex());
    if( getOutputPlasticIncr() && dw == NULL ) {
-      fprintf(stderr, "MomentumConnTestProbe \"%s\": connection \"%s\" has dKernelData(%d,%d) set to null.\n", getName(), getTargetName(), getKernelIndex(), getArbor());
-      assert(false);
+      pvError().printf("MomentumConnTestProbe \"%s\": connection \"%s\" has dKernelData(%d,%d) set to null.\n", getName(), getTargetName(), getKernelIndex(), getArbor());
    }
    int nxp = c->xPatchSize();
    int nyp = c->yPatchSize();

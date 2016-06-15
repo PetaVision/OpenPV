@@ -24,7 +24,6 @@ int main(int argc, char * argv[])
    PV::HyPerCol * hc = new PV::HyPerCol("test_mirror_BCs column", initObj);
    PV::Example * l = new PV::Example("test_mirror_BCs layer", hc);
 
-   //FILE * fd = stdout;
    int nf = l->clayer->loc.nf;
    PVHalo const * halo = &l->clayer->loc.halo;
    int nS = l->clayer->loc.nx; // 8;
@@ -59,7 +58,7 @@ int main(int argc, char * argv[])
             int k = (ky-kyFirst) * sy + (kx-kxFirst) * nf + kf;
             sCube->data[kex] = k;
 #ifdef DEBUG_PRINT
-            fprintf(stdout, "sCube val = %5i:, kex = %5i:, k = %5i\n", (int) sCube->data[kex], kex, k);
+            pvDebug().printf("sCube val = %5i:, kex = %5i:, k = %5i\n", (int) sCube->data[kex], kex, k);
 #endif
         }
       }
@@ -71,11 +70,11 @@ int main(int argc, char * argv[])
       for (int ky = 0; ky < ny; ky++) {
          for (int kx = 0; kx < nx; kx++) {
             int kex = ky * syex + kx * nf + kf;
-            fprintf(stdout, "%5i ", (int) sCube->data[kex]);
+            pvDebug().printf("%5i ", (int) sCube->data[kex]);
          }
-         fprintf(stdout, "\n");
+         pvDebug().printf("\n");
       }
-      fprintf(stdout, "\n");
+      pvDebug().printf("\n");
    }
 #endif
 
@@ -90,11 +89,11 @@ int main(int argc, char * argv[])
       for (int ky = 0; ky < ny; ky++) {
          for (int kx = 0; kx < nx; kx++) {
             int kex = ky * syex + kx * nf + kf;
-            fprintf(stdout, "%5i ", (int) sCube->data[kex]);
+            pvDebug().printf("%5i ", (int) sCube->data[kex]);
          }
-         fprintf(stdout, "\n");
+         pvDebug().printf("\n");
       }
-      fprintf(stdout, "\n");
+      pvDebug().printf("\n");
    }
 #endif
 

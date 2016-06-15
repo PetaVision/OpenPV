@@ -34,11 +34,11 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
           inLoc->halo.up==1 &&
           inLayer->getNumGlobalExtended()==16);
    
-   fflush(stdout);
+   pvInfo().flush();
    MPI_Barrier(hc->icCommunicator()->communicator());
    for (int r=0; r<hc->icCommunicator()->commSize(); r++) {
       if (r==hc->columnId()) {
-         fprintf(stdout, "Rank %d, Input layer activity\n",r);
+         pvInfo().printf("Rank %d, Input layer activity\n",r);
          for (int k=0; k<inLayer->getNumExtended(); k++) {
             int x=kxPos(k,inLoc->nx+inLoc->halo.lt+inLoc->halo.rt,inLoc->ny+inLoc->halo.dn+inLoc->halo.up,inLoc->nf)-inLoc->halo.lt+inLoc->kx0;
             int y=kyPos(k,inLoc->nx+inLoc->halo.lt+inLoc->halo.rt,inLoc->ny+inLoc->halo.dn+inLoc->halo.up,inLoc->nf)-inLoc->halo.up+inLoc->ky0;
@@ -47,11 +47,11 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             
             if (x>=0 && x<inLoc->nxGlobal && y>=0 && y<inLoc->nyGlobal) {
                int kRestricted = kIndex(x,y,f,inLoc->nxGlobal,inLoc->nyGlobal,inLoc->nf);
-               fprintf(stdout, "Rank %d, kLocal(extended)=%d, kGlobal(restricted)=%2d, x=%2d, y=%2d, f=%2d, a=%f\n", r, k, kRestricted, x, y, f, a);
+               pvInfo().printf("Rank %d, kLocal(extended)=%d, kGlobal(restricted)=%2d, x=%2d, y=%2d, f=%2d, a=%f\n", r, k, kRestricted, x, y, f, a);
                pvdata_t correctValue = (pvdata_t) kRestricted+1.0f;
                if (a!=correctValue) {
                   status = PV_FAILURE;
-                  fprintf(stdout, "        Failure! Correct value is %f\n", correctValue);
+                  pvErrorNoExit().printf("        Failure! Correct value is %f\n", correctValue);
                }
             }
          }
@@ -69,12 +69,12 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
    pvwdata_t * w = conn->get_wDataHead(0,0);
    for (int r=0; r<hc->icCommunicator()->commSize(); r++) {
       if (r==hc->columnId()) {
-         fprintf(stdout, "Rank %d, Weight values\n", r);
+         pvInfo().printf("Rank %d, Weight values\n", r);
          for (int k=0; k<patchSize; k++) {
-            fprintf(stdout, "Rank %d, k=%2d, w=%f\n", r, k, w[k]);
+            pvInfo().printf("Rank %d, k=%2d, w=%f\n", r, k, w[k]);
             if (w[k]!=(pvdata_t) k) {
                status = PV_FAILURE;
-               fprintf(stdout, "        Failure! Correct value is %f\n", (pvdata_t) k);
+               pvErrorNoExit().printf("        Failure! Correct value is %f\n", (pvdata_t) k);
             }
          }
       }
@@ -97,7 +97,7 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
    
    for (int r=0; r<hc->icCommunicator()->commSize(); r++) {
       if (r==hc->columnId()) {
-         fprintf(stdout, "Rank %d, Output layer V\n",r);
+         pvInfo().printf("Rank %d, Output layer V\n",r);
          for (int k=0; k<outLayer->getNumNeurons(); k++) {
             int x=kxPos(k,outLoc->nx,outLoc->ny,outLoc->nf)+outLoc->kx0;
             int y=kyPos(k,outLoc->nx,outLoc->ny,outLoc->nf)+outLoc->ky0;
@@ -106,10 +106,10 @@ int checkoutput(HyPerCol * hc, int argc, char ** argv) {
             
             if (x>=0 && x<outLoc->nxGlobal && y>=0 && y<outLoc->nyGlobal) {
                int kRestricted = kIndex(x,y,f,outLoc->nxGlobal,outLoc->nyGlobal,outLoc->nf);
-               fprintf(stdout, "Rank %d, kLocal=%d, kGlobal=%2d, x=%2d, y=%2d, f=%2d, V=%f\n", r, k, kRestricted, x, y, f, V);
+               pvInfo().printf("Rank %d, kLocal=%d, kGlobal=%2d, x=%2d, y=%2d, f=%2d, V=%f\n", r, k, kRestricted, x, y, f, V);
                if (V!=correct[kRestricted]) {
                   status = PV_FAILURE;
-                  fprintf(stderr, "        Failure! Correct value is %f\n", correct[kRestricted]);
+                  pvErrorNoExit().printf("        Failure! Correct value is %f\n", correct[kRestricted]);
                }
             }
          }

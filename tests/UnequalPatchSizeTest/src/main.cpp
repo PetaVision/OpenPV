@@ -50,7 +50,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    assert(inlayer->getLayerLoc()->halo.dn == yHaloSize);
    assert(inlayer->getLayerLoc()->halo.up == yHaloSize);
    
-   if (hc->columnId()==0) { fprintf(stdout, "Success.\n"); }
+   if (hc->columnId()==0) { pvInfo().printf("Success.\n"); }
    return 0;
 }
 

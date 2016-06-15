@@ -15,7 +15,7 @@ TriggerTestLayer::TriggerTestLayer(const char * name, HyPerCol * hc)
 int TriggerTestLayer::updateStateWrapper(double time, double dt){
    //4 different layers
    //No trigger, always update
-   fprintf(stderr, "%s: time=%f, dt=%f, needUpdate=%d\n", name, time, dt, needUpdate(time, dt));
+   pvInfo().printf("%s: time=%f, dt=%f, needUpdate=%d\n", name, time, dt, needUpdate(time, dt));
    if(strcmp(name, "notrigger") == 0){
       assert(needUpdate(time, dt) == true);
    }

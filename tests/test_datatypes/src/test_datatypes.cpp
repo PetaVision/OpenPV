@@ -89,17 +89,17 @@ int main(int argc, char * argv[])
    if (err==0) {
       err = comm->exchange(image, datatypes, &loc);
       if (err != 0) {
-         fprintf(stdout, "[%d]: Communicator::exchange failed\n", comm->commRank());
+         pvErrorNoExit().printf("[%d]: Communicator::exchange failed\n", comm->commRank());
       }
    }
 
    if (err==0) {
       err = check_borders(image, comm, loc);
       if (err != 0) {
-         fprintf(stdout, "[%d]: check_borders failed\n", comm->commRank());
+         pvErrorNoExit().printf("[%d]: check_borders failed\n", comm->commRank());
       }
       else {
-         fprintf(stdout, "[%d]: check_borders succeeded\n", comm->commRank());
+         pvInfo().printf("[%d]: check_borders succeeded\n", comm->commRank());
       }
    }
 
@@ -141,7 +141,7 @@ static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc l
             float * buf = image + ky * sy;
             for (int kx = 0; kx < halo->lt; kx++) {
                if ((int) buf[kx] != k++) {
-                  fprintf(stdout, "[?]: northwest check_borders failed kx==%d ky==%d observed==%f correct==%d addr==%p\n", kx, ky, buf[kx], k-1, &buf[kx]);
+                  pvErrorNoExit().printf("[?]: northwest check_borders failed kx==%d ky==%d observed==%f correct==%d addr==%p\n", kx, ky, buf[kx], k-1, &buf[kx]);
                   return 1;
                }
             }
@@ -152,7 +152,7 @@ static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc l
             float * buf = image + ky * sy;
             for (int kx = 0; kx < halo->lt; kx++) {
                if ((int) buf[kx] != 0) {
-                  fprintf(stdout, "[?]: northwest check_borders failed kx==%d ky==%d observed==%f correct==0 addr==%p\n", kx, ky, buf[kx], &buf[kx]);
+                  pvErrorNoExit().printf("[?]: northwest check_borders failed kx==%d ky==%d observed==%f correct==0 addr==%p\n", kx, ky, buf[kx], &buf[kx]);
                   return 1;
                }
             }
@@ -167,7 +167,7 @@ static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc l
          float * buf = image + (ky + halo->up) * sy;
          for (int kx = 0; kx < halo->lt; kx++) {
             if ((int) buf[kx] != k++) {
-               fprintf(stdout, "[?]: check_borders failed kx==%d ky==%d k0==%d observed==%f correct==%d addr==%p\n", kx, ky, k0, buf[kx], k-1, &buf[kx]);
+               pvErrorNoExit().printf("[?]: check_borders failed kx==%d ky==%d k0==%d observed==%f correct==%d addr==%p\n", kx, ky, k0, buf[kx], k-1, &buf[kx]);
                return 1;
             }
          }
@@ -181,7 +181,7 @@ static int check_borders(pvdata_t * image, PV::Communicator * comm, PVLayerLoc l
          float * buf = image + (nx + halo->lt) + (ky + halo->up) * sy;
          for (int kx = 0; kx < halo->rt; kx++) {
             if ((int) buf[kx] != k++) {
-               fprintf(stdout, "[?]: check_borders failed kx==%d ky==%d k0==%d observed==%f correct==%d addr==%p\n", kx, ky, k0, buf[kx], k-1, &buf[kx]);
+               pvErrorNoExit().printf("[?]: check_borders failed kx==%d ky==%d k0==%d observed==%f correct==%d addr==%p\n", kx, ky, k0, buf[kx], k-1, &buf[kx]);
                return 1;
             }
          }

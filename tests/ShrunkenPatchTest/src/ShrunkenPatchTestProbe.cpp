@@ -84,8 +84,7 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
       int xScaleLog2 = getTargetLayer()->getCLayer()->xScale;
 
       if (xScaleLog2>=0) {
-         fprintf(stderr, "ShrunkenPatchTestProbe \"%s\" error: layer \"%s\" must have nxScale > 1.\n", probeName, l->getName());
-         abort();
+         pvError().printf("ShrunkenPatchTestProbe \"%s\" error: layer \"%s\" must have nxScale > 1.\n", probeName, l->getName());
       }
       int cell_size = (int) nearbyintf(powf(2.0f, -xScaleLog2));
       int kx0 = (loc->kx0)/cell_size;
@@ -96,8 +95,7 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
       assert(num_half_cells*half_cell_size==nx);
       int cells_in_patch = nxpShrunken/cell_size;
       if (nxpShrunken != cells_in_patch*cell_size) {
-         fprintf(stderr, "ShrunkenPatchTestProbe \"%s\" error: nxpShrunken must be an integer multiple of layer \"%s\" nxScale=%d.\n", probeName, l->getName(), cell_size);
-         abort();
+         pvError().printf("ShrunkenPatchTestProbe \"%s\" error: nxpShrunken must be an integer multiple of layer \"%s\" nxScale=%d.\n", probeName, l->getName(), cell_size);
       }
       int nxp_size_parity = cells_in_patch % 2;
 
@@ -125,9 +123,8 @@ int ShrunkenPatchTestProbe::outputState(double timed) {
          if (fabs(buf[kex]-correctValues[x])>tol) {
             int y = kyPos(k,loc->nx, loc->ny, loc->nf);
             int f = featureIndex(k,loc->nx,loc->ny,loc->nf);
-            fprintf(stderr, "Layer \"%s\": Incorrect value %f (should be %f) in process %d, x=%d, y=%d, f=%d\n",
+            pvError().printf("Layer \"%s\": Incorrect value %f (should be %f) in process %d, x=%d, y=%d, f=%d\n",
                   l->getName(), buf[kex], correctValues[x], getTargetLayer()->getParent()->columnId(), x, y, f);
-            abort();
          }
       }
    }

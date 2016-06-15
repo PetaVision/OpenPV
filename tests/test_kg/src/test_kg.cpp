@@ -25,9 +25,6 @@ int main(int argc, char* argv[])
    int ij;
 #endif
 
-   //fprintf(stdout, "size_loc==%ld size_cube==%ld size_ptr==%ld\n", sizeof(PVLayerLoc), sizeof(PVLayerCube), sizeof(pvdata_t*));
-   //fprintf(stdout, "size_int==%ld size_float==%ld, size_size_t==%ld\n", sizeof(int), sizeof(float), sizeof(size_t));
-
    int nf = loc.nf = 3;
    int nx = loc.nx = 63;
    int ny = loc.ny = 127;

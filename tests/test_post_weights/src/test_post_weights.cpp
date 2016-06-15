@@ -197,9 +197,10 @@ static int check_weights(HyPerConn * c, PVPatch ** postWeights, pvdata_t * postD
 
                if (kPre != kPreObserved || kPost != kPostObserved) {
                   status = -1;
-                  fprintf(stderr, "ERROR: check_weights: connection %s, kPost==%d kPre==%d kp==%d, expected %d != w==%d\n",
+                  pvErrorNoExit(errorMessage);
+                  errorMessage.printf("check_weights: connection %s, kPost==%d kPre==%d kp==%d, expected %d != w==%d\n",
                           c->getName(), kPost, kPre, kp, kPre*numPostPatches+kPost, (int) w[kp]);
-                  fprintf(stderr, "    nxp==%d nyp==%d nfp==%d\n", nxp, nyp, nfp);
+                  errorMessage.printf("    nxp==%d nyp==%d nfp==%d\n", nxp, nyp, nfp);
                   const char * filename = "post_weights.txt";
                   c->writeTextWeights(filename, kPre);
                   return status;

@@ -27,7 +27,6 @@ int main(int argc, char * argv[]) {
 
    status = pv_obj.initialize();
    if (status != PV_SUCCESS) {
-      fflush(stdout);
       pvError().printf("%s: PV_Init::initialize() failed on process with PID=%d\n", argv[0], getpid()); 
    }
 
@@ -37,20 +36,17 @@ int main(int argc, char * argv[]) {
 
    status = deleteGeneratedFiles(&pv_obj);
    if (status!=PV_SUCCESS) {
-      fflush(stdout);
       pvError().printf("%s: error cleaning generated files from any previous run.\n", argv[0]);
    }
 
    PV::HyPerCol * hc = build(&pv_obj);
    if (hc==NULL) {
-      fflush(stdout);
       pvError().printf("%s: build() failed on process %d\n", argv[0], rank);
    }
 
    // Generate the cleaned-up params file
    status = hc->processParams(PROCESSED_PARAMS);
    if (status != PV_SUCCESS) {
-      fflush(stdout);
       pvError().printf("%s: HyPerCol::processParams failed on process %d\n", argv[0], rank);
    }
 
@@ -58,7 +54,6 @@ int main(int argc, char * argv[]) {
    pv_arguments->setOutputPath("output-generate");
    status = rebuildandrun(&pv_obj);
    if (status != PV_SUCCESS) {
-      fflush(stdout);
       pvError().printf("%s: running with raw params file failed on process %d\n", argv[0], rank);
    }
 
@@ -67,14 +62,12 @@ int main(int argc, char * argv[]) {
    pv_arguments->setParamsFile(PROCESSED_PARAMS);
    status = rebuildandrun(&pv_obj);
    if (status != PV_SUCCESS) {
-      fflush(stdout);
       pvError().printf("%s: running with processed params file failed on process %d\n", argv[0], rank);
    }
 
    if (rank==0) {
       status = compareOutputs();
       if (status != PV_SUCCESS) {
-         fflush(stdout);
          pvError().printf("%s: compareOutputs() failed with return code %d.\n", argv[0], status);
       }
    }
@@ -110,8 +103,8 @@ int compareOutputs() {
    status = system(diffcmd);
    if (status != 0) {
       // If the diff command fails, it may be only that the file system hasn't caught up yet.  
-      fprintf(stdout, "diff command returned %d: waiting 1 second and trying again...\n", WEXITSTATUS(status));
-      fflush(stdout);
+      pvWarn().printf("diff command returned %d: waiting 1 second and trying again...\n", WEXITSTATUS(status));
+      pvWarn().flush();
       sleep(1);
       status = system(diffcmd);
       if (status!=0) { status = WEXITSTATUS(status); }
@@ -129,8 +122,7 @@ int deleteFile(char const * path, PV::PV_Init * pv_obj) {
 
    int status = unlink(path);
    if (status != 0 && errno != ENOENT) {
-      fflush(stdout);
-      fprintf(stderr, "%s: error deleting %s: %s\n", pv_obj->getArguments()->getProgramName(), path, strerror(errno));
+      pvErrorNoExit().printf("%s: unable to delete %s: %s\n", pv_obj->getArguments()->getProgramName(), path, strerror(errno));
       status = PV_FAILURE;
    }
    else {

@@ -67,14 +67,12 @@ int KernelConnDebugInitWeights::communicateInitInfo() {
    BaseConnection * baseConn = parent->getConnFromName(otherConnName);
    otherConn = dynamic_cast<HyPerConn *>(baseConn);
    if (otherConn == NULL) {
-      fprintf(stderr, "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a connection in the column.\n",
+      pvError().printf("KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" is not a connection in the column.\n",
             name, parent->columnId(), otherConnName);
-      exit(EXIT_FAILURE);
    }
    if (otherConn->usingSharedWeights() == false) {
-      fprintf(stderr, "KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" does not use shared weights.\n",
+      pvError().printf("KernelConnDebugInitWeights \"%s\" error in rank %d process: copiedConn \"%s\" does not use shared weights.\n",
             name, parent->columnId(), otherConnName);
-      exit(EXIT_FAILURE);
    }
    return PV_SUCCESS;
 }
@@ -93,7 +91,7 @@ PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pv
    int initFromLastFlag = inputParams->value(getName(), "initFromLastFlag", 0.0f, false) != 0;
 
    if (initFromLastFlag) {
-      fprintf(stderr, "This method is for testing weight initialization!  It does not support load from file!\n");
+      pvError().printf("This method is for testing weight initialization!  It does not support load from file!\n");
    }
    else {
            const char * weightInitTypeStr = inputParams->stringValue(name, "weightInitType");
@@ -128,7 +126,7 @@ PVPatch *** KernelConnDebugInitWeights::initializeWeights(PVPatch *** arbors, pv
                    initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
            }
            else { //default is also Gauss2D
-              //fprintf(stderr, "weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
+              //pvWarn().printf("weightInitType not set or unrecognized.  Using default (2D Gaussian).\n");
               initializeGaussian2DWeights(NULL, arborStart, numKernelPatches);
            }
 
@@ -912,7 +910,7 @@ int KernelConnDebugInitWeights::gaborWeights(pvdata_t * dataStart, int xScale, i
             float wt = factor * expf(-d2 / (2.0f*sigma*sigma));
 
 #ifdef DEBUG_OUTPUT
-            if (j == 0) fprintf(stdout, "x=%f fac=%f w=%f\n", xp, factor, wt);
+            if (j == 0) pvInfo().printf("x=%f fac=%f w=%f\n", xp, factor, wt);
 #endif
             if (xp*xp + yp*yp > r2Max) {
                w[i*sx + j*sy + f*sf] = 0.0f;

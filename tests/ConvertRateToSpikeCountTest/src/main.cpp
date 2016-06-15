@@ -15,10 +15,10 @@ int main(int argc, char * argv[]) {
    int status;
    status = buildandrun(argc, argv, NULL, customexit);
    if (status == PV_SUCCESS) {
-      fprintf(stdout, "%s succeeded.\n", argv[0]);
+      pvInfo().printf("%s succeeded.\n", argv[0]);
    }
    else {
-      fprintf(stderr, "%s failed with return code %d.\n", argv[0], status);
+      pvError().printf("%s failed with return code %d.\n", argv[0], status);
    }
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -37,7 +37,7 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int status = PV_SUCCESS;
    if (probe->getNonzeroFound()) {
       if (hc->columnId()==0) {
-         fprintf(stderr, "comparison layer had a nonzero activity at time %f\n", probe->getNonzeroTime());
+         pvErrorNoExit().printf("comparison layer had a nonzero activity at time %f\n", probe->getNonzeroTime());
          status = PV_FAILURE;
       }
    }

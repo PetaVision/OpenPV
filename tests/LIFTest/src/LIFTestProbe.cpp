@@ -40,8 +40,7 @@ int LIFTestProbe::initLIFTestProbe(const char * probeName, HyPerCol * hc) {
    stddevs = (double *) calloc(LIFTESTPROBE_BINS, sizeof(double));
    counts = (int *) calloc(LIFTESTPROBE_BINS, sizeof(int));
    if (radii == NULL || rates == NULL || targetrates == NULL) {
-      fprintf(stderr, "LIFTestProbe::initLIFTestProbe error in probe \"%s\": unable to allocate memory for radii and rates.\n", getMessage());
-      abort();
+      pvError().printf("LIFTestProbe::initLIFTestProbe \"%s\": unable to allocate memory for radii and rates.\n", getName());
    }
    // Bin the LIFGap layer's activity into bins based on pixel position.  The pixels are assigned x- and y-coordinates in -31.5 to 31.5
    // and the distance r  to the origin of each pixel is calculated.  Bin 0 is 0 <= r < 10, bin 1 is 10 <= r < 15, and subsequent
@@ -142,7 +141,7 @@ int LIFTestProbe::outputState(double timed) {
             double scaledstdev = stddevs[j]/stdfactor;
             double observed = (rates[j]-targetrates[j])/scaledstdev;
             if(fabs(observed)>tolerance) {
-               fprintf(stderr, "Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timed, observed, tolerance);
+               pvErrorNoExit().printf("Bin number %d failed at time %f: %f standard deviations off, with tolerance %f.\n", j, timed, observed, tolerance);
                status = PV_FAILURE;
             }
          }

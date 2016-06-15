@@ -27,9 +27,8 @@ int customexit(HyPerCol * hc, int argc, char * argv[]) {
    int status = spikecount != NULL ? PV_SUCCESS : PV_FAILURE;
    if (status != PV_SUCCESS) {
       if (hc->icCommunicator()->commRank()==0) {
-         fprintf(stderr, "Error:  No layer named \"LIFGapTestSpikeCounter\"");
+         pvError().printf("Error:  No layer named \"LIFGapTestSpikeCounter\"");
       }
-      status = PV_FAILURE;
    }
    return status;
 }

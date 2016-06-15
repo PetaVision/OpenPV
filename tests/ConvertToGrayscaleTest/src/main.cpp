@@ -19,7 +19,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
    pvadata_t tolerance = 1.0e-7f;
 
    if (hc->columnId()==0) {
-      fprintf(stdout, "Checking whether input layer has all values equal to %f ...\n", correctvalue);
+      pvInfo().printf("Checking whether input layer has all values equal to %f ...\n", correctvalue);
    }
    HyPerLayer * inputlayer = hc->getLayerFromName("input");
    assert(inputlayer);
@@ -48,7 +48,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
             int kExt = kIndexExtended(k,loc->nx,loc->ny,loc->nf,loc->halo.lt,loc->halo.rt,loc->halo.dn,loc->halo.up);
             pvadata_t value = databuffer[kExt];
             if (fabs(value-correctvalue)>=tolerance) {
-               fprintf(stderr, "Rank %d, restricted index %d, extended index %d, value is %f instead of %f\n",
+               pvErrorNoExit().printf("Rank %d, restricted index %d, extended index %d, value is %f instead of %f\n",
                      proc, k, kExt, value, correctvalue);
                status = PV_FAILURE;
             }
@@ -56,7 +56,7 @@ int customexit(HyPerCol * hc, int argc, char ** argv) {
       }
       free(databuffer);
       if (status == PV_SUCCESS) {
-         fprintf(stdout, "%s succeeded.\n", argv[0]);
+         pvInfo().printf("%s succeeded.\n", argv[0]);
       }
       else {
          pvError().printf("%s failed.\n", argv[0]);
