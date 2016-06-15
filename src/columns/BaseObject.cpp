@@ -44,7 +44,7 @@ int BaseObject::setName(char const * name) {
    int status = PV_SUCCESS;
    this->name = strdup(name);
    if (this->name==NULL) {
-      fprintf(stderr, "Error: could not set name \"%s\": %s\n", name, strerror(errno));
+      pvErrorNoExit().printf("could not set name \"%s\": %s\n", name, strerror(errno));
       status = PV_FAILURE;
    }
    return status;
@@ -65,7 +65,7 @@ BaseObject::~BaseObject() {
 }
 
 BaseObject * createBasePVObject(char const * name, HyPerCol * hc) {
-   fprintf(stderr, "BaseObject should not be instantiated itself, only derived classes of BaseObject.\n");
+   pvErrorNoExit().printf("BaseObject should not be instantiated itself, only derived classes of BaseObject.\n");
    return NULL;
 }
 

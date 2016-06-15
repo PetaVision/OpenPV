@@ -104,7 +104,7 @@ Communicator::Communicator(PV_Arguments * argumentList)
 #endif // PV_USE_MPI
 
 //#ifdef DEBUG_OUTPUT
-//      fprintf(stderr, "[%2d]: Formed resized communicator, size==%d cols==%d rows==%d\n", icRank, icSize, numCols, numRows);
+//      pvDebug().printf("[%2d]: Formed resized communicator, size==%d cols==%d rows==%d\n", icRank, icSize, numCols, numRows);
 //#endif // DEBUG_OUTPUT
 
 //Grab local rank and check for errors
@@ -145,7 +145,7 @@ Communicator::~Communicator()
    //
    if (globalCommRank() == 0) {
       exchange_timer->fprint_time(getOutputStream());
-      fflush(stdout);
+      getOutputStream().flush();
    }
    if(!isExtra){
       delete exchange_timer; exchange_timer = NULL;
@@ -181,13 +181,13 @@ int Communicator::neighborInit()
          neighbors[i] = n;
          remoteNeighbors[num_neighbors++] = n;
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: neighborInit: remote[%d] of %d is %d, i=%d, neighbor=%d\n",
+         pvDebug().printf("[%2d]: neighborInit: remote[%d] of %d is %d, i=%d, neighbor=%d\n",
                 localRank, num_neighbors - 1, this->numNeighbors, n, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
       } else {
          borders[num_borders++] = -n;
 #ifdef DEBUG_OUTPUT
-         fprintf(stderr, "[%2d]: neighborInit: i=%d, neighbor=%d\n", localRank, i, neighbors[i]);
+         pvDebug().printf("[%2d]: neighborInit: i=%d, neighbor=%d\n", localRank, i, neighbors[i]);
 #endif // DEBUG_OUTPUT
       }
       this->tags[i] = tags[i];
@@ -463,7 +463,7 @@ int Communicator::neighborIndex(int commId, int direction)
    case SOUTHEAST : /* southeast */
       return southeast(row, column);
    default:
-      fprintf(stderr, "ERROR:neighborIndex: bad index\n");
+      pvErrorNoExit().printf("neighborIndex %d: bad index\n", direction);
       return -1;
    }
 }
@@ -546,7 +546,7 @@ int Communicator::reverseDirection(int commId, int direction) {
       }
       break;
    default:
-      fprintf(stderr, "ERROR:neighborIndex: bad index\n");
+      pvErrorNoExit().printf("neighborIndex %d: bad index\n", direction);
       revdir = -1;
       break;
    }
@@ -589,7 +589,7 @@ size_t Communicator::recvOffset(int n, const PVLayerLoc * loc)
    case SOUTHEAST:
       return (sx*leftBorder + sx*nx + sy * (topBorder + ny));
    default:
-      fprintf(stderr, "ERROR:recvOffset: bad neighbor index\n");
+      pvErrorNoExit().printf("recvOffset: bad neighbor index %d\n", n);
       return (size_t) 0;
    }
 }
@@ -633,7 +633,7 @@ size_t Communicator::sendOffset(int n, const PVLayerLoc * loc)
    case SOUTHEAST:
       return (sx*(nx + !has_east_nbr*leftBorder) + sy*(ny + !has_south_nbr*topBorder));
    default:
-      fprintf(stderr, "ERROR:sendOffset: bad neighbor index\n");
+      pvErrorNoExit().printf("sendOffset: bad neighbor index %d\n", n);
       return 0;
    }
 }

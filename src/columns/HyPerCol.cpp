@@ -38,15 +38,6 @@
 
 namespace PV {
 
-HyPerCol * castToHyPerCol(void * p) {
-   HyPerCol * hc = static_cast<HyPerCol*>(p);
-   hc = dynamic_cast<HyPerCol*>(hc);
-   if (hc==NULL) {
-      fprintf(stderr, "Pointer %p is not a valid HyPerCol pointer.\n", p);
-   }
-   return hc;
-}
-
 HyPerCol::HyPerCol(const char * name, PV_Init * initObj) {
    initialize_base();
    initialize(name, initObj);
@@ -303,7 +294,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
 #ifdef PVP_DEBUG
    if (pv_initObj->getArguments()->getRequireReturnFlag()) {
       if( rank == 0 ) {
-         fprintf(stdout, "Hit enter to begin! ");
+         printf("Hit enter to begin! ");
          fflush(stdout);
          int charhit = -1;
          while(charhit != '\n') {
@@ -335,7 +326,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    srcPath = (char *) calloc(PV_PATH_MAX, sizeof(char));
    strcat(srcPath, PV_DIR);
    strcat(srcPath, "/src");
-   fprintf(stdout, "============================= srcPath is %s\n", srcPath);
+   pvInfo().printf("============================= srcPath is %s\n", srcPath);
 #endif
 
    // numThreads will not be set, or used until HyPerCol::run.
@@ -466,9 +457,8 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
                      }
                   }
                   if (!found) {
-                     fprintf(stderr, "%s error: restarting but Last directory does not exist and checkpointWriteDir directory \"%s\" does not have any checkpoints\n",
+                     pvError().printf("%s: restarting but Last directory does not exist and checkpointWriteDir directory \"%s\" does not have any checkpoints\n",
                            programName, checkpointWriteDir);
-                     exit(EXIT_FAILURE);
                   }
                   int pathlen=snprintf(checkpointReadDir, PV_PATH_MAX, "%sCheckpoint%ld", cpDirString.c_str(), cp_index);
                   if (pathlen>PV_PATH_MAX) {
@@ -485,7 +475,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
             }
          }
          else {
-            fprintf(stderr, "%s error: restarting but Last directory does not exist and checkpointWriteDir is not defined (checkpointWrite=false)\n", programName);
+            pvError().printf("%s: restarting but Last directory does not exist and checkpointWriteDir is not defined (checkpointWrite=false)\n", programName);
          }
 
       }
@@ -522,7 +512,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       assert(checkpointReadDir);
       
       checkpointReadFlag = true;
-      fprintf(stdout, "Global Rank %d process setting checkpointReadDir to %s.\n", globalRank(), checkpointReadDir);
+      pvInfo().printf("Global Rank %d process setting checkpointReadDir to %s.\n", globalRank(), checkpointReadDir);
    }
 
    // run only on GPU for now
@@ -588,14 +578,14 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    //   if(getNBatch() >= getNumThreads()){
    //      threadBatch = 1;
    //      if (globalRank()==0) {
-   //         fprintf(stdout, "%s \"%s\" defaulting to threading over batches.\n",
+   //         pvInfo().printf("%s \"%s\" defaulting to threading over batches.\n",
    //               parameters()->groupKeywordFromName(name), name);
    //      }
    //   }
    //   else{
    //      threadBatch = 0;
    //      if (columnId()==0) {
-   //         fprintf(stdout, "%s \"%s\" defaulting to threading over neurons.\n",
+   //         pvInfo().printf("%s \"%s\" defaulting to threading over neurons.\n",
    //               parameters()->groupKeywordFromName(name), name);
    //      }
    //   }
@@ -745,10 +735,10 @@ void HyPerCol::ioParamString(enum ParamsIOFlag ioFlag, const char * group_name, 
          // parameter was not set in params file; use the default.  But default might or might not be NULL.
          if (columnId()==0 && warnIfAbsent==true) {
             if (defaultValue != NULL) {
-               fprintf(stderr, "Using default value \"%s\" for string parameter \"%s\" in group \"%s\"\n", defaultValue, param_name, group_name);
+               pvWarn().printf("Using default value \"%s\" for string parameter \"%s\" in group \"%s\"\n", defaultValue, param_name, group_name);
             }
             else {
-               fprintf(stderr, "Using default value of NULL for string parameter \"%s\" in group \"%s\"\n", param_name, group_name);
+               pvWarn().printf("Using default value of NULL for string parameter \"%s\" in group \"%s\"\n", param_name, group_name);
             }
          }
          param_string = defaultValue;
@@ -781,7 +771,7 @@ void HyPerCol::ioParamStringRequired(enum ParamsIOFlag ioFlag, const char * grou
       }
       else {
          if (globalRank()==0) {
-            fprintf(stderr, "%s \"%s\" error: string parameter \"%s\" is required.\n",
+            pvErrorNoExit().printf("%s \"%s\": string parameter \"%s\" is required.\n",
                             params->groupKeywordFromName(group_name), group_name, param_name);
          }
          MPI_Barrier(icComm->globalCommunicator());
@@ -802,7 +792,7 @@ void HyPerCol::ioParamArray(enum ParamsIOFlag ioFlag, const char * group_name, c
        if (*arraysize>0) {
           *value = (T *) calloc((size_t) *arraysize, sizeof(T));
           if (*value==NULL) {
-             fprintf(stderr, "%s \"%s\" error: global rank %d process unable to copy array parameter %s: %s\n",
+             pvErrorNoExit().printf("%s \"%s\": global rank %d process unable to copy array parameter %s: %s\n",
                    parameters()->groupKeywordFromName(name), name, globalRank(), param_name, strerror(errno));
           }
           for (int k=0; k<*arraysize; k++) {
@@ -917,8 +907,8 @@ void HyPerCol::ioParam_stopTime(enum ParamsIOFlag ioFlag) {
       long int numSteps = params->value(name, "numSteps");
       stopTime = startTime + numSteps * deltaTimeBase;
       if (globalRank()==0) {
-         fprintf(stderr, "Warning: numSteps is deprecated.  Use startTime, stopTime and dt instead.\n");
-         fprintf(stderr, "    stopTime set to %f\n", stopTime);
+         pvWarn() << "numSteps is deprecated.  Use startTime, stopTime and dt instead.\n" <<
+               "    stopTime set to " << stopTime << "\n";
       }
       return;
    }
@@ -932,8 +922,8 @@ void HyPerCol::ioParam_progressInterval(enum ParamsIOFlag ioFlag) {
       long int progressStep = (long int) params->value(name, "progressStep");
       progressInterval = progressStep/deltaTimeBase;
       if (globalRank()==0) {
-         fprintf(stderr, "Warning: progressStep is deprecated.  Use progressInterval instead.\n");
-         fprintf(stderr, "    progressInterval set to %f\n", progressInterval);
+         pvWarn() << "progressStep is deprecated.  Use progressInterval instead.\n" <<
+               "    progressInterval set to " << progressInterval << "\n";
       }
       return;
    }
@@ -964,7 +954,7 @@ void HyPerCol::ioParam_outputPath(enum ParamsIOFlag ioFlag) {
          else {
             outputPath = strdup(DEFAULT_OUTPUT_PATH);
             assert(outputPath != NULL);
-            fprintf(stdout, "Output path specified neither in command line nor in params file.\n"
+            pvWarn().printf("Output path specified neither in command line nor in params file.\n"
                    "Output path set to default \"%s\"\n", DEFAULT_OUTPUT_PATH);
          }
       }
@@ -982,7 +972,7 @@ void HyPerCol::ioParam_printParamsFilename(enum ParamsIOFlag ioFlag) {
    ioParamString(ioFlag, name, "printParamsFilename", &printParamsFilename, "pv.params");
    if (printParamsFilename==NULL || printParamsFilename[0]=='\0') {
       if (columnId()==0) {
-         fprintf(stderr, "Error: printParamsFilename cannot be null or the empty string.\n");
+         pvErrorNoExit().printf("printParamsFilename cannot be null or the empty string.\n");
       }
       MPI_Barrier(icCommunicator()->communicator());
       exit(EXIT_FAILURE);
@@ -1084,10 +1074,10 @@ void HyPerCol::ioParam_checkpointRead(enum ParamsIOFlag ioFlag) {
          checkpointReadDirBase = NULL;
       }
       if (ioFlag==PARAMS_IO_READ && globalRank()==0 && params->present(name, "checkpointRead")) {
-         fprintf(stderr, "%s \"%s\" warning: checkpointRead parameter is deprecated.\n",
+         pvWarn().printf("%s \"%s\" checkpointRead parameter is deprecated.\n",
                params->groupKeywordFromName(name), name);
          if (params->value(name, "checkpointRead")!=0) {
-            fprintf(stderr, "    Instead, pass the option on the command line:  -c \"%s\".\n", checkpointReadDir);
+            pvWarn().printf("    Instead, pass the option on the command line:  -c \"%s\".\n", checkpointReadDir);
          }
       }
    }
@@ -1124,7 +1114,7 @@ void HyPerCol::ioParam_checkpointWriteTriggerMode(enum ParamsIOFlag ioFlag ) {
          }
          else {
             if (globalRank()==0) {
-               fprintf(stderr, "HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n", name, checkpointWriteTriggerModeString);
+               pvErrorNoExit().printf("HyPerCol \"%s\": checkpointWriteTriggerMode \"%s\" is not recognized.\n", name, checkpointWriteTriggerModeString);
             }
             MPI_Barrier(icCommunicator()->globalCommunicator());
             exit(EXIT_FAILURE);
@@ -1197,7 +1187,7 @@ void HyPerCol::ioParam_checkpointWriteClockUnit(enum ParamsIOFlag ioFlag) {
             }
             else {
                if (globalRank()==0) {
-                  fprintf(stderr, "checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", \"minutes\", \"hours\", or \"days\".\n", cpWriteClockUnitString);
+                  pvErrorNoExit().printf("checkpointWriteClockUnit \"%s\" is unrecognized.  Use \"seconds\", \"minutes\", \"hours\", or \"days\".\n", cpWriteClockUnitString);
                }
                MPI_Barrier(icCommunicator()->globalCommunicator());
                exit(EXIT_FAILURE);
@@ -1357,7 +1347,6 @@ static inline int _mkdir(const char *dir) {
 
    int num_chars_needed = snprintf(tmp,sizeof(tmp),"%s",dir);
    if (num_chars_needed > PV_PATH_MAX) {
-      fflush(stdout);
       pvError().printf("Path \"%s\" is too long.",dir);
    }
 
@@ -1390,15 +1379,13 @@ int HyPerCol::ensureDirExists(const char * dirname) {
    if( resultcode == 0 ) { // outputPath exists; now check if it's a directory.
       if( !(pathstat.st_mode & S_IFDIR ) ) {
          if( rank == 0 ) {
-            fflush(stdout);
-            fprintf(stderr, "Path \"%s\" exists but is not a directory\n", dirname);
+            pvError().printf("Path \"%s\" exists but is not a directory\n", dirname);
          }
-         exit(EXIT_FAILURE);
       }
    }
    else if( resultcode == ENOENT /* No such file or directory */ ) {
       if( rank == 0 ) {
-         fprintf(stdout, "Directory \"%s\" does not exist; attempting to create\n", dirname);
+         pvInfo().printf("Directory \"%s\" does not exist; attempting to create\n", dirname);
 
          //Try up to 5 times until it works
          int const numAttempts = 5;
@@ -1406,12 +1393,11 @@ int HyPerCol::ensureDirExists(const char * dirname) {
             int mkdirstatus = _mkdir(dirname);
             if( mkdirstatus != 0 ) {
                if(attemptNum == numAttempts - 1){
-                  fflush(stdout);
                   pvError().printf("Directory \"%s\" could not be created: %s; Exiting\n", dirname, strerror(errno));
                }
                else{
-                  fflush(stdout);
-                  fprintf(stderr, "Directory \"%s\" could not be created: %s; Retrying %d out of %d\n", dirname, strerror(errno), attemptNum + 1, numAttempts);
+                  getOutputStream().flush();
+                  pvWarn().printf("Directory \"%s\" could not be created: %s; Retrying %d out of %d\n", dirname, strerror(errno), attemptNum + 1, numAttempts);
                   sleep(1);
                }
             }
@@ -1423,8 +1409,7 @@ int HyPerCol::ensureDirExists(const char * dirname) {
    }
    else {
       if( rank == 0 ) {
-         fflush(stdout);
-         fprintf(stderr, "Error checking status of directory \"%s\": %s\n", dirname, strerror(resultcode));
+         pvErrorNoExit().printf("Error checking status of directory \"%s\": %s\n", dirname, strerror(resultcode));
       }
       exit(EXIT_FAILURE);
    }
@@ -1488,7 +1473,7 @@ int HyPerCol::addLayer(HyPerLayer * l)
    // Check for duplicate layer names (currently breaks InitWeightsTest, so commented out)
    // for(int k=0; k<numLayers; k++) {
    //    if( !strcmp(l->getName(), layers[k]->getName())) {
-   //       fprintf(stderr, "Error: Layers %d and %d have the same name \"%s\".\n", k, numLayers, l->getName());
+   //       pvErrorNoExit().printf("Layers %d and %d have the same name \"%s\".\n", k, numLayers, l->getName());
    //       exit(EXIT_FAILURE);
    //    }
    // }
@@ -1521,8 +1506,7 @@ int HyPerCol::addConnection(BaseConnection * conn)
    // Check for duplicate connection names (currently breaks InitWeightsTest, so commented out)
    // for(int k=0; k<numConnections; k++) {
    //    if( !strcmp(conn->getName(), connections[k]->getName())) {
-   //       fprintf(stderr, "Error: Layers %d and %d have the same name \"%s\".\n", k, numLayers, conn->getName());
-   //       exit(EXIT_FAILURE);
+   //       pvError().printf("Error: Layers %d and %d have the same name \"%s\".\n", k, numLayers, conn->getName());
    //    }
    // }
    if( (size_t) numConnections == connectionArraySize ) {
@@ -1623,7 +1607,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          BaseProbe * p = baseProbes[i];
          int pstatus = p->allocateDataStructures();
          if (pstatus==PV_SUCCESS) {
-            if (globalRank()==0) fprintf(stdout, "Probe \"%s\" allocateDataStructures completed.\n", p->getName());
+            if (globalRank()==0) { pvInfo().printf("Probe \"%s\" allocateDataStructures completed.\n", p->getName()); }
          }
          else {
             assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
@@ -1734,18 +1718,18 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
          if ( !checkpointReadFlag || strcmp(checkpointReadDir, cpDir) ) {
             /* Note: the strcmp isn't perfect, since there are multiple ways to specify a path that points to the same directory */
             if (globalRank()==0) {
-               fprintf(stdout, "Checkpointing, simTime = %f\n", simulationTime());
+               pvInfo().printf("Checkpointing, simTime = %f\n", simulationTime());
             }
 
             checkpointWrite(cpDir);
          }
          else {
             if (globalRank()==0) {
-               fprintf(stdout, "Skipping checkpoint at time %f, since this would clobber the checkpointRead checkpoint.\n", simulationTime());
+               pvInfo().printf("Skipping checkpoint at time %f, since this would clobber the checkpointRead checkpoint.\n", simulationTime());
             }
          }
          if (checkpointSignal) {
-            fprintf(stdout, "Global rank %d: checkpointing in response to SIGUSR1.\n", globalRank());
+            pvInfo().printf("Global rank %d: checkpointing in response to SIGUSR1.\n", globalRank());
             checkpointSignal = 0;
          }
       }
@@ -1787,7 +1771,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    int max_threads = pv_initObj->getMaxThreads();
    int comm_size = icComm->globalCommSize();
    if (printMsgs0) {
-      fprintf(stdout, "Maximum number of OpenMP threads%s is %d\nNumber of MPI processes is %d.\n",
+      pvInfo().printf("Maximum number of OpenMP threads%s is %d\nNumber of MPI processes is %d.\n",
             comm_size==1 ? "" : " (over all processes)", max_threads, comm_size);
    }
    if (arguments->getUseDefaultNumThreads()) {
@@ -1795,7 +1779,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       if (num_threads == 0) {
          num_threads = 1;
          if (printMsgs0) {
-            fprintf(stderr, "Warning: more MPI processes than available threads.  Processors may be oversubscribed.\n");
+            pvWarn().printf("Warning: more MPI processes than available threads.  Processors may be oversubscribed.\n");
          }
       }
    }
@@ -1804,29 +1788,27 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    }
    if (num_threads>0) {
       if (printMsgs0) {
-         fprintf(stdout, "Number of threads used is %d\n", num_threads);
+         pvInfo().printf("Number of threads used is %d\n", num_threads);
       }
    }
    else if (num_threads==0) {
       thread_status = PV_FAILURE;
       if (printMsgs0) {
-         fflush(stdout);
-         fprintf(stderr, "%s error: number of threads must be positive (was set to zero)\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s: number of threads must be positive (was set to zero)\n", arguments->getProgramName());
       }
    }
    else {
       assert(num_threads<0);
       thread_status = PV_FAILURE;
       if (printMsgs0) {
-         fflush(stdout);
-         fprintf(stderr, "%s was compiled with PV_USE_OPENMP_THREADS; therefore the \"-t\" argument is required.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s was compiled with PV_USE_OPENMP_THREADS; therefore the \"-t\" argument is required.\n", arguments->getProgramName());
       }
    }
 #else // PV_USE_OPENMP_THREADS
    if (arguments->getUseDefaultNumThreads()) {
       num_threads = 1;
       if (printMsgs0) {
-         fprintf(stdout, "Number of threads used is 1 (Compiled without OpenMP.\n");
+         pvInfo().printf("Number of threads used is 1 (Compiled without OpenMP.\n");
       }
    }
    else {
@@ -1836,8 +1818,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    }
    if (printMsgs0) {
       if (thread_status!=PV_SUCCESS) {
-         fflush(stdout);
-         fprintf(stderr, "%s error: PetaVision must be compiled with OpenMP to run with threads.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s error: PetaVision must be compiled with OpenMP to run with threads.\n", arguments->getProgramName());
       }
    }
 #endif // PV_USE_OPENMP_THREADS
@@ -1850,11 +1831,11 @@ int HyPerCol::processParams(char const * path) {
    if (!paramsProcessedFlag) {
       layerStatus = (int *) calloc((size_t) numLayers, sizeof(int));
       if (layerStatus==NULL) {
-         fprintf(stderr, "Global rank %d process unable to allocate memory for status of %zu layers: %s\n", globalRank(), (size_t) numLayers, strerror(errno));
+         pvError().printf("Global rank %d process unable to allocate memory for status of %zu layers: %s\n", globalRank(), (size_t) numLayers, strerror(errno));
       }
       connectionStatus = (int *) calloc((size_t) numConnections, sizeof(int));
       if (connectionStatus==NULL) {
-         fprintf(stderr, "Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), (size_t) numConnections, strerror(errno));
+         pvError().printf("Global rank %d process unable to allocate memory for status of %zu connections: %s\n", globalRank(), (size_t) numConnections, strerror(errno));
       }
    
       int (HyPerCol::*layerInitializationStage)(int) = NULL;
@@ -1871,12 +1852,12 @@ int HyPerCol::processParams(char const * path) {
          BaseProbe * p = baseProbes[i];
          int pstatus = p->communicateInitInfo();
          if (pstatus==PV_SUCCESS) {
-            if (globalRank()==0) fprintf(stdout, "Probe \"%s\" communicateInitInfo completed.\n", p->getName());
+            if (globalRank()==0) pvInfo().printf("Probe \"%s\" communicateInitInfo completed.\n", p->getName());
          }
          else {
             assert(pstatus == PV_FAILURE); // PV_POSTPONE etc. hasn't been implemented for probes yet.
             // A more detailed error message should be printed by probe's communicateInitInfo function.
-            fprintf(stderr, "Probe \"%s\" communicateInitInfo failed.\n", p->getName());
+            pvErrorNoExit().printf("Probe \"%s\" communicateInitInfo failed.\n", p->getName());
             return PV_FAILURE;
          }
       }
@@ -1886,7 +1867,7 @@ int HyPerCol::processParams(char const * path) {
          dtAdaptControlProbe = getColProbeFromName(dtAdaptController);
          if (dtAdaptControlProbe==NULL) {
             if (globalRank()==0) {
-               fprintf(stderr, "HyPerCol \"%s\" error: dtAdaptController \"%s\" does not refer to a ColProbe in the HyPerCol.\n",
+               pvErrorNoExit().printf("HyPerCol \"%s\": dtAdaptController \"%s\" does not refer to a ColProbe in the HyPerCol.\n",
                      this->getName(), dtAdaptController);
             }
             return PV_FAILURE;
@@ -1897,7 +1878,7 @@ int HyPerCol::processParams(char const * path) {
             dtAdaptTriggerLayer = getLayerFromName(dtAdaptTriggerLayerName);
             if (dtAdaptTriggerLayer==NULL) {
                if (globalRank()==0) {
-                  fprintf(stderr, "HyPerCol \"%s\" error: dtAdaptTriggerLayerName \"%s\" does not refer to layer in the column.\n", this->getName(), dtAdaptTriggerLayerName);
+                  pvErrorNoExit().printf("HyPerCol \"%s\": dtAdaptTriggerLayerName \"%s\" does not refer to layer in the column.\n", this->getName(), dtAdaptTriggerLayerName);
                }
                return PV_FAILURE;
             }
@@ -1913,7 +1894,7 @@ int HyPerCol::processParams(char const * path) {
    }
    else {
       if (globalRank()==0) {
-         fprintf(stdout, "HyPerCol \"%s\": path for printing parameters file was empty or null.\n", name);
+         pvInfo().printf("HyPerCol \"%s\": path for printing parameters file was empty or null.\n", name);
       }
    }
    paramsProcessedFlag = true;
@@ -1943,10 +1924,10 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
                layerStatus[l] = PV_SUCCESS;
                numPostponedLayers--;
                assert(numPostponedLayers>=0);
-               if (globalRank()==0) fprintf(stdout, "Layer \"%s\" %s completed.\n", layers[l]->getName(), stageName);
+               if (globalRank()==0) pvInfo().printf("Layer \"%s\" %s completed.\n", layers[l]->getName(), stageName);
                break;
             case PV_POSTPONE:
-               if (globalRank()==0) fprintf(stdout, "Layer \"%s\": %s postponed.\n", layers[l]->getName(), stageName);
+               if (globalRank()==0) pvInfo().printf("Layer \"%s\": %s postponed.\n", layers[l]->getName(), stageName);
                break;
             case PV_FAILURE:
                exit(EXIT_FAILURE); // Any error message should be printed by layerInitializationStage function.
@@ -1964,10 +1945,10 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
                connectionStatus[c] = PV_SUCCESS;
                numPostponedConns--;
                assert(numPostponedConns>=0);
-               if (globalRank()==0) fprintf(stdout, "Connection \"%s\" %s completed.\n", connections[c]->getName(), stageName);
+               if (globalRank()==0) pvInfo().printf("Connection \"%s\" %s completed.\n", connections[c]->getName(), stageName);
                break;
             case PV_POSTPONE:
-               if (globalRank()==0) fprintf(stdout, "Connection \"%s\" %s postponed.\n", connections[c]->getName(), stageName);
+               if (globalRank()==0) pvInfo().printf("Connection \"%s\" %s postponed.\n", connections[c]->getName(), stageName);
                break;
             case PV_FAILURE:
                exit(EXIT_FAILURE); // Error message should be printed in connection's communicateInitInfo().
@@ -1981,15 +1962,16 @@ int HyPerCol::doInitializationStage(int (HyPerCol::*layerInitializationStage)(in
    while (numPostponedLayers < prevNumPostponedLayers || numPostponedConns < prevNumPostponedConns);
 
    if (numPostponedLayers != 0 || numPostponedConns != 0) {
-      fprintf(stdout, "%s loop has hung on global rank %d process.\n", stageName, globalRank());
+      pvErrorNoExit(errorMessage);
+      errorMessage.printf("%s loop has hung on global rank %d process.\n", stageName, globalRank());
       for (int l=0; l<numLayers; l++) {
          if (layerStatus[l]==PV_POSTPONE) {
-            fprintf(stdout, "Layer \"%s\" on global rank %d is still postponed.\n", layers[l]->getName(), globalRank());
+            errorMessage.printf("Layer \"%s\" on global rank %d is still postponed.\n", layers[l]->getName(), globalRank());
          }
       }
       for (int c=0; c<numConnections; c++) {
          if (layerStatus[c]==PV_POSTPONE) {
-            fprintf(stdout, "Connection \"%s\" on global rank %d is still postponed.\n", connections[c]->getName(), globalRank());
+            errorMessage.printf("Connection \"%s\" on global rank %d is still postponed.\n", connections[c]->getName(), globalRank());
          }
       }
       exit(EXIT_FAILURE);
@@ -2048,19 +2030,11 @@ int HyPerCol::connSetInitialValues(int c) {
 
 int HyPerCol::normalizeWeights() {
    int status = PV_SUCCESS;
-   //   for (int c=0; c < numConnections; c++) {
-   //      NormalizeBase * normalizer = connections[c]->getNormalizer();
-   //      if (normalizer) { status = normalizer->normalizeWeightsWrapper(); }
-   //      if (status != PV_SUCCESS) {
-   //         fprintf(stderr, "Normalizer failed for connection \"%s\".\n", connections[c]->getName());
-   //         exit(EXIT_FAILURE);
-   //      }
-   //   }
    for (int n = 0; n < numNormalizers; n++) {
       NormalizeBase * normalizer = normalizers[n];
       if (normalizer) { status = normalizer->normalizeWeightsWrapper(); }
       if (status != PV_SUCCESS) {
-         fprintf(stderr, "Normalizer \"%s\" failed.\n", normalizers[n]->getName());
+         pvErrorNoExit().printf("Normalizer \"%s\" failed.\n", normalizers[n]->getName());
       }
    }
    return status;
@@ -2209,8 +2183,8 @@ int HyPerCol::calcTimeScaleTrue() {
    if (!dtAdaptControlProbe) {
       // Using dtAdaptFlag w/o dtAdaptControlProbe was deprecated Feb 1, 2016.
       if (columnId()==0) {
-         fflush(stdout);
-         fprintf(stderr, "\n\nWARNING: Setting dtAdaptFlag without defining a dtAdaptControlProbe is deprecated.\n\n\n");
+         getOutputStream().flush();
+         pvWarn().printf("Setting dtAdaptFlag without defining a dtAdaptControlProbe is deprecated.\n\n\n");
       }
       // If there is no probe controlling the adaptive timestep,
       // query all layers to check for barriers on how big the time scale can be.
@@ -2232,10 +2206,10 @@ int HyPerCol::calcTimeScaleTrue() {
                if (timeScaleTmp < dtMinToleratedTimeScale) {
                   if (globalRank()==0) {
                      if (nbatch==1) {
-                        fprintf(stderr, "Error: Layer \"%s\" returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
+                        pvErrorNoExit().printf("Layer \"%s\" returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), timeScaleTmp, dtMinToleratedTimeScale);
                      }
                      else {
-                        fprintf(stderr, "Error: Layer \"%s\", batch element %d, returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), b, timeScaleTmp, dtMinToleratedTimeScale);
+                        pvErrorNoExit().printf("Layer \"%s\", batch element %d, returned time scale %g, less than dtMinToleratedTimeScale=%g.\n", layers[l]->getName(), b, timeScaleTmp, dtMinToleratedTimeScale);
                      }
                   }
                   MPI_Barrier(icComm->globalCommunicator());
@@ -2274,10 +2248,10 @@ int HyPerCol::calcTimeScaleTrue() {
          if (timeScaleProbe > 0 && timeScaleProbe < dtMinToleratedTimeScale) {
             if (globalRank()==0) {
                if (nbatch==1) {
-                  fprintf(stderr, "Error: Probe \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), timeScaleProbe, dtMinToleratedTimeScale);
+                  pvErrorNoExit().printf("Probe \"%s\" has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), timeScaleProbe, dtMinToleratedTimeScale);
                }
                else {
-                  fprintf(stderr, "Error: Layer \"%s\", batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), b, timeScaleProbe, dtMinToleratedTimeScale);
+                  pvErrorNoExit().printf("Layer \"%s\", batch element %d, has time scale %g, less than dtMinToleratedTimeScale=%g.\n", dtAdaptControlProbe->getName(), b, timeScaleProbe, dtMinToleratedTimeScale);
                }
             }
             MPI_Barrier(icComm->globalCommunicator());
@@ -2566,7 +2540,7 @@ int HyPerCol::advanceTime(double sim_time)
       if (status==PV_FAILURE) {
          for (int l=0; l<numLayers;l++) {
             if (brokenlayers[l]) {
-               fprintf(stderr, "Layer \"%s\" has not-a-number values in the activity buffer.  Exiting.\n", layers[l]->getName());
+               pvErrorNoExit().printf("Layer \"%s\" has not-a-number values in the activity buffer.  Exiting.\n", layers[l]->getName());
             }
          }
          exit(EXIT_FAILURE);
@@ -2616,11 +2590,11 @@ bool HyPerCol::advanceCPWriteTime() {
       advanceCPTime = now >= nextCPWriteClock;
       if (advanceCPTime) {
          if (globalRank()==0) {
-            fprintf(stdout, "Checkpoint triggered at %s", ctime(&now));
+            pvInfo().printf("Checkpoint triggered at %s", ctime(&now));
          }
          nextCPWriteClock += cpWriteClockSeconds;
          if (globalRank()==0) {
-            fprintf(stdout, "Next checkpoint trigger will be at %s", ctime(&nextCPWriteClock));
+            pvInfo().printf("Next checkpoint trigger will be at %s", ctime(&nextCPWriteClock));
          }
       }
       break;
@@ -2716,12 +2690,13 @@ int HyPerCol::checkpointRead() {
          }
          PV_Stream * timescalefile = PV_fopen(timescalepath,"r",false/*verifyWrites*/);
          if (timescalefile == NULL) {
-            fprintf(stderr, "HyPerCol::checkpointRead error: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
+            pvWarn(errorMessage);
+            errorMessage.printf("HyPerCol::checkpointRead: unable to open \"%s\" for reading: %s.\n", timescalepath, strerror(errno));
             if (useAdaptMethodExp1stOrder) {
-               fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f, timeScaleMax=%f, timeScaleMax2=%f\n", 1.0, 1.0, 1.0, 1.0);
+               errorMessage.printf("    will use default value of timeScale=%f, timeScaleTrue=%f, timeScaleMax=%f, timeScaleMax2=%f\n", 1.0, 1.0, 1.0, 1.0);
             }
             else {
-               fprintf(stderr, "    will use default value of timeScale=%f, timeScaleTrue=%f\n", 1.0, 1.0);
+               errorMessage.printf("    will use default value of timeScale=%f, timeScaleTrue=%f\n", 1.0, 1.0);
             }
          }
          else {
@@ -2812,7 +2787,7 @@ int HyPerCol::writeTimers(std::ostream& stream){
 int HyPerCol::checkpointWrite(const char * cpDir) {
    checkpointTimer->start();
    if (columnId()==0) {
-      fprintf(stdout, "Checkpointing to directory \"%s\" at simTime = %f\n", cpDir, simTime);
+      pvInfo().printf("Checkpointing to directory \"%s\" at simTime = %f\n", cpDir, simTime);
       struct stat timeinfostat;
       char timeinfofilename[PV_PATH_MAX];
       int chars_needed = snprintf(timeinfofilename, PV_PATH_MAX, "%s/timeinfo.bin", cpDir);
@@ -2821,10 +2796,10 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       }
       int statstatus = stat(timeinfofilename, &timeinfostat);
       if (statstatus == 0) {
-         fprintf(stderr, "Warning: Checkpoint directory \"%s\" has existing timeinfo.bin, which is now being deleted.\n", cpDir);
+         pvWarn().printf("Checkpoint directory \"%s\" has existing timeinfo.bin, which is now being deleted.\n", cpDir);
          int unlinkstatus = unlink(timeinfofilename);
          if (unlinkstatus != 0) {
-            pvError().printf("Error deleting \"%s\": %s\n", timeinfofilename, strerror(errno));
+            pvError().printf("Failure deleting \"%s\": %s\n", timeinfofilename, strerror(errno));
          }
       }
    }
@@ -2858,8 +2833,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
       //const char * timercsvpath = timercsvstring.c_str();
       //PV_Stream * timercsvstream = PV_fopen(timercsvpath, "w", getVerifyWrites());
       //if (timercsvstream==NULL) {
-      //   fprintf(stderr, "Unable to open \"%s\" for checkpointing timer information: %s\n", timercsvpath, strerror(errno));
-      //   exit(EXIT_FAILURE);
+      //   pvError().printf("Unable to open \"%s\" for checkpointing timer information: %s\n", timercsvpath, strerror(errno));
       //}
       //writeCSV(timercsvstream->fp);
       //
@@ -2962,10 +2936,10 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
             int statstatus = stat(lastCheckpointDir, &lcp_stat);
             if ( statstatus!=0 || !(lcp_stat.st_mode & S_IFDIR) ) {
                if (statstatus==0) {
-                  fprintf(stderr, "Error deleting older checkpoint: failed to stat \"%s\": %s.\n", lastCheckpointDir, strerror(errno));
+                  pvErrorNoExit().printf("Failed to deletie older checkpoint: failed to stat \"%s\": %s.\n", lastCheckpointDir, strerror(errno));
                }
                else {
-                  fprintf(stderr, "Deleting older checkpoint: \"%s\" exists but is not a directory.\n", lastCheckpointDir);
+                  pvErrorNoExit().printf("Deleting older checkpoint: \"%s\" exists but is not a directory.\n", lastCheckpointDir);
                }
             }
 #define RMRFSIZE (PV_PATH_MAX + 13)
@@ -2975,7 +2949,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
 #undef RMRFSIZE
             int rmrf_result = system(rmrf_string);
             if (rmrf_result != 0) {
-               fprintf(stderr, "Warning: unable to delete older checkpoint \"%s\": rm command returned %d\n",
+               pvWarn().printf("unable to delete older checkpoint \"%s\": rm command returned %d\n",
                      lastCheckpointDir, rmrf_result);
             }
          }
@@ -2986,7 +2960,7 @@ int HyPerCol::checkpointWrite(const char * cpDir) {
 
 
    if (icComm->commRank()==0) {
-      fprintf(stderr, "checkpointWrite complete. simTime = %f\n", simTime);
+      pvInfo().printf("checkpointWrite complete. simTime = %f\n", simTime);
    }
    checkpointTimer->stop();
    return PV_SUCCESS;
@@ -3000,26 +2974,24 @@ int HyPerCol::outputParams(char const * path) {
    char printParamsPath[PV_PATH_MAX];
    char * tmp = strdup(path); // duplicate string since dirname() is allowed to modify its argument
    if (tmp==NULL) {
-      fflush(stdout);
       pvError().printf("HyPerCol::outputParams unable to allocate memory: %s\n", strerror(errno));
    }
    char * containingdir = dirname(tmp);
    status = ensureDirExists(containingdir); // must be called by all processes, even though only rank 0 creates the directory
    if (status != PV_SUCCESS) {
-      fflush(stdout);
-      fprintf(stderr, "HyPerCol::outputParams unable to create directory \"%s\"\n", containingdir);
+      pvErrorNoExit().printf("HyPerCol::outputParams unable to create directory \"%s\"\n", containingdir);
    }
    free(tmp);
    if(rank == 0){
       if( strlen(path)+4/*allow room for .lua at end, and string terminator*/ > (size_t) PV_PATH_MAX ) {
-         fprintf(stderr, "outputParams called with too long a filename.  Parameters will not be printed.\n");
+         pvWarn().printf("outputParams called with too long a filename.  Parameters will not be printed.\n");
          status = ENAMETOOLONG;
       }
       else {
          printParamsStream = PV_fopen(path, "w", getVerifyWrites());
          if( printParamsStream == NULL ) {
             status = errno;
-            fprintf(stderr, "outputParams error opening \"%s\" for writing: %s\n", path, strerror(errno));
+            pvErrorNoExit().printf("outputParams error opening \"%s\" for writing: %s\n", path, strerror(errno));
          }
          //Get new lua path
          char luapath [PV_PATH_MAX];
@@ -3028,7 +3000,7 @@ int HyPerCol::outputParams(char const * path) {
          luaPrintParamsStream = PV_fopen(luapath, "w", getVerifyWrites());
          if( luaPrintParamsStream == NULL ) {
             status = errno;
-            fprintf(stderr, "outputParams error opening \"%s\" for writing: %s\n", luapath, strerror(errno));
+            pvErrorNoExit().printf("outputParams failed to open \"%s\" for writing: %s\n", luapath, strerror(errno));
          }
       }
       assert(printParamsStream != NULL);
@@ -3239,16 +3211,17 @@ int HyPerCol::getAutoGPUDevice(){
          int maxGpus = rankToMaxGpu[rankVec[0]];
          //Warnings for overloading/underloading gpus
          if(numRanksPerHost != maxGpus){
-            fprintf(stderr, "HyPerCol:: Warning! Host \"%s\" (rank[s] ", m_it->first.c_str());
+            pvWarn(assignGpuWarning);
+            assignGpuWarning.printf("HyPerCol::getAutoGPUDevice: Host \"%s\" (rank[s] ", m_it->first.c_str());
             for(int v_i = 0; v_i < numRanksPerHost; v_i++){
                if(v_i != numRanksPerHost-1){
-                  fprintf(stderr, "%d, ", rankVec[v_i]);
+                  assignGpuWarning.printf("%d, ", rankVec[v_i]);
                }
                else{
-                  fprintf(stderr, "%d", rankVec[v_i]);
+                  assignGpuWarning.printf("%d", rankVec[v_i]);
                }
             }
-            fprintf(stderr, ") is being %s, with %d mpi processes mapped to %d total GPU[s]\n",
+            assignGpuWarning.printf(") is being %s, with %d mpi processes mapped to %d total GPU[s]\n",
                   numRanksPerHost < maxGpus ? "underloaded":"overloaded",
                   numRanksPerHost, maxGpus);
          }

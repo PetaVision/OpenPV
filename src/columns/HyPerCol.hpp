@@ -316,7 +316,7 @@ private:
    virtual void ioParam_progressInterval(enum ParamsIOFlag ioFlag);
 
    /**
-    * @brief writeProgressToErr: Sepcifies if the run prints progress output to stderr
+    * @brief writeProgressToErr: Whether to print timestep progress to the error stream instead of the output stream
     */
    virtual void ioParam_writeProgressToErr(enum ParamsIOFlag ioFlag);
 
