@@ -54,7 +54,7 @@ void GapConn::ioParam_sharedWeights(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "sharedWeights")) {
       sharedWeights = true;
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" warning: sharedWeights defaults to true for GapConns, but the default may be changed to false in a future release, to be consistent with other HyPerConns.\n", this->getKeyword(), name);
+         pvWarn().printf("%s \"%s\": sharedWeights defaults to true for GapConns, but the default may be changed to false in a future release, to be consistent with other HyPerConns.\n", this->getKeyword(), name);
       }
       return;
    }
@@ -70,7 +70,7 @@ void GapConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
       GapConn * conn = this;
       normalizer = new NormalizeGap(name, parent);
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" warning: normalizeMethod defaults to normalizeSum for GapConns, but this parameter may be required in a future release, to be consistent with other HyPerConns.\n", this->getKeyword(), name);
+         pvWarn().printf("%s \"%s\": normalizeMethod defaults to normalizeSum for GapConns, but this parameter may be required in a future release, to be consistent with other HyPerConns.\n", this->getKeyword(), name);
       }
       return;
    }

@@ -1733,7 +1733,7 @@ void PVParams::handleUnnecessaryParameter(const char * group_name, const char * 
    if (present(group_name, param_name)) {
       if (worldRank==0) {
          const char * class_name = groupKeywordFromName(group_name);
-         fprintf(stderr, "Warning: %s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
+         pvWarn().printf("%s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
                class_name, group_name, param_name);
       }
       value(group_name, param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
@@ -1746,7 +1746,7 @@ void PVParams::handleUnnecessaryParameter(const char * group_name, const char * 
    if (present(group_name, param_name)) {
       if (worldRank==0) {
          const char * class_name = groupKeywordFromName(group_name);
-         fprintf(stderr, "Warning: %s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
+         pvWarn().printf("%s \"%s\" does not use parameter %s, but it is present in the parameters file.\n",
                group_name, class_name, param_name);
       }
       T params_value = (T) value(group_name, param_name); // marks param as read so that presentAndNotBeenRead doesn't trip up
@@ -1771,7 +1771,7 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
    const char * class_name = groupKeywordFromName(group_name);
    if (stringPresent(group_name, param_name)) {
       if (worldRank==0) {
-         fprintf(stderr, "Warning: %s \"%s\" does not use string parameter %s, but it is present in the parameters file.\n",
+         pvWarn().printf("%s \"%s\" does not use string parameter %s, but it is present in the parameters file.\n",
                class_name, group_name, param_name);
       }
       const char * params_value = stringValue(group_name, param_name, false/*warnIfAbsent*/); // marks param as read so that presentAndNotBeenRead doesn't trip up
@@ -1784,7 +1784,7 @@ void PVParams::handleUnnecessaryStringParameter(const char * group_name, const c
    const char * class_name = groupKeywordFromName(group_name);
    if (stringPresent(group_name, param_name)) {
       if (worldRank==0) {
-         fprintf(stderr, "Warning: %s \"%s\" does not use string parameter %s, but it is present in the parameters file.\n",
+         pvWarn().printf("%s \"%s\" does not use string parameter %s, but it is present in the parameters file.\n",
                class_name, group_name, param_name);
       }
       const char * params_value = stringValue(group_name, param_name, false/*warnIfAbsent*/); // marks param as read so that presentAndNotBeenRead doesn't trip up
@@ -2331,7 +2331,7 @@ int PVParams::checkDuplicates(const char * paramName, double val) {
       if( !strcmp(paramName, parm->name() ) ) {
          double oldval = parm->value();
          if ( val == oldval) {
-            fprintf(stderr, "Warning: parameter name \"%s\" duplicates a previous parameter name and value (%s = %f)\n", paramName, parm->name(), val);
+            pvWarn().printf("parameter name \"%s\" duplicates a previous parameter name and value (%s = %f)\n", paramName, parm->name(), val);
          }
          else {
             fprintf(stderr, "Rank %d process: parameter name \"%s\" duplicates a previous parameter name with inconsistent values (%f versus %f)\n", worldRank, paramName, oldval, val);

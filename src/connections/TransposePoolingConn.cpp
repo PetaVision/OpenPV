@@ -333,7 +333,7 @@ int TransposePoolingConn::communicateInitInfo() {
 
    //Check post layer phases to make sure it matches
    if(originalConn->postSynapticLayer()->getPhase() >= post->getPhase()){
-      fprintf(stderr, "TransposePoolingConn \"%s\" warning: originalConn's post layer phase is greater or equal than this layer's post. Behavior undefined.\n", name);
+      pvWarn().printf("TransposePoolingConn \"%s\": originalConn's post layer phase is greater or equal than this layer's post. Behavior undefined.\n", name);
    }
 
    if(originalConn->getPoolingType() != poolingType){

@@ -183,7 +183,7 @@ int Movie::initialize(const char * name, HyPerCol * hc) { int status = Image::in
           if(getParent()->getCheckpointReadFlag()){
              struct stat statbuf;
              if (PV_stat(timestampFilename.c_str(), &statbuf) != 0) {
-                fprintf(stderr, "%s \"%s\" warning: timestamp file \"%s\" unable to be found.  Creating new file.\n",
+                pvWarn().printf("%s \"%s\": timestamp file \"%s\" unable to be found.  Creating new file.\n",
                       getKeyword(), name, timestampFilename.c_str());
                 timestampFile = PV::PV_fopen(timestampFilename.c_str(), "w", parent->getVerifyWrites());
              }

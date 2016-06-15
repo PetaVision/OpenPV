@@ -191,7 +191,7 @@ long int PV_ftell(PV_Stream * pvstream) {
    long int filepos = PV_ftell_primitive(pvstream);
    if (pvstream->filepos != filepos)
    {
-      fprintf(stderr, "Warning: ftell for \"%s\" returned %ld instead of the expected %ld\n", pvstream->name, filepos, pvstream->filepos);
+      pvWarn().printf("ftell for \"%s\" returned %ld instead of the expected %ld\n", pvstream->name, filepos, pvstream->filepos);
    }
    return filepos;
 }
@@ -581,7 +581,7 @@ PV_Stream * pvp_open_write_file(const char * filename, Communicator * comm, bool
          }
          else {
             if (errno==ENOENT) {
-               fprintf(stderr, "Warning: activity file \"%s\" does not exist.  File will be created\n", filename);
+               pvWarn().printf("activity file \"%s\" does not exist.  File will be created\n", filename);
                rwmode = false;
             }
             else {

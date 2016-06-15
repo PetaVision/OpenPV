@@ -303,7 +303,7 @@ void BaseConnection::ioParam_numAxonalArbors(enum ParamsIOFlag ioFlag) {
    if (ioFlag == PARAMS_IO_READ) {
       this->setNumberOfAxonalArborLists(numArbors);
       if (ioFlag == PARAMS_IO_READ && this->numberOfAxonalArborLists()==0 && this->getParent()->columnId()==0) {
-         fprintf(stdout, "HyPerConn:: Warning: Connection %s: Variable numAxonalArbors is set to 0. No connections will be made.\n", this->getName());
+         pvWarn().printf("Connection %s: Variable numAxonalArbors is set to 0. No connections will be made.\n", this->getName());
       }
    }
 }

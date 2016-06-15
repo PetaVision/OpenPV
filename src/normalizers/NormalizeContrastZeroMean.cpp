@@ -99,7 +99,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
                accumulateSumAndSumSquared(dataStartPatch, weights_per_patch, &sum, &sumsq);
             }
             if (fabs(sum) <= minSumTolerated) {
-               fprintf(stderr, "Warning for NormalizeContrastZeroMean \"%s\": sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", this->getName(), patchindex, arborID, minSumTolerated);
+               pvWarn().printf("for NormalizeContrastZeroMean \"%s\": sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", this->getName(), patchindex, arborID, minSumTolerated);
                break; // TODO: continue instead of break?  continue as opposed to break is more consistent with warning above.
             }
             float mean = sum/weights_per_patch;
@@ -129,7 +129,7 @@ int NormalizeContrastZeroMean::normalizeWeights() {
             }
          }
          if (fabs(sum) <= minSumTolerated) {
-            fprintf(stderr, "Warning for NormalizeContrastZeroMean \"%s\": sum of weights in patch %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, minSumTolerated);
+            pvWarn().printf("for NormalizeContrastZeroMean \"%s\": sum of weights in patch %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, minSumTolerated);
             break; // TODO: continue instead of break?  continue as opposed to break is more consistent with warning above.
 
          }

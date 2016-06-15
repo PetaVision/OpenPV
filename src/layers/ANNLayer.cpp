@@ -109,7 +109,7 @@ int ANNLayer::setVertices() {
       VThresh += VWidth;
       VWidth = -VWidth;
       if (parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" warning: interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n",
+         pvWarn().printf("%s \"%s\": interpreting negative VWidth as setting VThresh=%f and VWidth=%f\n",
                getKeyword(), name, VThresh, VWidth);
       }
    }
@@ -120,11 +120,11 @@ int ANNLayer::setVertices() {
    if (AMin > limfromright) {
       if (parent->columnId()==0) {
          if (VWidth==0) {
-            fprintf(stderr, "%s \"%s\" warning: nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n",
+            pvWarn().printf("%s \"%s\": nonmonotonic transfer function, jumping from %f to %f at Vthresh=%f\n",
                   getKeyword(), name, AMin, limfromright, VThresh);
          }
          else {
-            fprintf(stderr, "%s \"%s\" warning: nonmonotonic transfer function, changing from %f to %f as V goes from VThresh=%f to VThresh+VWidth=%f\n",
+            pvWarn().printf("%s \"%s\": nonmonotonic transfer function, changing from %f to %f as V goes from VThresh=%f to VThresh+VWidth=%f\n",
                   getKeyword(), name, AMin, limfromright, VThresh, VThresh+VWidth);
          }
       }
@@ -233,7 +233,7 @@ int ANNLayer::checkVertices() {
    for (int v=1; v < numVertices; v++) { 
       if (verticesA[v] < verticesA[v-1]) {
          if (this->getParent()->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" warning: vertices %d and %d: A-coordinates decrease from %f to %f.\n",
+            pvWarn().printf("%s \"%s\": vertices %d and %d: A-coordinates decrease from %f to %f.\n",
                   this->getKeyword(), this->getName(), v, v+1, verticesA[v-1], verticesA[v]);
          }
       }

@@ -876,7 +876,7 @@ void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Layer \"%s\" Warning: triggerFlag has been deprecated.\n", name);
+         pvWarn().printf("Layer \"%s\": triggerFlag has been deprecated.\n", name);
       }
       bool flagFromParams = false;
       parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
@@ -960,7 +960,7 @@ void HyPerLayer::ioParam_initialWriteTime(enum ParamsIOFlag ioFlag) {
       parent->ioParamValue(ioFlag, name, "initialWriteTime", &initialWriteTime, start_time);
       if (ioFlag == PARAMS_IO_READ && writeStep > 0.0 && initialWriteTime < start_time) {
          if (parent->columnId()==0) {
-            fprintf(stderr, "%s \"%s\" warning: initialWriteTime is earlier than start time.  Adjusting initialWriteTime:\n",
+            pvWarn().printf("%s \"%s\": initialWriteTime is earlier than start time.  Adjusting initialWriteTime:\n",
                   getKeyword(), name);
          }
          while (initialWriteTime < start_time) {
@@ -977,7 +977,7 @@ void HyPerLayer::ioParam_sparseLayer(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ && !parent->parameters()->present(name, "sparseLayer") && parent->parameters()->present(name, "writeSparseActivity")){
       parent->ioParamValue(ioFlag, name, "writeSparseActivity", &sparseLayer, false);
       if (parent->columnId()==0) {
-         fprintf(stderr, "Warning: writeSparseActivity is deprecated.  Use sparseLayer instead.\n");
+         pvWarn().printf("writeSparseActivity is deprecated.  Use sparseLayer instead.\n");
       }
       return;
    }
@@ -2302,7 +2302,7 @@ int HyPerLayer::readBufferFile(const char * filename, InterColComm * comm, doubl
          }
          assert(status==PV_SUCCESS);
          if (rank==0 && timeptr && *timeptr != filetime) {
-            fprintf(stderr, "Warning: \"%s\" checkpoint has timestamp %g instead of the expected value %g.\n", filename, filetime, *timeptr);
+            pvWarn().printf("\"%s\" checkpoint has timestamp %g instead of the expected value %g.\n", filename, filetime, *timeptr);
          }
       }
    }

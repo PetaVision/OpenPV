@@ -1,6 +1,7 @@
 #include "imageio.hpp"
 #include "io.hpp"
 #include "fileio.hpp"
+#include "utils/PVLog.hpp"
 
 #include <assert.h>
 #include <string.h>
@@ -289,7 +290,7 @@ int gatherImageFileGDAL(const char * filename,
                         PV::Communicator * comm, const PVLayerLoc * loc, unsigned char * buf, bool verifyWrites)
 {
    if (verifyWrites && comm->commRank()==0) {
-      fprintf(stderr, "Warning: gatherImageFileGDAL called for \"%s\" with verifyWrites set to true.\n", filename);
+      pvWarn().printf("gatherImageFileGDAL called for \"%s\" with verifyWrites set to true.\n", filename);
       fprintf(stderr, "Readback has not been implemented for this function.\n");
    }
 

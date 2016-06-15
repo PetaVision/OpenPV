@@ -42,7 +42,7 @@ void NormalizeGap::ioParam_normalizeFromPostPerspective(enum ParamsIOFlag ioFlag
    if (ioFlag == PARAMS_IO_READ) {
       normalizeFromPostPerspective = true;
       if (parent->parameters()->present(name, "normalizeFromPostPerspective") && parent->columnId()==0) {
-         fprintf(stderr, "%s \"%s\" warning: normalizeFromPostPerspective default is true for GapConns with normalizeMethod of normalizeSum, but the default for this parameter may change to false in a future release, to be consistent with other normalizerMethods.\n", parent->parameters()->groupKeywordFromName(name), name);
+         pvWarn().printf("%s \"%s\": normalizeFromPostPerspective default is true for GapConns with normalizeMethod of normalizeSum, but the default for this parameter may change to false in a future release, to be consistent with other normalizerMethods.\n", parent->parameters()->groupKeywordFromName(name), name);
       }
    }
    parent->ioParamValue(ioFlag, name, "normalizeFromPostPerspective", &normalizeFromPostPerspective, true/*default*/, true/*warnIfAbsent*/);

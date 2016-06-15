@@ -138,7 +138,7 @@ void BaseProbe::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    assert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
    if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
       if (parent->columnId()==0) {
-         fprintf(stderr, "Layer \"%s\" Warning: triggerFlag has been deprecated.\n", name);
+         pvWarn().printf("Layer \"%s\": triggerFlag has been deprecated.\n", name);
       }
       bool flagFromParams = false;
       parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);

@@ -72,7 +72,7 @@ int NormalizeMax::normalizeWeights() {
                accumulateMax(dataStartPatch, weights_per_patch, &max);
             }
             if (max <= minMaxTolerated) {
-               fprintf(stderr, "Warning for NormalizeMax \"%s\": max of weights in patch %d of arbor %d is within minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, arborID, minMaxTolerated);
+               pvWarn().printf("for NormalizeMax \"%s\": max of weights in patch %d of arbor %d is within minMaxTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, arborID, minMaxTolerated);
                break; // TODO: continue?
             }
             for (int c=0; c<numConnections; c++) {
@@ -102,7 +102,7 @@ int NormalizeMax::normalizeWeights() {
             }
          }
          if (max <= minMaxTolerated) {
-            fprintf(stderr, "Warning for NormalizeMax \"%s\": max of weights in patch %d is within minMaxTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, minMaxTolerated);
+            pvWarn().printf("for NormalizeMax \"%s\": max of weights in patch %d is within minMaxTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, minMaxTolerated);
             break; // TODO: continue?
          }
          for (int arborID = 0; arborID<nArbors; arborID++) {

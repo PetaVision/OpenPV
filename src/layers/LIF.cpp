@@ -383,7 +383,7 @@ void LIF::ioParam_method(enum ParamsIOFlag ioFlag) {
    }
    if (method != 'a') {
       if (getParent()->columnId()==0) {
-         fprintf(stderr, "Warning: LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is preferred.\n", name, methodString);
+         pvWarn().printf("LIF layer \"%s\" integration method \"%s\" is deprecated.  Method \"arma\" is preferred.\n", name, methodString);
       }
    }
 }

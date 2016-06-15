@@ -48,7 +48,7 @@ int ANNNormalizedErrorLayer::initialize(const char * name, HyPerCol * hc)
    if (hc->columnId()==0) {
       // ANNNormalizedErrorLayer was deprecated on Feb 1, 2016.
       fflush(stdout);
-      fprintf(stderr, "\n\nWarning: ANNNormalizedErrorLayer is deprecated.\n");
+      pvWarn().printf("ANNNormalizedErrorLayer is deprecated.\n");
       fprintf(stderr, "If you are using this class to control an adaptive timestep, define a dtAdaptControlProbe instead.\n\n\n");
    }
    int status = ANNErrorLayer::initialize(name, hc);

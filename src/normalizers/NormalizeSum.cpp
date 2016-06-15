@@ -73,7 +73,7 @@ int NormalizeSum::normalizeWeights() {
                accumulateSum(dataStartPatch, weights_per_patch, &sum);
 			}
 			if (fabs(sum) <= minSumTolerated) {
-			   fprintf(stderr, "NormalizeSum warning for normalizer \"%s\": sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, arborID, minSumTolerated);
+			   pvWarn().printf("NormalizeSum for connection \"%s\": sum of weights in patch %d of arbor %d is within minSumTolerated=%f of zero. Weights in this patch unchanged.\n", getName(), patchindex, arborID, minSumTolerated);
 			   break;
 			}
             for (int c=0; c<numConnections; c++) {
@@ -103,7 +103,7 @@ int NormalizeSum::normalizeWeights() {
             }
          }
          if (fabs(sum) <= minSumTolerated) {
-            fprintf(stderr, "NormalizeSum warning for connection \"%s\": sum of weights in patch %d is within minSumTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, minSumTolerated);
+            pvWarn().printf("NormalizeSum for connection \"%s\": sum of weights in patch %d is within minSumTolerated=%f of zero.  Weights in this patch unchanged.\n", getName(), patchindex, minSumTolerated);
             break;
 
          }

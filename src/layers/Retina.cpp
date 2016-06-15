@@ -367,14 +367,14 @@ void Retina::ioParam_foregroundRate(enum ParamsIOFlag ioFlag) {
       if (params->present(name, "noiseOnFreq")) {
          probStimParam = params->value(name, "noiseOnFreq");
          if (parent->columnId()==0) {
-            fprintf(stderr, "Warning: noiseOnFreq is deprecated.  Use foregroundRate instead.\n");
+            pvWarn().printf("noiseOnFreq is deprecated.  Use foregroundRate instead.\n");
          }
          return;
       }
       if (params->present(name, "poissonEdgeProb")) {
          probStimParam = params->value(name, "poissonEdgeProb");
          if (parent->columnId()==0) {
-            fprintf(stderr, "Warning: poissonEdgeProb is deprecated.  Use foregroundRate instead.\n");
+            pvWarn().printf("poissonEdgeProb is deprecated.  Use foregroundRate instead.\n");
          }
          return;
       }
@@ -390,14 +390,14 @@ void Retina::ioParam_backgroundRate(enum ParamsIOFlag ioFlag) {
       if (params->present(name, "noiseOffFreq")) {
          probBaseParam = params->value(name, "noiseOffFreq");
          if (parent->columnId()==0) {
-            fprintf(stderr, "Warning: noiseOffFreq is deprecated.  Use backgroundRate instead.\n");
+            pvWarn().printf("noiseOffFreq is deprecated.  Use backgroundRate instead.\n");
          }
          return;
       }
       if (params->present(name, "poissonBlankProb")) {
          probBaseParam = params->value(name, "poissonBlankProb");
          if (parent->columnId()==0) {
-            fprintf(stderr, "Warning: poissonEdgeProb is deprecated.  Use backgroundRate instead.\n");
+            pvWarn().printf("poissonEdgeProb is deprecated.  Use backgroundRate instead.\n");
          }
          return;
       }

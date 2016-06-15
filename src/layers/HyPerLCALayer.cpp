@@ -105,7 +105,7 @@ int HyPerLCALayer::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 void HyPerLCALayer::ioParam_numChannels(enum ParamsIOFlag ioFlag) {
    if (parent->parameters()->present(name, "numChannels")) {
       if ( parent->columnId()==0) {
-         fprintf(stderr, "HyPerLCALayer \"%s\" warning: the parameter numChannels is no longer used; connections that connect to the layer create channels as needed.\n", name);
+         pvWarn().printf("HyPerLCALayer \"%s\": the parameter numChannels is no longer used; connections that connect to the layer create channels as needed.\n", name);
       }
       parent->parameters()->value(name, "numChannels"); // mark the parameter as read
    }
@@ -160,7 +160,7 @@ void HyPerLCALayer::ioParam_selfInteract(enum ParamsIOFlag ioFlag) {
 int HyPerLCALayer::requireChannel(int channelNeeded, int * numChannelsResult) {
    int status = HyPerLayer::requireChannel(channelNeeded, numChannelsResult);
    if (channelNeeded>=2 && parent->columnId()==0) {
-      fprintf(stderr, "HyPerLCALayer \"%s\" warning: connection on channel %d, but HyPerLCA only uses channels 0 and 1.\n", name, channelNeeded);
+      pvWarn().printf("HyPerLCALayer \"%s\": connection on channel %d, but HyPerLCA only uses channels 0 and 1.\n", name, channelNeeded);
    }
    return status;
 }
