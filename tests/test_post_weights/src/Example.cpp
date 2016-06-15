@@ -30,7 +30,9 @@ int Example::initializeThreadKernels(const char * kernelName)
 
 int Example::updateState(double time, double dt)
 {
-   pv_debug_info("[%d]: Example::updateState:", clayer->columnId);
+#ifdef DEBUG_OUTPUT
+   pvDebug().printf("[%d]: Example::updateState:", clayer->columnId);
+#endif // DEBUG_OUTPUT
 
    // just copy accumulation buffer to membrane potential
    // and activity buffer (nonspiking)
@@ -62,14 +64,18 @@ int Example::updateState(double time, double dt)
 
 int Example::initFinish(int colId, int colRow, int colCol)
 {
-   pv_debug_info("[%d]: Example::initFinish: colId=%d colRow=%d, colCol=%d",
+#ifdef DEBUG_OUTPUT
+   pvDebug().printf("[%d]: Example::initFinish: colId=%d colRow=%d, colCol=%d",
                  clayer->columnId, colId, colRow, colCol);
+#endif // DEBUG_OUTPUT
    return 0;
 }
 
 int Example::outputState(double timef, bool last)
 {
-   pv_debug_info("[%d]: Example::outputState:", clayer->columnId);
+#ifdef DEBUG_OUTPUT
+   pvDebug().printf("[%d]: Example::outputState:", clayer->columnId);
+#endif // DEBUG_OUTPUT
 
    // use implementation in base class
    HyPerLayer::outputState(timef);

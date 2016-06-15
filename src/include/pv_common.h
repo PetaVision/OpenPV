@@ -46,14 +46,4 @@
 
 #define DISPLAY_PERIOD 1.0
 
-// This probably depends on the gnu preprocessor
-#ifdef DEBUG_OUTPUT
-#  define pv_debug_info(format, args...)  \
-      fprintf (stdout, format , ## args); \
-      fprintf (stdout, "\n"); \
-      fflush  (stdout)
-#else
-#  define pv_debug_info(format, args...)
-#endif
-
 #endif /* PV_COMMON_H */
