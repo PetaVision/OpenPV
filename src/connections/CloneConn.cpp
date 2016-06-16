@@ -81,7 +81,7 @@ int CloneConn::constructWeights() {
 }
 
 void CloneConn::constructWeightsOutOfMemory() {
-   connOutOfMemory("CloneConn::constructWeightsOutOfMemory()");
+   pvError().printf("Out of memory error in CloneConn::constructWeightsOutOfMemory() for \"%s\"\n", name);
 }
 
 int CloneConn::createAxonalArbors(int arborId) {

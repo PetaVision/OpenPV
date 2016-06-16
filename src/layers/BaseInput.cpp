@@ -440,7 +440,7 @@ int BaseInput::scatterInput(int batchIndex) {
          imageColorType = COLORTYPE_GRAYSCALE;
       }
       if (imageLoc.nf != nf) {
-         pvExitFailure("%s \"%s\" error: imageLoc has %d features but layer has %d features.\n",
+         pvError().printf("%s \"%s\": imageLoc has %d features but layer has %d features.\n",
                getKeyword(), name, imageLoc.nf, nf);
       }
 

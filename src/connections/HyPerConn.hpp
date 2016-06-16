@@ -930,8 +930,6 @@ protected:
     */
    virtual int normalize_dW(int arbor_ID);
 
-   void connOutOfMemory(const char* funcname);
-
    virtual int deliverPresynapticPerspective(PVLayerCube const * activity, int arborID);
    virtual int deliverPostsynapticPerspective(PVLayerCube const * activity, int arborId){
       return deliverPostsynapticPerspective(activity, arborId, NULL, NULL);

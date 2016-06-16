@@ -272,7 +272,7 @@ int HyPerConn::createArbors() {
 }
 
 void HyPerConn::createArborsOutOfMemory() {
-   connOutOfMemory("HyPerConn::createArbors()");
+   pvError().printf("Out of memory error in HyPerConn::createArbors() for connection \"%s\"\n", name);
 }
 
 
@@ -418,23 +418,23 @@ int HyPerConn::initialize(const char * name, HyPerCol * hc, InitWeights * weight
       break;
 #ifdef OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines AccumulateType and PoolingConn defines PoolingType
    case ACCUMULATE_MAXPOOLING:
-      pvExitFailure("ACCUMULATE_MAXPOOLING not allowed in HyPerConn, use PoolingConn instead");
+      pvError().printf("ACCUMULATE_MAXPOOLING not allowed in HyPerConn, use PoolingConn instead");
       //accumulateFunctionPointer = &pvpatch_max_pooling;
       //accumulateFunctionFromPostPointer = &pvpatch_max_pooling_from_post;
       break;
    case ACCUMULATE_SUMPOOLING:
-      pvExitFailure("ACCUMULATE_SUMPOOLING not allowed in HyPerConn, use PoolingConn instead");
+      pvError().printf("ACCUMULATE_SUMPOOLING not allowed in HyPerConn, use PoolingConn instead");
       //accumulateFunctionPointer = &pvpatch_sum_pooling;
       //accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
       break;
    case ACCUMULATE_AVGPOOLING:
-      pvExitFailure("ACCUMULATE_AVGPOOLING not allowed in HyPerConn, use PoolingConn instead");
+      pvError().printf("ACCUMULATE_AVGPOOLING not allowed in HyPerConn, use PoolingConn instead");
       //accumulateFunctionPointer = &pvpatch_sum_pooling;
       //accumulateFunctionFromPostPointer = &pvpatch_accumulate_from_post;
       break;
 #endif // OBSOLETE // Marked obsolete May 3, 2016.  HyPerConn defines AccumulateType and PoolingConn defines PoolingType
    default:
-      pvAssert(0);
+      pvAssertMessage(0, "Unrecognized pvpatchAccumulate type");
       break;
    }
 
@@ -702,7 +702,7 @@ void HyPerConn::ioParam_channelCode(enum ParamsIOFlag ioFlag) {
       parent->ioParamValueRequired(ioFlag, name, "channelCode", &ch);
    }
    else {
-      pvExitFailure("All possibilities of ioFlag are covered above.");
+      pvError().printf("All possibilities of ioFlag are covered above.");
    }
 }
 
@@ -809,7 +809,7 @@ void HyPerConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
          pvErrorNoExit().printf(" error: parameter stochasticReleaseFlag is obsolete.  Instead, set pvpatchAccumulateType to either \"convolve\" (the default) or \"stochastic\".", getKeyword(), name);
       }
       MPI_Barrier(parent->icCommunicator()->communicator());
-      pvExitFailure("");
+      exit(EXIT_FAILURE);
    }
 
    parent->ioParamString(ioFlag, name, "pvpatchAccumulateType", &pvpatchAccumulateTypeString, "convolve");
@@ -865,7 +865,7 @@ void HyPerConn::unsetAccumulateType() {
       pvErrorNoExit().printf("  Allowed values are \"convolve\" or \"stochastic\".");
    }
    MPI_Barrier(parent->icCommunicator()->communicator());
-   pvExitFailure("");
+   exit(EXIT_FAILURE);
 }
 
 
@@ -1027,7 +1027,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
    if (ioFlag==PARAMS_IO_READ) {
       if (normalizeMethod==NULL) {
          if (parent->columnId()==0) {
-            pvExitFailure("Error in %s \"%s\": specifying a normalizeMethod string is required.\n", getKeyword(), name);
+            pvError().printf("%s \"%s\": specifying a normalizeMethod string is required.\n", getKeyword(), name);
          }
       }
       if (!strcmp(normalizeMethod, "")) {
@@ -1037,7 +1037,7 @@ void HyPerConn::ioParam_normalizeMethod(enum ParamsIOFlag ioFlag) {
       if (normalizer==NULL) {
          int status = setWeightNormalizer();
          if (status != PV_SUCCESS) {
-            pvExitFailure("%s \"%s\": Rank %d process unable to construct weight normalizer\n", getKeyword(), name, parent->columnId());
+            pvError().printf("%s \"%s\": Rank %d process unable to construct weight normalizer\n", getKeyword(), name, parent->columnId());
          }
       }
       if (normalizer!=NULL) {
@@ -1429,7 +1429,7 @@ int HyPerConn::allocatePostToPreBuffer(){
       }
    }
    else{
-      pvExitFailure("sourceToTargetScaleX= %f, sourceToTargetScaleY= %f: the case of many-to-one in one dimension and one-to-many in the other has not yet been implemented.\n", sourceToTargetScaleX, sourceToTargetScaleY);
+      pvError().printf("sourceToTargetScaleX= %f, sourceToTargetScaleY= %f: the case of many-to-one in one dimension and one-to-many in the other has not yet been implemented.\n", sourceToTargetScaleX, sourceToTargetScaleY);
    }
    
    return PV_SUCCESS;
@@ -4227,10 +4227,6 @@ int HyPerConn::calcUnitCellIndex(int patchIndex, int * kxUnitCellIndex/*default=
    int unitCellIndex = layerIndexToUnitCellIndex(patchIndex, preLoc, nxUnitCell, nyUnitCell,
          kxUnitCellIndex, kyUnitCellIndex, kfUnitCellIndex);
    return unitCellIndex;
-}
-
-void HyPerConn::connOutOfMemory(const char * funcname) {
-   pvExitFailure("Out of memory error in %s for connection \"%s\"\n", funcname, name);
 }
 
 
