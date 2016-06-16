@@ -332,111 +332,77 @@ void setWLogFile(char const * logFile, std::ios_base::openmode mode=std::ios_bas
 }  // end namespace PV
 
 
-// Below we define pvLogInfo, pvLogWarn, pvLogError, pvLogErrorNoExit, and pvDebug,
-// which provide standardized methods for logging error, debug, and information messages.
-// Note that the pvError, pvWarn, pvDebug, and pvInfo streams defined above
-// are preferred to the functions below.  However, the functions below are
-// included as easy replacements for fprintf-style statements.
-//
-// pvLogInfo(format,...) sends output to the output stream (that is, PV::getOutputStream()).  Nothing is prepended.
-// pvLogWarn(format,...) sends output to the error stream, prepended by "WARN ".
-// pvLogError(format,...) sends output to the error stream, prepended by "ERROR <file,line>: ",
-//     and then exits with status code EXIT_FAILURE.
-// pvLogErrorNoExit(format,...) sends the same output as pvLogError, but does not exit.
-// pvLogDebug(format,...) sends the output to the output stream, prepended by "DEBUG <file,line>: ".
-//     In release versions, pvLogDebug sends no output unless PetaVision was built using
-//     cmake -DPV_LOG_DEBUG:Bool=ON
-//
+// Older, deprecated versions that use C-style FILE* streams instead of C++ ostreams.
 
 #ifdef _PV_DEBUG_OUTPUT
+/**
+ * pvLogDebug is deprecated.  Use pvDebug methods instead.
+ */
 #define pvLogDebug(fmt, ...) PV::pv_log_debug(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 #else
 #define pvLogDebug(fmt, ...)
 #endif // _PV_DEBUG_OUTPUT
 
+/*
+ * pvLogInfo is deprecated.  Use pvInfo methods instead.
+ */
 #define pvLogInfo(fmt, ...) PV::pv_log_info(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#define pvLogWarn(fmt, ...) PV::pv_log_warn(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#define pvLogError(fmt, ...) PV::pv_log_error(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
-#define pvLogAbort(fmt, ...) PV::pv_log_abort(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
-// pvExitFailure was deprecated May 25, 2016.  Use pvLogError (or, preferably, pvError) instead.
+/*
+ * pvLogWarn is deprecated.  Use pvWarn methods instead.
+ */
+#define pvLogWarn(fmt, ...) PV::pv_log_warn(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+
+/*
+ * pvLogWarn is deprecated.  Use pvWarn methods instead.
+ */
+#define pvLogError(fmt, ...) PV::pv_log_error(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
+
+/*
+ * pvExitFailure is deprecated.  Use pvLogError (or, preferably, pvError) instead.
+ */
 #define pvExitFailure(fmt, ...) PV::pv_exit_failure(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 namespace PV {
-/*
- * logging functions
- *
- * Provides a standardized method for logging error, debug and information messages.
- *
- * pvLogDebug(), pvLogInfo(), pvLogWarn(), pvLogError(), and pvLogAbort() take printf-style format control string and arguments.
- *
- * pvLogDebug(), pvLogError(), and pvLogAbort() will prepend DEBUG: and ERROR: plus the file name and line number
- * of the call.
- *
- * pvLogWarn() will prepend WARN:
- *
- * pvLogInfo() appends a newline. Nothing is prepended.
- *
- * pvLogDebug() calls are compiled out in a Release build. The other macros are not
- * compiled out.
- *
- * pvLogDebug() and pvLogInfo() send output to the output stream.  pvLogError and pvLogWarn send output to the error stream.
- *
- * pvLogError() exits with status EXIT_FAILURE (usually 1) after printing its message.
- * pvLogAbort() calls abort() after printing its message.
- *
- * These macros provide an opportunity to handle sending debug, error and info messages to other MPI ranks
- */
-
 /**
- * pv_log_info sends output to the output stream (that is, PV::getOutputStream()).  Nothing is prepended.
- * In practice, one would use the pvLogInfo macro insntead of calling pv_log_info directly.
+ * pv_log_info is deprecated.  Use pvInfo methods instead.
  */
 void pv_log_info(const char *file, int line, const char *fmt, ...);
 
 /**
- * pv_log_warn sends output to the error stream, prepended by "WARN ".
- * In practice, one would use the pvLogWarn macro insntead of calling pv_log_warn directly.
+ * pv_log_warn is deprecated.  Use pvWarn methods instead.
  */
 void pv_log_warn(const char *file, int line, const char *fmt, ...);
 
 /**
- * pv_log_error sends output to the error stream, prepended by "ERROR <file,line>: ",
- *     and then exits with status code EXIT_FAILURE.
- * In practice, one would use the pvLogError macro insntead of calling pv_log_error directly.
+ * pv_log_error is deprecated.  Use pvError methods instead.
  */
 void pv_log_error(const char *file, int line, const char *fmt, ...);
 
 /**
- * pv_log_error_noexit sends the same output as pv_log_error, but does not exit.
- * In practice, one would use the pvLogErrorNoExit macro insntead of calling pv_log_error_noexit directly.
+ * pv_log_error_noexit is deprecated.  Use pvErrorNoExit methods instead.
  */
 void pv_log_error_noexit(const char *file, int line, const char *fmt, ...);
 
 /**
- * pv_log_debug sends the output to the output stream, prepended by "DEBUG <file,line>: ".
- *     In release versions, pvLogDebug sends no output unless PetaVision was built using
- *     cmake -DPV_LOG_DEBUG:Bool=ON
- * In practice, one would use the pvLogDebug macro instead of calling pv_log_debug directly.
+ * pv_log_debug is deprecated.  Use pvDebug methods instead.
  */
 void pv_log_debug(const char *file, int line, const char *fmt, ...);
 
 /**
- * pv_log_abort sends the same output as pvLogError, but calls abort() instead of exit(int).
- * In practice, one would use the pvLogAbort macro instead of calling pv_log_abort directly.
- */
-void pv_log_abort(const char *file, int line, const char *fmt, ...);
-
-/**
- * pv_exit_failure is deprecated.  It behaves the same as pv_log_error except for prepending
- *     a warning that the function is deprecated.
+ * pv_exit_failure is deprecated.  Use pvError methods instead.
  */
 void pv_exit_failure(const char *file, int line, const char *fmt, ...);
 
-// Non-varargs versions, used internally, but exposed just in case
-// some other program wants to use them.
-void vpv_log_error(const char *file, int line, const char *fmt, va_list args);
-void vpv_log_debug(const char *file, int line, const char *fmt, va_list args);
+// Commented out June 16, 2016.  The only functions to call these functions
+// are deprecated and in contained in PVLog.cpp.
+// If it becomes desirable to use the capability provided by these functions,
+// we should add a vprintf method to _Log instead of reactivating these declarations.
+
+// // Non-varargs versions, used internally, but exposed just in case
+// // some other program wants to use them.
+// void vpv_log_error(const char *file, int line, const char *fmt, va_list args);
+// void vpv_log_debug(const char *file, int line, const char *fmt, va_list args);
 
 }  // end namespace PV
 

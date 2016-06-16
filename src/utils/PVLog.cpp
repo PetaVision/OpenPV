@@ -78,7 +78,8 @@ void setWLogFile(char const * logFile, std::ios_base::openmode mode) {
    outputLogFileWStream.setStream(logFile, mode);
 }
 
-// TODO: make use of the LogType classes to decide whether to print prefix and file, and what the separators are.
+// vpv_log_debug was deprecated June 16, 2016.  It was only used by functions that themselves are deprecated.
+// If we decide we want va_list-based functions, add a vprintf method to _Log.
 void vpv_log_with_prefix(std::ostream& stream, const char *prefix, const char *file, int line, const char *fmt, va_list args) {
    static int buf_size = 1024;
    char msg[buf_size];
@@ -92,11 +93,15 @@ void vpv_log_with_prefix(std::ostream& stream, const char *prefix, const char *f
    stream << msg;
 }
 
+// vpv_log_debug was deprecated June 16, 2016.  It was only used by functions that themselves are deprecated.
+// If we decide we want va_list-based functions, add a vprintf method to _Log.
 void vpv_log_debug(const char *file, int line, const char *fmt, va_list args) {
    std::ostream& st = getOutputStream();
    vpv_log_with_prefix(st, "DEBUG", file, line, fmt, args);
 }
 
+// vpv_log_warn was deprecated June 16, 2016.  It was only used by functions that themselves are deprecated.
+// If we decide we want va_list-based functions, add a vprintf method to _Log.
 void vpv_log_warn(const char *file, int line, const char *fmt, va_list args) {
    // Flush stdout before printing to stderr. This makes the output
    // a bit cleaner if logging to the console
@@ -105,6 +110,8 @@ void vpv_log_warn(const char *file, int line, const char *fmt, va_list args) {
    vpv_log_with_prefix(st, "WARN", NULL, 0, fmt, args);
 }
 
+// vpv_log_error was deprecated June 16, 2016.  It was only used by functions that themselves are deprecated.
+// If we decide we want va_list-based functions, add a vprintf method to _Log.
 void vpv_log_error(const char *file, int line, const char *fmt, va_list args) {
    // Flush stdout before printing to stderr. This makes the output
    // a bit cleaner if logging to the console
@@ -113,14 +120,22 @@ void vpv_log_error(const char *file, int line, const char *fmt, va_list args) {
    vpv_log_with_prefix(st, "ERROR", file, line, fmt, args);
 }
 
+// pv_log_debug was deprecated June 16, 2016.  Use pvDebug instead.
 void pv_log_debug(const char *file, int line, const char *fmt, ...) {
+   pvWarn(deprecationWarning);
+   deprecationWarning << "pvLogDebug is deprecated.\n";
+   deprecationWarning << "     Use p instead" << std::endl;
    va_list args;
    va_start(args, fmt);
    vpv_log_debug(file, line, fmt, args);
    va_end(args);
 }
 
+// pv_log_info was deprecated June 16, 2016.  Use pvInfo instead.
 void pv_log_info(const char *file, int line, const char *fmt, ...) {
+   pvWarn(deprecationWarning);
+   deprecationWarning << "pvLogInfo is deprecated.\n";
+   deprecationWarning << "     Use pvInfo instead" << std::endl;
    va_list args;
    va_start(args, fmt);
    std::ostream& st = getOutputStream();
@@ -128,14 +143,23 @@ void pv_log_info(const char *file, int line, const char *fmt, ...) {
    va_end(args);
 }
 
+// pv_log_warn was deprecated June 16, 2016.  Use pvWarn instead.
 void pv_log_warn(const char *file, int line, const char *fmt, ...) {
+   pvWarn(deprecationWarning);
+   deprecationWarning << "pvLogWarn is deprecated.\n";
+   deprecationWarning << "     Use pvWarn instead." << std::endl;
    va_list args;
    va_start(args, fmt);
    vpv_log_warn(file, line, fmt, args);
    va_end(args);
 }
 
+// pv_log_error was deprecated June 16, 2016.  Use pvError instead.
 void pv_log_error(const char *file, int line, const char *fmt, ...) {
+   pvWarn(deprecationWarning);
+   deprecationWarning << "pvLogError is deprecated.\n";
+   deprecationWarning << "     Use pvError to print to the error stream and exit.\n";
+   deprecationWarning << "     Use pvWarn or pvErrorNoExit to print to the error stream without exiting." << std::endl;
    va_list args;
    va_start(args, fmt);
    vpv_log_error(file, line, fmt, args);
@@ -143,27 +167,24 @@ void pv_log_error(const char *file, int line, const char *fmt, ...) {
    exit(EXIT_FAILURE);
 }
 
+// pv_log_error_noexit was deprecated June 16, 2016.  Use pvErrorNoExit instead.
 void pv_log_error_noexit(const char *file, int line, const char *fmt, ...) {
+   pvWarn(deprecationWarning);
+   deprecationWarning << "pv_log_error_noexit is deprecated.\n";
+   deprecationWarning << "     Use pvError to print to the error stream and exit.\n";
+   deprecationWarning << "     Use pvWarn or pvErrorNoExit to print to the error stream without exiting." << std::endl;
    va_list args;
    va_start(args, fmt);
    vpv_log_error(file, line, fmt, args);
    va_end(args);
 }
 
-void pv_log_abort(const char *file, int line, const char *fmt, ...) {
-   va_list args;
-   va_start(args, fmt);
-   vpv_log_error(file, line, fmt, args);
-   va_end(args);
-   abort();
-}
-
-// pv_exit_failure was deprecated May 25, 2016.  Use pvLogError (or, preferably, pvError) instead.
+// pv_exit_failure was deprecated May 25, 2016.  Use pvError instead.
 void pv_exit_failure(const char *file, int line, const char *fmt, ...) {
-   pvWarn(exitFailureDeprecated);
-   exitFailureDeprecated << "pvExitFailure is deprecated.\n";
-   exitFailureDeprecated << "     Use pvError to print to the error stream and exit.\n";
-   exitFailureDeprecated << "     Use pvWarn or pvErrorNoExit to print to the error stream without exiting." << std::endl;
+   pvWarn(deprecationWarning);
+   deprecationWarning << "pvExitFailure is deprecated.\n";
+   deprecationWarning << "     Use pvError to print to the error stream and exit.\n";
+   deprecationWarning << "     Use pvWarn or pvErrorNoExit to print to the error stream without exiting." << std::endl;
    va_list args;
    vpv_log_error(file, line, fmt, args);
    exit(EXIT_FAILURE);
