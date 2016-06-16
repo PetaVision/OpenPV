@@ -1511,7 +1511,7 @@ int HyPerConn::allocateDataStructures() {
       if (parent->getCheckpointReadFlag()==false && weightUpdateTime < parent->simulationTime()) {
          while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
          if (parent->columnId()==0) {
-            pvLogWarn("initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+            pvWarn().printf("initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
                   getKeyword(), name, weightUpdateTime);
          }
       }
@@ -2167,7 +2167,7 @@ int HyPerConn::checkpointRead(const char * cpDir, double * timeptr) {
          pvAssert(status == PV_SUCCESS);
          while(weightUpdateTime <= parent->simulationTime()) {weightUpdateTime += weightUpdatePeriod;}
          if (parent->columnId()==0) {
-            pvLogWarn("initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
+            pvWarn().printf("initialWeightUpdateTime of %s \"%s\" less than simulation start time.  Adjusting weightUpdateTime to %f\n",
                   getKeyword(), name, weightUpdateTime);
          }
       }

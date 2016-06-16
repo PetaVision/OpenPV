@@ -160,11 +160,13 @@ void pv_log_abort(const char *file, int line, const char *fmt, ...) {
 
 // pv_exit_failure was deprecated May 25, 2016.  Use pvLogError (or, preferably, pvError) instead.
 void pv_exit_failure(const char *file, int line, const char *fmt, ...) {
-   getErrorStream() << "WARN pvExitFailure is deprecated." << std::endl;
-   getErrorStream() << "     Use pvLogError (or, preferably, pvError) to print to the error stream and exit." << std::endl;
-   getErrorStream() << "     Use pvLogWarn (or, preferably, pvWarn) to print to the error stream without exiting." << std::endl;
+   pvWarn(exitFailureDeprecated);
+   exitFailureDeprecated << "pvExitFailure is deprecated.\n";
+   exitFailureDeprecated << "     Use pvError to print to the error stream and exit.\n";
+   exitFailureDeprecated << "     Use pvWarn or pvErrorNoExit to print to the error stream without exiting." << std::endl;
    va_list args;
-   pv_log_error(file, line, fmt, args);
+   vpv_log_error(file, line, fmt, args);
+   exit(EXIT_FAILURE);
 }
 
 }  // end namespace PV
