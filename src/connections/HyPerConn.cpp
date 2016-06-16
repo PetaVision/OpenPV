@@ -995,7 +995,7 @@ void HyPerConn::ioParam_nypShrunken(enum ParamsIOFlag ioFlag) {
 void HyPerConn::ioParam_nfp(enum ParamsIOFlag ioFlag) {
    parent->ioParamValue(ioFlag, name, "nfp", &nfp, -1, false);
    if (ioFlag==PARAMS_IO_READ && nfp==-1 && !parent->parameters()->present(name, "nfp") && parent->columnId()==0) {
-      pvLogInfo("%s \"%s\": nfp will be set in the communicateInitInfo() stage.\n",
+      pvInfo().printf("%s \"%s\": nfp will be set in the communicateInitInfo() stage.\n",
             getKeyword(), name);
    }
 }
@@ -1247,7 +1247,7 @@ int HyPerConn::communicateInitInfo() {
    if (nfp == -1) {
       nfp = post->getCLayer()->loc.nf;
       if (warnDefaultNfp && parent->columnId()==0) {
-         pvLogInfo("Connection \"%s\" setting nfp to number of postsynaptic features = %d.\n", name, nfp);
+         pvInfo().printf("Connection \"%s\" setting nfp to number of postsynaptic features = %d.\n", name, nfp);
       }
    }
    if (nfp != post->getCLayer()->loc.nf) {
@@ -1484,7 +1484,7 @@ int HyPerConn::allocateDataStructures() {
    if (!pre->getDataStructuresAllocatedFlag()) {
       if (parent->columnId()==0) {
          const char * connectiontype = this->getKeyword();
-         pvLogInfo("%s \"%s\" must wait until pre-synaptic layer \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, pre->getName());
+         pvInfo().printf("%s \"%s\" must wait until pre-synaptic layer \"%s\" has finished its allocateDataStructures stage.\n", connectiontype, name, pre->getName());
       }
       return PV_POSTPONE;
    }
@@ -2403,19 +2403,19 @@ int HyPerConn::updateState(double time, double dt){
          //This is implemented as an optimization so weights don't change dramatically as ANNNormalizedErrorLayer values get large.
          if (preTimeScale > 0 && preTimeScale < timeScaleMin) { 
             if (parent->icCommunicator()->commRank()==0) {
-               pvLogInfo("TimeScale = %f for layer %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", preTimeScale, pre->getName(), b, timeScaleMin, getName());
+               pvInfo().printf("TimeScale = %f for layer %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", preTimeScale, pre->getName(), b, timeScaleMin, getName());
             }
             skip = true;
          }
          else if (postTimeScale > 0 && postTimeScale < timeScaleMin) { 
             if (parent->icCommunicator()->commRank()==0) {
-               pvLogInfo("TimeScale = %f for layer %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", postTimeScale, post->getName(), b, timeScaleMin, getName());
+               pvInfo().printf("TimeScale = %f for layer %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", postTimeScale, post->getName(), b, timeScaleMin, getName());
             }
             skip = true;
          }
          else if (colTimeScale > 0 && colTimeScale < timeScaleMin) { 
             if (parent->icCommunicator()->commRank()==0) {
-               pvLogInfo("TimeScale = %f for column %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", colTimeScale, parent->getName(), b, timeScaleMin, getName());
+               pvInfo().printf("TimeScale = %f for column %s batch %d, which is less than your specified dtScaleMin, %f. updateState won't be called for connection \"%s\" this timestep.\n", colTimeScale, parent->getName(), b, timeScaleMin, getName());
             }
             skip = true;
          }
