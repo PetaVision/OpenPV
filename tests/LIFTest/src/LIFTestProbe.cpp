@@ -129,12 +129,13 @@ int LIFTestProbe::outputState(double timed) {
    InterColComm * icComm = l->getParent()->icCommunicator();
    if (icComm->commRank()==root_proc) {
       MPI_Reduce(MPI_IN_PLACE, rates, LIFTESTPROBE_BINS, MPI_DOUBLE, MPI_SUM, root_proc, icComm->communicator());
-      printf("%s t=%f:", getMessage(), timed);
+      pvInfo(dumpRates);
+      dumpRates.printf("%s t=%f:", getMessage(), timed);
       for (int j=0; j<LIFTESTPROBE_BINS; j++) {
          rates[j] /= counts[j]*timed/1000.0;
-         printf(" %f", rates[j]);
+         dumpRates.printf(" %f", rates[j]);
       }
-      printf("\n");
+      dumpRates.printf("\n");
       if (timed >= endingTime) {
          double stdfactor = sqrt(timed/2000.0); // Since the values of std are based on t=2000.
          for (int j=0; j<LIFTESTPROBE_BINS; j++) {
