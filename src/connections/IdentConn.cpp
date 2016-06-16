@@ -34,7 +34,7 @@ int IdentConn::ioParamsFillGroup(enum ParamsIOFlag ioFlag) {
 
    // April 15, 2016: Scale moved from IdentConn to RescaleConn.
    if (!strcmp(getKeyword(), "IdentConn") && parent->parameters()->present(name, "scale")) {
-      pvLogError("IdentConn \"%s\" error: IdentConn does not take a scale parameter.  Use RescaleConn instead.\n", name);
+      pvErrorNoExit().printf("IdentConn \"%s\": IdentConn does not take a scale parameter.  Use RescaleConn instead.\n", name);
    }
 
    return status;

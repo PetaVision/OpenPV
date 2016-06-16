@@ -192,18 +192,19 @@ void TransposePoolingConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFla
 
 void TransposePoolingConn::unsetAccumulateType() {
    if (parent->columnId()==0) {
+      pvErrorNoExit(errorMessage);
       if (pvpatchAccumulateTypeString) {
-         pvLogError("%s \"%s\" error: pvpatchAccumulateType \"%s\" is unrecognized.",
+         errorMessage.printf("%s \"%s\" error: pvpatchAccumulateType \"%s\" is unrecognized.",
                getKeyword(), name, pvpatchAccumulateTypeString);
       }
       else {
-         pvLogError("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
+         errorMessage.printf("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
                getKeyword(), name);
       }
-      pvLogError("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
+      errorMessage.printf("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
    }
    MPI_Barrier(parent->icCommunicator()->communicator());
-   pvExitFailure("");
+   exit(EXIT_FAILURE);
 }
 
 void TransposePoolingConn::ioParam_combine_dW_with_W_flag(enum ParamsIOFlag ioFlag) {

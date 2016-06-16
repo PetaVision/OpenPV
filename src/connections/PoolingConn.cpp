@@ -105,18 +105,19 @@ void PoolingConn::ioParam_pvpatchAccumulateType(enum ParamsIOFlag ioFlag) {
 
 void PoolingConn::unsetAccumulateType() {
    if (parent->columnId()==0) {
+      pvErrorNoExit(errorMessage);
       if (pvpatchAccumulateTypeString) {
-         pvLogError("%s \"%s\" error: pvpatchAccumulateType \"%s\" is unrecognized.",
+         errorMessage.printf("%s \"%s\": pvpatchAccumulateType \"%s\" is unrecognized.",
                getKeyword(), name, pvpatchAccumulateTypeString);
       }
       else {
-         pvLogError("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
+         errorMessage.printf("%s \"%s\" error: pvpatchAccumulateType NULL is unrecognized.",
                getKeyword(), name);
       }
-      pvLogError("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
+      errorMessage.printf("  Allowed values are \"maxpooling\", \"sumpooling\", or \"avgpooling\".");
    }
    MPI_Barrier(parent->icCommunicator()->communicator());
-   pvExitFailure("");
+   exit(EXIT_FAILURE);
 }
 
 void PoolingConn::ioParam_needPostIndexLayer(enum ParamsIOFlag ioFlag){

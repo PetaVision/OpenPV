@@ -73,7 +73,7 @@ void CudaRecvPre::setArgs(
 
 void CudaRecvPre::checkSharedMemSize(size_t sharedSize) {
    if(sharedSize > device->get_local_mem()){
-      pvLogError("run: given shared memory size of %zu is bigger than allowed shared memory size of %zu\n", sharedSize, device->get_local_mem());
+      pvErrorNoExit().printf("run: given shared memory size of %zu is bigger than allowed shared memory size of %zu\n", sharedSize, device->get_local_mem());
    }
 }
 

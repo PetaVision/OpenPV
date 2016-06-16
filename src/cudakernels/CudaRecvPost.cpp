@@ -13,7 +13,7 @@ namespace PVCuda{
 
 void cudnnHandleError(cudnnStatus_t status, const char* errStr){
    if(status != CUDNN_STATUS_SUCCESS){
-      pvLogError("CUDNN %s error: %s", errStr, cudnnGetErrorString(status));
+      pvErrorNoExit().printf("CUDNN %s: %s", errStr, cudnnGetErrorString(status));
       return;
    }
    return;
@@ -175,7 +175,7 @@ void CudaRecvPost::setArgs(
 
       //Patch sizes must be odd multiple of many
       if(nxp % 2 == 0 || nyp % 2 == 0){
-         pvLogError("cuDNN: Running on a one to many connection with CUDNN must have patch size (%d, %d) be an odd muliple of many (%d, %d)\n", nxp*params.manyScaleX, nyp*params.manyScaleY, params.manyScaleX, params.manyScaleY);
+         pvErrorNoExit().printf("cuDNN: Running on a one to many connection with CUDNN must have patch size (%d, %d) be an odd muliple of many (%d, %d)\n", nxp*params.manyScaleX, nyp*params.manyScaleY, params.manyScaleX, params.manyScaleY);
       }
 
       
@@ -222,10 +222,10 @@ void CudaRecvPost::setArgs(
    if(status != CUDNN_STATUS_SUCCESS){
       switch(status){
          case CUDNN_STATUS_BAD_PARAM:
-            pvLogError("cuDNN bad parameter\n");
+            pvError().printf("cuDNN bad parameter\n");
             break;
          default:
-            pvLogError("cuDNN unknown error code %d\n", status);
+            pvError().printf("cuDNN unknown error code %d\n", status);
       }
       pvAssert(0);
    }
@@ -391,16 +391,16 @@ int CudaRecvPost::do_run(){
    size_t sharedSize = sizeof(float) * (params.preBufNum + params.postBufNum + params.weightsBufNum);
 
    if(sharedSize > device->get_local_mem()){
-      pvLogError("gpu post run: given shared memory size of %zu is bigger than allowed shared memory size of %zu\n", sharedSize, device->get_local_mem());
+      pvErrorNoExit().printf("gpu post run: given shared memory size of %zu is bigger than allowed shared memory size of %zu\n", sharedSize, device->get_local_mem());
    }
 
    if(block_size.x != 1){
-      pvLogError("gpu post run: numFLocal must be 1\n");
+      pvErrorNoExit().printf("gpu post run: numFLocal must be 1\n");
    }
    
    if(params.preDataLocal){
       if(block_size.z != 1){
-         pvLogError("gpu post run: numYLocal must be 1 if using local pre data\n");
+         pvErrorNoExit().printf("gpu post run: numYLocal must be 1 if using local pre data\n");
       }
    }
 

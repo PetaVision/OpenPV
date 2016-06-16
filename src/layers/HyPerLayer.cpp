@@ -875,14 +875,14 @@ void HyPerLayer::ioParam_triggerLayerName(enum ParamsIOFlag ioFlag) {
 // and triggerLayerName to be a nonempty string.
 void HyPerLayer::ioParam_triggerFlag(enum ParamsIOFlag ioFlag) {
    pvAssert(!parent->parameters()->presentAndNotBeenRead(name, "triggerLayerName"));
-   bool flagFromParams = false;
-   parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
    if (ioFlag == PARAMS_IO_READ && parent->parameters()->present(name, "triggerFlag")) {
+      bool flagFromParams = false;
+      parent->ioParamValue(ioFlag, name, "triggerFlag", &flagFromParams, flagFromParams);
       if (parent->columnId()==0) {
          pvWarn(triggerFlagMessage);
+         triggerFlagMessage.printf("Layer \"%s\": triggerFlag has been deprecated.\n", name);
          triggerFlagMessage.printf("   If triggerLayerName is a nonempty string, triggering will be on;\n");
          triggerFlagMessage.printf("   if triggerLayerName is empty or null, triggering will be off.\n");
-         triggerFlagMessage.printf("Layer \"%s\": triggerFlag has been deprecated.\n", name);
          if (parent->columnId()==0) {
             if (flagFromParams != triggerFlag) {
                pvErrorNoExit(errorMessage);

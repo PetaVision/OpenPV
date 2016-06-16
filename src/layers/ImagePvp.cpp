@@ -94,7 +94,7 @@ int ImagePvp::retrieveData(double timef, double dt, int batchIndex)
    int status = PV_SUCCESS;
    status = readPvp(inputPath, pvpFrameIdx);
    if(status != PV_SUCCESS) {
-      pvLogError("%s \"%s\": retrieveData failed at t=%f with batchIndex %d\n", getKeyword(), name, timef, batchIndex);
+      pvErrorNoExit().printf("%s \"%s\": retrieveData failed at t=%f with batchIndex %d\n", getKeyword(), name, timef, batchIndex);
    }
    return status;
 }
