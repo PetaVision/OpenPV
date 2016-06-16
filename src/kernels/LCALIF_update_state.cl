@@ -11,6 +11,8 @@
 #  define CL_MEM_GLOBAL
 #  define CL_MEM_CONST
 #  define CL_MEM_LOCAL
+#  include "utils/PVLog.hpp"
+#  include "utils/PVAssert.hpp"
 #else  /* compiling with OpenCL */
 #  define EXP exp
 #  define CL_KERNEL       __kernel
@@ -155,7 +157,12 @@ for (int k = 0; k < nx*ny*nf*nbatch; k++) {
 
    // TODO OpenCL doesn't have an fprintf command.  How should we communicate this error when this is an OpenCL kernel?
    if (normalizeInputFlag && l_GSynNorm==0 && l_GSynExc != 0) {
+   // Can we use variadic macros in OpenCL?  If so, the preprocessing below can be made simpler.
+#ifdef PV_USE_OPENCL
       fprintf(stderr, "time = %f, k = %d, normalizeInputFlag is true but GSynNorm is zero and l_GSynExc = %f\n", timed, k, l_GSynExc);
+#else
+      pvErrorNoExit().printf("time = %f, k = %d, normalizeInputFlag is true but GSynNorm is zero and l_GSynExc = %f\n", timed, k, l_GSynExc);
+#endif // PV_USE_OPENCL
       abort();
    };
    l_GSynExc /= (l_GSynNorm + (l_GSynNorm==0 ? 1 : 0));

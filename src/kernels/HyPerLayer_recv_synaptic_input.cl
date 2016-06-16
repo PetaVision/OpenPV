@@ -4,7 +4,10 @@
 #  define CL_MEM_GLOBAL
 #  define CL_MEM_CONST
 #  define CL_MEM_LOCAL
+#  define PV_OPENCL_PRINTF pvInfo().printf
 #  include <stdio.h>
+#  include "utils/PVLog.hpp"
+#  include "utils/PVAssert.hpp"
 #else  /* compiling with OpenCL */
 #  pragma OPENCL EXTENSION cl_khr_int32_base_atomics : enable
 #  pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
@@ -16,6 +19,7 @@
 #  define CL_MEM_GLOBAL   __global
 #  define CL_MEM_CONST    __constant
 #  define CL_MEM_LOCAL    __local
+#  define PV_OPENCL_PRINTF printf
 #endif
 
 
@@ -181,20 +185,20 @@ CL_KERNEL void HyPerLayer_recv_synaptic_input (
 #ifndef PV_USE_OPENCL
                G[gAddy] += answer;
                if(0) {
-                  fprintf(stdout, "j %d\n",j);
-                  fprintf(stdout, "i %d\n",i);
-                  fprintf(stdout, "kxl %d\n",kxl);
-                  fprintf(stdout, "kyl %d\n",kyl);
-                  fprintf(stdout, "kx %d\n",kx);
-                  fprintf(stdout, "ky %d\n",ky);
-                  fprintf(stdout, "lidx %d\n",lidx);
-                  fprintf(stdout, "lidy %d\n",lidy);
-                  fprintf(stdout, "nxp %d\n",nxp);
-                  fprintf(stdout, "nyp %d\n",nyp);
-                  fprintf(stdout, "nx %d\n",nxl);
-                  fprintf(stdout, "nyl %d\n",nyl);
-                  fprintf(stdout, "activity %f\n",activity);
-                  fprintf(stdout, "W[weightptr+wOffset] %f\n",W[weightptr+wOffset]);
+                  PV_OPENCL_PRINTF ("j %d\n",j);
+                  PV_OPENCL_PRINTF ("i %d\n",i);
+                  PV_OPENCL_PRINTF ("kxl %d\n",kxl);
+                  PV_OPENCL_PRINTF ("kyl %d\n",kyl);
+                  PV_OPENCL_PRINTF ("kx %d\n",kx);
+                  PV_OPENCL_PRINTF ("ky %d\n",ky);
+                  PV_OPENCL_PRINTF ("lidx %d\n",lidx);
+                  PV_OPENCL_PRINTF ("lidy %d\n",lidy);
+                  PV_OPENCL_PRINTF ("nxp %d\n",nxp);
+                  PV_OPENCL_PRINTF ("nyp %d\n",nyp);
+                  PV_OPENCL_PRINTF ("nx %d\n",nxl);
+                  PV_OPENCL_PRINTF ("nyl %d\n",nyl);
+                  PV_OPENCL_PRINTF ("activity %f\n",activity);
+                  PV_OPENCL_PRINTF ("W[weightptr+wOffset] %f\n",W[weightptr+wOffset]);
                }
 #else
                if(answer!=0) AtomicAddGL(&G[gAddy], answer);
