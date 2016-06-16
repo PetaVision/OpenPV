@@ -74,8 +74,13 @@ void setLogFile(char const * logFile, std::ios_base::openmode mode) {
 }
 
 void setWLogFile(char const * logFile, std::ios_base::openmode mode) {
-   errorLogFileWStream.setStream(logFile, mode);
    outputLogFileWStream.setStream(logFile, mode);
+   if (logFile) {
+      errorLogFileWStream.setStream(&getWOutputStream());
+   }
+   else {
+      errorLogFileWStream.setStream(logFile, mode);
+   }
 }
 
 // vpv_log_debug was deprecated June 16, 2016.  It was only used by functions that themselves are deprecated.
