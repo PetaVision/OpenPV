@@ -53,10 +53,10 @@ int PV_Init::initSignalHandler()
 }
 
 int PV_Init::initialize() {
+   initLogFile();
    delete icComm;
    icComm = new InterColComm(arguments);
    initialized = true;
-   initLogFile();
    int status = PV_SUCCESS;
    // It is okay to initialize without there being a params file.
    // setParams() can be called later.
@@ -106,7 +106,8 @@ void PV_Init::initLogFile() {
    char const * logFile = arguments->getLogFile();
    std::ios_base::openmode const mode = std::ios_base::out; // TODO: Provide control over whether to truncate or append
    int const globalRootProcess = 0;
-   int const globalRank = icComm->globalCommRank();
+   int globalRank;
+   MPI_Comm_rank(MPI_COMM_WORLD, &globalRank);
    if (logFile && globalRank != globalRootProcess) {
       // To prevent collisions caused by multiple processes opening the same file for logging,
       // processes with global rank other than zero append the rank to the log filename.
