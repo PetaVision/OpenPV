@@ -12,6 +12,8 @@
 
 #include "CLKernel.hpp"
 #include "CLDevice.hpp"
+#include "utils/PVLog.hpp"
+#include "utils/PVAssert.hpp"
 
 #include "../../io/fileio.hpp"
 
@@ -45,9 +47,11 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
    program = clCreateProgramWithSource(context, 1, (const char **) &source, NULL, &status);
    if (!program || status != CL_SUCCESS)
    {
-       fprintf(stdout, "Error: Failed to create compute program!\n");
-       CLDevice::print_error_code(status);
-       exit(status);
+        char errorString[256];
+        CLDevice::print_error_code(status, errorString, 256);
+        pvError(errorMessage);
+        errorMessage.printf("Failed to create compute program!\n");
+        errorMessage << errorString;
    }
 
    // Build the program executable
@@ -59,14 +63,18 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
        size_t len;
        char buffer[150641]; //[12050]; //[8192];
 
-       fprintf(stdout, "Error: Failed to build program executable!\n");
-       CLDevice::print_error_code(status);
+       char errorString[256];
+       CLDevice::print_error_code(status, errorString, 256);
+       pvError(errorMessage);
+       errorMessage.printf("Error: Failed to build program executable!\n");
+       errorMessage << errorString;
        status = clGetProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
        if (status != CL_SUCCESS) {
-          fprintf(stdout, "CLKernel: error buffer length may be too small, is %ld, should be %ld\n", sizeof(buffer), len);
-          CLDevice::print_error_code(status);
+          CLDevice::print_error_code(status, errorString, 256);
+          errorMessage.printf("CLKernel: error buffer length may be too small, is %ld, should be %ld\n", sizeof(buffer), len);
+          errorMessage << errorString;
        }
-       pvError().printf("%s\n", buffer);
+       errorMessage.printf("%s\n", buffer);
    }
 
    // Create the compute kernel in the program we wish to run
@@ -74,9 +82,11 @@ CLKernel::CLKernel(cl_context context, cl_command_queue commands, cl_device_id d
    kernel = clCreateKernel(program, name, &status);
    if (!kernel || status != CL_SUCCESS)
    {
-       fprintf(stderr, "Error: Failed to create compute kernel!\n");
-       CLDevice::print_error_code(status);
-       exit(status);
+       char errorString[256];
+       CLDevice::print_error_code(status, errorString, 256);
+       pvError(errorMessage);
+       errorMessage.printf("Failed to create compute kernel!\n");
+       errorMessage << errorString;
    }
 
 
@@ -104,9 +114,11 @@ int CLKernel::run(size_t global_work_size,
    status = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE,
                                      sizeof(size_t), &max_local_size, NULL);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "Error: Failed to retrieve kernel work group info! %d\n", status);
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("Failed to retrieve kernel work group info! %d\n", status);
+      errorMessage << errorString;
    }
 
    // execute the kernel over the entire range of our 1d input data set
@@ -115,9 +127,11 @@ int CLKernel::run(size_t global_work_size,
    status = clEnqueueNDRangeKernel(commands, kernel, 1, NULL,
                                    &global_work_size, NULL, nWait, waitList, ev);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::run(): Failed to execute kernel!\n");
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLDevice::run(): Failed to execute kernel!\n");
+      errorMessage << errorString;
    }
 
 #endif // PV_USE_OPENCL
@@ -139,13 +153,15 @@ int CLKernel::run(size_t global_work_size, size_t local_work_size,
    status = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE,
                                      sizeof(size_t), &max_local_size, NULL);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "Error: Failed to retrieve kernel work group info! %d\n", status);
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("Failed to retrieve kernel work group info! %d\n", status);
+      errorMessage << errorString;
    }
 
    if (local_work_size > max_local_size) {
-      fprintf(stdout, "run: local_work_size==%ld global_work_size==%ld max_local_size==%ld\n", local_work_size, global_work_size, max_local_size);
+      pvInfo().printf("run: local_work_size==%ld global_work_size==%ld max_local_size==%ld\n", local_work_size, global_work_size, max_local_size);
       local_work_size = max_local_size;
    }
 
@@ -156,9 +172,11 @@ int CLKernel::run(size_t global_work_size, size_t local_work_size,
    status = clEnqueueNDRangeKernel(commands, kernel, 1, NULL,
                                    &global_work_size, &local_work_size, nWait, waitList, ev);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::run(): Failed to execute kernel!\n");
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLDevice::run(): Failed to execute kernel!\n");
+      errorMessage << errorString;
    }
 
 #endif // PV_USE_OPENCL
@@ -194,11 +212,13 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
    status = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE,
                                      sizeof(size_t), &max_local_size, NULL);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "Error: Failed to retrieve kernel work group info! (status==%d)\n", status);
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("Failed to retrieve kernel work group info! (status==%d)\n", status);
+      errorMessage << errorString;
    } else {
-//      fprintf(stdout, "run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
+//      pvInfo().printf("run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
 //             local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
    }
 
@@ -237,10 +257,12 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
 
    //clFinish(commands);
    if (status) {
-      fprintf(stderr, "CLDevice::run(): Failed to execute kernel! (status==%d)\n", status);
-      fprintf(stderr, "CLDevice::run(): max_local_work_size==%ld\n", max_local_size);
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLDevice::run(): Failed to execute kernel! (status==%d)\n", status);
+      errorMessage.printf("CLDevice::run(): max_local_work_size==%ld\n", max_local_size);
+      errorMessage << errorString;
    }
 
    // get profiling information
@@ -263,9 +285,12 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t lWorkSizeX, size_
       if (status == 0) {
          elapsed = (end - start) / 1000;  // microseconds
       }
-      //fprintf(stderr, "status %d\n",status);
-      //CLDevice::print_error_code(status);
-      //fprintf(stderr, "start %lu, end %lu, elapsed %u\n",(unsigned long)start, (unsigned long)end, elapsed);
+      //char errorString[256];
+      //CLDevice::print_error_code(status, errorString, 256);
+      //pvErrorNoExit(errorMessage);
+      //errorMessage.printf("status %d\n",status);
+      //errorMessage << errorString;
+      //errorMessage.printf("start %lu, end %lu, elapsed %u\n",(unsigned long)start, (unsigned long)end, elapsed);
 #ifdef PV_USE_TAU
       Tau_opencl_register_gpu_event("CLKernel::run::GPU", tau_id, start, end);
 #endif
@@ -306,11 +331,13 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t gWorkSizeF,
    status = clGetKernelWorkGroupInfo(kernel, device, CL_KERNEL_WORK_GROUP_SIZE,
                                      sizeof(size_t), &max_local_size, NULL);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "Error: Failed to retrieve kernel work group info! (status==%d)\n", status);
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("Failed to retrieve kernel work group info! (status==%d)\n", status);
+      errorMessage << errorString;
    } else {
-//      fprintf(stdout, "run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
+//      pvInfo().printf("run: local_work_size==(%ld,%ld) global_work_size==(%ld,%ld)\n",
 //             local_work_size[0], local_work_size[1], global_work_size[0], global_work_size[1]);
    }
 
@@ -353,10 +380,12 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t gWorkSizeF,
 
    //clFinish(commands);
    if (status) {
-      fprintf(stderr, "CLDevice::run(): Failed to execute kernel! (status==%d)\n", status);
-      fprintf(stderr, "CLDevice::run(): max_local_work_size==%ld\n", max_local_size);
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLDevice::run(): Failed to execute kernel! (status==%d)\n", status);
+      errorMessage.printf("CLDevice::run(): max_local_work_size==%ld\n", max_local_size);
+      errorMessage << errorString;
    }
 
    // get profiling information
@@ -379,9 +408,12 @@ int CLKernel::run(size_t gWorkSizeX, size_t gWorkSizeY, size_t gWorkSizeF,
       if (status == 0) {
          elapsed = (end - start) / 1000;  // microseconds
       }
-      //fprintf(stderr, "status %d\n",status);
-      //CLDevice::print_error_code(status);
-      //fprintf(stderr, "start %lu, end %lu, elapsed %u\n",(unsigned long)start, (unsigned long)end, elapsed);
+      //char errorString[256];
+      //CLDevice::print_error_code(status, errorString, 256);
+      //pvErrorNoExit(errorMessage);
+      //errorMessage.printf("status %d\n",status);
+      //errorMessage << errorString;
+      //errorMessage.printf("start %lu, end %lu, elapsed %u\n",(unsigned long)start, (unsigned long)end, elapsed);
 #ifdef PV_USE_TAU
       Tau_opencl_register_gpu_event("CLKernel::run::GPU", tau_id, start, end);
 #endif
@@ -400,9 +432,11 @@ int CLKernel::setKernelArg(unsigned int arg_index, size_t arg_size, const void *
 
    status = clSetKernelArg(kernel, arg_index, arg_size, arg_value);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::setKernelArg: Failed to set kernel argument! %d\n", status);
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLDevice::setKernelArg: Failed to set kernel argument! %d\n", status);
+      errorMessage << errorString;
    }
 
 #endif // PV_USE_OPENCL
@@ -419,9 +453,11 @@ int CLKernel::setKernelArg(int argid, CLBuffer * buf)
 
    status = clSetKernelArg(kernel, argid, sizeof(cl_mem), &mobj);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::addKernelArg: Failed to set kernel argument! %d\n", status);
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLDevice::addKernelArg: Failed to set kernel argument! %d\n", status);
+      errorMessage << errorString;
    }
 #endif // PV_USE_OPENCL
 
@@ -436,9 +472,11 @@ int CLKernel::setLocalArg(int argid, size_t size)
 
    status = clSetKernelArg(kernel, argid, size, 0);
    if (status != CL_SUCCESS) {
-      fprintf(stderr, "CLDevice::addLocalArg: Failed to set kernel argument! %d\n", status);
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLDevice::addLocalArg: Failed to set kernel argument! %d\n", status);
+      errorMessage << errorString;
    }
 
 #endif // PV_USE_OPENCL
@@ -456,7 +494,7 @@ load_program_source(const char *filename)
 
     PV_Stream * pvstream = PV_fopen(filename, "r", false/*verifyWrites*/); // TODO Only root process should read file and then broadcast to other processes
     if (pvstream == 0) {
-       fprintf(stderr, "Failed to find source for file %s\n", filename);
+       pvErrorNoExit().printf("Failed to find source for file %s\n", filename);
        return NULL;
     }
 

@@ -5,6 +5,8 @@
  */
 
 #include "CLTimer.hpp"
+#include "utils/PVLog.hpp"
+#include "utils/PVAssert.hpp"
 
 namespace PV{
 
@@ -45,65 +47,10 @@ CLTimer::~CLTimer()
    delete(stopEvent);
 }
 
-//void CLTimer::clearStopEvent(){
-//   clReleaseEvent(*stopEvent);
-//}
-
-//double CLTimer::start()
-//{
-//   fprintf(stdout, "Starting opencl timer\n");
-//   cl_int status = clEnqueueMarkerWithWaitList(commands, 0, NULL, startEvent);
-//   if(status != CL_SUCCESS){
-//      switch(status){
-//         case CL_INVALID_COMMAND_QUEUE:
-//            fprintf(stdout, "Invalid command queue\n");
-//            break;
-//         case CL_INVALID_EVENT_WAIT_LIST:
-//            fprintf(stdout, "Invalid event wait list\n");
-//            break;
-//         case CL_OUT_OF_RESOURCES:
-//            fprintf(stdout, "Out of resources\n");
-//            break;
-//         case CL_OUT_OF_HOST_MEMORY:
-//            fprintf(stdout, "Out of host memory\n");
-//            break;
-//         default:
-//            fprintf(stdout, "Unknown error\n");
-//      }
-//      exit(EXIT_FAILURE);
-//   }
-//   return 0;
-//}
-//
-//double CLTimer::stop()
-//{
-//   fprintf(stdout, "Stopping opencl timer\n");
-//   cl_int status = clEnqueueMarkerWithWaitList(commands, 0, NULL, stopEvent);
-//   if(status != CL_SUCCESS){
-//      switch(status){
-//         case CL_INVALID_COMMAND_QUEUE:
-//            fprintf(stdout, "Invalid command queue\n");
-//            break;
-//         case CL_INVALID_EVENT_WAIT_LIST:
-//            fprintf(stdout, "Invalid event wait list\n");
-//            break;
-//         case CL_OUT_OF_RESOURCES:
-//            fprintf(stdout, "Out of resources\n");
-//            break;
-//         case CL_OUT_OF_HOST_MEMORY:
-//            fprintf(stdout, "Out of host memory\n");
-//            break;
-//         default:
-//            fprintf(stdout, "Unknown error\n");
-//      }
-//      exit(EXIT_FAILURE);
-//   }
-//   return 0;
-//}
 
 //Note this function is blocking
 double CLTimer::accumulateTime(){
-   //fprintf(stdout, "Accumulating opencl timer\n");
+   //pvInfo().printf("Accumulating opencl timer\n");
    cl_ulong cl_time_start, cl_time_end;
    cl_time_start = 0;
    cl_time_end = 0;
@@ -111,18 +58,19 @@ double CLTimer::accumulateTime(){
    clFinish(commands);
    cl_int status = clGetEventProfilingInfo(*startEvent, CL_PROFILING_COMMAND_START, sizeof(cl_time_start), &cl_time_start, NULL);
    if(status != CL_SUCCESS){
+      pvError(errorMessage);
       switch(status){
          case CL_PROFILING_INFO_NOT_AVAILABLE:
-            fprintf(stdout, "Profiling info not avaliable\n");
+            errorMessage.printf("Profiling info not avaliable\n");
             break;
          case CL_INVALID_VALUE:
-            fprintf(stdout, "Invalid param names\n");
+            errorMessage.printf("Invalid param names\n");
             break;
          case CL_INVALID_EVENT:
-            fprintf(stdout, "Invalid event for start event\n");
+            errorMessage.printf("Invalid event for start event\n");
             break;
          default:
-            fprintf(stdout, "Unknown error\n");
+            errorMessage.printf("Unknown error\n");
       }
       exit(EXIT_FAILURE);
    }
@@ -131,23 +79,24 @@ double CLTimer::accumulateTime(){
       status = clGetEventProfilingInfo(*startEvent, CL_PROFILING_COMMAND_END, sizeof(cl_time_end), &cl_time_end, NULL);
    }
    if(status != CL_SUCCESS){
+      pvError(errorMessage);
       switch(status){
          case CL_PROFILING_INFO_NOT_AVAILABLE:
-            fprintf(stdout, "Profiling info not avaliable\n");
+            errorMessage.printf("Profiling info not avaliable\n");
             break;
          case CL_INVALID_VALUE:
-            fprintf(stdout, "Invalid param names\n");
+            errorMessage.printf("Invalid param names\n");
             break;
          case CL_INVALID_EVENT:
-            fprintf(stdout, "Invalid event for stop event\n");
+            errorMessage.printf("Invalid event for stop event\n");
             break;
          default:
-            fprintf(stdout, "Unknown error\n");
+            errorMessage.printf("Unknown error\n");
       }
       exit(EXIT_FAILURE);
    }
    //Roundoff errors?
-   //fprintf(stdout, "Diff times: %f\n", (double)(cl_time_end - cl_time_start)/1000000);
+   //pvInfo().printf("Diff times: %f\n", (double)(cl_time_end - cl_time_start)/1000000);
    time += (double)(cl_time_end - cl_time_start)/1000000;
 
    return (double) time;

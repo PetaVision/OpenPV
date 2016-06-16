@@ -12,6 +12,8 @@
 
 #include "CLBuffer.hpp"
 #include "CLDevice.hpp"
+#include "utils/PVLog.hpp"
+#include "utils/PVAssert.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,9 +35,11 @@ CLBuffer::CLBuffer(cl_context context, cl_command_queue commands,
    this->d_buf = clCreateBuffer(context, flags, size, host_ptr, &status);
    if (status != CL_SUCCESS)
    {
-      fprintf(stderr, "CLBuffer::CLBuffer: Failed to create buffer!\n");
-      CLDevice::print_error_code(status);
-      exit(1);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLBuffer::CLBuffer: Failed to create buffer!\n");
+      errorMessage << errorString;
    }
 
    this->profiling = false;
@@ -71,9 +75,11 @@ int CLBuffer::copyToDevice(void * host_ptr, unsigned int nWait, cl_event * waitL
 
    if (status != CL_SUCCESS)
    {
-      fprintf(stderr, "CLBuffer::copyToDevice: Failed to enqueue write buffer!\n");
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLBuffer::copyToDevice: Failed to enqueue write buffer!\n");
+      errorMessage << errorString;
    }
       
    return status;
@@ -100,9 +106,11 @@ int CLBuffer::copyFromDevice(void * host_ptr, unsigned int nWait, cl_event * wai
 
    if (status != CL_SUCCESS)
    {
-      fprintf(stderr, "CLBuffer::copyFromDevice: Failed to enqueue read buffer!\n");
-      CLDevice::print_error_code(status);
-      exit(status);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLBuffer::copyFromDevice: Failed to enqueue read buffer!\n");
+      errorMessage << errorString;
    }
       
    return status;
@@ -125,9 +133,11 @@ void * CLBuffer::map(cl_map_flags flags)
    if (status != CL_SUCCESS)
    {
       h_ptr = NULL;
-      fprintf(stderr, "CLBuffer::map: Failed to enqueue map buffer!\n");
-      CLDevice::print_error_code(status);
-      exit(1);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLBuffer::map: Failed to enqueue map buffer!\n");
+      errorMessage << errorString;
    }
 
    //TODO - or use Marker?
@@ -141,9 +151,11 @@ void * CLBuffer::map(cl_map_flags flags)
    if (status != CL_SUCCESS)
    {
       h_ptr = NULL;
-      fprintf(stderr, "CLBuffer::map: Failed in wait for event!\n");
-      CLDevice::print_error_code(status);
-      exit(1);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLBuffer::map: Failed in wait for event!\n");
+      errorMessage << errorString;
    }
 
    // get profiling information
@@ -187,9 +199,11 @@ int CLBuffer::unmap(void * mapped_ptr)
 
    if (status != CL_SUCCESS)
    {
-      fprintf(stderr, "CLBuffer::unmap: Failed to enqueue unmap memory object!\n");
-      CLDevice::print_error_code(status);
-      exit(1);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLBuffer::unmap: Failed to enqueue unmap memory object!\n");
+      errorMessage << errorString;
    }
 
    //TODO - or use Marker?
@@ -202,9 +216,11 @@ int CLBuffer::unmap(void * mapped_ptr)
 #endif
    if (status != CL_SUCCESS)
    {
-      fprintf(stderr, "CLBuffer::unmap: Failed in wait for event!\n");
-      CLDevice::print_error_code(status);
-      exit(1);
+      char errorString[256];
+      CLDevice::print_error_code(status, errorString, 256);
+      pvError(errorMessage);
+      errorMessage.printf("CLBuffer::unmap: Failed in wait for event!\n");
+      errorMessage << errorString;
    }
 
    // get profiling information
