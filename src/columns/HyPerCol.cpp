@@ -1801,20 +1801,20 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       }
    }
 #else // PV_USE_OPENMP_THREADS
-   if (arguments->getUseDefaultNumThreads()) {
+   if (pv_initObj->getUseDefaultNumThreads()) {
       num_threads = 1;
       if (printMsgs0) {
          pvInfo().printf("Number of threads used is 1 (Compiled without OpenMP.\n");
       }
    }
    else {
-      num_threads = arguments->getNumThreads();
+      num_threads = pv_initObj->getNumThreads();
       if (num_threads < 0) { num_threads = 1; }
       if (num_threads != 1) { thread_status = PV_FAILURE; }
    }
    if (printMsgs0) {
       if (thread_status!=PV_SUCCESS) {
-         pvErrorNoExit().printf("%s error: PetaVision must be compiled with OpenMP to run with threads.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s error: PetaVision must be compiled with OpenMP to run with threads.\n", pv_initObj->getProgramName());
       }
    }
 #endif // PV_USE_OPENMP_THREADS
