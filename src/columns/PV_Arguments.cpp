@@ -238,7 +238,7 @@ int PV_Arguments::setStateFromCmdLineArgs(bool allowUnrecognizedArguments) {
    return PV_SUCCESS;
 }
 
-int PV_Arguments::printState() {
+int PV_Arguments::printState() const {
    pvInfo().printf("%s", getProgramName());
    if (requireReturnFlag) { pvInfo().printf(" --require-return"); }
    if (outputPath) { pvInfo().printf(" -o %s", outputPath); }

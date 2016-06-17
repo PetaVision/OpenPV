@@ -23,40 +23,39 @@ int main(int argc, char * argv[]) {
    char const * paramFile1 = "input/timeBatch.params";
    char const * paramFile2 = "input/dimBatch.params";
    int status = PV_SUCCESS;
-   PV_Arguments * arguments = initObj.getArguments();
-   if (arguments->getParamsFile()!=NULL) {
+   if (initObj.getParamsFile()!=NULL) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s should be run without the params file argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the params file argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getCheckpointReadDir()!=NULL) {
+   if (initObj.getCheckpointReadDir()!=NULL) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s should be run without the checkpoint directory argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the checkpoint directory argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getRestartFlag()) {
+   if (initObj.getRestartFlag()) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s should be run without the restart flag.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the restart flag.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getNumRows()!=0) {
+   if (initObj.getNumRows()!=0) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s should be run without the rows argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the rows argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getNumColumns()!=0) {
+   if (initObj.getNumColumns()!=0) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s should be run without the columns argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the columns argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getBatchWidth()!=0) {
+   if (initObj.getBatchWidth()!=0) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s should be run without the batchwidth argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the batchwidth argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
@@ -77,24 +76,20 @@ int main(int argc, char * argv[]) {
       }
    }
 
-   arguments->setParamsFile(paramFile1);
-   arguments->setNumRows(1);
-   arguments->setNumColumns(2);
-   arguments->setBatchWidth(1);
-   initObj.initialize();
+   initObj.setParams(paramFile1);
+   initObj.setMPIConfiguration(1/*numRows*/, 2/*numColumns*/, 1/*batchWidth*/);
 
    status = buildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      pvError().printf("%s: rank %d running with params file %s returned status %d.\n", arguments->getProgramName(), rank, paramFile1, status);
+      pvError().printf("%s: rank %d running with params file %s returned status %d.\n", initObj.getProgramName(), rank, paramFile1, status);
    }
 
-   arguments->setParamsFile(paramFile2);
-   arguments->setBatchWidth(5);
-   initObj.initialize();
+   initObj.setParams(paramFile2);
+   initObj.setMPIConfiguration(-1/*numRows unchanged*/, -1/*numColumns unchanged*/, 5/*batchWidth*/);
 
    status = buildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      pvError().printf("%s: rank %d running with params file %s returned status %d.\n", arguments->getProgramName(), rank, paramFile2, status);
+      pvError().printf("%s: rank %d running with params file %s returned status %d.\n", initObj.getProgramName(), rank, paramFile2, status);
    }
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

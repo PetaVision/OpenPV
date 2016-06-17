@@ -82,7 +82,7 @@ int main(int argc, char * argv[]) {
       if (generate(&initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            pvErrorNoExit().printf("%s: generate failed.\n", initObj.getArguments()->getProgramName());
+            pvErrorNoExit().printf("%s: generate failed.\n", initObj.getProgramName());
          }
       }
    }
@@ -90,7 +90,7 @@ int main(int argc, char * argv[]) {
       if (testrun(&initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            pvErrorNoExit().printf("%s: testrun failed.\n", initObj.getArguments()->getProgramName());
+            pvErrorNoExit().printf("%s: testrun failed.\n", initObj.getProgramName());
          }
       }
    }
@@ -98,7 +98,7 @@ int main(int argc, char * argv[]) {
       if (testcheckpoint(&initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            pvErrorNoExit().printf("%s: testcheckpoint failed.\n", initObj.getArguments()->getProgramName());
+            pvErrorNoExit().printf("%s: testcheckpoint failed.\n", initObj.getProgramName());
          }
       }
    }
@@ -106,7 +106,7 @@ int main(int argc, char * argv[]) {
       if (testioparams(&initObj, rank)!=PV_SUCCESS) {
          status = PV_FAILURE;
          if (rank==0) {
-            pvErrorNoExit().printf("%s: testioparams failed.\n", initObj.getArguments()->getProgramName());
+            pvErrorNoExit().printf("%s: testioparams failed.\n", initObj.getProgramName());
          }
       }
    }
@@ -115,14 +115,12 @@ int main(int argc, char * argv[]) {
 }
 
 int generate(PV_Init* initObj, int rank) {
-   PV_Arguments * arguments = initObj->getArguments();
-
    // Remove -r and -c
-   arguments->setRestartFlag(false);
-   arguments->setCheckpointReadDir(NULL);
+   initObj->setRestartFlag(false);
+   initObj->setCheckpointReadDir(NULL);
    if (rank==0) {
-      pvInfo().printf("%s --generate running PetaVision with arguments\n", arguments->getProgramName());
-      arguments->printState();
+      pvInfo().printf("Running--generate with effective command line\n", initObj->getProgramName());
+      initObj->printState();
    }
    if (rank==0) {
       PV_Stream * emptyinfile = PV_fopen("input/correct.pvp", "w", false/*verifyWrites*/);
@@ -131,7 +129,7 @@ int generate(PV_Init* initObj, int rank) {
       int emptydata[] = {80, 20, 2, CORRECT_PVP_NX, CORRECT_PVP_NY, CORRECT_PVP_NF, 1, 0, 4, 2, 1, 1, CORRECT_PVP_NX, CORRECT_PVP_NY, 0, 0, 0, 1, 0, 0, 0, 0, 0};
       size_t numwritten = PV_fwrite(emptydata, 23, sizeof(int), emptyinfile);
       if (numwritten != 23) {
-         pvErrorNoExit().printf("%s: failure to write placeholder data into input/correct.pvp file.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s: failure to write placeholder data into input/correct.pvp file.\n", initObj->getProgramName());
       }
       PV_fclose(emptyinfile);
    }
@@ -175,45 +173,42 @@ int copyCorrectOutput(HyPerCol * hc, int argc, char * argv[]) {
 }
 
 int testrun(PV_Init * initObj, int rank) {
-   PV_Arguments * arguments = initObj->getArguments();
-   arguments->resetState();
+   initObj->resetState();
    // Ignore restart flag and checkpoint directory
-   arguments->setRestartFlag(false);
-   arguments->setCheckpointReadDir(NULL);
+   initObj->setRestartFlag(false);
+   initObj->setCheckpointReadDir(NULL);
    if (rank==0) {
-      pvInfo().printf("%s --testrun running PetaVision with arguments\n", arguments->getProgramName());
-      arguments->printState();
+      pvInfo().printf("Running --testrun running with effective command line\n");
+      initObj->printState();
    }
    int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
    return status;
 }
 
 int testcheckpoint(PV_Init * initObj, int rank) {
-   PV_Arguments * arguments = initObj->getArguments();
-   arguments->resetState();
+   initObj->resetState();
    // Make sure either restartFlag or checkpointReadDir are set (both cannot be set or PV_Arguments will error out).
-   bool hasrestart = (arguments->getRestartFlag() || arguments->getCheckpointReadDir()!=NULL);
+   bool hasrestart = (initObj->getRestartFlag() || initObj->getCheckpointReadDir()!=NULL);
    if (!hasrestart) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s: --testcheckpoint requires either the -r or the -c option.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s: --testcheckpoint requires either the -r or the -c option.\n", initObj->getProgramName());
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
    }
    if (rank==0) {
-      pvInfo().printf("%s --testcheckpoint running PetaVision with arguments\n", arguments->getProgramName());
-      arguments->printState();
+      pvInfo().printf("Running --testcheckpoint with effective command line\n", initObj->getProgramName());
+      initObj->printState();
    }
    int status = rebuildandrun(initObj, NULL, &assertAllZeroes);
    return status;
 }
 
 int testioparams(PV_Init* initObj, int rank) {
-   PV_Arguments * arguments = initObj->getArguments();
-   arguments->resetState();
+   initObj->resetState();
    // Ignore -r and -c switches
-   arguments->setRestartFlag(false);
-   arguments->setCheckpointReadDir(NULL);
+   initObj->setRestartFlag(false);
+   initObj->setCheckpointReadDir(NULL);
    HyPerCol * hc = build(initObj);
    if (hc == NULL) {
       pvError().printf("testioparams: unable to build HyPerCol.\n");
@@ -231,10 +226,10 @@ int testioparams(PV_Init* initObj, int rank) {
    }
    delete hc;
 
-   arguments->setParamsFile(paramsfileString.c_str());
+   initObj->setParams(paramsfileString.c_str());
    if (rank==0) {
-      pvInfo().printf("%s --testioparams running PetaVision with arguments\n", arguments->getProgramName());
-      arguments->printState();
+      pvInfo().printf("Running --testioparams with effective command line\n");
+      initObj->printState();
    }
    status = rebuildandrun(initObj, NULL, &assertAllZeroes);
    return status;

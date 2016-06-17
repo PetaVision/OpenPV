@@ -22,8 +22,7 @@ int check_kernel_vs_hyper(HyPerConn * cHyPer, HyPerConn * cKernel, int kPre,
 int main(int argc, char * argv[])
 {
    PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   PV_Arguments * arguments = initObj->getArguments();
-   if (arguments->getParamsFile()==NULL) {
+   if (initObj->getParamsFile()==NULL) {
       int rank = 0;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       if (rank==0) {
@@ -33,7 +32,7 @@ int main(int argc, char * argv[])
       exit(EXIT_FAILURE);
    }
 
-   arguments->setParamsFile("input/test_gauss2d.params");
+   initObj->setParams("input/test_gauss2d.params");
    const char * pre_layer_name = "test_gauss2d pre";
    const char * post_layer_name = "test_gauss2d post";
    const char * pre2_layer_name = "test_gauss2d pre 2";

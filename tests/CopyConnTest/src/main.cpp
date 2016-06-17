@@ -14,7 +14,7 @@ int runparamsfile(PV_Init* initObj, char const * paramsfile);
 int main(int argc, char * argv[]) {
    int rank = 0;
    PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   if (initObj->getArguments()->getParamsFile()) {
+   if (initObj->getParamsFile()) {
       if(initObj->getWorldRank()==0) {
          pvErrorNoExit() << argv[0] << " should be run without the params file argument.\n" <<
                "This test uses several hard-coded params files\n";
@@ -45,19 +45,18 @@ int main(int argc, char * argv[]) {
 int runparamsfile(PV_Init* initObj, char const * paramsfile) {
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-   char const * params_file = initObj->getArguments()->setParamsFile(paramsfile);
-   assert(params_file);
+   int status = initObj->setParams(paramsfile);
+   pvAssert(status==PV_SUCCESS);
 
    initObj->initialize();
 
-   int status = PV_SUCCESS;
    HyPerCol * hc = build(initObj);
    if (hc != NULL) {
       status = hc->run();
       if( status != PV_SUCCESS ) {
          if (rank==0) {
             pvErrorNoExit().printf("%s: running with params file %s returned status code %d.\n",
-                  initObj->getArguments()->getProgramName(), paramsfile, status);
+                  initObj->getProgramName(), paramsfile, status);
          }
       }
    }

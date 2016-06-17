@@ -18,20 +18,19 @@ int main(int argc, char * argv[]) {
    char const * paramFile1 = "input/CheckpointParameters1.params";
    char const * paramFile2 = "input/CheckpointParameters2.params";
    int status = PV_SUCCESS;
-   PV_Arguments * arguments = initObj.getArguments();
-   if (arguments->getParamsFile()!=NULL) {
+   if (initObj.getParamsFile()!=NULL) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s should be run without the params file argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the params file argument.\n", initObj.getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getCheckpointReadDir()!=NULL) {
+   if (initObj.getCheckpointReadDir()!=NULL) {
       if (rank==0) {
          pvErrorNoExit().printf("%s should be run without the checkpoint directory argument.\n", argv[0]);
       }
       status = PV_FAILURE;
    }
-   if (arguments->getRestartFlag()) {
+   if (initObj.getRestartFlag()) {
       if (rank==0) {
          pvErrorNoExit().printf("%s should be run without the restart flag.\n", argv[0]);
       }
@@ -57,22 +56,20 @@ int main(int argc, char * argv[]) {
    initObj.registerKeyword("CPTestInputLayer", createCPTestInputLayer);
    initObj.registerKeyword("VaryingHyPerConn", createVaryingHyPerConn);
  
-   arguments->setBatchWidth(2);
-   arguments->setParamsFile(paramFile1);
-   initObj.initialize();
+   initObj.setMPIConfiguration(0/*numRows unspecified*/, 0/*numColumns unspecified*/, 2/*batchWidth*/);
+   initObj.setParams(paramFile1);
 
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", initObj.getProgramName(), rank, paramFile1, status);
    }
 
-   arguments->setParamsFile(paramFile2);
-   initObj.initialize();
-   arguments->setCheckpointReadDir("checkpoints1/batchsweep_00/Checkpoint12:checkpoints1/batchsweep_01/Checkpoint12");
+   initObj.setParams(paramFile2);
+   initObj.setCheckpointReadDir("checkpoints1/batchsweep_00/Checkpoint12:checkpoints1/batchsweep_01/Checkpoint12");
 
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile2, status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", initObj.getProgramName(), rank, paramFile2, status);
    }
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

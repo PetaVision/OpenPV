@@ -37,8 +37,7 @@ int main(int argc, char * argv[]) {
    int rank = 0;
    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-   PV_Arguments * arguments = initObj.getArguments();
-   if (arguments->getParamsFile()!=NULL) {
+   if (initObj.getParamsFile()!=NULL) {
       if (rank==0) {
          pvErrorNoExit().printf("%s runs a number of params files in sequence.  Do not include a '-p' option when running this program.\n", argv[0]);
       }
@@ -46,24 +45,21 @@ int main(int argc, char * argv[]) {
       exit(EXIT_FAILURE);
    }
 
-   arguments->setParamsFile("input/LayerRestartTest-Write.params");
-   initObj.initialize();
+   initObj.setParams("input/LayerRestartTest-Write.params");
    status = rebuildandrun(&initObj);
    if( status == PV_SUCCESS ) {
       char const * checkParamsFile = "input/LayerRestartTest-Check.params";
       if (rank==0) {
-         pvInfo().printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
+         pvInfo().printf("*** %s: running params file %s\n", initObj.getProgramName(), checkParamsFile);
       }
-      arguments->setParamsFile("input/LayerRestartTest-Check.params");
-      initObj.initialize();
+      initObj.setParams("input/LayerRestartTest-Check.params");
       status = rebuildandrun(&initObj, NULL, &checkComparisonNonzero);
       if( status == PV_SUCCESS ) {
          char const * readParamsFile = "input/LayerRestartTest-Read.params";
          if (rank==0) {
-            pvInfo().printf("*** %s: running params file %s\n", arguments->getProgramName(), checkParamsFile);
+            pvInfo().printf("*** %s: running params file %s\n", initObj.getProgramName(), checkParamsFile);
          }
-         arguments->setParamsFile(readParamsFile);
-         initObj.initialize();
+         initObj.setParams(readParamsFile);
          status = rebuildandrun(&initObj, NULL, &checkComparisonZero);
       }
    }

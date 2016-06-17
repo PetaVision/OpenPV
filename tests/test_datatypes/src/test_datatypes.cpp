@@ -27,10 +27,10 @@ static int check_borders(pvdata_t * buf, PV::Communicator * comm, PVLayerLoc loc
 int main(int argc, char * argv[])
 {
    PV::PV_Init* initObj = new PV::PV_Init(&argc, &argv, true/*allowUnrecognizedArguments*/);
-   PV::Communicator * comm = new PV::Communicator(initObj->getArguments());
+   PV::Communicator * comm = initObj->getComm();
    
    // Handling of requireReturn copied from HyPerCol::initialize, since this test doesn't create a HyPerCol.
-   if (initObj->getArguments()->getRequireReturnFlag()) {
+   if (initObj->getRequireReturnFlag()) {
       if (comm->commRank()==0) {
          fprintf(stdout, "Hit enter to begin! ");
          fflush(stdout);
@@ -104,7 +104,6 @@ int main(int argc, char * argv[])
    }
 
    comm->freeDatatypes(datatypes);
-   delete comm;
 
    delete initObj;
 

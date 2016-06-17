@@ -26,12 +26,11 @@ int dumponeweight(HyPerConn * conn);
 int main(int argc, char * argv[]) {
    int status;
    PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   PV_Arguments * arguments = initObj.getArguments();
    if (initObj.getParams()==NULL) {
       initObj.setParams("input/KernelActivationTest-fullData.params");
       status = buildandrun(&initObj);
       if (status==PV_SUCCESS) {
-         arguments->setParamsFile("input/KernelActivationTest-maskData.params");
+         initObj.setParams("input/KernelActivationTest-maskData.params");
          status = rebuildandrun(&initObj);
       }
    }

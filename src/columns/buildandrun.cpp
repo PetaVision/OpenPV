@@ -47,7 +47,7 @@ int buildandrun(PV_Init * initObj,
    PVParams * params = initObj->getParams();
    if (params==NULL) {
       if (initObj->getWorldRank()==0) {
-         char const * progName = initObj->getArguments()->getProgramName();
+         char const * progName = initObj->getProgramName();
          if (progName==NULL) { progName = "PetaVision"; }
          pvErrorNoExit().printf("%s was called without having set a params file\n", progName);
       }
@@ -96,8 +96,8 @@ int buildandrun1paramset(PV_Init * initObj,
    int argc = 0;
    char ** argv = NULL;
    if (custominit || customexit) {
-      argc = initObj->getArguments()->getNumArgs();
-      argv = initObj->getArguments()->getArgsCopy();
+      argc = initObj->getNumArgs();
+      argv = initObj->getArgsCopy();
    }
    if( custominit != NULL ) {
       status = (*custominit)(hc, argc, argv);
@@ -119,7 +119,7 @@ int buildandrun1paramset(PV_Init * initObj,
       }
    }
    if (custominit || customexit) {
-      initObj->getArguments()->freeArgs(argc, argv);
+      initObj->freeArgs(argc, argv);
    }
    delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
    return status;
@@ -155,7 +155,7 @@ int rebuildandrun(PV_Init* initObj,
    PVParams * params = initObj->getParams();
    if (params==NULL) {
       if (initObj->getWorldRank()==0) {
-         char const * progName = initObj->getArguments()->getProgramName();
+         char const * progName = initObj->getProgramName();
          if (progName==NULL) { progName = "PetaVision"; }
          pvErrorNoExit().printf("%s was called without having set a params file\n", progName);
       }
@@ -212,7 +212,7 @@ int rebuildandrun(PV_Init* initObj,
    PVParams * params = initObj->getParams();
    if (params==NULL) {
       if (initObj->getWorldRank()==0) {
-         char const * progName = initObj->getArguments()->getProgramName();
+         char const * progName = initObj->getProgramName();
          if (progName==NULL) { progName = "PetaVision"; }
          pvErrorNoExit().printf("%s was called without having set a params file\n", progName);
       }
@@ -257,8 +257,8 @@ int buildandrun1paramset(PV_Init* initObj,
    int argc = 0;
    char ** argv = NULL;
    if (custominit || customexit) {
-      argc = initObj->getArguments()->getNumArgs();
-      argv = initObj->getArguments()->getArgsCopy();
+      argc = initObj->getNumArgs();
+      argv = initObj->getArgsCopy();
    }
    if( custominit != NULL ) {
       status = (*custominit)(hc, argc, argv);
@@ -273,14 +273,14 @@ int buildandrun1paramset(PV_Init* initObj,
          pvErrorNoExit().printf("HyPerCol::run() returned with error code %d\n", status);
       }
    }
-   if( status==PV_SUCCESS && customexit != NULL && !initObj->getArguments()->getDryRunFlag()) {
+   if( status==PV_SUCCESS && customexit != NULL && !initObj->getDryRunFlag()) {
       status = (*customexit)(hc, argc, argv);
       if( status != PV_SUCCESS) {
          pvErrorNoExit().printf("customexit function failed with return value %d\n", status);
       }
    }
    if (custominit || customexit) {
-      initObj->getArguments()->freeArgs(argc, argv);
+      initObj->freeArgs(argc, argv);
    }
    delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
    return status;
@@ -367,8 +367,8 @@ int buildandrun1paramset(PV_Init * initObj,
    int argc = 0;
    char ** argv = NULL;
    if (custominit || customexit) {
-      argc = initObj->getArguments()->getNumArgs();
-      argv = initObj->getArguments()->getArgsCopy();
+      argc = initObj->getNumArgs();
+      argv = initObj->getArgsCopy();
    }
    if( custominit != NULL ) {
       status = (*custominit)(hc, argc, argv);
@@ -383,14 +383,14 @@ int buildandrun1paramset(PV_Init * initObj,
          pvErrorNoExit().printf("HyPerCol::run() returned with error code %d\n", status);
       }
    }
-   if( status==PV_SUCCESS && customexit != NULL && !initObj->getArguments()->getDryRunFlag() ) {
+   if( status==PV_SUCCESS && customexit != NULL && !initObj->getDryRunFlag() ) {
       status = (*customexit)(hc, argc, argv);
       if( status != PV_SUCCESS) {
          pvErrorNoExit().printf("customexit function failed with return value %d\n", status);
       }
    }
    if (custominit || customexit) {
-      initObj->getArguments()->freeArgs(argc, argv);
+      initObj->freeArgs(argc, argv);
    }
    delete hc; /* HyPerCol's destructor takes care of deleting layers and connections */
    return status;

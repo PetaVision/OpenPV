@@ -56,22 +56,19 @@ int main(int argc, char * argv[]) {
    initObj.registerKeyword("CPTestInputLayer", createCPTestInputLayer);
    initObj.registerKeyword("VaryingHyPerConn", createVaryingHyPerConn);
 
-   PV_Arguments * arguments = initObj.getArguments();
-   arguments->setParamsFile(paramFile1);
-   initObj.initialize();
+   initObj.setParams(paramFile1);
 
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", arguments->getProgramName(), rank, paramFile1, status);
+      pvError().printf("%s: rank %d running with params file %s returned error %d.\n", initObj.getProgramName(), rank, paramFile1, status);
    }
 
-   arguments->setParamsFile(paramFile2);
-   initObj.initialize();
-   arguments->setCheckpointReadDir("checkpoints1/Checkpoint12");
+   initObj.setParams(paramFile2);
+   initObj.setCheckpointReadDir("checkpoints1/Checkpoint12");
 
    status = rebuildandrun(&initObj);
    if( status != PV_SUCCESS ) {
-      pvError().printf("%s: rank %d running with params file %s returned status code %d.\n", arguments->getProgramName(), rank, paramFile2, status);
+      pvError().printf("%s: rank %d running with params file %s returned status code %d.\n", initObj.getProgramName(), rank, paramFile2, status);
    }
 
    return status==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;

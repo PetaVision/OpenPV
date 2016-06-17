@@ -27,13 +27,10 @@ int main(int argc, char * argv[]) {
       pvError().printf("%s: PV_Init::initialize() failed on process with PID=%d\n", argv[0], getpid()); 
    }
 
-   PV::PV_Arguments * pv_arguments = pv_obj.getArguments();
+   pv_obj.setDryRunFlag(true);
 
-   pv_arguments->setDryRunFlag(true);
-
-   if (pv_arguments->getParamsFile()==NULL) {
-      pv_arguments->setParamsFile("input/DryRunFlagTest.params");
-      pv_obj.setParams(pv_arguments->getParamsFile());
+   if (pv_obj.getParamsFile()==NULL) {
+      pv_obj.setParams("input/DryRunFlagTest.params");
    }
 
    if (pv_obj.isExtraProc()) { return EXIT_SUCCESS; }
@@ -52,16 +49,16 @@ int main(int argc, char * argv[]) {
    }
 
    // Re-run, without the dry-run flag.
-   pv_arguments->setDryRunFlag(false);
-   pv_arguments->setOutputPath("output-generate");
+   pv_obj.setDryRunFlag(false);
+   pv_obj.setOutputPath("output-generate");
    status = rebuildandrun(&pv_obj, NULL, checkDryRunCleared);
    if (status != PV_SUCCESS) {
       pvError().printf("%s: running with dry-run flag cleared failed on process %d\n", argv[0], rank);
    }
 
    // Run the column with the cleaned-up params file, sending output to directory "output-verify/"
-   pv_arguments->setOutputPath("output-verify");
-   pv_arguments->setParamsFile("output/pv.params");
+   pv_obj.setOutputPath("output-verify");
+   pv_obj.setParams("output/pv.params");
    status = rebuildandrun(&pv_obj, NULL, checkDryRunCleared);
    if (status != PV_SUCCESS) {
       pvError().printf("%s: running with processed params file failed on process %d\n", argv[0], rank);
@@ -125,7 +122,7 @@ int deleteFile(char const * path, PV::PV_Init * pv_obj) {
 
    int status = unlink(path);
    if (status != 0 && errno != ENOENT) {
-      pvErrorNoExit().printf("%s: error deleting %s: %s\n", pv_obj->getArguments()->getProgramName(), path, strerror(errno));
+      pvErrorNoExit().printf("%s: error deleting %s: %s\n", pv_obj->getProgramName(), path, strerror(errno));
       status = PV_FAILURE;
    }
    else {

@@ -22,7 +22,6 @@ int main(int argc, char * argv[]) {
    PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
    initObj.registerKeyword("ShrunkenPatchTestLayer", createShrunkenPatchTestLayer);
    initObj.registerKeyword("ShrunkenPatchTestProbe", createShrunkenPatchTestProbe);
-   PV_Arguments * arguments = initObj.getArguments();
    if (initObj.getParams() == NULL) {
       initObj.setParams("input/ShrunkenPatchTest.params");
    }

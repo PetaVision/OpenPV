@@ -18,43 +18,40 @@ int main(int argc, char * argv[]) {
    PV_Init initObj(&argc, &argv, false/*allowUnrecognizedArguments*/);
    MPI_Comm_rank(MPI_COMM_WORLD, &rank); /* Can't use `initObj.getComm()->communicator()` because initObj.initialize hasn't been called. */
 
-   PV_Arguments * arguments = initObj.getArguments();
-   if (arguments->getParamsFile() != NULL) {
+   if (initObj.getParamsFile() != NULL) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s does not take -p as an option.  Instead the necessary params files are hard-coded.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s does not take -p as an option.  Instead the necessary params files are hard-coded.\n", initObj.getProgramName());
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
    }
 
-   arguments->setParamsFile(paramfile1);
-   initObj.initialize();
+   initObj.setParams(paramfile1);
    int status1 = rebuildandrun(&initObj, NULL, NULL);
    if (status1 != PV_SUCCESS) {
-      pvError().printf("%s failed on param file %s with return code %d.\n", arguments->getProgramName(), paramfile1, status1);
+      pvError().printf("%s failed on param file %s with return code %d.\n", initObj.getProgramName(), paramfile1, status1);
    }
 
-   arguments->setParamsFile(paramfile2);
-   initObj.initialize();
+   initObj.setParams(paramfile2);
    int status2 = rebuildandrun(&initObj, NULL, &customexit);
    if (status2 != PV_SUCCESS) {
-      pvErrorNoExit().printf("%s failed on param file %s.\n", arguments->getProgramName(), paramfile2);
+      pvErrorNoExit().printf("%s failed on param file %s.\n", initObj.getProgramName(), paramfile2);
    }
    int status = status1==PV_SUCCESS && status2==PV_SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE;
 
 #ifdef PV_USE_MPI
    if (status == EXIT_SUCCESS) {
-      pvInfo().printf("Test complete.  %s passed on process rank %d.\n", arguments->getProgramName(), rank);
+      pvInfo().printf("Test complete.  %s passed on process rank %d.\n", initObj.getProgramName(), rank);
    }
    else {
-      pvErrorNoExit().printf("Test complete.  %s FAILED on process rank %d.\n", arguments->getProgramName(), rank);
+      pvErrorNoExit().printf("Test complete.  %s FAILED on process rank %d.\n", initObj.getProgramName(), rank);
    }
 #else
    if (status == EXIT_SUCCESS) {
-      pvInfo().printf("Test complete.  %s passed.\n", arguments->getProgramName());
+      pvInfo().printf("Test complete.  %s passed.\n", initObj.getProgramName());
    }
    else {
-      pvErrorNoExit().printf("Test complete.  %s FAILED.\n", arguments->getProgramName());
+      pvErrorNoExit().printf("Test complete.  %s FAILED.\n", initObj.getProgramName());
    }
 #endif // PV_USE_MPI
 

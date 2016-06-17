@@ -123,32 +123,31 @@ void PV_Init::initLogFile() {
          insertionPoint = finalDot;
       }
       logFileString.insert(finalDot, std::to_string(globalRank)).insert(finalDot, "_");
-      setLogFile(logFileString.c_str(), mode);
+      PV::setLogFile(logFileString.c_str(), mode);
    }
    else {
-      setLogFile(logFile, mode);
+      PV::setLogFile(logFile, mode);
    }
    time_t currentTime = time(nullptr);
    pvInfo() << "PetaVision started at " << ctime(&currentTime); // string returned by ctime contains a trailing \n.
    pvInfo() << "Command line arguments are:\n";
-   getArguments()->printState();
+   arguments->printState();
 
 }
 
 int PV_Init::setParams(char const * params_file) {
    if (params_file == NULL) { return PV_FAILURE; }
-   char const * newParamsFile = getArguments()->setParamsFile(params_file);
+   char const * newParamsFile = arguments->setParamsFile(params_file);
    if (newParamsFile==NULL) {
       pvErrorNoExit().printf("PV_Init unable to set new params file: %s\n", strerror(errno));
       return PV_FAILURE;
    }
    initialize();
    return createParams();
-   return PV_SUCCESS;
 }
 
 int PV_Init::createParams() {
-   char const * params_file = getArguments()->getParamsFile();
+   char const * params_file = arguments->getParamsFile();
    if (params_file) {
       delete params;
       params = new PVParams(params_file, 2*(INITIAL_LAYER_ARRAY_SIZE+INITIAL_CONNECTION_ARRAY_SIZE), icComm);
@@ -157,6 +156,14 @@ int PV_Init::createParams() {
    else {
       return PV_FAILURE;
    }
+}
+
+int PV_Init::setMPIConfiguration(int rows, int columns, int batchWidth) {
+   if (rows >= 0) { arguments->setNumRows(rows); }
+   if (columns >= 0) { arguments->setNumColumns(columns); }
+   if (batchWidth >= 0) { arguments->setBatchWidth(batchWidth); }
+   initialize();
+   return PV_SUCCESS;
 }
 
 int PV_Init::registerKeyword(char const * keyword, ObjectCreateFn creator) {

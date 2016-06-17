@@ -20,9 +20,8 @@ int main(int argc, char * argv[]) {
 
    PV::PV_Init pv_obj(&argc, &argv, false/*allowUnrecognizedArguments*/);
 
-   PV::PV_Arguments * pv_arguments = pv_obj.getArguments();
-   if (pv_arguments->getParamsFile()==NULL) {
-      pv_arguments->setParamsFile("input/ProcessParamsTest.params");
+   if (pv_obj.getParamsFile()==NULL) {
+      pv_obj.setParams("input/ProcessParamsTest.params");
    }
 
    status = pv_obj.initialize();
@@ -51,15 +50,15 @@ int main(int argc, char * argv[]) {
    }
 
    // Run the column with the raw params file, sending output to directory "output-generate/"
-   pv_arguments->setOutputPath("output-generate");
+   pv_obj.setOutputPath("output-generate");
    status = rebuildandrun(&pv_obj);
    if (status != PV_SUCCESS) {
       pvError().printf("%s: running with raw params file failed on process %d\n", argv[0], rank);
    }
 
    // Run the column with the cleaned-up params file, sending output to directory "output-verify/"
-   pv_arguments->setOutputPath("output-verify");
-   pv_arguments->setParamsFile(PROCESSED_PARAMS);
+   pv_obj.setOutputPath("output-verify");
+   pv_obj.setParams(PROCESSED_PARAMS);
    status = rebuildandrun(&pv_obj);
    if (status != PV_SUCCESS) {
       pvError().printf("%s: running with processed params file failed on process %d\n", argv[0], rank);
@@ -122,7 +121,7 @@ int deleteFile(char const * path, PV::PV_Init * pv_obj) {
 
    int status = unlink(path);
    if (status != 0 && errno != ENOENT) {
-      pvErrorNoExit().printf("%s: unable to delete %s: %s\n", pv_obj->getArguments()->getProgramName(), path, strerror(errno));
+      pvErrorNoExit().printf("%s: unable to delete %s: %s\n", pv_obj->getProgramName(), path, strerror(errno));
       status = PV_FAILURE;
    }
    else {

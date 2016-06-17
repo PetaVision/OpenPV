@@ -280,16 +280,16 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
 
    int rank = icComm->globalCommRank();
 
-   char const * gpu_devices = pv_initObj->getArguments()->getGPUDevices();
-   char const * working_dir = pv_initObj->getArguments()->getWorkingDir();
-   warmStart = pv_initObj->getArguments()->getRestartFlag();
-   char const * checkpoint_read_dir = pv_initObj->getArguments()->getCheckpointReadDir();
+   char const * gpu_devices = pv_initObj->getGPUDevices();
+   char const * working_dir = pv_initObj->getWorkingDir();
+   warmStart = pv_initObj->getRestartFlag();
+   char const * checkpoint_read_dir = pv_initObj->getCheckpointReadDir();
    if (checkpoint_read_dir) {
-      checkpointReadDir = strdup(pv_initObj->getArguments()->getCheckpointReadDir());
+      checkpointReadDir = strdup(pv_initObj->getCheckpointReadDir());
    }
 
 #ifdef PVP_DEBUG
-   if (pv_initObj->getArguments()->getRequireReturnFlag()) {
+   if (pv_initObj->getRequireReturnFlag()) {
       if( rank == 0 ) {
          printf("Hit enter to begin! ");
          fflush(stdout);
@@ -330,7 +330,7 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
    // This means that threading cannot happen in the initialization or communicateInitInfo stages,
    // but that should not be a problem.
 
-   char const * programName = pv_initObj->getArguments()->getProgramName();
+   char const * programName = pv_initObj->getProgramName();
 
    if(working_dir && columnId()==0) {
       int status = chdir(working_dir);
@@ -357,11 +357,11 @@ int HyPerCol::initialize(const char * name, PV_Init* initObj)
       exit(parsedStatus);
    }
 
-   if (pv_initObj->getArguments()->getOutputPath()) {
-      outputPath = strdup(pv_initObj->getArguments()->getOutputPath());
-      if (outputPath==NULL) {exit(13); /*Lucky 13 aka right now I'm too lazy to do error reporting right*/}
+   if (pv_initObj->getOutputPath()) {
+      outputPath = strdup(pv_initObj->getOutputPath());
+      if (outputPath==NULL) {pvError() << "HyPerCol::initialize unable to copy output path." << std::endl; }
    }
-   random_seed = pv_initObj->getArguments()->getRandomSeed();
+   random_seed = pv_initObj->getRandomSeed();
    ioParams(PARAMS_IO_READ);
 
    checkpointSignal = 0;
@@ -1578,7 +1578,7 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
       if (status != PV_SUCCESS) {
          pvError().printf("HyPerCol \"%s\" failed to run.\n", name);
       }
-      if (pv_initObj->getArguments()->getDryRunFlag()) { return PV_SUCCESS; }
+      if (pv_initObj->getDryRunFlag()) { return PV_SUCCESS; }
 
       int thread_status = setNumThreads(true/*now, print messages related to setting number of threads*/);
       MPI_Barrier(icComm->globalCommunicator());
@@ -1762,7 +1762,6 @@ int HyPerCol::run(double start_time, double stop_time, double dt)
 int HyPerCol::setNumThreads(bool printMessagesFlag) {
    bool printMsgs0 = printMessagesFlag && globalRank()==0;
    int thread_status = PV_SUCCESS;
-   PV_Arguments const * arguments = pv_initObj->getArguments();
    int num_threads = 0;
 #ifdef PV_USE_OPENMP_THREADS
    int max_threads = pv_initObj->getMaxThreads();
@@ -1771,7 +1770,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       pvInfo().printf("Maximum number of OpenMP threads%s is %d\nNumber of MPI processes is %d.\n",
             comm_size==1 ? "" : " (over all processes)", max_threads, comm_size);
    }
-   if (arguments->getUseDefaultNumThreads()) {
+   if (pv_initObj->getUseDefaultNumThreads()) {
       num_threads = max_threads/comm_size; // integer arithmetic
       if (num_threads == 0) {
          num_threads = 1;
@@ -1781,7 +1780,7 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
       }
    }
    else {
-      num_threads = arguments->getNumThreads();
+      num_threads = pv_initObj->getNumThreads();
    }
    if (num_threads>0) {
       if (printMsgs0) {
@@ -1791,14 +1790,14 @@ int HyPerCol::setNumThreads(bool printMessagesFlag) {
    else if (num_threads==0) {
       thread_status = PV_FAILURE;
       if (printMsgs0) {
-         pvErrorNoExit().printf("%s: number of threads must be positive (was set to zero)\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s: number of threads must be positive (was set to zero)\n", pv_initObj->getProgramName());
       }
    }
    else {
       assert(num_threads<0);
       thread_status = PV_FAILURE;
       if (printMsgs0) {
-         pvErrorNoExit().printf("%s was compiled with PV_USE_OPENMP_THREADS; therefore the \"-t\" argument is required.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s was compiled with PV_USE_OPENMP_THREADS; therefore the \"-t\" argument is required.\n", pv_initObj->getProgramName());
       }
    }
 #else // PV_USE_OPENMP_THREADS

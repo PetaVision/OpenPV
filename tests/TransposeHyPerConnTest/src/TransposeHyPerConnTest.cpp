@@ -29,19 +29,18 @@ int dumpWeights(HyPerConn * conn);
 
 int main(int argc, char * argv[]) {
    PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
-   InterColComm * icComm = new InterColComm(initObj->getArguments());
+   InterColComm * icComm = initObj->getComm();
 
-   PV_Arguments * arguments = initObj->getArguments();
-   if (arguments->getParamsFile() != NULL) {
+   if (initObj->getParamsFile() != NULL) {
       int rank = icComm->globalCommRank();
       if (rank==0) {
-         pvErrorNoExit().printf("%s does not take -p as an option.  Instead the necessary params file is hard-coded.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s does not take -p as an option.  Instead the necessary params file is hard-coded.\n", initObj->getProgramName());
       }
       MPI_Barrier(MPI_COMM_WORLD);
       exit(EXIT_FAILURE);
    }
 
-   arguments->setParamsFile("input/TransposeHyPerConnTest.params");
+   initObj->setParams("input/TransposeHyPerConnTest.params");
 
    initObj->initialize();
 

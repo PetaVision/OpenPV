@@ -46,22 +46,21 @@ int main(int argc, char * argv[]) {
       exit(EXIT_FAILURE);
    }
    
-   PV_Arguments * arguments = initObj->getArguments();
-   if (arguments->getParamsFile()!=NULL) {
+   if (initObj->getParamsFile()!=NULL) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s should be run without the params file argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the params file argument.\n", initObj->getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getNumRows()!=0) {
+   if (initObj->getNumRows()!=0) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s should be run without the rows argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the rows argument.\n", initObj->getProgramName());
       }
       status = PV_FAILURE;
    }
-   if (arguments->getNumColumns()!=0) {
+   if (initObj->getNumColumns()!=0) {
       if (rank==0) {
-         pvErrorNoExit().printf("%s should be run without the columns argument.\n", arguments->getProgramName());
+         pvErrorNoExit().printf("%s should be run without the columns argument.\n", initObj->getProgramName());
       }
       status = PV_FAILURE;
    }
@@ -73,13 +72,11 @@ int main(int argc, char * argv[]) {
       exit(EXIT_FAILURE);
    }
 
-   arguments->setParamsFile("input/test_mpi_specifyrowscolumns.params");
-   arguments->setNumRows(2);
-   arguments->setNumColumns(3);
+   initObj->setParams("input/test_mpi_specifyrowscolumns.params");
+   initObj->setMPIConfiguration(2/*numRows*/, 3/*numColumns*/, -1/*batchWidth unchanged*/);
    buildandverify(initObj);
 
-   arguments->setNumRows(3);
-   arguments->setNumColumns(2);
+   initObj->setMPIConfiguration(3/*numRows*/, 2/*numColumns*/, -1/*batchWidth unchanged*/);
    buildandverify(initObj);
 
    delete initObj;
@@ -90,8 +87,8 @@ int buildandverify(PV::PV_Init* initObj) {
    initObj->initialize();
    PV::HyPerCol * hc = new PV::HyPerCol("column", initObj);
    /* PV::ANNLayer * layer = */ new PV::ANNLayer("layer", hc);
-   int rows = initObj->getArguments()->getNumRows();
-   int columns = initObj->getArguments()->getNumColumns();
+   int rows = initObj->getNumRows();
+   int columns = initObj->getNumColumns();
    assert(rows > 0 && columns > 0);
    int status = verifyLoc(hc, rows, columns);
    delete hc;

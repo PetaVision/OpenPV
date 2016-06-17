@@ -40,8 +40,7 @@ int main(int argc, char * argv[])
    int rank=0;
    PV_Init* initObj = new PV_Init(&argc, &argv, false/*allowUnrecognizedArguments*/);
 
-   PV_Arguments * arguments = initObj->getArguments();
-   if (arguments->getParamsFile() != NULL) {
+   if (initObj->getParamsFile() != NULL) {
       if (rank==0) {
          pvErrorNoExit().printf("%s does not take -p as an option.  Instead the necessary params file is hard-coded.\n", argv[0]);
       }
@@ -49,9 +48,8 @@ int main(int argc, char * argv[])
       exit(EXIT_FAILURE);
    }
 
-   arguments->setParamsFile("input/test_border_activity.params");
+   initObj->setParams("input/test_border_activity.params");
 
-   initObj->initialize();
    HyPerCol * hc = new HyPerCol("column", initObj);
 
    const char * imageLayerName = "test_border_activity image";
