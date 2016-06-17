@@ -71,7 +71,7 @@ ANNLayer "Output" = {
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
-    <AShift>=0.0;
+    AShift=0.0;
 };
 
 ANNLayer "Output1x1" = {
@@ -90,7 +90,7 @@ ANNLayer "Output1x1" = {
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
-    <AShift>=0.0;
+    AShift=0.0;
 };
 
 ANNLayer "Output3x3" = {
@@ -109,7 +109,7 @@ ANNLayer "Output3x3" = {
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
-    <AShift>=0.0;
+    AShift=0.0;
 };
 
 ANNLayer "Output5x5" = {
@@ -128,7 +128,7 @@ ANNLayer "Output5x5" = {
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
-    <AShift>=0.0;
+    AShift=0.0;
 };
 
 ANNLayer "Output7x7" = {
@@ -147,7 +147,7 @@ ANNLayer "Output7x7" = {
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
-    <AShift>=0.0;
+    AShift=0.0;
 };
 
 ANNLayer "Comparison1x1" = {
@@ -166,7 +166,7 @@ ANNLayer "Comparison1x1" = {
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
-    <AShift>=0.0;
+    AShift=0.0;
 };
 
 ANNLayer "Comparison3x3" = {
@@ -185,7 +185,7 @@ ANNLayer "Comparison3x3" = {
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
-    <AShift>=0.0;
+    AShift=0.0;
 };
 
 ANNLayer "Comparison5x5" = {
@@ -204,7 +204,7 @@ ANNLayer "Comparison5x5" = {
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
-    <AShift>=0.0;
+    AShift=0.0;
 };
 
 ANNLayer "Comparison7x7" = {
@@ -223,7 +223,7 @@ ANNLayer "Comparison7x7" = {
     VThresh = -infinity;
     AMax = infinity;
     AMin = -infinity;
-    <AShift>=0.0;
+    AShift=0.0;
 };
 
 HyPerConn "InputToOutput" = {
